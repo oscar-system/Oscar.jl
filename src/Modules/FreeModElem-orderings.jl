@@ -261,7 +261,7 @@ Return the tail of `f` with respect to the order `ordering`.
 """
 function tail(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
   (i, j) = index_of_leading_term(f, ordering)
-  c = collect(k == i ? _delete_index(p, j) : p for (k, p) in f.coords)
+  c = collect(k == i ? _delete_index(p, j) : p for (k, p) in coordinates(f))
   return FreeModElem(c, parent(f))
 end
 

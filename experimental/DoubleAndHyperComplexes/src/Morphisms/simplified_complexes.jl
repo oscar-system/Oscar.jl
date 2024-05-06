@@ -531,7 +531,7 @@ function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) wher
   n = ngens(W)
   result = sparse_matrix(kk, m, n)
   for i in 1:m
-    result[i] = phi(V[i]).coords
+    result[i] = coordinates(phi(V[i]))
   end
   return result
 end

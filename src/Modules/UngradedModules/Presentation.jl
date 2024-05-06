@@ -46,7 +46,7 @@ function presentation(SQ::SubquoModule)
 
     for x = c
       b = sparse_row(R)
-      for (i,v) = x.coords
+      for (i,v) in coordinates(x)
         if i>ngens(SQ)
           break
         end

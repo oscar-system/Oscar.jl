@@ -354,7 +354,8 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
       throw(DomainError("v does not represent a homomorphism"))
     end
     R = base_ring(M)
-    A = copy_and_reshape(dense_row(repres(v).coords[R, 1:s0*t0], s0*t0), s0, t0)
+    c = coordinates(repres(v))
+    A = copy_and_reshape(dense_row(c[R, 1:s0*t0], s0*t0), s0, t0)
     return A
   end
 

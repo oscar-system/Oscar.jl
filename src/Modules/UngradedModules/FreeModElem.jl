@@ -124,7 +124,7 @@ end
 
 function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
-  for (pos, val) in e.coords
+  for (pos, val) in coordinates(e)
      # assuming generator_symbols(parent(e)) is an array of strings/symbols
      push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
   end
@@ -206,7 +206,7 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
   if parent(a) !== parent(b)
     return false
   end
-  return a.coords == b.coords
+  return coordinates(a) == coordinates(b)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
