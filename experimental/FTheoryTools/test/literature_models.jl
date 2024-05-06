@@ -471,7 +471,7 @@ foah2_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.12", type = 
 foah3_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.54", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah4_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.17", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah5_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.73", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah6_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s4" => Kbar), completeness_check = false)
+foah6_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah7_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.96", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah8_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.106", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah9_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.118", type = "hypersurface", base_space = B3, model_sections = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
