@@ -26,7 +26,7 @@ function subgroup_of_pseudo_reflections(G::MatrixGroup)
       append!(g, collect(c))
     end
   end
-  return sub(G, g, check = false)
+  return sub(G, g; check=false)
 end
 
 @doc raw"""
@@ -44,9 +44,9 @@ end
 # Assumes that zeta is a primitive l-th root of unity
 function _powers_of_root_of_unity(zeta::FieldElem, l::Int)
   K = parent(zeta)
-  powers_of_zeta = Dict{elem_type(K), Int}()
+  powers_of_zeta = Dict{elem_type(K),Int}()
   t = one(K)
-  for i in 0:l - 1
+  for i in 0:(l - 1)
     powers_of_zeta[t] = i
     t *= zeta
   end
@@ -78,16 +78,16 @@ function homogenize(f::MPolyRingElem, S::MPolyDecRing, start_pos::Int, positive:
   end
 
   degs_mons = Vector{Int}[]
-  degs_vars = [ [ Int(S.d[i][j]) for j in 1:ngens(S.D) ] for i in 1:ngens(S) ]
+  degs_vars = [[Int(S.d[i][j]) for j in 1:ngens(S.D)] for i in 1:ngens(S)]
 
   for e in exps
-    push!(degs_mons, sum(e.*degs_vars))
+    push!(degs_mons, sum(e .* degs_vars))
   end
 
   if positive
-    tdeg = maximum(hcat(degs_mons...), dims = 2)[:, 1]
+    tdeg = maximum(hcat(degs_mons...); dims=2)[:, 1]
   else
-    ldeg = minimum(hcat(degs_mons...), dims = 2)[:, 1]
+    ldeg = minimum(hcat(degs_mons...); dims=2)[:, 1]
   end
 
   F = MPolyBuildCtx(S)
@@ -114,23 +114,23 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
 
   # Permute the variables. The standard basis appears to be faster if the bigger
   # weights are in front.
-  p = sortperm([ S.d[i].coeff[1] for i in 1:ngens(S) - 1 ], rev = true)
+  p = sortperm([S.d[i].coeff[1] for i in 1:(ngens(S) - 1)]; rev=true)
 
   push!(p, ngens(S))
 
-  w_perm = ZZRingElem[ S.d[p[i]].coeff[1] for i in 1:ngens(S) ]
+  w_perm = ZZRingElem[S.d[p[i]].coeff[1] for i in 1:ngens(S)]
   @assert !iszero(w_perm[1]) "All given weights are zero"
 
   R = base_ring(I)
   Rp = polynomial_ring(coefficient_ring(R), "t" => 1:ngens(R))[1]
-  RtoRp = hom(R, Rp, [ gen(Rp, findfirst(isequal(i), p)) for i in 1:ngens(Rp) ])
+  RtoRp = hom(R, Rp, [gen(Rp, findfirst(isequal(i), p)) for i in 1:ngens(Rp)])
 
   Sp, _ = graded_polynomial_ring(coefficient_ring(S), ["t$i" for i in 1:ngens(S)], w_perm)
-  SptoS = hom(Sp, S, [ gens(S)[p[i]] for i in 1:ngens(S) ])
+  SptoS = hom(Sp, S, [gens(S)[p[i]] for i in 1:ngens(S)])
 
   # Homogenize the generators
   positive = (Sp.d[ngens(Sp)].coeff[1] > 0)
-  J = ideal(Sp, [ homogenize(RtoRp(f), Sp, ngens(Sp), positive) for f in gens(I) ])
+  J = ideal(Sp, [homogenize(RtoRp(f), Sp, ngens(Sp), positive) for f in gens(I)])
 
   # Now saturate w.r.t. the last variable using a variant of Bayer's method
 
@@ -148,12 +148,12 @@ function homogenize_at_last_variable(I::MPolyIdeal, S::MPolyDecRing)
   M[2, ncols(M)] = -1
 
   non_zero_weight = false
-  for i in 2:nvars(Sp) - 1
+  for i in 2:(nvars(Sp) - 1)
     M[i + 1, i] = 1
   end
 
   o = matrix_ordering(gens(Sp), M)
-  gb = standard_basis(J, ordering = o)
+  gb = standard_basis(J; ordering=o)
 
   t = gen(Sp, nvars(Sp))
   res = elem_type(Sp)[]

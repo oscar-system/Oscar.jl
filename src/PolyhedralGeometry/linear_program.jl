@@ -50,8 +50,7 @@ linear_program(
   c::AbstractVector;
   k=0,
   convention=:max,
-) =
-  linear_program(polyhedron(f, A, b), c; k=k, convention=convention)
+) = linear_program(polyhedron(f, A, b), c; k=k, convention=convention)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
 
@@ -157,7 +156,9 @@ function optimal_vertex(lp::LinearProgram{T}) where {T<:scalar_types}
     opt_vert = lp.polymake_lp.MINIMAL_VERTEX
   end
   if !isnothing(opt_vert)
-    return point_vector(coefficient_field(lp), view(dehomogenize(opt_vert), :))::PointVector{T}
+    return point_vector(
+      coefficient_field(lp), view(dehomogenize(opt_vert), :)
+    )::PointVector{T}
   else
     return nothing
   end

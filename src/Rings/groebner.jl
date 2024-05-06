@@ -130,9 +130,10 @@ Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
-- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
-- `:fglm` (implementation of the FGLM algorithm in *Singular*), and
-- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
+- `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
+- `:fglm` (implementation of the FGLM algorithm in *Singular*),
+- `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
+- `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*).
 
 !!! note
     See the description of the functions `groebner_basis_hilbert_driven`, `fglm`, 
@@ -171,6 +172,8 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     end
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
+  elseif algorithm == :hc
+    standard_basis_highest_corner(I, ordering=ordering)
   elseif algorithm == :hilbert
     weights = _find_weights(gens(I))
     if !any(iszero, weights)
@@ -302,6 +305,30 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
                         algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
+end
+
+@doc raw"""
+    standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I))) 
+
+Return a standard basis of `I` with respect to `ordering`. `ordering` needs to be local, the coefficient ring needs to be `QQ`.
+The algorithm first computes a standard basis over a finite field in order to get an upper bound for the highest corner fast.
+Then this bound is used to speed up the standard basis computation over `QQ´.
+"""
+function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)))
+    @req is_local(ordering) "Monomial ordering must be local for this variant."
+    @req coefficient_ring(I) == QQ "Base ring must be QQ."
+
+    #= apply highest corner standard basis variant in Singular =#
+    ssb = Singular.LibStandard.groebner(singular_groebner_generators(I, ordering), "HC")
+
+    sb = IdealGens(I.gens.Ox, ssb, false)
+    sb.isGB = true
+    sb.ord  = ordering
+    if isdefined(sb, :S)
+        sb.S.isGB = true
+    end
+    I.gb[ordering] = sb
+    return sb
 end
 
 @doc raw"""
@@ -1602,7 +1629,6 @@ multi-modular strategy.
 !!! note
     This function is probabilistic and returns a correct result
     only with high probability.
-
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x","y","z"]);
 

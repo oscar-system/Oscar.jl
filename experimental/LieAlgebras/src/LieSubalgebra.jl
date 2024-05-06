@@ -213,7 +213,7 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  sol = kernel(mat; side = :left)
+  sol = kernel(mat; side=:left)
   sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)

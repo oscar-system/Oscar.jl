@@ -1,25 +1,25 @@
 @testset "Invariant rings (for matrix groups)" begin
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [ 0, 1, 0, 1, 0, 0, 0, 0, 1 ])
-  M2 = matrix(K, 3, 3, [ 1, 0, 0, 0, a, 0, 0, 0, -a - 1 ])
+  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
+  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
   RG0 = invariant_ring(M1, M2)
 
   # Explicitly call the other constructors
-  invariant_ring([ M1, M2 ])
-  invariant_ring(K, [ M1, M2 ])
-  invariant_ring(matrix_group([ M1, M2 ]))
+  invariant_ring([M1, M2])
+  invariant_ring(K, [M1, M2])
+  invariant_ring(matrix_group([M1, M2]))
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), internal_ordering = :degrevlex)
-  @test polynomial_ring(invariant_ring(R, [ M1, M2 ])) === R
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3); internal_ordering=:degrevlex)
+  @test polynomial_ring(invariant_ring(R, [M1, M2])) === R
   @test polynomial_ring(invariant_ring(R, M1, M2)) === R
   @test polynomial_ring(invariant_ring(R, matrix_group(M1, M2))) === R
 
   F = GF(3)
-  N1 = matrix(F, 3, 3, [ 0, 1, 0, 2, 0, 0, 0, 0, 2 ])
-  N2 = matrix(F, 3, 3, [ 2, 0, 0, 0, 2, 0, 0, 0, 2 ])
+  N1 = matrix(F, 3, 3, [0, 1, 0, 2, 0, 0, 0, 0, 2])
+  N2 = matrix(F, 3, 3, [2, 0, 0, 0, 2, 0, 0, 0, 2])
   RGp = invariant_ring(N1, N2) # char p, non-modular
 
-  N3 = matrix(F, 2, 2, [ 1, 1, 0, 1 ])
+  N3 = matrix(F, 2, 2, [1, 1, 0, 1])
   RGm = invariant_ring(N3) # charp, modular
 
   @test coefficient_ring(RG0) == K
@@ -37,8 +37,10 @@
   @test reynolds_operator(RG0, gen(R0, 3)^3) == gen(R0, 3)^3
   @test reynolds_operator(RG0, gen(R0, 1)) == zero(R0)
 
-  @test reynolds_operator(RG0, gen(R0, 3)^3) == reynolds_operator(RG0, gen(R0, 3)^3, trivial_character(group(RG0)))
-  @test reynolds_operator(RG0, gen(R0, 1)) == reynolds_operator(RG0, gen(R0, 1), trivial_character(group(RG0)))
+  @test reynolds_operator(RG0, gen(R0, 3)^3) ==
+    reynolds_operator(RG0, gen(R0, 3)^3, trivial_character(group(RG0)))
+  @test reynolds_operator(RG0, gen(R0, 1)) ==
+    reynolds_operator(RG0, gen(R0, 1), trivial_character(group(RG0)))
 
   @test reynolds_operator(RGp, gen(Rp, 3)^2) == gen(Rp, 3)^2
   @test reynolds_operator(RGp, gen(Rp, 1)) == zero(Rp)
@@ -77,32 +79,46 @@
   @test mol == (-t^4 - 1)//(t^8 - 2t^6 + 2t^2 - 1)
 
   # S5 (deleted permutation module)
-  G = matrix_group(matrix(QQ, [-1 1 0 0;
-                               -1 0 1 0;
-                               -1 0 0 1;
-                               -1 0 0 0]),
-                   matrix(QQ, [0 1 0 0;
-                               1 0 0 0;
-                               0 0 1 0;
-                               0 0 0 1]))
+  G = matrix_group(
+    matrix(
+      QQ,
+      [
+        -1 1 0 0
+        -1 0 1 0
+        -1 0 0 1
+        -1 0 0 0
+      ],
+    ),
+    matrix(
+      QQ,
+      [
+        0 1 0 0
+        1 0 0 0
+        0 0 1 0
+        0 0 0 1
+      ],
+    ),
+  )
   I = invariant_ring(G)
   S, t = QQ["t"]
   m = @inferred molien_series(S, I)
-  @test m == 1//((1 - t^2)*(1 - t^3)*(1 - t^4)*(1 - t^5))
+  @test m == 1//((1 - t^2) * (1 - t^3) * (1 - t^4) * (1 - t^5))
 
   # S4 (natural permutation module in characteristic 5)
   gl = general_linear_group(4, 5)
-  gapmats = [GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5))
-             for elm in gens(symmetric_group(4))]
+  gapmats = [
+    GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5)) for
+    elm in gens(symmetric_group(4))
+  ]
   s4 = sub(gl, [MatrixGroupElem(gl, x) for x in gapmats])[1]
   I = invariant_ring(s4)
   m = @inferred molien_series(S, I)
-  @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))
+  @test m == 1//((1 - t) * (1 - t^2) * (1 - t^3) * (1 - t^4))
 
   F = GF(3)
   I = invariant_ring(-identity_matrix(F, 2))
   m = @inferred molien_series(S, I)
-  @test m == (t^2 + 1)//(t^4 - 2*t^2 + 1)
+  @test m == (t^2 + 1)//(t^4 - 2 * t^2 + 1)
 end
 
 @testset "Invariant rings (for permutation groups)" begin
@@ -118,7 +134,7 @@ end
   F3 = GF(3)
   RGM = invariant_ring(F3, G)  # char. p, modular
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3), internal_ordering = :degrevlex)
+  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3); internal_ordering=:degrevlex)
   @test polynomial_ring(invariant_ring(R, G)) === R
 
   @test coefficient_ring(RGQ) == QQ
@@ -165,26 +181,28 @@ end
   mol = molien_series(RGK)
   F = parent(mol)
   t = gens(base_ring(F))[1]
-  @test mol == 1//((1-t^3)*(1-t^2)*(1-t))
+  @test mol == 1//((1 - t^3) * (1 - t^2) * (1 - t))
 
   mol = molien_series(RGF)
   F = parent(mol)
   t = gens(base_ring(F))[1]
-  @test mol == 1//((1-t^3)*(1-t^2)*(1-t))
+  @test mol == 1//((1 - t^3) * (1 - t^2) * (1 - t))
 
   # S4 (natural permutation module in characteristic 5)
   s4 = symmetric_group(4)
   S, t = QQ["t"]
   I = invariant_ring(GF(5), s4)
   m = @inferred molien_series(S, I)
-  @test m == 1//((1 - t)*(1 - t^2)*(1 - t^3)*(1 - t^4))
+  @test m == 1//((1 - t) * (1 - t^2) * (1 - t^3) * (1 - t^4))
 
   S2 = symmetric_group(2)
   RS2 = invariant_ring(S2)
   R = polynomial_ring(RS2)
   x = gens(R)
   F = abelian_closure(QQ)[1]
-  chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
+  chi = Oscar.class_function(
+    S2, [F(sign(representative(c))) for c in conjugacy_classes(S2)]
+  )
   @test reynolds_operator(RS2, x[1] - x[2], chi) == x[1] - x[2]
   @test reynolds_operator(RS2, x[1] + x[2], chi) == zero(R)
 
@@ -192,7 +210,7 @@ end
   F = parent(mol)
   t = gens(base_ring(F))[1]
   @test mol == 1//(t^3 - t^2 - t + 1)
-  @test molien_series(base_ring(F), RS2, chi) == t*mol
+  @test molien_series(base_ring(F), RS2, chi) == t * mol
 
   @test length(basis(RS2, 1, chi)) == 1
 end

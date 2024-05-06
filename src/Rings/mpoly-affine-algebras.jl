@@ -19,18 +19,56 @@ julia> dim(A)
 1
 ```
 """
-function dim(A::MPolyQuoRing) 
+function dim(A::MPolyQuoRing)
   I = A.I
   return dim(I)
 end
 
+@doc raw"""
+    is_finite_dimensional_vector_space(A::MPolyQuoRing)
+
+If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
+`K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
+as a `K`-vector space, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> A, _ = quo(R, ideal(R, [x^3+y^3+z^3-1, x^2+y^2+z^2-1, x+y+z-1]));
+
+julia> is_finite_dimensional_vector_space(A)
+true
+
+julia> A, _ = quo(R, ideal(R, [x]));
+
+julia> is_finite_dimensional_vector_space(A)
+false
+```
+"""
+function is_finite_dimensional_vector_space(A::MPolyQuoRing)
+  # We check '<=' because A might be the zero ring, so dim(A) == -1
+  return dim(A) <= 0
+end
+
+struct InfiniteDimensionError <: Exception
+end
+
+function Base.showerror(io::IO, err::InfiniteDimensionError)
+  println(io, "Infinite-dimensional vector space")
+  print(io, "You may check finiteness with `is_finite_dimensional_vector_space`")
+end
 
 @doc raw"""
     vector_space_dimension(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A` 
+`K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A`
 as a `K`-vector space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -60,10 +98,9 @@ function vector_space_dimension(A::MPolyQuoRing)
   if !isa(coefficient_ring(A), AbstractAlgebra.Field)
     error("vector_space_dimension requires a coefficient ring that is a field")
   end
-  I = A.I
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
+  I = modulus(A)
   G = standard_basis(I)
-  # We check '<=' because I might be the whole ring, so dim(I) == -1
-  @req dim(I) <= 0 "The ideal must be zero-dimensional"
   return Singular.vdim(singular_generators(G, G.ord))
 end
 
@@ -71,9 +108,13 @@ end
     monomial_basis(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R` 
+`K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R`
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space.
+
+If `A` is not a finite-dimensional vector space, an exception is raised.
+Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
+is finite.
 
 # Examples
 ```jldoctest
@@ -99,23 +140,22 @@ julia> L = monomial_basis(A)
 """
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
+  is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = A.I
   G = standard_basis(I)
   if dim(I) == -1 # I is the whole ring
     return elem_type(base_ring(A))[]
   end
-  @req dim(I) == 0 "The ideal must be zero-dimensional"
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
-
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing, g::FinGenAbGroupElem)
 
 Given an affine algebra `A` over a field which is graded by a free
 group of type `FinGenAbGroup`, and given an element `g` of that group,
-return a vector of monomials of `R` such that the residue classes of 
+return a vector of monomials of `R` such that the residue classes of
 these monomials form a `K`-basis of the graded part of `A` of degree `g`.
 
     monomial_basis(A::MPolyQuoRing, W::Vector{<:IntegerUnion})
@@ -185,16 +225,16 @@ end
 ##################################################################################
 
 
-# TODO: The function below now also works for rings which are not standard graded 
-# by virtue of Abbott's implementation. Clean up the docstring accordingly. 
+# TODO: The function below now also works for rings which are not standard graded
+# by virtue of Abbott's implementation. Clean up the docstring accordingly.
 @doc raw"""
     hilbert_series(A::MPolyQuoRing; backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, return a pair $(p,q)$, say, of univariate 
-polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as 
-a rational function with denominator 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning
+positive integer weights to the variables, return a pair $(p,q)$, say, of univariate
+polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of $A$ as
+a rational function with denominator
 
 $q = (1-t^{w_1})\cdots (1-t^{w_n}),$
 
@@ -202,10 +242,10 @@ where $n$ is the number of variables of $R$, and $w_1, \dots, w_n$ are the assig
 
 See also `hilbert_series_reduced`.
 
-!!! note 
-    The advanced user can select different backends for the computation (`:Singular` and 
-    `:Abbott` for the moment), as well as different algorithms. The latter might be 
-    ignored for certain backends. 
+!!! note
+    The advanced user can select different backends for the computation (`:Singular` and
+    `:Abbott` for the moment), as well as different algorithms. The latter might be
+    ignored for certain backends.
 
 # Examples
 ```jldoctest
@@ -242,17 +282,16 @@ end
 
 # TODO: The method below is missing. It should be made better and put to the correct place (AA).
 number_of_generators(S::AbstractAlgebra.Generic.LaurentPolyWrapRing) = 1
-number_of_generators(P::PolyRing) = 1
 
 
 @doc raw"""
     hilbert_series_reduced(A::MPolyQuoRing)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, return a pair $(p,q)$, say, of univariate 
-polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of 
-$A$ as a rational function written in lowest terms. 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning
+positive integer weights to the variables, return a pair $(p,q)$, say, of univariate
+polynomials $p, q\in\mathbb Z[t]$ such that $p/q$ represents the Hilbert series of
+$A$ as a rational function written in lowest terms.
 
 See also `hilbert_series`.
 
@@ -287,9 +326,9 @@ end
 @doc raw"""
     hilbert_series_expanded(A::MPolyQuoRing, d::Int)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, return the Hilbert series of $A$ to precision $d$. 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning
+positive integer weights to the variables, return the Hilbert series of $A$ to precision $d$.
 
 # Examples
 ```jldoctest
@@ -319,18 +358,18 @@ function hilbert_series_expanded(A::MPolyQuoRing, d::Int)
     T, t = power_series_ring(QQ, d+1, "t")
     return _rational_function_to_power_series(T, num, evaluate(denom))
   end
-  H = HilbertData(A.I)  
+  H = HilbertData(A.I)
   return hilbert_series_expanded(H, d)
 end
 
 @doc raw"""
     hilbert_function(A::MPolyQuoRing, d::Int)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
-is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning 
-positive integer weights to the variables, return the value $H(A, d),$ where 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
+is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning
+positive integer weights to the variables, return the value $H(A, d),$ where
 
-$H(A, \underline{\phantom{d}}): \N \to \N, \; d  \mapsto \dim_K A_d,$ 
+$H(A, \underline{\phantom{d}}): \N \to \N, \; d  \mapsto \dim_K A_d,$
 
 is the Hilbert function of $A$.
 
@@ -360,11 +399,11 @@ function hilbert_function(A::MPolyQuoRing, d::Int)
    H = HilbertData(A.I)
    return hilbert_function(H, d)
 end
-   
+
 @doc raw"""
      hilbert_polynomial(A::MPolyQuoRing)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
 return the Hilbert polynomial of $A$.
 
@@ -398,7 +437,7 @@ end
 @doc raw"""
     degree(A::MPolyQuoRing)
 
-Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading 
+Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
 return the degree of $A$.
 
@@ -427,11 +466,11 @@ end
 ###############################################################################
 
 ### TODO: Originally meant to be used in multi_hilbert_series; might be useful elsewhere
-function transform_to_positive_orthant(rs::Matrix{Int})   
+function transform_to_positive_orthant(rs::Matrix{Int})
     C = positive_hull(rs)
     @assert is_fulldimensional(C) "Cone spanned by generator degrees needs to be full-dimensional"
     F = linear_inequality_matrix(facets(C))
-    
+
     # Find a simplicial cone containing C
     index = 2
     full_rank_subset = [1]
@@ -451,7 +490,7 @@ function transform_to_positive_orthant(rs::Matrix{Int})
         end
     end
     Csimplicial = cone_from_inequalities(F[full_rank_subset,:])
-    
+
     @assert Polymake.polytope.included_polyhedra(C.pm_cone, Csimplicial.pm_cone) "Cone containment violated"
     CsRays = Polymake.common.primitive(Csimplicial.pm_cone.RAYS)
     CsRays = matrix(ZZ, CsRays)
@@ -475,8 +514,8 @@ end
 
 Return the Hilbert series of the graded affine algebra `A`.
 
-!!! note 
-    The advanced user can select an `algorithm` for the computation; 
+!!! note
+    The advanced user can select an `algorithm` for the computation;
     see the code for details.
 
 # Examples
@@ -534,8 +573,8 @@ Map
 ```
 """
 function multi_hilbert_series(
-    A::MPolyQuoRing; 
-    algorithm::Symbol=:BayerStillmanA, 
+    A::MPolyQuoRing;
+    algorithm::Symbol=:BayerStillmanA,
     backend::Symbol=:Abbott,
     parent::Union{Nothing, Ring}=nothing
   )
@@ -544,12 +583,12 @@ function multi_hilbert_series(
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req is_positively_graded(A) "the ring must be positively graded"
 
-  # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a 
-  # free Abelian group. 
+  # Wrap the case where G is abstractly isomorphic to ℤᵐ, but not realized as a
+  # free Abelian group.
   #
-  # We use the Smith normal form to get there, recreate the graded ring with the 
-  # free grading group, do the computation there and return the isomorphism for 
-  # the grading. 
+  # We use the Smith normal form to get there, recreate the graded ring with the
+  # free grading group, do the computation there and return the isomorphism for
+  # the grading.
   G = grading_group(R)
   if !is_zm_graded(R)
     H, iso = snf(G)
@@ -565,7 +604,7 @@ function multi_hilbert_series(
   end
 
   # Now we may assume that the grading group is free Abelian.
-  m = ngens(G)  
+  m = ngens(G)
   n = ngens(R)
   HSRing = _hilbert_series_ring(parent, m)
 
@@ -621,7 +660,7 @@ end
 #      I = change(A.I)
 #      R = S
 #   end
-#   m = ngens(grading_group(R))  
+#   m = ngens(grading_group(R))
 #   n = ngens(R)
 #   W = R.d
 #   MI = Matrix{Int}(undef, n, m)
@@ -632,16 +671,16 @@ end
 #   end
 #   minMI = minimum(MI)
 #   if minMI<0
-#      MI, T = transform_to_positive_orthant(MI)     
+#      MI, T = transform_to_positive_orthant(MI)
 #   else
 #      T = identity_matrix(ZZ, m)
-#   end  
+#   end
 #   if m == 1
 #      VAR = ["t"]
 #   else
 #      VAR = ["t[$i]" for i = 1:m]
 #   end
-#   S, _ = polynomial_ring(ZZ, VAR) 
+#   S, _ = polynomial_ring(ZZ, VAR)
 #   q = one(S)
 #   for i = 1:n
 #      e = [Int(MI[i, :][j]) for j = 1:m]
@@ -667,8 +706,8 @@ end
 
 Return the reduced Hilbert series of the positively graded affine algebra `A`.
 
-!!! note 
-    The advanced user can select a `algorithm` for the computation; 
+!!! note
+    The advanced user can select a `algorithm` for the computation;
     see the code for details.
 
 # Examples
@@ -762,14 +801,14 @@ $H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
     multi_hilbert_function(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
 
 Given a positively $\mathbb  Z^m$-graded affine algebra $A$ over a field $K$,
-and given a vector $g$ of $m$ integers, convert $g$ into an element 
+and given a vector $g$ of $m$ integers, convert $g$ into an element
 of the grading group of $A$, and return the value $H(A, g)$
 as above.
 
     multi_hilbert_function(A::MPolyQuoRing, g::IntegerUnion)
 
 Given a positively $\mathbb  Z$-graded affine algebra $A$ over a field $K$,
-and given an integer $g$, convert $g$ into an element of the grading group 
+and given an integer $g$, convert $g$ into an element of the grading group
 of $A$, and return the value $H(A, g)$ as above.
 
 # Examples
@@ -814,9 +853,9 @@ julia> multi_hilbert_function(A, 7*g)
 function multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
     R = base_ring(A)
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-    
+
     L = monomial_basis(R, g)
-    
+
     if size(L) == 0
        return 0
     end
@@ -824,7 +863,7 @@ function multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
     LI = leading_ideal(A.I, ordering=degrevlex(gens(R)))
     ### TODO: Decide whether we should check whether a GB with respect
     ### to another degree-compatible ordering is already available
-    
+
     cc = 0
     for i in 1:length(L)
         if !(L[i] in LI)
@@ -868,18 +907,28 @@ julia> is_reduced(A)
 false
 ```
 """
-function is_reduced(A::MPolyQuoRing) 
+@attr Bool function is_reduced(A::MPolyQuoRing)
   I = A.I
-  return I == radical(I)
+  return is_radical(I)
+end
+
+function is_normal(A::MPolyRing; check::Bool=true)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
+  @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
+  return true
 end
 
 @doc raw"""
-    is_normal(A::MPolyQuoRing)
+    is_normal(A::MPolyAnyRing; check::Bool=true) -> Bool
 
-Given an affine algebra `A` over a perfect field,
-return `true` if `A` is normal, `false` otherwise.
+# Input:
+- an affine algebra ``A`` over a perfect field,
+- if `check` is `true`, then confirm that ``A`` is reduced; this is expensive.
 
-!!! note 
+# Output:
+Returns `true` if the ring ``A`` is normal, `false` otherwise.
+
+!!! note
     This function performs the first step of the normalization algorithm of Greuel, Laplagne, and Seelisch [GLS10](@cite) and may, thus, be more efficient than computing the full normalization of `A`.
 
 # Examples
@@ -892,24 +941,23 @@ julia> is_normal(A)
 true
 ```
 """
-function is_normal(A::MPolyQuoRing)
-  @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
-  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+function is_normal(A::MPolyQuoRing; check::Bool=true)
+  return get_attribute!(A, :is_normal) do
+    @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
+    @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
+    @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+    !check || is_reduced(A) || return false
 
-  I = A.I
-  # TODO remove old1 & old2 once new Singular jll is out
-  old1 = Singular.libSingular.set_option("OPT_REDSB", false)
-  old2 = Singular.libSingular.set_option("OPT_RETURN_SB", false)
-  f = Singular.LibNormal.isNormal(singular_generators(I))::Int
-  Singular.libSingular.set_option("OPT_REDSB", old1)
-  Singular.libSingular.set_option("OPT_RETURN_SB", old2)
-  return Bool(f)
+    I = A.I
+    f = Singular.LibNormal.isNormal(singular_generators(I))::Int
+    return Bool(f)
+  end
 end
 
 @doc raw"""
-     is_cohen_macaulay(A::MPolyQuoRing) 
+     is_cohen_macaulay(A::MPolyQuoRing)
 
-Given a $\mathbb Z$-graded affine algebra `A = R/I` over a field, say, `K`, where the grading 
+Given a $\mathbb Z$-graded affine algebra `A = R/I` over a field, say, `K`, where the grading
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring `R`,
 return `true` if `A` is a Cohen-Macaulay ring, `false` otherwise.
 
@@ -936,7 +984,7 @@ julia> is_cohen_macaulay(A)
 false
 ```
 """
-function is_cohen_macaulay(A::MPolyQuoRing)
+@attr Bool function is_cohen_macaulay(A::MPolyQuoRing)
  I = A.I
  R = base_ring(I)
  @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -1069,7 +1117,7 @@ end
 @doc raw"""
     is_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
-Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring, 
+Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring,
 return if the elements of `V` are algebraically independent over `K`.
 
 # Examples
@@ -1098,7 +1146,7 @@ end
 @doc raw"""
     is_algebraically_independent_with_relations(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
-Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring, 
+Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring,
 return `(true, ideal(0))` if the elements of `V` are algebraically independent over `K`.
 Otherwise, return `false` together with the ideal of `K`-algebra relations.
 
@@ -1253,17 +1301,22 @@ function _conv_normalize_alg(algorithm::Symbol)
     return "prim"
   elseif algorithm == :equidimDec
     return "equidim"
+  elseif algorithm == :isPrime
+    return "isPrim"
   else
     error("algorithm invalid")
   end
 end
 
 function _conv_normalize_data(A::MPolyQuoRing, l, br)
+# Note: The ugly construction of newAmap is due to the need to avoid
+# inheriting corrupted internal data of the ideal
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
       newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
-      newA, newAmap = quo(newOR, ideal(newOR, l[1][i][2][:norid]))
+      newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
+      set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))
       _hom = hom(A, newA, newA.(newgens))
       idgens = base_ring(A).(gens(l[2][i]))
@@ -1277,14 +1330,14 @@ end
 
 Find the normalization of a reduced affine algebra over a perfect field $K$.
 That is, given the quotient $A=R/I$ of a multivariate polynomial ring $R$ over $K$
-modulo a radical ideal $I$, compute the integral closure $\overline{A}$ 
-of $A$ in its total ring of fractions $Q(A)$, together with the embedding 
-$f: A \to \overline{A}$. 
+modulo a radical ideal $I$, compute the integral closure $\overline{A}$
+of $A$ in its total ring of fractions $Q(A)$, together with the embedding
+$f: A \to \overline{A}$.
 
 # Implemented Algorithms and how to Read the Output
 
-The function relies on the algorithm 
-of Greuel, Laplagne, and Seelisch which proceeds by finding a suitable decomposition 
+The function relies on the algorithm
+of Greuel, Laplagne, and Seelisch which proceeds by finding a suitable decomposition
 $I=I_1\cap\dots\cap I_r$ into radical ideals $I_k$, together with
 maps $A = R/I \to A_k=\overline{R/I_k}$ which give rise to the normalization map of $A$:
 
@@ -1294,13 +1347,14 @@ For each $k$, the function specifies two representations
 of $A_k$: It returns an array of triples $(A_k, f_k, \mathfrak a_k)$,
 where $A_k$ is represented as an affine $K$-algebra, and $f_k$ as a map of affine $K$-algebras.
 The third entry $\mathfrak a_k$ is a tuple $(d_k, J_k)$, consisting of an element
-$d_k\in A$ and an ideal $J_k\subset A$, such that $\frac{1}{d_k}J_k = A_k$ 
+$d_k\in A$ and an ideal $J_k\subset A$, such that $\frac{1}{d_k}J_k = A_k$
 as $A$-submodules of the total ring of fractions of $A$.
 
-By default (`algorithm = :equidimDec`), as a first step on its way to find the decomposition $I=I_1\cap\dots\cap I_r$, 
+By default (`algorithm = :equidimDec`), as a first step on its way to find the decomposition $I=I_1\cap\dots\cap I_r$,
 the algorithm computes an equidimensional decomposition of the radical ideal $I$.
 Alternatively, if specified by `algorithm = :primeDec`, the algorithm computes $I=I_1\cap\dots\cap I_r$
 as the prime decomposition of the radical ideal $I$.
+If specified by `algorithm = :isPrime`, assume that $I$ is prime.
 
 See [GLS10](@cite).
 
@@ -1338,7 +1392,7 @@ defined by
   y -> y
 
 julia> LL[1][3]
-(y, ideal(x, y))
+(y, Ideal (x, y))
 ```
 """
 function normalization(A::MPolyQuoRing; algorithm=:equidimDec)
@@ -1359,9 +1413,9 @@ Compute the normalization
 $A\hookrightarrow A_1\times \dots\times A_r=\overline{A}$
 
 of $A$ as does `normalize(A)`, but return additionally the `delta invariant` of $A$,
-that is, the dimension 
+that is, the dimension
 
-$\dim_K(\overline{A}/A)$. 
+$\dim_K(\overline{A}/A)$.
 
 # How to Read the Output
 
@@ -1419,8 +1473,8 @@ end
     noether_normalization(A::MPolyQuoRing)
 
 Given an affine algebra $A=R/I$ over a field $K$, return a triple $(V,F,G)$ such that:
-- ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$; 
-- ``F: A=R/I \to B = R/\phi(I)`` is an isomorphism, induced by a linear change $\phi$ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$; 
+- ``V`` is a vector of $d=\dim A$ elements of $A$, represented by linear forms $l_i\in R$, and such that $K[V]\hookrightarrow A$ is a Noether normalization for $A$;
+- ``F: A=R/I \to B = R/\phi(I)`` is an isomorphism, induced by a linear change $\phi$ of coordinates of $R$ which maps the $l_i$ to the the last $d$ variables of $R$;
 - ``G = F^{-1}.``
 
 !!! warning
@@ -1507,7 +1561,7 @@ function integral_basis(f::MPolyRingElem, i::Int; algorithm::Symbol = :normal_lo
   end
 
   @req !(R isa MPolyDecRing) "Not implemented for decorated rings"
-  
+
   @req nvars(R) == 2 "The parent ring must be a polynomial ring in two variables"
 
   @req i == 1 || i == 2 "The index $i must be either 1 or 2, indicating the integral variable"

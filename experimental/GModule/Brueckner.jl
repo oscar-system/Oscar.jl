@@ -1,19 +1,6 @@
 module RepPc
 using Oscar
 
-export coimage
-
-Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
-Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
-
-function Hecke.roots(a::FinFieldElem, i::Int)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return roots(x^i-a)
-end
-
-Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
-
-
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
@@ -28,6 +15,10 @@ abs. irred. representations of G.
 Note: the reps are NOT necessarily over the smallest field.
 
 Note: the field is NOT extended - but it throws an error if it was too small.
+
+Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
+      its `gens` value, thus these generators will in general differ from
+      the generators of `G`.
 
 Implements: Brueckner, Chap 1.2.3
 """
@@ -91,7 +82,7 @@ function reps(K, G::Oscar.GAPGroup)
           # xX for x in the field., hence Xp = X^p is defined up
           # to p-th powers: x^p Xp, so
           # C x^p Xp = Y
-          # appliying det:
+          # applying det:
           # det(C x^p Xp) = C^n x^(pn) det(Xp) = det(Y) = root-of-1
           # so I think that shows that C is (up to p-th powers)
           # also a root-of-1
@@ -114,7 +105,7 @@ function reps(K, G::Oscar.GAPGroup)
           z[1:n,(p-1)*n+1:end] = Y
           #= This is wrong in Brueckner - or he's using a different
              conjugation. Max figured out what to do: the identity block
-             needs to be lower left, and ubbber right the inverse.
+             needs to be lower left, and upper right the inverse.
 
              He might have been doing other conjugations s.w.
           =#
@@ -276,69 +267,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
   return allR
 end
 
-Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
-
-Oscar.is_free(M::Generic.FreeModule) = true
-Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
-
-function Oscar.dual(h::Map{FinGenAbGroup, FinGenAbGroup})
-  A = domain(h)
-  B = codomain(h)
-  @assert is_free(A) && is_free(B)
-  return hom(B, A, transpose(h.map))
-end
-
-function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{ZZRingElem}, <:AbstractAlgebra.FPModule{ZZRingElem}})
-  A = domain(h)
-  B = codomain(h)
-  @assert is_free(A) && is_free(B)
-  return hom(B, A, transpose(matrix(h)))
-end
-
-function coimage(h::Map)
-  return quo(domain(h), kernel(h)[1])
-end
-
-function Oscar.cokernel(h::Map)
-  return quo(codomain(h), image(h)[1])
-end
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  k = base_ring(M)
-  if dim(M) == 0
-    return zero(M), iterate([1])
-  end
-  p = Base.Iterators.ProductIterator(Tuple([k for i=1:dim(M)]))
-  f = iterate(p)
-  return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
-end
-
-function Base.iterate(::AbstractAlgebra.FPModule{<:FinFieldElem}, ::Tuple{Int64, Int64})
-  return nothing
-end
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator}) where T <: FinFieldElem
-  n = iterate(st[2], st[1])
-  if n === nothing
-    return n
-  end
-  return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
-end
-
-function Base.length(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return Int(order(base_ring(M))^dim(M))
-end
-
-function Base.eltype(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return elem_type(M)
-end
-
-function Oscar.dim(M::AbstractAlgebra.Generic.DirectSumModule{<:FieldElem})
-  return sum(dim(x) for x = M.m)
-end
-
-Oscar.is_finite(M::AbstractAlgebra.FPModule{<:FinFieldElem}) = true
-
 """
   mp: G ->> Q
   C a F_p[Q]-module
@@ -353,15 +281,13 @@ function lift(C::GModule, mp::Map)
   @assert isa(N, PcGroup)
   @assert codomain(mp) == N
 
-  _ = Oscar.GrpCoh.H_two(C)
-  ssc, mH2 = get_attribute(C, :H_two_symbolic_chain)
-  sc = (x,y) -> ssc(x, y)[1]
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
+  if order(H2) > 1
+    global last_in = (C, mp)
+  end
   R = relators(G)
   M = C.M
   D, pro, inj = direct_product([M for i=1:ngens(G)]..., task = :both)
-  a = sc(one(N), one(N))
-  E = domain(a)
-  DE, pDE, iDE = direct_product(D, E, task = :both)
 
   #=
     G    -->> N
@@ -376,98 +302,71 @@ function lift(C::GModule, mp::Map)
 
    g_i is mapped to (m(g_i), pro[i](D))
    this needs to be "collected"
-
-   sc(a, b) yields sigma(a, b): E -> M, the value of the cohain as a map
-   (ie. the once e in E is chosen, sc(a, b)(e) is THE cochain
   =#
 
   K, pK, iK = direct_product([M for i=1:length(R)]..., task = :both)
-  s = hom(DE, K, [zero(K) for i=1:ngens(DE)])
-  j = 1
-  for r = R
-    a = (one(N), hom(DE, M, [zero(M) for i=1:ngens(DE)]))
-    for i = Oscar.GrpCoh.word(r)
-      if i<0
-        h = inv(mp(G[-i]))
-        m = -pDE[1]*pro[-i]*action(C, h)  - pDE[2]*sc(inv(h), h)
-      else
-        h = mp(G[i])
-        m = pDE[1]*pro[i]
-      end
-      # a *(h, m) = (x, y)(h, m) = (xh, m + y^h + si(x, h))
-      a = (a[1]*h, m + a[2]*action(C, h) + pDE[2]*sc(a[1], h))
-    end
-    @assert isone(a[1])
-    s += a[2]*iK[j]
-    j += 1
+  S = relators(N)
+  if length(S) != 0
+    X, pX, iX = direct_product([M for i=1:length(S)]..., task = :both)
   end
-  #so kern(s) should be exactly all possible quotients that allow a
-  #projection of G. They are not all surjective. However, lets try:
-  k, mk = kernel(s)
+
   allG = []
-  z = get_attribute(C, :H_two)[1]  #tail (H2) -> cochain
 
-  seen = Set{Tuple{elem_type(D), elem_type(codomain(mH2))}}()
-  #TODO: the projection maps seem to be rather slow - in particular
-  #      as they SHOULD be trivial...
-  for x = k
-    epi = pDE[1](mk(x)) #the map
-    chn = mH2(pDE[2](mk(x))) #the tail data
-    if (epi,chn) in seen
-      continue
-    else
-      push!(seen, (epi, chn))
-    end
-    #TODO: not all "chn" yield distinct groups - the factoring by the
-    #      co-boundaries is missing
-    #      not all "epi" are epi, ie. surjective. The part of the thm
-    #      is missing...
-    # (Thm 15, part b & c) (and the weird lemma)
-#    @hassert :BruecknerSQ 2 all(x->all(y->sc(x, y)(chn) == last_c(x, y), gens(N)), gens(N))
+  for h = H2
+    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
 
+    s = hom(D, K, [zero(K) for i=1:ngens(D)])
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
 
-    @hassert :BruecknerSQ 2 preimage(z, z(chn)) == chn
-    GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(chn))
-    @assert is_surjective(GGpro)
-    if get_assertion_level(:BruecknerSQ) > 1
-      _GG, _ = Oscar.GrpCoh.extension(z(chn))
-      @assert is_isomorphic(GG, _GG)
-    end
+    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
+    @assert all(x->isone(GGpro(x)), rel)
+    rhs = [preimage(GGinj, x) for x = rel]
+    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
 
-    function reduce(g) #in G
-      h = mp(g)
-      c = ssc(h, one(N))[2]
-      if length(c) == 0
-        return c
+    k, mk = kernel(s)
+
+    if is_zero(h) && length(S) > 0 #Satz 15 in Brueckner, parts a and b
+      u = [preimage(mp, x) for x = gens(N)]
+      ss = elem_type(X)[]
+      sss = elem_type(D)[]
+      for h = gens(D)
+        uu = [map_word(x, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)]) for x = u]
+        push!(ss, X([preimage(GGinj, map_word(r, uu, init = one(GG))) for r = relators(N)]))
+        push!(sss, D([preimage(GGinj, map_word(mp(G[i]), uu, init = one(GG))*inv(gns[i] * GGinj(pro[i](h)))) for i = 1:ngens(G)]))
       end
-      d = Int[abs(c[1]), sign(c[1])]
-      for i=c[2:end]
-        if abs(i) == d[end-1]
-          d[end] += sign(i)
-        else
-          push!(d, abs(i), sign(i))
-        end
-      end
-      return d
+      ss = hom(D, X, ss)
+      sss = hom(D, D, sss)
+      kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1])
+      q, mq = quo(k, kk)
+      k = q
+      mk = pseudo_inv(mq)*mk
     end
-    l= [GMtoGG(reduce(gen(G, i)), pro[i](epi)) for i=1:ngens(G)]
-#    @show map(order, l), order(prod(l))
-#    @show map(order, gens(G)), order(prod(gens(G)))
 
-    h = try
-          hom(G, GG, l)
-        catch
-          @show :crash
-          continue
-        end
-    if !is_surjective(h)
-#      @show :darn
-      continue
-    else
-#      @show :bingo
+    fl, pe = try
+      true, preimage(s, K(rhs))
+    catch
+      false, zero(D)
     end
-    push!(allG, h)
+    if !fl
+      @show :no_sol
+      continue
+    end
+
+    for x = k
+      if is_zero(h) && is_zero(x)
+        @show :skip, dim(k)
+        continue
+      end
+      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
+      if is_surjective(hm)
+        push!(allG, hm)
+      else #should not be possible any more
+        @show :not_sur
+      end
+    end
   end
+
   return allG
 end
 
@@ -476,8 +375,53 @@ function solvable_quotient(G::Oscar.GAPGroup)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
+#= issues/ TODO
+ - does one need all SQs? are all maximal ones (in the sense of
+   no further extension possible) isomorphic?
+ - part c: this will extend by the modules several times (a maximal
+   number of times), useful if as above, any maximal chain will do
+ - use (or not) compatible pairs to construct fewer possibilities
+   (if legal...)
+ - gmodules as gset, support the interface? in particular orbits?
+   (for fewer extensions)
+ - gmodule -> matrix group (in some cases)
+ - filter for special targets (which???)
+ - does this work with gmodules in char 0?
+=#
+
+#= EXAMPLE
+F = free_group("a", "b"); a,b = gens(F);
+G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^
+-1*b^2])
+f1 = Oscar.RepPc.solvable_quotient(G)
+f2 = Oscar.RepPc.brueckner(f1; primes = [2])
+Oscar.RepPc.brueckner(f2[1]; primes = [2])
+f3 = ans;
+f2 = Oscar.RepPc.brueckner(f1; primes = [2])
+f3 = Oscar.RepPc.brueckner(f2[1]; primes = [2])
+f4 = Oscar.RepPc.brueckner(f3[1]; primes = [3])
+f5 = Oscar.RepPc.brueckner(f4[1]; primes = [2])
+f6 = Oscar.RepPc.brueckner(f5[1]; primes = [2])
+f7 = Oscar.RepPc.brueckner(f6[1], primes = [2])
+
+(there is a [5] step missing)
+
+H2, mH2, _ = Oscar.GrpCoh.H_two(C; redo = true, lazy = true);
+T, mT = Oscar.GrpCoh.compatible_pairs(C)
+G = gmodule(T, [Oscar.hom(H2, H2, [preimage(mH2, mT(g, mH2(a))) for a = gens(H2)]) for g = gens(T)])
+
+then ones wants the orbits of "elements" in G...
+
+gset(matrix_group([matrix(x) for x= action(G)]))
+@time orbits(ans)
+
+this works, but constracts all elements...
+
+G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
+orbits(G)
+
+=#
+
 end #module RepPc
 
 using .RepPc
-
-export coimage

@@ -29,7 +29,6 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '1.9'   # to be removed in the near future
           - '1.10'
           - '1.11-nightly'
           - 'nightly'
@@ -54,6 +53,9 @@ jobs:
           - julia-version: '1.10'
             group: 'long'
             os: macOS-latest
+          - julia-version: '1.10'
+            group: 'book'
+            os: ubuntu-latest
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -111,7 +113,6 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.9'   # to be removed in the near future
           - '1.10'
           - '1.11-nightly'
           - 'nightly'

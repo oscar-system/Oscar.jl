@@ -3,6 +3,7 @@ include("CoveredScheme.jl")
 include("FunctionFields.jl")
 include("ProjectiveModules.jl")
 include("SpaceGerms.jl")
+include("Tjurina.jl")
 include("Sheaves.jl")
 include("IdealSheaves.jl")
 include("AlgebraicCycles.jl")
@@ -36,6 +37,7 @@ include("ToricBlowups/attributes.jl")
 include("ToricBlowups/methods.jl")
 
 include("DerivedPushforward.jl")
+include("Resolution_structure.jl")
 
 # Exports
 export CompleteIntersectionGerm
@@ -62,6 +64,14 @@ export rational_point_coordinates
 export standard_covering
 export total_transform
 export two_neighbor_step
+
+export tjurina_algebra
+export tjurina_number
+export order_as_series
+export is_finitely_determined
+export determinacy_bound
+export sharper_determinacy_bound
+export is_contact_equivalent
 
 
 # Deprecated after 0.15

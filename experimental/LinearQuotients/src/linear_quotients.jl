@@ -87,8 +87,8 @@ function class_group(L::LinearQuotient)
   A = snfA
   KtoA = compose(KtoA, inv(snfAtoA))
   if !is_trivial(H)
-  # TODO: this is an insane concatenation of maps and many of them might be identities.
-  # Can we have Hecke.compose_and_squash for groups?
+    # TODO: this is an insane concatenation of maps and many of them might be identities.
+    # Can we have Hecke.compose_and_squash for groups?
     GtoA = compose(GtoK, KtoA)
   else
     GtoA = KtoA
@@ -112,13 +112,13 @@ If `zeta[2]` is not divisible by `order(g)` an error is raised.
 
 Note that `age(g)` depends on the choice of the root of unity, see [IR96](@cite).
 """
-function age(g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+function age(g::MatrixGroupElem{T}, zeta::Tuple{T,Int}) where {T}
   fl, q = divides(zeta[2], order(Int, g))
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
 
   powers_of_zeta = _powers_of_root_of_unity(zeta[1]^q, order(Int, g))
   eig = eigenvalues_with_multiplicities(g.elm)
-  return ZZRingElem(sum( m*powers_of_zeta[e] for (e, m) in eig ))//order(g)
+  return ZZRingElem(sum(m * powers_of_zeta[e] for (e, m) in eig))//order(g)
 end
 
 @doc raw"""
@@ -127,7 +127,7 @@ end
 Return representatives of the conjugacy classes of `G` which consist of junior
 elements, that is, elements `g` in `G` with `age(g, zeta) == 1`.
 """
-function representatives_of_junior_elements(G::MatrixGroup{T}, zeta::Tuple{T, Int}) where T
+function representatives_of_junior_elements(G::MatrixGroup{T}, zeta::Tuple{T,Int}) where {T}
   @req is_subgroup_of_sl(G) "Group is not a subgroup of SL"
   return filter!(g -> is_one(age(g, zeta)), map(representative, conjugacy_classes(G)))
 end
@@ -137,7 +137,9 @@ end
 # This functions returns an automorphism of R into an eigenbasis of g.
 # Additionally, the codomain of this automorphism is graded by the weights of the
 # action.
-function weights_of_action(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+function weights_of_action(
+  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+) where {T}
   @req ngens(R) == degree(parent(g)) "Number of variables must match degree of the matrix"
   fl, q = divides(zeta[2], order(Int, g))
   @req fl "Order $(zeta[2]) of given root of unity $(zeta[1]) is not divisible by $(order(g))"
@@ -146,7 +148,7 @@ function weights_of_action(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T
   powers_of_zeta = _powers_of_root_of_unity(zetaq, order(Int, g))
 
   K = coefficient_ring(R)
-  eig = eigenspaces(g.elm, side = :left)
+  eig = eigenspaces(g.elm; side=:left)
 
   weights = Int[]
   V = zero_matrix(K, 0, ncols(g.elm))
@@ -158,10 +160,10 @@ function weights_of_action(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T
   end
 
   to_eig = right_action(R, inv(V))
-  S, t = graded_polynomial_ring(K, [ "t$i" for i in 1:ngens(R) ], weights)
+  S, t = graded_polynomial_ring(K, ["t$i" for i in 1:ngens(R)], weights)
   # The images of the generators of R are in general not homogeneous in S, so
   # we have to turn of the check, if we want to build this map...
-  RtoS = hom(R, S, [ to_eig(x)(t...) for x in gens(R) ], check = false)
+  RtoS = hom(R, S, [to_eig(x)(t...) for x in gens(R)]; check=false)
 
   return S, RtoS
 end
@@ -177,11 +179,13 @@ surjective with this choice of root of unity, an error is raised.
 Note that monomial valuation depends on the choice of the root of unity, see
 [IR96](@cite).
 """
-function monomial_valuation(R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T, Int}) where T
+function monomial_valuation(
+  R::MPolyRing{T}, g::MatrixGroupElem{T}, zeta::Tuple{T,Int}
+) where {T}
   S, RtoS = weights_of_action(R, g, zeta)
 
   # If the weights are not coprime, the valuation is not surjective...
-  @assert is_one(gcd([ degree(gen(S, i))[1] for i in 1:ngens(S) ])) "Construction of well-defined valuation impossible with given choice of root of unity"
+  @assert is_one(gcd([degree(gen(S, i))[1] for i in 1:ngens(S)])) "Construction of well-defined valuation impossible with given choice of root of unity"
 
   function val(f::MPolyRingElem{T})
     # TODO: Do we have a type-stable concept of infinity in OSCAR?

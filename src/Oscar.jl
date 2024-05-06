@@ -19,7 +19,6 @@ OSCAR is licensed under the GPL v3+ (see LICENSE.md).
 """
 module Oscar
 
-using Preferences
 using LazyArtifacts
 
 include("imports.jl")
@@ -59,7 +58,7 @@ function __init__()
   # initialize random seed
   set_seed!(rand(UInt32))
 
-  if isinteractive() && Base.JLOptions().banner != 0
+  if AbstractAlgebra.should_show_banner()
     _print_banner()
   end
 
@@ -264,8 +263,6 @@ include("InvariantTheory/InvariantTheory.jl")
 include("Serialization/main.jl")
 
 include("../experimental/Experimental.jl")
-
-include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
 
 if is_dev
 #  include("../examples/ModStdNF.jl")

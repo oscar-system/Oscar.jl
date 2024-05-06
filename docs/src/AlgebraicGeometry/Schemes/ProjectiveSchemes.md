@@ -70,9 +70,11 @@ Besides those attributes already covered by the above general interface we have 
     dim(P::AbsProjectiveScheme{<:Field})
     hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
     degree(P::AbsProjectiveScheme{<:Field})
-    arithmetic_genus(P::AbsProjectiveScheme{<:Field})
 ```
 
+```@docs
+    arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+```
 
 ## Methods
 

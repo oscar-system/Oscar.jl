@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{ZZRingElem}(y))==Vector{ZZRingElem}
     @test x==G(Vector(x))
-    @test is_finiteorder(x)
+    @test is_finite_order(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, ZZRingElem]
       @test order(T, x) == lcm(15,n-8)

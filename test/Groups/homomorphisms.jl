@@ -136,7 +136,7 @@ end
    @test order(q4) == 2
 end
 
-@testset "map_word" begin
+@testset "map_word for f.p. groups" begin
    # Create a free group in GAP in syllable words family,
    # in order to make the tests.
    GAP.Globals.PushOptions(GAP.GapObj(Dict(:FreeGroupFamilyType => GAP.GapObj("syllable"))))
@@ -208,6 +208,22 @@ end
    @test_throws AssertionError map_word([3], [])
    @test_throws AssertionError map_word([-3], [2, 3])
    @test_throws AssertionError map_word([3 => 1], [2, 3])
+end
+
+@testset "map_word for pc groups" begin
+   for G in [ PcGroup(symmetric_group(4)),         # GAP Pc Group
+            # abelian_group(PcGroup, [2, 3, 4]),   # problem with gens vs. pcgs
+              abelian_group(PcGroup, [0, 3, 4]) ]  # GAP Pcp group
+     n = number_of_generators(G)
+     F = free_group(n)
+     for x in [one(G), rand(G)]
+       img = map_word(x, gens(F))
+       @test x == map_word(img, gens(G))
+       invs = Vector(undef, n)
+       img = map_word(x, gens(F), genimgs_inv = invs)
+       @test x == map_word(img, gens(G))
+     end
+   end
 end
 
 @testset "Isomorphic groups" begin
@@ -394,17 +410,28 @@ end
        @test is_injective(f)
        @test is_surjective(f)
 
+       G = symmetric_group(5)
        f = @inferred isomorphism(FPGroup, G)
        @test codomain(f) isa FPGroup
        @test domain(f) == G
        @test is_injective(f)
        @test is_surjective(f)
 
+       f2 = @inferred isomorphism(FPGroup, G, on_gens=true)
+       @test codomain(f2) isa FPGroup
+       @test domain(f2) == G
+       @test is_injective(f2)
+       @test is_surjective(f2)
+       @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
+       @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
+
+       @test is_bijective(isomorphism(FPGroup, symmetric_group(1), on_gens = true))
+
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)
        @test codomain(f) isa FinGenAbGroup
        @test domain(f) == G
-     # @test is_injective(f)
+     # @test is_injective(f)   # no method for GroupIsomorphismFromFunc
      # @test is_surjective(f)
 
        @test_throws ArgumentError isomorphism(FinGenAbGroup, symmetric_group(5))

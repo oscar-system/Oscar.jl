@@ -7,8 +7,9 @@ end
 
 # Creating Multivariate Rings
 
-In this section, for the convenience of the reader, we recall from the chapters on rings and fields
-how to create multivariate polynomial rings and their elements, adding illustrating examples.
+In this section, for the convenience of the reader, we recall from the chapters on
+[rings](@ref rings) and [fields](@ref fields) how to create multivariate polynomial
+rings and their elements, adding illustrating examples.
 At the same time, we introduce and illustrate a ring type for modelling multivariate polynomial
 rings with gradings.
 
@@ -432,7 +433,7 @@ Given an element `f` of a multivariate polynomial ring `R` or a graded version o
     the notion of total degree ignores the weights given to the variables in the graded case.
 
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
-subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
+subsection [Monomials, Terms, and More](@ref monomials_terms_more) of the section on [Gröbner/Standard Bases](@ref gb_fields).
 
 ###### Examples
 
@@ -502,5 +503,5 @@ refer to `R` and `S`, respectively.
 !!! note
     The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
     the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
 
