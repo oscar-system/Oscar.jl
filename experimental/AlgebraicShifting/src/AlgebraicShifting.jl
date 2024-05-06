@@ -114,7 +114,10 @@ function exterior_shift(F::Field, K::SimplicialComplex;
     return nCk[delta_k]
   end
 
-  return simplicial_complex(input_faces)
+  # add missing vertices
+  vertices_in_edges = reduce(union, input_faces)
+  missing_vertices = [[missing_v] for missing_v in symdiff(Set(1:n), vertices_in_edges)]
+  return simplicial_complex([input_faces..., missing_vertices...])
 end
 
 @doc raw"""
