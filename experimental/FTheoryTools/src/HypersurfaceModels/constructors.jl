@@ -3,7 +3,7 @@
 ################################################
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}; completeness_check::Bool = true)
+    function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
 
 Construct a hypersurface model, for which the user can specify a fiber ambient space
 as well as divisor classes of the toric base space, in which the first two homogeneous
@@ -11,7 +11,7 @@ coordinates of the fiber ambient space transform.
 
 # Examples
 ```jldoctest
-julia> base = projective_space(NormalToricVariety, 2)
+julia> b = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
@@ -19,20 +19,39 @@ Normal toric variety
 
 julia> set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
 
-julia> D1 = 2 * anticanonical_divisor_class(base)
+julia> D1 = 2 * anticanonical_divisor_class(b)
 Divisor class on a normal toric variety
 
-julia> D2 = 3 * anticanonical_divisor_class(base)
+julia> D2 = 3 * anticanonical_divisor_class(b)
 Divisor class on a normal toric variety
 
-julia> D3 = trivial_divisor_class(base)
+julia> D3 = trivial_divisor_class(b)
 Divisor class on a normal toric variety
 
-julia> hypersurface_model(base, fiber_ambient_space, [D1, D2, D3]; completeness_check = false)
+julia> new_gens = string.(vcat(gens(cox_ring(b)), gens(cox_ring(fiber_ambient_space))))
+6-element Vector{String}:
+ "x1"
+ "x2"
+ "x3"
+ "x"
+ "y"
+ "z"
+
+julia> ambient_ring, (x1, x2, x3, x, y, z) = polynomial_ring(QQ, new_gens, cached=false)
+(Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[x1, x2, x3, x, y, z])
+
+julia> p = x^3 - y^2 + x1^12 * x * z^4 + x2^18 * z^6 + 13 * x3^3*x*y*z
+x1^12*x*z^4 + x2^18*z^6 + 13*x3^3*x*y*z + x^3 - y^2
+
+julia> h = hypersurface_model(b, fiber_ambient_space, [D1, D2, D3], p; completeness_check = false)
 Hypersurface model over a concrete base
 ```
 """
-function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}; completeness_check::Bool = true)
+function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
+  return hypersurface_model(base, fiber_ambient_space, fiber_twist_divisor_classes, string(p); completeness_check = completeness_check)
+end
+
+function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   # Consistency checks
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
@@ -47,7 +66,11 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   ambient_space = _ambient_space(base, fiber_ambient_space, fiber_twist_divisor_classes)
 
   # Construct the model
-  hypersurface_equation = generic_section(anticanonical_bundle(ambient_space))
+  hypersurface_equation = eval_poly(p, cox_ring(ambient_space))
+  @req is_homogeneous(hypersurface_equation) "Given hypersurface equation is not homogeneous"
+  ds = [x.coeff for x in collect(keys(homogeneous_components(hypersurface_equation)))]
+  @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
+  @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
   gens_S = gens(cox_ring(ambient_space))
   for k in 1:length(gens_S)

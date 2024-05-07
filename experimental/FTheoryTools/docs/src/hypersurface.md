@@ -71,12 +71,14 @@ The functionality of OSCAR only allows us to compute a section basis (or a finit
 for complete toric varieties. In the future, this could be extended.
 
 Completeness is an expensive check. Therefore, we provide an optional argument which
- one can use to disable this check if desired. To this end, one passes the optional argument
- `completeness_check = false` as last argument to the constructor. The following examples
- demonstrate this:
+one can use to disable this check if desired. To this end, one passes the optional argument
+`completeness_check = false` as last argument to the constructor. Here is how we can construct
+a hypersurface model in OSCAR:
 ```@docs
-hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}; completeness_check::Bool = true)
+hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::MPolyRingElem; completeness_check::Bool = true)
 ```
+For convenience, it also possible to provide the hypersurface polynomial `p` as a string.
+
 
 ### A (covered) scheme as base space
 

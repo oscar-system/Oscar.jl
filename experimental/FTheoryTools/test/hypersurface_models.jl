@@ -2,17 +2,18 @@
 # 1: Hypersurface models over concrete bases
 #############################################################
 
-base = projective_space(NormalToricVariety, 3)
+B3 = projective_space(NormalToricVariety, 3)
 ambient_space_of_fiber = weighted_projective_space(NormalToricVariety, [2,3,1])
 set_coordinate_names(ambient_space_of_fiber, ["x", "y", "z"])
-D1 = 2 * anticanonical_divisor_class(base)
-D2 = 3 * anticanonical_divisor_class(base)
-D3 = trivial_divisor_class(base)
-h = hypersurface_model(base, ambient_space_of_fiber, [D1, D2, D3]; completeness_check = false)
+D1 = 2 * anticanonical_divisor_class(B3)
+D2 = 3 * anticanonical_divisor_class(B3)
+D3 = trivial_divisor_class(B3)
+p = "x^3 - 2*y^2 + x1^16*x*z^4 + x2^24*z^6 + 13*x3^4*x*y*z"
+h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness_check = false)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
   @test parent(hypersurface_equation(h)) == cox_ring(ambient_space(h))
-  @test dim(base_space(h)) == dim(base)
+  @test dim(base_space(h)) == dim(B3)
   @test fiber_ambient_space(h) == ambient_space_of_fiber
   @test is_smooth(fiber_ambient_space(h)) == false
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["x", "y", "z"]
