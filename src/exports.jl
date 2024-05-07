@@ -48,6 +48,7 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Composition
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -170,6 +171,7 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export WeakComposition
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -248,6 +250,7 @@ export archimedean_solid
 export arithmetic_genus
 export as_dictionary
 export as_gset
+export ascending_compositions
 export associahedron
 export atlas_description
 export atlas_group
@@ -346,6 +349,8 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
+export composition
+export compositions
 export comm
 export comm!
 export common_components
@@ -1084,6 +1089,7 @@ export normalizer
 export nullity
 export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators

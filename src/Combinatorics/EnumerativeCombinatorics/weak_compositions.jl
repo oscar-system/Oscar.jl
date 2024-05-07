@@ -86,16 +86,16 @@ julia> length(W)
 4
 
 julia> collect(W)
-4-element Vector{Oscar.WeakComposition{Int64}}:
+4-element Vector{WeakComposition{Int64}}:
  [3, 0]
  [2, 1]
  [1, 2]
  [0, 3]
 ```
 """
-function weak_compositions(n::IntegerUnion, k::IntegerUnion)
+function weak_compositions(n::IntegerUnion, k::IntegerUnion; inplace::Bool=false)
   kk = Int(k)
-  return WeakCompositions(n, kk)
+  return WeakCompositions(n, kk, inplace)
 end
 
 # I have no idea what to call these getter functions
@@ -125,55 +125,42 @@ function Base.iterate(W::WeakCompositions{T}, state::Nothing = nothing) where T
   k = parts(W)
   if n == 0
     s = zeros(T, k)
-    if k > 0
-      s[k] = n + 1
-    end
-    return (weak_composition(zeros(T, k), check = false), s)
+    c = W.inplace ? s : copy(s)
+    return weak_composition(c, check = false), s
   end
   if k == 0
     return nothing
   end
 
-  c = zeros(T, k)
-  c[1] = n
   s = zeros(T, k)
-  if isone(k)
-    s[1] = n + 1
-    return (weak_composition(c, check = false), s)
-  end
-
-  s[1] = n - 1
-  s[2] = 1
-  return (weak_composition(c, check = false), s)
+  s[1] = n
+  c = W.inplace ? s : copy(s)
+  return weak_composition(c, check = false), s
 end
 
 function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
   n = base(W)
   k = parts(W)
-  if k == 0 || s[k] == n + 1
+  if k == 0 || s[k] == n
     return nothing
   end
-  c = copy(s)
-  if s[k] == n
-    s[k] += 1
-    return (weak_composition(c, check = false), s)
+  if s[k - 1] == 1 && s[k] == n - 1
+    s[k - 1] = 0
+    s[k] = n
+    c = W.inplace ? s : copy(s)
+    return weak_composition(c, check = false), s
   end
 
-  for i = k - 1:-1:1
-    if !iszero(s[i])
-      s[i] -= 1
-      if i + 1 == k
-        s[k] += 1
-      else
-        s[i + 1] = 1
-        if !iszero(s[k])
-          s[i + 1] += s[k]
-          s[k] = 0
-        end
-      end
-      return (weak_composition(c, check = false), s)
-    end
+  i = findlast(!iszero, view(s, 1:(k - 1)))
+  @assert !isnothing(i)
+
+  s[i] -= 1
+  s[i + 1] = s[k] + 1
+  if i + 1 != k
+    s[k] = 0
   end
+  c = W.inplace ? s : copy(s)
+  return weak_composition(c, check = false), s
 end
 
 function Base.show(io::IO, W::WeakCompositions)

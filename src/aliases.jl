@@ -15,6 +15,7 @@ function n_polyhedra end
 function n_rays end
 function n_vertices end
 
+function number_of_compositions end
 function number_of_partitions end
 function number_of_patches end
 function number_of_weak_compositions end
@@ -36,6 +37,7 @@ function number_of_weak_compositions end
 @alias number_of_rays n_rays
 @alias number_of_vertices n_vertices
 
+@alias n_compositions number_of_compositions
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
 @alias n_weak_compositions number_of_weak_compositions
