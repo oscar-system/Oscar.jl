@@ -366,22 +366,20 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     @req ncols(fiber_twist_matrix) == n_rays(fas) "Number of rays does not match number of provided fiber gradings"
     fiber_twist_divisor_classes = [toric_divisor_class(sum([fiber_twist_matrix[l, k] * user_specified_divisors[l] for l in 1:nrows(fiber_twist_matrix)])) for k in 1:ncols(fiber_twist_matrix)]
 
-    # Create the model
-    model = hypersurface_model(base_space, fas, fiber_twist_divisor_classes; completeness_check = completeness_check)
-
-    # Remember explicit model sections
-    model.explicit_model_sections = model_sections
-
-    # Remember hypersurface_parametrization
+    # Compute the hypersurface equation and its parametrization
     auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
-    model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
+    base_coordinates = string.(gens(cox_ring(base_space)))
+    auxiliary_ambient_ring2, _ = polynomial_ring(QQ, vcat(base_coordinates, fiber_amb_coordinates), cached=false)
+    images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in vars]
+    images2 = [eval_poly(string(k), auxiliary_ambient_ring2) for k in fiber_amb_coordinates]
+    map = hom(auxiliary_ambient_ring, auxiliary_ambient_ring2, vcat(images1, images2))
+    hyper_equ = map(parametrized_hypersurface_equation)
 
-    # Set explicit hypersurface equation
-    images1 = [eval_poly(string(model_sections[k]), cox_ring(ambient_space(model))) for k in vars]
-    images2 = [eval_poly(string(k), cox_ring(ambient_space(model))) for k in fiber_amb_coordinates]
-    map = hom(auxiliary_ambient_ring, cox_ring(ambient_space(model)), vcat(images1, images2))
-    model.hypersurface_equation = map(parametrized_hypersurface_equation)
+    # Create the model
+    model = hypersurface_model(base_space, fas, fiber_twist_divisor_classes, hyper_equ; completeness_check = completeness_check)
+    model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
+    model.explicit_model_sections = model_sections
 
   else
     @req false "Model is not a Tate, Weierstrass or hypersurface model"
