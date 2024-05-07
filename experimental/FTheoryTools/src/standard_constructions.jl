@@ -30,20 +30,6 @@ Weierstrass model over a concrete base
 weierstrass_model_over_projective_space(d::Int) = weierstrass_model(projective_space(NormalToricVariety, d); completeness_check = false)
 
 
-@doc raw"""
-    hypersurface_model_over_projective_space(d::Int)
-
-This method constructs a hypersurface model over the projective space.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_projective_space(d::Int) = hypersurface_model(projective_space(NormalToricVariety, d); completeness_check = false)
-
-
 #####################################################
 # 2. Models over hirzebruch surfaces
 #####################################################
@@ -76,20 +62,6 @@ Weierstrass model over a concrete base
 weierstrass_model_over_hirzebruch_surface(r::Int) = weierstrass_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
 
 
-@doc raw"""
-    hypersurface_model_over_hirzebruch_surface(r::Int)
-
-This method constructs a hypersurface model over a Hirzebruch surface.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_hirzebruch_surface(1)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_hirzebruch_surface(r::Int) = hypersurface_model(hirzebruch_surface(NormalToricVariety, r); completeness_check = false)
-
-
 #####################################################
 # 3. Models over del pezzo surface
 #####################################################
@@ -120,20 +92,6 @@ Weierstrass model over a concrete base
 ```
 """
 weierstrass_model_over_del_pezzo_surface(b::Int) = weierstrass_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
-
-
-@doc raw"""
-    hypersurface_model_over_del_pezzo_surface(b::Int)
-
-This method constructs a hypersurface model over a del-Pezzo surface.
-
-# Examples
-```jldoctest
-julia> hypersurface_model_over_del_pezzo_surface(3)
-Hypersurface model over a concrete base
-```
-"""
-hypersurface_model_over_del_pezzo_surface(b::Int) = hypersurface_model(del_pezzo_surface(NormalToricVariety, b); completeness_check = false)
 
 
 #####################################################
