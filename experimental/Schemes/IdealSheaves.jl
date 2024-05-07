@@ -1136,7 +1136,7 @@ function Base.show(io::IO, I::AbsIdealSheaf)
     prim = get_attribute(I, :is_prime, false)
     if has_attribute(I, :name)
       print(io, get_attribute(I, :name))
-    elseif get(io, :supercompact, false)
+    elseif is_terse(io)
       print(io, "Sheaf of ideals")
     else
       if get_attribute(I, :is_one, false)

@@ -18,7 +18,7 @@ end
 # If we know a radical ideal describing our algebraic set, we preferably print
 # that one (it is easier to read...)
 function Base.show(io::IO, X::AbsProjectiveAlgebraicSet{<:Field, <:MPolyQuoRing})
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Projective algebraic set")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty projective algebraic set")

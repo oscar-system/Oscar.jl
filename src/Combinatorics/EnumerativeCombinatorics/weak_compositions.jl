@@ -177,7 +177,7 @@ function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
 end
 
 function Base.show(io::IO, W::WeakCompositions)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Iterator")
   else
     io = pretty(io)

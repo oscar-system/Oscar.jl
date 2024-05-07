@@ -211,12 +211,12 @@ function _show_inner(io::IO, V::LieAlgebraModule)
 end
 
 function Base.show(io::IO, V::LieAlgebraModule)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, _module_type_to_string(V))
   else
     io = pretty(io)
     print(io, _module_type_to_string(V), " of dimension $(dim(V)) over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(V))
+    print(terse(io), base_lie_algebra(V))
   end
 end
 

@@ -358,7 +358,7 @@ function Base.show(io::IO, D::AlgebraicCycle)
   end
   if has_name(D)
     print(io, name(D))
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Algebraic cycle")
   elseif length(components(D)) == 0
     print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))

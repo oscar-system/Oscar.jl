@@ -426,7 +426,7 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsAffineSchemeMor)
 end
 
 function Base.show(io::IO, f::AbsAffineSchemeMor)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Affine scheme morphism")
   else
     io = pretty(io)

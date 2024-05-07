@@ -220,10 +220,10 @@ function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
 end
 
 function Base.show(io::IO, L::MPolyQuoLocRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Localized quotient of multivariate polynomial ring")
   else
-    io = IOContext(pretty(io), :supercompact=>true)
+    io = terse(pretty(io))
     print(io, "Localization of ")
     print(io, Lowercase(), underlying_quotient(L))
     print(io, " at ", Lowercase(), inverted_set(L))
@@ -1173,7 +1173,7 @@ end
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), phi)
+  println(terse(io), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
   println(io, "to ", Lowercase(), codomain(phi))
@@ -1190,13 +1190,13 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
     io = pretty(io)
-    io = IOContext(io, :supercompact=>true)
+    io = terse(io)
     print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
@@ -1915,7 +1915,7 @@ function _get_generators_string_one_line(I::MPolyAnyIdeal, character_limit::Int 
 end
 
 function Base.show(io::IO, I::MPolyAnyIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ideal")
   else
     print(io, "Ideal ", _get_generators_string_one_line(I))
