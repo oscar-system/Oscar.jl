@@ -199,21 +199,20 @@ SubquoModule{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}
 ```
 """
 function canonical_bundle(X::AbsProjectiveVariety)
-   Pn = ambient_coordinate_ring(X)
-   n = ngens(Pn)-1
-   I = defining_ideal(X)
-   c = codim(I)
-   A, _ = quo(Pn, I)
-   FA = free_resolution(A, algorithm = :mres)
-   FAC = FA.C
-   r = range(FAC)
-   C = shift(FAC[first(r):-1:1], -c)
-   F = free_module(Pn, 1)
-   OmegaPn = grade(F, [n+1])
-   D = hom(C, OmegaPn);
-   Omega = homology(D, 0);
-   Omega, _ = prune_with_map(Omega);  
-   return Omega
+  Pn = ambient_coordinate_ring(X)
+  A = homogeneous_coordinate_ring(X)
+  n = ngens(Pn)-1
+  c = codim(X)
+  FA = free_resolution(A, algorithm = :fres)
+  C = Oscar.SimpleComplexWrapper(FA.C[0:first(range(FA.C))])
+  C_simp = simplify(C)
+  C_shift = shift(C_simp, c)
+  OmegaPn = graded_free_module(Pn, [n+1])
+  D = hom(C_shift, OmegaPn)
+  D_simp = simplify(D)
+  Z, inc = kernel(D_simp, 0)
+  B, inc_B = Oscar.boundary(D_simp, 0)
+  return prune_with_map(SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B)))[1] 
 end
 
 @doc raw"""
