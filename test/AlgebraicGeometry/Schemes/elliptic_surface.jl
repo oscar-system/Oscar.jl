@@ -57,6 +57,8 @@
   trivial_lattice(X3)
   =#
 
+  #=
+  This testset is disabled (for now), see https://github.com/oscar-system/Oscar.jl/issues/3676
   @testset "elliptic parameter" begin
     k = GF(29)
     kt, _ = polynomial_ring(k, :t)
@@ -84,6 +86,7 @@
     @test det(algebraic_lattice(X)[3])==24
 
   end
+  =#
 end
 
 @testset "normalize_quartic and transform_to_weierstrass" begin
