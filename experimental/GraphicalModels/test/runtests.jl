@@ -1,9 +1,7 @@
 # exported items: experimental/GraphicalModels/src/GraphicalModels.jl
 # TODOs:
 # * how to check e.g. collect(values(compute_equivalent_classes(probability_map(model)))) against something hardcoded? (Marina)
-# * Markov model: root distribution, transition matricies, question: why 148 gens of ring?
-# * fourier parametrisation: missing comparison of second index of vector (especially Kimura3!)
-# * specialized (inverse) fourier transform,two fuctions still as comments (Christiane)
+# * specialized (inverse) fourier transform, two fuctions still as comments (Christiane)
 
 @testset "Graphical Models tests" begin
 
@@ -24,7 +22,7 @@
     # generators of the polynomial ring
     @test length(gens(model.phylo_model.prob_ring)) == 2(length(collect(edges(graph(model)))))
     @test length(gens(model.fourier_ring)) == 2(length(collect(edges(graph(model))))) 
-    # fourier parametrisation
+    # fourier parameters
     fp = model.fourier_params
     for i in 1:3
       @test fp[Edge(4, i)][1] != fp[Edge(4, i)][2]
@@ -49,7 +47,7 @@
     # generators of the polynomial ring
     @test length(gens(model.phylo_model.prob_ring)) == 2(length(collect(edges(graph(model))))) 
     @test length(gens(model.fourier_ring)) == 2(length(collect(edges(graph(model))))) 
-    # fourier parametrisation
+     # fourier parameters
     fp = model.fourier_params
     for i in 1:3
       @test fp[Edge(4, i)][2] == fp[Edge(4, i)][3] == fp[Edge(4, i)][4]
@@ -74,7 +72,7 @@
     # generators of the polynomial ring
     @test length(gens(model.phylo_model.prob_ring)) == 3(length(collect(edges(graph(model)))))
     @test length(gens(model.fourier_ring)) == 3(length(collect(edges(graph(model))))) 
-    # fourier parametrisation
+    # fourier parameters
     fp = model.fourier_params
     for i in 1:3
       @test fp[Edge(4, i)][3] == fp[Edge(4, i)][4]
@@ -99,9 +97,11 @@
     # generators of the polynomial ring
     @test length(gens(model.phylo_model.prob_ring)) == 4(length(collect(edges(graph(model)))))
     @test length(gens(model.fourier_ring)) == 4(length(collect(edges(graph(model))))) 
-    # fourier parametrisation
+    # fourier parameters
     fp = model.fourier_params
-    #HOW TO COMPARE SECOND INDEX OF VARIABLE?
+    for i in 1:3
+      @test length(fp[Edge(4, i)]) == length(unique(fp[Edge(4, i)]))
+    end
     # group of the model
     @test model.group == [[0,0],[0,1],[1,0],[1,1]]
   end
@@ -117,7 +117,10 @@
     @test Oscar.number_states(model) == 20
     model = general_markov_model(tree)
     # root distribution
+    @test model.root_distr[1] isa QQMPolyRingElem
     # transition matrices
+    tr_mat = Oscar.transition_matrices(model)
+    @test tr_mat[Edge(4,1)] isa AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}
     # generators of the polynomial ring
     @test length(gens(model.prob_ring)) == 148 
   end
@@ -135,7 +138,7 @@
     @test rowsum == 1
   end
   #sum of root distribution should equal one
-  @test sum(Oscar.affine_phylogenetic_model(model).phylo_model.root_distr) ==1
+  @test sum(Oscar.affine_phylogenetic_model(model).phylo_model.root_distr) == 1
   end
 
   #Now we test functionalities for one tree and one model
