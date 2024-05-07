@@ -3,32 +3,6 @@
 ################################################
 
 @doc raw"""
-    hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
-
-Construct a hypersurface model. This constructor takes $\mathbb{P}^{2,3,1}$ as fiber
-ambient space with coordinates $[x:y:z]$ and ensures that $x$ transforms as
-$2 \overline{K}_{B_3}$ and $y$ as $3 \overline{K}_{B_3}$.
-
-# Examples
-```jldoctest
-julia> base = projective_space(NormalToricVariety, 2)
-Normal toric variety
-
-julia> hypersurface_model(base; completeness_check = false)
-Hypersurface model over a concrete base
-```
-"""
-function hypersurface_model(base::NormalToricVariety; completeness_check::Bool = true)
-  fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
-  set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
-  D1 = 2 * anticanonical_divisor_class(base)
-  D2 = 3 * anticanonical_divisor_class(base)
-  D3 = trivial_divisor_class(base)
-  return hypersurface_model(base, fiber_ambient_space, [D1, D2, D3]; completeness_check = completeness_check)
-end
-
-
-@doc raw"""
     hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}; completeness_check::Bool = true)
 
 Construct a hypersurface model, for which the user can specify a fiber ambient space
