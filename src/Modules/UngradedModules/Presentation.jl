@@ -559,6 +559,50 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   return M_new, phi
 end
 
+function _presentation_minimal(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  R = base_ring(M)
+
+  # Prepare to set some names
+  br_name = AbstractAlgebra.get_name(R)
+  if br_name === nothing
+    br_name = "br"
+  end
+  
+  M_new, phi = prune_with_map(M)
+  F0 = ambient_free_module(M_new)
+
+  # M_new is a quotient of a free module
+  proj_map = hom(F0, M_new, gens(M_new), check=false)
+  F0_to_M = compose(proj_map, phi)
+  F0_to_M.generators_map_to_generators = true
+  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(M.sub))")
+
+  K, inc = sub(F0, relations(M_new))
+  F1 = if is_graded(M)
+    graded_free_module(R, degrees_of_generators(K))
+  else
+    free_module(R, ngens(K))
+  end
+  F1_to_F0 = compose(hom(F1, K, gens(K), check=false), inc)
+  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
+
+  # When there is no kernel, clean things up
+  if is_zero(F1)
+    F1 = FreeMod(R, 0)
+    F1_to_F0 = hom(F1, F0, elem_type(F0)[]; check=false)
+  end
+  
+  # prepare the end of the presentation
+  Z = FreeMod(R, 0)
+  AbstractAlgebra.set_name!(Z, "0")
+  M_to_Z = hom(M, Z, elem_type(Z)[zero(Z) for i in 1:ngens(M)]; check=false)
+
+  # compile the presentation complex
+  CC = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_M, M_to_Z], check=false, seed = -2)
+  set_attribute!(CC, :show => Hecke.pres_show)
+  return CC
+end
+
 function prune_with_map(F::FreeMod)
   return F, hom(F, F, gens(F))
 end
