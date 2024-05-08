@@ -1999,7 +1999,6 @@ function produce_non_radical_ideal_of_singular_locus(II::SingularLocusIdealSheaf
     id, id_inv = identification_maps(UU)
 
     # Prepare for shortcuts in the computation
-    @show has_attribute(X, :is_equidimensional)
     has_attribute(X, :is_equidimensional) && get_attribute(X, :is_equidimensional)===true && set_attribute!(UU, :is_equidimensional=>true)
     has_attribute(X, :is_irreducible) && get_attribute(X, :is_irreducible)===true && set_attribute!(UU, :is_irreducible=>true)
     has_attribute(X, :is_reduced) && get_attribute(X, :is_reduced)===true && set_attribute!(UU, :is_reduced=>true)
