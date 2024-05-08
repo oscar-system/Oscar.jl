@@ -4,9 +4,7 @@
 
 B3 = projective_space(NormalToricVariety, 3)
 w = torusinvariant_prime_divisors(B3)[1]
-t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false, generic = true)
-# The following line is an internal hack. Its purpose is to make the following tests execute quickly, in particular the resolution.
-t1.explicit_model_sections["w"] = gens(cox_ring(base_space(t1)))[1]
+t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
