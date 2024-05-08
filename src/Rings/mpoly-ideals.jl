@@ -1068,6 +1068,12 @@ julia> L = minimal_primes(I)
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
+  if is_zero(dim(I))
+    L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
+    result = typeof(I)[ideal(R, q) for q in L]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
+  end
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
     A, mA = absolute_simple_field(base_ring(R))
     mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
@@ -1155,6 +1161,14 @@ function minimal_primes(
       set_attribute!(p, :is_prime=>true)
     end
     return final_list
+  end
+
+  if base_ring(R) isa QQField && is_zero(dim(I)) # Special functionality available here
+    # Flattening does not do good in the examples we tested
+    L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
+    result = typeof(I)[ideal(R, q) for q in L]
+    cache && set_attribute!(I, :minimal_primes=>result)
+    return result
   end
 
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
@@ -2241,3 +2255,4 @@ function flag_pluecker_ideal(ring::MPolyRing{<: FieldElem}, dimensions::Vector{I
                    isReduced=true,
                    isGB=true))
 end
+
