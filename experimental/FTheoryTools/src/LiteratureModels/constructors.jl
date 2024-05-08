@@ -322,6 +322,8 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     # Remember how we identified this model
     model_dict["literature_identifier"] = "1903.00009"
 
+    #return load(joinpath(@__DIR__, "Models/QSMDB/model_$k.mrdi"))
+    
     # Find position of this model in the database and (if found) extract the relevant information
     detailed_data_dict = JSON.parsefile(joinpath(@__DIR__, "Models/QSMDatabase.json"))["data"]
     index_in_data_base = -1
