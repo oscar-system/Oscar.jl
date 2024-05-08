@@ -728,7 +728,7 @@ Multivariate polynomial ring in 12 variables over QQ graded by
 julia> w2 = 2 * torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w2), completeness_check = false, generic = true)
+julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w2), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
