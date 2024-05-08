@@ -40,7 +40,7 @@
     "model_data": {
         "base_dim": 2,
         "defining_classes": ["b"],
-        "divisors_parametrized_by_user_specified_divisors": ["c0", "c1", "c2", "c3"],
+        "model_sections": ["c0", "c1", "c2", "c3"],
         "f": "c1 * c3 - b^2 * c0 - 1//3 * c2^2",
         "g": "c0 * c3^2 - 1//3 * c1 * c2 * c3 + 2//27 * c2^3 - 2//3 * b^2 * c0 * c2 + 1//4 * b^2 * c1^2",
         "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
