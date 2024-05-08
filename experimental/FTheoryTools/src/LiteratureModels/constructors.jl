@@ -260,8 +260,8 @@ end
 function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, user_spec_divs::Dict{String,ToricDivisor}, completeness_check::Bool, generic::Bool)
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
-  @req haskey(model_dict["model_data"], "divisors_parametrized_by_user_specified_divisors") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
+  @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
+  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["model_sections"])]...)
   auxiliary_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Make list of divisor classes which express the internal model sections.
@@ -398,8 +398,8 @@ end
 # Constructs literature model over arbitrary base
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
-  @req haskey(model_dict["model_data"], "divisors_parametrized_by_user_specified_divisors") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
+  @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
+  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["model_sections"])]...)
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring

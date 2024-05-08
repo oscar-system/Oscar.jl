@@ -47,7 +47,7 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["b7","b9"],
-        "divisors_parametrized_by_user_specified_divisors": ["b1","b2","b3","b5","b6","b8","b10"],
+        "model_sections": ["b1","b2","b3","b5","b6","b8","b10"],
         "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
             [3,  2,  1,  2, 1,  1, -1],
             [-1,  0,  1, -1, 0, -1,  1],
