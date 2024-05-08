@@ -122,6 +122,54 @@ function defining_section_parametrization(m::AbstractFTheoryModel)
 end
 
 
+@doc raw"""
+    classes_of_model_sections(m::AbstractFTheoryModel)
+
+Return the divisor classes of all model sections.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> classes_of_model_sections(t)
+Dict{String, ToricDivisorClass} with 9 entries:
+  "a21" => Divisor class on a normal toric variety
+  "a6"  => Divisor class on a normal toric variety
+  "a3"  => Divisor class on a normal toric variety
+  "w"   => Divisor class on a normal toric variety
+  "a2"  => Divisor class on a normal toric variety
+  "a1"  => Divisor class on a normal toric variety
+  "a43" => Divisor class on a normal toric variety
+  "a4"  => Divisor class on a normal toric variety
+  "a32" => Divisor class on a normal toric variety
+```
+"""
+@attr Dict{String, ToricDivisorClass} function classes_of_model_sections(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
+  @req base_space(m) isa NormalToricVariety "classes_of_model_sections only supported for models over a toric base"
+  model_sections = collect(keys(explicit_model_sections(m)))
+  my_dict = Dict{String, ToricDivisorClass}()
+  for k in 1:length(model_sections)
+    sec = explicit_model_sections(m)[model_sections[k]]
+    @req is_homogeneous(sec) "Encountered a non-homogeneous model section"
+    if is_zero(sec)
+      my_dict[model_sections[k]] = trivial_divisor_class(base_space(m))
+    else
+      deg = collect(keys(homogeneous_components(sec)))[1]
+      my_dict[model_sections[k]] = toric_divisor_class(base_space(m), deg)
+    end
+  end
+  return my_dict
+end
+
 
 ##########################################
 ### (2) Meta data attributes
