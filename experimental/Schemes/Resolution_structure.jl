@@ -1,6 +1,6 @@
 export _desing_curve
 export  find_refinement_with_local_system_of_params
-
+export inclusion_morphisms
 ##############################################################################
 ## Concrete Type for normalization
 ## very similar to CoveredSchemeMorphism, but allowing disjoint handling
@@ -59,18 +59,16 @@ end
   is_trivial::Bool                               # codomain already smooth?
 
   # fields for caching, to be filled during desingularization
-  ex_div::Vector{<:AbsIdealSheaf}                # list of exc. divisors arising from individual steps
-                                                 # in domain(maps[end]) -- at least in the end
-  normalization_steps::Vector{Int}               # index of parts of preimage of singular locus
-                                                 # not arising from blow-ups
-  ## CAUTION: ex_div[normalization_steps[i]] need not even be of pure codim 1, i.e. a divisor,
-  ##                                  as long as resolves_sing == false
-  ##          lower dimensional components of it belong to future centers of blow ups 
+  # always carried along to domain(maps[end])) using strict_transform
+  ex_div::Vector{<:AbsIdealSheaf}      # list of exc. divisors arising from individual steps
 
+  # keep track of the normalization steps
+  normalization_steps::Vector{Int}
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
-  exceptional_divisor::WeilDivisor          
+  exceptional_divisor::WeilDivisor
+  exceptional_locus::AlgebraicCycle
 
   function MixedBlowUpSequence(maps::Vector{<:AbsCoveredSchemeMorphism})
     n = length(maps)
@@ -93,6 +91,7 @@ end
 ##################################################################################################
 underlying_morphism(phi::NormalizationMorphism) = phi.underlying_morphism
 inclusion_morphisms(phi::NormalizationMorphism) = phi.inclusions
+normalization_steps(phi::NormalizationMorphism) = phi.normalization_steps
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]
@@ -102,7 +101,7 @@ exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div
 ## entries of ex_div corresponding to normalization steps are only exceptional divisors at the very end
 ## so only return them at the very end or on specific demand 
 function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=false)
-  phi.resolves_sing || seq_unclean || error("only available for completed resolution")
+  phi.resolves_sing || seq_unclean || error("excpetional divisor list not available for intermediate steps.")
   return phi.ex_div
 end
 
@@ -115,6 +114,86 @@ function underlying_morphism(phi::AbsDesingMor)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
   end
   return phi.underlying_morphism
+end
+
+function exceptional_divisor(f::BlowUpSequence)
+  f.is_embedded && return _exceptional_divisor_in_ambient(f)
+  return _exceptional_divisor_non_embedded(f)
+end
+
+function exceptional_locus(phi::BlowUpSequence)
+  if !isdefined(phi, :exceptional_locus)
+    phi.exceptional_locus = weil_divisor(exceptional_divisor(phi))
+  end
+  return phi.exceptional_locus
+end
+
+@attr CartierDivisor function exceptional_divisor_with_multiplicities(f::BlowUpSequence)
+  is_embedded || error("only available for embedded desingularization")
+  phi.transform_type != :strict || error("only available for weak and controlled transforms")
+
+  ex_div_list = exceptional_divisor_list(f)
+  C = f.ex_mult[1] * cartier_divisor(ex_div_list[1])
+  for i in 2:length(ex_div_list)
+    C = C + f.ex_mult[i] * cartier_divisor(ex_div_list[i])
+  end
+  return C
+end
+
+function _exceptional_divisor_in_ambient(f::BlowUpSequence)
+  f.is_embedded || error("only for embedded desingularization")
+  !isdefined(f,:exceptional_divisor) || return f.exceptional_divisor
+  f.exceptional_divisor = sum(f.ex_div; init=CartierDivisor(domain(f),ZZ))
+  return f.exceptional_divisor
+end
+
+function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
+  !isdefined(f,:exceptional_divisor_on_X) || return f.exceptional_divisor_on_X
+
+  ex_div_list = exceptional_divisor_list(f)
+  C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
+  for i in 2:length(ex_div_list)
+    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
+    C = C + weil_divisor(ex_div_list[i])
+  end
+
+  f.exceptional_divisor = C
+  return C
+end
+
+function _exceptional_divisor_non_embedded(f::BlowUpSequence)
+  !isdefined(f,:exceptional_divisor_on_X) || return f.exceptional_divisor_on_X
+
+  ex_div_list = exceptional_divisor_list(f)
+  C = CartierDivisor(scheme(ex_div_list[1]),ZZ)
+  for i in 1:length(ex_div_list)
+    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
+    C = C + cartier_divisor(ex_div_list[i])
+  end
+
+  f.exceptional_divisor_on_X = C
+  return C
+end
+
+function exceptional_divisor(f::MixedBlowUpSequence)
+  !isdefined(f,:exceptional_divisor_on_X) || return f.exceptional_divisor_on_X
+  f.resolves_sing || error("exceptional locus need not be a divisor for intermediate steps -- use exceptional_locus")
+
+  return _exceptional_divisor_non_embedded(f)
+end
+
+function exceptional_locus(f::MixedBlowUpSequence)
+  !isdefined(f,:exceptional_locus) || return f.exceptional_locus
+
+  ex_div_list = exceptional_divisor_list(f)         # these are IdealSheaves for MixedBlowUpSequences
+                                                    # they might even have the wrong dimension
+  C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
+  for E in ex_div_list
+    dim(E) != -1 || continue                        # kick out empty ones
+    C = C + algebraic_cycle(E)
+  end
+
+  return C
 end
 
 ##################################################################################################
@@ -148,18 +227,23 @@ end
 
 function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
-  ex_div = typeof(f.ex_div[1])[strict_transform(phi, E) for E in f.ex_div[1:end]]
+
+  strict_list = [strict_transform_with_multiplicity(phi,E) for E in f.ex_div]
+  ex_div = [a[1] for a in strict_list]
   push!(ex_div, exceptional_divisor(phi))
   f.ex_div = ex_div
+
+  excess_mult = sum(a[2] for a in strict_list)
   if f.transform_type == :strict
     X_strict, inc_strict,_ = strict_transform(phi, f.embeddings[end])
     push!(f.embeddings, inc_strict)
   elseif f.transform_type == :weak
     I_trans,b = weak_transform_with_multiplicity(phi, f.controlled_transform)
-    push!(f.ex_mult,b)
+    push!(f.ex_mult,b + excess_mult)
     f.controlled_transform = I_trans
+    f.control = b
   else
-    I_trans = controlled_transform(phi, f.controlled_transform, f.ex_mult[end])
+    I_trans = controlled_transform(phi, f.controlled_transform, f.control)
     f.controlled_transform = I_trans
     push!(f.ex_mult, f.ex_mult[end])
   end
@@ -203,7 +287,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, inc::CoveredCl
   else
     f.is_trivial = true
     f.embeddings = [inc, inc]
-    f.resolves_sing = false
+    f.resolves_sing = false                              # should be set elsewhere
   end
   return f
 end
@@ -215,14 +299,15 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealShe
   if !is_one(center(phi))
     f.is_trivial = false
     if b == 0
-      I_trans, b = weak_transform_with_multiplicity(phi,I)
+      I_trans, b = Oscar.weak_transform_with_multiplicity(phi,I)
       f.transform_type = :weak
     elseif b > 0
       I_trans = controlled_transform(phi, I, b)
       f.transform_type = :controlled
     end
-    f.controlled_transform = I_trans                     # CAUTION: b is considered set once and for all
+    f.controlled_transform = I_trans
     f.ex_mult = [b]
+    f.control = b
     f.resolves_sing = false                              # we have no information, whether we are done
                                                          # without further computation
   else
@@ -230,7 +315,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealShe
     f.controlled_transform = I
     f.transform_type = :weak
     f.ex_mult = [0]
-    f.resolves_sing = false
+    f.resolves_sing = false                              # should be set elsewhere
   end
   return f
 end
@@ -319,14 +404,46 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   else
     error("not implemented yet")
     return_value = forget_embedding(_desing_BEV(X))
-  end       
-  
+  end
+
 # make return_value type-stable
   if return_value isa BlowUpSequence
     return_value = mixed_blow_up_sequence(return_value)
   end
   return return_value
 end
+
+## for playing around and to have an non-embedded case type stable on BlowUpSequence
+function desingularization_only_blowups(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
+  I_sl = ideal_sheaf_of_singular_locus(X)
+
+  ## trivial case: X is already smooth
+  if is_one(I_sl)
+    id_X = identity_blow_up(X)
+    maps = [id_X]
+    return_value = BlowUpSequence(maps)
+    return_value.resolves_sing = true
+    return_value.is_trivial = true
+    return mixed_blow_up_sequence(return_value)
+  end
+
+
+  ## I_sl non-empty, we need to do something
+  # here the keyword :algorithm ensures that the desired method is called
+  dimX = dim(X)
+  if dimX == 1
+    return_value = _desing_curve(X, I_sl)
+#  elseif ((dimX == 2) && (algorithm==:Jung))
+#    error("not implemented yet")
+#    return_value = _desing_jung(X)
+#  else
+    error("not implemented yet")
+    return_value = forget_embedding(_desing_BEV(X))
+  end
+
+  return return_value
+end
+
 
 function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
@@ -888,21 +1005,6 @@ is_graded(R::Ring) = false
 # Implement the interface specified in 
 # experimental/Schemes/BlowupMorphism.jl
 ########################################################################
-
-function exceptional_divisor(phi::BlowUpSequence)
-  #TODO: Check whether the full resolution has already been computed?
-  if !isdefined(phi, :exceptional_divisor)
-    phi.exceptional_divisor = sum(phi.ex_div; init=CartierDivisor(domain(phi), ZZ))
-  end
-  return phi.exceptional_divisor
-end
-
-function exceptional_locus(phi::BlowUpSequence)
-  if !isdefined(phi, :exceptional_locus)
-    phi.exceptional_locus = weil_divisor(exceptional_divisor(phi))
-  end
-  return phi.exceptional_locus
-end
 
 # The following two methods will be ambiguous in general
 # so we need to repeat the procedure for the specific types 

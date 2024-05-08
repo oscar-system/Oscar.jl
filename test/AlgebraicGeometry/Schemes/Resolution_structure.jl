@@ -18,6 +18,8 @@
   @test is_one(ideal_sheaf(phi.ex_div[3]) + ideal_sheaf(phi.ex_div[4]) + image_ideal(phi.embeddings[end]))
   @test !is_empty(singular_locus(domain(phi.embeddings[2]))[1])
   @test is_empty(singular_locus(domain(phi.embeddings[3]))[1])
+  @test length(components(exceptional_divisor(phi))) == 4
+  @test length(components(Oscar.exceptional_locus(phi))) == 4
 end
 
 @testset "non-embedded desingularization of curves" begin
@@ -39,6 +41,8 @@ end
   @test is_one(modulus(OO(sl1)))
   @test is_one(modulus(OO(sl2)))
   @test is_one(modulus(OO(sl3)))
+  @test length(components(exceptional_divisor(phi))) == 1
+  @test length(components(Oscar.exceptional_locus(phi))) == 1
 end
 
 @testset "non-embedded desingularization Lipman (dim=2)" begin
@@ -59,6 +63,8 @@ end
   @test is_one(modulus(OO(sl5)))
   sl6,_ = singular_locus(aff_charts[6])
   @test is_one(modulus(OO(sl6)))
+  @test length(components(exceptional_divisor(phi))) == 2
+  @test_broken length(components(Oscar.exceptional_locus(phi))) == 2
 end
 
 @testset "order of an ideal" begin
