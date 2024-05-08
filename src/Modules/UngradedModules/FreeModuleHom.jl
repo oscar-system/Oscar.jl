@@ -383,7 +383,7 @@ function hom(F::FreeMod, G::FreeMod)
   R = base_ring(F)
   function im(x::FreeModElem)
     c = coordinates(x)
-    return hom(F, G, Vector{elem_type(G)}([FreeModElem(c[R, (i-1)*m+1:i*m], G) for i=1:n]), check=false)
+    return hom(F, G, Vector{elem_type(G)}([FreeModElem(c[(i-1)*m+1:i*m], G) for i=1:n]), check=false)
   end
   function pre(h::FreeModuleHom)
     s = sparse_row(F.R)
