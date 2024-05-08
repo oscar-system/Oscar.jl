@@ -4,7 +4,9 @@
 
 B3 = projective_space(NormalToricVariety, 3)
 w = torusinvariant_prime_divisors(B3)[1]
-t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+t1 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false, generic = true)
+# The following line is an internal hack. Its purpose is to make the following tests execute quickly, in particular the resolution.
+t1.explicit_model_sections["w"] = gens(cox_ring(base_space(t1)))[1]
 
 @testset "Test defining data for literature Tate model over concrete base" begin
   @test parent(tate_section_a1(t1)) == cox_ring(base_space(t1))
@@ -456,6 +458,7 @@ foah16 = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "
   @test model_description(foah14) == "F-theory hypersurface model with fiber ambient space F_14"
   @test model_description(foah15) == "F-theory hypersurface model with fiber ambient space F_15"
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
+  @test haskey(explicit_model_sections(foah6), "s9") == false
 end
 
 
@@ -564,7 +567,7 @@ foah16_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type 
   @test parent(explicit_model_sections(foah14_B3)["s7"]) == cox_ring(base_space(foah14_B3))
   @test parent(explicit_model_sections(foah15_B3)["s7"]) == cox_ring(base_space(foah15_B3))
   @test parent(explicit_model_sections(foah16_B3)["s7"]) == cox_ring(base_space(foah16_B3))
-  @test string(hypersurface_equation_parametrization(foah1_B3)) == "s7*v^2*w + s9*v*w^2 + s1*u^3 + s2*u^2*v + s3*u*v^2 + s4*v^3 + s5*u^2*w + s6*u*v*w + s8*u*w^2 + s10*w^3"
+  @test string(hypersurface_equation_parametrization(foah1_B3)) == "s1*u^3 + s2*u^2*v + s3*u*v^2 + s4*v^3 + s5*u^2*w + s6*u*v*w + s7*v^2*w + s8*u*w^2 + s9*v*w^2 + s10*w^3"
 end
 
 

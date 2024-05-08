@@ -261,31 +261,27 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
   @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["model_sections"])]...)
+  vars = string.(model_dict["model_data"]["model_sections"])
   auxiliary_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Make list of divisor classes which express the internal model sections.
-  lusd = length(user_spec_divs)
-  user_specified_divisors = vcat([anticanonical_divisor(base_space)], [user_spec_divs[vars[k]] for k in 1:lusd])
+  req_classes = string.(model_dict["model_data"]["defining_classes"])
+  user_specified_divisors = vcat([anticanonical_divisor(base_space)], [user_spec_divs[req_classes[k]] for k in 1:length(req_classes)])
 
   # Find divisor classes of the internal model sections
   paras = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   paras = vcat([[Int(k) for k in paras[i:i,:]] for i in 1:nrows(paras)]...)
-  parametrized_divisors = Dict(vars[k] => sum(paras[l, k - lusd] * user_specified_divisors[l] for l in 1:nrows(paras)) for k in 1+lusd:length(vars))
+  parametrized_divisors = Dict(vars[k] => sum(paras[l, k] * user_specified_divisors[l] for l in 1:nrows(paras)) for k in 1:length(vars))
 
   # Next, generate random values for all involved sections.
   model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-  for (key, value) in user_spec_divs
-    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective divisor class"
+  for (key, value) in parametrized_divisors
+    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) divisor class"
     if generic
       model_sections[key] = generic_section(toric_line_bundle(value))
     else
       model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
     end
-  end
-  for (key, value) in parametrized_divisors
-    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) divisor class"
-    model_sections[key] = generic_section(toric_line_bundle(value))
   end
 
   # Construct the model
@@ -399,16 +395,13 @@ end
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["model_sections"])]...)
+  vars = string.(model_dict["model_data"]["model_sections"])
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
   @req haskey(model_dict["model_data"], "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_model_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  n_model_sections = length(model_dict["model_data"]["defining_classes"])
-  additional_columns = hcat([[i == k+1 ? 1 : 0 for i in 1:nrows(auxiliary_base_grading)] for k in 1:n_model_sections]...)
-  auxiliary_base_grading = hcat([additional_columns, auxiliary_base_grading]...)
   
   base_dim = get(model_dict["model_data"], "base_dim", 3)
 
