@@ -233,11 +233,7 @@ ring_map(f::SubQuoHom) = f.ring_map
 #  re-evaluate and use or not
 
 function getindex(r::Hecke.SRow, u::AbstractUnitRange)
-  return getindex(r, base_ring(r), u)
-end
-
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
-  s = sparse_row(R)
+  s = sparse_row(base_ring(r))
   shift = 1-first(u)
   for (p,v) = r
     if p in u
