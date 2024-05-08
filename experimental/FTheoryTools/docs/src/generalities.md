@@ -56,6 +56,7 @@ fiber_ambient_space(m::AbstractFTheoryModel)
 explicit_model_sections(m::AbstractFTheoryModel)
 defining_section_parametrization(m::AbstractFTheoryModel)
 classes_of_model_sections(m::AbstractFTheoryModel)
+defining_classes(m::AbstractFTheoryModel)
 ```
 
 

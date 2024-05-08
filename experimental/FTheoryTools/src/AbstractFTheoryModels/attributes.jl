@@ -171,6 +171,34 @@ Dict{String, ToricDivisorClass} with 9 entries:
 end
 
 
+@doc raw"""
+    defining_classes(m::AbstractFTheoryModel)
+
+Return the defining divisor classes of the model in question.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> defining_classes(t)
+Dict{String, ToricDivisorClass} with 1 entry:
+  "w" => Divisor class on a normal toric variety
+```
+"""
+function defining_classes(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :defining_classes) "defining_classes not supported for this F-theory model"
+  return m.defining_classes
+end
+
+
 ##########################################
 ### (2) Meta data attributes
 ##########################################
