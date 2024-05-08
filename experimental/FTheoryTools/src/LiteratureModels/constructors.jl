@@ -376,6 +376,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   end
 
   # Return the model
+  model.defining_classes = Dict(key => toric_divisor_class(value) for (key, value) in user_spec_divs)
   return model
 end
 
