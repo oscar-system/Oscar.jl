@@ -31,10 +31,9 @@ function save_object(s::SerializerState, qsm::QSMModel)
     save_object(s, qsm.components_of_simplified_dual_graph, :components_of_simplified_dual_graph)
     save_object(s, qsm.degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph, :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph)
     save_object(s, qsm.genus_of_components_of_simplified_dual_graph, :genus_of_components_of_simplified_dual_graph)
-
-
-                
-
-
   end
+end
+
+function load_object(s::DeserializerState, ::Type{QSMModel})
+  println(load_object(s, Vector{Vector{ZZRingElem}}, :vertices))
 end
