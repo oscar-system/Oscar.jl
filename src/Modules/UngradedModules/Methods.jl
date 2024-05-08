@@ -327,7 +327,7 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
     end
     R = base_ring(M)
     c = coordinates(repres(v))
-    A = copy_and_reshape(dense_row(c[R, 1:s0*t0], s0*t0), s0, t0)
+    A = copy_and_reshape(dense_row(c[1:s0*t0], s0*t0), s0, t0)
     return A
   end
 
