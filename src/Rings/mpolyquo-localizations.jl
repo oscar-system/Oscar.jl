@@ -1613,6 +1613,7 @@ end
 function simplify(L::MPolyQuoRing)
   J = modulus(L)
   R = base_ring(L)
+  is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)
 

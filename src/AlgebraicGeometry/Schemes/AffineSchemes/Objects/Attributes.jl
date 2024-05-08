@@ -674,7 +674,7 @@ julia> singular_locus(Y)
 
 ```
 """
-function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
+function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}; compute_radical::Bool=true)
   comp = _singular_locus_with_decomposition(X,false)
   if length(comp) == 0
     set_attribute!(X, :is_smooth, true)
@@ -683,14 +683,14 @@ function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   end
   R = base_ring(OO(X))
   I = prod([modulus(underlying_quotient(OO(Y))) for Y in comp])
-  I = radical(I)
+  compute_radical && (I = radical(I))
   set_attribute!(X, :is_smooth, false)
   inc = ClosedEmbedding(X, ideal(OO(X), OO(X).(gens(I))))
   return domain(inc), inc
 end
 
 # make singular_locus agnostic to quotient
-function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
+function singular_locus(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing}; compute_radical::Bool=true)
   set_attribute!(X, :is_smooth,true)
   inc = ClosedEmbedding(X, ideal(OO(X), one(OO(X))))
   return domain(inc), inc
@@ -757,9 +757,10 @@ end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
-  I = saturated_ideal(modulus(OO(X)))
-  empty = typeof(X)[]
+  empty = AbsAffineScheme[]
   result = empty
+  is_zero(ngens(OO(X))) && return result # Shortcut needed to avoid creating polynomial rings with zero variables
+  I = saturated_ideal(modulus(OO(X)))
 
 # equidimensional decomposition to allow Jacobian criterion on each component
   P = Ideal[]
@@ -800,7 +801,7 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
     for Y in components
       result = vcat(result, singular_locus(Y)[1])
     end
-  one(OO(X)) in result && return empty
+  #one(OO(X)) in result && return empty
   end
   return result
 end

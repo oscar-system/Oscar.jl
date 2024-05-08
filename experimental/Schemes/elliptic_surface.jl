@@ -44,6 +44,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
     set_attribute!(S, :is_irreducible=>true)
     set_attribute!(S, :is_reduced=>true)
     set_attribute!(S, :is_integral=>true)
+    set_attribute!(S, :is_equidimensional=>true)
     return S
   end
 
@@ -450,6 +451,7 @@ function weierstrass_model(X::EllipticSurface)
   set_attribute!(Scov, :is_irreducible=>true)
   set_attribute!(Scov, :is_reduced=>true)
   set_attribute!(Scov, :is_integral=>true)
+  set_attribute!(Scov, :is_equidimensional=>true)
   return Scov, inc_S
 end
 
@@ -587,6 +589,7 @@ function weierstrass_contraction(X::EllipticSurface)
     return Y.blowup
   end
   S, inc_S = weierstrass_model(Y)
+  @assert has_attribute(S, :is_equidimensional) && get_attribute(S, :is_equidimensional) === true
   Crefined = _separate_singularities!(Y)
   # Blow up singular points (one at a time) until smooth
   # and compute the strict transforms of the `divisors`
@@ -597,6 +600,9 @@ function weierstrass_contraction(X::EllipticSurface)
   # initialization for the while loop
   X0 = codomain(inc_S)
   Y0 = S
+  set_attribute!(Y0, :is_reduced=>true)
+  set_attribute!(Y0, :is_irreducible=>true)
+  set_attribute!(Y0, :is_equidimensional=>true)
   inc_Y0 = inc_S
   I_sing_Y0 = maximal_associated_points(ideal_sheaf_of_singular_locus(Y0))::Vector{<:AbsIdealSheaf}
   I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
@@ -653,14 +659,21 @@ function weierstrass_contraction(X::EllipticSurface)
     push!(ambient_exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+    # Speed up the computation of singular loci
+    set_attribute!(Y1, :is_irreducible=> true)
+    set_attribute!(Y1, :is_reduced=>true)
+    set_attribute!(Y1, :is_integral=>true)
+    set_attribute!(Y1, :is_equidimensional=>true)
 
     # transform the singular loci
     I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
 
     # Add eventual new components
     @vprint :EllipticSurface 2 "computing singular locus\n"
-    I_sing_new = ideal_sheaf_of_singular_locus(Y1)
-    I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1; focus=pullback(inc_Y1, ideal_sheaf(E1)))
+    #I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    I_sing_new = pushforward(inc_Y1, I_sing_new)
+
     @vprint :EllipticSurface 2 "decomposing singular locus\n"
     I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
 
@@ -672,9 +685,11 @@ function weierstrass_contraction(X::EllipticSurface)
     Y0 = Y1
     inc_Y0 = inc_Y1
     X0 = X1
+    # Speed up the computation of singular loci
     set_attribute!(Y0, :is_irreducible=> true)
     set_attribute!(Y0, :is_reduced=>true)
     set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(Y0, :is_equidimensional=>true)
     set_attribute!(X0, :is_irreducible=> true)
     set_attribute!(X0, :is_reduced=>true)
     set_attribute!(X0, :is_integral=>true)
@@ -735,7 +750,7 @@ Internal function. Returns a list consisting of:
     end
     r = k.(roots(p))
     if length(r) == 0
-      error("not all reducible fibers are visible over $(base_ring(X))")
+      error("not all reducible fibers are visible over $(base_ring(S))")
     end
     @assert length(r) ==1
     rt = r[1]
@@ -2506,6 +2521,12 @@ end
 
 # Given an irreducible divisor D on an elliptic surface X, try to extract a point 
 # on the generic fiber from it. The return value is `nothing` in case this does not succeed.
+function point_on_generic_fiber_from_divisor(I::AbsIdealSheaf{<:EllipticSurface}; check::Bool=true)
+  X = scheme(I)
+  @check dim(I) == 1 "ideal sheaf must be of dimension one"
+  return point_on_generic_fiber_from_divisor(WeilDivisor(X, I; check=false); check)
+end
+
 function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
   X = scheme(D)
   E = generic_fiber(X)

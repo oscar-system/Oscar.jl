@@ -802,7 +802,10 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
+function maximal_associated_points(I::AbsIdealSheaf; 
+    covering=default_covering(scheme(I)),
+    algorithm::Symbol=:GTZ
+  )
   # The following would reroute to a more high-brow method with cleaner code.
   # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
   # return _maximal_associated_points(I; covering, use_decomposition_info=false)
@@ -822,7 +825,7 @@ function maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(s
     @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
     U = pop!(charts_todo)
     !is_one(I(U)) || continue                        ## supp(I) might not meet all components
-    components_here = minimal_primes(I(U))
+    components_here = minimal_primes(I(U); algorithm)
     
     ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
     for comp in components_here
@@ -873,7 +876,12 @@ function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
 end
 
 # Proof of concept method
-function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(scheme(I)), use_decomposition_info::Bool=true)
+function _maximal_associated_points(
+    I::AbsIdealSheaf; 
+    covering=default_covering(scheme(I)), 
+    use_decomposition_info::Bool=true,
+    algorithm::Symbol=:GTZ
+  )
   X = scheme(I)
   comps = AbsIdealSheaf[]
   dec_inf = decomposition_info(covering)
@@ -889,7 +897,7 @@ function _maximal_associated_points(I::AbsIdealSheaf; covering=default_covering(
       is_one(I(U)) && continue
     end
     #all(g->radical_membership(g, I(U)), loc_dec) && continue
-    loc_primes = minimal_primes(I(U))
+    loc_primes = minimal_primes(I(U); algorithm)
 
     # Take only those not visible in other charts 
     use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(g->g in p, loc_dec), loc_primes) 
@@ -1961,4 +1969,47 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
 
   return !is_one(Q(U)) && P(U) == Q(U)
 end
+
+function _pullback_along_base_change(f::AbsCoveredSchemeMorphism, D::AbsWeilDivisor)
+  scheme(D) === codomain(f) || error("divisor must live on the codomain of the map")
+  comp_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
+  for I in components(D)
+    comp_dict[pullback(f, I)] = D[I]
+  end
+  return WeilDivisor(AlgebraicCycle(domain(f), coefficient_ring(D), comp_dict; check=false); check=false)
+end
+
+########################################################################
+# Singular locus ideal sheaf
+########################################################################
+
+function produce_object_on_affine_chart(II::SingularLocusIdealSheaf, U::AbsAffineScheme)
+  return radical(produce_non_radical_ideal_of_singular_locus(II, U))
+end
+
+function produce_non_radical_ideal_of_singular_locus(II::SingularLocusIdealSheaf, U::AbsAffineScheme)
+  if !haskey(II.non_radical_ideals, U)
+    if is_one(focus(II)(U))
+      II.non_radical_ideals[U] = focus(II)(U)
+      return focus(II)(U)
+    end
+    X = scheme(II)
+    @assert any(V===U for V in affine_charts(X))
+    UU = simplify(U)
+    id, id_inv = identification_maps(UU)
+
+    # Prepare for shortcuts in the computation
+    has_attribute(X, :is_equidimensional) && get_attribute(X, :is_equidimensional)===true && set_attribute!(UU, :is_equidimensional=>true)
+    has_attribute(X, :is_irreducible) && get_attribute(X, :is_irreducible)===true && set_attribute!(UU, :is_irreducible=>true)
+    has_attribute(X, :is_reduced) && get_attribute(X, :is_reduced)===true && set_attribute!(UU, :is_reduced=>true)
+    S, inc_S = singular_locus(UU; compute_radical=false)
+    res = ideal(OO(U), pullback(id_inv).(gens(image_ideal(inc_S)))) + focus(II)(U)
+    II.non_radical_ideals[U] = res
+  end
+  return II.non_radical_ideals[U]::Ideal
+end
+
+is_one(II::SingularLocusIdealSheaf) = all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in affine_charts(scheme(II)))
+
+in_radical(J::AbsIdealSheaf, II::SingularLocusIdealSheaf) = all(all(radical_membership(g, produce_non_radical_ideal_of_singular_locus(II, U)) for g in gens(J(U))) for U in affine_charts(scheme(J)))
 

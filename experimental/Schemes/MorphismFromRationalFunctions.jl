@@ -388,15 +388,17 @@ function realize(Phi::MorphismFromRationalFunctions; check::Bool=true)
     domain_ref = Covering([domain(phi) for phi in realizations])
     inherit_gluings!(domain_ref, domain_covering(Phi))
     # TODO: Inherit the decomposition_info, too!
-    phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict; check)
+    phi_cov = CoveringMorphism(domain_ref, codomain_covering(Phi), mor_dict; 
+                               check=(Phi.run_internal_checks || check))
     # Make the refinement known to the domain
     push!(coverings(domain(Phi)), domain_ref)
-    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov; check)
+    Phi.full_realization = CoveredSchemeMorphism(domain(Phi), codomain(Phi), phi_cov; 
+                                                 check=(Phi.run_internal_checks || check))
   end
   return Phi.full_realization
 end
 
-underlying_morphism(Phi::MorphismFromRationalFunctions) = realize(Phi)
+underlying_morphism(Phi::MorphismFromRationalFunctions) = realize(Phi; check=Phi.run_internal_checks)
 
 ###
 # Find a random open subset `W ⊂ U` to which all the rational functions 
@@ -1041,6 +1043,18 @@ function _prepare_pushforward_prime_divisor(
   # may lead to that there is no result in the end. 
   return nothing, Oscar.domain_chart(phi), codomain_chart(phi)
 end
+
+function _pushforward_prime_divisor(
+    phi::MorphismFromRationalFunctions, D::AbsWeilDivisor
+  )
+  R = coefficient_ring(D)
+  div_dict = IdDict{AbsIdealSheaf, elem_type(R)}()
+  for I in components(D)
+    div_dict[_pushforward_prime_divisor(phi, I)] = D[I]
+  end
+  return WeilDivisor(AlgebraicCycle(domain(phi), R, div_dict; check=false); check=false)
+end
+
 
 function _pushforward_prime_divisor(
     phi::MorphismFromRationalFunctions, I::AbsIdealSheaf;

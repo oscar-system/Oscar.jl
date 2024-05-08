@@ -466,3 +466,17 @@ end
   @test dim(J) == 0
 end
 
+@testset "radical computation" begin
+  R, (x, y) = QQ["x", "y"]
+  #U = complement_of_prime_ideal(ideal(R, y))
+  U = powers_of_element(x)
+  J = ideal(R, x-y^2+ 1)
+  W, _ = quo(R, J)
+
+  L, loc_map = localization(W, U)
+
+  I = ideal(L, [y^2, 0]) # Dealing with zero generators lead to a bug once, so this is a real test.
+  @test radical(I) == ideal(L, [y])
+end
+
+

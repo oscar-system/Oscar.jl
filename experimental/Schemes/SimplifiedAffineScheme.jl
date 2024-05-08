@@ -21,13 +21,22 @@ a `SimplifiedAffineScheme` ``Y`` with ``X`` as its `original`.
 from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsAffineScheme{<:Field})
+  # We need to avoid creating a polynomial ring with zero variables
+  dim(X) == 0 && vector_space_dimension(OO(X)) == 0 && return SimplifiedAffineScheme(X, X, identity_map(X), identity_map(X), check=false)
+
   L, f, g = simplify(OO(X))
   Y = spec(L)
   YtoX = morphism(Y, X, f, check=false)
   XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)
   set_attribute!(XtoY, :inverse, YtoX)
-  return SimplifiedAffineScheme(Y, X, YtoX, XtoY, check=false)
+  result = SimplifiedAffineScheme(Y, X, YtoX, XtoY, check=false)
+  has_attribute(X, :is_reduced) && get_attribute(X, :is_reduced)===true && set_attribute!(result, :is_reduced=>true)
+  has_attribute(X, :is_irreducible) && get_attribute(X, :is_irreducible)===true && set_attribute!(result, :is_irreducible=>true)
+  has_attribute(X, :is_connected) && get_attribute(X, :is_connected)===true && set_attribute!(result, :is_connected=>true)
+  has_attribute(X, :is_equidimensional) && get_attribute(X, :is_equidimensional)===true && set_attribute!(result, :is_equidimensional=>true)
+  has_attribute(X, :is_integral) && get_attribute(X, :is_integral)===true && set_attribute!(result, :is_integral=>true)
+  return result
 end
 
 ### Methods to roam in the ancestry tree
