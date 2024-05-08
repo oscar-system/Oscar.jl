@@ -1803,6 +1803,7 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
+  is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
   I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
 end
