@@ -134,12 +134,26 @@ struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
 
+# Iterator type
 struct Partitions{T<:IntegerUnion}
   n::T
 
   function Partitions(n::T) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
     return new{T}(n)
+  end
+
+end
+
+struct PartitionsFixedNumParts{T<:IntegerUnion} <: AbstractVector{T}
+  n::T
+  k::Int
+  # part_iter::Partitions{T}
+
+  function PartitionsFixedNumParts(n::T, k::Int) where T<:IntegerUnion
+    @req n >= 0 "n >= 0 required"
+    @req k >= 0 "k >= 0 required"
+    return new{T}(n, k)
   end
 
 end

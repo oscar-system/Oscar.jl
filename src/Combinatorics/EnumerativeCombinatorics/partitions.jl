@@ -125,11 +125,18 @@ function getindex_safe(P::Partition{T}, i::IntegerUnion) where T
   return (i > length(data(P)) ? zero(T) : getindex(data(P), Int(i)))
 end
 
+base(C::Partitions) = P.n
+
+Base.eltype(::Partitions{T}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
-    print(io, "Iterator over partitions of ", P.n)
+  if is_terse(io)
+    print(io, "Iterator")
+  else
+    print(io, "Iterator over the partitions of $(base(P))")
+  end
 end
-Base.eltype(::Partitions{T}) where T = Partition{T}
+
 Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
 
 ################################################################################
@@ -195,25 +202,27 @@ julia> collect(partitions(Int8(4))) # using less memory
  Int8[1, 1, 1, 1]
 ```
 """
-function partitions(n::T) where {T <: IntegerUnion}
+function partitions(n::IntegerUnion)
   return Partitions(n)
 end
 
 
-function Base.iterate(P::Partitions{T}) where T
-  if P.n == 0
+function Base.iterate(P::Partitions{T}, state::Nothing = nothing) where T
+  n = base(P)
+
+  if n == 0
     return partition(T), (T[], 0, 0)
   elseif P.n == 1
     return partition(T[1]), (T[1], 1, 0)
   end
 
-  d = fill( T(1), P.n )
-  d[1] = P.n
+  d = fill( T(1), n )
+  d[1] = n
   return partition(d[1:1]), (d, 1, 1)
 
 end
 
-function Base.iterate(P::Partitions, state)
+function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int})
   d, k, q = state
   q==0 && return nothing
   if d[q] == 2
