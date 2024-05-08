@@ -46,7 +46,7 @@
     },
     "model_data": {
         "base_dim": 3,
-        "divisors_user_must_specify": ["s7", "s9"],
+        "defining_classes": ["s7", "s9"],
         "divisors_parametrized_by_user_specified_divisors": ["d1","d2","d3","d4","d5","d6","d7","d8","d9"],
         "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
             [3,   2,  1,  0, -1,  2, 1, 0,  1],

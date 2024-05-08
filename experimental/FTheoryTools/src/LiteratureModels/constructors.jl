@@ -177,7 +177,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     end
 
     # Are all model sections specified?
-    @req all(k->haskey(model_sections, k), model_dict["model_data"]["divisors_user_must_specify"]) "Not all model sections are specified"
+    @req all(k->haskey(model_sections, k), model_dict["model_data"]["defining_classes"]) "Not all model sections are specified"
     
     # Is the model specific for a base dimension? If so, make consistency check
     if haskey(model_dict["model_data"], "base_dim")
@@ -261,7 +261,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
   # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
   @req haskey(model_dict["model_data"], "divisors_parametrized_by_user_specified_divisors") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["divisors_user_must_specify"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
+  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
   auxiliary_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Make list of divisor classes which express the internal model sections.
@@ -399,14 +399,14 @@ end
 function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String,Any})
   # Construct auxiliary base ring
   @req haskey(model_dict["model_data"], "divisors_parametrized_by_user_specified_divisors") "No base coordinates specified for model"
-  vars = vcat([string.(model_dict["model_data"]["divisors_user_must_specify"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
+  vars = vcat([string.(model_dict["model_data"]["defining_classes"]), string.(model_dict["model_data"]["divisors_parametrized_by_user_specified_divisors"])]...)
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
   @req haskey(model_dict["model_data"], "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors") "Database does not specify parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors, but is vital for model constrution, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
-  n_model_sections = length(model_dict["model_data"]["divisors_user_must_specify"])
+  n_model_sections = length(model_dict["model_data"]["defining_classes"])
   additional_columns = hcat([[i == k+1 ? 1 : 0 for i in 1:nrows(auxiliary_base_grading)] for k in 1:n_model_sections]...)
   auxiliary_base_grading = hcat([additional_columns, auxiliary_base_grading]...)
   
