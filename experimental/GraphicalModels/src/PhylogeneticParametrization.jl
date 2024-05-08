@@ -227,6 +227,12 @@ julia> inverse_specialized_fourier_transform(pm)
  3//8   -3//8   -3//8   -3//8   3//4
 ```
 """
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+  p_equivclasses = compute_equivalent_classes(probability_map(pm))
+  f_equivclasses = compute_equivalent_classes(fourier_map(pm))
+  inverse_specialized_fourier_transform(pm, p_equivclasses,f_equivclasses)
+end
+
 function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
   R = probability_ring(pm)
   ns = number_states(pm)
@@ -257,8 +263,4 @@ function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, 
   end
   return inverse_spec_ft_matrix
 end
-function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
-  p_equivclasses = compute_equivalent_classes(probability_map(pm))
-  f_equivclasses = compute_equivalent_classes(fourier_map(pm))
-  inverse_specialized_fourier_transform(pm, p_equivclasses,f_equivclasses)
-end
+

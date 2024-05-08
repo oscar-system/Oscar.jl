@@ -97,7 +97,7 @@ Dict{Vector{Tuple{Int64, Int64, Int64}}, QQMPolyRingElem} with 5 entries:
  [(2, 2, 1), (3, 3, 2), (4, 4, 3), (1, 1, 2), (3, 3, 1), (4, 4, 2), (2, 2, … => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
 ```
 """
-function compute_equivalent_classes(parametrization::Dict{})
+function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
   polys = unique(collect(values(parametrization)))
   
   equivalent_keys = []

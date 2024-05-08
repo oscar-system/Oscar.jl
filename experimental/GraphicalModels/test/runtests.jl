@@ -215,6 +215,30 @@
     end
   end
 
+  @testset "specialized (inverse) fourier transform" begin
+    # model = jukes_cantor_model(tree)
+
+    FT = probability_ring(model).([1 1 1 1 1
+    1 -1//3 -1//3 1 -1//3
+    1 -1//3 1 -1//3 -1//3
+    1 1 -1//3 -1//3 -1//3
+    1 -1//3 -1//3 -1//3 1//3])
+
+    IFT = probability_ring(model).([1//16 3//16 3//16 3//16 3//8
+    3//16 -3//16 -3//16 9//16 -3//8
+    3//16 -3//16 9//16 -3//16 -3//8
+    3//16 9//16 -3//16 -3//16 -3//8
+    3//8 -3//8 -3//8 -3//8 3//4])
+
+    @test specialized_fourier_transform(model) == FT
+    @test inverse_specialized_fourier_transform(model) == IFT
+
+    p_equivclasses = sum_equivalent_classes(compute_equivalent_classes(probability_map(model)))
+    f_equivclasses = sum_equivalent_classes(compute_equivalent_classes(fourier_map(model)))
+    @test specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == FT
+    @test inverse_specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == IFT
+  end
+
   @testset "Affine parametrization" begin
     #Probability map
     p = probability_map(affine_phylogenetic_model!(model))
@@ -227,32 +251,6 @@
     # GMM model
     p = probability_map(affine_phylogenetic_model!(general_markov_model(tree)))
     @test sum(collect(values(p))) == 1
-  end
-
-  @testset "specialized (inverse) fourier transform" begin
-    # model = jukes_cantor_model(tree)
-    p_equivclasses = sum_equivalent_classes(probability_map(model))
-    f_equivclasses = sum_equivalent_classes(fourier_map(model))
-    @test specialized_fourier_transform(model) == model.phylo_model.prob_ring.([1 1 1 1 1
-    1 -1//3 -1//3 1 -1//3
-    1 -1//3 1 -1//3 -1//3
-    1 1 -1//3 -1//3 -1//3
-    1 -1//3 -1//3 -1//3 1//3])
-    #=@test specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == model.phylo_model.prob_ring.([1 1 1 1 1
-    1 -1//3 -1//3 1 -1//3
-    1 -1//3 1 -1//3 -1//3
-    1 1 -1//3 -1//3 -1//3
-    1 -1//3 -1//3 -1//3 1//3])=#
-    @test inverse_specialized_fourier_transform(model) == model.phylo_model.prob_ring.([1//16 3//16 3//16 3//16 3//8
-    3//16 -3//16 -3//16 9//16 -3//8
-    3//16 -3//16 9//16 -3//16 -3//8
-    3//16 9//16 -3//16 -3//16 -3//8
-    3//8 -3//8 -3//8 -3//8 3//4])
-    #=@test inverse_specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == model.phylo_model.prob_ring.([1//16 3//16 3//16 3//16 3//8
-    3//16 -3//16 -3//16 9//16 -3//8
-    3//16 -3//16 9//16 -3//16 -3//8
-    3//16 9//16 -3//16 -3//16 -3//8
-    3//8 -3//8 -3//8 -3//8 3//4])=#
   end
 
 end

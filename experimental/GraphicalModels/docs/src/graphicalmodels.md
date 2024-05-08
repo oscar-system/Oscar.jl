@@ -51,17 +51,17 @@ For each phylogenetic model, we can calculate the parametrization, a map from tr
 ```@docs
   probability_map(pm::PhylogeneticModel)
   fourier_map(pm::GroupBasedPhylogeneticModel)
-  specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
+  specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
   inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
 
-  compute_equivalent_classes(pm::GroupBasedPhylogeneticModel)
-  sum_equivalent_classes(pm::GroupBasedPhylogeneticModel)
+  compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
+  sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
 ```
 
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Marina Garrote Lopéz](s://sites.google.com/view/marinagarrotelopez),
+* [Marina Garrote López](s://sites.google.com/view/marinagarrotelopez),
 * possibly others.
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).

@@ -1,4 +1,4 @@
-#define components of phylogenetic models
+## define components of phylogenetic models
 
 struct PhylogeneticModel
   graph::Graph{Directed}
