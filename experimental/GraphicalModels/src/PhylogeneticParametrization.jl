@@ -78,7 +78,7 @@ function probability_map(pm::PhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  probability_coordinates = Dict(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
   return probability_coordinates
 end
 function probability_map(pm::GroupBasedPhylogeneticModel)
@@ -148,7 +148,7 @@ function fourier_map(pm::GroupBasedPhylogeneticModel)
   n_states = number_states(pm)
 
   leaves_indices = collect.(Iterators.product([collect(1:n_states) for _ in lvs_nodes]...))
-  fourier_coordinates = Dict(Tuple(leaves_states) => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
+  fourier_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => fourier_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
   return fourier_coordinates
 end
 
@@ -173,7 +173,7 @@ julia> specialized_fourier_transform(pm)
  1  -1//3  -1//3  -1//3  1//3
 ```
 """
-function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{}, f_equivclasses::Dict{})
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
   R = probability_ring(pm)
   ns = number_states(pm)
 
@@ -227,7 +227,7 @@ julia> inverse_specialized_fourier_transform(pm)
  3//8   -3//8   -3//8   -3//8   3//4
 ```
 """
-function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{}, f_equivclasses::Dict{})
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
   R = probability_ring(pm)
   ns = number_states(pm)
 

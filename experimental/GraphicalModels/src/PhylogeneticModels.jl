@@ -422,7 +422,7 @@ Group-based phylogenetic model on a tree with 3 leaves and 3 edges
  and the Fourier parameters are [1 x[i, 2] x[i, 2] x[i, 2]].
 ```
 """
-function affine_phylogenetic_model(pm::PhylogeneticModel)
+function affine_phylogenetic_model!(pm::PhylogeneticModel)
   gr = graph(pm)
   ns = number_states(pm)
   trans_mat = transition_matrices(pm)
@@ -434,9 +434,9 @@ function affine_phylogenetic_model(pm::PhylogeneticModel)
   return PhylogeneticModel(gr, ns, probability_ring(pm), root_distribution(pm), trans_mat)
 end
 
-function affine_phylogenetic_model(pm::GroupBasedPhylogeneticModel)
+function affine_phylogenetic_model!(pm::GroupBasedPhylogeneticModel)
   gr = graph(pm)
-  affine_pm = affine_phylogenetic_model(pm.phylo_model)
+  affine_pm = affine_phylogenetic_model!(pm.phylo_model)
   fourier_param = fourier_parameters(pm)
   S = fourier_ring(pm)
   for e in edges(gr)

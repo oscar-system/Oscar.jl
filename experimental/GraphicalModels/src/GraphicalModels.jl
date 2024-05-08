@@ -8,7 +8,17 @@ export jukes_cantor_model
 export kimura2_model
 export kimura3_model
 export general_markov_model
-export affine_phylogenetic_model
+export affine_phylogenetic_model!
+
+#export phylogenetic models attributes
+export graph
+export number_states
+export transition_matrices
+export probability_ring
+export root_distribution
+export fourier_parameters
+export fourier_ring
+export group_of_model
 
 #export probability and fourier map
 export probability_map
