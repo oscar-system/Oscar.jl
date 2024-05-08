@@ -345,7 +345,7 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       end
       dummy = (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)))
       if l==0 && dummy == numlist[count][1:3]   # Enriques surface
-	  return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
+        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
       else	
         push!(numlist, (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)), l))
         push!(adjlist, adj)
