@@ -233,16 +233,7 @@ ring_map(f::SubQuoHom) = f.ring_map
 #  re-evaluate and use or not
 
 function getindex(r::Hecke.SRow, u::AbstractUnitRange)
-  R = base_ring(r)
-  s = sparse_row(R)
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
+  return getindex(r, base_ring(r), u)
 end
 
 function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
@@ -255,21 +246,6 @@ function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
     end
   end
   return s
-end
-
-function getindex(a::Hecke.SRow, b::AbstractVector{Int})
-  if length(a.pos) == 0
-    return a
-  end
-  m = minimum(b)
-  b = sparse_row(parent(a.values[1]))
-  for (k,v) = a
-    if k in b
-      push!(b.pos, k-b+1)
-      push!(b.values, v)
-    end
-  end
-  return b
 end
 
 function default_ordering(F::FreeMod)
