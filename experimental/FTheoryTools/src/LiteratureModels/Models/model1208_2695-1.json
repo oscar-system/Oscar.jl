@@ -41,7 +41,7 @@
         "base_dim": 2,
         "defining_classes": ["b"],
         "model_sections": ["c0", "c1", "c2", "c3"],
-        "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
+        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
             [4, 3, 2, 1],
             [-2, -1, 0, 1]
         ],
