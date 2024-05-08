@@ -471,6 +471,37 @@ end
   end
 end
 
+########################################################################
+# Singular locus ideal sheaf
+########################################################################
+
+@attributes mutable struct SingularLocusIdealSheaf{SpaceType, OpenType, OutputType,
+                                         RestrictionType
+                                        } <: AbsIdealSheaf{
+                                                           SpaceType, OpenType,
+                                                           OutputType, RestrictionType
+                                                          }
+  focus::AbsIdealSheaf
+  non_radical_ideals::IdDict{<:AbsAffineScheme, <:Ideal}
+  underlying_presheaf::AbsPreSheaf
+
+  function SingularLocusIdealSheaf(
+      X::AbsCoveredScheme;
+      focus::AbsIdealSheaf=zero_ideal_sheaf(X)
+    )
+
+    Ipre = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(focus, IdDict{AbsAffineScheme, Ideal}(), Ipre)
+    return I
+  end
+end
+
+underlying_presheaf(I::SingularLocusIdealSheaf) = I.underlying_presheaf
+focus(I::SingularLocusIdealSheaf) = I.focus
 
 ########################################################################
 # Morphisms from rational functions                                    #

@@ -1979,4 +1979,38 @@ function _pullback_along_base_change(f::AbsCoveredSchemeMorphism, D::AbsWeilDivi
   return WeilDivisor(AlgebraicCycle(domain(f), coefficient_ring(D), comp_dict; check=false); check=false)
 end
 
+########################################################################
+# Singular locus ideal sheaf
+########################################################################
+
+function produce_object_on_affine_chart(II::SingularLocusIdealSheaf, U::AbsAffineScheme)
+  return radical(produce_non_radical_ideal_of_singular_locus(II, U))
+end
+
+function produce_non_radical_ideal_of_singular_locus(II::SingularLocusIdealSheaf, U::AbsAffineScheme)
+  if !haskey(II.non_radical_ideals, U)
+    if is_one(focus(II)(U))
+      II.non_radical_ideals[U] = focus(II)(U)
+      return focus(II)(U)
+    end
+    X = scheme(II)
+    @assert any(V===U for V in affine_charts(X))
+    UU = simplify(U)
+    id, id_inv = identification_maps(UU)
+
+    # Prepare for shortcuts in the computation
+    @show has_attribute(X, :is_equidimensional)
+    has_attribute(X, :is_equidimensional) && get_attribute(X, :is_equidimensional)===true && set_attribute!(UU, :is_equidimensional=>true)
+    has_attribute(X, :is_irreducible) && get_attribute(X, :is_irreducible)===true && set_attribute!(UU, :is_irreducible=>true)
+    has_attribute(X, :is_reduced) && get_attribute(X, :is_reduced)===true && set_attribute!(UU, :is_reduced=>true)
+    S, inc_S = singular_locus(UU; compute_radical=false)
+    res = ideal(OO(U), pullback(id_inv).(gens(image_ideal(inc_S)))) + focus(II)(U)
+    II.non_radical_ideals[U] = res
+  end
+  return II.non_radical_ideals[U]::Ideal
+end
+
+is_one(II::SingularLocusIdealSheaf) = all(is_one(produce_non_radical_ideal_of_singular_locus(II, U)) for U in affine_charts(scheme(II)))
+
+in_radical(J::AbsIdealSheaf, II::SingularLocusIdealSheaf) = all(all(radical_membership(g, produce_non_radical_ideal_of_singular_locus(II, U)) for g in gens(J(U))) for U in affine_charts(scheme(J)))
 
