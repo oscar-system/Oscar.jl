@@ -765,7 +765,6 @@ function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQ
 # equidimensional decomposition to allow Jacobian criterion on each component
   P = Ideal[]
 
-  @show has_attribute(X, :is_equidimensional)
   if has_attribute(X, :is_equidimensional) && is_equidimensional(X) && !reduced
     push!(P, I)
   else
