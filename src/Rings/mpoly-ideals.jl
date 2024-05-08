@@ -1068,7 +1068,7 @@ julia> L = minimal_primes(I)
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
-  if is_zero(dim(I))
+  if coefficient_ring(R) isa QQField && is_zero(dim(I))
     L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
     result = typeof(I)[ideal(R, q) for q in L]
     cache && set_attribute!(I, :minimal_primes=>result)
