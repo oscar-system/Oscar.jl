@@ -27,6 +27,7 @@ export AbsMultSet
 export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
+export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
 export AbstractAlgebra
 export AffineAlgebraicSet
@@ -47,6 +48,7 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Composition
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -74,6 +76,7 @@ export GL
 export GO
 export GSet
 export GU
+export GapObj
 export Gluing
 export Graph
 export GroupConjClass
@@ -168,6 +171,7 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export WeakComposition
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -188,6 +192,7 @@ export add_vertices!
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
+export adjunction_process
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -207,6 +212,7 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
+export algebraic_matroid
 export algebraic_pluecker_vector
 export algebraic_polynomial
 export algebraic_set
@@ -244,6 +250,7 @@ export archimedean_solid
 export arithmetic_genus
 export as_dictionary
 export as_gset
+export ascending_compositions
 export associahedron
 export atlas_description
 export atlas_group
@@ -342,6 +349,8 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
+export composition
+export compositions
 export comm
 export comm!
 export common_components
@@ -717,6 +726,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_archimedean_solid
 export is_ball
 export is_basepoint_free
 export is_bicoset
@@ -760,7 +770,7 @@ export is_finalized
 export is_finite, has_is_finite, set_is_finite
 export is_finite_dimensional_vector_space
 export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
-export is_finiteorder
+export is_finite_order
 export is_flat
 export is_full_direct_product
 export is_full_fp_group
@@ -789,9 +799,11 @@ export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, s
 export is_isomorphic_with_map
 export is_isomorphic_with_permutation
 export is_isomorphism
+export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
+export is_linearly_normal
 export is_local
 export is_loopless
 export is_manifold
@@ -813,6 +825,7 @@ export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
+export is_platonic_solid
 export is_pointed
 export is_positively_graded
 export is_primary
@@ -862,6 +875,7 @@ export is_unit
 export is_unital
 export is_vertical_k_separation
 export is_very_ample
+export is_vertex_transitive
 export is_weakly_connected
 export is_welldefined
 export is_z_graded
@@ -919,6 +933,7 @@ export lifted_denominator
 export lifted_numerator
 export lineality_dim
 export lineality_space
+export linear_characters
 export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
@@ -959,6 +974,7 @@ export matroid_from_hyperplanes
 export matroid_from_matrix_columns
 export matroid_from_matrix_rows
 export matroid_from_nonbases
+export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export max_GC_rank_polytope
@@ -999,7 +1015,6 @@ export monomials_of_degree
 export mori_cone
 export morphism
 export morphism_from_cox_variety
-export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1074,6 +1089,7 @@ export normalizer
 export nullity
 export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators
@@ -1085,6 +1101,7 @@ export number_of_primitive_groups, has_number_of_primitive_groups
 export number_of_small_groups, has_number_of_small_groups
 export number_of_standard_tableaux
 export number_of_transitive_groups, has_number_of_transitive_groups
+export number_of_weak_compositions
 export numerator
 export objective_function
 export omega_group
@@ -1092,6 +1109,7 @@ export on_indeterminates
 export on_lines
 export on_sets
 export on_sets_sets
+export on_simplicial_complex
 export on_subgroups
 export on_tuples
 export one!
@@ -1307,6 +1325,7 @@ export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
+export sectional_genus
 export semi_invariants
 export semidirect_product
 export semistandard_tableaux
@@ -1368,6 +1387,7 @@ export src
 export stable_intersection
 export stable_set_polytope
 export standard_basis
+export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
 export standard_tableaux
 export stanley_reisner_ideal
@@ -1480,6 +1500,8 @@ export volume_map
 export walls
 export wdeglex
 export wdegrevlex
+export weak_composition
+export weak_compositions
 export weakly_connected_components
 export wedge
 export wedge_generator_decompose_function

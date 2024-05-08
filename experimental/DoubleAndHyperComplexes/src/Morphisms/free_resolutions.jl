@@ -17,7 +17,6 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
   R = base_ring(fac.orig_mod)
 
   if iszero(i)
-    n = ngens(fac.orig_mod)
     return _make_free_module(fac.orig_mod, gens(fac.orig_mod))
   end
 
@@ -51,6 +50,43 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
   
   return next
 end
+
+# Modified version to use Schreyer's resolution where applicable
+function (fac::ResolutionModuleFactory{ChainType})(
+             c::AbsHyperComplex, I::Tuple
+           ) where {ChainType <: ModuleFP{<:MPolyRingElem{<:FieldElem}}}
+  i = first(I)
+  R = base_ring(fac.orig_mod)
+
+  is_zero(i) && return _make_free_module(fac.orig_mod, gens(fac.orig_mod))
+
+  if is_empty(fac.map_cache)
+    # start the resolution from scratch
+    # It turns out to usually be better to compute the full Schreyer resolution at once 
+    # instead of incrementally.
+    res = free_resolution(fac.orig_mod; algorithm=:fres)
+    phi = map(res, 1)
+    F = c[0] # caught above
+    id = hom(codomain(phi), F, gens(F))
+    push!(fac.map_cache, compose(phi, id))
+    r = first(range(res.C)) # the index of the last module
+    for j in 2:r
+      push!(fac.map_cache, map(res, j))
+    end
+    @assert is_zero(domain(last(fac.map_cache)))
+  end
+
+  m = length(fac.map_cache)
+  i == 0 && return codomain(first(fac.map_cache))
+  i <= m && return domain(fac.map_cache[i])
+
+  for j in m+1:i
+    next, inc = zero_object(domain(last(fac.map_cache)))
+    push!(fac.map_cache, inc)
+  end
+  return domain(last(fac.map_cache))
+end
+
 
 function zero_object(M::ModuleFP)
   if is_graded(M)

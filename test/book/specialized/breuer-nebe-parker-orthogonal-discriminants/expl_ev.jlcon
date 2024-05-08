@@ -1,0 +1,7 @@
+julia> ch = character_table("Co3", 3)[2];
+
+julia> degree(ch)
+22
+
+julia> Oscar.OrthogonalDiscriminants.od_from_eigenvalues(ch)
+(true, "O+")

@@ -1,0 +1,24 @@
+julia> P = rand_spherical_polytope(6, 500; seed=11)
+Polytope in ambient dimension 6
+
+julia> Polymake.prefer("ppl") do
+         @time n_facets(P)
+       end
+205.427732 seconds (7.13 G allocations: 321.966 GiB, 0.68% gc time)
+58163
+
+julia> P = rand_spherical_polytope(6, 500; seed=11);
+
+julia> Polymake.prefer("beneath_beyond") do
+         @time n_facets(P)
+       end
+ 61.090983 seconds (335.63 M allocations: 5.309 GiB, 0.08% gc time)
+58163
+
+julia> P = rand_spherical_polytope(6, 500; seed=11);
+
+julia> Polymake.prefer("libnormaliz") do
+         @time n_facets(P)
+       end
+ 11.167154 seconds (19.12 M allocations: 811.301 MiB, 0.07% gc time)
+58163

@@ -69,7 +69,7 @@ end
 
 function Base.show(io::IO, M::AbsCoherentSheaf)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Coherent sheaf of modules")
   elseif has_attribute(M, :name)
     print(io, get_attribute(M, :name))
@@ -1009,7 +1009,7 @@ function direct_sum(summands::Vector{<:AbsCoherentSheaf})
 end
 
 function Base.show(io::IO, M::DirectSumSheaf)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Direct sum of sheaves")
   else
     s = summands(M)

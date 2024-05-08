@@ -211,12 +211,12 @@ function _show_inner(io::IO, V::LieAlgebraModule)
 end
 
 function Base.show(io::IO, V::LieAlgebraModule)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, _module_type_to_string(V))
   else
     io = pretty(io)
     print(io, _module_type_to_string(V), " of dimension $(dim(V)) over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(V))
+    print(terse(io), base_lie_algebra(V))
   end
 end
 
@@ -873,8 +873,8 @@ end
 
 # TODO: add caching
 @doc raw"""
-  tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
-  ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
 construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.

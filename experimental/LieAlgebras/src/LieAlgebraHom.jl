@@ -71,7 +71,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), h)
+  println(terse(io), h)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))
@@ -80,7 +80,7 @@ end
 
 function Base.show(io::IO, h::LieAlgebraHom)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra morphism")
   else
     print(io, LowercaseOff(), "Lie algebra morphism: ")
@@ -159,7 +159,7 @@ end
 Return the kernel of `h` as an ideal of the domain.
 """
 function kernel(h::LieAlgebraHom)
-  ker_b = kernel(matrix(h); side = :left)
+  ker_b = kernel(matrix(h); side=:left)
   ker_dim = nrows(ker_b)
 
   return ideal(domain(h), [domain(h)(ker_b[i, :]) for i in 1:ker_dim])

@@ -4,11 +4,7 @@
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "ExteriorAlgebra",
   "GModule",
-  "MatrixGroups",
-  "ModStd",
-  "Rings",
   "Schemes",
   "FTheoryTools" # Must be loaded after the schemes.
 ]
@@ -35,6 +31,7 @@ include_dependency(".")
 isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
 if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
   include(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  issubset(whitelist, union(exppkgs, oldexppkgs)) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
   filter!(in(whitelist), exppkgs)
   filter!(in(whitelist), oldexppkgs)
 end
@@ -51,7 +48,6 @@ for pkg in exppkgs
   # Load the package
   include(joinpath(expdir, pkg, "src", "$pkg.jl"))
 end
-
 
 # Force some structure for `oldexppkgs`
 for pkg in oldexppkgs

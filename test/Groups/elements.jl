@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{ZZRingElem}(y))==Vector{ZZRingElem}
     @test x==G(Vector(x))
-    @test is_finiteorder(x)
+    @test is_finite_order(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, ZZRingElem]
       @test order(T, x) == lcm(15,n-8)
@@ -151,11 +151,11 @@ end
 @testset "deepcopy" begin
    for g in [symmetric_group(5), free_group(2), small_group(8, 1),
              automorphism_group(alternating_group(4))]
-     m = Oscar.BasicGAPGroupElem(g, gen(g, 1).X)
+     m = Oscar.BasicGAPGroupElem(g, GAP.Obj(gen(g, 1)))
      @test isdefined(m, :X)
      c = deepcopy(m);
      @test isdefined(c, :X)
-     @test c.X == m.X
+     @test GAP.Obj(c) == GAP.Obj(m)
 
      @test deepcopy([one(g)]) == [one(g)]
    end

@@ -29,7 +29,6 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '1.9'   # to be removed in the near future
           - '1.10'
           - '1.11-nightly'
           - 'nightly'
@@ -54,6 +53,9 @@ jobs:
           - julia-version: '1.10'
             group: 'long'
             os: macOS-latest
+          - julia-version: '1.10'
+            group: 'book'
+            os: ubuntu-latest
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -64,13 +66,13 @@ jobs:
           #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v1
@@ -111,7 +113,6 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.9'   # to be removed in the near future
           - '1.10'
           - '1.11-nightly'
           - 'nightly'
@@ -128,13 +129,13 @@ jobs:
             os: macOS-14
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v1

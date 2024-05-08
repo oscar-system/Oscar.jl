@@ -412,7 +412,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, inc::CoveredClosedEmbedd
                                     OOZ(dummy_dom, V_sub)(pullback(dummy_map)(OOY(V_amb, dummy_cod)(complement_equation(V)))))
     result = restrict(pr_sub, U_sub_res, V_sub_res)
     # TODO: Obtain the inverse another way?
-    @assert is_isomorphism(result)
+    #@assert is_isomorphism(result)
     set_attribute!(pr_res, :isomorphism_on_open_subset, result)
   end
   return Z_trans, inc_Z_trans, pr_res
@@ -425,6 +425,7 @@ For a `BlowupMorphism`  ``p : Y → X`` and an `AbsIdealSheaf` ``I`` on ``X`` re
 strict transform of ``I`` on ``Y``.
 """
 function strict_transform(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf)
+  return StrictTransformIdealSheaf(p, I)
   Istrict,_ =_do_transform(p, I, -1)
   return Istrict
 end
@@ -685,7 +686,7 @@ end
 ##############################################################################
 function Base.show(io::IO, Bl::AbsSimpleBlowdownMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Blowup morphism")
   else
     print(io, "Blow-down: ", Lowercase(), domain(Bl))
@@ -892,3 +893,72 @@ function blow_up(m::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name = "e")
   @assert m === scheme(I) "Incompatible scheme and ideal sheaf"
   return blow_up(I)
 end
+
+########################################################################
+# strict transforms of ideal sheaves                                   #
+########################################################################
+
+@attributes mutable struct StrictTransformIdealSheaf{SpaceType, OpenType, OutputType,
+                                                     RestrictionType
+                                                    } <: AbsIdealSheaf{
+                                                                       SpaceType, OpenType,
+                                                                       OutputType, RestrictionType
+                                                                      }
+  morphism::AbsSimpleBlowdownMorphism
+  orig::AbsIdealSheaf
+  underlying_presheaf::AbsPreSheaf
+
+  function StrictTransformIdealSheaf(
+      f::AbsSimpleBlowdownMorphism,
+      J::AbsIdealSheaf
+    )
+    @assert scheme(J) === codomain(f)
+    X = domain(f)
+    Ipre = PreSheafOnScheme(X,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(f, J, Ipre)
+    return I
+  end
+end
+
+morphism(I::StrictTransformIdealSheaf) = I.morphism
+original_ideal_sheaf(I::StrictTransformIdealSheaf) = I.orig
+underlying_presheaf(I::StrictTransformIdealSheaf) = I.underlying_presheaf
+
+function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffineScheme)
+  f = morphism(I)
+  X = domain(f)
+  Y = codomain(f)
+  J = original_ideal_sheaf(I)
+  @assert any(x->x===U, affine_charts(X))
+  E = exceptional_divisor(f)
+  IE = ideal_sheaf(E)
+  # We assume that the covering morphism has the default_covering of X as its domain.
+  @assert domain(covering_morphism(f)) === default_covering(X) "not implemented for this covering"
+  f_loc = covering_morphism(f)[U]
+  V = codomain(f_loc)
+  IE_loc = IE(U)
+  tot = pullback(f_loc)(J(V))
+  result, _ = saturation_with_index(tot, IE_loc)
+  return result
+end
+
+@attr Bool function is_prime(I::StrictTransformIdealSheaf)
+  is_subset(center(morphism(I)), radical(original_ideal_sheaf(I))) && return false # It's the unit ideal sheaf in this case
+  return is_prime(original_ideal_sheaf(I))
+end
+
+function cheap_sub_ideal(I::StrictTransformIdealSheaf, U::AbsAffineScheme)
+  II = pullback_ideal_sheaf(I)
+  return cheap_sub_ideal(II, U)
+end
+
+@attr PullbackIdealSheaf function pullback_ideal_sheaf(I::StrictTransformIdealSheaf)
+  f = morphism(I)
+  J = original_ideal_sheaf(I)
+  return PullbackIdealSheaf(f, J)
+end
+

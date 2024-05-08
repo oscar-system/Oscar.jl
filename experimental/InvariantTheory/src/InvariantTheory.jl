@@ -59,7 +59,7 @@ function Base.show(io::IO, G::LinearlyReductiveGroup)
     io = pretty(io)
     if G.group[1] == :SL
         println(io, "Reductive group ", G.group[1], G.group[2])
-        print(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(G))
+        print(terse(io), Indent(), "over ", Lowercase(), field(G))
         print(io, Dedent())
     end
 end

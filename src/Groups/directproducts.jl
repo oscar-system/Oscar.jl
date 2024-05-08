@@ -45,7 +45,7 @@ julia> elements(G)
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
-  X = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
+  X = GAP.Globals.DirectProduct(GapObj(L; recursive=true))
   DP = DirectProductGroup(X, L, X, true)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(X, i)) for i in 1:length(L)]
@@ -78,7 +78,7 @@ function inner_direct_product(
   L::AbstractVector{T}; morphisms::Bool=false
 ) where {T<:Union{PcGroup,FPGroup}}
   @req length(L) > 0 "the collection of groups must be non-empty"
-  P = GAP.Globals.DirectProduct(GapObj([G.X for G in L]))
+  P = GAP.Globals.DirectProduct(GapObj(L; recursive=true))
   DP = T(P)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(P, i)) for i in 1:length(L)]
@@ -94,7 +94,7 @@ end
 function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
-    GapObj([G.X for G in L]), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
+    GapObj(L; recursive=true), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
   )
   DP = permutation_group(P, sum([degree(G) for G in L]; init=0))
   if morphisms
@@ -205,7 +205,7 @@ julia> inj1(h)*inj2(k)
 function canonical_injection(G::DirectProductGroup, j::Int)
   @req j in 1:number_of_factors(G) "index not valid"
   @req G.isfull "Injection is not defined for proper subgroups of direct products"
-  f = GAPWrap.Embedding(G.X, j)
+  f = GAPWrap.Embedding(GapObj(G), j)
   gr = G.L[j]
   return GAPGroupHomomorphism(gr, G, f)
 end
@@ -265,7 +265,7 @@ julia> proj2(g)
 function canonical_projection(G::DirectProductGroup, j::Int)
   @req j in 1:number_of_factors(G) "index not valid"
   f = GAPWrap.Projection(G.Xfull, j)
-  p = GAPWrap.RestrictedMapping(f, G.X)
+  p = GAPWrap.RestrictedMapping(f, GapObj(G))
   return GAPGroupHomomorphism(G, factor_of_direct_product(G, j), p)
 end
 
@@ -282,9 +282,9 @@ end
 
 function (G::DirectProductGroup)(V::AbstractVector{<:GAPGroupElem})
   @req length(V) == number_of_factors(G) "Wrong number of entries"
-  arr = [GAPWrap.Image(GAPWrap.Embedding(G.Xfull, i), V[i].X) for i in 1:length(V)]
+  arr = [GAPWrap.Image(GAPWrap.Embedding(G.Xfull, i), GapObj(V[i])) for i in 1:length(V)]
   xgap = prod(arr)
-  @req xgap in G.X "Element not in the group"
+  @req xgap in GapObj(G) "Element not in the group"
   return group_element(G, xgap)
 end
 
@@ -293,8 +293,8 @@ function (G::DirectProductGroup)(v::GAPGroupElem, V::GAPGroupElem...)
 end
 
 function _as_subgroup_bare(G::DirectProductGroup, H::GapObj)
-  #  t = H==G.X
-  return DirectProductGroup(H, G.L, G.X, false)
+  #  t = H==GapObj(G)
+  return DirectProductGroup(H, G.L, GapObj(G), false)
 end
 
 function Base.show(io::IO, G::DirectProductGroup)
@@ -304,7 +304,7 @@ function Base.show(io::IO, G::DirectProductGroup)
       print(io, "\n ", x)
     end
   else
-    print(io, String(GAPWrap.StringViewObj(G.X)))
+    print(io, String(GAPWrap.StringViewObj(GapObj(G))))
   end
 end
 
@@ -355,7 +355,7 @@ where `f` is a group homomorphism from `H` to the automorphism group of `N`.
 function semidirect_product(
   N::S, f::GAPGroupHomomorphism{T,AutomorphismGroup{S}}, H::T
 ) where {S<:GAPGroup} where {T<:GAPGroup}
-  sdp = GAP.Globals.SemidirectProduct(H.X, f.map, N.X)
+  sdp = GAP.Globals.SemidirectProduct(GapObj(H), f.map, GapObj(N))
   return SemidirectProductGroup{S,T}(sdp, N, H, f, sdp, true)
 end
 
@@ -365,9 +365,9 @@ function (G::SemidirectProductGroup{S,T})(
 ) where {S,T}
   # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
   xgap =
-    GAPWrap.Image(GAPWrap.Embedding(G.Xfull, 1), b.X) *
-    GAPWrap.Image(GAPWrap.Embedding(G.Xfull, 2), a.X)
-  @req xgap in G.X "Element not in the group"
+    GAPWrap.Image(GAPWrap.Embedding(G.Xfull, 1), GapObj(b)) *
+    GAPWrap.Image(GAPWrap.Embedding(G.Xfull, 2), GapObj(a))
+  @req xgap in GapObj(G) "Element not in the group"
   return group_element(G, xgap)
 end
 
@@ -409,10 +409,10 @@ It is not defined for proper subgroups of semidirect products.
 function canonical_injection(G::SemidirectProductGroup, n::Int)
   @req G.isfull "Injection not defined for proper subgroups of semidirect products"
   if n == 1
-    f = GAPWrap.Embedding(G.X, 2)
+    f = GAPWrap.Embedding(GapObj(G), 2)
     gr = G.N
   elseif n == 2
-    f = GAPWrap.Embedding(G.X, 1)
+    f = GAPWrap.Embedding(GapObj(G), 1)
     gr = G.H
   else
     throw(ArgumentError("n must be 1 or 2"))
@@ -427,13 +427,13 @@ Return the projection of `G` into the second component of `G`.
 """
 function canonical_projection(G::SemidirectProductGroup)
   f = GAPWrap.Projection(G.Xfull)
-  p = GAPWrap.RestrictedMapping(f, G.X)
+  p = GAPWrap.RestrictedMapping(f, GapObj(G))
   return GAPGroupHomomorphism(G, acting_subgroup(G), p)
 end
 
 function _as_subgroup_bare(G::SemidirectProductGroup{S,T}, H::GapObj) where {S,T}
-  #  t = G.X==H
-  return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, G.X, false)
+  #  t = GapObj(G)==H
+  return SemidirectProductGroup{S,T}(H, G.N, G.H, G.f, GapObj(G), false)
 end
 
 function Base.show(io::IO, x::SemidirectProductGroup)
@@ -441,13 +441,13 @@ function Base.show(io::IO, x::SemidirectProductGroup)
     print(
       io,
       "SemidirectProduct( ",
-      String(GAPWrap.StringViewObj(x.N.X)),
+      String(GAPWrap.StringViewObj(GapObj(x.N))),
       " , ",
-      String(GAPWrap.StringViewObj(x.H.X)),
+      String(GAPWrap.StringViewObj(GapObj(x.H))),
       " )",
     )
   else
-    print(io, String(GAPWrap.StringViewObj(x.X)))
+    print(io, String(GAPWrap.StringViewObj(GapObj(x))))
   end
 end
 
@@ -497,13 +497,13 @@ WreathProductElement(f1,<identity> of ...,(1,2))
 ```
 """
 function wreath_product(G::T, H::PermGroup) where {T<:GAPGroup}
-  if Set{Int}(GAP.Globals.MovedPoints(H.X)) == Set(1:(H.deg))
-    Wgap = GAP.Globals.WreathProduct(G.X, H.X)
+  if Set{Int}(GAP.Globals.MovedPoints(GapObj(H))) == Set(1:(H.deg))
+    Wgap = GAP.Globals.WreathProduct(GapObj(G), GapObj(H))
     return WreathProductGroup(Wgap, G, H, id_hom(H), Wgap, true)
   else
     S = symmetric_group(H.deg)
-    Wgap = GAP.Globals.WreathProduct(G.X, S.X)
-    W1 = GAP.Globals.PreImage(GAPWrap.Projection(Wgap), H.X)
+    Wgap = GAP.Globals.WreathProduct(GapObj(G), GapObj(S))
+    W1 = GAP.Globals.PreImage(GAPWrap.Projection(Wgap), GapObj(H))
     # not id_hom(H) because I need NrMovedPoints(Image(a))==degree(H), see function embedding
     return WreathProductGroup(W1, G, H, id_hom(symmetric_group(H.deg)), Wgap, true)
   end
@@ -512,7 +512,7 @@ end
 function wreath_product(
   G::T, H::S, a::GAPGroupHomomorphism{S,PermGroup}
 ) where {S<:GAPGroup} where {T<:GAPGroup}
-  Wgap = GAP.Globals.WreathProduct(G.X, H.X, a.map)
+  Wgap = GAP.Globals.WreathProduct(GapObj(G), GapObj(H), a.map)
   return WreathProductGroup(Wgap, G, H, a, Wgap, true)
 end
 
@@ -527,9 +527,9 @@ function (W::WreathProductGroup)(
   end
   @req L[d + 1] in W.H "Wrong input"
   # simply put parent(L[d+1])==W.H does not work. Example: if I want to write explicitly a permutation in H proper subgroup of Sym(n).
-  arr = [GAPWrap.Image(GAPWrap.Embedding(W.Xfull, i), L[i].X) for i in 1:length(L)]
+  arr = [GAPWrap.Image(GAPWrap.Embedding(W.Xfull, i),GapObj(L[i])) for i in 1:length(L)]
   xgap = prod(arr)
-  @req xgap in W.X "Element not in the group"
+  @req xgap in GapObj(W) "Element not in the group"
   return group_element(W, xgap)
 end
 
@@ -600,7 +600,7 @@ Return the projection of `wreath_product(G,H)` onto the permutation group `H`.
 function canonical_projection(W::WreathProductGroup)
   #  @req W.isfull "Projection not defined for proper subgroups of wreath products"
   f = GAPWrap.Projection(W.Xfull)
-  p = GAPWrap.RestrictedMapping(f, W.X)
+  p = GAPWrap.RestrictedMapping(f, GapObj(W))
   return GAPGroupHomomorphism(W, acting_subgroup(W), p)
 end
 
@@ -632,10 +632,10 @@ function canonical_injections(W::WreathProductGroup)
   return [canonical_injection(W, n) for n in 1:GAP.Globals.NrMovedPoints(GAPWrap.Image(W.a.map)) + 1]
 end
 
-Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(x.X)))
+Base.show(io::IO, x::WreathProductGroup) = print(io, String(GAPWrap.StringViewObj(GapObj(x))))
 
 #TODO : to be fixed
 function _as_subgroup_bare(W::WreathProductGroup, X::GapObj)
-  #   t = X==W.X
+  #   t = X==GapObj(W)
   return WreathProductGroup(X, W.G, W.H, W.a, W.Xfull, false)
 end

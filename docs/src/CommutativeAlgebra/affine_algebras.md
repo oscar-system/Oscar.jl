@@ -350,7 +350,7 @@ the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{
 ### Data Associated to Homomorphisms of Affine Algebras
 
 ```@docs
-preimage(F::AffAlgHom, I::MPolyIdeal)
+preimage(F::MPolyAnyMap, I::Ideal)
 kernel(F::AffAlgHom)
 ```
 

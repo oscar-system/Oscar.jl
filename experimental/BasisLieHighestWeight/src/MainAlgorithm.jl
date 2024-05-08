@@ -161,12 +161,13 @@ function basis_coordinate_ring_kodaira_compute(
       L, i * highest_weight, birational_sequence, monomial_ordering, monomials
     )
     set_attribute!(mb, :algorithm => basis_coordinate_ring_kodaira_compute)
-    monomials_new_sorted = sort(collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
+    monomials_new_sorted = sort(
+      collect(monomials_new); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0)
+    )
     if isempty(monomials_new)
       set_attribute!(
         mb,
-        :minkowski_gens =>
-          [k * highest_weight for k in findall(!isempty, monomials_new_k)],
+        :minkowski_gens => [k * highest_weight for k in findall(!isempty, monomials_new_k)],
         :new_monomials => nothing,
       )
     else
@@ -426,7 +427,9 @@ function add_by_hand(
   # insert known monomials into basis
 
   for weight_w in weights_with_non_full_weightspace
-    add_known_monomials!(weight_w, monomials_in_weightspace, matrices_of_operators, space, v0)
+    add_known_monomials!(
+      weight_w, monomials_in_weightspace, matrices_of_operators, space, v0
+    )
   end
 
   # identify coordinates that are trivially zero because of the action on the generator

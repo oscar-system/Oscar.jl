@@ -57,6 +57,7 @@
         "hypersurface_equation": "",
         "zero_section": ["", "", ""],
         "generating_sections": [["", "", ""]],
+        "torsion_sections": [["", "", ""]],
         "resolutions": [[[[""]], [""]]],
         "resolution_zero_sections": [[["", "", ""]]],
         "resolution_generating_sections": [[[["", "", ""]]]],

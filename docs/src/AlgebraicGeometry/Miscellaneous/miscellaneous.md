@@ -17,7 +17,7 @@ grassmann_pluecker_ideal
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

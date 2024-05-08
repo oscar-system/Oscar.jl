@@ -188,6 +188,8 @@ end
 
 base_ring(a::MonomialOrdering) = a.R
 
+base_ring_type(::Type{MonomialOrdering{S}}) where {S} = S
+
 @doc raw"""
     support(o::MonomialOrdering)
 
@@ -1357,7 +1359,7 @@ end
 @doc raw"""
     simplify(M::MonomialOrdering) -> MonomialOrdering
 
-Returns a matrix ordering with a unique weight matrix.
+Return a matrix ordering with a unique weight matrix.
 """
 function Hecke.simplify(M::MonomialOrdering)
   w = canonical_matrix(M)
@@ -1400,9 +1402,37 @@ function canonical_matrix(M::MonomialOrdering)
   return M.canonical_matrix
 end
 
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+
+# Generic fall back
+function is_obviously_equal(M::AbsOrdering, N::AbsOrdering)
+  return false
+end
+
+function is_obviously_equal(M::SymbOrdering{S}, N::SymbOrdering{S}) where {S}
+  return M.vars == N.vars
+end
+
+function is_obviously_equal(M::WSymbOrdering{S}, N::WSymbOrdering{S}) where {S}
+  return M.vars == N.vars && M.weights == N.weights
+end
+
+function is_obviously_equal(M::MatrixOrdering, N::MatrixOrdering)
+  return M.vars == N.vars && M.matrix == N.matrix
+end
+
+function is_obviously_equal(M::ProdOrdering, N::ProdOrdering)
+  return is_obviously_equal(M.a, N.a) && is_obviously_equal(M.b, N.b)
+end
+
 import Base.==
 function ==(M::MonomialOrdering, N::MonomialOrdering)
-   return M === N || canonical_matrix(M) == canonical_matrix(N)
+  if M === N || is_obviously_equal(M.o, N.o)
+    return true
+  end
+  return canonical_matrix(M) == canonical_matrix(N)
 end
 
 function Base.hash(M::MonomialOrdering, u::UInt)
@@ -1541,7 +1571,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 1
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> cmp(lex(R)*invlex(F), F[1], F[2])
 -1
@@ -1717,32 +1747,107 @@ end
 
 # Module orderings (not module Orderings)
 
+# For ordering the generators (I think)
 mutable struct ModOrdering{T} <: AbsModOrdering
-   gens::T
-   ord::Symbol
-   function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
-     r = new{T}()
-     r.gens = u
-     r.ord = s
-     return r
-   end
+  gens::T
+  ord::Symbol
+  function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
+    r = new{T}()
+    r.gens = u
+    r.ord = s
+    return r
+  end
 end
 
 mutable struct ModuleOrdering{S}
-   M::S
-   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+  M::S
+  o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
+
+  canonical_matrix::ZZMatrix
+
+  function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
+    return new{S}(M, o)
+  end
 end
 
 base_ring(a::ModuleOrdering) = a.M
 
+base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
+
 mutable struct ModProdOrdering <: AbsModOrdering
-   a::AbsOrdering
-   b::AbsOrdering
+  a::AbsOrdering
+  b::AbsOrdering
 end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
 
 Base.:*(a::AbsModOrdering, b::AbsGenOrdering) = ModProdOrdering(a, b)
+
+# For equality checking and hashing
+# we produce a matrix representation by embedding the underlying free module (and its ordering) into a polynomial ring
+# then we build the matrix in this ring
+
+function _embedded_ring_ordering(o::ModuleOrdering)
+  return _embedded_ring_ordering(o.o)
+end
+
+function _embedded_ring_ordering(o::ModOrdering)
+  return SymbOrdering(o.ord, o.gens)
+end
+
+function _embedded_ring_ordering(o::AbsGenOrdering)
+  return deepcopy(o)
+end
+
+function _embedded_ring_ordering(o::ModProdOrdering)
+  ea = _embedded_ring_ordering(o.a)
+  shift = maximum(ea.vars)
+  eb = _embedded_ring_ordering(o.b)
+  eb.vars .+= shift 
+  return ea*eb
+end
+
+function _canonical_matrix_intern(o::ModuleOrdering)
+  nvrs = ngens(o.M) + ngens(base_ring(o.M))
+  eo = _embedded_ring_ordering(o)
+  return canonical_matrix(nvrs, eo)
+end
+
+function canonical_matrix(o::ModuleOrdering)
+  if !isdefined(o, :canonical_matrix)
+    if isone(ngens(o.M))
+      o.canonical_matrix = canonical_matrix(induced_ring_ordering(o))
+    else
+      o.canonical_matrix = _canonical_matrix_intern(o)
+    end
+  end
+  return o.canonical_matrix
+end
+
+# is_obviously_equal checks whether the two orderings are defined in the exact
+# same way, so `true` means that the orderings are equal and `false` means
+# that they might be equal but not 'obviously' so.
+# The generic fall back is_obviously_equal(::AbsOrdering, ::AbsOrdering) = false
+# is defined above.
+
+function is_obviously_equal(o1::ModOrdering{T}, o2::ModOrdering{T}) where {T}
+  return o1.gens == o2.gens && o1.ord == o2.ord
+end
+
+function is_obviously_equal(o1::ModProdOrdering, o2::ModProdOrdering)
+  return is_obviously_equal(o1.a, o2.a) && is_obviously_equal(o1.b, o2.b)
+end
+
+function Base.:(==)(o1::ModuleOrdering, o2::ModuleOrdering)
+  if o1 === o2 || is_obviously_equal(o1.o, o2.o)
+    return true
+  end
+  return canonical_matrix(o1) == canonical_matrix(o2)
+end
+
+function Base.hash(o::ModuleOrdering, h::UInt)
+  return hash(canonical_matrix(o), h)
+end
 
 #### _cmp_vector_monomials: cmp f[k]*gen(m) with g[l]*gen(n)
 
@@ -1826,7 +1931,7 @@ Return the ring ordering induced by `ord`.
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
+Free module of rank 3 over R
 
 julia> o = invlex(gens(F))*degrevlex(R)
 invlex([gen(1), gen(2), gen(3)])*degrevlex([w, x, y, z])
@@ -2147,3 +2252,4 @@ end
 end  # module Orderings
 
 import Oscar.Orderings: induce # needed at least for group characters
+

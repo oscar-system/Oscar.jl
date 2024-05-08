@@ -122,6 +122,7 @@ end
 underlying_complex(c::SimplifiedComplex) = c.complex
 map_to_original_complex(c::SimplifiedComplex) = c.map_to_original
 map_from_original_complex(c::SimplifiedComplex) = c.map_from_original
+original_complex(c::SimplifiedComplex) = c.original_complex
 
 @attributes mutable struct SimpleFreeResolution{ChainType, MorphismType, ModuleType} <: AbsSimpleComplex{ChainType, MorphismType}
   M::ModuleType # The original module to be resolved
