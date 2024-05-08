@@ -346,6 +346,14 @@ function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symb
   end
 end
 
+function save_object(s::SerializerState, obj::Dict)
+  save_data_array(s) do
+    for (k, v) in obj
+      save_object(s, (k, v))
+    end
+  end
+end
+
 function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
   key_type = params[:key_type]
   value_type = haskey(params, :value_type) ? params[:value_type] : Any
