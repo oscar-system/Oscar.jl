@@ -220,6 +220,19 @@ end
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   I = ideal(R, [one(R)])
   @test is_prime(I) == false
+  
+  J = ideal(R, [x*(x-1), y*(y-1), x*y])
+  l = minimal_primes(J)
+  @test length(l) == 3
+  
+  QQt, t = QQ[:t]
+  kk, a = extension_field(t^2 + 1)
+  
+  R, (x, y) = kk[:x, :y]
+  J = ideal(R, [x^2 + 1, y^2 + 1, (x - a)*(y - a)])
+  l = minimal_primes(J)
+  @test length(l) == 3
+
 end
 
 @testset "Groebner" begin
@@ -574,3 +587,5 @@ end
     @test default_ordering(T) == old_default
   end
 end
+
+
