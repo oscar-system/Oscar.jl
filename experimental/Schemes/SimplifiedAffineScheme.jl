@@ -21,6 +21,9 @@ a `SimplifiedAffineScheme` ``Y`` with ``X`` as its `original`.
 from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsAffineScheme{<:Field})
+  # We need to avoid creating a polynomial ring with zero variables
+  dim(X) == 0 && vector_space_dimension(OO(X)) == 0 && return SimplifiedAffineScheme(X, X, identity_map(X), identity_map(X), check=false)
+
   L, f, g = simplify(OO(X))
   Y = spec(L)
   YtoX = morphism(Y, X, f, check=false)
