@@ -42,15 +42,15 @@
     "model_data": {
         "base_dim": 3,
         "defining_classes": ["ζ0"],
-        "model_sections": ["b1", "b2", "b3", "b4"],
+        "model_sections": ["ζ0", "b1", "b2", "b3", "b4"],
         "a1": "b1*ζ0",
         "a2": "b2*ζ0",
         "a3": "b3*ζ0^(k + 1)",
         "a4": "b4*ζ0^(k + 1)",
         "a6": "0",
         "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
-            [1, 2, 3, 4],
-            [-1, -1, "-(k + 1)", "-(k + 1)"]
+            [0, 1, 2, 3, 4],
+            [1, -1, -1, "-(k + 1)", "-(k + 1)"]
         ],
         "generating_sections": [["0", "0", "1"]],
         "resolutions": [
