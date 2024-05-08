@@ -757,9 +757,10 @@ end
 
 # internal workhorse, not user-facing
 function _singular_locus_with_decomposition(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing}, reduced::Bool=true)
-  I = saturated_ideal(modulus(OO(X)))
   empty = AbsAffineScheme[]
   result = empty
+  is_zero(ngens(OO(X))) && return result # Shortcut needed to avoid creating polynomial rings with zero variables
+  I = saturated_ideal(modulus(OO(X)))
 
 # equidimensional decomposition to allow Jacobian criterion on each component
   P = Ideal[]
