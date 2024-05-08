@@ -269,7 +269,7 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   user_specified_divisors = vcat([anticanonical_divisor(base_space)], [user_spec_divs[vars[k]] for k in 1:lusd])
 
   # Find divisor classes of the internal model sections
-  paras = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors"]]...)))
+  paras = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   paras = vcat([[Int(k) for k in paras[i:i,:]] for i in 1:nrows(paras)]...)
   parametrized_divisors = Dict(vars[k] => sum(paras[l, k - lusd] * user_specified_divisors[l] for l in 1:nrows(paras)) for k in 1+lusd:length(vars))
 
@@ -403,8 +403,8 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
-  @req haskey(model_dict["model_data"], "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors") "Database does not specify parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors, but is vital for model constrution, so cannot proceed"
-  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors"]]...)))
+  @req haskey(model_dict["model_data"], "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_model_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model constrution, so cannot proceed"
+  auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   n_model_sections = length(model_dict["model_data"]["defining_classes"])
   additional_columns = hcat([[i == k+1 ? 1 : 0 for i in 1:nrows(auxiliary_base_grading)] for k in 1:n_model_sections]...)
