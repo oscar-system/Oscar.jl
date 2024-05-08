@@ -227,14 +227,14 @@ end
   @test singular_loci(t_nm)[1][2:3] == ((4, 6, 12), "Non-minimal")
 end
 
-@testset "Blowups of global Tate models" begin
-  id_i5_s = ideal([tate_polynomial(t_i5_s)]);
-  tas = ambient_space(t_i5_s);
-  irr_i5_s = irrelevant_ideal(tas);
-  lin_i5_s = ideal_of_linear_relations(tas);
+#@testset "Blowups of global Tate models" begin
+  #id_i5_s = ideal([tate_polynomial(t_i5_s)]);
+  #tas = ambient_space(t_i5_s);
+  #irr_i5_s = irrelevant_ideal(tas);
+  #lin_i5_s = ideal_of_linear_relations(tas);
   #id_fin,  = _blowup_global_sequence(id_i5_s, [[8, 9, 6], [2, 3, 1], [3, 4], [2, 4]], irr_i5_s, sri_i5_s, lin_i5_s)
   #@test string(gens(id_fin)[end]) == "-b_4_1*b_2_1*a1p*z - b_4_1*b_2_2 - b_4_1*b_2_3*b_1_3^2*a3p*z^3 + b_4_2*b_3_2*b_2_1^2*b_1_1 + b_4_2*b_3_2*b_2_1^2*b_1_3*a2p*z^2 + b_4_2*b_3_2*b_2_1*b_2_3*b_1_3^3*a4p*z^4 + b_4_2*b_3_2*b_2_3^2*b_1_3^5*a6p*z^6"
-end
+#end
 
 #@testset "Fibers" begin
 #  inters = analyze_fibers(t_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]])
