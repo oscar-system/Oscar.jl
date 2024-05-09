@@ -313,7 +313,7 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   cc_complete = false
 
   #= Start with presentation =#
-  pm = presentation(M)
+  pm = presentation(M, minimal = algorithm in [:mres, :nres])
   maps = [pm.maps[j] for j in 2:3]
 
   br = base_ring(M)
