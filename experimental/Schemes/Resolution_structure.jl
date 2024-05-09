@@ -60,7 +60,7 @@ end
 
   # fields for caching, to be filled during desingularization
   # always carried along to domain(maps[end])) using strict_transform
-  ex_div::Vector{<:AbsIdealSheaf}      # list of exc. divisors arising from individual steps
+  ex_div::Vector{AbsIdealSheaf}      # list of exc. divisors arising from individual steps
 
   # keep track of the normalization steps
   normalization_steps::Vector{Int}
@@ -209,7 +209,7 @@ end
 
 function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
   push!(f.maps, phi)
-  ex_div = [strict_transform(phi,E) for E in f.ex_div]
+  ex_div = (AbsIdealSheaf)[strict_transform(phi,E) for E in f.ex_div]
   push!(ex_div, ideal_sheaf(exceptional_divisor(phi)))
   f.ex_div = ex_div
   return f
@@ -218,7 +218,7 @@ end
 function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(f.maps, phi)
   sl = ideal_sheaf_of_singular_locus(codomain(phi))
-  ex_div = [pullback(phi,E) for E in exceptional_divisorlist(f,true)]
+  ex_div = (AbsIdealSheaf)[pullback(phi,E) for E in exceptional_divisorlist(f,true)]
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
   push!(f.normalization_steps,length(f.maps))
@@ -260,7 +260,7 @@ function initialize_blow_up_sequence(phi::BlowupMorphism)
   return f
 end
 
-function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::IdealSheaf)
+function initialize_mixed_blow_up_sequence(phi::NormalizationMorphism, I::AbsIdealSheaf)
   f = MixedBlowUpSequence([phi])
   f.ex_div = [pullback(phi,I)]
   f.is_trivial = is_one(I)
