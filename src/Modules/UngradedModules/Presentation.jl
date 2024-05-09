@@ -1,11 +1,15 @@
 ####################
 
 @doc raw"""
-    presentation(M::SubquoModule)
+    presentation(M::SubquoModule; minimal=false)
 
-Return a free presentation of `M`. 
+Return a free presentation of `M`. If `minimal` is set to `true`, the returned
+presentation is minimal.
 """
-function presentation(SQ::SubquoModule)
+function presentation(SQ::SubquoModule;
+                      minimal=false)
+  if minimal
+    return _presentation_minimal(SQ)
   if is_graded(SQ)
     return _presentation_graded(SQ)
   else
@@ -559,8 +563,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   return M_new, phi
 end
 
-function _presentation_minimal(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}}
-  R = base_ring(M)
+function _presentation_minimal(SQ::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}}
+  R = base_ring(SQ)
 
   # Prepare to set some names
   br_name = AbstractAlgebra.get_name(R)
@@ -568,17 +572,17 @@ function _presentation_minimal(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldEl
     br_name = "br"
   end
   
-  M_new, phi = prune_with_map(M)
-  F0 = ambient_free_module(M_new)
+  SQ_new, phi = prune_with_map(SQ)
+  F0 = ambient_free_module(SQ_new)
 
   # M_new is a quotient of a free module
-  proj_map = hom(F0, M_new, gens(M_new), check=false)
-  F0_to_M = compose(proj_map, phi)
-  F0_to_M.generators_map_to_generators = true
-  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(M.sub))")
+  proj_map = hom(F0, SQ_new, gens(SQ_new), check=false)
+  F0_to_SQ = compose(proj_map, phi)
+  F0_to_SQ.generators_map_to_generators = true
+  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
 
-  K, inc = sub(F0, relations(M_new))
-  F1 = if is_graded(M)
+  K, inc = sub(F0, relations(SQ_new))
+  F1 = if is_graded(SQ)
     graded_free_module(R, degrees_of_generators(K))
   else
     free_module(R, ngens(K))
@@ -595,10 +599,10 @@ function _presentation_minimal(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldEl
   # prepare the end of the presentation
   Z = FreeMod(R, 0)
   AbstractAlgebra.set_name!(Z, "0")
-  M_to_Z = hom(M, Z, elem_type(Z)[zero(Z) for i in 1:ngens(M)]; check=false)
+  SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
-  CC = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_M, M_to_Z], check=false, seed = -2)
+  CC = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[F1_to_F0, F0_to_SQ, SQ_to_Z], check=false, seed = -2)
   set_attribute!(CC, :show => Hecke.pres_show)
   return CC
 end
