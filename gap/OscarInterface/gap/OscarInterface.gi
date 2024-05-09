@@ -50,6 +50,42 @@ Perform( Oscar._iso_gap_oscar_methods,
 
 ############################################################################
 
+# GAP supports classical matrix groups over the ring `R` in the following
+# cases.
+# - `descr` one of "GL", "SL":
+#   finite fields, Z, residue rings of Z,
+# - `descr` "Sp":
+#   finite fields, residue rings Z/p^n Z for primes p,
+# - `descr` one of "GO", "GO+", "GO-", "SO", "SO+", "SO-",
+#   "Omega", "Omega+", "Omega-":
+#   finite fields, residue rings Z/p^n Z for odd primes p,
+# - `descr` one of "GU", "SU":
+#   finite fields.
+BindGlobal( "IsBaseRingSupportedForClassicalMatrixGroup", function( R, descr )
+  if descr in [ "GL", "SL" ] then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           IsIntegers( R ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) );
+  elif descr = "Sp" then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) and
+             IsPrimePowerInt( Size( R ) ) );
+  elif descr in [ "GO", "GO+", "GO-", "SO", "SO+", "SO-",
+                  "Omega", "Omega+", "Omega-" ] then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) and
+             IsOddInt( Size( R ) ) and IsPrimePowerInt( Size( R ) ) );
+  elif descr in [ "GU", "SU" ] then
+    return IsField( R ) and IsFinite( R );
+  fi;
+  return false;
+end );
+
+############################################################################
+
 BindGlobal("_OSCAR_GroupElem", Oscar.AbstractAlgebra.GroupElem);
 
 # the following code ensures that `GAP.Globals.Group` accepts a GAP list

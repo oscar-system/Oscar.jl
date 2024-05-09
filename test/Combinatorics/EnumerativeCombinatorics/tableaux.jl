@@ -155,11 +155,8 @@
 end
 
 
-using Documenter
-
-# This module only exists to "host" a doctest used by the test suite.
-module AuxDocTest_young_tableau_printing
-@doc raw"""
+Oscar.@_AuxDocTest "Print Young Tableaux", (fix = false),
+raw"""
     some (potentially mathematically meaningless) "tableau"
 
 ```jldoctest young_tableau_printing.test
@@ -260,13 +257,3 @@ julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
 julia> Oscar.allow_unicode(old_unicode; temporary=true);
 ```
 """
-function dummy_placeholder end
-
-end
-
-@testset "Print Young Tableaux" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_young_tableau_printing])
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
-end

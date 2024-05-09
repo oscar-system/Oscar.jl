@@ -92,7 +92,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
 end
 
 function Base.show(io::IO, basis::MonomialBasis)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Monomial basis of a highest weight module")
   else
     io = pretty(io)
@@ -100,6 +100,6 @@ function Base.show(io::IO, basis::MonomialBasis)
       io,
       "Monomial basis of a highest weight module with highest weight $(highest_weight(basis)) over ",
     )
-    print(IOContext(io, :supercompact => true), Lowercase(), base_lie_algebra(basis))
+    print(terse(io), Lowercase(), base_lie_algebra(basis))
   end
 end

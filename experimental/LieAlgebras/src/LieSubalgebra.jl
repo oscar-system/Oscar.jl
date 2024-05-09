@@ -112,11 +112,11 @@ end
 
 function Base.show(io::IO, S::LieSubalgebra)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(S))
+    print(terse(io), base_lie_algebra(S))
   end
 end
 
@@ -213,7 +213,7 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  sol = kernel(mat; side = :left)
+  sol = kernel(mat; side=:left)
   sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)

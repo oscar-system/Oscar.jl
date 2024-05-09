@@ -233,8 +233,7 @@ ring_map(f::SubQuoHom) = f.ring_map
 #  re-evaluate and use or not
 
 function getindex(r::Hecke.SRow, u::AbstractUnitRange)
-  R = base_ring(r)
-  s = sparse_row(R)
+  s = sparse_row(base_ring(r))
   shift = 1-first(u)
   for (p,v) = r
     if p in u
@@ -243,33 +242,6 @@ function getindex(r::Hecke.SRow, u::AbstractUnitRange)
     end
   end
   return s
-end
-
-function getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
-  s = sparse_row(R)
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
-end
-
-function getindex(a::Hecke.SRow, b::AbstractVector{Int})
-  if length(a.pos) == 0
-    return a
-  end
-  m = minimum(b)
-  b = sparse_row(parent(a.values[1]))
-  for (k,v) = a
-    if k in b
-      push!(b.pos, k-b+1)
-      push!(b.values, v)
-    end
-  end
-  return b
 end
 
 function default_ordering(F::FreeMod)
@@ -354,7 +326,8 @@ function hom_matrices_helper(f1::MatElem{T}, g1::MatElem{T}) where T
       throw(DomainError("v does not represent a homomorphism"))
     end
     R = base_ring(M)
-    A = copy_and_reshape(dense_row(repres(v).coords[R, 1:s0*t0], s0*t0), s0, t0)
+    c = coordinates(repres(v))
+    A = copy_and_reshape(dense_row(c[1:s0*t0], s0*t0), s0, t0)
     return A
   end
 

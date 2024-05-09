@@ -23,6 +23,8 @@
   end
 end
 
+generator_degrees(S::MPolyDecRing) = S.d
+
 @doc raw"""
     grading_group(R::MPolyDecRing)
 
@@ -83,15 +85,13 @@ function Base.show(io::IO, W::MPolyDecRing)
   Hecke.@show_name(io, W)
   Hecke.@show_special(io, W)
   io = pretty(io)
-  if get(io, :supercompact, false)
-    # no nested printing
+  if is_terse(io)
     if is_filtered(W)
       print(io, "Filtered multivariate polynomial ring")
     else
       print(io, "Graded multivariate polynomial ring")
     end
   else
-    # nested printing allowed, preferably supercompact
     R = forget_decoration(W)
     if is_filtered(W)
       print(io, "Filtered ", Lowercase(), R)
@@ -765,11 +765,10 @@ function has_weighted_ordering(R::MPolyDecRing)
   return grading_to_ordering, w_ord
 end
 
-function default_ordering(R::MPolyDecRing)
-  return get_attribute!(R, :default_ordering) do
-    fl, w_ord = has_weighted_ordering(R)
-    fl ? w_ord : degrevlex(gens(R))
-  end
+@attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyDecRing}
+  fl, w_ord = has_weighted_ordering(R)
+  fl && return w_ord
+  return degrevlex(R)
 end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
@@ -1168,6 +1167,7 @@ function homogeneous_component(a::MPolyDecRingElem, g::Vector{<:IntegerUnion})
 end
 
 base_ring(W::MPolyDecRing) = base_ring(forget_decoration(W))
+base_ring_type(::Type{MPolyDecRing{T, S}}) where {T, S} = base_ring_type(S)
 number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W))
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
@@ -2394,3 +2394,4 @@ julia> degree(I)
   A, _ = quo(base_ring(I), I)
   return degree(A)
 end
+

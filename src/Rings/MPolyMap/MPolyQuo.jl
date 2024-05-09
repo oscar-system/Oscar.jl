@@ -115,9 +115,14 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyQuoRing, <:MPolyQuoRing}, u)
   # All the simplify calls make it unusable in this case, probably due to the fact that
   # setting `is_reduced` flags does not pay off in such iterative procedures.
   A = codomain(F)
+  # Shortcut needed because the `evaluate` code can not deal with empty lists
+  is_empty(_images(F)) && return codomain(F)(_constant_coefficient(u)) 
   v = evaluate(lift(u), lift.(_images(F)))
   return simplify(A(v))
 end
+
+_constant_coefficient(f::MPolyRingElem) = constant_coefficient(f)
+_constant_coefficient(f::MPolyQuoRingElem) = constant_coefficient(lift(f))
 
 function _evaluate_general(F::MPolyAnyMap{<: MPolyQuoRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing

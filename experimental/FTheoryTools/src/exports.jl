@@ -82,9 +82,6 @@ export has_zero_section
 export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
-export hypersurface_model_over_del_pezzo_surface
-export hypersurface_model_over_hirzebruch_surface
-export hypersurface_model_over_projective_space
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_partially_resolved

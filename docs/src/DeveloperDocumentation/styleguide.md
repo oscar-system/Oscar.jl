@@ -59,7 +59,13 @@ Here is a summary of the naming convention followed in OSCAR:
   also being consistent.
   For compatibility with standard Julia, while staying consistent internally,
   we also provide aliases (using `AbstractAlgebra.@alias`) for various standard
-  Julia functions, e.g. `is_one` as alias for `isone`
+  Julia functions, e.g. `is_one` as alias for `isone`.
+- A function returning the number of some things should be named `number_of_things`,
+  alternatively it can be named `n_things` with an alias to `number_of_things`.
+  The preferred style should be consistent throughout the corresponding part.
+  For some very common things, like the number of generators, we additionally
+  provide a shorter alias, e.g. `ngens` for `number_of_generators`. These aliases should be
+  very short and without underscores.
 - For generic concepts choose generic names, based on general algebraic
   concepts, preferably not special names from your area of speciality.
 - **Avoid direct access to members of our objects.** This means, do not use
@@ -269,7 +275,7 @@ matrix `A`, write `Oscar.parent(A)`.
 
 ### The 2 + 1 print modes of Oscar
 Oscar has two user print modes `detailed` and `one line` and one internal
-print mode `:supercompact`. The latter is for use during recursion,
+print mode `terse`. The latter is for use during recursion,
 e.g. to print the `base_ring(X)` when in `one line` mode.
 It exists to make sure that `one line` stays compact and human readable.
 
@@ -296,7 +302,7 @@ General linear group of degree 24
 # one line
 General linear group of degree 24 over GF(29^7)
 
-# supercompact
+# terse
 General linear group
 ```
 
@@ -311,17 +317,17 @@ The print modes are specified as follows
 - should make sense as a standalone without context
 - variable names/generators/relations should not be printed only their number.
 - Only the first word is capitalized e.g. `Polynomial ring`
-- one should use `:supercompact` for nested printing in compact
+- one should use `terse` for nested printing in compact
 - nested calls to `one line` (if you think them really necessary) should be at the end,
-  so that one can read sequentially. Calls to `:supercompact` can be anywhere.
+  so that one can read sequentially. Calls to `terse` can be anywhere.
 - commas must be enclosed in brackets so that printing tuples stays unambiguous
-#### Super compact printing
+#### Terse printing
 - a user readable version of the main (mathematical) type.
 - a single term or a symbol/letter mimicking mathematical notation
 - should usually only depend on the type and not of the type parameters or of
   the concrete instance - exceptions of this rule are possible e.g. for `GF(2)`
 - no nested printing. In particular variable names and `base_ring` must not be displayed.
-  This ensures that `one line` and `:supercompact` stay compact even for complicated things.
+  This ensures that `one line` and `terse` stay compact even for complicated things.
   If you want nested printing use `one line` or `detailed`.
 
 For further information and examples we refer you to our section [Details on
@@ -332,12 +338,12 @@ printing in Oscar](@ref).
 
 Sometimes it is necessary to rename a function or otherwise change it. To allow
 for backwards compatibility, please then introduce a new line in the file
-`src/deprecations.jl`. The syntax is as follows:
+`src/deprecations.jl`. If the interface did not change, it is enough to write:
 ```
 # Deprecated after CURRENT_RELEASE_VERSION
-@deprecate old_function(args) new_function(args)
+@deprecate old_function new_function
 ```
-It is possible to transform the `args` too, if the syntax has changed. If this
+It is possible to transform the arguments too, if the syntax has changed. If this
 process needs an auxiliary function, which otherwise is unnecessary, please add
 it above:
 ```
@@ -346,11 +352,24 @@ function transform_args_for_new_function(args)
     # Do something
     return new_args
 end
-@deprecate old_function(args) new_function(transform_args_for_new_function(args))
+@deprecate old_function(arg1::Type1, arg2::Type2, ...) new_function(transform_args_for_new_function(args))
 ```
+In simple cases (like changing the order of arguments), you don't need an
+auxiliary function:
+```
+@deprecate old_function(arg1::Type1, arg2::Type2) new_function(arg2, arg1)
+```
+
 The comment about the version number is only necessary if you are the first one
 adding to `deprecations.jl` after a release, otherwise please add to the
 existing block.
+
+If you renamed a type and want to deprecate the old one, please add a line like
+```
+Base.@deprecate_type OldType NewType
+```
+This makes it still possible to use OldType in signatures and type annotations,
+but it will throw a deprecation warning (if they are enabled).
 
 !!! note
     Please make sure to change to the new function everywhere in the existing

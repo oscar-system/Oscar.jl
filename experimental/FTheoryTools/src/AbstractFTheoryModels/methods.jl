@@ -699,8 +699,8 @@ Resolve a model with the index-th resolution that is known.
 julia> B3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
-Torus-invariant, non-prime divisor on a normal toric variety
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
 
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
@@ -708,6 +708,32 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
 julia> t2 = resolve(t, 1)
+Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> cox_ring(ambient_space(t2))
+Multivariate polynomial ring in 12 variables over QQ graded by
+  x1 -> [1 0 0 0 0 0 0]
+  x2 -> [0 1 0 0 0 0 0]
+  x3 -> [0 1 0 0 0 0 0]
+  x4 -> [0 1 0 0 0 0 0]
+  x -> [0 0 1 0 0 0 0]
+  y -> [0 0 0 1 0 0 0]
+  z -> [0 0 0 0 1 0 0]
+  e1 -> [0 0 0 0 0 1 0]
+  e4 -> [0 0 0 0 0 0 1]
+  e2 -> [-1 -3 -1 1 -1 -1 0]
+  e3 -> [0 4 1 -1 1 0 -1]
+  s -> [2 6 -1 0 2 1 1]
+
+julia> w2 = 2 * torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, non-prime divisor on a normal toric variety
+
+julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w2), completeness_check = false, generic = true)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> t4 = resolve(t3, 1)
 Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 ```
 """

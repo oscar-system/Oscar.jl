@@ -28,6 +28,8 @@
   # Partitions(991).cardinality()
   @test number_of_partitions(991) == ZZ(16839773100833956878604913215477)
 
+  @test number_of_partitions(-1) == ZZ(0)
+
   ############################################################################
   # partitions(n)
   ############################################################################
@@ -70,6 +72,9 @@
 
   # From Knuth (2011), p. 25.
   @test sum([number_of_partitions(30, i) for i in 0:10]) == 3590
+
+  @test number_of_partitions(-1, 0) == ZZ(0)
+  @test number_of_partitions(0, -1) == ZZ(0)
 
   ############################################################################
   # partitions(n,k)

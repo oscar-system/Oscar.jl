@@ -1676,7 +1676,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #TODO: wrap this properly
     if hasproperty(GAP.Globals, :ConStabilize)
       tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(G.X), tmp)))
+      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
       G = Oscar._as_subgroup(G, H)[1]
     else
       #TODO: fallback if ferret wasn't loaded for some reason; this should be removed

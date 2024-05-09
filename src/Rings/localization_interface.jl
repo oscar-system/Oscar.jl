@@ -414,7 +414,7 @@ end
 
 function Base.show(io::IO, W::AbsLocalizedRing)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Localized ring")
   else
     print(io, "Localization of ", Lowercase(), base_ring(W))
@@ -660,5 +660,23 @@ end
 function preimage(f::AbsLocalizedRingHom, I::Ideal)
   base_ring(I) === codomain(f) || error("ideal must be in the codomain of f")
   Q, proj = quo(codomain(f), I)
-  return kernel(compose(f, proj))
+  result = kernel(compose(f, proj))
+  if has_attribute(I, :is_prime) && get_attribute(I, :is_prime) === true
+    set_attribute!(result, :is_prime=> true)
+  end
+  return result
 end
+
+# For the generic code we route everything through the kernel computation.
+# This is different to what happens within the affine algebras where the 
+# computation of kernels is rerouted to a preimage, but that shouldn't matter.
+function preimage(f::MPolyAnyMap{<:Union{<:MPolyRing, <:MPolyQuoRing}, <:AbsLocalizedRing}, I::Ideal)
+  base_ring(I) === codomain(f) || error("ideal must be in the codomain of f")
+  Q, proj = quo(codomain(f), I)
+  result = kernel(compose(f, proj))
+  if has_attribute(I, :is_prime) && get_attribute(I, :is_prime) === true
+    set_attribute!(I, :is_prime=> true)
+  end
+  return result
+end
+

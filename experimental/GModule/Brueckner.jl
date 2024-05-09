@@ -1,19 +1,6 @@
 module RepPc
 using Oscar
 
-export coimage
-
-Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
-Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
-
-function Hecke.roots(a::FinFieldElem, i::Int)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return roots(x^i-a)
-end
-
-Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
-
-
 #=TODO
  - construct characters along the way as well?
  - compare characters rather than the hom_base
@@ -29,6 +16,10 @@ Note: the reps are NOT necessarily over the smallest field.
 
 Note: the field is NOT extended - but it throws an error if it was too small.
 
+Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
+      its `gens` value, thus these generators will in general differ from
+      the generators of `G`.
+
 Implements: Brueckner, Chap 1.2.3
 """
 function reps(K, G::Oscar.GAPGroup)
@@ -39,7 +30,7 @@ function reps(K, G::Oscar.GAPGroup)
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
-  pcgs = GAP.Globals.Pcgs(G.X)
+  pcgs = GAP.Globals.Pcgs(GapObj(G))
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
@@ -91,7 +82,7 @@ function reps(K, G::Oscar.GAPGroup)
           # xX for x in the field., hence Xp = X^p is defined up
           # to p-th powers: x^p Xp, so
           # C x^p Xp = Y
-          # appliying det:
+          # applying det:
           # det(C x^p Xp) = C^n x^(pn) det(Xp) = det(Y) = root-of-1
           # so I think that shows that C is (up to p-th powers)
           # also a root-of-1
@@ -114,7 +105,7 @@ function reps(K, G::Oscar.GAPGroup)
           z[1:n,(p-1)*n+1:end] = Y
           #= This is wrong in Brueckner - or he's using a different
              conjugation. Max figured out what to do: the identity block
-             needs to be lower left, and ubbber right the inverse.
+             needs to be lower left, and upper right the inverse.
 
              He might have been doing other conjugations s.w.
           =#
@@ -276,69 +267,6 @@ function brueckner(mQ::Map{<:Oscar.GAPGroup, PcGroup}; primes::Vector=[])
   return allR
 end
 
-Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
-
-Oscar.is_free(M::Generic.FreeModule) = true
-Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
-
-function Oscar.dual(h::Map{FinGenAbGroup, FinGenAbGroup})
-  A = domain(h)
-  B = codomain(h)
-  @assert is_free(A) && is_free(B)
-  return hom(B, A, transpose(h.map))
-end
-
-function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{ZZRingElem}, <:AbstractAlgebra.FPModule{ZZRingElem}})
-  A = domain(h)
-  B = codomain(h)
-  @assert is_free(A) && is_free(B)
-  return hom(B, A, transpose(matrix(h)))
-end
-
-function coimage(h::Map)
-  return quo(domain(h), kernel(h)[1])
-end
-
-function Oscar.cokernel(h::Map)
-  return quo(codomain(h), image(h)[1])
-end
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  k = base_ring(M)
-  if dim(M) == 0
-    return zero(M), iterate([1])
-  end
-  p = Base.Iterators.ProductIterator(Tuple([k for i=1:dim(M)]))
-  f = iterate(p)
-  return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
-end
-
-function Base.iterate(::AbstractAlgebra.FPModule{<:FinFieldElem}, ::Tuple{Int64, Int64})
-  return nothing
-end
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator}) where T <: FinFieldElem
-  n = iterate(st[2], st[1])
-  if n === nothing
-    return n
-  end
-  return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
-end
-
-function Base.length(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return Int(order(base_ring(M))^dim(M))
-end
-
-function Base.eltype(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return elem_type(M)
-end
-
-function Oscar.dim(M::AbstractAlgebra.Generic.DirectSumModule{<:FieldElem})
-  return sum(dim(x) for x = M.m)
-end
-
-Oscar.is_finite(M::AbstractAlgebra.FPModule{<:FinFieldElem}) = true
-
 """
   mp: G ->> Q
   C a F_p[Q]-module
@@ -388,7 +316,7 @@ function lift(C::GModule, mp::Map)
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(GapObj(h))], zero(M)) for h = gens(N)]
     gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
 
     rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
@@ -497,5 +425,3 @@ orbits(G)
 end #module RepPc
 
 using .RepPc
-
-export coimage

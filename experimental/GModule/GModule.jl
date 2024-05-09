@@ -18,42 +18,6 @@ import Oscar.GrpCoh: MultGrp, MultGrpElem
 import AbstractAlgebra: Group, Module
 import Base: parent
 
-
-#XXX: have a type for an implicit field - in Hecke?
-#     add all(?) the other functions to it
-function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
-  k = domain(m)
-  K = codomain(m)
-  @assert base_field(k) == base_field(K)
-  kt, t = polynomial_ring(k, cached = false)
-  f = defining_polynomial(K)
-  Qt = parent(f)
-  #the Trager construction, works for extensions of the same field given
-  #via primitive elements
-  h = gcd(gen(k) - map_coefficients(k, Qt(m(gen(k))), parent = kt), map_coefficients(k, f, parent = kt))
-  coordinates = function(x::FieldElem)
-    @assert parent(x) == K
-    c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
-    c = vcat(c, zeros(k, degree(h)-length(c)))
-    return c
-  end
-  rep_mat = function(x::FieldElem)
-    @assert parent(x) == K
-    c = map_coefficients(k, Qt(x), parent = kt) % h
-    m = collect(Hecke.coefficients(c))
-    m = vcat(m, zeros(k, degree(h) - length(m)))
-    r = m
-    for i in 2:degree(h)
-      c = shift_left(c, 1) % h
-      m = collect(Hecke.coefficients(c))
-      m = vcat(m, zeros(k, degree(h) - length(m)))
-      r = hcat(r, m)
-    end
-    return transpose(matrix(r))
-  end
-  return h, coordinates, rep_mat
-end
-
 """
     restriction_of_scalars(M::GModule, phi::Map)
 
@@ -76,10 +40,10 @@ julia> C = gmodule(CyclotomicField, C);
 julia> h = subfields(base_ring(C), degree = 2)[1][2];
 
 julia> restriction_of_scalars(C, h)
-G-module for G acting on vector space of dimension 4 over number field of degree 2 over QQ
+G-module for G acting on vector space of dimension 4 over number field
 
 julia> restriction_of_scalars(C, QQ)
-G-module for G acting on vector space of dimension 8 over rational field
+G-module for G acting on vector space of dimension 8 over QQ
 
 ```
 """
@@ -299,15 +263,6 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
   return invariant_lattice_classes(MZ)
 end
 
-function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
-  return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
-end
-
-function _hom(f::Map{<:AbstractAlgebra.FPModule{T}, <:AbstractAlgebra.FPModule{T}}) where T
-  @assert base_ring(domain(f)) == base_ring(codomain(f))
-  return hom(domain(f), codomain(f), f.(gens(domain(f))))
-end
-
 function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{ZZRingElem}})
   res = Any[(M, sub(M.M, gens(M.M))[2])]
   sres = 1
@@ -324,8 +279,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-
-          r = (gmodule(M.G, [_hom(mx*h*pseudo_inv(mx)) for h in M.ac]), mx)
+          r = (sub(M, mx), mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
@@ -358,7 +312,7 @@ function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.
 end
 
 function maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
-  return [sub(M, s) for s = maximal_submodule_bases]
+  return [sub(M, s) for s = maximal_submodule_bases(M)]
 end
 
 
@@ -379,10 +333,10 @@ end
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
   h = Oscar.iso_oscar_gap(k)
   hi = inv(h)
-  im = GAP.Globals.IrreducibleRepresentations(G.X, codomain(h))
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G), codomain(h))
   IM = GModule[]
   for m in im
-    z = map(x->matrix(map(y->map(hi, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(hi, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(k, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -396,11 +350,11 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
-  im = GAP.Globals.IrreducibleRepresentations(G.X)
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
   IM = GModule[]
   K = abelian_closure(QQ)[1]
   for m in im
-    z = map(x->matrix(map(y->map(K, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(K, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(K, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -589,7 +543,7 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
 end
 
 """
-Returns Z[G] and a function f that, when applied to a G-module M will return
+Return Z[G] and a function f that, when applied to a G-module M will return
 a map representing the action of Z[G] on M:
 
 f(C) yields the extension of g -> action(C, g)
@@ -674,6 +628,15 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
   F = free_module(k, nrows(b))
   return gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators]), hom(F, C.M, b)
   return b
+end
+
+# Compute the restriction of the `M.G`-action from `M.M`
+# to the submodule given by the embedding `f`.
+function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::AbstractAlgebra.Generic.ModuleHomomorphism{T}) where T
+  @assert codomain(f) == M.M
+  S = domain(f)
+  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  return gmodule(S, M.G, Sac)
 end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
@@ -1238,15 +1201,6 @@ inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)
 q, mq = quo(H, image(inj)[2])
 =#
 
-Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
-
-function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
-  k = base_ring(F)
-  @assert base_ring(G) == k
-  H = free_module(k, dim(F)*dim(G))
-  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
-end
-
 function hom_base(C::GModule{S, <:AbstractAlgebra.FPModule{T}}, D::GModule{S, <:AbstractAlgebra.FPModule{T}}) where {S <: Oscar.GAPGroup, T <: FinFieldElem}
   @assert base_ring(C) == base_ring(D)
   h = Oscar.iso_oscar_gap(base_ring(C))
@@ -1568,45 +1522,15 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
   return Oscar.gmodule(A, Group(C), [hom(A, A, map_entries(lift, matrix(x))) for x = C.ac])
 end
 
-function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
-  A = free_abelian_group(rank(M))
-  return A, MapFromFunc(A, M, x->M(x.coeff), y->A(y.v))
-end
-
 function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where {T <: Oscar.GAPGroup}
   A, mA = abelian_group(C.M)
   return Oscar.gmodule(A, Group(C), [hom(A, A, matrix(x)) for x = C.ac])
 end
 
-#TODO: for modern fin. fields as well
-function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
-  k = base_ring(M)
-  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
-  n = degree(k)
-  function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
-    a = ZZRingElem[]
-    for i=1:dim(M)
-      c = m[i]
-      for j=0:n-1
-        push!(a, coeff(c, j))
-      end
-    end
-    return A(a)
-  end
-  function to_M(a::FinGenAbGroupElem)
-    m = fqPolyRepFieldElem[]
-    for i=1:dim(M)
-      push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
-    end
-    return M(m)
-  end
-  return A, MapFromFunc(A, M, to_M, to_A)
-end
-
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
   K = abelian_closure(QQ)[1]
-  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(group(chi).X), f)
+  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi))
   return gmodule(group(chi), [hom(F, F, x) for x = z])
@@ -1657,44 +1581,6 @@ function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}
    f = invariant_forms(C)[1]
    M = n
  end
-end
-
-function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, p::ZZRingElem, q::ZZRingElem)
-  c = parent(a)()
-  pi = invmod(p, q)
-  mul!(pi, pi, p)
-  pq = p*q
-  z = ZZRingElem(0)
-
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      c[i,j] = Hecke.induce_inner_crt(a[i,j], b[i,j], pi, pq, z)
-    end
-  end
-  return c
-end
-
-function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = parent(a)()
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-    end
-  end
-  return true, c
-end
-
-function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
-  c = zero_matrix(QQ, nrows(a), ncols(a))
-  for i=1:nrows(a)
-    for j=1:ncols(a)
-      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
-      fl || return fl, c
-      c[i,j] = n//d
-    end
-  end
-  return true, c
 end
 
 export extension_of_scalars

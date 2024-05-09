@@ -1,0 +1,11 @@
+julia> Ft,t = rational_function_field(GF(3),"t")
+(Rational function field over GF(3), t)
+
+julia> nu = tropical_semiring_map(Ft,t,max)
+Map into Max tropical semiring encoding the t-adic valuation on Rational function field over GF(3)
+
+julia> nu.([t^(-1),1,t])
+3-element Vector{TropicalSemiringElem{typeof(max)}}:
+ (1)
+ (0)
+ (-1)

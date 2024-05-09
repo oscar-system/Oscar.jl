@@ -147,7 +147,7 @@ function primitive_group_identification(G::PermGroup)
   @req is_primitive(G, moved) "group is not primitive on its moved points"
   deg = length(moved)
   @req has_primitive_groups(deg) "identification of primitive permutation groups of degree $(deg) is not available"
-  res = GAP.Globals.PrimitiveIdentification(G.X)::Int
+  res = GAP.Globals.PrimitiveIdentification(GapObj(G))::Int
   return deg, res
 end
 

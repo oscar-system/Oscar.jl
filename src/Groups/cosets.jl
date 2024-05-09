@@ -14,6 +14,8 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
    X::GapObj               # GapObj(H*repr)
 end
 
+GAP.julia_to_gap(obj::GroupCoset) = obj.X
+
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
 
@@ -37,12 +39,12 @@ end
 
 function Base.show(io::IO, x::GroupCoset)
   side = x.side === :left ? "Left" : "Right"
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$side coset of a group")
   else
     print(io, "$side coset of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " with representative ", x.repr)
+    print(terse(io), Lowercase(), x.H, " with representative ", x.repr)
   end
 end
 
@@ -327,12 +329,12 @@ end
 
 function Base.show(io::IO, x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$side transversal of groups")
   else
     print(io, "$side transversal of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " in ", Lowercase(), x.G)
+    print(terse(io), Lowercase(), x.H, " in ", Lowercase(), x.G)
   end
 end
 
@@ -458,6 +460,8 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    X::GapObj
 end
 
+GAP.julia_to_gap(obj::GroupDoubleCoset) = obj.X
+
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
@@ -476,12 +480,12 @@ function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
 end
 
 function Base.show(io::IO, x::GroupDoubleCoset)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Double coset of a group")
   else
     print(io, "Double coset of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H,
+    print(terse(io), Lowercase(), x.H,
       " and ", Lowercase(), x.K, " with representative ", x.repr)
   end
 end

@@ -132,7 +132,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
     n = n_patches(cov)
     if has_name(X)
       print(io, name(X))
-    elseif get(io, :supercompact, false)
+    elseif is_terse(io)
       print(io, "Covered scheme")
     else
       if get_attribute(X, :is_empty, false) || n == 0
@@ -140,7 +140,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
       else
         print(io, "Scheme over ")
       end
-      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+      print(terse(io), Lowercase(), base_ring(X))
     end
     n > 0 && print(io, " covered with ", ItemQuantity(n, "patch"))
   end
@@ -153,7 +153,35 @@ function base_change(phi::Any, X::AbsCoveredScheme)
   C = default_covering(X)
   CC, f_CC = base_change(phi, C)
   XX = CoveredScheme(CC)
-  return XX, CoveredSchemeMorphism(XX, X, f_CC)
+  return XX, CoveredSchemeMorphism(XX, X, f_CC; check=false)
+end
+
+@doc raw"""
+    is_normal(X::AbsCoveredScheme; check::Bool=true) -> Bool
+
+# Input:
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
+
+# Output:
+Returns whether the scheme ``X`` is normal.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+
+julia> X = covered_scheme(spec(R));
+
+julia> is_normal(X)
+true
+```
+"""
+function is_normal(X::AbsCoveredScheme; check::Bool=true)
+  !check || is_reduced(X) || return false
+  for U in default_covering(X)
+    is_normal(U; check=check) || return false
+  end
+  return true
 end
 
 @doc raw"""
@@ -170,8 +198,9 @@ A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
 normal scheme, ``\nu`` is the normalization, and ``\mathrm{injs}`` is a
 vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
 the connected components of the scheme ``Y``.
-See `https://stacks.math.columbia.edu/tag/0CDV` in [Stacks](@cite) or
-Definition 5.1 in [Liu06](@cite) for normalization.
+See [Tag 0CDV](https://stacks.math.columbia.edu/tag/0CDV) in
+[Stacks](@cite) or Definition 7.5.1 in [Liu06](@cite) for normalization
+of non-integral schemes.
 
 # Examples
 ```jldoctest

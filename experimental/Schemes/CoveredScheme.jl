@@ -507,7 +507,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              MorphismType<:ClosedEmbedding,
              BaseMorType
             }
-    ff = CoveredSchemeMorphism(X, Y, f)
+    ff = CoveredSchemeMorphism(X, Y, f; check)
     if has_decomposition_info(codomain(f))
       for U in patches(domain(f))
         floc = f[U]
@@ -713,7 +713,7 @@ end
 ########################################################################
 function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Composite morphism")
   else
     print(io, "Composition of ", "$(domain(f)) -> ")

@@ -88,6 +88,8 @@ function base_ring(M::ModuleGens)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     singular_generators(M::ModuleGens)
 
@@ -235,7 +237,7 @@ end
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
 function singular_module(F::FreeMod, ordering::ModuleOrdering)
-  Sx = singular_ring(base_ring(F), singular(ordering))
+  Sx = singular_poly_ring(base_ring(F), singular(ordering))
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -248,7 +250,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  for (p,v) = m.coords
+  for (p,v) in coordinates(m)
     e += Sx(v)*g[p]
   end
   return e

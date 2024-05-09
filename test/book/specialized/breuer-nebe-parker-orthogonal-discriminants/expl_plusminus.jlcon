@@ -1,0 +1,20 @@
+julia> plus = [];  minus = [];
+
+julia> for d in all_od_infos()
+         if d[:valuestring] == "O+"
+           push!(plus, (d[:groupname], d[:characteristic], d[:degree],
+                        parse(Int, filter(isdigit, d[:charname]))))
+         elseif d[:valuestring] == "O-"
+           push!(minus, (d[:groupname], d[:characteristic], d[:degree],
+                         parse(Int, filter(isdigit, d[:charname]))))
+         end
+       end
+
+julia> both = intersect!(plus, minus);
+
+julia> filter(x -> x[2] == 2, both)
+1-element Vector{Any}:
+ ("G2(3)", 2, 1, 90)
+
+julia> length(both)
+103

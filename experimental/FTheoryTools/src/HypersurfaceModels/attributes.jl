@@ -10,7 +10,15 @@
 Return the hypersurface equation.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation(h);
@@ -96,7 +104,15 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the hypersurface model.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> calabi_yau_hypersurface(h)

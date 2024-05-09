@@ -84,7 +84,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]
@@ -124,7 +124,7 @@ end
 
 function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
-  for (pos, val) in e.coords
+  for (pos, val) in coordinates(e)
      # assuming generator_symbols(parent(e)) is an array of strings/symbols
      push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
   end
@@ -206,7 +206,7 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
   if parent(a) !== parent(b)
     return false
   end
-  return a.coords == b.coords
+  return coordinates(a) == coordinates(b)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)

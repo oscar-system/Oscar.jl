@@ -5,7 +5,7 @@ abstract type CoxeterGroup end
 @doc raw"""
     coxeter_from_cartan_matrix(mat::ZZMatrix; check::Bool=true) -> Bool
 
-Returns the Coxeter matrix $m$ associated to the Cartan matrix `gcm`. If there is no relation between $i$ and $j$,
+Return the Coxeter matrix $m$ associated to the Cartan matrix `gcm`. If there is no relation between $i$ and $j$,
 then this will be expressed by $m_{ij} = 0$ (instead of the usual convention $m_{ij} = \infty$).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 """

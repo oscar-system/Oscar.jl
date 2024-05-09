@@ -16,6 +16,8 @@ const oldexppkgs = [
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
+  "SetPartitions",
+  "PartitionedPermutations", # needs code from SetPartitions
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -46,7 +48,6 @@ for pkg in exppkgs
   # Load the package
   include(joinpath(expdir, pkg, "src", "$pkg.jl"))
 end
-
 
 # Force some structure for `oldexppkgs`
 for pkg in oldexppkgs

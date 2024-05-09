@@ -21,13 +21,22 @@ a `SimplifiedAffineScheme` ``Y`` with ``X`` as its `original`.
 from the one of `X` and hence the two schemes will not compare using `==`.
 """
 function simplify(X::AbsAffineScheme{<:Field})
+  # We need to avoid creating a polynomial ring with zero variables
+  dim(X) == 0 && vector_space_dimension(OO(X)) == 0 && return SimplifiedAffineScheme(X, X, identity_map(X), identity_map(X), check=false)
+
   L, f, g = simplify(OO(X))
   Y = spec(L)
   YtoX = morphism(Y, X, f, check=false)
   XtoY = morphism(X, Y, g, check=false)
   set_attribute!(YtoX, :inverse, XtoY)
   set_attribute!(XtoY, :inverse, YtoX)
-  return SimplifiedAffineScheme(Y, X, YtoX, XtoY, check=false)
+  result = SimplifiedAffineScheme(Y, X, YtoX, XtoY, check=false)
+  has_attribute(X, :is_reduced) && get_attribute(X, :is_reduced)===true && set_attribute!(result, :is_reduced=>true)
+  has_attribute(X, :is_irreducible) && get_attribute(X, :is_irreducible)===true && set_attribute!(result, :is_irreducible=>true)
+  has_attribute(X, :is_connected) && get_attribute(X, :is_connected)===true && set_attribute!(result, :is_connected=>true)
+  has_attribute(X, :is_equidimensional) && get_attribute(X, :is_equidimensional)===true && set_attribute!(result, :is_equidimensional=>true)
+  has_attribute(X, :is_integral) && get_attribute(X, :is_integral)===true && set_attribute!(result, :is_integral=>true)
+  return result
 end
 
 ### Methods to roam in the ancestry tree
@@ -68,10 +77,10 @@ function _find_chart(U::PrincipalOpenSubset, C::Covering;
   ) where {T<:RingElem}
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
   V = ambient_scheme(U)
-  ceq = push!(
-              OO(V).(lifted_numerator.(complement_equations)),
-              OO(V)(lifted_numerator(complement_equation(U)))
-             )
+  ceq = vcat(
+             OO(V).(lifted_numerator.(complement_equations)),
+             OO(V).(poly_complement_equations(U))
+            )
   (f, d) = _find_chart(V, C, complement_equations=ceq)
   return compose(inclusion_morphism(U), f), d
 end
@@ -100,10 +109,10 @@ function _find_chart(U::PrincipalOpenSubset, W::AbsAffineScheme;
   ) where {T<:RingElem}
   U === W && return identity_map(U), complement_equations
   V = ambient_scheme(U)
-  ceq = push!(
-              OO(V).(lifted_numerator.(complement_equations)),
-              OO(V)(lifted_numerator(complement_equation(U)))
-             )
+  ceq = vcat(
+             OO(V).(lifted_numerator.(complement_equations)),
+             OO(V).(poly_complement_equations(U))
+            )
   (f, d) = _find_chart(V, W, complement_equations=ceq)
   return compose(inclusion_morphism(U), f), d
 end
@@ -156,9 +165,9 @@ function _flatten_open_subscheme(
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
-  hV = complement_equation(UV)
-  hU = complement_equation(U)
-  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  hV = poly_complement_equations(UV)
+  hU = poly_complement_equations(U)
+  WV = PrincipalOpenSubset(W, OO(W).(vcat(hU, hV)))
   ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
   inv_ident = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
@@ -187,9 +196,9 @@ function _flatten_open_subscheme(
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
-  hV = complement_equation(UV)
+  hV = poly_complement_equations(UV)
   f, g = identification_maps(U)
-  hVW = pullback(g)(hV)
+  hVW = pullback(g).(hV)
   WV = PrincipalOpenSubset(W, hVW)
   ident = morphism(UV, WV,
                   hom(OO(WV), OO(UV),
@@ -242,9 +251,9 @@ function _flatten_open_subscheme(
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
-  hV = complement_equation(UV)
-  hU = complement_equation(U)
-  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  hV = poly_complement_equations(UV)
+  hU = poly_complement_equations(U)
+  WV = PrincipalOpenSubset(W, OO(W).(vcat(hU, hV)))
   ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
   ident_inv = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
@@ -274,9 +283,9 @@ function _flatten_open_subscheme(
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
-  hV = complement_equation(UV)
+  hV = poly_complement_equations(UV)
   f, g = identification_maps(U)
-  hVW = pullback(g)(hV)
+  hVW = pullback(g).(hV)
   WV = PrincipalOpenSubset(W, hVW)
   ident = morphism(UV, WV,
                   hom(OO(WV), OO(UV),

@@ -521,12 +521,12 @@ end
 
 function Base.show(io::IO, R::StructureSheafOfRings)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Structure sheaf of rings")
   else
     if is_unicode_allowed()
       print(io, "𝒪_{")
-      print(IOContext(io, :supercompact => true), space(R), "}")
+      print(terse(io), space(R), "}")
     else
       print(io, "Structure sheaf of ", Lowercase(), space(R))
     end
@@ -574,7 +574,8 @@ function restrict(
     U::PrincipalOpenSubset;
     check::Bool=true
   )
-  parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  #parent(a) === OO(ambient_scheme(U)) || return OO(U)(lift(a))
+  parent(a) === OO(ambient_scheme(U)) || return convert(OO(U), fraction(a))
   return OO(U)(a, check=check)
 end
 

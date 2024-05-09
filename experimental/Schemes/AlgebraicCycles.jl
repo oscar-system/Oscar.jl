@@ -358,7 +358,7 @@ function Base.show(io::IO, D::AlgebraicCycle)
   end
   if has_name(D)
     print(io, name(D))
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Algebraic cycle")
   elseif length(components(D)) == 0
     print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))
@@ -446,7 +446,7 @@ end
 @doc raw"""
     irreducible_decomposition(D::AbsAlgebraicCycle)
 
-Returns a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
+Return a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
 where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)

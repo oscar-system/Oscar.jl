@@ -16,3 +16,5 @@ and [Github](https://github.com/oscar-system/Oscar.jl).
 
 If you are a new developer or interested in developing OSCAR, have a look at
 our [Introduction for new developers](@ref).
+
+If you have used OSCAR in the preparation of a paper, please cite it as described [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).

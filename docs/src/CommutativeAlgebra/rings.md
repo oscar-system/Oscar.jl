@@ -405,7 +405,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate polynomial ring in 2 variables over QQ
+Builder for an element of multivariate polynomial ring
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
