@@ -145,6 +145,11 @@ struct Partitions{T<:IntegerUnion}
 
 end
 
+# Iterator type
+# TODO: This should also have:
+#  - a flag for `only_distinct_parts`
+#  - support for upper/lower bounds
+#  -
 struct PartitionsFixedNumParts{T<:IntegerUnion} <: AbstractVector{T}
   n::T
   k::Int

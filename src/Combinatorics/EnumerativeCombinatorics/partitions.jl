@@ -153,6 +153,9 @@ function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
   end
 end
 
+# NOTE this will not be accurate in many cases,
+# in particular if upper/lower bounds are given,
+# or if `only_distinct_parts == true`.
 Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.k))
 
 ################################################################################
@@ -370,9 +373,8 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
 function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 
-  # Note that we are considering partitions of n here. I would switch n and m
-  # but the algorithm was given like that and I would otherwise confuse myself
-  # implementing it.
+  # Note that the algorithm is given as partitioning m into n parts,
+  # but we have refactored to align more closely with standard terminology.
 
   #Argument checking
   @req n >= 0 "n >= 0 required"
@@ -474,6 +476,141 @@ function partitions(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) wh
 
   return (p for p in partitions(n, m, 1, n; only_distinct_parts = only_distinct_parts))
 end
+
+
+@doc raw"""
+    partitions(n::T, v::Vector{T}) where T <: IntegerUnion
+    partitions(n::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+    partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+
+Return an iterator over all partitions of a non-negative integer `n` where each
+part is an element in the vector `v` of positive integers.
+It is assumed that the entries in `v` are strictly increasing.
+
+If the optional vector `mu` is supplied, then each `v[i]` occurs a maximum of
+`mu[i] > 0` times per partition.
+
+If the optional integer `m >= 0` is supplied, the partitions will be into `m`
+parts. In this case, the partitions are produced in lexicographically *decreasing*
+order.
+
+The implemented algorithm is "partb" in [RJ76](@cite).
+
+# Example
+The number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
+```jldoctest
+julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
+4562
+```
+All partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
+part is allowed to occur at most twice:
+```jldoctest
+julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
+6-element Vector{Partition{Int64}}:
+ [50, 50]
+ [50, 20, 20, 10]
+ [50, 20, 20, 5, 5]
+ [50, 20, 10, 10, 5, 5]
+ [50, 20, 20, 5, 2, 2, 1]
+ [50, 20, 10, 10, 5, 2, 2, 1]
+```
+The partitions of 100 into seven parts, where the parts are required to be
+elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
+```jldoctest
+julia> collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
+1-element Vector{Partition{Int64}}:
+ [50, 20, 20, 5, 2, 2, 1]
+```
+"""
+function partitions(n::T, v::Vector{T}) where T <: IntegerUnion
+  @req n >= 0 "n >= 0 required"
+  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+  @req all(>(0), v) "Entries of v must be positive"
+
+  res = Partition{T}[]
+
+  if isempty(v)
+    return (p for p in res)
+  end
+
+  if n == 0
+    # TODO: I don't understand this return (and it is type instable)
+    return (p for p in [ Partition{T}[] ])
+  end
+
+  # We will loop over the number of parts.
+  # We first determine the minimal and maximal number of parts.
+  r = length(v)
+  mmin = div(n, v[r])
+  mmax = div(n, v[1])
+
+  # Set the maximum multiplicity (equal to mmax above)
+  mu = [ mmax for i in 1:r ]
+
+  for m = mmin:mmax
+    append!(res, partitions(n, m, v, mu))
+  end
+
+  return (p for p in res)
+end
+
+
+function partitions(n::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+
+  @req n >= 0 "n >= 0 required"
+  @req length(mu) == length(v) "mu and v should have the same length"
+
+  # Algorithm partb assumes that v is strictly increasing.
+  # Added (and noticed) on Mar 22, 2023.
+  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+
+  # Parta allows v[1] = 0 but this is nonsense for entries of a partition
+  @req all(>(0), v) "Entries of v must be positive"
+
+  # For safety
+  @req all(>(0), mu) "Entries of mu must be positive"
+  res = Partition{T}[]
+
+  if isempty(v)
+    return (p for p in res)
+  end
+
+  if n == 0
+    # TODO: I don't understand this return (and it is type instable)
+    return (p for p in [ Partition{T}[] ])
+  end
+
+  # We will loop over the number of parts.
+  # We first determine the minimal and maximal number of parts.
+  r = length(v)
+
+  mmax = 0
+  cursum = 0
+  for i in 1:r, j in 1:mu[i]
+    mmax += 1
+    cursum += v[i]
+    if cursum >= n
+      break
+    end
+  end
+
+  mmin = 0
+  cursum = 0
+  for i in r:-1:1, j in 1:mu[i]
+    mmin += 1
+    cursum += v[i]
+    if cursum >= n
+      break
+    end
+  end
+
+  for m = mmin:mmax
+    append!(res, partitions(n, m, v, mu))
+  end
+
+  return (p for p in res)
+end
+
 
 function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   # Algorithm "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
@@ -673,138 +810,6 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   end #while
 
   return (p for p in P)
-end
-
-function partitions(n::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
-
-  @req n >= 0 "n >= 0 required"
-  @req length(mu) == length(v) "mu and v should have the same length"
-
-  # Algorithm partb assumes that v is strictly increasing.
-  # Added (and noticed) on Mar 22, 2023.
-  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
-
-  # Parta allows v[1] = 0 but this is nonsense for entries of a partition
-  @req all(>(0), v) "Entries of v must be positive"
-
-  # For safety
-  @req all(>(0), mu) "Entries of mu must be positive"
-  res = Partition{T}[]
-
-  if isempty(v)
-    return (p for p in res)
-  end
-
-  if n == 0
-    # TODO: I don't understand this return (and it is type instable)
-    return (p for p in [ Partition{T}[] ])
-  end
-
-  # We will loop over the number of parts.
-  # We first determine the minimal and maximal number of parts.
-  r = length(v)
-
-  mmax = 0
-  cursum = 0
-  for i in 1:r, j in 1:mu[i]
-    mmax += 1
-    cursum += v[i]
-    if cursum >= n
-      break
-    end
-  end
-
-  mmin = 0
-  cursum = 0
-  for i in r:-1:1, j in 1:mu[i]
-    mmin += 1
-    cursum += v[i]
-    if cursum >= n
-      break
-    end
-  end
-
-  for m = mmin:mmax
-    append!(res, partitions(n, m, v, mu))
-  end
-
-  return (p for p in res)
-end
-
-@doc raw"""
-    partitions(n::T, v::Vector{T}) where T <: IntegerUnion
-    partitions(n::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
-    partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
-
-Return an iterator over all partitions of a non-negative integer `n` where each
-part is an element in the vector `v` of positive integers.
-It is assumed that the entries in `v` are strictly increasing.
-
-If the optional vector `mu` is supplied, then each `v[i]` occurs a maximum of
-`mu[i] > 0` times per partition.
-
-If the optional integer `m >= 0` is supplied, the partitions will be into `m`
-parts. In this case, the partitions are produced in lexicographically *decreasing*
-order.
-
-The implemented algorithm is "partb" in [RJ76](@cite).
-
-# Example
-The number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
-```jldoctest
-julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
-4562
-```
-All partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50} and each
-part is allowed to occur at most twice:
-```jldoctest
-julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
-6-element Vector{Partition{Int64}}:
- [50, 50]
- [50, 20, 20, 10]
- [50, 20, 20, 5, 5]
- [50, 20, 10, 10, 5, 5]
- [50, 20, 20, 5, 2, 2, 1]
- [50, 20, 10, 10, 5, 2, 2, 1]
-```
-The partitions of 100 into seven parts, where the parts are required to be
-elements from {1, 2, 5, 10, 20, 50} and each part is allowed to occur at most twice.
-```jldoctest
-julia> collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
-1-element Vector{Partition{Int64}}:
- [50, 20, 20, 5, 2, 2, 1]
-```
-"""
-function partitions(n::T, v::Vector{T}) where T <: IntegerUnion
-  @req n >= 0 "n >= 0 required"
-  @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
-  @req all(>(0), v) "Entries of v must be positive"
-
-  res = Partition{T}[]
-
-  if isempty(v)
-    return (p for p in res)
-  end
-
-  if n == 0
-    # TODO: I don't understand this return (and it is type instable)
-    return (p for p in [ Partition{T}[] ])
-  end
-
-  # We will loop over the number of parts.
-  # We first determine the minimal and maximal number of parts.
-  r = length(v)
-  mmin = div(n, v[r])
-  mmax = div(n, v[1])
-
-  # Set the maximum multiplicity (equal to mmax above)
-  mu = [ mmax for i in 1:r ]
-
-  for m = mmin:mmax
-    append!(res, partitions(n, m, v, mu))
-  end
-
-  return (p for p in res)
 end
 
 ################################################################################
