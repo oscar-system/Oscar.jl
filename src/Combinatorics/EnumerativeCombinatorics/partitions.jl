@@ -125,7 +125,7 @@ function getindex_safe(P::Partition{T}, i::IntegerUnion) where T
   return (i > length(data(P)) ? zero(T) : getindex(data(P), Int(i)))
 end
 
-base(C::Partitions) = P.n
+base(P::Partitions) = P.n
 
 Base.eltype(::Partitions{T}) where T = Partition{T}
 
@@ -138,6 +138,22 @@ function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
 end
 
 Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
+
+
+
+base(P::PartitionsFixedNumParts) = P.n
+
+Base.eltype(::PartitionsFixedNumParts{T}) where T = Partition{T}
+
+function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
+  if is_terse(io)
+    print(io, "Iterator")
+  else
+    print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+  end
+end
+
+Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.k))
 
 ################################################################################
 #
