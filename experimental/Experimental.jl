@@ -57,3 +57,29 @@ for pkg in oldexppkgs
   # Load the package
   include(joinpath(expdir, pkg, "$pkg.jl"))
 end
+
+# We modify the documentation of the experimental part to attach a warning to
+# every exported function that this function is part of experimental.
+# Furthermore we give a link for users to read up on what this entails.
+#
+# Note that there are functions in the docs of experimental that are not
+# exported. These then also do not get the warning attached.
+using Markdown
+warnexp = Markdown.parse(raw"""
+!!! warning "Experimental"
+    This function is part of the experimental code in Oscar. Please read
+    [here](https://docs.oscar-system.org/v1/Experimental/intro/) for more
+    details.
+""")
+for name in names(Oscar)
+  if isdefined(Oscar, name)
+    md = Base.Docs.doc(getfield(Oscar, name))
+    # Loop over all definitions of a function
+    for entry in md.meta[:results]
+      # Test whether function was defined in experimental
+      if startswith(entry.data[:path], joinpath(Oscar.oscardir, "experimental"))
+        append!(entry.object.content[1].content, warnexp.content)
+      end
+    end
+  end
+end
