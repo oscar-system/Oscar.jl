@@ -149,16 +149,18 @@ end
 # TODO: This should also have:
 #  - a flag for `only_distinct_parts`
 #  - support for upper/lower bounds
-#  -
 struct PartitionsFixedNumParts{T<:IntegerUnion} <: AbstractVector{T}
   n::T
   k::Int
-  # part_iter::Partitions{T}
+
+  lb::T
+  ub::T
+  distinct_parts::Bool
 
   function PartitionsFixedNumParts(n::T, k::Int) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
     @req k >= 0 "k >= 0 required"
-    return new{T}(n, k)
+    return new{T}(n, k, 1, n, false)
   end
 
 end
