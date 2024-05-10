@@ -688,27 +688,27 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
   # We first determine the minimal and maximal number of parts.
   r = length(v)
 
-  nmax = 0
+  n_2max = 0
   cursum = 0
   for i in 1:r, j in 1:mu[i]
-    nmax += 1
+    n_2max += 1
     cursum += v[i]
     if cursum >= m
       break
     end
   end
 
-  nmin = 0
+  n_2min = 0
   cursum = 0
   for i in r:-1:1, j in 1:mu[i]
-    nmin += 1
+    n_2min += 1
     cursum += v[i]
     if cursum >= m
       break
     end
   end
 
-  for n_2 = nmin:nmax
+  for n_2 = n_2min:n_2max
     append!(res, partitions(m, n_2, v, mu))
   end
 
@@ -778,13 +778,13 @@ function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
   # We will loop over the number of parts.
   # We first determine the minimal and maximal number of parts.
   r = length(v)
-  nmin = div(m, v[r])
-  nmax = div(m, v[1])
+  n_2min = div(m, v[r])
+  n_2max = div(m, v[1])
 
-  # Set the maximum multiplicity (equal to nmax above)
-  mu = [ nmax for i in 1:r ]
+  # Set the maximum multiplicity (equal to n_2max above)
+  mu = [ n_2max for i in 1:r ]
 
-  for n_2 = nmin:nmax
+  for n_2 = n_2min:n_2max
     append!(res, partitions(m, n_2, v, mu))
   end
 
