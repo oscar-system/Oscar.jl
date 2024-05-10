@@ -3,7 +3,7 @@
 #######################################################
 
 @doc raw"""
-    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+    literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 
 Many models have been created in the F-theory literature.
 A significant number of them have even been given specific
@@ -54,7 +54,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -70,7 +70,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
@@ -87,7 +87,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(3, base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
@@ -116,7 +116,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+julia> h2 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Hypersurface model over a concrete base
@@ -125,18 +125,17 @@ julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check)
 end
 
-function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+function literature_model(k::Int; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(k)
-  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, completeness_check = completeness_check)
+  return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check)
 end
 
-function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
-  #return model_dict
+function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String, Any}(), defining_classes::Dict{String, <:Any} = Dict{String, Any}(), completeness_check::Bool = true)
   # (1) Deal with model parameters
   if haskey(model_dict, "model_parameters")
     needed_model_parameters = string.(model_dict["model_parameters"])
@@ -162,12 +161,15 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     
     # Currently, support only for toric bases
     @req base_space isa NormalToricVariety "Construction of literature models over concrete bases currently limited to toric bases"
-    for (key, value) in model_sections
-      @req value isa ToricDivisor "Construction of literature models over concrete bases currently requires toric divisors as model sections"
-    end
 
-    # Are all model sections specified?
-    @req all(k->haskey(model_sections, k), model_dict["model_data"]["defining_classes"]) "Not all model sections are specified"
+    # FIXME: Append model_sections to defining_classes. This might need fixing/extending in the future...
+    defining_classes_provided = merge(model_sections, defining_classes)
+    for (key, value) in defining_classes_provided
+      if (value isa ToricDivisor || value isa ToricDivisorClass || value isa ToricLineBundle) == false
+        error("Construction of literature models over concrete bases currently requires defining classes (and model sections) to be provided as toric divisor (classes) or line bundles")
+      end
+    end
+    @req all(k->haskey(defining_classes_provided, k), model_dict["model_data"]["defining_classes"]) "Not all defining classes are specified"
     
     # Is the model specific for a base dimension? If so, make consistency check
     if haskey(model_dict["model_data"], "base_dim")
@@ -175,7 +177,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     end
     
     # Construct the model
-    model = _construct_literature_model_over_concrete_base(model_dict, base_space, model_sections, completeness_check)
+    model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
     @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
     
   # (2b) Construct the model over arbitrary base
@@ -247,28 +249,34 @@ end
 #######################################################
 
 # Constructs literature model over concrete base
-function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, user_spec_divs::Dict{String,ToricDivisor}, completeness_check::Bool)
+function _construct_literature_model_over_concrete_base(model_dict::Dict{String,Any}, base_space::FTheorySpace, defining_classes::Dict{String, <:Any}, completeness_check::Bool)
 
-  # We first create a polynomial ring in which we can read all model sections as polynomials of the defining sections
-  @req haskey(model_dict["model_data"], "model_sections") "No base coordinates specified for model"
-  vars = string.(model_dict["model_data"]["model_sections"])
-  auxiliary_ring, _ = polynomial_ring(QQ, vars, cached=false)
+  # Make list and dict of the defining divisor classes
+  defng_cls = string.(model_dict["model_data"]["defining_classes"])
+  defng_cls_as_divisor_classes = [anticanonical_divisor_class(base_space)]
+  defining_classes_of_model = Dict("Kbar" => anticanonical_divisor_class(base_space))
+  for k in 1:length(defng_cls)
+    class_candidate = defining_classes[defng_cls[k]]
+    if class_candidate isa ToricDivisor || class_candidate isa ToricLineBundle
+      class_candidate = toric_divisor_class(class_candidate)
+    end
+    push!(defng_cls_as_divisor_classes, class_candidate)
+    defining_classes_of_model[defng_cls[k]] = class_candidate
+  end
 
-  # Make list of divisor classes which express the internal model sections.
-  req_classes = string.(model_dict["model_data"]["defining_classes"])
-  user_specified_divisors = vcat([anticanonical_divisor(base_space)], [user_spec_divs[req_classes[k]] for k in 1:length(req_classes)])
-
-  # Find divisor classes of the internal model sections
-  paras = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
-  paras = vcat([[Int(k) for k in paras[i:i,:]] for i in 1:nrows(paras)]...)
-  parametrized_divisors = Dict(vars[k] => sum(paras[l, k] * user_specified_divisors[l] for l in 1:nrows(paras)) for k in 1:length(vars))
+  # Find divisor classes of all sections.
+  @req haskey(model_dict["model_data"], "model_sections") "Database does not specify model sections for given model"
+  sec_names = string.(model_dict["model_data"]["model_sections"])
+  cfs = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
+  cfs = vcat([[Int(k) for k in cfs[i:i,:]] for i in 1:nrows(cfs)]...)
+  cl_of_secs = Dict(sec_names[k] => sum(cfs[l, k] * defng_cls_as_divisor_classes[l] for l in 1:nrows(cfs)) for k in 1:length(sec_names))
 
   # Next, generate random values for all involved sections.
   model_sections = Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}()
-  for (key, value) in parametrized_divisors
-    @req is_effective(toric_divisor_class(value)) "Encountered a non-effective (internal) divisor class"
+  for (key, value) in cl_of_secs
+    @req is_effective(value) "Encountered a non-effective (internal) divisor class"
     if model_dict["arxiv_data"]["id"] == "1109.3454" && key == "w" && dim(base_space) == 3
-      if torsion_free_rank(class_group(base_space)) == 1 && degree(toric_line_bundle(parametrized_divisors["w"])) == 1
+      if torsion_free_rank(class_group(base_space)) == 1 && degree(toric_line_bundle(cl_of_secs["w"])) == 1
         model_sections[key] = basis_of_global_sections(toric_line_bundle(value))[end]
       else
         model_sections[key] = generic_section(toric_line_bundle(value))
@@ -279,7 +287,8 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
   end
 
   # Construct the model
-  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in vars])
+  auxiliary_ring, _ = polynomial_ring(QQ, sec_names, cached=false)
+  map = hom(auxiliary_ring, cox_ring(base_space), [model_sections[k] for k in sec_names])
   if model_dict["model_descriptors"]["type"] == "tate"
 
     # Compute Tate sections
@@ -298,19 +307,19 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Find defining_section_parametrization
     defining_section_parametrization = Dict{String, MPolyRingElem}()
-    if !("a1" in vars) || (a1 != eval_poly("a1", parent(a1)))
+    if !("a1" in sec_names) || (a1 != eval_poly("a1", parent(a1)))
       defining_section_parametrization["a1"] = a1
     end
-    if !("a2" in vars) || (a2 != eval_poly("a2", parent(a2)))
+    if !("a2" in sec_names) || (a2 != eval_poly("a2", parent(a2)))
       defining_section_parametrization["a2"] = a2
     end
-    if !("a3" in vars) || (a3 != eval_poly("a3", parent(a3)))
+    if !("a3" in sec_names) || (a3 != eval_poly("a3", parent(a3)))
       defining_section_parametrization["a3"] = a3
     end
-    if !("a4" in vars) || (a4 != eval_poly("a4", parent(a4)))
+    if !("a4" in sec_names) || (a4 != eval_poly("a4", parent(a4)))
       defining_section_parametrization["a4"] = a4
     end
-    if !("a6" in vars) || (a6 != eval_poly("a6", parent(a6)))
+    if !("a6" in sec_names) || (a6 != eval_poly("a6", parent(a6)))
       defining_section_parametrization["a6"] = a6
     end
 
@@ -330,10 +339,10 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Find defining_section_parametrization
     defining_section_parametrization = Dict{String, MPolyRingElem}()
-    if !("f" in vars) || (f != eval_poly("f", parent(f)))
+    if !("f" in sec_names) || (f != eval_poly("f", parent(f)))
       defining_section_parametrization["f"] = f
     end
-    if !("g" in vars) || (g != eval_poly("g", parent(g)))
+    if !("g" in sec_names) || (g != eval_poly("g", parent(g)))
       defining_section_parametrization["g"] = g
     end
 
@@ -354,14 +363,14 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     fiber_twist_matrix = transpose(matrix(ZZ, (hcat(model_dict["model_data"]["fiber_twist_matrix"]...))))
     @req ncols(fiber_twist_matrix) == length(fiber_amb_coordinates) "Number of fiber coordinate names does not match number of provided fiber gradings"
     @req ncols(fiber_twist_matrix) == n_rays(fas) "Number of rays does not match number of provided fiber gradings"
-    fiber_twist_divisor_classes = [toric_divisor_class(sum([fiber_twist_matrix[l, k] * user_specified_divisors[l] for l in 1:nrows(fiber_twist_matrix)])) for k in 1:ncols(fiber_twist_matrix)]
+    fiber_twist_divisor_classes = [sum([fiber_twist_matrix[l, k] * defng_cls_as_divisor_classes[l] for l in 1:nrows(fiber_twist_matrix)]) for k in 1:ncols(fiber_twist_matrix)]
 
     # Compute the hypersurface equation and its parametrization
-    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(vars, fiber_amb_coordinates), cached=false)
+    auxiliary_ambient_ring, _ = polynomial_ring(QQ, vcat(sec_names, fiber_amb_coordinates), cached=false)
     parametrized_hypersurface_equation = eval_poly(model_dict["model_data"]["hypersurface_equation"], auxiliary_ambient_ring)
     base_coordinates = string.(gens(cox_ring(base_space)))
     auxiliary_ambient_ring2, _ = polynomial_ring(QQ, vcat(base_coordinates, fiber_amb_coordinates), cached=false)
-    images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in vars]
+    images1 = [eval_poly(string(model_sections[k]), auxiliary_ambient_ring2) for k in sec_names]
     images2 = [eval_poly(string(k), auxiliary_ambient_ring2) for k in fiber_amb_coordinates]
     map = hom(auxiliary_ambient_ring, auxiliary_ambient_ring2, vcat(images1, images2))
     hyper_equ = map(parametrized_hypersurface_equation)
@@ -372,11 +381,11 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     model.explicit_model_sections = model_sections
 
   else
-    @req false "Model is not a Tate, Weierstrass or hypersurface model"
+    error("Model is not a Tate, Weierstrass or hypersurface model")
   end
 
   # Return the model
-  model.defining_classes = Dict(key => toric_divisor_class(value) for (key, value) in user_spec_divs)
+  model.defining_classes = defining_classes_of_model
   return model
 end
 
