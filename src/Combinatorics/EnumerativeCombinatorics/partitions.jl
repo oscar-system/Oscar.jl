@@ -370,6 +370,26 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
  [4, 2, 1]
 ```
 """
+function partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, m; only_distinct_parts = only_distinct_parts)
+end
+
+function partitions(n::IntegerUnion, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, m, l1, l2; only_distinct_parts = only_distinct_parts)
+end
+
+
+function Base.iterate(P::PartitionsFixedNumParts{T}, state::Nothing = nothing) where T
+  n = P.n
+
+
+
+
+
+
+
+
+
 function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 
@@ -384,6 +404,13 @@ function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
   # Use type of n
   m = convert(T, m)
 
+  # If l1 == 0 the algorithm parta will actually create lists containing the
+  # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
+  # This is nonsense, so we set l1 = 1 in this case.
+  if l1 == 0
+    l1 = 1
+  end
+
   # Some trivial cases
   if n == 0 && m == 0
     return (p for p in Partition{T}[ partition(T[], check = false) ])
@@ -397,12 +424,7 @@ function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; o
     return (p for p in Partition{T}[])
   end
 
-  # If l1 == 0 the algorithm parta will actually create lists containing the
-  # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
-  # This is nonsense, so we set l1 = 1 in this case.
-  if l1 == 0
-    l1 = 1
-  end
+
 
   #Algorithm starts here
   P = Partition{T}[]    #this will be the array of all partitions
