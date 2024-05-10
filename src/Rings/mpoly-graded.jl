@@ -1444,7 +1444,7 @@ end
 ###############################################################################
 
 mutable struct HilbertData
-  data::Vector{Int32}
+  coeffs::Vector{BigInt}
   weights::Vector{Int32}
   I::MPolyIdeal
   function HilbertData(I::MPolyIdeal)
@@ -1459,8 +1459,8 @@ mutable struct HilbertData
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
 
     G = groebner_assure(I)
-    h = Singular.hilbert_series(G.S, W)
-    return new(h, W, I)
+    cf = Singular.hilbert_series_data(G.S, W)
+    return new(cf, W, I)
   end
   function HilbertData(B::IdealGens)
     return HilbertData(Oscar.MPolyIdeal(B))
@@ -1470,7 +1470,7 @@ end
 function hilbert_series(H::HilbertData)
   Zt, t = ZZ["t"]
   den = prod([1-t^w for w in H.weights])
-  h = Zt(map(ZZRingElem, H.data[1:end-1]))
+  h = Zt(map(ZZRingElem, H.coeffs[1:end]))
   return h, den
 end
 
@@ -1569,7 +1569,7 @@ function hilbert_function(H::HilbertData, d::Int)
 end
 
 function Base.show(io::IO, h::HilbertData)
-  print(io, "Hilbert Series for $(h.I), data: $(h.data), weights: $(h.weights)")  ###new
+  print(io, "Hilbert Series for $(h.I), data: $(h.coeffs), weights: $(h.weights)")  ###new
 end
 
 ############################################################################
