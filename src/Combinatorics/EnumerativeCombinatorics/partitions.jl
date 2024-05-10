@@ -312,10 +312,10 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 end
 
 @doc raw"""
-    partitions(m::IntegerUnion, n_2::IntegerUnion; only_distinct_parts::Bool = false)
-    partitions(m::IntegerUnion, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(n_1::IntegerUnion, n_2::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(n_1::IntegerUnion, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
 
-Return an iterator over all partitions of a non-negative integer `m` into
+Return an iterator over all partitions of a non-negative integer `n_1` into
 `n_2 >= 0` parts. Optionally, a lower bound `l1 >= 0` and an upper bound `l2` for
 the parts can be supplied. In this case, the partitions are produced in
 *decreasing* order.
@@ -351,27 +351,27 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
  [4, 2, 1]
 ```
 """
-function partitions(m::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+function partitions(n_1::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 
-  # Note that we are considering partitions of m here. I would switch m and n_2
+  # Note that we are considering partitions of n_1 here. I would switch n_1 and n_2
   # but the algorithm was given like that and I would otherwise confuse myself
   # implementing it.
 
   #Argument checking
-  @req m >= 0 "m >= 0 required"
+  @req n_1 >= 0 "n_1 >= 0 required"
   @req n_2 >= 0 "n_2 >= 0 required"
   @req l1 >= 0 "l1 >= 0 required"
 
-  # Use type of m
+  # Use type of n_1
   n_2 = convert(T, n_2)
 
   # Some trivial cases
-  if m == 0 && n_2 == 0
+  if n_1 == 0 && n_2 == 0
     return (p for p in Partition{T}[ partition(T[], check = false) ])
   end
 
-  if n_2 == 0 || n_2 > m
+  if n_2 == 0 || n_2 > n_1
     return (p for p in Partition{T}[])
   end
 
@@ -391,9 +391,9 @@ function partitions(m::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion;
   x = zeros(T, n_2)
   y = zeros(T, n_2)
   j = only_distinct_parts*n_2*(n_2 - 1)
-  m = m - n_2*l1 - div(j, 2)
+  n_1 = n_1 - n_2*l1 - div(j, 2)
   l2 = l2 - l1
-  if 0 <= m <= n_2*l2 - j
+  if 0 <= n_1 <= n_2*l2 - j
 
     for i = 1:n_2
       y[i] = x[i] = l1 + only_distinct_parts*(n_2 - i)
@@ -403,17 +403,17 @@ function partitions(m::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion;
     l2 = l2 - only_distinct_parts*(n_2 - 1)
 
     while true
-      while m > l2
-        m -= l2
+      while n_1 > l2
+        n_1 -= l2
         x[i] = y[i] + l2
         i += 1
       end
 
-      x[i] = y[i] + m
+      x[i] = y[i] + n_1
       push!(P, partition(x[1:n_2], check = false))
 
-      if i < n_2 && m > 1
-        m = 1
+      if i < n_2 && n_1 > 1
+        n_1 = 1
         x[i] = x[i] - 1
         i += 1
         x[i] = y[i] + 1
@@ -423,13 +423,13 @@ function partitions(m::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion;
       lcycle = false
       for j = i - 1:-1:1
         l2 = x[j] - y[j] - 1
-        m = m + 1
-        if m <= (n_2 - j)*l2
+        n_1 = n_1 + 1
+        if n_1 <= (n_2 - j)*l2
           x[j] = y[j] + l2
           lcycle = true
           break
         end
-        m = m + l2
+        n_1 = n_1 + l2
         x[i] = y[i]
         i = j
       end
@@ -443,28 +443,28 @@ function partitions(m::T, n_2::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion;
   return (p for p in P)
 end
 
-function partitions(m::T, n_2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
-  @req m >= 0 "m >= 0 required"
+function partitions(n_1::T, n_2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+  @req n_1 >= 0 "n_1 >= 0 required"
   @req n_2 >= 0 "n_2 >= 0 required"
 
   # Special cases
-  if m == n_2
-    return (p for p in [ partition(T[ 1 for i in 1:m], check = false) ])
-  elseif m < n_2 || n_2 == 0
+  if n_1 == n_2
+    return (p for p in [ partition(T[ 1 for i in 1:n_1], check = false) ])
+  elseif n_1 < n_2 || n_2 == 0
     return (p for p in Partition{T}[])
   elseif n_2 == 1
-    return (p for p in [ partition(T[m], check = false) ])
+    return (p for p in [ partition(T[n_1], check = false) ])
   end
 
-  return (p for p in partitions(m, n_2, 1, m; only_distinct_parts = only_distinct_parts))
+  return (p for p in partitions(n_1, n_2, 1, n_1; only_distinct_parts = only_distinct_parts))
 end
 
-function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+function partitions(n_1::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   # Algorithm "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
   # The algorithm as published in the paper has several issues and we hope to have fixed
   # them all, see below for details. Some initial fixing was done by T. Schmit.
 
-  @req m >= 0 "m >= 0 required"
+  @req n_1 >= 0 "n_1 >= 0 required"
   @req n_2 >= 0 "n_2 >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
 
@@ -482,7 +482,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
   if n_2 == 0
     # TODO: I don't understand this distinction here
     # (it also makes the function tabe instable)
-    if m == 0
+    if n_1 == 0
       return (p for p in [ Partition{T}[] ])
     else
       return (p for p in Partition{T}[])
@@ -524,12 +524,12 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
   # for the backtrack search.
   # This fills the array x from right with the values from v from the left
   # (the smallest) up to their specified multiplicity.
-  # If this is larger than m, there cannot be a partition.
+  # If this is larger than n_1, there cannot be a partition.
   for i = n_2:-1:1
     x[i] = ll
     y[i] = ll
     k = k - 1
-    m = m - ll
+    n_1 = n_1 - ll
     if k == 0
       if j == r
         # In the original algorithm there's a goto b3 here which means
@@ -553,7 +553,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
   ll = v[1]
 
   # This is a necessary condition for existence of a partition
-  if m < 0 || m > n_2 * (lr - ll)
+  if n_1 < 0 || n_1 > n_2 * (lr - ll)
     return (p for p in P) #goto b3
   end
 
@@ -563,20 +563,20 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
   # nonsense. So, we have to make sure that all entries of x were modified in
   # the initial backtracking, which means i was counted down to 1.
   # Noticed on Mar 23, 2023.
-  if m == 0 && x[1] != 0
+  if n_1 == 0 && x[1] != 0
     push!(P, partition(copy(x), check = false))
     return (p for p in P)
   end
 
   # Now, the actual algorithm starts
   i = 1
-  m = m + y[1]
+  n_1 = n_1 + y[1]
 
   # label b1
   while gotob1 == true
     if !gotob2
       for j = mu[r]:-1:1
-        if m <= lr
+        if n_1 <= lr
           gotob2 = true
           break
         end
@@ -586,7 +586,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
           break
         end
         i = i + 1
-        m = m - lr + y[i]
+        n_1 = n_1 - lr + y[i]
       end #for j
 
       if !gotob2
@@ -598,7 +598,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
 
     # label b2
     if gotob2
-      while r > 0 && v[r] > m # Added additional r > 0, otherwise get out of bounds
+      while r > 0 && v[r] > n_1 # Added additional r > 0, otherwise get out of bounds
         r = r - 1
       end
 
@@ -607,7 +607,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
       end
 
       lr = v[r]
-      if m == lr
+      if n_1 == lr
         x[i] = lr
         if i <= n_2 # Added, otherwise get out of bounds
           push!(P, partition(copy(x), check = false)) #need copy here!
@@ -631,7 +631,7 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
       # But when we replace lr > k by lr >= k, everything works.
       # Finding this was a wild guess!
       # Found on Mar 27, 2023.
-      if lr >= k && m - lr <= (n_2 - i)*(lr - ll)
+      if lr >= k && n_1 - lr <= (n_2 - i)*(lr - ll)
         gotob2 = false
         continue
       else
@@ -641,9 +641,9 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
         i = i_0
         r = ii[i]
         lr = v[r]
-        m = m + x[i] - k
+        n_1 = n_1 + x[i] - k
         k = y[i]
-        if lr >= k && m - lr <= (n_2 - i)*(lr - ll) # >= here as well (probably...)
+        if lr >= k && n_1 - lr <= (n_2 - i)*(lr - ll) # >= here as well (probably...)
           gotob2 = false
           break
         else
@@ -659,9 +659,9 @@ function partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{S}) where 
   return (p for p in P)
 end
 
-function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+function partitions(n_1::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
 
-  @req m >= 0 "m >= 0 required"
+  @req n_1 >= 0 "n_1 >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing.
@@ -679,7 +679,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
     return (p for p in res)
   end
 
-  if m == 0
+  if n_1 == 0
     # TODO: I don't understand this return (and it is type instable)
     return (p for p in [ Partition{T}[] ])
   end
@@ -693,7 +693,7 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
   for i in 1:r, j in 1:mu[i]
     n_2max += 1
     cursum += v[i]
-    if cursum >= m
+    if cursum >= n_1
       break
     end
   end
@@ -703,24 +703,24 @@ function partitions(m::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
   for i in r:-1:1, j in 1:mu[i]
     n_2min += 1
     cursum += v[i]
-    if cursum >= m
+    if cursum >= n_1
       break
     end
   end
 
   for n_2 = n_2min:n_2max
-    append!(res, partitions(m, n_2, v, mu))
+    append!(res, partitions(n_1, n_2, v, mu))
   end
 
   return (p for p in res)
 end
 
 @doc raw"""
-    partitions(m::T, v::Vector{T}) where T <: IntegerUnion
-    partitions(m::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
-    partitions(m::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+    partitions(n_1::T, v::Vector{T}) where T <: IntegerUnion
+    partitions(n_1::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+    partitions(n_1::T, n_2::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
 
-Return an iterator over all partitions of a non-negative integer `m` where each
+Return an iterator over all partitions of a non-negative integer `n_1` where each
 part is an element in the vector `v` of positive integers.
 It is assumed that the entries in `v` are strictly increasing.
 
@@ -759,8 +759,8 @@ julia> collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
  [50, 20, 20, 5, 2, 2, 1]
 ```
 """
-function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
-  @req m >= 0 "m >= 0 required"
+function partitions(n_1::T, v::Vector{T}) where T <: IntegerUnion
+  @req n_1 >= 0 "n_1 >= 0 required"
   @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
   @req all(>(0), v) "Entries of v must be positive"
 
@@ -770,7 +770,7 @@ function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
     return (p for p in res)
   end
 
-  if m == 0
+  if n_1 == 0
     # TODO: I don't understand this return (and it is type instable)
     return (p for p in [ Partition{T}[] ])
   end
@@ -778,14 +778,14 @@ function partitions(m::T, v::Vector{T}) where T <: IntegerUnion
   # We will loop over the number of parts.
   # We first determine the minimal and maximal number of parts.
   r = length(v)
-  n_2min = div(m, v[r])
-  n_2max = div(m, v[1])
+  n_2min = div(n_1, v[r])
+  n_2max = div(n_1, v[1])
 
   # Set the maximum multiplicity (equal to n_2max above)
   mu = [ n_2max for i in 1:r ]
 
   for n_2 = n_2min:n_2max
-    append!(res, partitions(m, n_2, v, mu))
+    append!(res, partitions(n_1, n_2, v, mu))
   end
 
   return (p for p in res)
