@@ -249,12 +249,27 @@ begin
   @test !haskey(D, v)
 end
 
-begin
-  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+@testset "Vector space spanned by $(is_graded(Rxyz[1]) ? "graded " : "")polynomials" for Rxyz in
+      [ polynomial_ring(QQ, ["x", "y", "z"]), graded_polynomial_ring(QQ, ["x", "y", "z"]) ]
+  R, (x, y, z) = Rxyz
+
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
-  @assert iszero(t)
-  @assert parent(t) == R
+  @test iszero(t)
+  @test parent(t) == R
+
+  # in this test the number of monomials exceed the dimension
+  # of the various vector spaces (this used to not work correctly)
+  polys = [x, y, (x+y+z)^3, 2*x - 5*y];
+  V, VtoPoly = vector_space(QQ, polys)
+  @test all(f -> VtoPoly(preimage(VtoPoly, f)) == f, polys)
+  @test_throws ErrorException preimage(VtoPoly, z)
+
+  # now test the kernel
+  W = vector_space(QQ, length(polys))
+  WtoV = hom(W, V, [preimage(VtoPoly, f) for f in polys])
+  K, KtoW = kernel(WtoV)
+  @test dim(K) == 1
 end
 
 @testset "Hilbert series" begin
