@@ -155,16 +155,15 @@ Dict{String, ToricDivisorClass} with 9 entries:
 @attr Dict{String, ToricDivisorClass} function classes_of_model_sections(m::AbstractFTheoryModel)
   @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
   @req base_space(m) isa NormalToricVariety "classes_of_model_sections only supported for models over a toric base"
-  model_sections = collect(keys(explicit_model_sections(m)))
   my_dict = Dict{String, ToricDivisorClass}()
-  for k in 1:length(model_sections)
-    sec = explicit_model_sections(m)[model_sections[k]]
+  for (key, value) in explicit_model_sections(m)
+    sec = value
     @req is_homogeneous(sec) "Encountered a non-homogeneous model section"
     if is_zero(sec)
-      my_dict[model_sections[k]] = trivial_divisor_class(base_space(m))
+      my_dict[key] = trivial_divisor_class(base_space(m))
     else
       deg = collect(keys(homogeneous_components(sec)))[1]
-      my_dict[model_sections[k]] = toric_divisor_class(base_space(m), deg)
+      my_dict[key] = toric_divisor_class(base_space(m), deg)
     end
   end
   return my_dict
