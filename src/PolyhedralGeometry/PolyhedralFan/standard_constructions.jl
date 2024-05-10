@@ -191,7 +191,7 @@ function _get_refinable_facets_of_cone(
   return refinable_facets
 end
 
-_facet_signs(F::MatElem, v::AbstractVector) = sign.(Int, F * v)[:,1]
+_facet_signs(F::MatElem, v::AbstractVector) = sign.(Int, F * v)[:, 1]
 
 function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int})
   for a in zip(smaller, bigger)
