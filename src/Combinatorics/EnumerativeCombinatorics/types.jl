@@ -151,16 +151,16 @@ end
 #  - support for upper/lower bounds
 struct PartitionsFixedNumParts{T<:IntegerUnion} <: AbstractVector{T}
   n::T
-  k::Int
+  m::Int
 
   lb::T
   ub::T
   distinct_parts::Bool
 
-  function PartitionsFixedNumParts(n::T, k::Int) where T<:IntegerUnion
+  function PartitionsFixedNumParts(n::T, m::Int) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
-    @req k >= 0 "k >= 0 required"
-    return new{T}(n, k, 1, n, false)
+    @req k >= 0 "m >= 0 required"
+    return new{T}(n, m, 1, n, false)
   end
 
 end

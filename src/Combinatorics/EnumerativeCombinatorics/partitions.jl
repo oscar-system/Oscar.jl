@@ -281,33 +281,33 @@ end
     number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
 Return the number of integer partitions of the non-negative integer `n` into
-`k >= 0` parts.
-If `n < 0` or `k < 0`, return `0`.
+`m >= 0` parts.
+If `n < 0` or `m < 0`, return `0`.
 """
-function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
-  if n < 0 || k < 0
+function number_of_partitions(n::IntegerUnion, m::IntegerUnion)
+  if n < 0 || m < 0
     return ZZ(0)
   end
 
   n = ZZ(n)
-  k = ZZ(k)
+  m = ZZ(m)
 
   # Special cases
-  if n == k
+  if n == m
     return ZZ(1)
-  elseif n < k || k == 0
+  elseif n < m || m == 0
     return ZZ(0)
-  elseif k == 1
+  elseif m == 1
     return ZZ(1)
 
   # See https://oeis.org/A008284
-  elseif n < 2*k
-    return number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
+elseif n < 2*m
+    return number_of_partitions(n - m) #n - m >= 0 holds since the case n<k was already handled
 
   # See https://oeis.org/A008284
-  elseif n <= 2 + 3*k
-    p = number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
-    for i = 0:Int(n) - 2*Int(k) - 1
+elseif n <= 2 + 3*m
+    p = number_of_partitions(n - m) #n - m >= 0 holds since the case n<k was already handled
+    for i = 0:Int(n) - 2*Int(m) - 1
       p = p - number_of_partitions(ZZ(i))
     end
     return p
@@ -318,14 +318,14 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
   # way without recursion.
   else
     n = Int(n)
-    k = Int(k)
+    m = Int(m)
     p = fill( ZZ(1), n )
-    for l = 2:k
+    for l = 2:m
       for m = l + 1:n - l + 1
         p[m] = p[m] + p[m - l]
       end
     end
-    return p[n - k + 1]
+    return p[n - m + 1]
   end
 
 end
