@@ -228,22 +228,6 @@ ring_map(f::FreeModuleHom) = f.ring_map
 ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
-#############################
-#TODO move to Hecke
-#  re-evaluate and use or not
-
-function getindex(r::Hecke.SRow, u::AbstractUnitRange)
-  s = sparse_row(base_ring(r))
-  shift = 1-first(u)
-  for (p,v) = r
-    if p in u
-      push!(s.pos, p+shift)
-      push!(s.values, v)
-    end
-  end
-  return s
-end
-
 function default_ordering(F::FreeMod)
   if iszero(F)
     return default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
