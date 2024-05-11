@@ -25,4 +25,14 @@ julia> is_effective(tdc2)
 false
 ```
 """
-@attr Bool is_effective(tdc::ToricDivisorClass) = (length(basis_of_global_sections(toric_line_bundle(tdc))) > 0)
+@attr Bool function is_effective(tdc::ToricDivisorClass)
+  amb = toric_variety(tdc)
+  pi = matrix(map_from_torusinvariant_weil_divisor_group_to_class_group(amb))
+  coeffs = coefficients(toric_divisor(tdc))
+  P = polyhedron((-identity_matrix(QQ, nrows(pi)), zeros(QQ, nrows(pi))), (transpose(pi), transpose(pi)*coeffs))
+  # If the polyhedron is empty, there cannot be a effective representative.
+  is_feasible(P) || return false
+  # We check whether there is an integral point using a MILP
+  milp = mixed_integer_linear_program(P, ones(QQFieldElem, nrows(pi)))
+  return !isnothing(optimal_solution(milp))
+end
