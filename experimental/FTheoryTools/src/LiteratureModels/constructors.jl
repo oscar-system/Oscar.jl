@@ -325,7 +325,6 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Create the model
     model = global_tate_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
-    set_attribute!(model, :explicit_model_sections => model_sections)
 
   elseif model_dict["model_descriptors"]["type"] == "weierstrass"
 
@@ -348,7 +347,6 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
 
     # Create the model
     model = weierstrass_model(base_space, model_sections, defining_section_parametrization; completeness_check = completeness_check)
-    set_attribute!(model, :explicit_model_sections => model_sections)
 
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 
@@ -378,13 +376,13 @@ function _construct_literature_model_over_concrete_base(model_dict::Dict{String,
     # Create the model
     model = hypersurface_model(base_space, fas, fiber_twist_divisor_classes, hyper_equ; completeness_check = completeness_check)
     model.hypersurface_equation_parametrization = parametrized_hypersurface_equation
-    model.explicit_model_sections = model_sections
 
   else
     error("Model is not a Tate, Weierstrass or hypersurface model")
   end
 
-  # Return the model
+  # Set important fields and return the model
+  model.explicit_model_sections = model_sections
   model.defining_classes = defining_classes_of_model
   return model
 end
