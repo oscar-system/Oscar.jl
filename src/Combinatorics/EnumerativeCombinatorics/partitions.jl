@@ -156,8 +156,8 @@ end
 # NOTE this will not be accurate in many cases,
 # in particular if upper/lower bounds are given,
 # or if `only_distinct_parts == true`.
-Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.m))
-
+# Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.m))
+Base.IteratorSize(::Type{PartitionsFixedNumParts}) = Base.SizeUnknown()
 ################################################################################
 #
 # Generating and counting unrestricted partitions
