@@ -474,114 +474,114 @@ end
 
 
 
-function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
-  # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
-
-  # Note that the algorithm is given as partitioning m into n parts,
-  # but we have refactored to align more closely with standard terminology.
-
-  #Argument checking
-  @req n >= 0 "n >= 0 required"
-  @req m >= 0 "m >= 0 required"
-  @req l1 >= 0 "l1 >= 0 required"
-
-  # Use type of n
-  m = convert(T, m)
-
-  # If l1 == 0 the algorithm parta will actually create lists containing the
-  # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
-  # This is nonsense, so we set l1 = 1 in this case.
-  if l1 == 0
-    l1 = 1
-  end
-
-  # Some trivial cases
-  if n == 0 && m == 0
-    return (p for p in Partition{T}[ partition(T[], check = false) ])
-  end
-
-  if m == 0 || m > n
-    return (p for p in Partition{T}[])
-  end
-
-  if l2 < l1
-    return (p for p in Partition{T}[])
-  end
-
-
-
-  #Algorithm starts here
-  P = Partition{T}[]    #this will be the array of all partitions
-  x = zeros(T, m)
-  y = zeros(T, m)
-  j = only_distinct_parts*m*(m - 1)
-  n = n - m*l1 - div(j, 2)
-  l2 = l2 - l1
-  if 0 <= n <= m*l2 - j
-
-    for i = 1:m
-      y[i] = x[i] = l1 + only_distinct_parts*(m - i)
-    end
-
-    i = 1
-    l2 = l2 - only_distinct_parts*(m - 1)
-
-    while true
-      while n > l2
-        n -= l2
-        x[i] = y[i] + l2
-        i += 1
-      end
-
-      x[i] = y[i] + n
-      push!(P, partition(x[1:m], check = false))
-
-      if i < m && n > 1
-        n = 1
-        x[i] = x[i] - 1
-        i += 1
-        x[i] = y[i] + 1
-        push!(P, partition(x[1:m], check = false))
-      end
-
-      lcycle = false
-      for j = i - 1:-1:1
-        l2 = x[j] - y[j] - 1
-        n = n + 1
-        if n <= (m - j)*l2
-          x[j] = y[j] + l2
-          lcycle = true
-          break
-        end
-        n = n + l2
-        x[i] = y[i]
-        i = j
-      end
-
-      if !lcycle
-        break
-      end
-    end
-  end
-
-  return (p for p in P)
-end
-
-function partitions(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
-  @req n >= 0 "n >= 0 required"
-  @req m >= 0 "m >= 0 required"
-
-  # Special cases
-  if n == m
-    return (p for p in [ partition(T[ 1 for i in 1:n], check = false) ])
-  elseif n < m || m == 0
-    return (p for p in Partition{T}[])
-  elseif m == 1
-    return (p for p in [ partition(T[n], check = false) ])
-  end
-
-  return (p for p in partitions(n, m, 1, n; only_distinct_parts = only_distinct_parts))
-end
+# function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+#   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
+#
+#   # Note that the algorithm is given as partitioning m into n parts,
+#   # but we have refactored to align more closely with standard terminology.
+#
+#   #Argument checking
+#   @req n >= 0 "n >= 0 required"
+#   @req m >= 0 "m >= 0 required"
+#   @req l1 >= 0 "l1 >= 0 required"
+#
+#   # Use type of n
+#   m = convert(T, m)
+#
+#   # If l1 == 0 the algorithm parta will actually create lists containing the
+#   # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
+#   # This is nonsense, so we set l1 = 1 in this case.
+#   if l1 == 0
+#     l1 = 1
+#   end
+#
+#   # Some trivial cases
+#   if n == 0 && m == 0
+#     return (p for p in Partition{T}[ partition(T[], check = false) ])
+#   end
+#
+#   if m == 0 || m > n
+#     return (p for p in Partition{T}[])
+#   end
+#
+#   if l2 < l1
+#     return (p for p in Partition{T}[])
+#   end
+#
+#
+#
+#   #Algorithm starts here
+#   P = Partition{T}[]    #this will be the array of all partitions
+#   x = zeros(T, m)
+#   y = zeros(T, m)
+#   j = only_distinct_parts*m*(m - 1)
+#   n = n - m*l1 - div(j, 2)
+#   l2 = l2 - l1
+#   if 0 <= n <= m*l2 - j
+#
+#     for i = 1:m
+#       y[i] = x[i] = l1 + only_distinct_parts*(m - i)
+#     end
+#
+#     i = 1
+#     l2 = l2 - only_distinct_parts*(m - 1)
+#
+#     while true
+#       while n > l2
+#         n -= l2
+#         x[i] = y[i] + l2
+#         i += 1
+#       end
+#
+#       x[i] = y[i] + n
+#       push!(P, partition(x[1:m], check = false))
+#
+#       if i < m && n > 1
+#         n = 1
+#         x[i] = x[i] - 1
+#         i += 1
+#         x[i] = y[i] + 1
+#         push!(P, partition(x[1:m], check = false))
+#       end
+#
+#       lcycle = false
+#       for j = i - 1:-1:1
+#         l2 = x[j] - y[j] - 1
+#         n = n + 1
+#         if n <= (m - j)*l2
+#           x[j] = y[j] + l2
+#           lcycle = true
+#           break
+#         end
+#         n = n + l2
+#         x[i] = y[i]
+#         i = j
+#       end
+#
+#       if !lcycle
+#         break
+#       end
+#     end
+#   end
+#
+#   return (p for p in P)
+# end
+#
+# function partitions(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+#   @req n >= 0 "n >= 0 required"
+#   @req m >= 0 "m >= 0 required"
+#
+#   # Special cases
+#   if n == m
+#     return (p for p in [ partition(T[ 1 for i in 1:n], check = false) ])
+#   elseif n < m || m == 0
+#     return (p for p in Partition{T}[])
+#   elseif m == 1
+#     return (p for p in [ partition(T[n], check = false) ])
+#   end
+#
+#   return (p for p in partitions(n, m, 1, n; only_distinct_parts = only_distinct_parts))
+# end
 
 
 @doc raw"""
