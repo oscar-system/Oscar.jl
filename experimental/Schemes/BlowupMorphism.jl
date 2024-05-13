@@ -876,7 +876,7 @@ end
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
   exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
   exceptional_locus::WeilDivisor                 # exceptional locus of composed map
-  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+  exceptional_divisor_on_X::CartierDivisor          # exceptional divisor of composed_map
                                                  # restricted to domain(embeddings[end])
 
   function BlowUpSequence(maps::Vector{<:BlowupMorphism})

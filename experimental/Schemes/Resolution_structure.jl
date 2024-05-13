@@ -167,7 +167,11 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   ex_div_list = exceptional_divisor_list(f)
   C = CartierDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
-    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
+# do we want to introduce is_empty for divisors?
+    dim(ideal_sheaf(ex_div_list[i]))== -1 && continue          # kick out empty ones
+                                                               # caution: dim(CartierDivisor) is not computed,
+                                                               #          but inferred
+                                                               #          ==> need to pass to ideal_sheaf first
     C = C + cartier_divisor(ex_div_list[i])
   end
 
@@ -390,30 +394,32 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
     return mixed_blow_up_sequence(return_value)
   end
 
+  Xnorm, phi = normalization(X)
+  incs = phi.inclusions
+  f = initialize_mixed_blow_up_sequence(phi,I_sl)
+  I_sl = ideal_sheaf_of_singular_locus(Xnorm)
 
   ## I_sl non-empty, we need to do something 
 # here the keyword algorithm ensures that the desired method is called
   dimX = dim(X)
   if dimX == 1
-    return_value = _desing_curve(X, I_sl)
+    return_value = f
+    return_value.resolves_sing = true
   elseif ((dimX == 2) && (algorithm==:Lipman))
-    return_value = _desing_lipman(X, I_sl)
+    return_value = _desing_lipman(Xnorm, I_sl, f)
   elseif ((dimX == 2) && (algorithm==:Jung))
     error("not implemented yet")
-    return_value = _desing_jung(X)
+#    second_seq = _desing_jung(Xnorm,f)
+#    return_value = extend(phi, second_seq)
   else
     error("not implemented yet")
-    return_value = forget_embedding(_desing_BEV(X))
+#    second_seq = forget_embedding(_desing_BEV(Xnorm))
+#    return_value = extend(phi, second_seq)
   end
 
-# make return_value type-stable
-  if return_value isa BlowUpSequence
-    return_value = mixed_blow_up_sequence(return_value)
-  end
   return return_value
 end
 
-## for playing around and to have an non-embedded case type stable on BlowUpSequence
 function desingularization_only_blowups(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   I_sl = ideal_sheaf_of_singular_locus(X)
 
@@ -436,7 +442,7 @@ function desingularization_only_blowups(X::AbsCoveredScheme; algorithm::Symbol=:
 #  elseif ((dimX == 2) && (algorithm==:Jung))
 #    error("not implemented yet")
 #    return_value = _desing_jung(X)
-#  else
+  else
     error("not implemented yet")
     return_value = forget_embedding(_desing_BEV(X))
   end
@@ -474,31 +480,26 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   return phi
 end
 
-function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
+function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUpSequence)
   dim(X) == 2 || error("Lipman's algorithm is not applicable")
 
-  if dim(I_sl) == 1
+  if dim(I_sl) == 1                         # called for a non-normal X
     Xnorm, phi = normalization(X)
     incs = phi.inclusions
     f = initialize_mixed_blow_up_sequence(phi,I_sl)
-    f_initialized = true
+    I_sl_temp = ideal_sheaf_of_singular_locus(Xnorm)
+  else
+    I_sl_temp = I_sl
   end    
   
-  I_sl_temp = ideal_sheaf_of_singular_locus(Xnorm)
   decomp = maximal_associated_points(I_sl_temp)
 
   while !is_one(I_sl_temp)
     while length(decomp) > 0
       I = small_generating_set(pop!(decomp))
-      if !f_initialized
-        phi = blow_up(I)
-        f = initialize_mixed_blow_up_sequence(phi)::MixedBlowUpSequence
-        f_initialized = true
-      else
-        f = _do_blow_up!(f,I)
-        if length(decomp)>0 
-          decomp = [strict_transform(last_map(f),J) for J in decomp]
-        end
+      f = _do_blow_up!(f,I)
+      if length(decomp)>0 
+        decomp = [strict_transform(last_map(f),J) for J in decomp]
       end
     end
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))

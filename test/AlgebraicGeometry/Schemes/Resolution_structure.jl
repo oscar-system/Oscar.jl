@@ -29,7 +29,7 @@ end
   IS = IdealSheaf(W,I)
   X = subscheme(IS)
   U = first(affine_charts(X))
-  phi = Oscar.desingularization(X)
+  phi = Oscar.desingularization_only_blowups(X)
   H = IdealSheaf(U, ideal(OO(U), x + 3*y), covered_scheme=X)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
   @test dim(Oscar.last_center(phi)) == 0
@@ -43,6 +43,9 @@ end
   @test is_one(modulus(OO(sl3)))
   @test length(components(exceptional_divisor(phi))) == 1
   @test length(components(Oscar.exceptional_locus(phi))) == 1
+  psi = Oscar.desingularization(X)
+  @test length(morphisms(psi)) == 1
+  @test morphism(psi,1) isa Oscar.NormalizationMorphism
 end
 
 @testset "non-embedded desingularization Lipman (dim=2)" begin
@@ -64,7 +67,7 @@ end
   sl6,_ = singular_locus(aff_charts[6])
   @test is_one(modulus(OO(sl6)))
   @test length(components(exceptional_divisor(phi))) == 2
-  @test_broken length(components(Oscar.exceptional_locus(phi))) == 2
+  @test_broken length(components(exceptional_locus(phi))) == 2
 end
 
 @testset "order of an ideal" begin
