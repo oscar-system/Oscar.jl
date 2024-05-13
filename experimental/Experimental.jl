@@ -5,8 +5,6 @@
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
   "GModule",
-  "Schemes",
-  "FTheoryTools" # Must be loaded after the schemes.
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -18,6 +16,8 @@ const orderedpkgs = [
   "BasisLieHighestWeight",   # needs code from LieAlgebras
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
+  "Schemes",
+  "FTheoryTools"             # must be loaded after Schemes
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
