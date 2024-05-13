@@ -2179,7 +2179,7 @@ function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
     fus = GAPWrap.FusionConjugacyClasses(GapObj(subtbl), GapObj(tbl))
     @req fus !== GAP.Globals.fail "class fusion is not uniquely determinaed"
     ind = GAPWrap.InducedClassFunctionsByFusionMap(GapObj(subtbl),
-          GapObj(tbl), GapObj([GapObj(chi)]), GapObj(fus))
+          GapObj(tbl), GapObj([chi]; recursive = true), GapObj(fus))
     return GAPGroupClassFunction(tbl, ind[1])
   else
     # Dispatch on the types of the stored groups.
@@ -2189,7 +2189,7 @@ end
 
 function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, fusion::Vector{Int})
   ind = GAPWrap.InducedClassFunctionsByFusionMap(GapObj(parent(chi)),
-          GapObj(tbl), GapObj([GapObj(chi)]), GapObj(fusion))
+          GapObj(tbl), GapObj([chi]; recursive=true), GapObj(fusion))
   return GAPGroupClassFunction(tbl, ind[1])
 end
 
@@ -2441,10 +2441,10 @@ function coordinates(::Type{T}, chi::GAPGroupClassFunction) where T <: Union{Int
     GAPt = GapObj(t)
     if characteristic(t) == 0
       # use scalar products for an ordinary character
-      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([GapObj(chi)]))
+      c = GAPWrap.MatScalarProducts(GAPt, GAPWrap.Irr(GAPt), GapObj([chi]; recursive = true))
     else
       # decompose a Brauer character
-      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([GapObj(chi)]), GapObj("nonnegative"))
+      c = GAPWrap.Decomposition(GAPWrap.Irr(GAPt), GapObj([chi]; recursive = true), GapObj("nonnegative"))
     end
     return Vector{T}(c[1])::Vector{T}
 end
@@ -2765,7 +2765,7 @@ function indicator(chi::GAPGroupClassFunction, n::Int = 2)
     tbl = parent(chi)
     if characteristic(tbl) == 0
       # The indicator can be computed for any character.
-      ind = GAPWrap.Indicator(GapObj(tbl), GapObj([GapObj(chi)]), n)
+      ind = GAPWrap.Indicator(GapObj(tbl), GapObj([chi]; recursive = true), n)
       return ind[1]::Int
     else
       # The indicator is defined only for `n = 2` and irreducible characters.
@@ -3081,7 +3081,7 @@ function exterior_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `ExteriorPower` method becomes available then use it
     tbl = parent(chi)
     return class_function(tbl,
-      GAPWrap.AntiSymmetricParts(GapObj(tbl), GAP.Obj([GapObj(chi)]), n)[1])
+      GAPWrap.AntiSymmetricParts(GapObj(tbl), GAP.Obj([chi]; recursive = true), n)[1])
 end
 
 @doc raw"""
@@ -3098,7 +3098,7 @@ function symmetric_power(chi::GAPGroupClassFunction, n::Int)
 #T when GAP's `SymmetricPower` method becomes available then use it
     tbl = parent(chi)
     return class_function(tbl,
-      GAPWrap.SymmetricParts(GapObj(tbl), GAP.Obj([GapObj(chi)]), n)[1])
+      GAPWrap.SymmetricParts(GapObj(tbl), GAP.Obj([chi]; recursive = true), n)[1])
 end
 
 @doc raw"""
