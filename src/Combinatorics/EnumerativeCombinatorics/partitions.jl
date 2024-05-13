@@ -149,7 +149,7 @@ function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
   if is_terse(io)
     print(io, "Iterator")
   else
-    print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+    print(io, "Iterator over the partitions of $(base(P)) into $(P.m) parts")
   end
 end
 
@@ -157,7 +157,7 @@ end
 # in particular if upper/lower bounds are given,
 # or if `only_distinct_parts == true`.
 # Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.m))
-Base.IteratorSize(::Type{PartitionsFixedNumParts}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{PartitionsFixedNumParts{T}}) where T = Base.SizeUnknown()
 ################################################################################
 #
 # Generating and counting unrestricted partitions
@@ -226,7 +226,7 @@ function partitions(n::IntegerUnion)
 end
 
 
-function Base.iterate(P::Partitions{T}, state::Nothing = nothing) where T
+function Base.iterate(P::Partitions{T}) where T
   n = base(P)
 
   if n == 0
@@ -379,11 +379,11 @@ function partitions(n::IntegerUnion, m::IntegerUnion, l1::IntegerUnion, l2::Inte
 end
 
 
-function Base.iterate(P::PartitionsFixedNumParts{T}, state::Nothing = nothing) where T
+function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   n = P.n
   m = P.m
   l1 = P.lb
-  l2 = P.up
+  l2 = P.ub
   only_distinct_parts = P.distinct_parts
 
   # TODO : fix the states returned once we know what those will look like
@@ -423,12 +423,12 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Nothing = nothing) w
     x[i] = y[i] + L2
     i += 1
   end
-  x[i] = y[i] + n
+  x[i] = y[i] + N
   return partition(x[1:m], check = false), (x, y, N, L2, i, true)
 end
 
 function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
-
+  m = P.m
   x, y, N, L2, i, flag = state
 
   N == 0 && return nothing
@@ -463,15 +463,9 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
     x[i] = y[i] + L2
     i += 1
   end
-  x[i] = y[i] + n
+  x[i] = y[i] + N
   return partition(x[1:m], check = false), (x,y,N,L2,i,true)
 end
-
-
-
-
-
-
 
 
 # function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion

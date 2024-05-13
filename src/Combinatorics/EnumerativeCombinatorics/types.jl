@@ -149,7 +149,7 @@ end
 # TODO: This should also have:
 #  - a flag for `only_distinct_parts`
 #  - support for upper/lower bounds
-struct PartitionsFixedNumParts{T<:IntegerUnion} <: AbstractVector{T}
+struct PartitionsFixedNumParts{T<:IntegerUnion}
   n::T
   m::Int
 
