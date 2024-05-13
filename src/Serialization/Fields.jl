@@ -1,3 +1,4 @@
+
 ################################################################################
 # Utility functions for parent tree
 function get_parents(parent_ring::Field)
@@ -530,6 +531,27 @@ function load_object(s::DeserializerState, ::Type{<:EmbeddedNumFieldElem}, paren
   coeff_type = elem_type(parents[end - 1])
   loaded_alg_elem = load_object(s, coeff_type, parents[1:end - 1])
   return parent_field(loaded_alg_elem)
+end
+
+################################################################################
+# QQBar
+
+@register_serialization_type QQBarField
+@register_serialization_type QQBarFieldElem
+
+function save_object(s::SerializerState, q::QQBarFieldElem)
+  save_data_dict(s) do
+    save_object(s, minpoly(q), :minpoly)
+    save_object(s, AcbField()(q), :acb )
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
+  Qx, x = QQ[:x]
+  CC = AcbField()
+  min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
+  approximation = load_object(s, AcbFieldElem, CC, :acb)
+  return filter(x -> overlaps(approximation, CC(x)), roots(QQBarField(), min_poly))[1]
 end
 
 ################################################################################
