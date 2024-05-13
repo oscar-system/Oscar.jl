@@ -118,8 +118,8 @@ If `check` is set to `false` then it is not checked whether the mapping
 defines a group homomorphism.
 """
 function hom(G::GAPGroup, H::GAPGroup, gensG::Vector, imgs::Vector; check::Bool = true)
-  vgens = GapObj([GapObj(x) for x in gensG])
-  vimgs = GapObj([GapObj(x) for x in imgs])
+  vgens = GapObj(gensG; recursive = true)
+  vimgs = GapObj(imgs; recursive = true)
   if check
     mp = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GapObj(H), vgens, vimgs)
   else

@@ -1861,6 +1861,10 @@ end
 
 GapObj(chi::GAPGroupClassFunction) = chi.values
 
+# The following is needed for recursive `GapObj` calls with arrays
+# of class functions.
+GAP.julia_to_gap(chi::GAPGroupClassFunction) = chi.values
+
 parent(chi::GAPGroupClassFunction) = chi.table
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
@@ -3030,7 +3034,7 @@ function symmetrizations(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.Symmetrizations(GapObj(tbl),
-                         GapObj([GapObj(chi) for chi in characters]), n)]
+                         GapObj(characters; recursive = true), n)]
 end
 
 @doc raw"""
@@ -3045,7 +3049,7 @@ function symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymmetricParts(GapObj(tbl),
-                         GapObj([GapObj(chi) for chi in characters]), n)]
+                         GapObj(characters; recursive = true), n)]
 end
 
 @doc raw"""
@@ -3060,7 +3064,7 @@ function anti_symmetric_parts(characters::Vector{GAPGroupClassFunction}, n::Int)
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.AntiSymmetricParts(GapObj(tbl),
-                         GapObj([GapObj(chi) for chi in characters]), n)]
+                         GapObj(characters; recursive = true), n)]
 end
 
 @doc raw"""
@@ -3112,7 +3116,7 @@ function orthogonal_components(characters::Vector{GAPGroupClassFunction}, n::Int
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.OrthogonalComponents(GapObj(tbl),
-                         GapObj([GapObj(chi) for chi in characters]), n)]
+                         GapObj(characters; recursive = true), n)]
 end
 
 @doc raw"""
@@ -3130,7 +3134,7 @@ function symplectic_components(characters::Vector{GAPGroupClassFunction}, n::Int
     tbl = parent(characters[1])
     return [class_function(tbl, chi)
             for chi in GAPWrap.SymplecticComponents(GapObj(tbl),
-                         GapObj([GapObj(chi) for chi in characters]), n)]
+                         GapObj(characters; recursive = true), n)]
 end
 
 function character_table_complex_reflection_group(m::Int, p::Int, n::Int)
