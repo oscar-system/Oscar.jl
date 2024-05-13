@@ -241,7 +241,7 @@ function Base.iterate(P::Partitions{T}, state::Nothing = nothing) where T
 
 end
 
-function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int})
+function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int}) where T
   d, k, q = state
   q==0 && return nothing
   if d[q] == 2
