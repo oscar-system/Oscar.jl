@@ -25,7 +25,7 @@ export inclusion_morphisms
       check::Bool=true
     ) 
     @check is_normal(X) "not a normalization morphism"
-    @check all(inc->codomain(inc) === domain(f), inclusions) "domains and codomains do not match"
+    @assert all(inc->codomain(inc) === domain(f), inclusions) "domains and codomains do not match"
     ret_value = new{typeof(domain(f)),typeof(codomain(f))}(f,inclusions)
     return ret_value    
   end
@@ -67,8 +67,8 @@ end
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
-  exceptional_divisor::WeilDivisor
-  exceptional_locus::AlgebraicCycle
+  exceptional_divisor::AbsWeilDivisor
+  exceptional_locus::AbsAlgebraicCycle
 
   function MixedBlowUpSequence(maps::Vector{<:AbsCoveredSchemeMorphism})
     n = length(maps)
@@ -133,10 +133,7 @@ end
   phi.transform_type != :strict || error("only available for weak and controlled transforms")
 
   ex_div_list = exceptional_divisor_list(f)
-  C = f.ex_mult[1] * cartier_divisor(ex_div_list[1])
-  for i in 2:length(ex_div_list)
-    C = C + f.ex_mult[i] * cartier_divisor(ex_div_list[i])
-  end
+  C = sum(f.ex_mult[i] * cartier_divisor(ex_div_list[i]) for i in 1:length(ex_div_list))
   return C
 end
 
@@ -148,7 +145,7 @@ function _exceptional_divisor_in_ambient(f::BlowUpSequence)
 end
 
 function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
-  !isdefined(f,:exceptional_divisor_on_X) || return f.exceptional_divisor_on_X
+  !isdefined(f,:exceptional_divisor) || return f.exceptional_divisor
 
   ex_div_list = exceptional_divisor_list(f)
   C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
