@@ -1269,7 +1269,7 @@ end
     homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
+group, and given an element `g` of that group,
 return the homogeneous component of `R` of degree `g` as a standard
 vector space. Additionally, return the map which sends an element
 of that vector space to the corresponding monomial in `R`.
@@ -1287,7 +1287,7 @@ an integer `d`, convert `d` into an element `g` of the grading group of `R`
 proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error message will be thrown.
+    If the component is not finite dimensional, an error will be thrown.
 
 # Examples
 ```jldoctest
