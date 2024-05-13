@@ -427,7 +427,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Nothing = nothing) w
   return partition(x[1:m], check = false), (x, y, N, L2, i, true)
 end
 
-function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{}) where T
+function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
 
   x, y, N, L2, i, flag = state
 
