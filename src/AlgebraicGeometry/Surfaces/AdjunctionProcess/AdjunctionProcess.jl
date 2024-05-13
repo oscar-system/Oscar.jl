@@ -242,7 +242,7 @@ which are obtained by blowing down the exceptional $(-1)$-lines on $X^{(i)}$.
     The function does not check whether `X` is smooth. If you are uncertain, enter `is_smooth(X)` first.
 
 !!! warning
-    At current state, the adjunction process is only implemented for rational surfaces which are linearly normal in the given embedding. The function does not check rationality. In fact, at current state, `OSCAR` does not offer a direct check for this. Note, however, that rationality will be clear a posteriori if the adjunction process terminates with a surface which is known to be rational.
+    At current state, the adjunction process is only implemented for rational and Enriques surfaces which are linearly normal in the given embedding. The function does not check whether `X` is rational or an Enriques surface. In fact, at current state, `OSCAR` does not offer direct checks for this. Note, however, that the adjunction process will give an answer to this question a posteriori in cases where it terminates with a surface which is known to be rational or an Enriques surface.
 
 # Examples
 ```jldoctest
@@ -303,7 +303,6 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
    @assert steps >= 0
    Pn = ambient_coordinate_ring(X)
    I = defining_ideal(X)
-   ### @assert is_standard_graded(Pn)
    @req dim(I) == 3 "The given variety is not a surface."
    @req is_linearly_normal(X) "The given variety is not linearly normal."
    # TODO If X is not linear normal, embed it as a linearly normal variety first.
@@ -315,8 +314,7 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
    D = matrix(map(FOmega,1))
    count = 1
    while nrows(D) > 2 && (steps == 0 || count <= steps)
-      #if !any(x->is_zero(x) ? true : degree(Int, x) > 1, Oscar._vec(D))
-       if !any(x -> total_degree(x) > 1, Oscar._vec(D)) 
+      if !any(x -> total_degree(x) > 1, Oscar._vec(D)) 
          adj = _adjoint_matrix(D)
       else
         return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
@@ -340,17 +338,22 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       end
       Ipts = saturation(Ipts, ideal(Pn, gens(Pn)))
       pts = algebraic_set(Ipts,  is_radical = false, check = false) 
-      push!(ptslist, pts)
       if dim(pts) == 0
          l = degree(pts)
       else
          l = zero(ZZ)
-      end     
-      push!(adjlist, adj)
-      push!(numlist, (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)), l))
-      Omega = canonical_bundle(variety(I, check = false, is_radical = false))
-      FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
-      D = matrix(map(FOmega,1))
+      end
+      dummy = (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)))
+      if l==0 && dummy == numlist[count][1:3]   # Enriques surface
+        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
+      else	
+        push!(numlist, (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)), l))
+        push!(adjlist, adj)
+        push!(ptslist, pts)
+        Omega = canonical_bundle(variety(I, check = false, is_radical = false))
+        FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
+        D = matrix(map(FOmega,1))
+      end
       count = count+1
    end
    return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))

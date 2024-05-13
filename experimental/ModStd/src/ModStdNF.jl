@@ -29,7 +29,9 @@ end
 function exp_groebner_basis(B::IdealGens{zzModMPolyRingElem}, h::HilbertData; ord::Symbol = :degrevlex, complete_reduction::Bool = false)
   if ord != :degrevlex
     R = Oscar.singular_poly_ring(B.Ox, ord)
-    i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), h.data, complete_reduction = complete_reduction)
+    hdata = convert(Int32,h.coeffs)
+    hdata = push!(hdata,0)
+    i = stdhilb(Singular.Ideal(R, [convert(R, x) for x = B]), hdata, complete_reduction = complete_reduction)
     return IdealGens(B.Ox, i)
   end
   if !isdefined(B, :S)
