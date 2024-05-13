@@ -10,7 +10,7 @@ function presentation(SQ::SubquoModule;
                       minimal=false)
   if minimal
     return _presentation_minimal(SQ)
-  if is_graded(SQ)
+  elseif is_graded(SQ)
     return _presentation_graded(SQ)
   else
     return _presentation_simple(SQ)
