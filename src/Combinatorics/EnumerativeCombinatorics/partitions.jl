@@ -156,7 +156,7 @@ end
 # NOTE this will not be accurate in many cases,
 # in particular if upper/lower bounds are given,
 # or if `only_distinct_parts == true`.
-Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.k))
+Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.m))
 
 ################################################################################
 #
