@@ -230,14 +230,14 @@ function Base.iterate(P::Partitions{T}, state::Nothing = nothing) where T
   n = base(P)
 
   if n == 0
-    return partition(T), (T[], 0, 0)
+    return partition(T[], check=false), (T[], 0, 0)
   elseif P.n == 1
-    return partition(T[1]), (T[1], 1, 0)
+    return partition(T[1], check=false), (T[1], 1, 0)
   end
 
   d = fill( T(1), n )
   d[1] = n
-  return partition(d[1:1]), (d, 1, 1)
+  return partition(d[1:1], check=false), (d, 1, 1)
 
 end
 
@@ -267,7 +267,7 @@ function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int})
       end
     end
   end
-  return partition(d[1:k]), (d, k, q)
+  return partition(d[1:k], check=false), (d, k, q)
 end
 
 
@@ -278,7 +278,7 @@ end
 ################################################################################
 
 @doc raw"""
-    number_of_partitions(n::IntegerUnion, k::IntegerUnion)
+    number_of_partitions(n::IntegerUnion, m::IntegerUnion)
 
 Return the number of integer partitions of the non-negative integer `n` into
 `m >= 0` parts.
@@ -381,7 +381,91 @@ end
 
 function Base.iterate(P::PartitionsFixedNumParts{T}, state::Nothing = nothing) where T
   n = P.n
+  m = P.m
+  l1 = P.lb
+  l2 = P.up
+  only_distinct_parts = P.distinct_parts
 
+  # TODO : fix the states returned once we know what those will look like
+  if n == 0 && m == 0
+    return partition(T[], check=false), (T[], T[], 0, 0, 1, false)
+  end
+
+  # This iterator should be empty
+  if m == 0 || m > n || l2 < l1
+    return nothing
+  end
+
+  if n == m && l1 == 1
+    return partition(T[1 for i in 1:n], check=false), (T[], T[], 0, 0, 1, false)
+  end
+
+  if m == 1 && l1 <= n <= l2
+    return partition(T[n], check=false), (T[], T[], 0, 0, 1, false)
+  end
+
+  x = zeros(T,m)
+  y = zeros(T,m)
+  jj = only_distinct_parts*m*(m-1)
+  N = n - m*l1 - div(jj,2)
+  L2 = l2-l1
+  0 <= N <= m*L2 - jj || return nothing
+
+  for i in 1:m
+    y[i] = x[i] = l1 + only_distinct_parts*(m-i)
+  end
+
+  i = 1
+  L2 = L2 - only_distinct_parts*(m-1)
+
+  while N > L2
+    N -= L2
+    x[i] = y[i] + L2
+    i += 1
+  end
+  x[i] = y[i] + n
+  return partition(x[1:m], check = false), (x, y, N, L2, i, true)
+end
+
+function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{}) where T
+
+  x, y, N, L2, i, flag = state
+
+  N == 0 && return nothing
+
+  if flag
+    if i < m && N > 1
+      N = 1
+      x[i] = x[i] - 1
+      i += 1
+      x[i] = y[i] + 1
+      return partition(x[1:m], check = false), (x,y,N,L2,i,false)
+    end
+  end
+
+  lcycle = false
+  for j in i - 1:-1:1
+    L2 = x[j] - y[j] - 1
+    N = N + 1
+    if N <= (m-j)*L2
+      x[j] = y[j] + L2
+      lcycle = true
+      break
+    end
+    N = N + L2
+    x[i] = y[i]
+    i = j
+  end
+
+  lcycle || return nothing
+  while N > L2
+    N -= L2
+    x[i] = y[i] + L2
+    i += 1
+  end
+  x[i] = y[i] + n
+  return partition(x[1:m], check = false), (x,y,N,L2,i,true)
+end
 
 
 
