@@ -1348,9 +1348,9 @@ end
 
 
 @doc raw"""
-  vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <:M PolyRingElem}
+  vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
 
-Return a K-vector space `V` and an epimorphism from `V` onto the K-vector
+Return a `K`-vector space `V` and an epimorphism from `V` onto the `K`-vector
 space spanned by the polynomials in `polys`.
 
 Note that all polynomials must have the same parent `R`, and `K` must be equal
