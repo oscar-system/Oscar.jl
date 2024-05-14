@@ -39,5 +39,5 @@ function det(A::Generic.MatSpaceElem{R}) where {R<:Union{TropicalSemiringElem,MP
 end
 
 function det(A::Matrix{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
-    return det(matrix(TropicalSemiring{minOrMax},A))
+    return det(matrix(parent(first(A)),A))
 end
