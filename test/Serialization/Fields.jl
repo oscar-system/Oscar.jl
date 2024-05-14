@@ -33,5 +33,11 @@
         @test loaded == v
       end
     end
+
+    @testset "QQBar" begin
+      test_save_load_roundtrip(path, QQBarField()) do loaded
+        @test loaded isa QQBarField
+      end
+    end
   end
 end

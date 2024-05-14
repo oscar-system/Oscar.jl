@@ -539,6 +539,13 @@ end
 @register_serialization_type QQBarField
 @register_serialization_type QQBarFieldElem
 
+function save_object(s::SerializerState, q::QQBarField)
+end
+
+function load_object(s::DeserializerState, ::Type{QQBarField})
+  return QQBarField()
+end
+
 function save_object(s::SerializerState, q::QQBarFieldElem)
   is_unique = false
   min_poly_q = minpoly(q)
