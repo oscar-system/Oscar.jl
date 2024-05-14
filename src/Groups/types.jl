@@ -178,7 +178,7 @@ function pc_group(G::GapObj)
   _is_full_pc_group(G) && return PcGroup(G)
 
   # Switch to a full pcp or pc group.
-  if GAP.Globals.IsPcpGroup(G)::Bool
+  if GAPWrap.IsPcpGroup(G)
     return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
   elseif GAPWrap.IsPcGroup(G)
     return PcGroup(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
@@ -188,6 +188,7 @@ end
 
 # Return `true` if the generators of `G` fit to those of its pc presentation.
 function _is_full_pc_group(G::GapObj)
+  GAPWrap.IsPcpGroup(G) || GAPWrap.IsPcGroup(G) || return false
   return GAP.Globals.GroupGeneratorsDefinePresentation(G)::Bool
 end
 #T the code for PcpGroups is too expensive!
@@ -241,7 +242,7 @@ return groups of type `SubPcGroup`.
 #T better create an embedding!
 
   function SubPcGroup(G::GapObj)
-    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)::Bool
+    @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
     if GAPWrap.IsPcGroup(G)
       full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G)::GapObj)::GapObj
 #T use GAPWrap!
@@ -361,18 +362,18 @@ sub_type(T::Type) = T
 sub_type(::Type{PcGroup}) = SubPcGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
-# `_oscar_group(obj, G)` is used to create the subgroup of `G`
+# `_oscar_subgroup(obj, G)` is used to create the subgroup of `G`
 # that is described by the GAP group `obj`;
 # default: ignore `G`
-function _oscar_group(obj::GapObj, G::GAPGroup)
+function _oscar_subgroup(obj::GapObj, G::GAPGroup)
   S = sub_type(G)(obj)
-  @assert GAP.Globals.FamilyObj(S.X) === GAP.Globals.FamilyObj(G.X)
+  @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
 #T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
-function _oscar_group(obj::GapObj, G::PermGroup)
+function _oscar_subgroup(obj::GapObj, G::PermGroup)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
@@ -380,7 +381,7 @@ function _oscar_group(obj::GapObj, G::PermGroup)
 end
 
 # `MatrixGroup`: set dimension and ring of `G`
-function _oscar_group(obj::GapObj, G::MatrixGroup)
+function _oscar_subgroup(obj::GapObj, G::MatrixGroup)
   d = GAP.Globals.DimensionOfMatrixGroup(obj)
   d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
 
@@ -394,14 +395,6 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   M.ring_iso = iso
   return M
 end
-
-
-################################################################################
-#
-# "Coerce" an Oscar group `G` to one that is compatible with
-# the given Oscar group `S`.
-#T what does compatible mean?
-compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(GapObj(G), S)
 
 
 ################################################################################

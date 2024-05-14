@@ -206,7 +206,7 @@ function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubP
     # orders given by `v` and to the defining presentation.
     error("cannot create a PcGroup group with relative orders $v, perhaps try SubPcGroup")
   else
-    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GAP.GapObj(v, recursive=true)))
+    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v, recursive=true)))
   end
 end
 

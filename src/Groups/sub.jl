@@ -5,7 +5,7 @@
 ################################################################################
 
 function _as_subgroup_bare(G::T, H::GapObj) where T <: GAPGroup
-  return _oscar_group(H, G)
+  return _oscar_subgroup(H, G)
 end
 
 function _as_subgroup(G::GAPGroup, H::GapObj)
@@ -820,9 +820,9 @@ function quo(G::GAPGroup, N::GAPGroup)
 #T HACK: In order to avoid `SubPcGroup`s as return values of `quo`
 #T       where possible, take the *full* pc group if the range is a pc group
 #T       and if the GAP mapping is surjective.
-  cod = GAP.Globals.Range(mp)::GapObj
-  if !(GAP.Globals.IsPcGroup(cod) && GAP.Globals.IsSurjective(mp))
-    cod = GAP.Globals.ImagesSource(mp)::GapObj
+  cod = GAPWrap.Range(mp)
+  if !(GAPWrap.IsPcGroup(cod) && GAPWrap.IsSurjective(mp))
+    cod = GAPWrap.ImagesSource(mp)
   end
   S = elem_type(G)
   codom = _oscar_group(cod)

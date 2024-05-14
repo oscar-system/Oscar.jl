@@ -54,6 +54,7 @@ end
    # - `maximal_abelian_quotient` with prescribed type:
    #    return a group of this type if possible
 #  for T in [ PermGroup, PcGroup ]
+#TODO: support `abelian_group(PcGroup, [2, 3, 4])`, using GAP's PcpGroup
    for T in [ PermGroup, SubPcGroup ]
       G = abelian_group(T, [2, 3, 4])
       @test maximal_abelian_quotient(G)[1] isa T
@@ -61,7 +62,11 @@ end
    end
    T = FPGroup
    G = abelian_group(T, [2, 3, 4])
-#  @test maximal_abelian_quotient(G)[1] isa PcGroup
+   # Note that GAP chooses a representation for the max. abelian quotient,
+   # and this group gets wrapped into an Oscar group.
+   # Here GAP chooses a pc group, but with noncanonical generators,
+   # Hence we get a `SubPcGroup` not a `PcGroup`.
+   # (This is not really satisfactory.)
    @test maximal_abelian_quotient(G)[1] isa SubPcGroup
    @test maximal_abelian_quotient(PermGroup, G)[1] isa PermGroup
    @test maximal_abelian_quotient(FinGenAbGroup, G)[1] isa FinGenAbGroup

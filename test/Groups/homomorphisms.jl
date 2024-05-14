@@ -406,6 +406,10 @@ end
        @test is_injective(f)
        @test is_surjective(f)
 
+       @test_throws ArgumentError isomorphism(PcGroup, S, on_gens = true)
+       f = isomorphism(PcGroup, G, on_gens = true)
+       @test [f(x) for x in gens(G)] == gens(codomain(f))
+
        f = @inferred isomorphism(PcGroup, G)
        @test codomain(f) isa PcGroup
        @test domain(f) == G
@@ -582,9 +586,10 @@ function test_kernel(G,H,f)
    K,i = kernel(f)
    Im = image(f)[1]
 
-#TODO: activate these tests as soon as they pass again
+#TODO: activate these tests as soon as they pass again;
+#      the point is that comparing the embeddings is done via `===`
 #  @test preimage(f,H)==(G,id_hom(G))
-#  @test preimage(f,sub(H,[one(H)])[1])==(K,i)
+   @test preimage(f,sub(H,[one(H)])[1])==(K,i)
    z=rand(Im)
    @test has_preimage_with_preimage(f,z)[1]
    @test f(has_preimage_with_preimage(f,z)[2])==z
@@ -699,7 +704,7 @@ end
    # Create an Oscar group from a group of automorphisms in GAP.
    G = alternating_group(6)
    A = automorphism_group(G)
-   B = Oscar._oscar_group(A.X)
+   B = Oscar._oscar_group(GapObj(A))
    @test B == A
    @test B !== A
    @test B.X === A.X

@@ -393,7 +393,7 @@ julia> collect(T)
 """
 function right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
    if check
-     @req GAPWrap.IsSubset(G.X, H.X) "H is not a subgroup of G"
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
      _check_compatible(G, H)
    end
    return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :right,
@@ -433,7 +433,7 @@ julia> collect(T)
 """
 function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
    if check
-     @req GAPWrap.IsSubset(G.X, H.X) "H is not a subgroup of G"
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
      _check_compatible(G, H)
    end
    return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :left,

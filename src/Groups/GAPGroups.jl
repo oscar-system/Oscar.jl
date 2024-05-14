@@ -779,7 +779,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_group(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
+   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
 end
 
 """
@@ -928,7 +928,7 @@ Permutation group of degree 4 and order 3
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
   @req check_parent(G, x) "G and x are not compatible"
-  return _oscar_group(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
+  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
@@ -1917,7 +1917,7 @@ function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   end
   gX = GapObj(g)
 
-  if GAP.Globals.IsPcGroup(GapObj(G))
+  if GAPWrap.IsPcGroup(GapObj(G))
     l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(GapObj(G)), gX)
   else  # GAP.Globals.IsPcpGroup(GapObj(G))
     l = GAP.Globals.Exponents(gX)
