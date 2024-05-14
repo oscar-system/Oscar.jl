@@ -1,6 +1,13 @@
 export _desing_curve
 export  find_refinement_with_local_system_of_params
 export inclusion_morphisms
+export embedded_desingularization
+export desingularization
+export desingularization_only_blowups
+export exceptional_locus
+export NormalizationMorphism
+export locus_of_maximal_order
+
 ##############################################################################
 ## Concrete Type for normalization
 ## very similar to CoveredSchemeMorphism, but allowing disjoint handling
@@ -749,7 +756,7 @@ end
 #  locus of order at least b and of maximal order
 ##################################################################################################
 
-function max_order_locus(I::AbsIdealSheaf)
+function locus_of_maximal_order(I::AbsIdealSheaf)
   return _delta_list(I)[end]
 end
 

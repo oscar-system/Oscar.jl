@@ -4,7 +4,7 @@
   W = AffineScheme(R)
   IS = IdealSheaf(W,I)
   WC = scheme(IS)
-  inc_X = CoveredClosedEmbedding(WC,IS)
+  inc_X = Oscar.CoveredClosedEmbedding(WC,IS)
   phi = embedded_desingularization(inc_X)
   H = IdealSheaf(W, ideal(R, x + 3*y), covered_scheme=WC)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
@@ -32,7 +32,7 @@ end
   phi = desingularization_only_blowups(X)
   H = IdealSheaf(U, ideal(OO(U), x + 3*y), covered_scheme=X)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
-  @test dim(last_center(phi)) == 0
+  @test dim(center(Oscar.last_map(phi))) == 0
   @test length(phi.ex_div) == 2
   aff_charts = affine_charts(domain(phi))
   sl1,_ = singular_locus(aff_charts[1])
@@ -76,8 +76,8 @@ end
   I = ideal(R,[(x+y)^3+z^4])
   IS = IdealSheaf(W,I)
   WC = scheme(IS)
-  IY = max_order_locus(IS)
-  decomp = maximal_associated_points(IY)
+  IY = locus_of_maximal_order(IS)
+  decomp = Oscar.maximal_associated_points(IY)
   @test length(decomp) == 1
   @test decomp[1] == IdealSheaf(W,ideal(R,[z,x+y]), covered_scheme=WC)
   JS = IdealSheaf(W, ideal(R,[x^2*y^2-z^5,x^3]), covered_scheme=WC)
