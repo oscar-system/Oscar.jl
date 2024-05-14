@@ -212,4 +212,5 @@
     for p in partitions(10)
       @test conjugate(conjugate(p)) == p
     end
+  end
 end
