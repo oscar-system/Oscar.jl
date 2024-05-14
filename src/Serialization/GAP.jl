@@ -143,12 +143,12 @@ install_GAP_deserialization(
             GapObj(nameprefix)
           end
           init = load_node(s, :names) do names
-            GapObj([GapObj(x) for x in names], true)
+            GapObj(names; recursive = true)
           end
           G = GAP.Globals.FreeGroup(wfilt, GAP.Globals.infinity, prefix, init)::GapObj
         else
           init = load_node(s, :names) do names
-            GapObj([GapObj(x) for x in names], true)
+            GapObj(names; recursive = true)
           end
           G = GAP.Globals.FreeGroup(wfilt, init)::GapObj
         end

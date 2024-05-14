@@ -612,7 +612,7 @@ function Oscar.natural_character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:
 
   vals = [GAP.Globals.BrauerCharacterValue(GAP.Obj(map(h, matrix(action(C, representative(x)))))) for x in ccl]
 
-  return Oscar.class_function(modtbl, GAPWrap.ClassFunction(Oscar.GAPTable(modtbl), Oscar.GapObj(vals)))
+  return Oscar.class_function(modtbl, GAPWrap.ClassFunction(GapObj(modtbl), GapObj(vals)))
 end
 
 function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{T}) where {T <: FinFieldElem}
@@ -1528,7 +1528,7 @@ function Oscar.gmodule(::Type{FinGenAbGroup}, C::GModule{T, <:AbstractAlgebra.FP
 end
 
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
-  f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
+  f = GAP.Globals.IrreducibleAffordingRepresentation(GapObj(chi))
   K = abelian_closure(QQ)[1]
   g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))

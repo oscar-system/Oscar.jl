@@ -753,7 +753,7 @@ end
 @testset "access fields in character tables" begin
   # table without group
   t = character_table("A5")
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test_throws UndefRefError t.group
   @test_throws UndefRefError t.isomorphism
@@ -761,7 +761,7 @@ end
   # table with `GAPGroup` group
   g = symmetric_group(4)
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
@@ -769,7 +769,7 @@ end
   # table with `FinGenAbGroup` group
   g = abelian_group([2, 4])
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism

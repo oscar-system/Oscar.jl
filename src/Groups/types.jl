@@ -347,6 +347,8 @@ struct GAPGroupHomomorphism{S<: GAPGroup, T<: GAPGroup} <: Map{S,T,GAPMap,GAPGro
    end
 end
 
+GapObj(f::GAPGroupHomomorphism) = f.map
+
 
 """
     AutomorphismGroup{T} <: GAPGroup
