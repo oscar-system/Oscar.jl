@@ -566,10 +566,10 @@ end
 
 function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
   Qx, x = QQ[:x]
-  CC = AcbField()
   min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
-  approximation = load_object(s, AcbFieldElem, AcbField(precision), :acb)
+  CC = AcbField(precision)
+  approximation = load_object(s, AcbFieldElem, CC, :acb)
   roots_min_poly = roots(QQBarField(), min_poly)
 
   try
