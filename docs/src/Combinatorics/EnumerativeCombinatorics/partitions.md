@@ -102,7 +102,7 @@ For counting the partitions the recurrence relation $p_k(n) = p_{k - 1}(n - 1) +
 
 ```@docs
 partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
-partitions(::Oscar.IntegerUnion, ::Vector)
+partitions(::T, ::Vector{T}) where T <: Oscar.IntegerUnion
 ```
 
 ## Operations

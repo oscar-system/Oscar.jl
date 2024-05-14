@@ -370,12 +370,12 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
  [4, 2, 1]
 ```
 """
-function partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
-  return PartitionsFixedNumParts(n, m; only_distinct_parts = only_distinct_parts)
-end
-
 function partitions(n::IntegerUnion, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
   return PartitionsFixedNumParts(n, m, l1, l2; only_distinct_parts = only_distinct_parts)
+end
+
+function partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, m; only_distinct_parts = only_distinct_parts)
 end
 
 
