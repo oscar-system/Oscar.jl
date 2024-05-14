@@ -1346,61 +1346,103 @@ function homogeneous_component(R::MPolyDecRing, g::IntegerUnion)
   return homogeneous_component(R, grading_group(R)([g]))
 end
 
-function vector_space(K::AbstractAlgebra.Field, e::Vector{T}; target = nothing) where {T <:MPolyRingElem}
+
+@doc raw"""
+  vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
+
+Return a `K`-vector space `V` and an epimorphism from `V` onto the `K`-vector
+space spanned by the polynomials in `polys`.
+
+Note that all polynomials must have the same parent `R`, and `K` must be equal
+to `base_ring(R)`. The optional keyword argument `target` can be used to
+specify `R` when `polys` is empty.
+
+```jldoctest
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> polys = [x + y, x - y, 2x + 3y];
+
+julia> V, VtoPoly = vector_space(QQ, polys)
+(Vector space of dimension 3 over QQ, Map: V -> R)
+
+julia> VtoPoly.(basis(V))
+3-element Vector{QQMPolyRingElem}:
+ x
+ y
+ 0
+```
+"""
+function vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
   local R
-  if length(e) == 0
+  if length(polys) == 0
     R = target
     @assert R !== nothing
   else
-    R = parent(e[1])
+    R = parent(polys[1])
+    @assert target === nothing || target === R
   end
   @assert base_ring(R) == K
-  mon = Dict{elem_type(R), Int}()
-  mon_idx = Vector{elem_type(R)}()
+  expvec = Dict{Vector{Int}, Int}()
+  expvec_idx = Vector{Vector{Int}}()
   M = sparse_matrix(K)
-  last_pos = 1
-  for i = e
+  
+  # take polynomials and turn them into sparse row vectors
+  for f in polys
     pos = Vector{Int}()
     val = Vector{elem_type(K)}()
-    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(i), AbstractAlgebra.monomials(i))
-      if haskey(mon, m)
-        push!(pos, mon[m])
-        push!(val, c)
-      else
-        push!(mon_idx, m)
-        mon[m] = last_pos
-        push!(pos, last_pos)
-        push!(val, c)
-        last_pos += 1
+    for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
+      i = get!(expvec, e) do
+        push!(expvec_idx, e)
+        length(expvec_idx)
       end
+      push!(pos, i)
+      push!(val, c)
     end
     push!(M, sparse_row(K, pos, val))
   end
+
+  # row reduce
   rref!(M)
 
+  # turn the reduced sparse rows back into polynomials
   b = Vector{elem_type(R)}()
-  for i=1:nrows(M)
-    s = zero(e[1])
-    for (k,v) = M[i]
-      s += v*mon_idx[k]
+  for i in 1:nrows(M)
+    s = MPolyBuildCtx(R)
+    for (k,v) in M[i]
+      push_term!(s, v, expvec_idx[k])
     end
-    push!(b, s)
+    push!(b, finish(s))
   end
 
+  # create a standard vector space of the right dimension
   F = free_module(K, length(b); cached = false)
-  function g(x::T)
+  
+  # helper computing images
+  function img(x)
+    sum([x[i] * b[i] for i in 1:length(b) if !is_zero_entry(x.v, 1, i)]; init = zero(R))
+  end
+
+  # helper computing preimages: takes a polynomial and maps it to a vector in F
+  function pre(x::T)
     @assert parent(x) == R
-    v = zero(F)
-    for (c, m) = Base.Iterators.zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.monomials(x))
-      if !haskey(mon, m)
+    pos = Vector{Int}()
+    val = Vector{elem_type(K)}()
+    for (c, e) = Base.Iterators.zip(AbstractAlgebra.coefficients(x), AbstractAlgebra.exponent_vectors(x))
+      i = get(expvec, e) do
         error("not in image")
       end
-      v += c*gen(F, mon[m])
+      push!(pos, i)
+      push!(val, c)
     end
-    return v
+    v = sparse_row(K, pos, val)
+    fl, a = can_solve_with_solution(M, v)
+    if !fl
+      error("not in image")
+    end
+    return F(dense_row(a, length(b)))
   end
-  h = MapFromFunc(F, R, x -> sum([x[i] * b[i] for i in 1:length(b) if !is_zero_entry(x.v, 1, i)]; init = zero(R)), g)
 
+  h = MapFromFunc(F, R, img, pre)
   return F, h
 end
 
