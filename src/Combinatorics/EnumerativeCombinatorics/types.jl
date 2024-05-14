@@ -161,6 +161,9 @@ struct PartitionsFixedNumParts{T<:IntegerUnion}
     @req n >= 0 "n >= 0 required"
     @req m >= 0 "m >= 0 required"
     @req l1 >= 0 "l1 >=0 required"
+    if l1 == 0
+      l1 = 1
+    end
     return new{T}(n, convert(T, m), T(l1), T(l2), only_distinct_parts)
   end
 
