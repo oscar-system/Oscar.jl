@@ -14,8 +14,6 @@ Formally, a partitioned permutation $(V, \pi)$ consists of a permutation $\pi$ a
 $$|(V, \pi)| := n - ( 2 \cdot \text{number of blocks of } V - \text{number of cycles of } \pi),$$
 and we call this the adjusted length of $(V, \pi)$. Note that this terminology is not used in the literature.
 
-Technically, we rely on the module `SetPartitions` for working with partitions.
-
 ```@docs
 PartitionedPermutation
 length(pp::PartitionedPermutation)
