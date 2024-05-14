@@ -2,7 +2,6 @@ import Pkg
 Pkg.add("Documenter")
 Pkg.add("PrettyTables")
 Pkg.add("Aqua")
-Pkg.add("DeepDiffs")
 
 Pkg.precompile()
 
