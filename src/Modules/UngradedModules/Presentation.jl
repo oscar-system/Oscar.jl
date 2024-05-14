@@ -579,7 +579,7 @@ function _presentation_minimal(SQ::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldE
   proj_map = hom(F0, SQ_new, gens(SQ_new), check=false)
   F0_to_SQ = compose(proj_map, phi)
   F0_to_SQ.generators_map_to_generators = true
-  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
+  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(F0))")
 
   K, inc = sub(F0, relations(SQ_new))
   F1 = if is_graded(SQ)
