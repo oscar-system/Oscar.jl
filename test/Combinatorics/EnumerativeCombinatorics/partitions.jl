@@ -118,7 +118,7 @@
   ############################################################################
   # partitions(n,k,l1,l2; only_distinct_parts=true)
   ############################################################################
-  @testset "partitions($n,$k,$l1,$l2, only_distinct_parts=true)" for n in 0:20, k in 0:n+1, l1 in 0:n, l2 in l1:n
+  @testset "partitions($n,$k,$l1,$l2; only_distinct_parts=true)" for n in 0:20, k in 0:n+1, l1 in 0:n, l2 in l1:n
     P = collect(partitions(n, k, l1, l2; only_distinct_parts=true))
 
     # Create the same by filtering all partitions

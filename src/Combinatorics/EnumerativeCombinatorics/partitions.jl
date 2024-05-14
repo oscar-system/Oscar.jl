@@ -397,6 +397,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   end
 
   if n == m && l1 == 1
+    only_distinct_parts && m > 1 && return nothing
     return partition(T[1 for i in 1:n], check=false), (T[], T[], 0, 0, 1, false)
   end
 
