@@ -300,7 +300,7 @@ function initialize_embedded_blowup_sequence(phi::BlowupMorphism, I::AbsIdealShe
   if !is_one(center(phi))
     f.is_trivial = false
     if b == 0
-      I_trans, b = Oscar.weak_transform_with_multiplicity(phi,I)
+      I_trans, b = weak_transform_with_multiplicity(phi,I)
       f.transform_type = :weak
     elseif b > 0
       I_trans = controlled_transform(phi, I, b)
@@ -344,7 +344,7 @@ end
 ##################################################################################################
 # desingularization workers
 ##################################################################################################
-function embedded_desingularization(f::Oscar.CoveredClosedEmbedding; algorithm::Symbol=:BEV)
+function embedded_desingularization(f::CoveredClosedEmbedding; algorithm::Symbol=:BEV)
   I_sl = ideal_sheaf_of_singular_locus(domain(f))
 
   ## trivial case: domain(f) was already smooth

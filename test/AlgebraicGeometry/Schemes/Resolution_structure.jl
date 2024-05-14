@@ -4,8 +4,8 @@
   W = AffineScheme(R)
   IS = IdealSheaf(W,I)
   WC = scheme(IS)
-  inc_X = Oscar.CoveredClosedEmbedding(WC,IS)
-  phi = Oscar.embedded_desingularization(inc_X)
+  inc_X = CoveredClosedEmbedding(WC,IS)
+  phi = embedded_desingularization(inc_X)
   H = IdealSheaf(W, ideal(R, x + 3*y), covered_scheme=WC)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
   @test length(phi.ex_div) == 4
@@ -19,7 +19,7 @@
   @test !is_empty(singular_locus(domain(phi.embeddings[2]))[1])
   @test is_empty(singular_locus(domain(phi.embeddings[3]))[1])
   @test length(components(exceptional_divisor(phi))) == 4
-  @test length(components(Oscar.exceptional_locus(phi))) == 4
+  @test length(components(exceptional_locus(phi))) == 4
 end
 
 @testset "non-embedded desingularization of curves" begin
@@ -29,10 +29,10 @@ end
   IS = IdealSheaf(W,I)
   X = subscheme(IS)
   U = first(affine_charts(X))
-  phi = Oscar.desingularization_only_blowups(X)
+  phi = desingularization_only_blowups(X)
   H = IdealSheaf(U, ideal(OO(U), x + 3*y), covered_scheme=X)
   @test is_subset(total_transform(phi, H), strict_transform(phi, H))
-  @test dim(Oscar.last_center(phi)) == 0
+  @test dim(last_center(phi)) == 0
   @test length(phi.ex_div) == 2
   aff_charts = affine_charts(domain(phi))
   sl1,_ = singular_locus(aff_charts[1])
@@ -42,10 +42,10 @@ end
   @test is_one(modulus(OO(sl2)))
   @test is_one(modulus(OO(sl3)))
   @test length(components(exceptional_divisor(phi))) == 1
-  @test length(components(Oscar.exceptional_locus(phi))) == 1
-  psi = Oscar.desingularization(X)
+  @test length(components(exceptional_locus(phi))) == 1
+  psi = desingularization(X)
   @test length(morphisms(psi)) == 1
-  @test morphism(psi,1) isa Oscar.NormalizationMorphism
+  @test morphism(psi,1) isa NormalizationMorphism
 end
 
 @testset "non-embedded desingularization Lipman (dim=2)" begin
@@ -55,8 +55,8 @@ end
   IS = IdealSheaf(W,I)
   X = subscheme(IS)
   U = first(affine_charts(X))
-  phi = Oscar.desingularization(X)
-  @test morphism(phi,1) isa Oscar.NormalizationMorphism
+  phi = desingularization(X)
+  @test morphism(phi,1) isa NormalizationMorphism
   @test morphism(phi,2) isa BlowupMorphism
   @test morphism(phi,3) isa BlowupMorphism
   aff_charts = affine_charts(domain(phi))
@@ -76,16 +76,16 @@ end
   I = ideal(R,[(x+y)^3+z^4])
   IS = IdealSheaf(W,I)
   WC = scheme(IS)
-  IY = Oscar.max_order_locus(IS)
-  decomp = Oscar.maximal_associated_points(IY)
+  IY = max_order_locus(IS)
+  decomp = maximal_associated_points(IY)
   @test length(decomp) == 1
   @test decomp[1] == IdealSheaf(W,ideal(R,[z,x+y]), covered_scheme=WC)
   JS = IdealSheaf(W, ideal(R,[x^2*y^2-z^5,x^3]), covered_scheme=WC)
-  li = Oscar._delta_list(JS)
+  li = _delta_list(JS)
   @test length(li) == 3
   @test li[1] == JS
-  @test Oscar.radical(li[2]) == IdealSheaf(W,ideal(R,[x,z]), covered_scheme=WC)
-  @test Oscar.radical(li[2]) == Oscar.radical(Oscar.locus_of_order_geq_b(JS,2))
-  @test Oscar.radical(li[3]) == IdealSheaf(W,ideal(R,[x,y,z]),covered_scheme=WC)
+  @test radical(li[2]) == IdealSheaf(W,ideal(R,[x,z]), covered_scheme=WC)
+  @test radical(li[2]) == radical(locus_of_order_geq_b(JS,2))
+  @test radical(li[3]) == IdealSheaf(W,ideal(R,[x,y,z]),covered_scheme=WC)
 end
 
