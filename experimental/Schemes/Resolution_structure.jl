@@ -294,7 +294,8 @@ function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   f.ex_div = ex_div
   if isdefined(phi, :underlying_morphism)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
-  end  return f
+  end  
+  return f
 end
 
 function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
@@ -304,7 +305,7 @@ function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
   f.ex_div = ex_div
   if isdefined(phi, :underlying_morphism)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
-  end  return f
+  end
   return f
 end
 
@@ -317,7 +318,7 @@ function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(f.normalization_steps,length(f.maps))
   if isdefined(phi, :underlying_morphism)
     phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
-  end  return f
+  end
   return f
 end
 
