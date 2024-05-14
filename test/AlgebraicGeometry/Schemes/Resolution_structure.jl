@@ -81,11 +81,11 @@ end
   @test length(decomp) == 1
   @test decomp[1] == IdealSheaf(W,ideal(R,[z,x+y]), covered_scheme=WC)
   JS = IdealSheaf(W, ideal(R,[x^2*y^2-z^5,x^3]), covered_scheme=WC)
-  li = _delta_list(JS)
+  li = Oscar._delta_list(JS)
   @test length(li) == 3
   @test li[1] == JS
   @test radical(li[2]) == IdealSheaf(W,ideal(R,[x,z]), covered_scheme=WC)
-  @test radical(li[2]) == radical(locus_of_order_geq_b(JS,2))
+  @test radical(li[2]) == radical(Oscar.locus_of_order_geq_b(JS,2))
   @test radical(li[3]) == IdealSheaf(W,ideal(R,[x,y,z]),covered_scheme=WC)
 end
 

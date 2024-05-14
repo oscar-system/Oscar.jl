@@ -1,5 +1,4 @@
-export _desing_curve
-export  find_refinement_with_local_system_of_params
+export find_refinement_with_local_system_of_params
 export inclusion_morphisms
 export embedded_desingularization
 export desingularization
@@ -13,6 +12,22 @@ export locus_of_maximal_order
 ## very similar to CoveredSchemeMorphism, but allowing disjoint handling
 ## of disjoint components
 ##############################################################################
+@doc raw"""
+    NormalizationMorphism{
+                  DomainType<:AbsCoveredScheme,
+                  CodomainType<:AbsCoveredScheme
+      } <:AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 Nothing,
+                                 NormalizationMorphism,
+                                }
+A datastructure to encode normalizations of covered schemes.
+
+It is described as the morphism from the new scheme to the original one, containing
+information on the decomposition of the new scheme into disjoint components.
+(This is the type of the return value of  `normalization(X::AbsCoveredScheme)`.)
+"""
 @attributes mutable struct NormalizationMorphism{
     DomainType<:AbsCoveredScheme,
     CodomainType<:AbsCoveredScheme
@@ -51,6 +66,18 @@ end
 #####################################################################################################
 # Desingularization morphism: birational map between covered schemes with smooth domain
 #####################################################################################################
+@doc raw"""
+    MixedBlowUpSequence{
+              DomainType<:AbsCoveredScheme,
+              CodomainType<:AbsCoveredScheme
+            }<:AbsDesingMor{  DomainType,
+                              CodomainType, 
+                              MixedBlowUpSequence{DomainType, CodomainType}
+                                              }
+A datastructure to encode sequences of blow-ups and normalizations of covered schemes
+as needed for desingularization of non-embedded schemes by the approaches of Zariski and of
+Lipman. 
+"""
 
 @attributes mutable struct MixedBlowUpSequence{
                                                 DomainType<:AbsCoveredScheme,
@@ -123,6 +150,59 @@ function underlying_morphism(phi::AbsDesingMor)
   return phi.underlying_morphism
 end
 
+@doc raw"""
+    exceptional_divisor(f::AbsBlowUpSequence)
+
+Return a `CartierDivisor` on the `domain` of `f` which is the
+exceptional divisor of the sequence of blow-ups `f`.
+
+# Example
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ,2);
+
+julia> I=ideal(R,[x^2-y^5]);
+
+julia> W = AffineScheme(R);
+
+julia> IS = IdealSheaf(W,I);
+
+julia> X = subscheme(IS);
+
+julia> U = first(affine_charts(X));
+
+julia> phi = desingularization_only_blowups(X)
+Covered scheme morphism
+  from scheme over QQ covered with 3 patches
+    1a: [(v1_1//v1_0), (s1//s0), x1, x2]   scheme(x1^2 - x2^5, -(s1//s0)*x2 + x1, -(s1//s0)*x1 + x2^4, -(s1//s0)^2 + x2^3, -
+    (v1_1//v1_0)*x2 + (s1//s0), (v1_1//v1_0)*x2^2 - x1, -(v1_1//v1_0)*(s1//s0) + x2^2, -(v1_1//v1_0)^2 + x2, (v1_1//v1_0)*(s
+    1//s0)^2 - x1*x2, (v1_1//v1_0)^2*(s1//s0) - x1, -(v1_1//v1_0)^3*x2 + x1)
+    2a: [(v1_0//v1_1), (s1//s0), x1, x2]   scheme(x1^2 - x2^5, -(s1//s0)*x2 + x1, -(s1//s0)*x1 + x2^4, -(s1//s0)^2 + x2^3, (
+    v1_0//v1_1)*(s1//s0) - x2, -(v1_0//v1_1)*x1 + x2^2, (v1_0//v1_1)*x2^2 - (s1//s0), (v1_0//v1_1)^2*x2 - 1, -(v1_0//v1_1)*x
+    1*x2 + (s1//s0)^2, -(v1_0//v1_1)^2*x1 + (s1//s0), (v1_0//v1_1)^3*x1 - x2)
+    3a: [(s0//s1), x1, x2]                 scheme(x1^2 - x2^5, (s0//s1)*x1 - x2, (s0//s1)*x2^4 - x1, (s0//s1)^2*x2^3 - 1)
+  to scheme over QQ covered with 1 patch
+    1b: [x1, x2]   scheme(x1^2 - x2^5)
+given by the pullback functions
+  1a -> 1b
+    x1 -> x1
+    x2 -> x2
+    ----------------------------------------
+  2a -> 1b
+    x1 -> x1
+    x2 -> x2
+    ----------------------------------------
+  3a -> 1b
+    x1 -> x1
+    x2 -> x2
+
+julia> exceptional_divisor(phi)
+Cartier divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+defined by the formal sum of
+  1 * effective cartier divisor on scheme over QQ covered with 3 patches
+```
+"""
 function exceptional_divisor(f::BlowUpSequence)
   f.is_embedded && return _exceptional_divisor_in_ambient(f)
   return _exceptional_divisor_non_embedded(f)
@@ -212,7 +292,9 @@ function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
   push!(ex_div, exceptional_divisor(phi))
   f.ex_div = ex_div
-  return f
+  if isdefined(phi, :underlying_morphism)
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  end  return f
 end
 
 function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
@@ -220,6 +302,9 @@ function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
   ex_div = (AbsIdealSheaf)[strict_transform(phi,E) for E in f.ex_div]
   push!(ex_div, ideal_sheaf(exceptional_divisor(phi)))
   f.ex_div = ex_div
+  if isdefined(phi, :underlying_morphism)
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  end  return f
   return f
 end
 
@@ -230,6 +315,9 @@ function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
   push!(f.normalization_steps,length(f.maps))
+  if isdefined(phi, :underlying_morphism)
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  end  return f
   return f
 end
 
@@ -255,6 +343,9 @@ function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
     f.controlled_transform = I_trans
     push!(f.ex_mult, f.ex_mult[end])
   end
+  if isdefined(phi, :underlying_morphism)
+    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  end  return f
   return f
 end
 
