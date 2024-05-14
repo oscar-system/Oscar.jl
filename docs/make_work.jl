@@ -132,12 +132,6 @@ function doit(
       append!(collected, pkgdocs)
     end
   end
-  if "FTheoryTools" in Oscar.oldexppkgs # remove this block once FTheoryTools is upgraded to new experimental structure
-    pkgdocs = setup_experimental_package(Oscar, "FTheoryTools")
-    if length(pkgdocs) > 0
-      append!(collected, pkgdocs)
-    end
-  end
   push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
