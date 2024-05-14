@@ -292,8 +292,8 @@ function add_map!(f::BlowUpSequence, phi::BlowupMorphism)
   ex_div = [strict_transform(phi,E) for E in f.ex_div[1:end]]
   push!(ex_div, exceptional_divisor(phi))
   f.ex_div = ex_div
-  if isdefined(phi, :underlying_morphism)
-    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  if isdefined(f, :underlying_morphism)
+    f.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(f)))
   end  
   return f
 end
@@ -303,8 +303,8 @@ function add_map!(f::MixedBlowUpSequence, phi::BlowupMorphism)
   ex_div = (AbsIdealSheaf)[strict_transform(phi,E) for E in f.ex_div]
   push!(ex_div, ideal_sheaf(exceptional_divisor(phi)))
   f.ex_div = ex_div
-  if isdefined(phi, :underlying_morphism)
-    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  if isdefined(f, :underlying_morphism)
+    f.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(f)))
   end
   return f
 end
@@ -316,8 +316,8 @@ function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
   push!(f.normalization_steps,length(f.maps))
-  if isdefined(phi, :underlying_morphism)
-    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
+  if isdefined(f, :underlying_morphism)
+    f.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(f)))
   end
   return f
 end
@@ -344,9 +344,9 @@ function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
     f.controlled_transform = I_trans
     push!(f.ex_mult, f.ex_mult[end])
   end
-  if isdefined(phi, :underlying_morphism)
-    phi.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(phi)))
-  end  return f
+  if isdefined(f, :underlying_morphism)
+    f.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(f)))
+  end
   return f
 end
 
