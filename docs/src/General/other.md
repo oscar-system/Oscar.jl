@@ -5,8 +5,6 @@
 - Julia evaluates `2^100` to `0` because `2` is regarded as a 64 bit integer.
   Write `ZZRingElem(2)^100` to get a long.
 
-- TODO: add more hints of this kind
-
 
 ## Notes for GAP users
 
@@ -110,11 +108,6 @@ This section describes differences between GAP and Oscar.
   transitive in GAP but as intransitive in Oscar.
 
 
-## Notes for Singular users
-
-- TODO
-- TODO: also talk about how to use it from OSCAR?
-
 ## Notes for Polymake users
 
 - OSCAR (and Julia) is `1`-based, meaning that it counts from `1`, rather than
@@ -144,12 +137,3 @@ This section describes differences between GAP and Oscar.
   c = Polymake.polytope.cube(3)
   Polymake.polytope.ambient_dim(c)
   ```
-
-
-## Notes for Magma users
-
-- TODO
-
-## Notes for SageMath users
-
-- TODO
