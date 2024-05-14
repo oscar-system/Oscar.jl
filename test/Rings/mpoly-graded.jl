@@ -255,6 +255,7 @@ end
 
   M, h = vector_space(base_ring(R), elem_type(R)[], target = R)
   t = h(zero(M))
+  @test dim(M) == 0
   @test iszero(t)
   @test parent(t) == R
 
@@ -262,6 +263,7 @@ end
   # of the various vector spaces (this used to not work correctly)
   polys = [x, y, (x+y+z)^3, 2*x - 5*y];
   V, VtoPoly = vector_space(QQ, polys)
+  @test dim(V) == 3
   @test all(f -> VtoPoly(preimage(VtoPoly, f)) == f, polys)
   @test_throws ErrorException preimage(VtoPoly, z)
 
