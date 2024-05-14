@@ -540,9 +540,27 @@ end
 @register_serialization_type QQBarFieldElem
 
 function save_object(s::SerializerState, q::QQBarFieldElem)
+  is_unique = false
+  min_poly_q = minpoly(q)
+  roots_min_q = roots(QQBarField(), min_poly_q)
+  precision = 30
+  approximation = undef
+  
+  while(!is_unique)
+    CC = AcbField(precision)
+    approximation = CC(q)
+    n_overlaps = length(filter(x -> overlaps(approximation, CC(x)), roots_min_q))
+    if n_overlaps == 1
+      is_unique = true
+    else
+      precision += 1
+    end
+  end
+  
   save_data_dict(s) do
-    save_object(s, minpoly(q), :minpoly)
-    save_object(s, AcbField()(q), :acb )
+    save_object(s, min_poly_q, :minpoly)
+    save_object(s, approximation, :acb )
+    save_object(s, precision, :precision)
   end
 end
 
@@ -550,8 +568,18 @@ function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
   Qx, x = QQ[:x]
   CC = AcbField()
   min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
-  approximation = load_object(s, AcbFieldElem, CC, :acb)
-  return filter(x -> overlaps(approximation, CC(x)), roots(QQBarField(), min_poly))[1]
+  precision = load_object(s, Int, :precision)
+  approximation = load_object(s, AcbFieldElem, AcbField(precision), :acb)
+  roots_min_poly = roots(QQBarField(), min_poly)
+
+  try
+    only(filter(x -> overlaps(approximation, CC(x)), roots_min_poly))
+  catch e
+    if e isa ArgumentError
+      error("The approximation is not precise enough to determine a unique root")
+    end
+    rethrow(e)
+  end
 end
 
 ################################################################################
