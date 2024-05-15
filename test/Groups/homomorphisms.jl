@@ -139,7 +139,7 @@ end
 @testset "map_word for f.p. groups" begin
    # Create a free group in GAP in syllable words family,
    # in order to make the tests.
-   GAP.Globals.PushOptions(GAP.GapObj(Dict(:FreeGroupFamilyType => GAP.GapObj("syllable"))))
+   GAP.Globals.PushOptions(GapObj(Dict(:FreeGroupFamilyType => GapObj("syllable"))))
    FS = free_group(2)   # syllable representation
    GAP.Globals.PopOptions()
    FL = free_group(2)   # letter representation

@@ -31,7 +31,7 @@ end
 #
 # the Oscar (de)serialization methods that delegate to GAP's method selection
 #
-@register_serialization_type GAP.GapObj uses_id
+@register_serialization_type GapObj uses_id
 
 function save_object(s::SerializerState, X::GapObj)
   GAP.Globals.SerializeInOscar(X, s)

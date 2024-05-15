@@ -552,7 +552,7 @@ parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 # X is a GAP filter such as IsPermGroup, and Y is a corresponding
 # Julia type such as `PermGroup`.
 #
-const _gap_group_types = Tuple{GAP.GapObj, Type}[]
+const _gap_group_types = Tuple{GapObj, Type}[]
 
 # `_oscar_group(G)` wraps the GAP group `G` into a suitable Oscar group `OG`,
 # such that `GapObj(OG)` is equal to `G`.

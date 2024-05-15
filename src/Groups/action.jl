@@ -31,7 +31,7 @@ The following ones are commonly used.
 ##  common actions of group elements
 ##
 ##  The idea is to delegate the action of `GAPGroupElem` objects
-##  on `GAP.GapObj` objects to the corresponding GAP action,
+##  on `GapObj` objects to the corresponding GAP action,
 ##  and to implement the action on native Julia objects case by case.
 
 """
@@ -66,7 +66,7 @@ GAP: [ Z(3)^0, 0*Z(3) ]
 
 
 """
-    on_tuples(tuple::GAP.GapObj, x::GAPGroupElem)
+    on_tuples(tuple::GapObj, x::GAPGroupElem)
     on_tuples(tuple::Vector, x::GAPGroupElem)
     on_tuples(tuple::T, x::GAPGroupElem) where T <: Tuple
 
@@ -81,7 +81,7 @@ one can also call `^` instead of `on_tuples`.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.GapObj([1, 2, 4])
+julia> l = GapObj([1, 2, 4])
 GAP: [ 1, 2, 4 ]
 
 julia> on_tuples(l, g[1])
@@ -110,7 +110,7 @@ on_tuples(tuple::T, x::GAPGroupElem) where T <: Tuple = T(pnt^x for pnt in tuple
 
 
 """
-    on_sets(set::GAP.GapObj, x::GAPGroupElem)
+    on_sets(set::GapObj, x::GAPGroupElem)
     on_sets(set::Vector, x::GAPGroupElem)
     on_sets(set::Tuple, x::GAPGroupElem)
     on_sets(set::AbstractSet, x::GAPGroupElem)
@@ -127,7 +127,7 @@ For `Set` objects, one can also call `^` instead of `on_sets`.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.GapObj([1, 3])
+julia> l = GapObj([1, 3])
 GAP: [ 1, 3 ]
 
 julia> on_sets(l, g[1])
@@ -171,7 +171,7 @@ end
 ^(set::AbstractSet, x::GAPGroupElem) = on_sets(set, x)
 
 """
-    on_sets_sets(set::GAP.GapObj, x::GAPGroupElem)
+    on_sets_sets(set::GapObj, x::GAPGroupElem)
     on_sets_sets(set::Vector, x::GAPGroupElem)
     on_sets_sets(set::Tuple, x::GAPGroupElem)
     on_sets_sets(set::AbstractSet, x::GAPGroupElem)
@@ -186,7 +186,7 @@ respectively.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GAP.GapObj([[1, 2], [3, 4]], recursive = true)
+julia> l = GapObj([[1, 2], [3, 4]], recursive = true)
 GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 
 julia> on_sets_sets(l, g[1])
@@ -234,7 +234,7 @@ end
 
 
 """
-    permuted(pnt::GAP.GapObj, x::PermGroupElem)
+    permuted(pnt::GapObj, x::PermGroupElem)
     permuted(pnt::Vector, x::PermGroupElem)
     permuted(pnt::Tuple, x::PermGroupElem)
 
@@ -261,7 +261,7 @@ julia> permuted(a, g[1])
 julia> permuted(("a", "b", "c"), g[1])
 ("c", "a", "b")
 
-julia> l = GAP.GapObj(a, recursive = true)
+julia> l = GapObj(a, recursive = true)
 GAP: [ "a", "b", "c" ]
 
 julia> permuted(l, g[1])
@@ -282,7 +282,7 @@ end
 
 
 @doc raw"""
-    on_indeterminates(f::GAP.GapObj, p::PermGroupElem)
+    on_indeterminates(f::GapObj, p::PermGroupElem)
     on_indeterminates(f::MPolyRingElem, p::PermGroupElem)
     on_indeterminates(f::FreeAssAlgElem, p::PermGroupElem)
     on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
@@ -343,7 +343,7 @@ function on_indeterminates(f::FreeAssAlgElem{T}, s::PermGroupElem) where T
 end
 
 @doc raw"""
-    on_indeterminates(f::GAP.GapObj, p::MatrixGroupElem)
+    on_indeterminates(f::GapObj, p::MatrixGroupElem)
     on_indeterminates(f::MPolyRingElem{T}, p::MatrixGroupElem{T}) where T
     on_indeterminates(f::MPolyIdeal, p::MatrixGroupElem)
 
@@ -415,7 +415,7 @@ end
 # because for example `*(::fpFieldElem, ::Vector{fpFieldElem})`
 # is not supported.
 """
-    on_lines(line::GAP.GapObj, x::GAPGroupElem)
+    on_lines(line::GapObj, x::GAPGroupElem)
     on_lines(line::AbstractAlgebra.Generic.FreeModuleElem, x::GAPGroupElem)
 
 Return the image of the nonzero vector `line` under `x`,
