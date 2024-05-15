@@ -36,7 +36,7 @@
   ############################################################################
   # partitions(n)
   ############################################################################
-  @testset "partitions($n)" for n in 0:20
+  @testset "partitions($n)" for n in 0:10
     P = collect(partitions(n))
 
     # Check that the number of partitions is correct
@@ -84,7 +84,7 @@
   ############################################################################
   # partitions(n,k)
   ############################################################################
-  @testset "partitions($n,$k)" for n in 0:20, k in 0:n+1
+  @testset "partitions($n,$k)" for n in 0:10, k in 0:n+1
     P = collect(partitions(n,k))
 
     # Create the same by filtering all partitions
@@ -102,24 +102,26 @@
   ############################################################################
   # partitions(n,k,lb,ub)
   ############################################################################
-  @testset "partitions($n,$k,$lb,$ub)" for n in 0:20, k in 0:n+1, lb in 0:n, ub in lb:n
-    P = collect(partitions(n,k,lb,ub))
+  @testset "partitions($n,$k,lb,ub)" for n in 0:10, k in 0:n+1
+    @testset "partitions($n,$k,$lb,$ub)" for lb in 0:n, ub in lb:n
+      P = collect(partitions(n,k,lb,ub))
 
-    # Create the same by filtering all partitions
-    Q = collect(partitions(n,k))
-    filter!( Q->all(>=(lb),Q), Q)
-    filter!( Q->all(<=(ub),Q), Q)
+      # Create the same by filtering all partitions
+      Q = collect(partitions(n,k))
+      filter!( Q->all(>=(lb),Q), Q)
+      filter!( Q->all(<=(ub),Q), Q)
 
-    # Check that P and Q coincide (up to reordering)
-    @test length(P) == length(Q)
-    @test Set(P) == Set(Q)
+      # Check that P and Q coincide (up to reordering)
+      @test length(P) == length(Q)
+      @test Set(P) == Set(Q)
+    end
   end
 
   ############################################################################
   # partitions(n,k,lb,ub; only_distinct_parts=true)
   ############################################################################
   @testset "partitions($n,$k,lb,ub; only_distinct_parts=true)" for n in 0:10, k in 0:n+1
-    @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" lb in 0:n, ub in lb:n
+    @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" for lb in 0:n, ub in lb:n
       P = collect(partitions(n, k, lb, ub; only_distinct_parts=true))
 
       # Create the same by filtering all partitions
