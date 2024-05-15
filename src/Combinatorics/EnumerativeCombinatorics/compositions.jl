@@ -152,11 +152,11 @@ parts(C::CompositionsFixedNumParts) = C.k
 Base.eltype(C::CompositionsFixedNumParts{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::CompositionsFixedNumParts)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
+  if is_terse(io)
+    print(io, "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "parts"))
   else
     io = pretty(io)
-    print(io, "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "part"))
+    print(io, "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "parts"))
   end
 end
 
@@ -218,8 +218,8 @@ base(C::Compositions) = C.n
 Base.eltype(C::Compositions{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::Compositions)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
+  if is_terse(io)
+    print(io, "Iterator over the compositions of $(base(C))")
   else
     io = pretty(io)
     print(io, "Iterator over the compositions of $(base(C))")
@@ -304,8 +304,8 @@ base(C::AscendingCompositions) = C.n
 Base.eltype(C::AscendingCompositions{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::AscendingCompositions)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
+  if is_terse(io)
+    print(io, "Iterator over the ascending compositions of $(base(C))")
   else
     io = pretty(io)
     print(io, "Iterator over the ascending compositions of $(base(C))")

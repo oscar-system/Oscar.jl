@@ -165,9 +165,9 @@ end
 
 function Base.show(io::IO, W::WeakCompositions)
   if is_terse(io)
-    print(io, "Iterator")
+    print(io, "Iterator over the weak compositions of $(base(W)) into ", ItemQuantity(parts(W), "parts"))
   else
     io = pretty(io)
-    print(io, "Iterator over the weak compositions of $(base(W)) into ", ItemQuantity(parts(W), "part"))
+    print(io, "Iterator over the weak compositions of $(base(W)) into ", ItemQuantity(parts(W), "parts"))
   end
 end

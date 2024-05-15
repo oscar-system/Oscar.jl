@@ -130,7 +130,12 @@ base(P::Partitions) = P.n
 Base.eltype(::Partitions{T}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
-  print(io, "Iterator over the partitions of $(base(P))")
+  if is_terse(io)
+    print(io, "Iterator over the partitions of $(base(P))")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the partitions of $(base(P))")
+  end
 end
 
 Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
@@ -142,7 +147,12 @@ base(P::PartitionsFixedNumParts) = P.n
 Base.eltype(::PartitionsFixedNumParts{T}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
-  print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+  if is_terse(io)
+    print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+  end
 end
 
 # NOTE this will not be accurate in many cases,
