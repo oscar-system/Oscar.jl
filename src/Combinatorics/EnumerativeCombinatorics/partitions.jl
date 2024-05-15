@@ -763,7 +763,7 @@ function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # Initialize variables
   r = length(v)
   j = 1
-  k = mu[1]
+  m = mu[1]
   ll = v[1]
   x = zeros(T, k)
   y = zeros(T, k)
@@ -783,9 +783,9 @@ function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   for i = k:-1:1
     x[i] = ll
     y[i] = ll
-    k = k - 1
+    m = m - 1
     n = n - ll
-    if k == 0
+    if m == 0
       if j == r
         # In the original algorithm there's a goto b3 here which means
         # the program will terminate, and thus return an empty list.
@@ -794,7 +794,7 @@ function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
         break
       end
       j = j + 1
-      k = mu[j]
+      m = mu[j]
       ll = v[j]
     end
     if i == 1
@@ -877,7 +877,7 @@ function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
         lr = v[r]
       end #if
 
-      k = y[i]
+      m = y[i]
       # Here comes the most intricate mistake.
       # On "Knuth's" problem
       # 100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]
@@ -886,23 +886,23 @@ function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       # But when we replace lr > k by lr >= k, everything works.
       # Finding this was a wild guess!
       # Found on Mar 27, 2023.
-      if lr >= k && n - lr <= (k - i)*(lr - ll)
+      if lr >= m && n - lr <= (k - i)*(lr - ll)
         gotob2 = false
         continue
       else
-        x[i] = k
+        x[i] = m
       end #if
       for i_0 = i - 1:-1:1 #this is to replace the for i = i - 1 in ALGOL code
         i = i_0
         r = ii[i]
         lr = v[r]
-        n = n + x[i] - k
-        k = y[i]
-        if lr >= k && n - lr <= (k - i)*(lr - ll) # >= here as well (probably...)
+        n = n + x[i] - m
+        m = y[i]
+        if lr >= m && n - lr <= (k - i)*(lr - ll) # >= here as well (probably...)
           gotob2 = false
           break
         else
-          x[i] = k
+          x[i] = m
         end #if
       end #for
       if gotob2
