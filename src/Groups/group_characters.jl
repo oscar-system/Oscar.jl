@@ -185,7 +185,8 @@ end
 
 function isomorphism_to_GAP_group(G::FinGenAbGroup)
     @req isfinite(G) "the group is not finite"
-    iso = isomorphism(PcGroup, G)
+#   iso = isomorphism(PcGroup, G)
+    iso = isomorphism(SubPcGroup, G)
     C = codomain(iso)
     @assert C isa GAPGroup
     f = function(x) return iso(x).X; end

@@ -9,7 +9,7 @@ For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
 Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
-and `MatrixGroup`.
+`SubPcGroup`, and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
@@ -142,6 +142,7 @@ It is displayed as product of disjoint cycles.
 """
 const PermGroupElem = BasicGAPGroupElem{PermGroup}
 
+
 """
     PcGroup
 
@@ -150,6 +151,11 @@ of a special kind, a so-called polycyclic presentation.
 Contrary to arbitrary finitely presented groups
 (see [Finitely presented groups](@ref)),
 this presentation allows for efficient computations with the group elements.
+
+For a group `G` of type `PcGroup`, the elements in `gens(G)` satisfy the
+relators of the underlying presentation.
+
+Functions that compute subgroups of `G` return groups of type `SubPcGroup`.
 
 # Examples
 - `cyclic_group(n::Int)`: cyclic group of order `n`
@@ -161,13 +167,32 @@ this presentation allows for efficient computations with the group elements.
   X::GapObj
 
   function PcGroup(G::GapObj)
-    @assert GAPWrap.IsPcGroup(G) || GAP.Globals.IsPcpGroup(G)
-    z = new(G)
-    return z
+    # The constructor is not allowed to replace the given GAP group.
+    # (The function `pc_group` may do this.)
+    @assert _is_full_pc_group(G)
+    return new(G)
   end
 end
 
-pc_group(G::GapObj) = PcGroup(G)
+function pc_group(G::GapObj)
+  _is_full_pc_group(G) && return PcGroup(G)
+
+  # Switch to a full pcp or pc group.
+  if GAPWrap.IsPcpGroup(G)
+    return PcGroup(GAP.Globals.PcpGroupByPcp(GAP.Globals.Pcp(G)::GapObj)::GapObj)
+  elseif GAPWrap.IsPcGroup(G)
+    return PcGroup(GAP.Globals.PcGroupWithPcgs(GAP.Globals.Pcgs(G)::GapObj)::GapObj)
+  end
+  throw(ArgumentError("G must be in IsPcGroup or IsPcpGroup"))
+end
+
+# Return `true` if the generators of `G` fit to those of its pc presentation.
+function _is_full_pc_group(G::GapObj)
+  GAPWrap.IsPcpGroup(G) || GAPWrap.IsPcGroup(G) || return false
+  return GAP.Globals.GroupGeneratorsDefinePresentation(G)::Bool
+end
+#T the code for PcpGroups is too expensive!
+
 
 """
     PcGroupElem
@@ -181,7 +206,7 @@ generators.
 # Examples
 
 ```jldoctest
-julia> G = abelian_group(PcGroup, [2, 4]);
+julia> G = abelian_group(PcGroup, [2, 3]);
 
 julia> G[1], G[2]
 (f1, f2)
@@ -196,6 +221,64 @@ for convenience they can also be accessed as `G[1]`, `G[2]`,
 as shown in Section [Elements of groups](@ref elements_of_groups).
 """
 const PcGroupElem = BasicGAPGroupElem{PcGroup}
+
+
+"""
+    SubPcGroup
+
+Subgroup of a polycyclic group,
+a group that is defined by generators that are elements of a group `G`
+of type [`PcGroup`](@ref).
+The arithmetic operations with elements are thus performed using the
+polycyclic presentation of `G`.
+
+Operations for computing subgroups of a group of type `PcGroup` or
+`SubPcGroup`, such as `derived_subgroup` and `sylow_subgroup`,
+return groups of type `SubPcGroup`.
+"""
+@attributes mutable struct SubPcGroup <: GAPGroup
+  X::GapObj
+  full_group::PcGroup
+#T better create an embedding!
+
+  function SubPcGroup(G::GapObj)
+    @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
+    if GAPWrap.IsPcGroup(G)
+      full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G)::GapObj)::GapObj
+#T use GAPWrap!
+    else
+      full = GAP.Globals.PcpGroupByCollectorNC(GAP.Globals.Collector(G)::GapObj)::GapObj
+    end
+    z = new(G, PcGroup(full))
+    return z
+  end
+end
+
+sub_pc_group(G::GapObj) = SubPcGroup(G)
+
+
+"""
+    SubPcGroupElem
+
+Element of a subgroup of a polycyclic group.
+
+The elements are displayed in the same way as the elements of full
+polycyclic groups, see [`PcGroupElem`](@ref).
+
+# Examples
+
+```jldoctest
+julia> G = abelian_group(SubPcGroup, [4, 2]);
+
+julia> G[1], G[2]
+(f1, f3)
+
+julia> G[2]*G[1]
+f1*f3
+```
+"""
+const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
+
 
 """
     FPGroup
@@ -275,11 +358,22 @@ end
 # Construct an Oscar group wrapping the GAP group `obj`
 # *and* compatible with a given Oscar group `G`.
 
+sub_type(T::Type) = T
+sub_type(::Type{PcGroup}) = SubPcGroup
+sub_type(G::GAPGroup) = sub_type(typeof(G))
+
+# `_oscar_subgroup(obj, G)` is used to create the subgroup of `G`
+# that is described by the GAP group `obj`;
 # default: ignore `G`
-_oscar_group(obj::GapObj, G::T) where T <: GAPGroup = T(obj)
+function _oscar_subgroup(obj::GapObj, G::GAPGroup)
+  S = sub_type(G)(obj)
+  @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
+  return S
+end
+#T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
-function _oscar_group(obj::GapObj, G::PermGroup)
+function _oscar_subgroup(obj::GapObj, G::PermGroup)
   n = GAPWrap.LargestMovedPoint(obj)
   N = degree(G)
   n <= N || error("requested degree ($N) is smaller than the largest moved point ($n)")
@@ -287,7 +381,7 @@ function _oscar_group(obj::GapObj, G::PermGroup)
 end
 
 # `MatrixGroup`: set dimension and ring of `G`
-function _oscar_group(obj::GapObj, G::MatrixGroup)
+function _oscar_subgroup(obj::GapObj, G::MatrixGroup)
   d = GAP.Globals.DimensionOfMatrixGroup(obj)
   d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
 
@@ -301,12 +395,6 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   M.ring_iso = iso
   return M
 end
-
-################################################################################
-#
-# "Coerce" an Oscar group `G` to one that is compatible with
-# the given Oscar group `S`.
-compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(GapObj(G), S)
 
 
 ################################################################################
@@ -464,34 +552,64 @@ parent_type(::Type{BasicGAPGroupElem{T}}) where T <: GAPGroup = T
 # X is a GAP filter such as IsPermGroup, and Y is a corresponding
 # Julia type such as `PermGroup`.
 #
- 
 const _gap_group_types = Tuple{GAP.GapObj, Type}[]
 
-function _get_type(G::GapObj)
+# `_oscar_group(G)` wraps the GAP group `G` into a suitable Oscar group `OG`,
+# such that `GapObj(OG)` is equal to `G`.
+# The function is not allowed to create an independent new GAP group object;
+# this would be fatal at least for pc groups and fp groups.
+function _oscar_group(G::GapObj)
   for pair in _gap_group_types
     if pair[1](G)
       if pair[2] == MatrixGroup
 #T HACK: We need more information in the case of matrix groups.
 #T (Usually we should not need to guess the Oscar side of a GAP group.)
-        return function(dom::GAP.GapObj)
-                 deg = GAP.Globals.DimensionOfMatrixGroup(dom)
-                 iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(dom))
-                 ring = codomain(iso)
-                 matgrp = matrix_group(ring, deg)
-                 matgrp.ring_iso = inv(iso)
-                 matgrp.X = dom
-                 return matgrp
-               end
+        deg = GAP.Globals.DimensionOfMatrixGroup(G)
+        iso = iso_gap_oscar(GAP.Globals.FieldOfMatrixGroup(G))
+        ring = codomain(iso)
+        matgrp = matrix_group(ring, deg)
+        matgrp.ring_iso = inv(iso)
+        matgrp.X = G
+        return matgrp
       elseif pair[2] == AutomorphismGroup
-        return function(A::GAP.GapObj)
-                 actdom_gap = GAP.Globals.AutomorphismDomain(A)
-                 actdom_oscar = _get_type(actdom_gap)(actdom_gap)
-                 return AutomorphismGroup(A, actdom_oscar)
-               end
+        actdom_gap = GAP.Globals.AutomorphismDomain(G)
+        actdom_oscar = _oscar_group(actdom_gap)
+        return AutomorphismGroup(G, actdom_oscar)
+      elseif pair[2] === PcGroup && !_is_full_pc_group(G)
+        # We have to switch to the appropriate subgroup type
+        # if and only if `G` is not the full group.
+        return SubPcGroup(G)
       else
-        return pair[2]
+        return pair[2](G)
       end
     end
   end
   error("Not a known type of group")
 end
+
+
+# Check the compatibility of two groups in the sense that an element in the
+# first group can be multiplied with an element in the second.
+#T To which group does the product belong?
+#T In which functions is this used?
+# The group *types* can be different.
+
+# The underlying GAP groups must belong to the same family.
+function _check_compatible(G1::GAPGroup, G2::GAPGroup; error::Bool = true)
+  GAPWrap.FamilyObj(G1.X) === GAPWrap.FamilyObj(G2.X) && return true
+  error && throw(ArgumentError("G1 and G2 are not compatible"))
+  return false
+end
+
+# Any two permutation groups are compatible.
+_check_compatible(G1::PermGroup, G2::PermGroup; error::Bool = true) = true
+
+# The groups must have the same dimension and the same base ring.
+function _check_compatible(G1::MatrixGroup, G2::MatrixGroup; error::Bool = true)
+  base_ring(G1) == base_ring(G2) && degree(G1) == degree(G2) && return true
+  error && throw(ArgumentError("G1 and G2 must have same base_ring and degree"))
+  return false
+end
+
+#TODO FinGenAbGroup: How do they behave?
+#     And does this question arise, since embeddings are used throughout?

@@ -5,12 +5,19 @@
 ################################################################################
 
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
-_gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
+_gap_filter(::Type{SubPcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
 _gap_filter(::Type{FPGroup}) = GAP.Globals.IsSubgroupFpGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
 # `_gap_filter(::Type{MatrixGroup})` is on the file `matrices/MatGrp.jl`
+
+# We use `GAP.Globals.IsPcGroupOrPcpGroup` as `_gap_filter` result for
+# both `SubPcGroup` and `PcGroup`.
+# Note that `_gap_filter` is used for creating Oscar groups from GAP groups.
+# In the case of `PcGroup`, we wrap the result differently in the
+# call `PcGroup(G)`.
+_gap_filter(::Type{PcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
 
 """
     symmetric_group(n::Int)
@@ -110,11 +117,12 @@ function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAPGr
   return T(GAP.Globals.CyclicGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
-function cyclic_group(::Type{PcGroup}, n::Union{IntegerUnion,PosInf})
+# special handling for pc groups: distinguish on the GAP side
+function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: Union{PcGroup, SubPcGroup}
   if is_infinite(n)
-    return PcGroup(GAP.Globals.AbelianPcpGroup(1, GAP.GapObj([])))
+    return T(GAP.Globals.AbelianPcpGroup(1, GAP.GapObj([])))
   elseif n > 0
-    return PcGroup(GAP.Globals.CyclicGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
+    return T(GAP.Globals.CyclicGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
   end
   throw(ArgumentError("n must be a positive even integer or infinity"))
 end
@@ -161,11 +169,15 @@ end
 =#
 
 @doc raw"""
-    abelian_group(::Type{T}, v::Vector{Int}) where T <: Group -> PcGroup
+    abelian_group(::Type{T} = PcGroup, v::Vector{S}) where T <: Group where S <: IntegerUnion
 
 Return the direct product of cyclic groups of the orders
 `v[1]`, `v[2]`, $\ldots$, `v[n]`, as an instance of `T`.
-Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
+Here, `T` must be one of `PermGroup`, `FPGroup`, `PcGroup`, or `SubPcGroup`.
+
+The `gens` value of the returned group corresponds to `v`, that is,
+the number of generators is equal to `length(v)`
+and the order of the `i`-th generator is `v[i]`.
 
 !!! warning
     The type need to be specified in the input of the function `abelian_group`,
@@ -179,11 +191,22 @@ function abelian_group(::Type{T}, v::Vector{S}) where T <: GAPGroup where S <: I
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
-function abelian_group(::Type{PcGroup}, v::Vector{T}) where T <: IntegerUnion
+function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubPcGroup} where T <: IntegerUnion
   if 0 in v
-    return PcGroup(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))
+# if 0 in v || (TG == PcGroup && any(x -> ! is_prime(x), v))
+#TODO: Currently GAP's IsPcpGroup groups run into problems
+#      already in the available Oscar tests,
+#      see https://github.com/gap-packages/polycyclic/issues/88,
+#      so we keep the code from the master branch here.
+    # We cannot construct an `IsPcGroup` group if some generator shall have
+    # order infinity or 1 or a composed number.
+    return TG(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))
+  elseif TG == PcGroup && any(x -> ! is_prime(x), v)
+    # GAP's IsPcGroup groups cannot have generators that correspond to the
+    # orders given by `v` and to the defining presentation.
+    error("cannot create a PcGroup group with relative orders $v, perhaps try SubPcGroup")
   else
-    return PcGroup(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GAP.GapObj(v, recursive=true)))
+    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v, recursive=true)))
   end
 end
 
@@ -536,7 +559,7 @@ end
     dihedral_group(::Type{T} = PcGroup, n::Union{IntegerUnion,PosInf})
 
 Return the dihedral group of order `n`, as an instance of `T`,
-where `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
+where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`}.
 
 !!! warning
 
@@ -569,11 +592,11 @@ function dihedral_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: GAP
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
-function dihedral_group(::Type{PcGroup}, n::Union{IntegerUnion,PosInf})
+function dihedral_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: Union{PcGroup, SubPcGroup}
   if is_infinite(n)
-    return PcGroup(GAP.Globals.DihedralPcpGroup(0))
+    return T(GAP.Globals.DihedralPcpGroup(0))
   elseif iseven(n) && n > 0
-    return PcGroup(GAP.Globals.DihedralGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
+    return T(GAP.Globals.DihedralGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
   end
   throw(ArgumentError("n must be a positive even integer or infinity"))
 end
@@ -601,7 +624,8 @@ false
 
 Return the (generalized) quaternion group of order `n`,
 as an instance of `T`,
-where `n` is a power of 2 and `T` is in {`PcGroup`,`PermGroup`,`FPGroup`}.
+where `n` is a power of 2 and `T` is in
+{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`}.
 
 # Examples
 ```jldoctest
@@ -633,9 +657,9 @@ function quaternion_group(::Type{T}, n::IntegerUnion) where T <: GAPGroup
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
-function quaternion_group(::Type{PcGroup}, n::IntegerUnion)
+function quaternion_group(::Type{T}, n::IntegerUnion) where T <: Union{PcGroup, SubPcGroup}
   @assert iszero(mod(n, 4))
-  return PcGroup(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
+  return T(GAP.Globals.QuaternionGroup(GAP.Globals.IsPcGroup, n)::GapObj)
 end
 
 @doc raw"""
@@ -651,7 +675,6 @@ false
 
 julia> is_quaternion_group(small_group(8, 4))
 true
-
 ```
 """
 @gapattribute is_quaternion_group(G::GAPGroup) = GAP.Globals.IsQuaternionGroup(GapObj(G))::Bool

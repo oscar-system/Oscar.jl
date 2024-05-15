@@ -469,7 +469,7 @@ julia> S = automorphism_group(C)
 Aut( <pc group of size 20 with 3 generators> )
 
 julia> H, _ = sub(C, [gens(C)[1]^4])
-(Pc group of order 5, Hom: H -> C)
+(Subgroup of pc group of order 5, Hom: H -> C)
 
 julia> all(g -> on_subgroups(H, g) == H, S)
 true
@@ -535,7 +535,7 @@ stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractSet{AbstractAlgebra.Generic.FreeM
 
 
 """
-    right_coset_action(G::T, U::T) where T <: GAPGroup
+    right_coset_action(G::GAPGroup, U::GAPGroup)
 
 Compute the action of `G` on the right cosets of its subgroup `U`.
 
@@ -555,7 +555,8 @@ julia> degree(codomain(act)) == index(G, H)
 true
 ```
 """
-function right_coset_action(G::T, U::T) where T <: GAPGroup
+function right_coset_action(G::GAPGroup, U::GAPGroup)
+  _check_compatible(G, U)
   mp = GAP.Globals.FactorCosetAction(G.X, U.X)
   @req mp !== GAP.Globals.fail "Invalid input"
   H = PermGroup(GAPWrap.Range(mp))

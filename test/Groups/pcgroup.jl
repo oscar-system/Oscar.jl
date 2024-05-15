@@ -1,3 +1,33 @@
+@testset "constructors for polycyclic groups" begin
+  # Given a GAP group, `PcGroup` just wraps the given full pc group
+  # or signals an error.
+  G = small_group(12, 2)
+  PCG = PcGroup(GapObj(G))
+  @test PCG isa PcGroup
+  @test GapObj(PCG) === GapObj(G)
+
+  G = derived_subgroup(G)[1]
+  @test_throws AssertionError PcGroup(GapObj(G))
+
+  G = symmetric_group(4)
+  @test_throws AssertionError PcGroup(GapObj(G))
+
+  # Given a GAP group `G`, `pc_group` may create a new full pc group
+  # if `G` is a proper subgroup or if its generators are not the defining ones.
+  G = small_group(12, 2)
+  PCG = pc_group(GapObj(G))
+  @test PCG isa PcGroup
+  @test GapObj(PCG) === GapObj(G)
+
+  G = derived_subgroup(G)[1]
+  PCG = pc_group(GapObj(G))
+  @test PCG isa PcGroup
+  @test GapObj(PCG) !== GapObj(G)
+
+  G = symmetric_group(4)
+  @test_throws ArgumentError pc_group(GapObj(G)) isa PcGroup
+end
+
 @testset "create polycyclic groups from collectors" begin
 
   # finite polycyclic groups

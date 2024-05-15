@@ -68,7 +68,7 @@ end
 
 Return a direct product of groups of the same type `T` as a group of type
 `T`. It works for `T` of the following types:
-- `PermGroup`, `PcGroup`, `FPGroup`.
+- `PermGroup`, `PcGroup`, `SubPcGroup`, `FPGroup`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
@@ -76,7 +76,7 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(
   L::AbstractVector{T}; morphisms::Bool=false
-) where {T<:Union{PcGroup,FPGroup}}
+) where {T<:Union{PcGroup,SubPcGroup,FPGroup}}
   @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProduct(GapObj(L; recursive=true))
   DP = T(P)
@@ -110,7 +110,7 @@ end
 
 function inner_direct_product(
   L::T, Ls::T...; morphisms::Bool=false
-) where {T<:Union{PcGroup,PermGroup,FPGroup}}
+) where {T<:Union{PcGroup,SubPcGroup,PermGroup,FPGroup}}
   return inner_direct_product([L, Ls...]; morphisms=morphisms)
 end
 

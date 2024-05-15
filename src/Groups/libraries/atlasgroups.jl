@@ -29,8 +29,7 @@ ERROR: ArgumentError: the group atlas does not provide a representation for M
 function atlas_group(name::String)
   G = GAP.Globals.AtlasGroup(GapObj(name))
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
@@ -40,8 +39,7 @@ function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, Matrix
     G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
-  TT = _get_type(G)
-  return TT(G)
+  return _oscar_group(G)
 end
 
 
@@ -81,8 +79,7 @@ function atlas_group(info::Dict)
     matgrp.X = G
     return matgrp
   else
-    TT = _get_type(G)
-    return TT(G)
+    return _oscar_group(G)
   end
 end
 

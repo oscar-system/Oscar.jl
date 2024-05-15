@@ -8,7 +8,7 @@ and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
-   H::T                    # subgroup
+   H::GAPGroup             # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
    X::GapObj               # GapObj(H*repr)
@@ -73,7 +73,6 @@ Right coset of Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
@@ -102,7 +101,6 @@ Left coset of Sym(3)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
 end
@@ -243,7 +241,7 @@ true
 is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
-    right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the right cosets of `H` in `G`.
 
@@ -270,12 +268,13 @@ julia> collect(rc)
  Right coset of H with representative (1,4,3)
 ```
 """
-function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
 """
-    left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the left cosets of `H` in `G`.
 
@@ -295,7 +294,8 @@ Left cosets of
   Sym(4)
 ```
 """
-function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
@@ -361,7 +361,7 @@ end
 
 
 """
-    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
@@ -391,14 +391,17 @@ julia> collect(T)
  (1,4,3)
 ```
 """
-function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :right,
+function right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :right,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 """
-    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
+    left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
@@ -428,9 +431,12 @@ julia> collect(T)
  (1,3,4)
 ```
 """
-function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :left,
+function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :left,
               GAP.Globals.RightTransversal(G.X, H.X))
 end
 
@@ -454,8 +460,8 @@ Two double cosets are equal if, and only if, they contain the same elements.
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
    G::T
-   H::T
-   K::T
+   H::GAPGroup
+   K::GAPGroup
    repr::S
    X::GapObj
 end
@@ -518,7 +524,8 @@ Double coset of Sym(3)
   in Sym(5)
 ```
 """
-function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+#T what if g is in some subgroup of a group of which G, H are also a subgroup?
    @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
    @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
@@ -527,7 +534,7 @@ end
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
-    double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+    double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
 
 Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
@@ -550,7 +557,7 @@ julia> double_cosets(G,H,K)
  Double coset of H and K with representative (1,4,3)
 ```
 """
-function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
    if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else

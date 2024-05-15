@@ -57,7 +57,7 @@ function reps(K, G::Oscar.GAPGroup)
         r = R[pos]
         F = r.M
         @assert group(r) == s
-        rh = gmodule(group(r), [action(r, preimage(ms, x^h)) for x = gens(s)])
+        rh = gmodule(group(r), [action(r, preimage(ms, ms(x)^h)) for x = gens(s)])
         @hassert :BruecknerSQ 2 Oscar.GrpCoh.is_consistent(rh)
         l = Oscar.GModuleFromGap.hom_base(r, rh)
         @assert length(l) <= 1

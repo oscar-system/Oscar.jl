@@ -2,7 +2,8 @@ const AutGrpAbTor = Union{AutomorphismGroup{FinGenAbGroup},AutomorphismGroup{Tor
 const AutGrpAbTorElem = Union{AutomorphismGroupElem{FinGenAbGroup},AutomorphismGroupElem{TorQuadModule}}
 const AbTorElem = Union{FinGenAbGroupElem,TorQuadModuleElem}
 
-function _isomorphic_gap_group(A::FinGenAbGroup; T=PcGroup)
+# function _isomorphic_gap_group(A::FinGenAbGroup; T=PcGroup)
+function _isomorphic_gap_group(A::FinGenAbGroup; T=SubPcGroup)
   iso = isomorphism(T, A)
   iso2 = inv(iso)
   return codomain(iso), iso, iso2

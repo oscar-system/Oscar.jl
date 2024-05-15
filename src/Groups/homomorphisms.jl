@@ -350,12 +350,12 @@ end
 
 
 """
-    preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+    preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
 
 If `H` is a subgroup of the codomain of `f`, return the subgroup `f^-1(H)`,
 together with its embedding homomorphism into the domain of `f`.
 """
-function preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAPGroup
+function preimage(f::GAPGroupHomomorphism{S, T}, H::GAPGroup) where S <: GAPGroup where T <: GAPGroup
   H1 = GAP.Globals.PreImage(GapObj(f), GapObj(H))::GapObj
   return _as_subgroup(domain(f), H1)
 end
@@ -480,18 +480,26 @@ end
 ################################################################################
 
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
+
+# We use `GAP.Globals.IsomorphismPcGroup` as the `_get_iso_function` value
+# for both `PcGroup` and `SubPcGroup`.
+# Note that `_get_iso_function` is used to create a GAP mapping,
+# and afterwards an Oscar mapping is created whose codomain is obtained
+# from the codomain `G` in GAP by calling `T(G)` where `T` is the desired type.
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
+_get_iso_function(::Type{SubPcGroup}) = GAP.Globals.IsomorphismPcGroup
 
 
 """
-    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
-    isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T = FPGroup
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T <: Union{PcGroup, FPGroup}
 
 Return an isomorphism from `G` to a group `H` of type `T`.
 An exception is thrown if no such isomorphism exists.
 
 If `on_gens` is `true` then `gens(G)` is guaranteed to correspond to
-`gens(H)`.
+`gens(H)`;
+an exception is thrown if this is not possible.
 
 Isomorphisms are cached in `G`, subsequent calls of `isomorphism` with the
 same `T` (and the same value of `on_gens`) yield identical results.
@@ -515,14 +523,14 @@ julia> codomain(iso) === ans
 true
 ```
 """
-function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (T, false)) do
      fun = _get_iso_function(T)
      f = fun(GapObj(G))::GapObj
      @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
-     H = T(GAP.Globals.ImagesSource(f)::GapObj)
+     H = T(GAPWrap.ImagesSource(f))
 # TODO: remove the next line once GAP 4.13.0 is available in Oscar
      GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
@@ -561,11 +569,81 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
        f = GAPWrap.IsomorphismFpGroup(GapObj(G))
      end
      @req f !== GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-     H = FPGroup(GAP.Globals.ImagesSource(f)::GapObj)
+     H = FPGroup(GAPWrap.ImagesSource(f))
 # TODO: remove the next line once GAP 4.13.0 is available in Oscar
      GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), FPGroup}
+end
+
+# very simpleminded, should be supported by GAP ...
+function _is_pc_sequence(list::Vector{T}) where T <: GAPGroupElem
+  l = length(list)
+  l == 0 && return true
+  F = parent(list[1])
+  G = trivial_subgroup(F)[1]
+  for i in l:-1:1
+    H = G
+    G = sub(F, list[i:l])[1]
+    (is_normal_subgroup(H, G) && is_prime(index(G, H))) || return false
+  end
+
+  return true
+end
+
+# If `G` is not a full pc group then switch to a full pc group in Oscar.
+# If `G` is infinite then there is `GAP.Globals.IsomorphismPcGroup`,
+# but it has currently only methods for finite groups or for groups
+# that come from the packages Cryst, AClib, or Polenta.
+function isomorphism(T::Type{PcGroup}, G::GAPGroup; on_gens::Bool=false)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, on_gens)) do
+     if on_gens
+       # Throw an exception if `gens(G)` is not a polycyclic sequence for `G`.
+       @req _is_pc_sequence(gens(G)) "the generators do not form a pc sequence"
+       # Create a group in `IsPcGroup` if `G` is finite,
+       # and a group in `IsPcpGroup` otherwise.
+       if is_finite(G)
+         fam = GAP.Globals.ElementsFamily(GAP.Globals.FamilyObj(GapObj(G)))::GapObj
+         Ggens = GapObj(gens(G); recursive = true)::GapObj
+         Cpcgs = GAP.Globals.PcgsByPcSequence(fam, Ggens)::GapObj
+         CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
+         CCpcgs = GAP.Globals.FamilyPcgs(CC)::GapObj
+         f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), CC, Cpcgs, CCpcgs)::GapObj
+         return GAPGroupHomomorphism(G, T(CC), f)
+       else
+         f = GAP.Globals.IsomorphismPcpGroup(GapObj(G))::GapObj
+#T how to create a pcp that consists of the images of `gens(G)`,
+#T or get `fail`?
+error("do not know how to create a pcp group on given generators in GAP")
+       end
+     else
+       fun = _get_iso_function(T)
+#T change this: use IsomorphismPcpGroup if G is infinite!
+       f = fun(GapObj(G))::GapObj
+       @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
+       # The codomain of `f` can be a *subgroup* of a full pc group.
+       # In this situation, we have to switch to a full pc group.
+       C = GAP.Globals.Range(f)::GapObj
+       if !_is_full_pc_group(C)
+         @assert GAPWrap.IsPcGroup(C) || GAP.Globals.IsPcpGroup(C)::Bool
+         if GAPWrap.IsPcGroup(C)::Bool
+           Cpcgs = GAP.Globals.Pcgs(C)::GapObj
+           CC = GAP.Globals.PcGroupWithPcgs(Cpcgs)::GapObj
+           CCpcgs = GAP.Globals.FamilyPcgs(CC)::GapObj
+         else
+           Cpcgs = GAP.Globals.Pcp(C)::GapObj
+           CC = GAP.Globals.PcpGroupByPcp(Cpcgs)::GapObj
+           CCpcgs = GAP.Globals.Pcp(CC)::GapObj
+         end
+         switch = GAP.Globals.GroupHomomorphismByImages(C, CC, Cpcgs, CCpcgs)::GapObj
+         f = GAP.Globals.CompositionMapping(switch, f)::GapObj
+       end
+     end
+     H = T(GAPWrap.ImagesSource(f))
+     return GAPGroupHomomorphism(G, H, f)
+   end::GAPGroupHomomorphism{typeof(G), T}
 end
 
 
@@ -622,18 +700,32 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
        A2, A2_to_A = snf(A)
      end
      A_to_A2 = inv(A2_to_A)
-     # the isomorphic gap group
-     G = abelian_group(T, exponents)
-     # `GAPWrap.GeneratorsOfGroup(GapObj(G))` consists of independent elements
+     # Create an isomorphic GAP group whose `GAPWrap.GeneratorsOfGroup`
+     # consists of independent elements of the orders in `exponents`.
+     # (We cannot guarantee that these generators form a pcgs in the case
+     # `T == PcGroup`, hence we cannot call `abelian_group(T, exponents)`.)
+     if T == PcGroup
+       if 0 in exponents
+         GapG = GAP.Globals.AbelianPcpGroup(length(exponents), GAP.GapObj(exponents, recursive=true))
+       else
+         GapG = GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(exponents, recursive=true))
+       end
+       G = PcGroup(GAP.Globals.SubgroupNC(GapG, GAP.Globals.FamilyPcgs(GapG)))
+     else
+       G = abelian_group(T, exponents)
+       GapG = GapObj(G)
+     end
+
+     # `GAPWrap.GeneratorsOfGroup(GapG)` consists of independent elements
      # of the orders in `exponents`.
-     # `GAP.Globals.IndependentGenerators(GapObj(G))` chooses generators
+     # `GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapG)` chooses generators
      # that may differ from these generators,
      # and that belong to the exponent vectors returned by
-     # `GAPWrap.IndependentGeneratorExponents(GapObj(G), g)`.
-     # `GAPWrap.GeneratorsOfGroup(GapObj(G))` corresponds to `gens(A2)`,
+     # `GAPWrap.IndependentGeneratorExponents(GapG, g)`.
+     # `GAPWrap.GeneratorsOfGroup(GapG)` corresponds to `gens(A2)`,
      # we let `hom` compute elements in `A2` that correspond to
-     # `GAP.Globals.IndependentGenerators(GapObj(G))`.
-     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapObj(G))::GapObj)
+     # `GAP.Globals.IndependentGenerators(GapG)`.
+     Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapG)::GapObj)
      if length(Ggens) < length(exponents)
        # It may happen that GAP omits the generators of order 1. Insert them.
        @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
@@ -651,17 +743,16 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
        end
        Ggens = newGgens
      end
-     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapObj(G))::GapObj
+     gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapG)::GapObj
      Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
-
-     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapObj(G), a)) for a in Ggens]
+     imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapG, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)
      n = length(exponents)
 
      f = function(a::elem_type(FinGenAbGroup))
        exp = A_to_A2(a)
-       img = GAP.Globals.One(GapObj(G))
+       img = GAP.Globals.One(GapG)
        for i in 1:n
          img = img * Ggens[i]^GAP.Obj(exp[i])
        end
@@ -669,7 +760,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      end
 
      finv = function(g)
-       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapObj(G), GapObj(g)))
+       exp = Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapG, GapObj(g)))
        return Aindep_to_A(Aindep(exp))
      end
 
@@ -793,12 +884,14 @@ end
     FinGenAbGroup(G::T) where T <: GAPGroup
     PcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    SubPcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    sub_pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     PermGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     permutation_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return a group of the requested type that is isomorphic to `G`.
 If one needs the isomorphism then
-[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}](@ref)
+[isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}](@ref)
 can be used instead.
 """
 function (::Type{S})(G::T) where {S <: Union{FinGenAbGroup, GAPGroup}, T <: GAPGroup}
@@ -811,12 +904,10 @@ end
 
 fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = FPGroup(G)
 pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PcGroup(G)
+sub_pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubPcGroup(G)
 permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PermGroup(G)
 
 # Now for MultTableGroup
-
-# Remove once Hecke lower bound is >= 0.14.1
-@attributes MultTableGroup
 
 function isomorphism(::Type{T}, A::MultTableGroup) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
@@ -897,6 +988,7 @@ function simplified_fp_group(G::FPGroup)
    H = FPGroup(GAPWrap.Image(f))
    # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
    # is deployed to Oscar
+#T do this as soon as GAP.jl guarantees GAP 4.13!
    GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
    return H, GAPGroupHomomorphism(G,H,f)
 end

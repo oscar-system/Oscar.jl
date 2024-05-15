@@ -186,7 +186,7 @@ function Base.rand(rng::Random.AbstractRNG, G::GAPGroup)
    return group_element(G, s)
 end
 
-function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{Gr}) where Gr<:Oscar.GAPGroup
+function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{Gr}) where Gr<:GAPGroup
    return rand(rng, rs[])
 end
 
@@ -234,6 +234,9 @@ end
 
 #We need a lattice of groups to implement this properly
 function _prod(x::T, y::T) where T <: GAPGroupElem
+#T not nec. same type,
+#T and for pc subgroups may need to go to the big group
+#T (write tests that model this situation)
   G = _common_parent_group(parent(x), parent(y))
   return group_element(G, GapObj(x)*GapObj(y))
 end
@@ -242,7 +245,7 @@ Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
 ==(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
-==(x::T, y::T) where T <: BasicGAPGroupElem = GapObj(x) == GapObj(y)
+==(x::BasicGAPGroupElem, y::BasicGAPGroupElem ) = GapObj(x) == GapObj(y)
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -286,6 +289,7 @@ function Base.show(io::IO, G::FPGroup)
     end
   else
     print(io, "Finitely presented group")  # FIXME: actually some of these groups are *not* finitely presented
+#T introduce SubFPGroup
     if !is_terse(io)
     if has_order(G)
       if is_finite(G)
@@ -330,10 +334,11 @@ function Base.show(io::IO, G::PermGroup)
   end
 end
 
-function Base.show(io::IO, G::PcGroup)
+function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
-  print(io, "Pc group")
+  T = typeof(G) == PcGroup ? "Pc group" : "Subgroup of pc group"
+  print(io, T)
   if !is_terse(io)
     if isfinite(G)
       print(io, " of order ", order(G))
@@ -489,7 +494,7 @@ in general the length of this vector is not minimal.
 
 # Examples
 ```jldoctest
-julia> length(small_generating_set(abelian_group(PcGroup, [2,3,4])))
+julia> length(small_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
 julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
@@ -512,7 +517,7 @@ Return a vector of minimal length of elements in `G` that generate `G`.
 
 # Examples
 ```jldoctest
-julia> length(minimal_generating_set(abelian_group(PcGroup, [2,3,4])))
+julia> length(minimal_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
 julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
@@ -760,12 +765,13 @@ end
 
 # START subgroups conjugation
 """
-    conjugacy_class(G::T, H::T) where T<:Group -> GroupConjClass
+    conjugacy_class(G::Group, H::Group) -> GroupConjClass
 
 Return the subgroup conjugacy class `cc` of `H` in `G`, where `H` = `representative`(`cc`).
 """
-function conjugacy_class(G::T, g::T) where T<:GAPGroup
-   return GAPGroupConjClass(G, g, GAPWrap.ConjugacyClassSubgroups(GapObj(G),GapObj(g)))
+function conjugacy_class(G::GAPGroup, H::GAPGroup)
+#T _check_compatible
+   return GAPGroupConjClass(G, H, GAPWrap.ConjugacyClassSubgroups(GapObj(G),GapObj(H)))
 end
 
 function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
@@ -773,7 +779,7 @@ function Base.rand(C::GroupConjClass{S,T}) where S where T<:GAPGroup
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S where T<:GAPGroup
-   return _oscar_group(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
+   return _oscar_subgroup(GAP.Globals.Random(GAP.wrap_rng(rng), C.CC), acting_group(C))
 end
 
 """
@@ -842,9 +848,10 @@ julia> maximal_subgroup_classes(G)
 """
 @gapattribute function maximal_subgroup_classes(G::GAPGroup)
   L = Vector{GapObj}(GAP.Globals.ConjugacyClassesMaximalSubgroups(GapObj(G))::GapObj)
-  T = typeof(G)
+  TG = typeof(G)
+  TS = sub_type(TG)
   LL = [GAPGroupConjClass(G, _as_subgroup_bare(G, GAPWrap.Representative(cc)), cc) for cc in L]
-  return Vector{GAPGroupConjClass{T, T}}(LL)
+  return Vector{GAPGroupConjClass{TG, TS}}(LL)
 end
 
 """
@@ -921,7 +928,7 @@ Permutation group of degree 4 and order 3
 """
 function conjugate_group(G::T, x::GAPGroupElem) where T <: GAPGroup
   @req check_parent(G, x) "G and x are not compatible"
-  return _oscar_group(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
+  return _oscar_subgroup(GAPWrap.ConjugateSubgroup(GapObj(G), GapObj(x)), G)
 end
 
 Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
@@ -1152,7 +1159,7 @@ Return `N, f`, where `N` is the normalizer of `H` in `G`,
 i.e., the largest subgroup of `G` in which `H` is normal,
 and `f` is the embedding morphism of `N` into `G`.
 """
-normalizer(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Normalizer(GapObj(G), GapObj(H)))
+normalizer(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.Normalizer(GapObj(G), GapObj(H)))
 
 """
     normalizer(G::Group, x::GAPGroupElem)
@@ -1169,7 +1176,7 @@ Return `C, f`, where `C` is the normal core of `H` in `G`,
 that is, the largest normal subgroup of `G` that is contained in `H`,
 and `f` is the embedding morphism of `C` into `G`.
 """
-core(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.Core(GapObj(G), GapObj(H)))
+core(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.Core(GapObj(G), GapObj(H)))
 
 """
     normal_closure(G::Group, H::Group)
@@ -1180,7 +1187,7 @@ and `f` is the embedding morphism of `N` into `G`.
 
 Note that `H` must be a subgroup of `G`.
 """
-normal_closure(G::T, H::T) where T<:GAPGroup = _as_subgroup(G, GAPWrap.NormalClosure(GapObj(G), GapObj(H)))
+normal_closure(G::GAPGroup, H::GAPGroup) = _as_subgroup(G, GAPWrap.NormalClosure(GapObj(G), GapObj(H)))
 
 # Note:
 # GAP admits `NormalClosure` also when `H` is not a subgroup of `G`,
@@ -1361,7 +1368,7 @@ an exception is thrown if `G` is not solvable.
 end
 
 @doc raw"""
-    complement_classes(G::T, N::T) where T <: GAPGroup
+    complement_classes(G::GAPGroup, N::GAPGroup)
 
 Return a vector of the conjugacy classes of complements
 of the normal subgroup `N` in `G`.
@@ -1383,20 +1390,20 @@ julia> G = dihedral_group(8)
 Pc group of order 8
 
 julia> complement_classes(G, center(G)[1])
-GAPGroupConjClass{PcGroup, PcGroup}[]
+GAPGroupConjClass{PcGroup, SubPcGroup}[]
 ```
 """
-function complement_classes(G::T, N::T) where T <: GAPGroup
+function complement_classes(G::T, N::GAPGroup) where T <: GAPGroup
    res_gap = GAP.Globals.ComplementClassesRepresentatives(GapObj(G), GapObj(N))::GapObj
    if length(res_gap) == 0
-     return GAPGroupConjClass{T, T}[]
+     return GAPGroupConjClass{T, sub_type(T)}[]
    else
      return [conjugacy_class(G, H) for H in _as_subgroups(G, res_gap)]
    end
 end
 
 @doc raw"""
-    complements(G::T, N::T) where T <: GAPGroup
+    complements(G::GAPGroup, N::GAPGroup)
 
 Return an iterator over the complements of the normal subgroup `N` in `G`.
 Very likely it is better to use [`complement_classes`](@ref) instead.
@@ -1409,7 +1416,7 @@ julia> describe(first(complements(G, derived_subgroup(G)[1])))
 "C2"
 ```
 """
-complements(G::T, N::T) where T <: GAPGroup = Iterators.flatten(complement_classes(G, N))
+complements(G::GAPGroup, N::GAPGroup) = Iterators.flatten(complement_classes(G, N))
 
 @doc raw"""
     complement_system(G::Group)
@@ -1910,7 +1917,7 @@ function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   end
   gX = GapObj(g)
 
-  if GAP.Globals.IsPcGroup(GapObj(G))
+  if GAPWrap.IsPcGroup(GapObj(G))
     l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(GapObj(G)), gX)
   else  # GAP.Globals.IsPcpGroup(GapObj(G))
     l = GAP.Globals.Exponents(gX)
@@ -2269,7 +2276,12 @@ function describe(G::FPGroup)
 
    if !has_is_finite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
-      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
+#TODO: With GAP 4.13.0, the prescribed bound 100000 will cause a test failure.
+#      This regression will hopefully be fixed in GAP 4.13.1,
+#      see https://github.com/gap-system/gap/issues/5697
+#      and https://github.com/gap-system/gap/pull/5698.
+#     iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
+      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G))::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAPWrap.Range(iso)))
    elseif is_finite(G)
       return describe(PermGroup(G))

@@ -7,11 +7,11 @@ julia> G = dihedral_group(6)
 Pc group of order 6
 
 julia> U = sub(G, [g for g in gens(G) if order(g) == 2])[1]
-Pc group of order 2
+Subgroup of pc group of order 2
 
 julia> r = right_cosets(G, U)
 Right cosets of
-  pc group of order 2 in
+  subgroup of pc group of order 2 in
   pc group of order 6
 
 julia> acting_group(r)
