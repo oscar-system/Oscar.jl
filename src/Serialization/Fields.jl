@@ -538,6 +538,13 @@ end
 @register_serialization_type QQBarField
 @register_serialization_type QQBarFieldElem
 
+function save_object(s::SerializerState, q::QQBarField)
+end
+
+function load_object(s::DeserializerState, ::Type{QQBarField})
+  return QQBarField()
+end
+
 function save_object(s::SerializerState, q::QQBarFieldElem)
   is_unique = false
   min_poly_q = minpoly(q)
@@ -546,28 +553,28 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
   approximation = undef
 
   while(!is_unique)
-    CC = AcbField(precision)
+    CC = AcbField(precision; cached = false)
     approximation = CC(q)
     n_overlaps = length(filter(x -> overlaps(approximation, CC(x)), roots_min_q))
     if n_overlaps == 1
       is_unique = true
     else
-      precision += 1
+      precision *= 2
     end
   end
 
   save_data_dict(s) do
     save_object(s, min_poly_q, :minpoly)
-    save_object(s, approximation, :acb )
+    save_object(s, approximation, :acb)
     save_object(s, precision, :precision)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
-  Qx, x = QQ[:x]
+  Qx, x = polynomial_ring(QQ, :x, cached = false)
   min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
-  CC = AcbField(precision)
+  CC = AcbField(precision; cached = false)
   approximation = load_object(s, AcbFieldElem, CC, :acb)
   roots_min_poly = roots(QQBarField(), min_poly)
 
