@@ -28,7 +28,7 @@ Oscar.system("precompile.jl")
 sysimage=joinpath(tmp, "Oscar.$(Libdl.dlext)")
 if !("JULIA_CPU_TARGET" in keys(ENV)) || (ENV["JULIA_CPU_TARGET"] == "")
   println("Building system image for generic target. Use JULIA_CPU_TARGET to change.")
-  target = "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
+  target = PackageCompiler.default_app_cpu_target()
 else
   target = ENV["JULIA_CPU_TARGET"]
 end
