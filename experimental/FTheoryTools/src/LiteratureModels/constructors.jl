@@ -322,7 +322,8 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     # Remember how we identified this model
     model_dict["literature_identifier"] = "1903.00009"
     k = model_parameters["k"]
-    qsm_model = load(joinpath(@__DIR__, "Models/QSMDB/$k.mrdi"))
+    qsmd_path = artifact"QSMDB"
+    qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
     # TODO: Antony, please notice that the serialization of hs_model (as well as Tate and Weierstrass_model) involves a
     # a hack to serialize a dicts. Maybe this can be fixed in this PR? Maybe even must?
 
@@ -332,7 +333,6 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
 
     # Finally, return the QSMModel in question...
     return qsm_model
-
   end
 
 
