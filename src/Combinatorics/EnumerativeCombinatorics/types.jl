@@ -134,7 +134,7 @@ struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
 
-# Iterator type
+# Iterator type: all partitions of an integer n
 struct Partitions{T<:IntegerUnion}
   n::T
 
@@ -145,10 +145,8 @@ struct Partitions{T<:IntegerUnion}
 
 end
 
-# Iterator type
-# TODO: This should also have:
-#  - a flag for `only_distinct_parts`
-#  - support for upper/lower bounds
+# Iterator type: partitions of n into m parts, with optional lower/upper bounds on the parts
+# If distinct_parts == true, then all parts have distinct values.
 struct PartitionsFixedNumParts{T<:IntegerUnion}
   n::T
   m::Int
