@@ -191,9 +191,11 @@ end
 ### Some helper functions
 function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+
   @check is_subscheme(D, domain(f)) "domain incompatible"
-  return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
 function _restrict_domain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
@@ -212,7 +214,22 @@ function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
   !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
-  return morphism(domain(f), D, [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+end
+
+# Some missing constructors
+morphism(A::AbsAffineScheme, B::AbsAffineScheme, coeff_map::Any, img_gens::Vector; check::Bool=true) = morphism(A, B, hom(OO(B), OO(A), coeff_map, img_gens; check); check)
+
+function hom(L::MPolyLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyLocalizedRingHom(L, P, phi; check)
+end
+
+function hom(L::MPolyQuoLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyQuoLocalizedRingHom(L, P, phi; check)
 end
 
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
@@ -481,6 +498,24 @@ function base_change(phi::Any, f::AbsAffineSchemeMor;
   # coefficient ring by now.
   pbF = hom(RR, SS, img_gens, check=false)
   return domain_map, morphism(XX, YY, pbF, check=false), codomain_map
+end
+
+function base_change(phi::Any, f::ClosedEmbedding;
+    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
+  )
+  @assert codomain(codomain_map) === codomain(f)
+  @assert codomain(domain_map) === domain(f)
+  g = underlying_morphism(f)
+  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
+  I = image_ideal(f)
+  @assert base_ring(I) === OO(codomain(f))
+  @assert base_ring(I) === OO(codomain(f))
+  #bc_I = ideal(OO(codomain(bc_g)), pullback(codomain_map).(gens(I)))
+  bc_I = pullback(codomain_map)(I)
+  @assert domain(bc_g) === domain(domain_map)
+  @assert codomain(bc_g) === domain(codomain_map)
+  return domain_map, ClosedEmbedding(bc_g, bc_I; check=false), codomain_map
 end
 
 function _register_birationality!(f::AbsAffineSchemeMor,
