@@ -3,8 +3,8 @@ git-tree-sha1 = "e181b83fe08f722c8c0baf1c08208d9fcb8ea64c"
 lazy = true
 
      [[QSMDB.download]]
-     sha256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-     
+     sha256 = "91e73378bf47808460244c2b59734535d975989e72daed37f41b5ef4294238c0"
+     url = "https://github.com/oscar-system/Oscar.jl/releases/download/archive-tag-1/qsmdb.tar.gz"     
 
 [gap_extraperfect]
 git-tree-sha1 = "084fa12573e5089ceb3299f9d341f244b415da52"
