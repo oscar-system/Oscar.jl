@@ -171,8 +171,8 @@ function PartitionsFixedNumParts(n::T, k::IntegerUnion; only_distinct_parts::Boo
   return PartitionsFixedNumParts(n, k, 1, n, only_distinct_parts)
 end
 
-function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, lb::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
-  return PartitionsFixedNumParts(n, k, lb, l2, only_distinct_parts)
+function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, k, lb, ub, only_distinct_parts)
 end
 
 
