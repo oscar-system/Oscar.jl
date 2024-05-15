@@ -677,7 +677,7 @@ true
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = acting_group(Omega)
   omega_list = GAP.Obj(collect(Omega))
-  gap_gens = GapObj(gens(G); recursive=true)
+  gap_gens = GapObj(gens(G); recursive = true)
   gfun = GAP.Obj(action_function(Omega))
 
   # The following works only because GAP does not check
