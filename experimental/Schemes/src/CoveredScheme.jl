@@ -482,45 +482,6 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
 ########################################################################
 # Closed embeddings                                                    #
 ########################################################################
-@attributes mutable struct CoveredClosedEmbedding{
-    DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme,
-    BaseMorphismType
-   } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 BaseMorphismType,
-                                 CoveredSchemeMorphism
-                                }
-  f::CoveredSchemeMorphism
-  I::AbsIdealSheaf
-
-  function CoveredClosedEmbedding(
-      X::DomainType,
-      Y::CodomainType,
-      f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
-      check::Bool=true,
-      ideal_sheaf::AbsIdealSheaf=IdealSheaf(Y, f, check=check)
-    ) where {
-             DomainType<:AbsCoveredScheme,
-             CodomainType<:AbsCoveredScheme,
-             MorphismType<:ClosedEmbedding,
-             BaseMorType
-            }
-    ff = CoveredSchemeMorphism(X, Y, f; check)
-    if has_decomposition_info(codomain(f))
-      for U in patches(domain(f))
-        floc = f[U]
-        phi = pullback(floc)
-        V = codomain(floc)
-        g = Vector{elem_type(OO(V))}(decomposition_info(codomain(f))[V])
-        set_decomposition_info!(domain(f), U, Vector{elem_type(OO(U))}(phi.(g)))
-      end
-    end
-    #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
-    return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
-  end
-end
 
 ### forwarding the essential getters
 underlying_morphism(phi::CoveredClosedEmbedding) = phi.f
@@ -558,6 +519,17 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::AbsIdealSheaf;
   Z = isempty(patch_list) ? CoveredScheme(base_ring(X)) : CoveredScheme(Covering(patch_list, gluing_dict, check=false))
   cov_inc = CoveringMorphism(default_covering(Z), covering, mor_dict, check=false)
   return CoveredClosedEmbedding(Z, X, cov_inc, ideal_sheaf=I, check=false)
+end
+
+function base_change(phi::Any, f::CoveredClosedEmbedding;
+    domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
+    codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
+  )
+  g = underlying_morphism(f)
+  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
+  II = image_ideal(f)
+  bc_II = pullback(codomain_map, II)
+  return domain_map, CoveredClosedEmbedding(domain(bc_g), codomain(bc_g), covering_morphism(bc_g); check=false, ideal_sheaf=bc_II), codomain_map
 end
 
 ########################################################################

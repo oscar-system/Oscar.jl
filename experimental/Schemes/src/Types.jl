@@ -504,6 +504,81 @@ underlying_presheaf(I::SingularLocusIdealSheaf) = I.underlying_presheaf
 focus(I::SingularLocusIdealSheaf) = I.focus
 
 ########################################################################
+# Closed embeddings                                                    #
+########################################################################
+
+@attributes mutable struct CoveredClosedEmbedding{
+    DomainType<:AbsCoveredScheme,
+    CodomainType<:AbsCoveredScheme,
+    BaseMorphismType
+   } <: AbsCoveredSchemeMorphism{
+                                 DomainType,
+                                 CodomainType,
+                                 BaseMorphismType,
+                                 CoveredSchemeMorphism
+                                }
+  f::CoveredSchemeMorphism
+  I::AbsIdealSheaf
+
+  function CoveredClosedEmbedding(
+      X::DomainType,
+      Y::CodomainType,
+      f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
+      check::Bool=true,
+      ideal_sheaf::AbsIdealSheaf=IdealSheaf(Y, f, check=check)
+    ) where {
+             DomainType<:AbsCoveredScheme,
+             CodomainType<:AbsCoveredScheme,
+             MorphismType<:ClosedEmbedding,
+             BaseMorType
+            }
+    ff = CoveredSchemeMorphism(X, Y, f; check)
+    if has_decomposition_info(codomain(f))
+      for U in patches(domain(f))
+        floc = f[U]
+        phi = pullback(floc)
+        V = codomain(floc)
+        g = Vector{elem_type(OO(V))}(decomposition_info(codomain(f))[V])
+        set_decomposition_info!(domain(f), U, Vector{elem_type(OO(U))}(phi.(g)))
+      end
+    end
+    #all(x->(x isa ClosedEmbedding), values(morphisms(f))) || error("the morphisms on affine patches must be `ClosedEmbedding`s")
+    return new{DomainType, CodomainType, BaseMorType}(ff, ideal_sheaf)
+  end
+end
+
+########################################################################
+# PushforwardIdealSheaf                                                #
+########################################################################
+@attributes mutable struct PushforwardIdealSheaf{SpaceType, OpenType, OutputType,
+                                                 RestrictionType
+                                                } <: AbsIdealSheaf{
+                                                                   SpaceType, OpenType,
+                                                                   OutputType, RestrictionType
+                                                                  }
+  f::CoveredClosedEmbedding
+  orig::AbsIdealSheaf
+  Ipre::PreSheafOnScheme
+
+  function PushforwardIdealSheaf(
+      f::CoveredClosedEmbedding,
+      orig::AbsIdealSheaf
+    )
+    X = domain(f)
+    Y = codomain(f)
+    @assert X === scheme(orig)
+
+    Ipre = PreSheafOnScheme(Y,
+                      OpenType=AbsAffineScheme, OutputType=Ideal,
+                      RestrictionType=Map,
+                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
+                     )
+    I = new{typeof(Y), AbsAffineScheme, Ideal, Map}(f, orig, Ipre)
+    return I
+  end
+end
+
+########################################################################
 # Morphisms from rational functions                                    #
 ########################################################################
 @doc raw"""
