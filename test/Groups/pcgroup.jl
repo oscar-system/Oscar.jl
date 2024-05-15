@@ -72,5 +72,5 @@ end
   x = GapObj(one(gg))
   cgg = GAP.getbangproperty(x, :collector)
   @test GAP.Globals.IsMutable(cgg)
-  @test ! GAP.Globals.IsIdenticalObj(cgg, c.X)
+  @test cgg !== c.X
 end
