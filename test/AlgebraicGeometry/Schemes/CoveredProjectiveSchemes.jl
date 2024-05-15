@@ -11,6 +11,12 @@
   p = projection(B)
   @test domain(p) === Bcov
   @test codomain(p) === covered_scheme(P)
+
+  X = affine_space(QQ,2)
+  x1, x2 = coordinates(X)
+  I = ideal([x1^2, x2^3])
+  p = blow_up(X, I)
+  @test !is_normal(domain(p))
 end
 
 @testset "Oscar.blow_up_chart" begin

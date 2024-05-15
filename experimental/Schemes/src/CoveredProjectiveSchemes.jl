@@ -748,13 +748,9 @@ Return the blow-up morphism of blowing up ``X`` at ``I`` in ``OO(X)``.
 function blow_up(
     X::AbsAffineScheme{<:Any, <:MPolyAnyRing},
     I::MPolyAnyIdeal)
-
   R = OO(X)
   @req R == base_ring(I) "I must be an ideal in the coordinate ring of X"
-  ## prepare trivially covered scheme and ideal sheaf on it as input for blow_up(I::IdealSheaf)
-  C = Covering([X])
-  XX = CoveredScheme(C)
-  Isheaf = ideal_sheaf(XX,X,gens(I))
+  Isheaf = IdealSheaf(X, I)
   return blow_up(Isheaf)
 end
 
