@@ -155,24 +155,24 @@ struct PartitionsFixedNumParts{T<:IntegerUnion}
   ub::T
   distinct_parts::Bool
 
-  function PartitionsFixedNumParts(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion, only_distinct_parts::Bool) where T<:IntegerUnion
+  function PartitionsFixedNumParts(n::T, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion, only_distinct_parts::Bool) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
     @req m >= 0 "m >= 0 required"
-    @req l1 >= 0 "l1 >=0 required"
-    if l1 == 0
-      l1 = 1
+    @req lb >= 0 "lb >=0 required"
+    if lb == 0
+      lb = 1
     end
-    return new{T}(n, convert(T, m), T(l1), T(l2), only_distinct_parts)
+    return new{T}(n, convert(T, m), T(lb), T(ub), only_distinct_parts)
   end
 
 end
 
 function PartitionsFixedNumParts(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
-  return PartitionsFixedNumParts(n, m, T(1), T(n), only_distinct_parts)
+  return PartitionsFixedNumParts(n, m, 1, n, only_distinct_parts)
 end
 
-function PartitionsFixedNumParts(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
-  return PartitionsFixedNumParts(n, m, T(l1), T(l2), only_distinct_parts)
+function PartitionsFixedNumParts(n::T, m::IntegerUnion, lb::IntegerUnion, lb::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, m, lb, l2, only_distinct_parts)
 end
 
 

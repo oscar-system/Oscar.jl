@@ -100,15 +100,15 @@
   end
 
   ############################################################################
-  # partitions(n,k,l1,l2)
+  # partitions(n,k,lb,ub)
   ############################################################################
-  @testset "partitions($n,$k,$l1,$l2)" for n in 0:20, k in 0:n+1, l1 in 0:n, l2 in l1:n
-    P = collect(partitions(n,k,l1,l2))
+  @testset "partitions($n,$k,$lb,$ub)" for n in 0:20, k in 0:n+1, lb in 0:n, ub in lb:n
+    P = collect(partitions(n,k,lb,ub))
 
     # Create the same by filtering all partitions
     Q = collect(partitions(n,k))
-    filter!( Q->all(>=(l1),Q), Q)
-    filter!( Q->all(<=(l2),Q), Q)
+    filter!( Q->all(>=(lb),Q), Q)
+    filter!( Q->all(<=(ub),Q), Q)
 
     # Check that P and Q coincide (up to reordering)
     @test length(P) == length(Q)
@@ -116,13 +116,13 @@
   end
 
   ############################################################################
-  # partitions(n,k,l1,l2; only_distinct_parts=true)
+  # partitions(n,k,lb,ub; only_distinct_parts=true)
   ############################################################################
-  @testset "partitions($n,$k,$l1,$l2; only_distinct_parts=true)" for n in 0:20, k in 0:n+1, l1 in 0:n, l2 in l1:n
-    P = collect(partitions(n, k, l1, l2; only_distinct_parts=true))
+  @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" for n in 0:20, k in 0:n+1, lb in 0:n, ub in lb:n
+    P = collect(partitions(n, k, lb, ub; only_distinct_parts=true))
 
     # Create the same by filtering all partitions
-    Q = collect(partitions(n, k, l1, l2))
+    Q = collect(partitions(n, k, lb, ub))
     filter!( Q->Q==unique(Q), Q )
 
     # Check that P and Q coincide (up to reordering)

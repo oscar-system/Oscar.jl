@@ -332,10 +332,10 @@ end
 
 @doc raw"""
     partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
-    partitions(n::IntegerUnion, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(n::IntegerUnion, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
 
 Return an iterator over all partitions of a non-negative integer `n` into
-`m >= 0` parts. Optionally, a lower bound `l1 >= 0` and an upper bound `l2` for
+`m >= 0` parts. Optionally, a lower bound `lb >= 0` and an upper bound `ub` for
 the parts can be supplied. In this case, the partitions are produced in
 *decreasing* order.
 
@@ -370,8 +370,8 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
  [4, 2, 1]
 ```
 """
-function partitions(n::IntegerUnion, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false)
-  return PartitionsFixedNumParts(n, m, l1, l2; only_distinct_parts = only_distinct_parts)
+function partitions(n::IntegerUnion, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, m, lb, ub; only_distinct_parts = only_distinct_parts)
 end
 
 function partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
@@ -382,8 +382,8 @@ end
 function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   n = P.n
   m = P.m
-  l1 = P.lb
-  l2 = P.ub
+  lb = P.lb
+  ub = P.ub
   only_distinct_parts = P.distinct_parts
 
   # TODO : fix the states returned once we know what those will look like
@@ -392,28 +392,28 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   end
 
   # This iterator should be empty
-  if m == 0 || m > n || l2 < l1
+  if m == 0 || m > n || ub < lb
     return nothing
   end
 
-  if n == m && l1 == 1
+  if n == m && lb == 1
     only_distinct_parts && m > 1 && return nothing
     return partition(T[1 for i in 1:n], check=false), (T[], T[], 0, 0, 1, false)
   end
 
-  if m == 1 && l1 <= n <= l2
+  if m == 1 && lb <= n <= ub
     return partition(T[n], check=false), (T[], T[], 0, 0, 1, false)
   end
 
   x = zeros(T,m)
   y = zeros(T,m)
   jj = only_distinct_parts*m*(m-1)
-  N = n - m*l1 - div(jj,2)
-  L2 = l2-l1
+  N = n - m*lb - div(jj,2)
+  L2 = ub-lb
   0 <= N <= m*L2 - jj || return nothing
 
   for i in 1:m
-    y[i] = x[i] = l1 + only_distinct_parts*(m-i)
+    y[i] = x[i] = lb + only_distinct_parts*(m-i)
   end
 
   i = 1
@@ -469,7 +469,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
 end
 
 
-# function partitions(n::T, m::IntegerUnion, l1::IntegerUnion, l2::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+# function partitions(n::T, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 #   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 #
 #   # Note that the algorithm is given as partitioning m into n parts,
@@ -478,16 +478,16 @@ end
 #   #Argument checking
 #   @req n >= 0 "n >= 0 required"
 #   @req m >= 0 "m >= 0 required"
-#   @req l1 >= 0 "l1 >= 0 required"
+#   @req lb >= 0 "lb >= 0 required"
 #
 #   # Use type of n
 #   m = convert(T, m)
 #
-#   # If l1 == 0 the algorithm parta will actually create lists containing the
+#   # If lb == 0 the algorithm parta will actually create lists containing the
 #   # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
-#   # This is nonsense, so we set l1 = 1 in this case.
-#   if l1 == 0
-#     l1 = 1
+#   # This is nonsense, so we set lb = 1 in this case.
+#   if lb == 0
+#     lb = 1
 #   end
 #
 #   # Some trivial cases
@@ -499,7 +499,7 @@ end
 #     return (p for p in Partition{T}[])
 #   end
 #
-#   if l2 < l1
+#   if ub < lb
 #     return (p for p in Partition{T}[])
 #   end
 #
@@ -510,21 +510,21 @@ end
 #   x = zeros(T, m)
 #   y = zeros(T, m)
 #   j = only_distinct_parts*m*(m - 1)
-#   n = n - m*l1 - div(j, 2)
-#   l2 = l2 - l1
-#   if 0 <= n <= m*l2 - j
+#   n = n - m*lb - div(j, 2)
+#   ub = ub - lb
+#   if 0 <= n <= m*ub - j
 #
 #     for i = 1:m
-#       y[i] = x[i] = l1 + only_distinct_parts*(m - i)
+#       y[i] = x[i] = lb + only_distinct_parts*(m - i)
 #     end
 #
 #     i = 1
-#     l2 = l2 - only_distinct_parts*(m - 1)
+#     ub = ub - only_distinct_parts*(m - 1)
 #
 #     while true
-#       while n > l2
-#         n -= l2
-#         x[i] = y[i] + l2
+#       while n > ub
+#         n -= ub
+#         x[i] = y[i] + ub
 #         i += 1
 #       end
 #
@@ -541,14 +541,14 @@ end
 #
 #       lcycle = false
 #       for j = i - 1:-1:1
-#         l2 = x[j] - y[j] - 1
+#         ub = x[j] - y[j] - 1
 #         n = n + 1
-#         if n <= (m - j)*l2
-#           x[j] = y[j] + l2
+#         if n <= (m - j)*ub
+#           x[j] = y[j] + ub
 #           lcycle = true
 #           break
 #         end
-#         n = n + l2
+#         n = n + ub
 #         x[i] = y[i]
 #         i = j
 #       end
