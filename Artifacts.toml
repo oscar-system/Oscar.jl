@@ -13,3 +13,12 @@ lazy = true
     [[gap_extraperfect.download]]
     sha256 = "e565303927682f54cba20a69b8d23673b9b9d4d2a2bc88751f58ed5d3365e29f"
     url = "https://github.com/oscar-system/GAP.jl/releases/download/archive-tag/extraperfect.tar.gz"
+    # Created from https://github.com/hulpke/extraperfect using
+    # #!/bin/sh
+    # export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+    # rm -rf extraperfect
+    # mkdir extraperfect
+    # gzip -9 -n -c perf27.grp > extraperfect/perf27.grp.gz
+    # gzip -9 -n -c perf33.grp > extraperfect/perf33.grp.gz
+    # gtar --mtime="$(git log -1 --pretty=%cI)" --owner=0 --group=0 --numeric-owner -cvf extraperfect.tar extraperfect
+    # gzip -n -c extraperfect.tar > extraperfect.tar.gz
