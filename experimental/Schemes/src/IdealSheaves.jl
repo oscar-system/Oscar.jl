@@ -222,6 +222,11 @@ function IdealSheaf(Y::AbsCoveredScheme,
 end
 
 
+function one_ideal_sheaf(X::AbsCoveredScheme)
+  dd = IdDict{AbsAffineScheme, Ideal}(U=>ideal(OO(U), elem_type(OO(U))[one(OO(U))]) for U in affine_charts(X))
+  return IdealSheaf(X, dd, check=false)
+end
+
 # pullback of an ideal sheaf for internal use between coverings of the same scheme
 #function (F::CoveringMorphism)(I::IdealSheaf)
 #  X = scheme(I)
