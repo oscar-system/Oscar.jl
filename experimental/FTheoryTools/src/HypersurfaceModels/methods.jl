@@ -83,7 +83,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   vars = [string(k) for k in gens(R)]
   S = cox_ring(ambient_space(h))
   images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
-  map = hom(R, S, images)
+  map = hom(R, S, images; check=false)
   new_hypersurface_equation = map(parametrized_hypersurface_equation)
 
   # 3. Build the new model
