@@ -515,7 +515,6 @@ subalgebra_membership(f::T, V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQ
 
 ```@docs
 minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
-minimal_subalgebra_generators_with_relations
 ```
 
 ## Noether Normalization

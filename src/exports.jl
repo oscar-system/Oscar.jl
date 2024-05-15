@@ -1001,7 +1001,6 @@ export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
 export minimal_subalgebra_generators
-export minimal_subalgebra_generators_with_relations
 export minkowski_sum
 export minor
 export module_syzygies

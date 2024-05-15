@@ -155,7 +155,7 @@ end
     V1 = @inferred minimal_subalgebra_generators(V)
     @test all(f -> parent(f) === S, V1)
     @test V1 == [ u, v ]
-    V2, rels = @inferred minimal_subalgebra_generators_with_relations(V)
+    V2, rels = @inferred Oscar.minimal_subalgebra_generators_with_relations(V)
     @test all(f -> parent(f) === S, V2)
     @test V2 == [ u, v ]
     for i = 1:length(V)
@@ -167,7 +167,7 @@ end
     V1 = @inferred minimal_subalgebra_generators(V)
     @test V1 == [u^2, v^2, v^3]
     @test all(f -> parent(f) === S, V1)
-    V2, rels = @inferred minimal_subalgebra_generators_with_relations(V)
+    V2, rels = @inferred Oscar.minimal_subalgebra_generators_with_relations(V)
     @test V2 == [u^2, v^2, v^3 ]
     @test all(f -> parent(f) === S, V2)
     for i = 1:length(V)

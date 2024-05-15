@@ -1212,8 +1212,6 @@ the same subalgebra as all elements in `V`.
 If `check` is `true` (default), the conditions on `V` and the given ring are
 checked.
 
-See also [`minimal_subalgebra_generators_with_relations`](@ref).
-
 # Examples
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
