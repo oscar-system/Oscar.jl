@@ -1885,3 +1885,41 @@ end
 
 # extension of common functionality
 symbols(A::MPolyQuoRing) = symbols(base_ring(A))
+
+########################################################################
+# Tensor products of rings
+########################################################################
+
+function tensor_product(A::MPolyRing, B::MPolyRing)
+  kk = coefficient_ring(A)
+  @assert kk === coefficient_ring(B) "coefficient rings do not coincide"
+  res, a, b = polynomial_ring(kk, symbols(A), symbols(B); cached=false)
+  return res, hom(A, res, a), hom(B, res, b)
+end
+
+function tensor_product(A::MPolyRing, B::MPolyQuoRing)
+  R = base_ring(B)
+  AR, inc_A, inc_R = tensor_product(A, R)
+  I = ideal(AR, inc_R.(gens(modulus(B))))
+  res, pr = quo(R, I)
+  return res, compose(inc_A, pr), hom(B, res, pr.(inc_R.(gens(R))))
+end
+
+function tensor_product(A::MPolyQuoRing, B::MPolyQuoRing)
+  RA = base_ring(A)
+  RB = base_ring(B)
+  P, inc_A, inc_B = tensor_product(RA, RB)
+  I = ideal(P, inc_A.(gens(modulus(A)))) + ideal(P, inc_B.(gens(modulus(B))))
+  res, pr = quo(R, I)
+  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(RB))); check=false)
+end
+
+function tensor_product(A::MPolyQuoRing, B::MPolyRing)
+  RA = base_ring(A)
+  P, inc_A, inc_B = tensor_product(RA, B)
+  I = ideal(P, inc_A.(gens(modulus(A))))
+  res, pr = quo(R, I)
+  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), compose(inc_B, pr)
+end
+
+

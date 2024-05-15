@@ -175,3 +175,40 @@ end
 underlying_morphism(f::ProjectiveClosedEmbedding) = f.underlying_morphism
 image_ideal(f::ProjectiveClosedEmbedding) = f.ideal_of_image 
 
+########################################################################
+# Rational maps
+########################################################################
+
+### generic getters
+domain(f::AbsRationalMap) = domain(underlying_rational_map(f))
+codomain(f::AbsRationalMap) = codomain(underlying_rational_map(f))
+pullback(f::AbsRationalMap) = pullback(underlying_rational_map(f))
+graph_ring(f::AbsRationalMap) = graph_ring(underlying_rational_map(f))
+
+underlying_rational_map(f::AbsRationalMap) = error("no underlying rational map for rational map of type $(typeof(f))")
+
+### getters for the minimal concrete type
+domain(phi::RationalMap) = phi.domain
+codomain(phi::RationalMap) = phi.codomain
+@doc raw"""
+     pullback(phi::RationalMap)
+
+For a rational map `phi` of projective varieties, this returns the associated 
+morphism of graded affine algebras.
+"""
+pullback(phi::RationalMap) = phi.pullback
+
+function graph_ring(f::RationalMap)
+  if !isdefined(f, :graph_ring)
+    pbf = pullback(f)
+    SY = domain(pbf)
+    SX = codomain(pbf)
+    S, inc_SX, inc_SY = tensor_product(SX, SY)
+    IG = ideal(S, elem_type(S)[inc_SY(y) - inc_SX(pbf(y)) for y in gens(SY)])
+    SG, pr = quo(S, IG)
+    f.graph_ring = SG, hom(SX, SG, pr.(inc_SX.(gens(SX))); check=false), hom(SY, SG, pr.(inc_SY.(gens(SY))); check=false)
+  end
+  return f.graph_ring
+end
+
+
