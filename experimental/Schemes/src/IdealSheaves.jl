@@ -764,17 +764,22 @@ function smooth_lci_covering(I::AbsIdealSheaf)
   error("not implemented")
 end
 
+### pushforward of ideal sheaves along closed embeddings
 function pushforward(inc::CoveredClosedEmbedding, I::AbsIdealSheaf)
-  Y = domain(inc)
-  scheme(I) === Y || error("ideal sheaf is not defined on the domain of the embedding")
-  X = codomain(inc)
-  phi = covering_morphism(inc)
-  ID = IdDict{AbsAffineScheme, Ideal}()
-  for U in patches(domain(phi))
-    V = codomain(phi[U])
-    ID[V] = pushforward(phi[U], I(U))
-  end
-  return IdealSheaf(X, ID, check=false)
+  return PushforwardIdealSheaf(inc, I)
+end
+
+morphism(I::PushforwardIdealSheaf) = I.f
+original_ideal_sheaf(I::PushforwardIdealSheaf) = I.orig
+underlying_presheaf(I::PushforwardIdealSheaf) = I.Ipre
+
+function produce_object_on_affine_chart(II::PushforwardIdealSheaf, U::AbsAffineScheme)
+  f = morphism(II)
+  phi = covering_morphism(f)
+  g = maps_with_given_codomain(phi, U)
+  @assert length(g) == 1
+  inc = first(g)
+  return pushforward(inc, original_ideal_sheaf(II)(domain(inc)))
 end
 
 function pushforward(inc::ClosedEmbedding, I::Ideal)
