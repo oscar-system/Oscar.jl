@@ -142,7 +142,8 @@ base(P::PartitionsFixedNumParts) = P.n
 Base.eltype(::PartitionsFixedNumParts{T}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
-  print(pretty(io), "Iterator over the partitions of $(base(P)) into $(P.k) parts")
+  print(pretty(io), "Iterator over the partitions of $(base(P)) into",
+  ItemQuantity(P.k, "part"))
 end
 
 # NOTE this will not be accurate in many cases,
