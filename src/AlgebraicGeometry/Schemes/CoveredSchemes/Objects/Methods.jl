@@ -132,7 +132,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
     n = n_patches(cov)
     if has_name(X)
       print(io, name(X))
-    elseif get(io, :supercompact, false)
+    elseif is_terse(io)
       print(io, "Covered scheme")
     else
       if get_attribute(X, :is_empty, false) || n == 0
@@ -140,7 +140,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
       else
         print(io, "Scheme over ")
       end
-      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+      print(terse(io), Lowercase(), base_ring(X))
     end
     n > 0 && print(io, " covered with ", ItemQuantity(n, "patch"))
   end

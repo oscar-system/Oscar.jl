@@ -13,7 +13,7 @@ end
 
 
 @doc raw"""
-    variety(I::MPolyIdeal; is_prime::Bool, check::Bool=true) -> ProjectiveVariety
+   variety(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true, is_radical::Bool=false) -> ProjectiveVariety
 
 Return the projective variety defined by the homogeneous prime ideal ``I``.
 

@@ -29,7 +29,7 @@ and the references given there.
 
 Below, we present functions which return one hard coded example for each family presented
 in the first two papers above.  Based on these papers, the existence of further families has
-been shown. Explicit examples to be included here are under construction.
+been shown. Hard coded OSCAR examples for these surfaces are under construction.
 
 !!! note
     To ease subsequent computations, all hard coded examples are defined over a finite prime field.

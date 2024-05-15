@@ -234,7 +234,7 @@ end
 Given a class function `chi` on a group `G`, return whether `chi` defines a
 character of `G` (over its codomain).
 """
-is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GAPTable(parent(chi)), chi.values)::Bool
+is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GapObj(parent(chi)), GapObj(chi))::Bool
 
 @doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
@@ -502,7 +502,7 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   H = generators_underlying_group(RR)
 
   # the GAP function which we rely on
-  rep = GG.IrreducibleAffordingRepresentation(chi.values)::GAP.GapObj
+  rep = GG.IrreducibleAffordingRepresentation(GapObj(chi))::GAP.GapObj
 
   # we compute certain images than we will convert then.
   # we use them then to construct the mapping in

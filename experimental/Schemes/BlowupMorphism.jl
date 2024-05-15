@@ -686,7 +686,7 @@ end
 ##############################################################################
 function Base.show(io::IO, Bl::AbsSimpleBlowdownMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Blowup morphism")
   else
     print(io, "Blow-down: ", Lowercase(), domain(Bl))

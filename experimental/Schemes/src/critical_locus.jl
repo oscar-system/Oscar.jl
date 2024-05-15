@@ -9,7 +9,6 @@ function ideal_sheaf_of_critical_locus(phi::AbsCoveredSchemeMorphism)
     y = gens(OO(V))
     f = pullback(phi_loc).(y)
     df = jacobi_matrix(f)
-    @assert df isa MatrixElem{<:MPolyQuoLocRingElem}
     r = length(f)
     I = _degeneracy_locus(df, dim(codomain(phi)))
     ideal_dict[U] = radical(I)

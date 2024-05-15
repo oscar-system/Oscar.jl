@@ -114,11 +114,11 @@ end
 
 function Base.show(io::IO, I::LieAlgebraIdeal)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra ideal")
   else
     print(io, LowercaseOff(), "Lie algebra ideal of dimension $(dim(I)) over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(I))
+    print(terse(io), base_lie_algebra(I))
   end
 end
 

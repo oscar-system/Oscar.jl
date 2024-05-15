@@ -72,3 +72,17 @@ function GAP.julia_to_gap(
 
     return gapset
 end
+
+## TODO: remove the following once GAP.jl has it
+## (This will be the case when the change from
+## https://github.com/oscar-system/GAP.jl/pull/989
+## will be available.)
+using JSON3
+
+function GAP.julia_to_gap(
+    obj::JSON3.Array,
+    recursion_dict::IdDict{Any,Any} = IdDict();
+    recursive::Bool = false)
+
+    return GAP.julia_to_gap(copy(obj), recursion_dict; recursive)
+end

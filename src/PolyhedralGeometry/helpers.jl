@@ -216,6 +216,10 @@ end
 (F::Field)(x::Polymake.Rational) = F(QQ(x))
 (F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
+# Disambiguation
+(F::QQBarField)(x::Polymake.Rational) = F(QQ(x))
+(F::QQBarField)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
+
 Polymake.convert_to_pm_type(::Type{typeof(min)}) = Polymake.Min
 Polymake.convert_to_pm_type(::Type{typeof(max)}) = Polymake.Max
 

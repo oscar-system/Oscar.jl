@@ -118,7 +118,7 @@ function _print_matrix_group_desc(io::IO, x::MatrixGroup)
   elseif x.ring isa Field && is_finite(x.ring)
     print(io, order(x.ring),")")
   else
-    print(IOContext(io, :supercompact => true), x.ring)
+    print(terse(io), x.ring)
     print(io ,")")
   end
 end
@@ -137,10 +137,10 @@ function Base.show(io::IO, x::MatrixGroup)
   @show_special(io, x)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   print(io, "Matrix group")
-  if !get(io, :supercompact, false)
+  if !is_terse(io)
     print(io, " of degree ", degree(x))
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), " over ", Lowercase(), base_ring(x))
+    print(terse(io), " over ", Lowercase(), base_ring(x))
   end
 end
 
@@ -450,6 +450,8 @@ Return the base ring of the underlying matrix of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
+base_ring_type(::Type{<:MatrixGroupElem{RE}}) where {RE} = parent_type(RE)
+
 parent(x::MatrixGroupElem) = x.parent
 
 """
@@ -511,6 +513,8 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
 Return the base ring of the matrix group `G`.
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
+
+base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 
 """
     degree(G::MatrixGroup)

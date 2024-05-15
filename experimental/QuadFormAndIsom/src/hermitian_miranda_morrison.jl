@@ -527,8 +527,6 @@ end
 #
 ###############################################################################
 
-Oscar.canonical_unit(x::AbsSimpleNumFieldOrderQuoRingElem) = one(parent(x))
-
 # Once we have fixed good local basis matrices if D^{-1}H^# and H, at the prime
 # ideal p below P, we transfer any g\in O(D_L, D_f) via the trace construction
 # (fixed by res). The new map we obtain should be a local invertible map with

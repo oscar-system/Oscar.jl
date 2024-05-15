@@ -218,7 +218,7 @@ function all_atlas_group_infos(name::String, L...)
         iso = iso_oscar_gap(data)
         push!(gapargs, gapfunc, codomain(iso))
       elseif func === character
-        push!(gapargs, gapfunc, data.values)
+        push!(gapargs, gapfunc, GapObj(data))
       else
         # we can translate `data` to GAP
         push!(gapargs, gapfunc, GAP.Obj(data))

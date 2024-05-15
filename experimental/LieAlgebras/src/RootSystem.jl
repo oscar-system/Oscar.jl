@@ -81,7 +81,7 @@ function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
 end
 
 function Base.show(io::IO, R::RootSystem)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Root system")
   else
     print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")

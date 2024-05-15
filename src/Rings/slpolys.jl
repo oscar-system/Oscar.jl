@@ -22,6 +22,8 @@ SLPolyRing(r::Ring, v::Pair{<:VarName,
 
 base_ring(S::SLPolyRing) = S.base_ring
 
+base_ring_type(::Type{SLPolyRing{T,R}}) where {T,R} = R
+
 elem_type(::Type{S}) where {T,S<:SLPolyRing{T}} = SLPoly{T,S}
 
 symbols(S::SLPolyRing) = S.S

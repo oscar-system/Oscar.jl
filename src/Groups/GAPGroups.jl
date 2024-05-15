@@ -265,7 +265,7 @@ function Base.show(io::IO, G::GAPGroup)
   @show_name(io, G)
   @show_special(io, G)
   print(io, "Group")
-  if !get(io, :supercompact, false)
+  if !is_terse(io)
     if has_order(G)
       if is_finite(G)
         print(io, " of order ", order(G))
@@ -281,12 +281,12 @@ function Base.show(io::IO, G::FPGroup)
   @show_special(io, G)
   if GAPWrap.IsFreeGroup(GapObj(G))
     print(io, "Free group")
-    if !get(io, :supercompact, false) && GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
+    if !is_terse(io) && GAP.Globals.HasRankOfFreeGroup(GapObj(G))::Bool
       print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
     end
   else
     print(io, "Finitely presented group")  # FIXME: actually some of these groups are *not* finitely presented
-    if !get(io, :supercompact, false)
+    if !is_terse(io)
     if has_order(G)
       if is_finite(G)
         print(io, " of order ", order(G))
@@ -312,7 +312,7 @@ function Base.show(io::IO, G::PermGroup)
     print(io, LowercaseOff(), "Alt(", degree(G), ")")
   else
     print(io, "Permutation group")
-    if !get(io, :supercompact, false)
+    if !is_terse(io)
       print(io, " of degree ", degree(G))
       if has_order(G)
         if is_finite(G)
@@ -334,7 +334,7 @@ function Base.show(io::IO, G::PcGroup)
   @show_name(io, G)
   @show_special(io, G)
   print(io, "Pc group")
-  if !get(io, :supercompact, false)
+  if !is_terse(io)
     if isfinite(G)
       print(io, " of order ", order(G))
     else
@@ -566,7 +566,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::GAPGroupConjClass)
 end
 
 function Base.show(io::IO, x::GAPGroupConjClass{T, S}) where T where S
-  if get(io, :supercompact, false)
+  if is_terse(io)
     if S <: GAPGroupElem
       print(io, "Conjugacy class of group elements")
     else
@@ -575,7 +575,7 @@ function Base.show(io::IO, x::GAPGroupConjClass{T, S}) where T where S
   else
     print(io, "Conjugacy class of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.repr, " in ", Lowercase(), acting_group(x))
+    print(terse(io), Lowercase(), x.repr, " in ", Lowercase(), acting_group(x))
   end
 end
 

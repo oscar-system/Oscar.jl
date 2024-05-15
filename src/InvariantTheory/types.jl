@@ -133,7 +133,9 @@ struct AllMonomials{PolyRingT}
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int) where {PolyRingT}
     @assert d >= 0
-    return new{PolyRingT}(R, d, weak_compositions(d, ngens(R)), true, ngens(R))
+    return new{PolyRingT}(
+      R, d, weak_compositions(d, ngens(R); inplace=true), true, ngens(R)
+    )
   end
 
   function AllMonomials{PolyRingT}(
@@ -149,7 +151,9 @@ struct AllMonomials{PolyRingT}
     end
 
     tmp = zeros(Int, ngens(R))
-    return new{PolyRingT}(R, d, weak_compositions(d, n_vars), false, n_vars, vars, tmp)
+    return new{PolyRingT}(
+      R, d, weak_compositions(d, n_vars; inplace=true), false, n_vars, vars, tmp
+    )
   end
 end
 

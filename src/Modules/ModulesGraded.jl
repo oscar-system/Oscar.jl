@@ -2153,6 +2153,8 @@ Return the underlying ring of `F`.
 """
 base_ring(F::FreeMod_dec) = forget_decoration(F).R
 
+base_ring_type(::Type{FreeMod_dec{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     rank(F::FreeMod_dec)
 

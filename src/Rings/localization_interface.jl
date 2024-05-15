@@ -414,7 +414,7 @@ end
 
 function Base.show(io::IO, W::AbsLocalizedRing)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Localized ring")
   else
     print(io, "Localization of ", Lowercase(), base_ring(W))

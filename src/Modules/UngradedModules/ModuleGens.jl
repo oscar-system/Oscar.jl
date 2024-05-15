@@ -88,6 +88,8 @@ function base_ring(M::ModuleGens)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     singular_generators(M::ModuleGens)
 
@@ -248,7 +250,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  for (p,v) = m.coords
+  for (p,v) in coordinates(m)
     e += Sx(v)*g[p]
   end
   return e

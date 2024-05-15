@@ -713,7 +713,7 @@ end
 ########################################################################
 function Base.show(io::IO, f::CompositeCoveredSchemeMorphism)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Composite morphism")
   else
     print(io, "Composition of ", "$(domain(f)) -> ")

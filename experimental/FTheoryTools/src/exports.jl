@@ -34,7 +34,9 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export classes_of_model_sections
 export coordinate_ring
+export defining_classes
 export defining_section_parametrization
 export discriminant
 export display_all_literature_models
@@ -82,9 +84,6 @@ export has_zero_section
 export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
-export hypersurface_model_over_del_pezzo_surface
-export hypersurface_model_over_hirzebruch_surface
-export hypersurface_model_over_projective_space
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_partially_resolved

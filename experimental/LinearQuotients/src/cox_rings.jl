@@ -6,6 +6,10 @@
 
 base_ring(HBB::HomBasisBuilder) = HBB.R
 
+base_ring_type(
+  ::Type{HomBasisBuilder{RingType,RingElemType}}
+) where {RingType,RingElemType} = RingType
+
 power_product_cache(HBB::HomBasisBuilder) = HBB.C
 
 group(HBB::HomBasisBuilder) = HBB.G
