@@ -1205,8 +1205,8 @@ end
     minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of homogeneous elements of a positively graded multivariate
-polynomial ring, or of a quotient of such a ring, return a minimal subset of the
-elements in `V` which, in the given ring, generate
+polynomial ring, or of a quotient of such a ring, return a subset of the
+elements in `V` of minimal cardinality which, in the given ring, generate
 the same subalgebra as all elements in `V`.
 
 If `check` is `true` (default), the conditions on `V` and the given ring are
@@ -1238,9 +1238,9 @@ end
     minimal_subalgebra_generators_with_relations(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of homogeneous elements of a positively graded multivariate
-polynomial ring, or of a quotient of such a ring, return a minimal subset `W` of
-the elements in `V` which, in the given ring, generate the same subalgebra as all
-elements in `V`.
+polynomial ring, or of a quotient of such a ring, return a subset `W` of
+the elements in `V` of minimal cardinality which, in the given ring, generate the
+same subalgebra as all elements in `V`.
 Further, return a vector `rels` representating the elements of `V` in the minimal
 generators in `W`, that is, we have `V[i] = rels[i](W...)` for `i = 1:length(V)`.
 
