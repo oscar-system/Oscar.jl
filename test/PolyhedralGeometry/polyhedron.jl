@@ -621,11 +621,28 @@ end
     @test !Oscar._is_prismic_or_antiprismic(a)
   end
 
+  let ae = archimedean_solid("snub_cube")
+    @test ae isa Polyhedron{<:EmbeddedNumFieldElem}
+    @test !is_platonic_solid(ae)
+    @test is_archimedean_solid(ae)
+    @test !is_johnson_solid(ae)
+    @test is_vertex_transitive(ae)
+    @test !Oscar._is_prismic_or_antiprismic(ae)
+  end
+
   let j = johnson_solid(69)
     @test !is_platonic_solid(j)
     @test !is_archimedean_solid(j)
     @test is_johnson_solid(j)
     @test !is_vertex_transitive(j)
+  end
+
+  let sd = archimedean_solid("snub_dodecahedron"), ph = catalan_solid("pentagonal_hexecontahedron")
+    @test ph isa Polyhedron{<:EmbeddedNumFieldElem}
+    @test f_vector(sd) == reverse(f_vector(ph))
+    for i in range(1,n_facets(ph))
+      @test facet_sizes(ph)[i] == vertex_sizes(sd)[1]
+    end
   end
   
   K = algebraic_closure(QQ)

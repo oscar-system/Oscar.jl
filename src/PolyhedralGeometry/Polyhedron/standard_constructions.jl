@@ -257,13 +257,14 @@ Construct the `i`-th proper Johnson solid.
 
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+  - [con23](@cite)
 
 See also [`is_johnson_solid`](@ref).
 """
 function johnson_solid(index::Int)
   if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
-    # https://github.com/dmg-lab/JohnsonSrc
+    # https://github.com/dmg-lab/RegularSolidsSrc
     str_index = lpad(index, 2, '0')
     filename = "j$str_index" * ".mrdi"
     return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
@@ -746,12 +747,13 @@ julia> n_facets(T)
 """
 platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
 
+const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahedron"])
+
 @doc raw"""
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below. Some of these polytopes are realized with floating point numbers and
-thus not exact; Vertex-facet-incidences are correct in all cases.
+below.
 
 See also [`is_archimedean_solid`](@ref).
 
@@ -807,14 +809,46 @@ julia> n_facets(T)
 14
 ```
 """
-archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s))
+function archimedean_solid(s::String)
+  if s in _archimedean_strings_from_oscar
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return getfield(Main, Symbol(s))()
+  end
+  pmp = Polymake.polytope.archimedean_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      snub_cube()
+
+Construct the Snub Cube, an Archimedean solid.
+- [con24*1](@cite)
+
+See also [`archimedean_solid`](@ref).
+"""
+function snub_cube()
+  return load(joinpath(oscardir, "data", "ArchimedeanSolids", "snub_cube.mrdi"))
+end
+
+@doc raw"""
+      snub_dodecahedron()
+
+Construct the Snub Dodecahedron, an Archimedean solid.
+- [con24*1](@cite)
+
+See also [`archimedean_solid`](@ref).
+"""
+function snub_dodecahedron()
+  return load(joinpath(oscardir, "data", "ArchimedeanSolids", "snub_dodecahedron.mrdi"))
+end
+
+const _catalan_strings_from_oscar = Set{String}(["pentagonal_icositetrahedron", "pentagonal_hexecontahedron"])
 
 @doc raw"""
     catalan_solid(s::String)
 
-Construct a Catalan solid with the name `s` from the list below. Some of these
-polytopes are realized with floating point coordinates and thus are not exact.
-However, vertex-facet-incidences are correct in all cases.
+Construct a Catalan solid with the name `s` from the list below.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -866,7 +900,39 @@ julia> n_facets(T)
 12
 ```
 """
-catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
+function catalan_solid(s::String)
+  if s in _catalan_strings_from_oscar
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return getfield(Main, Symbol(s))()
+  end
+  pmp = Polymake.polytope.catalan_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      pentagonal_icositetrahedron()
+
+Construct the Pentagonal Icositetrahedron, a Catalan solid.
+- [con24](@cite)
+
+See also [`catalan_solid`](@ref).
+"""
+function pentagonal_icositetrahedron()
+  return load(joinpath(oscardir, "data", "CatalanSolids", "pentagonal_icositetrahedron.mrdi"))
+end
+
+@doc raw"""
+      pentagonal_hexecontahedron()
+
+Construct the Pentagonal Hexecontahedron, a Catalan solid.
+- [McC15](@cite)
+
+See also [`catalan_solid`](@ref).
+"""
+function pentagonal_hexecontahedron()
+  return load(joinpath(oscardir, "data", "CatalanSolids", "pentagonal_hexecontahedron.mrdi"))
+end
 
 @doc raw"""
     upper_bound_f_vector(d::Int, n::Int)
