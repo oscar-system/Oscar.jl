@@ -29,7 +29,7 @@ end
 #
 ################################################################################
 
-function _iso_gap_oscar_field_of_cyclotomics(F::GAP.GapObj)
+function _iso_gap_oscar_field_of_cyclotomics(F::GapObj)
    GAPWrap.IsCyclotomicField(F) && return _iso_gap_oscar_field_cyclotomic(F)
    F === GAP.Globals.Cyclotomics && return _iso_gap_oscar_abelian_closure(F)
    GAPWrap.DegreeOverPrimeField(F) == 2 && return _iso_gap_oscar_field_quadratic(F)
@@ -37,9 +37,9 @@ function _iso_gap_oscar_field_of_cyclotomics(F::GAP.GapObj)
    error("no method found")
 end
 
-function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
+function _iso_gap_oscar_residue_ring(RG::GapObj)
    n = GAPWrap.Size(RG)
-   if n isa GAP.GapObj
+   if n isa GapObj
      n = ZZRingElem(n)
    end
    RO = residue_ring(ZZ, n)[1]
@@ -49,7 +49,7 @@ function _iso_gap_oscar_residue_ring(RG::GAP.GapObj)
    return MapFromFunc(RG, RO, f, finv)
 end
 
-function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
+function _iso_gap_oscar_field_finite(FG::GapObj)
    FO = GF(characteristic(FG), GAPWrap.DegreeOverPrimeField(FG))
 
    finv, f = _iso_oscar_gap_field_finite_functions(FO, FG)
@@ -57,28 +57,28 @@ function _iso_gap_oscar_field_finite(FG::GAP.GapObj)
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_field_rationals(FG::GAP.GapObj)
+function _iso_gap_oscar_field_rationals(FG::GapObj)
    FO = QQ
    finv, f = _iso_oscar_gap_field_rationals_functions(FO, FG)
 
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_ring_integers(FG::GAP.GapObj)
+function _iso_gap_oscar_ring_integers(FG::GapObj)
    FO = ZZ
    finv, f = _iso_oscar_gap_ring_integers_functions(FO, FG)
 
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_field_cyclotomic(FG::GAP.GapObj)
+function _iso_gap_oscar_field_cyclotomic(FG::GapObj)
    FO = cyclotomic_field(GAPWrap.Conductor(FG))[1]
    finv, f = _iso_oscar_gap_field_cyclotomic_functions(FO, FG)
 
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_field_quadratic(FG::GAP.GapObj)
+function _iso_gap_oscar_field_quadratic(FG::GapObj)
    if GAPWrap.IsCyclotomicCollection(FG)
      # Determine the root that is contained in `FG`.
      N = GAPWrap.Conductor(FG)
@@ -127,7 +127,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      B = GAPWrap.Basis(FG, powers)
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
         return (coeffs * powers)::GAP.Obj
      end
 
@@ -145,7 +145,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
         return GAPWrap.ObjByExtRep(fam, coeffs)
      end
 
@@ -184,7 +184,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      Mpowers = GapObj(Mpowers)
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GAP.GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
         return GAPWrap.LinearCombination(coeffs, Mpowers)
      end
 
@@ -200,14 +200,14 @@ function _iso_gap_oscar_number_field(FG::GapObj)
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_abelian_closure(FG::GAP.GapObj)
+function _iso_gap_oscar_abelian_closure(FG::GapObj)
    FO, _ = abelian_closure(QQ)
    finv, f = _iso_oscar_gap_abelian_closure_functions(FO, FG)
 
    return MapFromFunc(FG, FO, f, finv)
 end
 
-function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
+function _iso_gap_oscar_univariate_polynomial_ring(RG::GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
    RO, x = polynomial_ring(codomain(coeffs_iso), "x", cached = false)
    finv, f = _iso_oscar_gap_polynomial_ring_functions(RO, RG, inv(coeffs_iso))
@@ -215,7 +215,7 @@ function _iso_gap_oscar_univariate_polynomial_ring(RG::GAP.GapObj)
    return MapFromFunc(RG, RO, f, finv)
 end
 
-function _iso_gap_oscar_multivariate_polynomial_ring(RG::GAP.GapObj)
+function _iso_gap_oscar_multivariate_polynomial_ring(RG::GapObj)
    coeffs_iso = iso_gap_oscar(GAPWrap.LeftActingDomain(RG))
    nams = [string(x) for x in GAPWrap.IndeterminatesOfPolynomialRing(RG)]
    RO, x = polynomial_ring(codomain(coeffs_iso), nams, cached = false)
@@ -226,7 +226,7 @@ end
 
 
 """
-    Oscar.iso_gap_oscar(R) -> Map{GAP.GapObj, T}
+    Oscar.iso_gap_oscar(R) -> Map{GapObj, T}
 
 Return an isomorphism `f` with `domain` the GAP object `R`
 and `codomain` an Oscar object `S`.
@@ -297,7 +297,7 @@ true
     but that the codomain of this map is not identical with
     or even not equal to the given `R`.
 """
-iso_gap_oscar(F::GAP.GapObj) = GAP.Globals.IsoGapOscar(F)
+iso_gap_oscar(F::GapObj) = GAP.Globals.IsoGapOscar(F)
 
 
 # Compute the isomorphism between a GAP domain

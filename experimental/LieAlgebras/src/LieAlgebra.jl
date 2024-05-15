@@ -477,7 +477,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(gapL::GAP.GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
+    lie_algebra(gapL::GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
 
 Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
 or by `x_i` by default.
@@ -487,7 +487,7 @@ properties of `gapL`, in particular, whether GAP knows about a matrix representa
 If `cached` is `true`, the constructed Lie algebra is cached.
 """
 function lie_algebra(
-  gapL::GAP.GapObj,
+  gapL::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
   cached::Bool=true,
 )

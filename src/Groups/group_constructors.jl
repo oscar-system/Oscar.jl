@@ -120,7 +120,7 @@ end
 # special handling for pc groups: distinguish on the GAP side
 function cyclic_group(::Type{T}, n::Union{IntegerUnion,PosInf}) where T <: Union{PcGroup, SubPcGroup}
   if is_infinite(n)
-    return T(GAP.Globals.AbelianPcpGroup(1, GAP.GapObj([])))
+    return T(GAP.Globals.AbelianPcpGroup(1, GapObj([])))
   elseif n > 0
     return T(GAP.Globals.CyclicGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
   end
@@ -200,7 +200,7 @@ function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubP
 #      so we keep the code from the master branch here.
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
-    return TG(GAP.Globals.AbelianPcpGroup(length(v), GAP.GapObj(v, recursive=true)))
+    return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v, recursive=true)))
   elseif TG == PcGroup && any(x -> ! is_prime(x), v)
     # GAP's IsPcGroup groups cannot have generators that correspond to the
     # orders given by `v` and to the defining presentation.
@@ -508,23 +508,23 @@ function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
    t = s isa Char ? string(s) : s
    if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GapObj(t); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GapObj(t))::GapObj)
    end
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), n)
    return G
 end
 
 function free_group(L::Vector{<:VarName})
-   J = GAP.GapObj(L, recursive = true)
+   J = GapObj(L, recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
    return G
 end
 
 function free_group(L::Vector{<:Char})
-   J = GAP.GapObj(Symbol.(L), recursive = true)
+   J = GapObj(Symbol.(L), recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
    return G

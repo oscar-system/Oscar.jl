@@ -91,7 +91,7 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
   preimg = function(y)
     return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(_ring_iso(Gp), matrix(y)))),
                                   GAPWrap.FreeGeneratorsOfFpGroup(F),
-                                  GAP.GapObj(gen))
+                                  GapObj(gen))
   end
 
   return Gp, MapFromFunc(G, Gp, img, preimg)

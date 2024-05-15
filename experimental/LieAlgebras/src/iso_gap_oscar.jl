@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-function _iso_gap_oscar_lie_algebra(F::GAP.GapObj)
+function _iso_gap_oscar_lie_algebra(F::GapObj)
   if GAPWrap.IsFiniteDimensional(F)
     if GAPWrap.IsLieObjectCollection(F)
       return _iso_gap_oscar_linear_lie_algebra(F)
@@ -19,9 +19,9 @@ end
 push!(Oscar._iso_gap_oscar_methods, "IsLieAlgebra" => _iso_gap_oscar_lie_algebra)
 
 function _iso_gap_oscar_abstract_lie_algebra(
-  LG::GAP.GapObj,
+  LG::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
-  coeffs_iso::Map{GAP.GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
+  coeffs_iso::Map{GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
   cached::Bool=true,
 )
   LO = _abstract_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
@@ -33,9 +33,9 @@ function _iso_gap_oscar_abstract_lie_algebra(
 end
 
 function _iso_gap_oscar_linear_lie_algebra(
-  LG::GAP.GapObj,
+  LG::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
-  coeffs_iso::Map{GAP.GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
+  coeffs_iso::Map{GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
   cached::Bool=true,
 )
   LO = _linear_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
@@ -47,7 +47,7 @@ function _iso_gap_oscar_linear_lie_algebra(
 end
 
 function _abstract_lie_algebra_from_GAP(
-  LG::GAP.GapObj, coeffs_iso::Map{GAP.GapObj}, s::Vector{<:VarName}; cached::Bool=true
+  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}; cached::Bool=true
 )
   RO = codomain(coeffs_iso)
   dimL = GAPWrap.Dimension(LG)
@@ -72,7 +72,7 @@ function _abstract_lie_algebra_from_GAP(
 end
 
 function _linear_lie_algebra_from_GAP(
-  LG::GAP.GapObj, coeffs_iso::Map{GAP.GapObj}, s::Vector{<:VarName}; cached::Bool=true
+  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}; cached::Bool=true
 )
   @req GAPWrap.IsLieObjectCollection(LG) "Input is not a linear Lie algebra."
 

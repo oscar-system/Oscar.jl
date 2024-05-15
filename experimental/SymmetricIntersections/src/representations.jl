@@ -502,12 +502,12 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   H = generators_underlying_group(RR)
 
   # the GAP function which we rely on
-  rep = GG.IrreducibleAffordingRepresentation(GapObj(chi))::GAP.GapObj
+  rep = GG.IrreducibleAffordingRepresentation(GapObj(chi))::GapObj
 
   # we compute certain images than we will convert then.
   # we use them then to construct the mapping in
   # `_linear_representation`
-  _Mat = GAP.GapObj[GG.Image(rep, h.X) for h in H]
+  _Mat = GapObj[GG.Image(rep, h.X) for h in H]
   Mat = AbstractAlgebra.Generic.MatSpaceElem{elem_type(F)}[]
   for _M in _Mat
     rM = eltype(Mat)[transpose(matrix(F.(m))) for m in _M]
@@ -1060,15 +1060,15 @@ end
 function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
-  f_gap = GG.EpimorphismSchurCover(G_gap)::GAP.GapObj
-  H_gap = GG.Source(f_gap)::GAP.GapObj
+  f_gap = GG.EpimorphismSchurCover(G_gap)::GapObj
+  H_gap = GG.Source(f_gap)::GapObj
   n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
-    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   else
-    fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.IsomorphismPermGroup(H_gap)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   end
   E = Oscar._oscar_group(E_gap)
   H = Oscar._oscar_group(H_gap)

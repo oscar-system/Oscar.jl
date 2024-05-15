@@ -706,7 +706,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      # `T == PcGroup`, hence we cannot call `abelian_group(T, exponents)`.)
      if T == PcGroup
        if 0 in exponents
-         GapG = GAP.Globals.AbelianPcpGroup(length(exponents), GAP.GapObj(exponents, recursive=true))
+         GapG = GAP.Globals.AbelianPcpGroup(length(exponents), GapObj(exponents, recursive=true))
        else
          GapG = GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(exponents, recursive=true))
        end

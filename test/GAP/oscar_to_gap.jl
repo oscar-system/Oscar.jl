@@ -124,9 +124,9 @@ end
     # create sort duplicate free list (this is how GAP represents sets)
     l = sort(unique(coll))
 
-    x = GAP.GapObj(s)
-    @test x == GAP.GapObj(l)
+    x = GapObj(s)
+    @test x == GapObj(l)
 
-    x = GAP.GapObj(s; recursive=true)
-    @test x == GAP.GapObj(l; recursive=true)
+    x = GapObj(s; recursive=true)
+    @test x == GapObj(l; recursive=true)
 end

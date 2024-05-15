@@ -64,7 +64,7 @@ Permutation group of degree 5 and order 60
 function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
-  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GAP.GapObj}(l))
+  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GapObj}(l))
   @req (pos !== nothing) "no Atlas group for $info"
   G = GAP.Globals.AtlasGroup(l[pos])
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"

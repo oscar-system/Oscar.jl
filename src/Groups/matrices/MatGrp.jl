@@ -152,7 +152,7 @@ group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 # Compute and store the component `G.X` if this is possible.
 function assign_from_description(G::MatrixGroup)
    F = codomain(_ring_iso(G))
-   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GAP.GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
+   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
    if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
    elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
@@ -249,7 +249,7 @@ function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
       if isdefined(G,:descr)
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         V = GAP.GapObj([g.X for g in gens(G)])
+         V = GapObj([g.X for g in gens(G)])
          G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
       else
          error("Cannot determine underlying GAP object")
