@@ -542,6 +542,10 @@ For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` o
 strict transform of ``C`` on ``Y``.
 """
 function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
+  return strict_transform_with_multiplicity(p,C)[1]
+end
+
+function strict_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
   X = scheme(C)
   Y = domain(p)
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
@@ -597,7 +601,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
 
   ## we are good to go now
   C_strict = EffectiveCartierDivisor(Y, ID, check=false)
-  return C_strict
+  return C_strict,multEInC
 end
 
 function strict_transform(p::AbsSimpleBlowdownMorphism, C::CartierDivisor)
@@ -862,16 +866,17 @@ end
   # fields for caching, may be filled during computation
   ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
                                                  # lives in domain(maps[end])
+  control::Int                                   # value of control for controlled transform
   ex_mult::Vector{Int}                           # multiplicities of exceptional divisors removed from
-                                                 # controlled or weak transform, not set for is_embedded == false
-                                                 # and transform_type == strict
-  controlled_transform::AbsIdealSheaf               # holds weak or controlled transform according to transform_type
+                                                 # total transform, not set for is_embedded == false
+                                                 # or transform_type == strict
+  controlled_transform::AbsIdealSheaf            # holds weak or controlled transform according to transform_type
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
   exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
   exceptional_locus::WeilDivisor                 # exceptional locus of composed map
-  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+  exceptional_divisor_on_X::CartierDivisor          # exceptional divisor of composed_map
                                                  # restricted to domain(embeddings[end])
 
   function BlowUpSequence(maps::Vector{<:BlowupMorphism})
