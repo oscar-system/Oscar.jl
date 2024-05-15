@@ -565,5 +565,12 @@ end
         end
     @test f == normal_form(f, I, ordering = invlex(T))
     @test default_ordering(T) == old_default
+
+    # Make sure the ordering is reset in case of an error
+    # The `@test_throws` is just here to catch the error
+    @test_throws ErrorException with_ordering(T, invlex(T)) do
+      error()
+    end
+    @test default_ordering(T) == old_default
   end
 end

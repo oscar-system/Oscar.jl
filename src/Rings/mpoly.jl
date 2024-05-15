@@ -120,8 +120,11 @@ z^2 + z
 function with_ordering(f, R::MPolyRing, o::MonomialOrdering)
   old = default_ordering(R)
   set_default_ordering!(R, o)
-  x = f()
-  set_default_ordering!(R, old)
+  x = try
+    f()
+  finally
+    set_default_ordering!(R, old)
+  end
   return x
 end
 
