@@ -145,34 +145,34 @@ struct Partitions{T<:IntegerUnion}
 
 end
 
-# Iterator type: partitions of n into m parts, with optional lower/upper bounds on the parts
+# Iterator type: partitions of n into k parts, with optional lower/upper bounds on the parts
 # If distinct_parts == true, then all parts have distinct values.
 struct PartitionsFixedNumParts{T<:IntegerUnion}
   n::T
-  m::Int
+  k::Int
 
   lb::T
   ub::T
   distinct_parts::Bool
 
-  function PartitionsFixedNumParts(n::T, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion, only_distinct_parts::Bool) where T<:IntegerUnion
+  function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion, only_distinct_parts::Bool) where T<:IntegerUnion
     @req n >= 0 "n >= 0 required"
-    @req m >= 0 "m >= 0 required"
+    @req k >= 0 "k >= 0 required"
     @req lb >= 0 "lb >=0 required"
     if lb == 0
       lb = 1
     end
-    return new{T}(n, convert(T, m), T(lb), T(ub), only_distinct_parts)
+    return new{T}(n, convert(T, k), T(lb), T(ub), only_distinct_parts)
   end
 
 end
 
-function PartitionsFixedNumParts(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
-  return PartitionsFixedNumParts(n, m, 1, n, only_distinct_parts)
+function PartitionsFixedNumParts(n::T, k::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, k, 1, n, only_distinct_parts)
 end
 
-function PartitionsFixedNumParts(n::T, m::IntegerUnion, lb::IntegerUnion, lb::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
-  return PartitionsFixedNumParts(n, m, lb, l2, only_distinct_parts)
+function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, lb::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, k, lb, l2, only_distinct_parts)
 end
 
 

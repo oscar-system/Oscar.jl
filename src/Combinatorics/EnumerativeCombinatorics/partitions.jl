@@ -149,14 +149,14 @@ function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
   if is_terse(io)
     print(io, "Iterator")
   else
-    print(io, "Iterator over the partitions of $(base(P)) into $(P.m) parts")
+    print(io, "Iterator over the partitions of $(base(P)) into $(P.k) parts")
   end
 end
 
 # NOTE this will not be accurate in many cases,
 # in particular if upper/lower bounds are given,
 # or if `only_distinct_parts == true`.
-# Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.m))
+# Base.length(P::PartitionsFixedNumParts) = BigInt(number_of_partitions(P.n, P.k))
 Base.IteratorSize(::Type{PartitionsFixedNumParts{T}}) where T = Base.SizeUnknown()
 ################################################################################
 #
@@ -278,36 +278,36 @@ end
 ################################################################################
 
 @doc raw"""
-    number_of_partitions(n::IntegerUnion, m::IntegerUnion)
+    number_of_partitions(n::IntegerUnion, k::IntegerUnion)
 
 Return the number of integer partitions of the non-negative integer `n` into
-`m >= 0` parts.
-If `n < 0` or `m < 0`, return `0`.
+`k >= 0` parts.
+If `n < 0` or `k < 0`, return `0`.
 """
-function number_of_partitions(n::IntegerUnion, m::IntegerUnion)
-  if n < 0 || m < 0
+function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
+  if n < 0 || k < 0
     return ZZ(0)
   end
 
   n = ZZ(n)
-  m = ZZ(m)
+  k = ZZ(k)
 
   # Special cases
-  if n == m
+  if n == k
     return ZZ(1)
-  elseif n < m || m == 0
+  elseif n < k || k == 0
     return ZZ(0)
-  elseif m == 1
+  elseif k == 1
     return ZZ(1)
 
   # See https://oeis.org/A008284
-elseif n < 2*m
-    return number_of_partitions(n - m) #n - m >= 0 holds since the case n<k was already handled
+elseif n < 2*k
+    return number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
 
   # See https://oeis.org/A008284
-elseif n <= 2 + 3*m
-    p = number_of_partitions(n - m) #n - m >= 0 holds since the case n<k was already handled
-    for i = 0:Int(n) - 2*Int(m) - 1
+elseif n <= 2 + 3*k
+    p = number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
+    for i = 0:Int(n) - 2*Int(k) - 1
       p = p - number_of_partitions(ZZ(i))
     end
     return p
@@ -318,24 +318,24 @@ elseif n <= 2 + 3*m
   # way without recursion.
   else
     n = Int(n)
-    m = Int(m)
+    k = Int(k)
     p = fill( ZZ(1), n )
-    for l = 2:m
-      for m = l + 1:n - l + 1
-        p[m] = p[m] + p[m - l]
+    for l = 2:k
+      for k = l + 1:n - l + 1
+        p[k] = p[k] + p[k - l]
       end
     end
-    return p[n - m + 1]
+    return p[n - k + 1]
   end
 
 end
 
 @doc raw"""
-    partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
-    partitions(n::IntegerUnion, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(n::IntegerUnion, k::IntegerUnion; only_distinct_parts::Bool = false)
+    partitions(n::IntegerUnion, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
 
 Return an iterator over all partitions of a non-negative integer `n` into
-`m >= 0` parts. Optionally, a lower bound `lb >= 0` and an upper bound `ub` for
+`k >= 0` parts. Optionally, a lower bound `lb >= 0` and an upper bound `ub` for
 the parts can be supplied. In this case, the partitions are produced in
 *decreasing* order.
 
@@ -370,54 +370,54 @@ julia> collect(partitions(7, 3, 1, 4; only_distinct_parts = true))
  [4, 2, 1]
 ```
 """
-function partitions(n::IntegerUnion, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
-  return PartitionsFixedNumParts(n, m, lb, ub; only_distinct_parts = only_distinct_parts)
+function partitions(n::IntegerUnion, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, k, lb, ub; only_distinct_parts = only_distinct_parts)
 end
 
-function partitions(n::IntegerUnion, m::IntegerUnion; only_distinct_parts::Bool = false)
-  return PartitionsFixedNumParts(n, m; only_distinct_parts = only_distinct_parts)
+function partitions(n::IntegerUnion, k::IntegerUnion; only_distinct_parts::Bool = false)
+  return PartitionsFixedNumParts(n, k; only_distinct_parts = only_distinct_parts)
 end
 
 
 function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   n = P.n
-  m = P.m
+  k = P.k
   lb = P.lb
   ub = P.ub
   only_distinct_parts = P.distinct_parts
 
   # TODO : fix the states returned once we know what those will look like
-  if n == 0 && m == 0
+  if n == 0 && k == 0
     return partition(T[], check=false), (T[], T[], 0, 0, 1, false)
   end
 
   # This iterator should be empty
-  if m == 0 || m > n || ub < lb
+  if k == 0 || k > n || ub < lb
     return nothing
   end
 
-  if n == m && lb == 1
-    only_distinct_parts && m > 1 && return nothing
+  if n == k && lb == 1
+    only_distinct_parts && k > 1 && return nothing
     return partition(T[1 for i in 1:n], check=false), (T[], T[], 0, 0, 1, false)
   end
 
-  if m == 1 && lb <= n <= ub
+  if k == 1 && lb <= n <= ub
     return partition(T[n], check=false), (T[], T[], 0, 0, 1, false)
   end
 
-  x = zeros(T,m)
-  y = zeros(T,m)
-  jj = only_distinct_parts*m*(m-1)
-  N = n - m*lb - div(jj,2)
+  x = zeros(T,k)
+  y = zeros(T,k)
+  jj = only_distinct_parts*k*(k-1)
+  N = n - k*lb - div(jj,2)
   L2 = ub-lb
-  0 <= N <= m*L2 - jj || return nothing
+  0 <= N <= k*L2 - jj || return nothing
 
-  for i in 1:m
-    y[i] = x[i] = lb + only_distinct_parts*(m-i)
+  for i in 1:k
+    y[i] = x[i] = lb + only_distinct_parts*(k-i)
   end
 
   i = 1
-  L2 = L2 - only_distinct_parts*(m-1)
+  L2 = L2 - only_distinct_parts*(k-1)
 
   while N > L2
     N -= L2
@@ -425,22 +425,22 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
     i += 1
   end
   x[i] = y[i] + N
-  return partition(x[1:m], check = false), (x, y, N, L2, i, true)
+  return partition(x[1:k], check = false), (x, y, N, L2, i, true)
 end
 
 function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
-  m = P.m
+  k = P.k
   x, y, N, L2, i, flag = state
 
   N == 0 && return nothing
 
   if flag
-    if i < m && N > 1
+    if i < k && N > 1
       N = 1
       x[i] = x[i] - 1
       i += 1
       x[i] = y[i] + 1
-      return partition(x[1:m], check = false), (x,y,N,L2,i,false)
+      return partition(x[1:k], check = false), (x,y,N,L2,i,false)
     end
   end
 
@@ -448,7 +448,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
   for j in i - 1:-1:1
     L2 = x[j] - y[j] - 1
     N = N + 1
-    if N <= (m-j)*L2
+    if N <= (k-j)*L2
       x[j] = y[j] + L2
       lcycle = true
       break
@@ -465,11 +465,11 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
     i += 1
   end
   x[i] = y[i] + N
-  return partition(x[1:m], check = false), (x,y,N,L2,i,true)
+  return partition(x[1:k], check = false), (x,y,N,L2,i,true)
 end
 
 
-# function partitions(n::T, m::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+# function partitions(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 #   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
 #
 #   # Note that the algorithm is given as partitioning m into n parts,
@@ -477,11 +477,11 @@ end
 #
 #   #Argument checking
 #   @req n >= 0 "n >= 0 required"
-#   @req m >= 0 "m >= 0 required"
+#   @req k >= 0 "k >= 0 required"
 #   @req lb >= 0 "lb >= 0 required"
 #
 #   # Use type of n
-#   m = convert(T, m)
+#   k = convert(T, k)
 #
 #   # If lb == 0 the algorithm parta will actually create lists containing the
 #   # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
@@ -491,11 +491,11 @@ end
 #   end
 #
 #   # Some trivial cases
-#   if n == 0 && m == 0
+#   if n == 0 && k == 0
 #     return (p for p in Partition{T}[ partition(T[], check = false) ])
 #   end
 #
-#   if m == 0 || m > n
+#   if k == 0 || k > n
 #     return (p for p in Partition{T}[])
 #   end
 #
@@ -507,19 +507,19 @@ end
 #
 #   #Algorithm starts here
 #   P = Partition{T}[]    #this will be the array of all partitions
-#   x = zeros(T, m)
-#   y = zeros(T, m)
-#   j = only_distinct_parts*m*(m - 1)
-#   n = n - m*lb - div(j, 2)
+#   x = zeros(T, k)
+#   y = zeros(T, k)
+#   j = only_distinct_parts*k*(k - 1)
+#   n = n - k*lb - div(j, 2)
 #   ub = ub - lb
-#   if 0 <= n <= m*ub - j
+#   if 0 <= n <= k*ub - j
 #
-#     for i = 1:m
-#       y[i] = x[i] = lb + only_distinct_parts*(m - i)
+#     for i = 1:k
+#       y[i] = x[i] = lb + only_distinct_parts*(k - i)
 #     end
 #
 #     i = 1
-#     ub = ub - only_distinct_parts*(m - 1)
+#     ub = ub - only_distinct_parts*(k - 1)
 #
 #     while true
 #       while n > ub
@@ -529,21 +529,21 @@ end
 #       end
 #
 #       x[i] = y[i] + n
-#       push!(P, partition(x[1:m], check = false))
+#       push!(P, partition(x[1:k], check = false))
 #
-#       if i < m && n > 1
+#       if i < k && n > 1
 #         n = 1
 #         x[i] = x[i] - 1
 #         i += 1
 #         x[i] = y[i] + 1
-#         push!(P, partition(x[1:m], check = false))
+#         push!(P, partition(x[1:k], check = false))
 #       end
 #
 #       lcycle = false
 #       for j = i - 1:-1:1
 #         ub = x[j] - y[j] - 1
 #         n = n + 1
-#         if n <= (m - j)*ub
+#         if n <= (k - j)*ub
 #           x[j] = y[j] + ub
 #           lcycle = true
 #           break
@@ -562,27 +562,27 @@ end
 #   return (p for p in P)
 # end
 #
-# function partitions(n::T, m::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
+# function partitions(n::T, k::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
 #   @req n >= 0 "n >= 0 required"
-#   @req m >= 0 "m >= 0 required"
+#   @req k >= 0 "k >= 0 required"
 #
 #   # Special cases
-#   if n == m
+#   if n == k
 #     return (p for p in [ partition(T[ 1 for i in 1:n], check = false) ])
-#   elseif n < m || m == 0
+#   elseif n < k || k == 0
 #     return (p for p in Partition{T}[])
-#   elseif m == 1
+#   elseif k == 1
 #     return (p for p in [ partition(T[n], check = false) ])
 #   end
 #
-#   return (p for p in partitions(n, m, 1, n; only_distinct_parts = only_distinct_parts))
+#   return (p for p in partitions(n, k, 1, n; only_distinct_parts = only_distinct_parts))
 # end
 
 
 @doc raw"""
     partitions(n::T, v::Vector{T}) where T <: IntegerUnion
     partitions(n::T, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
-    partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
+    partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{<:IntegerUnion}) where T <: IntegerUnion
 
 Return an iterator over all partitions of a non-negative integer `n` where each
 part is an element in the vector `v` of positive integers.
@@ -591,7 +591,7 @@ It is assumed that the entries in `v` are strictly increasing.
 If the optional vector `mu` is supplied, then each `v[i]` occurs a maximum of
 `mu[i] > 0` times per partition.
 
-If the optional integer `m >= 0` is supplied, the partitions will be into `m`
+If the optional integer `k >= 0` is supplied, the partitions will be into `k`
 parts. In this case, the partitions are produced in lexicographically *decreasing*
 order.
 
@@ -642,14 +642,14 @@ function partitions(n::T, v::Vector{T}) where T <: IntegerUnion
   # We will loop over the number of parts.
   # We first determine the minimal and maximal number of parts.
   r = length(v)
-  mmin = div(n, v[r])
-  mmax = div(n, v[1])
+  kmin = div(n, v[r])
+  kmax = div(n, v[1])
 
-  # Set the maximum multiplicity (equal to mmax above)
-  mu = [ mmax for i in 1:r ]
+  # Set the maximum multiplicity (equal to kmax above)
+  mu = [ kmax for i in 1:r ]
 
-  for m = mmin:mmax
-    append!(res, partitions(n, m, v, mu))
+  for k = kmin:kmax
+    append!(res, partitions(n, k, v, mu))
   end
 
   return (p for p in res)
@@ -685,41 +685,41 @@ function partitions(n::T, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion,
   # We first determine the minimal and maximal number of parts.
   r = length(v)
 
-  mmax = 0
+  kmax = 0
   cursum = 0
   for i in 1:r, j in 1:mu[i]
-    mmax += 1
+    kmax += 1
     cursum += v[i]
     if cursum >= n
       break
     end
   end
 
-  mmin = 0
+  kmin = 0
   cursum = 0
   for i in r:-1:1, j in 1:mu[i]
-    mmin += 1
+    kmin += 1
     cursum += v[i]
     if cursum >= n
       break
     end
   end
 
-  for m = mmin:mmax
-    append!(res, partitions(n, m, v, mu))
+  for k = kmin:kmax
+    append!(res, partitions(n, k, v, mu))
   end
 
   return (p for p in res)
 end
 
 
-function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
+function partitions(n::T, k::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T <: IntegerUnion, S <: IntegerUnion}
   # Algorithm "partb" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
   # The algorithm as published in the paper has several issues and we hope to have fixed
   # them all, see below for details. Some initial fixing was done by T. Schmit.
 
   @req n >= 0 "n >= 0 required"
-  @req m >= 0 "m >= 0 required"
+  @req k >= 0 "k >= 0 required"
   @req length(mu) == length(v) "mu and v should have the same length"
 
   # Algorithm partb assumes that v is strictly increasing.
@@ -733,7 +733,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   @req all(>(0), mu) "Entries of mu must be positive"
 
   # Special cases
-  if m == 0
+  if k == 0
     # TODO: I don't understand this distinction here
     # (it also makes the function tabe instable)
     if n == 0
@@ -764,9 +764,9 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   j = 1
   k = mu[1]
   ll = v[1]
-  x = zeros(T, m)
-  y = zeros(T, m)
-  ii = zeros(T, m)
+  x = zeros(T, k)
+  y = zeros(T, k)
+  ii = zeros(T, k)
 
   # The algorithm has three goto labels b1, b2, b3.
   # b3 terminates the algorithm.
@@ -779,7 +779,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   # This fills the array x from right with the values from v from the left
   # (the smallest) up to their specified multiplicity.
   # If this is larger than n, there cannot be a partition.
-  for i = m:-1:1
+  for i = k:-1:1
     x[i] = ll
     y[i] = ll
     k = k - 1
@@ -807,7 +807,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
   ll = v[1]
 
   # This is a necessary condition for existence of a partition
-  if n < 0 || n > m * (lr - ll)
+  if n < 0 || n > k * (lr - ll)
     return (p for p in P) #goto b3
   end
 
@@ -836,7 +836,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
         end
         x[i] = lr
         ii[i] = r - 1
-        if i == m # Added, otherwise get out of bounds
+        if i == k # Added, otherwise get out of bounds
           break
         end
         i = i + 1
@@ -863,7 +863,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       lr = v[r]
       if n == lr
         x[i] = lr
-        if i <= m # Added, otherwise get out of bounds
+        if i <= k # Added, otherwise get out of bounds
           push!(P, partition(copy(x), check = false)) #need copy here!
         else
           break
@@ -885,7 +885,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
       # But when we replace lr > k by lr >= k, everything works.
       # Finding this was a wild guess!
       # Found on Mar 27, 2023.
-      if lr >= k && n - lr <= (m - i)*(lr - ll)
+      if lr >= k && n - lr <= (k - i)*(lr - ll)
         gotob2 = false
         continue
       else
@@ -897,7 +897,7 @@ function partitions(n::T, m::IntegerUnion, v::Vector{T}, mu::Vector{S}) where {T
         lr = v[r]
         n = n + x[i] - k
         k = y[i]
-        if lr >= k && n - lr <= (m - i)*(lr - ll) # >= here as well (probably...)
+        if lr >= k && n - lr <= (k - i)*(lr - ll) # >= here as well (probably...)
           gotob2 = false
           break
         else
