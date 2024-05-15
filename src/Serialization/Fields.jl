@@ -1,4 +1,3 @@
-
 ################################################################################
 # Utility functions for parent tree
 function get_parents(parent_ring::Field)
@@ -40,7 +39,7 @@ function get_parents(parent_ring::T) where T <: Union{FracField,
   if !serialize_with_id(parent_ring)
     return RingMatSpaceUnion[]
   end
-  
+
   base = base_ring(parent_ring)
   parents = get_parents(base)
   push!(parents, parent_ring)
@@ -122,7 +121,7 @@ end
 @register_serialization_type AbsSimpleNumField uses_id
 
 function save_object(s::SerializerState, K::SimpleNumField)
-  save_data_dict(s) do 
+  save_data_dict(s) do
     save_typed_object(s, defining_polynomial(K), :def_pol)
     save_object(s, var(K), :var)
   end
@@ -176,7 +175,7 @@ function load_object(s::DeserializerState, ::Type{<: NumFieldElemTypeUnion},
   polynomial = load_node(s) do _
     load_object(s, PolyRingElem, parents[1:end - 1])
   end
-  
+
   K = parents[end]
   loaded_terms = evaluate(polynomial, gen(K))
   return K(loaded_terms)
@@ -212,7 +211,7 @@ end
 # elements
 function save_object(s::SerializerState, k::FqFieldElem)
   K = parent(k)
-  
+
   if absolute_degree(K) == 1
     save_object(s, lift(ZZ, k))
   else
@@ -294,7 +293,7 @@ end
 @register_serialization_type FracField uses_id
 
 function save_object(s::SerializerState, K::FracField)
-  save_data_dict(s) do 
+  save_data_dict(s) do
     save_typed_object(s, base_ring(K), :base_ring)
   end
 end
@@ -380,7 +379,7 @@ function load_object(s::DeserializerState,
     loaded_num = load_node(s, 1) do _
       load_object(s, coeff_type, parents[1:end - 1])
     end
-    
+
     loaded_den = load_node(s, 2) do _
       load_object(s, coeff_type, parents[1:end - 1])
     end
@@ -406,7 +405,7 @@ end
 function save_object(s::SerializerState, r::ArbFieldElem)
   c_str = ccall((:arb_dump_str, Nemo.libflint), Ptr{UInt8}, (Ref{ArbFieldElem},), r)
   save_object(s, unsafe_string(c_str))
-  
+
   # free memory
   ccall((:flint_free, Nemo.libflint), Nothing, (Ptr{UInt8},), c_str)
 end
@@ -545,7 +544,7 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
   roots_min_q = roots(QQBarField(), min_poly_q)
   precision = 30
   approximation = undef
-  
+
   while(!is_unique)
     CC = AcbField(precision)
     approximation = CC(q)
@@ -556,7 +555,7 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
       precision += 1
     end
   end
-  
+
   save_data_dict(s) do
     save_object(s, min_poly_q, :minpoly)
     save_object(s, approximation, :acb )
