@@ -777,7 +777,8 @@ function produce_object_on_affine_chart(II::PushforwardIdealSheaf, U::AbsAffineS
   f = morphism(II)
   phi = covering_morphism(f)
   g = maps_with_given_codomain(phi, U)
-  @assert length(g) == 1
+  @assert length(g) <= 1
+  is_empty(g) && return ideal(OO(U), one(OO(U))) # the domain scheme is not visible in this chart
   inc = first(g)
   return pushforward(inc, original_ideal_sheaf(II)(domain(inc)))
 end
