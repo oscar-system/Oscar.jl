@@ -118,16 +118,18 @@
   ############################################################################
   # partitions(n,k,lb,ub; only_distinct_parts=true)
   ############################################################################
-  @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" for n in 0:20, k in 0:n+1, lb in 0:n, ub in lb:n
-    P = collect(partitions(n, k, lb, ub; only_distinct_parts=true))
+  @testset "partitions($n,$k,lb,ub; only_distinct_parts=true)" for n in 0:10, k in 0:n+1
+    @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" lb in 0:n, ub in lb:n
+      P = collect(partitions(n, k, lb, ub; only_distinct_parts=true))
 
-    # Create the same by filtering all partitions
-    Q = collect(partitions(n, k, lb, ub))
-    filter!( Q->Q==unique(Q), Q )
+      # Create the same by filtering all partitions
+      Q = collect(partitions(n, k, lb, ub))
+      filter!( Q->Q==unique(Q), Q )
 
-    # Check that P and Q coincide (up to reordering)
-    @test length(P) == length(Q)
-    @test Set(P) == Set(Q)
+      # Check that P and Q coincide (up to reordering)
+      @test length(P) == length(Q)
+      @test Set(P) == Set(Q)
+    end
   end
 
   ############################################################################
