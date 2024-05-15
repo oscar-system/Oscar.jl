@@ -151,7 +151,7 @@ function underlying_morphism(phi::AbsDesingMor)
 end
 
 @doc raw"""
-    exceptional_divisor(f::AbsBlowUpSequence)
+    exceptional_divisor(f::AbsBlowUpSequence)   --> CartierDivisor
 
 Return a `CartierDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
@@ -170,30 +170,7 @@ julia> X = subscheme(IS);
 
 julia> U = first(affine_charts(X));
 
-julia> phi = desingularization_only_blowups(X)
-Covered scheme morphism
-  from scheme over QQ covered with 3 patches
-    1a: [(v1_1//v1_0), (s1//s0), x1, x2]   scheme(x1^2 - x2^5, -(s1//s0)*x2 + x1, -(s1//s0)*x1 + x2^4, -(s1//s0)^2 + x2^3, -
-    (v1_1//v1_0)*x2 + (s1//s0), (v1_1//v1_0)*x2^2 - x1, -(v1_1//v1_0)*(s1//s0) + x2^2, -(v1_1//v1_0)^2 + x2, (v1_1//v1_0)*(s
-    1//s0)^2 - x1*x2, (v1_1//v1_0)^2*(s1//s0) - x1, -(v1_1//v1_0)^3*x2 + x1)
-    2a: [(v1_0//v1_1), (s1//s0), x1, x2]   scheme(x1^2 - x2^5, -(s1//s0)*x2 + x1, -(s1//s0)*x1 + x2^4, -(s1//s0)^2 + x2^3, (
-    v1_0//v1_1)*(s1//s0) - x2, -(v1_0//v1_1)*x1 + x2^2, (v1_0//v1_1)*x2^2 - (s1//s0), (v1_0//v1_1)^2*x2 - 1, -(v1_0//v1_1)*x
-    1*x2 + (s1//s0)^2, -(v1_0//v1_1)^2*x1 + (s1//s0), (v1_0//v1_1)^3*x1 - x2)
-    3a: [(s0//s1), x1, x2]                 scheme(x1^2 - x2^5, (s0//s1)*x1 - x2, (s0//s1)*x2^4 - x1, (s0//s1)^2*x2^3 - 1)
-  to scheme over QQ covered with 1 patch
-    1b: [x1, x2]   scheme(x1^2 - x2^5)
-given by the pullback functions
-  1a -> 1b
-    x1 -> x1
-    x2 -> x2
-    ----------------------------------------
-  2a -> 1b
-    x1 -> x1
-    x2 -> x2
-    ----------------------------------------
-  3a -> 1b
-    x1 -> x1
-    x2 -> x2
+julia> phi = desingularization_only_blowups(X);
 
 julia> exceptional_divisor(phi)
 Cartier divisor
@@ -208,6 +185,37 @@ function exceptional_divisor(f::BlowUpSequence)
   return _exceptional_divisor_non_embedded(f)
 end
 
+@doc raw"""
+    exceptional_locus(f::AbsBlowUpSequence)
+
+Return a `WeilDivisor` on the `domain` of `f` which is the
+exceptional divisor of the sequence of blow-ups `f`.
+
+# Example
+```jldoctest
+julia> R,(x,y) = polynomial_ring(QQ,2);
+
+julia> I=ideal(R,[x^2-y^5]);
+
+julia> W = AffineScheme(R);
+
+julia> IS = IdealSheaf(W,I);
+
+julia> X = subscheme(IS);
+
+julia> U = first(affine_charts(X));
+
+julia> phi = desingularization_only_blowups(X);
+
+julia> exceptional_locus(phi)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  1 * sheaf of ideals
+
+```
+"""
 function exceptional_locus(phi::BlowUpSequence)
   if !isdefined(phi, :exceptional_locus)
     phi.exceptional_locus = weil_divisor(exceptional_divisor(phi))
@@ -215,9 +223,15 @@ function exceptional_locus(phi::BlowUpSequence)
   return phi.exceptional_locus
 end
 
-@attr CartierDivisor function exceptional_divisor_with_multiplicities(f::BlowUpSequence)
-  is_embedded || error("only available for embedded desingularization")
-  phi.transform_type != :strict || error("only available for weak and controlled transforms")
+@doc raw"""
+    exceptional_divisor_with_multiplicities(f::BlowUpSequence) --> CartierDivisor
+
+Return a `CartierDivisor` `C` on the `domain` of the emmbedded desingularization morphism `f` 
+which is the exceptional divisor of the sequence of blow-ups `f` in the ambient scheme.
+"""
+function exceptional_divisor_with_multiplicities(f::BlowUpSequence)
+  f.is_embedded || error("only available for embedded desingularization")
+  f.transform_type != :strict || error("only available for weak and controlled transforms")
 
   ex_div_list = exceptional_divisor_list(f)
   C = sum(f.ex_mult[i] * cartier_divisor(ex_div_list[i]) for i in 1:length(ex_div_list))
@@ -435,7 +449,12 @@ function mixed_blow_up_sequence(f::BlowUpSequence)
   phi.is_trivial = f.is_trivial
   phi.ex_div = [ideal_sheaf(E) for E in f.ex_div]
   phi.normalization_steps = Vector{Int}[]
-## how can I inherit f.composed_map and f.exceptional_divisor, if they are set?
+  if isdefined(f, :underlying_morphism)
+    phi.underlying_morphism = f.underlying_morphism
+  end
+  if isdefined(f, :exceptional_divisor)
+    phi.exceptional_divisor = f.exceptional_divisor
+  end
   return phi
 end
 
