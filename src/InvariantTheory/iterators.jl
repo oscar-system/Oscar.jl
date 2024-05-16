@@ -124,7 +124,7 @@ function dimension_via_molien_series(
 end
 
 @doc raw"""
-     iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.

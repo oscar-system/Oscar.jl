@@ -190,10 +190,10 @@ function restriction_map(F::PreSheafOnScheme{<:Any, OpenType, OutputType, Restri
 end
 
 @doc raw"""
-  add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType},
-    U::OpenType,
-    rho::RestrictionType
-  ) where {OpenType, RestrictionType}
+    add_incoming_restriction!(F::AbsPreSheaf{<:Any, OpenType, <:Any, RestrictionType},
+      U::OpenType,
+      rho::RestrictionType
+    ) where {OpenType, RestrictionType}
 
 **Note:** This is a method for internal use!
 

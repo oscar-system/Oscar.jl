@@ -2142,7 +2142,7 @@ function rand_normal_polytope(d::Int, n::Int; seed=nothing, precision=nothing)
 end
 
 @doc raw"""
-   rss_associahedron(n::Int)
+    rss_associahedron(n::Int)
 
 Produce a polytope of constrained expansions in ambient dimension `n` according to [RSS03](@cite).
 

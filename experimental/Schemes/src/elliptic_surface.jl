@@ -1407,7 +1407,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-  elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
+    elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem}) -> LinearSystem
 
 Return the elliptic parameter ``u`` of the divisor class `F`. 
 
@@ -1445,7 +1445,7 @@ end
 
 
 @doc raw"""
-  extended_ade(ADE::Symbol, n::Int)
+    extended_ade(ADE::Symbol, n::Int)
 
 Return the dual intersection matrix of an extended ade Dynkin diagram
 as well as the isotropic vector (with positive coefficients in the roots).

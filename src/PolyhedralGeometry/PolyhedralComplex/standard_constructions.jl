@@ -45,7 +45,7 @@ function common_refinement(
 end
 
 @doc raw"""
-     k_skeleton(PC::PolyhedralComplex,k::Int)
+    k_skeleton(PC::PolyhedralComplex,k::Int)
 
 Return the k-skeleton of a polyhedral complex.
 

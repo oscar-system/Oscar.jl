@@ -1,7 +1,7 @@
 import Polymake: IncidenceMatrix
 
 @doc raw"""
-     IncidenceMatrix
+    IncidenceMatrix
 
 A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
 
@@ -34,7 +34,7 @@ number_of_rows(A::Polymake.Matrix) = Polymake.nrows(A)
 number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 
 @doc raw"""
-     row(i::IncidenceMatrix, n::Int)
+    row(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
@@ -56,7 +56,7 @@ Set{Int64} with 3 elements:
 row(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
 
 @doc raw"""
-     column(i::IncidenceMatrix, n::Int)
+    column(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 

@@ -75,7 +75,7 @@ QuadSpaceWithIsom
 ambient_space(Lf::ZZLatWithIsom) = Lf.Vf
 
 @doc raw"""
-   ambient_isometry(Lf::ZZLatWithIsom) -> QQMatrix
+    ambient_isometry(Lf::ZZLatWithIsom) -> QQMatrix
 
 Given a lattice with isometry $(L, f)$, return an isometry of the ambient
 space of $L$ inducing $f$ on $L$.

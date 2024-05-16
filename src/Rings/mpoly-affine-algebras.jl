@@ -401,7 +401,7 @@ function hilbert_function(A::MPolyQuoRing, d::Int)
 end
 
 @doc raw"""
-     hilbert_polynomial(A::MPolyQuoRing)
+    hilbert_polynomial(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the grading
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring $R$,
@@ -955,7 +955,7 @@ function is_normal(A::MPolyQuoRing; check::Bool=true)
 end
 
 @doc raw"""
-     is_cohen_macaulay(A::MPolyQuoRing)
+    is_cohen_macaulay(A::MPolyQuoRing)
 
 Given a $\mathbb Z$-graded affine algebra `A = R/I` over a field, say, `K`, where the grading
 is inherited from the standard $\mathbb Z$-grading on the polynomial ring `R`,
