@@ -14,7 +14,7 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
-import ..Oscar.AbstractAlgebra: pretty, Lowercase
+import ..Oscar: pretty, Lowercase
 
 import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
   elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
@@ -31,7 +31,7 @@ end
 
 function show(io::IO, A::AlgClosure)
   io = pretty(io)
-  print(io, "Algebraic Closure of ", Lowercase(), A.k)
+  print(io, "Algebraic closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k
