@@ -12,7 +12,7 @@ underlying_morphism(f::AbsProjectiveSchemeMorphism) = error("no underlying morph
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 @doc raw"""
-     pullback(phi::ProjectiveSchemeMor)
+    pullback(phi::ProjectiveSchemeMor)
 
 For a morphism `phi` of projective schemes, this returns the associated 
 morphism of graded affine algebras.
@@ -191,7 +191,7 @@ underlying_rational_map(f::AbsRationalMap) = error("no underlying rational map f
 domain(phi::RationalMap) = phi.domain
 codomain(phi::RationalMap) = phi.codomain
 @doc raw"""
-     pullback(phi::RationalMap)
+    pullback(phi::RationalMap)
 
 For a rational map `phi` of projective varieties, this returns the associated 
 morphism of graded affine algebras.
