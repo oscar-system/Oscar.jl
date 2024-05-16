@@ -341,7 +341,9 @@ end
 function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symbol, String, Int}, T}
   save_data_dict(s) do
     for (k, v) in obj
-      save_object(s, v, Symbol(k))
+      if !Base.issingletontype(typeof(v))
+        save_object(s, v, Symbol(k))
+      end
     end
   end
 end

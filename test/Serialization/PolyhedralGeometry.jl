@@ -35,7 +35,15 @@ using Oscar: _integer_variables
         @test dim(square) == dim(loaded)
         @test square == loaded
       end
-      
+
+      n2 = (QQBarField()(5))^(QQ(4//5))
+      c = cube(QQBarField(), 3, -1, n2)
+      test_save_load_roundtrip(path, square) do loaded
+        @test n_vertices(square) == n_vertices(loaded)
+        @test dim(square) == dim(loaded)
+        @test square == loaded
+      end
+
       d_hedron = dodecahedron()
       facets(d_hedron)
       vertices(d_hedron)
@@ -97,7 +105,7 @@ using Oscar: _integer_variables
         @test feasible_region(LP) == feasible_region(loaded)
       end
     end
-    
+
     @testset "MixedIntegerLinearProgram" begin
       P = cube(3)
       MILP = mixed_integer_linear_program(

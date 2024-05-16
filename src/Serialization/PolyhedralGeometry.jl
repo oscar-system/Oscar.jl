@@ -87,7 +87,7 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
-  save_data_dict(s) do 
+  save_data_dict(s) do
     save_object(s, lp.feasible_region, :feasible_region)
     save_object(s, lp.convention, :convention)
     save_json(s, jsonstr, :lpcoeffs)
@@ -133,7 +133,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQField
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField) 
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do coeffs
@@ -150,7 +150,7 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
       json(vars)
     )
   end
-  
+
   all = Polymake._lookup_multi(pm_object(fr), "MILP")
   index = 0
   for i in 1:length(all)
@@ -170,4 +170,3 @@ end
 @register_serialization_type Polyhedron uses_params
 @register_serialization_type PolyhedralFan uses_params
 @register_serialization_type SubdivisionOfPoints uses_params
-
