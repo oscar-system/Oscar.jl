@@ -166,7 +166,7 @@ function augmented_chow_ring(M::Matroid)
     var_names = vcat(element_var_names, flat_var_names)
     s = length(var_names)
 
-    ring, vars = polynomial_ring(QQ, var_names)
+    ring, vars = polynomial_ring(QQ, var_names; cached = false)
     element_vars = vars[1:n]
     flat_vars = vars[n+1:s]
 
