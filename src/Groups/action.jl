@@ -469,7 +469,7 @@ julia> S = automorphism_group(C)
 Aut( <pc group of size 20 with 3 generators> )
 
 julia> H, _ = sub(C, [gens(C)[1]^4])
-(Subgroup of pc group of order 5, Hom: H -> C)
+(Sub-pc group of order 5, Hom: H -> C)
 
 julia> all(g -> on_subgroups(H, g) == H, S)
 true
