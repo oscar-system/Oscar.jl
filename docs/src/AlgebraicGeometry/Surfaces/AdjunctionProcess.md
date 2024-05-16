@@ -11,7 +11,7 @@ curve with self-intersection number $E^{2}=-1$. We speak of  a *$(-1)$-curve*. A
 $(-1)$-curves. That is, the surface cannot be obtained by blowing up a point on another surface. A surface $X_{\text{min}}$
 is called a *minimal model* of a surface $X$ if $X_{\text{min}}$ is minimal and $X$ can be obtained from $X_{\text{min}}$
 by repeatedly blowing up a point. Each surface $X$ has a minimal model which is unique if $X$ has non-negative Kodaira dimension.
-The Enriques-Kodaira classification classifies surfaces according to their minimal models. See ... for more on this.
+The Enriques-Kodaira classification classifies surfaces according to their minimal models. See [BHPV-D-V04](@cite) for more on this.
 
 Given a surface, we may apply the *adjunction process* of Van de Ven and Sommese [SV-D-V87](@cite) to discover a minimal model.
 To describe this process, consider a surface $X \subset \mathbb P^{n}$ of codimension $c$. Let $S$ and $S_{X}$
