@@ -45,7 +45,7 @@
   I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
   J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
 
-  @test I+J == Oscar.one_ideal_sheaf(X)
+  @test I+J == Oscar.unit_ideal_sheaf(X)
   K = I*J
 end
 
