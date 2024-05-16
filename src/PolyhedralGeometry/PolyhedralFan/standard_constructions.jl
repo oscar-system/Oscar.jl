@@ -112,7 +112,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   end
   mc_old = maximal_cones(IncidenceMatrix, Sigma)
 
-  facet_normals = pm_object(Sigma).FACET_NORMALS
+  facet_normals = matrix(QQ, pm_object(Sigma).FACET_NORMALS)
   refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray)
   @req length(refinable_cones) > 0 "$new_ray not contained in support of fan."
   new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
@@ -137,12 +137,12 @@ function _get_refinable_facets(
   Sigma::_FanLikeType,
   new_ray::AbstractVector{<:IntegerUnion},
   refinable_cones::Vector{Int},
-  facet_normals::AbstractMatrix,
+  facet_normals::MatElem,
   mc_old::IncidenceMatrix,
 )
   new_cones = Vector{Int}[]
   v_facet_signs = _facet_signs(facet_normals, new_ray)
-  R = pm_object(Sigma).RAYS
+  R = rays(Sigma)
   hd = pm_object(Sigma).HASSE_DIAGRAM
   hd_graph = Graph{Directed}(hd.ADJACENCY)
   hd_maximal_cones = inneighbors(hd_graph, hd.TOP_NODE + 1)
@@ -168,11 +168,11 @@ end
 
 function _get_refinable_facets_of_cone(
   mc_hd_index::Int,
-  facet_normals::AbstractMatrix,
+  facet_normals::MatElem,
   hd,
   hd_graph::Graph{Directed},
   v_facet_signs::AbstractVector,
-  R::AbstractMatrix,
+  R::AbstractVector{<:RayVector},
   mcfi::Vector{Int},
 )
   refinable_facets = Vector{Int}[]
@@ -182,7 +182,7 @@ function _get_refinable_facets_of_cone(
   for fc_index in inneighbors(hd_graph, mc_hd_index)
     fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index - 1))
     length(fc_indices) > 0 || return refinable_facets # The only facet was 0
-    inner_ray = sum([R[i, :] for i in fc_indices])
+    inner_ray = sum([R[i] for i in fc_indices])
     fc_facet_signs = _facet_signs(facet_normals, inner_ray)
     if (!_check_containment_via_facet_signs(v_facet_signs[mcfi], fc_facet_signs[mcfi]))
       push!(refinable_facets, Vector{Int}(fc_indices))
@@ -191,11 +191,8 @@ function _get_refinable_facets_of_cone(
   return refinable_facets
 end
 
-# FIXME: Small workaround, since sign does not work for polymake types.
-_int_sign(e) = e > 0 ? 1 : (e < 0 ? -1 : 0)
-_facet_signs(F::AbstractMatrix, v::AbstractVector{<:IntegerUnion}) =
-  [_int_sign(e) for e in (F * Polymake.Vector{Polymake.Integer}(v))]
-_facet_signs(F::AbstractMatrix, v::AbstractVector) = [_int_sign(e) for e in (F * v)]
+_facet_signs(F::MatElem, v::AbstractVector) = sign.(Int, F * v)[:, 1]
+
 function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int})
   for a in zip(smaller, bigger)
     p = prod(a)
