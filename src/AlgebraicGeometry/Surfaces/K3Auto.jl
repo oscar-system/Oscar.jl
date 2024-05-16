@@ -1919,7 +1919,7 @@ function ample_class(S::ZZLat)
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = polynomial_ring(QQ,"x")
+  R,x = polynomial_ring(QQ,"x"; cached = false)
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)

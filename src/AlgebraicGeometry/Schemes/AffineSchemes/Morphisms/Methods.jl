@@ -295,7 +295,7 @@ function product(X::AbsAffineScheme{BRT, RT}, Y::AbsAffineScheme{BRT, RT};
   else
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
   end
-  KL, z = polynomial_ring(k, new_symb)
+  KL, z = polynomial_ring(k, new_symb; cached = false)
   XxY = spec(KL)
   pr1 = morphism(XxY, X, gens(KL)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(KL)[m+1:m+n], check=false)

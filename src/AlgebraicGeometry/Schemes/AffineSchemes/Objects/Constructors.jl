@@ -176,7 +176,7 @@ with coordinates [y1, y2, y3, y4, y5]
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached = false)
   return spec(R)
 end
 
@@ -197,17 +197,17 @@ with coordinates [y1, z2, a]
 ```
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, var_symbols)
+  R, _ = polynomial_ring(kk, var_symbols; cached = false)
   return variety(spec(R), check=false)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached = false)
   return variety(spec(R), check=false)
 end
 
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
-  R, _ = polynomial_ring(kk, var_symbols)
+  R, _ = polynomial_ring(kk, var_symbols; cached = false)
   return variety(spec(R), check=false)
 end
 

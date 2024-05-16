@@ -22,7 +22,7 @@ function _fromsingular_ring(R::Singular.PolyRing)
     else
         K = QQ
     end
-    newring, _ = polynomial_ring(K, symbols(R))
+    newring, _ = polynomial_ring(K, symbols(R); cached = false)
     return newring
 end
 
