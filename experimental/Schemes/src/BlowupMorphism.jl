@@ -947,8 +947,13 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   V = codomain(f_loc)
   IE_loc = IE(U)
   tot = pullback(f_loc)(J(V))
-  result, _ = saturation_with_index(tot, IE_loc)
-  return result
+  #return saturation_with_index(tot, IE_loc)
+  # It is usually better to pass to the simplified covering to do the computations
+  simp_cov = simplified_covering(X)
+  U_simp = first([V for V in patches(simp_cov) if original(V) === U])
+  a, b = identification_maps(U_simp)
+  result, _ = saturation_with_index(pullback(a)(tot), pullback(a)(IE_loc))
+  return pullback(b)(result)
 end
 
 @attr Bool function is_prime(I::StrictTransformIdealSheaf)
