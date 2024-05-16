@@ -640,7 +640,7 @@ end
   let sd = archimedean_solid("snub_dodecahedron"), ph = catalan_solid("pentagonal_hexecontahedron")
     @test ph isa Polyhedron{<:EmbeddedNumFieldElem}
     @test f_vector(sd) == reverse(f_vector(ph))
-    for i in range(1,n_facets(ph))
+    for i in 1:n_facets(ph)
       @test facet_sizes(ph)[i] == vertex_sizes(sd)[1]
     end
   end
