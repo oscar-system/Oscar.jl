@@ -219,7 +219,7 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}) where {FldT, 
 end
 
 @doc raw"""
-     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
+    reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
 projecting onto `IR`.
@@ -342,8 +342,8 @@ function reynolds_operator(IR::InvRing{FldT, GrpT, PolyRingElemT}, chi::GAPGroup
 end
 
 @doc raw"""
-     reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
-       where {FldT, GrpT, T <: MPolyRingElem}
+    reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
+      where {FldT, GrpT, T <: MPolyRingElem}
 
 In the case of characteristic zero, return the image of `f` under the twisted
 Reynolds operator projecting onto the isotypic component of the polynomial ring
@@ -412,7 +412,7 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+    basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 

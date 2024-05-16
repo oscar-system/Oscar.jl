@@ -122,7 +122,7 @@ end
 # multiplicity
 
 @doc raw"""
-     multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
+    multiplicity(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint)
 
 Return the multiplicity of `C` at `P`.
 """
@@ -155,8 +155,8 @@ end
 ################################################################################
 # tangent lines
 
- @doc raw"""
-      tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
+@doc raw"""
+    tangent_lines(C::ProjectivePlaneCurve{S}, P::AbsProjectiveRationalPoint) where S <: FieldElem
 
 Return the tangent lines at `P` to `C` with their multiplicity.
 """
@@ -177,7 +177,7 @@ function tangent_lines(C::ProjectivePlaneCurve, P::AbsProjectiveRationalPoint)
 end
 
 @doc raw"""
-     intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+    intersection_multiplicity(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 
 Return the intersection multiplicity of `C` and `D` at `P`.
 """
@@ -193,7 +193,7 @@ end
 
 
 @doc raw"""
-     is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
+    is_transverse_intersection(C::S, D::S, P::AbsProjectiveRationalPoint) where S <: ProjectivePlaneCurve
 
 Return `true` if `C` and `D` intersect transversally at `P` and `false` otherwise.
 """

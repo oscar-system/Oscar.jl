@@ -12,7 +12,7 @@ underlying_morphism(f::AbsProjectiveSchemeMorphism) = error("no underlying morph
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 @doc raw"""
-     pullback(phi::ProjectiveSchemeMor)
+    pullback(phi::ProjectiveSchemeMor)
 
 For a morphism `phi` of projective schemes, this returns the associated 
 morphism of graded affine algebras.

@@ -11,7 +11,7 @@
 ##############################################################################
 
 @doc raw"""
-     fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem 
+    fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem 
 
 Return the `i`-th Fitting ideal of `M`.
 
@@ -86,7 +86,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     is_flat(M::ModuleFP{T}) where T <: MPolyRingElem 
+    is_flat(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return `true` if `M` is flat, `false` otherwise.
 
@@ -141,7 +141,7 @@ function is_flat(M::SubquoModule{T}) where T <: MPolyRingElem
 end
 
 @doc raw"""
-     non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem 
+    non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return an ideal of `base_ring(M)` which defines the non-flat-locus of `M`
 in the sense that the localization of `M` at a prime ideal of `base_ring(M)`
@@ -203,7 +203,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+    is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return `true` if the elements of `V` form, in the given order, a regular sequence on `M`.
 Return `false`, otherwise.
@@ -273,7 +273,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
+    koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the `p`-th homology 
 module of the complex $K(f_1, \dots, f_r)\otimes_R M$, where $K(f_1, \dots, f_r)$ is the
@@ -428,7 +428,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+    depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return the depth of `I` on `M`.
 
@@ -572,7 +572,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyRingElem
+    koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the matrix representing
 the `p`-th map of the Koszul complex $K(f_1, \dots, f_r)$.
@@ -626,7 +626,7 @@ function _koszul_matrix_from_singular(V::Vector{T}, i::Int) where T <: MPolyRing
 end
 
 @doc raw"""
-     koszul_complex(V::Vector{T}) where T <: MPolyRingElem
+    koszul_complex(V::Vector{T}) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the Koszul complex $K(f_1, \dots, f_r)$.
 
