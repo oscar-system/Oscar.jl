@@ -13,8 +13,8 @@
   IE = ideal_sheaf(E)
   W2 = domain(bl)
 
-  Isheaf = IdealSheaf(W,I,covered_scheme=codomain(bl))
-  C2sheaf = IdealSheaf(W,C2,covered_scheme=codomain(bl))
+  Isheaf = IdealSheaf(W, I; covered_scheme=codomain(bl))
+  C2sheaf = IdealSheaf(W, C2; covered_scheme=codomain(bl))
 
   Istrict = strict_transform(bl,Isheaf)
   @test is_smooth(subscheme(Istrict))
