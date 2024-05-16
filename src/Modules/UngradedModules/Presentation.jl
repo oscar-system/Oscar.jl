@@ -563,7 +563,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   return M_new, phi
 end
 
-function _presentation_minimal(SQ::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}}
+function _presentation_minimal(SQ::ModuleFP{T};
+                               minimal_kernel::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
   R = base_ring(SQ)
 
   # Prepare to set some names
@@ -581,7 +582,12 @@ function _presentation_minimal(SQ::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldE
   F0_to_SQ.generators_map_to_generators = true
   AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(F0))")
 
+  # if we want a minimal kernel too, we go to prune_with_map
   K, inc = sub(F0, relations(SQ_new))
+  if minimal_kernel
+    K, inc2 = prune_with_map(K)
+    inc = compose(inc2, inc)
+  end
   F1 = if is_graded(SQ)
     graded_free_module(R, degrees_of_generators(K))
   else
