@@ -160,25 +160,31 @@ to the other charts of ``X`` is well defined.
 """
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
-    I::Ideal; check::Bool=false
+    I::Ideal; check::Bool=true
   )
   @assert base_ring(I) === OO(U) || error("ideal not defined in the correct ring")
   @check is_prime(I) "ideal must be prime"
   return PrimeIdealSheafFromChart(X, U, I)
 end
 
-function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=CoveredScheme(X))
-  @assert base_ring(I) === OO(X)
-  @assert length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme))
-  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
-end
-
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
-    g::Vector{RET}; check::Bool=false
+    g::Vector{RET}; check::Bool=true
   ) where {RET<:RingElem}
   return IdealSheaf(X, U, ideal(OO(U), g); check)
 end
+
+@doc raw"""
+    IdealSheaf(X::AbsAffineScheme, I::Ideal; Xcoverd=covered_scheme(X)) -> IdealSheaf
+
+Return `I` as an ideal sheaf on the covered scheme with 1 affine patch `X`.
+"""
+function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=covered_scheme(X), check::Bool=true)
+  @req base_ring(I) === OO(X) "ideal must lie in the coordinate ring of X"
+  @req length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme)) "covered_scheme must be the covered scheme with a single patch X"
+  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
+end
+
 
 ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, g; check)
 ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) = IdealSheaf(X, U, I; check)
