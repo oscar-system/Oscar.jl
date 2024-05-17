@@ -1,7 +1,6 @@
 import Pkg
 Pkg.add("Documenter")
 Pkg.add("PrettyTables")
-Pkg.add("Aqua")
 Pkg.add("JSONSchema")
 Pkg.precompile()
 ENV["OSCAR_TEST_SUBSET"] = "short"
