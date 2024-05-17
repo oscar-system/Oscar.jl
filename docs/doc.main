@@ -163,7 +163,7 @@
         "AlgebraicGeometry/Schemes/GeneralSchemes.md",
         "AlgebraicGeometry/Schemes/AffineSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
-	"AlgebraicGeometry/Schemes/RationalPointsAffine.md",
+        "AlgebraicGeometry/Schemes/RationalPointsAffine.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGluings.md",
         "AlgebraicGeometry/Schemes/CoveredSchemeMorphisms.md",
