@@ -72,7 +72,7 @@ isometry_group(f::SesquilinearForm{T}) where T
 orthogonal_sign(G::MatrixGroup)
 ```
 
-## Utilities for matrices (replace by available functions, or document elsewhere?)
+## Utilities for matrices
 
 ```@docs
 pol_elementary_divisors(A::MatElem{T}) where T
