@@ -349,13 +349,12 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       piY = sectional_genus(Y)
       dummy = (ZZ(ngens(Pn)-1), dY, piY)
       if l==0 && dummy == numlist[count][1:3]   # Enriques surface
-	  #return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
 	  return (numlist, adjlist, ptslist, Y)
       else
         push!(numlist, (ZZ(ngens(Pn)-1), dY, piY, l))
         push!(adjlist, adj)
         push!(ptslist, pts)
-	Omega = canonical_bundle(Y)
+        Omega = canonical_bundle(Y)
         FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
         D = matrix(map(FOmega,1))
       end
