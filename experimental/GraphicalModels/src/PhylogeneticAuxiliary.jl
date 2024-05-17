@@ -74,6 +74,11 @@ function root(graph::Graph)
   return findall(x -> x == 0, n_parents)[1]
 end
 
+function order_edges(graph::Graph)
+  edgs = collect(edges(graph))
+  leaves_idx = findall(edge -> dst(edge) in Oscar.leaves(graph), edgs)
+  return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
+end
 
 ## COMPUTE EQUIVALENCE CLASSES ##
 # Given the dictionary of parametrization, the functions below compute 

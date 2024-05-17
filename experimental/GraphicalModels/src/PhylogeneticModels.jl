@@ -116,9 +116,9 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> transition_matrices(pm)
 Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
- Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
- Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
- Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
+  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
+  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
+  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
 ```
 """
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
@@ -134,7 +134,8 @@ Return the ring of probability coordinates of the `PhylogeneticModel` `pm`.
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> probability_ring(pm)
-Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3] over rational field
+Multivariate polynomial ring in 6 variables a[1], a[2], a[3], b[1], ..., b[3]
+  over rational field
 ```
 """
 probability_ring(pm::PhylogeneticModel) = pm.prob_ring
@@ -171,9 +172,9 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_parameters(pm)
 Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
- Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
- Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
- Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
 ```
 """
 fourier_parameters(pm::GroupBasedPhylogeneticModel) = pm.fourier_params
@@ -188,7 +189,8 @@ Return the ring of Fourier coordinates of the `PhylogeneticModel` `pm`.
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_ring(pm)
-Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2] over rational field
+Multivariate polynomial ring in 6 variables x[1, 1], x[2, 1], x[3, 1], x[1, 2], ..., x[3, 2]
+  over rational field
 ```
 """
 fourier_ring(pm::GroupBasedPhylogeneticModel) = pm.fourier_ring
@@ -237,14 +239,15 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
+  edgs = order_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b 
-    b a]) for (a,b,e) in zip(list_a, list_b, edges(graph))
+    b a]) for (a,b,e) in zip(list_a, list_b, edgs)
   )
   
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
+    [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
   group = [[0],[1]]
 
@@ -276,16 +279,17 @@ function jukes_cantor_model(graph::Graph{Directed})
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
+  edgs = order_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b b b
     b a b b
     b b a b
-    b b b a]) for (a,b,e) in zip(list_a, list_b, edges(graph))
+    b b b a]) for (a,b,e) in zip(list_a, list_b, edgs)
   )
   
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
+    [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
   group = [[0,0], [0,1], [1,0], [1,1]]
 
@@ -317,16 +321,17 @@ function kimura2_model(graph::Graph{Directed})
   R, list_a, list_b, list_c = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
+  edgs = order_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c b
     b a b c
     c b a b
-    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edges(graph))
+    b c b a]) for (a,b,c,e) in zip(list_a, list_b, list_c, edgs)
   )
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:3); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,3], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edges(graph)))
+    [list_x[i,1], list_x[i,3], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
   group = [[0,0], [0,1], [1,0], [1,1]]
 
@@ -358,16 +363,17 @@ function kimura3_model(graph::Graph{Directed})
   R, list_a, list_b , list_c, list_d= polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne, :d => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
+  edgs = order_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c d
     b a d c
     c d a b
-    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edges(graph))
+    d c b a]) for (a,b,c,d,e) in zip(list_a, list_b, list_c, list_d, edgs)
   )
 
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:4); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
-    [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,4]] for (i, e) in zip(1:ne, edges(graph)))
+    [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,4]] for (i, e) in zip(1:ne, edgs))
   
   group = [[0,0], [0,1], [1,0], [1,1]]
 
@@ -397,13 +403,14 @@ function general_markov_model(graph::Graph{Directed}; number_states = 4)
   ne = n_edges(graph)
   R, root_distr, list_m = polynomial_ring(QQ, :π => 1:ns, :m => (1:(ne^2),1:(ns),1:(ns)); cached=false)
 
-  matrices = Dict{Edge, MatElem}(e => matrix(R, reshape(list_m[i,:,:], ns, ns)) for (i,e) in zip(1:ne, edges(graph)))
+  edgs = order_edges(graph)
+  matrices = Dict{Edge, MatElem}(e => matrix(R, reshape(list_m[i,:,:], ns, ns)) for (i,e) in zip(1:ne, edgs))
 
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
 end
 
 @doc raw"""
-   affine_phylogenetic_model(pm::PhylogeneticModel)
+   affine_phylogenetic_model!(pm::PhylogeneticModel)
 
 Moves a `PhylogeneticModel` or `GroupBasedPhylogeneticModel` from projective into affine space.
 

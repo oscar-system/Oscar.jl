@@ -11,6 +11,7 @@ export general_markov_model
 export affine_phylogenetic_model!
 
 #export phylogenetic models attributes
+export phylogenetic_model
 export graph
 export number_states
 export transition_matrices

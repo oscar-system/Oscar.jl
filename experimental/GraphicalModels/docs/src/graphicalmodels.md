@@ -26,7 +26,7 @@ The five most common models in algebraic phylogenetics can automatically be spec
 The models are by default in projective space. For their affine versions, call
 
 ```@docs
-  affine_phylogenetic_model(pm::PhylogeneticModel)
+  affine_phylogenetic_model!(pm::PhylogeneticModel)
 ```
 
 ## Components of a model
@@ -61,7 +61,7 @@ For each phylogenetic model, we can calculate the parametrization, a map from tr
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Marina Garrote López](s://sites.google.com/view/marinagarrotelopez),
+* [Marina Garrote López](https://sites.google.com/view/marinagarrotelopez),
 * possibly others.
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
