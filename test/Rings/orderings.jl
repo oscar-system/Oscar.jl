@@ -362,7 +362,7 @@ end
    @test length(string(O5)) > 2
    @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
 
-   a = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4]))
+   a = matrix_ordering([x, y], matrix(ZZ, [1 2; 3 4]))
    b = wdeglex([s, t, u], [1, 2, 3])
    O6 = a * lex(gens(K)) * b
    @test monomial_ordering(R, singular(O6)) == a * b
@@ -396,7 +396,7 @@ end
 
    a = matrix_ordering([y, z, x], [4 6 8; 1 0 0; 0 1 0])
    test_opposite_ordering(a)
-   @test canonical_matrix(a) == matrix(ZZ, 3, 3, [4 2 3; 0 1 0; 0 0 1])
+   @test canonical_matrix(a) == matrix(ZZ, [4 2 3; 0 1 0; 0 0 1])
    @test simplify(a) isa MonomialOrdering
 
    #issue 3870

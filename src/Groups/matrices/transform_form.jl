@@ -113,11 +113,11 @@ function _block_anisotropic_elim(B::MatElem{T}, ::Val{_type}; isotr=false, f=0) 
       for i in 1:f
          alpha = D[i,i]
          if alpha != 0
-            push!(Barray, matrix(F,2,2,[-alpha^-1,0,0,alpha]))
-            push!(Aarray, matrix(F,2,2,[1,-alpha^-1,0,1]))
+            push!(Barray, matrix(F, [-alpha^-1 0; 0 alpha]))
+            push!(Aarray, matrix(F, [1 -alpha^-1; 0 1]))
          else
-            push!(Barray, matrix(F,2,2,[0,1,s,0]))
-            push!(Aarray, matrix(F,2,2,[1,0,0,1]))
+            push!(Barray, matrix(F, [0 1; s 0]))
+            push!(Aarray, matrix(F, [1 0; 0 1]))
          end
       end
       B0,A0 = _block_anisotropic_elim(Bprime, Val(_type))
@@ -258,7 +258,7 @@ function _to_standard_form(B::MatElem{T}, _type::Symbol)  where T <: FinFieldEle
          d = 1
          c = 1
       end
-      S = matrix(F,2,2,[a,b,c,d])
+      S = matrix(F,[a b; c d])
       if div(n-NOZ,2)==0
          S = zero_matrix(F,0,0)
       else
@@ -295,7 +295,7 @@ end
 function _elim_hyp_lines(A::MatElem{T}) where T <: FinFieldElem
    F = base_ring(A)
    n = nrows(A)
-   b = matrix(F,2,2,[1,1,1,-1])  # change of basis from matrix([0,1,1,0]) to matrix([2,0,0,-2])
+   b = matrix(F,[1 1; 1 -1])  # change of basis from matrix([0,1,1,0]) to matrix([2,0,0,-2])
    Z = identity_matrix(F,n)
 
    i = 1

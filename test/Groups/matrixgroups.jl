@@ -17,7 +17,7 @@
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
-   xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
+   xo = matrix(F,[1 z 0; 0 1 2*z+1; 0 0 z+2])
 #   xg = Vector{GapObj}(undef, 3)
 #   for i in 1:3
 #      xg[i] = GapObj([preimage(G.ring_iso, xo[i,j]) for j in 1:3])
@@ -53,7 +53,7 @@
    @test GAP.Globals.IsOne(G.ring_iso(one(F)))
    @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
    
-   xo = matrix(F,3,3,[1,z,0,0,1,2*z+1,0,0,z+2])
+   xo = matrix(F,[1 z 0; 0 1 2*z+1; 0 0 z+2])
    xg = Vector{GapObj}(undef, 3)
    for i in 1:3
       xg[i] = GAP.Obj([G.ring_iso(xo[i,j]) for j in 1:3])
@@ -92,7 +92,7 @@ end
       @test GAP.Globals.IsOne(G.ring_iso(one(F)))
       @test isone(preimage(G.ring_iso, GAP.Globals.One(codomain(G.ring_iso))))
 
-      xo = matrix(F, 3, 3, [0, 1, 0, 0, 1, z, 0, 0, z])
+      xo = matrix(F, [0 1 0; 0 1 z; 0 0 z])
       xg = GapObj([[G.ring_iso(xo[i, j]) for j in 1:3] for i in 1:3]; recursive = true)
       @test map_entries(G.ring_iso, xo) == xg
       @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
@@ -116,7 +116,7 @@ end
      #[ matrix(ZZ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],
      [ matrix(QQ, [ 0 1 0; -1 0 0; 0 0 -1 ]) ],
      [ matrix(K, [ a 0; 0 a ]) ],
-     [ matrix(L, 2, 2, [ b, 0, -b - 1, 1 ]), matrix(L, 2, 2, [ 1, b + 1, 0, b ]) ]
+     [ matrix(L, [ b 0; -b-1 1 ]), matrix(L, [ 1 b+1; 0 b ]) ]
    ]
 
    @testset "... over ring $(base_ring(mats[1]))" for mats in inputs
@@ -262,14 +262,14 @@ end
    @test isdefined(G,:gens)
    @test typeof(gens(G)) == Vector{elem_type(G)}
 
-   x = matrix(F,2,2,[1,0,0,1])
+   x = matrix(F,[1 0; 0 1])
    x = G(x)
    @test !isdefined(x,:X)
    @test GapObj(x) isa GapObj
    x = matrix(G[1])
    x = G(x)
    @test !isdefined(x,:X)
-   x = matrix(F,2,2,[1,z,z,1])
+   x = matrix(F,[1 z; z 1])
    x = G(x)
    @test !isdefined(x,:X)
    @test order(x)==8
@@ -398,10 +398,10 @@ end
        @test iseven(rank(matrix(x)-1))
    end
 
-   G = matrix_group(matrix(QQ, 2, 2, [ -1 0 ; 0 -1 ]))
+   G = matrix_group(matrix(QQ, [ -1 0 ; 0 -1 ]))
    K, _ = cyclotomic_field(4)
    H = change_base_ring(K, G)
-   @test H == matrix_group(matrix(K, 2, 2, [ -1 0 ; 0 -1 ]))
+   @test H == matrix_group(matrix(K, [ -1 0 ; 0 -1 ]))
 end
 
 
@@ -437,21 +437,21 @@ end
    @test H==H1
    @test parent(H1[1])==H1
    @test !isdefined(H1,:X)
-   x3 = matrix(base_ring(G),3,3,[0,0,0,0,1,0,0,0,1])
+   x3 = matrix(base_ring(G),[0 0 0; 0 1 0; 0 0 1])
    @test_throws ArgumentError matrix_group(matrix(x1),x3)
    @test parent(x1)==G
 
    G4 = GL(4,5)
-   x3 = G4([1,0,2,0,0,1,0,2,0,0,1,0,0,0,0,1])
+   x3 = G4([1 0 2 0; 0 1 0 2; 0 0 1 0; 0 0 0 1])
    @test_throws ArgumentError matrix_group([x1,x3])
 
    G4 = GL(3,7)
-   x3 = G4([2,0,0,0,3,0,0,0,1])
+   x3 = G4([2 0 0; 0 3 0; 0 0 1])
    @test_throws ArgumentError matrix_group([x1,x3])
 end
 
 @testset "map_entries for matrix groups" begin
-  mat = matrix(ZZ, 2, 2, [1, 1, 0, 1])
+  mat = matrix(ZZ, [1 1; 0 1])
   G = matrix_group(mat)
   T = trivial_subgroup(G)[1]
   @test length(gens(T)) == 0
@@ -477,7 +477,7 @@ end
   @test length(gens(T)) == 0
   @test map_entries(x -> x^3, T) == trivial_subgroup(G2)[1]
 
-  mat = matrix(QQ, 2, 2, [2, 1, 0, 1])
+  mat = matrix(QQ, [2 1; 0 1])
   G = matrix_group(mat)
   @test_throws ArgumentError map_entries(GF(2), G)
 end
@@ -501,10 +501,10 @@ end
    S = SL(2,F)
    O = GO(1,2,F)
 
-   x = matrix(F,2,2,[1,z,0,z])
+   x = matrix(F,[1 z; 0 z])
    @test x in G
    @test !(x in S)
-   @test !(matrix(F,2,2,[0,0,0,1]) in G)
+   @test !(matrix(F,[0 0; 0 1]) in G)
    @test_throws ArgumentError S(x)
    @test G(x) isa MatrixGroupElem
    @test S(x; check=false)==G(x)
@@ -520,7 +520,7 @@ end
    @test x==G(x)
    @test_throws ArgumentError G([1,1,0,0])
 
-   x = matrix(F,2,2,[1,z,0,1])
+   x = matrix(F,[1 z; 0 1])
    @test x in S
    x = S(x)
    @test parent(x)==S
@@ -537,7 +537,7 @@ end
    @test_throws ArgumentError O([z,0,0,1])
 
    K = matrix_group(S[1],S[2],S[1]*S[2])
-   x = S(matrix(F,2,2,[2,z,0,2]))
+   x = S(matrix(F,[2 z; 0 2]))
    @test x in K
    @test isdefined(K,:X)
    @test isdefined(x,:X)
@@ -755,7 +755,7 @@ end
    Qx, x = polynomial_ring(QQ, :x, cached = false)
    f = x^2-2;
    K, a = number_field(f)
-   D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);
+   D = matrix(K, [2 0 0; 0 1 0; 0 0 7436])
    gens = [[13, 0, 0], [156*a+143, 0, 0], [3//2*a+5, 1, 0], [3//2*a+5, 1, 0], [21//2*a, 0, 1//26], [21//2*a, 0, 1//26]]
    L = quadratic_lattice(K, gens, gram = D)
    G = orthogonal_group(L)

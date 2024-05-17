@@ -50,7 +50,7 @@ end
 
   G = matrix(QQ, 6, 6 ,[3, 1, -1, 1, 0, 0, 1, 3, 1, 1, 1, 1, -1, 1, 3, 0, 0, 1, 1, 1, 0, 4, 2, 2, 0, 1, 0, 2, 4, 2, 0, 1, 1, 2, 2, 4])
   V = quadratic_space(QQ, G)
-  f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 0 -1 0 0 0; -1 1 -1 0 0 0; 0 0 0 1 0 -1; 0 0 0 0 0 -1; 0 0 0 0 1 -1])
+  f = matrix(QQ, [1 0 0 0 0 0; 0 0 -1 0 0 0; -1 1 -1 0 0 0; 0 0 0 1 0 -1; 0 0 0 0 0 -1; 0 0 0 0 1 -1])
   Vf = @inferred quadratic_space_with_isometry(V, f)
   @test order_of_isometry(Vf) == 3
   @test order_of_isometry(rescale(Vf, -3)) == 3
@@ -75,11 +75,11 @@ end
 @testset "Lattices with isometry" begin
   A3 = root_lattice(:A, 3)
   agg = QQMatrix[
-                 matrix(QQ, 3, 3, [-1 0 0; 0 -1 0; 0 0 -1]),
-                 matrix(QQ, 3, 3, [1 1 1; 0 -1 -1; 0 1 0]),
-                 matrix(QQ, 3, 3, [0 1 1; -1 -1 -1; 1 1 0]),
-                 matrix(QQ, 3, 3, [1 0 0; -1 -1 -1; 0 0 1]),
-                 matrix(QQ, 3, 3, [1 0 0; 0 1 1; 0 0 -1])
+                 matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]),
+                 matrix(QQ, [1 1 1; 0 -1 -1; 0 1 0]),
+                 matrix(QQ, [0 1 1; -1 -1 -1; 1 1 0]),
+                 matrix(QQ, [1 0 0; -1 -1 -1; 0 0 1]),
+                 matrix(QQ, [1 0 0; 0 1 1; 0 0 -1])
                 ]
   OA3 = matrix_group(agg)
   set_attribute!(A3, :isometry_group, OA3)
@@ -169,10 +169,10 @@ end
   L5 = @inferred lattice(ambient_space(L2))
   @test (L2 == L5)
 
-  B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
-  G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
+  B = matrix(QQ, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
+  G = matrix(QQ, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
   L = integer_lattice(B; gram = G);
-  f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
+  f = matrix(QQ, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
 
   mktempdir() do path
@@ -206,18 +206,18 @@ end
   @test !is_of_same_type(Lf, M)
   @test is_hermitian(type(M))
 
-  B = matrix(QQ, 4, 8, [0 0 0 0 3 0 0 0; 0 0 0 0 1 1 0 0; 0 0 0 0 1 0 1 0; 0 0 0 0 2 0 0 1]);
-  G = matrix(QQ, 8, 8, [-2 1 0 0 0 0 0 0; 1 -2 0 0 0 0 0 0; 0 0 2 -1 0 0 0 0; 0 0 -1 2 0 0 0 0; 0 0 0 0 -2 -1 0 0; 0 0 0 0 -1 -2 0 0; 0 0 0 0 0 0 2 1; 0 0 0 0 0 0 1 2]);
+  B = matrix(QQ, [0 0 0 0 3 0 0 0; 0 0 0 0 1 1 0 0; 0 0 0 0 1 0 1 0; 0 0 0 0 2 0 0 1]);
+  G = matrix(QQ, [-2 1 0 0 0 0 0 0; 1 -2 0 0 0 0 0 0; 0 0 2 -1 0 0 0 0; 0 0 -1 2 0 0 0 0; 0 0 0 0 -2 -1 0 0; 0 0 0 0 -1 -2 0 0; 0 0 0 0 0 0 2 1; 0 0 0 0 0 0 1 2]);
   L = integer_lattice(B; gram = G);
-  f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 -1 1 0 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 -1 1]);
+  f = matrix(QQ, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 -1 1 0 0; 0 0 0 0 0 0 0 1; 0 0 0 0 0 0 -1 1]);
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)[1]
   @test order(GL) == 72
 
-  B = matrix(QQ, 4, 6, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
-  G = matrix(QQ, 6, 6, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
+  B = matrix(QQ, [0 0 0 0 -2 1; 0 0 0 0 3 -4; 0 0 1 0 -1 0; 0 0 0 1 0 -1]);
+  G = matrix(QQ, [2 1 0 0 0 0; 1 -2 0 0 0 0; 0 0 2//5 4//5 2//5 -1//5; 0 0 4//5 -2//5 -1//5 3//5; 0 0 2//5 -1//5 2//5 4//5; 0 0 -1//5 3//5 4//5 -2//5]);
   L = integer_lattice(B; gram = G);
-  f = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 -1 0 0 1; 0 0 0 -1 1 -1]);
+  f = matrix(QQ, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1; 0 0 -1 0 0 1; 0 0 0 -1 1 -1]);
   Lf = integer_lattice_with_isometry(L, f);
   GL = image_centralizer_in_Oq(Lf)[1]
   @test order(GL) == 2
@@ -230,10 +230,10 @@ end
   C, _ = coinvariant_lattice(A3, sub(OA3, elem_type(OA3)[OA3(agg[2]), OA3(agg[4])])[1]; ambient_representation = false)
   @test is_sublattice(A3, C)
 
-  B = matrix(QQ, 3, 3, [1 0 0; 0 1 0; 0 0 1]);
-  G = matrix(QQ, 3, 3, [2 -1 0; -1 2 0; 0 0 -4]);
+  B = matrix(QQ, [1 0 0; 0 1 0; 0 0 1]);
+  G = matrix(QQ, [2 -1 0; -1 2 0; 0 0 -4]);
   L = integer_lattice(B, gram = G);
-  f = matrix(QQ, 3, 3, [0 -1 0; 1 1 0; 0 0 1]);
+  f = matrix(QQ, [0 -1 0; 1 1 0; 0 0 1]);
   Lf = integer_lattice_with_isometry(L, f);
   @test is_bijective(image_centralizer_in_Oq(Lf)[2])
 end
@@ -241,13 +241,13 @@ end
 @testset "Enumeration of lattices with finite isometries" begin
   A4 = root_lattice(:A, 4)
   OA4 = matrix_group([
-                      matrix(QQ, 4, 4, [-1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1]),
-                      matrix(QQ, 4, 4, [1 1 1 1; 0 -1 -1 -1; 0 1 0 0; 0 0 1 0]),
-                      matrix(QQ, 4, 4, [0 1 1 1; -1 -1 -1 -1; 1 1 0 0; 0 0 1 0]),
-                      matrix(QQ, 4, 4, [1 0 0 0; -1 -1 -1 -1; 0 0 0 1; 0 0 1 0]),
-                      matrix(QQ, 4, 4, [1 0 0 0; 0 1 1 1; 0 0 0 -1; 0 0 -1 0]),
-                      matrix(QQ, 4, 4, [1 0 0 0; -1 -1 -1 0; 0 0 0 -1; 0 0 1 1]),
-                      matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 1; 0 0 0 -1])
+                      matrix(QQ, [-1 0 0 0; 0 -1 0 0; 0 0 -1 0; 0 0 0 -1]),
+                      matrix(QQ, [1 1 1 1; 0 -1 -1 -1; 0 1 0 0; 0 0 1 0]),
+                      matrix(QQ, [0 1 1 1; -1 -1 -1 -1; 1 1 0 0; 0 0 1 0]),
+                      matrix(QQ, [1 0 0 0; -1 -1 -1 -1; 0 0 0 1; 0 0 1 0]),
+                      matrix(QQ, [1 0 0 0; 0 1 1 1; 0 0 0 -1; 0 0 -1 0]),
+                      matrix(QQ, [1 0 0 0; -1 -1 -1 0; 0 0 0 -1; 0 0 1 1]),
+                      matrix(QQ, [1 0 0 0; 0 1 0 0; 0 0 1 1; 0 0 0 -1])
                     ])
   cc = conjugacy_classes(OA4)
 
@@ -327,10 +327,10 @@ end
 
   @test !primitive_embeddings(rescale(E7, 2), k; classification=:none, check = false)[1]
 
-  B = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
-  G = matrix(QQ, 8, 8, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
+  B = matrix(QQ, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; 0 0 0 1 0 0 0 0; 0 0 0 0 1 0 0 0; 0 0 0 0 0 1 0 0; 0 0 0 0 0 0 1 0; 0 0 0 0 0 0 0 1]);
+  G = matrix(QQ, [-4 2 0 0 0 0 0 0; 2 -4 2 0 0 0 0 0; 0 2 -4 2 0 0 0 2; 0 0 2 -4 2 0 0 0; 0 0 0 2 -4 2 0 0; 0 0 0 0 2 -4 2 0; 0 0 0 0 0 2 -4 0; 0 0 2 0 0 0 0 -4]);
   L = integer_lattice(B; gram = G);
-  f = matrix(QQ, 8, 8, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
+  f = matrix(QQ, [1 0 0 0 0 0 0 0; 0 1 0 0 0 0 0 0; 0 0 1 0 0 0 0 0; -2 -4 -6 -4 -3 -2 -1 -3; 2 4 6 5 4 3 2 3; -1 -2 -3 -3 -3 -2 -1 -1; 0 0 0 0 1 0 0 0; 1 2 3 3 2 1 0 2]);
   Lf = integer_lattice_with_isometry(L, f);
   F = invariant_lattice(Lf)
   C = coinvariant_lattice(Lf)
@@ -386,8 +386,8 @@ end
   @test length(reps) == 1
 
   ## Odd case
-  B = matrix(QQ, 5, 5 ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
-  G = matrix(QQ, 5, 5 ,[3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
+  B = matrix(QQ, 5, 5, [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]);
+  G = matrix(QQ, 5, 5, [3, 1, 0, 0, 0, 1, 3, 1, 1, -1, 0, 1, 3, 0, 0, 0, 1, 0, 3, 0, 0, -1, 0, 0, 3]);
   L = integer_lattice(B, gram = G);
   k = lattice_in_same_ambient_space(L, B[2:2, :])
   N = orthogonal_submodule(L, k)

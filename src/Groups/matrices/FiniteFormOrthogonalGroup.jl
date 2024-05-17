@@ -167,7 +167,7 @@ function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
   if r <= 1
     gens_1 = typeof(G)[]
   elseif r == 2 && mod(lift(G[r, r]), 2) == 1
-    return [matrix(R, 2, 2, [0, 1, 1, 0])]
+    return [matrix(R, [0 1; 1 0])]
   # odd cases
   elseif r % 2 == 1
     # the space of points of 0 square is non degenerate && preserved
@@ -191,7 +191,7 @@ function _orthogonal_gens_bilinear(G::Union{ZZModMatrix, zzModMatrix})
       push!(gens_1, g)
     end
     g = identity_matrix(R, r)
-    g[end-1:end, end-1:end] = matrix(R, 2, 2, [0, 1, 1, 0])
+    g[end-1:end, end-1:end] = matrix(R, [0 1; 1 0])
     push!(gens_1, g)
   else
     # even case
@@ -234,13 +234,13 @@ function _orthogonal_grp_quadratic(G::Union{ZZModMatrix, zzModMatrix})
       if mod(lift(G[end,end] + G[end-1,end-1]), 4) == 0
         gens1 = typeof(G)[]
       else
-        gens1 = [matrix(R, 2, 2, [0, 1, 1, 0])]
+        gens1 = [matrix(R, [0 1; 1 0])]
       end
     elseif Hecke._val(G[end,end], 2) == 1
-      gens1 = [matrix(R, 2, 2, [0, 1, 1, 0]),
-              matrix(R,2,2, [0, 1, 1, 1])]
+      gens1 = [matrix(R, [0 1; 1 0]),
+              matrix(R, [0 1; 1 1])]
     else
-      gens1 = [matrix(R, 2, 2, [0, 1, 1, 0])]
+      gens1 = [matrix(R, [0 1; 1 0])]
     end
   elseif r % 2 == 1   # usual cases
     # an odd case
@@ -554,7 +554,7 @@ function _gens_mod_2(G::Union{ZZModMatrix, zzModMatrix})
     for k in 2:length(ind)-1
         if par[k] == 1 && mod(ind[k][2]-ind[k][1],2) == 1
            i = ind[k][2]
-           trafo[i-1:i,i-1:i] = matrix(R,2,2,[1,1,0,1])
+           trafo[i-1:i,i-1:i] = matrix(R, [1 1; 0 1])
         end
     end
     trafoinv = inv(trafo)

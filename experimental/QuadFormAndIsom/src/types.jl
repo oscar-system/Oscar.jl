@@ -27,12 +27,12 @@ julia> L = root_lattice(:E, 6);
 
 julia> V = ambient_space(L);
 
-julia> f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
-                             -1 -2 -2 -2 -1 -1;
-                              0  1  0  0  0  0;
-                              1  0  0  0  0  0;
-                             -1 -1 -1  0  0 -1;
-                              0  0  1  1  0  1]);
+julia> f = matrix(QQ, [ 1  2  3  2  1  1;
+                       -1 -2 -2 -2 -1 -1;
+                        0  1  0  0  0  0;
+                        1  0  0  0  0  0;
+                       -1 -1 -1  0  0 -1;
+                        0  0  1  1  0  1]);
 
 julia> Vf = quadratic_space_with_isometry(V, f)
 Quadratic space of dimension 6
@@ -81,12 +81,12 @@ This direct construction is done through the constructors
 ```jldoctest
 julia> L = root_lattice(:E, 6);
 
-julia> f = matrix(QQ, 6, 6, [ 1  2  3  2  1  1;
-                             -1 -2 -2 -2 -1 -1;                                                
-                              0  1  0  0  0  0;      
-                              1  0  0  0  0  0;
-                             -1 -1 -1  0  0 -1;
-                              0  0  1  1  0  1]);
+julia> f = matrix(QQ, [ 1  2  3  2  1  1;
+                       -1 -2 -2 -2 -1 -1;                                                
+                        0  1  0  0  0  0;      
+                        1  0  0  0  0  0;
+                       -1 -1 -1  0  0 -1;
+                        0  0  1  1  0  1]);
 
 julia> Lf = integer_lattice_with_isometry(L, f, ambient_representation = false)
 Integer lattice of rank 6 and degree 6
@@ -124,21 +124,21 @@ preserved by the fixed isometry of the ambient space.
 
 # Examples
 ```jldoctest
-julia> G = matrix(QQ, 6, 6 , [ 3 1 -1 1 0 0;
-                               1 3  1 1 1 1;
-                              -1 1  3 0 0 1;
-                               1 1  0 4 2 2;
-                               0 1  0 2 4 2;
-                               0 1  1 2 2 4]);
+julia> G = matrix(QQ, [ 3 1 -1 1 0 0;
+                        1 3  1 1 1 1;
+                       -1 1  3 0 0 1;
+                        1 1  0 4 2 2;
+                        0 1  0 2 4 2;
+                        0 1  1 2 2 4]);
 
 julia> V = quadratic_space(QQ, G);
 
-julia> f = matrix(QQ, 6, 6, [ 1 0  0 0 0  0
-                              0 0 -1 0 0  0
-                             -1 1 -1 0 0  0
-                              0 0  0 1 0 -1
-                              0 0  0 0 0 -1
-                              0 0  0 0 1 -1]);
+julia> f = matrix(QQ, [ 1 0  0 0 0  0
+                        0 0 -1 0 0  0
+                       -1 1 -1 0 0  0
+                        0 0  0 1 0 -1
+                        0 0  0 0 0 -1
+                        0 0  0 0 1 -1]);
 
 julia> Vf = quadratic_space_with_isometry(V, f);
 
@@ -153,10 +153,10 @@ Integer lattice of rank 6 and degree 6
   [ 0   0    0   0   0   -1]
   [ 0   0    0   0   1   -1]
 
-julia> B = matrix(QQ, 4, 6, [1 0 3 0 0 0;
-                             0 1 1 0 0 0;
-                             0 0 0 0 1 0;
-                             0 0 0 0 0 1]);
+julia> B = matrix(QQ, [1 0 3 0 0 0;
+                       0 1 1 0 0 0;
+                       0 0 0 0 1 0;
+                       0 0 0 0 0 1]);
 
 julia> Cf = lattice(Vf, B)  # coinvariant sublattice L_f
 Integer lattice of rank 4 and degree 6

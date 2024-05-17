@@ -206,16 +206,11 @@ lattice $L$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ,5,5,[ 1  0  0  0  0;
-                          -1 -1 -1 -1 -1;
-                           0  0  0  0  1;
-                           0  0  0  1  0;
-                           0  0  1  0  0])
-[ 1    0    0    0    0]
-[-1   -1   -1   -1   -1]
-[ 0    0    0    0    1]
-[ 0    0    0    1    0]
-[ 0    0    1    0    0]
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -669,23 +664,23 @@ the same object, but the isometry of their ambient space stored are
 different (one has order 2, the other one is the identity).
 
 ```jldoctest
-julia> B = matrix(QQ, 3, 5, [1 0 0 0 0;
-                             0 0 1 0 1;
-                             0 0 0 1 0]);
+julia> B = matrix(QQ, [1 0 0 0 0;
+                       0 0 1 0 1;
+                       0 0 0 1 0]);
 
-julia> G = matrix(QQ, 5, 5, [ 2 -1  0  0  0;
-                             -1  2 -1  0  0;
-                              0 -1  2 -1  0;
-                              0  0 -1  2 -1;
-                              0  0  0 -1  2]);
+julia> G = matrix(QQ, [ 2 -1  0  0  0;
+                       -1  2 -1  0  0;
+                        0 -1  2 -1  0;
+                        0  0 -1  2 -1;
+                        0  0  0 -1  2]);
 
 julia> L = integer_lattice(B; gram = G);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 3 and degree 5
@@ -803,7 +798,7 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1 1; 0 -1])
+julia> f = matrix(QQ, [1 1; 0 -1])
 [1    1]
 [0   -1]
 
@@ -842,20 +837,17 @@ julia> V = quadratic_space(QQ, QQ[ 2 -1  0  0  0;
                                    0  0 -1  2 -1;
                                    0  0  0 -1  2]);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Vf = quadratic_space_with_isometry(V, f);
 
-julia> B = matrix(QQ,3,5,[1 0 0 0 0;
-                          0 0 1 0 1;
-                          0 0 0 1 0])
-[1   0   0   0   0]
-[0   0   1   0   1]
-[0   0   0   1   0]
+julia> B = matrix(QQ, [1 0 0 0 0;
+                       0 0 1 0 1;
+                       0 0 0 1 0]);
 
 julia> lattice(Vf, B)
 Integer lattice of rank 3 and degree 5
@@ -889,20 +881,17 @@ $g$ on $M$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> B = matrix(QQ,3,5,[1 0 0 0 0;
-                          0 0 1 0 1;
-                          0 0 0 1 0])
-[1   0   0   0   0]
-[0   0   1   0   1]
-[0   0   0   1   0]
+julia> B = matrix(QQ, [1 0 0 0 0;
+                       0 0 1 0 1;
+                       0 0 0 1 0]);
 
 julia> I = lattice_in_same_ambient_space(Lf, B)
 Integer lattice of rank 3 and degree 5
@@ -939,20 +928,17 @@ orthogonal to each row of $B$, equipped with the induced action from $f$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> B = matrix(QQ,3,5,[1 0 0 0 0;
-                          0 0 1 0 1;
-                          0 0 0 1 0])
-[1   0   0   0   0]
-[0   0   1   0   1]
-[0   0   0   1   0]
+julia> B = matrix(QQ, [1 0 0 0 0;
+                       0 0 1 0 1;
+                       0 0 0 1 0]);
 
 julia> orthogonal_submodule(Lf, B)
 Integer lattice of rank 2 and degree 5
@@ -985,11 +971,11 @@ with gram matrix
 [ 0    0   -1    2   -1]
 [ 0    0    0   -1    2]
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1035,11 +1021,11 @@ $(L, f^n)$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1078,11 +1064,11 @@ and $h$ is induced by $g$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1127,11 +1113,11 @@ on the ambient space of $L$ stays the same.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1188,17 +1174,17 @@ the projections $L \to L_i$, one should call `biproduct(x)`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
-julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> g = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1269,17 +1255,17 @@ the projections $L \to L_i$, one should call `biproduct(x)`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
-julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> g = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1353,17 +1339,17 @@ one should call `direct_product(x)`.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
-julia> g = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> g = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1461,11 +1447,11 @@ then $L$ can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 5 and degree 5
@@ -1509,11 +1495,11 @@ finite, for instance, since the minimal polynomial is cyclotomic).
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1575,11 +1561,11 @@ isometry $f$ inside $O(D_L)$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1599,11 +1585,11 @@ julia> qf
 Isometry of Finite quadratic module: Z/6 -> Q/2Z defined by
 [1]
 
-julia> f = matrix(QQ, 5, 5, [ 1  0  0  0  0;
-                             -1 -1 -1 -1 -1;
-                              0  0  0  0  1;
-                              0  0  0  1  0;
-                              0  0  1  0  0]);
+julia> f = matrix(QQ, [ 1  0  0  0  0;
+                       -1 -1 -1 -1 -1;
+                        0  0  0  0  1;
+                        0  0  0  1  0;
+                        0  0  1  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1678,7 +1664,7 @@ $D_L$ induced by $f$.
 ```jldoctest
 julia> L = root_lattice(:A,2);
 
-julia> f = matrix(QQ, 2, 2, [1 1; 0 -1]);
+julia> f = matrix(QQ, [1 1; 0 -1]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1815,11 +1801,11 @@ form $\ker(f + f^{-1} - z^i - z^{-i})$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1873,11 +1859,11 @@ $L$ with isometry $f$, together with the restriction $f_{\mid M}$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1930,11 +1916,11 @@ lattice of $(L, f)$ associated to the $l-$th cyclotomic polynomial.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -1971,11 +1957,11 @@ in this case).
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -2029,11 +2015,11 @@ $L$ of the invariant lattice $L_f$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -2211,11 +2197,11 @@ $\mathbb{Z}$-lattice $\ker(f^k-1)$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -2256,11 +2242,11 @@ Given a lattice with isometry $(L, f)$, return whether $(L, f)$ is of type $t$.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -2299,11 +2285,11 @@ of the same type.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -2330,11 +2316,11 @@ whether it defines the type of a hermitian lattice with isometry.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 

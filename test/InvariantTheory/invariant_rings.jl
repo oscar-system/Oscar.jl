@@ -1,7 +1,7 @@
 @testset "Invariant rings (for matrix groups)" begin
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 1 0 0; 0 0 1])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
   RG0 = invariant_ring(M1, M2)
 
   # Explicitly call the other constructors
@@ -15,11 +15,11 @@
   @test polynomial_ring(invariant_ring(R, matrix_group(M1, M2))) === R
 
   F = GF(3)
-  N1 = matrix(F, 3, 3, [0, 1, 0, 2, 0, 0, 0, 0, 2])
-  N2 = matrix(F, 3, 3, [2, 0, 0, 0, 2, 0, 0, 0, 2])
+  N1 = matrix(F, [0 1 0; 2 0 0; 0 0 2])
+  N2 = matrix(F, [2 0 0; 0 2 0; 0 0 2])
   RGp = invariant_ring(N1, N2) # char p, non-modular
 
-  N3 = matrix(F, 2, 2, [1, 1, 0, 1])
+  N3 = matrix(F, [1 1; 0 1])
   RGm = invariant_ring(N3) # charp, modular
 
   @test coefficient_ring(RG0) == K

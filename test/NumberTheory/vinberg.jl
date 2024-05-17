@@ -30,7 +30,7 @@
   @test cusp_counter == 2
 
   # non diagonal example of Rudolf Scharlau's paper "On the classification of arithmetic reflection groups on hyperbolic-3-spaces"
-  Q = matrix(ZZ, 4, 4, [0 -1 0 0; -1 0 0 0; 0 0 -2 -1; 0 0 -1 -2])
+  Q = matrix(ZZ, [0 -1 0 0; -1 0 0 0; 0 0 -2 -1; 0 0 -1 -2])
   alpha = 500
   roots = vinberg_algorithm(Q, ZZ(alpha))
   l = length(roots)

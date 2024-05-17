@@ -205,7 +205,7 @@ where R is the basering.
 ```jldoctest
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
 
-julia> M = matrix(R, 2, 4, [v w x y; w x y z])
+julia> M = matrix(R, [v w x y; w x y z])
 [v   w   x   y]
 [w   x   y   z]
 
@@ -251,7 +251,7 @@ representatives of elements in `R/I`, where `R` is the basering.
 ```jldoctest
 julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
-julia> M = matrix(R, 2, 3, [w x y; x y z])
+julia> M = matrix(R, [w x y; x y z])
 [w   x   y]
 [x   y   z]
 
@@ -307,7 +307,7 @@ representatives of elements in `R/I`, where `R` is the basering.
 ```jldoctest
 julia> R, (v, w, x, y, z) = graded_polynomial_ring(QQ, [:v, :w, :x, :y, :z]);
 
-julia> M = matrix(R, 2, 4, [v w x y; w x y z])
+julia> M = matrix(R, [v w x y; w x y z])
 [v   w   x   y]
 [w   x   y   z]
 

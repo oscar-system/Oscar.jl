@@ -443,7 +443,7 @@ GAP: 1267650600228229401496703205376
 julia> preimage(f, y) == x
 true
 
-julia> m = matrix(ZZ, 2, 3, [1, 2, 3, 4, 5, 6]);
+julia> m = matrix(ZZ, [1 2 3; 4 5 6]);
 
 julia> n = map_entries(f, m)
 GAP: [ [ 1, 2, 3 ], [ 4, 5, 6 ] ]

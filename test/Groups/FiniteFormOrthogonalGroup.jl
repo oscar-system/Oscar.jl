@@ -44,10 +44,10 @@ end
 @testset "_gens_mod_2" begin
   R = residue_ring(ZZ, ZZ(2)^10)[1]
   F = GF(2)
-  U = matrix(R, 2, 2, [0, 1, 1, 0])
-  V = matrix(R, 2, 2, [2, 1, 1, 2])
-  W0 = matrix(R, 2, 2, [1, 0, 0, 3])
-  W1 = matrix(R, 2, 2, [1, 0, 0, 1])
+  U = matrix(R, [0 1; 1 0])
+  V = matrix(R, [2 1; 1 2])
+  W0 = matrix(R, [1 0; 0 3])
+  W1 = matrix(R, [1 0; 0 1])
   w1 = matrix(R, 1, 1, [1])
   w3 = matrix(R, 1, 1, [3])
   w5 = matrix(R, 1, 1, [5])
@@ -72,9 +72,9 @@ end
 
 
   _ker_gens = Oscar._ker_gens
-  W0 = matrix(R, 2, 2, [0, 1, 1, 1])
+  W0 = matrix(R, [0 1; 1 1])
   W1 = matrix(R, 1, 1, [1])
-  W2 = matrix(R, 2, 2, [2, 1, 1, 1])
+  W2 = matrix(R, [2 1; 1 1])
   G = diagonal_matrix([V*4, U*2, U])
   gen1 = _ker_gens(G, 2, 4, [0, 0, 0])
   gen1 = [Hecke.hensel_qf(G, g, 1, 2, 2) for g in gen1]

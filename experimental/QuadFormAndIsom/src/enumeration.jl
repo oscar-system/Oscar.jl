@@ -97,11 +97,11 @@ $(g(F), g(C), g(L))$ is $p$-admissible.
 ```jldoctest
 julia> L = root_lattice(:A,5);
 
-julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
-                             0 -1 -1 -1 -1;
-                             0  1  0  0  0;
-                             0  0  1  0  0;
-                             0  0  0  1  0]);
+julia> f = matrix(QQ, [1  1  1  1  1;
+                       0 -1 -1 -1 -1;
+                       0  1  0  0  0;
+                       0  0  1  0  0;
+                       0  0  0  1  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -678,7 +678,7 @@ Note that $e$ can be `0`.
 ```jldoctest
 julia> L = root_lattice(:A,2);
 
-julia> f = matrix(QQ, 2, 2, [0 1; -1 -1]);
+julia> f = matrix(QQ, [0 1; -1 -1]);
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
@@ -913,13 +913,13 @@ Note that $d$ and $e$ can be both `0`.
 ```jldoctest
 julia> L = root_lattice(:E,7);
 
-julia> f = matrix(QQ, 7, 7, [ 1  1  2  1  0  0  1;
-                             -1 -2 -3 -2 -1 -1 -1;
-                              0  1  2  1  1  1  1;
-                              0  0 -1 -1 -1 -1 -1;
-                              1  1  2  2  2  1  1;
-                              0  0 -1 -1 -1  0  0;
-                              0  0  0  1  0  0  0]);
+julia> f = matrix(QQ, [ 1  1  2  1  0  0  1;
+                       -1 -2 -3 -2 -1 -1 -1;
+                        0  1  2  1  1  1  1;
+                        0  0 -1 -1 -1 -1 -1;
+                        1  1  2  2  2  1  1;
+                        0  0 -1 -1 -1  0  0;
+                        0  0  0  1  0  0  0]);
 
 julia> Lf = integer_lattice_with_isometry(L, f)
 Integer lattice of rank 7 and degree 7

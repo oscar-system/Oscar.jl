@@ -113,7 +113,7 @@ end
   @test on_indeterminates(img, m) == iso(f^m)
 
   # non-permutation matrix
-  m = g(matrix(base_ring(g), 3, 3, [3, 0, 2, 4, 0, 0, 0, 4, 0]))
+  m = g(matrix(base_ring(g), [3  0  2; 4  0  0; 0  4  0]))
   @test f^m == 2*x1^2 + x1*x2 + 3*x1*x3
 
   for x in gens(g), y in gens(g)

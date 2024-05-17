@@ -177,7 +177,7 @@ end
 
 @testset "Conjugation in matrix group (different from GL and SL)" begin
    G = sylow_subgroup(general_linear_group(2, 3), 2)[1]
-   M = G(matrix(G.ring, 2, 2, [0, 1, 2, 0]))
+   M = G(matrix(G.ring, [0 1; 2 0]))
    @test order(M) == 4
    @test is_conjugate(G, M, inv(M))
    @test ! is_conjugate(G, M, M^2)

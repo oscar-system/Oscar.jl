@@ -350,7 +350,7 @@ end
 
   @testset "Matrix" begin
     K, z = abelian_closure(QQ)
-    M = matrix(K, 2, 2, [z(3), z(4), z(5), z(3)])
+    M = matrix(K, [z(3) z(4); z(5) z(3)])
     @test M^2 == M * M
   end
 

@@ -111,7 +111,7 @@ end
 
   @test jacobian_ideal(f) == ideal(R, [2*x, 2*y])
   @test jacobian_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
-  @test jacobian_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
+  @test jacobian_matrix(I) == matrix(R, [2*x 4*x^3*y-y^3; 2*y x^4-3*x*y^2])
   @test length(L) == 2
 
   # Test disabled because it could not be reliably reproduced and also 

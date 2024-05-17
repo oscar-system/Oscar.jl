@@ -172,7 +172,7 @@ end
     K = algebraic_closure(F1)
     z = zero(K)
     o = one(K)
-    M = matrix(K, 2, 2, [o, o, z, o])
+    M = matrix(K, [o o; z o])
     @test M^2 == M * M
   end
 

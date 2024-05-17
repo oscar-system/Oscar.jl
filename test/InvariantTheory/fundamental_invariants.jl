@@ -3,8 +3,8 @@
   K, a = cyclotomic_field(3, "a")
   # Force use of internal polynomial_ring with internal_ordering = :lex
   R, _ = graded_polynomial_ring(K, 3; internal_ordering=:lex)
-  M1 = matrix(K, 3, 3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 0 0 1; 1 0 0])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
   RG0 = invariant_ring(R, matrix_group(M1, M2))
 
   # Call it once without specifying `algo`
@@ -33,8 +33,8 @@
 
   # Char p, non-modular
   F = GF(3)
-  N1 = matrix(F, 3, 3, [0, 1, 0, 2, 0, 0, 0, 0, 2])
-  N2 = matrix(F, 3, 3, [2, 0, 0, 0, 2, 0, 0, 0, 2])
+  N1 = matrix(F, [0 1 0; 2 0 0; 0 0 2])
+  N2 = matrix(F, [2 0 0; 0 2 0; 0 0 2])
 
   for algo in [:king, :primary_and_secondary]
     RG = invariant_ring(N1, N2) # redefine to avoid caching
@@ -100,8 +100,8 @@
 
   # Specify degree bound
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 1 0 0; 0 0 1])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 
   invars1 = fundamental_invariants(invariant_ring(M1, M2))
   invars2 = fundamental_invariants(invariant_ring(M1, M2); beta=6)
@@ -121,8 +121,8 @@
 
   # `:primary_and_secondary` actually removes invariants
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 1 0 0; 0 0 1])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 
   RG = invariant_ring(M1, M2)
   primary_invariants(RG; primary_degrees=[3, 6, 6])

@@ -78,7 +78,7 @@ end
   q = discriminant_group(L)
   T = direct_sum(q, q)[1]
   OT = orthogonal_group(T)
-  f = matrix(ZZ, 2, 2, [1 1;0 1])
+  f = matrix(ZZ, [1 1; 0 1])
   fT = hom(T, T, f) # this works, we see it as a map of abelian group
   @test_throws ErrorException OT(fT) # this should not because fT does not preserve the bilinear form
   T = discriminant_group(root_lattice(:D, 13))
@@ -120,12 +120,12 @@ end
 end
 
 @testset "Embedding of orthogonal groups" begin
-  L = integer_lattice(gram=matrix(ZZ, 6, 6, [ 2 -1  0  0  0  0;
-                                      -1  2 -1 -1  0  0;
-                                       0 -1  2  0  0  0;
-                                       0 -1  0  2  0  0;
-                                       0  0  0  0  6  3;
-                                       0  0  0  0  3  6]))
+  L = integer_lattice(gram=matrix(ZZ, [ 2 -1  0  0  0  0;
+                                       -1  2 -1 -1  0  0;
+                                        0 -1  2  0  0  0;
+                                        0 -1  0  2  0  0;
+                                        0  0  0  0  6  3;
+                                        0  0  0  0  3  6]))
   T = discriminant_group(L)
   i = id_hom(T)
   f = @inferred embedding_orthogonal_group(i)

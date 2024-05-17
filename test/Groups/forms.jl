@@ -2,7 +2,7 @@
    T,t = polynomial_ring(GF(3),:t)
    F,z = finite_field(t^2+1,"z")
 
-   B = matrix(F,4,4,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
+   B = matrix(F,[0 1 0 0; 2 0 0 0; 0 0 0 z+2; 0 0 1-z 0])
    @test is_alternating(B)
    f = alternating_form(B)
    @test f isa SesquilinearForm
@@ -18,7 +18,7 @@
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = hermitian_form(B)
 
-   B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
+   B = matrix(F,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 -1-z 0])
    @test is_hermitian(B)
    f = hermitian_form(B)
    @test f isa SesquilinearForm
@@ -30,7 +30,7 @@
    @test_throws ArgumentError corresponding_quadratic_form(f)
    @test_throws ErrorException f = SesquilinearForm(B,:unitary)
 
-   B = matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 z+2 0])
+   B = matrix(F,[0 1 0 0; 1 0 0 0; 0 0 0 z+2; 0 0 z+2 0])
    @test is_symmetric(B)
    f = symmetric_form(B)
    @test f isa SesquilinearForm
@@ -45,7 +45,7 @@
    @test Q==Qf
    @test corresponding_quadratic_form(corresponding_bilinear_form(Q))==Q
    @test corresponding_bilinear_form(Q)==f
-   B1 = matrix(F,4,4,[0 0 0 0; 1 0 0 0; 0 0 0 0; 0 0 z+2 0])
+   B1 = matrix(F,[0 0 0 0; 1 0 0 0; 0 0 0 0; 0 0 z+2 0])
    Q1 = quadratic_form(B1)
    @test Q1==Q
    @test gram_matrix(Q1)!=B1
@@ -72,10 +72,10 @@
    p = R[1]*R[2]+z*R[3]*R[4]
    Q = quadratic_form(p)
    @test is_quadratic(Q)
-   @test gram_matrix(Q)==matrix(F,4,4,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
+   @test gram_matrix(Q)==matrix(F,[0 1 0 0; 0 0 0 0; 0 0 0 z; 0 0 0 0])
    f = corresponding_bilinear_form(Q)
    @test is_alternating(f)
-   @test gram_matrix(f)==matrix(F,4,4,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
+   @test gram_matrix(f)==matrix(F,[0 1 0 0; 1 0 0 0; 0 0 0 z; 0 0 z 0])
    @test_throws ArgumentError corresponding_quadratic_form(f)
 
 
@@ -85,7 +85,7 @@ end
    F,z = finite_field(3,2,"z")
    V=vector_space(F,6)
 
-   x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
+   x = matrix(F, [1 0 0 0 z+1 0; 0 0 0 2 1+2*z 1; 0 0 1 0 0 z; 0 0 0 2 0 0; 0 0 0 0 0 0; 0 0 0 0 0 1])
    f = alternating_form(x-transpose(x))
    for i in 1:6
    for j in i:6
@@ -143,7 +143,7 @@ end
    @test !is_degenerate(f)
 
    F = GF(2,1)
-   x = matrix(F,2,2,[1,0,0,0])
+   x = matrix(F, [1 0; 0 0])
    Q = quadratic_form(x)
    @test dim(radical(Q)[1])==1
    f = corresponding_bilinear_form(Q)

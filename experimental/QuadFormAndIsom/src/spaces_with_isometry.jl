@@ -307,8 +307,8 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
+julia> f = matrix(QQ, [1  1;
+                       0 -1])
 [1    1]
 [0   -1]
 
@@ -432,8 +432,8 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
+julia> f = matrix(QQ, [1  1;
+                       0 -1])
 [1    1]
 [0   -1]
 
@@ -497,8 +497,8 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
+julia> f = matrix(QQ, [1  1;
+                       0 -1])
 [1    1]
 [0   -1]
 
@@ -580,8 +580,8 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
+julia> f = matrix(QQ, [1  1;
+                       0 -1])
 [1    1]
 [0   -1]
 
@@ -664,8 +664,8 @@ with gram matrix
 [ 2   -1]
 [-1    2]
 
-julia> f = matrix(QQ, 2, 2, [1  1;
-                             0 -1])
+julia> f = matrix(QQ, [1  1;
+                       0 -1])
 [1    1]
 [0   -1]
 

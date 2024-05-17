@@ -1,7 +1,7 @@
 @testset "Presentation as affine algebra" begin
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [0, 1, 0, 0, 0, 1, 1, 0, 0])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 0 0 1; 1 0 0])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 
   RG = invariant_ring(M1, M2)
   A, AtoR = affine_algebra(RG)
@@ -15,7 +15,7 @@
 
   # [KS99, Example 17.7]
   K, a = cyclotomic_field(3, "a")
-  M = matrix(K, 2, 2, [a, 0, 0, a])
+  M = matrix(K, [a 0; 0 a])
   for algo in [:groebner_basis, :linear_algebra]
     RG = invariant_ring(M)
     A, AtoR = affine_algebra(RG; algo_rels=algo)
@@ -45,8 +45,8 @@
   end
 
   # S_4 as matrix group
-  M1 = matrix(QQ, 4, 4, [0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0])
-  M2 = matrix(QQ, 4, 4, [0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1])
+  M1 = matrix(QQ, [0 1 0 0; 0 0 1 0; 0 0 0 1; 1 0 0 0])
+  M2 = matrix(QQ, [0 1 0 0; 1 0 0 0; 0 0 1 0; 0 0 0 1])
   for algo in [:groebner_basis, :linear_algebra]
     RG = invariant_ring(M1, M2)
     A, = affine_algebra(RG; algo_rels=algo)

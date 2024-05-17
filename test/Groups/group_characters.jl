@@ -1000,7 +1000,7 @@ end
     [ matrix(ZZ, [0 1 0; -1 0 0; 0 0 -1]) ],
     [ matrix(QQ, [0 1 0; -1 0 0; 0 0 -1]) ],
     [ matrix(K, [a 0; 0 a]) ],
-    [ matrix(L, 2, 2, [b, 0, -b - 1, 1]), matrix(L, 2, 2, [1, b + 1, 0, b]) ],
+    [ matrix(L, [b 0; -b-1 1]), matrix(L, [1 b+1; 0 b]) ],
     [ matrix(F, [1 0 0 ; 0 -1 0 ; 0 0 -1]),
       matrix(F, [1//2 -sqrt3//2 0 ; sqrt3//2 1//2 0 ; 0 0 1]) ],
   ]

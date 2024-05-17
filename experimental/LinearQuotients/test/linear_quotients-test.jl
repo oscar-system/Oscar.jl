@@ -3,8 +3,8 @@
   @test_throws ArgumentError linear_quotient(G)
 
   K, a = cyclotomic_field(4, "a")
-  r = matrix(K, 2, 2, [-1, 0, 0, 1])
-  s = matrix(K, 2, 2, [a, 0, 0, inv(a)])
+  r = matrix(K, [-1 0; 0 1])
+  s = matrix(K, [a 0; 0 inv(a)])
   G = matrix_group(r, s)
   L = linear_quotient(G)
 
@@ -44,7 +44,7 @@
   @test !has_terminal_singularities(L)
 
   K, a = cyclotomic_field(12, "a")
-  g = matrix(K, 2, 2, [0, a^4, a^4, 0])
+  g = matrix(K, [0 a^4; a^4 0])
   G = matrix_group(g)
   R, x = polynomial_ring(K, 2)
   val = Oscar.monomial_valuation(R, G(g), (a, 12))
@@ -65,8 +65,8 @@
 
   # An example containing pseudo-reflections
   K, a = cyclotomic_field(6, "a")
-  g1 = matrix(K, 3, 3, [-1 0 0; 0 1 0; 0 0 1])
-  g2 = matrix(K, 3, 3, [0 0 1; 1 0 0; 0 1 0])
+  g1 = matrix(K, [-1 0 0; 0 1 0; 0 0 1])
+  g2 = matrix(K, [0 0 1; 1 0 0; 0 1 0])
   G = matrix_group(g1, g2)
   L = linear_quotient(G)
   A, GtoA = class_group(L)

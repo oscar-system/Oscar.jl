@@ -2,8 +2,8 @@
   K, a = cyclotomic_field(3, "a")
   # Force use of internal polynomial_ring with internal_ordering = :lex
   R, _ = graded_polynomial_ring(K, 3; internal_ordering=:lex)
-  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 1 0 0; 0 0 1])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
   RG0 = invariant_ring(R, matrix_group(M1, M2))
 
   # Should fail if the wrong monomial ordering is used in
@@ -12,8 +12,8 @@
   RGQQ = invariant_ring(M)
 
   F3 = GF(3)
-  N1 = matrix(F3, 3, 3, [0, 1, 0, 2, 0, 0, 0, 0, 2])
-  N2 = matrix(F3, 3, 3, [2, 0, 0, 0, 2, 0, 0, 0, 2])
+  N1 = matrix(F3, [0 1 0; 2 0 0; 0 0 2])
+  N2 = matrix(F3, [2 0 0; 0 2 0; 0 0 2])
   RGp = invariant_ring(N1, N2) # char p, non-modular
 
   F9, b = finite_field(3, 2, "b")

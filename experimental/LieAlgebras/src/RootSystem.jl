@@ -321,7 +321,7 @@ Weight lattice
   of root system of rank 2
     of type A2
 
-julia> weight_lattice(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+julia> weight_lattice(root_system(matrix(ZZ, [2 -1; -1 2]); detect_type=false))
 Weight lattice
   of root system of rank 2
     of unknown type
@@ -348,7 +348,7 @@ Weyl group
   of root system of rank 2
     of type A2
 
-julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+julia> weyl_group(root_system(matrix(ZZ, [2 -1; -1 2]); detect_type=false))
 Weyl group
   of root system of rank 2
     of unknown type

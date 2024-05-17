@@ -1,8 +1,8 @@
 @testset "Primary invariants (for matrix groups)" begin
   # Char 0
   K, a = cyclotomic_field(3, "a")
-  M1 = matrix(K, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1])
-  M2 = matrix(K, 3, 3, [1, 0, 0, 0, a, 0, 0, 0, -a - 1])
+  M1 = matrix(K, [0 1 0; 1 0 0; 0 0 1])
+  M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
   RG = invariant_ring(M1, M2)
   invars = primary_invariants(RG)
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
@@ -12,8 +12,8 @@
 
   # Char p, non-modular
   F3 = GF(3)
-  N1 = matrix(F3, 3, 3, [0, 1, 0, 2, 0, 0, 0, 0, 2])
-  N2 = matrix(F3, 3, 3, [2, 0, 0, 0, 2, 0, 0, 0, 2])
+  N1 = matrix(F3, [0 1 0; 2 0 0; 0 0 2])
+  N2 = matrix(F3, [2 0 0; 0 2 0; 0 0 2])
   RG = invariant_ring(N1, N2)
   invars = primary_invariants(RG)
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
@@ -37,7 +37,7 @@
 
   # Kem99, Example 1
   K, a = cyclotomic_field(9, "a")
-  M = matrix(K, 2, 2, [a, 0, 0, -a^3])
+  M = matrix(K, [a 0; 0 -a^3])
   RG = invariant_ring(M)
   invars = primary_invariants(RG)
   @test length(invars) == 2
@@ -46,7 +46,7 @@
 
   # Kem99, Example 2
   K, a = cyclotomic_field(9, "a")
-  M = matrix(K, 3, 3, [a, 0, 0, 0, a^2, 0, 0, 0, a^6])
+  M = matrix(K, [a 0 0; 0 a^2 0; 0 0 a^6])
   RG = invariant_ring(M)
   invars = primary_invariants(RG)
   @test length(invars) == 3
@@ -54,8 +54,8 @@
   @test dim(ideal(polynomial_ring(RG), invars)) == 0
 
   # Kem99, p. 183: S_3^3
-  M1 = diagonal_matrix([matrix(QQ, 3, 3, [0, 1, 0, 1, 0, 0, 0, 0, 1]) for i in 1:3])
-  M2 = diagonal_matrix([matrix(QQ, 3, 3, [0, 1, 0, 0, 0, 1, 1, 0, 0]) for i in 1:3])
+  M1 = diagonal_matrix([matrix(QQ, [0 1 0; 1 0 0; 0 0 1]) for i in 1:3])
+  M2 = diagonal_matrix([matrix(QQ, [0 1 0; 0 0 1; 1 0 0]) for i in 1:3])
   RG = invariant_ring(M1, M2)
   invars = primary_invariants(RG)
   @test length(invars) == 9
