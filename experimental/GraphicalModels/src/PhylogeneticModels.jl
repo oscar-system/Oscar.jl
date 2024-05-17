@@ -245,7 +245,7 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
-  edgs = order_edges(graph)
+  edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b 
     b a]) for (a,b,e) in zip(list_a, list_b, edgs)
@@ -285,7 +285,7 @@ function jukes_cantor_model(graph::Graph{Directed})
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
-  edgs = order_edges(graph)
+  edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b b b
     b a b b
@@ -327,7 +327,7 @@ function kimura2_model(graph::Graph{Directed})
   R, list_a, list_b, list_c = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
-  edgs = order_edges(graph)
+  edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c b
     b a b c
@@ -369,7 +369,7 @@ function kimura3_model(graph::Graph{Directed})
   R, list_a, list_b , list_c, list_d= polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne, :d => 1:ne; cached=false)
   
   root_distr = repeat([1//ns], outer = ns)
-  edgs = order_edges(graph)
+  edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c d
     b a d c
@@ -414,7 +414,7 @@ function general_markov_model(graph::Graph{Directed}; number_states = 4)
   ne = n_edges(graph)
   R, root_distr, list_m = polynomial_ring(QQ, :π => 1:ns, :m => (1:(ne^2),1:(ns),1:(ns)); cached=false)
 
-  edgs = order_edges(graph)
+  edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, reshape(list_m[i,:,:], ns, ns)) for (i,e) in zip(1:ne, edgs))
 
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
