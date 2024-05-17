@@ -6,7 +6,7 @@ CurrentModule = Oscar
 using Oscar
 ```
 
-# Affine
+# Rational Points on Affine Schemes
 
 ```@docs
 AbsAffineRationalPoint
