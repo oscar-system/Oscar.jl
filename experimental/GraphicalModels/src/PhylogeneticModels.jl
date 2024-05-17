@@ -119,9 +119,9 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> transition_matrices(pm)
 Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2]; b[2] b[2] b[2] a[2]]
-  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3]; b[3] b[3] b[3] a[3]]
-  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1]; b[1] b[1] b[1] a[1]]
+  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1];…
+  Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2];…
+  Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3];…
 ```
 """
 transition_matrices(pm::PhylogeneticModel) = pm.trans_matrices
@@ -175,8 +175,8 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_parameters(pm)
 Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
   Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
   Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
 ```
 """
@@ -434,14 +434,14 @@ Moves a `PhylogeneticModel` or `GroupBasedPhylogeneticModel` from projective int
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> affine_phylogenetic_model!(pm)
-Group-based phylogenetic model on a tree with 3 leaves and 3 edges 
- with distribution at the root [1//4, 1//4, 1//4, 1//4]. 
- The transition matrix associated to edge i is of the form 
+Group-based phylogenetic model on a tree with 3 leaves and 3 edges
+ with distribution at the root [1//4, 1//4, 1//4, 1//4].
+ The transition matrix associated to edge i is of the form
  [-3*b[i]+1 b[i] b[i] b[i];
   b[i] -3*b[i]+1 b[i] b[i];
   b[i] b[i] -3*b[i]+1 b[i];
-  b[i] b[i] b[i] -3*b[i]+1], 
- and the Fourier parameters are [1 x[i, 2] x[i, 2] x[i, 2]].
+  b[i] b[i] b[i] -3*b[i]+1],
+ and the Fourier parameters are [i x[i, 2] x[i, 2] x[i, 2]].
 ```
 """
 function affine_phylogenetic_model!(pm::PhylogeneticModel)
