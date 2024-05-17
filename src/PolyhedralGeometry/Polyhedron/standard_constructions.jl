@@ -811,9 +811,10 @@ julia> n_facets(T)
 """
 function archimedean_solid(s::String)
   if s in _archimedean_strings_from_oscar
+    filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return getfield(Main, Symbol(s))()
+    return load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
   end
   pmp = Polymake.polytope.archimedean_solid(s)
   return polyhedron(pmp)
@@ -828,7 +829,7 @@ Construct the Snub Cube, an Archimedean solid.
 See also [`archimedean_solid`](@ref).
 """
 function snub_cube()
-  return load(joinpath(oscardir, "data", "ArchimedeanSolids", "snub_cube.mrdi"))
+  return archimedean_solid("snub_cube")
 end
 
 @doc raw"""
@@ -840,7 +841,7 @@ Construct the Snub Dodecahedron, an Archimedean solid.
 See also [`archimedean_solid`](@ref).
 """
 function snub_dodecahedron()
-  return load(joinpath(oscardir, "data", "ArchimedeanSolids", "snub_dodecahedron.mrdi"))
+  return archimedean_solid("snub_dodecahedron")
 end
 
 const _catalan_strings_from_oscar = Set{String}(["pentagonal_icositetrahedron", "pentagonal_hexecontahedron"])
@@ -902,9 +903,10 @@ julia> n_facets(T)
 """
 function catalan_solid(s::String)
   if s in _catalan_strings_from_oscar
+    filename = s * ".mrdi"
     # code used for generation of loaded files can be found at:
     # https://github.com/dmg-lab/RegularSolidsSrc
-    return getfield(Main, Symbol(s))()
+    return load(joinpath(oscardir, "data", "CatalanSolids", filename))
   end
   pmp = Polymake.polytope.catalan_solid(s)
   return polyhedron(pmp)
@@ -919,7 +921,7 @@ Construct the Pentagonal Icositetrahedron, a Catalan solid.
 See also [`catalan_solid`](@ref).
 """
 function pentagonal_icositetrahedron()
-  return load(joinpath(oscardir, "data", "CatalanSolids", "pentagonal_icositetrahedron.mrdi"))
+  return catalan_solid("pentagonal_icositetrahedron")
 end
 
 @doc raw"""
@@ -931,7 +933,7 @@ Construct the Pentagonal Hexecontahedron, a Catalan solid.
 See also [`catalan_solid`](@ref).
 """
 function pentagonal_hexecontahedron()
-  return load(joinpath(oscardir, "data", "CatalanSolids", "pentagonal_hexecontahedron.mrdi"))
+  return catalan_solid("pentagonal_hexecontahedron")
 end
 
 @doc raw"""
