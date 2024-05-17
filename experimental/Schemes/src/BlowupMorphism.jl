@@ -235,8 +235,8 @@ julia> bl = blow_up(A3, I)
 Blowup
   of scheme over QQ covered with 1 patch
     1b: [x, y, z]   affine 3-space
-  in prime ideal sheaf on scheme over QQ covered with 1 patch
-    1b: [x, y, z]   affine 3-space extended from ideal (x, y, z) on affine 3-space
+  in sheaf of ideals with restriction
+    1b: Ideal (x, y, z)
 with domain
   scheme over QQ covered with 3 patches
     1a: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
@@ -262,7 +262,11 @@ defined by
     3: Ideal (z)
 
 julia> Z = center(bl)
-Prime ideal sheaf on Scheme over QQ covered with 1 patch extended from Ideal (x, y, z) on Affine 3-space
+Sheaf of ideals
+  on scheme over QQ covered with 1 patch
+    1: [x, y, z]   affine 3-space
+with restriction
+  1: Ideal (x, y, z)
 ```
 """
 @attributes mutable struct BlowupMorphism{
