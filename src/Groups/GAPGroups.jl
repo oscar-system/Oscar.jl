@@ -337,7 +337,7 @@ end
 function Base.show(io::IO, G::Union{PcGroup,SubPcGroup})
   @show_name(io, G)
   @show_special(io, G)
-  T = typeof(G) == PcGroup ? "Pc group" : "Subgroup of pc group"
+  T = typeof(G) == PcGroup ? "Pc group" : "Sub-pc group"
   print(io, T)
   if !is_terse(io)
     if isfinite(G)
