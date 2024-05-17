@@ -1,4 +1,6 @@
-## define components of phylogenetic models
+######################################
+#### PHYLOGENETIC DATA STRUCTURES ####
+######################################
 
 struct PhylogeneticModel
   graph::Graph{Directed}
@@ -48,7 +50,9 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
 end
 
 
-#calling elements of the struct GroupBasedPhylogeneticModel and PhylogeneticModel
+#########################################################################
+#### ATTRIBUTES OF PhylogeneticModel AND GroupBasedPhylogeneticModel ####
+#########################################################################
 
 @doc raw"""
     phylogenetic_model(pm::GroupBasedPhylogeneticModel)
@@ -215,7 +219,9 @@ julia> group_of_model(pm)
 group_of_model(pm::GroupBasedPhylogeneticModel) = pm.group
 
 
-#define most common phylogenetic models
+############################
+#### GROUP-BASED MODELS ####
+############################
 
 @doc raw"""
     cavender_farris_neyman_model(graph::Graph{Directed})
@@ -381,6 +387,11 @@ function kimura3_model(graph::Graph{Directed})
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
 end
 
+
+##############################
+#### GENERAL MARKOV MODEL ####
+##############################
+
 @doc raw"""
     general_markov_model(graph::Graph{Directed})
 
@@ -408,6 +419,11 @@ function general_markov_model(graph::Graph{Directed}; number_states = 4)
 
   return PhylogeneticModel(graph, ns, R, root_distr, matrices)
 end
+
+
+##############################
+#### AFFINE PHYLO MODELS #####
+##############################
 
 @doc raw"""
    affine_phylogenetic_model!(pm::PhylogeneticModel)
