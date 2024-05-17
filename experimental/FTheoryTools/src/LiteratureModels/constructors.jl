@@ -223,7 +223,7 @@ each of which is obtained from triangulations of polytopes in the 3-dimensional 
 for each of these 708 families, a lot of information is known. Still, those geometries are also somewhat involved.
 Let us demonstrate this on the F-theory QSM based on the 4th polytope in the 3-dimensional Kreuzer-Skarke list.
 We can create and study this model as follows (TODO: currently under development):
-```jldoctest; setup = :(Oscar.LazyArtifacts.artifact"QSMDB")
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4));
 
 julia> model = qsm_model.hs_model
