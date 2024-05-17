@@ -1926,7 +1926,7 @@ end
 
 
 @doc raw"""
-    syllables(g::FPGroupElem)
+    syllables(g::Union{FPGroupElem, SubFPGroupElem})
 
 Return the syllables of `g` as a list of pairs `gen => exp` where
 `gen` is the index of a generator and `exp` is an exponent.
@@ -1951,7 +1951,7 @@ julia> syllables(epi(F1^5*F2^-3))
  2 => -3
 ```
 """
-function syllables(g::FPGroupElem)
+function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
 end

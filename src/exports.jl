@@ -778,7 +778,6 @@ export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generat
 export is_finite_order
 export is_flat
 export is_full_direct_product
-export is_full_fp_group
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
