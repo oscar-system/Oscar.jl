@@ -52,7 +52,7 @@ Create a parametrization for a `PhylogeneticModel` of type `Dictionary`.
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using the root distribution and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})` and `probability_parametrization(pm::PhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest parametrization
+```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> p = probability_map(pm)
@@ -60,31 +60,22 @@ Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 64 entries:
   (1, 2, 1) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
   (3, 1, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
   (4, 4, 2) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (1, 2, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (1, 2, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
   (3, 1, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
-  (3, 2, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (3, 2, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (2, 1, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (3, 2, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
+  (3, 2, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
+  (2, 1, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
   (3, 2, 3) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
   (2, 1, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  (1, 3, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (1, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (2, 1, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (1, 3, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
+  (1, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
+  (2, 1, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
   (2, 2, 4) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
   (4, 3, 4) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
   (2, 2, 1) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
   (4, 4, 4) => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
-  (4, 3, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
+  (4, 3, 1) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] …
   (3, 3, 2) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (4, 1, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (4, 4, 1) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (2, 2, 3) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (3, 4, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (4, 3, 3) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  (4, 4, 3) => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2*b[1]*b[2]*b[3]
-  (4, 2, 2) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
-  (1, 3, 4) => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//4*b[1]*b[2]*b[3]
-  (2, 3, 2) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
   ⋮         => ⋮
 ```
 """
@@ -137,7 +128,9 @@ Create a parametrization for a `GroupBasedPhylogeneticModel` of type `Dictionary
 Iterate through all possible states of the leaf random variables and calculates their corresponding probabilities using group actions and laws of conditional independence. Return a dictionary of polynomials indexed by the states. Use auxiliary function `monomial_fourier(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})` and `fourier_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})`. 
 
 # Examples
-```jldoctest parametrization
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> q = fourier_map(pm)
 Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 64 entries:
   (1, 2, 1) => 0
@@ -159,15 +152,6 @@ Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 64 entries:
   (4, 4, 4) => 0
   (4, 3, 1) => 0
   (3, 3, 2) => 0
-  (4, 1, 2) => 0
-  (4, 4, 1) => x[3, 1]*x[1, 2]*x[2, 2]
-  (2, 2, 3) => 0
-  (3, 4, 2) => x[1, 2]*x[2, 2]*x[3, 2]
-  (4, 3, 3) => 0
-  (4, 4, 3) => 0
-  (4, 2, 2) => 0
-  (1, 3, 4) => 0
-  (2, 3, 2) => 0
   ⋮         => ⋮
 ```
 """
@@ -191,7 +175,11 @@ end
 Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries and return equivalence classes of states which are attached the same probabilities.
 
 # Examples
-```jldoctest parametrization
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> p = probability_map(pm);
+julia> q = fourier_map(pm);
+
 julia> p_equivclasses = compute_equivalent_classes(p)
 Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
   [(1, 2, 2), (1, 3, 3), (1, 4, 4), (2, 1, 1), (2, 3, 3), (2, 4, 4), (3, 1, 1), (3, 2, 2), (3, 4, 4), (4, 1, 1), (4, 2, 2), (4, 3, 3)]           => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2*b[1]*b[2]*b[3]
@@ -229,7 +217,11 @@ end
 Take the output of the function `compute_equivalent_classes` for `PhylogeneticModel` and multiply by a factor to obtain probabilities as specified on the original small trees database.
 
 # Examples
-```jldoctest parametrization
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> q = fourier_map(pm);
+julia> q_equivclasses = compute_equivalent_classes(q)
+
 julia> sum_equivalent_classes(q_equivclasses)
 Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
   [(2, 1, 2), (3, 1, 3), (4, 1, 4)]                                      => 3*x[2, 1]*x[1, 2]*x[3, 2]
@@ -255,7 +247,11 @@ specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::D
 Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
 
 # Examples
-```jldoctest parametrization
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> p_equivclasses = compute_equivalent_classes(probability_map(pm));
+julia> q_equivclasses = compute_equivalent_classes(fourier_map(pm));
+
 julia> specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
 5×5 Matrix{QQMPolyRingElem}:
  1  1      1      1      1
@@ -307,7 +303,11 @@ end
 Reparametrize between a model specification in terms of Fourier and probability cooordinates.
 
 # Examples
-```jldoctest parametrization
+```jldoctest
+julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+julia> p_equivclasses = compute_equivalent_classes(probability_map(pm));
+julia> q_equivclasses = compute_equivalent_classes(fourier_map(pm));
+
 julia> inverse_specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
 5×5 Matrix{QQMPolyRingElem}:
  1//16  3//16   3//16   3//16   3//8
