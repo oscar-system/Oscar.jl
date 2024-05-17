@@ -78,11 +78,11 @@ function root(graph::Graph)
 end
 
 
-############################
-#### ORDERING FUNCTIONS ####
-############################
+########################
+#### SORT FUNCTIONS ####
+########################
 
-function order_edges(graph::Graph)
+function sort_edges(graph::Graph)
   edgs = collect(edges(graph))
   leaves_idx = findall(edge -> dst(edge) in Oscar.leaves(graph), edgs)
   return edgs[vcat(leaves_idx, setdiff(1:length(edgs), leaves_idx))]
