@@ -177,7 +177,9 @@ Given the parametrization of a `PhylogeneticModel`, cancel all duplicate entries
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> p = probability_map(pm);
+
 julia> q = fourier_map(pm);
 
 julia> p_equivclasses = compute_equivalent_classes(p)
@@ -212,15 +214,17 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
 end
 
 @doc raw"""
-  sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
+    sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
 
 Take the output of the function `compute_equivalent_classes` for `PhylogeneticModel` and multiply by a factor to obtain probabilities as specified on the original small trees database.
 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> q = fourier_map(pm);
-julia> q_equivclasses = compute_equivalent_classes(q)
+
+julia> q_equivclasses = compute_equivalent_classes(q);
 
 julia> sum_equivalent_classes(q_equivclasses)
 Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
@@ -249,7 +253,9 @@ Reparametrize between a model specification in terms of probability and Fourier 
 # Examples
 ```jldoctest
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
+
 julia> p_equivclasses = compute_equivalent_classes(probability_map(pm));
+
 julia> q_equivclasses = compute_equivalent_classes(fourier_map(pm));
 
 julia> specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
