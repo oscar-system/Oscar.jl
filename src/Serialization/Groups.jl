@@ -149,21 +149,23 @@ end
 
 
 ##############################################################################
-# FPGroup
+# FPGroup, SubFPGroup
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
 
 @register_serialization_type FPGroup uses_id
+@register_serialization_type SubFPGroup uses_id
 
-function save_object(s::SerializerState, G::FPGroup)
+function save_object(s::SerializerState, G::Union{FPGroup, SubFPGroup})
   save_data_dict(s) do
     save_object(s, G.X, :X)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{FPGroup})
-  return FPGroup(load_object(s, GapObj, :X))
+function load_object(s::DeserializerState, ::Type{T}) where T <: Union{FPGroup, SubFPGroup}
+  return T(load_object(s, GapObj, :X))
 end
+
 
 
 ##############################################################################
@@ -171,12 +173,29 @@ end
 # We need the parent and a description of the word that defines the element.
 
 @register_serialization_type FPGroupElem uses_params
+@register_serialization_type SubFPGroupElem uses_params
 
-function save_object(s::SerializerState, g::FPGroupElem)
+function save_object(s::SerializerState, g::Union{FPGroupElem, SubFPGroupElem})
   save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
 end
 
 function load_object(s::DeserializerState, ::Type{FPGroupElem}, parent_group::FPGroup)
+  lo = load_object(s, Vector, Int)
+  fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
+  if GAP.Globals.IsElementOfFpGroupFamily(fam)
+    # go via the underlying free group
+    free = GAP.getbangproperty(fam, :freeGroup)
+    freefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(free))
+    freeelm = GAPWrap.ObjByExtRep(freefam, GapObj(lo, true))
+    gapelm = GAPWrap.ElementOfFpGroup(fam, freeelm)
+  else
+    # element in a free group
+    gapelm = GAPWrap.ObjByExtRep(fam, GapObj(lo, true))
+  end
+  return Oscar.group_element(parent_group, gapelm)
+end
+
+function load_object(s::DeserializerState, ::Type{SubFPGroupElem}, parent_group::SubFPGroup)
   lo = load_object(s, Vector, Int)
   fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
   if GAP.Globals.IsElementOfFpGroupFamily(fam)

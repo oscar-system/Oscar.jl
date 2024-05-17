@@ -488,10 +488,11 @@ _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
 # from the codomain `G` in GAP by calling `T(G)` where `T` is the desired type.
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 _get_iso_function(::Type{SubPcGroup}) = GAP.Globals.IsomorphismPcGroup
+_get_iso_function(::Type{SubFPGroup}) = GAP.Globals.IsomorphismFPGroup
 
 
 """
-    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+    isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, SubFPGroup, PermGroup}
     isomorphism(::Type{T}, G::GAPGroup; on_gens=false) where T <: Union{PcGroup, FPGroup}
 
 Return an isomorphism from `G` to a group `H` of type `T`.
@@ -523,7 +524,7 @@ julia> codomain(iso) === ans
 true
 ```
 """
-function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, SubFPGroup, PermGroup}
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (T, false)) do
@@ -881,6 +882,8 @@ end
 """
     FPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     fp_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    SubFPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
+    sub_fp_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     FinGenAbGroup(G::T) where T <: GAPGroup
     PcGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     pc_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
@@ -903,6 +906,7 @@ function (::Type{T})(G::FinGenAbGroup) where T <: GAPGroup
 end
 
 fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = FPGroup(G)
+sub_fp_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubFPGroup(G)
 pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PcGroup(G)
 sub_pc_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = SubPcGroup(G)
 permutation_group(G::T) where {T <: Union{FinGenAbGroup, GAPGroup, MultTableGroup}} = PermGroup(G)

@@ -156,6 +156,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubFPGroup
+export SubFPGroupElem
 export SubPcGroup
 export SubPcGroupElem
 export SubQuoHom
