@@ -305,6 +305,37 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {S <: Union
   end
 end
 
+function save_type_params(s::SerializerState, obj::Dict{T, S}) where {T, S}
+  save_data_dict(s) do
+    save_object(s, encode_type(Dict), :name)
+    save_data_dict(s, :params) do
+      if serialize_with_params(S)
+        if isempty(obj)
+          save_object(s, encode_type(S), :value_type)
+        else
+          v = first(values(obj))
+          save_object(s, encode_type(S), :value_type)
+          save_type_params(s, v, :value_params)
+        end
+      else
+        save_object(s, encode_type(S), :value_type)
+      end
+      
+      if serialize_with_params(T)
+        if isempty(obj)
+          save_object(s, encode_type(T), :key_type)
+        else
+          k = first(keys(obj))
+          save_object(s, encode_type(T), :key_type)
+          save_type_params(s, k, :key_params)
+        end
+      else
+        save_object(s, encode_type(T), :key_type)
+      end
+    end
+  end
+end
+
 function load_type_params(s::DeserializerState, ::Type{<:Dict})
   if haskey(s, :value_type)
     key_type = load_node(_ -> decode_type(s), s, :key_type)
@@ -316,7 +347,13 @@ function load_type_params(s::DeserializerState, ::Type{<:Dict})
         load_params_node(s)
       end
     end
-    
+
+    if serialize_with_params(key_type)
+      d[:key_params] = load_node(s, :key_params) do _
+        load_params_node(s)
+      end
+    end
+
     return d
   end
 
@@ -348,27 +385,58 @@ function save_object(s::SerializerState, obj::Dict{S, T}) where {S <: Union{Symb
   end
 end
 
+function save_object(s::SerializerState, obj::Dict) 
+  save_data_array(s) do
+    for (k, v) in obj
+      save_object(s, (k, v))
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{Dict{String, Int}})
+  return Dict{String, Int}(string(k) => parse(Int, v) for (k,v) in s.obj)
+end
+
 function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
   key_type = params[:key_type]
   value_type = haskey(params, :value_type) ? params[:value_type] : Any
   dict = Dict{key_type, value_type}()
   
-  for (k, _) in s.obj
+  for (i, (k, _)) in enumerate(s.obj)
     if k == :key_type
       continue
     end
     
     if key_type == Int
       key = parse(Int, string(k))
+    elseif haskey(params, :key_params) # type is not Int, String or Symbol
+      load_node(s, i) do _
+        # 1 is for first entry of tuple which is the key in this case
+        key = load_object(s, key_type, params[:key_params], 1) 
+      end
     else
       key = key_type(k)
     end
 
     if value_type != Any
       if serialize_with_params(value_type)
-        dict[key] = load_object(s, value_type, params[:value_params], k)
+        if haskey(params, :key_params) # key type is not Int, String or Symbol
+          load_node(s, i) do _
+            # 2 is for second entry of tuple which is the value in this case
+            dict[key] = load_object(s, value_type, params[:value_params], 2) 
+          end
+        else
+          dict[key] = load_object(s, value_type, params[:value_params], k)
+        end
       else
-        dict[key] = load_object(s, value_type, k)
+        if haskey(params, :key_params) # key type is not Int, String or Symbol
+          load_node(s, i) do _
+            # 2 is for second entry of tuple which is the value in this case
+            dict[key] = load_object(s, value_type, 2) 
+          end
+        else
+          dict[key] = load_object(s, value_type, k)
+        end
       end
     elseif params[k] isa Type
       dict[key] = load_object(s, params[k], k)

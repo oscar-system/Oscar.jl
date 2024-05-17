@@ -21,48 +21,12 @@ function save_type_params(s::SerializerState, h::HypersurfaceModel)
     end
 
     save_data_dict(s, :params) do
-      if serialize_with_id(base)
-        parent_ref = save_as_ref(s, base)
-        save_object(s, parent_ref, :base_space)
-      else
-        save_typed_object(s, base, :base_space)
-      end
-
-      if serialize_with_id(ambient)
-        parent_ref = save_as_ref(s, ambient)
-        save_object(s, parent_ref, :ambient_space)
-      else
-        save_typed_object(s, ambient, :ambient_space)
-      end
-
-      if serialize_with_id(fiber_amb_space)
-        parent_ref = save_as_ref(s, fiber_amb_space)
-        save_object(s, parent_ref, :fiber_ambient_space)
-      else
-        save_typed_object(s, fiber_amb_space, :fiber_ambient_space)
-      end
-
-      if serialize_with_id(hypersurface_equation_ring)
-        parent_ref = save_as_ref(s, hypersurface_equation_ring)
-        save_object(s, parent_ref, :hypersurface_equation_ring)
-      else
-        save_typed_object(s, hypersurface_equation_ring, :hypersurface_equation_ring)
-      end
-
-      if serialize_with_id(hypersurface_equation_parametrization_ring)
-        parent_ref = save_as_ref(s, hypersurface_equation_parametrization_ring)
-        save_object(s, parent_ref, :hypersurface_equation_parametrization_ring)
-      else
-        save_typed_object(s, hypersurface_equation_parametrization_ring, :hypersurface_equation_parametrization_ring)
-      end
-
-      if serialize_with_id(explicit_model_section_ring)
-        parent_ref = save_as_ref(s, explicit_model_section_ring)
-        save_object(s, parent_ref, :explicit_model_section_ring)
-      else
-        save_typed_object(s, explicit_model_section_ring, :explicit_model_section_ring)
-      end
-
+      save_typed_object(s, base, :base_space)
+      save_typed_object(s, ambient, :ambient_space)
+      save_typed_object(s, fiber_amb_space, :fiber_ambient_space)
+      save_typed_object(s, hypersurface_equation_ring, :hypersurface_equation_ring)
+      save_typed_object(s, hypersurface_equation_parametrization_ring, :hypersurface_equation_parametrization_ring)
+      save_typed_object(s, explicit_model_section_ring, :explicit_model_section_ring)
     end
   end
 end
