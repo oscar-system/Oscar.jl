@@ -175,9 +175,9 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_parameters(pm)
 Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
   Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
   Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
-  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
 ```
 """
 fourier_parameters(pm::GroupBasedPhylogeneticModel) = pm.fourier_params
@@ -441,7 +441,7 @@ Group-based phylogenetic model on a tree with 3 leaves and 3 edges
   b[i] -3*b[i]+1 b[i] b[i];
   b[i] b[i] -3*b[i]+1 b[i];
   b[i] b[i] b[i] -3*b[i]+1],
- and the Fourier parameters are [i x[i, 2] x[i, 2] x[i, 2]].
+ and the Fourier parameters are [1 x[i, 2] x[i, 2] x[i, 2]].
 ```
 """
 function affine_phylogenetic_model!(pm::PhylogeneticModel)

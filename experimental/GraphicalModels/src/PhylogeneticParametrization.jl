@@ -191,13 +191,13 @@ Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
   [(1, 1, 1), (2, 2, 2), (… => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
 
 julia> q_equivclasses = compute_equivalent_classes(q)
-│ Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
-│   [(2, 1, 2), (3, 1, 3), (4, 1, 4)]                   => x[2, 1]*x[1, 2]*x[3, 2]
-│   [(2, 2, 1), (3, 3, 1), (4, 4, 1)]                   => x[3, 1]*x[1, 2]*x[2, 2]
-│   [(1, 2, 2), (1, 3, 3), (1, 4, 4)]                   => x[1, 1]*x[2, 2]*x[3, 2]
-│   [(2, 3, 4), (2, 4, 3), (3, 2, 4), (3, 4, 2), (4, 2… => x[1, 2]*x[2, 2]*x[3, 2]
-│   [(1, 1, 2), (1, 1, 3), (1, 1, 4), (1, 2, 1), (1, 2… => 0
-│   [(1, 1, 1)]                                         => x[1, 1]*x[2, 1]*x[3, 1]
+Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
+  [(2, 1, 2), (3, 1, 3), (4, 1, 4)]                   => x[2, 1]*x[1, 2]*x[3, 2]
+  [(2, 2, 1), (3, 3, 1), (4, 4, 1)]                   => x[3, 1]*x[1, 2]*x[2, 2]
+  [(1, 2, 2), (1, 3, 3), (1, 4, 4)]                   => x[1, 1]*x[2, 2]*x[3, 2]
+  [(2, 3, 4), (2, 4, 3), (3, 2, 4), (3, 4, 2), (4, 2… => x[1, 2]*x[2, 2]*x[3, 2]
+  [(1, 1, 2), (1, 1, 3), (1, 1, 4), (1, 2, 1), (1, 2… => 0
+  [(1, 1, 1)]                                         => x[1, 1]*x[2, 1]*x[3, 1]
 ```
 """
 function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
