@@ -119,8 +119,8 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> transition_matrices(pm)
 Dict{Edge, MatElem{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1];…
   Edge(4, 2) => [a[2] b[2] b[2] b[2]; b[2] a[2] b[2] b[2]; b[2] b[2] a[2] b[2];…
+  Edge(4, 1) => [a[1] b[1] b[1] b[1]; b[1] a[1] b[1] b[1]; b[1] b[1] a[1] b[1];…
   Edge(4, 3) => [a[3] b[3] b[3] b[3]; b[3] a[3] b[3] b[3]; b[3] b[3] a[3] b[3];…
 ```
 """
@@ -175,9 +175,9 @@ julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_parameters(pm)
 Dict{Edge, Vector{QQMPolyRingElem}} with 3 entries:
-  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
-  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
   Edge(4, 2) => [x[2, 1], x[2, 2], x[2, 2], x[2, 2]]
+  Edge(4, 1) => [x[1, 1], x[1, 2], x[1, 2], x[1, 2]]
+  Edge(4, 3) => [x[3, 1], x[3, 2], x[3, 2], x[3, 2]]
 ```
 """
 fourier_parameters(pm::GroupBasedPhylogeneticModel) = pm.fourier_params
