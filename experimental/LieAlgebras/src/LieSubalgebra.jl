@@ -87,7 +87,7 @@ function basis(S::LieSubalgebra, i::Int)
 end
 
 @doc raw"""
-  dim(S::LieSubalgebra) -> Int
+    dim(S::LieSubalgebra) -> Int
 
 Return the dimension of the Lie subalgebra `S`.
 """

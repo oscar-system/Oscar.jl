@@ -398,3 +398,27 @@ end
   @test arithmetic_genus(Y) isa Int64
   @test genus(Y) == -2
 end
+
+@testset "rational morphisms of projective schemes" begin
+  IP1 = projective_space(QQ, [:s, :t])
+  IP2 = projective_space(QQ, [:x, :y, :z])
+
+  x, y, z = gens(homogeneous_coordinate_ring(IP2))
+  s, t = gens(homogeneous_coordinate_ring(IP1))
+  phi = rational_map(IP1, IP2, [s^2, s*t, t^2])
+  S, a, b = Oscar.graph_ring(phi)
+
+  C, _ = sub(IP2, ideal(homogeneous_coordinate_ring(IP2), y^2-x*z))
+  img_gens = [s^2, s*t, t^2]
+  phi = rational_map(IP1, C, img_gens)
+
+  IP3 = projective_space(QQ, [:u, :v, :w, :x])
+  S3 = homogeneous_coordinate_ring(IP3)
+  u, v, w, x = gens(S3)
+
+  IP1xIP1, _ = sub(IP3, u*x - v*w)
+
+  pr = rational_map(IP1xIP1, IP1, [u, v])
+  sec = rational_map(IP1, IP1xIP1, [s, t, s, t])
+end
+

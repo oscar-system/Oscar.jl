@@ -37,7 +37,7 @@ end
 ## `QQAbElem` to GAP cyclotomic
 function GAP.julia_to_gap(elm::QQAbElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # QQFieldElem
-    return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
+    return GAPWrap.CycList(GapObj(coeffs; recursive=true))
 end
 
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics

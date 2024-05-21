@@ -101,6 +101,32 @@ InstallMethod( IsGeneratorsOfMagmaWithInverses,
 
 ############################################################################
 
+InstallMethod( GroupGeneratorsDefinePresentation,
+   [ "IsPcGroup" ],
+   G -> GeneratorsOfGroup(G) = FamilyPcgs(G) );
+
+InstallMethod( GroupGeneratorsDefinePresentation,
+   [ "IsPcpGroup" ],
+   function( G )
+     local n, Ggens, i, w;
+
+     n:= One( G )!.collector![ PC_NUMBER_OF_GENERATORS ];
+     Ggens:= GeneratorsOfGroup( G );
+     if Length( Ggens ) <> n then
+       return false;
+     fi;
+     for i in [ 1 .. n ] do
+       w:= Ggens[i]!.word;
+       if not ( Length(w) = 2 and w[1] = i and w[2] = 1 ) then
+         return false;
+       fi;
+     od;
+     return true;
+   end );
+
+############################################################################
+
+
 Perform( Oscar._GAP_serializations,
          function( entry )
            InstallMethod( SerializeInOscar,

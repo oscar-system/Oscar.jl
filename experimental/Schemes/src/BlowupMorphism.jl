@@ -235,8 +235,8 @@ julia> bl = blow_up(A3, I)
 Blowup
   of scheme over QQ covered with 1 patch
     1b: [x, y, z]   affine 3-space
-  in prime ideal sheaf on scheme over QQ covered with 1 patch
-    1b: [x, y, z]   affine 3-space extended from ideal (x, y, z) on affine 3-space
+  in sheaf of ideals with restriction
+    1b: Ideal (x, y, z)
 with domain
   scheme over QQ covered with 3 patches
     1a: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
@@ -262,7 +262,11 @@ defined by
     3: Ideal (z)
 
 julia> Z = center(bl)
-Prime ideal sheaf on Scheme over QQ covered with 1 patch extended from Ideal (x, y, z) on Affine 3-space
+Sheaf of ideals
+  on scheme over QQ covered with 1 patch
+    1: [x, y, z]   affine 3-space
+with restriction
+  1: Ideal (x, y, z)
 ```
 """
 @attributes mutable struct BlowupMorphism{
@@ -542,6 +546,10 @@ For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` o
 strict transform of ``C`` on ``Y``.
 """
 function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
+  return strict_transform_with_multiplicity(p,C)[1]
+end
+
+function strict_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
   X = scheme(C)
   Y = domain(p)
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
@@ -597,7 +605,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
 
   ## we are good to go now
   C_strict = EffectiveCartierDivisor(Y, ID, check=false)
-  return C_strict
+  return C_strict,multEInC
 end
 
 function strict_transform(p::AbsSimpleBlowdownMorphism, C::CartierDivisor)
@@ -862,16 +870,17 @@ end
   # fields for caching, may be filled during computation
   ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
                                                  # lives in domain(maps[end])
+  control::Int                                   # value of control for controlled transform
   ex_mult::Vector{Int}                           # multiplicities of exceptional divisors removed from
-                                                 # controlled or weak transform, not set for is_embedded == false
-                                                 # and transform_type == strict
-  controlled_transform::AbsIdealSheaf               # holds weak or controlled transform according to transform_type
+                                                 # total transform, not set for is_embedded == false
+                                                 # or transform_type == strict
+  controlled_transform::AbsIdealSheaf            # holds weak or controlled transform according to transform_type
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
   exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
   exceptional_locus::WeilDivisor                 # exceptional locus of composed map
-  exceptional_divisor_on_X::WeilDivisor          # exceptional divisor of composed_map
+  exceptional_divisor_on_X::CartierDivisor          # exceptional divisor of composed_map
                                                  # restricted to domain(embeddings[end])
 
   function BlowUpSequence(maps::Vector{<:BlowupMorphism})
@@ -942,8 +951,13 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   V = codomain(f_loc)
   IE_loc = IE(U)
   tot = pullback(f_loc)(J(V))
-  result, _ = saturation_with_index(tot, IE_loc)
-  return result
+  #return saturation_with_index(tot, IE_loc)
+  # It is usually better to pass to the simplified covering to do the computations
+  simp_cov = simplified_covering(X)
+  U_simp = first([V for V in patches(simp_cov) if original(V) === U])
+  a, b = identification_maps(U_simp)
+  result, _ = saturation_with_index(pullback(a)(tot), pullback(a)(IE_loc))
+  return pullback(b)(result)
 end
 
 @attr Bool function is_prime(I::StrictTransformIdealSheaf)

@@ -303,6 +303,7 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
    @assert steps >= 0
    Pn = ambient_coordinate_ring(X)
    I = defining_ideal(X)
+   Y = X
    @req dim(I) == 3 "The given variety is not a surface."
    @req is_linearly_normal(X) "The given variety is not linearly normal."
    # TODO If X is not linear normal, embed it as a linearly normal variety first.
@@ -343,19 +344,24 @@ function adjunction_process(X::AbsProjectiveVariety, steps::Int = 0)
       else
          l = zero(ZZ)
       end
-      dummy = (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)))
+      Y = variety(I, check = false, is_radical = false)
+      dY = degree(Y)
+      piY = sectional_genus(Y)
+      dummy = (ZZ(ngens(Pn)-1), dY, piY)
       if l==0 && dummy == numlist[count][1:3]   # Enriques surface
-        return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
-      else	
-        push!(numlist, (ZZ(ngens(Pn)-1), degree(I), sectional_genus(variety(I, check = false, is_radical = false)), l))
+	  return (numlist, adjlist, ptslist, Y)
+      else
+        push!(numlist, (ZZ(ngens(Pn)-1), dY, piY, l))
         push!(adjlist, adj)
         push!(ptslist, pts)
-        Omega = canonical_bundle(variety(I, check = false, is_radical = false))
+        Omega = canonical_bundle(Y)
         FOmega = free_resolution(Omega, length = 1, algorithm = :mres)
         D = matrix(map(FOmega,1))
       end
       count = count+1
    end
-   return (numlist, adjlist, ptslist, variety(I, check = false, is_radical = false))
+   return (numlist, adjlist, ptslist, Y)
 end
+
+
 

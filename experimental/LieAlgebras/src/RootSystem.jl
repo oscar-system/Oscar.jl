@@ -722,7 +722,7 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
 end
 
 @doc raw"""
-  getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
+    getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
 
 Return the coefficient of the `i`-th fundamental weight in `w`.
 """

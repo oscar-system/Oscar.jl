@@ -527,7 +527,7 @@ end
 # TODO: projective schemes, covered schemes
 
 @doc raw"""
-   reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
+    reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Return the induced reduced scheme of `X`.
 

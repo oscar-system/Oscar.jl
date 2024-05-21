@@ -6,7 +6,7 @@ CurrentModule = Oscar
 using Oscar
 ```
 
-# Projective
+# Rational Points on Projective Schemes
 
 ```@docs
 AbsProjectiveRationalPoint

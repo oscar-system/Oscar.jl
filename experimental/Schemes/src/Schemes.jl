@@ -16,7 +16,7 @@ include("CoherentSheaves.jl")
 include("LazyGluing.jl")
 include("CartierDivisor.jl")
 include("Auxiliary.jl")
-include("../BlowupMorphism.jl") # TODO: move this file
+include("BlowupMorphism.jl")
 include("duValSing.jl")
 include("elliptic_surface.jl")
 include("MorphismFromRationalFunctions.jl")
@@ -38,7 +38,7 @@ include("ToricBlowups/attributes.jl")
 include("ToricBlowups/methods.jl")
 
 include("DerivedPushforward.jl")
-include("../Resolution_structure.jl") # TODO: move this file
+include("Resolution_structure.jl")
 
 # Exports
 export CompleteIntersectionGerm

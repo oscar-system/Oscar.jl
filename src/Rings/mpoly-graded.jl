@@ -1269,7 +1269,7 @@ end
     homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 
 Given a polynomial ring `R` over a field which is graded by a free
-group of type `FinGenAbGroup`, and given an element `g` of that group,
+group, and given an element `g` of that group,
 return the homogeneous component of `R` of degree `g` as a standard
 vector space. Additionally, return the map which sends an element
 of that vector space to the corresponding monomial in `R`.
@@ -1287,7 +1287,7 @@ an integer `d`, convert `d` into an element `g` of the grading group of `R`
 proceed as above.
 
 !!! note
-    If the component is not finite dimensional, an error message will be thrown.
+    If the component is not finite dimensional, an error will be thrown.
 
 # Examples
 ```jldoctest
@@ -1348,9 +1348,9 @@ end
 
 
 @doc raw"""
-  vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
+    vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
 
-Return a `K`-vector space `V` and an epimorphism from `V` onto the `K`-vector
+Return a `K`-vector space `V` and an isomorphism from `V` to the `K`-vector
 space spanned by the polynomials in `polys`.
 
 Note that all polynomials must have the same parent `R`, and `K` must be equal
@@ -1363,13 +1363,12 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 julia> polys = [x + y, x - y, 2x + 3y];
 
 julia> V, VtoPoly = vector_space(QQ, polys)
-(Vector space of dimension 3 over QQ, Map: V -> R)
+(Vector space of dimension 2 over QQ, Map: V -> R)
 
 julia> VtoPoly.(basis(V))
-3-element Vector{QQMPolyRingElem}:
+2-element Vector{QQMPolyRingElem}:
  x
  y
- 0
 ```
 """
 function vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: MPolyRingElem}
@@ -1385,7 +1384,7 @@ function vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: 
   expvec = Dict{Vector{Int}, Int}()
   expvec_idx = Vector{Vector{Int}}()
   M = sparse_matrix(K)
-  
+
   # take polynomials and turn them into sparse row vectors
   for f in polys
     pos = Vector{Int}()
@@ -1402,21 +1401,21 @@ function vector_space(K::Field, polys::Vector{T}; target = nothing) where {T <: 
   end
 
   # row reduce
-  rref!(M)
+  d = rref!(M)
 
   # turn the reduced sparse rows back into polynomials
-  b = Vector{elem_type(R)}()
-  for i in 1:nrows(M)
+  b = Vector{elem_type(R)}(undef, d)
+  for i in 1:d
     s = MPolyBuildCtx(R)
     for (k,v) in M[i]
       push_term!(s, v, expvec_idx[k])
     end
-    push!(b, finish(s))
+    b[i] = finish(s)
   end
 
   # create a standard vector space of the right dimension
   F = free_module(K, length(b); cached = false)
-  
+
   # helper computing images
   function img(x)
     sum([x[i] * b[i] for i in 1:length(b) if !is_zero_entry(x.v, 1, i)]; init = zero(R))

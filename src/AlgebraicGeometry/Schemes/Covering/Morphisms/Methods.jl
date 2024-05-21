@@ -62,15 +62,15 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function base_change(phi::Any, f::CoveringMorphism;
+function base_change(phi::Any, f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
     domain_map::CoveringMorphism=base_change(phi, domain(f))[2],
     codomain_map::CoveringMorphism=base_change(phi, codomain(f))[2]
-  )
+  ) where {MorphismType, BaseMorType}
   D = domain(f)
   C = codomain(f)
   DD = domain(domain_map)
   CC = domain(codomain_map)
-  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  mor_dict = IdDict{AbsAffineScheme, MorphismType}()
   for UU in patches(DD)
     U = codomain(domain_map[UU])
     V = codomain(f[U])

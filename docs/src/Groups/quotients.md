@@ -11,7 +11,7 @@ Quotient groups in OSCAR can be defined using the instruction `quo` in two ways.
 
 * Quotients by normal subgroups.
 ```@docs
-quo(G::T, H::T) where T <: GAPGroup
+quo(G::GAPGroup, N::GAPGroup)
 ```
 
 * Quotients by elements.
