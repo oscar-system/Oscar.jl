@@ -63,4 +63,20 @@
     RT = invariant_ring(r)
     A, _ = affine_algebra(RT)
     @test ngens(modulus(A)) == 1
+
+    #no reynolds test
+    g = linearly_reductive_group(:SL,2,QQ)
+    r = representation_on_forms(g,2)
+    M = representation_matrix(r)
+    ringg = parent(M[1,1])
+    z = gens(ringg)
+    f = z[1]*z[4] - z[2]*z[3] - 1
+    G = linearly_reductive_group(ideal([f]))
+    R = representation_reductive_group(G,M)
+    RG = invariant_ring(R)
+    F = fundamental_invariants(RG)
+    @test length(F) == 1
+    X = polynomial_ring(RG)
+    g = gens(X)
+    @test F[1] == g[1]*g[3] - g[2]^2
 end
