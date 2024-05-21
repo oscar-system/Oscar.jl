@@ -38,6 +38,15 @@ Polynomial
 polynomial_ring
 ```
 
+### Groups
+```julia
+FPGroup
+FinGenAbGroup
+PcGroup
+PermGroup
+SubPcGroup
+```
+
 ### Polyhedral Geometry
 ```julia
 Cone
