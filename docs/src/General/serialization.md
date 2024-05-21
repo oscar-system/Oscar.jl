@@ -73,6 +73,10 @@ TropicalHypersurface
 If you are currious about whether your type can already be serialized given your version of Oscar
 you can run the following command in your active session.
 
-```@repl
+```@setup oscar
+using Oscar
+```
+
+```@repl oscar
 Oscar.reverse_type_map
 ```
