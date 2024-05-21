@@ -300,10 +300,9 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
-    R, _  = grade(R)
-    test_ideal =ideal(R,[x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
-    @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
+    R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
+    test_ideal =ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
+    @test grassmann_pluecker_ideal(R,2,4) == test_ideal
 end
 
 @testset "IdealGens" begin
