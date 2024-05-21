@@ -343,8 +343,8 @@ end
   A, _ = quo(Rg, I)
   M = quotient_ring_as_module(A)
   mp = presentation(M, minimal = true)
-  @test rank(pm[0]) == 1
-  @test rank(pm[1]) == 2
+  @test rank(mp[0]) == 1
+  @test rank(mp[1]) == 2
 end
 
 
