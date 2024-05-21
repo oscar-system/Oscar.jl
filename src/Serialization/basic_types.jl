@@ -63,7 +63,6 @@ end
 @register_serialization_type Float32
 @register_serialization_type Float64
 
-
 function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
   load_node(s) do str
     parse(T, str)
@@ -71,7 +70,6 @@ function load_object(s::DeserializerState, ::Type{T}) where {T<:Number}
 end
 
 @register_serialization_type PosInf
-
 
 ################################################################################
 # Strings
