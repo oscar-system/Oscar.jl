@@ -18,8 +18,7 @@ load
 
 ## Objects that can be serialized
 
-In this section we will list objects that may be (de-)serialized. This list may
-be incomplete.
+In this section we will list a selection of objects that may be (de-)serialized. 
 
 Many low level objects may be stored and these in turn allow serializing higher
 level objects. Such low level objects are various types of matrices, vectors
@@ -67,4 +66,13 @@ ToricDivisor
 ```julia
 TropicalCurve
 TropicalHypersurface
+```
+
+## Listing all serializable types of the current session
+
+If you are currious about whether your type can already be serialized given your version of Oscar
+you can run the following command in your active session.
+
+```@repl
+Oscar.reverse_type_map
 ```
