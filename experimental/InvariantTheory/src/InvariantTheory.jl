@@ -3,8 +3,6 @@
 #Then we set up the invariant ring of the group. The fundamental invariants are computed using Derksen's alg.
 #As of now, the only reynolds operator that is implemented is the one for SLm, using Cayley's Omega process.
 
-using Infiltrator
-
 export canonical_representation
 export group_ideal
 export LinearlyReductiveGroup
