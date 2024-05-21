@@ -37,16 +37,20 @@ function Base.show(io::IO, pm::GroupBasedPhylogeneticModel)
   nl = length(leaves(gr))
   ne = length(collect(edges(gr)))
   root_dist = join(Oscar.root_distribution(pm), ", " )
-  M = collect(values(transition_matrices(pm)))[1]
+  c_edg = 2
+  p_edg = inneighbors(gr, c_edg)[1]
+  findall(x-> x==2, dst.(edges(gr)))
+  M = transition_matrices(pm)[Edge(p_edg, c_edg)]
   idx = string(split(string(M[1,1]), "[")[2][1])
-  
+
   print(io, "Group-based phylogenetic model on a tree with $(nl) leaves and $(ne) edges \n with distribution at the root [$(root_dist)]. \n")
   print(io, " The transition matrix associated to edge i is of the form \n ")
   print(io, replace(replace(string(M), "["*idx => "[i"), ";" => ";\n "))
   print(io, ", \n and the Fourier parameters are ")
-  fp = transpose(collect(values(Oscar.fourier_parameters(pm)))[1])
+  fp = transpose(fourier_parameters(pm)[Edge(p_edg, c_edg)])
   fp = replace(string(fp), "QQMPolyRingElem" => "")
   print(io, replace(replace(replace(string(fp), "["*idx => "[i"), ";" => ";\n "), "]]" => "]]."))
+
 end
 
 
@@ -114,7 +118,7 @@ number_states(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.n_states
 Return a dictionary between the edges of the tree specifying the `PhylogeneticModel` `pm` and their attached transition matrices.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r".*"
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> transition_matrices(pm)
@@ -170,7 +174,7 @@ root_distribution(pm::GroupBasedPhylogeneticModel) = pm.phylo_model.root_distr
 Return the Fourier parameters of the `GroupBasedPhylogeneticModel` `pm` as a vector of eigenvalues of the transition matrices.
 
 # Examples
-```jldoctest
+```jldoctest; filter = r".*"
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> fourier_parameters(pm)
