@@ -751,7 +751,7 @@ function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing)
     #for each degree d of generator of the null cone ideal, we compute a basis of ringg^G_d (which is K[V]^G_d in the book)
     answer_vector = Vector{Vector{elem_type(mixed_ring_xy)}}()
     for degree in V
-        push!(answer_vector, no_reynolds_basis(degree, new_rep_mat,I))
+        push!(answer_vector, basis_no_reynolds(degree, new_rep_mat,I))
     end
 
     #return one vector in the ring 'ringg'
@@ -767,7 +767,7 @@ end
 
 
 #the function to compute the k-basis of K[V]^G_d
-function no_reynolds_basis(d::Int, mat_::MatElem, II::MPolyIdeal)
+function basis_no_reynolds(d::Int, mat_::MatElem, II::MPolyIdeal)
     mixed_ring = base_ring(mat_)
     n = ncols(mat_)
     m = ngens(mixed_ring) - 2*n
