@@ -2104,11 +2104,11 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     return coeff_ring(numerator(c))
   end
   if !is_graded(ring)
-	  ring,_ = grade(ring)
+	 gr_ring,_ = grade(ring)
   end
-  h = hom(base_ring(I), ring, coeffmap, gens(ring))
-  converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
-  ideal(IdealGens(ring, converted_generators, o;
+  h = hom(base_ring(I), gr_ring, coeffmap, gens(gr_ring))
+  converted_generators = elem_type(gr_ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
+  ideal(IdealGens(gr_ring, converted_generators, o;
                    keep_ordering=true,
                    isReduced=true,
                    isGB=true))
