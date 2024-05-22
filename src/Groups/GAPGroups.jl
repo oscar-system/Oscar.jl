@@ -1760,13 +1760,13 @@ julia> full_group(G)[1] == G
 true
 ```
 """
-function full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}
+function full_group(G::Union{SubFPGroup, SubPcGroup})
   F = G.full_group
   return F, embedding(G, F)
 end
 
 # for convenience
-function full_group(G::T) where T <: Union{FPGroup, PcGroup}
+function full_group(G::Union{FPGroup, PcGroup})
   return G, identity_map(G)
 end
 
@@ -2235,7 +2235,7 @@ function describe(G::GAPGroup)
    return "a group"
 end
 
-function describe(G::T) where T <: Union{FPGroup, SubFPGroup}
+function describe(G::Union{FPGroup, SubFPGroup})
    # despite the name, there are non-finitely generated (and hence non-finitely presented)
    # FPGroup instances
    is_finitely_generated(G) || return "a non-finitely generated group"
