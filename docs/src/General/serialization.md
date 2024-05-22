@@ -33,8 +33,10 @@ SimplicialComplex
 ### Commutative Algebra
 ```julia
 Ideal
-Polynomial
-polynomial_ring
+PolyRing
+PolyRingElem
+MPolyRing
+MPolyRingElem
 ```
 
 ### Groups
