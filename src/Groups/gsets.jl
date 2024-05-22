@@ -60,12 +60,12 @@ function Base.show(io::IO, ::MIME"text/plain", x::GSetByElements)
 end
 
 function Base.show(io::IO, x::GSetByElements)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "G-set")
   else
     print(io, "G-set of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.group, " with seeds ", x.seeds)
+    print(terse(io), Lowercase(), x.group, " with seeds ", x.seeds)
   end
 end
 
@@ -541,12 +541,12 @@ end
 
 function Base.show(io::IO, x::GSetBySubgroupTransversal)
   side = (x.side == :right ? "Right" : "Left")
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$side cosets of groups")
   else
     print(io, "$side cosets of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.subgroup, " in ", Lowercase(), x.group)
+    print(terse(io), Lowercase(), x.subgroup, " in ", Lowercase(), x.group)
   end
 end
 

@@ -1750,7 +1750,7 @@ end
 ###########################################################
 
 #=
-function get_collector(G::GAP.GapObj)
+function get_collector(G::GapObj)
   @show G
   return GAP.evalstr("x -> FamilyObj(x.1)!.rewritingSystem")(G)
 end
@@ -1836,7 +1836,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
   end
 
-  gap_to_julia = function(a::GAP.GapObj)
+  gap_to_julia = function(a::GapObj)
     e = GAPWrap.ExtRepOfObj(a)
     z = zeros(ZZRingElem, ngens(M))
     for i=1:2:length(e)
@@ -1905,7 +1905,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   end
 
 
-  gap_to_julia = function(a::GAP.GapObj)
+  gap_to_julia = function(a::GapObj)
     e = GAPWrap.ExtRepOfObj(a)
     z = zeros(ZZRingElem, ngens(M)*degree(k))
     for i=1:2:length(e)

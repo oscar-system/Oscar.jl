@@ -120,12 +120,12 @@ function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
 end
 
 function Base.show(io::IO, L::AbstractLieAlgebra)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Abstract Lie algebra")
   else
     io = pretty(io)
     print(io, "Abstract Lie algebra over ", Lowercase())
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 

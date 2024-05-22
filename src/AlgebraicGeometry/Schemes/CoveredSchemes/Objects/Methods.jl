@@ -132,7 +132,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
     n = n_patches(cov)
     if has_name(X)
       print(io, name(X))
-    elseif get(io, :supercompact, false)
+    elseif is_terse(io)
       print(io, "Covered scheme")
     else
       if get_attribute(X, :is_empty, false) || n == 0
@@ -140,7 +140,7 @@ function Base.show(io::IO, X::AbsCoveredScheme)
       else
         print(io, "Scheme over ")
       end
-      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+      print(terse(io), Lowercase(), base_ring(X))
     end
     n > 0 && print(io, " covered with ", ItemQuantity(n, "patch"))
   end
@@ -221,7 +221,7 @@ with default covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> Y, pr_mor, injs = normalization(X);
+julia> Y, pr_mor = normalization(X);
 
 julia> Y
 Scheme
@@ -259,7 +259,7 @@ given by the pullback functions
     (x//z) -> x
     (y//z) -> y
 
-julia> injs
+julia> inclusion_morphisms(pr_mor)
 1-element Vector{CoveredSchemeMorphism{CoveredScheme{QQField}, CoveredScheme{QQField}, AbsAffineSchemeMor}}:
  Hom: scheme over QQ covered with 3 patches -> scheme over QQ covered with 3 patches
 ```
@@ -280,7 +280,8 @@ function normalization(X::AbsCoveredScheme; check::Bool=true)
   merge!(pr_dict, pr_dicts...)
   pr_covering_mor = CoveringMorphism(default_covering(Y), default_covering(X), pr_dict; check=false)
   pr_mor = CoveredSchemeMorphism(Y, X, pr_covering_mor; check=false)
-  return Y, pr_mor, injs
+  pr_mor = Oscar.NormalizationMorphism(pr_mor,injs; check=false)
+  return Y, pr_mor
 end
 
 function _normalization_integral(X::AbsCoveredScheme; check::Bool=true)

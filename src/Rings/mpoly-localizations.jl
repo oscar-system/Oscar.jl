@@ -60,8 +60,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyPowersOfElement)
 end
 
 function Base.show(io::IO, S::MPolyPowersOfElement)
-  # no need for supercompact printing
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Products of ")
     print(io, ItemQuantity(length(denominators(S)), "element"))
   else
@@ -207,7 +206,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfPrimeIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Complement of prime ideal")
   else
     io = pretty(io)
@@ -360,7 +359,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfKPointIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Complement of maximal ideal")
   else
     print(io, "Complement of maximal ideal of point ")
@@ -436,12 +435,12 @@ end
 
 function Base.show(io::IO, S::MPolyProductOfMultSets)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Product of multiplicatively closed subsets")
   else
     print(io, "Product of the multiplicative subsets [")
     for s in sets(S)
-      print(IOContext(io, :supercompact=>true), Lowercase(), s)
+      print(terse(io), Lowercase(), s)
       s !== last(sets(S)) && print(io, ", ")
     end
     print(io, "]")
@@ -496,11 +495,11 @@ end
 
 function Base.show(io::IO, S::MPolyLeadingMonOne)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Elements with leading monomial 1")
   else
     print(io, "Elements with leading monomial 1 w.r.t. ")
-    print(IOContext(io, :supercompact=>true), ordering(S))
+    print(terse(io), ordering(S))
   end
 end
 
@@ -2297,7 +2296,7 @@ julia> (PSI, )
 """
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), phi)
+  println(terse(io), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
   println(io, "to ", Lowercase(), codomain(phi))
@@ -2314,13 +2313,13 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyLocalizedRingHom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
     io = pretty(io)
-    io = IOContext(io, :supercompact=>true)
+    io = terse(io)
     print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")

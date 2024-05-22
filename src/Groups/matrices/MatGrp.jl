@@ -118,7 +118,7 @@ function _print_matrix_group_desc(io::IO, x::MatrixGroup)
   elseif x.ring isa Field && is_finite(x.ring)
     print(io, order(x.ring),")")
   else
-    print(IOContext(io, :supercompact => true), x.ring)
+    print(terse(io), x.ring)
     print(io ,")")
   end
 end
@@ -137,10 +137,10 @@ function Base.show(io::IO, x::MatrixGroup)
   @show_special(io, x)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   print(io, "Matrix group")
-  if !get(io, :supercompact, false)
+  if !is_terse(io)
     print(io, " of degree ", degree(x))
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), " over ", Lowercase(), base_ring(x))
+    print(terse(io), " over ", Lowercase(), base_ring(x))
   end
 end
 
@@ -152,7 +152,7 @@ group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 # Compute and store the component `G.X` if this is possible.
 function assign_from_description(G::MatrixGroup)
    F = codomain(_ring_iso(G))
-   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GAP.GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
+   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
    if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
    elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
@@ -249,7 +249,7 @@ function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
       if isdefined(G,:descr)
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         V = GAP.GapObj([g.X for g in gens(G)])
+         V = GapObj([g.X for g in gens(G)])
          G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
       else
          error("Cannot determine underlying GAP object")
@@ -435,6 +435,7 @@ function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
 end
 
 comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
+#T why needed? GAPGroupElem has x^-1*x^y
 
 """
     det(x::MatrixGroupElem)

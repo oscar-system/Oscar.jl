@@ -51,7 +51,7 @@ end
 function Base.show(io::IO, Q::MPolyQuoRing)
   @show_name(io, Q)
   @show_special(io, Q)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     # no nested printing
     print(io, "Quotient of multivariate polynomial ring")
   else
@@ -724,9 +724,9 @@ end
 @doc raw"""
     simplify(a::MPolyQuoIdeal)
 
-If `a` is an ideal of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
-replace the internal polynomial representative of each generator of `a` by its normal form 
-mod `I` with respect to the `default_ordering` on `R`.
+If `a` is an ideal of the affine algebra `A = R/I`, say, replace the internal polynomial representative 
+of each generator of `a` by its normal form mod `I` with respect to `ordering(A)`.
+
 
 # Examples
 ```jldoctest
@@ -866,13 +866,8 @@ end
 @doc raw"""
     simplify(f::MPolyQuoRingElem)
 
-If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
-replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
-the `default_ordering` on `R`.
-
-!!! note
-Since this method only has a computational backend for quotients of polynomial rings 
-over a field, it is not implemented generically.
+If `f` is an element of the affine algebra `A = R/I`, say, replace the internal polynomial representative of `f` 
+by its normal form mod `I` with respect to `ordering(A)`.
 
 # Examples
 ```jldoctest
@@ -1753,7 +1748,7 @@ end
 
 Given a homogeneous ideal `I` of a graded affine algebra over a field,
 return an array containing a minimal set of generators of `I`. If `I`
-is the zero ideal an empty list is returned.
+is the zero ideal, an empty list is returned.
 
 # Examples
 ```jldoctest
@@ -1885,3 +1880,41 @@ end
 
 # extension of common functionality
 symbols(A::MPolyQuoRing) = symbols(base_ring(A))
+
+########################################################################
+# Tensor products of rings
+########################################################################
+
+function tensor_product(A::MPolyRing, B::MPolyRing)
+  kk = coefficient_ring(A)
+  @assert kk === coefficient_ring(B) "coefficient rings do not coincide"
+  res, a, b = polynomial_ring(kk, symbols(A), symbols(B); cached=false)
+  return res, hom(A, res, a), hom(B, res, b)
+end
+
+function tensor_product(A::MPolyRing, B::MPolyQuoRing)
+  R = base_ring(B)
+  AR, inc_A, inc_R = tensor_product(A, R)
+  I = ideal(AR, inc_R.(gens(modulus(B))))
+  res, pr = quo(R, I)
+  return res, compose(inc_A, pr), hom(B, res, pr.(inc_R.(gens(R))))
+end
+
+function tensor_product(A::MPolyQuoRing, B::MPolyQuoRing)
+  RA = base_ring(A)
+  RB = base_ring(B)
+  P, inc_A, inc_B = tensor_product(RA, RB)
+  I = ideal(P, inc_A.(gens(modulus(A)))) + ideal(P, inc_B.(gens(modulus(B))))
+  res, pr = quo(R, I)
+  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(RB))); check=false)
+end
+
+function tensor_product(A::MPolyQuoRing, B::MPolyRing)
+  RA = base_ring(A)
+  P, inc_A, inc_B = tensor_product(RA, B)
+  I = ideal(P, inc_A.(gens(modulus(A))))
+  res, pr = quo(R, I)
+  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), compose(inc_B, pr)
+end
+
+

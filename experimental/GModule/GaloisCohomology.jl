@@ -6,7 +6,7 @@ import Oscar.GrpCoh: CoChain, MultGrpElem, MultGrp, GModule, is_consistent,
                      Group
 import Base: parent
 import Oscar: direct_sum
-import Oscar: pretty, Lowercase, Indent, Dedent
+import Oscar: pretty, Lowercase, Indent, Dedent, terse
 
 export is_coboundary, idel_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
@@ -1390,7 +1390,8 @@ end
 function Base.show(io::IO, m::MIME"text/plain", a::RelativeBrauerGroupElem)
   io = pretty(io)
   print(io, "Element of relative Brauer group of ", Lowercase(), parent(a).k)
-  io = IOContext(io, :supercompact => true, :compact => true)
+  io = terse(io)
+  io = IOContext(io, :compact => true) # FIXME: for now also enable compact printing
   print(io, Indent())
   data = sort(collect(a.data); by =(x -> first(x) isa AbsSimpleNumFieldEmbedding ? Inf : minimum(first(x))))
   for (p,v) in data

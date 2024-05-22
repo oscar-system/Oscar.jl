@@ -90,7 +90,7 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in v.coeffs; init=zero(M.sub))
+    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
   end
   return v.repres
 end
@@ -539,7 +539,6 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) wher
   @assert !isdefined(s, :quo)
   @assert s.F === F
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
-  #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   cache_morphism && register_morphism!(emb)
   return s, emb
@@ -934,7 +933,9 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubquoModule{T}) where T
-  return SubquoModuleElem{T}[gen(M,i) for i=1:ngens(M)]
+  R = base_ring(M)
+  e = R(1)
+  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -944,9 +945,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v::SRow{T} = sparse_row(R)
-  v.pos = [i]
-  v.values = [R(1)]
+  v = sparse_row(R, [i], [R(1)])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -1023,7 +1022,7 @@ eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
 function *(a::FreeModElem, b::Vector{FreeModElem})
   @assert dim(parent(a)) == length(b)
   s = zero(parent(a))
-  for (p,v) = a.coords
+  for (p,v) in coordinates(a)
     s += v*b[p]
   end
   return s

@@ -20,7 +20,7 @@ function Base.show(io::IO,  ::MIME"text/plain", Lf::ZZLatWithIsom)
 end
 
 function Base.show(io::IO, Lf::ZZLatWithIsom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Integer lattice with isometry")
   else
     n = order_of_isometry(Lf)
@@ -54,7 +54,7 @@ function Base.show(io::IO, ::MIME"text/plain", Vf::QuadSpaceWithIsom)
 end
 
 function Base.show(io::IO, Vf::QuadSpaceWithIsom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Quadratic space with isometry")
   else
     n = order_of_isometry(Vf)

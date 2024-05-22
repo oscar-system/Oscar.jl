@@ -597,13 +597,16 @@ function radical(
     factor_generators::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   get_attribute!(I, :radical) do
+    is_one(I) && return I
     R = base_ring(I)
     J = ideal(R, zero(R))
     if factor_generators
       # In practice this will often lead to significant speedup due to reduction of degrees.
       # TODO:  is the following faster? radical(ab,c) = intersect(radical(a,c),radical(b,c)) 
       for g in gens(I)
+        is_zero(g) && continue
         fact = factor(g)
+        is_empty(fact) && continue
         h = one(g)
         for (x, k) in fact
           h = h*x
@@ -618,6 +621,7 @@ function radical(
     I_flat_rad = radical(I_flat)
     Irad = iso(I_flat_rad)
     set_attribute!(Irad, :is_radical => true)
+    @hassert :IdealSheaves 2 !is_one(Irad)
     Irad
   end::MPolyIdeal{T}
 end
@@ -1103,13 +1107,57 @@ end
 function minimal_primes(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, 
+    factor_generators::Bool=true,
+    simplify_ring::Bool=true,
     cache::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
 
   R = base_ring(I)
+  is_one(I) && return typeof(I)[]
+
+  # Try to eliminate variables first. This will often speed up computations significantly.
+  if simplify_ring
+    Q, pr = quo(R, I)
+    W, id, id_inv = simplify(Q)
+    @assert domain(id) === codomain(id_inv) === Q
+    @assert codomain(id) === domain(id_inv) === W
+    res_simp = minimal_primes(modulus(W); algorithm, factor_generators, simplify_ring=false)
+    result = [I + ideal(R, lift.(id_inv.(W.(gens(j))))) for j in res_simp]
+    for p in result
+      set_attribute!(p, :is_prime=>true)
+    end
+    return result
+  end
+
+  # This will in many cases lead to an easy simplification of the problem
+  if factor_generators
+    J = typeof(I)[ideal(R, elem_type(R)[])]
+    for g in gens(I)
+      K = typeof(I)[]
+      is_zero(g) && continue
+      for (b, k) in factor(g)
+        for j in J
+          push!(K, j + ideal(R, b))
+        end
+      end
+      J = K
+    end
+    result = unique!(filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...)))
+    # The list might not consist of minimal primes only. We have to discard the embedded ones
+    final_list = typeof(I)[]
+    for p in result
+      any((q !== p && is_subset(q, p)) for q in result) && continue
+      push!(final_list, p)
+    end
+    for p in final_list
+      set_attribute!(p, :is_prime=>true)
+    end
+    return final_list
+  end
+
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
-  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  I_flat = ideal(R_flat, elem_type(R_flat)[g for g in iso_inv.(gens(I))])
   dec = minimal_primes(I_flat; algorithm)
   result = Vector{typeof(I)}()
   for Q in dec
@@ -1757,6 +1805,7 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
+  is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
   I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
 end

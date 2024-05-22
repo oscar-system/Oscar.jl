@@ -37,7 +37,7 @@ end
 ## `QQAbElem` to GAP cyclotomic
 function GAP.julia_to_gap(elm::QQAbElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # QQFieldElem
-    return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
+    return GAPWrap.CycList(GapObj(coeffs; recursive=true))
 end
 
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
@@ -71,4 +71,18 @@ function GAP.julia_to_gap(
     @assert GAPWrap.IsSet(gapset)
 
     return gapset
+end
+
+## TODO: remove the following once GAP.jl has it
+## (This will be the case when the change from
+## https://github.com/oscar-system/GAP.jl/pull/989
+## will be available.)
+using JSON3
+
+function GAP.julia_to_gap(
+    obj::JSON3.Array,
+    recursion_dict::IdDict{Any,Any} = IdDict();
+    recursive::Bool = false)
+
+    return GAP.julia_to_gap(copy(obj), recursion_dict; recursive)
 end

@@ -57,7 +57,6 @@ young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion 
 
 data(tab::YoungTableau) = tab.t
 
-# supercompact and one-line printing
 function Base.show(io::IO, tab::YoungTableau)
   print(io, "Young tableau")
   # TODO: is there meaningful information to add in one-line mode?

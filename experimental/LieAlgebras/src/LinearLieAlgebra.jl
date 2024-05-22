@@ -91,7 +91,7 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
@@ -101,7 +101,7 @@ function Base.show(io::IO, L::LinearLieAlgebra)
       " over ",
       Lowercase(),
     )
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 

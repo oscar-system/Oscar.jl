@@ -121,7 +121,7 @@ julia> n_vertices(torus())
 n_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
 @doc raw"""
-     n_facets(K::SimplicialComplex)
+    n_facets(K::SimplicialComplex)
 
 Return the number of facets of the abstract simplicial complex `K`.
 """
@@ -562,7 +562,7 @@ end
 ###############################################################################
 
 @doc raw"""
-     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+    is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
 Checks if the given simplicial complexes are isomorphic.
 

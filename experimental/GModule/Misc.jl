@@ -4,7 +4,6 @@ import Base: ==, parent
 
 export relative_field
 
-Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
 
 function primitive_element(a::Vector{QQBarFieldElem})
   pe = a[1]
@@ -72,12 +71,6 @@ end
 
 Base.getindex(::QQField, a::QQBarFieldElem) = number_field(QQ, a)
 Base.getindex(::QQField, a::Vector{QQBarFieldElem}) = number_field(QQ, a)
-
-function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
-  g = parent()
-  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
-  return g
-end
 
 function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
   C = parent(a)

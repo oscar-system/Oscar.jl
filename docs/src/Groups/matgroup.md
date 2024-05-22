@@ -72,15 +72,15 @@ isometry_group(f::SesquilinearForm{T}) where T
 orthogonal_sign(G::MatrixGroup)
 ```
 
-## Utilities for matrices (replace by available functions, or document elsewhere?)
+## Utilities for matrices
 
 ```@docs
 pol_elementary_divisors(A::MatElem{T}) where T
 generalized_jordan_block(f::T, n::Int) where T<:PolyRingElem
 generalized_jordan_form(A::MatElem{T}; with_pol=false) where T
 matrix(A::Vector{AbstractAlgebra.Generic.FreeModuleElem{T}}) where T <: RingElem
-upper_triangular_matrix(L)
-lower_triangular_matrix(L)
+upper_triangular_matrix(L::AbstractVector{T}) where {T <: NCRingElement}
+lower_triangular_matrix(L::AbstractVector{T}) where {T <: NCRingElement}
 conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 complement(V::AbstractAlgebra.Generic.FreeModule{T}, W::AbstractAlgebra.Generic.Submodule{T}) where T <: FieldElem
 permutation_matrix(F::Ring, Q::AbstractVector{<:IntegerUnion})

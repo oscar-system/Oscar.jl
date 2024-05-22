@@ -257,7 +257,6 @@ include("Combinatorics/Graphs/functions.jl")
 include("Combinatorics/SimplicialComplexes.jl")
 include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
-include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
 
 include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
@@ -274,6 +273,8 @@ include("AlgebraicGeometry/AlgebraicGeometry.jl")
 include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
+
+include("Misc/Misc.jl")
 
 # Serialization should always come at the end of Oscar source code
 # but before experimental, any experimental serialization should

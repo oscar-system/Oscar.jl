@@ -50,18 +50,18 @@ julia> show([t_a5_2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
-supercompact printing
+terse printing
 ```jldoctest group_characters.test
-julia> print(IOContext(stdout, :supercompact => true), t_a4)
+julia> print(AbstractAlgebra.terse(stdout), t_a4)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5)
+julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
 2-modular Brauer table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
 2-modular Brauer table of a group
 ```
 
@@ -753,7 +753,7 @@ end
 @testset "access fields in character tables" begin
   # table without group
   t = character_table("A5")
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test_throws UndefRefError t.group
   @test_throws UndefRefError t.isomorphism
@@ -761,7 +761,7 @@ end
   # table with `GAPGroup` group
   g = symmetric_group(4)
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
@@ -769,7 +769,7 @@ end
   # table with `FinGenAbGroup` group
   g = abelian_group([2, 4])
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism

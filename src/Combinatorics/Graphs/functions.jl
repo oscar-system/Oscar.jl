@@ -1075,7 +1075,7 @@ function Base.show(io::IO, ::MIME"text/plain", G::Graph{T}) where {T <: Union{Po
 end
 
 function Base.show(io::IO, G::Graph{T})  where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$(_to_string(T)) graph")
   else
     print(io, "$(_to_string(T)) graph with $(n_vertices(G)) nodes and $(n_edges(G)) edges")

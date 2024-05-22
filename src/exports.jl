@@ -29,6 +29,7 @@ export AbsProjectiveCurve
 export AbsProjectiveScheme
 export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
+export AbsRationalMap
 export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
@@ -48,6 +49,7 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Composition
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -154,6 +156,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubPcGroup
+export SubPcGroupElem
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
@@ -170,6 +174,7 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export WeakComposition
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -248,6 +253,7 @@ export archimedean_solid
 export arithmetic_genus
 export as_dictionary
 export as_gset
+export ascending_compositions
 export associahedron
 export atlas_description
 export atlas_group
@@ -346,6 +352,8 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
+export composition
+export compositions
 export comm
 export comm!
 export common_components
@@ -1084,6 +1092,7 @@ export normalizer
 export nullity
 export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators
@@ -1237,6 +1246,7 @@ export rand_subpolytope
 export rank
 export rank_action
 export rational_equivalence_class
+export rational_map
 export rational_point_conic
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
@@ -1507,6 +1517,7 @@ export weight_ordering
 export weighted_projective_space
 export weyl_algebra
 export weyl_vector
+export with_ordering
 export witt_index
 export wreath_product
 export write_as_full

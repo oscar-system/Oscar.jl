@@ -250,7 +250,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  for (p,v) = m.coords
+  for (p,v) in coordinates(m)
     e += Sx(v)*g[p]
   end
   return e
