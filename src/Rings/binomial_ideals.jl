@@ -293,7 +293,7 @@ function cellular_decomposition_macaulay(I::MPolyIdeal)
   end
   @assert !isone(I)
   @assert is_binomial(I)
-  return _cellular_decomposition(I) # Should this be _cellular_decomposition_macaulay(I)?
+  return _cellular_decomposition_macaulay(I)
 end
 
 function _cellular_decomposition_macaulay(I::MPolyIdeal)
