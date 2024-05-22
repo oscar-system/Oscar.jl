@@ -1323,6 +1323,7 @@ export save_mps
 export scalar_product
 export scheme
 export schensted
+export schur_cover
 export schur_index
 export schur_multiplier
 export schur_polynomial

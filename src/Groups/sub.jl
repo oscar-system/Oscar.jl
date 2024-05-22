@@ -1002,6 +1002,38 @@ function schur_multiplier(::Type{T}, G::Union{GAPGroup, FinGenAbGroup}) where T 
 end
 
 
+"""
+    schur_cover(::Type{T} = FPGroup, G::GAPGroup) where T <: GAPGroup
+
+Return `S, f` where `S` is a Schur cover of `G` and `f` is an epimorphism
+from `S` to `G`.
+
+# Examples
+```jldoctest
+julia> S, f = schur_cover(symmetric_group(4));  order(S)
+48
+
+julia> S, f = schur_cover(PermGroup, dihedral_group(12));  order(S)
+24
+```
+"""
+schur_cover(G::GAPGroup) = schur_cover(FPGroup, G)
+
+function schur_cover(::Type{T}, G::GAPGroup) where T <: GAPGroup
+  f = GAPWrap.EpimorphismSchurCover(GapObj(G))
+  H = _oscar_group(GAPWrap.Source(f))
+  if H isa T
+    S = H
+    mp = GAPGroupHomomorphism(S, G, f)
+  else
+    iso = isomorphism(T, H)
+    S = codomain(iso)
+    mp = compose(inv(iso), GAPGroupHomomorphism(H, G, f))
+  end
+  return S, mp
+end
+
+
 function __create_fun(mp, codom, ::Type{S}) where S
   function mp_julia(x::S)
     el = GAPWrap.Image(mp, GapObj(x))
