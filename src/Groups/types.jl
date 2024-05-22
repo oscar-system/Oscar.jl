@@ -244,10 +244,9 @@ return groups of type `SubPcGroup`.
   function SubPcGroup(G::GapObj)
     @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
     if GAPWrap.IsPcGroup(G)
-      full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G)::GapObj)::GapObj
-#T use GAPWrap!
+      full = GAPWrap.GroupOfPcgs(GAPWrap.FamilyPcgs(G))
     else
-      full = GAP.Globals.PcpGroupByCollectorNC(GAP.Globals.Collector(G)::GapObj)::GapObj
+      full = GAPWrap.PcpGroupByCollectorNC(GAPWrap.Collector(G))
     end
     z = new(G, PcGroup(full))
     return z
@@ -349,7 +348,7 @@ subgroups of a finitely presented group.
 
   function SubFPGroup(G::GapObj)
     @assert GAPWrap.IsSubgroupFpGroup(G)
-    full = GAP.getbangproperty(GAP.Globals.FamilyObj(G)::GapObj, :wholeGroup)::GapObj
+    full = GAP.getbangproperty(GAPWrap.FamilyObj(G), :wholeGroup)::GapObj
     z = new(G, FPGroup(full))
     return z
   end

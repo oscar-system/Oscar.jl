@@ -13,6 +13,7 @@ FPGroupElem
 SubFPGroup
 SubFPGroupElem
 free_group(n::Int)
+full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}
 relators(G::FPGroup)
 length(g::Union{FPGroupElem, SubFPGroupElem})
 map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)

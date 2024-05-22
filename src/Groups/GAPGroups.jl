@@ -1741,6 +1741,37 @@ false
 
 
 @doc raw"""
+    full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}
+    full_group(G::T) where T <: Union{FPGroup, PcGroup}
+
+Return `F, emb` where `F` is the full pc group of f.p. group of which `G`
+is a subgroup, and `emb` is an embedding of `G` into `F`.
+
+# Examples
+```jldoctest
+julia> G = perfect_group(FPGroup, 60, 1);
+
+julia> H = sylow_subgroup(G, 2)[1];
+
+julia> full_group(H)[1] == G
+true
+
+julia> full_group(G)[1] == G
+true
+```
+"""
+function full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}
+  F = G.full_group
+  return F, embedding(G, F)
+end
+
+# for convenience
+function full_group(G::T) where T <: Union{FPGroup, PcGroup}
+  return G, identity_map(G)
+end
+
+
+@doc raw"""
     relators(G::FPGroup)
 
 Return a vector of relators for the full finitely presented group `G`, i.e.,

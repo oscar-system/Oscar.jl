@@ -560,6 +560,7 @@ export free_module
 export free_module_dec
 export free_resolution
 export free_resolution_via_kernels
+export full_group
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group

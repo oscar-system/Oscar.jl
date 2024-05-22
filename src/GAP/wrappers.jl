@@ -48,6 +48,7 @@ GAP.@wrap CoefficientsFamily(x::GapObj)::GapObj
 GAP.@wrap CoefficientsOfUnivariatePolynomial(x::GapObj)::GapObj
 GAP.@wrap CoeffsCyc(x::GAP.Obj, y::Int)::GapObj
 GAP.@wrap CollectionsFamily(x::GapObj)::GapObj
+GAP.@wrap Collector(x::GapObj)::GapObj
 GAP.@wrap ComputedClassFusions(x::GapObj)::GapObj
 GAP.@wrap ComputedPowerMaps(x::GapObj)::GapObj
 GAP.@wrap Conductor(x::Any)::GapInt
@@ -88,6 +89,7 @@ GAP.@wrap ExponentsOfPcElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
 GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
+GAP.@wrap FamilyPcgs(x::GAP.Obj)::GapObj
 GAP.@wrap Field(x::Any)::GapObj
 GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
 GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
@@ -102,6 +104,7 @@ GAP.@wrap GF(x::Any, y::Any)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
+GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool
 GAP.@wrap HasClassParameters(x::GapObj)::Bool
 GAP.@wrap HasMaxes(x::GapObj)::Bool
@@ -269,6 +272,7 @@ GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Pcgs(x::GapObj)::GapObj
+GAP.@wrap PcpGroupByCollectorNC(x::GapObj)::GapObj
 GAP.@wrap PCore(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj
 GAP.@wrap Permuted(x::GapObj, y::GapObj)::GapObj
