@@ -724,9 +724,9 @@ end
 @doc raw"""
     simplify(a::MPolyQuoIdeal)
 
-If `a` is an ideal of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
-replace the internal polynomial representative of each generator of `a` by its normal form 
-mod `I` with respect to the `default_ordering` on `R`.
+If `a` is an ideal of the affine algebra `A = R/I`, say, replace the internal polynomial representative 
+of each generator of `a` by its normal form mod `I` with respect to `ordering(A)`.
+
 
 # Examples
 ```jldoctest
@@ -866,13 +866,8 @@ end
 @doc raw"""
     simplify(f::MPolyQuoRingElem)
 
-If `f` is an element of the quotient of a multivariate polynomial ring `R` by an ideal `I` of `R`, say,
-replace the internal polynomial representative of `f` by its normal form mod `I` with respect to 
-the `default_ordering` on `R`.
-
-!!! note
-Since this method only has a computational backend for quotients of polynomial rings 
-over a field, it is not implemented generically.
+If `f` is an element of the affine algebra `A = R/I`, say, replace the internal polynomial representative of `f` 
+by its normal form mod `I` with respect to `ordering(A)`.
 
 # Examples
 ```jldoctest
@@ -1753,7 +1748,7 @@ end
 
 Given a homogeneous ideal `I` of a graded affine algebra over a field,
 return an array containing a minimal set of generators of `I`. If `I`
-is the zero ideal an empty list is returned.
+is the zero ideal, an empty list is returned.
 
 # Examples
 ```jldoctest
