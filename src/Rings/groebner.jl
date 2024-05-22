@@ -1521,7 +1521,9 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     if characteristic(base_ring(I)) > 0 && ordering == wdegrevlex(base_ring(I), weights)
       return G
     end
-    h = Singular.hilbert_series(singular_generators(G), weights)
+    singular_assure(G)
+    h = Singular.hilbert_series(G.S, weights)
+
   else
     # Quoting from the documentation of Singular.hilbert_series:
     # The coefficient vector is returned as a `Vector{Int32}`, and the last element is not actually part of the coefficients of Q(t).
