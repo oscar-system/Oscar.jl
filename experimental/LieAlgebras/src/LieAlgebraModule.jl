@@ -1004,7 +1004,7 @@ julia> L = special_linear_lie_algebra(QQ, 2);
 julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 3 over sl_2, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
+(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> E)
 
 julia> E
 Exterior power module
@@ -1133,7 +1133,7 @@ julia> L = special_linear_lie_algebra(QQ, 4);
 julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
 julia> S, map = symmetric_power(V, 2)
-(Symmetric power module of dimension 10 over sl_4, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
+(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> S)
 
 julia> S
 Symmetric power module
@@ -1287,7 +1287,7 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
 julia> T, map = tensor_power(V, 2)
-(Tensor power module of dimension 9 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
+(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> T)
 
 julia> T
 Tensor power module

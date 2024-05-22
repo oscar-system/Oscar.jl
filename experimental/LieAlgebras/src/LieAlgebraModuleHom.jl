@@ -224,8 +224,8 @@ julia> V2 = direct_sum(V1, V3);
 
 julia> h = hom(V1, V2, [V2([v, zero(V3)]) for v in basis(V1)])
 Lie algebra module morphism
-  from standard module of dimension 2 over sl_2
-  to direct sum module of dimension 5 over sl_2
+  from standard module of dimension 2 over L
+  to direct sum module of dimension 5 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
 2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
@@ -262,8 +262,8 @@ julia> V2 = trivial_module(L);
 
 julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
 Lie algebra module morphism
-  from standard module of dimension 3 over gl_3
-  to abstract Lie algebra module of dimension 1 over gl_3
+  from standard module of dimension 3 over L
+  to abstract Lie algebra module of dimension 1 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
 3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
@@ -294,8 +294,8 @@ over special linear Lie algebra of degree 3 over QQ
 
 julia> identity_map(V)
 Lie algebra module morphism
-  from standard module of dimension 3 over sl_3
-  to standard module of dimension 3 over sl_3
+  from standard module of dimension 3 over L
+  to standard module of dimension 3 over L
 ```
 """
 function identity_map(V::LieAlgebraModule)
@@ -319,8 +319,8 @@ over special linear Lie algebra of degree 3 over QQ
 
 julia> zero_map(V)
 Lie algebra module morphism
-  from standard module of dimension 3 over sl_3
-  to standard module of dimension 3 over sl_3
+  from standard module of dimension 3 over L
+  to standard module of dimension 3 over L
 ```
 """
 function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
