@@ -84,6 +84,7 @@ GAP.@wrap ElementsFamily(x::GapObj)::GapObj
 GAP.@wrap ELMS_LIST(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Embedding(x::GapObj, y::Int)::GapObj
 GAP.@wrap EpimorphismSchurCover(x::GapObj)::GapObj
+GAP.@wrap ExponentsOfPcElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
 GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
@@ -157,6 +158,7 @@ GAP.@wrap IsDomain(x::Any)::Bool
 GAP.@wrap IsDoneIterator(x::Any)::Bool
 GAP.@wrap IsDuplicateTable(x::Any)::Bool
 GAP.@wrap IsElementaryAbelian(x::Any)::Bool
+GAP.@wrap IsElementOfFpGroupFamily(x::GapObj)::Bool
 GAP.@wrap IsEmpty(x::Any)::Bool
 GAP.@wrap IsFFE(x::Any)::Bool
 GAP.@wrap IsFFECollCollColl(x::Any)::Bool
@@ -238,6 +240,7 @@ GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LetterRepAssocWord(x::GapObj)::GapObj
 GAP.@wrap LinearCharacters(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap ListPerm(x::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Maxes(x::GapObj)::GapObj
 GAP.@wrap MinimalGeneratingSet(x::GapObj)::GapObj
@@ -264,6 +267,7 @@ GAP.@wrap OnSetsSets(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap OnTuples(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Order(x::Any)::GapInt
 GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
+GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Pcgs(x::GapObj)::GapObj
 GAP.@wrap PCore(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj

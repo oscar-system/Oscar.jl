@@ -45,6 +45,7 @@ FPGroup
 FinGenAbGroup
 PcGroup
 PermGroup
+SubFPGroup
 SubPcGroup
 ```
 
