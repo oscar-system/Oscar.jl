@@ -16,6 +16,8 @@ export representation_matrix
 export representation_reductive_group
 export representation_on_forms
 export tensor
+export group_dim
+export group_type
 
 ##########################
 #Setting up Reductive Groups 
@@ -33,7 +35,7 @@ mutable struct LinearlyReductiveGroup
     function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
         #check char(fld)
         @assert sym == :SL && characteristic(fld) == 0
-        R, _ = polynomial_ring(fld, :z => (1:m,1:m))
+        R, _ = polynomial_ring(fld, :z => (1:m,1:m);cached=false)
         return LinearlyReductiveGroup(sym, m, R)
     end
 
@@ -66,12 +68,12 @@ end
 
 function Base.show(io::IO, G::LinearlyReductiveGroup)
     io = pretty(io)
-    if isdefined(G, :group) && G.group[1] == :SL
-        println(io, "Reductive group ", G.group[1], G.group[2])
+    if group_type(G) == :SL
+        println(io, "Linearly reductive group ", group_type(G), group_dim(G))
         print(terse(io), Indent(), "over ", Lowercase(), field(G))
         print(io, Dedent())
     else
-        println(io, "Linearly Reductive Group defined by")
+        println(io, "Linearly reductive group defined by")
         print(io, Indent(), G.group_ideal)
         print(io, Dedent())
     end
@@ -131,6 +133,8 @@ reynolds_operator(G::LinearlyReductiveGroup) = G.reynolds_operator
 group_ideal(G::LinearlyReductiveGroup) = G.group_ideal
 canonical_representation(G::LinearlyReductiveGroup) = G.canonical_representation
 natural_representation(G::LinearlyReductiveGroup) = G.canonical_representation
+group_type(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[1] : nothing
+group_dim(G::LinearlyReductiveGroup) = isdefined(G, :group) ? G.group[2] : nothing
 
 #####################
 #Setting up Representation objects
@@ -164,7 +168,7 @@ mutable struct RepresentationLinearlyReductiveGroup
         R.group = G
         R.rep_mat = M
         R.sym_deg = (false, 0)
-        if isdefined(G, :group) && G.group[1] == :SL
+        if group_type(G) == :SL
             R.reynolds_v = reynolds_v_slm
         end
         return R
@@ -200,20 +204,20 @@ julia> representation_matrix(r)
 ```
 """
 function representation_on_forms(G::LinearlyReductiveGroup, d::Int)
-    @assert G.group[1] == :SL
+    @assert group_type(G) == :SL
     return RepresentationLinearlyReductiveGroup(G, d)
 end
 
 function representation_reductive_group(G::LinearlyReductiveGroup)
-    @assert G.group[1] == :SL
+    @assert group_type(G) == :SL
     M = canonical_representation(G)
     return RepresentationLinearlyReductiveGroup(G,M)
 end
 
 function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
     io = pretty(io)
-    if isdefined(group(R), :group) && group(group(R))[1] == :SL
-        println(io, "Representation of ", group(group(R))[1], group(group(R))[2])
+    if group_type(group(R)) == :SL
+        println(io, "Representation of ", group_type(group(R)), group_dim(group(R)))
         if R.sym_deg[1]
             print(io, Indent(), "on symmetric forms of degree ", R.sym_deg[2])
             print(io, Dedent())
@@ -223,7 +227,7 @@ function Base.show(io::IO, R::RepresentationLinearlyReductiveGroup)
             print(io, Dedent())
         end
     else
-        println(io, "Representation of Linearly Reductive Group")
+        println(io, "Representation of linearly reductive group")
         println(io, Indent(), "with representation matrix")
         show(io, R.rep_mat)
         print(io, Dedent())
@@ -271,10 +275,10 @@ end
 
 #computes the representation matrices of SL_m acting over m-forms of symmetric degree sym_deg
 function rep_mat_(G::LinearlyReductiveGroup, sym_deg::Int)
-    G.group[1] == :SL || error("Only implemented for SLm")
-    m = G.group[2]
+    group_type(G) == :SL || error("Only implemented for SLm")
+    m = group_dim(G)
     R = base_ring(group_ideal(G))
-    mixed_ring, t = polynomial_ring(R, "t" => 1:m)
+    mixed_ring, t = polynomial_ring(R, :t => 1:m; cached=false)
     group_mat = natural_representation(G)
     new_vars = group_mat*t
 
@@ -323,7 +327,7 @@ end
         G = group(R)
         K = field(G)
         n = ncols(R.rep_mat)
-        poly_ring, _ = graded_polynomial_ring(K, "X" => 1:n)
+        poly_ring, _ = graded_polynomial_ring(K, :X => 1:n; cached=false)
         z = new{typeof(K), elem_type(poly_ring), typeof(poly_ring)}()
         z.representation = R
         z.group = G
@@ -441,7 +445,7 @@ function Base.show(io::IO, R::RedGroupInvarRing)
     println(io, "Invariant Ring of")
     println(io, Lowercase(), R.poly_ring)
     if isdefined(group(R), :group)
-        print(io, Indent(),  "under group action of ", R.group.group[1], R.group.group[2])
+        print(io, Indent(),  "under group action of ", group_type(group(R)), group_dim(group(R)))
         print(io, Dedent())
     else
         println(io, Indent(),  "under group action of linearly reductive group defined by")
@@ -455,15 +459,15 @@ function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     R = base_ring(rep_mat)
     n = ncols(rep_mat)
     if isdefined(G, :group)
-        m = (G.group[2])^2
+        m = (group_dim(G))^2
     else
         m = ngens(base_ring(group_ideal(G)))
     end
-    mixed_ring_xy, x, y, zz = polynomial_ring(G.field, "x"=>1:n, "y"=>1:n, "zz"=>1:m)
-    ztozz = hom(R,mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m)])
+    mixed_ring_xy, x, y, zz = polynomial_ring(G.field, :x=>1:n, :y=>1:n, :zz=>1:m; cached=false)
+    ztozz = hom(R, mixed_ring_xy, zz)
     genss = [ztozz(f) for f in gens(G.group_ideal)]
     #rep_mat in the new ring
-    new_rep_mat = matrix(mixed_ring_xy,n,n,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
+    new_rep_mat = matrix(mixed_ring_xy,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
     new_vars = new_rep_mat*x
     ideal_vect = y - new_vars 
     ideal_vect = vcat(ideal_vect,genss)
@@ -476,7 +480,7 @@ function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     mixed_ring_xy = base_ring(W[2])
     n = ncols(rep_mat)
     if isdefined(G, :group)
-        m = (G.group[2])^2
+        m = (group_dim(G))^2
     else
         m = ngens(base_ring(group_ideal(G)))
     end
@@ -490,7 +494,7 @@ end
 function generators(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
     if isdefined(G, :group)
-        m = (G.group[2])^2
+        m = (group_dim(G))^2
     else
         m = ngens(base_ring(group_ideal(G)))
     end
@@ -521,7 +525,7 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     #we need the representation matrix and determinant of group matrix to be in basering(I)
     mixed_ring_xy = parent(genss[1])
     R = base_ring(M)
-    m = G.group[2]
+    m = group_dim(G)
     n = ncols(M)
     mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
     new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(M[i,j]) for i in 1:n, j in 1:n])
@@ -530,7 +534,7 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     new_det = mapp_(det_)
 
     #now we apply reynolds operator to genss
-    if G.group[1] == :SL #TODO other types of reductive groups
+    if group_type(G) == :SL #TODO other types of reductive groups
         new_gens_wrong_ring = [reynolds_function(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
     else 
         return nothing
@@ -604,7 +608,7 @@ function needed_degree(elem_::MPolyDecRingElem, m::Int)
     elem = leading_monomial(elem_)
     R = parent(elem)
     n = ngens(R) - m^2
-    extra_ring, _= polynomial_ring(base_ring(R), "z"=>1:m^2)
+    extra_ring, _= polynomial_ring(base_ring(R), :z=>1:m^2; cached=false)
     mapp = hom(R,extra_ring, vcat([1 for i in 1:n], gens(extra_ring)))
     return total_degree(mapp(elem))
 end
@@ -634,13 +638,13 @@ end
 
 #this function returns the image of elem under the reynolds operator of group with representation X
 function reynolds_operator(X::RepresentationLinearlyReductiveGroup, elem::MPolyRingElem)
-    X.group.group[1] == :SL || error("Only implemented for SLm")
+    group_type(group(X)) == :SL || error("Only implemented for SLm")
     vector_ring = parent(elem)
     G = X.group
     n = ngens(vector_ring)
     n == ncols(X.rep_mat) || error("group not compatible with element")
-    m = G.group[2]
-    R, _ = graded_polynomial_ring(G.field,"x"=>1:n, "y"=>1:n, "z"=>(1:m, 1:m))
+    m = group_dim(G)
+    R, _ = graded_polynomial_ring(G.field,:x=>1:n, :y=>1:n, :z=>(1:m, 1:m); cached=false)
     map1 = hom(vector_ring, R, gens(R)[1:n])
     new_elem = map1(elem)
     group_ring = base_ring(X.rep_mat)
@@ -711,7 +715,7 @@ function affine_algebra(R::RedGroupInvarRing)
     for i in 1:s
         weights_[i] = total_degree(V[i])
     end
-    S,_ = graded_polynomial_ring(field(group(representation(R))), "t"=>1:s; weights = weights_)
+    S,_ = graded_polynomial_ring(field(R), :t=>1:s; weights = weights_, cached=false)
     R_ = polynomial_ring(R)
     StoR = hom(S,R_,V)
     I = kernel(StoR)
@@ -733,20 +737,16 @@ function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing)
     #I is the null cone ideal, mat_ is the representation matrix and 
     #ringg is the ring in which we must return the invariants
     g = gens(I)
-    V = Vector{Int}()
     n = ncols(mat_)
     #make a vector of all the degrees of generators of the null cone ideal I
-    for gen in g
-        d = total_degree(gen)
-        if !(d in V)
-            push!(V, Int(d))
-        end
-    end
+    V = map(total_degree,g)
+    sort!(V)
+    unique!(V)
     #change base ring of mat_
     R = base_ring(mat_)
     mixed_ring_xy = base_ring(I)
     mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
-    new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(mat_[i,j]) for i in 1:n, j in 1:n])
+    new_rep_mat = matrix(mixed_ring_xy,[mapp(mat_[i,j]) for i in 1:n, j in 1:n])
 
     #for each degree d of generator of the null cone ideal, we compute a basis of ringg^G_d (which is K[V]^G_d in the book)
     answer_vector = Vector{Vector{elem_type(mixed_ring_xy)}}()

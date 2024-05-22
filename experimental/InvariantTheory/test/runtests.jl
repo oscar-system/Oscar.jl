@@ -1,8 +1,8 @@
 @testset "Invariant Theory of SL_m" begin
     S, z = polynomial_ring(QQ, "z"=> (1:2, 1:2))
     G = linearly_reductive_group(:SL,2,S)
-    @test group(G)[1] == :SL
-    @test group(G)[2] == 2
+    @test group_type(G) == :SL
+    @test group_dim(G) == 2
     @test group_ideal(G) == ideal([z[1, 1]*z[2, 2] - z[2, 1]*z[1, 2] - 1])
     @test ncols(canonical_representation(G)) == 2
     @test natural_representation(G) == canonical_representation(G)
