@@ -76,9 +76,11 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
+function Base.show(io::IO, mime::MIME"text/plain", h::LieAlgebraModuleHom)
+  @show_name(io, h)
+  @show_special(io, mime, h)
   io = pretty(io)
-  println(terse(io), h)
+  println(io, "Lie algebra module morphism")
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))
@@ -86,6 +88,8 @@ function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
 end
 
 function Base.show(io::IO, h::LieAlgebraModuleHom)
+  @show_name(io, h)
+  @show_special(io, h)
   io = pretty(io)
   if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra module morphism")

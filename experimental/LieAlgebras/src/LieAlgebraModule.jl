@@ -151,7 +151,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
+function Base.show(io::IO, mime::MIME"text/plain", V::LieAlgebraModule)
+  @show_name(io, V)
+  @show_special(io, mime, V)
   io = pretty(io)
   println(io, _module_type_to_string(V))
   println(io, Indent(), "of dimension $(dim(V))")
@@ -211,6 +213,8 @@ function _show_inner(io::IO, V::LieAlgebraModule)
 end
 
 function Base.show(io::IO, V::LieAlgebraModule)
+  @show_name(io, V)
+  @show_special(io, V)
   if is_terse(io)
     print(io, _module_type_to_string(V))
   else
