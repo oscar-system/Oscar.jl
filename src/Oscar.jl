@@ -283,13 +283,6 @@ include("Serialization/main.jl")
 
 include("../experimental/Experimental.jl")
 
-if is_dev
-#  include("../examples/ModStdNF.jl")
-#  include("../examples/ModStdQ.jl")
-#  include("../examples/ModStdQt.jl")
-  include("../examples/PrimDec.jl")
-end
-
 include("deprecations.jl")
 
 @doc raw"""
