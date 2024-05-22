@@ -1,14 +1,6 @@
 module H2_G_QmodZ_mod
 using Oscar
 
-function schur_cover(G::Oscar.GAPGroup)
-  f = GAP.Globals.EpimorphismSchurCover(GapObj(G))
-  k = GAP.Globals.Source(f)
-  S = FPGroup(k)
-  return S, GAPGroupHomomorphism(S, G, f)
-end
-  
-
 #from https://sites.google.com/view/andre-macedo/code?pli=1
 """
 Should compute

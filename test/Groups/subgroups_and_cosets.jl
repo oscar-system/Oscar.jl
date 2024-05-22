@@ -308,6 +308,16 @@ end
    @test schur_multiplier(PcGroup, symmetric_group(4)) isa PcGroup
 end
 
+@testset "Schur cover" begin
+   @test order(schur_cover(symmetric_group(4))[1]) == 48
+   @test order(schur_cover(alternating_group(5))[1]) == 120
+   @test order(schur_cover(dihedral_group(12))[1]) == 24
+
+   @test schur_cover(symmetric_group(4))[1] isa FPGroup
+   @test schur_cover(PcGroup, symmetric_group(4))[1] isa PcGroup
+   @test schur_cover(PermGroup, alternating_group(5))[1] isa PermGroup
+end
+
 @testset "Sylow and Hall subgroups" begin
    G = symmetric_group(4)
 
