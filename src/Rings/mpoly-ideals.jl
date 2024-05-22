@@ -2057,7 +2057,7 @@ small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; algorithm::Symbol=:simpl
 function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
   I = convert(MPolyIdeal{QQMPolyRingElem},
               Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
-  base,_ = grade(base_ring(I))
+  base, _ = grade(base_ring(I))
   o = degrevlex(base)
 
   return ideal(IdealGens(base,base.(gens(I)), o;
@@ -2104,7 +2104,7 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     return coeff_ring(numerator(c))
   end
   if !is_graded(ring)
-	 ring,_ = grade(ring)
+	 ring, _ = grade(ring)
   end
   h = hom(base_ring(I), ring, coeffmap, gens(ring))
   converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
