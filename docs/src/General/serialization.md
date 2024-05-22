@@ -44,7 +44,6 @@ FPGroup
 FinGenAbGroup
 PcGroup
 PermGroup
-SubPcGroup
 ```
 
 ### Polyhedral Geometry
