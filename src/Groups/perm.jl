@@ -123,7 +123,7 @@ Sym(6)
 ```
 """
 function perm(L::AbstractVector{<:IntegerUnion})
-  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GAP.GapObj(L;recursive=true)))
+  return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
 end
 
 
@@ -161,7 +161,7 @@ true
 ```
 """
 function perm(g::PermGroup, L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
+   x = GAPWrap.PermList(GapObj(L;recursive=true))
    @req x !== GAP.Globals.fail "the list does not describe a permutation"
    @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
@@ -170,7 +170,7 @@ end
 perm(g::PermGroup, L::AbstractVector{<:ZZRingElem}) = perm(g, [Int(y) for y in L])
 
 function (g::PermGroup)(L::AbstractVector{<:IntegerUnion})
-   x = GAPWrap.PermList(GAP.GapObj(L;recursive=true))
+   x = GAPWrap.PermList(GapObj(L;recursive=true))
    @req (length(L) <= degree(g) && x in GapObj(g)) "the element does not embed in the group"
    return PermGroupElem(g, x)
 end

@@ -104,7 +104,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
       indices = [k for k in row(IM, k)]
       help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
       imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
-      phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star)
+      phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 
       # Now we need to create the inverse of alpha*.
       imgs_alpha_star = elem_type(help_ring)[]
@@ -117,7 +117,7 @@ function IdealSheaf(X::NormalToricVariety, I::MPolyIdeal)
         end
         push!(imgs_alpha_star, img)
       end
-      alpha_star = hom(OO(U), help_ring, imgs_alpha_star)
+      alpha_star = hom(OO(U), help_ring, imgs_alpha_star; check=false)
 
       # TODO: There should be better ways to create this map!
       # Presumably, one can invert the matrix with the `expo`s as entries?
@@ -245,7 +245,7 @@ function _dehomogenize_to_chart(X::NormalToricVariety, I::MPolyIdeal, k::Int)
   indices = [k for k in row(IM, k)]
   help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
   imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
-  phi_s_star = hom(S_loc, help_ring, imgs_phi_star)
+  phi_s_star = hom(S_loc, help_ring, imgs_phi_star; check=false)
 
   # Compute the preimage of I_loc under beta.
   # However, preimage is not implemented for these maps:

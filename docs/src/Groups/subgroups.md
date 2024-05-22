@@ -11,14 +11,14 @@ The following functions are available in OSCAR for subgroup properties:
 
 ```@docs
 sub(G::GAPGroup, gens::AbstractVector{<:GAPGroupElem}; check::Bool = true)
-is_subset(H::T, G::T) where T <: GAPGroup
-is_subgroup(H::T, G::T) where T <: GAPGroup
-embedding(H::T, G::T) where T <: GAPGroup
-index(G::T, H::T) where T <: Union{GAPGroup, FinGenAbGroup}
-is_maximal_subgroup(H::T, G::T) where T <: GAPGroup
-is_normalized_by(H::T, G::T) where T <: GAPGroup
-is_normal_subgroup(H::T, G::T) where T <: GAPGroup
-is_characteristic_subgroup(H::T, G::T) where T <: GAPGroup
+is_subset(H::GAPGroup, G::GAPGroup)
+is_subgroup(H::GAPGroup, G::GAPGroup)
+embedding(H::GAPGroup, G::GAPGroup)
+index(G::GAPGroup, H::GAPGroup)
+is_maximal_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
+is_normalized_by(H::GAPGroup , G::GAPGroup)
+is_normal_subgroup(H::GAPGroup, G::GAPGroup)
+is_characteristic_subgroup(H::GAPGroup, G::GAPGroup; check::Bool = true)
 ```
 
 ## Standard subgroups
@@ -72,7 +72,7 @@ Usually it is more efficient to work with (representatives of) the
 underlying conjugacy classes of subgroups instead.
 
 ```@docs
-complements(G::T, N::T) where T <: GAPGroup
+complements(G::GAPGroup, N::GAPGroup)
 hall_subgroups
 low_index_subgroups
 maximal_subgroups
@@ -87,11 +87,11 @@ is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)
 centralizer(G::GAPGroup, x::GAPGroupElem)
-centralizer(G::T, H::T) where T <: GAPGroup
+centralizer(G::GAPGroup, H::GAPGroup)
 normalizer(G::GAPGroup, x::GAPGroupElem)
-normalizer(G::T, H::T) where T<:GAPGroup
-core(G::T, H::T) where T<:GAPGroup
-normal_closure(G::T, H::T) where T<:GAPGroup
+normalizer(G::GAPGroup, H::GAPGroup)
+core(G::GAPGroup, H::GAPGroup)
+normal_closure(G::GAPGroup, H::GAPGroup)
 ```
 
 ```@docs
@@ -100,7 +100,7 @@ representative(G::GroupConjClass)
 acting_group(G::GroupConjClass)
 number_of_conjugacy_classes(G::GAPGroup)
 conjugacy_class(G::GAPGroup, g::GAPGroupElem)
-conjugacy_class(G::T, g::T) where T<:GAPGroup
+conjugacy_class(G::GAPGroup, H::GAPGroup)
 conjugacy_classes(G::GAPGroup)
 complement_classes
 hall_subgroup_classes
@@ -121,13 +121,13 @@ is_left(c::GroupCoset)
 is_bicoset(C::GroupCoset)
 acting_domain(C::GroupCoset)
 representative(C::GroupCoset)
-right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
 GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
-double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-double_cosets(G::T, H::T, K::T; check::Bool) where T<: GAPGroup
+double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
 left_acting_group(C::GroupDoubleCoset)
 right_acting_group(C::GroupDoubleCoset)
 representative(C::GroupDoubleCoset)

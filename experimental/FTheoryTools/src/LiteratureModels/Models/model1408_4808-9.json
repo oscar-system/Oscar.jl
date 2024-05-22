@@ -46,12 +46,12 @@
     },
     "model_data": {
         "base_dim": 3,
-        "divisors_user_must_specify": ["s7", "s9"],
-        "divisors_parametrized_by_user_specified_divisors": ["s1", "s2", "s3", "s5", "s6"],
-        "parametrization_of_parametrized_divisors_by_Kbar_and_user_specified_divisors": [
-            [3,  2,  1,  2, 1],
-            [-1,  0,  1, -1, 0],
-            [-1, -1, -1,  0, 0]
+        "defining_classes": ["s7", "s9"],
+        "model_sections": ["s1", "s2", "s3", "s5", "s6", "s7", "s9"],
+        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+            [3,  2,  1,  2, 1, 0, 0],
+            [-1,  0,  1, -1, 0, 1, 0],
+            [-1, -1, -1,  0, 0, 0, 1]
         ],
         "fiber_ambient_space_rays": [[-1, 1], [0, -1], [1, 0], [0, 1], [-1, 0], [-1, -1]],
         "fiber_ambient_space_max_cones": [[1, 4], [3, 4], [2, 3], [2, 6], [5, 6], [1, 5]],

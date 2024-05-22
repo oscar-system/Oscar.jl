@@ -160,25 +160,31 @@ to the other charts of ``X`` is well defined.
 """
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
-    I::Ideal; check::Bool=false
+    I::Ideal; check::Bool=true
   )
   @assert base_ring(I) === OO(U) || error("ideal not defined in the correct ring")
   @check is_prime(I) "ideal must be prime"
   return PrimeIdealSheafFromChart(X, U, I)
 end
 
-function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=CoveredScheme(X))
-  @assert base_ring(I) === OO(X)
-  @assert length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme))
-  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
-end
-
 function IdealSheaf(
     X::AbsCoveredScheme, U::AbsAffineScheme, 
-    g::Vector{RET}; check::Bool=false
+    g::Vector{RET}; check::Bool=true
   ) where {RET<:RingElem}
   return IdealSheaf(X, U, ideal(OO(U), g); check)
 end
+
+@doc raw"""
+    IdealSheaf(X::AbsAffineScheme, I::Ideal; Xcoverd=covered_scheme(X)) -> IdealSheaf
+
+Return `I` as an ideal sheaf on the covered scheme with 1 affine patch `X`.
+"""
+function IdealSheaf(X::AbsAffineScheme, I::Ideal; covered_scheme::AbsCoveredScheme=covered_scheme(X), check::Bool=true)
+  @req base_ring(I) === OO(X) "ideal must lie in the coordinate ring of X"
+  @req length(affine_charts(covered_scheme)) == 1 && X === first(affine_charts(covered_scheme)) "covered_scheme must be the covered scheme with a single patch X"
+  return IdealSheaf(covered_scheme, IdDict{AbsAffineScheme, Ideal}([X=>I]); check=false)
+end
+
 
 ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, g::Vector{RET}; check::Bool=true) where {RET<:RingElem} = IdealSheaf(X, U, g; check)
 ideal_sheaf(X::AbsCoveredScheme, U::AbsAffineScheme, I::Ideal; check::Bool=true) = IdealSheaf(X, U, I; check)
@@ -764,17 +770,47 @@ function smooth_lci_covering(I::AbsIdealSheaf)
   error("not implemented")
 end
 
+### pushforward of ideal sheaves along closed embeddings
 function pushforward(inc::CoveredClosedEmbedding, I::AbsIdealSheaf)
-  Y = domain(inc)
-  scheme(I) === Y || error("ideal sheaf is not defined on the domain of the embedding")
-  X = codomain(inc)
-  phi = covering_morphism(inc)
-  ID = IdDict{AbsAffineScheme, Ideal}()
-  for U in patches(domain(phi))
-    V = codomain(phi[U])
-    ID[V] = pushforward(phi[U], I(U))
+  return PushforwardIdealSheaf(inc, I)
+end
+
+function pushforward(inc::CoveredClosedEmbedding, I::PrimeIdealSheafFromChart)
+  X = scheme(I)
+  @assert X === domain(inc)
+  U = original_chart(I)
+  inc_cov = covering_morphism(inc)
+  dom_cov = domain(inc_cov)
+  def_cov = default_covering(X)
+  V = __find_chart(U, def_cov)
+  for UU in patches(dom_cov)
+    if has_ancestor(x->x===V, UU)
+      if !is_one(I(V))
+        J = pushforward(inc_cov[UU], I(UU))
+        return PrimeIdealSheafFromChart(codomain(inc), codomain(inc_cov[UU]), J)
+      else
+        continue
+      end
+    end
   end
-  return IdealSheaf(X, ID, check=false)
+  error("no patch found")
+end
+
+morphism(I::PushforwardIdealSheaf) = I.f
+original_ideal_sheaf(I::PushforwardIdealSheaf) = I.orig
+underlying_presheaf(I::PushforwardIdealSheaf) = I.Ipre
+
+function produce_object_on_affine_chart(II::PushforwardIdealSheaf, U::AbsAffineScheme)
+  f = morphism(II)
+  def_cov = default_covering(codomain(f))
+  phi = covering_morphism(f)
+  g = [g for (V, g) in morphisms(phi) if has_ancestor(x->x===U, codomain(g))]
+  is_empty(g) && return ideal(OO(U), one(OO(U))) # the domain scheme is not visible in this chart
+  loc_id_dict = IdDict{AbsAffineScheme, Ideal}(codomain(inc)=>pushforward(inc, original_ideal_sheaf(II)(domain(inc))) for inc in g)
+  # Assemble the ideal on U from those in the patches covering it
+  loc_id = [pullback(inverse(_flatten_open_subscheme(V, def_cov)))(I) for (V, I) in loc_id_dict]
+  return ideal(OO(U), gens(reduce(intersect, saturated_ideal.(loc_id))))
+  return pushforward(inc, original_ideal_sheaf(II)(domain(inc)))
 end
 
 function pushforward(inc::ClosedEmbedding, I::Ideal)

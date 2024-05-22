@@ -165,8 +165,8 @@ end
    @test_throws ArgumentError right_transversal(H, G)
    @test_throws ArgumentError left_transversal(H, G)
 
+   G = symmetric_group(5)
    @testset "set comparison for cosets in PermGroup" begin
-      G=symmetric_group(5)
       x = G(cperm([1,2,3]))
       y = G(cperm([1,4,5]))
       z = G(cperm([1,2],[3,4]))
@@ -360,17 +360,20 @@ end
    # solvable group
    G = symmetric_group(4)
    N = pcore(G, 2)[1]
-   @test length(complement_classes(G, N)) == 1
+   C = @inferred complement_classes(G, N)
+   @test length(C) == 1
 
    # nonsolvable factor group
    G = special_linear_group(2, 5)
    N = center(G)[1]
-   @test length(complement_classes(G, N)) == 0
+   C = @inferred complement_classes(G, N)
+   @test length(C) == 0
 
    # nonsolvable normal subgroup
    G = symmetric_group(6)
    N = derived_subgroup(G)[1]
-   @test length(complement_classes(G, N)) == 2
+   C = @inferred complement_classes(G, N)
+   @test length(C) == 2
 
    # both normal subgroup and factor group nonsolvable:
    # check that GAP throws an error
@@ -380,6 +383,18 @@ end
    W = wreath_product(G, G)
    N = kernel(canonical_projection(W))[1]
    @test_throws ErrorException complement_classes(W, N)
+
+   # pc group, with complements
+   G = PcGroup(symmetric_group(4))
+   N = pcore(G, 2)[1]
+   C = @inferred complement_classes(G, N)
+   @test length(C) == 1
+
+   # pc group, without complements
+   G = dihedral_group(8)
+   N = center(G)[1]
+   C = @inferred complement_classes(G, N)
+   @test length(C) == 0
 end
 
 @testset "Some specific subgroups" begin

@@ -20,21 +20,6 @@ function _variables_for_singular(n::Int)
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-function number_of_generators(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem}
-  return number_of_generators(base_ring(F))
-end
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
-  return F(gen(base_ring(F)))
-end
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  return F(gen(base_ring(F), i))
-end
-
-function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
-  return map(F, gens(base_ring(F)))
-end
 
 ######################################################################
 # pretty printing for iJulia notebooks..
@@ -725,15 +710,6 @@ end
 
 function oscar_assure(B::IdealGens)
   oscar_assure(B.gens)
-end
-
-function Base.copy(f::MPolyRingElem)
-    Ox = parent(f)
-    g = MPolyBuildCtx(Ox)
-    for (c,e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
-        push_term!(g, c, e)
-    end
-    return finish(g)
 end
 
 function map_entries(R, M::Singular.smatrix)

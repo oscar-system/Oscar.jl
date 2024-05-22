@@ -162,7 +162,7 @@ end
 
 GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 
-(::QQAbField)(a::GAP.GapObj) = GAP.gap_to_julia(QQAbElem, a)
+(::QQAbField)(a::GapObj) = GAP.gap_to_julia(QQAbElem, a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)

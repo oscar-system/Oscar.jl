@@ -54,7 +54,7 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+h3 = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
 
 @testset "Errors from tuning hypersurface models" begin
   @test_throws ArgumentError tune(h, new_poly^2)

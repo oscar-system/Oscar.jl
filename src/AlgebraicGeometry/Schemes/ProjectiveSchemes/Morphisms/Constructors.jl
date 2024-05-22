@@ -201,3 +201,31 @@ function base_change(phi::Any, IP::AbsProjectiveScheme)
   return result, psi
 end
 
+########################################################################
+# Rational maps
+########################################################################
+@doc raw"""
+    rational_map(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+
+Given a homomorphism ``f : T → S`` of the `homogeneous_coordinate_ring`s of `Q` and `P`, respectively, 
+construct the associated rational map of projective varieties.
+"""
+function rational_map(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+  return RationalMap(P, Q, f, check=check)
+end
+
+@doc raw"""
+    rational_map(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+
+Suppose ``X ⊂ ℙʳ`` and ``Y ⊂ ℙˢ`` are projective varieties.
+Construct the rational map associated to the morphism of graded rings 
+which takes the generators of the `homogeneous_coordinate_ring` of ``Y`` to the elements 
+in `a` of the `homogeneous_coordinate_ring` of ``X``.
+"""
+function rational_map(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem}; check::Bool=true)
+  SX = homogeneous_coordinate_ring(X)
+  SY = homogeneous_coordinate_ring(Y)
+  f = hom(SY, SX, a; check)
+  return RationalMap(X, Y, f)
+end
+

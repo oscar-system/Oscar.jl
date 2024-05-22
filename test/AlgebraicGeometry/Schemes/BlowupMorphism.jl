@@ -1,18 +1,17 @@
 @testset "basics about blowups" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^3 + z^5
-  X = CoveredScheme(spec(R, ideal(R, f)))
-  U = affine_charts(X)[1] # the first chart
-
-  IZ = IdealSheaf(U, ideal(OO(U),[x, y, z]),covered_scheme=X)
+  X = spec(R, ideal(R, f))
+  I = ideal(OO(X), [x, y, z])
+  IZ = IdealSheaf(X, I)
 
   bl = blow_up(IZ)
 
-  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(X), Nothing, <:BlowupMorphism}
+  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(space(IZ)), Nothing, <:BlowupMorphism}
   @test Oscar.underlying_morphism(bl) === projection(bl)
 
   Y = domain(bl)
-  @test codomain(bl) === X
+  @test codomain(bl) === space(IZ)
   @test Y isa AbsCoveredScheme
 
   E = exceptional_divisor(bl)

@@ -39,7 +39,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, model_sections = Dict("b" => b))
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Hypersurface model over a concrete base
@@ -83,7 +83,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   vars = [string(k) for k in gens(R)]
   S = cox_ring(ambient_space(h))
   images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
-  map = hom(R, S, images)
+  map = hom(R, S, images; check=false)
   new_hypersurface_equation = map(parametrized_hypersurface_equation)
 
   # 3. Build the new model

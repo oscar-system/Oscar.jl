@@ -29,6 +29,7 @@ export AbsProjectiveCurve
 export AbsProjectiveScheme
 export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
+export AbsRationalMap
 export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
@@ -155,6 +156,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubPcGroup
+export SubPcGroupElem
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
@@ -1243,6 +1246,7 @@ export rand_subpolytope
 export rank
 export rank_action
 export rational_equivalence_class
+export rational_map
 export rational_point_conic
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung

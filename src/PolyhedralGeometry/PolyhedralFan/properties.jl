@@ -5,9 +5,15 @@
 ###############################################################################
 
 @doc raw"""
-    rays(PF::PolyhedralFan)
+    rays[as::Type{T} = RayVector,] (PF::PolyhedralFan)
 
-Return the rays of `PF`.
+Return the rays of `PF`. The rays are defined to be the
+one-dimensional faces of its cones, so if `PF` has lineality, there are no rays.
+
+See also [`rays_modulo_lineality`](@ref).
+
+Optional arguments for `as` include
+* `RayVector`.
 
 # Examples
 The rays of a normal fan of a cube point in every positive and negative unit
@@ -42,6 +48,20 @@ julia> matrix(QQ, rays(NF))
 [ 0    0    1]
 [ 0    0   -1]
 ```
+The following fan has no rays:
+```
+julia> IM = IncidenceMatrix([[1,2],[2,3]]);
+
+julia> R = [1 0 0; 0 1 0; -1 0 0];
+
+julia> L = [0 0 1];
+
+julia> PF = polyhedral_fan(IM, R, L)
+Polyhedral fan in ambient dimension 3
+
+julia> rays(PF)
+0-element SubObjectIterator{RayVector{QQFieldElem}}
+```
 """
 rays(PF::_FanLikeType) =
   if lineality_dim(PF) == 0
@@ -70,6 +90,8 @@ Return the rays of the polyhedral fan `F` up to lineality as a `NamedTuple`
 with two iterators. If `F` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `F/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
+
+See also [`rays`](@ref) and [`lineality_space`](@ref).
 
 # Examples
 ```jldoctest

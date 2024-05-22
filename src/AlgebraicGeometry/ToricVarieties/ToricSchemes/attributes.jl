@@ -172,12 +172,12 @@ function _compute_toric_gluing(gd::ToricGluingData)
 
   xx = gens(OO(UV))
   yy = gens(OO(VU))
-  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=true)
-  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=true)
+  f = morphism(UV, VU, [prod((e[i] >= 0 ? u^e[i] : inv(u)^-e[i]) for (i, u) in enumerate(xx); init=one(OO(UV))) for e in y_to_x], check=false)
+  g = morphism(VU, UV, [prod((e[i] >= 0 ? v^e[i] : inv(v)^-e[i]) for (i, v) in enumerate(yy); init=one(OO(VU))) for e in x_to_y], check=false)
   set_attribute!(f, :inverse, g)
   set_attribute!(g, :inverse, f)
 
-  result = Gluing(U, V, f, g, check=true)
+  result = Gluing(U, V, f, g, check=false)
   return result
 end
 

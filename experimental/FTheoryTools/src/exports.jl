@@ -34,7 +34,9 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export classes_of_model_sections
 export coordinate_ring
+export defining_classes
 export defining_section_parametrization
 export discriminant
 export display_all_literature_models
@@ -103,6 +105,7 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export put_over_concrete_base
+export QSMModel
 export related_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
