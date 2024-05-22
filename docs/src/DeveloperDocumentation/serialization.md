@@ -1,4 +1,4 @@
-# Serialization
+# [Serialization](@id dev_serialization)
 
 This document summarizes the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.

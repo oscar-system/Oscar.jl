@@ -1,4 +1,4 @@
-# Serialization
+# Saving and loading files
 
 ## Introduction
 
@@ -10,6 +10,9 @@ threefold:
   - Increase portability by giving a convenient possibility to transport data.
   - Increase overall software quality by testing against existing data and
     tracking errors through data computed by different versions.
+
+Work on serialization is supported by the MaRDI project. You can find out more about
+Mardi [here.](https://www.mardi4nfdi.de/about/mission)
 
 ```@docs
 save
@@ -68,3 +71,11 @@ ToricDivisor
 TropicalCurve
 TropicalHypersurface
 ```
+
+## Reading from and writting to external software
+
+We write to files following the MaRDI file format which is an extension of JSON
+defined [here](https://www.oscar-system.org/schemas/mrdi.json). The MaRDI file format
+aims to be language agnostic. If you would like to understand more about how our files
+are written or how you could implement a way to load files serialized with OSCAR
+into your computer algebra setup see the developer documentation on [serialization](@ref dev_serialization).
