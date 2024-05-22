@@ -103,13 +103,6 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-  # incorrect one
-  #singular_assure(B, ordering)
-  #R = B.Sx
-  #I  = Singular.Ideal(R, gens(B.S)...)
-  #i  = Singular.std(I, complete_reduction = complete_reduction)
-  #BA = IdealGens(B.Ox, i, complete_reduction)
-  # correct one (segfaults)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
   BA = IdealGens(B.Ox, i, complete_reduction)
@@ -522,8 +515,7 @@ julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
 """
 function syzygy_generators(a::Vector{<:MPolyRingElem})
   I = ideal(a)
-  singular_assure(I)
-  s = Singular.syz(I.gens.S)
+  s = Singular.syz(singular_generators(I))
   F = free_module(parent(a[1]), length(a))
   @assert rank(s) == length(a)
   return [F(s[i]) for i=1:Singular.ngens(s)]
@@ -1302,8 +1294,7 @@ lex([x1, x2, x3, x4])
 """
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
-  singular_assure(G)
-  Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
+  Singular.dimension(singular_generators(G)) == 0 || error("Dimension of corresponding ideal must be zero.")
   SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
   ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
@@ -1532,6 +1523,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     end
     singular_assure(G)
     h = Singular.hilbert_series(G.S, weights)
+
   else
     # Quoting from the documentation of Singular.hilbert_series:
     # The coefficient vector is returned as a `Vector{Int32}`, and the last element is not actually part of the coefficients of Q(t).

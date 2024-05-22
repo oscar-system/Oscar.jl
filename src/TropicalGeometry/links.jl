@@ -94,8 +94,7 @@ function tropical_link(inI; p_adic_prime=1000003)
   ###
   # Optional: Compute a partially saturated GB using satstd
   ###
-  singular_assure(inI1)    # defines necessary objects on the Singular side
-  singularIdeal = inI1.gens.S
+  singularIdeal = singular_generators(inI1)
   singularRing = base_ring(singularIdeal)
   singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
   inI1 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
@@ -122,8 +121,7 @@ function tropical_link(inI; p_adic_prime=1000003)
     ###
     # Optional: Compute a partially saturated GB using satstd
     ###
-    singular_assure(inI0)    # defines necessary objects on the Singular side
-    singularIdeal = inI0.gens.S
+    singularIdeal = singular_generators(inI0)
     singularRing = base_ring(singularIdeal)
     singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
     inI0 = ideal(Kx,singularIdeal) # cast the Singular ideal back to an Oscar ideal
