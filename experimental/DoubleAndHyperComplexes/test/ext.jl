@@ -365,7 +365,7 @@ end
     SX = homogeneous_coordinate_ring(X)
     n = ngens(SX)-1
     c = codim(X)
-    res, _ = free_resolution(Oscar.SimpleFreeResolution, SX)
+    res = free_resolution(SX)
     C_simp = simplify(res);
     C_shift = shift(C_simp, c);
     S = base_ring(SX)
