@@ -133,7 +133,7 @@ end
 """
 The product of `a` and `b` (`vcat` of the the matrices)
 """
-mutable struct ProdOrdering <: AbsGenOrdering
+struct ProdOrdering <: AbsGenOrdering
   a::AbsGenOrdering
   b::AbsGenOrdering
 end
@@ -1748,15 +1748,9 @@ end
 # Module orderings (not module Orderings)
 
 # For ordering the generators (I think)
-mutable struct ModOrdering{T} <: AbsModOrdering
+struct ModOrdering{T <: AbstractVector{Int}} <: AbsModOrdering
   gens::T
   ord::Symbol
-  function ModOrdering(u::T, s::Symbol) where {T <: AbstractVector{Int}}
-    r = new{T}()
-    r.gens = u
-    r.ord = s
-    return r
-  end
 end
 
 mutable struct ModuleOrdering{S}
@@ -1774,7 +1768,7 @@ base_ring(a::ModuleOrdering) = a.M
 
 base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
 
-mutable struct ModProdOrdering <: AbsModOrdering
+struct ModProdOrdering <: AbsModOrdering
   a::AbsOrdering
   b::AbsOrdering
 end
