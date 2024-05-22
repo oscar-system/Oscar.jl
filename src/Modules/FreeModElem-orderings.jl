@@ -58,10 +58,15 @@ Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
 `ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
 function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
+  # redispatch to take advantage of the type of ord.o
+  return Orderings.__permutation_of_terms(f, ord.o)
+end
+
+function Orderings.__permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::Orderings.AbsOrdering)
   ff = coordinates(f)
-  p = collect((i, j) for i in ff.pos for j in 1:length(f[i]))
+  p = collect((i, j) for i in ff.pos for j in 1:length(ff[i]))
   sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
-                                             l[1], ff[l[1]], l[2], ord.o) > 0))
+                                             l[1], ff[l[1]], l[2], ord) > 0))
   return p
 end
 
@@ -176,7 +181,7 @@ function Base.iterate(a::GeneralPermutedIterator{:terms, <:FreeModElem{<:MPolyRi
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
-  return term(a.elem[i], j)*parent(a.elem)[i], state
+  return FreeModElem(i, term(a.elem[i], j), parent(a.elem)), state
 end
 
 function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModElem{<:MPolyRingElem}
@@ -196,7 +201,7 @@ function Base.iterate(a::GeneralPermutedIterator{:monomials, <:FreeModElem{<:MPo
   state += 1
   state <= length(a.perm) || return nothing
   (i, j) = a.perm[state]
-  return monomial(a.elem[i], j)*parent(a.elem)[i], state
+  return FreeModElem(i, monomial(a.elem[i], j), parent(a.elem)), state
 end
 
 function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: FreeModElem{<:MPolyRingElem}
@@ -241,7 +246,7 @@ Return the leading monomial of `f` with respect to the order `ordering`.
 """
 function leading_monomial(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
   (i, j) = index_of_leading_term(f, ordering)
-  return monomial(f[i], j)*parent(f)[i]
+  return FreeModElem(i, monomial(f[i], j), parent(f))
 end
 
 @doc raw"""
@@ -251,7 +256,7 @@ Return the leading term of `f` with respect to the order `ordering`.
 """
 function leading_term(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
   (i, j) = index_of_leading_term(f, ordering)
-  return term(f[i], j)*parent(f)[i]
+  return FreeModElem(i, term(f[i], j), parent(f))
 end
 
 @doc raw"""

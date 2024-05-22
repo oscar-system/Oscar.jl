@@ -22,6 +22,13 @@ function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
   return FreeModElem{T}(sparse_coords,parent)
 end
 
+function FreeModElem(i::Int, x::T, parent::FreeMod{T}) where T
+  @assert 1 <= i <= rank(parent)
+  sparse_coords = sparse_row(base_ring(parent), [i], [x])
+  return FreeModElem{T}(sparse_coords, parent)
+end
+
+
 #@doc raw"""
 #    (F::FreeMod{T})(c::SRow{T}) where T
 #
@@ -147,10 +154,11 @@ end
 Return the standard basis of `F`.
 """
 function basis(F::AbstractFreeMod)
-  bas = elem_type(F)[]
+  bas = Vector{elem_type(F)}(undef, dim(F))
+  e = one(base_ring(F))
   for i=1:dim(F)
-    s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-    push!(bas, F(s))
+    s = sparse_row(base_ring(F), [i], [e])
+    bas[i] = F(s)
   end
   return bas
 end
@@ -172,7 +180,8 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 """
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
-  s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
+  e = one(base_ring(F))
+  s = sparse_row(base_ring(F), [i], [e])
   return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
@@ -273,7 +282,7 @@ end
 
 Return the zero element of  `F`.
 """
-zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]))
+zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F)))
 
 @doc raw"""
     parent(a::AbstractFreeModElem)
