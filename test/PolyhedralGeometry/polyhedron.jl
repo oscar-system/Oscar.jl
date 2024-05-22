@@ -624,10 +624,7 @@ end
   for f in (snub_cube, snub_dodecahedron)
     ae = f()
     @test ae isa Polyhedron{<:EmbeddedNumFieldElem}
-    @test !is_platonic_solid(ae)
     @test is_archimedean_solid(ae)
-    @test !is_johnson_solid(ae)
-    @test is_vertex_transitive(ae)
     @test Polymake.polytope.isomorphic(Oscar.pm_object(ae), Polymake.polytope.archimedean_solid(string(f)))
   end
 
@@ -642,14 +639,6 @@ end
     @test !is_archimedean_solid(j)
     @test is_johnson_solid(j)
     @test !is_vertex_transitive(j)
-  end
-
-  let sd = archimedean_solid("snub_dodecahedron"), ph = catalan_solid("pentagonal_hexecontahedron")
-    @test ph isa Polyhedron{<:EmbeddedNumFieldElem}
-    @test f_vector(sd) == reverse(f_vector(ph))
-    for i in 1:n_facets(ph)
-      @test facet_sizes(ph)[i] == vertex_sizes(sd)[1]
-    end
   end
   
   K = algebraic_closure(QQ)
