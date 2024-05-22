@@ -27,6 +27,7 @@ export AbsMultSet
 export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
+export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
 export AbstractAlgebra
 export AffineAlgebraicSet
@@ -74,6 +75,7 @@ export GL
 export GO
 export GSet
 export GU
+export GapObj
 export Gluing
 export Graph
 export GroupConjClass
@@ -188,6 +190,7 @@ export add_vertices!
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
+export adjunction_process
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -207,6 +210,7 @@ export affine_space
 export alexander_dual
 export algebraic_ideal
 export algebraic_matrix
+export algebraic_matroid
 export algebraic_pluecker_vector
 export algebraic_polynomial
 export algebraic_set
@@ -717,6 +721,7 @@ export is_algebraically_independent_with_relations
 export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
+export is_archimedean_solid
 export is_ball
 export is_basepoint_free
 export is_bicoset
@@ -789,9 +794,11 @@ export is_isomorphic_to_symmetric_group, has_is_isomorphic_to_symmetric_group, s
 export is_isomorphic_with_map
 export is_isomorphic_with_permutation
 export is_isomorphism
+export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
+export is_linearly_normal
 export is_local
 export is_loopless
 export is_manifold
@@ -813,6 +820,7 @@ export is_orbifold
 export is_perfect, has_is_perfect, set_is_perfect
 export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
+export is_platonic_solid
 export is_pointed
 export is_positively_graded
 export is_primary
@@ -862,6 +870,7 @@ export is_unit
 export is_unital
 export is_vertical_k_separation
 export is_very_ample
+export is_vertex_transitive
 export is_weakly_connected
 export is_welldefined
 export is_z_graded
@@ -919,6 +928,7 @@ export lifted_denominator
 export lifted_numerator
 export lineality_dim
 export lineality_space
+export linear_characters
 export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
@@ -959,6 +969,7 @@ export matroid_from_hyperplanes
 export matroid_from_matrix_columns
 export matroid_from_matrix_rows
 export matroid_from_nonbases
+export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
 export max_GC_rank_polytope
@@ -999,7 +1010,6 @@ export monomials_of_degree
 export mori_cone
 export morphism
 export morphism_from_cox_variety
-export morphism_of_projective_schemes
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1309,6 +1319,7 @@ export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
+export sectional_genus
 export semi_invariants
 export semidirect_product
 export semistandard_tableaux

@@ -32,6 +32,8 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   # exceptionals not used for now
   ambient_blowups::Vector{<:BlowupMorphism}
   ambient_exceptionals::Vector{<:EffectiveCartierDivisor}
+  fibration::AbsCoveredSchemeMorphism # the projection to IP^1
+  fibration_weierstrass_model::AbsCoveredSchemeMorphism # the projection from the Weierstrass model
 
   function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
@@ -424,6 +426,7 @@ function weierstrass_model(X::EllipticSurface)
 
   P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
   P = covered_scheme(P_proj)
+  pr = covered_projection_to_base(P_proj)
   @assert has_decomposition_info(default_covering(P))
 
   # Create the singular Weierstrass model S of the elliptic K3 surface X
@@ -439,6 +442,7 @@ function weierstrass_model(X::EllipticSurface)
   inc_S = CoveredClosedEmbedding(P, I)
   Scov = domain(inc_S)  # The ADE singular elliptic K3 surface
   X.Weierstrasschart = Scov[1][1]
+  X.fibration_weierstrass_model = compose(inc_S, pr)
 
   X.Weierstrassmodel = Scov
   X.inc_Weierstrass = inc_S
@@ -462,7 +466,7 @@ function _separate_singularities!(X::EllipticSurface)
   P = codomain(inc_S)
 
   I_sing = ideal_sheaf_of_singular_locus(S)
-  I_sing_P = radical(pushforward(inc_S)(I_sing))
+  I_sing_P = SimplifiedIdealSheaf(pushforward(inc_S)(I_sing))
 
   # Refine the covering over the reducible singular fibers
   # to make sure that there is only a single singular point in each chart
@@ -594,6 +598,8 @@ function weierstrass_contraction(X::EllipticSurface)
   X0 = codomain(inc_S)
   Y0 = S
   inc_Y0 = inc_S
+  I_sing_Y0 = maximal_associated_points(ideal_sheaf_of_singular_locus(Y0))::Vector{<:AbsIdealSheaf}
+  I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
 
 
   ambient_exceptionals = EffectiveCartierDivisor[]
@@ -607,13 +613,8 @@ function weierstrass_contraction(X::EllipticSurface)
   while true
     count = count+1
     @vprint :EllipticSurface 1 "blowup number: $(count)\n"
-    @vprint :EllipticSurface 2 "computing singular locus\n"
-    I_sing_Y0 = ideal_sheaf_of_singular_locus(Y0)
-    @vprint :EllipticSurface 2 "decomposing singular locus\n"
-    I_sing_Y0 = maximal_associated_points(I_sing_Y0)
-    I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
-    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_Y0))\n"
-    if length(I_sing_Y0)==0
+    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_X0))\n"
+    if length(I_sing_X0)==0
       # stop if smooth
       break
     end
@@ -635,7 +636,7 @@ function weierstrass_contraction(X::EllipticSurface)
       #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
-    J = simplify(I_sing_X0[1])#, cov)
+    J = SimplifiedIdealSheaf(I_sing_X0[1])
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
@@ -652,6 +653,16 @@ function weierstrass_contraction(X::EllipticSurface)
     push!(ambient_exceptionals, E1)
 
     Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+
+    # transform the singular loci
+    I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
+
+    # Add eventual new components
+    @vprint :EllipticSurface 2 "computing singular locus\n"
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1)
+    I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    @vprint :EllipticSurface 2 "decomposing singular locus\n"
+    I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
 
     push!(projectionsX, pr_X1)
     push!(projectionsY, pr_Y1)
@@ -837,7 +848,9 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
     @vprint :EllipticSurface 3 "\nrow $(i): \n"
     for j in 1:i-1
       @vprint :EllipticSurface 4 "$(j) "
-      # we know the intersections are 0 or 1
+      # we know the intersections are 0 or 1, so we can replace the line below by a shortcut.
+      # G[i, j] = G[j, i] = intersect(f[i], f[j])
+      # In the examples treated, this led to roughly a factor 3 in speed and memory consumption. 
       if isone(components(f[i])[1]+components(f[j])[1])
         G[i,j] = 0
       else
@@ -1008,21 +1021,25 @@ function section(X::EllipticSurface, P::EllipticCurvePoint)
   return _section(X, P)
 end
 
-function _section(X::EllipticSurface, P::EllipticCurvePoint)
-  @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
+function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCurvePoint)
   S0,incS0 = weierstrass_model(X)
   X0 = codomain(incS0)
   if P[3] == 0
     # zero section
     V = X0[1][3]
     (z,x,t) = coordinates(V)
-    PX = IdealSheaf(X0, V, [x,z])
-  else
-    U = X0[1][1]
-    (x,y,t) = coordinates(U)
-    b = P
-    PX = ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
+    return IdealSheaf(X0, V, [x,z])
   end
+  U = X0[1][1]
+  (x,y,t) = coordinates(U)
+  b = P
+  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
+end
+
+function _section(X::EllipticSurface, P::EllipticCurvePoint)
+  @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
+  weierstrass_contraction(X) # trigger required computations
+  PX = _section_on_weierstrass_ambient_space(X, P)
   for f in X.ambient_blowups
     PX = strict_transform(f , PX)
   end
@@ -1031,6 +1048,8 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
   W =  WeilDivisor(PY, check=false)
   set_attribute!(W, :is_prime=>true)
+  I = first(components(W))
+  set_attribute!(I, :is_prime=>true)
   return W
 end
 
@@ -1304,7 +1323,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   else
     found = false
     for (i,(T, tor)) in enumerate(tors)
-      d = F2 - _vec(tor)
+      d = F1 - _vec(tor)
       if all(isone(denominator(i)) for i in d)
         found = true
         T0 = mordell_weil_torsion(X)[i]
@@ -1548,27 +1567,20 @@ end
 
 
 @doc raw"""
-    elliptic_surface(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
+    elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
 
 Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
-degree at most ``4`` to Weierstrass form and return the corresponding
-elliptic surface as well as the coordinate transformation.
+degree at most ``4`` to Weierstrass form, apply Tate's algorithm and 
+return the corresponding relatively minimal elliptic surface 
+as well as the coordinate transformation.
 """
 function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  E2 = elliptic_curve(g2, x, y);
-  t2 = gen(base_field(E2));
-  Y2 = elliptic_surface(E2, 2)
-
-  W = weierstrass_chart(Y2)
-  RW = ambient_coordinate_ring(W); FRW = fraction_field(RW);
-  (x, y, t) = gens(RW) # Output of phi2 lives in (k(t))(x, y), so we need to convert
-  psi = hom(base_ring(codomain(phi2)), FRW, f->evaluate(f, t), FRW.([x,y])); # a helper function
-  psi_ext = extend_domain_to_fraction_field(psi)
-  return Y2, phi2 * psi_ext
+  Y2, phi1 = _elliptic_surface_with_trafo(g2)
+  return Y2, phi2 * phi1  
 end
 
 @doc raw"""
@@ -1582,22 +1594,6 @@ on the curve defined by `g`, i.e. `g(P) == 0`.
 function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRingElem, P::Vector{<:RingElem})
   R = parent(g)
   F = fraction_field(R)
-
-  # In case of variables in the wrong order, switch and transform the result.
-  if x == R[2] && y == R[1]
-    switch = hom(R, R, reverse(gens(R)))
-    g_trans, trans = transform_to_weierstrass(switch(g), y, x, reverse(P))
-    new_trans = MapFromFunc(F, F, f->begin
-                                switch_num = switch(numerator(f))
-                                switch_den = switch(denominator(f))
-                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
-                                num = numerator(interm_res)
-                                den = denominator(interm_res)
-                                switch(num)//switch(den)
-                            end
-                           )
-    return switch(g_trans), new_trans
-  end
   @assert ngens(R) == 2 "input polynomial must be bivariate"
   @assert x in gens(R) "second argument must be a variable of the parent of the first"
   @assert y in gens(R) "third argument must be a variable of the parent of the first"
@@ -1939,4 +1935,731 @@ function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurve
   mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
   return MWL, mwl_basis
 end
+
+function fibration_on_weierstrass_model(X::EllipticSurface)
+  if !isdefined(X, :fibration_weierstrass_model)
+    weierstrass_model(X) # trigger caching
+  end
+  return X.fibration_weierstrass_model
+end
+
+function fibration(X::EllipticSurface)
+  if !isdefined(X, :fibration)
+    X.fibration = compose(weierstrass_contraction(X), fibration_on_weierstrass_model(X))
+  end
+  return X.fibration
+end
+
+function _local_pushforward(loc_map::AbsAffineSchemeMor, I::Ideal)
+  U_sub = domain(loc_map)
+  E, inc_E = sub(U_sub, I) # The subscheme of the divisor
+  E_simp = simplify(E) # Eliminate superfluous variables
+  id, id_inv = identification_maps(E_simp)
+
+  comp = compose(compose(id, inc_E), loc_map)
+
+  pb = pullback(comp)
+  K = kernel(pb)
+  return K
+end
+
+function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  @assert is_isomorphism(step) "morphism must be an isomorphism"
+  X = domain(step)
+  Y = codomain(step)
+  UX = weierstrass_chart_on_minimal_model(X)
+  UY = weierstrass_chart_on_minimal_model(Y)
+  @assert codomain_chart(step) === UY
+  fracs = coordinate_images(step)
+
+  WY, _ = weierstrass_model(Y)
+  UWY = weierstrass_chart(Y)
+
+  to_weierstrass_Y = morphism_from_rational_functions(X, WY, UX, UWY, fracs, check=false)
+
+  fibration_proj_Y = fibration(Y)
+
+  BY = codomain(fibration_proj_Y)
+  UBY = codomain(covering_morphism(fibration_proj_Y)[UY])
+
+  composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
+
+  lat_X = algebraic_lattice(X)[1]
+  if !is_prime(lat_X[1])
+    ex, pt, F = irreducible_fiber(X)
+    ex || error("no irreducible fiber found; case not implemented")
+    lat_X[1] = weil_divisor(F)
+  end
+
+  # We first estimate for every element in the lattic of X whether its image 
+  # will be a fiber component, or a (multi-)section.
+  pre_select = IdDict{AbsWeilDivisor, AbsIdealSheaf}()
+
+  for D in lat_X
+    @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
+    I = first(components(D))
+    @assert is_prime(I)
+    pre_select[D] = _pushforward_prime_divisor(composit, I)
+  end
+
+
+  # Now we map them one by one using the knowledge gained above
+  result = IdDict{AbsWeilDivisor, AbsWeilDivisor}()
+  co_ring = coefficient_ring(zero_section(Y))
+
+  n = length(lat_X)
+  mwr = rank(mordell_weil_lattice(X))
+  for (i, D) in enumerate(lat_X)
+    @vprint :EllipticSurface 2 "$((i, D, pre_select[D]))\n"
+    # D is a non-section
+    Q = pre_select[D]
+    I = first(components(D))
+    @vprint :EllipticSurface 2 "$(typeof(I))\n"
+    dom_chart = _find_good_representative_chart(I)
+    if i > n - mwr # if this is a section
+      dom_chart = weierstrass_chart_on_minimal_model(X)
+    end
+
+    if dim(Q) == 0
+      # find the fiber 
+      if is_one(Q(UBY)) # fiber over infinity
+        # collect all components
+        comps = AbsWeilDivisor[]
+        for (pt, _, F, E, _) in reducible_fibers(Y)
+          if is_zero(pt[2]) # if this is in the fiber over the point at ∞ ∈ ℙ¹
+            append!(comps, E[2:end])
+          end
+        end
+
+        # collect all charts
+        codomain_charts = AbsAffineScheme[]
+        if is_empty(comps) # The fiber over infinity
+          codomain_charts = affine_charts(Y) # TODO: How can we restrict the charts then?
+        else
+          codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
+        end
+
+        if i > n - mwr # If D is a section
+          pt = X.MWL[i-(n-mwr)]
+          res = _pushforward_section(step, pt; divisor=D, codomain_charts)
+          result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+        else
+          loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
+
+          loc_map === nothing && error("pushforward preparation did not succeed")
+          K = _local_pushforward(loc_map, I(domain(loc_map)))
+
+          JJ = ideal(OO(cod_chart), gens(K))
+          res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+          result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+        end
+        continue
+      end
+
+      # fiber over some point ≂̸ ∞.
+      t = first(gens(OO(UBY)))
+
+      codomain_charts = copy(affine_charts(Y))
+
+      # Restrict the codomain charts if applicable
+      for (i, (p, _, F, E, _)) in enumerate(reducible_fibers(Y))
+        p[2] == 0 && continue # Fiber over infinity already caught above
+        t0 = p[1]//p[2]
+        ideal(OO(UBY), t - t0) == Q(UBY) || continue
+
+        # Collect all patches
+        codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
+        break
+      end
+
+      if i > n - mwr # If D is a section
+        pt = X.MWL[i-(n-mwr)]
+        res = _pushforward_section(step, pt; divisor=D, codomain_charts)
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+      else
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
+        loc_map === nothing && error("preparation for pushforward did not succeed")
+
+        K = _local_pushforward(loc_map, I(domain(loc_map)))
+        JJ = ideal(OO(cod_chart), gens(K))
+        res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+      end
+    else
+      # "pushforward will be a section"
+      if i > n - mwr # If D is a section
+        pt = X.MWL[i-(n-mwr)]
+        res = _pushforward_section(step, pt; divisor=D, codomain_charts=[weierstrass_chart_on_minimal_model(Y)])
+        if res === nothing
+          # The only section not visible in the weierstrass chart is the zero section
+          result[D] = zero_section(Y)
+          continue
+        end
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+      else
+        loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I, domain_chart = dom_chart, codomain_charts = [weierstrass_chart_on_minimal_model(Y)])
+
+        if loc_map === nothing 
+          # The only section not visible in the weierstrass chart is the zero section
+          result[D] = zero_section(Y)
+          continue
+        end
+
+        K = _local_pushforward(loc_map, I(domain(loc_map)))
+        JJ = ideal(OO(cod_chart), gens(K))
+        res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
+
+        result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
+      end
+    end
+  end
+
+  res = WeilDivisor[result[D] for D in lat_X]
+  for a in res
+    set_attribute!(first(components(a)), :_self_intersection, -2)
+  end
+  # the first one is the class of the fiber; set that one back
+  set_attribute!(first(components(first(res))), :_self_intersection, 0)
+  return res
+end
+
+#=
+# The map is not dominant and can hence not be realized as a MorphismFromRationalFunctions.
+# We keep the code for the moment as it will probably help us to reconstruct this map as a 
+# proper CoveredSchemeMorphism, once this is needed. 
+=#
+function morphism_from_section(
+    X::EllipticSurface, P::EllipticCurvePoint;
+    divisor::AbsWeilDivisor=_section(X, P)
+  )
+  U = weierstrass_chart_on_minimal_model(X)
+  II = first(components(divisor))
+
+  # For the zero section we can not use the Weierstrass chart
+  if P.is_infinite
+    return identity_map(X)
+  end
+  @assert !is_one(II(U))
+
+  C, inc_C = sub(II)
+
+  UC = domain(first(maps_with_given_codomain(inc_C, U)))
+
+  B = codomain(fibration(X))
+  V = codomain(fibration(X)[weierstrass_chart_on_minimal_model(X)])
+
+  kkt = OO(V)::MPolyRing
+  @assert ngens(kkt) == 1
+  t = first(gens(kkt))
+  img_gens = [evaluate(P.coordx, t), evaluate(P.coordy, t), t]
+
+  Fkkt = fraction_field(kkt)
+  img_gens2 = Fkkt.(img_gens)
+  # TODO: Cache?
+  iso = morphism_from_rational_functions(B, C, V, UC, img_gens2, check=false)
+  return iso, inc_C
+end
+
+########################################################################
+# Translations by sections                                             #
+########################################################################
+
+function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint;
+    divisor::AbsWeilDivisor=_section(X, P)
+  )
+  E = generic_fiber(X)
+  @assert parent(P) === E "point does not lay on the underlying elliptic curve"
+  U = weierstrass_chart_on_minimal_model(X)
+  is_zero(P) && return identity_map(X)
+
+  # We construct the translation by P as a morphism of rational functions
+  kT = base_field(E)
+  T = first(gens(kT))
+
+  R = ambient_coordinate_ring(U)
+  x, y, t = gens(R)
+  
+  a1, a2, a3, a4, a6 = [evaluate(a, t) for a in a_invariants(E)]
+
+  p_x = evaluate(P[1], t)
+  p_y = evaluate(P[2], t)
+
+  # Formulas adapted from Hecke/src/EllCrv/EllCrv.jl
+  m = (p_y - y)//(p_x - x)
+  pb_x = - x - p_x - a2 + a1*m + m^2
+  pb_y = - y - m*(pb_x - x) - a1*pb_x - a3
+
+  F = fraction_field(R)
+
+  result = morphism_from_rational_functions(X, X, U, U, F.([pb_x, pb_y, t]), check=true)
+  set_attribute!(result, :is_isomorphism=>true)
+  return result
+end
+
+function _pushforward_section(
+    phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}, 
+    P::EllipticCurvePoint;
+    divisor::AbsWeilDivisor=_section(domain(phi), P),
+    codomain_charts::Vector{<:AbsAffineScheme} = affine_charts(codomain(phi))
+  )
+  X = domain(phi)::EllipticSurface
+  Y = codomain(phi)::EllipticSurface
+  D = divisor
+  I = first(components(D))
+  iso, inc = morphism_from_section(X, P; divisor=D)
+  U = weierstrass_chart_on_minimal_model(X)
+  inc_loc = first(maps_with_given_codomain(inc, U))
+  U_C = domain(inc_loc)
+  phi_loc, _, V = _prepare_pushforward_prime_divisor(phi, I; domain_chart=U, codomain_charts)
+  phi_loc === nothing && return nothing # Indicate that the given selection of codomain charts did not lead to a result
+  W = codomain(fibration(X)[U])
+  iso_loc = _restrict_properly(cheap_realization(iso, W, U_C), U_C)
+  inc_dom_phi_loc = inclusion_morphism(domain(phi_loc)) 
+  UU, to_U_C, to_U = fiber_product(inc_loc, inc_dom_phi_loc)
+  WW, a, b = fiber_product(iso_loc, to_U_C)
+  psi_loc = compose(compose(b, to_U), phi_loc)
+  K = kernel(pullback(psi_loc))
+  J = ideal(OO(V), gens(K))
+  JJ = PrimeIdealSheafFromChart(Y, V, J)
+  return JJ
+end
+
+# Find a moebius transformation which sends a given set of three points in ℙ¹ to another set 
+# of three points.
+function find_moebius_transformation(
+    orig_pts::Vector{<:Vector{<:FieldElem}}, 
+    new_pts::Vector{<:Vector{<:FieldElem}}
+  )
+  kk = parent(first(orig_pts))
+  a = [a[1] for a in orig_pts]
+  b = [b[1] for b in new_pts]
+  @assert all(a->isone(a[2]), orig_pts) "not implemented for non-normalized or infinite points"
+  @assert all(a->isone(a[2]), new_pts) "not implemented for non-normalized or infinite points"
+  return find_moebius_transformation(a, b)
+end
+
+function find_moebius_transformation(
+    orig_pts::Vector{<:FieldElem},
+    new_pts::Vector{<:FieldElem}
+  )
+  length(orig_pts) == 3 || error("exactly three points are needed")
+  @assert length(orig_pts) == length(new_pts) "number of points must coincide"
+  kk = parent(first(orig_pts))
+  a = orig_pts
+  b = new_pts
+  
+  # Set up the matrix mapping the first three points to 0, 1, ∞
+  A = kk[(a[2] - a[3]) (-a[1]*(a[2] - a[3])); (a[2] - a[1]) (-a[3]*(a[2] - a[1]))]
+
+  # Set up the matrix mapping the second three points to 0, 1, ∞
+  B = kk[(b[2] - b[3]) (-b[1]*(b[2] - b[3])); (b[2] - b[1]) (-b[3]*(b[2] - b[1]))]
+
+  C = inv(B)*A
+  return x->(C[1,1]*x + C[1, 2], C[2,1]*x + C[2,2])
+end
+
+# Given a bivariate polynomial over a univariate function field, 
+# normalize the associated elliptic curve so that the usual constructor 
+# for elliptic surfaces digests it, and then return it, together with the 
+# transformation on the algebraic side. 
+#
+# The transformation is a morphism from the fraction field of the 
+# parent of g to the fraction field of the `ambient_coordinate_ring` 
+# of the `weierstrass_chart` of the resulting surface.
+function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem})
+  x, y = gens(parent(g))
+  E = elliptic_curve(g, x, y)
+  kkt = base_field(E)
+  kk = coefficient_ring(base_ring(kkt))
+
+  FFt, t = rational_function_field(kk, :t)
+
+  # The following three commands won't work unless we convert to a rational_function_field
+  EE = base_change(x->evaluate(x, t), E)
+
+  EE = tates_algorithm_global(EE)
+  EE, _ = short_weierstrass_model(EE)
+  EE, _ = integral_model(EE)
+
+  # ...and back.
+  E2 = base_change(x->evaluate(x, gen(kkt)), EE)
+
+  @assert is_isomorphic(E, E2)
+  a, b, _ = rational_maps(isomorphism(E2, E))
+
+  eq_E = equation(E)
+  eq_E2 = equation(E2)
+
+  h = evaluate(eq_E, [a, b])
+  @assert divides(h, eq_E2)[1]
+
+  cod = parent(a)::MPolyRing
+
+  #phi = hom(R, cod, cod.([a, b]))
+  #Phi = extend_domain_to_fraction_field(phi)
+  
+  result = elliptic_surface(E2, 2)
+  W = weierstrass_chart(result)
+  R = ambient_coordinate_ring(W)
+  FR = fraction_field(R)
+
+  help_map = hom(cod, FR, t->evaluate(t, FR(R[3])), FR.([R[1], R[2]]))
+  A = help_map(a)
+  B = help_map(b)
+
+  res_map = hom(parent(g), FR, t->evaluate(t, FR(R[3])), [A, B])
+  return result, extend_domain_to_fraction_field(res_map)
+end
+
+# Given two abstractly isomorphic elliptic surfaces X and Y over ℙ¹, 
+# find all moebius transformation of the base which preserve the critical 
+# values of the projections, try to lift them to morphisms X -> Y and 
+# return the list of such morphisms for which the lift was successful.
+function admissible_moebius_transformations(
+    X::EllipticSurface,
+    Y::EllipticSurface
+  )
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+
+#  kkt = base_field(EX)
+#  @assert kkt === base_field(EY) "base fields of the generic fibers must coincide"
+  kk = base_ring(X)
+  @assert kk === base_ring(Y) "elliptic surfaces must be defined over the same field"
+
+  dX = numerator(discriminant(EX))::PolyRingElem
+  dY = numerator(discriminant(EY))::PolyRingElem
+
+  vX = roots(dX)
+  @assert all(is_one(degree(a)) for (a, k) in factor(dX))  "not all critical values are rational over the given ground field"
+  
+  vY = roots(dY)
+  @assert all(is_one(degree(a)) for (a, k) in factor(dY))  "not all critical values are rational over the given ground field"
+
+  for (c, _) in reducible_fibers(X)
+    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+  end
+  for (c, _) in reducible_fibers(Y)
+    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+  end
+
+  # Use the first three elements of vX and map them to three elements of vY.
+  # Then check whether the resulting transformation preserves everything.
+
+  candidates = Function[]
+
+  @assert length(vX) >= 3 "at least three reducible fibers are needed"
+  length(vX) == length(vY) || return candidates # No moebius transformation is possible in this case
+
+  p1 = vX[1:3]
+  for i in vY
+    for j in vY
+      i == j && continue
+      for k in vY
+        (i == k || j == k) && continue
+        p2 = [i, j, k]
+        mt = find_moebius_transformation(p1, p2)
+        any(is_zero(mt(x)[2]) for x in vX) && continue # reducible fibers over ∞ are not implemented at the moment.
+        any(!(mt(x)[1]//mt(x)[2] in vY) for x in vX) && continue # the transformation does not preserve all admissible fibers in this case
+        push!(candidates, mt)
+      end
+    end
+  end
+
+  result = MorphismFromRationalFunctions[]
+
+  # Set up some variables
+  kkt = base_field(EX)
+  t = gen(kkt)
+  WX = weierstrass_chart_on_minimal_model(X)
+  RX = ambient_coordinate_ring(WX)
+  FRX = fraction_field(RX)
+  WY = weierstrass_chart_on_minimal_model(Y)
+  RY = ambient_coordinate_ring(WY)
+  FRY = fraction_field(RY)
+
+  # Go through the candidates again and for those which do indeed lead to isomorphic 
+  # surfaces, construct the isomorphism.
+  for mt in candidates
+    p, q = mt(t)
+    img_t = (p//q)::typeof(t)
+    EYbc = base_change(f->evaluate(f, img_t), EY)
+    is_isomorphic(EYbc, EX) || continue
+    # Construct the isomorphism of elliptic surfaces explicitly
+    iso_ell = isomorphism(EX, EYbc)
+
+    a, b, _ = rational_maps(iso_ell)
+    kkTxy = parent(a)
+    to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
+    A = to_FRX(a)
+    B = to_FRX(b)
+    P, Q = mt(FRX(RX[3]))
+    img_T = (P//Q)::elem_type(FRX)
+    img_gens = [A, B, img_T]
+    loc_res = morphism_from_rational_functions(X, Y, WX, WY, img_gens; check=true)
+    set_attribute!(loc_res, :is_isomorphism=>true)
+    push!(result, loc_res)
+  end
+
+  return result
+end
+
+# An internal helper routine to verify that a given isomorphism of elliptic surfaces 
+# does indeed give an isomorphism on their generic fibers.
+function check_isomorphism_on_generic_fibers(phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  X = domain(phi)
+  Y = codomain(phi)
+  @assert domain_chart(phi) === weierstrass_chart_on_minimal_model(X)
+  @assert codomain_chart(phi) === weierstrass_chart_on_minimal_model(Y)
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+  a, b, c = coordinate_images(phi)
+
+  hX = equation(EX)
+  RX = parent(hX)
+  FX = fraction_field(RX)
+  kktX = coefficient_ring(RX)
+
+  hY = equation(EY)
+  RY = parent(hY)
+  FY = fraction_field(RY)
+  kktY = coefficient_ring(RY)
+
+  A = evaluate(a, [RX[1], RX[2], RX(gen(kktX))])
+  B = evaluate(b, [RX[1], RX[2], RX(gen(kktX))])
+  C = evaluate(c, [RX[1], RX[2], RX(gen(kktX))])
+
+  help_map = hom(RY, FX, t->evaluate(t, C), [A, B])
+
+  hh = help_map(hY)
+
+  return divides(hX, numerator(hh))[1]
+end
+
+function isomorphism_from_generic_fibers(
+    X::EllipticSurface, Y::EllipticSurface, f::Hecke.EllCrvIso
+  )
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+  iso_ell = f
+  @req domain(f) == EX "must be an isomorphism of the generic fibers"
+  @req codomain(f) == EY "must be an isomorphism of the generic fibers"
+  a, b, _ = rational_maps(iso_ell)
+  kt = base_field(EX)
+  t = gen(kt)
+
+  # Make sure we got something reasonable
+  h2 = equation(EY)
+  pb_h2 = evaluate(h2, [a, b])
+  @assert divides(pb_h2, equation(parent(pb_h2), EX))[1]
+
+  WX = weierstrass_chart_on_minimal_model(X)
+  RX = ambient_coordinate_ring(WX)
+  FRX = fraction_field(RX)
+  WY = weierstrass_chart_on_minimal_model(Y)
+  RY = ambient_coordinate_ring(WY)
+  FRY = fraction_field(RY)
+
+  kkTxy = parent(a)
+  to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
+  A = to_FRX(a)
+  B = to_FRX(b)
+  img_gens = [A, B, FRX(RX[3])]
+  m = morphism_from_rational_functions(X, Y, WX, WY, FRX.(img_gens); check=false)
+  set_attribute!(m, :is_isomorphism=>true)
+  return m
+end
+
+# Given two elliptic surfaces X and Y with abstractly isomorphic generic 
+# fibers, construct the corresponding isomorphism X -> Y.
+function isomorphism_from_generic_fibers(
+    X::EllipticSurface, Y::EllipticSurface
+  )
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
+  is_isomorphic(EX, EY) || error("generic fibers are not isomorphic")
+  iso_ell = isomorphism(EX, EY)
+  return isomorphism_from_generic_fibers(X, Y, iso_ell)
+end
+
+
+"""
+    pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
+    
+Return the pushforward `f_*: V_1 -> V_2` where `V_i` is the ambient quadratic space of the `algebraic_lattice`.
+
+This assumes that the image `f_*(V_1)` is contained in `V_2`. If this is not the case, you will get  
+``f_*`` composed with the orthogonal projection to `V_2`. 
+"""
+function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  imgs_divs = _pushforward_lattice_along_isomorphism(f)
+  M = matrix([basis_representation(codomain(f),i) for i in imgs_divs])
+  V1 = ambient_space(algebraic_lattice(domain(f))[3])
+  V2 = ambient_space(algebraic_lattice(codomain(f))[3])
+  # keep the check on since it is simple compared to all the other computations done here
+  fstar = hom(V1,V2, M; check=true)
+  return fstar
+end
+
+# Given an irreducible divisor D on an elliptic surface X, try to extract a point 
+# on the generic fiber from it. The return value is `nothing` in case this does not succeed.
+function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
+  X = scheme(D)
+  E = generic_fiber(X)
+  ex, pt, F = irreducible_fiber(X)
+  WF = weil_divisor(F)
+  # TODO: Also cover this case by considering the class of a reducible fiber?
+  !ex && error("no irreducible fiber exists on this algebraic surface")
+  @assert length(components(D)) == 1 "divisor must be irreducible"
+  
+  I = first(components(D))
+  fib = fibration(X)
+
+  # Check a necessary criterion for being a section
+  # J = pushforward(fib, I)
+  # is_one(dim(J)) || return nothing
+  is_zero(intersect(D, WF)) && return nothing
+# @check begin
+#   J = pushforward(fib, I)
+#   is_one(dim(J))
+# end "given divisor can not be a section"
+
+  #@check is_one(intersect(D, WF)) "intersection number with irreducible fiber is not one"
+
+  WX = weierstrass_chart_on_minimal_model(X)
+  IWX = I(WX)
+  is_one(IWX) && return infinity(E) # Point must be the zero section
+  R = ambient_coordinate_ring(WX)
+  (x, y, t) = gens(R)
+  
+  # In case of a multisection do some extra preparation; see below.
+  !is_one(intersect(D, WF)) && return point_on_generic_fiber_from_divisor(_prepare_section(D))
+
+  g = gens(groebner_basis(saturated_ideal(IWX), ordering=lex(gens(R))))
+
+  # extract the coefficients for the section
+  kkt = base_field(E)
+
+  # First extract the y-coordinate
+  i = findfirst(f->(is_zero(degree(f, 1)) && is_one(degree(f, 2))), g)
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  y_coord = one(kkt)
+  ev_vals = [zero(kkt), one(kkt), gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 2) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 2) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  y_coord = num//den
+
+  # Now extract the x-coordinate
+  i = findfirst(f->(is_one(degree(f, 1))), g)
+  i === nothing && return nothing
+  #i === nothing && error("no suitable polynomial found to read off point coordinates")
+  f = g[i]
+  x_coord = one(kkt)
+  ev_vals = [one(kkt), y_coord, gen(kkt)]
+  num = zero(kkt)
+  den = zero(kkt)
+  for t in terms(f)
+    degree(t, 1) == 1 && (den = den - evaluate(t, ev_vals))
+    degree(t, 1) == 0 && (num = num + evaluate(t, ev_vals))
+  end
+  x_coord = num//den
+
+  is_zero(evaluate(equation(E), [x_coord, y_coord])) || return nothing
+  #@assert is_zero(evaluate(equation(E), [x_coord, y_coord])) "esteemed point does not lie on the curve" 
+  P = E([x_coord, y_coord])
+  return P
+end
+
+# Given an isomorphism phi : X -> Y of elliptic surfaces and a full algebraic lattice L on X, 
+# push forward the divisors D from L to Y and try to extract points on the generic fiber from 
+# them. 
+#
+# This returns a list consisting of the points on the generic fiber.
+function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
+  X = domain(phi)
+  Y = codomain(phi)
+  is_isomorphism(phi) || error("morphism must be an isomorphism")
+  pf_lat = _pushforward_lattice_along_isomorphism(phi)
+  points = EllipticCurvePoint[]
+  for D in pf_lat
+    P = point_on_generic_fiber_from_divisor(D)
+    P === nothing && continue
+    push!(points, P)
+  end
+  return points
+end
+
+function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
+  X = scheme(D)
+  WX = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(WX)
+  I = first(components(D))
+  IWX = I(WX)
+  # We have a multisection in this case. 
+  # To get a section from it, apply arXiv:2103.15101, Algorithm 1.
+
+  # Build up a helper ring
+  kkt = base_field(generic_fiber(X))
+  f = equation(generic_fiber(X))
+  kktXY = parent(f)
+  (xx, yy) = gens(kktXY)
+  for (c, e) in zip(coefficients(f), exponents(f))
+    if e == [0, 2]
+      @assert is_one(c) "polynomial is not normalized"
+    end
+  end
+  f = yy^2 - f # prepare the f from the Lemma
+  #kktXY, (xx, yy) = polynomial_ring(kkt, [:X, :Y]; cached=false)
+
+  @assert coefficient_ring(R) === coefficient_ring(base_ring(kkt))
+  help_map = hom(R, kktXY, [xx, yy, kktXY(gen(kkt))])
+
+  J = ideal(kktXY, help_map.(gens(saturated_ideal(IWX))))
+
+  J_gens = gens(groebner_basis(J, ordering=lex([yy, xx])))
+  i = findfirst(f->degree(f, 2) == 0, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  g = J_gens[i]
+  i = findfirst(f->degree(f, 2) == 1, J_gens)
+  i === nothing && error("assertion of Lemma could not be verified")
+  h = J_gens[i]
+  c = zero(kkt)
+  for t in terms(h)
+    if degree(t, 2) == 1 
+      c = c + evaluate(t, [zero(kkt), one(kkt)])
+    end
+  end
+  !isone(c) && (h = inv(c)*h)
+  h = yy - h
+  @assert J == ideal(kktXY, [g, yy-h])
+  ff = equation(kktXY, generic_fiber(X))
+  @assert parent(ff) === parent(f)
+  @assert ff == yy^2 - f
+  while total_degree(g) > 1
+    g = divexact(h^2 - f, g)
+    p, q = divrem(h, g)
+    h = q
+  end
+
+  F = fraction_field(R)
+  help_map_back = hom(kktXY, F, u->evaluate(u, F(R[3])), F.([R[1], R[2]]))
+  new_gens = [help_map_back(g), help_map_back(yy - h)]
+  sec_ideal = ideal(OO(WX), numerator.(new_gens))
+  @assert dim(sec_ideal) == 1
+  @assert is_prime(sec_ideal)
+
+  # overwrite the local variables
+  I = PrimeIdealSheafFromChart(X, WX, sec_ideal)
+  return weil_divisor(I)
+end
+
 

@@ -2,7 +2,7 @@ module H2_G_QmodZ_mod
 using Oscar
 
 function schur_cover(G::Oscar.GAPGroup)
-  f = GAP.Globals.EpimorphismSchurCover(G.X)
+  f = GAP.Globals.EpimorphismSchurCover(GapObj(G))
   k = GAP.Globals.Source(f)
   S = FPGroup(k)
   return S, GAPGroupHomomorphism(S, G, f)

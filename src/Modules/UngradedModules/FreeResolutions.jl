@@ -284,7 +284,7 @@ julia> is_complete(fr)
 false
 
 julia> fr[4]
-Free module of rank 0 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 0 over R
 
 julia> fr
 Free resolution of M

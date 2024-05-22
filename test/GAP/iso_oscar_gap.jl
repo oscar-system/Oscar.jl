@@ -90,8 +90,8 @@ end
          G = GL(4,F)
          for a in gens(G)
             for b in gens(G)
-               @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
-               @test g(a.elm-b.elm) == g(a.elm)-g(b.elm)
+               @test g(matrix(a)*matrix(b)) == g(matrix(a))*g(matrix(b))
+               @test g(matrix(a)-matrix(b)) == g(matrix(a))-g(matrix(b))
             end
          end
          p2 = next_prime(p)

@@ -163,6 +163,10 @@ end
   J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
   #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
   JJ = Oscar.maximal_associated_points(ideal_sheaf(X, J))
+  JJ2 = Oscar._maximal_associated_points(ideal_sheaf(X, J))
+  @test all(x->(x in JJ2), JJ)
+  @test all(x->(x in JJ), JJ2)
+
   X = covered_scheme(X)
   C = Oscar._separate_disjoint_components(JJ, covering=Oscar.simplified_covering(X))
   for U in patches(C)

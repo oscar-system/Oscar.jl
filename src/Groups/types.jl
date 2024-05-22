@@ -46,7 +46,7 @@ struct BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
 end
 
 function Base.deepcopy_internal(x::BasicGAPGroupElem, dict::IdDict)
-  X = Base.deepcopy_internal(x.X, dict)
+  X = Base.deepcopy_internal(GapObj(x), dict)
   return BasicGAPGroupElem(x.parent, X)
 end
 
@@ -292,7 +292,7 @@ function _oscar_group(obj::GapObj, G::MatrixGroup)
   d == G.deg || error("requested dimension of matrices ($(G.deg)) does not match the given matrix dimension ($d)")
 
   R = G.ring
-  iso = G.ring_iso
+  iso = _ring_iso(G)
   GAPWrap.IsSubset(codomain(iso), GAP.Globals.FieldOfMatrixGroup(obj)) || error("matrix entries are not in the requested ring ($(codomain(iso)))")
 
   M = matrix_group(R, d)
@@ -306,7 +306,7 @@ end
 #
 # "Coerce" an Oscar group `G` to one that is compatible with
 # the given Oscar group `S`.
-compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(G.X, S)
+compatible_group(G::T, S::T) where T <: GAPGroup = _oscar_group(GapObj(G), S)
 
 
 ################################################################################

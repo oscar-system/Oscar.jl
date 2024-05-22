@@ -177,7 +177,7 @@ Base.:^(x::GAPGroupElem,f::GAPGroupHomomorphism) = image(f,x)
 Return `f`(`x`).
 """
 function image(f::GAPGroupHomomorphism, x::GAPGroupElem)
-  return group_element(codomain(f), GAPWrap.Image(f.map,x.X))
+  return group_element(codomain(f), GAPWrap.ImagesRepresentative(f.map, x.X))
 end
 
 """
@@ -542,6 +542,19 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
          f = GAP.Globals.GroupHomomorphismByImages(G.X, GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
          GAP.Globals.SetIsBijective(f, true)
        else
+         # The computations are easy if `Ggens` is a pcgs,
+         # otherwise GAP will call `CoKernel`.
+         if GAP.Globals.HasFamilyPcgs(G.X)
+           pcgs = GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X)
+           if pcgs == Ggens
+             # `pcgs` fits *and* is an object in `GAP.Globals.IsPcgs`,
+             # for which a special `GAPWrap.IsomorphismFpGroupByGenerators`
+             # method is applicable.
+             # (Currently the alternative is a cokernel computation.
+             # It might be useful to improve this on the GAP side.)
+             Ggens = pcgs
+           end
+         end
          f = GAPWrap.IsomorphismFpGroupByGenerators(G.X, Ggens)
        end
      else
@@ -1096,7 +1109,7 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   if check
     @assert A.G == G || x.X in A.G.X "Not in the domain of f!"      #TODO Do we really need the IN check?
   end
-  return typeof(x)(G, GAPWrap.Image(f.X,x.X))
+  return typeof(x)(G, GAPWrap.ImagesRepresentative(f.X, x.X))
 end
 
 Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g

@@ -75,7 +75,11 @@ represented by
   patch 1: 1
 ```
 """
-@attr VarietyFunctionField function_field(X::AbsCoveredScheme) = VarietyFunctionField(X)
+function function_field(X::AbsCoveredScheme; check::Bool=true)
+  return get_attribute!(X, :function_field) do
+    VarietyFunctionField(X, check=check)
+  end
+end
 
 ########################################################################
 # Methods for VarietyFunctionFieldElem                                 #
@@ -272,13 +276,16 @@ function move_representative(
   iszero(pbb) && error("pullback of denominator is zero")
   # in the next line, A is either a AffineSchemeOpenSubscheme or a PrincipalOpenSubset
   h_generic = generic_fraction(pba, A)//generic_fraction(pbb, A)
+  return h_generic
+
+  # It turned out that the following is too expensive in general
   if domain(f) isa PrincipalOpenSubset
     fac = factor(lifted_numerator(complement_equation(domain(f))))
     p = OO(U)(numerator(h_generic))
     q = OO(U)(denominator(h_generic))
     for (a, e) in fac
       aa = OO(U)(a)
-      k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1])
+      k_num, _ = _minimal_power_such_that(aa, x->divides(p, x)[1]) # This division takes ages for big polynomials.
       k_den, _ = _minimal_power_such_that(aa, x->divides(q, x)[1])
       k = minimum([k_num, k_den])
       aa = aa^k

@@ -42,13 +42,13 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
   if codomain(cf) === domain(cg) 
     # The easy case
     cfg = compose(cf, cg)
-    return CoveredSchemeMorphism(X, Z, cfg)
+    return CoveredSchemeMorphism(X, Z, cfg; check=false)
   elseif is_refinement(codomain(cf), domain(cg))[1]
     # Another rather easy case: We only have to put the refinement morphism 
     # in the middle.
     ref = refinement_morphism(codomain(cf), domain(cg))
     cf_ref_cg = compose(cf, compose(ref, cg))
-    return CoveredSchemeMorphism(X, Z, cf_ref_cg, check=true)
+    return CoveredSchemeMorphism(X, Z, cf_ref_cg, check=false)
   elseif is_refinement(domain(cg), codomain(cf))[1]
     # A more tricky case: 
     #
@@ -64,7 +64,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     B = codomain(cf)
     C = domain(ref)
     AxC, to_A, to_C = fiber_product(cf, ref)
-    return CoveredSchemeMorphism(X, Z, compose(to_C, cg), check=true)
+    return CoveredSchemeMorphism(X, Z, compose(to_C, cg), check=false)
   else
     # The most complicated case:
     #
@@ -86,7 +86,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     ref_C = refinement_morphism(C, default_covering(Y))
     BxC, to_B, to_C = fiber_product(ref_B, ref_C)
     AxBxC, to_A, to_BxC = fiber_product(cf, to_B)
-    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, cg)), check=true)
+    return CoveredSchemeMorphism(X, Z, compose(to_BxC, compose(to_C, cg)), check=false)
   end
 end
 
@@ -121,15 +121,47 @@ function base_change(phi::Any, f::AbsCoveredSchemeMorphism;
     domain_map::AbsCoveredSchemeMorphism=base_change(phi, domain(f))[2],
     codomain_map::AbsCoveredSchemeMorphism=base_change(phi, codomain(f))[2]
   )
+  @assert codomain(domain_map) === domain(f) "domains do not match"
+  @assert codomain(codomain_map) === codomain(f) "codomains do not match"
   f_cov = covering_morphism(f)
   dom_cov = covering_morphism(domain_map)
   cod_cov = covering_morphism(codomain_map)
+  # The codomains of the base change maps need not be compatible with 
+  # the domain/codomain of f_cov. If this is the case, we need to refine 
+  # all these.
+  if codomain(dom_cov) !== domain(f_cov)
+    if is_refinement(codomain(dom_cov), domain(f_cov))[1]
+      ref = refinement_morphism(codomain(dom_cov), domain(f_cov))
+      dom_cov = compose(dom_cov, ref)
+    elseif is_refinement(domain(f_cov), codomain(dom_cov))
+      # This should be the most common case, really: base_change 
+      # has happened on the `default_covering`s and `f` has a refinement 
+      # thereof as its codomain.
+      ref = refinement_morphism(domain(f_cov), codomain(dom_cov))
+      _, to_dom_dom_cov, to_dom_f_cov = fiber_product(dom_cov, ref)
+      dom_cov = to_dom_f_cov
+    else
+      # This should not really happen usually, since we assume a base_change 
+      # to be carried out on the default_covering.
+      error("case not implemented")
+    end
+  end
+  if codomain(cod_cov) !== codomain(f_cov)
+    # We must assume that `cod_cov` is realized w.r.t. the `default_covering`s 
+    # on both sides. Otherwise, we have no chance to write down the lifting 
+    # map to the rings with the new coefficient ring.
+    ref = refinement_morphism(codomain(f_cov), default_covering(codomain(f)))
+    f_cov = compose(f_cov, ref)
+  end
+    
+  @assert codomain(dom_cov) === domain(f_cov)
+  @assert codomain(cod_cov) === codomain(f_cov) "base change in the codomain is not possible unless one is using the `default_covering`"
   _, ff_cov_map, _ = base_change(phi, f_cov, domain_map=dom_cov, codomain_map=cod_cov)
   X = domain(f)
   Y = codomain(f)
   XX = domain(domain_map)
   YY = domain(codomain_map)
-  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map), codomain_map
+  return domain_map, CoveredSchemeMorphism(XX, YY, ff_cov_map; check=false), codomain_map
 end
 
 function _register_birationality!(f::AbsCoveredSchemeMorphism, 
@@ -227,8 +259,8 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     # The easy case.
     AxB, to_A, to_B = fiber_product(f_cov, g_cov)
     XxY = CoveredScheme(AxB)
-    to_X = CoveredSchemeMorphism(XxY, X, to_A)
-    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A; check=false)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B; check=false)
     return XxY, to_X, to_Y
   elseif is_refinement(CA, CB)[1]
     # We have to complete the square
@@ -245,8 +277,8 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     f_cov_inc = compose(f_cov, inc)
     AxB, to_A, to_B = fiber_product(f_cov_inc, g_cov)
     XxY = CoveredScheme(AxB)
-    to_X = CoveredSchemeMorphism(XxY, X, to_A)
-    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A; check=false)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B; check=false)
     return XxY, to_X, to_Y
   elseif is_refinement(CB, CA)[1]
     # Similar to the above case
@@ -254,8 +286,8 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     g_cov_inc = compose(g_cov, inc)
     AxB, to_A, to_B = fiber_product(f_cov, g_cov_inc)
     XxY = CoveredScheme(AxB)
-    to_X = CoveredSchemeMorphism(XxY, X, to_A)
-    to_Y = CoveredSchemeMorphism(XxY, Y, to_B)
+    to_X = CoveredSchemeMorphism(XxY, X, to_A; check=false)
+    to_Y = CoveredSchemeMorphism(XxY, Y, to_B; check=false)
     return XxY, to_X, to_Y
   else
     # In this case we complete the following square
@@ -284,8 +316,8 @@ function fiber_product(f::AbsCoveredSchemeMorphism, g::AbsCoveredSchemeMorphism)
     BB, BB_to_B, BB_to_CAB = fiber_product(g_cov, to_CB)
     AAxBB, to_AA, to_BB = fiber_product(AA_to_CAB, BB_to_CAB)
     XxY = CoveredScheme(AAxBB)
-    to_X = CoveredSchemeMorphism(XxY, X, compose(to_AA, AA_to_A))
-    to_Y = CoveredSchemeMorphism(XxY, Y, compose(to_BB, BB_to_B))
+    to_X = CoveredSchemeMorphism(XxY, X, compose(to_AA, AA_to_A); check=false)
+    to_Y = CoveredSchemeMorphism(XxY, Y, compose(to_BB, BB_to_B); check=false)
     return XxY, to_X, to_Y
   end
 end

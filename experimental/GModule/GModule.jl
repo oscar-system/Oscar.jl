@@ -40,10 +40,10 @@ julia> C = gmodule(CyclotomicField, C);
 julia> h = subfields(base_ring(C), degree = 2)[1][2];
 
 julia> restriction_of_scalars(C, h)
-G-module for G acting on vector space of dimension 4 over number field of degree 2 over QQ
+G-module for G acting on vector space of dimension 4 over number field
 
 julia> restriction_of_scalars(C, QQ)
-G-module for G acting on vector space of dimension 8 over rational field
+G-module for G acting on vector space of dimension 8 over QQ
 
 ```
 """
@@ -333,10 +333,10 @@ end
 function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
   h = Oscar.iso_oscar_gap(k)
   hi = inv(h)
-  im = GAP.Globals.IrreducibleRepresentations(G.X, codomain(h))
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G), codomain(h))
   IM = GModule[]
   for m in im
-    z = map(x->matrix(map(y->map(hi, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(hi, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(k, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -350,11 +350,11 @@ function irreducible_modules(k::FinField, G::Oscar.GAPGroup)
 end
 
 function irreducible_modules(G::Oscar.GAPGroup)
-  im = GAP.Globals.IrreducibleRepresentations(G.X)
+  im = GAP.Globals.IrreducibleRepresentations(GapObj(G))
   IM = GModule[]
   K = abelian_closure(QQ)[1]
   for m in im
-    z = map(x->matrix(map(y->map(K, y), m(x.X))), gens(G))
+    z = map(x->matrix(map(y->map(K, y), m(GapObj(x)))), gens(G))
     if ngens(G) == 0
       F = free_module(K, 0)
       zz = typeof(hom(F, F, elem_type(F)[]))[]
@@ -543,7 +543,7 @@ function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgeb
 end
 
 """
-Returns Z[G] and a function f that, when applied to a G-module M will return
+Return Z[G] and a function f that, when applied to a G-module M will return
 a map representing the action of Z[G] on M:
 
 f(C) yields the extension of g -> action(C, g)
@@ -1530,7 +1530,7 @@ end
 function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   f = GAP.Globals.IrreducibleAffordingRepresentation(chi.values)
   K = abelian_closure(QQ)[1]
-  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(group(chi).X), f)
+  g = GAP.Globals.List(GAP.Globals.GeneratorsOfGroup(GapObj(group(chi))), f)
   z = map(x->matrix(map(y->map(K, y), g[x])), 1:GAP.Globals.Size(g))
   F = free_module(K, degree(Int, chi))
   return gmodule(group(chi), [hom(F, F, x) for x = z])

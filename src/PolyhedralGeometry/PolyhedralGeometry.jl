@@ -22,7 +22,6 @@ include("mixed_integer_linear_program.jl")
 include("LP_file_format.jl")
 include("groups.jl")
 include("type_functions.jl")
-include("visualization.jl")
 include("solving_integrally.jl")
 include("triangulations.jl")
 

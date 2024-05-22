@@ -20,7 +20,8 @@ ambient_space_of_fiber = projective_space(NormalToricVariety, 2)
 set_coordinate_names(ambient_space_of_fiber, ["x", "y", "z"])
 D1 = 2 * anticanonical_divisor_class(base)
 D2 = 3 * anticanonical_divisor_class(base)
-h2 = hypersurface_model(base, ambient_space_of_fiber, D1, D2; completeness_check = false)
+D3 = trivial_divisor_class(base)
+h2 = hypersurface_model(base, ambient_space_of_fiber, [D1, D2, D3]; completeness_check = false)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
   @test parent(hypersurface_equation(h2)) == cox_ring(ambient_space(h2))
@@ -110,12 +111,13 @@ auxiliary_base_vars = ["a1", "a21", "a32", "a43", "a65", "w"]
 auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 D1 = [4,0]
 D2 = [6,0]
+D3 = [0,0]
 d = 3
 ambient_space_of_fiber_2 = weighted_projective_space(NormalToricVariety, [2,3,1])
 set_coordinate_names(ambient_space_of_fiber_2, ["x", "y", "z"])
 auxiliary_ambient_ring, (a1, a21, a32, a43, a65, w, x, y, z)  = QQ["a1", "a21", "a32", "a43", "a65", "w", "x", "y", "z"]
 p = x^3 - y^2 - x * y * z * a1 + x^2 * z^2 * a21 * w - y * z^3 * a32 * w^2 + x * z^4 * a43 * w^3 + z^6 * a65 * w^5
-h6 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, D1, D2, p)
+h6 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_space_of_fiber_2, [D1, D2, D3], p)
 
 @testset "Attributes and properties of hypersurface models over concrete base space and fiber ambient space P2" begin
   @test parent(hypersurface_equation(h6)) == coordinate_ring(ambient_space(h6))
@@ -129,7 +131,7 @@ h6 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
 end
 
 @testset "Error messages in hypersurface models over not fully specified base spaces" begin
-  @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, D1, D2, p)
+  @test_throws ArgumentError hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, -1, ambient_space_of_fiber_2, [D1, D2, D3], p)
   @test_throws ArgumentError tune(h6, hypersurface_equation(h6))
 end
 

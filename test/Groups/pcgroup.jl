@@ -39,7 +39,7 @@
   @test describe(gg) == "an infinite group"
 
   # collectors created by hand are independent of collectors stored in groups
-  x = one(gg).X
+  x = GapObj(one(gg))
   cgg = GAP.getbangproperty(x, :collector)
   @test GAP.Globals.IsMutable(cgg)
   @test ! GAP.Globals.IsIdenticalObj(cgg, c.X)

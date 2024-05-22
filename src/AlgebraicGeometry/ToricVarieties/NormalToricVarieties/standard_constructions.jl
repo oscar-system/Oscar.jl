@@ -1,7 +1,7 @@
 @doc raw"""
     affine_space(::Type{NormalToricVariety}, d::Int)
 
-Constructs the (toric) affine space of dimension `d`.
+Construct the (toric) affine space of dimension `d`.
 
 # Examples
 ```jldoctest
@@ -70,7 +70,7 @@ end
 @doc raw"""
     hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
 
-Constructs the r-th Hirzebruch surface.
+Construct the `r`-th Hirzebruch surface.
 
 # Examples
 ```jldoctest
@@ -210,7 +210,7 @@ end
 @doc raw"""
     normal_toric_variety_from_star_triangulation(P::Polyhedron)
 
-Returns a toric variety that was obtained from a fine regular
+Return a toric variety that was obtained from a fine regular
 star triangulation of the lattice points of the polyhedron P.
 This is particularly useful when the lattice points of the
 polyhedron in question admit many triangulations.
@@ -253,7 +253,7 @@ end
 @doc raw"""
     normal_toric_varieties_from_star_triangulations(P::Polyhedron)
 
-Returns the list of toric varieties obtained from fine regular
+Return the list of toric varieties obtained from fine regular
 star triangulations of the polyhedron P. With this we can
 compute the two phases of the famous conifold transition.
 
@@ -308,7 +308,7 @@ end
 @doc raw"""
   normal_toric_variety_from_glsm(charges::ZZMatrix)
 
-This function returns one toric variety with the desired
+Return one toric variety with the desired
 GLSM charges. This can be particularly useful provided that
 there are many such toric varieties.
 
@@ -358,7 +358,7 @@ normal_toric_variety_from_glsm(charges::Vector{Vector{T}}) where {T <: IntegerUn
 @doc raw"""
     normal_toric_varieties_from_glsm(charges::ZZMatrix)
 
-This function returns all toric variety with the desired
+Return all toric variety with the desired
 GLSM charges. This computation may take a long time if
 there are many such toric varieties.
 

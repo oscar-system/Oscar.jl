@@ -551,3 +551,11 @@ end
   I = flag_pluecker_ideal(R,dimension_vector, ambient_dimension, minimal=false)
   @test isa(I, Ideal)
 end
+
+@testset "default ordering" begin
+  R, _ = QQ["x", "y", "z"]
+  S, _ = grade(R, [2, 1, 2])
+  # test type stability
+  @inferred default_ordering(R)
+  @inferred default_ordering(S)
+end

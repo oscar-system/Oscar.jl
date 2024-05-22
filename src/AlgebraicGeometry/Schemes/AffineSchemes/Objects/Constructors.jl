@@ -32,7 +32,7 @@ affine_scheme(kk::Ring, R::Ring) = AffineScheme(kk, R)
 @doc raw"""
     spec(R::MPolyRing, I::MPolyIdeal)
 
-Constructs the affine scheme of the ideal ``I`` in the ring ``R``.
+Construct the affine scheme of the ideal ``I`` in the ring ``R``.
 This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
@@ -184,7 +184,7 @@ end
 @doc raw"""
     affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
 
-Creates the ``n``-dimensional affine space over a ring ``kk``,
+Create the ``n``-dimensional affine space over a ring ``kk``,
 but allows more flexibility in the choice of variable names.
 The following example demonstrates this.
 
@@ -445,7 +445,8 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -456,7 +457,8 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -466,7 +468,8 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -476,7 +479,8 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -524,7 +528,8 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -535,7 +540,8 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -545,7 +551,8 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))
@@ -555,7 +562,8 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
-  simplify!(U)
+  #simplify!(U)
+  simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
   set_attribute!(Y, :ambient_space, ambient_space(X))

@@ -144,7 +144,7 @@ end
 @doc raw"""
     coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
 
-Returns the element of `L` whose matrix representation corresponds to `x`.
+Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
 """
 function coerce_to_lie_algebra_elem(

@@ -30,7 +30,7 @@ function reps(K, G::Oscar.GAPGroup)
     return [gmodule(F, G, typeof(h)[h for i = gens(G)])]
   end
 
-  pcgs = GAP.Globals.Pcgs(G.X)
+  pcgs = GAP.Globals.Pcgs(GapObj(G))
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
@@ -316,7 +316,7 @@ function lift(C::GModule, mp::Map)
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, z(h))
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
+    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(GapObj(h))], zero(M)) for h = gens(N)]
     gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
 
     rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]

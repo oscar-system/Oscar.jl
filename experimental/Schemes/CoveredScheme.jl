@@ -507,7 +507,7 @@ _compose_along_path(X::CoveredScheme, p::Vector{Int}) = _compose_along_path(X, [
              MorphismType<:ClosedEmbedding,
              BaseMorType
             }
-    ff = CoveredSchemeMorphism(X, Y, f)
+    ff = CoveredSchemeMorphism(X, Y, f; check)
     if has_decomposition_info(codomain(f))
       for U in patches(domain(f))
         floc = f[U]

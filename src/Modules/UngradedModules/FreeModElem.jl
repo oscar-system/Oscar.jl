@@ -84,7 +84,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]

@@ -117,7 +117,7 @@ ERROR: ArgumentError: identification is not available for groups of order 243290
 function small_group_identification(G::GAPGroup)
    @req is_finite(G) "group is not finite"
    @req has_small_group_identification(order(G)) "identification is not available for groups of order $(order(G))"
-   res = GAP.Globals.IdGroup(G.X)
+   res = GAP.Globals.IdGroup(GapObj(G))
    return Tuple{ZZRingElem,ZZRingElem}(res)
 end
 

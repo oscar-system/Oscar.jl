@@ -7,7 +7,7 @@
     end
 
     @testset "IsFamily" begin
-      x = GAP.Globals.FamilyObj(symmetric_group(5).X)
+      x = GAP.Globals.FamilyObj(GapObj(symmetric_group(5)))
       filenamex = joinpath(path, "x")
       @test_throws ErrorException Oscar.save(filenamex, x)
     end

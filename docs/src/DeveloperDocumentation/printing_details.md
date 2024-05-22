@@ -1,11 +1,11 @@
-# Details on printing in Oscar
+# Printing in OSCAR
 
 The following dection contains more details and examples on how to implement
-Oscar's 2+1 printing modes. The specifications and a minimal example may be
+OSCAR's 2+1 printing modes. The specifications and a minimal example may be
 found in the [Developer Style Guide](@ref).
 
 
-## Implementing show functions
+## Implementing `show` functions
 
 Here is the translation between `:detail`, `one line` and `:supercompact`,
 where `io` is an `IO` object (such as `stdout` or an `IOBuffer`):
@@ -300,3 +300,35 @@ Here is an example with and without output using Unicode:
     end
   end
 ```
+
+## On using `@show_name`, `@show_special`, `@show_special_elem`
+
+- All `show` methods for parent objects such as rings or modules should use the `@show_name`
+  macro. This macro ensures that if the object has a name (including one derived from
+  the name of a Julia REPL variable to which the object is currently assigned) then in
+  a `compact` or `supercompact` io context it is printed using that name.
+  Here is an example illustrating this:
+  ```
+  julia> vector_space(GF(2), 2)
+  Vector space of dimension 2 over prime field of characteristic 2
+
+  julia> K = GF(2)
+  Finite field F_2
+
+  julia> vector_space(K, 2)
+  Vector space of dimension 2 over K
+  ```
+  The [documentation for `AbstractAlgebra.get_name`](https://nemocas.github.io/AbstractAlgebra.jl/dev/misc/#AbstractAlgebra.PrettyPrinting.get_name)
+  describes how the name is determined.
+
+- All `show` methods for parent objects should also use `@show_special`. This
+  checks if an attribute `:show` is present. If so, it has to be a function
+  taking `IO`, optionally a MIME-type, and the object. This is then called instead
+  of the usual `show` function.
+
+- Similarly, all `show` methods for element objects may use `@show_special_elem`
+  which checks if an attribute `:show_elem` is present in the object's parent.
+  The semantics are the same as for `@show_special`.
+
+For details please consult the [Advanced printing](https://nemocas.github.io/AbstractAlgebra.jl/dev/misc/#Advanced-printing)
+section of the AbstractAlgebra documentation.

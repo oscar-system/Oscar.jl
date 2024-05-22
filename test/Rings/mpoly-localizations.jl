@@ -85,11 +85,15 @@ const rng = Oscar.get_seeded_rng()
   @test z + 1 in inverted_set(S)
   @test !(x + 1 in inverted_set(S))
   I = ideal(S, [x + y + z, x^2 + y^2 + z^3])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
 
   R, (x, y) = QQ["x", "y"]
   U = Oscar.MPolyPowersOfElement(R, [x])
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y*(y-x)])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [x*(y-x)])
   @test y in quotient(I, J)
   @test I:J == quotient(I, J)
@@ -97,9 +101,13 @@ const rng = Oscar.get_seeded_rng()
   R, (x, y) = QQ["x", "y"]
   f = x^2 + y^3- 2
   I = ideal(R, [f])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   U = Oscar.MPolyComplementOfPrimeIdeal(I)
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [f^4])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [f^2])
   @test f^2 in quotient(I, J)
   @test !(f in quotient(I, J))
@@ -108,9 +116,13 @@ const rng = Oscar.get_seeded_rng()
   R, (x, y) = QQ["x", "y"]
   f = x^2 + y^2- 2
   I = ideal(R, [f])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   U = Oscar.MPolyComplementOfKPointIdeal(R, [1, 1])
   L = Oscar.MPolyLocRing(R, U)
   I = ideal(L, [y^2*f^4])
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   J = ideal(L, [x*f^2])
   @test f^2 in quotient(I, J)
   @test !(f in quotient(I, J))
@@ -142,6 +154,8 @@ end
   @test !(x*(x+y) in S)
   @test W(1//x) == 1/W(x)
   I = ideal(W, x*y*(x+y))
+  small_generating_set(I; algorithm = :simple)
+  small_generating_set(I; algorithm = :with_saturation)
   @test x+y in I
   @test x+y in saturated_ideal(I)
   @test !(x+2*y in I)
@@ -419,8 +433,8 @@ end
   @test isone(first(minimal_generating_set(phi1(J))))
 
   small_gens = small_generating_set(phi2(J))
-  @test length(small_gens) == 1
-  @test isone(first(small_gens))
+  @test length(small_gens) == 3 # saturated_ideal is not called here.
+  #@test isone(first(small_gens))
 end
 
 @testset "dimensions of localizations at prime ideals" begin
@@ -438,5 +452,17 @@ end
   U = complement_of_prime_ideal(ideal(R, [x^2 + 1, y, z]))
   L, loc = localization(R, U)
   @test dim(L) == 3
+end
+
+@testset "dimensions of localized ideals" begin
+  R, (x, y) = QQ["x", "y"]
+  U = complement_of_point_ideal(R, [0, 1])
+
+  L, loc_map = localization(R, U)
+
+  I = ideal(R, [y*x, y*(y-1)])
+  @test dim(I) == 1
+  J = loc_map(I)
+  @test dim(J) == 0
 end
 

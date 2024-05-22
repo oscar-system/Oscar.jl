@@ -23,6 +23,10 @@ using LazyArtifacts
 
 include("imports.jl")
 
+AbstractAlgebra.@include_deprecated_bindings()
+Nemo.@include_deprecated_bindings()
+Hecke.@include_deprecated_bindings()
+
 include("utils/utils.jl")
 
 # More helpful error message for users on Windows.
@@ -37,14 +41,23 @@ if Sys.iswindows()
   windows_error()
 end
 
-function _print_banner()
-  if displaysize(stdout)[2] >= 79
+function _print_banner(;is_dev = Oscar.is_dev)
+  # lets assemble a version string for the banner
+  version_string = string(VERSION_NUMBER)
+  if is_dev
+    gitinfo = _get_oscar_git_info()
+    version_string = version_string * " #$(gitinfo[:branch]) $(gitinfo[:commit][1:7]) $(gitinfo[:date][1:10])"
+  else
+    version_string = "Version " * version_string
+  end
+  
+  if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
              / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
             | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
             | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
-             \___/ |____/ \____/_/   \_\_| \_\  |  Version """ * "$VERSION_NUMBER")
+             \___/ |____/ \____/_/   \_\_| \_\  |  """ * version_string)
   else
     println("OSCAR $VERSION_NUMBER  https://docs.oscar-system.org  Type \"?Oscar\" for help")
   end
@@ -146,6 +159,8 @@ function __init__()
 
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
+  
+  add_assertion_scope(:IdealSheaves)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
@@ -244,6 +259,9 @@ include("Combinatorics/OrderedMultiIndex.jl")
 include("Combinatorics/Matroids/JMatroids.jl")
 include("Combinatorics/Compositions.jl")
 include("Combinatorics/EnumerativeCombinatorics/EnumerativeCombinatorics.jl")
+
+include("PolyhedralGeometry/visualization.jl") # needs SimplicialComplex
+
 include("Combinatorics/PhylogeneticTrees.jl")
 
 include("StraightLinePrograms/StraightLinePrograms.jl")

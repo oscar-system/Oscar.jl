@@ -20,6 +20,7 @@ include("BlowupMorphism.jl")
 include("duValSing.jl")
 include("elliptic_surface.jl")
 include("MorphismFromRationalFunctions.jl")
+include("critical_locus.jl")
 
 include("ToricIdealSheaves/auxiliary.jl")
 include("ToricIdealSheaves/constructors.jl")

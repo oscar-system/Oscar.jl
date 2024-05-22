@@ -108,6 +108,7 @@ GAP.@wrap HasSize(x::Any)::Bool
 GAP.@wrap Identity(x::GapObj)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
+GAP.@wrap ImagesRepresentative(x::GapObj, y::Any)::GAP.Obj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
 GAP.@wrap Indeterminate(x::GapObj)::GapObj
@@ -232,6 +233,7 @@ GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LetterRepAssocWord(x::GapObj)::GapObj
+GAP.@wrap LinearCharacters(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap Maxes(x::GapObj)::GapObj

@@ -68,10 +68,10 @@ function _find_chart(U::PrincipalOpenSubset, C::Covering;
   ) where {T<:RingElem}
   any(W->(W === U), patches(C)) && return identity_map(U), complement_equations
   V = ambient_scheme(U)
-  ceq = push!(
-              OO(V).(lifted_numerator.(complement_equations)),
-              OO(V)(lifted_numerator(complement_equation(U)))
-             )
+  ceq = vcat(
+             OO(V).(lifted_numerator.(complement_equations)),
+             OO(V).(poly_complement_equations(U))
+            )
   (f, d) = _find_chart(V, C, complement_equations=ceq)
   return compose(inclusion_morphism(U), f), d
 end
@@ -100,10 +100,10 @@ function _find_chart(U::PrincipalOpenSubset, W::AbsAffineScheme;
   ) where {T<:RingElem}
   U === W && return identity_map(U), complement_equations
   V = ambient_scheme(U)
-  ceq = push!(
-              OO(V).(lifted_numerator.(complement_equations)),
-              OO(V)(lifted_numerator(complement_equation(U)))
-             )
+  ceq = vcat(
+             OO(V).(lifted_numerator.(complement_equations)),
+             OO(V).(poly_complement_equations(U))
+            )
   (f, d) = _find_chart(V, W, complement_equations=ceq)
   return compose(inclusion_morphism(U), f), d
 end
@@ -156,9 +156,9 @@ function _flatten_open_subscheme(
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
-  hV = complement_equation(UV)
-  hU = complement_equation(U)
-  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  hV = poly_complement_equations(UV)
+  hU = poly_complement_equations(U)
+  WV = PrincipalOpenSubset(W, OO(W).(vcat(hU, hV)))
   ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
   inv_ident = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
@@ -187,9 +187,9 @@ function _flatten_open_subscheme(
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
-  hV = complement_equation(UV)
+  hV = poly_complement_equations(UV)
   f, g = identification_maps(U)
-  hVW = pullback(g)(hV)
+  hVW = pullback(g).(hV)
   WV = PrincipalOpenSubset(W, hVW)
   ident = morphism(UV, WV,
                   hom(OO(WV), OO(UV),
@@ -242,9 +242,9 @@ function _flatten_open_subscheme(
   W = ambient_scheme(U)
   V = domain(iso)
   UV = codomain(iso)
-  hV = complement_equation(UV)
-  hU = complement_equation(U)
-  WV = PrincipalOpenSubset(W, OO(W).([lifted_numerator(hU), lifted_numerator(hV)]))
+  hV = poly_complement_equations(UV)
+  hU = poly_complement_equations(U)
+  WV = PrincipalOpenSubset(W, OO(W).(vcat(hU, hV)))
   ident = morphism(UV, WV, hom(OO(WV), OO(UV), gens(OO(UV)), check=false), check=false)
   ident_inv = morphism(WV, UV, hom(OO(UV), OO(WV), gens(OO(WV)), check=false), check=false)
   new_iso =  compose(iso, ident)
@@ -274,9 +274,9 @@ function _flatten_open_subscheme(
   W = original(U)
   V = domain(iso)
   UV = codomain(iso)::PrincipalOpenSubset
-  hV = complement_equation(UV)
+  hV = poly_complement_equations(UV)
   f, g = identification_maps(U)
-  hVW = pullback(g)(hV)
+  hVW = pullback(g).(hV)
   WV = PrincipalOpenSubset(W, hVW)
   ident = morphism(UV, WV,
                   hom(OO(WV), OO(UV),

@@ -215,7 +215,7 @@
     gg = covering_morphism(g_cov)
     dom_cov = domain(gg)
     for k in keys(gluings(dom_cov))
-        @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
+      @test underlying_gluing(gluings(dom_cov)[k]) isa SimpleGluing
     end
   end
 
@@ -366,3 +366,4 @@
     @test !is_normal(X)
   end
 end
+

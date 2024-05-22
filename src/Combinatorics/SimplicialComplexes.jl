@@ -370,7 +370,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quo
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
-(Quotient of multivariate polynomial ring by ideal (a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: R -> quotient of multivariate polynomial ring)
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))

@@ -130,10 +130,10 @@ Permutation group of degree 11 and order 720
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  @req GAP.Globals.HasAtlasRepInfoRecord(G.X) "$G was not constructed with atlas_group"
-  info = GAP.Globals.AtlasRepInfoRecord(G.X)
+  @req GAP.Globals.HasAtlasRepInfoRecord(GapObj(G)) "$G was not constructed with atlas_group"
+  info = GAP.Globals.AtlasRepInfoRecord(GapObj(G))
   @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
-  H = GAP.Globals.AtlasSubgroup(G.X, nr)
+  H = GAP.Globals.AtlasSubgroup(GapObj(G), nr)
   if H === GAP.Globals.fail
     name = string(info.groupname)
     error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")

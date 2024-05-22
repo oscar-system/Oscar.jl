@@ -1,34 +1,34 @@
 @doc raw"""
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
 
 Given a morphism ``f : T → S`` of the `homogeneous_coordinate_ring`s of `Q` and `P`, respectively, 
 construct the associated morphism of projective schemes.
 """
-function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+function morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
   return ProjectiveSchemeMor(P, Q, f, check=check)
 end
 
 @doc raw"""
-    morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
 
 Suppose ``P ⊂ ℙʳ_A`` and ``Q ⊂ ℙˢ_B`` are projective schemes, ``h : Spec(A) → Spec(B)`` is a 
 morphism of their `base_scheme`s, and ``f : T → S`` a morphism of the 
 `homogeneous_coordinate_ring`s of `Q` and `P` over ``h^* : B → A``.
 This constructs the associated morphism of projective schemes.
 """
-function morphism_of_projective_schemes(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+function morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
   return ProjectiveSchemeMor(P, Q, f, h, check=check)
 end
 
 @doc raw"""
-    morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+    morphism(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
 
 Suppose ``X ⊂ ℙʳ`` and ``Y ⊂ ℙˢ`` are projective schemes over the same `base_scheme`.
 Construct the morphism of projective schemes associated to the morphism of graded rings 
 which takes the generators of the `homogeneous_coordinate_ring` of ``Y`` to the elements 
 in `a` of the `homogeneous_coordinate_ring` of ``X``.
 """
-function morphism_of_projective_schemes(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+function morphism(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
   return ProjectiveSchemeMor(X, Y, a)
 end
 
@@ -190,3 +190,14 @@ function ambient_embedding(X::AbsProjectiveScheme)
   inc_sub = ProjectiveSchemeMor(X, IP, pb, check=false)
   return ProjectiveClosedEmbedding(inc_sub, I, check=false)
 end
+
+function base_change(phi::Any, IP::AbsProjectiveScheme)
+  kk = base_ring(IP)
+  KK = parent(phi(zero(kk)))
+  S = homogeneous_coordinate_ring(IP)
+  SS, pb_Phi = change_base_ring(phi, S)
+  result = projective_scheme(SS)
+  psi = morphism(result, IP, pb_Phi; check=false)
+  return result, psi
+end
+

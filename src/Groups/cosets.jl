@@ -14,6 +14,8 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
    X::GapObj               # GapObj(H*repr)
 end
 
+GAP.julia_to_gap(obj::GroupCoset) = obj.X
+
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
 
@@ -457,6 +459,8 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    repr::S
    X::GapObj
 end
+
+GAP.julia_to_gap(obj::GroupDoubleCoset) = obj.X
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S

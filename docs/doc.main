@@ -208,6 +208,8 @@
      ],
      "Surfaces" => [
         "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
+	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
      ],
      "Miscellaneous" => [
@@ -264,6 +266,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
+    "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",

@@ -386,7 +386,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
         result = result + a1*a2*_self_intersection(c1)
       else
         I = c1 + c2
-        if dim(I) > 0
+        if !has_dimension_leq_zero(I) # potentially faster for localized ideals
           if c1 == c2
             result = result + a1*a2*_self_intersection(c1)
           else
@@ -399,6 +399,73 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
     end
   end
   return result
+end
+
+@attr function has_dimension_leq_zero(I::Ideal)
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+@attr function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
+  R = base_ring(I)
+  P = base_ring(R)::MPolyRing
+  J = ideal(P, numerator.(gens(I)))
+  has_dimension_leq_zero(J) && return true
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+@attr function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
+  R = base_ring(I)
+  P = base_ring(R)::MPolyRing
+  J = ideal(P, lifted_numerator.(gens(I)))
+  has_dimension_leq_zero(J) && return true
+  is_one(I) && return true
+  return dim(I) <= 0
+end
+
+
+function has_dimension_leq_zero(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  for U in keys(object_cache(I))
+    has_dimension_leq_zero(I(U)) || return false
+  end
+
+  all_patches = patches(covering)
+  for U in all_patches
+    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+      has_dimension_leq_zero(I(U)) || return false
+    end
+  end
+  return true
+end
+
+function has_dimension_leq_zero(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+  J = summands(I)
+  k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+  if k !== nothing 
+    P = J[k]
+    U = original_chart(P)
+    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+      has_dimension_leq_zero(I(U)) || return false
+    end
+  end
+
+  common_patches = keys(object_cache(first(J)))
+  for JJ in J[2:end]
+    common_patches = [U for U in common_patches if U in keys(object_cache(JJ))]
+  end
+
+  for U in common_patches
+    has_dimension_leq_zero(I(U)) || return false
+  end
+
+  all_patches = patches(covering)
+  for U in all_patches
+    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+      has_dimension_leq_zero(I(U)) || return false
+    end
+  end
+  return true
 end
 
 """
@@ -414,11 +481,31 @@ end
 
 function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
-  patches_todo = copy(patches(covering))
+  all_patches = copy(patches(covering))
   patches_done = AbsAffineScheme[]
+  patches_todo = AbsAffineScheme[]
+  for U in all_patches
+    if U in keys(object_cache(I)) && has_attribute(I(U), :is_one) && is_one(I(U))
+      push!(patches_done, U)
+    else
+      push!(patches_todo, U)
+    end
+  end
+
   result = 0
   while length(patches_todo) != 0
     U = pop!(patches_todo)
+
+    # First do a cheaper test whether this chart needs to be looked at
+    J_cheap = cheap_sub_ideal(I, U)
+    if has_decomposition_info(covering)
+      h = decomposition_info(covering)[U]
+      if isone(J_cheap + ideal(OO(U), elem_type(OO(U))[OO(U)(a) for a in h])) # R(a) is not type stable for R::MPolyQuoRing
+        # push!(patches_done, U)
+        continue
+      end
+    end
+
     J = I(U)
     if has_decomposition_info(covering)
       h = decomposition_info(covering)[U]
@@ -432,7 +519,10 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
           g = g * g
         end
         J = J + ideal(OO(U), g)
-        isone(J) && break
+        if isone(J)
+          push!(patches_done, U)
+          continue
+        end
       end
     else
       # To avoid overcounting, throw away all components that 

@@ -447,11 +447,11 @@ If `G` = `GL(n,F)` or `SL(n,F)`, then `f` = `nothing`. In this case, to get the 
 """
 function centralizer(G::MatrixGroup{T}, x::MatrixGroupElem{T}) where T <: FinFieldElem
    if isdefined(G,:descr) && (G.descr==:GL || G.descr==:SL)
-      V,card = G.descr==:GL ? _centralizer_GL(x.elm) : _centralizer_SL(x.elm)
+      V,card = G.descr==:GL ? _centralizer_GL(matrix(x)) : _centralizer_SL(matrix(x))
       H = matrix_group(base_ring(G), degree(G), V)
       set_attribute!(H, :order => ZZRingElem(card))
       return H, nothing          # do not return the embedding of the centralizer into G to do not compute G.X
    end
-   C = GAP.Globals.Centralizer(G.X, x.X)
+   C = GAP.Globals.Centralizer(GapObj(G), GapObj(x))
    return _as_subgroup(G, C)
 end
