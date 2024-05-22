@@ -1517,6 +1517,7 @@ export weight_ordering
 export weighted_projective_space
 export weyl_algebra
 export weyl_vector
+export with_ordering
 export witt_index
 export wreath_product
 export write_as_full
