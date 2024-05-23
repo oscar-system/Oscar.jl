@@ -736,7 +736,7 @@ end
 function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing) 
     #I is the null cone ideal, mat_ is the representation matrix and 
     #ringg is the ring in which we must return the invariants
-    g = gens(I)
+    g = collect(groebner_basis(I))
     n = ncols(mat_)
     #make a vector of all the degrees of generators of the null cone ideal I
     V = map(total_degree,g)
