@@ -99,7 +99,9 @@ dim(S::LieSubalgebra) = length(basis(S))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
+function Base.show(io::IO, mime::MIME"text/plain", S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, mime, S)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie subalgebra")
   println(io, Indent(), "of dimension $(dim(S))", Dedent())
@@ -111,6 +113,8 @@ function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
 end
 
 function Base.show(io::IO, S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, S)
   io = pretty(io)
   if is_terse(io)
     print(io, LowercaseOff(), "Lie subalgebra")

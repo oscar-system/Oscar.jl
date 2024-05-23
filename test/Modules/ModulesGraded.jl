@@ -339,6 +339,12 @@ end
     @test codomain(psi) == N
     @test is_bijective(phi)
     @test is_bijective(psi)
+  I = ideal(Rg, [x^2, x*y, y])
+  A, _ = quo(Rg, I)
+  M = quotient_ring_as_module(A)
+  mp = presentation(M, minimal = true)
+  @test rank(mp[0]) == 1
+  @test rank(mp[1]) == 2
 end
 
 

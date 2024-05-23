@@ -82,7 +82,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
@@ -91,6 +93,8 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, L)
   if is_terse(io)
     print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else

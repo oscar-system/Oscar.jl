@@ -32,6 +32,19 @@ preferred-citation:
   - family-names: "Joswig"
     given-names: "Michael"
   title: "The Computer Algebra System OSCAR: Algorithms and Examples"
+  collection-type: "Series"
+  collection-title: "Algorithms and Computation in Mathematics"
+  abstract: >-
+    The book is an invitation to use OSCAR.  With discussions of
+    theoretical and algorithmic aspects included, it offers a
+    multitude of explicit code snippets. These are valuable for
+    interested researchers from graduate students through established
+    experts.
   year: 2024
+  month: 8
+  edition: 1
+  issn: "1431-1550"
+  url: "https://link.springer.com/book/9783031621260"
+  volume: 32
   publisher:
     name: "Springer"

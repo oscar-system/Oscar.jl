@@ -21,8 +21,7 @@ load
 
 ## Objects that can be serialized
 
-In this section we will list objects that may be (de-)serialized. This list may
-be incomplete.
+In this section we will list a selection of objects that may be (de-)serialized. 
 
 Many low level objects may be stored and these in turn allow serializing higher
 level objects. Such low level objects are various types of matrices, vectors
@@ -37,8 +36,10 @@ SimplicialComplex
 ### Commutative Algebra
 ```julia
 Ideal
-Polynomial
-polynomial_ring
+PolyRing
+PolyRingElem
+MPolyRing
+MPolyRingElem
 ```
 
 ### Groups
@@ -72,10 +73,15 @@ TropicalCurve
 TropicalHypersurface
 ```
 
-## Reading from and writting to external software
+## Listing all serializable types of the current session
 
-We write to files following the MaRDI file format which is an extension of JSON
-defined [here](https://www.oscar-system.org/schemas/mrdi.json). The MaRDI file format
-aims to be language agnostic. If you would like to understand more about how our files
-are written or how you could implement a way to load files serialized with OSCAR
-into your computer algebra setup see the developer documentation on [serialization](@ref dev_serialization).
+If you are curious about whether your type can already be serialized given your version of Oscar
+you can run the following command in your active session.
+
+```@setup oscar
+using Oscar
+```
+
+```@repl oscar
+Oscar.reverse_type_map
+```

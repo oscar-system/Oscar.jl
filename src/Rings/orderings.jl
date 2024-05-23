@@ -428,7 +428,7 @@ function _cmp_monomials(f::MPolyRingElem, k::Int, g::MPolyRingElem, l::Int, o::S
   elseif tdk < tdl
     return -1
   end
-  for i in reverse(o.vars)
+  for i in Iterators.reverse(o.vars)
     ek = exponent(f, k, i)
     el = exponent(g, l, i)
     if ek > el
@@ -1719,7 +1719,7 @@ function induce(vars::Vector{Int}, o::ProdOrdering)
 end
 
 @doc raw"""
-    induce(vars::AbstractVector{<:MPolyRingElem}, ord::ModuleOrdering)
+    induce(vars::AbstractVector{<:MPolyRingElem}, ord::MonomialOrdering)
 
 Return the monomial ordering on the variables `vars` induced by transferring
 the ordering `ord`.
@@ -1768,9 +1768,10 @@ base_ring(a::ModuleOrdering) = a.M
 
 base_ring_type(::Type{ModuleOrdering{S}}) where {S} = S
 
-struct ModProdOrdering <: AbsModOrdering
-  a::AbsOrdering
-  b::AbsOrdering
+struct ModProdOrdering{A <: AbsOrdering, B <: AbsOrdering} <: AbsModOrdering
+  a::A
+  b::B
+  ModProdOrdering(a::A, b::B) where {A <: AbsOrdering, B <: AbsOrdering} = new{A,B}(a,b)
 end
 
 Base.:*(a::AbsGenOrdering, b::AbsModOrdering) = ModProdOrdering(a, b)
@@ -1973,8 +1974,13 @@ end
 Return the permutation that puts the terms of `f` in the order `ord`.
 """
 function permutation_of_terms(f::MPolyRingElem, ord::MonomialOrdering)
+  # redispatch to take advantage of the type of ord.o
+  return __permutation_of_terms(f, ord.o)
+end
+
+function __permutation_of_terms(f::MPolyRingElem, ord::AbsOrdering)
   p = collect(1:length(f))
-  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord.o) < 0), rev = true)
+  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
   return p
 end
 

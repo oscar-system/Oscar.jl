@@ -122,7 +122,9 @@ function Base.one(W::WeylGroup)
 end
 
 function Base.show(io::IO, W::WeylGroup)
-  print(io, "Weyl group for $(W.root_system)")
+  @show_name(io, W)
+  @show_special(io, W)
+  print(pretty(io), LowercaseOff(), "Weyl group for $(W.root_system)")
 end
 
 function coxeter_matrix(W::WeylGroup)
@@ -376,6 +378,8 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup}
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
+  @show_name(io, x)
+  @show_special_elem(io, x)
   if length(x.word) == 0
     print(io, "id")
   else

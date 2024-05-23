@@ -31,6 +31,10 @@ If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return `true` if `A` is finite-dimensional
 as a `K`-vector space, `false` otherwise.
 
+!!! note 
+    `A` is finite-dimensional as a `K`-vector space iff it has Krull dimension zero. This condition is checked by the function.
+    
+
 # Examples
 ```jldoctest
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
@@ -63,12 +67,10 @@ end
     vector_space_dimension(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is a zero-dimensional ideal of `R`, return the dimension of `A`
-as a `K`-vector space.
+`K`, and `I` is an ideal of `R`, return the dimension of `A` as a `K`-vector space.
 
-If `A` is not a finite-dimensional vector space, an exception is raised.
-Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
-is finite.
+!!! note
+    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
 
 # Examples
 ```jldoctest
@@ -108,13 +110,12 @@ end
     monomial_basis(A::MPolyQuoRing)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
-`K`, and `I` is a zero-dimensional ideal of `R`, return a vector of monomials of `R`
+`K`, and `I` is an ideal of `R`, return a vector of monomials of `R`
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space.
 
-If `A` is not a finite-dimensional vector space, an exception is raised.
-Use [`is_finite_dimensional_vector_space`](@ref) to test whether the dimension
-is finite.
+!!! note
+    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown.
 
 # Examples
 ```jldoctest
@@ -919,17 +920,16 @@ function is_normal(A::MPolyRing; check::Bool=true)
 end
 
 @doc raw"""
-    is_normal(A::MPolyAnyRing; check::Bool=true) -> Bool
+    is_normal(A::MPolyQuoRing; check::Bool=true) -> Bool
 
-# Input:
-- an affine algebra ``A`` over a perfect field,
-- if `check` is `true`, then confirm that ``A`` is reduced; this is expensive.
-
-# Output:
-Returns `true` if the ring ``A`` is normal, `false` otherwise.
+Given an affine algebra `A` over a perfect field, return `true` if `A` is normal, and `false` otherwise.
 
 !!! note
     This function performs the first step of the normalization algorithm of Greuel, Laplagne, and Seelisch [GLS10](@cite) and may, thus, be more efficient than computing the full normalization of `A`.
+
+!!! warning
+    If `check` is `true`, the function checks whether `A` is indeed reduced. This may take some time.
+
 
 # Examples
 ```jldoctest
@@ -1118,7 +1118,7 @@ end
     is_algebraically_independent(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring,
-return if the elements of `V` are algebraically independent over `K`.
+return `true` if the elements of `V` are algebraically independent over `K`, and `false` otherwise.
 
 # Examples
 ```jldoctest

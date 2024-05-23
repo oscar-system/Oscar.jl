@@ -99,7 +99,7 @@ Return `true` if `F` is bijective, `false` otherwise.
 function is_bijective(F::AffAlgHom)
   return is_injective(F) && is_surjective(F)
 end
-
+ 
 ################################################################################
 #
 #  Finiteness
