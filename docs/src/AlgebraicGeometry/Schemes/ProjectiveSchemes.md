@@ -27,16 +27,16 @@ where, in the above notation, `CoeffRingType` denotes the type of `A`
 and `RingType` the type of either `S` or `S/I`, respectively.
 The abstract type comes with the following interface:
 ```@docs
-    base_ring(X::AbsProjectiveScheme)
-    base_scheme(X::AbsProjectiveScheme)
-    homogeneous_coordinate_ring(P::AbsProjectiveScheme)
-    relative_ambient_dimension(X::AbsProjectiveScheme)
-    ambient_coordinate_ring(P::AbsProjectiveScheme)
-    ambient_space(P::AbsProjectiveScheme)
-    defining_ideal(X::AbsProjectiveScheme)
-    affine_cone(X::AbsProjectiveScheme)
-    homogeneous_coordinates_on_affine_cone(X::AbsProjectiveScheme)
-    covered_scheme(P::AbsProjectiveScheme)
+base_ring(X::AbsProjectiveScheme)
+base_scheme(X::AbsProjectiveScheme)
+homogeneous_coordinate_ring(P::AbsProjectiveScheme)
+relative_ambient_dimension(X::AbsProjectiveScheme)
+ambient_coordinate_ring(P::AbsProjectiveScheme)
+ambient_space(P::AbsProjectiveScheme)
+defining_ideal(X::AbsProjectiveScheme)
+affine_cone(X::AbsProjectiveScheme)
+homogeneous_coordinates_on_affine_cone(X::AbsProjectiveScheme)
+covered_scheme(P::AbsProjectiveScheme)
 ```
 The minimal concrete type realizing this interface is
 ```julia
@@ -59,8 +59,8 @@ via the respective methods of the `subscheme(P::AbsProjectiveScheme, ...)` funct
 Special constructors are provided for projective space itself via the function
 `projective_space` and its various methods.
 ```@docs
-    projective_space(A::Ring, var_symb::Vector{VarName})
-    projective_space(A::Ring, r::Int; var_name::VarName=:s)
+projective_space(A::Ring, var_symb::Vector{VarName})
+projective_space(A::Ring, r::Int; var_name::VarName=:s)
 ```
 
 ## Attributes
@@ -73,7 +73,7 @@ degree(P::AbsProjectiveScheme{<:Field})
 ```
 
 ```@docs
-    arithmetic_genus(P::AbsProjectiveScheme{<:Field})
+arithmetic_genus(P::AbsProjectiveScheme{<:Field})
 ```
 
 ## Methods
@@ -81,15 +81,15 @@ degree(P::AbsProjectiveScheme{<:Field})
 To facilitate the interplay between an `AbsProjectiveScheme` and the affine charts of its
 `covered_scheme` we provide the following methods:
 ```@docs
-    dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
-    homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
+dehomogenization_map(X::AbsProjectiveScheme, U::AbsAffineScheme)
+homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
 ```
 
 ## Properties
 
 Further properties of projective schemes:
 ```@docs
-    is_smooth(P::AbsProjectiveScheme)
+is_smooth(P::AbsProjectiveScheme)
 ```
 ```julia
 is_empty(P::AbsProjectiveScheme{<:Field})

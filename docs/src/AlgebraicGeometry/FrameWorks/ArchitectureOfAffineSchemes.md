@@ -83,7 +83,7 @@ Note that the morphism ``P → R`` is induced by natural coercions.
 
 The abstract type for affine schemes is
 ```@docs
-    AbsAffineScheme{BaseRingType, RingType<:Ring}
+AbsAffineScheme{BaseRingType, RingType<:Ring}
 ```
 For any concrete instance of this type, we require the following
 functions to be implemented:
@@ -92,7 +92,7 @@ functions to be implemented:
 
 A concrete instance of this type is
 ```@docs
-    AffineScheme{BaseRingType, RingType}
+AffineScheme{BaseRingType, RingType}
 ```
 It provides an implementation of affine schemes for rings ``R`` of type
 `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, and `MPolyQuoLocRing`
@@ -116,20 +116,20 @@ Of course, it can be overwritten for any higher type `MyAffineScheme<:AbsAffineS
 
 Any abstract morphism of affine schemes is of the following type:
 ```@docs
-    AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
-               CodomainType<:AbsAffineScheme,
-               PullbackType<:Map,
-               MorphismType,
-               BaseMorType
-               }
+AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
+            CodomainType<:AbsAffineScheme,
+            PullbackType<:Map,
+            MorphismType,
+            BaseMorType
+            }
 ```
 Any such morphism has the attributes `domain`, `codomain` and `pullback`.
 A concrete and minimalistic implementation exist for the type `AffineSchemeMor`:
 ```@docs
-    AffineSchemeMor{DomainType<:AbsAffineScheme,
-            CodomainType<:AbsAffineScheme,
-            PullbackType<:Map
-           }
+AffineSchemeMor{DomainType<:AbsAffineScheme,
+        CodomainType<:AbsAffineScheme,
+        PullbackType<:Map
+        }
 ```
 This basic functionality consists of
 - `compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,

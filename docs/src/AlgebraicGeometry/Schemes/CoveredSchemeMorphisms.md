@@ -64,7 +64,7 @@ on ``X`` and ``Y`` can be extracted from the ``f^* v_i`` more directly.
 
 A lazy concrete data structure to house this kind of morphism is 
 ```@docs
-    MorphismFromRationalFunctions
+MorphismFromRationalFunctions
 ```
 Note that the key idea of this data type is to *not* use the `underlying_morphism` 
 together with its `covering_morphism`, but to find cheaper ways to do computations! 
@@ -81,12 +81,12 @@ there is no need to realize the full `covering_morphism` of ``f``.
 In order to facilitate such computations as lazy as possible, there are various fine-grained 
 entry points and caching mechanisms to realize ``f`` on open subsets:
 ```@docs
-    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
-    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realize(Phi::MorphismFromRationalFunctions)
+realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
+realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize(Phi::MorphismFromRationalFunctions)
 ```
 

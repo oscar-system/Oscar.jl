@@ -17,14 +17,14 @@ out.
 
 ## Types 
 ```@docs
-    ProjectiveSchemeMor
+ProjectiveSchemeMor
 ```
 
 ## Constructors
 ```@docs
-    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
-    morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
-    morphism(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
+morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map; check::Bool=true )
+morphism(P::AbsProjectiveScheme, Q::AbsProjectiveScheme, f::Map, h::SchemeMor; check::Bool=true )
+morphism(X::AbsProjectiveScheme, Y::AbsProjectiveScheme, a::Vector{<:RingElem})
 ```
 ## Attributes
 As every instance of `Map`, a morphism of projective schemes can be asked for its (co-)domain:
@@ -34,13 +34,13 @@ codomain(phi::ProjectiveSchemeMor)
 ```
 Moreover, we provide getters for the associated morphisms of rings:
 ```@docs
-    pullback(phi::ProjectiveSchemeMor)
-    base_ring_morphism(phi::ProjectiveSchemeMor) 
-    base_map(phi::ProjectiveSchemeMor)
-    map_on_affine_cones(phi::ProjectiveSchemeMor)
+pullback(phi::ProjectiveSchemeMor)
+base_ring_morphism(phi::ProjectiveSchemeMor) 
+base_map(phi::ProjectiveSchemeMor)
+map_on_affine_cones(phi::ProjectiveSchemeMor)
 ```
 ## Methods
 ```@docs
-    covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
+covered_scheme_morphism(f::AbsProjectiveSchemeMorphism)
 ```
 
