@@ -152,12 +152,7 @@ parts(C::CompositionsFixedNumParts) = C.k
 Base.eltype(C::CompositionsFixedNumParts{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::CompositionsFixedNumParts)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
-  else
-    io = pretty(io)
-    print(io, "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "part"))
-  end
+  print(pretty(io), "Iterator over the compositions of $(base(C)) into ", ItemQuantity(parts(C), "part"))
 end
 
 Base.length(C::CompositionsFixedNumParts) = BigInt(number_of_compositions(base(C), parts(C)))
@@ -218,12 +213,7 @@ base(C::Compositions) = C.n
 Base.eltype(C::Compositions{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::Compositions)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
-  else
-    io = pretty(io)
-    print(io, "Iterator over the compositions of $(base(C))")
-  end
+  print(pretty(io), "Iterator over the compositions of $(base(C))")
 end
 
 Base.length(C::Compositions) = BigInt(number_of_compositions(base(C)))
@@ -304,12 +294,7 @@ base(C::AscendingCompositions) = C.n
 Base.eltype(C::AscendingCompositions{T}) where T = Composition{T}
 
 function Base.show(io::IO, C::AscendingCompositions)
-  if get(io, :supercompact, false)
-    print(io, "Iterator")
-  else
-    io = pretty(io)
-    print(io, "Iterator over the ascending compositions of $(base(C))")
-  end
+  print(pretty(io), "Iterator over the ascending compositions of $(base(C))")
 end
 
 # Ascending compositions are basically partitions turned around
