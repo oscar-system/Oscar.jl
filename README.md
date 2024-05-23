@@ -144,6 +144,11 @@ If you are using BibTeX, you can use the following BibTeX entries:
       year = {2024},
       publisher = {Springer},
       series = {Algorithms and {C}omputation in {M}athematics},
+      volume = {32},
+      edition = {1},
+      url = {https://link.springer.com/book/9783031621260},
+      month = {8},
+      issn = {1431-1550},
     }
 
 ## Funding
