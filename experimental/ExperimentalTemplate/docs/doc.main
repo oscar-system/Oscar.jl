@@ -5,4 +5,4 @@ You can show docstrings like this:
 ```@docs
 my_access_func(S::ExampleStruct)
 ```
-    
+

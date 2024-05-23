@@ -168,7 +168,7 @@ end
     or
     ```julia
     for i in A
-      flag ||continue
+      flag || continue
       ...
     end
     ```
