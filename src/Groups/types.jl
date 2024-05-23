@@ -28,6 +28,9 @@ i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g
 """
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
+## Scalar for broadcasting
+Base.broadcastable(x::GAPGroupElem) = Ref(x)
+
 ## `GapGroupElem` to GAP group element
 GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
 

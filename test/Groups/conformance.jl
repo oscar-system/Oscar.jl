@@ -49,6 +49,10 @@ include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conform
       end
    end
 
+   @testset "Broadcast" begin
+      @test g .* gens(G) == [g * x for x in gens(G)]
+   end
+
    @testset "Comparison methods" begin
       if G isa PermGroup
       @test (g==h) isa Bool
