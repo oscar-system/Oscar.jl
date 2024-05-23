@@ -373,6 +373,11 @@ function partitions(n::IntegerUnion, k::IntegerUnion; only_distinct_parts::Bool 
 end
 
 
+
+# Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
+
+# Note that the algorithm is given as partitioning m into n parts,
+# but we have refactored to align more closely with standard terminology.
 function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   n = P.n
   k = P.k
@@ -380,7 +385,6 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   ub = P.ub
   only_distinct_parts = P.distinct_parts
 
-  # TODO : fix the states returned once we know what those will look like
   if n == 0 && k == 0
     return partition(T[], check=false), (T[], T[], 0, 0, 1, false)
   end
@@ -461,116 +465,6 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
   x[i] = y[i] + N
   return partition(x[1:k], check = false), (x,y,N,L2,i,true)
 end
-
-
-# function partitions(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
-#   # Algorithm "parta" in [RJ76](@cite), de-gotoed from old ALGOL 60 code by E. Thiel.
-#
-#   # Note that the algorithm is given as partitioning m into n parts,
-#   # but we have refactored to align more closely with standard terminology.
-#
-#   #Argument checking
-#   @req n >= 0 "n >= 0 required"
-#   @req k >= 0 "k >= 0 required"
-#   @req lb >= 0 "lb >= 0 required"
-#
-#   # Use type of n
-#   k = convert(T, k)
-#
-#   # If lb == 0 the algorithm parta will actually create lists containing the
-#   # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
-#   # This is nonsense, so we set lb = 1 in this case.
-#   if lb == 0
-#     lb = 1
-#   end
-#
-#   # Some trivial cases
-#   if n == 0 && k == 0
-#     return (p for p in Partition{T}[ partition(T[], check = false) ])
-#   end
-#
-#   if k == 0 || k > n
-#     return (p for p in Partition{T}[])
-#   end
-#
-#   if ub < lb
-#     return (p for p in Partition{T}[])
-#   end
-#
-#
-#
-#   #Algorithm starts here
-#   P = Partition{T}[]    #this will be the array of all partitions
-#   x = zeros(T, k)
-#   y = zeros(T, k)
-#   j = only_distinct_parts*k*(k - 1)
-#   n = n - k*lb - div(j, 2)
-#   ub = ub - lb
-#   if 0 <= n <= k*ub - j
-#
-#     for i = 1:k
-#       y[i] = x[i] = lb + only_distinct_parts*(k - i)
-#     end
-#
-#     i = 1
-#     ub = ub - only_distinct_parts*(k - 1)
-#
-#     while true
-#       while n > ub
-#         n -= ub
-#         x[i] = y[i] + ub
-#         i += 1
-#       end
-#
-#       x[i] = y[i] + n
-#       push!(P, partition(x[1:k], check = false))
-#
-#       if i < k && n > 1
-#         n = 1
-#         x[i] = x[i] - 1
-#         i += 1
-#         x[i] = y[i] + 1
-#         push!(P, partition(x[1:k], check = false))
-#       end
-#
-#       lcycle = false
-#       for j = i - 1:-1:1
-#         ub = x[j] - y[j] - 1
-#         n = n + 1
-#         if n <= (k - j)*ub
-#           x[j] = y[j] + ub
-#           lcycle = true
-#           break
-#         end
-#         n = n + ub
-#         x[i] = y[i]
-#         i = j
-#       end
-#
-#       if !lcycle
-#         break
-#       end
-#     end
-#   end
-#
-#   return (p for p in P)
-# end
-#
-# function partitions(n::T, k::IntegerUnion; only_distinct_parts::Bool = false) where T <: IntegerUnion
-#   @req n >= 0 "n >= 0 required"
-#   @req k >= 0 "k >= 0 required"
-#
-#   # Special cases
-#   if n == k
-#     return (p for p in [ partition(T[ 1 for i in 1:n], check = false) ])
-#   elseif n < k || k == 0
-#     return (p for p in Partition{T}[])
-#   elseif k == 1
-#     return (p for p in [ partition(T[n], check = false) ])
-#   end
-#
-#   return (p for p in partitions(n, k, 1, n; only_distinct_parts = only_distinct_parts))
-# end
 
 
 @doc raw"""

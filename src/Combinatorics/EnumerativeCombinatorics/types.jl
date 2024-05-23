@@ -159,6 +159,9 @@ struct PartitionsFixedNumParts{T<:IntegerUnion}
     @req n >= 0 "n >= 0 required"
     @req k >= 0 "k >= 0 required"
     @req lb >= 0 "lb >=0 required"
+    # If lb == 0 the algorithm will actually create lists containing the
+    # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
+    # This is nonsense, so we set lb = 1 in this case.
     if lb == 0
       lb = 1
     end
