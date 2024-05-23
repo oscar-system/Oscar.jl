@@ -20,8 +20,8 @@ and `MPolyQuoLocRing`.
 
 ## Abstract types and basic interface
 The abstract type for such projective schemes is
-```
-    AbsProjectiveScheme{CoeffRingType, RingType} where {CoeffRingType<:Ring}
+```julia
+AbsProjectiveScheme{CoeffRingType, RingType} where {CoeffRingType<:Ring}
 ```
 where, in the above notation, `CoeffRingType` denotes the type of `A`
 and `RingType` the type of either `S` or `S/I`, respectively.
@@ -39,8 +39,8 @@ The abstract type comes with the following interface:
     covered_scheme(P::AbsProjectiveScheme)
 ```
 The minimal concrete type realizing this interface is
-```
-    ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}
+```julia
+ProjectiveScheme{CoeffRingType, RingType} <: AbsProjectiveScheme{CoeffRingType, RingType}
 ```
 
 
@@ -48,11 +48,11 @@ The minimal concrete type realizing this interface is
 
 Besides `proj(S)` for some graded polynomial ring or a graded affine algebra `S`, we
 provide the following constructors:
-```
-    proj(S::MPolyDecRing)
-    proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
-    proj(I::MPolyIdeal{<:MPolyDecRingElem})
-    proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
+```julia
+proj(S::MPolyDecRing)
+proj(S::MPolyDecRing, I::MPolyIdeal{T}) where {T<:MPolyDecRingElem}
+proj(I::MPolyIdeal{<:MPolyDecRingElem})
+proj(Q::MPolyQuoRing{<:MPolyDecRingElem})
 ```
 Subschemes defined by homogeneous ideals, ring elements, or lists of elements can be created
 via the respective methods of the `subscheme(P::AbsProjectiveScheme, ...)` function.
@@ -66,10 +66,10 @@ Special constructors are provided for projective space itself via the function
 ## Attributes
 Besides those attributes already covered by the above general interface we have the following
 (self-explanatory) ones for projective schemes over a field.
-```
-    dim(P::AbsProjectiveScheme{<:Field})
-    hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
-    degree(P::AbsProjectiveScheme{<:Field})
+```julia
+dim(P::AbsProjectiveScheme{<:Field})
+hilbert_polynomial(P::AbsProjectiveScheme{<:Field})
+degree(P::AbsProjectiveScheme{<:Field})
 ```
 
 ```@docs
@@ -91,12 +91,12 @@ Further properties of projective schemes:
 ```@docs
     is_smooth(P::AbsProjectiveScheme)
 ```
-```
-    is_empty(P::AbsProjectiveScheme{<:Field})
-    is_irreducible(P::AbsProjectiveScheme)
-    is_reduced(P::AbsProjectiveScheme)
-    is_geometrically_reduced(P::AbsProjectiveScheme{<:Field})
-    is_geometrically_irreducible(P::AbsProjectiveScheme{<:Field})
-    is_integral(X::AbsProjectiveScheme{<:Field})
-    is_geometrically_integral(X::AbsProjectiveScheme{<:Field})
+```julia
+is_empty(P::AbsProjectiveScheme{<:Field})
+is_irreducible(P::AbsProjectiveScheme)
+is_reduced(P::AbsProjectiveScheme)
+is_geometrically_reduced(P::AbsProjectiveScheme{<:Field})
+is_geometrically_irreducible(P::AbsProjectiveScheme{<:Field})
+is_integral(X::AbsProjectiveScheme{<:Field})
+is_geometrically_integral(X::AbsProjectiveScheme{<:Field})
 ```

@@ -28,9 +28,9 @@ out.
 ```
 ## Attributes
 As every instance of `Map`, a morphism of projective schemes can be asked for its (co-)domain:
-```
-    domain(phi::ProjectiveSchemeMor) 
-    codomain(phi::ProjectiveSchemeMor)
+```julia
+domain(phi::ProjectiveSchemeMor) 
+codomain(phi::ProjectiveSchemeMor)
 ```
 Moreover, we provide getters for the associated morphisms of rings:
 ```@docs

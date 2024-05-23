@@ -14,8 +14,8 @@ This information is held by a `CoveringMorphism`:
 ```
 The basic functionality of `CoveringMorphism`s comprises `domain` and `codomain` which 
 both return a `Covering`, together with 
-```
-    getindex(f::CoveringMorphism, U::AbsAffineScheme)
+```julia
+getindex(f::CoveringMorphism, U::AbsAffineScheme)
 ```
 which for ``U = U_i`` returns the `AbsAffineSchemeMor` ``f_i : U_i \to V_{F(i)}``.
 
@@ -27,10 +27,10 @@ in order to realize the covering morphism in the first place.
 ## The interface for morphisms of covered schemes
 Every `AbsCoveredSchemeMorphism` ``f : X \to Y`` is required to implement the following minimal 
 interface.
-```
-    domain(f::AbsCoveredSchemeMorphism)                 # returns X
-    codomain(f::AbsCoveredSchemeMorphism)               # returns Y
-    covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
+```julia
+domain(f::AbsCoveredSchemeMorphism)                 # returns X
+codomain(f::AbsCoveredSchemeMorphism)               # returns Y
+covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
 ```
 For the user's convenience, also the domain and codomain 
 of the underlying `covering_morphism` are forwarded as `domain_covering` and 

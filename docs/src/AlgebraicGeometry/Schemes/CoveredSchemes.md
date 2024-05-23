@@ -44,9 +44,9 @@ Other attributes are the `base_ring` over which the scheme is defined and
 
 ## Properties
 An `AbsCoveredScheme` may have different properties such as
-```
-    is_empty(X::AbsCoveredScheme)
-    is_smooth(X::AbsCoveredScheme)
+```julia
+is_empty(X::AbsCoveredScheme)
+is_smooth(X::AbsCoveredScheme)
 ```
 
 ## Methods
