@@ -1,5 +1,8 @@
 # [Serialization](@id dev_serialization)
 
+We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification described [here](https://arxiv.org/abs/2309.00465).
+Which means we use a JSON extension to serialize data.
+
 This document summarizes the serialization efforts of OSCAR, how it is supposed
 to work, how it works and the overall goal.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
