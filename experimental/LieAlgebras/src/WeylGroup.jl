@@ -124,7 +124,7 @@ end
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(io, "Weyl group for $(W.root_system)")
+  print(pretty(io), LowercaseOff(), "Weyl group for $(W.root_system)")
 end
 
 function coxeter_matrix(W::WeylGroup)
