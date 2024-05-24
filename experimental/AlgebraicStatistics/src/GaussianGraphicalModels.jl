@@ -5,6 +5,21 @@
 ###################################################################################
 
 
+@doc raw"""
+    GaussianRing(n::Int; s_var_name::String="s", base_ring=QQ)
+
+A polynomial ring whose variables correspond to the entries of a covariance matrix of `n` Gaussian random variables.
+It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose `base_ring` is by default `QQ`. 
+
+
+## Examples
+
+``` jldoctest gaussian_ring
+julia> R = gaussian_ring(3)
+Multivariate polynomial ring over Rational field in 6 variables
+s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+```
+"""
 struct GaussianRing
     ring::Ring
     gens::Dict
@@ -12,19 +27,69 @@ struct GaussianRing
 end
 
 
-Base.show(io::IO, R::GaussianRing) = print("Multivariate polynomial ring over "*string(base_ring(R.ring))*" in "*string(ngens(R.ring))*" variables", "\n", chop(string(gens(R.ring)), head = 16, tail = 1))
+
+# creates a ring with variables corresponding to the entries of a (n x n) symmetric matrix
+function gaussian_ring(n::Int, s_var_name::String="s", base_ring::Field=QQ)::GaussianRing
+
+    S, s = polynomial_ring(base_ring, reduce(vcat, [[s_var_name*string([i,j]) for j in i:n] for i in 1:n]))
+
+    s = Dict([(Tuple(var_index(x)), x) for x in s])
+
+    cov_matrix = matrix([[i < j ? s[i,j] : s[j,i] for j in 1:n] for i in 1:n])
+
+    GaussianRing(S, s, cov_matrix)
+end
+
+
+
+function show(io::IO, R::GaussianRing)
+
+    coeffs = base_ring(R.ring)
+    k = ngens(R.ring)
+   
+    print("Gaussian ring over $(coeffs) in $(k) variables", "\n", chop(string(gens(R.ring)), head = 16, tail = 1))
+end
+
 
 # functions for getting attributes of Gaussian rings
 
-# todo
+@doc raw"""
+    ring(R::GaussianRing)
+
+Return the Oscar multivariate polynomial ring inside the GaussianRing.
+
+## Examples
+
+``` jldoctest gaussian_ring
+julia> ring(R)
+Multivariate polynomial ring in 6 variables s[1, 1], s[1, 2], s[1, 3], s[2, 2], ..., s[3, 3]
+  over rational field
+```
+"""
 function ring(R::GaussianRing)
 
     R.ring
 end
 
 
+@doc raw"""
+    gens(R::GaussianRing)
 
-# todo
+Return the generators of the multivariate polynomial ring inside the GaussianRing as a dictionary which can be easily indexed
+
+## Examples
+
+``` jldoctest gaussian_ring
+julia> gens(R)
+Dict{Tuple{Int64, Int64}, QQMPolyRingElem} with 6 entries:
+  (1, 2) => s[1, 2]
+  (1, 1) => s[1, 1]
+  (3, 3) => s[3, 3]
+  (1, 3) => s[1, 3]
+  (2, 2) => s[2, 2]
+  (2, 3) => s[2, 3]
+```
+"""
 function gens(R::GaussianRing)
 
     R.gens
@@ -32,7 +97,20 @@ end
 
 
 
-# todo 
+@doc raw"""
+    covariance_matrix(R::GaussianRing)
+
+Return the covariance matrix associated to `R`` as a matrix over the underlying polynomial ring of `R``
+
+## Examples
+
+``` jldoctest gaussian_ring
+julia> covariance_matrix(R)
+[s[1, 1]   s[1, 2]   s[1, 3]]
+[s[1, 2]   s[2, 2]   s[2, 3]]
+[s[1, 3]   s[2, 3]   s[3, 3]]
+```
+"""
 function covariance_matrix(R::GaussianRing)
 
     R.covariance_matrix
@@ -47,21 +125,21 @@ end
 ###################################################################################
 
 
-# creates a ring with variables corresponding to the entries of a (n x n) symmetric matrix
-function gaussian_ring(n::Int64, s_var_name::String="s")::GaussianRing
+@doc raw"""
+    graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l")
 
-    S, s = polynomial_ring(QQ, reduce(vcat, [[s_var_name*string([i,j]) for j in i:n] for i in 1:n]))
+A parametric statistical model associated to a directed acyclic graph.
+It contains a directed acylic graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
+and a parameter ring whose variables `l[i,j]` correspond to the directed edges `i -> j` in `G`. 
 
-    s = Dict([(Tuple(var_index(x)), x) for x in s])
+## Examples
 
-    cov_matrix = matrix([[i < j ? s[i,j] : s[j,i] for j in 1:n] for i in 1:n])
-
-    GaussianRing(S, s, cov_matrix)
-end
-
-
-
-# creates a GraphicalModel with a GaussianRing and a Directed Graph
+``` jldoctest directed_ggm
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on a directed graph with edges:
+(1, 2), (2, 3)
+```
+"""
 function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l")::GraphicalModel
 
     R, l, w = polynomial_ring(QQ, ["l"*string([src(e), dst(e)]) for e in edges(G)], ["w"*string([v]) for v in vertices(G)])
@@ -72,8 +150,36 @@ function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String
 end
 
 
+function show(io::IO, M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-# creates matrix of parameters which correspond to the directed edges of a digraph
+    G = M.graph
+    E = [(src(e), dst(e)) for e in edges(G)]
+
+    if length(E) == 0
+        print("Directed Gaussian graphical model on the empty graph")
+    end
+
+    if length(E) > 0
+        print("Gaussian graphical model on a directed graph with edges:", "\n", string(E)[2:end-1])
+    end
+end
+
+
+
+@doc raw"""
+    directed_edges_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
+
+Creates the weighted adjacency matrix `L` of a directed graph `G` whose entries are the parameter ring of the graphical model `M`.
+
+## Examples
+
+``` jldoctest directed_ggm
+julia> directed_edges_matrix(M)
+[0   l[1, 2]         0]
+[0         0   l[2, 3]]
+[0         0         0]
+```
+"""
 function directed_edges_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
     G = graph(M)
@@ -82,9 +188,21 @@ function directed_edges_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 end
 
 
+@doc raw"""
+    error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-# creates matrix of parameters which correspond to the directed edges of a digraph
-function error_covariance(M::GraphicalModel{Graph{Directed}, GaussianRing})
+Creates the covariance matrix `W` of the independent error terms in a directed Gaussian graphical model `M`
+
+## Examples
+
+``` jldoctest directed_ggm
+julia> error_covariance_matrix(M)
+[w[1]      0      0]
+[   0   w[2]      0]
+[   0      0   w[3]]
+```
+"""
+function error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
     G = graph(M)
     w = param_gens(M)[2]
@@ -93,8 +211,29 @@ end
 
 
 
-# creates matrix of parameters which correspond to the directed edges of a digraph
-# creates the parameterization of the model as a ring map
+@doc raw"""
+    parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
+
+Creates the polynomial map which parameterizes the vanishing ideal of the directed Gaussian graphical model `M`.   
+The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_\cg$ given by
+$ (Id - L)^{-T} W (Id - L)^{T} \mapsto \Sigma \in \mathrm{PD}_n $ where `L = directed_edges_matrix(M)` and `W = error_covariance_matrix(M)`.
+
+## Examples
+
+``` jldoctest directed_ggm
+julia> parameterization(M)
+Ring homomorphism
+  from multivariate polynomial ring in 6 variables over QQ
+  to multivariate polynomial ring in 5 variables over QQ
+defined by
+  s[1, 1] -> w[1]
+  s[1, 2] -> l[1, 2]*w[1]
+  s[1, 3] -> l[1, 2]*l[2, 3]*w[1]
+  s[2, 2] -> l[1, 2]^2*w[1] + w[2]
+  s[2, 3] -> l[1, 2]^2*l[2, 3]*w[1] + l[2, 3]*w[2]
+  s[3, 3] -> l[1, 2]^2*l[2, 3]^2*w[1] + l[2, 3]^2*w[2] + w[3]
+```
+"""
 function parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
     S = ring(M)
@@ -103,18 +242,10 @@ function parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
     L = directed_edges_matrix(M)
     Id = identity_matrix(R, n_vertices(G))
-    W = error_covariance(M)
+    W = error_covariance_matrix(M)
     Sigma = transpose(inv(Id-L))*W*inv(Id-L)
     
     hom(S.ring, R, reduce(vcat, [[Sigma[i,j] for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
-end
-
-
-
-# computes the ideal generated by all trek separations
-function trek_ideal(M::GraphicalModel{Graph{Directed}, GaussianRing})
-
-    #todo
 end
 
 
@@ -126,7 +257,21 @@ end
 ###################################################################################
 
 
-# creates a GraphicalModel with a GaussianRing and a Undirected Graph
+@doc raw"""
+    graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
+
+A parametric statistical model associated to an undirected graph.
+It contains an undirected graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
+and a parameter ring whose variables `k[i,j]` correspond to the edges `i - j` in `G`. 
+
+## Examples
+
+``` jldoctest undirected_ggm
+julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on an undirected graph with edges:
+(1, 2), (2, 3)
+```
+"""
 function graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
 
     R, k = polynomial_ring(QQ, vcat([k_var_name*string([v, v]) for v in vertices(G)], [k_var_name*string([dst(e), src(e)]) for e in edges(G)]))
@@ -138,6 +283,35 @@ end
 
 
 
+function show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
+
+    G = M.graph
+    E = [(dst(e), src(e)) for e in edges(G)]
+
+    if length(E) == 0
+        print("Undirected Gaussian graphical model on the empty graph")
+    end
+
+    if length(E) > 0
+        print("Gaussian graphical model on an undirected graph with edges:", "\n", string(E)[2:end-1])
+    end
+end
+
+
+@doc raw"""
+    concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+
+Creates the concentration matrix `K` of an undirected Gaussian graphical model which is a symmetric positive definite matrix
+whose nonzero entries correspond to the edges of the associated graph. 
+## Examples
+
+``` jldoctest undirected_ggm
+julia> concentration_matrix(M)
+[k[1, 1]   k[1, 2]         0]
+[k[1, 2]   k[2, 2]   k[2, 3]]
+[      0   k[2, 3]   k[3, 3]]
+```
+"""
 # creates the concentration matrix of a undirected Gaussian graphical models with zeroes corresponding to non-edges
 function concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
@@ -161,7 +335,35 @@ end
 
 
 
-# creates the parameterization of a undirected Gaussian graphical model using the adjoint
+@doc raw"""
+    parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+
+Creates the polynomial map which parameterizes the vanishing ideal of the undirected Gaussian graphical model `M`.   
+The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_\cg$ given by
+$ K \mapsto K^{-1} \in \mathrm{PD}_n $ where `K = concentration_matrix(M)` and the entries of $ K^{-1} $ are given by the standard cofactor formula.
+
+## Examples
+
+``` jldoctest undirected_ggm
+julia> parameterization(M)
+Ring homomorphism
+  from multivariate polynomial ring in 6 variables over QQ
+  to fraction field of multivariate polynomial ring
+defined by
+  s[1, 1] -> (k[2, 2]*k[3, 3] - k[2, 3]^2)//(k[1, 1]*k[2, 2]*k[3,
+   3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 2] -> (-k[3, 3]*k[1, 2])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 
+  1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 3] -> (k[1, 2]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1
+  ]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[2, 2] -> (k[1, 1]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1
+  ]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[2, 3] -> (-k[1, 1]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 
+  1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3,
+   3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+```
+"""
 function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
     G = graph(M)
@@ -174,6 +376,22 @@ function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 end
 
 
+
+@doc raw"""
+    vanishing_ideal(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+
+Computes the vanishing ideal of the undirected Gaussian graphical model `M`. 
+This is done by saturating the ideal given by $ \Sigma K - Id $ by the determinant of $ K $
+and then eliminating all variables `k[i,j]` where `K = concentration_matrix(M)`. 
+
+## Examples
+
+``` jldoctest undirected_ggm
+julia> vanishing_ideal(M)
+Ideal generated by
+  -s[1, 2]*s[2, 3] + s[1, 3]*s[2, 2]
+```
+"""
 # computes the vanishing ideal of a gaussian graphical model by eliminating the concentration varaibles k from Sigma*K - I after saturating by det(K)
 function vanishing_ideal(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
