@@ -243,7 +243,7 @@ reduce(g::T, F::Vector{T};
 reduce_with_quotients(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
-      
+
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
