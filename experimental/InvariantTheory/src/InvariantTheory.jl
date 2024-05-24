@@ -406,6 +406,7 @@ end
 polynomial_ring(R::RedGroupInvarRing) = R.poly_ring
 group(R::RedGroupInvarRing) = R.group
 representation(R::RedGroupInvarRing) = R.representation
+field(R::RedGroupInvarRing) = R.field
 
 @doc raw"""
     fundamental_invariants(RG::RedGroupInvarRing)
