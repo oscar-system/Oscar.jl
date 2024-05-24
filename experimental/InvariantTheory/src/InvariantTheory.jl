@@ -69,7 +69,7 @@ end
 function Base.show(io::IO, G::LinearlyReductiveGroup)
     io = pretty(io)
     if group_type(G) == :SL
-        println(io, "Linearly reductive group ", group_type(G), group_dim(G))
+        println(io, "Reductive group ", group_type(G), group_dim(G))
         print(terse(io), Indent(), "over ", Lowercase(), field(G))
         print(io, Dedent())
     else
