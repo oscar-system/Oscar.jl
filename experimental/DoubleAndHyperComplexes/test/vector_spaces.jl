@@ -33,9 +33,9 @@
   end
 
   tot = total_complex(D)
-  for i in map_range(tot)
-    i == last(map_range(tot)) && continue
-    if i != first(map_range(tot)) && i != last(map_range(tot)) + 1
+  for i in Hecke.map_range(tot)
+    i == last(Hecke.map_range(tot)) && continue
+    if i != first(Hecke.map_range(tot)) && i != last(Hecke.map_range(tot)) + 1
       @test !iszero(map(tot, i)) || !iszero(map(tot, i-1))
     end
     @test iszero(compose(map(tot, i), map(tot, i-1)))
