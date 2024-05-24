@@ -24,7 +24,7 @@ presentation(M::ModuleFP)
 present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 ```
 
-## Syzygies and Free Resolutions
+## Free Resolutions
 
 ```@docs
 free_resolution(M::SubquoModule{<:MPolyRingElem}; 
