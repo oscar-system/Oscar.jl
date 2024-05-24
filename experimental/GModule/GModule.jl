@@ -1995,17 +1995,17 @@ F = free_group([:x, :y])
 x = F[1]; y = F[2]
 G1, _ = quo(F, [x^36, y^7, y^x * y^-3])
 f = Oscar.RepPc.solvable_quotient(G1)
+#SLOW: need an interface for the index, not the primes...
 @time ff = Oscar.RepPc.sq(f, [2, 3, 7])
 x = ff(G1[1])
 y = ff(G1[2])
 C = sub(codomain(ff), [x^6, y])
-z = character_table(C[1])
-[x for x = character_table(C[1]) if is_faithful(x)][1]
+[x for x = linear_characters(C[1]) if is_faithful(x)][1]
 l = ans
-gmodule(l)
-induce(ans, C[2])
-z = ans[1]
-zz = gmodule(CyclotomicField, z)
+induce(l, codomain(C[2]))
+gmodule(ans)
+
+
 
 #Brueckner, Heinecken:
 F = free_group([:a, :b, :c])
