@@ -467,7 +467,7 @@ function image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     ztozz = hom(R, mixed_ring_xy, zz)
     genss = [ztozz(f) for f in gens(G.group_ideal)]
     #rep_mat in the new ring
-    new_rep_mat = matrix(mixed_ring_xy,[ztozz(rep_mat[i,j]) for i in 1:n, j in 1:n])
+    new_rep_mat = map_entries(ztozz, rep_mat)
     new_vars = new_rep_mat*x
     ideal_vect = y - new_vars 
     ideal_vect = vcat(ideal_vect,genss)
@@ -479,13 +479,7 @@ function proj_of_image_ideal(G::LinearlyReductiveGroup, rep_mat::MatElem)
     W = image_ideal(G, rep_mat)
     mixed_ring_xy = base_ring(W[2])
     n = ncols(rep_mat)
-    if isdefined(G, :group)
-        m = (group_dim(G))^2
-    else
-        m = ngens(base_ring(group_ideal(G)))
-    end
-    #use parallelised groebner bases here. This is the bottleneck!
-    return eliminate(W[1], gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m)]), W[2]
+    return eliminate(W[1], gens(mixed_ring_xy)[(2*n)+1:end]), W[2]
 end
 
 #this function gets the generators of the null cone. they may or may not be invariant.
