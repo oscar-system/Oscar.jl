@@ -194,11 +194,6 @@ end
 ## functions that will eventually get defined in Hecke.jl,
 ## and then should get removed here
 
-function Hecke.roots(a::FinFieldElem, i::Int)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return roots(x^i-a)
-end
-
 function Oscar.dual(h::Map{FinGenAbGroup, FinGenAbGroup})
   A = domain(h)
   B = codomain(h)
@@ -386,52 +381,16 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; Error
   return true, c
 end
 
-
-#############################################################################
-##
-## functions that will eventually get defined in Nemo.jl,
-## and then should get removed here
-
-function (k::Nemo.fpField)(a::Vector)
-  @assert length(a) == 1
-  return k(a[1])
-end
-
-function (k::fqPolyRepField)(a::Vector)
-  return k(polynomial(Native.GF(Int(characteristic(k))), a))
-end
-
-
 #############################################################################
 ##
 ## functions that will eventually get defined in AbstractAlgebra.jl,
 ## and then should get removed here
 
-Base.pairs(M::MatElem) = Base.pairs(IndexCartesian(), M)
-Base.pairs(::IndexCartesian, M::MatElem) = Base.Iterators.Pairs(M, CartesianIndices(axes(M)))
 
-Oscar.matrix(phi::Generic.IdentityMap{<:AbstractAlgebra.FPModule}) = identity_matrix(base_ring(domain(phi)), dim(domain(phi)))
 
 Oscar.gen(M::AbstractAlgebra.FPModule, i::Int) = M[i]
 
-Oscar.is_free(M::Generic.FreeModule) = true
 Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  k = base_ring(M)
-  if dim(M) == 0
-    return zero(M), iterate([1])
-  end
-  p = Base.Iterators.ProductIterator(Tuple([k for i=1:dim(M)]))
-  f = iterate(p)
-  return M(elem_type(k)[f[1][i] for i=1:dim(M)]), (f[2], p)
-end
-
-function Base.iterate(::AbstractAlgebra.FPModule{<:FinFieldElem}, ::Tuple{Int64, Int64})
-  return nothing
-end
-
-Oscar.issubset(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement = is_submodule(M, N)
 
 function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPModule{T}) where T<:RingElement
   fl = is_submodule(N, M)
@@ -451,54 +410,6 @@ end
 function Oscar.hom(V::AbstractAlgebra.Module, W::AbstractAlgebra.Module, v::MatElem; check::Bool = true)
   return Generic.ModuleHomomorphism(V, W, v)
 end
-function Oscar.inv(M::Generic.ModuleHomomorphism)
-  return hom(codomain(M), domain(M), inv(matrix(M)))
-end
-
-Oscar.is_finite(M::AbstractAlgebra.FPModule{<:FinFieldElem}) = true
-
-function Oscar.order(F::AbstractAlgebra.FPModule{<:FinFieldElem})
-  return order(base_ring(F))^dim(F)
-end
-
-function Base.iterate(M::AbstractAlgebra.FPModule{T}, st::Tuple{<:Tuple, <:Base.Iterators.ProductIterator}) where T <: FinFieldElem
-  n = iterate(st[2], st[1])
-  if n === nothing
-    return n
-  end
-  return M(elem_type(base_ring(M))[n[1][i] for i=1:dim(M)]), (n[2], st[2])
-end
-
-function Base.length(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return Int(order(M))
-end
-
-function Base.eltype(M::AbstractAlgebra.FPModule{T}) where T <: FinFieldElem
-  return elem_type(M)
-end
-
-function Oscar.dim(M::AbstractAlgebra.Generic.DirectSumModule{<:FieldElem})
-  return sum(dim(x) for x = M.m)
-end
-
-Base.:*(a::T, b::Generic.ModuleHomomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
-Base.:*(a::T, b::Generic.ModuleIsomorphism{T}) where {T} = hom(domain(b), codomain(b), a * matrix(b))
-Base.:+(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) + matrix(b))
-Base.:-(a::Generic.ModuleHomomorphism, b::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), matrix(a) - matrix(b))
-Base.:-(a::Generic.ModuleHomomorphism) = hom(domain(a), codomain(a), -matrix(a))
-
-function Base.:(==)(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, b::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism})
-  domain(a) === domain(b) || return false
-  codomain(a) === codomain(b) || return false
-  return matrix(a) == matrix(b)
-end
-
-function Base.hash(a::Union{Generic.ModuleHomomorphism, Generic.ModuleIsomorphism}, h::UInt)
-  h = hash(domain(a), h)
-  h = hash(codomain(a), h)
-  h = hash(matrix(a), h)
-  return h
-end
 
 function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
   return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
@@ -507,10 +418,6 @@ end
 function Oscar.direct_sum(M::AbstractAlgebra.Generic.DirectSumModule{T}, N::AbstractAlgebra.Generic.DirectSumModule{T}, mp::Vector{AbstractAlgebra.Generic.ModuleHomomorphism{T}})  where T
   @assert length(M.m) == length(mp) == length(N.m)
   return hom(M, N, cat(map(matrix, mp)..., dims = (1,2)))
-end
-
-function coimage(h::Map)
-  return quo(domain(h), kernel(h)[1])
 end
 
 end # module
