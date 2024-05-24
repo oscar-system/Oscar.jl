@@ -332,6 +332,14 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
 end
 
 
+function simplify(c::FreeResolution)
+  return simplify(SimpleComplexWrapper(c.C))
+end
+
+function simplify(c::ComplexOfMorphisms)
+  return simplify(SimpleComplexWrapper(c))
+end
+
 function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
   @assert dim(c) == 1 "complex must be one-dimensional"
   chain_fac = SimplifiedChainFactory(c)
