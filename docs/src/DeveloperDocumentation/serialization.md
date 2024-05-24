@@ -374,8 +374,8 @@ we should not restrict users when deserialize to formats that may have issues de
 the same format externally.
 
 We cannot guarantee that any file that has been manipulated by hand is still
-validate and should be validated against the schema. In the same way we cannot
-guarantee that any files created external are valid in terms of the mathematics
+valid and should be validated against the schema. In the same way we cannot
+guarantee that any files created externally are valid in terms of the mathematics
 either.
 
 Allowing extensions to JSON is not recommended, this is to keep the scope
