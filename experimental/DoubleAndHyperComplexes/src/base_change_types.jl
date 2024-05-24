@@ -49,20 +49,58 @@ end
 
 ### The concrete struct
 @attributes mutable struct BaseChangeComplex{ChainType, MorphismType} <: AbsHyperComplex{ChainType, MorphismType} 
+  orig::AbsHyperComplex
   internal_complex::HyperComplex{ChainType, MorphismType}
+  red_map::AbsHyperComplexMorphism
 
   function BaseChangeComplex(phi::Any, orig::AbsHyperComplex{CT, MT}) where {CT<:ModuleFP, MT<:ModuleFPHom}
     chain_fac = BaseChangeChainFactory(phi, orig)
     map_fac = BaseChangeMapFactory(phi, orig)
 
-    # Assuming d is the dimension of the new complex
     d = dim(orig)
     internal_complex = HyperComplex(d, chain_fac, map_fac, [direction(orig, i) for i in 1:d])
-    # Assuming that ChainType and MorphismType are provided by the input
-    return new{ModuleFP, ModuleFPHom}(internal_complex)
+    return new{ModuleFP, ModuleFPHom}(orig, internal_complex)
   end
 end
 
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::BaseChangeComplex) = c.internal_complex
+
+########################################################################
+# Type for the base change morphism
+########################################################################
+struct BaseChangeMorphismFactory{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
+  cod::BaseChangeComplex
+
+  function BaseChangeMorphismFactory(comp::BaseChangeComplex{CT, MT}) where {CT, MT}
+    # TODO: Can we do more about the type?
+    return new{ModuleFPHom}(comp)
+  end
+end
+
+function (fac::BaseChangeMorphismFactory)(self::AbsHyperComplexMorphism, i::Tuple)
+  # fill the cache
+  fac.cod[i]
+
+  return chain_factory(fac.cod).red_map_cache[i]
+end
+
+function can_compute(fac::BaseChangeMorphismFactory, self::AbsHyperComplexMorphism, i::Tuple)
+  return can_compute_index(fac.cod, i)
+end
+
+
+@attributes mutable struct BaseChangeMorphism{DomainType, CodomainType, MorphismType} <: AbsHyperComplexMorphism{DomainType, CodomainType, MorphismType, BaseChangeMorphism{DomainType, CodomainType, MorphismType}}
+  internal_morphism::HyperComplexMorphism{DomainType, CodomainType, MorphismType}
+
+  function BaseChangeMorphism(cod::BaseChangeComplex)
+    map_factory = BaseChangeMorphismFactory(cod)
+    dom = cod.orig
+
+    internal_morphism = HyperComplexMorphism(dom, cod, map_factory, cached=true, offset=[0 for i in 1:dim(dom)])
+    return new{typeof(cod.orig), typeof(cod), ModuleFPHom}(internal_morphism)
+  end
+end
+
+underlying_morphism(phi::BaseChangeMorphism) = phi.internal_morphism
 
