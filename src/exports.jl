@@ -103,7 +103,6 @@ export MPolyQuoIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid

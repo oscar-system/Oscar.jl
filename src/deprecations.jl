@@ -125,6 +125,7 @@ Base.@deprecate_binding StdSpec StdAffineScheme
 
 # deprecated from src/Rings/mpoly-local.jl
 @deprecate minimal_generators minimal_generating_set
+Base.@deprecate_binding MPolyRingElemLoc MPolyLocRingElem
 
 function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
   Base.depwarn("`getindex(::SRow, ::Ring, ::AbstractUnitRange)` is deprecated, use `getindex(::SRow, ::AbstractUnitRange)` instead.", :getindex)
