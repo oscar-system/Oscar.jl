@@ -114,5 +114,17 @@
     @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
 
   end
+  
+  @testset "Fan conversion" begin
+    F1 = normal_fan(cube(2))
+    F2 = normal_fan(convex_hull([0 0; 1 0]))
+    for F in [F1, F2]
+      PC = polyhedral_complex(F)
+      @test dim(F) == dim(PC)
+      @test ambient_dim(F) == ambient_dim(PC)
+      @test lineality_dim(F) == lineality_dim(PC)
+      @test matrix(f, rays(F)) == matrix(f, rays(PC))
+    end
+  end
 
 end

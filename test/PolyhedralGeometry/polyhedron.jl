@@ -609,6 +609,7 @@
       vdesc = convex_hull(minimal_faces(PointVector, PC), rays_modulo_lineality(RayVector, PC), lineality_space(PC))
       hdesc = polyhedron(facets(PC), affine_hull(PC))
       @test vdesc == hdesc
+      @test recession_cone(PC) == C
     end
   end
 

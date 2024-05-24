@@ -722,3 +722,16 @@ function _property_qe_to_on(x, f::Field)
     return x
   end
 end
+
+# Helper function for conversion
+# Cone -> Polyhedron
+# PolyhedralFan -> PolyhedralComplex
+# for transforming coordinate matrices.
+function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+  if add_vert
+    result[1, 1] = 1
+  end
+  result[(add_vert + 1):end, 2:end] = M
+  return result
+end

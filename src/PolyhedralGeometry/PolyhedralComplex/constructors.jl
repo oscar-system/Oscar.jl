@@ -170,6 +170,38 @@ end
 
 polyhedral_complex(P::Polyhedron{T}) where {T<:scalar_types} = polyhedral_complex([P])
 
+@doc raw"""
+    polyhedral_complex(F::PolyhedralFan)
+
+Turn a polyhedral fan into a polyhedral complex.
+"""
+function polyhedral_complex(F::PolyhedralFan{T}) where {T<:scalar_types}
+  pmo_in = pm_object(F)
+  pmo_out = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}()
+  for prop in ["RAYS", "INPUT_RAYS"]
+    if Polymake.exists(pmo_in, prop)
+      Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), true))
+    end
+  end
+  for prop in ["INPUT_LINEALITY", "LINEALITY_SPACE"]
+    if Polymake.exists(pmo_in, prop)
+      Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
+    end
+  end
+  for prop in ["MAXIMAL_CONES", "INPUT_CONES"]
+    if Polymake.exists(pmo_in, prop)
+      inprop = Polymake.give(pmo_in, prop)
+      outprop = Polymake.IncidenceMatrix(nrows(inprop), ncols(inprop)+1)
+      outprop[1:end, 2:end] = inprop
+      for i in 1:nrows(inprop)
+        outprop[i,1] = 1
+      end
+      Polymake.take(pmo_out, prop, outprop)
+    end
+  end
+  return PolyhedralComplex{T}(pmo_out, F.parent_field)
+end
+
 ###############################################################################
 ###############################################################################
 ### Display
