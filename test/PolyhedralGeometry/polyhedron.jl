@@ -596,6 +596,22 @@
 
   end
 
+  @testset "Cone conversion" begin
+    C1 = positive_hull(f, [1 0])
+    C2 = positive_hull(f, [1 0], [0 1])
+    C3 = positive_hull(f, [1 0 0; 1 1 0; 1 1 1; 1 0 1])
+    for C in [C1, C2, C3]
+      PC = polyhedron(C)
+      @test dim(C) == dim(PC)
+      @test ambient_dim(C) == ambient_dim(PC)
+      @test lineality_dim(C) == lineality_dim(PC)
+      @test matrix(f, rays(C)) == matrix(f, rays(PC))
+      vdesc = convex_hull(minimal_faces(PointVector, PC), rays_modulo_lineality(RayVector, PC), lineality_space(PC))
+      hdesc = polyhedron(facets(PC), affine_hull(PC))
+      @test vdesc == hdesc
+    end
+  end
+
 end
 
 @testset "Regular solids" begin
