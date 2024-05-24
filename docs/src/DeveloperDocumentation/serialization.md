@@ -366,10 +366,26 @@ should anyone implementing a save/load. Loading should not throw a parse error
 if the mathematics of the file is incorrect, the file should be parsed and allow
 the computer algebra system to throw the error.
 
+External implementations should not be expected to read or write all possible Oscar types.
+It is perfectly valid for external implementations to throw parse errors when a certain
+file format is unexpected. For example Oscar will parse a `QQFieldElem` that has data value
+"0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
+we should not restrict users when deserialize to formats that may have issues deserializing
+the same format externally.
+
+We cannot guarantee that any file that has been manipulated by hand is still
+validate and should be validated against the schema. In the same way we cannot
+guarantee that any files created external are valid in terms of the mathematics
+either.
+
 Allowing extensions to JSON is not recommended, this is to keep the scope
 of possible software that can parse the given JSON as large as possible.
+For example some JSON extensions allow comments in the files, Oscar cannot
+parse such JSONs and we recommend that any comments should be placed in the
+meta field.
 
 When writing UUIDs, adhere to version four UUIDs specified by RFC 4122.
+
 
 # John's Questions
 
