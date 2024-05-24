@@ -123,6 +123,9 @@ Base.@deprecate_binding StdSpec StdAffineScheme
 # deprecated for 1.1
 @deprecate morphism_of_projective_schemes morphism
 
+# deprecated from src/Rings/mpoly-local.jl
+@deprecate minimal_generators minimal_generating_set
+
 function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRange)
   Base.depwarn("`getindex(::SRow, ::Ring, ::AbstractUnitRange)` is deprecated, use `getindex(::SRow, ::AbstractUnitRange)` instead.", :getindex)
   @req base_ring(r) === R "Parent ring mismatch"
