@@ -352,7 +352,6 @@ function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; Error
   return true, c
 end
 
-
 #############################################################################
 ##
 ## functions that will eventually get defined in AbstractAlgebra.jl,
