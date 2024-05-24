@@ -39,20 +39,3 @@ end
   @test_throws Exception x*inv(x - 2)
 end
 
-#=
-# Disabled because of deprecation
-@testset "mpoly-loc groebner" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
-  m = ideal(R, [y - 1, x - 2, z - 3])
-  Q = localization(R, m)
-  I = ideal(Q, [x - 2, (y - 1)^2*z])
-  J = ideal(Q, [x - 1, y - 1])
-
-  groebner_basis(I)
-  GI  = collect(values(I.gb))[1]
-  groebner_basis(J)
-  GJ  = collect(values(J.gb))[1]
-  @test GI.O == Q.([x - 2, (y - 1)^2])
-  @test GJ.O == [one(Q)]
-end
-=#
