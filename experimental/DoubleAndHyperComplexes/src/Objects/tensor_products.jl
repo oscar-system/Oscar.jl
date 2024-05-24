@@ -196,6 +196,15 @@ function tensor_product(list::Vector{T}) where {T<:ComplexOfMorphisms}
                      )
 end
 
+function tensor_product(M::ModuleFP, comp::AbsHyperComplex{T}) where {T<:ModuleFP}
+  return tensor_product([ZeroDimensionalComplex(M), comp])
+end
+
+function tensor_product(comp::AbsHyperComplex{T}, M::ModuleFP) where {T<:ModuleFP}
+  return tensor_product([comp, ZeroDimensionalComplex(M)])
+end
+
+
 ########################################################################
 # Tensor products of hypercomplexes                                    #
 ########################################################################
@@ -222,7 +231,7 @@ function (fac::HCTensorProductChainFactory{ChainType})(c::AbsHyperComplex, I::Tu
     k = k + dim(f)
   end
   factors = [fac.factors[k][Tuple(a)] for (k, a) in enumerate(j)]
-  any(iszero, factors) && return zero_object(first(factors))[1]
+  #any(iszero, factors) && return zero_object(first(factors))[1] # Breaks the property of being a tensor product for the returned module, hence disabled
   tmp_res = _tensor_product(factors...)
   @assert tmp_res isa Tuple{<:ChainType, <:Map} "the output of `tensor_product` does not have the anticipated format; see the source code for details"
   # If you got here because of the error message above:

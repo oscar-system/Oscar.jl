@@ -741,29 +741,6 @@ struct FreeModuleHom_dec{
   end
 end
 
-@doc raw"""
-    FreeResolution{T}
-
-Data structure for free resolutions.
-"""
-mutable struct FreeResolution{T}
-    C::Hecke.ComplexOfMorphisms
-
-    function FreeResolution(C::Hecke.ComplexOfMorphisms{T}) where {T}
-        FR = new{T}()
-        FR.C = C
-
-        return FR
-    end
-end
-
-Base.getindex(FR::FreeResolution, i::Int) = FR.C[i]
-
-function Base.show(io::IO, FR::FreeResolution)
-    C = FR.C
-    show(io, C)
-end
-
 mutable struct BettiTable
   B::Dict{Tuple{Int, Any}, Int}
   project::Union{FinGenAbGroupElem, Nothing}

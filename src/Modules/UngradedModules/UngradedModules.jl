@@ -6,7 +6,7 @@ include("SubModuleOfFreeModule.jl")
 include("SubquoModule.jl")
 include("SubquoModuleElem.jl")
 include("Presentation.jl")
-include("FreeResolutions.jl")
+#include("FreeResolutions.jl") # moved to experimental/DoubleAndHyperComplexes/ due to dependencies.
 include("HomologicalAlgebra.jl")
 include("SubQuoHom.jl")
 include("Methods.jl")

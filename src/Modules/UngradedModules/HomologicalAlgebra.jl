@@ -151,9 +151,9 @@ function tensor_product(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(M::ModuleFP, F::FreeResolution)
-  return tensor_product(M, F.C)
-end
+#function tensor_product(M::ModuleFP, F::FreeResolution)
+#  return tensor_product(M, F.C)
+#end
 
 
 @doc raw"""
@@ -180,9 +180,9 @@ function tensor_product(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, P::ModuleFP)
   return Hecke.ComplexOfMorphisms(ModuleFP, tensor_chain, seed=C.seed, typ=C.typ)
 end
 
-function tensor_product(F::FreeResolution, M::ModuleFP)
-  return tensor_product(F.C, M)
-end
+#function tensor_product(F::FreeResolution, M::ModuleFP)
+#  return tensor_product(F.C, M)
+#end
 
 @doc raw"""
     tor(M::ModuleFP, N::ModuleFP, i::Int)
@@ -316,9 +316,9 @@ function hom(P::ModuleFP, C::Hecke.ComplexOfMorphisms{ModuleFP})
   return Hecke.ComplexOfMorphisms(ModuleFP, hom_chain, seed=C.seed, typ=C.typ)
 end
 
-function hom(M::ModuleFP, F::FreeResolution)
-  return hom(M, F.C)
-end
+#function hom(M::ModuleFP, F::FreeResolution)
+#  return hom(M, F.C)
+#end
 
 @doc raw"""
     hom(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
@@ -374,9 +374,9 @@ function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
   return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=seed, typ=typ)
 end
 
-function hom(F::FreeResolution, M::ModuleFP)
-  return hom(F.C, M)
-end
+#function hom(F::FreeResolution, M::ModuleFP)
+#  return hom(F.C, M)
+#end
 
 @doc raw"""
     hom_without_reversing_direction(C::ComplexOfMorphisms{ModuleFP}, M::ModuleFP)
@@ -431,10 +431,6 @@ function hom_without_reversing_direction(C::Hecke.ComplexOfMorphisms{ModuleFP}, 
   return Hecke.ComplexOfMorphisms(ModuleFP, reverse(hom_chain), seed=-first(chain_range(C)), typ=C.typ)
 end
 
-function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
-  return hom_without_reversing_direction(F.C, M)
-end
-
 
 #############################
 @doc raw"""
@@ -478,10 +474,6 @@ by Submodule with 2 generators
 """
 function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP})
   return [homology(C,i) for i in Hecke.range(C)]
-end
-
-function homology(C::FreeResolution)
-  return homology(C.C)
 end
 
 
