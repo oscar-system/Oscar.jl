@@ -341,24 +341,27 @@ function ideal(Rx::MPolyRingLoc, g::Singular.sideal)
   return MPolyIdealLoc(Rx, g)
 end
 
-# Computes the Singular.jl data of an MPolyIdealLoc if it is not defined yet.
-function singular_assure(I::MPolyIdealLoc)
-  singular_assure(I.gens)
-end
-
-function singular_assure(I::IdealGensLoc)
+function singular_generators(I::IdealGensLoc)
   if !isdefined(I, :S)
-    R = base_ring(I.Ox)
-    m = I.Ox.max_ideal
-    Q = I.Ox
+    R   = base_ring(I.Ox)
+    m   = I.Ox.max_ideal
+    Q   = I.Ox
     phi = hom(R, R, [2*gen(R, i)-m.gens.O[i] for i in 1:nvars(R)])
     I.S = Singular.Ideal(I.Sx, [I.Sx(phi(numerator(x))) for x = I.O])
   end
+  return I.S
 end
 
 function singular_generators(I::MPolyIdealLoc)
-  singular_assure(I.gens)
-  return I.gens.S
+  return singular_generators(I.gens)
+end
+
+function singular_polynomial_ring(I::IdealGensLoc)
+    return I.Sx
+end
+
+function singular_polynomial_ring(I::MPolyIdealLoc)
+    return singular_polynomial_ring(I.gens)
 end
 
 ###############################################################################
@@ -386,31 +389,6 @@ function base_ring(I::MPolyIdealLoc)
   return I.gens.Ox
 end
 
-#= function groebner_assure(I::MPolyIdealLoc)
- =   if !isdefined(I, :gb)
- =     if !isdefined(I.gens, :S)
- =       singular_assure(I)
- =     end
- =     R = I.gens.Sx
- =     i = Singular.std(I.gens.S)
- =     I.gb = IdealGensLoc(I.gens.Ox, i)
- =   end
- = end
- =
- = function groebner_basis(I::MPolyIdealLoc; ordering::Symbol = :negdegrevlex)
- =   if ordering != :negdegrevlex
- =     B = IdealGensLoc(I.gens.O, ordering = ordering)
- =     singular_assure(B)
- =     R = B.Sx
- =     !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
- =     i = Singular.std(B.S)
- =     I.gb = IdealGensLoc(I.gens.Ox, i)
- =   else
- =     groebner_assure(I)
- =   end
- =   return I.gb.O
- = end =#
-
 ###############################################################################
 # Ideal functions                                                             #
 ###############################################################################
@@ -429,17 +407,18 @@ function dim(I::MPolyIdealLoc)
 end
 
 function minimal_generators(I::MPolyIdealLoc)
-  if !isdefined(I.gens, :S)
-    singular_assure(I)
-  end
   if !isdefined(I, :min_gens)
     if isdefined(I, :gb)
-      sid = Singular.Ideal(I.gb.Sx, Singular.libSingular.idMinBase(I.gb.S.ptr, I.gb.Sx.ptr))
-      I.min_gens = IdealGensLoc(I.gb.Ox, sid)
+        SR = singular_polynomial_ring(I.gb)
+        SG = singular_generators(I.gb)
+        OR = I.gb.Ox
     else
-      sid = Singular.Ideal(I.gens.Sx, Singular.libSingular.idMinBase(I.gens.S.ptr, I.gens.Sx.ptr))
-      I.min_gens = IdealGensLoc(I.gens.Ox, sid)
+        SR = singular_polynomial_ring(I)
+        SG = singular_generators(I)
+        OR = I.gens.Ox
     end
+    sid = Singular.Ideal(SR, Singular.libSingular.idMinBase(SG.ptr, SR.ptr))
+    I.min_gens = IdealGensLoc(OR, sid)
   end
   return I.min_gens.O
 end
@@ -453,11 +432,8 @@ function groebner_assure(I::MPolyIdealLoc, ordering::MonomialOrdering=negdegrevl
 end
 
 function groebner_basis(B::IdealGensLoc, ordering::MonomialOrdering, complete_reduction::Bool = false)
-   singular_assure(B)
-   R = B.Sx
-   !Oscar.Singular.has_local_ordering(R) && error("The ordering has to be a local ordering.")
-   I  = Singular.Ideal(R, gens(B.S)...)
-   i  = Singular.std(I)
+   !Oscar.Singular.has_local_ordering(singular_polynomial_ring(B)) && error("The ordering has to be a local ordering.")
+   i  = Singular.std(singular_generators(B))
    BA = IdealGensLoc(B.Ox, i)
    BA.isGB  = true
    if isdefined(BA, :S)
