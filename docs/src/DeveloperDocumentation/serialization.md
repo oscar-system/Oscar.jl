@@ -86,9 +86,9 @@ extension.
     "name": "PolyRingElem",
     "params": "e6c5972c-4052-4408-a408-0f4f11f21e49"
   },
-  "data": [    [      "0",      "1//2"    ],
-	       [      "1",      "2"    ],
-	       [      "3",      "1"    ]  ]
+  "data": [  [      "0",      "1//2"    ],
+	     [      "1",      "2"       ],
+	     [      "3",      "1"       ]  ]
 }
 
 ```
@@ -364,7 +364,12 @@ and using the OSCAR namespace should be sure to check validity against our schem
 We make no attempt whatsoever to verify the mathematics of the file, and neither
 should anyone implementing a save/load. Loading should not throw a parse error
 if the mathematics of the file is incorrect, the file should be parsed and allow
-the computer algebra system to throw the error.
+the computer algebra system to throw the error. We cannot guarantee that any file
+that has been manipulated by hand is still valid and should be validated against
+the schema. In the same way we cannot guarantee that any files created externally
+are valid in terms of the mathematics either, these will not lead to a parse error
+but instead will be handle as though the incorrect input has been passed to one
+of the Oscar functions.
 
 External implementations should not be expected to read or write all possible Oscar types.
 It is perfectly valid for external implementations to throw parse errors when a certain
@@ -372,11 +377,6 @@ file format is unexpected. For example Oscar will parse a `QQFieldElem` that has
 "0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
 we should not restrict users when deserialize to formats that may have issues deserializing
 the same format externally.
-
-We cannot guarantee that any file that has been manipulated by hand is still
-valid and should be validated against the schema. In the same way we cannot
-guarantee that any files created externally are valid in terms of the mathematics
-either.
 
 Allowing extensions to JSON is not recommended, this is to keep the scope
 of possible software that can parse the given JSON as large as possible.
