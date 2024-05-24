@@ -225,7 +225,7 @@ function action(C::GModule, g, v::Array)
   end
 
   F, mF = fp_group_with_isomorphism(C)
-  for i = word(preimage(mF, g))
+  for i = word(mF(g))
     if i > 0
       v = map(ac[i], v)
     else
@@ -353,7 +353,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
 #  @assert isdefined(C.M, :hnf)
   indC, pro, inj = direct_product([C.M for i=1:length(g)]..., task = :both)
 #  @assert isdefined(indC, :hnf)
-  if hasfield(indC, :__attrs)
+  if hasfield(typeof(indC), :__attrs)
     set_attribute!(indC, :induce => (h, g))
   end
   ac = []
@@ -2086,16 +2086,16 @@ function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   end
   Q, mQ = quo(N, s)
   @assert ngens(Q) == ngens(N)
-  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
-  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
+  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end]; check = false)
+  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]); check = false)
   @assert domain(mfM) ==fM
   @assert codomain(mfM) == M
 
   function GMtoQ(g::GAPGroupElem, m)
     @assert parent(m) == M
     @assert parent(g) == G
-    h1 = hom(free_group(G), N, gens(free_group(G)), [N[i] for i=1:ngens(G)])
-    h2 = hom(free_group(fM), N, gens(free_group(fM)), [N[i+ngens(G)] for i=1:ngens(fM)])
+    h1 = hom(free_group(G), N, gens(free_group(G)), [N[i] for i=1:ngens(G)]; check = false)
+    h2 = hom(free_group(fM), N, gens(free_group(fM)), [N[i+ngens(G)] for i=1:ngens(fM)]; check = false)
     return mQ(h1(underlying_word(g))*h2(underlying_word(preimage(mfM, m))))
   end
 
@@ -2220,11 +2220,11 @@ function extension(::Type{PcGroup}, c::CoChain{2,<:Oscar.PcGroupElem})
 #  @show GAP.gap_to_julia(s)
   Q = PcGroup(GAP.Globals.GroupByRws(CN))
   fQ = GAP.Globals.FamilyObj(one(Q).X)
-  mQ = hom(N, Q, gens(N), gens(Q))
+  mQ = hom(N, Q, gens(N), gens(Q); check = false)
 
   @assert ngens(Q) == ngens(N)
-  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end])
-  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]))
+  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end]; check = false)
+  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]); check = false)
   @assert domain(mfM) == M
   @assert codomain(mfM) == fM
 #  @assert is_surjective(QtoG)
@@ -2368,12 +2368,36 @@ function all_extensions(C::GModule)
   T, mT = compatible_pairs(C)
   G = gset(T, (a, g) -> preimage(mH2, mT(g, mH2(a))), collect(H2), closed = true)
   O = orbits(G)
-  @show length(O)
   all_G = []
   for o = O
-    push!(all_G, extension(mH2(representative(o)))[1])
+    E, NtoE, EtoG, EGtoM = extension(mH2(representative(o)))
+    push!(all_G, E)
   end
   return all_G
+end
+
+function Oscar.image(M::Map{FinGenAbGroup, <:Oscar.GAPGroup})
+  A = domain(M)
+  G = codomain(M)
+  s, ms = sub(G, map(M, gens(A)))
+  return s, ms
+end
+
+function is_central_extension(NtoE::Map)
+  E = codomain(NtoE)
+  n = map(NtoE, gens(domain(NtoE)))
+  return all(x->all(y->y*x == x*y, n), gens(E))
+  return is_subset(N, center(E)[1])
+end
+
+function is_stem_extension(NtoE::Map; is_central_known::Bool = false)
+  E = codomain(NtoE)
+  N = image(NtoE)[1]
+  E = codomain(NtoE)
+  if !is_central_known
+    is_central_extension(NtoE) || return false
+  end
+  return is_subset(N, derived_subgroup(E)[1])
 end
 
 (G::MatrixGroup{FqFieldElem, FqMatrix})(a::GAP.GapObj) = Oscar.group_element(G, a)
