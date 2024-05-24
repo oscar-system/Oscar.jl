@@ -440,7 +440,25 @@ function solvable_quotient(G::Oscar.GAPGroup)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
-function sq(mp::Map, primes::Vector)
+function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing})
+  if index !== nothing
+    lf = factor(ZZRingElem(index))
+    primes = collect(keys(lf.fac))
+    while length(primes) > 0
+      @time nw = brueckner(mp; limit = 1, primes)
+      if length(nw) == 0 
+        return mp
+      end
+      mp = nw[1]
+      for (p, k) = lf.fac
+        if p in primes && valuation(order(codomain(mp)), p) >= k
+          deleteat!(primes, findfirst(isequal(p), primes))
+          @show :removing, p
+        end
+      end
+    end
+    return mp
+  end
   while true
     @time nw = brueckner(mp; limit = 1, primes)
     if length(nw) == 0
