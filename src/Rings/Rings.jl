@@ -20,7 +20,7 @@ include("MPolyMap/MPolyQuo.jl")
 include("MPolyMap/AffineAlgebras.jl")
 include("MPolyMap/base_change.jl")
 
-include("mpoly-local.jl")
+#include("mpoly-local.jl")
 include("localization_interface.jl")
 include("mpoly-localization_types.jl")
 include("mpoly-localizations.jl")
