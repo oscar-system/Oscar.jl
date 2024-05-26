@@ -3,16 +3,15 @@
 ## Introduction
 
 For some of our datatypes we provide a way to save them in and load them from
-JSON format. This is still experimental and it will take some time until all
-corners of OSCAR are covered by this effort. The goal of this effort is
-threefold:
+JSON format.  The most common OSCAR types are supported, but it will take some time until all
+corners of OSCAR are covered by this effort. Our overall goal is threefold:
   - Avoid recomputation by providing an easy way to store data.
   - Increase portability by giving a convenient possibility to transport data.
   - Increase overall software quality by testing against existing data and
-    tracking errors through data computed by different versions.
+    tracking errors through data computed by different versions of OSCAR (or other computer algebra systems).
 
-Work on serialization is supported by the MaRDI project. You can find out more about
-Mardi [here.](https://www.mardi4nfdi.de/about/mission)
+For more details read the [developer documentation](../DeveloperDocumentation/serialization.html).
+Work on serialization is supported by the [MaRDI project](https://www.mardi4nfdi.de/about/mission). You can find out more about its Task Area 1 (Computer Algebra) [here.](https://portal.mardi4nfdi.de/wiki/Portal/TA1)
 
 ```@docs
 save

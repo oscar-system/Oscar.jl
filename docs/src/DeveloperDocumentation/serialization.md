@@ -1,6 +1,5 @@
 # [Serialization](@id dev_serialization)
-This document summarizes the serialization efforts of OSCAR, how it is supposed
-to work, how it works and the overall goal.
+This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
 is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
@@ -14,14 +13,13 @@ Which means we use a JSON extension to serialize data.
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
 ```
-julia> save("/tmp/fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.mrdi", 42);
 
-julia> load("/tmp/fourtitwo.json")
+julia> load("/tmp/fourtitwo.mrdi")
 42
 
 ```
-As hinted by the filename, OSCAR writes a file in JSON format. The file looks
-as follows:
+The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
 ```
 {
   "_ns": {
@@ -34,8 +32,8 @@ as follows:
   "data": "42"
 }
 ```
-It contains the version of OSCAR used for serialization. The content is "42",
-it represents a `Base.Int`, according to the `_type` field.
+It contains the precise version of OSCAR used for this serialization.
+The content is "42", it represents a `Base.Int`, according to the `_type` field.
 
 
 ## Implementation
