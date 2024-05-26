@@ -360,7 +360,7 @@
 	   M1 = uniform_matroid(1, 4)
            M2 = uniform_matroid(3, 4)
 	   @test is_quotient(M1,M2) == true
-	   @test_throws ErrorException is_quotient(M2,M1)
-	   @test_throws ErrorException is_quotient(Q2,M2)
+	   @test_throws ArgumentError is_quotient(M2, M1)
+	   @test_throws ArgumentError is_quotient(Q2, M2)
    end
 end

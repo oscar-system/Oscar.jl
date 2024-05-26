@@ -1023,7 +1023,7 @@ end
 @doc raw"""
     is_quotient(Q1::Matroid,Q2::Matroid)
 
-Let Q1 and Q2 be matroids on the groundset $[n]$, with rank $rank(Q1) \leq rank(Q2)$.  
+Let Q1 and Q2 be matroids on the same groundset with rank $rank(Q1) \leq rank(Q2)$.  
 Check if $Q1$ is a matroid quotient of $Q2$.
 
 # Examples
