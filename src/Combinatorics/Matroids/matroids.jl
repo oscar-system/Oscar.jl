@@ -1041,6 +1041,6 @@ true
 """
 function is_quotient(Q1::Matroid,Q2::Matroid)
     @req matroid_groundset(Q1) == matroid_groundset(Q2) "matroids must be on same groundset" 
-    @req rank(Q1)<=rank(Q2) "matroids must be of increasing rank"
+    @req rank(Q1)<=rank(Q2) "matroids must be of equal or increasing rank"
     return issubset(flats(Q1),flats(Q2))
 end
