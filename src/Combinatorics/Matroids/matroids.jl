@@ -1023,7 +1023,8 @@ end
 @doc raw"""
     is_quotient(Q1::Matroid,Q2::Matroid)
 
-Let Q1 and Q2 be matroids on the groundset $[n]$, with rank $rank(Q2) = rank(Q1)+1$.  Check if $Q1$ is a matroid quotient of $Q2$.
+Let Q1 and Q2 be matroids on the groundset $[n]$, with rank $rank(Q1) \leq rank(Q2)$.  
+Check if $Q1$ is a matroid quotient of $Q2$.
 
 # Examples
 
@@ -1039,11 +1040,6 @@ true
 ```
 """
 function is_quotient(Q1::Matroid,Q2::Matroid)
-    @req rank(Q1)==rank(Q2)-1 "matroids must be of successive rank"
-    a = length(Q1) + 1
-    B1 = [vcat(b,a) for b in bases(Q1)]
-    B2 = bases(Q2)
-    B = vcat(B1,B2)
-    M = Polymake.matroid.Matroid(BASES = B,N_ELEMENTS = a) 
-    return Polymake.matroid.check_basis_exchange_axiom(M.BASES)
+    @req rank(Q1)<=rank(Q2) "matroids must be of increasing rank"
+    return issubset(flats(Q1),flats(Q2))
 end

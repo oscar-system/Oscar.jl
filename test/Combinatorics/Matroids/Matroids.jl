@@ -351,11 +351,11 @@
     end
 
     @testset "matroid quotient" begin
-	   Q1 = uniform_matroid(1,3)
-	   Q2 = uniform_matroid(2,3)
-	   @test is_quotient(Q1,Q2) == true
-	   Q1 = matroid_from_bases([[3]],3)
-	   Q2 = matroid_from_bases([[1,2]],3)
-	   @test is_quotient(Q1,Q2) == false
+	   Q1 = uniform_matroid(1, 3)
+	   Q2 = uniform_matroid(2, 3)
+	   @test is_quotient(Q1, Q2) == true
+	   Q1 = matroid_from_bases([[3]], 3)
+	   Q2 = matroid_from_bases([[1, 2]], 3)
+	   @test is_quotient(Q1, Q2) == false
    end
 end
