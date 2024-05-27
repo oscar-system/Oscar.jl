@@ -582,13 +582,15 @@ function _presentation_minimal(SQ::ModuleFP{T};
   F0_to_SQ.generators_map_to_generators = true
   AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(F0))")
 
+  is_sq_graded = is_graded(SQ)
+
   # if we want a minimal kernel too, we go to prune_with_map
   K, inc = sub(F0, relations(SQ_new))
   if minimal_kernel
     K, inc2 = prune_with_map(K)
     inc = compose(inc2, inc)
   end
-  F1 = if is_graded(SQ)
+  F1 = if is_sq_graded
     graded_free_module(R, degrees_of_generators(K))
   else
     free_module(R, ngens(K))
@@ -598,12 +600,21 @@ function _presentation_minimal(SQ::ModuleFP{T};
 
   # When there is no kernel, clean things up
   if is_zero(F1)
-    F1 = FreeMod(R, 0)
+    if is_sq_graded
+        F1 = graded_free_module(R, 0)
+    else
+        F1 = FreeMod(R, 0)
+    end
+    AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
     F1_to_F0 = hom(F1, F0, elem_type(F0)[]; check=false)
   end
   
   # prepare the end of the presentation
-  Z = FreeMod(R, 0)
+  if is_sq_graded
+      Z = graded_free_module(R, 0)
+  else
+      Z = FreeMod(R, 0)
+  end
   AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
