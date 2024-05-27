@@ -1,4 +1,4 @@
-# Serialization
+# [Serialization](@id serialization)
 
 ## Introduction
 
