@@ -302,12 +302,12 @@ Turn a cone into a polyhedron.
 function polyhedron(C::Cone{T}) where {T<:scalar_types}
   pmo_in = pm_object(C)
   pmo_out = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}()
-  for prop in ["RAYS", "INPUT_RAYS", "FACETS", "INEQUALITIES"]
+  for prop in ("RAYS", "INPUT_RAYS", "FACETS", "INEQUALITIES")
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), true))
     end
   end
-  for prop in ["INPUT_LINEALITY", "LINEALITY_SPACE", "EQUATIONS", "LINEAR_SPAN"]
+  for prop in ("INPUT_LINEALITY", "LINEALITY_SPACE", "EQUATIONS", "LINEAR_SPAN")
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
     end

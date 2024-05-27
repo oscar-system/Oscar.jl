@@ -178,17 +178,17 @@ Turn a polyhedral fan into a polyhedral complex.
 function polyhedral_complex(F::PolyhedralFan{T}) where {T<:scalar_types}
   pmo_in = pm_object(F)
   pmo_out = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}()
-  for prop in ["RAYS", "INPUT_RAYS", "FACET_NORMALS"]
+  for prop in ("RAYS", "INPUT_RAYS", "FACET_NORMALS")
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), true))
     end
   end
-  for prop in ["INPUT_LINEALITY", "LINEALITY_SPACE", "LINEAR_SPAN_NORMALS"]
+  for prop in ("INPUT_LINEALITY", "LINEALITY_SPACE", "LINEAR_SPAN_NORMALS")
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
     end
   end
-  for prop in ["MAXIMAL_CONES", "INPUT_CONES", "MAXIMAL_CONES_FACETS"]
+  for prop in ("MAXIMAL_CONES", "INPUT_CONES", "MAXIMAL_CONES_FACETS")
     if Polymake.exists(pmo_in, prop)
       inprop = Polymake.give(pmo_in, prop)
       outprop = if inprop isa Polymake.IncidenceMatrix
