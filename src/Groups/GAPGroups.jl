@@ -1863,6 +1863,7 @@ function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
   G = parent(g)
   Ggens = gens(G)
   if length(Ggens) == 0
+    @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
   gX = GapObj(g)

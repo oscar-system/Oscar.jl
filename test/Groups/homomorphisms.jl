@@ -170,6 +170,7 @@ end
 
      # empty list of generators
      T = free_group(0)
+     @test_throws ArgumentError map_word(one(T), Int[])   # no `init`
      @test map_word(one(T), [], init = 1) == 1            # `init` is returned
      @test map_word(one(F), gens(F), init = 1) == one(F)  # `init` is ignored
 
