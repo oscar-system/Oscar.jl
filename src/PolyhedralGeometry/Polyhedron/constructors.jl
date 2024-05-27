@@ -312,7 +312,7 @@ function polyhedron(C::Cone{T}) where {T<:scalar_types}
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
     end
   end
-  return Polyhedron{T}(pmo_out, C.parent_field)
+  return Polyhedron{T}(pmo_out, coefficient_field(C))
 end
 
 ###############################################################################

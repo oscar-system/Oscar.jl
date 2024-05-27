@@ -210,7 +210,7 @@ function polyhedral_complex(F::PolyhedralFan{T}) where {T<:scalar_types}
       Polymake.give(pmo_in, "MAXIMAL_CONES_LINEAR_SPAN_NORMALS"),
     )
   end
-  return PolyhedralComplex{T}(pmo_out, F.parent_field)
+  return PolyhedralComplex{T}(pmo_out, coefficient_field(F))
 end
 
 ###############################################################################
