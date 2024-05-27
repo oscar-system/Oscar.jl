@@ -147,17 +147,36 @@ end
   @test !fl
 
   R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [ 1, 2 ])
-  V = [ x^4 + y^2, y, x ]
-  V1 = minimal_subalgebra_generators(V)
-  @test V1 == [ x, y ]
-  V2, rels = Oscar.minimal_subalgebra_generators_with_relations(V)
-  @test V2 == [ x, y ]
-  for i = 1:length(V)
-    @test V[i] == rels[i](V2...)
+  Q, _ = quo(R, ideal(R, [x^10 - y^5]))
+  for S in [R, Q]
+    u = gen(S, 1)
+    v = gen(S, 2)
+    V = [ u^4 + v^2, v, u ]
+    V1 = @inferred minimal_subalgebra_generators(V)
+    @test all(f -> parent(f) === S, V1)
+    @test V1 == [ u, v ]
+    V2, rels = @inferred Oscar.minimal_subalgebra_generators_with_relations(V)
+    @test all(f -> parent(f) === S, V2)
+    @test V2 == [ u, v ]
+    for i = 1:length(V)
+      @test V[i] == rels[i](V2...)
+    end
+
+    # An example, where the minimal generators aren't just the first elements
+    V = [u^2, v^2, u^2*v^2, v^3]
+    V1 = @inferred minimal_subalgebra_generators(V)
+    @test V1 == [u^2, v^2, v^3]
+    @test all(f -> parent(f) === S, V1)
+    V2, rels = @inferred Oscar.minimal_subalgebra_generators_with_relations(V)
+    @test V2 == [u^2, v^2, v^3 ]
+    @test all(f -> parent(f) === S, V2)
+    for i = 1:length(V)
+      @test V[i] == rels[i](V2...)
+    end
   end
 end
 
-@testset "algebraicaic independence" begin
+@testset "algebraic independence" begin
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   V = [x, y]
   fl, I = is_algebraically_independent_with_relations(V)
