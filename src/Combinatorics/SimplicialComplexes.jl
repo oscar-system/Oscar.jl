@@ -680,10 +680,11 @@ julia> G = automorphism_group(K)
 Permutation group of degree 4
 
 julia> g = collect(G)[2]
-(1,2)(3,4)
+(1,4)
 
-julia> on_simplicial_complex(K, g)
-Abstract simplicial complex of dimension 2 on 4 vertices
+julia> facets(on_simplicial_complex(K, g))
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 ```
 """
 function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
