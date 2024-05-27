@@ -1363,7 +1363,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 julia> polys = [x + y, x - y, 2x + 3y];
 
 julia> V, VtoPoly = vector_space(QQ, polys)
-(Vector space of dimension 2 over QQ, Map: V -> R)
+(Vector space of dimension 2 over rational field, Map: V -> multivariate polynomial ring)
 
 julia> VtoPoly.(basis(V))
 2-element Vector{QQMPolyRingElem}:
