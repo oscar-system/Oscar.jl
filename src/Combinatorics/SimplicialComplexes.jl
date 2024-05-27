@@ -683,6 +683,7 @@ julia> g = collect(G)[2]
 (1,4)
 
 julia> facets(on_simplicial_complex(K, g))
+2-element Vector{Set{Int64}}:
  Set([2, 3, 1])
  Set([4, 2, 3])
 ```
