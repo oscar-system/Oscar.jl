@@ -775,7 +775,6 @@ See also [`is_archimedean_solid`](@ref).
           facets.
     - "snub_cube" : Snub cube.
           Regular polytope with 32 triangular and six square facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
     - "icosidodecahedron" : Icosidodecahedon.
           Regular polytope with 20 triangular and 12 pentagonal facets.
@@ -791,7 +790,6 @@ See also [`is_archimedean_solid`](@ref).
           facets.
     - "snub_dodecahedron" : Snub dodecahedron.
           Regular polytope with 80 triangular and 12 pentagonal facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
 
 # Examples
@@ -870,10 +868,9 @@ Construct a Catalan solid with the name `s` from the list below.
           triangular facets.
     - "pentagonal_icositetrahedron" : Pentagonal icositetrahedron.
           Dual polytope to the snub cube, made of 24 irregular pentagonal facets.
-          The vertices are realized as floating point numbers.
     - "pentagonal_hexecontahedron" : Pentagonal hexecontahedron.
           Dual polytope to the snub dodecahedron, made of 60 irregular pentagonal
-          facets. The vertices are realized as floating point numbers.
+          facets.
     - "rhombic_triacontahedron" : Rhombic triacontahedron.
           Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
     - "triakis_icosahedron" : Triakis icosahedron.
