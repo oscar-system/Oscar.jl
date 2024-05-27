@@ -1458,7 +1458,8 @@ function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothin
   C = F.C
   rng = Hecke.map_range(C)
   n = first(rng)
-  for i in 0:n
+  m = rng.stop + 1
+  for i in m:n
     module_degrees = F[i].d
     module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
     for degree in module_degrees
