@@ -534,8 +534,8 @@ end
 
 Oscar.relations(G::Oscar.GAPGroup) = _relations_by_generators(G)
 
-function Oscar.relations(F::FPGroup)
-  is_full_fp_group(F) || return _relations_by_generators(F)
+function Oscar.relations(F::Union{FPGroup, SubFPGroup})
+  Oscar._is_full_fp_group(GapObj(F)) || return _relations_by_generators(F)
   R = relators(F)
   z = one(free_group(F))
   return [(x, z) for x = R]

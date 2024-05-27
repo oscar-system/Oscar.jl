@@ -279,7 +279,7 @@ function Base.show(io::IO, G::GAPGroup)
   end
 end
 
-function Base.show(io::IO, G::FPGroup)
+function Base.show(io::IO, G::Union{FPGroup, SubFPGroup})
   @show_name(io, G)
   @show_special(io, G)
   if GAPWrap.IsFreeGroup(GapObj(G))
@@ -288,8 +288,8 @@ function Base.show(io::IO, G::FPGroup)
       print(io, " of rank ", GAP.Globals.RankOfFreeGroup(GapObj(G))::Int)
     end
   else
-    print(io, "Finitely presented group")  # FIXME: actually some of these groups are *not* finitely presented
-#T introduce SubFPGroup
+    T = typeof(G) == FPGroup ? "Finitely presented group" : "Sub-finitely presented group"
+    print(io, T)  # FIXME: actually some of these groups are *not* finitely presented
     if !is_terse(io)
     if has_order(G)
       if is_finite(G)
@@ -1741,31 +1741,34 @@ false
 
 
 @doc raw"""
-    is_full_fp_group(G::FPGroup)
+    full_group(G::T) where T <: Union{SubFPGroup, SubPcGroup}
+    full_group(G::T) where T <: Union{FPGroup, PcGroup}
 
-Return `true` if `G` has been constructed as a free group or
-a quotient of a free group, and `false` otherwise.
-
-Note that also subgroups of groups of type `FPGroup` have the type `FPGroup`,
-and functions such as [`relators`](@ref) do not make sense for proper
-subgroups.
+Return `F, emb` where `F` is the full pc group of f.p. group of which `G`
+is a subgroup, and `emb` is an embedding of `G` into `F`.
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  is_full_fp_group(f)
+julia> G = perfect_group(FPGroup, 60, 1);
+
+julia> H = sylow_subgroup(G, 2)[1];
+
+julia> full_group(H)[1] == G
 true
 
-julia> s = sub(f, gens(f))[1];  is_full_fp_group(s)
-false
-
-julia> q = quo(f, [gen(f,1)^2])[1];  is_full_fp_group(q)
+julia> full_group(G)[1] == G
 true
-
-julia> u = sub(q, gens(q))[1];  is_full_fp_group(u)
-false
 ```
 """
-is_full_fp_group(G::FPGroup) = GAPWrap.IsFpGroup(GapObj(G))
+function full_group(G::Union{SubFPGroup, SubPcGroup})
+  F = G.full_group
+  return F, embedding(G, F)
+end
+
+# for convenience
+function full_group(G::Union{FPGroup, PcGroup})
+  return G, identity_map(G)
+end
 
 
 @doc raw"""
@@ -1774,9 +1777,6 @@ is_full_fp_group(G::FPGroup) = GAPWrap.IsFpGroup(GapObj(G))
 Return a vector of relators for the full finitely presented group `G`, i.e.,
 elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
 `G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
-
-An exception is thrown if `G` has been constructed only as a subgroup of a
-full finitely presented group, see [`is_full_fp_group`](@ref).
 
 # Examples
 ```jldoctest
@@ -1790,7 +1790,6 @@ julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 ```
 """
 function relators(G::FPGroup)
-  @req is_full_fp_group(G) "the group must be a full f. p. group"
   L = GAPWrap.RelatorsOfFpGroup(GapObj(G))::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
@@ -1810,9 +1809,9 @@ $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
-If `g` is an element of a finitely presented group then the result is
-defined as `map_word` applied to a representing element of the underlying
-free group.
+If `g` is an element of (a subgroup of) a finitely presented group
+then the result is defined as `map_word` applied to a representing element
+of the underlying free group.
 
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
@@ -1859,7 +1858,7 @@ julia> invs
 
 ```
 """
-function map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
   Ggens = gens(G)
   if length(Ggens) == 0
@@ -1959,7 +1958,7 @@ end
 
 
 @doc raw"""
-    syllables(g::FPGroupElem)
+    syllables(g::Union{FPGroupElem, SubFPGroupElem})
 
 Return the syllables of `g` as a list of pairs `gen => exp` where
 `gen` is the index of a generator and `exp` is an exponent.
@@ -1984,7 +1983,7 @@ julia> syllables(epi(F1^5*F2^-3))
  2 => -3
 ```
 """
-function syllables(g::FPGroupElem)
+function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
 end
@@ -2036,10 +2035,11 @@ end
 
 
 @doc raw"""
-    length(g::FPGroupElem)
+    length(g::Union{FPGroupElem, SubFPGroupElem})
 
-Return the length of `g` as a word in terms of the generators of its group
-if `g` is an element of a free group, otherwise a exception is thrown.
+Return the length of `g` as a word in terms of the generators of its parent
+or of the full group of its parent if `g` is an element of a free group,
+otherwise an exception is thrown.
 
 # Examples
 ```jldoctest
@@ -2055,7 +2055,7 @@ julia> length(one(quo(F, [F1])[1]))
 ERROR: ArgumentError: the element does not lie in a free group
 ```
 """
-function length(g::FPGroupElem)
+function length(g::Union{FPGroupElem, SubFPGroupElem})
   gX = GapObj(g)
   @req GAPWrap.IsAssocWord(gX) "the element does not lie in a free group"
   return length(gX)
@@ -2084,7 +2084,6 @@ true
 ```
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
-   @req is_full_fp_group(G) "the group must be a full f. p. group"
    n = ngens(G)
    ll = IntegerUnion[]
    for p in pairs
@@ -2099,7 +2098,6 @@ end
 
 # This format is used in the serialization of `FPGroupElem`.
 function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
-   @req is_full_fp_group(G) "the group must be a full f. p. group"
    famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
    if GAP.Globals.IsFreeGroup(GapObj(G))
      w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
@@ -2238,7 +2236,7 @@ function describe(G::GAPGroup)
    return "a group"
 end
 
-function describe(G::FPGroup)
+function describe(G::Union{FPGroup, SubFPGroup})
    # despite the name, there are non-finitely generated (and hence non-finitely presented)
    # FPGroup instances
    is_finitely_generated(G) || return "a non-finitely generated group"

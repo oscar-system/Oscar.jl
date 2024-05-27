@@ -121,11 +121,11 @@ end
    #   (We check that this really happens.)
    # Thus we forbid this call on the Oscar side,
    h = sub(g, [x^2])[1]
-   @test_throws ErrorException quo(h, [x^10])
+   @test_throws ErrorException quo(h, [h(x^10)])
    # q3, epi3 = quo(h, [x^10])
    # @test order(q3) == 5
    # @test [epi3(h) for h in gens(h)] == gens(q3)
-   n = normal_closure(h, sub(h, [x^10])[1])[1]
+   n = normal_closure(h, sub(h, [h(x^10)])[1])[1]
    @test_throws ErrorException quo(h, n)
 
    # quotient of a *subgroup* of a f.p. group:

@@ -60,7 +60,7 @@
 #   the parent object, without serializing the underlying element in GAP.
 #
 # - Remark:
-#   In those cases where the object identity of `GAP.Globals.FamilyObj`
+#   In those cases where the object identity of `GAPWrap.FamilyObj`
 #   objects must be preserved in the deserialization, we cannot simply
 #   leave it to the (de)serialization of Oscar objects to deal with "their"
 #   underlying GAP objects.
@@ -70,12 +70,13 @@
 #   In order to achieve that the deserialized `H` and `K` in a new Julia
 #   session are compatible (that is, elements of `H` and elements of `K`
 #   can be multiplied with each other), we have to make sure that
-#   `GAP.Globals.FamilyObj(H.X) === GAP.Globals.FamilyObj(K.X)` are
-#   identical.
-#   Since `H` and `K` know about these objects only via `H.X` and `K.X`,
+#   `GAPWrap.FamilyObj(GapObj(H)) === GAPWrap.FamilyObj(GapObj(K))`
+#   are identical.
+#   Since `H` and `K` know about these objects only via `GapObj(H)` and
+#   `GapObj(K)`,
 #   the mechanism that automatically takes care of object identity in the
-#   (de)serialization can be used only if (de)serialization methods for `H.X`
-#   and `K.X` are provided.
+#   (de)serialization can be used only if (de)serialization methods for
+#   `GapObj(H)` and `GapObj(K)` are provided.
 #
 #   (The situation would be different if `H` and `K` would store references
 #   to the "full group" `G`.
@@ -118,7 +119,7 @@ function save_object(s::SerializerState, G::PermGroup)
 
   save_data_dict(s) do
     save_object(s, n, :degree)
-    save_object(s, [Vector{Int}(GAP.Globals.ListPerm(x.X)) for x in gens(G)], :gens)
+    save_object(s, [Vector{Int}(GAPWrap.ListPerm(GapObj(x))) for x in gens(G)], :gens)
   end
 end
 
@@ -139,7 +140,7 @@ end
 @register_serialization_type PermGroupElem uses_params
 
 function save_object(s::SerializerState, p::PermGroupElem)
-  save_object(s, Vector{Int}(GAP.Globals.ListPerm(p.X)))
+  save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
 
 function load_object(s::DeserializerState, T::Type{PermGroupElem}, parent_group::PermGroup)
@@ -149,47 +150,56 @@ end
 
 
 ##############################################################################
-# FPGroup
+# FPGroup, SubFPGroup
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
 
 @register_serialization_type FPGroup uses_id
+@register_serialization_type SubFPGroup uses_id
 
-function save_object(s::SerializerState, G::FPGroup)
+function save_object(s::SerializerState, G::Union{FPGroup, SubFPGroup})
   save_data_dict(s) do
-    save_object(s, G.X, :X)
+    save_typed_object(s, GapObj(G), :X)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{FPGroup})
-  return FPGroup(load_object(s, GapObj, :X))
+function load_object(s::DeserializerState, ::Type{T}) where T <: Union{FPGroup, SubFPGroup}
+  return T(load_typed_object(s, :X))
 end
 
 
 ##############################################################################
-# FPGroupElem
+# FPGroupElem, SubFPGroupElem
 # We need the parent and a description of the word that defines the element.
 
 @register_serialization_type FPGroupElem uses_params
+@register_serialization_type SubFPGroupElem uses_params
 
-function save_object(s::SerializerState, g::FPGroupElem)
+function save_object(s::SerializerState, g::Union{FPGroupElem, SubFPGroupElem})
   save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
 end
 
-function load_object(s::DeserializerState, ::Type{FPGroupElem}, parent_group::FPGroup)
-  lo = load_object(s, Vector, Int)
-  fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
-  if GAP.Globals.IsElementOfFpGroupFamily(fam)
-    # go via the underlying free group
-    free = GAP.getbangproperty(fam, :freeGroup)
-    freefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(free))
-    freeelm = GAPWrap.ObjByExtRep(freefam, GapObj(lo, true))
-    gapelm = GAPWrap.ElementOfFpGroup(fam, freeelm)
-  else
-    # element in a free group
-    gapelm = GAPWrap.ObjByExtRep(fam, GapObj(lo, true))
+typecombinations = (
+    (:FPGroupElem, :FPGroup),
+    (:SubFPGroupElem, :SubFPGroup),
+)
+
+for (eltype, type) in typecombinations
+  @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
+    lo = load_object(s, Vector, Int)
+    fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
+    if GAPWrap.IsElementOfFpGroupFamily(fam)
+      # go via the underlying free group
+      free = GAP.getbangproperty(fam, :freeGroup)
+      freefam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(free))
+      freeelm = GAPWrap.ObjByExtRep(freefam, GapObj(lo, true))
+      gapelm = GAPWrap.ElementOfFpGroup(fam, freeelm)
+    else
+      # element in a free group
+      gapelm = GAPWrap.ObjByExtRep(fam, GapObj(lo, true))
+    end
+    return Oscar.group_element(parent_group, gapelm)
   end
-  return Oscar.group_element(parent_group, gapelm)
 end
 
 
@@ -201,16 +211,12 @@ end
 
 function save_object(s::SerializerState, G::Union{PcGroup, SubPcGroup})
   save_data_dict(s) do
-    save_object(s, G.X, :X)
+    save_typed_object(s, GapObj(G), :X)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{PcGroup})
-  return PcGroup(load_object(s, GapObj, :X))
-end
-
-function load_object(s::DeserializerState, ::Type{SubPcGroup})
-  return SubPcGroup(load_object(s, GapObj, :X))
+function load_object(s::DeserializerState, ::Type{T}) where T <: Union{PcGroup, SubPcGroup}
+  return T(load_typed_object(s, :X))
 end
 
 
@@ -223,25 +229,24 @@ end
 @register_serialization_type SubPcGroupElem uses_params
 
 function save_object(s::SerializerState, g::Union{PcGroupElem, SubPcGroupElem})
-  elfam = GAPWrap.FamilyObj(g.X)
+  elfam = GAPWrap.FamilyObj(GapObj(g))
   fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)
-  save_object(s, Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, g.X)))
+  save_object(s, Vector{Int}(GAPWrap.ExponentsOfPcElement(fullpcgs, GapObj(g))))
 end
 
-function load_object(s::DeserializerState, ::Type{PcGroupElem}, parent_group::PcGroup)
-  lo = load_object(s, Vector, Int)
-  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
-  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
-  gapelm = GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
-  return Oscar.group_element(parent_group, gapelm)
-end
+typecombinations = (
+    (:PcGroupElem, :PcGroup),
+    (:SubPcGroupElem, :SubPcGroup),
+)
 
-function load_object(s::DeserializerState, ::Type{SubPcGroupElem}, parent_group::SubPcGroup)
-  lo = load_object(s, Vector, Int)
-  elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(parent_group.X))
-  fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
-  gapelm = GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
-  return Oscar.group_element(parent_group, gapelm)
+for (eltype, type) in typecombinations
+  @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
+    lo = load_object(s, Vector, Int)
+    elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
+    fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
+    gapelm = GAPWrap.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
+    return Oscar.group_element(parent_group, gapelm)
+  end
 end
 
 

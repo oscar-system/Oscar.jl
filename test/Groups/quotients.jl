@@ -92,11 +92,11 @@ end
    x,y = gens(F)
    @test x == F[1]
    @test y == F[2]
-   @test is_full_fp_group(F)
+   @test Oscar._is_full_fp_group(GapObj(F))
    @test relators(F) == FPGroupElem[]
    S = sub(F, [gen(F, 1)])[1]
-   @test ! is_full_fp_group(S)
-   @test_throws ArgumentError relators(S)
+   @test ! Oscar._is_full_fp_group(GapObj(S))
+   @test_throws MethodError relators(S)
    
    n=5
    G,f = quo(F, [x^2,y^n,(x*y)^2] )           # dihedral group D(2n)
@@ -121,14 +121,14 @@ end
    @test is_surjective(f)
    @test exponent(G) == n
    @test isone(G[1]^n)
-   @test is_full_fp_group(G)
+   @test Oscar._is_full_fp_group(GapObj(G))
    @test relators(G)==[x^n,y^n,comm(x,y)]
    S = sub(G, [gen(G, 1)])[1]
-   @test ! is_full_fp_group(S)
-   @test_throws ArgumentError relators(S)
+   @test ! Oscar._is_full_fp_group(GapObj(S))
+   @test_throws MethodError relators(S)
 
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3
-   @test_throws ArgumentError S([1 => 2])
+   @test_throws MethodError S([1 => 2])
 
    S = symmetric_group(4)
    G,f = quo(S, [cperm(S,[1,3,2])])
