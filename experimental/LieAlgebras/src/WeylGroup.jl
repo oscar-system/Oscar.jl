@@ -59,7 +59,7 @@ Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::In
 # Examples
 ```jldoctest
 julia> weyl_group(:A, 2)
-Weyl group for Root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
 ```
 """
 function weyl_group(fam::Symbol, rk::Int)
@@ -130,7 +130,7 @@ end
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for $(W.root_system)")
+  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
 end
 
 function coxeter_matrix(W::WeylGroup)
