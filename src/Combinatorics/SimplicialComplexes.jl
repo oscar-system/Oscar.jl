@@ -655,11 +655,11 @@ function automorphism_group(K::SimplicialComplex; action=:on_vertices)
   if action == :on_vertices
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.RAYS_ACTION.GENERATORS)
     n = n_vertices(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   elseif action == :on_facets
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.FACETS_ACTION.GENERATORS)
     n = n_facets(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   else
     error("unsupported keyword passed to action")
   end
