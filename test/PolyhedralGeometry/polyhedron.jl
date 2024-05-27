@@ -621,6 +621,19 @@ end
     @test !Oscar._is_prismic_or_antiprismic(a)
   end
 
+  for f in (snub_cube, snub_dodecahedron)
+    ae = f()
+    @test ae isa Polyhedron{<:EmbeddedNumFieldElem}
+    @test is_archimedean_solid(ae)
+    @test Polymake.polytope.isomorphic(Oscar.pm_object(ae), Polymake.polytope.archimedean_solid(string(f)))
+  end
+
+  for f in (pentagonal_icositetrahedron, pentagonal_hexecontahedron)
+    ce = f()
+    @test ce isa Polyhedron{<:EmbeddedNumFieldElem}
+    @test Polymake.polytope.isomorphic(Oscar.pm_object(ce), Polymake.polytope.catalan_solid(string(f)))
+  end
+
   let j = johnson_solid(69)
     @test !is_platonic_solid(j)
     @test !is_archimedean_solid(j)

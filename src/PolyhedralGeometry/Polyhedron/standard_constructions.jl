@@ -257,13 +257,14 @@ Construct the `i`-th proper Johnson solid.
 
 A Johnson solid is a 3-polytope whose facets are regular polygons, of various gonalities.
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
+  See the [Polytope Wiki](https://polytope.miraheze.org/wiki/List_of_Johnson_solids)
 
 See also [`is_johnson_solid`](@ref).
 """
 function johnson_solid(index::Int)
   if index in _johnson_indexes_from_oscar
     # code used for generation of loaded files can be found at:
-    # https://github.com/dmg-lab/JohnsonSrc
+    # https://github.com/dmg-lab/RegularSolidsSrc
     str_index = lpad(index, 2, '0')
     filename = "j$str_index" * ".mrdi"
     return load(joinpath(oscardir, "data", "JohnsonSolids", filename))
@@ -746,12 +747,13 @@ julia> n_facets(T)
 """
 platonic_solid(s::String) = polyhedron(Polymake.polytope.platonic_solid(s))
 
+const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahedron"])
+
 @doc raw"""
     archimedean_solid(s)
 
 Construct an Archimedean solid with the name given by String `s` from the list
-below. Some of these polytopes are realized with floating point numbers and
-thus not exact; Vertex-facet-incidences are correct in all cases.
+below.
 
 See also [`is_archimedean_solid`](@ref).
 
@@ -764,32 +766,30 @@ See also [`is_archimedean_solid`](@ref).
           Regular polytope with eight triangular and six square facets.
     - "truncated_cube" : Truncated cube.
           Regular polytope with eight triangular and six octagonal facets.
-    - "truncated_octahedron" : Truncated Octahedron.
+    - "truncated_octahedron" : Truncated octahedron.
           Regular polytope with six square and eight hexagonal facets.
     - "rhombicuboctahedron" : Rhombicuboctahedron.
           Regular polytope with eight triangular and 18 square facets.
-    - "truncated_cuboctahedron" : Truncated Cuboctahedron.
+    - "truncated_cuboctahedron" : Truncated cuboctahedron.
           Regular polytope with 12 square, eight hexagonal and six octagonal
           facets.
-    - "snub_cube" : Snub Cube.
+    - "snub_cube" : Snub cube.
           Regular polytope with 32 triangular and six square facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
     - "icosidodecahedron" : Icosidodecahedon.
           Regular polytope with 20 triangular and 12 pentagonal facets.
-    - "truncated_dodecahedron" : Truncated Dodecahedron.
+    - "truncated_dodecahedron" : Truncated dodecahedron.
           Regular polytope with 20 triangular and 12 decagonal facets.
-    - "truncated_icosahedron" : Truncated Icosahedron.
+    - "truncated_icosahedron" : Truncated icosahedron.
           Regular polytope with 12 pentagonal and 20 hexagonal facets.
     - "rhombicosidodecahedron" : Rhombicosidodecahedron.
           Regular polytope with 20 triangular, 30 square and 12 pentagonal
           facets.
-    - "truncated_icosidodecahedron" : Truncated Icosidodecahedron.
+    - "truncated_icosidodecahedron" : Truncated icosidodecahedron.
           Regular polytope with 30 square, 20 hexagonal and 12 decagonal
           facets.
-    - "snub_dodecahedron" : Snub Dodecahedron.
+    - "snub_dodecahedron" : Snub dodecahedron.
           Regular polytope with 80 triangular and 12 pentagonal facets.
-          The vertices are realized as floating point numbers.
           This is a chiral polytope.
 
 # Examples
@@ -807,23 +807,56 @@ julia> n_facets(T)
 14
 ```
 """
-archimedean_solid(s::String) = polyhedron(Polymake.polytope.archimedean_solid(s))
+function archimedean_solid(s::String)
+  if s in _archimedean_strings_from_oscar
+    filename = s * ".mrdi"
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return load(joinpath(oscardir, "data", "ArchimedeanSolids", filename))
+  end
+  pmp = Polymake.polytope.archimedean_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      snub_cube()
+
+Construct the snub cube, an Archimedean solid.
+See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_cube)
+
+See also [`archimedean_solid`](@ref).
+"""
+function snub_cube()
+  return archimedean_solid("snub_cube")
+end
+
+@doc raw"""
+      snub_dodecahedron()
+
+Construct the snub dodecahedron, an Archimedean solid.
+See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_dodecahedron)
+
+See also [`archimedean_solid`](@ref).
+"""
+function snub_dodecahedron()
+  return archimedean_solid("snub_dodecahedron")
+end
+
+const _catalan_strings_from_oscar = Set{String}(["pentagonal_icositetrahedron", "pentagonal_hexecontahedron"])
 
 @doc raw"""
     catalan_solid(s::String)
 
-Construct a Catalan solid with the name `s` from the list below. Some of these
-polytopes are realized with floating point coordinates and thus are not exact.
-However, vertex-facet-incidences are correct in all cases.
+Construct a Catalan solid with the name `s` from the list below.
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
     Possible values:
-    - "triakis_tetrahedron" : Triakis Tetrahedron.
-          Dual polytope to the Truncated Tetrahedron, made of 12 isosceles
+    - "triakis_tetrahedron" : Triakis tetrahedron.
+          Dual polytope to the truncated tetrahedron, made of 12 isosceles
           triangular facets.
-    - "triakis_octahedron" : Triakis Octahedron.
-          Dual polytope to the Truncated Cube, made of 24 isosceles triangular
+    - "triakis_octahedron" : Triakis octahedron.
+          Dual polytope to the truncated cube, made of 24 isosceles triangular
           facets.
     - "rhombic_dodecahedron" : Rhombic dodecahedron.
           Dual polytope to the cuboctahedron, made of 12 rhombic facets.
@@ -833,17 +866,16 @@ However, vertex-facet-incidences are correct in all cases.
     - "disdyakis_dodecahedron" : Disdyakis dodecahedron.
           Dual polytope to the truncated cuboctahedron, made of 48 scalene
           triangular facets.
-    - "pentagonal_icositetrahedron" : Pentagonal Icositetrahedron.
+    - "pentagonal_icositetrahedron" : Pentagonal icositetrahedron.
           Dual polytope to the snub cube, made of 24 irregular pentagonal facets.
-          The vertices are realized as floating point numbers.
-    - "pentagonal_hexecontahedron" : Pentagonal Hexecontahedron.
+    - "pentagonal_hexecontahedron" : Pentagonal hexecontahedron.
           Dual polytope to the snub dodecahedron, made of 60 irregular pentagonal
-          facets. The vertices are realized as floating point numbers.
+          facets.
     - "rhombic_triacontahedron" : Rhombic triacontahedron.
           Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
     - "triakis_icosahedron" : Triakis icosahedron.
           Dual polytope to the icosidodecahedron, made of 30 rhombic facets.
-    - "deltoidal_icositetrahedron" : Deltoidal Icositetrahedron.
+    - "deltoidal_icositetrahedron" : Deltoidal icositetrahedron.
           Dual polytope to the rhombicubaoctahedron, made of 24 kite facets.
     - "pentakis_dodecahedron" : Pentakis dodecahedron.
           Dual polytope to the truncated icosahedron, made of 60 isosceles
@@ -866,7 +898,40 @@ julia> n_facets(T)
 12
 ```
 """
-catalan_solid(s::String) = polyhedron(Polymake.polytope.catalan_solid(s))
+function catalan_solid(s::String)
+  if s in _catalan_strings_from_oscar
+    filename = s * ".mrdi"
+    # code used for generation of loaded files can be found at:
+    # https://github.com/dmg-lab/RegularSolidsSrc
+    return load(joinpath(oscardir, "data", "CatalanSolids", filename))
+  end
+  pmp = Polymake.polytope.catalan_solid(s)
+  return polyhedron(pmp)
+end
+
+@doc raw"""
+      pentagonal_icositetrahedron()
+
+Construct the pentagonal icositetrahedron, a Catalan solid.
+See the [Wikipedia entry](https://en.wikipedia.org/wiki/Pentagonal_icositetrahedron)
+
+See also [`catalan_solid`](@ref).
+"""
+function pentagonal_icositetrahedron()
+  return catalan_solid("pentagonal_icositetrahedron")
+end
+
+@doc raw"""
+      pentagonal_hexecontahedron()
+
+Construct the pentagonal hexecontahedron, a Catalan solid.
+See the [Visual Polyhedra entry](https://dmccooey.com/polyhedra/LpentagonalIcositetrahedron.html)
+
+See also [`catalan_solid`](@ref).
+"""
+function pentagonal_hexecontahedron()
+  return catalan_solid("pentagonal_hexecontahedron")
+end
 
 @doc raw"""
     upper_bound_f_vector(d::Int, n::Int)
