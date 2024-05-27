@@ -10,7 +10,7 @@ corners of OSCAR are covered by this effort. Our overall goal is threefold:
   - Increase overall software quality by testing against existing data and
     tracking errors through data computed by different versions of OSCAR (or other computer algebra systems).
 
-For more details read the [developer documentation](../DeveloperDocumentation/serialization.html).
+For more details read the [developer documentation](@ref dev_serialization).
 Work on serialization is supported by the [MaRDI project](https://www.mardi4nfdi.de/about/mission). You can find out more about its Task Area 1 (Computer Algebra) [here.](https://portal.mardi4nfdi.de/wiki/Portal/TA1)
 
 ```@docs
