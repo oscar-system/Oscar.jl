@@ -178,26 +178,37 @@ Turn a polyhedral fan into a polyhedral complex.
 function polyhedral_complex(F::PolyhedralFan{T}) where {T<:scalar_types}
   pmo_in = pm_object(F)
   pmo_out = Polymake.fan.PolyhedralComplex{_scalar_type_to_polymake(T)}()
-  for prop in ["RAYS", "INPUT_RAYS"]
+  for prop in ["RAYS", "INPUT_RAYS", "FACET_NORMALS"]
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), true))
     end
   end
-  for prop in ["INPUT_LINEALITY", "LINEALITY_SPACE"]
+  for prop in ["INPUT_LINEALITY", "LINEALITY_SPACE", "LINEAR_SPAN_NORMALS"]
     if Polymake.exists(pmo_in, prop)
       Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
     end
   end
-  for prop in ["MAXIMAL_CONES", "INPUT_CONES"]
+  for prop in ["MAXIMAL_CONES", "INPUT_CONES", "MAXIMAL_CONES_FACETS"]
     if Polymake.exists(pmo_in, prop)
       inprop = Polymake.give(pmo_in, prop)
-      outprop = Polymake.IncidenceMatrix(nrows(inprop), ncols(inprop)+1)
+      outprop = if inprop isa Polymake.IncidenceMatrix
+        Polymake.IncidenceMatrix(nrows(inprop), ncols(inprop) + 1)
+      else
+        Polymake.SparseMatrix(nrows(inprop), ncols(inprop) + 1)
+      end
       outprop[1:end, 2:end] = inprop
       for i in 1:nrows(inprop)
-        outprop[i,1] = 1
+        outprop[i, 1] = 1
       end
       Polymake.take(pmo_out, prop, outprop)
     end
+  end
+  if Polymake.exists(pmo_in, "MAXIMAL_CONES_LINEAR_SPAN_NORMALS")
+    Polymake.take(
+      pmo_out,
+      "MAXIMAL_CONES_LINEAR_SPAN_NORMALS",
+      Polymake.give(pmo_in, "MAXIMAL_CONES_LINEAR_SPAN_NORMALS"),
+    )
   end
   return PolyhedralComplex{T}(pmo_out, F.parent_field)
 end

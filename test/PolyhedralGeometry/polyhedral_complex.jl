@@ -1,5 +1,4 @@
 @testset "PolyhedralComplex{$T}" for (f, T) in _prepare_scalar_types()
-
   I = IncidenceMatrix([[1, 2, 3], [2, 4]])
   P = f.([0 0; 1 0; 0 1; 1 1])
   P2 = f.([0 0 0; 1 0 0; 0 1 0; 1 1 0])
@@ -7,19 +6,17 @@
   L = f.([0 0 1])
 
   @testset "constructors" begin
-
     @test polyhedral_complex(f, I, P) isa PolyhedralComplex{T}
     @test polyhedral_complex(f, I, P, F) isa PolyhedralComplex{T}
     @test polyhedral_complex(f, I, P2, F, L) isa PolyhedralComplex{T}
-    @test polyhedral_complex(f, I, P2, F, L; non_redundant = true) isa PolyhedralComplex{T}
+    @test polyhedral_complex(f, I, P2, F, L; non_redundant=true) isa PolyhedralComplex{T}
     @test polyhedral_complex(f, I, P2, nothing, L) isa PolyhedralComplex{T}
-
   end
 
   PC = polyhedral_complex(f, I, P)
   PCF = polyhedral_complex(f, I, -P, F)
   PCFL = polyhedral_complex(f, I, P2, F, L)
-  PCFLN = polyhedral_complex(f, I, P2, F, L; non_redundant = true)
+  PCFLN = polyhedral_complex(f, I, P2, F, L; non_redundant=true)
   PCL = polyhedral_complex(f, I, P2, nothing, L)
 
   # check non-redundant flag
@@ -39,11 +36,11 @@
   let PCF2 = polyhedral_complex(f, -P[1:3, :], I[:, 1:3], -P[4:4, :], I[:, 4:4])
     @test vertices(PCF) == vertices(PCF2)
     @test rays(PCF) == rays(PCF2)
-    @test IncidenceMatrix(maximal_polyhedra(PCF)) == IncidenceMatrix(maximal_polyhedra(PCF2))
+    @test IncidenceMatrix(maximal_polyhedra(PCF)) ==
+      IncidenceMatrix(maximal_polyhedra(PCF2))
   end
 
   @testset "core functionality" begin
-
     @test ambient_dim(PC) == 2
     @test vertices(PC) isa SubObjectIterator{PointVector{T}}
     @test length(vertices(PC)) == 4
@@ -53,10 +50,11 @@
     @test length(rays(PCF)) == 1
     @test rays(PCF) == [[-1, -1]]
     @test vector_matrix(rays(PCF)) == matrix(f, [-1 -1])
-    @test vertices_and_rays(PCFL) isa SubObjectIterator{Union{RayVector{T}, PointVector{T}}}
+    @test vertices_and_rays(PCFL) isa SubObjectIterator{Union{RayVector{T},PointVector{T}}}
     @test length(vertices_and_rays(PCFL)) == 4
     @test vertices_and_rays(PCFL) == [[0, 0, 0], [1, 0, 0], [0, 1, 0], [1, 1, 0]]
-    @test typeof.(vertices_and_rays(PCFL)) == [PointVector{T}, PointVector{T}, PointVector{T}, RayVector{T}]
+    @test typeof.(vertices_and_rays(PCFL)) ==
+      [PointVector{T}, PointVector{T}, PointVector{T}, RayVector{T}]
     @test vector_matrix(vertices_and_rays(PCFL)) == matrix(f, P2)
     @test maximal_polyhedra(PC) isa SubObjectIterator{Polyhedron{T}}
     @test length(maximal_polyhedra(PC)) == 2
@@ -68,9 +66,11 @@
     @test polyhedra_of_dim(PC, 1) isa SubObjectIterator{Polyhedron{T}}
     @test length(polyhedra_of_dim(PC, 1)) == 4
     if T == QQFieldElem
-      @test polyhedra_of_dim(PC, 1) == convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[1, 2], :], P[[2, 3], :]])
+      @test polyhedra_of_dim(PC, 1) ==
+        convex_hull.(T, [P[[2, 4], :], P[[1, 3], :], P[[1, 2], :], P[[2, 3], :]])
     else
-      @test polyhedra_of_dim(PC, 1) == convex_hull.([f], [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]])
+      @test polyhedra_of_dim(PC, 1) ==
+        convex_hull.([f], [P[[2, 4], :], P[[1, 3], :], P[[2, 3], :], P[[1, 2], :]])
     end
     @test lineality_space(PCL) isa SubObjectIterator{RayVector{T}}
     @test length(lineality_space(PCL)) == 1
@@ -101,7 +101,7 @@
     # this should just deepcopy the object
     PCFc = polyhedral_complex(maximal_polyhedra(PCF))
     @test Polymake.list_properties(Oscar.pm_object(PCFc)) ==
-            Polymake.list_properties(Oscar.pm_object(PCF))
+      Polymake.list_properties(Oscar.pm_object(PCF))
 
     c = cube(f, 3, f(-5), f(2))
     # construct from a generic list of polytopes
@@ -112,19 +112,42 @@
     @test polyhedral_complex(faces(c, 1); non_redundant=true) isa PolyhedralComplex
     @test f_vector(polyhedral_complex(faces(c, 1))) == [8, 12]
     @test f_vector(polyhedral_complex(c)) == [8, 12, 6, 1]
-
   end
-  
+
   @testset "Fan conversion" begin
-    F1 = normal_fan(cube(2))
-    F2 = normal_fan(convex_hull([0 0; 1 0]))
-    for F in [F1, F2]
+    F1 = normal_fan(cube(f, 2))
+    F2 = normal_fan(convex_hull(f, [0 0; 1 0]))
+    IM = IncidenceMatrix([[1, 2], [2, 3], [4]])
+    R = [0 1 0; 0 0 1; 0 -1 0; 0 -1 -1]
+    F3 = polyhedral_fan(f, IM, R, [1 0 0])
+    for F in [F1, F2, F3]
       PC = polyhedral_complex(F)
       @test dim(F) == dim(PC)
       @test ambient_dim(F) == ambient_dim(PC)
       @test lineality_dim(F) == lineality_dim(PC)
       @test matrix(f, rays(F)) == matrix(f, rays(PC))
+      @test n_maximal_cones(F) == n_maximal_polyhedra(PC)
+      vrep = PolyhedralComplex{T}(
+        Polymake.fan.PolyhedralComplex(;
+          INPUT_RAYS=Oscar.pm_object(PC).RAYS,
+          INPUT_CONES=Oscar.pm_object(PC).MAXIMAL_CONES,
+          INPUT_LINEALITY=Oscar.pm_object(PC).LINEALITY_SPACE,
+        ),
+        f,
+      )
+      hrep = PolyhedralComplex{T}(
+        Polymake.fan.PolyhedralComplex(;
+          FACET_NORMALS=Oscar.pm_object(PC).FACET_NORMALS,
+          MAXIMAL_CONES_FACETS=Oscar.pm_object(PC).MAXIMAL_CONES_FACETS,
+          LINEAR_SPAN_NORMALS=Oscar.pm_object(PC).LINEAR_SPAN_NORMALS,
+          MAXIMAL_CONES_LINEAR_SPAN_NORMALS=Oscar.pm_object(
+            PC
+          ).MAXIMAL_CONES_LINEAR_SPAN_NORMALS,
+        ),
+        f,
+      )
+      @test f_vector(vrep) == f_vector(hrep)
+      @test n_maximal_polyhedra(vrep) == n_maximal_polyhedra(hrep)
     end
   end
-
 end
