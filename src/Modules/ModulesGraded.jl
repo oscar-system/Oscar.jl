@@ -1454,6 +1454,8 @@ total: 1  3  2
 ```
 """
 function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
+  @assert is_graded(F) "resolution must be graded"
+  @assert is_standard_graded(base_ring(F)) "resolution must be defined over a standard graded ring"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
   rng = Hecke.map_range(C)
