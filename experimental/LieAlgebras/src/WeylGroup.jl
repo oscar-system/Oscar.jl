@@ -55,6 +55,12 @@ end
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
 Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> weyl_group(:A, 2)
+ERROR: attributes storage not supported for type WeylGroup
+```
 """
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))

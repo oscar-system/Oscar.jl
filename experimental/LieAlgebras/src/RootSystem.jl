@@ -53,6 +53,12 @@ end
     root_system(fam::Symbol, rk::Int) -> RootSystem
 
 Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> root_system(:A, 2)
+ERROR: attributes storage not supported for type RootSystem
+```
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
