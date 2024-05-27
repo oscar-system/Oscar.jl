@@ -111,7 +111,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
@@ -120,6 +122,8 @@ function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
 end
 
 function Base.show(io::IO, L::AbstractLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, L)
   if is_terse(io)
     print(io, "Abstract Lie algebra")
   else

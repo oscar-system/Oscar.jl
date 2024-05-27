@@ -7,5 +7,5 @@ end
 
 
 ```@docs
-    standard_finite_field(p::IntegerUnion, n::IntegerUnion)
+standard_finite_field(p::IntegerUnion, n::IntegerUnion)
 ```

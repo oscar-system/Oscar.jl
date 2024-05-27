@@ -10,21 +10,21 @@ CurrentModule = Oscar
 Any type of ring ``R`` to be used within the schemes framework
 must come with its own ideal type `IdealType<:Ideal` for which
 we require the following interface to be implemented:
-```
-    # constructor of ideals in R
-    ideal(R::RingType, g::Vector{<:RingElem})::Ideal
+```julia
+# constructor of ideals in R
+ideal(R::RingType, g::Vector{<:RingElem})::Ideal
 
-    # constructor for quotient rings
-    quo(R::RingType, I::IdealType)::Tuple{<:Ring, <:Map}
+# constructor for quotient rings
+quo(R::RingType, I::IdealType)::Tuple{<:Ring, <:Map}
 
-    # ideal membership test
-    in(f::RingElem, I::IdealType)::Bool
+# ideal membership test
+in(f::RingElem, I::IdealType)::Bool
 
-    # a (fixed) set of generators
-    gens(I::IdealType)::Vector{<:RingElem}
+# a (fixed) set of generators
+gens(I::IdealType)::Vector{<:RingElem}
 
-    # writing an element as linear combination of the generators
-    coordinates(f::RingElem, I::IdealType)::Vector{<:RingElem}
+# writing an element as linear combination of the generators
+coordinates(f::RingElem, I::IdealType)::Vector{<:RingElem}
 ```
 The latter function must return a vector ``v = (a_1,\dots, a_r)``
 of elements in ``R`` such that ``f = a_1 \cdot g_1 + \dots + a_r \cdot g_r``
@@ -34,8 +34,8 @@ not belong to ``I``, it must error. Note that the ring returned by
 
 With a view towards the use of the `ambient_coordinate_ring(X)` for computations,
 it is customary to also implement
-```
-    saturated_ideal(I::IdealType)::MPolyIdeal
+```julia
+saturated_ideal(I::IdealType)::MPolyIdeal
 ```
 returning an ideal ``J`` in the `ambient_coordinate_ring(X)` with the property
 that ``a \in I`` for some element ``a \in R`` if and only if
@@ -51,9 +51,9 @@ this is another reason to include the ambient affine space in our abstract
 interface for affine schemes. In order to make the `ambient_coordinate_ring(X)`
 accessible for this purpose, we need the following methods to be implemented
 for elements ``a\in R`` of type `RingElemType`:
-```
-   lifted_numerator(a::RingElemType)
-   lifted_denominator(a::RingElemType)
+```julia
+lifted_numerator(a::RingElemType)
+lifted_denominator(a::RingElemType)
 ```
 These must return representatives of the numerator and the denominator
 of ``a``. Note that the denominator is equal to `one(P)` in case
@@ -63,8 +63,8 @@ Recall that the coordinates ``x_i`` of ``X`` are induced by the coordinates of
 the ambient affine space.
 Moreover, we will assume that for homomorphisms from ``R``
 there is a method
-```
-    hom(R::RingType, S::Ring, a::Vector{<:RingElem})
+```julia
+hom(R::RingType, S::Ring, a::Vector{<:RingElem})
 ```
 where `RingType` is the type of ``R`` and `a` the images
 of the coordinates ``x_i`` in ``S``. This will be important
@@ -83,7 +83,7 @@ Note that the morphism ``P → R`` is induced by natural coercions.
 
 The abstract type for affine schemes is
 ```@docs
-    AbsAffineScheme{BaseRingType, RingType<:Ring}
+AbsAffineScheme{BaseRingType, RingType<:Ring}
 ```
 For any concrete instance of this type, we require the following
 functions to be implemented:
@@ -92,7 +92,7 @@ functions to be implemented:
 
 A concrete instance of this type is
 ```@docs
-    AffineScheme{BaseRingType, RingType}
+AffineScheme{BaseRingType, RingType}
 ```
 It provides an implementation of affine schemes for rings ``R`` of type
 `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, and `MPolyQuoLocRing`
@@ -102,8 +102,8 @@ concrete types `MyAffineScheme<:AbsAffineScheme` such as, for instance,
 group schemes, toric schemes, schemes of a particular dimension
 like curves and surfaces, etc. To this end, one has to store
 an instance `Y` of `AffineScheme` in `MyAffineScheme` and implement the methods
-```
-    underlying_scheme(X::MyAffineScheme)::AffineScheme # return Y as above
+```julia
+underlying_scheme(X::MyAffineScheme)::AffineScheme # return Y as above
 ```
 Then all methods implemented for `AffineScheme` are automatically
 forwarded to any instance of `MyAffineScheme`.
@@ -116,20 +116,20 @@ Of course, it can be overwritten for any higher type `MyAffineScheme<:AbsAffineS
 
 Any abstract morphism of affine schemes is of the following type:
 ```@docs
-    AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
-               CodomainType<:AbsAffineScheme,
-               PullbackType<:Map,
-               MorphismType,
-               BaseMorType
-               }
+AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
+            CodomainType<:AbsAffineScheme,
+            PullbackType<:Map,
+            MorphismType,
+            BaseMorType
+            }
 ```
 Any such morphism has the attributes `domain`, `codomain` and `pullback`.
 A concrete and minimalistic implementation exist for the type `AffineSchemeMor`:
 ```@docs
-    AffineSchemeMor{DomainType<:AbsAffineScheme,
-            CodomainType<:AbsAffineScheme,
-            PullbackType<:Map
-           }
+AffineSchemeMor{DomainType<:AbsAffineScheme,
+        CodomainType<:AbsAffineScheme,
+        PullbackType<:Map
+        }
 ```
 This basic functionality consists of
 - `compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,
@@ -144,7 +144,7 @@ should run naturally.
 We may derive higher types of morphisms of affine schemes `MyAffineSchemeMor<:AbsAffineSchemeMor`
 by storing an instance `g` of `AffineSchemeMor` inside an instance `f` of
 `MyAffineSchemeMor` and implementing
-```
-    underlying_morphism(f::MyAffineSchemeMor)::AffineSchemeMor # return g
+```julia
+underlying_morphism(f::MyAffineSchemeMor)::AffineSchemeMor # return g
 ```
 For example, this allows us to define closed embeddings.

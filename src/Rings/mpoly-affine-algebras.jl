@@ -1032,7 +1032,7 @@ function subalgebra_membership(f::T, v::Vector{T}) where T <: Union{MPolyRingEle
   @req !isempty(v) "Input vector must not be empty"
   @req all(x -> parent(x) === R, v) "The polynomials must have the same parent"
 
-  S, _ = polynomial_ring(coefficient_ring(R), length(v), "t")
+  S, _ = polynomial_ring(coefficient_ring(R), length(v), "t"; cached=false)
   phi = hom(S, R, v)
   return has_preimage_with_preimage(phi, f)
 end
@@ -1069,10 +1069,24 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
     @req all(is_homogeneous, v) "The input must be homogeneous"
   end
 
+  # We split this up into two functions: the first one construct the ideal
+  # and degree truncated Gröbner basis, the second one does the actual check.
+  # This way, one may reuse the Gröbner basis in calling functions.
+  #
+  # The basic idea is [GP09, p. 86, Solution 2], but we only compute a degree
+  # truncated Gröbner basis
+  RtoT, TtoS, GJ = _subalgebra_membership_homogeneous_precomp(Int(degree(f)[1]), v, I)
+  return _subalgebra_membership_homogeneous_internal(f, RtoT, TtoS, GJ)
+end
+
+# Precomputation for the membership test
+function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}) where PolyRingElemT <: MPolyDecRingElem
+  R = base_ring(I)
+
   # This is basically [GP09, p. 86, Solution 2], but we only compute a degree
   # truncated Gröbner basis
 
-  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v))
+  T, _ = polynomial_ring(base_ring(R), ngens(R) + length(v); cached=false)
 
   RtoT = hom(R, T, gens(T)[1:ngens(R)])
 
@@ -1082,21 +1096,22 @@ function _subalgebra_membership_homogeneous(f::PolyRingElemT, v::Vector{PolyRing
 
   # Everything is homogeneous, so a truncated Gröbner basis up to the degree
   # of f suffices to check containment of f in J
-  GJ = _groebner_basis(J, Int(degree(f)[1]), ordering = o)
+  GJ = _groebner_basis(J, d, ordering = o)
 
-  ###
-  # This computes the normal form of f w.r.t. the truncated Gröbner basis GJ.
-  # Since we have a product ordering, we cannot use divrem, and since GJ is
-  # "not really" a Gröbner basis, we cannot use normal_form...
-  SR = singular_polynomial_ring(GJ)
-  I = Singular.Ideal(SR, SR(RtoT(f)))
-  K = ideal(T, reduce(I, singular_generators(GJ, GJ.ord)))
-  @assert is_one(ngens(K.gens.S))
-  nf = GJ.Ox(K.gens.S[1])
-  ###
-
-  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ])
+  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
+
+  return RtoT, TtoS, GJ
+end
+
+# The actual membership test, using the output of _subalgebra_membership_homogeneous_precomp
+function _subalgebra_membership_homogeneous_internal(f::MPolyDecRingElem, RtoT::MPolyAnyMap, TtoS::MPolyAnyMap, GJ::IdealGens)
+  T = codomain(RtoT)
+  R = domain(RtoT)
+  S = codomain(TtoS)
+  o = ordering(GJ)
+
+  nf = reduce(RtoT(f), GJ, ordering = o)
 
   # f is in the subalgebra iff nf does not involve the variables
   # gen(T, 1), ..., gen(T, ngens(R)), that is, iff LM(nf) is strictly smaller
@@ -1147,7 +1162,7 @@ end
     is_algebraically_independent_with_relations(V::Vector{T}) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of elements of a multivariate polynomial ring over a field `K`, say, or of a quotient of such a ring,
-return `(true, ideal(0))` if the elements of `V` are algebraically independent over `K`.
+return `(true, Ideal (0))` if the elements of `V` are algebraically independent over `K`.
 Otherwise, return `false` together with the ideal of `K`-algebra relations.
 
 # Examples
@@ -1190,8 +1205,8 @@ end
     minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
 
 Given a vector `V` of homogeneous elements of a positively graded multivariate
-polynomial ring, or of a quotient of such a ring, return a minimal subset of the
-elements in `V` which, in the given ring, generate
+polynomial ring, or of a quotient of such a ring, return a subset of the
+elements in `V` of minimal cardinality which, in the given ring, generate
 the same subalgebra as all elements in `V`.
 
 If `check` is `true` (default), the conditions on `V` and the given ring are
@@ -1214,10 +1229,49 @@ julia> minimal_subalgebra_generators(V)
 ```
 """
 function minimal_subalgebra_generators(V::Vector{T}; check::Bool = true) where {T <: Union{MPolyDecRingElem, MPolyQuoRingElem{<: MPolyDecRingElem}}}
-  @req !isempty(V) "Input vector must not be empty"
-  I = ideal(parent(V[1]), [ zero(parent(V[1])) ])
-  return _minimal_subalgebra_generators_with_relations(V, I, check = check)[1]
+  return minimal_subalgebra_generators_with_relations(V; check=check)[1]
 end
+
+@doc raw"""
+    minimal_subalgebra_generators_with_relations(V::Vector{T}; check::Bool = true) where T <: Union{MPolyRingElem, MPolyQuoRingElem}
+
+Given a vector `V` of homogeneous elements of a positively graded multivariate
+polynomial ring, or of a quotient of such a ring, return a subset `W` of
+the elements in `V` of minimal cardinality which, in the given ring, generate the
+same subalgebra as all elements in `V`.
+Further, return a vector `rels` representating the elements of `V` in the minimal
+generators in `W`, that is, we have `V[i] = rels[i](W...)` for `i = 1:length(V)`.
+
+If `check` is `true` (default), the conditions on `V` and the given ring are
+checked.
+
+See also [`minimal_subalgebra_generators`](@ref).
+
+# Examples
+```jldoctest
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> V = [x, y, x^2+y^2]
+3-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ y
+ x^2 + y^2
+
+julia> W, rels = Oscar.minimal_subalgebra_generators_with_relations(V);
+
+julia> W
+2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x
+ y
+
+julia> rels
+3-element Vector{QQMPolyRingElem}:
+ t1
+ t2
+ t1^2 + t2^2
+```
+"""
+minimal_subalgebra_generators_with_relations
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyDecRingElem}; check::Bool = true)
   @req !isempty(V) "Input vector must not be empty"
@@ -1227,7 +1281,9 @@ end
 
 function minimal_subalgebra_generators_with_relations(V::Vector{<: MPolyQuoRingElem{T}}; check::Bool = true) where T <: MPolyDecRingElem
   @req !isempty(V) "Input vector must not be empty"
-  return _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(parent(V[1])), check = check)
+  Q = parent(V[1])
+  min_gens, rels = _minimal_subalgebra_generators_with_relations([ lift(f) for f in V ], modulus(Q), check = check)
+  return map(Q, min_gens), rels
 end
 
 function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT}, I::MPolyIdeal{PolyRingElemT}; check::Bool = true, start::Int = 0) where PolyRingElemT <: MPolyDecRingElem
@@ -1244,7 +1300,7 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
   K = coefficient_ring(R)
 
   # Use S to keep track of relations
-  S, _ = polynomial_ring(K, length(V), "t")
+  S, _ = polynomial_ring(K, length(V), "t"; cached=false)
   rels = Vector{elem_type(S)}(undef, length(V))
 
   # If start > 0, we assume that the polynomials V[1:start] are known to be part
@@ -1267,24 +1323,34 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
     rels[sp[1]] = gen(S, 1)
   end
 
+  current_length = length(res)
+  current_degree = Int(degree(res[1])[1])
+  precomp = _subalgebra_membership_homogeneous_precomp(current_degree, res, I)
   for i in 1:length(W)
     f = W[i]
-    fl, t = _subalgebra_membership_homogeneous(f, res, I, check = false)
+    if length(res) != current_length || Int(degree(f)[1]) != current_degree
+      # We either added a new element or the degree increased since the last
+      # iteration, so we need to redo the precomputation
+      current_length = length(res)
+      current_degree = Int(degree(f)[1])
+      precomp = _subalgebra_membership_homogeneous_precomp(current_degree, res, I)
+    end
+    fl, t = _subalgebra_membership_homogeneous_internal(f, precomp...)
     if fl
       # f is in the span of the generators so far
       rels[start + sp[i]] = t(gens(S)[1:length(res)]...)
     else
       # f is a new generator
-      rels[start + sp[i]] = gen(S, start + i)
       push!(res, f)
+      rels[start + sp[i]] = gen(S, length(res))
     end
   end
 
   # S might have too many variables
   if length(V) > length(res)
-    S2, _ = polynomial_ring(K, length(res), "t")
+    S2, _ = polynomial_ring(K, length(res), "t"; cached=false)
     t = append!(gens(S2), [ zero(S2) for i in 1:ngens(S) - ngens(S2) ])
-    rels = [ f(t...) for f in rels ]
+    rels = elem_type(S2)[ f(t...) for f in rels ]
   end
 
   return res, rels
