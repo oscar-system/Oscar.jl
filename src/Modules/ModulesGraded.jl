@@ -1558,7 +1558,6 @@ function Base.show(io::IO, b::BettiTable)
           print(io, " "^(column_widths[i_total] - ndigits(sum_row)-1))
         end
       end
-      print(io, "\n")
     end
   else
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
