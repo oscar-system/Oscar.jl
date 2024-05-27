@@ -72,15 +72,19 @@ function root_system(type::Tuple{Symbol,Int}...)
   return root_system(collect(type))
 end
 
-function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
+function Base.show(io::IO, mime::MIME"text/plain", R::RootSystem)
+  @show_name(io, R)
+  @show_special(io, mime, R)
   io = pretty(io)
   println(io, "Root system defined by Cartan matrix")
   print(io, Indent())
-  show(io, MIME"text/plain"(), cartan_matrix(R))
+  show(io, mime, cartan_matrix(R))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, R::RootSystem)
+  @show_name(io, R)
+  @show_special(io, R)
   if is_terse(io)
     print(io, "Root system")
   else

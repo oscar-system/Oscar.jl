@@ -471,8 +471,8 @@ case, `n` is NOT the number of moved points, but the degree of `H`.
 If `W` is a wreath product of `G` and `H`, {`g_1`, ..., `g_n`} are elements of
 `G` and `h` in `H`, the element `(g_1, ..., h)` of `W` can be obtained by
 typing
-```
-    W(g_1,...,g_n, h).
+```julia
+W(g_1,...,g_n, h).
 ```
 
 # Examples

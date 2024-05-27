@@ -1148,6 +1148,8 @@ export patches
 export pbw_algebra
 export pc_group
 export pcore
+export pentagonal_hexecontahedron
+export pentagonal_icositetrahedron
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
 export perles_matroid
@@ -1323,6 +1325,7 @@ export save_mps
 export scalar_product
 export scheme
 export schensted
+export schur_cover
 export schur_index
 export schur_multiplier
 export schur_polynomial
@@ -1375,6 +1378,8 @@ export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
+export snub_cube
+export snub_dodecahedron
 export socle, has_socle, set_socle
 export solvable_radical, has_solvable_radical, set_solvable_radical
 export solve_ineq
@@ -1517,6 +1522,7 @@ export weight_ordering
 export weighted_projective_space
 export weyl_algebra
 export weyl_vector
+export with_ordering
 export witt_index
 export wreath_product
 export write_as_full

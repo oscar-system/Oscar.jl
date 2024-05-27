@@ -933,7 +933,9 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubquoModule{T}) where T
-  return SubquoModuleElem{T}[gen(M,i) for i=1:ngens(M)]
+  R = base_ring(M)
+  e = R(1)
+  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -943,9 +945,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v::SRow{T} = sparse_row(R)
-  v.pos = [i]
-  v.values = [R(1)]
+  v = sparse_row(R, [i], [R(1)])
   return SubquoModuleElem{T}(v, M)
 end
 

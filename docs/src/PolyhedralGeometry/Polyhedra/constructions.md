@@ -133,6 +133,18 @@ regular_120_cell
 regular_600_cell
 ```
 
+Like some of the Johnson solids, the following four Archimedean and Catalan
+solids are constructed using [serialized data](@ref serialization).
+In order to properly document the respective sources, they also come as
+seperate functions. 
+
+```@docs
+snub_cube
+snub_dodecahedron
+pentagonal_icositetrahedron
+pentagonal_hexecontahedron
+```
+
 ## Other polytope constructions
 
 ```@docs

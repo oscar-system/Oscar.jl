@@ -31,7 +31,6 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
 
   S = elem_type(R)[]
   G = IdealGens(R, elem_type(R)[], ordR)
-  singular_assure(G)
   GO = elem_type(R)[]
 
   g = order(Int, group(RG))
@@ -92,7 +91,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
 
     # Compute the monomials which would be input for the Reynolds operator
     # TODO: Properly wrap kbase (or reimplement it; an iterator would be lovely)
-    mons = gens(ideal(R, Singular.kbase(G.S, d)))
+    mons = gens(ideal(R, Singular.kbase(singular_generators(G), d)))
     if isempty(mons) || (length(mons) == 1 && is_zero(mons[1]))
       break
     end

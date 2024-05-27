@@ -48,7 +48,7 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
 
 !!! note
     The function returns a well-defined homomorphism `A` $\to$ `S` iff the
-    given data defines a homomorphism from the base ring of `A` to `S` whose
+    given data defines a homomorphism `base_ring(A)` $\to$ `S` whose
     kernel contains the modulus of `A`. This condition is checked by the 
     function in case `check = true` (default).
 

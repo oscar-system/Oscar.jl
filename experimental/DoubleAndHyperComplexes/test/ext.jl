@@ -360,21 +360,7 @@ end
 
   I = ideal(S, V);
   X = variety(I, check = false, is_radical = false);
-
-  function canonical_bundle(X::AbsProjectiveVariety)
-    SX = homogeneous_coordinate_ring(X)
-    n = ngens(SX)-1
-    c = codim(X)
-    res, _ = free_resolution(Oscar.SimpleFreeResolution, SX)
-    C_simp = simplify(res);
-    C_shift = shift(C_simp, c);
-    S = base_ring(SX)
-    OmegaPn = graded_free_module(S, [n+1])
-    D = hom(C_shift, OmegaPn);
-    D_simp = simplify(D);
-    return homology(D_simp, 0)[1]
-  end
-
+  
   @test !is_zero(canonical_bundle(X))
 end
 

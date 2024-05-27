@@ -53,6 +53,10 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
     `default_ordering` is `default_ordering(R)*lex(gens(F))`.
 
+```@docs
+default_ordering(::MPolyRing)
+```
+
 Here are some illustrating OSCAR examples:
 
 ##### Examples
@@ -75,6 +79,11 @@ julia> S, _ = grade(R, [1, 2, 3])
 
 julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
+```
+
+Expert users may temporarily choose a different default ordering for a given ring.
+```@docs
+with_ordering
 ```
 
 ## [Monomials, Terms, and More](@id monomials_terms_more)
@@ -234,7 +243,7 @@ reduce(g::T, F::Vector{T};
 reduce_with_quotients(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
-      
+
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
