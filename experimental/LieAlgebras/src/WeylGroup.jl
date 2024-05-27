@@ -7,7 +7,7 @@
 #
 ###############################################################################
 
-struct WeylGroup <: AbstractAlgebra.Group
+@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
@@ -59,7 +59,7 @@ Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::In
 # Examples
 ```jldoctest
 julia> weyl_group(:A, 2)
-ERROR: attributes storage not supported for type WeylGroup
+Weyl group for Root system defined by Cartan matrix [2 -1; -1 2]
 ```
 """
 function weyl_group(fam::Symbol, rk::Int)
