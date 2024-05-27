@@ -39,9 +39,9 @@ The content is "42", it represents a `Base.Int`, according to the `_type` field.
 ## Implementation
 To list and describe all implementations and encodings of all types in OSCAR
 is not a possible feat due to the arbitrarily deep and nested type structures
-used available in OSCAR, we point any developer looking to understand the encodings
+available in OSCAR, we point any developer looking to understand the encodings
 of certain types to the OSCAR source code. All files for serialization can be
-found in the folder `src/Serialization`. The  conventions of the files there
+found in the folder `src/Serialization`. The convention of the files there
 follows the overall structure of OSCAR, i.e. the file
 `src/Serialization/PolyhedralGeometry.jl` contains functions for
 serializing objects of the polyhedral geometry section.
@@ -49,13 +49,13 @@ serializing objects of the polyhedral geometry section.
 We include a basic example of the encoding for a `QQPolyRingElem` so one can get a taste
 before delving into the source code. Here we store the polynomial `x^3 + 2x + 1//2`.
 The encoding for polynomials is to store a list of tuples, where each entry in the
-list represents a term of the polynomial. Where the first entry of the tuple is
+list represents a term of the polynomial and where the first entry of the tuple is
 the exponent and the second entry is the coefficient. Here we serialize a univariate
 polynomial so the first entries are always integers, in general this may be an array
 of integers. The coefficients here are elements of `QQ` however in general
 the coefficients themselves may be described as polynomials of the generators
 of some field extension, i.e. the second entry may again be a list of tuples and so on.
-The nested structure of the coefficient will depending on the description of the field
+The nested structure of the coefficient will depend on the description of the field
 extension.
 
 
@@ -373,7 +373,7 @@ External implementations should not be expected to read or write all possible Os
 It is perfectly valid for external implementations to throw parse errors when a certain
 file format is unexpected. For example Oscar will parse a `QQFieldElem` that has data value
 "0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
-we should not restrict users when deserialize to formats that may have issues deserializing
+we should not restrict users when deserializing to formats that may have issues deserializing
 the same format externally.
 
 Allowing extensions to JSON is not recommended, this is to keep the scope
