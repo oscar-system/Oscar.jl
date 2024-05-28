@@ -606,8 +606,9 @@ end
 
 function _presentation_minimal(SQ::ModuleFP{T};
                                minimal_kernel::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
+
   R = base_ring(SQ)
- 
+
   # Prepare to set some names
   br_name = AbstractAlgebra.get_name(R)
   if br_name === nothing
