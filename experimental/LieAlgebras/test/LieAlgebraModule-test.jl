@@ -296,7 +296,8 @@
 
             x = L(rand(-10:10, dim(L)))
             a = [V(rand(-10:10, dim(V))) for _ in 1:k]
-            @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) == x * tp_V(a)
+            @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) ==
+              x * tp_V(a)
 
             @test tp_V == tensor_power(V, k)[1]
           end
@@ -317,7 +318,8 @@
 
           x = L(rand(-10:10, dim(L)))
           a = [Vi(rand(-10:10, dim(Vi))) for Vi in [V1, V2]]
-          @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:2) == x * tp_V(a)
+          @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:2) ==
+            x * tp_V(a)
         end
 
         @testset "exterior_power" begin
