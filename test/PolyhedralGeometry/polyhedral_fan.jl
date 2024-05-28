@@ -163,3 +163,10 @@ end
   @test number_of_maximal_cones(sff0) == 2
   @test number_of_maximal_cones(sff1) == 3
 end
+
+@testset "Matrix to arrangement" begin
+  F = QQ
+  A = identity_matrix(F,3)
+  P,x = polynomial_ring(F,3)
+  @test matroid_to_arrangment(A) == x[1]*x[2]*x[3]
+end
