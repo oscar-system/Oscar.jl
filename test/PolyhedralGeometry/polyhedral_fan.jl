@@ -165,8 +165,7 @@ end
 end
 
 @testset "Matrix to arrangement" begin
-  F = QQ
-  A = identity_matrix(F,3)
-  P,x = polynomial_ring(F,3)
+  A = identity_matrix(QQ,3)
+  P,x = polynomial_ring(QQ,3)
   @test matroid_to_arrangment(A) == x[1]*x[2]*x[3]
 end
