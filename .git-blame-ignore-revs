@@ -7,3 +7,6 @@ e71dcb305491f26d13225c0339e2e22129bb27f3
 
 # Ran JuliaFormatter on src/InvariantTheory and experimental/LinearQuotients
 46f309032b476581ec57c584d5ef9f0c384ad46d
+
+# Reformatting after option change
+38d9450f0514b307ed9358999e71e9b1929f532e
