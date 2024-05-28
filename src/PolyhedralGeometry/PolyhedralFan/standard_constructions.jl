@@ -303,3 +303,39 @@ function Base.:*(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem
   prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
   return PolyhedralFan{QQFieldElem}(prod, QQ)
 end
+
+#################################################################################
+## Hyperplane arrangements
+#################################################################################
+
+@doc raw"""
+Let $A$ be a $d\times n$ matrix with entries from a field $\mathbb{F}$$.
+The collumns of $A$  are the normal vectors for a hyperplane arrangement
+$$\mathcal{A} = \{H_{1},\dots,H_{n}:H_{i}\subset \mathbb{F}^{d}\},$$
+such that $H_{i} = V(\alpha_{i})$, where $\alpha_{i}\in\mathbb{F}[x_{1},\dots,x_{d}]$ is a linear form.
+
+Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
+
+Given some $A\in\mathbb{F}^{d\times n},$ return the product of the linear forms corresponding to the columns.
+
+# Example
+```julia> F = QQ
+Rational field
+
+julia> A = matrix(F,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1])
+[   1   0   2   1//2   3   7]
+[   2   0   3      3   1   8]
+[5//2   1   2      5   2   1]
+
+julia> factor(matrix_to_arrangement(A))
+1 * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+```
+"""
+function matrix_to_arrangement(A::MatElem{<: FieldElem})
+    d = nrows(A)
+    n = ncols(A)
+    R = base_ring(A)
+    P,x = polynomial_ring(R,d)
+    P = prod([sum([A[i,j]*x[i] for i in 1:d]) for j in 1:n])
+    return inv(unit(factor(P)))*P
+end

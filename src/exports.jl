@@ -972,6 +972,7 @@ export mathieu_group
 export matrix_group
 export matrix_kernel
 export matrix_ordering
+export matrix_to_arrangement
 export matroid_base_polytope
 export matroid_from_bases
 export matroid_from_circuits
