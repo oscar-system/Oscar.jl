@@ -241,7 +241,7 @@ end
 @doc raw"""
     free_resolution(M::SubquoModule{<:MPolyRingElem}; 
         ordering::ModuleOrdering = default_ordering(M),
-        length::Int=0, algorithm::Symbol=:fres
+        length::Int = 0, algorithm::Symbol = :fres
       )
 
 Return a free resolution of `M`.
@@ -250,23 +250,19 @@ If `length != 0`, the free resolution is only computed up to the `length`-th fre
 Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
 
 !!! note
-    In the note below, we explain what the different options stand for. In doing so, we do not distinguish
-    between a homomorphism of free modules over `base_ring(M)` and the corresponding polynomial matrix.
-    Also, abusing our notation, we say that a polynomial matrix is minimal if all its constant
-    entries are zero. We say that a (free) presentation is minimal if its presentation matrix is minimal. We say that
-    a free resolution is minimal if all its syzygy matrices are minimal. Note that in the graded case, this gives
-    the usual notion of minimality. In this case, minimal free resolutions are unique up to isomorphism.
+    The function first computes a presentation of `M`. It then successively computes
+    higher syzygy modules.
 
 !!! note
-    The function `free_resolution` first computes a presentation of `M`, thus obtaining a
-    presentation matrix (a first syzygy matrix) of `M`. It then proceeds by successively computing
-    higher syzygy modules, thus obtaining higher syzygy matrices. With `:fres`, the successive computation
-    of syzygies follows an enhanced version of Schreyer's algorithm [EMSS16](@cite). Typically, the
-    resulting resolution is far from being minimal. With `:nres` and `:mres`, a variant of the
-    standard algorithm to compute higher syzygy modules is used. Here, the algorithm is implemented
-    so that it returns higher syzygy matrices which are minimal. The difference between `:nres` and `:mres`
-    is that with `:mres`, already the presentation computed at the beginning is minimal. In particular, in the
-    graded case, using `:mres` yields a free resolution which is minimal in the usual sense.
+    - If `algorithm == mres`, and `M` is positively graded, a minimal free resolution is returned.
+    - If `algorithm == nres`, and `M` is positively graded, the function proceeds as above except 
+      that it starts by computing a presentation which is not neccessarily minimal.
+    In both cases, if `M` is not (positively) graded, the function still aims at returning an ''improved'' resolution.
+
+!!! note
+    If `algorithm == fres`, the function relies on an enhanced version of Schreyer's algorithm 
+    [EMSS16](@cite). Typically, this is more efficient than the approaches above, but the 
+    resulting resolution is far from being minimal.
 
 # Examples
 ```jldoctest
