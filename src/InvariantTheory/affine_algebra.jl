@@ -74,7 +74,7 @@ function affine_algebra(
   if !isdefined(IR, :presentation)
     if algo_gens == :king && algo_rels == :linear_algebra
       error(
-        "Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible",
+        "Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible"
       )
     end
 

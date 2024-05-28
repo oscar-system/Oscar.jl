@@ -1378,7 +1378,9 @@ julia> is_archimedean_solid(T)
 false
 ```
 """
-is_archimedean_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !_has_equal_facets(P) && is_vertex_transitive(P) && !_is_prismic_or_antiprismic(P)
+is_archimedean_solid(P::Polyhedron) =
+  _is_3d_pol_reg_facets(P) && !_has_equal_facets(P) && is_vertex_transitive(P) &&
+  !_is_prismic_or_antiprismic(P)
 
 @doc raw"""
     is_platonic_solid(P::Polyhedron)
@@ -1396,7 +1398,8 @@ julia> is_platonic_solid(cube(3))
 true
 ```
 """
-is_platonic_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && _has_equal_facets(P) && is_vertex_transitive(P)
+is_platonic_solid(P::Polyhedron) =
+  _is_3d_pol_reg_facets(P) && _has_equal_facets(P) && is_vertex_transitive(P)
 
 function _is_3d_pol_reg_facets(P::Polyhedron)
   # dimension
@@ -1456,7 +1459,8 @@ julia> is_vertex_transitive(pyramid(cube(2)))
 false
 ```
 """
-is_vertex_transitive(P::Polyhedron) = is_transitive(automorphism_group(P; action = :on_vertices))
+is_vertex_transitive(P::Polyhedron) =
+  is_transitive(automorphism_group(P; action=:on_vertices))
 
 function _is_prismic_or_antiprismic(P::Polyhedron)
   nvf = facet_sizes(P)
@@ -1477,7 +1481,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   n = nvfs[a][1]
   # P has to have exactly n vertices and
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
-  2n == n_vertices(P) && (5 - m)*n == nvfs[b][2] || return false
+  2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
   dg = dualgraph(P)
   ngon_is = findall(x -> x == n, nvf)
   has_edge(dg, ngon_is...) && return false
@@ -1487,7 +1491,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
   dg = dualgraph(P)
   if m == 3
-    bigdg = Polymake.graph.Graph(ADJACENCY = dg.pm_graph)
+    bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
     return bigdg.BIPARTITE
   else
     return true
@@ -1681,36 +1685,36 @@ function print_constraints(
         if isone(A[i, j]) || isone(-A[i, j])
           terms[j] = if first
             string(
-            isone(A[i, j]) ? "x" : "-x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              isone(A[i, j]) ? "x" : "-x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           else
             string(
-            isone(A[i, j]) ? " + x" : " - x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              isone(A[i, j]) ? " + x" : " - x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           end
         else
           terms[j] = if first
             string(
-            _constraint_string(A[i, j]),
-            "*x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              _constraint_string(A[i, j]),
+              "*x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           else
             string(
-            if A[i, j] < zero(A[i, j])
-              string(" - ", _constraint_string(-A[i, j]))
-            else
-              string(" + ", _constraint_string(A[i, j]))
-            end,
-            "*x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              if A[i, j] < zero(A[i, j])
+                string(" - ", _constraint_string(-A[i, j]))
+              else
+                string(" + ", _constraint_string(A[i, j]))
+              end,
+              "*x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           end
         end
         first = false
