@@ -334,7 +334,7 @@ julia> factor(matrix_to_arrangement(A))
 """
 function arrangement_polynomial(A::MatElem{<: FieldElem})
 	F = base_ring(A)
-	P,_ = polynomial_ring(F,nrows(A), cached = false)
+	P,_ = polynomial_ring(F,nrows(A); cached = false)
 	return arrangement_polynomial(A,P)
 end
 
