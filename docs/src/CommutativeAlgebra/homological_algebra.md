@@ -12,6 +12,13 @@ for module homomorphisms and basic functions for handling chain and cochain comp
 discussed in the module section. Building on these functions, we here introduce further OSCAR functionality
 supporting computations in homological algebra.
 
+
+## Pruning Modules
+
+```@docs
+prune_with_map(M::ModuleFP)
+```
+
 ## Presentations
 
 ```@docs
@@ -24,7 +31,7 @@ presentation(M::ModuleFP)
 present_as_cokernel(M::SubquoModule, task::Symbol = :none)
 ```
 
-## Syzygies and Free Resolutions
+## Free Resolutions
 
 ```@docs
 free_resolution(M::SubquoModule{<:MPolyRingElem}; 
