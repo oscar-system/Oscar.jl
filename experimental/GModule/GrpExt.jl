@@ -2,6 +2,8 @@ module GrpExt_module
 using Oscar
 
 import Base: *, ==, one, rand, show, iterate
+export GrpExt, GrpExtElem
+export commutator_decomposition_map
 
 """
 A type representing the group extension by a 2-co-cycle.
@@ -115,7 +117,7 @@ function Oscar.is_central(P::GrpExt)
   return all(is_one, action(gmodule(P)))
 end
 
-function is_stem_extension(P::GrpExt)
+function Oscar.is_stem_extension(P::GrpExt)
   is_central(P) || return false
   G = _group(P)
   #  part of algo is explained in Cohomology.jl
@@ -213,3 +215,7 @@ end
 Oscar.copy(g::GrpExtElem) = GrpExtElem(g.P, g.g, g.m)
 
 end #module
+
+using .GrpExt_module
+
+export commutator_decomposition_map
