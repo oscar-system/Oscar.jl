@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating Multivariate Rings
@@ -153,7 +151,7 @@ julia> F = GF(3)
 Prime field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
-(Univariate polynomial ring in t over GF(3), t)
+(Univariate polynomial ring in t over F, t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
 (Finite field of degree 2 and characteristic 3, a)
@@ -405,7 +403,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of multivariate polynomial ring
+Builder for an element of R
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
