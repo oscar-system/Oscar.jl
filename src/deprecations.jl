@@ -129,6 +129,7 @@ function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRa
   return getindex(r, u)
 end
 
+@deprecate is_full_fp_group(G::FPGroup) GAPWrap.IsFpGroup(GapObj(G))
+
 @deprecate minimal_generators minimal_generating_set
 Base.@deprecate_binding MPolyRingElemLoc MPolyLocRingElem
-

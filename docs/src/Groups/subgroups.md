@@ -64,7 +64,7 @@ upper_central_series
     the output consists in the subgroups only;
     the embeddings are not returned as well.
     To get the embedding homomorphism of the subgroup `H` in `G`,
-    one can type `embedding(G,H)`.
+    one can type `embedding(H, G)`.
 
 
 The following functions return an iterator of subgroups.

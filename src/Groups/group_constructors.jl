@@ -6,7 +6,8 @@
 
 _gap_filter(::Type{PermGroup}) = GAP.Globals.IsPermGroup
 _gap_filter(::Type{SubPcGroup}) = GAP.Globals.IsPcGroupOrPcpGroup
-_gap_filter(::Type{FPGroup}) = GAP.Globals.IsSubgroupFpGroup
+_gap_filter(::Type{FPGroup}) = GAP.Globals.IsFpGroup
+_gap_filter(::Type{SubFPGroup}) = GAP.Globals.IsSubgroupFpGroup
 
 # TODO: matrix group handling usually is more complex: there usually
 # is another extra argument then to specify the base field
@@ -173,7 +174,8 @@ end
 
 Return the direct product of cyclic groups of the orders
 `v[1]`, `v[2]`, $\ldots$, `v[n]`, as an instance of `T`.
-Here, `T` must be one of `PermGroup`, `FPGroup`, `PcGroup`, or `SubPcGroup`.
+Here, `T` must be one of `PermGroup`, `FPGroup`, `SubFPGroup`, `PcGroup`,
+or `SubPcGroup`.
 
 The `gens` value of the returned group corresponds to `v`, that is,
 the number of generators is equal to `length(v)`
@@ -559,7 +561,7 @@ end
     dihedral_group(::Type{T} = PcGroup, n::Union{IntegerUnion,PosInf})
 
 Return the dihedral group of order `n`, as an instance of `T`,
-where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`}.
+where `T` is in {`PcGroup`, `SubPcGroup`, `PermGroup`, `FPGroup`, `SubFPGroup`}.
 
 !!! warning
 
@@ -625,7 +627,7 @@ false
 Return the (generalized) quaternion group of order `n`,
 as an instance of `T`,
 where `n` is a power of 2 and `T` is in
-{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`}.
+{`PcGroup`, `SubPcGroup`, `PermGroup`,`FPGroup`, `SubFPGroup`}.
 
 # Examples
 ```jldoctest

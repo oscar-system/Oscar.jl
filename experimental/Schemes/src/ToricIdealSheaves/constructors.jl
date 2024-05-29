@@ -159,7 +159,7 @@ function ideal_sheaf(X::NormalToricVariety, tau::Cone)
   # Maybe it's a mistake in the book and we really need the dual?
   #tau_perp = polarize(tau)
   ideal_dict = IdDict{AbsAffineScheme, Ideal}()
-  # We are using Equation (3.2.7) in CLS to determine the local 
+  # We are using Equation (3.2.7) in CLS11 to determine the local 
   # form of the ideal.
   for U in affine_charts(X)
     cu = cone(U)
@@ -199,7 +199,7 @@ function Base.in(tau::Cone, Sigma::PolyhedralFan)
 end
 
 function _dehomogenize_to_chart(X::NormalToricVariety, I::MPolyIdeal, k::Int)
-  # We use CLS, Proposition 5.2.10 and Exercise 5.2.5.
+  # We use CLS11, Proposition 5.2.10 and Exercise 5.2.5.
   IM = maximal_cones(IncidenceMatrix, X)
   U = affine_charts(X)[k]
 
@@ -210,7 +210,7 @@ function _dehomogenize_to_chart(X::NormalToricVariety, I::MPolyIdeal, k::Int)
 #  phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 # 
 #  # Now we need to create alpha*.
-#  # We do this with the description on p. 224 in CLS.
+#  # We do this with the description on p. 224 in CLS11.
 #  hb_U = hilbert_basis(weight_cone(U))
 #  r = matrix(ZZ, rays(U))
 #  imgs_alpha_star = [prod(x_rho[l]^Int(dot(hb_U[j], r[l, :])) for l in 1:nrows(r); init=one(help_ring)) for j in 1:length(hb_U)]
