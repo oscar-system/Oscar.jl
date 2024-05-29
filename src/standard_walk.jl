@@ -48,13 +48,14 @@ function standard_walk(
   @v_do :groebner_walk steps = 0
 
   while current_weight != target_weight
+    @vprintln :groebner_walk current_weight
     G = standard_step(G, current_weight, target)
 
     current_weight = next_weight(G, current_weight, target_weight)
 
     @v_do :groebner_walk steps += 1
-    @vprintln :groebner_walk current_weight
     @vprintln :groebner_walk 2 G
+    @vprintln :groebner_walk 2 "======="
   end
 
   @vprint :groebner_walk "Cones crossed: "
@@ -68,7 +69,7 @@ standard_walk(
   target::MonomialOrdering,
   current_weight::Vector{ZZRingElem},
   target_weight::Vector{ZZRingElem};
- ) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
+) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
 
 ###############################################################
 # The standard step is used for the strategies standard and perturbed.
@@ -79,12 +80,14 @@ function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::Monomi
   next = weight_ordering(w, target)
 
   Gw = ideal(initial_forms(G, w))
+  @vprint :groebner_walk 3 "GB of initial forms: "
+  @vprintln :groebner_walk 3 Gw
 
   H = groebner_basis(Gw; ordering=next, complete_reduction=true)
   H = lift(G, current_ordering, H, next)
 
-  @vprintln :groebner_walk 3 Gw
-  @vprintln :groebner_walk 3 H
+  @vprint :groebner_walk 10 "Lifted GB of initial forms: "
+  @vprintln :groebner_walk 10 H
 
   return autoreduce(H)
 end
@@ -118,7 +121,7 @@ function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
 end
 
 @doc raw"""
-    initial_form(G::Oscar.IdealGens, w::Vector{ZZRingElem})
+    initial_forms(G::Oscar.IdealGens, w::Vector{ZZRingElem})
 
 Returns the initial form of each element in `G` with respect to the weight vector `w`.
 """
@@ -138,12 +141,16 @@ as described in Algorithm 5.2 on pg. 437 of "Using algebraic geometry" (Cox, Lit
 """
 function next_weight(G::Oscar.IdealGens, current::Vector{ZZRingElem}, target::Vector{ZZRingElem})
   V = bounding_vectors(G)
+  @vprint :groebner_walk 5 "Bounding vectors: "
+  @vprintln :groebner_walk 5 V
+
   C = dot.(Ref(current), V)
   T = dot.(Ref(target), V)
 
   tmin = minimum(c//(c-t) for (c,t) in zip(C,T) if t<0; init=1)
 
-  @vprintln :groebner_walk 3 (QQ.(current) + tmin * QQ.(target-current))
+  @vprint :groebner_walk 5 "Next rational weights: "
+  @vprintln :groebner_walk 5 (QQ.(current) + tmin * QQ.(target-current))
 
   result = QQ.(current) + tmin * QQ.(target-current)
   if !iszero(result)
