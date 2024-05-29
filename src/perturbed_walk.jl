@@ -24,35 +24,29 @@ function perturbed_walk(
 
     target_weight = perturbed_vector(G, T, p)
     next_target = matrix_ordering(R, add_weight_vector(target_weight, T))
-    G = standard_walk(G, next_target, current_weight, target_weight)
+    G = standard_walk(Oscar.IdealGens, G, next_target, current_weight, target_weight)
 
     p = p - 1
     current_weight = target_weight
     S = next_target
   end
 
-  return G
+  return gens(G)
 end
 
 perturbed_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}, p::Int) = perturbed_walk(G, matrix_ordering(base_ring(G), S), matrix_ordering(base_ring(G), T), p)
 
 # computes a p-perturbed vector from the matrix M.
+# TODO: Docstring, citation of perturbation (Tran 2000, Thm. 3.1)
 function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
   n = size(M, 1)
   rows = [M[i, :] for i in 1:p]
 
-  m = maximum.(Ref(abs), rows)
-  m_sum = sum(m[2:end])
-  max_deg = maximum(total_degree.(G)) # TODO: I think this is total degree
+  m = maximum.(Ref(abs), rows) |> maximum
+  max_deg = maximum(total_degree.(G)) 
+  e = max_deg * m + 1
 
-  e = max_deg * m_sum + 1
-
-  w = M[1, :] * e^(p - 1)
-  for i in 2:p
-    w += e^(p - i) * M[i, :]
-  end
-
-  w = sum(rows .* (p .- Vector(1:p)))
+  w = sum(row * e^(p-i) for (i,row) in enumerate(rows))
 
   return convert_bounding_vector(w)
 end

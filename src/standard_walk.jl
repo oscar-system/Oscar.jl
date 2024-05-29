@@ -36,6 +36,7 @@ using the algorithm proposed by Collart, Kalkbrener & Mall (1997).
 - `target_weight::Vector{ZZRingElem}`: weight vector representing the target weight.
 """
 function standard_walk(
+  ::Type{Oscar.IdealGens},
   G::Oscar.IdealGens,
   target::MonomialOrdering,
   current_weight::Vector{ZZRingElem},
@@ -59,8 +60,15 @@ function standard_walk(
   @vprint :groebner_walk "Cones crossed: "
   @vprintln :groebner_walk steps
 
-  return gens(G)
+  return G
 end
+
+standard_walk(
+  G::Oscar.IdealGens,
+  target::MonomialOrdering,
+  current_weight::Vector{ZZRingElem},
+  target_weight::Vector{ZZRingElem};
+ ) = gens(standard_walk(Oscar.IdealGens, G, target, current_weight, target_weight))
 
 ###############################################################
 # The standard step is used for the strategies standard and perturbed.
