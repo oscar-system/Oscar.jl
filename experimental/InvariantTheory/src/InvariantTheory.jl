@@ -517,6 +517,7 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     mixed_ring_xy = parent(genss[1])
     R = base_ring(M)
     n = ncols(M)
+    m = G.group[2]
     xyz = gens(mixed_ring_xy)
     mapp = hom(R, mixed_ring_xy, xyz)
     new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(M[i,j]) for i in 1:n, j in 1:n])
