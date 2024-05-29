@@ -57,7 +57,7 @@ export default defineConfig({
               collapsed: true,
               items: [
                 { text: 'Introduction', link: 'manual/number_fields/intro'},
-                { text: 'Number field operatins', link: 'manual/number_fields/fields'},
+                { text: 'Number field operations', link: 'manual/number_fields/fields'},
                 { text: 'Elements', link: 'manual/number_fields/elements'},
                 { text: 'Complex embeddings', link: 'manual/number_fields/complex_embeddings'},
                 { text: 'Class field theory', link: 'manual/number_fields/class_fields.md'}, 
