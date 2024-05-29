@@ -309,7 +309,7 @@ end
 #################################################################################
 
 @doc raw"""
-     matrix_to_arrangement(A::MatElem{<: FieldElem})
+     arrangement_polynomial(A::MatElem{<: FieldElem}, ring::MPolyRing{<: FieldElem})
 
 
 Given some $A\in\mathbb{F}^{d\times n},$ return the product of the linear forms corresponding to the columns.
@@ -329,13 +329,13 @@ julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1])
 [   2   0   3      3   1   8]
 [5//2   1   2      5   2   1]
 
-julia>factor(arrangement_polynomial(A))
+julia> factor(arrangement_polynomial(A))
 (1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
 
-julia> R,_ = polynomial_ring(QQ,["x","y","z"])
+julia> R,_ = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
-julia>factor(arrangement_polynomial(A,R))
+julia> factor(arrangement_polynomial(A,R))
 (1//4) * (2*x + 3*y + 2*z) * (7*x + 8*y + z) * (x + 6*y + 10*z) * (2*x + 4*y + 5*z) * z * (3*x + y + 2*z)
 ```
 """
