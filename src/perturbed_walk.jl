@@ -1,14 +1,22 @@
-###############################################################
-# Perturbed-version of the Groebner Walk.
-###############################################################
+@doc raw"""
+    perturbed_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering, p::Int)
 
+Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using 
+the Groebner Walk with the algorithm proposed by TODO: reference.
+
+# Arguments
+- `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
+- `target::MonomialOrdering`: monomial order one wants to compute a Groebner basis for.
+- `start::MonomialOrdering`: monomial order to begin the conversion.
+- `p::Int`: degree of perturbation
+"""
 function perturbed_walk(
   G::Oscar.IdealGens,
   start::MonomialOrdering,
   target::MonomialOrdering,
   p::Int
 )
-  @vprintln :groebner_walk "perturbed_walk results"
+  @vprintln :groebner_walk "Results for perturbed_walk"
   @vprintln :groebner_walk "Crossed Cones in: "
 
   R = base_ring(G)
@@ -20,15 +28,19 @@ function perturbed_walk(
   while !same_cone(G, target)
     # @v_do :groebner_walk steps += 1
     @vprintln :groebner_walk current_weight
-    @vprintln :groebner_walk 2 G
+    @vprintln :groebner_walk 2 "Next matrix for monomial order:"
+    @vprintln :groebner_walk 2 S
 
     target_weight = perturbed_vector(G, T, p)
     next_target = matrix_ordering(R, add_weight_vector(target_weight, T))
     G = standard_walk(Oscar.IdealGens, G, next_target, current_weight, target_weight)
 
+    @vprintln :groebner_walk 2 G
+    @vprintln :groebner_walk "======="
+
     p = p - 1
     current_weight = target_weight
-    S = next_target
+    S = next_target #TODO: Is this actually used? S never appears in this loop
   end
 
   return gens(G)
@@ -41,17 +53,31 @@ perturbed_walk(
   p::Int
  ) = perturbed_walk(G, matrix_ordering(base_ring(G), S), matrix_ordering(base_ring(G), T), p)
 
-# computes a p-perturbed vector from the matrix M.
-# TODO: Docstring, citation of perturbation (Tran 2000, Thm. 3.1)
+@doc raw"""
+    perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
+
+Computes a perturbed vector using a matrix `M` representing some monomial order
+for one iteration of the Groebner walk according to Tran (2000), Thm. 3.1.
+
+# Arguments
+- `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
+- `M::ZZMatrix`: matrix representing a monomial order
+- `p::Int`: number of rows of `M` to use for the perturbation
+"""
 function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
   n = size(M, 1)
   rows = [M[i, :] for i in 1:p]
 
+  # Calculate upper degree bound for the target Groebner basis
   m = maximum.(Ref(abs), rows) |> maximum
   max_deg = maximum(total_degree.(G)) 
   e = max_deg * m + 1
+  @vprint :groebner_walk 5 "Upper degree bound: "
+  @vprintln :groebner_walk 5 e
 
   w = sum(row * e^(p-i) for (i,row) in enumerate(rows))
+  @vprint :groebner_walk 3 "Perturbed vector: "
+  @vprintln :groebner_walk 3 w
 
   return convert_bounding_vector(w)
 end
