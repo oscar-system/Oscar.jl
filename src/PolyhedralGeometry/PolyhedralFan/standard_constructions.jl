@@ -318,7 +318,7 @@ Let $A$ be a $d\times n$ matrix with entries from a field $\mathbb{F}$.
 The columns of $A$  are the normal vectors for a hyperplane arrangement
 $$\mathcal{A} = \{H_{1},\dots,H_{n}:H_{i}\subset \mathbb{F}^{d}\}.$$
 We have $H_{i} = V(\alpha_{i})$, where $\alpha_{i}\in\mathbb{F}[x_{1},\dots,x_{d}]$
-is a linear form whosecoefficients are the entries of the $i$th column.
+is a linear form whose coefficients are the entries of the $i$th column.
 
 Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
 
