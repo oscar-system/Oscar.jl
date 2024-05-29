@@ -24,7 +24,7 @@
 #   end
 #   xg=GAP.Obj(xg)
 
-   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive = true)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
@@ -133,7 +133,7 @@ end
        @test g(g\x) == x
      end
 
-     H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive=true))
+     H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
      f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)

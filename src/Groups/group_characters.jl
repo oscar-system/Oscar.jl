@@ -390,7 +390,7 @@ Currently the following series are supported.
 | `:ExtraspecialPlusOdd` | odd power of odd prime |
 """
 function character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
-    paras = GAP.Obj(parameter, recursive = true)
+    paras = GAP.Obj(parameter; recursive = true)
     tbl = GAPWrap.CharacterTable(GapObj(series), paras)
     tbl === GAP.Globals.fail && return nothing
     tbl = GAPGroupCharacterTable(tbl, 0)
@@ -1416,7 +1416,7 @@ function possible_class_fusions(subtbl::GAPGroupCharacterTable,
                                 fusionmap::Vector = [])
   cond = Dict{Symbol, Any}(:decompose => decompose)
   if length(fusionmap) != 0
-    cond[:fusionmap] = GapObj(fusionmap, recursive = true)
+    cond[:fusionmap] = GapObj(fusionmap; recursive = true)
   end
   fus = GAPWrap.PossibleClassFusions(GapObj(subtbl), GapObj(tbl),
             GapObj(cond))
@@ -2190,7 +2190,7 @@ end
 
 function induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable, fusion::Vector{Int})
   ind = GAPWrap.InducedClassFunctionsByFusionMap(GapObj(parent(chi)),
-          GapObj(tbl), GapObj([chi]; recursive=true), GapObj(fusion))
+          GapObj(tbl), GapObj([chi]; recursive = true), GapObj(fusion))
   return GAPGroupClassFunction(tbl, ind[1])
 end
 

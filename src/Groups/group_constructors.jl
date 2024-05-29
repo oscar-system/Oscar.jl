@@ -188,7 +188,7 @@ and the order of the `i`-th generator is `v[i]`.
     In future versions of Oscar, this may change.
 """
 function abelian_group(::Type{T}, v::Vector{S}) where T <: GAPGroup where S <: IntegerUnion
-  vgap = GAP.Obj(v, recursive=true)
+  vgap = GAP.Obj(v; recursive = true)
   return T(GAP.Globals.AbelianGroup(_gap_filter(T), vgap)::GapObj)
 end
 
@@ -202,13 +202,13 @@ function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubP
 #      so we keep the code from the master branch here.
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
-    return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v, recursive=true)))
+    return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v; recursive = true)))
   elseif TG == PcGroup && any(x -> ! is_prime(x), v)
     # GAP's IsPcGroup groups cannot have generators that correspond to the
     # orders given by `v` and to the defining presentation.
     error("cannot create a PcGroup group with relative orders $v, perhaps try SubPcGroup")
   else
-    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v, recursive=true)))
+    return TG(GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(v; recursive = true)))
   end
 end
 
@@ -519,14 +519,14 @@ function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
 end
 
 function free_group(L::Vector{<:VarName})
-   J = GapObj(L, recursive = true)
+   J = GapObj(L; recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
    return G
 end
 
 function free_group(L::Vector{<:Char})
-   J = GapObj(Symbol.(L), recursive = true)
+   J = GapObj(Symbol.(L); recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
    return G

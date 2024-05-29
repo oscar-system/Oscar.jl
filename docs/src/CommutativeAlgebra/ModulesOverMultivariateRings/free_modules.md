@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Free Modules](@id free_modules)
@@ -148,7 +146,7 @@ julia> f = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
 
 julia> parent(f)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> coordinates(f)
 Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]

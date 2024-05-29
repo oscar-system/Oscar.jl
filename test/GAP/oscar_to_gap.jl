@@ -127,6 +127,6 @@ end
     x = GapObj(s)
     @test x == GapObj(l)
 
-    x = GapObj(s; recursive=true)
-    @test x == GapObj(l; recursive=true)
+    x = GapObj(s; recursive = true)
+    @test x == GapObj(l; recursive = true)
 end

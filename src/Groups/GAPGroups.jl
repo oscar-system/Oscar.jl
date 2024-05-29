@@ -1325,7 +1325,7 @@ julia> h = hall_subgroup_classes(g, [2, 7]); length(h)
 function hall_subgroup_classes(G::GAPGroup, P::AbstractVector{<:IntegerUnion})
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
-   res_gap = GAP.Globals.HallSubgroup(GapObj(G), GAP.Obj(P, recursive = true))::GapObj
+   res_gap = GAP.Globals.HallSubgroup(GapObj(G), GAP.Obj(P; recursive = true))::GapObj
    if res_gap == GAP.Globals.fail
      T = typeof(G)
      return GAPGroupConjClass{T, T}[]

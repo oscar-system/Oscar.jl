@@ -2028,12 +2028,12 @@ function _glue_stabilizers(phi::TorQuadModuleMap,
   OqA = domain(OqAinOD)
   imA, _ = image(actA)
   kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]
-  push!(kerA, OqAinOD(one(OqA)))
+  push!(kerA, one(OD))
 
   OqB = domain(OqBinOD)
   imB, _ = image(actB)
   kerB = elem_type(OD)[OqBinOD(x) for x in gens(kernel(actB)[1])]
-  push!(kerB, OqBinOD(one(OqB)))
+  push!(kerB, one(OD))
 
   ext = domain(graph)
   perp, j = orthogonal_submodule(codomain(graph), ext)

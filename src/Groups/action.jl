@@ -186,7 +186,7 @@ respectively.
 julia> g = symmetric_group(3);  g[1]
 (1,2,3)
 
-julia> l = GapObj([[1, 2], [3, 4]], recursive = true)
+julia> l = GapObj([[1, 2], [3, 4]]; recursive = true)
 GAP: [ [ 1, 2 ], [ 3, 4 ] ]
 
 julia> on_sets_sets(l, g[1])
@@ -261,7 +261,7 @@ julia> permuted(a, g[1])
 julia> permuted(("a", "b", "c"), g[1])
 ("c", "a", "b")
 
-julia> l = GapObj(a, recursive = true)
+julia> l = GapObj(a; recursive = true)
 GAP: [ "a", "b", "c" ]
 
 julia> permuted(l, g[1])

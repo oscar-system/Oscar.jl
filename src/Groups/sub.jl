@@ -38,7 +38,7 @@ function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
-  elems_in_GAP = GapObj(gens; recursive=true)
+  elems_in_GAP = GapObj(gens; recursive = true)
   H = GAP.Globals.SubgroupNC(GapObj(G), elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
@@ -741,7 +741,6 @@ false
 #
 ################################################################################
 
-# *full* free or f.p. group
 function quo(G::FPGroup, elements::Vector{FPGroupElem})
   elems_in_gap = GapObj(elements; recursive=true)
   Q = FPGroup(GapObj(G)/elems_in_gap)
@@ -1175,7 +1174,7 @@ function intersect(G1::GAPGroup, V::GAPGroup...)
 end
 
 function intersect(V::AbstractVector{<:GAPGroup})
-   L = GapObj(V; recursive=true)
+   L = GapObj(V; recursive = true)
    K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]

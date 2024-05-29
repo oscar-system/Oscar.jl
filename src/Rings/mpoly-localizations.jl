@@ -2818,3 +2818,13 @@ function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
 end
 
 coefficient_ring(L::MPolyLocRing) = coefficient_ring(base_ring(L))
+
+########################################################################
+# Ported from old implementation in src/Rings/mpoly-local.jl
+########################################################################
+function Oscar.localization(R::MPolyRing{S}, m::MPolyIdeal) where S
+  return MPolyLocRing(R, complement_of_point_ideal(m))
+end
+
+complement_of_point_ideal(m::MPolyIdeal) = complement_of_point_ideal(base_ring(m), rational_point_coordinates(m))
+

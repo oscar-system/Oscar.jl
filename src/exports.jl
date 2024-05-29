@@ -103,7 +103,6 @@ export MPolyQuoIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
@@ -1001,7 +1000,6 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
 export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
-export minimal_generators
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
