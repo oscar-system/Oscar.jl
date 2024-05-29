@@ -328,8 +328,8 @@ Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
 [   2   0   3      3   1   8]
 [5//2   1   2      5   2   1]
 
-julia> factor(matrix_to_arrangement(A))
-1 * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+julia>factor(arrangement_polynomial(A))
+(1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
 ```
 """
 function arrangement_polynomial(A::MatElem{<: FieldElem})
