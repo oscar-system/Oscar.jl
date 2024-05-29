@@ -32,7 +32,7 @@
   HCz = Oscar.SimpleComplexWrapper(Cz, auto_extend=true)
 
   @test range(HCx) == range(Cx)
-  @test map_range(HCx) == map_range(Cx)
+  @test Hecke.map_range(HCx) == Hecke.map_range(Cx)
   @test HCx[0] === R1
   @test HCx[1] === R1
   @test map(HCx, 1)(R1[1]) == x*R1[1]

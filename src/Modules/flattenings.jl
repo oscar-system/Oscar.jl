@@ -81,36 +81,6 @@ function coordinates(
   return map_entries(inverse(flat), c)
 end
 
-function free_resolution(
-    M::SubquoModule{T}
-  ) where {T <: FlattableRingElemType}
-  flat = flatten(base_ring(M))
-  M_flat, iso_M, iso_M_inv = flat(M)
-  comp = free_resolution(M_flat) # assuming that this is potentially cached
-  if !haskey(flat_counterparts(flat), comp)
-    res_obj = ModuleFP[]
-    isos = ModuleFPHom[]
-    push!(res_obj, M)
-    push!(isos, iso_M_inv)
-    res_maps = Map[]
-    for i in 0:first(chain_range(comp))
-      F_flat = comp[i]
-      @assert F_flat === domain(map(comp, i))
-      @assert domain(last(isos)) === codomain(map(comp, i))
-      F, iso_F_inv = _change_base_ring_and_preserve_gradings(inverse(flat), F_flat)
-      iso_F = hom(F, F_flat, gens(F_flat), flat; check=false)
-      push!(res_maps, hom(F, last(res_obj), last(isos).(map(comp, i).(iso_F.(gens(F)))); check=false))
-      push!(res_obj, F)
-      push!(isos, iso_F_inv)
-    end
-    comp_up = ComplexOfMorphisms(ModuleFP, reverse(res_maps), typ=:chain, seed=-1, check=false)
-    comp_up.complete = true
-    result = FreeResolution(comp_up)
-    flat_counterparts(flat)[comp] = result
-  end
-  return flat_counterparts(flat)[comp]::FreeResolution
-end
-
 function (phi::RingFlattening)(f::ModuleFPHom)
   if !haskey(flat_counterparts(phi), f)
     dom = domain(f)
