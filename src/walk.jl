@@ -662,6 +662,7 @@ end
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
 convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
+# TODO: This comment is factually not correct, it's just the weight ordering of a matrix ordering
 # returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
 create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} = weight_ordering(cw, matrix_ordering(R, T))
 
@@ -672,13 +673,12 @@ create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} =
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 
-  I = 0
   for i in 1:length(gens(G))
     generators[i] = reduce(
       generators[i], generators[1:end .!= i]; ordering=G.ord, complete_reduction=true
     )
   end
-  return Oscar.IdealGens(generators, G.ord)
+  return Oscar.IdealGens(generators, G.ord; isGB=true)
 end
 
 #############################################
