@@ -400,7 +400,7 @@ function is_sub_with_data(M::AbstractAlgebra.FPModule{T}, N::AbstractAlgebra.FPM
     return fl, hom(M, N, elem_type(N)[zero(N) for m = gens(M)])
   end
 end
-
+#=
 function Oscar.hom(V::AbstractAlgebra.Module, W::AbstractAlgebra.Module, v::Vector{<:ModuleElem}; check::Bool = true)
   if ngens(V) == 0
     return Generic.ModuleHomomorphism(V, W, zero_matrix(base_ring(V), ngens(V), ngens(W)))
@@ -411,6 +411,7 @@ function Oscar.hom(V::AbstractAlgebra.Module, W::AbstractAlgebra.Module, v::MatE
   return Generic.ModuleHomomorphism(V, W, v)
 end
 
+=#
 function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
   return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
 end

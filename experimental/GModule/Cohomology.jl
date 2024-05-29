@@ -522,6 +522,7 @@ export action, cohomology_group, extension
 export induce, is_consistent, istwo_cocycle, all_extensions
 export split_extension, extension_with_abelian_kernel
 export CoChain, MultGrp, MultGrpElem
+export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
 _rank(M) = dim(M)
@@ -2383,20 +2384,29 @@ function Oscar.image(M::Map{FinGenAbGroup, <:Oscar.GAPGroup})
   return s, ms
 end
 
-function is_central_extension(NtoE::Map)
+@doc """
+    is_central(NtoE::Map) -> Bool
+
+Tests if the domain is in the center of the codomain.    
+"""
+function Oscar.is_central(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group})
   E = codomain(NtoE)
   n = map(NtoE, gens(domain(NtoE)))
   return all(x->all(y->y*x == x*y, n), gens(E))
   return is_subset(N, center(E)[1])
 end
 
-#tests if N \subseteq C(E) cap E'
-function is_stem_extension(NtoE::Map; is_central_known::Bool = false)
+@doc """
+    is_stem_extension(NtoE::Map) -> Bool
+
+Tests if the domain is in the center and the derived subgroup of the codomain.
+"""
+function is_stem_extension(NtoE::Map{<:Union{<:AbstractAlgebra.Group, FinGenAbGroup}, <:AbstractAlgebra.Group}; is_central_known::Bool = false)
   E = codomain(NtoE)
   N = image(NtoE)[1]
   E = codomain(NtoE)
   if !is_central_known
-    is_central_extension(NtoE) || return false
+    is_central(NtoE) || return false
   end
   return is_subset(N, derived_subgroup(E)[1])
 end
@@ -2488,3 +2498,4 @@ using .GrpCoh
 export gmodule, fp_group, pc_group, induce, cohomology_group, extension
 export permutation_group, is_consistent, istwo_cocycle, GModule
 export split_extension, all_extensions, extension_with_abelian_kernel
+export is_stem_extension, is_central

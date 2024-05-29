@@ -1,5 +1,6 @@
 include("Cohomology.jl")
 include("GaloisCohomology.jl")
+include("GrpExt.jl")
 include("Misc.jl")
 
 module GModuleFromGap
