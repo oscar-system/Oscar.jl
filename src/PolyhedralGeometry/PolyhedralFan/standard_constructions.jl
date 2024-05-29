@@ -309,20 +309,21 @@ end
 #################################################################################
 
 @doc raw"""
-Let $A$ be a $d\times n$ matrix with entries from a field $\mathbb{F}$$.
-The collumns of $A$  are the normal vectors for a hyperplane arrangement
-$$\mathcal{A} = \{H_{1},\dots,H_{n}:H_{i}\subset \mathbb{F}^{d}\},$$
-such that $H_{i} = V(\alpha_{i})$, where $\alpha_{i}\in\mathbb{F}[x_{1},\dots,x_{d}]$ is a linear form.
+     matrix_to_arrangement(A::MatElem{<: FieldElem})
 
-Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
 
 Given some $A\in\mathbb{F}^{d\times n},$ return the product of the linear forms corresponding to the columns.
 
-# Example
-```julia> F = QQ
-Rational field
+Let $A$ be a $d\times n$ matrix with entries from a field $\mathbb{F}$.
+The columns of $A$  are the normal vectors for a hyperplane arrangement
+$$\mathcal{A} = \{H_{1},\dots,H_{n}:H_{i}\subset \mathbb{F}^{d}\}.$$
+We have $H_{i} = V(\alpha_{i})$, where $\alpha_{i}\in\mathbb{F}[x_{1},\dots,x_{d}]$
+is a linear form whosecoefficients are the entries of the $i$th column.
 
-julia> A = matrix(F,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1])
+Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
+
+# Example
+```julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1])
 [   1   0   2   1//2   3   7]
 [   2   0   3      3   1   8]
 [5//2   1   2      5   2   1]
@@ -331,11 +332,16 @@ julia> factor(matrix_to_arrangement(A))
 1 * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
 ```
 """
-function matrix_to_arrangement(A::MatElem{<: FieldElem})
-    d = nrows(A)
+function arrangement_polynomial(A::MatElem{<: FieldElem})
+	F = base_ring(A)
+	P,_ = polynomial_ring(F,nrows(A), cached = false)
+	return arrangement_polynomial(A,P)
+end
+
+function arrangement_polynomial(A::MatElem{<: FieldElem}, ring::MPolyRing{<: FieldElem})
+    @req dim(ring) == nrows(A) "dimension of ring must be number of rows of input matrix"
+    @req base_ring(A) == coefficient_ring(ring) "entries of input matrix must be coefficients from ring"
+    x = gens(ring)
     n = ncols(A)
-    R = base_ring(A)
-    P,x = polynomial_ring(R,d)
-    P = prod([sum([A[i,j]*x[i] for i in 1:d]) for j in 1:n])
-    return inv(unit(factor(P)))*P
+    return prod([sum([A[i,j]*x[i] for i in 1:length(x)]) for j in 1:n])
 end

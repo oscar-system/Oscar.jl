@@ -164,8 +164,8 @@ end
   @test number_of_maximal_cones(sff1) == 3
 end
 
-@testset "Matrix to arrangement" begin
+@testset "Defining polynomial of hyperplane arrangement from matrix" begin
   A = identity_matrix(QQ,3)
   P,x = polynomial_ring(QQ,3)
-  @test matrix_to_arrangement(A) == x[1]*x[2]*x[3]
+  @test arrangement_polynomial(A) == x[1]*x[2]*x[3]
 end
