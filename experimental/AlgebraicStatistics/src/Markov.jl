@@ -1,32 +1,38 @@
 # -*- Markov rings for discrete random variables -*-
 
-export MarkovRing, TensorRing, ring, random_variables, unknowns, state_space, marginal, ci_ideal
+export markov_ring, tensor_ring, ring, random_variables, unknowns, state_space, marginal, ci_ideal
 
-"""
-    MarkovRing(rvs::Pair...; unknown="p", base_ring=QQ)
-
-The polynomial ring whose unknowns are the entries of a probability tensor.
-`rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
-and `Q` is the list of states it takes. The polynomial ring being constructed
-will have one variable for each element in the cartesian product of the `Q`s.
-It is an Oscar multivariate polynomial ring whose variables are named `p[...]`
-and whose `base_ring` is by default `QQ`. You can change these settings via
-the optional arguments.
-
-## Examples
-
-``` jldoctest ring_props
-julia> R = MarkovRing("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
-MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
-```
-"""
 struct MarkovRing
   ring
   random_variables
   state_spaces
 end
 
-function MarkovRing(rvs::Pair...; unknown="p", base_ring=QQ)
+@doc raw"""
+    markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+    tensor_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+
+The polynomial ring whose unknowns are the entries of a probability tensor.
+`rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
+and `Q` is the list of states it takes. The polynomial ring being constructed
+will have one variable for each element in the cartesian product of the `Q`s.
+It is an Oscar multivariate polynomial ring whose variables are named `p[...]`
+and whose `base_ring` is by default `QQ`. These settings can be changed via
+the optional arguments.
+
+The name `tensor_ring` is an alias for the constructor `markov_ring` because
+that is really what a `MarkovRing` is: the coordinate ring of tensors of a
+fixed format. The name `MarkovRing` is kept for compatibility in terminology
+with the Macaulay2 package `GraphicalModels`.
+
+## Examples
+
+``` jldoctest ring_props
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
+```
+"""
+function markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
   return MarkovRing(
@@ -36,15 +42,7 @@ function MarkovRing(rvs::Pair...; unknown="p", base_ring=QQ)
   )
 end
 
-"""
-    const TensorRing = MarkovRing
-
-The name `TensorRing` is an alias for `MarkovRing` because that is really what a
-`MarkovRing` is: the coordinate ring of tensors of a fixed format. The name
-`MarkovRing` is kept for compatibility in terminology with the Macaulay2 package
-`GraphicalModels`.
-"""
-const TensorRing = MarkovRing
+const tensor_ring = markov_ring
 
 function Base.show(io::IO, R::MarkovRing)
   print(io, "$(typeof(R)) for random variables ",
@@ -53,7 +51,7 @@ function Base.show(io::IO, R::MarkovRing)
   )
 end
 
-"""
+@doc raw"""
     ring(R::MarkovRing)
 
 Return the Oscar multivariate polynomial ring inside the MarkovRing.
@@ -69,7 +67,7 @@ function ring(R::MarkovRing)
   return R.ring[1]
 end
 
-"""
+@doc raw"""
     random_variables(R::MarkovRing)
 
 Return the list of random variables used to create the MarkovRing.
@@ -89,7 +87,7 @@ function random_variables(R::MarkovRing)
     return R.random_variables
 end
 
-"""
+@doc raw"""
     ci_statements(R::MarkovRing)
 
 Returns all the `CIStmt` objects which can be formed on the `random_variables(R)`.
@@ -106,26 +104,12 @@ julia> ci_statements(R)
  [A ⫫ X | Y]
  [A ⫫ X | {B, Y}]
  [A ⫫ Y | {}]
- [A ⫫ Y | B]
- [A ⫫ Y | X]
- [A ⫫ Y | {B, X}]
- [B ⫫ X | {}]
- [B ⫫ X | A]
- [B ⫫ X | Y]
- [B ⫫ X | {A, Y}]
- [B ⫫ Y | {}]
- [B ⫫ Y | A]
- [B ⫫ Y | X]
- [B ⫫ Y | {A, X}]
- [X ⫫ Y | {}]
- [X ⫫ Y | A]
- [X ⫫ Y | B]
- [X ⫫ Y | {A, B}]
+[...]
 ```
 """
 ci_statements(R::MarkovRing) = ci_statements(random_variables(R))
 
-"""
+@doc raw"""
     unknowns(R::MarkovRing)
 
 Return the tensor of variables in the polynomial ring.
@@ -156,7 +140,7 @@ function unknowns(R::MarkovRing)
   return R.ring[2]
 end
 
-"""
+@doc raw"""
     find_random_variables(R::MarkovRing, K)
 
 Given a subset `K` of `random_variables(R)` return its indices into the data
@@ -170,7 +154,7 @@ function find_random_variables(R::MarkovRing, K)
   return idx
 end
 
-"""
+@doc raw"""
     find_state(R::MarkovRing, K, x)
 
 Given a set of random variables `K` and a joint event `x` they can take,
@@ -186,7 +170,7 @@ function find_state(R::MarkovRing, K, x)
   return idx
 end
 
-"""
+@doc raw"""
     state_space(R::MarkovRing, K=random_variables(R))
 
 Return all states that the random subvector indexed by `K` can attain
@@ -225,7 +209,7 @@ function apply_permutation(p, x)
   return px
 end
 
-"""
+@doc raw"""
     marginal(R::MarkovRing, K, x)
 
 Return a marginal as a sum of unknowns from `R`. The argument `K` lists
@@ -255,10 +239,10 @@ function marginal(R::MarkovRing, K, x)
   return length(summands) == 1 ? summands[1] : +(summands...)
 end
 
-"""
+@doc raw"""
     ci_ideal(R::MarkovRing, stmts)::MPolyIdeal
 
-Return an Oscar ideal for the conditional independence statements
+Return the ideal for the conditional independence statements
 given by `stmts`.
 
 ## Examples

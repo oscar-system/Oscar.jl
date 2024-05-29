@@ -1,61 +1,91 @@
 # -*- Conditional independence statements -*-
 
-export CIStmt, @CI_str, ci_statements, make_elementary
+export ci_stmt, @CI_str, ci_statements, make_elementary
 
-"""
-    CIStmt(I, J, K)
-    CI"A,B|X"
+struct CIStmt
+  I::Vector{String}
+  J::Vector{String}
+  K::Vector{String}
+end
+
+@doc raw"""
+    ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
 
 A conditional independence statement asserting that `I` is independent
 of `J` given `K`. These parameters are lists of names of random variables.
 The sets `I` and `J` must be disjoint as this package cannot yet deal
 with functional dependencies.
 
-The literal syntax CI"I...,J...|K..." is provided for cases in which all
-your variable names consist of a single character. If `I` and `J` only
-consist of a single element, the comma may be omitted.
+If `symmetric` is `true`, CI statements are assumed to be symmetric in
+their `I` and `J` components. The constructor then reorders the arguments
+to make the `I` field lexicographically smaller than the `J` to ensure
+that comparisons and hashing respect the symmetry.
 
-CI statements are symmetric in their `I` and `J` components. The constructor
-may reorder the arguments to make the `I` field lexicographically smaller
-than the `J` field so that comparisons and hashing respect the symmetry.
+If `semigraphoid` is set to `true`, the constructor also removes elements
+in the intersection of `I` and `K` from `I` (and symetrically removes the
+intersection of `J` and `K` from `J`).
+
+As all three fields are sets, each of them may be deduplicated and sorted
+to ensure consistent comparison and hashing.
+
+## Examples
+
+``` jldoctest
+julia> ci_stmt(["A"], ["B"], ["X"])
+[A ⫫ B | X]
+
+julia> ci_stmt(["1"], ["2", "3"], ["4", "5"])
+[1 ⫫ {2, 3} | {4, 5}]
+```
+"""
+function ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
+  if length(intersect(I, J)) > 0
+    error("Functional dependence statements are not yet implemented")
+  end
+  if symmetric && I > J
+    I, J = J, I
+  end
+  if semigraphoid
+    I = setdiff(I, K)
+    J = setdiff(J, K)
+  end
+  CIStmt(sort(unique(I)), sort(unique(J)), sort(unique(K)))
+end
+
+@doc raw"""
+    Base.:(==)(lhs::CIStmt, rhs::CIStmt)
+
+Compares `CIStmt`s for identity in all their three fields.
+"""
+Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
+  lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
+
+@doc raw"""
+    Base.hash(stmt:;CIStmt, h::UInt)
+
+Computes the hash of a `CIStmt`.
+"""
+Base.hash(stmt::CIStmt, h::UInt) =
+  foldr(hash, stmt.I, stmt.J, stmt.K; init=hash(CIStmt, h))
+
+@doc raw"""
+    CI"I...,J...|K..."
+
+A literal syntax for denoting CI statements is provided for cases in which
+all variable names consist of a single character. If `I` and `J` only consist
+of a single element, then even the comma may be omitted. Once the three sets
+are extracted, `ci_stmt` is called.
 
 ## Examples
 
 ``` jldoctest
 julia> CI"AB|X"
 [A ⫫ B | X]
-julia> CI"1,23|45"
+
+julia> CI"1,23|5424"
 [1 ⫫ {2, 3} | {4, 5}]
 ```
 """
-struct CIStmt
-  I::Vector{String}
-  J::Vector{String}
-  K::Vector{String}
-  function CIStmt(I, J, K)
-    if length(intersect(I, J)) > 0
-      error("Functional dependence statements are not yet implemented")
-    end
-    if I > J
-      I, J = J, I
-    end
-    new(I, J, K)
-  end
-end
-
-Base.:(==)(lhs::CIStmt, rhs::CIStmt) =
-  lhs.I == rhs.I && lhs.J == rhs.J && lhs.K == rhs.K
-
-Base.hash(stmt::CIStmt, h::UInt) =
-  foldr(hash, stmt.I, stmt.J, stmt.K; init=hash(CIStmt, h))
-
-# Allow CI"12,3|456" syntax to create a CIStmt. The short syntax
-# CI"12|345" for elementary CI statements is also supported and
-# is assumed if there is no comma.
-#
-# We suppose that the semigraphoid properties apply and make (I, K)
-# and (J, K) disjoint. Note that we do support functional dependencies,
-# i.e., I and J may have non-empty intersection.
 macro CI_str(str)
   # General syntax "12,34|567"
   m = match(r"^(.+),(.+)[|](.*)$", str)
@@ -67,11 +97,9 @@ macro CI_str(str)
   if m == nothing
     throw(ArgumentError(str * " is not a CI statement"))
   end
-
   parse_arg(s) = unique([string(c) for c in s])
   I, J, K = map(s -> parse_arg(s), m)
-  # The setdiff is allowed by the semigraphoid axioms.
-  return CIStmt(setdiff(I, K), setdiff(J, K), K)
+  return ci_stmt(I, J, K)
 end
 
 function Base.show(io::IO, stmt::CIStmt)
@@ -79,9 +107,8 @@ function Base.show(io::IO, stmt::CIStmt)
   print(io, "[$(fmt(stmt.I)) ⫫ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
 end
 
-"""
+@doc raw"""
     ci_statements(random_variables::Vector{String})
-    ci_statements(R::MarkovRing)
 
 Return a list of all elementary CI statements over a given set of
 variable names. A `CIStmt(I, J, K)` is elementary if both `I` and
@@ -96,19 +123,20 @@ distribution.
 ``` jldoctest
 julia> ci_statements(["A", "B", "X", "Y"])
 24-element Vector{CIStmt}:
- [1 ⫫ 2 | {}]
- [1 ⫫ 2 | 3]
- [1 ⫫ 2 | 4]
- [1 ⫫ 2 | {3, 4}]
-...
- [3 ⫫ 4 | {}]
- [3 ⫫ 4 | 1]
- [3 ⫫ 4 | 2]
- [3 ⫫ 4 | {1, 2}]
+ [A ⫫ Y | {}]
+ [A ⫫ Y | B]
+ [A ⫫ Y | X]
+ [A ⫫ Y | {B, X}]
+ [B ⫫ Y | {}]
+ [B ⫫ Y | A]
+ [B ⫫ Y | X]
+ [B ⫫ Y | {A, X}]
+ [X ⫫ Y | {}]
+[...]
 ```
 """
 function ci_statements(random_variables::Vector{String})
-  N = 1:length(random_variables)
+  N = collect(1:length(random_variables))
   stmts = Vector{CIStmt}()
   for ij in subsets(N, 2)
     M = setdiff(N, ij)
@@ -125,18 +153,19 @@ function ci_statements(random_variables::Vector{String})
   return stmts
 end
 
-"""
+@doc raw"""
     make_elementary(stmt::CIStmt; semigaussoid=false)
 
-Convert a CIStmt into an equivalent list of CIStmts's all of which
+Convert a `CIStmt` into an equivalent list of `CIStmt`s all of which
 are elementary. The default operation assumes the semigraphoid axioms
 and converts [I ⫫ J | K] into the list consisting of [i ⫫ j | L]
-for all i in I, j in J and L between K and (I ∪ J ∪ K) ∖ {i,j}.
+for all ``i \in I``, ``j \in J`` and ``L`` in the interval
+``K \subseteq L \subseteq (I \cup J \cup K) \setminus \{i,j\}``.
 
 If `semigaussoid` is true, the stronger semigaussoid axioms are
-assumed and `L` in the above procedure does not range in sets
-above `K` but is fixed to `K`. Semigaussoids are also known as
-compositional graphoids.
+assumed and `L` in the above procedure does not range in the interval
+above `K` but is always fixed to `K`. Semigaussoids are also known as
+*compositional graphoids*.
 
 ## Examples
 
@@ -148,17 +177,7 @@ julia> make_elementary(CI"12,34|56")
  [1 ⫫ 3 | {5, 6, 4}]
  [1 ⫫ 3 | {5, 6, 2, 4}]
  [1 ⫫ 4 | {5, 6}]
- [1 ⫫ 4 | {5, 6, 2}]
- [1 ⫫ 4 | {5, 6, 3}]
- [1 ⫫ 4 | {5, 6, 2, 3}]
- [2 ⫫ 3 | {5, 6}]
- [2 ⫫ 3 | {5, 6, 1}]
- [2 ⫫ 3 | {5, 6, 4}]
- [2 ⫫ 3 | {5, 6, 1, 4}]
- [2 ⫫ 4 | {5, 6}]
- [2 ⫫ 4 | {5, 6, 1}]
- [2 ⫫ 4 | {5, 6, 3}]
- [2 ⫫ 4 | {5, 6, 1, 3}]
+[...]
 
 julia> make_elementary(CI"12,34|56"; semigaussoid=true)
 4-element Vector{CIStmt}:
