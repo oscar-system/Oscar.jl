@@ -35,7 +35,7 @@ mutable struct LinearlyReductiveGroup
     function LinearlyReductiveGroup(sym::Symbol, m::Int, fld::Field) #have not decided the representation yet
         #check char(fld)
         @assert sym == :SL && characteristic(fld) == 0
-        R, _ = polynomial_ring(fld, :z => (1:m,1:m);cached=false)
+        R, _ = polynomial_ring(fld, :z => (1:m,1:m); cached=false)
         return LinearlyReductiveGroup(sym, m, R)
     end
 
@@ -445,14 +445,14 @@ function Base.show(io::IO, R::RedGroupInvarRing)
     io = pretty(io)
     println(io, "Invariant Ring of")
     println(io, Lowercase(), R.poly_ring)
+    print(io, Indent(), "under group action of ")
     if isdefined(group(R), :group)
-        print(io, Indent(),  "under group action of ", group_type(group(R)), group_dim(group(R)))
-        print(io, Dedent())
+        print(io, group_type(group(R)), group_dim(group(R)))
     else
-        println(io, Indent(),  "under group action of linearly reductive group defined by")
+        println(io, "linearly reductive group defined by")
         print(io, group_ideal(group(R)))
-        print(io, Dedent())
     end
+    print(io, Dedent())
 end
 
 #computing the graph Gamma from Derksens paper
@@ -488,16 +488,12 @@ end
 #ie at gens(basering)[n+1:2*n] = [0 for i in 1:n]
 function generators(G::LinearlyReductiveGroup, X::MPolyIdeal, rep_mat::MatElem)
     n = ncols(rep_mat)
-    if isdefined(G, :group)
-        m = (group_dim(G))^2
-    else
-        m = ngens(base_ring(group_ideal(G)))
-    end
     gbasis = gens(X) 
     length(gbasis) == 0 && return gbasis
     mixed_ring_xy = parent(gbasis[1])
     #evaluate at gens(mixed_ring_xy)[n+1:2*n] = 0
-    V = vcat(gens(mixed_ring_xy)[1:n], [0 for i in 1:n], gens(mixed_ring_xy)[2*n+1:2*n+m])
+    xyz = gens(mixed_ring_xy)
+    V = vcat(xyz[1:n], [0 for i in 1:n], xyz[2*n+1:end])
     ev_gbasis = [evaluate(f,V)  for f in gbasis]
     #grading starts here. In the end, our invariant ring is graded.
     mixed_ring_graded, _ = grade(mixed_ring_xy)
@@ -520,27 +516,27 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     #we need the representation matrix and determinant of group matrix to be in basering(I)
     mixed_ring_xy = parent(genss[1])
     R = base_ring(M)
-    m = group_dim(G)
     n = ncols(M)
-    mapp = hom(R, mixed_ring_xy, gens(mixed_ring_xy))
+    xyz = gens(mixed_ring_xy)
+    mapp = hom(R, mixed_ring_xy, xyz)
     new_rep_mat = matrix(mixed_ring_xy,n,n,[mapp(M[i,j]) for i in 1:n, j in 1:n])
     det_ = det(G.canonical_representation)
-    mapp_ = hom(parent(det_), mixed_ring_xy, gens(mixed_ring_xy)[(2*n)+1:(2*n)+(m^2)])
+    mapp_ = hom(parent(det_), mixed_ring_xy, xyz[(2*n)+1:end])
     new_det = mapp_(det_)
 
     #now we apply reynolds operator to genss
     if group_type(G) == :SL #TODO other types of reductive groups
-        new_gens_wrong_ring = [reynolds_function(genss[i], new_rep_mat, new_det, m) for i in 1:length(genss)]
+        new_gens_wrong_ring = [reynolds_function(g, new_rep_mat, new_det, m) for g in genss]
     else 
         return nothing
     end
 
     #map them to the required ring, ringg. 
-    img_genss = vcat(gens(ringg), zeros(ringg, n+m^2))
+    img_genss = vcat(gens(ringg), zeros(ringg, length(xyz)-n))
     mixed_to_ring = hom(mixed_ring_xy, ringg, img_genss)
     new_gens = Vector{elem_type(ringg)}()
     for elemm in new_gens_wrong_ring
-        if elemm != 0
+        if !is_zero(elemm)
             push!(new_gens, mixed_to_ring(elemm))
         end
     end
@@ -549,17 +545,15 @@ function inv_generators(I::MPolyIdeal, G::LinearlyReductiveGroup, ringg::MPolyRi
     end
     
     #remove ugly coefficients: 
-    V= Vector{FieldElem}[]
     new_gens_ = Vector{elem_type(ringg)}()
     for elem in new_gens
-        V = vcat(V,collect(coefficients(elem)))
+        V = collect(coefficients(elem))
         maxx = maximum([abs(denominator(V[i])) for i in 1:length(V)])
         minn = minimum([abs(numerator(V[i])) for i in 1:length(V)])
         if denominator((maxx*elem)//minn) != 1
             error("den not 1")
         end
         push!(new_gens_, numerator((maxx*elem)//minn))
-        V= Vector{FieldElem}[]
     end
     return new_gens_
 end
@@ -726,7 +720,7 @@ end
 #In the case there is no reynolds operator
 ###################
 
-#Algorithm 4.5.1 in Computational Invariant Theory by Derksen and Kemper  
+#Algorithm 4.5.1 in Computational Invariant Theory by Derksen and Kemper Second Edition [DK15] 
 
 function inv_gens_no_reynolds(I::MPolyIdeal, mat_::MatElem, ringg::MPolyRing) 
     #I is the null cone ideal, mat_ is the representation matrix and 
