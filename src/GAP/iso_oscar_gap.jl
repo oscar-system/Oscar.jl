@@ -247,7 +247,7 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::Ga
 
    f = function(x::Nemo.AbsSimpleNumFieldElem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
-      return GAPWrap.CycList(GapObj(coeffs; recursive=true))
+      return GAPWrap.CycList(GapObj(coeffs; recursive = true))
    end
 
    finv = function(x)
@@ -310,13 +310,13 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
      fam = GAP.Globals.CyclotomicsFamily::GapObj
-     cfs = GapObj(coeffs_polFO, recursive = true)::GapObj
+     cfs = GapObj(coeffs_polFO; recursive = true)::GapObj
      polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
      FG = GAPWrap.AlgebraicExtension(GAP.Globals.Rationals::GapObj, polFG)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      f = function(x::SimpleNumFieldElem{QQFieldElem})
-        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x); recursive = true)::GapObj
         return GAPWrap.AlgExtElm(fam, coeffs)
      end
 

@@ -127,7 +127,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      B = GAPWrap.Basis(FG, powers)
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x); recursive = true)::GapObj
         return (coeffs * powers)::GAP.Obj
      end
 
@@ -145,7 +145,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x); recursive = true)::GapObj
         return GAPWrap.ObjByExtRep(fam, coeffs)
      end
 
@@ -184,7 +184,7 @@ function _iso_gap_oscar_number_field(FG::GapObj)
      Mpowers = GapObj(Mpowers)
 
      finv = function(x::Nemo.AbsSimpleNumFieldElem)
-        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x); recursive = true)::GapObj
         return GAPWrap.LinearCombination(coeffs, Mpowers)
      end
 

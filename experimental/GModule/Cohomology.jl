@@ -1833,7 +1833,7 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
         push!(r, a[i])
       end
     end
-    return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
+    return GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
   end
 
   gap_to_julia = function(a::GapObj)
@@ -1862,7 +1862,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
   G = free_group(degree(k)*dim(M))
 
   C = GAP.Globals.CombinatorialCollector(GapObj(G),
-                  GAP.Obj([p for i=1:ngens(G)], recursive = true))
+                  GAP.Obj([p for i=1:ngens(G)]; recursive = true))
   F = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(G)))
 
   # Note that we have specified all relative orders as `p`.
@@ -1884,7 +1884,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
         push!(r, lift(ZZ, a[i]))
       end
     end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
+    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
     return g
   end
 
@@ -1900,7 +1900,7 @@ function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; 
         end
       end
     end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r, recursive = true))
+    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
     return g
   end
 
