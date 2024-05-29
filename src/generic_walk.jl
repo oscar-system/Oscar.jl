@@ -1,3 +1,14 @@
+@doc raw"""
+    generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
+
+Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk
+using the algorithm proposed by Collart, Kalkbrener & Mall (1997).
+
+# Arguments
+- `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
+- `target::MonomialOrdering`: monomial order one wants to compute a Groebner basis for.
+- `start::MonomialOrdering`: monomial order to begin the conversion.
+"""
 function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
   @vprintln :groebner_walk "Results for generic_walk"
   @vprintln :groebner_walk "Facets crossed for: "
@@ -8,12 +19,13 @@ function generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::Monom
 
   @v_do :groebner_walk steps = 0
   while !isempty(v)
+    @vprintln :groebner_walk v
     MG = generic_step(MG, v, target)
     v = next_gamma(MG, v, start, target)
 
     @v_do :groebner_walk steps += 1
-    @vprintln :groebner_walk v
     @vprintln :groebner_walk 2 G
+    @vprintln :groebner_walk 2 "======="
   end
 
   @vprint :groebner_walk "Cones crossed: "
@@ -32,7 +44,13 @@ function generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::Monom
     ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger
   )
 
-  H = MarkedGroebnerBasis(gens(H), leading_term.(H, ordering = ord))
+  @vprint :groebner_walk 5 "Initials forms of facet: "
+  @vprintln :groebner_walk 5 facet_Generators
+
+  @vprint :groebner_walk 3 "GB of initial forms: "
+  @vprintln :groebner_walk 3 H
+
+  H = MarkedGroebnerBasis(gens(H), leading_term.(H; ordering = ord))
 
   lift_generic!(H, MG)
   autoreduce!(H)
@@ -49,7 +67,8 @@ function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG)
   lead_exp = leading_exponent_vector.(Lm)
   
-  v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
+  #v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
+  v = [ [l-t for t in T] for (l, T) in zip(lead_exp, exponent_vectors.(G)) ]
   
   return [ZZ.(v)./ZZ(gcd(v)) for v in unique!(reduce(vcat, v)) if !iszero(v)]
 end
@@ -121,6 +140,13 @@ function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
   return H
 end
 
+@doc raw"""
+    lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
+
+Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked Gröbner basis `H` of initial forms,
+lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
+This changes `H` in-place.
+"""
 function lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
   for i in 1:length(H.gens)
     H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
