@@ -26,6 +26,14 @@
 
   G = symmetric_group(4)
   @test_throws ArgumentError pc_group(GapObj(G)) isa PcGroup
+
+  G = small_group(24, 12)
+  H = sylow_subgroup(G, 2)[1]
+  F, mp = full_group(H)
+  @test F == G
+  @test F !== small_group(24, 12)
+  @test domain(mp) == H && codomain(mp) == G
+  @test full_group(G)[1] == G
 end
 
 @testset "create polycyclic groups from collectors" begin

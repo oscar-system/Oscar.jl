@@ -2,8 +2,8 @@ const AnyVecOrMat = Union{MatElem,AbstractVecOrMat}
 
 include("helpers.jl")
 include("iterators.jl")
-include("Polyhedron/constructors.jl")
 include("Cone/constructors.jl")
+include("Polyhedron/constructors.jl")
 include("Cone/properties.jl")
 include("Cone/standard_constructions.jl")
 include("Polyhedron/properties.jl")

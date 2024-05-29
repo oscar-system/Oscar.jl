@@ -204,14 +204,13 @@ function canonical_bundle(X::AbsProjectiveVariety)
   n = ngens(Pn)-1
   c = codim(X)
   FA = free_resolution(A, algorithm = :fres)
-  C = Oscar.SimpleComplexWrapper(FA.C[0:first(range(FA.C))])
-  C_simp = simplify(C)
+  C_simp = simplify(FA)
   C_shift = shift(C_simp, c)
   OmegaPn = graded_free_module(Pn, [n+1])
   D = hom(C_shift, OmegaPn)
   D_simp = simplify(D)
   Z, inc = kernel(D_simp, 0)
-  B, inc_B = Oscar.boundary(D_simp, 0)
+  B, inc_B = boundary(D_simp, 0)
   return prune_with_map(SubquoModule(D_simp[0], ambient_representatives_generators(Z), ambient_representatives_generators(B)))[1] 
 end
 

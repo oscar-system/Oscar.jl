@@ -1,4 +1,4 @@
-# Saving and loading files
+# [Saving and loading files](@id serialization)
 
 ## Introduction
 
@@ -47,6 +47,7 @@ FPGroup
 FinGenAbGroup
 PcGroup
 PermGroup
+SubFPGroup
 SubPcGroup
 ```
 

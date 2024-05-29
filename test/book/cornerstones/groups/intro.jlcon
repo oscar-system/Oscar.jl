@@ -127,10 +127,10 @@ julia> describe(H)
 "a finitely presented group"
 
 julia> H1, _ = derived_subgroup(H)
-(Finitely presented group, Hom: H1 -> H)
+(Sub-finitely presented group, Hom: H1 -> H)
 
 julia> H2, _ = derived_subgroup(H1)
-(Finitely presented group, Hom: H2 -> H1)
+(Sub-finitely presented group, Hom: H2 -> H1)
 
 julia> describe(H2)
 "Z x Z"

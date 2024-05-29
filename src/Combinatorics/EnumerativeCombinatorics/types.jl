@@ -134,6 +134,52 @@ struct Partition{T<:IntegerUnion} <: AbstractVector{T}
   p::Vector{T}
 end
 
+# Iterator type: all partitions of an integer n
+struct Partitions{T<:IntegerUnion}
+  n::T
+
+  function Partitions(n::T) where T<:IntegerUnion
+    @req n >= 0 "n >= 0 required"
+    return new{T}(n)
+  end
+
+end
+
+# Iterator type: partitions of n into k parts, with optional lower/upper bounds on the parts
+# If distinct_parts == true, then all parts have distinct values.
+struct PartitionsFixedNumParts{T<:IntegerUnion}
+  n::T
+  k::Int
+
+  lb::T
+  ub::T
+  distinct_parts::Bool
+
+  function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion, only_distinct_parts::Bool) where T<:IntegerUnion
+    @req n >= 0 "n >= 0 required"
+    @req k >= 0 "k >= 0 required"
+    @req lb >= 0 "lb >=0 required"
+    # If lb == 0 the algorithm will actually create lists containing the
+    # entry zero, e.g. partitions(2, 2, 0, 2) will contain [2, 0].
+    # This is nonsense, so we set lb = 1 in this case.
+    if lb == 0
+      lb = 1
+    end
+    return new{T}(n, convert(T, k), T(lb), T(ub), only_distinct_parts)
+  end
+
+end
+
+function PartitionsFixedNumParts(n::T, k::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, k, 1, n, only_distinct_parts)
+end
+
+function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::IntegerUnion; only_distinct_parts::Bool = false) where T<:IntegerUnion
+  return PartitionsFixedNumParts(n, k, lb, ub, only_distinct_parts)
+end
+
+
+
 ################################################################################
 #
 #  Young Tableaux

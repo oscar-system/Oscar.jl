@@ -1,9 +1,9 @@
 # Compute the ideal sheaves and Weil divisors of the rays of `polyhedral_fan(X)` 
 # according to the "orbit-cone-correspondence", Theorem 3.2.6 in 
-# Cox-Little-Schenk.
+# CLS11.
 #
 # We would like to use Equation (3.2.7) from page 121 of the electronic
-# version of the CLS book. It turned out that there is a misprint in this
+# version of CLS11. It turned out that there is a misprint in this
 # formula in the online version, always leading to the unit ideal. In the
 # print version, which might not be accessible to all of us, the formula
 # has been corrected.
@@ -25,7 +25,7 @@
 #       ideal.
 #
 # What we do above is also supported by the description of divisors 
-# in CLS, Formula (4.3.2): For a ray ρ ∈ Σ(1) the divisor -D with 
+# in CLS11, Formula (4.3.2): For a ray ρ ∈ Σ(1) the divisor -D with 
 # linear system consisting of the rational functions f which vanish 
 # on D is then locally given by 
 #

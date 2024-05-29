@@ -27,7 +27,11 @@ polyhedron(A) = polyhedron(_guess_fieldelem_type(A), A)
 @doc raw"""
     polyhedron(P::Polymake.BigObject)
 
-Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polytope`. Scalar type and parent field will be detected automatically. To improve type stability and performance, please use [`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref) instead, where possible.
+Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type
+`Polytope`. Scalar type and parent field will be detected automatically. To
+improve type stability and performance, please use
+[`Polyhedron{T}(p::Polymake.BigObject, f::Field) where T<:scalar_types`](@ref)
+instead, where possible.
 """
 function polyhedron(p::Polymake.BigObject)
   T, f = _detect_scalar_and_field(Polyhedron, p)
@@ -289,6 +293,27 @@ convex_hull(
   L::Union{AbstractCollection[RayVector],Nothing}=nothing;
   non_redundant::Bool=false,
 ) = convex_hull(_guess_fieldelem_type(V, R, L), V, R, L; non_redundant=non_redundant)
+
+@doc raw"""
+    polyhedron(C::Cone)
+
+Turn a cone into a polyhedron.
+"""
+function polyhedron(C::Cone{T}) where {T<:scalar_types}
+  pmo_in = pm_object(C)
+  pmo_out = Polymake.polytope.Polytope{_scalar_type_to_polymake(T)}()
+  for prop in ("RAYS", "INPUT_RAYS", "FACETS", "INEQUALITIES")
+    if Polymake.exists(pmo_in, prop)
+      Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), true))
+    end
+  end
+  for prop in ("INPUT_LINEALITY", "LINEALITY_SPACE", "EQUATIONS", "LINEAR_SPAN")
+    if Polymake.exists(pmo_in, prop)
+      Polymake.take(pmo_out, prop, embed_at_height_one(Polymake.give(pmo_in, prop), false))
+    end
+  end
+  return Polyhedron{T}(pmo_out, coefficient_field(C))
+end
 
 ###############################################################################
 ###############################################################################

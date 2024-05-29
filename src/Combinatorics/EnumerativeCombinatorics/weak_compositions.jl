@@ -164,10 +164,5 @@ function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
 end
 
 function Base.show(io::IO, W::WeakCompositions)
-  if is_terse(io)
-    print(io, "Iterator")
-  else
-    io = pretty(io)
-    print(io, "Iterator over the weak compositions of $(base(W)) into ", ItemQuantity(parts(W), "part"))
-  end
+    print(pretty(io), "Iterator over the weak compositions of $(base(W)) into ", ItemQuantity(parts(W), "part"))
 end

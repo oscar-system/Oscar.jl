@@ -104,7 +104,17 @@ end
       @test Lf == loaded
     end
   end
-  
+
+  L = integer_lattice(; gram = QQ[1 2; 2 1])
+  h = QQ[4 -1; 1 0]
+  Lf = integer_lattice_with_isometry(L, h)
+
+  mktempdir() do path
+    test_save_load_roundtrip(path, Lf) do loaded
+      @test Lf == loaded
+    end
+  end
+
   L = @inferred integer_lattice_with_isometry(A3)
   @test is_primary(L, 2)
   @test !is_elementary(L, 2)

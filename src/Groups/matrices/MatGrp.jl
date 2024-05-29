@@ -224,7 +224,7 @@ function GAP.julia_to_gap(G::MatrixGroup)
     if isdefined(G, :descr)
       assign_from_description(G)
     elseif isdefined(G, :gens)
-      V = GapObj(gens(G); recursive=true)
+      V = GapObj(gens(G); recursive = true)
       G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
     else
       error("Cannot determine underlying GAP object")

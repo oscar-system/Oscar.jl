@@ -156,6 +156,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubFPGroup
+export SubFPGroupElem
 export SubPcGroup
 export SubPcGroupElem
 export SubQuoHom
@@ -558,6 +560,7 @@ export free_module
 export free_module_dec
 export free_resolution
 export free_resolution_via_kernels
+export full_group
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
@@ -776,7 +779,6 @@ export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generat
 export is_finite_order
 export is_flat
 export is_full_direct_product
-export is_full_fp_group
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
@@ -1148,6 +1150,8 @@ export patches
 export pbw_algebra
 export pc_group
 export pcore
+export pentagonal_hexecontahedron
+export pentagonal_icositetrahedron
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
 export perles_matroid
@@ -1376,6 +1380,8 @@ export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
+export snub_cube
+export snub_dodecahedron
 export socle, has_socle, set_socle
 export solvable_radical, has_solvable_radical, set_solvable_radical
 export solve_ineq

@@ -150,6 +150,11 @@ end
     @test is_bijective(p)
   end
 
+  # issue 3797
+  R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
+  I = ideal(R, [x, y])
+  FIm = free_resolution(I, algorithm = :mres)
+  @test is_graded(FIm)
 
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
@@ -340,6 +345,10 @@ end
   @test is_canonically_isomorphic(present_as_cokernel(Oscar._old_simplify(E2)[1]), M_coker)
   @test is_canonically_isomorphic(E3, M_coker)
   @test iszero(E4)
+
+  # Test that tor, ext don't crash outside of "sensible" arguments
+  T3 = tor(Q, M, 20)
+  E5 = ext(Q, M, 20)
 end
 
 @testset "Gröbner bases" begin
