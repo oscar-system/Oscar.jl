@@ -1,6 +1,3 @@
-###############################################################
-# Implementation of the standard walk.
-###############################################################
 @doc raw"""
     standard_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
 

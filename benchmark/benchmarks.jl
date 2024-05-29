@@ -20,8 +20,14 @@ function benchmark(
   print(io, t, ","); flush(io)
   t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic) seconds=20000 samples=10
   print(io, t, ","); flush(io)
+  t = @belapsed groebner_walk($I, $target, $start; algorithm=:perturbed) seconds=20000 samples=10
+  print(io, t, ","); flush(io)
   t = @belapsed groebner_basis($I; ordering=$target) seconds=20000 samples=10
   println(io, t); flush(io)
+end
+
+function print_header(io)
+  print(io, "name,standard_walk,generic_walk,perturbed_walk,buchberger\n")
 end
 
 p = 11863279
