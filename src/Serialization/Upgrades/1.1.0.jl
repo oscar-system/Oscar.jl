@@ -16,6 +16,15 @@ push!(upgrade_scripts_set, UpgradeScript(
       if !haskey(dict[:data], :basis)
         upgraded_dict[:data][:basis] = dict[:data][:lattice][:data][:basis]
       end
+
+      # In the past, we saved only finite order isometries, but the order
+      # was not typed. Now we need to reference the type otherwise we cannot
+      # read old files.
+      if !(dict[:data][:ambient_space][:data][:order] isa Dict)
+        n = Base.parse(Int, dict[:data][:ambient_space][:data][:order])
+        upgraded_dict[:data][:ambient_space][:data][:order] =
+        Dict{Symbol, Any}(:_type => "Base.Int", :data => "$n")
+      end
     end
 
     return upgraded_dict

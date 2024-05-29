@@ -38,7 +38,7 @@ function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
-  elems_in_GAP = GapObj(gens; recursive=true)
+  elems_in_GAP = GapObj(gens; recursive = true)
   H = GAP.Globals.SubgroupNC(GapObj(G), elems_in_GAP)::GapObj
   return _as_subgroup(G, H)
 end
@@ -733,7 +733,7 @@ function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
   @assert elem_type(G) == S
   if GAP.Globals.HasIsWholeFamily(GapObj(G)) && GAPWrap.IsWholeFamily(GapObj(G))
     # For a *full* free or f.p. group, GAP can handle this via its `\/'.
-    elems_in_gap = GapObj(elements; recursive=true)
+    elems_in_gap = GapObj(elements; recursive = true)
     Q = FPGroup(GapObj(G)/elems_in_gap)
     function proj(x::FPGroupElem)
       return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
@@ -762,7 +762,7 @@ function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupE
   if length(elements) == 0
     H1 = trivial_subgroup(G)[1]
   else
-    elems_in_gap = GapObj(elements; recursive=true)
+    elems_in_gap = GapObj(elements; recursive = true)
     H = GAP.Globals.NormalClosure(GapObj(G),GAP.Globals.Group(elems_in_gap))::GapObj
     @assert GAPWrap.IsNormal(GapObj(G), H)
     H1 = _as_subgroup_bare(G, H)
@@ -1169,7 +1169,7 @@ function intersect(G1::GAPGroup, V::GAPGroup...)
 end
 
 function intersect(V::AbstractVector{<:GAPGroup})
-   L = GapObj(V; recursive=true)
+   L = GapObj(V; recursive = true)
    K = GAP.Globals.Intersection(L)::GapObj
    Embds = [_as_subgroup(G, K)[2] for G in V]
    K = _as_subgroup(V[1], K)[1]

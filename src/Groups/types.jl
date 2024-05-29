@@ -8,8 +8,8 @@ and thus can delegate questions about this object to GAP.
 For expert usage, you can extract the underlying GAP object via `GapObj`,
 i.e., if `G` is a `GAPGroup`, then `GapObj(G)` is the `GapObj` underlying `G`.
 
-Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `PcGroup`,
-`SubPcGroup`, and `MatrixGroup`.
+Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `SubFPGroup`,
+`PcGroup`, `SubPcGroup`, and `MatrixGroup`.
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
@@ -244,10 +244,9 @@ return groups of type `SubPcGroup`.
   function SubPcGroup(G::GapObj)
     @assert GAPWrap.IsPcGroup(G) || GAPWrap.IsPcpGroup(G)
     if GAPWrap.IsPcGroup(G)
-      full = GAP.Globals.GroupOfPcgs(GAP.Globals.FamilyPcgs(G)::GapObj)::GapObj
-#T use GAPWrap!
+      full = GAPWrap.GroupOfPcgs(GAPWrap.FamilyPcgs(G))
     else
-      full = GAP.Globals.PcpGroupByCollectorNC(GAP.Globals.Collector(G)::GapObj)::GapObj
+      full = GAPWrap.PcpGroupByCollectorNC(GAPWrap.Collector(G))
     end
     z = new(G, PcGroup(full))
     return z
@@ -286,23 +285,88 @@ const SubPcGroupElem = BasicGAPGroupElem{SubPcGroup}
 Finitely presented group.
 Such groups can be constructed a factors of free groups,
 see [`free_group`](@ref).
+
+For a group `G` of type `FPGroup`, the elements in `gens(G)` satisfy the
+relators of the underlying presentation.
+
+Functions that compute subgroups of `G` return groups of type `SubFPGroup`.
 """
 @attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
   
   function FPGroup(G::GapObj)
+    # Accept only full f.p. groups.
+    @assert GAPWrap.IsFpGroup(G)
+    return new(G)
+  end
+end
+
+function fp_group(G::GapObj)
+  _is_full_fp_group(G) && return FPGroup(G)
+
+  # Switch to a full fp group.
+  @req GAPWrap.IsSubgroupFpGroup(G) "G must be in IsSubgroupFpGroup"
+
+  f = GAP.Globals.IsomorphismFpGroup(G)::GapObj
+  return FPGroup(GAPWrap.Range(f))
+end
+
+# Return `true` if the generators of `G` fit
+# to those of its underlying presentation.
+_is_full_fp_group(G::GapObj) = GAPWrap.IsFpGroup(G)
+
+"""
+    FPGroupElem
+
+Element of a finitely presented group.
+
+The generators of a finitely presented group are displayed as
+`f1`, `f2`, `f3`, etc.,
+and every element of a finitely presented group is displayed as product of the
+generators.
+"""
+const FPGroupElem = BasicGAPGroupElem{FPGroup}
+
+"""
+    SubFPGroup
+
+Subgroup of a finitely presented group,
+a group that is defined by generators that are elements of a group `G`
+of type [`FPGroup`](@ref).
+
+Operations for computing subgroups of a group of type `FPGroup` or
+`SubFPGroup`, such as `derived_subgroup` and `sylow_subgroup`,
+return groups of type `SubFPGroup`.
+
+Note that functions such as [`relators`](@ref) do not make sense for proper
+subgroups of a finitely presented group.
+"""
+@attributes mutable struct SubFPGroup <: GAPGroup
+  X::GapObj
+  full_group::FPGroup
+#T better create an embedding!
+
+  function SubFPGroup(G::GapObj)
     @assert GAPWrap.IsSubgroupFpGroup(G)
-    z = new(G)
+    full = GAP.getbangproperty(GAPWrap.FamilyObj(G), :wholeGroup)::GapObj
+    z = new(G, FPGroup(full))
     return z
   end
 end
 
-fp_group(G::GapObj) = FPGroup(G)
+sub_fp_group(G::GapObj) = SubFPGroup(G)
+
 
 """
-TODO: document this
+    SubFPGroupElem
+
+Element of a subgroup of a finitely presented group.
+
+The elements are displayed in the same way as the elements of full
+finitely presented groups, see [`FPGroupElem`](@ref).
 """
-const FPGroupElem = BasicGAPGroupElem{FPGroup}
+const SubFPGroupElem = BasicGAPGroupElem{SubFPGroup}
+
 
 abstract type AbstractMatrixGroupElem <: GAPGroupElem{GAPGroup} end
 
@@ -360,6 +424,7 @@ end
 
 sub_type(T::Type) = T
 sub_type(::Type{PcGroup}) = SubPcGroup
+sub_type(::Type{FPGroup}) = SubFPGroup
 sub_type(G::GAPGroup) = sub_type(typeof(G))
 
 # `_oscar_subgroup(obj, G)` is used to create the subgroup of `G`
@@ -579,6 +644,10 @@ function _oscar_group(G::GapObj)
         # We have to switch to the appropriate subgroup type
         # if and only if `G` is not the full group.
         return SubPcGroup(G)
+      elseif pair[2] === FPGroup && !_is_full_fp_group(G)
+        # We have to switch to the appropriate subgroup type
+        # if and only if `G` is not the full group.
+        return SubFPGroup(G)
       else
         return pair[2](G)
       end

@@ -253,7 +253,7 @@ end
     R, x = polynomial_ring(oF)
     gpol = image(Oscar.iso_oscar_gap(R), x^2+x+1)
     F = GAP.Globals.AlgebraicExtension(codomain(gF), gpol)
-    mats = GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]], recursive = true)
+    mats = GapObj([[[GAP.Globals.One(F)]], [GAP.Globals.GeneratorsOfField(F)]]; recursive = true)
     omats, F, z = Oscar.matrices_over_cyclotomic_field(mats)
     @test order(F) == 4
     @test omats[1][1,1] == one(F)
