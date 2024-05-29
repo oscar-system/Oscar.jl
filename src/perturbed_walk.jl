@@ -34,7 +34,12 @@ function perturbed_walk(
   return gens(G)
 end
 
-perturbed_walk(G::Oscar.IdealGens, S::Matrix{Int}, T::Matrix{Int}, p::Int) = perturbed_walk(G, matrix_ordering(base_ring(G), S), matrix_ordering(base_ring(G), T), p)
+perturbed_walk(
+  G::Oscar.IdealGens,
+  S::ZZMatrix,
+  T::ZZMatrix,
+  p::Int
+ ) = perturbed_walk(G, matrix_ordering(base_ring(G), S), matrix_ordering(base_ring(G), T), p)
 
 # computes a p-perturbed vector from the matrix M.
 # TODO: Docstring, citation of perturbation (Tran 2000, Thm. 3.1)
