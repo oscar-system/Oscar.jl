@@ -756,8 +756,8 @@ function reduce_with_quotients_and_unit(F::Vector{T}, G::Vector{T}; ordering::Mo
 end
 
 @doc raw"""
-        reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; 
-          ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
+    reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens;
+      ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
 `Vector` `res` whose elements are the underlying elements of `I`
@@ -810,7 +810,7 @@ end
 
 
 @doc raw"""
-        reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
+    reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 `Vector` `res` whose elements are the underlying elements of `I`

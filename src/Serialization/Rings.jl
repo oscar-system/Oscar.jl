@@ -112,7 +112,7 @@ function load_object(s::DeserializerState,
   if T <: PolyRing
     return polynomial_ring(base_ring, symbols..., cached=false)[1]
   elseif T <: UniversalPolyRing
-    poly_ring = UniversalPolynomialRing(base_ring, cached=false)
+    poly_ring = universal_polynomial_ring(base_ring, cached=false)
     gens(poly_ring, symbols)
     return poly_ring
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing

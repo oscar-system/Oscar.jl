@@ -168,7 +168,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
 end
 
 @doc raw"""
-     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+    iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.

@@ -587,7 +587,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
 
    if f.descr==:quadratic
       W,phi = radical(f)
-      V = VectorSpace(F,n)
+      V = vector_space(F,n)
       U,e = complement(V,W)
       A = zero_matrix(F,n,n)
       r = dim(U)

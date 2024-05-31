@@ -83,7 +83,7 @@ end
 
 @testset "Evaluating forms" begin
    F,z = finite_field(3,2,"z")
-   V=VectorSpace(F,6)
+   V=vector_space(F,6)
 
    x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
    f = alternating_form(x-transpose(x))
@@ -121,7 +121,7 @@ end
 
 @testset "Methods with forms" begin
    F = GF(5,1)
-   V = VectorSpace(F,6)
+   V = vector_space(F,6)
    x = zero_matrix(F,6,6)
    f = symmetric_form(x)
    @test radical(f)[1]==sub(V,gens(V))[1]

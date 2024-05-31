@@ -38,8 +38,8 @@ end
 function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_symmetric::Bool=false) where T <: FinFieldElem
 
    @assert !_is_symmetric || nr==nc
-   V1 = VectorSpace(F,nc)
-   V2 = VectorSpace(F,nr)
+   V1 = vector_space(F,nc)
+   V2 = vector_space(F,nr)
    K, embK = kernel(ModuleHomomorphism(V1, V2, _is_symmetric ? B : transpose(B)))
    U, embU = complement(V1,K)
    d = dim(U)

@@ -78,7 +78,7 @@ our context due to two independent problems:
 At least two reasons:
   - The type depends on data that is not a bit-type.
   - Even if it could, it is not desirable. Typical example: computations in
-    ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
+    ``\mathbb Z/n\mathbb Z``, so modular arithmetic. If ``n`` is small, then it is tempting to
     define a type `T` depending on ``n``. We actually did this, and tried to
     use this. It did not work well, for various reasons. E.g.:
 
@@ -102,7 +102,7 @@ In OSCAR, the role of the type is split between the actual Julia type and the
 
 Almost all element-like objects in OSCAR have a parent, i.e., they belong to
 some larger structure. For example algebraic numbers belong to a number field,
-modular integers belong to a ring ``Z/nZ``, permutations are elements of
+modular integers belong to a ring ``\mathbb Z/n\mathbb Z``, permutations are elements of
 permutation groups and so on. The data common to all such elements is
 out-sourced to the parent. For a number field for example, the parent contains
 the polynomial used to define the field (plus other information).
@@ -135,7 +135,7 @@ can be done via `GAP.Packages.install`, where the first argument is this URL.
 
 Many of the algorithms implemented in OSCAR have a very high complexity. Even
 if not calling one of these algorithms directly, you may be using it in the
-background. Please read our page on [Complex Algorithms in OSCAR].
+background. Please read our page on [Complex Algorithms in OSCAR](@ref).
 
 ---
 

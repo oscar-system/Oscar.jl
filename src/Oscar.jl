@@ -257,13 +257,6 @@ include("../experimental/Experimental.jl")
 
 include("Rings/binomial_ideals.jl") # uses QQAbModule from experimental/Rings/QQAbAndPChars.jl
 
-if is_dev
-#  include("../examples/ModStdNF.jl")
-#  include("../examples/ModStdQ.jl")
-#  include("../examples/ModStdQt.jl")
-  include("../examples/PrimDec.jl")
-end
-
 include("deprecations.jl")
 
 @doc raw"""

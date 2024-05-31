@@ -1004,7 +1004,7 @@ end
 # We want the singular locus of an `AbsSpaceGerm` to be a `SpaceGerm` again and
 # not a plain `AffineScheme`.
 @doc raw"""
-   singular_locus(X::AbsSpaceGerm)  --> SpaceGerm, ClosedEmbedding
+    singular_locus(X::AbsSpaceGerm)  --> SpaceGerm, ClosedEmbedding
 
 Return the space germ (Y,p) for a given germ (X,p) and the closed embedding of (Y,p) into (X,p), where Y is the singular locus of X.
 

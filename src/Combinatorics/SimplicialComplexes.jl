@@ -552,7 +552,7 @@ end
 ###############################################################################
 
 @doc raw"""
-     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+    is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
 Checks if the given simplicial complexes are isomorphic.
 

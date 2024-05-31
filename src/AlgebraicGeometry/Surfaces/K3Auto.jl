@@ -1437,7 +1437,7 @@ end
 function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers=-1)
   S = data.S
   # for G-sets
-  F = FreeModule(ZZ,rank(S))
+  F = free_module(ZZ,rank(S))
   # initialization
   chambers = Dict{UInt64,Vector{K3Chamber}}()
   explored = Set{K3Chamber}()
