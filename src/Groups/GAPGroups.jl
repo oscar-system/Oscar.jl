@@ -253,9 +253,12 @@ end
 #   The operation is allowed whenever the two groups have the same `.G` field,
 #   and the parent is the full automorphism group of that group.
 #
-# - `DirectProductGroup`, `DirectProductGroup`:
-#   The operation is allowed whenever the two groups have the same `.L`
-#   field, and the parent is the direct product of these groups.
+# - `DirectProductGroup`, `DirectProductGroup` and
+#   `SemidirectProductGroup`, `SemidirectProductGroup` and
+#   `WreathProductGroup`, `WreathProductGroup`:
+#   The operation is allowed whenever the two groups have the same `.Xfull`
+#   field, and the parent is the direct/semidirect/wreath product of these
+#   groups.
 #
 # For other types of groups, we throw an exception if the parent groups are
 # not equal and their `GapObj`s are not equal.
@@ -325,8 +328,20 @@ end
 
 function _common_parent_group(x::DirectProductGroup, y::DirectProductGroup)
   x === y && return x
-  @req x.L == y.L "the groups belong to different full groups"
-  return direct_product(x.L)
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return DirectProductGroup(x.Xfull, x.L, x.Xfull, true)
+end
+
+function _common_parent_group(x::SemidirectProductGroup, y::SemidirectProductGroup)
+  x === y && return x
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return SemidirectProductGroup{typeof(x.N), typeof(x.H)}(x.Xfull, x.N, x.H, x.f, x.Xfull, true)
+end
+
+function _common_parent_group(x::WreathProductGroup, y::WreathProductGroup)
+  x === y && return x
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return WreathProductGroup(x.Xfull, x.G, x.H, x.a, x.Xfull, true)
 end
 
 # generic method
@@ -460,6 +475,10 @@ div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(x
 div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(y) \ GapObj(x))::GapObj)
 
 Base.conj(x::GAPGroupElem, y::GAPGroupElem) = group_element(_common_parent_group(parent(x), parent(y)), (GapObj(x) ^ GapObj(y))::GapObj)
+
+# AbstractAlgebra defines `x^y` for group elements of the *same* type only.
+Base.:^(x::GAPGroupElem, y::GAPGroupElem) = Base.conj(x, y)
+
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
