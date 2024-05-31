@@ -393,14 +393,16 @@ function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
 end
 
 function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   x === y && return x
    @assert x.deg == y.deg
    @assert x.ring === y.ring
-   x === y && return x
    return GL(x.deg, x.ring)::T
 end
 
-# Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
-# if the parents are different, the parent of the output product is set as GL(n,q)
+# Base.:* is defined in src/Groups/GAPGroups.jl,
+# and it calls the function _prod below.
+# If the parents are different,
+# the parent of the product is set as GL(n, R)
 function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    G = _common_parent_group(parent(x), parent(y))
 

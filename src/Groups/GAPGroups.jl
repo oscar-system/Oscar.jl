@@ -216,27 +216,126 @@ function rand_pseudo(G::GAPGroup; radius::Int = 10)
   return group_element(G, GAP.Globals.PseudoRandom(GapObj(G); radius = radius)::GapObj)
 end
 
-function _common_parent_group(x::T, y::T) where T <: GAPGroup
-   # A typical situation should be that the two groups are identical,
-   # but GAP's `IsSubset` check is not as cheap as one wants;
-   # there is an `IsSubset` method that checks for identity,
-   # but it is not always the first choice.
-   if GapObj(x) === GapObj(y)
-     return x
-   elseif GAPWrap.IsSubset(GapObj(x), GapObj(y))
-     return x
-   elseif GAPWrap.IsSubset(GapObj(y), GapObj(x))
-     return y
-   else
-     error("Not yet implemented")
-   end
+
+# We allow arithmetic operations between two group elements with
+# *nonidentical parents*.
+# In this case, the parent of the resulting element is set according to
+# the following rules, depending on the types of the parents.
+#
+# - `PermGroup`, `PermGroup`:
+#   The operation is allowed whenever the parents have the same degree,
+#   and the parent is the symmetric group of that degree.
+#
+# - `PcGroup`, `PcGroup` and
+#   `FPGroup`, `FPGroup`:
+#   The operation is allowed whenever the parents belong to the same `GapObj`
+#   (in the sense of `==´), and the first of the two groups is taken.
+#
+# - `SubPcGroup`, `SubPcGroup` and
+#   `SubFPGroup`, `SubFPGroup`:
+#   The operation is allowed whenever the parents have the same `full_group`
+#   (in the sense of `==´), and the first of the two groups is taken.
+#
+# - `SubPcGroup`, `PcGroup` and
+#   `PcGroup`, `SubPcGroup` and
+#   `SubFPGroup`, `FPGroup` and
+#   `FPGroup`, `SubFPGroup`:
+#   The operation is allowed whenever the `full_group` of the `SubPcGroup`
+#   (`SubFPGroup`) is equal to the `PcGroup` (`FPGroup`)
+#   (in the sense of `==´), and the `PcGroup` (`FPGroup`) is taken.
+#
+# - `MatrixGroup`, `MatrixGroup`:
+#   The operation is allowed whenever the two groups have the same `degree`
+#   and `base_ring`, and the parent is the general linear group of that
+#   degree over that ring.
+#
+# - `AutomorphismGroup`, `AutomorphismGroup`:
+#   The operation is allowed whenever the two groups have the same `.G` field,
+#   and the parent is the full automorphism group of that group.
+#
+# - `DirectProductGroup`, `DirectProductGroup`:
+#   The operation is allowed whenever the two groups have the same `.L`
+#   field, and the parent is the direct product of these groups.
+#
+# For other types of groups, we throw an exception if the parent groups are
+# not equal and their `GapObj`s are not equal.
+#
+# Note that we cannot guarantee that the groups objects in question are
+# *identical*, only that their `GapObj`s are *equal*:
+# On the GAP side, the same group can be created several times,
+# and on the Oscar side, the same GAP group can be wrapped several times.
+#
+# Note also that we do not want to perform checks whether one group is perhaps
+# a subset of the other (and then one could take the bigger group as
+# the parent of the result).
+#
+function _common_parent_group(x::PermGroup, y::PermGroup)
+  x === y && return x
+  @req degree(x) == degree(y) "the groups have different degrees"
+  return symmetric_group(degree(x))
 end
 
-#We need a lattice of groups to implement this properly
-function _prod(x::T, y::T) where T <: GAPGroupElem
-#T not nec. same type,
-#T and for pc subgroups may need to go to the big group
-#T (write tests that model this situation)
+function _common_parent_group(x::PcGroup, y::PcGroup)
+  (x === y || GapObj(x) == GapObj(y)) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _common_parent_group(x::FPGroup, y::FPGroup)
+  (x === y || GapObj(x) == GapObj(y)) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _common_parent_group(x::SubPcGroup, y::SubPcGroup)
+  x === y && return x
+  @req x.full_group == y.full_group "the groups belong to different full groups"
+  return x.full_group
+end
+
+function _common_parent_group(x::SubPcGroup, y::PcGroup)
+  @req x.full_group == y "the groups belong to different full groups"
+  return y
+end
+
+function _common_parent_group(x::PcGroup, y::SubPcGroup)
+  @req y.full_group == x "the groups belong to different full groups"
+  return x
+end
+
+function _common_parent_group(x::SubFPGroup, y::SubFPGroup)
+  x === y && return x
+  @req x.full_group == y.full_group "the groups belong to different full groups"
+  return x.full_group
+end
+
+function _common_parent_group(x::SubFPGroup, y::FPGroup)
+  @req x.full_group == y "the groups belong to different full groups"
+  return y
+end
+
+function _common_parent_group(x::FPGroup, y::SubFPGroup)
+  @req y.full_group == x "the groups belong to different full groups"
+  return x
+end
+
+function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
+  x === y && return x
+  @req x.G == y.G "the groups belong to different full groups"
+  return automorphism_group(x.G)
+end
+
+function _common_parent_group(x::DirectProductGroup, y::DirectProductGroup)
+  x === y && return x
+  @req x.L == y.L "the groups belong to different full groups"
+  return direct_product(x.L)
+end
+
+# generic method
+function _common_parent_group(x::T, y::T) where T <: GAPGroup
+  (x === y || GapObj(x) == GapObj(y)) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _prod(x::GAPGroupElem, y::GAPGroupElem)
   G = _common_parent_group(parent(x), parent(y))
   return group_element(G, GapObj(x)*GapObj(y))
 end
@@ -360,7 +459,7 @@ Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perh
 div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(x) / GapObj(y))::GapObj)
 div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(y) \ GapObj(x))::GapObj)
 
-Base.conj(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (GapObj(x) ^ GapObj(y))::GapObj)
+Base.conj(x::GAPGroupElem, y::GAPGroupElem) = group_element(_common_parent_group(parent(x), parent(y)), (GapObj(x) ^ GapObj(y))::GapObj)
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)

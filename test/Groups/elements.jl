@@ -160,3 +160,30 @@ end
      @test deepcopy([one(g)]) == [one(g)]
    end
 end
+
+@testset "compatibility of parents" begin
+   G = symmetric_group(4)
+   A = automorphism_group(alternating_group(4))
+   L = [G, A, general_linear_group(2, 3)]
+   for T in [FPGroup, SubFPGroup, PcGroup, SubPcGroup]
+     push!(L, codomain(isomorphism(T, G)))
+   end
+   @testset for g in L
+     s2 = sylow_subgroup(g, 2)[1]
+     s3 = sylow_subgroup(g, 3)[1]
+     @test parent(one(s2) * one(g)) == g
+     @test parent(one(g) * one(s2)) == g
+     @test parent(one(s2) * one(s3)) == g
+     @test parent(one(s2) * one(s2)) == s2
+
+     x = gen(s2, 1)
+     y = gen(s3, 1)
+     z = gen(g, 1)
+     c = conj(x, y)
+     @test c == inv(y) * x * y
+     @test parent(c) == parent(inv(y) * x * y)
+     c = conj(x, z)
+     @test c == inv(z) * x * z
+     @test parent(c) == parent(inv(z) * x * z)
+   end
+end

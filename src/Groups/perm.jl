@@ -286,7 +286,9 @@ function cperm()
 end
 
 function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
+  cycles = [L1, L...]
+  n = maximum(map(maximum, cycles))
+  return prod([PermGroupElem(symmetric_group(n), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in cycles])
   #TODO: better create the product of GAP permutations?
 end
 
