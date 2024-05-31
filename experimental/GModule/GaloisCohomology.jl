@@ -1188,7 +1188,11 @@ end
 
 function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M}; parent::GModule) where {N, G, M}
   d = Dict( k=> mp(v) for (k,v) = C.d)
-  return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
+  if isdefined(C, :D)
+    return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d, x->mp(C.D(x)))
+  else
+    return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
+  end
 end
 
 #=
@@ -1883,7 +1887,7 @@ function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
   #the image should be the restriction I think
   gg = map_entries(pro, g, parent = tt.C)
   #gg is the non-canomical generator in Z[G_p] K_p
-  gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, FinGenAbGroupElem}(tt.C, Dict( (g, h) => gg.d[mp(g), mp(h)] for g = tt.C.G for h = tt.C.G))
+  gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, FinGenAbGroupElem}(tt.C, Dict( (g, h) => gg(mp(g), mp(h)) for g = tt.C.G for h = tt.C.G))
 
   nu = cohomology_group(tt.C, 2)
   ga = preimage(nu[2], gg)
