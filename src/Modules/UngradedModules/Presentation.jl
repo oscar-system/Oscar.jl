@@ -31,11 +31,6 @@ function presentation(SQ::SubquoModule;
     F = FreeMod(R, ngens(SQ.sub))
     h_F_SQ = hom(F, SQ, gens(SQ)) # DO NOT CHANGE THIS LINE, see present_as_cokernel and preimage
   end
-  br_name = AbstractAlgebra.get_name(R)
-  if br_name === nothing
-    br_name = "br"
-  end
-  AbstractAlgebra.set_name!(F, "$br_name^$(ngens(SQ.sub))")
   q = elem_type(F)[]
   if is_generated_by_standard_unit_vectors(SQ.sub)
     if isdefined(SQ, :quo)
@@ -87,17 +82,11 @@ function presentation(SQ::SubquoModule;
     G = FreeMod(R, length(q))
     h_G_F = hom(G, F, q)
   end
-  br_name = AbstractAlgebra.get_name(F.R)
-  if br_name === nothing
-    br_name = "br"
-  end
-  AbstractAlgebra.set_name!(G, "$br_name^$(length(q))")
   if is_graded(SQ)
     Z = graded_free_module(F.R, 0)
   else
     Z = FreeMod(F.R, 0)
   end
-  AbstractAlgebra.set_name!(Z, "0")
   h_SQ_Z = hom(SQ, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(SQ)]))
   M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[h_G_F, h_F_SQ, h_SQ_Z], check = false, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
@@ -107,12 +96,6 @@ end
 
 function _presentation_graded(SQ::SubquoModule)
   R = base_ring(SQ)
-
-  # Prepare to set some names
-  br_name = AbstractAlgebra.get_name(R)
-  if br_name === nothing
-    br_name = "br"
-  end
 
   # Create the free module for the presentation
   #
@@ -126,14 +109,12 @@ function _presentation_graded(SQ::SubquoModule)
   F0_to_SQ = graded_map(SQ, gens(SQ); check=false)
   F0_to_SQ.generators_map_to_generators = true
   F0 = domain(F0_to_SQ)
-  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
   F1_to_F0 = graded_map(F0, images_of_generators(inc_K))
   F1 = domain(F1_to_F0)
   #F1 = graded_free_module(R, [degree(x; check=false) for x in images_of_generators(inc_K)])
   #F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
   if is_zero(F1)
@@ -143,7 +124,6 @@ function _presentation_graded(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = graded_free_module(R, elem_type(grading_group(R))[])
-  AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
@@ -157,24 +137,16 @@ end
 function _presentation_simple(SQ::SubquoModule)
   R = base_ring(SQ)
 
-  # Prepare to set some names
-  br_name = AbstractAlgebra.get_name(R)
-  if br_name === nothing
-    br_name = "br"
-  end
-
   # Create the free module for the presentation
   F0 = FreeMod(R, length(gens(SQ)))
   F0_to_SQ = hom(F0, SQ, gens(SQ); check=false)
   F0_to_SQ.generators_map_to_generators = true
-  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(SQ.sub))")
 
   K, inc_K = kernel(F0_to_SQ)
   @assert codomain(inc_K) === F0
   @assert all(x->parent(x) === F0, images_of_generators(inc_K))
   F1 = FreeMod(R, ngens(K))
   F1_to_F0 = hom(F1, F0, images_of_generators(inc_K), check=false)
-  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
   if is_zero(F1)
@@ -184,7 +156,6 @@ function _presentation_simple(SQ::SubquoModule)
 
   # prepare the end of the presentation
   Z = FreeMod(R, 0)
-  AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex
@@ -204,7 +175,6 @@ function presentation(F::FreeMod; minimal = false)
   else
     Z = FreeMod(F.R, 0)
   end
-  AbstractAlgebra.set_name!(Z, "0")
   M = Hecke.ComplexOfMorphisms(ModuleFP, ModuleFPHom[hom(Z, F, Vector{elem_type(F)}()), hom(F, F, gens(F)), hom(F, Z, Vector{elem_type(Z)}([zero(Z) for i=1:ngens(F)]))], check = false, seed = -2)
   set_attribute!(M, :show => Hecke.pres_show)
   return M
@@ -610,13 +580,7 @@ function _presentation_minimal(SQ::ModuleFP{T};
                                minimal_kernel::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
 
   R = base_ring(SQ)
-
-  # Prepare to set some names
-  br_name = AbstractAlgebra.get_name(R)
-  if br_name === nothing
-    br_name = "br"
-  end
-  
+ 
   SQ_new, phi = prune_with_map(SQ)
   F0 = ambient_free_module(SQ_new)
 
@@ -624,7 +588,6 @@ function _presentation_minimal(SQ::ModuleFP{T};
   proj_map = hom(F0, SQ_new, gens(SQ_new), check=false)
   F0_to_SQ = compose(proj_map, phi)
   F0_to_SQ.generators_map_to_generators = true
-  AbstractAlgebra.set_name!(F0, "$br_name^$(ngens(F0))")
 
   is_sq_graded = is_graded(SQ)
 
@@ -640,7 +603,6 @@ function _presentation_minimal(SQ::ModuleFP{T};
     free_module(R, ngens(K))
   end
   F1_to_F0 = compose(hom(F1, K, gens(K), check=false), inc)
-  AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
 
   # When there is no kernel, clean things up
   if is_zero(F1)
@@ -649,7 +611,6 @@ function _presentation_minimal(SQ::ModuleFP{T};
     else
         F1 = FreeMod(R, 0)
     end
-    AbstractAlgebra.set_name!(F1, "$br_name^$(ngens(F1))")
     F1_to_F0 = hom(F1, F0, elem_type(F0)[]; check=false)
   end
   
@@ -659,7 +620,6 @@ function _presentation_minimal(SQ::ModuleFP{T};
   else
       Z = FreeMod(R, 0)
   end
-  AbstractAlgebra.set_name!(Z, "0")
   SQ_to_Z = hom(SQ, Z, elem_type(Z)[zero(Z) for i in 1:ngens(SQ)]; check=false)
 
   # compile the presentation complex

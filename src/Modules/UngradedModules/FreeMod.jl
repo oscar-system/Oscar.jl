@@ -93,6 +93,9 @@ end
 # un-named free module over a named ring X will acquire the name 
 # X^r
 function AbstractAlgebra.extra_name(F::FreeMod)
+  if rank(F) == 0
+    return "0"
+  end
   s = AbstractAlgebra.get_name(base_ring(F))
   if s !== nothing
     return "$s^$(rank(F))"
