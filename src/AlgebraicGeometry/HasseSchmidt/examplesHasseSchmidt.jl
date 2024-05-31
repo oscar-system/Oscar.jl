@@ -81,8 +81,28 @@ IX = IZ + ideal(R, [x[4]^3 + x[6]^4]) # working
 hasse_deriv(IZ, IX, y, M)
 
 ### FAKTORRING / QUOTIENTENRING
+R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+I = ideal(R, [x - 1])
+RQ, _ = quo(R, I)
+IZ = ideal(RQ, [y - 1])
+IX = IZ + ideal(RQ, [-y^3 + x^2])
+systemOfParameters = [3]
+M = matrix(RQ, 1, 1, [z])
+
+hasse_deriv(IZ, IX, systemOfParameters, M) # debuggen (endlosschleife), ? x-1 und y-1 sorgen für IX = 0 in RQ ?
+# sollte ich auf IX = 0 prüfen? wo prüfe ich bisher auf IX = 0 ? kommt hasse_deriv mit IX = 0 nicht klar?
 
 ### LOKALISIERTER RING
+R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+P = ideal(R, [x])
+U = complement_of_prime_ideal(P)
+Rloc, iota = localization(R, U)
+IZ = ideal(Rloc, [y - 1])
+IX = IZ + ideal(Rloc, [-y^3 + x^2])
+systemOfParameters = [1, 3]
+M = matrix(Rloc, 1, 1, [z])
+
+hasse_deriv(IZ, IX, systemOfParameters, M)
 
 # Oscar.MPolyLocalizedIdeal
 R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
@@ -91,6 +111,7 @@ U = complement_of_prime_ideal(P)
 Rloc, iota = localization(R, U)
 IZ = ideal(Rloc, [zero(Rloc)])
 IX = ideal(Rloc, [-y^3 + x^2])
+
 
 # MPolyQuoIdeal
 # T, t = polynomial_ring(QQ, "t")
