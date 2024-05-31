@@ -1,4 +1,16 @@
 
+# MPolyRingElem
+R, x = polynomial_ring(ZZ, 4, "x")
+f1 = 3*x[2]
+f2 = 4*x[4]^3
+hasse_derivative(f1)
+
+
+
+
+
+### EXAMPLES FOR HASSE-SCHMIDT DERIVATE FOR IDEALS (old)
+
 ### POLYNOMIALRING
 # EXAMPLE hasse_deriv (IZ == 0)
 R, x = polynomial_ring(ZZ, 4, "x")
