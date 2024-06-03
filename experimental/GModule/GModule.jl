@@ -545,7 +545,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
     for (m, mm) in s
-      if !has_preimage(mm, u)[1]
+      if !has_preimage_with_preimage(mm, u)[1]
         @vprint :MinField 1 "field does not contain the character field\n"
         continue
       end
