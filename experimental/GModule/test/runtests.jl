@@ -81,6 +81,16 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 2
 end
 
+@testset "Experimental.gmodule SL(2,5)" begin
+  G = SL(2, 5)
+  T = character_table(G)
+  R = gmodule(T[end])
+  S = gmodule(CyclotomicField, R)
+  @test schur_index(T[end]) == 2
+  S = gmodule_minimal_field(S)
+  @test degree(base_ring(S)) == 2
+end
+
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
