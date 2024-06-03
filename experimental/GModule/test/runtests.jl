@@ -25,12 +25,12 @@ end
 
 @testset "Experimental.gmodule" begin
   G = small_group(1, 1)
-  z = Oscar.RepPc.reps(QQ, G)
+  z = Oscar.RepPc.reps(QQ, pc_group(G))
   _, mp = Oscar.GrpCoh.fp_group_with_isomorphism(z[1])
   @test is_bijective(mp)
 
   G = small_group(7*3, 1)
-  z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
+  z = Oscar.RepPc.reps(abelian_closure(QQ)[1], pc_group(G))
   @test length(z) == 5
 
   z = irreducible_modules(G)
@@ -51,7 +51,7 @@ end
   @test count(isequal(1), ds) == 6
   @test count(isequal(2), ds) == 2
 
-  G = SL(2, 3)
+  G = pc_group(SL(2, 3))
   @test length(Oscar.RepPc.reps(abelian_closure(QQ)[1], G)) == 7
   @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
   @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3

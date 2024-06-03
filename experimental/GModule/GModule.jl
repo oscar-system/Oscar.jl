@@ -1801,6 +1801,10 @@ function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{<:FinField
   return l == 1
 end
 
+function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{<:FieldElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{<:FieldElem}}) where T
+  return length(hom_base(A, B)) == 1
+end
+
 function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{ZZRingElem}}) where T
 
   h = hom_base(gmodule(QQ, A), gmodule(QQ, B))

@@ -22,7 +22,7 @@ Note: `group(M)` for the returned gmodules `M` will have a pcgs of `G` as
 
 Implements: Brueckner, Chap 1.2.3
 """
-function reps(K, G::Oscar.GAPGroup)
+function reps(K, G::Oscar.PcGroup)
   @req is_finite(G) "the group is not finite"
   if order(G) == 1
     F = free_module(K, 1)
@@ -31,15 +31,11 @@ function reps(K, G::Oscar.GAPGroup)
   end
 
   pcgs = GAP.Globals.Pcgs(GapObj(G))
+  @assert length(pcgs) == ngens(G)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
-  if ngens(G) == 1
-    s = G
-    ms = x->x
-  else
-    s, ms = sub(G, [gG[end]])
-  end
+  s, ms = sub(G, [gG[end]])
   o = Int(order(s))
   @assert is_prime(o)
   z = roots(K(1), o)
@@ -50,12 +46,7 @@ function reps(K, G::Oscar.GAPGroup)
 
   for i=length(gG)-1:-1:1
     h = gG[i]
-    if i == 1
-      ns = G
-      mns = x->x
-    else
-      ns, mns = sub(G, gG[i:end])Z
-    end
+    ns, mns = sub(G, gG[i:end])
     @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
     @assert is_prime(p)
@@ -162,7 +153,7 @@ function reps(K, G::Oscar.GAPGroup)
     s, ms = ns, mns
     R = new_R
   end
-  return R
+  return [gmodule(x.M, G, x.ac) for x = R]
 end
 
 
