@@ -1481,7 +1481,7 @@ $A\hookrightarrow A_1\times \dots\times A_r=\overline{A}$
 of $A$ as does `normalize(A)`, but return additionally the `delta invariant` of $A$,
 that is, the dimension
 
-$\dim_K(\overline{A}/A)$.
+$\dim_K(\overline{A}/A).$
 
 # How to Read the Output
 
