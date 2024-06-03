@@ -539,13 +539,15 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
 
     ld = local_schur_indices(c, mA)
     d = reduce(lcm, [x[2] for x = ld], init = 1)
+
     s = subfields(base_ring(V))
     s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
     for (m, mm) in s
-      if m == base_ring(V) || degree(m) == degree(base_ring(V))
-        @vprint :MinField 1 "no smaller field possible\n"
-        return V
+      #TODO: analyse the logic, this is inefficient...
+      #      but it requires too much change
+      if false && m == base_ring(V) || degree(m) == degree(base_ring(V))
+        @vprint :MinField 1 "no smaller sub-field possible\n"
       end
       @vprint :MinField 1 "testing local degrees \n"
       ok = true
@@ -1850,7 +1852,7 @@ function Oscar.gmodule(chi::Oscar.GAPGroupClassFunction)
   F = free_module(K, degree(Int, chi))
   M = gmodule(group(chi), [hom(F, F, x) for x = z])
   c = conjugacy_classes(chi.table)
-  set_attribute!(M, :_character => [(c[i], chi.values[i]) for i=1:length(c)])
+  set_attribute!(M, :_character => [(c[i], K(chi.values[i])) for i=1:length(c)])
   return M
 end
 
@@ -1892,8 +1894,7 @@ end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
  f = invariant_forms(C)[1]
-# global last_f = f
- @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
+# @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
  while true
