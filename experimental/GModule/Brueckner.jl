@@ -34,7 +34,12 @@ function reps(K, G::Oscar.GAPGroup)
   pcgs == GAP.Globals.fail && error("the group is not polycyclic")
 
   gG = [Oscar.group_element(G, x) for x = pcgs]
-  s, ms = sub(G, [gG[end]])
+  if ngens(G) == 1
+    s = G
+    ms = x->x
+  else
+    s, ms = sub(G, [gG[end]])
+  end
   o = Int(order(s))
   @assert is_prime(o)
   z = roots(K(1), o)
@@ -45,7 +50,12 @@ function reps(K, G::Oscar.GAPGroup)
 
   for i=length(gG)-1:-1:1
     h = gG[i]
-    ns, mns = sub(G, gG[i:end])
+    if i == 1
+      ns = G
+      mns = x->x
+    else
+      ns, mns = sub(G, gG[i:end])Z
+    end
     @assert mns(ns[1]) == h
     p = Int(divexact(order(ns), order(s)))
     @assert is_prime(p)
@@ -212,9 +222,9 @@ function find_primes(mp::Map{<:Oscar.GAPGroup, PcGroup})
     are correct...)
     TODO: this is not (yet) implemented this way
     =#
-    @show q = cokernel(b)[1]
+    q = cokernel(b)[1]
 #    q = quo(kernel(da)[1], image(db)[1])[1]
-    @show t = torsion_subgroup(q)[1]
+    t = torsion_subgroup(q)[1]
     if order(t) > 1
       push!(lp, collect(keys(factor(order(t)).fac))...)
     end
@@ -333,6 +343,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   function _process(mu; is_trivial::Bool = false, limit::Int)
     allG = []
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
+    @assert isa(GG, PcGroup)
 
     s = hom(D, K, [zero(K) for i=1:ngens(D)])
     gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(h.X)], zero(M)) for h = gens(N)]
@@ -348,8 +359,8 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       false, zero(D)
     end
     if !fl
-      @show :no_sol
-      continue
+#      @show :no_sol
+      return allG
     end
     k, mk = kernel(s)
     for x = k
@@ -357,9 +368,10 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
       if is_surjective(hm)
         push!(allG, hm)
       else
-        @show :not_sur
+#        @show :not_sur
       end
     end
+    return allG
   end
 
 
@@ -369,85 +381,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     #      is missing...
     # (Thm 15, part b & c) (and the weird lemma)
 
-    s = hom(D, K, [zero(K) for i=1:ngens(D)])
-    gns = [GMtoGG([x for x = GAP.Globals.ExtRepOfObj(GapObj(h))], zero(M)) for h = gens(N)]
-    gns = [map_word(mp(g), gns, init = one(GG)) for g = gens(G)]
-
-    rel = [map_word(r, gns, init = one(GG)) for r = relators(G)]
-    @assert all(x->isone(GGpro(x)), rel)
-    rhs = [preimage(GGinj, x) for x = rel]
-    s = hom(D, K, [K([preimage(GGinj, map_word(r, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)])) for r = relators(G)] .- rhs) for h = gens(D)])
-
-    k, mk = kernel(s)
-    #TODO factor by scalars or inner autos or whatever. All of k is too much
-
-    do_ext = false
-    if is_trivial && length(S) > 0 #Satz 15 in Brueckner, parts a and b
-      u = [preimage(mp, x) for x = gens(N)] 
-      ss = elem_type(X)[]
-      sss = elem_type(D)[]
-      for h = gens(D)
-        uu = [map_word(x, [gns[i] * GGinj(pro[i](h)) for i=1:ngens(G)]) for x = u]
-        push!(ss, X([preimage(GGinj, map_word(r, uu, init = one(GG))) for r = relators(N)]))
-        push!(sss, D([preimage(GGinj, map_word(mp(G[i]), uu, init = one(GG))*inv(gns[i] * GGinj(pro[i](h)))) for i = 1:ngens(G)]))
-      end
-      ss = hom(D, X, ss)
-      sss = hom(D, D, sss)
-      kk, mkk = intersect(kernel(ss)[1], kernel(sss)[1]) 
-      q, mq = quo(k, kk)
-      do_ext = dim(q)/length(Oscar.GModuleFromGap.hom_base(C, C)) > 1
-      #should indicate if part c is applicable
-      k = q
-      mk = pseudo_inv(mq)*mk
-    end
-
-    fl, pe = try
-      true, preimage(s, K(rhs))
-    catch
-      false, zero(D)
-    end
-    if !fl
-      @show :no_sol
-      return allG
-    end
-
-    @show k, is_trivial
-    for x = k
-      if is_trivial && is_zero(x)
-        @show :skip, dim(k)
-        continue
-      end
-      hm = hom(G, GG, [gns[i] * GGinj(pro[i](-pe +  mk(x))) for i=1:ngens(G)])
-      if is_surjective(hm)
-        if do_ext
-          @show :recurse
-          #TODO: can we do this non-recursively? Use the other solutions
-          #      and a suitable direct product of modules?
-          #      Plesken hints at YES
-          #  - extend the module to a direct sum of it
-          #  - build a chain from the different (classes of) solutions
-          #  - use this
-          CC = gmodule(GG, [action(C, GGpro(x)) for x = gens(GG)])
-          allH = _process(trivial_chain(CC, 2); is_trivial, limit = 1)
-          if length(allH) == 0
-            push!(allG, hm)
-          else
-            append!(allG, allH)
-          end
-        else
-          @show :new_no_rec
-          push!(allG, hm)
-        end
-        if length(allG) >= limit
-          return allG
-        end
-      else #should not be possible any more
-        @show :not_sur
-      end
-    end
-    return allG
-  end
-  
   allG = []
 
   mu = trivial_chain(C, 2)
@@ -456,8 +389,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     return allG
   end
 
-  @time H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
-  @show H2
+  H2, z, _ = Oscar.GrpCoh.H_two(C; lazy = true)
 
   for h = H2
     is_zero(h) && continue
@@ -475,7 +407,7 @@ function solvable_quotient(G::Oscar.GAPGroup)
   mp = hom(G, q, [one(q) for g in gens(G)])
 end
 
-function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing})
+function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothing} = nothing)
   if index !== nothing
     lf = factor(ZZRingElem(index))
     primes = collect(keys(lf.fac))
@@ -488,14 +420,14 @@ function sq(mp::Map, primes::Vector=[]; index::Union{Integer, ZZRingElem, Nothin
       for (p, k) = lf.fac
         if p in primes && valuation(order(codomain(mp)), p) >= k
           deleteat!(primes, findfirst(isequal(p), primes))
-          @show :removing, p
+#          @show :removing, p
         end
       end
     end
     return mp
   end
   while true
-    @time nw = brueckner(mp; limit = 1, primes)
+    nw = brueckner(mp; limit = 1, primes)
     if length(nw) == 0
       return mp
     end
