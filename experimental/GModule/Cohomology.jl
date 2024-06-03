@@ -819,9 +819,9 @@ function H_zero_tate(C::GModule)
   N = sum(action(C, g) for g = group(C))
 
   i = image(N)[1]
-  fl, inj = is_subgroup(i, k)
+  fl, inj = is_sub_with_data(i, k)
   q, mq = quo(k, image(inj)[1])
-  fl, Inj = is_subgroup(k, M)
+  fl, Inj = is_sub_with_data(k, M)
 
   z = MapFromFunc(q, AllCoChains{0,elem_type(G),elem_type(M)}(), x->CoChain{0,elem_type(G),elem_type(M)}(C, Dict(() => Inj(preimage(mq, x)))), y->mq(preimage(Inj, y())))
   set_attribute!(C, :H_zero_tate => z)
@@ -833,7 +833,7 @@ function H_zero_tate(C::GModule)
   return q, z
 end
 
-
+Oscar.is_sub_with_data(G::FinGenAbGroup, H::FinGenAbGroup) = is_subgroup(G, H)
 #= TODO
  - break out coboundaries and cochains
  - depending on the module type:
@@ -2279,7 +2279,7 @@ function extension_with_abelian_kernel(X::Oscar.GAPGroup, M::Oscar.GAPGroup)
   return C, CoChain{2, PermGroupElem, FinGenAbGroupElem}(C, c)
 end
 
-function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
+function Oscar.automorphism_group(F::AbstractAlgebra.Generic.FreeModule{<:FinFieldElem})
   G = GL(dim(F), base_ring(F))
   set_attribute!(G, :aut_group=>F)
   return G, MapFromFunc(G, Hecke.MapParent(F, F, "homomorphisms"),
