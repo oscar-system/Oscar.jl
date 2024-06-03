@@ -332,7 +332,7 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
   end
 
   function _process(mu; is_trivial::Bool = false, limit::Int)
-    allG = []
+    allG = typeof(mp)[]
     GG, GGinj, GGpro, GMtoGG = Oscar.GrpCoh.extension(PcGroup, mu)
     @assert isa(GG, PcGroup)
 
@@ -372,7 +372,6 @@ function lift(C::GModule, mp::Map; limit::Int = typemax(Int))
     #      is missing...
     # (Thm 15, part b & c) (and the weird lemma)
 
-  allG = []
 
   mu = trivial_chain(C, 2)
   allG = _process(mu; is_trivial = true, limit)
