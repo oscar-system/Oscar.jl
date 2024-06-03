@@ -67,7 +67,6 @@ function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG)
   lead_exp = leading_exponent_vector.(Lm)
   
-  #v = zip(lead_exp, exponent_vectors.(G)) .|> splat((l, t) -> Ref(l).-t)
   v = [ [l-t for t in T] for (l, T) in zip(lead_exp, exponent_vectors.(G)) ]
   
   return [ZZ.(v)./ZZ(gcd(v)) for v in unique!(reduce(vcat, v)) if !iszero(v)]
@@ -91,6 +90,7 @@ function next_gamma(
     if isempty(V)
         return V
     end
+
     minV = first(V)
     for v in V 
         if facet_less_than(canonical_matrix(start), canonical_matrix(target),v, minV)
@@ -219,7 +219,11 @@ end
 
 Returns all elements of `V` smaller than `w` with respect to the facet preorder.
 """
-function filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
+function filter_lf(
+        w::Vector{ZZRingElem}, 
+        start::MonomialOrdering, target::MonomialOrdering, 
+        V::Vector{Vector{ZZRingElem}}
+    )
     skip_indices = facet_less_than.(
       Ref(canonical_matrix(start)),
       Ref(canonical_matrix(target)),
@@ -229,9 +233,6 @@ function filter_lf(w::Vector{ZZRingElem}, start::MonomialOrdering, target::Monom
 
     return unique!(V[skip_indices])
 end
-
-
-#returns true if u is a non-zero integer multiple of v
 
 @doc raw"""
     is_parallel(u::Vector{ZZRingElem}, v::Vector{ZZRingElem})
