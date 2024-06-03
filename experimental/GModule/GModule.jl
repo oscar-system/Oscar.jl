@@ -625,7 +625,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
           if isone(f) || isone(g)
             s[(h(f),h(g))] = one(m)
           else
-            lf = findfirst(!iszero, X[g])
+            lf = findfirst(!iszero, X[f*g])
             s[(h(f), h(g))] = (X[f*g][lf]//(map_entries(mB(h(g)), X[f])*X[g])[lf])
           end
         end
