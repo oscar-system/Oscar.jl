@@ -7,7 +7,6 @@ import Base: length, getindex, setindex!
 #markings, a vector "Markings" of G, corresponding to leading terms w.r.t some monomial ordering
 #TODO: maybe initialize s.t. G is reduced/monic? 
 
-MarkedPolynomial = Tuple{<:MPolyRingElem, <:MPolyRingElem}
 struct MarkedGroebnerBasis
     gens::Vector{<:MPolyRingElem}
     markings::Vector{<:MPolyRingElem}
@@ -31,12 +30,18 @@ gens(G::MarkedGroebnerBasis) = G.gens
 markings(G::MarkedGroebnerBasis) = G.markings
 gens_and_markings(G::MarkedGroebnerBasis) = zip(gens(G), markings(G))
 
+#MarkedPolynomial = Tuple{<:MPolyRingElem, <:MPolyRingElem}
 # getindex(G::MarkedGroebnerBasis, i::Int) = (G.gens[i], G.markings[i])
 # function setindex!(G::MarkedGroebnerBasis, (f,m)::MarkedPolynomial, i::Int) 
 #   G.gens[i] = f
 #   G.markings[i] = m
 # end
 
+@doc raw"""
+    some_gens_with_markings(G::MarkedGroebnerBasis, I::AbstractVector)
+
+Returns a subset of generators of G indexed by I as pairs of polynomials and leading terms.
+"""
 function some_gens_with_markings(G::MarkedGroebnerBasis, I::AbstractVector)
   gens_view = @view gens(G)[I]  
   markings_view = @view markings(G)[I]
@@ -131,8 +136,6 @@ function autoreduce!(MG::MarkedGroebnerBasis)
     rest = some_gens_with_markings(MG, 1:n .!= i)
     nf = _normal_form(g, rest...)
 
-    # if !iszero(nf)
-      MG.gens[i] = nf
-    # end
+    MG.gens[i] = nf
   end
 end

@@ -4,7 +4,7 @@
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = 2,
+      perturbation_degree = length(gens(base_ring(I))),
       algorithm::Symbol = :standard
     )
 
@@ -100,8 +100,10 @@ function groebner_walk(
   return Oscar.IdealGens(Gb, target; isGB=true)
 end
 
+# TODO docstring
 exponent_vectors = f->leading_exponent_vector.(monomials(f))
 
+#TODO docstring
 function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
     i = _support_indices(o.o)
     m = ZZMatrix(1, length(w), w)
@@ -109,19 +111,18 @@ function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
 end
 
 # returns 'true' if the leading terms of G w.r.t the matrixordering T are the same as the leading terms of G with the current ordering.
+#TODO docstring
 same_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_term.(G; ordering=T) .== leading_term.(G; ordering=ordering(G)))
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
 convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
-# TODO: This comment is factually not correct, it's just the weight ordering of a matrix ordering
-# returns a copy of the PolynomialRing I, equipped with the ordering weight_ordering(cw)*matrix_ordering(T).
+# Creates a weight ordering for R with weight cw and representing matrix T
 create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} = weight_ordering(cw, matrix_ordering(R, T))
 
 # interreduces the Groebner basis G. 
 # each element of G is replaced by its normal form w.r.t the other elements of G and the current monomial order 
 # TODO reference, docstring
-# interreduces the Groebner basis G.
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 
@@ -136,6 +137,7 @@ end
 #############################################
 # unspecific help functions
 #############################################
+#TODO docstring
 
 change_weight_vector(w::Vector{Int}, M::Matrix{Int}) = vcat(w', M[2:end, :])
 change_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = vcat(w', M[2:end, :])
@@ -143,6 +145,12 @@ change_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = vcat(w', M[2:end, :])
 insert_weight_vector(w::Vector{Int}, M::Matrix{Int}) = vcat(w', M[1:end-1, :])
 insert_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = vcat(w', M[1:end-1, :])
 
+@doc raw"""
+    add_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix)
+
+Prepends the weight vector `w` as row to the matrix `M`.
+
+"""
 add_weight_vector(w::Vector{Int}, M::Matrix{Int}) = vcat(w', M)
 add_weight_vector(w::Vector{ZZRingElem}, M::ZZMatrix) = ZZMatrix(vcat(w), M)
 

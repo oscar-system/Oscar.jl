@@ -32,7 +32,7 @@ function perturbed_walk(
     @vprintln :groebner_walk 2 S
 
     target_weight = perturbed_vector(G, T, p)
-    next_target = matrix_ordering(R, add_weight_vector(target_weight, T))
+    next_target = weight_ordering(target_weight, target)
     G = standard_walk(Oscar.IdealGens, G, next_target, current_weight, target_weight)
 
     @vprintln :groebner_walk 2 G
@@ -74,7 +74,13 @@ function perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
   @vprint :groebner_walk 5 "Upper degree bound: "
   @vprintln :groebner_walk 5 e
 
-  w = sum(row * e^(p-i) for (i,row) in enumerate(rows))
+  w = zeros(ZZRingElem, n)
+  d = 1
+  for i in 1:p
+    w += row[end+1-i] * d
+    d *= e
+  end
+  #w = sum(row * e^(p-i) for (i,row) in enumerate(rows))
   @vprint :groebner_walk 3 "Perturbed vector: "
   @vprintln :groebner_walk 3 w
 
