@@ -91,6 +91,67 @@ end
   @test degree(base_ring(S)) == 2
 end
 
+@testset "Experimental.gmodule GModule" begin
+  k = quadratic_field(10)[1]
+  h = hilbert_class_field(k) 
+  M = gmodule(h)
+  hash(M)
+
+  c, mc = cohomology_group(M, 0)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 0, Tate = true)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 1)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 2)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  M = gmodule(GF(2), M)
+  hash(M)
+   c, mc = cohomology_group(M, 0)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 0, Tate = true)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 1)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 2)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  X = cyclic_group(4)
+  M, _ = sub(X, [X[1]^2])
+  C, c = extension_with_abelian_kernel(X, M)
+  @test is_isomorphic(extension(c)[1], X)
+end
+
+@testset "Experimental Schur" begin
+  G = alternating_group(4)
+  Z = free_abelian_group(1)
+  M = trivial_gmodule(G, Z)
+  a, b = Oscar.GrpCoh.H_two_maps(M)
+  Z2 = torsion_subgroup(cokernel(b)[1])[1]
+  @test order(Z2) == 2
+
+  M = trivial_gmodule(G, Z2)
+  h, mh = cohomology_group(M, 2)
+  @test Set(is_stem_extension(Oscar.GrpExt(mh(x))) for x = h) == Set([0,1]) 
+  @test Set(is_stem_extension(extension(mh(x))[2]) for x = h) == Set([0,1]) 
+
+
+end
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
