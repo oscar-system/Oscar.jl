@@ -39,7 +39,6 @@ julia> betti(free_resolution(defining_ideal(D)))
 -----------
 total: 3  2
 
-
 julia> Oscar.rat_normal_curve_anticanonical_map(D)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  2*y(2) + 13*y(4)

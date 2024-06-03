@@ -126,6 +126,7 @@ end
    S = sub(G, [gen(G, 1)])[1]
    @test ! Oscar._is_full_fp_group(GapObj(S))
    @test_throws MethodError relators(S)
+   @test_throws ArgumentError quo(S, gens(S))
 
    @test G([1 => 2, 2 => -3]) == G[1]^2 * G[2]^-3
    @test_throws MethodError S([1 => 2])

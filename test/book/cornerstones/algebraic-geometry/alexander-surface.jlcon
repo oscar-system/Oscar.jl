@@ -42,7 +42,6 @@ julia> minimal_betti_table(FA)
 -----------------------
 total: 1  16  29  18  4
 
-
 julia> I = defining_ideal(X);
 
 julia> IQ = ideal([x for x in gens(I) if degree(x)[1] == 5]);

@@ -404,16 +404,16 @@ See [`load`](@ref).
 julia> meta = metadata(author_orcid="0000-0000-0000-0042", name="42", description="The meaning of life, the universe and everything")
 Oscar.MetaData("0000-0000-0000-0042", "42", "The meaning of life, the universe and everything")
 
-julia> save("/tmp/fourtitwo.json", 42; metadata=meta);
+julia> save("/tmp/fourtitwo.mrdi", 42; metadata=meta);
 
-julia> read_metadata("/tmp/fourtitwo.json")
+julia> read_metadata("/tmp/fourtitwo.mrdi")
 {
   "author_orcid": "0000-0000-0000-0042",
   "name": "42",
   "description": "The meaning of life, the universe and everything"
 }
 
-julia> load("/tmp/fourtitwo.json")
+julia> load("/tmp/fourtitwo.mrdi")
 42
 ```
 """
@@ -489,12 +489,12 @@ See [`save`](@ref).
 # Examples
 
 ```jldoctest
-julia> save("/tmp/fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.mrdi", 42);
 
-julia> load("/tmp/fourtitwo.json")
+julia> load("/tmp/fourtitwo.mrdi")
 42
 
-julia> load("/tmp/fourtitwo.json"; type=Int64)
+julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
 42
 
 julia> R, x = QQ["x"]
@@ -503,17 +503,17 @@ julia> R, x = QQ["x"]
 julia> p = x^2 - x + 1
 x^2 - x + 1
 
-julia> save("/tmp/p.json", p)
+julia> save("/tmp/p.mrdi", p)
 
-julia> p_loaded = load("/tmp/p.json", params=R)
+julia> p_loaded = load("/tmp/p.mrdi", params=R)
 x^2 - x + 1
 
 julia> parent(p_loaded) === R
 true
 
-julia> save("/tmp/p_v.json", [p, p])
+julia> save("/tmp/p_v.mrdi", [p, p])
 
-julia> loaded_p_v = load("/tmp/p_v.json", params=R)
+julia> loaded_p_v = load("/tmp/p_v.mrdi", params=R)
 2-element Vector{QQPolyRingElem}:
  x^2 - x + 1
  x^2 - x + 1

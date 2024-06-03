@@ -727,25 +727,28 @@ false
 #
 #  Quotient functions
 #
+# - We support the syntax `quo(G, elements)` for *full* free and f.p. groups.
+#   GAP can handle this via its `\/'.
+#
+# - For other types of groups, GAP supports quotients of a group by a normal
+#   subgroup.
+#   For convenience, we delegate from `quo(G, elements)` to
+#   `quo(G, normal_closure(G, sub(G, elements)[1]))`,
+#   *except* if `G` is a `SubFpGroup`; in this case, GAP may fail with the
+#   error message that it was not able to create the natural epimorphism,
+#   and Oscar throws an exception saying that the user shall call `quo(G, N)`
+#   or switch to a group of a different type.
+#
 ################################################################################
 
-function quo(G::FPGroup, elements::Vector{S}) where S <: GAPGroupElem
-  @assert elem_type(G) == S
-  if GAP.Globals.HasIsWholeFamily(GapObj(G)) && GAPWrap.IsWholeFamily(GapObj(G))
-    # For a *full* free or f.p. group, GAP can handle this via its `\/'.
-    elems_in_gap = GapObj(elements; recursive = true)
-    Q = FPGroup(GapObj(G)/elems_in_gap)
-    function proj(x::FPGroupElem)
-      return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
-               GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
-    end
-    return Q, hom(G,Q,proj)
-  else
-    # Currently GAP's `\/' does not support a list of group elements
-    # as the second argument,
-    # but forming the quotient modulo a normal subgroup may work.
-    return quo(G, normal_closure(G, sub(G, elements)[1])[1])
+function quo(G::FPGroup, elements::Vector{FPGroupElem})
+  elems_in_gap = GapObj(elements; recursive=true)
+  Q = FPGroup(GapObj(G)/elems_in_gap)
+  function proj(x::FPGroupElem)
+    return group_element(Q,GAP.Globals.MappedWord(GapObj(x),
+             GAPWrap.GeneratorsOfGroup(GapObj(G)), GAPWrap.GeneratorsOfGroup(GapObj(Q))))
   end
+  return Q, hom(G, Q, proj)
 end
 
 """
@@ -756,18 +759,20 @@ where `N` is the normal closure of `elements` in `G`.
 
 See [`quo(G::GAPGroup, N::GAPGroup)`](@ref)
 for information about the type of `G/N`.
+
+For groups `G` of type `SubFPGroup`, this syntax is not supported.
+In this case, you can switch to  group of different type, using `isomorphism`,
+or try to create the normal subgroup `N` in question, and call `quo(G, N)`.
 """
-function quo(G::T, elements::Vector{S}) where T <: GAPGroup where S <: GAPGroupElem
+function quo(G::T, elements::Vector{S}) where {T <: GAPGroup, S <: GAPGroupElem}
+  @req T !== SubFPGroup "for `G` of type `SubFPGroup`, call `quo(G, N)` with a normal subgroup `N`, or switch to a group `G` of different type"
   @assert elem_type(G) == S
   if length(elements) == 0
-    H1 = trivial_subgroup(G)[1]
+    H = trivial_subgroup(G)[1]
   else
-    elems_in_gap = GapObj(elements; recursive = true)
-    H = GAP.Globals.NormalClosure(GapObj(G),GAP.Globals.Group(elems_in_gap))::GapObj
-    @assert GAPWrap.IsNormal(GapObj(G), H)
-    H1 = _as_subgroup_bare(G, H)
+    H = normal_closure(G, sub(G, elements)[1])[1]
   end
-  return quo(G, H1)
+  return quo(G, H)
 end
 
 function quo(::Type{Q}, G::T, elements::Vector{S}) where {Q <: GAPGroup, T <: GAPGroup, S <: GAPGroupElem}
