@@ -428,6 +428,11 @@ function Oscar.direct_product(C::GModule...; task::Symbol = :none)
   end
 end
 
+function Oscar.one(f::FinGenAbGroupHom)
+  A = domain(f)
+  @assert A === codomain(f)
+  return hom(A, A, gens(A))
+end
 Oscar.direct_sum(C::GModule...; task::Symbol = :none) = Oscar.direct_product(C...; task = task)
 
 import Hecke.⊕
