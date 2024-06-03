@@ -179,6 +179,10 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
   G = c.C.G
   k = number_field(zk)
   MI = c.C.M
+  if length(cp) == 0
+    z = zero(MI)
+    return true, CoChain{1, PermGroupElem, elem_type(MI)}(c.C, Dict((g,) => z for g = G))
+  end
   O = orbits(gset(G, (i, g) -> numerator(action(c.C, g, MI(i//1)).data), cp, closed = true))
   local res
   frst = true

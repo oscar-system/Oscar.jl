@@ -78,7 +78,7 @@ end
 
   G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
   q, mq = maximal_abelian_quotient(PcGroup, G)
-  @test length(Oscar.RepPc.brueckner(mq)) == 2
+  @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
 @testset "Experimental.gmodule SL(2,5)" begin

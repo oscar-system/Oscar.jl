@@ -537,7 +537,7 @@ export CoChain, MultGrp, MultGrpElem
 export is_stem_extension, is_central
 
 _rank(M::FinGenAbGroup) = torsion_free_rank(M)
-_rank(M) = dim(M)
+_rank(M) = rank(M)
 
 Oscar.dim(C::GModule) = _rank(C.M)
 Oscar.base_ring(C::GModule) = base_ring(C.M)
@@ -2367,8 +2367,17 @@ function split_extension(C::GModule)
   c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
   S = elem_type(C.G)
   T = elem_type(C.M)
+  return extension(CoChain{2, S, T}(C, c))
+end
+
+function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
+  #bypasses the Cohomolgy computation, hopefully
+  c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
+  S = elem_type(C.G)
+  T = elem_type(C.M)
   return extension(PcGroup, CoChain{2, S, T}(C, c))
 end
+
 
 function all_extensions(C::GModule)
   @assert isfinite(C.M)
@@ -2489,6 +2498,7 @@ function all_extensions(M::Union{<:AbstractAlgebra.FPModule, FinGenAbGroup}, G::
   for M = gmodule_class_reps(M, G)
     append!(all_G, all_extensions(M))
   end
+  return all_G
 end
 
 function fp_group(c::CoChain{2})

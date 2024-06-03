@@ -541,14 +541,19 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     d = reduce(lcm, [x[2] for x = ld], init = 1)
 
     s = subfields(base_ring(V))
+    
     s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
     for (m, mm) in s
+      if !has_preimage(mm, u)[1]
+        @vprint :MinField 1 "field does not contain the character field\n"
+        continue
+      end
       #TODO: analyse the logic, this is inefficient...
       #      but it requires too much change
-      if false && m == base_ring(V) || degree(m) == degree(base_ring(V))
-        @vprint :MinField 1 "no smaller sub-field possible\n"
-      end
+#      if m == base_ring(V) || degree(m) == degree(base_ring(V))
+#        @vprint :MinField 1 "no smaller sub-field possible\n"
+#      end
       @vprint :MinField 1 "testing local degrees \n"
       ok = true
       lr = Vector{Pair{Int, Int}}[]
@@ -578,7 +583,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       fl, b = Oscar.is_coboundary(cc)
       @assert fl
       Y = Dict( a=> X[mU(a)]*b((mU(a),)).data for a = U)
-      @vtime :MinField 2 AA, AAi = hilbert90_generic(Y, mA)
+      @vtime :MinField 2 AA, AAi = hilbert90_generic(Y, mU*mA)
       c = content_ideal(AA)
       sd = Hecke.short_elem(inv(c))
       AA *= sd
@@ -587,7 +592,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
         ac = [AA*matrix(x)*AAi for x = action(V)]
         ac = [map_entries(pseudo_inv(mm), x) for x = ac]
         f = free_module(m, dim(V))
-        return gmodule(V.G, [hom(F, F, x) for x = ac])
+        return gmodule(V.G, [hom(f, f, x) for x = ac])
       end
 
       #we need Gal(E/k) as the quotient of A/U
@@ -1271,7 +1276,7 @@ function hilbert90_generic(X::Dict, mA)
       cnt += 1
       if cnt > 20 error("s.th. weird") end
     end
-    S = sum(map_entries(mA(g), Y)*v for (g,v) = X)
+    S = sum(map_entries(mA(g), Y)*X[g] for g = G)
     fl, Si = is_invertible_with_inverse(S)
     fl && return S, Si
   end
