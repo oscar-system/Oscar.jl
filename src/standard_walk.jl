@@ -100,7 +100,7 @@ function initial_form(f::MPolyRingElem, w::Vector{ZZRingElem})
 
   ctx = MPolyBuildCtx(R)
 
-  E = exponent_vectors(f)
+  E = exponents(f)
   WE = dot.(Ref(w), Vector{ZZRingElem}.(E))
   maxw = -inf
 

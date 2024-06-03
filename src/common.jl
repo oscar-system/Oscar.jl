@@ -100,9 +100,6 @@ function groebner_walk(
   return Oscar.IdealGens(Gb, target; isGB=true)
 end
 
-# TODO docstring
-exponent_vectors = f->leading_exponent_vector.(monomials(f))
-
 #TODO docstring
 function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
     i = _support_indices(o.o)
