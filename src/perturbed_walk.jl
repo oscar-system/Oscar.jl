@@ -40,7 +40,6 @@ function perturbed_walk(
 
     p = p - 1
     current_weight = target_weight
-    S = next_target #TODO: Is this actually used? S never appears in this loop
   end
 
   return gens(G)
