@@ -313,6 +313,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     
     for (key, val) in model_parameters
       map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
+      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_descriptors"]))
     end
   end
   
@@ -716,6 +717,14 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
 
   if haskey(model_dict["model_data"], "generating_sections")
     set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
+  end
+  
+  if haskey(model_dict["model_data"], "torsion_sections")
+    set_torsion_sections(model, map(k -> string.(k), model_dict["model_data"]["torsion_sections"]))
+  end
+  
+  if haskey(model_dict["model_descriptors"], "gauge_algebra")
+    set_gauge_algebra(model, string.(model_dict["model_descriptors"]["gauge_algebra"]))
   end
 end
 

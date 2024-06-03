@@ -582,6 +582,12 @@ function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Stri
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
+function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+end
+
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
   set_attribute!(m, :resolutions => desired_value)
 end
@@ -624,6 +630,40 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
+gauge_algebras = [];
+C = algebraic_closure(QQ);
+for i in 1:length(algebras)
+    g = algebras[i];
+    if g == "0"
+      continue
+    end
+    if g == "u(1)"
+      algebra = lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"]);
+      push!(gauge_algebras, algebra);
+    elseif g[1:2] == "su"
+      algebra = special_linear_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
+      push!(gauge_algebras, algebra);
+    elseif g[1:2] == "so"
+      algebra = special_orthogonal_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
+      push!(gauge_algebras, algebra);
+    elseif g[1:2] == "sp"
+      algebra = symplectic_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
+      push!(gauge_algebras, algebra);
+      #For the algebras that are constructed from their Dynkin diagramms we cannot use QQBarField as the current implementation looks for a GAP iso and finds none.
+    elseif g[1] == "e"
+      algebra = lie_algebra(QQ,Symbol('E'),eval(Meta.parse(g[3:end-1])));
+      push!(gauge_algebras, algebra);
+    elseif g[1] == "g"
+      algebra = lie_algebra(QQ,Symbol('G'),eval(Meta.parse(g[3:end-1])));
+      push!(gauge_algebras, algebra);
+    #elseif g[1] == "f" This is not implemented yet  
+      #algebra = lie_algebra(C,Symbol('G'),eval(Meta.parse(g[3:end-1])));
+      #push!(gauge_algebras, algebra);
+    end
+end
+set_attribute!(m, :gauge_algebra => gauge_algebras)
+end
 
 
 ##########################################

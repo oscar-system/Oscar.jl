@@ -1018,3 +1018,31 @@ function zero_section(m::AbstractFTheoryModel)
   @req has_zero_section(m) "No zero section stored for this model"
   return get_attribute(m, :zero_section)
 end
+
+
+@doc raw"""
+    gauge_algebra(m::AbstractFTheoryModel)
+
+Return the gauge algebra of the given model.
+If no gauge algebra is known, an error is raised.
+This information is typically available for all models, however.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> gauge_algebra(t)
+5-element Vector{Any}:
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Linear Lie algebra with 1x1 matrices over QQBar
+```
+"""
+function gauge_algebra(m::AbstractFTheoryModel)
+  #@req has_gauge_algebra(m) "No gauge_algebra stored for this model"
+  return get_attribute(m, :gauge_algebra)
+end
