@@ -18,7 +18,7 @@ end
 
 
 @doc raw"""
-    affine_space(::Type{NormalToricVariety}, var_symbols::AbstractVector{<:VarName}) -> NormalToricVariety
+    affine_space(::Type{NormalToricVariety}, var_symbols::AbstractVector{<:VarName})
 
 Construct a (toric) affine space, specifying the variable names.
 
