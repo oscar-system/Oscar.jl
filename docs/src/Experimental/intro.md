@@ -14,29 +14,29 @@ brought up to Oscar standard.
 
 !!! danger "Dependencies"
     - Code from `src` must never use code from `experimental`
-    - Say there are two packages `A` and `B` in `experimental`, and `B` depends
+    - Say there are two projects `A` and `B` in `experimental`, and `B` depends
       on `A`. That means that `B` cannot be moved to `src` before `A`. Worse:
       If `A` gets abandoned, `B` might share that fate. So please consider
       carefully in such situations.
 
 ## Structure
 For an example of the structure for a new project in `experimental` have a look
-at project folders, i.e. `experimental/PACKAGE_NAME`, that have subfolders
+at project folders, i.e. `experimental/PROJECT_NAME`, that have subfolders
 `docs`, `src`, and `test` (an example is
 `experimental/FTheoryTools`). The general structure is
 ```
-experimental/PACKAGE_NAME/
+experimental/PROJECT_NAME/
 ├── README.md
 ├── docs
 │   ├── doc.main
 │   └── src
 │       └── DOCUMENTATION.md
 ├── src
-│   └── PACKAGE_NAME.jl
+│   └── PROJECT_NAME.jl
 └── test
     └── *.jl
 ```
-The file `src/PACKAGE_NAME.jl` and at least one `.jl` file in the `test/`
+The file `src/PROJECT_NAME.jl` and at least one `.jl` file in the `test/`
 directory are mandatory and are used by Oscar.jl to find your code and tests.
 If there is a `test/runtests.jl` then only this file is executed during
 testing, otherwise all `.jl` files will be run automatically (in a random
