@@ -159,7 +159,7 @@ Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_in
     affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 
 The ``n``-dimensional affine space over a ring ``kk`` is created
-by this method. By default, the variable names are chosen as $x_1$, $x_2$
+by this method. By default, the variable names are chosen as `x1`, `x2`
 and so on. This choice can be overwritten with a third optional argument.
 
 # Examples
@@ -198,7 +198,7 @@ with coordinates [y1, z2, a]
 """
 function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
   R, _ = polynomial_ring(kk, var_symbols)
-  return variety(spec(R), check=false)
+  return spec(R)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}

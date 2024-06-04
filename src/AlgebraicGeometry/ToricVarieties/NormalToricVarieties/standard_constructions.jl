@@ -18,6 +18,24 @@ end
 
 
 @doc raw"""
+    affine_space(::Type{NormalToricVariety}, var_symbols::Vector{Symbol}) -> NormalToricVariety
+
+Construct a (toric) affine space, specifying the variable names.
+
+# Examples
+```jldoctest
+julia> affine_space(NormalToricVariety, [:x, :y, :z])
+Normal toric variety
+```
+"""
+function affine_space(::Type{NormalToricVariety}, var_symbols::Vector{Symbol})
+  variety = affine_space(NormalToricVariety, length(var_symbols))
+  set_coordinate_names(variety, String.(var_symbols))
+  return variety
+end
+
+
+@doc raw"""
     projective_space(::Type{NormalToricVariety}, d::Int)
 
 Construct the projective space of dimension `d`.
