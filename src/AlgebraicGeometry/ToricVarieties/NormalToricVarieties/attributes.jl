@@ -159,7 +159,7 @@ julia> coordinate_names_of_torus(F3)
  "v"
 ```
 """
-function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::coordinate_names::AbstractVector{<:VarName})
+function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
