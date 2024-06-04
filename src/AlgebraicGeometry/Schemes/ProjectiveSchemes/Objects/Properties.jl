@@ -59,7 +59,7 @@ julia> is_smooth(C; algorithm=:covered_jacobian)
 false
 ```
 """
-function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
+function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm=:default)
   get_attribute!(P, :is_smooth) do
     if is_empty(P)
       return true
@@ -101,7 +101,10 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
   end
 end
 
-function _projective_jacobian_criterion(P::AbsProjectiveScheme)
+is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyRing}; algorithm=:default) = true
+is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyLocRing}; algorithm=:default) = true
+
+function _projective_jacobian_criterion(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing})
   if !(base_ring(P) isa Field)
     throw(NotImplementedError(
       :is_smooth,
