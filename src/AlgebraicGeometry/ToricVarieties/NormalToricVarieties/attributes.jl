@@ -143,7 +143,7 @@ end
 
 
 @doc raw"""
-    set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
+    set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
 
 Allows to set the names of the coordinates of the torus.
 
@@ -159,12 +159,12 @@ julia> coordinate_names_of_torus(F3)
  "v"
 ```
 """
-function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
+function set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::coordinate_names::AbstractVector{<:VarName})
     if is_finalized(v)
         error("The coordinate names of the torus cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == ambient_dim(v) "The provided list of coordinate names must match the ambient dimension of the fan"
-    set_attribute!(v, :coordinate_names_of_torus, coordinate_names)
+    set_attribute!(v, :coordinate_names_of_torus, string.(coordinate_names))
 end
 
 
