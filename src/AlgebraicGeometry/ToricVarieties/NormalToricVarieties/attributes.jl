@@ -103,7 +103,7 @@ end
 
 
 @doc raw"""
-    set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
+    set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
 
 Allows to set the names of the homogeneous coordinates as long as the toric variety in
 question is not yet finalized (cf. [`is_finalized(v::NormalToricVarietyType)`](@ref)).
@@ -114,19 +114,31 @@ julia> C = Oscar.positive_hull([1 0]);
 
 julia> antv = affine_normal_toric_variety(C);
 
-julia> set_coordinate_names(antv, ["u"])
+julia> set_coordinate_names(antv, [:u])
 
 julia> coordinate_names(antv)
 1-element Vector{String}:
  "u"
+
+julia> set_coordinate_names(antv, ["v"])
+
+julia> coordinate_names(antv)
+1-element Vector{String}:
+ "v"
+
+julia> set_coordinate_names(antv, ['w'])
+
+julia> coordinate_names(antv)
+1-element Vector{String}:
+ "w"
 ```
 """
-function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
+function set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
     if is_finalized(v)
         error("The coordinate names cannot be modified since the toric variety is finalized")
     end
     @req length(coordinate_names) == n_rays(v) "The provided list of coordinate names must match the number of rays in the fan"
-    set_attribute!(v, :coordinate_names, coordinate_names)
+    set_attribute!(v, :coordinate_names, string.(coordinate_names))
 end
 
 
