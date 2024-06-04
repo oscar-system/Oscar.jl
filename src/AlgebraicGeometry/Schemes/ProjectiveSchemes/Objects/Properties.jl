@@ -17,7 +17,7 @@ end
 end
 
 @doc raw"""
-    is_smooth(P::AbsProjectiveScheme; algorithm=:default) -> Bool
+    is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm=:default) -> Bool
 
 Check whether the scheme `P` is smooth.
 
