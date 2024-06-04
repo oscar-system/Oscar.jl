@@ -22,8 +22,8 @@ brought up to Oscar standard.
 ## Structure
 For an example of the structure for a new project in `experimental` have a look
 at project folders, i.e. `experimental/PACKAGE_NAME`, that have subfolders
-`docs`, `src`, and `test` (The first two examples are
-`experimental/{FTheoryTools, PlaneCurve}`). The general structure is
+`docs`, `src`, and `test` (an example is
+`experimental/FTheoryTools`). The general structure is
 ```
 experimental/PACKAGE_NAME/
 ├── README.md
@@ -49,8 +49,8 @@ starting from scratch and don't have any documentation yet.
 
 !!! note
     There are still older projects in `experimental` from before the
-    introduction of this structure. Thus we mentioned `FTheoryTools` and
-    `PlaneCurve` as projects having adopted to the new standard.
+    introduction of this structure. Thus we mentioned `FTheoryTools`
+    as a project having adopted to the new standard.
 
 ### Useful functions for development
 Apart from the hints in the [Introduction for new developers](@ref), there are some more specialized functions for the structure of the `experimental` folder.
