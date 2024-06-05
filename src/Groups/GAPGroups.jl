@@ -224,53 +224,64 @@ end
 #
 # - `PermGroup`, `PermGroup`:
 #   The operation is allowed whenever the parents have the same degree,
-#   and the parent is the symmetric group of that degree.
+#   then the parent of the result is the symmetric group of that degree.
 #
 # - `PcGroup`, `PcGroup` and
 #   `FPGroup`, `FPGroup`:
-#   The operation is allowed whenever the parents belong to the same `GapObj`
-#   (in the sense of `==´), and the first of the two groups is taken.
+#   The operation is allowed whenever the parents have the same `GapObj`
+#   (in the sense of `===´),
+#   then the first of the two groups is taken as the parent of the result.
 #
 # - `SubPcGroup`, `SubPcGroup` and
 #   `SubFPGroup`, `SubFPGroup`:
-#   The operation is allowed whenever the parents have the same `full_group`
-#   (in the sense of `==´), and the first of the two groups is taken.
+#   The operation is allowed whenever the `full_group` fields of the parents
+#   have the same `GapObj`
+#   (in the sense of `===´),
+#   then the first of the two groups is taken as the parent of the result.
 #
 # - `SubPcGroup`, `PcGroup` and
 #   `PcGroup`, `SubPcGroup` and
 #   `SubFPGroup`, `FPGroup` and
 #   `FPGroup`, `SubFPGroup`:
 #   The operation is allowed whenever the `full_group` of the `SubPcGroup`
-#   (`SubFPGroup`) is equal to the `PcGroup` (`FPGroup`)
-#   (in the sense of `==´), and the `PcGroup` (`FPGroup`) is taken.
+#   (`SubFPGroup`) and the `PcGroup` (`FPGroup`) have the same `GapObj`
+#   (in the sense of `===´),
+#   then the `full_group` of the `SubPcGroup` (`SubFPGroup`) is taken
+#   as the parent of the result.
+#   Note that we take a group of type `SubPcGroup` (`SubFpGroup`).
 #
 # - `MatrixGroup`, `MatrixGroup`:
 #   The operation is allowed whenever the two groups have the same `degree`
-#   and `base_ring`, and the parent is the general linear group of that
-#   degree over that ring.
+#   and `base_ring`,
+#   then the general linear group of that degree over that ring
+#   is taken as the parent of the result.
 #
 # - `AutomorphismGroup`, `AutomorphismGroup`:
 #   The operation is allowed whenever the two groups have the same `.G` field,
-#   and the parent is the full automorphism group of that group.
+#   then the full automorphism group of that group
+#   is taken as the parent of the result.
 #
 # - `DirectProductGroup`, `DirectProductGroup` and
 #   `SemidirectProductGroup`, `SemidirectProductGroup` and
 #   `WreathProductGroup`, `WreathProductGroup`:
 #   The operation is allowed whenever the two groups have the same `.Xfull`
-#   field, and the parent is the direct/semidirect/wreath product of these
-#   groups.
+#   field,
+#   then the direct/semidirect/wreath product of these groups
+#   is taken as the parent of the result.
 #
 # For other types of groups, we throw an exception if the parent groups are
 # not equal and their `GapObj`s are not equal.
 #
-# Note that we cannot guarantee that the groups objects in question are
-# *identical*, only that their `GapObj`s are *equal*:
-# On the GAP side, the same group can be created several times,
-# and on the Oscar side, the same GAP group can be wrapped several times.
-#
-# Note also that we do not want to perform checks whether one group is perhaps
-# a subset of the other (and then one could take the bigger group as
-# the parent of the result).
+# Note that we do not want to perform `==` checks that are more expensive
+# then `===` checks.
+# In general, we cannot guarantee that the Oscar groups objects in question
+# are *identical* because the same GAP group can be wrapped several times,
+# but we want to force that their `GapObj`s are identical.
+# (Permutation groups are an exception,
+# we want to force only that the degrees are equal.)
+# Thus we regard it as an error for example to ask for the product of two
+# `PcGroupElem`s whose parents are equal in the sense of `==`
+# but whose `GapObj`s are not identical.
 #
 function _common_parent_group(x::PermGroup, y::PermGroup)
   x === y && return x
@@ -279,50 +290,50 @@ function _common_parent_group(x::PermGroup, y::PermGroup)
 end
 
 function _common_parent_group(x::PcGroup, y::PcGroup)
-  (x === y || GapObj(x) == GapObj(y)) && return x
+  GapObj(x) === GapObj(y) && return x
   throw(ArgumentError("the groups are not compatible"))
 end
 
 function _common_parent_group(x::FPGroup, y::FPGroup)
-  (x === y || GapObj(x) == GapObj(y)) && return x
+  GapObj(x) === GapObj(y) && return x
   throw(ArgumentError("the groups are not compatible"))
 end
 
 function _common_parent_group(x::SubPcGroup, y::SubPcGroup)
   x === y && return x
-  @req x.full_group == y.full_group "the groups belong to different full groups"
-  return x.full_group
+  @req GapObj(x.full_group) === GapObj(y.full_group) "the groups belong to different full groups"
+  return as_sub_pc_group(x.full_group)
 end
 
 function _common_parent_group(x::SubPcGroup, y::PcGroup)
-  @req x.full_group == y "the groups belong to different full groups"
-  return y
+  @req GapObj(x.full_group) === GapObj(y) "the groups belong to different full groups"
+  return as_sub_pc_group(x.full_group)
 end
 
 function _common_parent_group(x::PcGroup, y::SubPcGroup)
-  @req y.full_group == x "the groups belong to different full groups"
-  return x
+  @req GapObj(y.full_group) === GapObj(x) "the groups belong to different full groups"
+  return as_sub_pc_group(y.full_group)
 end
 
 function _common_parent_group(x::SubFPGroup, y::SubFPGroup)
   x === y && return x
-  @req x.full_group == y.full_group "the groups belong to different full groups"
-  return x.full_group
+  @req GapObj(x.full_group) === GapObj(y.full_group) "the groups belong to different full groups"
+  return as_sub_fp_group(x.full_group)
 end
 
 function _common_parent_group(x::SubFPGroup, y::FPGroup)
-  @req x.full_group == y "the groups belong to different full groups"
-  return y
+  @req GapObj(x.full_group) === GapObj(y) "the groups belong to different full groups"
+  return as_sub_fp_group(x.full_group)
 end
 
 function _common_parent_group(x::FPGroup, y::SubFPGroup)
-  @req y.full_group == x "the groups belong to different full groups"
-  return x
+  @req GapObj(y.full_group) === GapObj(x) "the groups belong to different full groups"
+  return as_sub_fp_group(y.full_group)
 end
 
 function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
   x === y && return x
-  @req x.G == y.G "the groups belong to different full groups"
+  @req x.G === y.G "the groups belong to different full groups"
   return automorphism_group(x.G)
 end
 
