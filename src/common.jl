@@ -8,7 +8,7 @@
       algorithm::Symbol = :standard
     )
 
-Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk.
+Compute a reduced Groebner basis w.r.t. to a monomial ordering by converting it using the Groebner Walk.
 The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
 One can choose a strategy of:
 - Standard Walk (:standard) computes the Walk like as presented in Cox, Little & O'Shea (2005).
@@ -17,8 +17,8 @@ One can choose a strategy of:
 
 # Arguments
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
-- `target::MonomialOrdering=:lex`: monomial order one wants to compute a Groebner basis for.
-- `start::MonomialOrdering=:degrevlex`: monomial order to begin the conversion.
+- `target::MonomialOrdering=:lex`: monomial ordering one wants to compute a Groebner basis for.
+- `start::MonomialOrdering=:degrevlex`: monomial ordering to begin the conversion.
 - `perturbationDegree::Int=2`: the perturbation degree for the perturbed Walk.
 - `algorithm::Symbol=standard`: strategy of the Groebner Walk. One can choose between:
     - `standard`: Standard Walk,
@@ -34,7 +34,7 @@ julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
 julia> groebner_walk(I, lex(R))
 Gröbner basis with elements
-1 -> x + y^12 - y^8 + y^4
+1 -> x + y^12 - y^8 + y^4 r
 2 -> y^16
 with respect to the ordering
 lex([x, y])
@@ -46,7 +46,7 @@ Gröbner basis with elements
 with respect to the ordering
 lex([x, y])
 
-julia> julia> set_verbosity_level(:groebner_walk, 1);
+julia> set_verbosity_level(:groebner_walk, 1);
 julia> groebner_walk(I, lex(R))
 Results for standard_walk
 Crossed Cones in: 
@@ -102,16 +102,28 @@ end
 
 #TODO docstring
 function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
+    # Instead of using OSCAR's weight_ordering which requires w to be "Vector{Int64}"
+    # we use the following construction which also accepts ZZRingElem.
     i = _support_indices(o.o)
     m = ZZMatrix(1, length(w), w)
     return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
 end
 
-# returns 'true' if the leading terms of G w.r.t the matrixordering T are the same as the leading terms of G with the current ordering.
-#TODO docstring
+@doc raw"""
+    same_cone(G::Oscar.IdealGens, T::MonomialOrdering)
+
+Checks whether the leading terms of G with respect to the matrix ordering given by T agree 
+with the leading terms of G with respect to the current ordering.
+This means they are in the same cone of the Groebner fan. (cf. Lemma 2.2, Collart, Kalkbrener and Mall 1997)
+"""
 same_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_term.(G; ordering=T) .== leading_term.(G; ordering=ordering(G)))
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
+@doc raw"""
+    convert_bounding_vector(w::Vector{T})
+
+Scales a rational weight vector to have co-prime integer weights.
+"""
 convert_bounding_vector(w::Vector{T}) where {T<:Union{ZZRingElem, QQFieldElem}} = ZZ.(floor.(w//gcd(w)))
 
 # Creates a weight ordering for R with weight cw and representing matrix T
@@ -120,6 +132,11 @@ create_ordering(R::MPolyRing, cw::Vector{L}, T::Matrix{Int}) where {L<:Number} =
 # interreduces the Groebner basis G. 
 # each element of G is replaced by its normal form w.r.t the other elements of G and the current monomial order 
 # TODO reference, docstring
+@doc raw"""
+    autoreduce(G::Oscar.IdealGens)
+
+Replaces every element of G by the normal form with respect to the remaining elements of G and the current monomial ordering.
+"""
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 

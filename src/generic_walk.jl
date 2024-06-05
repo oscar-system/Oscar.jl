@@ -189,7 +189,6 @@ end
 
 Returns true if $Mv < Mw$ lexicographically, false otherwise.
 """
-# matrix_lexicographic_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem}) = all(i -> dot(M[i, :], v) < dot(M[i, :], w), 1:size(M,1))
 function matrix_lexicographic_less_than(M::ZZMatrix, v::Vector{ZZRingElem}, w::Vector{ZZRingElem})
     i = 1
     while dot(M[i, :], v) == dot(M[i, :], w) && i != number_of_rows(M) 
