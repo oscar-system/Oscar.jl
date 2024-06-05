@@ -95,7 +95,7 @@ can be fetched as `parent(chi)`.
 
 ```@docs
 GAPGroupCharacterTable
-character_table(G::Union{GAPGroup, GrpAbFinGen}, p::T = 0) where T <: IntegerUnion
+character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
 character_table(id::String, p::Int = 0)
 character_table(series::Symbol, parameter::Union{Int, Vector{Int}})
 Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
@@ -109,6 +109,7 @@ all_character_table_names
 
 ```@docs
 character_field
+conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
 indicator
@@ -140,16 +141,38 @@ orders_centralizers
 orders_class_representatives
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
+regular_character(tbl::GAPGroupCharacterTable)
+linear_characters(tbl::GAPGroupCharacterTable)
+```
+
+The following properties of a group can be read off from its
+character table.
+Therefore it is supported to call these functions with a character table.
+
+```@docs
+is_abelian(tbl::GAPGroupCharacterTable)
+is_almost_simple(tbl::GAPGroupCharacterTable)
+is_cyclic(tbl::GAPGroupCharacterTable)
+is_elementary_abelian(tbl::GAPGroupCharacterTable)
+is_nilpotent(tbl::GAPGroupCharacterTable)
+is_perfect(tbl::GAPGroupCharacterTable)
+is_quasisimple(tbl::GAPGroupCharacterTable)
+is_simple(tbl::GAPGroupCharacterTable)
+is_solvable(tbl::GAPGroupCharacterTable)
+is_sporadic_simple(tbl::GAPGroupCharacterTable)
+is_supersolvable(tbl::GAPGroupCharacterTable)
 ```
 
 ## Construct group characters from groups
 
 ```@docs
+linear_characters(G::GAPGroup)
 natural_character(G::PermGroup)
-natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{nf_elem}})
+natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
 natural_character(rho::GAPGroupHomomorphism)
 trivial_character(G::GAPGroup)
+regular_character(G::GAPGroup)
 ```
 
 ## Operations for group characters

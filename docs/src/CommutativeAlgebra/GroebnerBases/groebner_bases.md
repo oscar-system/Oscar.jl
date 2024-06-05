@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Gröbner/Standard Bases Over Fields
+# [Gröbner/Standard Bases Over Fields](@id gb_fields)
 
 We fix our notation in the context of standard (Gröbner) bases and present relevant OSCAR functions.
 
@@ -53,6 +53,10 @@ The *leading monomial* $\text{LM}_>(f)$, the *leading exponent* $\text{LE}_>(f)$
     positive weights. Then the corresponding `wdegrevlex` ordering is used. Given a free $R$-module $F$, the
     `default_ordering` is `default_ordering(R)*lex(gens(F))`.
 
+```@docs
+default_ordering(::MPolyRing)
+```
+
 Here are some illustrating OSCAR examples:
 
 ##### Examples
@@ -77,7 +81,12 @@ julia> default_ordering(S)
 wdegrevlex([x, y, z], [1, 2, 3])
 ```
 
-## Monomials, Terms, and More
+Expert users may temporarily choose a different default ordering for a given ring.
+```@docs
+with_ordering
+```
+
+## [Monomials, Terms, and More](@id monomials_terms_more)
 
 Here are examples which indicate how to recover monomials, terms, and
 more from a given polynomial.
@@ -234,7 +243,7 @@ reduce(g::T, F::Vector{T};
 reduce_with_quotients(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
 ```
-      
+
 ```@docs
 reduce_with_quotients_and_unit(g::T, F::Vector{T}; 
     ordering::MonomialOrdering = default_ordering(parent(F[1]))) where T <: MPolyRingElem
@@ -400,7 +409,7 @@ normal_form(g::T, I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(b
 
 ## Syzygies
 
-We refer to the section on modules for more on syzygies.
+We refer to the section on [modules](@ref modules_multivariate) for more on syzygies.
 
 ```@docs
 syzygy_generators(G::Vector{<:MPolyRingElem})

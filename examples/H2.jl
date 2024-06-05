@@ -1,19 +1,11 @@
 module H2_G_QmodZ_mod
 using Oscar
 
-function schur_cover(G::Oscar.GAPGroup)
-  f = GAP.Globals.EpimorphismSchurCover(G.X)
-  k = GAP.Globals.Source(f)
-  S = FPGroup(k)
-  return S, GAPGroupHomomorphism(S, G, f)
-end
-  
-
 #from https://sites.google.com/view/andre-macedo/code?pli=1
 """
 Should compute
     H^2(G, Q/Z)
-for "any" Gap-group G. For abelian (GrpAbFinGen), there is a more
+for "any" Gap-group G. For abelian (FinGenAbGroup), there is a more
 direct implementation in Hecke.
 """
 function H2_G_QmodZ(G::Oscar.GAPGroup)

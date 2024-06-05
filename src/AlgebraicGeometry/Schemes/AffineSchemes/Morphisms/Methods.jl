@@ -1,9 +1,9 @@
 ###########################################################
-# (1) The fibre product of two morphisms of affine schemes
+# (1) The fiber product of two morphisms of affine schemes
 ###########################################################
 
 @doc raw"""
-    fiber_product(f::AbsSpecMor, g::AbsSpecMor)
+    fiber_product(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
 
 For morphisms ``f : X → Z`` and ``g : Y → Z`` return the fiber
 product ``X×Y`` over ``Z`` together with its two canonical projections.
@@ -13,8 +13,8 @@ a commutative square with `f` and `g`, you can use
 `induced_map_to_fiber_product` to  create the resulting map `W → X×Y`.
 """
 function fiber_product(
-    f::AbsSpecMor,
-    g::AbsSpecMor
+    f::AbsAffineSchemeMor,
+    g::AbsAffineSchemeMor
   )
   Y = domain(f)
   X = codomain(f)
@@ -36,7 +36,7 @@ end
 # it is important that the resulting fiber product is a PrincipalOpenSubset of
 # the domain of `g` (or the domain of `f` when it's the other way around), so that
 # the ancestry-tree for patches is preserved.
-function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
+function fiber_product(f::PrincipalOpenEmbedding, g::AbsAffineSchemeMor)
   @assert codomain(f) === codomain(g) "codomains are not the same"
   A = domain(f)
   B = domain(g)
@@ -50,7 +50,7 @@ function fiber_product(f::PrincipalOpenEmbedding, g::AbsSpecMor)
   return result, gg, ff
 end
 
-function fiber_product(f::AbsSpecMor, g::PrincipalOpenEmbedding)
+function fiber_product(f::AbsAffineSchemeMor, g::PrincipalOpenEmbedding)
   result, ff, gg = fiber_product(g, f)
   return result, gg, ff
 end
@@ -74,9 +74,9 @@ end
 
 @doc raw"""
     induced_map_to_fiber_product(
-        a::AbsSpecMor, b::AbsSpecMor,
-        f::AbsSpecMor, g::AbsSpecMor;
-        fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}=fiber_product(f, g)
+        a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
+        f::AbsAffineSchemeMor, g::AbsAffineSchemeMor;
+        fiber_product::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:AbsAffineSchemeMor}=fiber_product(f, g)
       )
 
 In a commutative diagram
@@ -94,9 +94,9 @@ In a commutative diagram
 this computes the canonical map `W -> X x Y`.
 """
 function induced_map_to_fiber_product(
-    a::AbsSpecMor, b::AbsSpecMor,
-    f::AbsSpecMor, g::AbsSpecMor;
-    fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}=fiber_product(f, g),
+    a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
+    f::AbsAffineSchemeMor, g::AbsAffineSchemeMor;
+    fiber_product::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:AbsAffineSchemeMor}=fiber_product(f, g),
     check::Bool=true
   )
   # All checks are done here. The actual computations are carried out
@@ -121,9 +121,9 @@ function induced_map_to_fiber_product(
 end
 
 function _induced_map_to_fiber_product(
-    a::AbsSpecMor, b::AbsSpecMor,
-    f::AbsSpecMor, g::AbsSpecMor;
-    fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:AbsSpecMor}=fiber_product(f, g),
+    a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
+    f::AbsAffineSchemeMor, g::AbsAffineSchemeMor;
+    fiber_product::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:AbsAffineSchemeMor}=fiber_product(f, g),
     check::Bool=true
   )
   # The ambient scheme of XxY is the actual product of X and Y
@@ -146,9 +146,9 @@ end
 # then the construction did not proceed via the `product` of `X` and `Y`.
 # In this case, the induced map must be created differently.
 function _induced_map_to_fiber_product(
-    a::AbsSpecMor, b::AbsSpecMor,
-    f::PrincipalOpenEmbedding, g::AbsSpecMor;
-    fiber_product::Tuple{<:AbsSpec, <:AbsSpecMor, <:PrincipalOpenEmbedding}=fiber_product(f, g),
+    a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
+    f::PrincipalOpenEmbedding, g::AbsAffineSchemeMor;
+    fiber_product::Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:PrincipalOpenEmbedding}=fiber_product(f, g),
     check::Bool=true
   )
   # XxY is a principal open subset of Y.
@@ -160,9 +160,9 @@ function _induced_map_to_fiber_product(
 end
 
 function _induced_map_to_fiber_product(
-    a::AbsSpecMor, b::AbsSpecMor,
-    f::AbsSpecMor, g::PrincipalOpenEmbedding;
-    fiber_product::Tuple{<:AbsSpec, <:PrincipalOpenEmbedding, <:AbsSpecMor}=fiber_product(f, g),
+    a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
+    f::AbsAffineSchemeMor, g::PrincipalOpenEmbedding;
+    fiber_product::Tuple{<:AbsAffineScheme, <:PrincipalOpenEmbedding, <:AbsAffineSchemeMor}=fiber_product(f, g),
     check::Bool=true
   )
   # XxY is a principal open subset of X.
@@ -175,9 +175,9 @@ end
 
 # additional method to remove ambiguity
 function _induced_map_to_fiber_product(
-    a::AbsSpecMor, b::AbsSpecMor,
+    a::AbsAffineSchemeMor, b::AbsAffineSchemeMor,
     f::PrincipalOpenEmbedding, g::PrincipalOpenEmbedding;
-    fiber_product::Tuple{<:AbsSpec, <:PrincipalOpenEmbedding, <:PrincipalOpenEmbedding}=fiber_product(f, g),
+    fiber_product::Tuple{<:AbsAffineScheme, <:PrincipalOpenEmbedding, <:PrincipalOpenEmbedding}=fiber_product(f, g),
     check::Bool=true
   )
   W = domain(a)
@@ -189,42 +189,96 @@ function _induced_map_to_fiber_product(
 end
 
 ### Some helper functions
-function _restrict_domain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
+function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=false)
+  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+
   @check is_subscheme(D, domain(f)) "domain incompatible"
-  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
-function _restrict_domain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
+function _restrict_domain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   D === domain(f) && return f
-  @check is_subscheme(D, domain(f)) "domain incompatible"
-  return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  inc = inclusion_morphism(D, domain(f); check)
+  return compose(inc, f)
 end
 
-function _restrict_codomain(f::AbsSpecMor, D::PrincipalOpenSubset; check::Bool=true)
+function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f)
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=false)
+    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=false)
   end
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
-  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
-function _restrict_codomain(f::AbsSpecMor, D::AbsSpec; check::Bool=true)
+# Some missing constructors
+morphism(A::AbsAffineScheme, B::AbsAffineScheme, coeff_map::Any, img_gens::Vector; check::Bool=true) = morphism(A, B, hom(OO(B), OO(A), coeff_map, img_gens; check); check)
+
+function hom(L::MPolyLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyLocalizedRingHom(L, P, phi; check)
+end
+
+function hom(L::MPolyQuoLocRing, P::NCRing, coeff_map::Any, img_gens::Vector; check::Bool=true)
+  R = base_ring(L)
+  phi = hom(R, P, coeff_map, img_gens; check)
+  return MPolyQuoLocalizedRingHom(L, P, phi; check)
+end
+
+function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
-  @check is_subscheme(domain(f), preimage(f, D))
-  return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f))))), check=check)
+  @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
-function restrict(f::AbsSpecMor, D::AbsSpec, Z::AbsSpec; check::Bool=true)
+@doc raw"""
+    restrict(f::AbsAffineSchemeMor, D::AbsAffineScheme, Z::AbsAffineScheme; check::Bool=true)
+
+This method restricts the domain of the morphism ``f``
+to ``D`` and its codomain to ``Z``.
+
+# Examples
+```jldoctest
+julia> X = affine_space(QQ,3)
+Affine space of dimension 3
+  over rational field
+with coordinates [x1, x2, x3]
+
+julia> R = OO(X)
+Multivariate polynomial ring in 3 variables x1, x2, x3
+  over rational field
+
+julia> (x1,x2,x3) = gens(R)
+3-element Vector{QQMPolyRingElem}:
+ x1
+ x2
+ x3
+
+julia> Y = subscheme(X, x1)
+Spectrum
+  of quotient
+    of multivariate polynomial ring in 3 variables x1, x2, x3
+      over rational field
+    by ideal (x1)
+
+julia> restrict(identity_map(X), Y, Y) == identity_map(Y)
+true
+```
+"""
+function restrict(f::AbsAffineSchemeMor, D::AbsAffineScheme, Z::AbsAffineScheme; check::Bool=true)
   interm = _restrict_domain(f, D; check)
   return _restrict_codomain(interm, Z; check)
 end
 
-function Base.:(==)(f::AbsSpecMor, g::AbsSpecMor)
+function Base.:(==)(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)
   domain(f) === domain(g) || return false
   codomain(f) === codomain(g) || return false
   return pullback(f) == pullback(g)
@@ -235,7 +289,7 @@ end
 ###########################################################
 
 # First the product of the ambient spaces. Documented below.
-function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
+function product(X::AbsAffineScheme{BRT, RT}, Y::AbsAffineScheme{BRT, RT};
     change_var_names_to::Vector{String}=["", ""]
   ) where {BRT, RT<:MPolyRing}
   K = OO(X)
@@ -259,20 +313,20 @@ function product(X::AbsSpec{BRT, RT}, Y::AbsSpec{BRT, RT};
     new_symb = vcat(new_symb, Symbol.([change_var_names_to[2]*"$i" for i in 1:ngens(L)]))
   end
   KL, z = polynomial_ring(k, new_symb)
-  XxY = Spec(KL)
+  XxY = spec(KL)
   pr1 = morphism(XxY, X, gens(KL)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(KL)[m+1:m+n], check=false)
   return XxY, pr1, pr2
 end
 
 @doc raw"""
-    product(X::AbsSpec, Y::AbsSpec)
+    product(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 Return a triple ``(X×Y, p₁, p₂)`` consisting of the product ``X×Y`` over
 the common base ring ``𝕜`` and the two projections ``p₁ : X×Y → X`` and
 ``p₂ : X×Y → Y``.
 """
-function product(X::AbsSpec, Y::AbsSpec;
+function product(X::AbsAffineScheme, Y::AbsAffineScheme;
     change_var_names_to::Vector{String}=["", ""]
   )
   # take the product of the ambient spaces and restrict
@@ -289,7 +343,7 @@ end
 
 
 #=
-function product(X::StdSpec, Y::StdSpec;
+function product(X::StdAffineScheme, Y::StdAffineScheme;
     change_var_names_to::Vector{String}=["", ""]
   )
   K = OO(X)
@@ -321,7 +375,7 @@ function product(X::StdSpec, Y::StdSpec;
   IY = ideal(RS, inc2.(gens(modulus(underlying_quotient(OO(Y))))))
   UX = MPolyPowersOfElement(RS, inc1.(denominators(inverted_set(OO(X)))))
   UY = MPolyPowersOfElement(RS, inc2.(denominators(inverted_set(OO(Y)))))
-  XxY = Spec(RS, IX + IY, UX*UY)
+  XxY = spec(RS, IX + IY, UX*UY)
   pr1 = morphism(XxY, X, gens(RS)[1:m], check=false)
   pr2 = morphism(XxY, Y, gens(RS)[m+1:m+n], check=false)
   return XxY, pr1, pr2
@@ -335,7 +389,7 @@ end
 # (4) Equality
 ########################################
 
-function ==(f::SpecMorType, g::SpecMorType) where {SpecMorType<:AbsSpecMor}
+function ==(f::AffineSchemeMorType, g::AffineSchemeMorType) where {AffineSchemeMorType<:AbsAffineSchemeMor}
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
@@ -351,7 +405,7 @@ end
 
 # Since the morphism is given in terms of pullback on the local coordinates,
 # we need to adapt the printing to have everything aligned.
-function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
+function Base.show(io::IO, ::MIME"text/plain", f::AbsAffineSchemeMor)
   io = pretty(io)
   X = domain(f)
   cX = coordinates(X)
@@ -388,8 +442,8 @@ function Base.show(io::IO, ::MIME"text/plain", f::AbsSpecMor)
   print(io, Dedent())
 end
 
-function Base.show(io::IO, f::AbsSpecMor)
-  if get(io, :supercompact, false)
+function Base.show(io::IO, f::AbsAffineSchemeMor)
+  if is_terse(io)
     print(io, "Affine scheme morphism")
   else
     io = pretty(io)
@@ -403,9 +457,9 @@ end
 ########################################################################
 
 @doc raw"""
-    base_change(phi::Any, f::AbsSpecMor)
-        domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
-        codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+    base_change(phi::Any, f::AbsAffineSchemeMor)
+        domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
+        codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
       )
 
 For a morphism ``f : X → Y`` between two schemes over a `base_ring` ``𝕜``
@@ -421,9 +475,9 @@ and a ring homomorphism ``φ : 𝕜 → 𝕂`` this returns a triple
 The optional arguments `domain_map` and `codomain_map` can be used
 to specify the morphisms `b₁` and `b₂`, respectively.
 """
-function base_change(phi::Any, f::AbsSpecMor;
-    domain_map::AbsSpecMor=base_change(phi, domain(f))[2],
-    codomain_map::AbsSpecMor=base_change(phi, codomain(f))[2]
+function base_change(phi::Any, f::AbsAffineSchemeMor;
+    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
   )
   X = domain(f)
   Y = codomain(f)
@@ -442,20 +496,37 @@ function base_change(phi::Any, f::AbsSpecMor;
   # For the pullback of F no explicit coeff_map is necessary anymore
   # since both rings in domain and codomain have the same (extended/reduced)
   # coefficient ring by now.
-  pbF = hom(RR, SS, img_gens, check=false) # TODO: Set to false after testing
-
-  return domain_map, morphism(XX, YY, pbF, check=false), codomain_map # TODO: Set to false after testing
+  pbF = hom(RR, SS, img_gens, check=false)
+  return domain_map, morphism(XX, YY, pbF, check=false), codomain_map
 end
 
-function _register_birationality!(f::AbsSpecMor,
-    g::AbsSpecMor, ginv::AbsSpecMor)
+function base_change(phi::Any, f::ClosedEmbedding;
+    domain_map::AbsAffineSchemeMor=base_change(phi, domain(f))[2],
+    codomain_map::AbsAffineSchemeMor=base_change(phi, codomain(f))[2]
+  )
+  @assert codomain(codomain_map) === codomain(f)
+  @assert codomain(domain_map) === domain(f)
+  g = underlying_morphism(f)
+  _, bc_g, _ = base_change(phi, g; domain_map, codomain_map)
+  I = image_ideal(f)
+  @assert base_ring(I) === OO(codomain(f))
+  @assert base_ring(I) === OO(codomain(f))
+  #bc_I = ideal(OO(codomain(bc_g)), pullback(codomain_map).(gens(I)))
+  bc_I = pullback(codomain_map)(I)
+  @assert domain(bc_g) === domain(domain_map)
+  @assert codomain(bc_g) === domain(codomain_map)
+  return domain_map, ClosedEmbedding(bc_g, bc_I; check=false), codomain_map
+end
+
+function _register_birationality!(f::AbsAffineSchemeMor,
+    g::AbsAffineSchemeMor, ginv::AbsAffineSchemeMor)
   set_attribute!(g, :inverse, ginv)
   set_attribute!(ginv, :inverse, g)
   return _register_birationality(f, g)
 end
 
-function _register_birationality!(f::AbsSpecMor,
-    g::AbsSpecMor
+function _register_birationality!(f::AbsAffineSchemeMor,
+    g::AbsAffineSchemeMor
   )
   set_attribute!(f, :is_birational, true)
   set_attribute!(f, :iso_on_open_subset, g)

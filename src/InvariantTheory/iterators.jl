@@ -41,7 +41,8 @@ monomials_of_degree
 
 monomials_of_degree(R::MPolyRing, d::Int) = AllMonomials(R, d)
 monomials_of_degree(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials(R, d, vars)
-monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int}) = AllMonomials(R, d, collect(r))
+monomials_of_degree(R::MPolyRing, d::Int, r::UnitRange{Int}) =
+  AllMonomials(R, d, collect(r))
 
 AllMonomials(R::MPolyRing, d::Int) = AllMonomials{typeof(R)}(R, d)
 AllMonomials(R::MPolyRing, d::Int, vars::Vector{Int}) = AllMonomials{typeof(R)}(R, d, vars)
@@ -58,91 +59,44 @@ end
 
 Base.eltype(AM::AllMonomials) = elem_type(AM.R)
 
-# We are basically doing d-multicombinations of n here and those are "the same"
-# as d-combinations of n + d - 1 (according to Knuth).
-Base.length(AM::AllMonomials) = binomial(AM.n_vars + AM.d - 1, AM.d)
+Base.length(AM::AllMonomials) = length(AM.weak_comp_iter)
 
-function _build_monomial(AM::AllMonomials, c::Vector{Int})
+function _build_monomial(AM::AllMonomials, c::WeakComposition{Int})
   if AM.on_all_vars
-    return set_exponent_vector!(one(AM.R), 1, c)
+    return set_exponent_vector!(one(AM.R), 1, data(c))
   end
 
-  for i in 1:AM.n_vars
+  for i in 1:(AM.n_vars)
     AM.tmp[AM.used_vars[i]] = c[i]
   end
   f = set_exponent_vector!(one(AM.R), 1, AM.tmp)
-  for i in 1:AM.n_vars
+  for i in 1:(AM.n_vars)
     AM.tmp[AM.used_vars[i]] = 0
   end
   return f
 end
 
-function Base.iterate(AM::AllMonomials, state::Nothing = nothing)
-  n = AM.n_vars
-  if n == 0
+function Base.iterate(AM::AllMonomials, state::Union{Nothing,Vector{Int}}=nothing)
+  c = iterate(AM.weak_comp_iter, state)
+  if c === nothing
     return nothing
   end
-  if AM.d == 0
-    s = zeros(Int, n)
-    s[n] = AM.d + 1
-    return one(AM.R), s
-  end
-
-  c = zeros(Int, n)
-  c[1] = AM.d
-  s = zeros(Int, n)
-  if isone(n)
-    s[1] = AM.d + 1
-    return (_build_monomial(AM, c), s)
-  end
-
-  s[1] = AM.d - 1
-  s[2] = 1
-  return (_build_monomial(AM, c), s)
-end
-
-function Base.iterate(AM::AllMonomials, s::Vector{Int})
-  n = AM.n_vars
-  d = AM.d
-  if s[n] == d + 1
-    return nothing
-  end
-  c = copy(s)
-  if s[n] == d
-    s[n] += 1
-    return (_build_monomial(AM, c), s)
-  end
-
-  for i = n - 1:-1:1
-    if !iszero(s[i])
-      s[i] -= 1
-      if i + 1 == n
-        s[n] += 1
-      else
-        s[i + 1] = 1
-        if !iszero(s[n])
-          s[i + 1] += s[n]
-          s[n] = 0
-        end
-      end
-      return (_build_monomial(AM, c), s)
-    end
-  end
+  return _build_monomial(AM, c[1]), c[2]
 end
 
 function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
   io = pretty(io)
-  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  println(io, "Iterator over the monomials of degree $(AM.d)")
   print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
 end
 
 function Base.show(io::IO, AM::AllMonomials)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Iterator")
   else
     io = pretty(io)
     print(io, "Iterator over the monomials of degree $(AM.d) of")
-    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+    print(terse(io), Lowercase(), AM.R)
   end
 end
 
@@ -155,20 +109,22 @@ end
 # Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
+function dimension_via_molien_series(
+  ::Type{T}, R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction,Nothing}=nothing
+) where {T<:IntegerUnion}
   if !is_molien_series_implemented(R)
     return -1
   end
 
   Qt, t = power_series_ring(QQ, d + 1, "t")
   F = molien_series(R, chi)
-  k = coeff(numerator(F)(t)*inv(denominator(F)(t)), d)
+  k = coeff(numerator(F)(t) * inv(denominator(F)(t)), d)
   @assert is_integral(k)
   return T(numerator(k))::T
 end
 
 @doc raw"""
-     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
@@ -205,14 +161,14 @@ Matrix group of degree 3
 
 julia> IR = invariant_ring(G)
 Invariant ring
-  of matrix group of degree 3 over cyclotomic field of order 3
+  of matrix group of degree 3 over K
 
 julia> B = iterate_basis(IR, 6)
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -233,7 +189,7 @@ Invariant ring
 
 julia> B = iterate_basis(IR, 2)
 Iterator over a basis of the component of degree 2
-  of invariant ring of matrix group
+  of invariant ring of G
 
 julia> collect(B)
 2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
@@ -241,7 +197,7 @@ julia> collect(B)
  x[3]^2
 ```
 """
-function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
+function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol=:default)
   @assert d >= 0 "Degree must be non-negative"
 
   if algorithm == :default
@@ -261,7 +217,7 @@ function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
       g = order(Int, group(R))
       n = degree(group(R))
       k = binomial(n + d - 1, n - 1)
-      if k > d*g/s
+      if k > d * g / s
         algorithm = :reynolds
       else
         algorithm = :linear_algebra
@@ -279,7 +235,7 @@ function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
 end
 
 @doc raw"""
-    iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
 return an iterator over a basis for the semi-invariants (or relative invariants)
@@ -306,11 +262,11 @@ julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
 Iterator over a basis of the component of degree 6
-  of invariant ring of matrix group
+  of invariant ring of G
 relative to a character
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -323,11 +279,11 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of Sym(2), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3
-  of invariant ring of Sym(2)
+  of invariant ring of S2
 relative to a character
 
 julia> collect(B)
@@ -337,9 +293,12 @@ julia> collect(B)
 
 ```
 """
-iterate_basis(R::InvRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
+iterate_basis(R::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction) =
+  iterate_basis_reynolds(R, d, chi)
 
-function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function iterate_basis_reynolds(
+  R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction,Nothing}=nothing
+)
   @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negative"
   if chi !== nothing
@@ -358,11 +317,15 @@ function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunc
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
 
-  return InvRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
+  return FinGroupInvarRingBasisIterator{
+    typeof(R),typeof(reynolds),typeof(monomials),eltype(monomials),typeof(N)
+  }(
+    R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N
+  )
 end
 
 # Sadly, we can't really do much iteratively here.
-function iterate_basis_linear_algebra(IR::InvRing, d::Int)
+function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   @assert d >= 0 "Degree must be non-negative"
 
   R = polynomial_ring(IR)
@@ -372,7 +335,11 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
+    return FinGroupInvarRingBasisIterator{
+      typeof(IR),Nothing,typeof(dummy_mons),eltype(mons),typeof(N)
+    }(
+      IR, d, k, false, nothing, dummy_mons, mons, N
+    )
   end
 
   mons_iterator = monomials_of_degree(R, d)
@@ -380,10 +347,14 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
+    return FinGroupInvarRingBasisIterator{
+      typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
+    }(
+      IR, d, k, false, nothing, mons_iterator, mons, N
+    )
   end
 
-  mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
+  mons_to_rows = Dict{elem_type(R),Int}(mons .=> 1:length(mons))
 
   K = base_ring(R)
 
@@ -391,15 +362,15 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
 
   M = sparse_matrix(K)
   M.c = length(mons)
-  M.r = length(group_gens)*length(mons)
-  for i = 1:M.r
+  M.r = length(group_gens) * length(mons)
+  for i in 1:(M.r)
     push!(M.rows, sparse_row(K))
   end
 
-  for i = 1:length(group_gens)
-    offset = (i - 1)*length(mons)
+  for i in 1:length(group_gens)
+    offset = (i - 1) * length(mons)
     phi = right_action(R, group_gens[i])
-    for j = 1:length(mons)
+    for j in 1:length(mons)
       f = mons[j]
       g = phi(f) - f
       for (c, m) in zip(AbstractAlgebra.coefficients(g), AbstractAlgebra.monomials(g))
@@ -410,16 +381,20 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       end
     end
   end
-  n, N = right_kernel(M)
+  N = kernel(M; side=:right)
 
-  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, nothing, mons_iterator, mons, N)
+  return FinGroupInvarRingBasisIterator{
+    typeof(IR),Nothing,typeof(mons_iterator),eltype(mons),typeof(N)
+  }(
+    IR, d, ncols(N), false, nothing, mons_iterator, mons, N
+  )
 end
 
-Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
+Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
-Base.length(BI::InvRingBasisIterator) = BI.dim
+Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
+function Base.show(io::IO, ::MIME"text/plain", BI::FinGroupInvarRingBasisIterator)
   io = pretty(io)
   println(io, "Iterator over a basis of the component of degree $(BI.degree)")
   print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
@@ -429,31 +404,31 @@ function Base.show(io::IO, ::MIME"text/plain", BI::InvRingBasisIterator)
   end
 end
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
-  if get(io, :supercompact, false)
+function Base.show(io::IO, BI::FinGroupInvarRingBasisIterator)
+  if is_terse(io)
     print(io, "Iterator")
   else
     io = pretty(io)
     print(io, "Iterator over a graded component of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
+    print(terse(io), Lowercase(), BI.R)
   end
 end
 
-function Base.iterate(BI::InvRingBasisIterator)
+function Base.iterate(BI::FinGroupInvarRingBasisIterator)
   if BI.reynolds
     return iterate_reynolds(BI)
   end
   return iterate_linear_algebra(BI)
 end
 
-function Base.iterate(BI::InvRingBasisIterator, state)
+function Base.iterate(BI::FinGroupInvarRingBasisIterator, state)
   if BI.reynolds
     return iterate_reynolds(BI, state)
   end
   return iterate_linear_algebra(BI, state)
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
   @assert BI.reynolds
   if BI.dim == 0
     return nothing
@@ -478,13 +453,13 @@ function iterate_reynolds(BI::InvRingBasisIterator)
     end
     # Cancelling the leading coefficient is not mathematically necessary and
     # should be done with the ordering that is used for the printing
-    g = inv(AbstractAlgebra.leading_coefficient(g))*g
-    B = BasisOfPolynomials(polynomial_ring(BI.R), [ g ])
+    g = inv(AbstractAlgebra.leading_coefficient(g)) * g
+    B = BasisOfPolynomials(polynomial_ring(BI.R), [g])
     return g, (B, state)
   end
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator, state)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
   @assert BI.reynolds
 
   B = state[1]
@@ -513,12 +488,12 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
     if add_to_basis!(B, g)
       # Cancelling the leading coefficient is not mathematically necessary and
       # should be done with the ordering that is used for the printing
-      return inv(AbstractAlgebra.leading_coefficient(g))*g, (B, monomial_state)
+      return inv(AbstractAlgebra.leading_coefficient(g)) * g, (B, monomial_state)
     end
   end
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
   @assert !BI.reynolds
   if BI.dim == 0
     return nothing
@@ -526,21 +501,21 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
 
   f = polynomial_ring(BI.R)()
   N = BI.kernel
-  for i = 1:nrows(N)
+  for i in 1:nrows(N)
     if iszero(N[i, 1])
       continue
     end
-    f += N[i, 1]*BI.monomials_collected[i]
+    f += N[i, 1] * BI.monomials_collected[i]
   end
   # Have to (should...) divide by the leading coefficient again:
   # The matrix was in echelon form, but the columns were not necessarily sorted
   # w.r.t. the monomial ordering.
   # Cancelling the leading coefficient is not mathematically necessary and
   # should be done with the ordering that is used for the printing
-  return inv(AbstractAlgebra.leading_coefficient(f))*f, 2
+  return inv(AbstractAlgebra.leading_coefficient(f)) * f, 2
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
   @assert !BI.reynolds
   if state > BI.dim
     return nothing
@@ -548,15 +523,15 @@ function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
 
   f = polynomial_ring(BI.R)()
   N = BI.kernel
-  for i = 1:nrows(N)
+  for i in 1:nrows(N)
     if iszero(N[i, state])
       continue
     end
-    f += N[i, state]*BI.monomials_collected[i]
+    f += N[i, state] * BI.monomials_collected[i]
   end
   # Cancelling the leading coefficient is not mathematically necessary and
   # should be done with the ordering that is used for the printing
-  return inv(AbstractAlgebra.leading_coefficient(f))*f, state + 1
+  return inv(AbstractAlgebra.leading_coefficient(f)) * f, state + 1
 end
 
 ################################################################################
@@ -565,15 +540,24 @@ end
 #
 ################################################################################
 
-function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField, FqField}, IteratorT}
+function vector_space_iterator(
+  K::FieldT, basis_iterator::IteratorT
+) where {
+  FieldT<:Union{Nemo.fpField,Nemo.FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
+}
   return VectorSpaceIteratorFiniteField(K, basis_iterator)
 end
 
-vector_space_iterator(K::FieldT, basis_iterator::IteratorT, bound::Int = 10^5) where {FieldT, IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
+vector_space_iterator(
+  K::FieldT, basis_iterator::IteratorT, bound::Int=10^5
+) where {FieldT,IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
 
-Base.eltype(VSI::VectorSpaceIterator{FieldT, IteratorT, ElemT}) where {FieldT, IteratorT, ElemT} = ElemT
+Base.eltype(
+  VSI::VectorSpaceIterator{FieldT,IteratorT,ElemT}
+) where {FieldT,IteratorT,ElemT} = ElemT
 
-Base.length(VSI::VectorSpaceIteratorFiniteField) = BigInt(order(VSI.field))^length(VSI.basis_iterator) - 1
+Base.length(VSI::VectorSpaceIteratorFiniteField) =
+  BigInt(order(VSI.field))^length(VSI.basis_iterator) - 1
 
 # The "generic" iterate for all subtypes of VectorSpaceIterator
 function _iterate(VSI::VectorSpaceIterator)
@@ -585,11 +569,11 @@ function _iterate(VSI::VectorSpaceIterator)
     b = VSI.basis_collected[1]
   else
     b, s = iterate(VSI.basis_iterator)
-    VSI.basis_collected = [ b ]
+    VSI.basis_collected = [b]
     VSI.basis_iterator_state = s
   end
   phase = length(VSI.basis_iterator) != 1 ? 1 : 3
-  return b, (2, Int[ 1, 2 ], phase)
+  return b, (2, Int[1, 2], phase)
 end
 
 Base.iterate(VSI::VectorSpaceIteratorRand) = _iterate(VSI)
@@ -602,7 +586,7 @@ function Base.iterate(VSI::VectorSpaceIteratorFiniteField)
   b, state = _iterate(VSI)
   e, s = iterate(VSI.field)
   elts = fill(e, length(VSI.basis_iterator))
-  states = [ deepcopy(s) for i = 1:length(VSI.basis_iterator) ]
+  states = [deepcopy(s) for i in 1:length(VSI.basis_iterator)]
 
   return b, (state..., elts, states)
 end
@@ -631,17 +615,17 @@ function _iterate(VSI::VectorSpaceIterator, state)
   # Iterate all possible sums of basis elements
   @assert length(VSI.basis_iterator) > 1
   s = state[2]
-  b = sum([ VSI.basis_collected[i] for i in s ])
+  b = sum([VSI.basis_collected[i] for i in s])
 
   expand = true
   if s[end] < length(VSI.basis_collected)
     s[end] += 1
     expand = false
   else
-    for i = length(s) - 1:-1:1
+    for i in (length(s) - 1):-1:1
       if s[i] + 1 < s[i + 1]
         s[i] += 1
-        for j = i + 1:length(s)
+        for j in (i + 1):length(s)
           s[j] = s[j - 1] + 1
         end
         expand = false
@@ -652,7 +636,7 @@ function _iterate(VSI::VectorSpaceIterator, state)
 
   if expand
     if length(s) < length(VSI.basis_collected)
-      s = collect(1:length(s) + 1)
+      s = collect(1:(length(s) + 1))
     else
       phase = 3
     end
@@ -666,8 +650,9 @@ function Base.iterate(VSI::VectorSpaceIteratorRand, state)
   end
 
   # Phase 3: Random linear combinations
-  coeffs = rand(-VSI.rand_bound:VSI.rand_bound, length(VSI.basis_collected))
-  return sum([ coeffs[i]*VSI.basis_collected[i] for i = 1:length(VSI.basis_collected) ]), (state[1], state[2], 3)
+  coeffs = rand((-VSI.rand_bound):(VSI.rand_bound), length(VSI.basis_collected))
+  return sum([coeffs[i] * VSI.basis_collected[i] for i in 1:length(VSI.basis_collected)]),
+  (state[1], state[2], 3)
 end
 
 function Base.iterate(VSI::VectorSpaceIteratorFiniteField, state)
@@ -694,7 +679,7 @@ function Base.iterate(VSI::VectorSpaceIteratorFiniteField, state)
   end
   a[j], b[j] = ab[1], ab[2]
 
-  if all( x -> iszero(x) || isone(x), a)
+  if all(x -> iszero(x) || isone(x), a)
     # We already visited this element in phase 2
     return iterate(VSI, (state[1:3]..., a, b))
   end
@@ -723,19 +708,19 @@ end
 
 iterate_partitions(M::MSet) = MSetPartitions(M)
 
-Base.eltype(MSP::MSetPartitions{T}) where T = Vector{MSet{T}}
+Base.eltype(MSP::MSetPartitions{T}) where {T} = Vector{MSet{T}}
 
 function Base.iterate(MSP::MSetPartitions)
   if isempty(MSP.M)
     return nothing
   end
 
-  return [ MSP.M ], MSetPartitionsState(MSP)
+  return [MSP.M], MSetPartitionsState(MSP)
 end
 
 # This is basically Knu11, p. 429, Algorithm 7.2.1.5M
 # M2 - 6 in the  comments correspond to the steps in the pseudocode
-function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where T
+function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where {T}
   c = state.c
   u = state.u
   v = state.v
@@ -767,7 +752,7 @@ function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where 
     end
   end
   v[j] = v[j] - 1
-  for k = j + 1:b - 1
+  for k in (j + 1):(b - 1)
     v[k] = u[k]
   end
 
@@ -777,7 +762,7 @@ function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where 
     k = b
     range_increased = false
     v_changed = false
-    for j = a:b - 1
+    for j in a:(b - 1)
       u[k] = u[j] - v[j]
       if iszero(u[k])
         v_changed = true
@@ -805,9 +790,9 @@ function Base.iterate(MSP::MSetPartitions{T}, state::MSetPartitionsState) where 
 
   # M4
   part = Vector{typeof(MSP.M)}()
-  for j = 1:l
+  for j in 1:l
     N = MSet{T}()
-    for k = f[j]:f[j + 1] - 1
+    for k in f[j]:(f[j + 1] - 1)
       if iszero(v[k])
         continue
       end

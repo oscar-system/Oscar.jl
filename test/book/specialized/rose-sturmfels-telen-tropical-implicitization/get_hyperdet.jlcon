@@ -1,0 +1,8 @@
+julia> Oscar.randseed!(43);
+
+julia> Delta = get_polytope_from_cycle(cone_list, weight_list);
+
+julia> f_vec, lattice_pts = f_vector(Delta), lattice_points(Delta);
+
+julia> print(f_vec);
+ZZRingElem[6, 14, 16, 8]

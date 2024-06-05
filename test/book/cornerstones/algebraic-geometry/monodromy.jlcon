@@ -1,0 +1,56 @@
+julia> P2, (x, y, z) = polynomial_ring(QQ,["x","y","z"]);
+
+julia> f1 = 8*x^4+20*x^2*y^2+8*y^4-48*x^2*z^2-48*y^2*z^2+65*z^4+x*y^3;
+
+julia> f2 = x^3*y+y^3*z+z^3*x+x^4;
+
+julia> g1 = 1771*f1 - 1317*f2;
+
+julia> hess1 = hessian(g1);
+
+julia> I1 = ideal([hess1,g1]);
+
+julia> g1yz = eliminate(I1,[x]);
+
+julia> Q, t = polynomial_ring(QQ,"y");
+
+julia> phi = hom(P2, Q, [0,t,1]);
+
+julia> g1t = phi(g1yz[1]);
+
+julia> G1,_ = galois_group(g1t);
+
+julia> G1
+Sym(24)
+
+julia> g2 = 7713*f1 - 1313*f2;
+
+julia> g2t = phi(eliminate(ideal([hessian(g2),g2]),[x])[1]);
+
+julia> G2,_ = galois_group(g2t);
+
+julia> G2==G1
+true
+
+julia> dg1 = discriminant(g1t);
+
+julia> dg2 = discriminant(g2t);
+
+julia> ggT = gcd(dg1,dg2);
+
+julia> factor(ZZ(ggT))
+1 * 2^4
+
+julia> KK, _ = number_field(g2t);
+
+julia> degree(KK)
+24
+
+julia> O = any_order(KK);
+
+julia> OO = pmaximal_overorder(O, 2);
+
+julia> d = discriminant(OO);
+
+julia> gcd(d,2)
+1

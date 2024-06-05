@@ -87,7 +87,7 @@ function basis(S::LieSubalgebra, i::Int)
 end
 
 @doc raw"""
-  dim(S::LieSubalgebra) -> Int
+    dim(S::LieSubalgebra) -> Int
 
 Return the dimension of the Lie subalgebra `S`.
 """
@@ -99,7 +99,9 @@ dim(S::LieSubalgebra) = length(basis(S))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
+function Base.show(io::IO, mime::MIME"text/plain", S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, mime, S)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie subalgebra")
   println(io, Indent(), "of dimension $(dim(S))", Dedent())
@@ -111,12 +113,14 @@ function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
 end
 
 function Base.show(io::IO, S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, S)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(S))
+    print(terse(io), base_lie_algebra(S))
   end
 end
 
@@ -213,7 +217,8 @@ function normalizer(L::LieAlgebra, S::LieSubalgebra)
       S
     )
   end
-  sol_dim, sol = left_kernel(mat)
+  sol = kernel(mat; side=:left)
+  sol_dim = nrows(sol)
   sol = sol[:, 1:dim(L)]
   c_dim, c_basis = rref(sol)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)

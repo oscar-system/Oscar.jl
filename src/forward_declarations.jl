@@ -10,12 +10,12 @@ A scheme over a ring ``𝕜`` of type `BaseRingType`.
 abstract type Scheme{BaseRingType} end
 
 @doc raw"""
-    AbsSpec{BaseRingType, RingType<:Ring}
+    AbsAffineScheme{BaseRingType, RingType<:Ring}
 
 An affine scheme ``X = Spec(R)`` with ``R`` of type `RingType` over
 a ring ``𝕜`` of type `BaseRingType`.
 """
-abstract type AbsSpec{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
+abstract type AbsAffineScheme{BaseRingType, RingType<:Ring} <: Scheme{BaseRingType} end
 
 @doc raw"""
     AbsCoveredScheme{BaseRingType}
@@ -46,7 +46,7 @@ abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgeb
            NormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end
 
-@attributes mutable struct AffineNormalToricVariety <: AbsSpec{QQField, MPolyQuoRing}
+@attributes mutable struct AffineNormalToricVariety <: AbsAffineScheme{QQField, MPolyQuoRing}
            polymakeNTV::Polymake.BigObject
            AffineNormalToricVariety(polymakeNTV::Polymake.BigObject) = new(polymakeNTV)
 end

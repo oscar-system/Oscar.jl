@@ -1,0 +1,4 @@
+julia> A = [1 1 1 1 1 1 1 1; 0 0 0 0 1 1 1 1; 
+            0 0 1 1 0 0 1 1; 0 1 0 1 0 1 0 1];
+
+julia> cone_list, weight_list = get_trop_A_disc(A);

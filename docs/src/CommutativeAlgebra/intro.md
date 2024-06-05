@@ -2,7 +2,7 @@
 CurrentModule = Oscar
 ```
 
-# Introduction
+# [Introduction](@id commutative_algebra)
 
 The commutative algebra part of OSCAR provides functionality for dealing with
 
@@ -15,7 +15,7 @@ We use *affine algebra* as a synonym for *quotient of a multivariate polynomial 
 
 Fundamental to computational commutative algebra is the concept of *standard bases*. Each such basis
 is defined relative to a *monomial ordering*. If this ordering is a well-ordering, a standard basis is also called
-a *Gröbner basis*. We refer to the corresponding section in this chapter for details.
+a *Gröbner basis*. We refer to the corresponding [section](@ref gb_fields) in this chapter for details.
 
 !!! note
     Each multivariate polynomial ring in OSCAR comes equipped with a monomial ordering according to which the
@@ -44,7 +44,7 @@ General textbooks offering details on theory and algorithms include:
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Wolfram Decker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-wolfram-decker).
+* [Wolfram Decker](https://math.rptu.de/en/wgs/agag/people/head/decker).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

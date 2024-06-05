@@ -55,6 +55,7 @@ include(
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
+    ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
     (
       "complicated case 1",
@@ -88,6 +89,58 @@ include(
     # TODO: @felix-roehrich make this work
     # test_Group_interface(G)
     # test_GroupElem_interface(rand(G, 2)...)
+  end
+
+  @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
+    # for rank 2 v < w iff l(v) < l(w), since W is a dihedral group
+    for fam in [:A, :B, :C, :G]
+      W = weyl_group(fam, 2)
+      for v in W
+        v2 = deepcopy(v)
+        for w in W
+          w2 = deepcopy(w)
+          @test (v < w) == (length(v) < length(w))
+          @test v == v2 && w == w2
+        end
+      end
+    end
+
+    # test case where normal form of the lhs is not in the rhs
+    W = weyl_group(:A, 3)
+    s = gens(W)
+    @test s[1] * s[2] * s[1] < s[2] * s[3] * s[1] * s[2]
+
+    # different implementation for Bruhat order
+    # was not as performant in benchmarks
+    function bruhat_less(x::WeylGroupElem, y::WeylGroupElem)
+      if length(x) >= length(y)
+        return false
+      elseif isone(x)
+        return true
+      end
+
+      wt = x * weyl_vector(root_system(parent(x)))
+      j = length(x)
+      for i in 1:length(y)
+        if wt[Int(y[i])] < 0
+          reflect!(wt, Int(y[i]))
+
+          j -= 1
+          if j == 0
+            return true
+          end
+        end
+      end
+
+      return false
+    end
+
+    for (fam, rk) in [(:A, 3), (:B, 3), (:D, 4)]
+      W = weyl_group(fam, rk)
+      for v in W, w in W
+        @test (v < w) == bruhat_less(v, w)
+      end
+    end
   end
 
   @testset "inv(x::WeylGroupElem)" begin
@@ -187,7 +240,7 @@ include(
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
     @test word(s[3] * s[2] * s[3]) == UInt8[2, 3, 2]
 
-    # test general multiplication behaviour
+    # test general multiplication behavior
     W = weyl_group(:B, 4)
     @test W(b4_w0) == W(b4_w0; normalize=false)
 

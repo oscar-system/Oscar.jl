@@ -29,8 +29,7 @@ ERROR: ArgumentError: the group atlas does not provide a representation for M
 function atlas_group(name::String)
   G = GAP.Globals.AtlasGroup(GapObj(name))
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
@@ -40,8 +39,7 @@ function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, Matrix
     G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
-  TT = _get_type(G)
-  return TT(G)
+  return _oscar_group(G)
 end
 
 
@@ -56,7 +54,7 @@ Typically, `info` is obtained from [`all_atlas_group_infos`](@ref).
 ```jldoctest
 julia> info = all_atlas_group_infos("A5", degree => 5)
 1-element Vector{Dict{Symbol, Any}}:
- Dict(:repname => "A5G1-p5B0", :degree => 5, :name => "A5")
+ Dict(:constituents => [1, 4], :repname => "A5G1-p5B0", :degree => 5, :name => "A5")
 
 julia> atlas_group(info[1])
 Permutation group of degree 5 and order 60
@@ -66,7 +64,7 @@ Permutation group of degree 5 and order 60
 function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
-  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GAP.GapObj}(l))
+  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GapObj}(l))
   @req (pos !== nothing) "no Atlas group for $info"
   G = GAP.Globals.AtlasGroup(l[pos])
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"
@@ -81,8 +79,7 @@ function atlas_group(info::Dict)
     matgrp.X = G
     return matgrp
   else
-    TT = _get_type(G)
-    return TT(G)
+    return _oscar_group(G)
   end
 end
 
@@ -130,10 +127,10 @@ Permutation group of degree 11 and order 720
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  @req GAP.Globals.HasAtlasRepInfoRecord(G.X) "$G was not constructed with atlas_group"
-  info = GAP.Globals.AtlasRepInfoRecord(G.X)
+  @req GAP.Globals.HasAtlasRepInfoRecord(GapObj(G)) "$G was not constructed with atlas_group"
+  info = GAP.Globals.AtlasRepInfoRecord(GapObj(G))
   @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
-  H = GAP.Globals.AtlasSubgroup(G.X, nr)
+  H = GAP.Globals.AtlasSubgroup(GapObj(G), nr)
   if H === GAP.Globals.fail
     name = string(info.groupname)
     error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")
@@ -184,15 +181,15 @@ and for matrix groups
 ```jldoctest
 julia> info = all_atlas_group_infos("A5", degree => [5, 6])
 2-element Vector{Dict{Symbol, Any}}:
- Dict(:repname => "A5G1-p5B0", :degree => 5, :name => "A5")
- Dict(:repname => "A5G1-p6B0", :degree => 6, :name => "A5")
+ Dict(:constituents => [1, 4], :repname => "A5G1-p5B0", :degree => 5, :name => "A5")
+ Dict(:constituents => [1, 5], :repname => "A5G1-p6B0", :degree => 6, :name => "A5")
 
 julia> atlas_group(info[1])
 Permutation group of degree 5 and order 60
 
 julia> info = all_atlas_group_infos("A5", dim => 4, characteristic => 3)
 1-element Vector{Dict{Symbol, Any}}:
- Dict(:dim => 4, :repname => "A5G1-f3r4B0", :name => "A5")
+ Dict(:dim => 4, :constituents => [4], :repname => "A5G1-f3r4B0", :name => "A5")
 
 julia> atlas_group(info[1])
 Matrix group of degree 4
@@ -218,7 +215,7 @@ function all_atlas_group_infos(name::String, L...)
         iso = iso_oscar_gap(data)
         push!(gapargs, gapfunc, codomain(iso))
       elseif func === character
-        push!(gapargs, gapfunc, data.values)
+        push!(gapargs, gapfunc, GapObj(data))
       else
         # we can translate `data` to GAP
         push!(gapargs, gapfunc, GAP.Obj(data))
@@ -243,6 +240,11 @@ function all_atlas_group_infos(name::String, L...)
   for r in res_GAP
     # groupname and repname are always present
     d = Dict{Symbol, Any}(:name => string(r.groupname), :repname => string(r.repname))
+
+    # the character may be stored
+    if hasproperty(r, :constituents)
+      d[:constituents] = Vector{Int}(r.constituents)
+    end
 
     # permutation groups have a degree
     if hasproperty(r, :p)

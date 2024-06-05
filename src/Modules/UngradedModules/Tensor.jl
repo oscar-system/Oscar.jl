@@ -29,13 +29,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   function pure(g::FreeModElem...)
     @assert length(g) == length(G)
     @assert all(i -> parent(g[i]) === G[i], 1:length(G))
-    z = [[x] for x = g[1].coords.pos]
-    zz = g[1].coords.values
+    z = [[x] for x = coordinates(g[1]).pos]
+    zz = coordinates(g[1]).values
     for h = g[2:end]
       zzz = Vector{Int}[]
       zzzz = elem_type(F.R)[]
       for i = 1:length(z)
-        for (p, v) = h.coords
+        for (p, v) in coordinates(h)
           push!(zzz, push!(deepcopy(z[i]), p))
           push!(zzzz, zz[i]*v)
         end
@@ -50,12 +50,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return pure(T...)
   end
   function inv_pure(e::FreeModElem)
-    if length(e.coords.pos) == 0
+    c = coordinates(e)
+    if length(c.pos) == 0
       return Tuple(zero(g) for g = G)
     end
-    @assert length(e.coords.pos) == 1
-    @assert isone(e.coords.values[1])
-    return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
+    @assert length(c.pos) == 1
+    @assert isone(c.values[1])
+    return Tuple(gen(G[i], t[c.pos[1]][i]) for i = 1:length(G))
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
@@ -126,12 +127,12 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
 
   generating_tensors::Vector{elem_type(F)} = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : repres(x), tuple), corresponding_tuples))
-  s, emb = sub(F, generating_tensors, :with_morphism)
+  s, emb = sub(F, generating_tensors)
   #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
   q::Vector{elem_type(F)} = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
-    s, projection_map = quo(s, q, :with_morphism)
+    s, projection_map = quo(s, q)
   end
 
   tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
@@ -163,7 +164,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   end
 
-  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure)
+  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure, decompose_generator)
 end
 
 

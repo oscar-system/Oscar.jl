@@ -5,7 +5,7 @@ DocTestSetup = quote
 end
 ```
 
-# Free Modules
+# [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
 over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
@@ -22,7 +22,7 @@ and homomorphisms between free modules by matrices.
 All OSCAR types for the modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
+they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -42,7 +42,7 @@ by assigning a grading to a free module already constructed, the `graded_free_mo
 meant to create a graded free module all at once.
 
 ```@docs
-grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+grade(F::FreeMod, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -50,7 +50,7 @@ grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 ```
 
 ```@docs
-graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 ```
 
 ```@docs
@@ -98,7 +98,7 @@ degrees_of_generators(F::FreeMod)
 All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
 The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
-They are modelled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
+They are modeled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
 which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
 type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
 unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
@@ -174,7 +174,7 @@ is_homogeneous(f::FreeModElem)
 ```
 
 ```@docs
-degree(f::FreeModElem)
+degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
 ```
 
 

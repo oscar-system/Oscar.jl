@@ -33,6 +33,13 @@ include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conform
       @test ngens(G) isa Int
       @test gens(G) isa Vector{typeof(g)}
 
+      @test G[0] == one(G)
+      l = ngens(G)
+      @test G[l] == gen(G, l)
+      @test G[-l] == inv(gen(G, l))
+      @test_throws ArgumentError G[l+1]
+      @test_throws ArgumentError G[-l-1]
+
       if is_finite(G)
          @test order(G) isa ZZRingElem
          @test order(G) > 0

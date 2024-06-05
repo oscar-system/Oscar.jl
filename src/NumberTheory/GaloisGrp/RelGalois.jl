@@ -1,4 +1,4 @@
-function galois_group(mkK::Map{AnticNumberField, AnticNumberField})
+function galois_group(mkK::Map{AbsSimpleNumField, AbsSimpleNumField})
   k = domain(mkK)
   K = codomain(mkK)
   
@@ -14,9 +14,9 @@ function galois_group(mkK::Map{AnticNumberField, AnticNumberField})
   return image(h)[1]
 end
 
-function GaloisCtx(f::PolyRingElem{nf_elem}, P::NfOrdIdl)
+function GaloisCtx(f::PolyRingElem{AbsSimpleNumFieldElem}, P::AbsSimpleNumFieldOrderIdeal)
   k = base_ring(f)
-  @assert k == nf(order(P))
+  @assert k == Hecke.nf(order(P))
   zk = order(P)
   C, mC = Hecke.completion_easy(k, P)
   setprecision!(C, 10)
@@ -52,9 +52,9 @@ function GaloisCtx(f::PolyRingElem{nf_elem}, P::NfOrdIdl)
   return C
 end
 
-function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degree(f)+1, prime::Any = 0)
+function find_prime(f::PolyRingElem{AbsSimpleNumFieldElem}, extra::Int = 5; pStart::Int = degree(f)+1, prime::Any = 0)
   if prime !== 0
-    @assert isa(prime, NfOrdIdl)
+    @assert isa(prime, AbsSimpleNumFieldOrderIdeal)
     return prime, Set{CycleType}()
   end
   @assert degree(f) >= 2
@@ -62,12 +62,12 @@ function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degr
   bp = (1,1)
   ct = Set{CycleType}()
 
-  local zk::NfOrd
-  local den::nf_elem
+  local zk::AbsSimpleNumFieldOrder
+  local den::AbsSimpleNumFieldElem
   if Hecke.is_maximal_order_known(k)
     zk = maximal_order(k)
     if isdefined(zk, :lllO)
-      zk = zk.lllO::NfOrd
+      zk = zk.lllO::AbsSimpleNumFieldOrder
     end
     den = k(1)
   else
@@ -90,7 +90,7 @@ function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degr
     if length(P) == 0
       continue
     end
-    F, mF1 = Hecke.ResidueFieldSmallDegree1(zk::NfOrd, P[1][1])
+    F, mF1 = Hecke.ResidueFieldSmallDegree1(zk::AbsSimpleNumFieldOrder, P[1][1])
     mF = extend(mF1, k)
     fp = map_coefficients(mF, f, cached = false)
     if degree(fp) < degree(f) || iszero(constant_coefficient(fp)) 
@@ -123,7 +123,7 @@ function find_prime(f::PolyRingElem{nf_elem}, extra::Int = 5; pStart::Int = degr
   return P, ct
 end
 
-function galois_group(K::Hecke.SimpleNumField{nf_elem}; prime::Any = 0, pStart::Int = degree(K)+1)
+function galois_group(K::Hecke.SimpleNumField{AbsSimpleNumFieldElem}; prime::Any = 0, pStart::Int = degree(K)+1)
   f = defining_polynomial(K)
 
   P, ct = find_prime(f, prime = prime, pStart = pStart)
@@ -174,7 +174,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   P = C.C.P
   zk = order(P)
   if any(i->!iszero(coeff(x, i)), 1:length(x)-1)
-    return false, zero(nf(zk))
+    return false, zero(Hecke.nf(zk))
   end
   mkc = C.data[1]
   c = codomain(mkc)
@@ -183,7 +183,7 @@ function isinteger(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZRingElem}
   P = C.C.P
   zk = order(P)
   x *= map_coeff(C, C.data[5]) #the den
-  a = nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
+  a = Hecke.nf(zk)(Hecke.reco(zk(preimage(mkc, c(coeff(x, 0)))), C.C.Ml, C.C.pMr))
   a = a*inv(C.data[5])
   if ceil(ZZRingElem, length(a)) <= value(y)^2
     return true, a
@@ -210,12 +210,12 @@ function bound_to_precision(C::GaloisCtx{Hecke.vanHoeijCtx}, y::BoundRingElem{ZZ
   #step 2: copy the precision estimate from NumField/NfAbs/PolyFactor.jl
   P = C.C.P
   zk = order(P)
-  k = nf(zk)
+  k = Hecke.nf(zk)
   N = ceil(Int, degree(k)/2/log(norm(P))*(log(c1*c2) + 2*log(v)))
   return N
 end
 
-function galois_group(f::PolyRingElem{nf_elem}, ::QQField)
+function galois_group(f::PolyRingElem{AbsSimpleNumFieldElem}, ::QQField)
   @assert is_irreducible(f)
 
   g = f

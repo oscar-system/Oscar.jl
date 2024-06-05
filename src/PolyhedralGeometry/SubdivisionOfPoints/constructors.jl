@@ -5,25 +5,25 @@
 ###############################################################################
 
 struct SubdivisionOfPoints{T} <: PolyhedralObject{T}
-    pm_subdivision::Polymake.BigObject
-    parent_field::Field
+  pm_subdivision::Polymake.BigObject
+  parent_field::Field
 
-    SubdivisionOfPoints{T}(pm::Polymake.BigObject, p::Field) where T<:scalar_types = new{T}(pm, p)
-    SubdivisionOfPoints{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
+  SubdivisionOfPoints{T}(pm::Polymake.BigObject, p::Field) where {T<:scalar_types} =
+    new{T}(pm, p)
+  SubdivisionOfPoints{QQFieldElem}(pm::Polymake.BigObject) = new{QQFieldElem}(pm, QQ)
 end
 
-
-# default scalar type: `QQFieldElem`
+# default scalar type: guess from input, fallback to QQ
 subdivision_of_points(points::AbstractCollection[PointVector], cells) =
-  subdivision_of_points(QQFieldElem, points, cells)
+  subdivision_of_points(_guess_fieldelem_type(points), points, cells)
 subdivision_of_points(points::AbstractCollection[PointVector], weights::AbstractVector) =
-  subdivision_of_points(QQFieldElem, points, weights)
+  subdivision_of_points(_guess_fieldelem_type(points), points, weights)
 
 # Automatic detection of corresponding OSCAR scalar type;
 # Avoid, if possible, to increase type stability
 function subdivision_of_points(p::Polymake.BigObject)
-    T, f = _detect_scalar_and_field(SubdivisionOfPoints, p)
-    return SubdivisionOfPoints{T}(p, f)
+  T, f = _detect_scalar_and_field(SubdivisionOfPoints, p)
+  return SubdivisionOfPoints{T}(p, f)
 end
 
 @doc raw"""
@@ -53,16 +53,19 @@ julia> MOAE = subdivision_of_points(moaepts, moaeimnonreg0)
 Subdivision of points in ambient dimension 3
 ```
 """
-function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::IncidenceMatrix)
+function subdivision_of_points(
+  f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::IncidenceMatrix
+)
   @req size(points)[1] == ncols(cells) "Number of points must be the same as columns of IncidenceMatrix"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points)
-  arr = @Polymake.convert_to Array{Set{Int}} Polymake.common.rows(cells)
-  SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
-    MAXIMAL_CELLS = arr,
-  ), parent_field)
+  arr = Polymake.@convert_to Array{Set{Int}} Polymake.common.rows(cells)
+  SubdivisionOfPoints{scalar_type}(
+    Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(;
+      POINTS=homogenized_matrix(points, 1), MAXIMAL_CELLS=arr
+    ),
+    parent_field,
+  )
 end
-
 
 @doc raw"""
     subdivision_of_points([f = QQFieldElem,] points, weights)
@@ -87,17 +90,21 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1])
 Subdivision of points in ambient dimension 3
 
-julia> number_of_maximal_cells(SOP)
+julia> n_maximal_cells(SOP)
 1
 ```
 """
-function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], weights::AbstractVector)
+function subdivision_of_points(
+  f::scalar_type_or_field, points::AbstractCollection[PointVector], weights::AbstractVector
+)
   @req size(points)[1] == length(weights) "Number of points must equal number of weights"
   parent_field, scalar_type = _determine_parent_and_scalar(f, points, weights)
-  SubdivisionOfPoints{scalar_type}(Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(
-    POINTS = homogenize(points,1),
-    WEIGHTS = weights,
-  ), parent_field)
+  SubdivisionOfPoints{scalar_type}(
+    Polymake.fan.SubdivisionOfPoints{_scalar_type_to_polymake(scalar_type)}(;
+      POINTS=homogenized_matrix(points, 1), WEIGHTS=weights
+    ),
+    parent_field,
+  )
 end
 
 """
@@ -107,14 +114,19 @@ Get the underlying polymake object, which can be used via Polymake.jl.
 """
 pm_object(SOP::SubdivisionOfPoints) = SOP.pm_subdivision
 
-
 #Same construction for when the user provides maximal cells
-function subdivision_of_points(f::scalar_type_or_field, points::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
+function subdivision_of_points(
+  f::scalar_type_or_field,
+  points::AbstractCollection[PointVector],
+  cells::Vector{Vector{Int64}},
+)
   subdivision_of_points(f, points, IncidenceMatrix(cells))
 end
 
 #Same construction for when the user gives Matrix{Bool} as incidence matrix
-function subdivision_of_points(f::scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool})
+function subdivision_of_points(
+  f::scalar_type_or_field, Points::Union{Oscar.MatElem,AbstractMatrix}, cells::Matrix{Bool}
+)
   subdivision_of_points(f, points, IncidenceMatrix(Polymake.IncidenceMatrix(cells)))
 end
 
@@ -123,7 +135,7 @@ end
 ### Display
 ###############################################################################
 ###############################################################################
-function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where T<:scalar_types
-    print(io, "Subdivision of points in ambient dimension $(ambient_dim(SOP))")
-    T != QQFieldElem && print(io, " with $T type coefficients")
+function Base.show(io::IO, SOP::SubdivisionOfPoints{T}) where {T<:scalar_types}
+  print(io, "Subdivision of points in ambient dimension $(ambient_dim(SOP))")
+  T != QQFieldElem && print(io, " with $T type coefficients")
 end

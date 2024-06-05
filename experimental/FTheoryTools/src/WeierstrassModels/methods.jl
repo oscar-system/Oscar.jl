@@ -15,7 +15,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)

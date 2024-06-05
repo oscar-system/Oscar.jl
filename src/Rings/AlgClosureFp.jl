@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of the algebraic closure of finite fields,
-# which is modelled as the union of finite fields.
+# which is modeled as the union of finite fields.
 
 module AlgClosureFp
 
@@ -14,15 +14,11 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
-import ..Oscar.AbstractAlgebra: pretty, Lowercase
+import ..Oscar: pretty, Lowercase
 
-import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
-  elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
+import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
+  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
-
-if isdefined(Oscar, :algebraic_closure)
-  import ..Oscar: algebraic_closure
-end
 
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
@@ -35,11 +31,12 @@ end
 
 function show(io::IO, A::AlgClosure)
   io = pretty(io)
-  print(io, "Algebraic Closure of ", Lowercase(), A.k)
+  print(io, "Algebraic closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
+base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
 
 struct AlgClosureElem{T} <: FieldElem
@@ -328,7 +325,7 @@ function embedding(k::T, K::AlgClosure{T}) where T <: FinField
   return MapFromFunc(k, K, f, finv)
 end
 
-function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField
+function has_preimage_with_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField
   F = domain(mp)
   mod(degree(F), degree(elm)) != 0 && return false, zero(F)
   return true, preimage(mp, elm)
@@ -340,10 +337,8 @@ end # AlgClosureFp
 import .AlgClosureFp:
        AlgClosure,
        AlgClosureElem,
-       algebraic_closure,
        ext_of_degree
 
 export AlgClosure,
        AlgClosureElem,
-       algebraic_closure,
        ext_of_degree

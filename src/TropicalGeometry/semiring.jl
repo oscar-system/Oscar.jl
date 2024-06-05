@@ -88,10 +88,12 @@ convention(f::Generic.MPoly{TropicalSemiringElem{typeof(max)}}) = max
 @doc raw"""
     tropical_semiring(M::Union{typeof(min),typeof(max)}=min)
 
-The tropical semiring with min (default) or max.
+Return the min-plus (default) or max-plus semiring.
 
 !!! warning
-    There is no subtraction in the tropical semiring. Any subtraction of two tropical numbers will yield an error.
+    - `+`, `*`, `/`, and `^` are used for tropical addition, tropical multipliciation, tropical division, and tropical exponentiation, respectively.
+    - There is no additive inverse or subtraction in the tropical semiring. Negating a tropical number or subtracting two tropical numbers will raise an error.
+    - Zeroes of tropical semirings are printed as `infty` or `-infty` instead of their proper unicode characters.  To enabled unicode in the current and future sessions, run `allow_unicode(true)`.
 
 # Examples (basic arithmetic)
 ```jldoctest
@@ -408,3 +410,22 @@ end
 
 Oscar.mul!(x::TropicalSemiringElem, y::TropicalSemiringElem, z::TropicalSemiringElem) = y * z
 Oscar.addeq!(y::TropicalSemiringElem, z::TropicalSemiringElem) = y + z
+
+
+################################################################################
+#
+#  helpers for polymake conversion
+#
+################################################################################
+
+Polymake.convert_to_pm_type(::Type{<:TropicalSemiringElem{A}}) where A = Polymake.TropicalNumber{Polymake.convert_to_pm_type(A),Polymake.Rational}
+
+function Base.convert(::Type{<:Polymake.TropicalNumber{PA}}, t::TropicalSemiringElem{A}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
+  @req PA == Polymake.convert_to_pm_type(A) "cannot convert between different tropical conventions"
+  isinf(t) ? Polymake.TropicalNumber{PA}() : Polymake.TropicalNumber{PA}(convert(Polymake.Rational, data(t)))
+end
+
+function (T::TropicalSemiring{A})(t::Polymake.TropicalNumber{PA}) where {A <: Union{typeof(min),typeof(max)}, PA <: Union{Polymake.Min, Polymake.Max}}
+  @req PA == Polymake.convert_to_pm_type(A) "cannot convert between different tropical conventions"
+  t == Polymake.zero(t) ? zero(T) : T(Polymake.scalar(t))
+end

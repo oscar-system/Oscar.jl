@@ -28,8 +28,7 @@ end
 
 function _tosingular_ideal(C::ProjectiveCurve)
     I = vanishing_ideal(C)  # computes a radical. Do we want this?
-    singular_assure(I)
-    return I.gens.S
+    return singular_generators(I)
 end
 
 @doc raw"""
@@ -117,7 +116,7 @@ julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
 julia> D = ProjectivePlaneCurve(x^2 + 2*y^2 + 5*z^2 - 4*x*y + 3*x*z + 17*y*z);
 
 julia> P = rational_point_conic(D)
-3-element Vector{AbstractAlgebra.Generic.MPoly{nf_elem}}:
+3-element Vector{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}:
  -1//4*a
  -1//4*a + 1//4
  0
@@ -358,8 +357,7 @@ representatives of elements in `R/image`, where `R` is the basering.
 function invert_birational_map(phi::Vector{T}, C::ProjectivePlaneCurve) where {T <: MPolyRingElem}
     S = parent(phi[1])
     I = ideal(S, phi)
-    singular_assure(I)
-    L = Singular.LibParaplanecurves.invertBirMap(I.gens.S, _tosingular(C))
+    L = Singular.LibParaplanecurves.invertBirMap(singular_generators(I), _tosingular(C))
     R = _fromsingular_ring(L[1])
     J = L[2][:J]
     psi = L[2][:psi]

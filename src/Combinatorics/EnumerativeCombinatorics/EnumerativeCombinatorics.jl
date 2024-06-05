@@ -1,0 +1,6 @@
+include("types.jl")
+include("partitions.jl")
+include("schur_polynomials.jl")
+include("tableaux.jl")
+include("weak_compositions.jl")
+include("compositions.jl")

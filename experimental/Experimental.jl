@@ -4,26 +4,37 @@
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "ExteriorAlgebra",
   "GModule",
-  "MatrixGroups",
-  "ModStd",
-  "Rings",
-  "Schemes",
 ]
 # DEVELOPER OPTION:
-# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
+# If an experimental package A depends on another experimental package B, one
+# can add `"B", "A"` to `orderedpkgs` below to ensure that B is loaded before A.
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
   "LieAlgebras",
-  "BasisLieHighestWeight",   # nees code from LieAlgebras
-  "JuLie",	     # needs to be after LieAlgebras to correctly import `weight`
-  "IntersectionTheory",
-  "OrthogonalDiscriminants",  # needs code from JuLie
+  "BasisLieHighestWeight",   # needs code from LieAlgebras
+  "SetPartitions",
+  "PartitionedPermutations", # needs code from SetPartitions
+  "Schemes",
+  "FTheoryTools"             # must be loaded after Schemes
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
+
+# force trigger recompile when folder changes
+include_dependency(".")
+
+# setup for the NoExperimental CI job
+# For local testing, run `ln -s NoExperimental_whitelist_.jl experimental/NoExperimental_whitelist.jl` to initialize
+# and `rm experimental/NoExperimental_whitelist.jl` for cleanup
+isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
+if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  include(joinpath(expdir, "NoExperimental_whitelist.jl"))
+  issubset(whitelist, union(exppkgs, oldexppkgs)) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
+  filter!(in(whitelist), exppkgs)
+  filter!(in(whitelist), oldexppkgs)
+end
 
 # Error if something is incomplete in experimental
 for pkg in exppkgs
@@ -34,56 +45,41 @@ for pkg in exppkgs
   if !isdir(path) || length(filter(endswith(".jl"), readdir(path))) == 0
     error("experimental/$pkg is incomplete: $pkg/test/ missing or empty. See the documentation at https://docs.oscar-system.org/dev/Experimental/intro/ for details.")
   end
+  # Load the package
+  include(joinpath(expdir, pkg, "src", "$pkg.jl"))
 end
 
-# force trigger recompile when folder changes
-include_dependency(".")
-
-for pkg in Oscar.exppkgs
-  include("$pkg/src/$pkg.jl")
+# Force some structure for `oldexppkgs`
+for pkg in oldexppkgs
+  if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
+    error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
+  end
+  # Load the package
+  include(joinpath(expdir, pkg, "$pkg.jl"))
 end
 
-include("Rings.jl")
-include("ModStd.jl")
-include("GModule.jl")
-
-include("MatrixGroups/matrix.jl")
-
-include("Schemes/Types.jl")
-include("Schemes/CoveredScheme.jl")
-include("Schemes/FunctionFields.jl")
-include("Schemes/ProjectiveModules.jl")
-include("Schemes/SpaceGerms.jl")
-include("Schemes/Sheaves.jl")
-include("Schemes/IdealSheaves.jl")
-include("Schemes/AlgebraicCycles.jl")
-include("Schemes/WeilDivisor.jl")
-include("Schemes/CoveredProjectiveSchemes.jl")
-
-include("Schemes/SimplifiedSpec.jl")
-include("Schemes/CoherentSheaves.jl")
-include("Schemes/LazyGluing.jl")
-include("Schemes/CartierDivisor.jl")
-include("Schemes/Auxiliary.jl")
-include("Schemes/BlowupMorphism.jl")
-include("Schemes/duValSing.jl")
-include("Schemes/elliptic_surface.jl")
-include("Schemes/MorphismFromRationalFunctions.jl")
-
-include("Schemes/ToricIdealSheaves/auxiliary.jl")
-include("Schemes/ToricIdealSheaves/constructors.jl")
-
-include("Schemes/ToricDivisors/constructors.jl")
-include("Schemes/ToricDivisors/attributes.jl")
-
-include("Schemes/NormalToricVarieties/attributes.jl")
-
-include("Schemes/ToricBlowups/types.jl")
-include("Schemes/ToricBlowups/constructors.jl")
-include("Schemes/ToricBlowups/attributes.jl")
-include("Schemes/ToricBlowups/methods.jl")
-
-include("ExteriorAlgebra/ExteriorAlgebra.jl")
-
-include("Schemes/DerivedPushforward.jl")
-
+# We modify the documentation of the experimental part to attach a warning to
+# every exported function that this function is part of experimental.
+# Furthermore we give a link for users to read up on what this entails.
+#
+# Note that there are functions in the docs of experimental that are not
+# exported. These then also do not get the warning attached.
+using Markdown
+warnexp = Markdown.parse(raw"""
+!!! warning "Experimental"
+    This function is part of the experimental code in Oscar. Please read
+    [here](https://docs.oscar-system.org/v1/Experimental/intro/) for more
+    details.
+""")
+for name in names(Oscar)
+  if isdefined(Oscar, name)
+    md = Base.Docs.doc(getfield(Oscar, name))
+    # Loop over all definitions of a function
+    for entry in md.meta[:results]
+      # Test whether function was defined in experimental
+      if startswith(entry.data[:path], joinpath(Oscar.oscardir, "experimental"))
+        append!(entry.object.content[1].content, warnexp.content)
+      end
+    end
+  end
+end

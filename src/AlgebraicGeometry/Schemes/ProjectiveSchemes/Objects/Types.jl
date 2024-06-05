@@ -16,7 +16,7 @@ julia> S, _ = QQ["x", "y", "z"];
 
 julia> Sgr, _ = grade(S);
 
-julia> P = ProjectiveScheme(Sgr)
+julia> P = proj(Sgr)
 Projective space of dimension 2
   over rational field
 with homogeneous coordinates [x, y, z]
@@ -27,7 +27,7 @@ julia> I = ideal(Sgr, x^3 + y^3 + z^3); # a hyperplane section
 
 julia> Q, _ = quo(Sgr, I);
 
-julia> C = ProjectiveScheme(Q)
+julia> C = proj(Q)
 Projective scheme
   over rational field
 defined by ideal (x^3 + y^3 + z^3)

@@ -2,7 +2,7 @@
 ########################################################################
 # Interface for AbsCoveredSchemeMorphism                               #
 ########################################################################
-### essential getters 
+### essential getters
 function domain(f::AbsCoveredSchemeMorphism{T}) where {T<:AbsCoveredScheme}
   return domain(underlying_morphism(f))::T
 end
@@ -31,9 +31,9 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: V(-(y//x)^2*(z//x) + 1)
-    2: V((x//y)^3 - (z//y))
-    3: V((x//z)^3 - (y//z)^2)
+    1: scheme(-(y//x)^2*(z//x) + 1)
+    2: scheme((x//y)^3 - (z//y))
+    3: scheme((x//z)^3 - (y//z)^2)
   in the coordinate(s)
     1: [(y//x), (z//x)]
     2: [(x//y), (z//y)]
@@ -45,11 +45,11 @@ julia> I, s = singular_locus(Ycov)
 julia> covering_morphism(s)
 Covering morphism
   from covering with 1 patch
-    1a: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to covering with 3 patches
-    1b: [(y//x), (z//x)]   V(-(y//x)^2*(z//x) + 1)
-    2b: [(x//y), (z//y)]   V((x//y)^3 - (z//y))
-    3b: [(x//z), (y//z)]   V((x//z)^3 - (y//z)^2)
+    1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
+    2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))
+    3b: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2)
 given by the pullback function
   1a -> 3b
     (x//z) -> 0
@@ -63,7 +63,7 @@ end
 ### generically derived getters
 domain_covering(f::AbsCoveredSchemeMorphism) = domain(covering_morphism(f))
 codomain_covering(f::AbsCoveredSchemeMorphism) = codomain(covering_morphism(f))
-getindex(f::AbsCoveredSchemeMorphism, U::Spec) = covering_morphism(f)[U]
+getindex(f::AbsCoveredSchemeMorphism, U::AffineScheme) = covering_morphism(f)[U]
 
 ########################################################################
 # Basic getters for CoveredSchemeMorphism                              #
@@ -75,16 +75,16 @@ covering_morphism(f::CoveredSchemeMorphism) = f.f
 @doc raw"""
     isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
 
-For a birational morphism ``f : X → Y`` of `AbsCoveredScheme`s this 
-returns an isomorphism of affine schemes ``fᵣₑₛ : U → V`` which is 
-the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and 
+For a birational morphism ``f : X → Y`` of `AbsCoveredScheme`s this
+returns an isomorphism of affine schemes ``fᵣₑₛ : U → V`` which is
+the restriction of ``f`` to two dense open subsets ``U ⊂ X`` and
 ``V ⊂ Y``.
 """
 function isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
   if !has_attribute(f, :iso_on_open_subset)
     is_birational(f) # Should compute and store the attribute
   end
-  return get_attribute(f, :iso_on_open_subset)::AbsSpecMor
+  return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
 end
 
 @attr AbsCoveredSchemeMorphism function inverse(f::AbsCoveredSchemeMorphism)

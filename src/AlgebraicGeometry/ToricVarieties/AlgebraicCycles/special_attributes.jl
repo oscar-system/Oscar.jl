@@ -90,7 +90,7 @@ julia> gens_of_rational_equivalence_classes(p2)
   cr = chow_ring(v)
   R = base_ring(cr)
   cs = cones(v)
-  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:ncones(v)]
+  return [simplify(cr(R([1], [Vector{Int}(cs[k,:])]))) for k in 1:n_cones(v)]
 end
 
 

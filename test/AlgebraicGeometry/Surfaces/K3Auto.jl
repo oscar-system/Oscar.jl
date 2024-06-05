@@ -32,7 +32,7 @@ end
   S = integer_lattice(B, gram = G);
 
   weyl = QQ[31   61   52   71   5   -6   5   -2   -7   8]
-  weylk3 = change_base_ring(ZZ,solve_left(basis_matrix(L), weyl))
+  weylk3 = change_base_ring(ZZ,Oscar.solve(basis_matrix(L), weyl; side = :left))
   k3,_ = BorcherdsCtx(L, S, weylk3; compute_OR=false)
   walls = Oscar._walls_of_chamber(k3, weylk3)
   @test length(walls)==4
@@ -107,7 +107,7 @@ end
   # This is the a little expensive bit ... we leave it to the lower dimensional tests
   # weyl1, u, hh = Oscar.weyl_vector_non_degenerate(L, S, u0, weyl, h)
   weyl1 = QQ[80 30 -4 -14 -27 11 2 -12 -14 1 9 7 -1 -2 16 -12 4 7 11 6 -1 1 0 3 1 0]
-  weyl2 = change_base_ring(ZZ, solve_left(basis_matrix(L), weyl1))
+  weyl2 = change_base_ring(ZZ, Oscar.solve(basis_matrix(L), weyl1; side = :left))
   _, k3aut, chambers, rational_mod_aut =borcherds_method(L, S, weyl2, compute_OR=true)
 
   @test order(matrix_group(k3aut))==6

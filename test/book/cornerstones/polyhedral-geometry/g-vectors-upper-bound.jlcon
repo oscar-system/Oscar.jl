@@ -1,0 +1,44 @@
+julia> min_g2 = minimum(g_vectors[:,1])
+159
+
+julia> max_g2 = maximum(g_vectors[:,1])
+192
+
+julia> show(upper_bound_g_vector(6,30))
+[1, 23, 276, 2300]
+julia> ub = [ Int(Polymake.polytope.pseudopower(g2,2)) for g2 in min_g2:max_g2 ]
+34-element Vector{Int64}:
+  990
+  997
+ 1005
+ 1014
+ 1024
+ 1035
+ 1047
+ 1060
+ 1074
+ 1089
+ 1105
+ 1122
+ 1140
+ 1141
+ 1143
+ 1146
+ 1150
+ 1155
+ 1161
+ 1168
+ 1176
+ 1185
+ 1195
+ 1206
+ 1218
+ 1231
+ 1245
+ 1260
+ 1276
+ 1293
+ 1311
+ 1330
+ 1331
+ 1333

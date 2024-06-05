@@ -739,8 +739,8 @@ end
 @doc raw"""
     rational_spinor_norm(Vf::QuadSpaceWithIsom; b::Int = -1) -> QQFieldElem
 
-Given a rational quadratic space with isometry $(V, b, f)$, return the real
-spinor norm of the extension of $f$ to $V\otimes \mathbb{Q}$.
+Given a rational quadratic space with isometry $(V, b, f)$, return the rational
+spinor norm of $f$.
 
 If $\Phi$ is the form on $V$, then the spinor norm is computed with respect to
 $b\Phi$.

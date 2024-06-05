@@ -1,12 +1,12 @@
-# additional functions for abelian groups (type `GrpAbFinGen`)
+# additional functions for abelian groups (type `FinGenAbGroup`)
 
 # Restrict a morphism f : G -> H to the surjective morphism g : G -> im(G)
-function restrict_codomain(f::GrpAbFinGenMap)
+function restrict_codomain(f::FinGenAbGroupHom)
   G = domain(f)
   H, Htocd = image(f, false)
   imgs = elem_type(H)[]
   for g in gens(G)
-    fl, h = haspreimage(Htocd, f(g))
+    fl, h = has_preimage_with_preimage(Htocd, f(g))
     @assert fl
     push!(imgs, h)
   end
@@ -16,48 +16,48 @@ end
 
 # Compute whether `x` is contained in `G`, modulo natural embeddings.
 # (This is analogous to `issubset`.)
-is_element(x::GrpAbFinGenElem, G::GrpAbFinGen) = issubset(sub([x])[1], G)
+is_element(x::FinGenAbGroupElem, G::FinGenAbGroup) = issubset(sub([x])[1], G)
 
-_coeff(x::GrpAbFinGenElem) = x.coeff
+_coeff(x::FinGenAbGroupElem) = x.coeff
 
-function is_finiteorder(a::GrpAbFinGenElem)
+function is_finite_order(a::FinGenAbGroupElem)
   G, m = snf(a.parent)
   b = preimage(m, a)
   return any(i -> iszero(G.snf[i]) && !iszero(b[i]), 1:ngens(G))
 end
 
-function order(::Type{T}, a::GrpAbFinGenElem) where T <: IntegerUnion
+function order(::Type{T}, a::FinGenAbGroupElem) where T <: IntegerUnion
    return T(order(a))
 end
 
-# order(x::GrpAbFinGenElem) = order(ZZRingElem, x) # see Hecke.jl/src/GrpAb/Elem.jl
+# order(x::FinGenAbGroupElem) = order(ZZRingElem, x) # see Hecke.jl/src/GrpAb/Elem.jl
 
-function order(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+function order(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion
    return T(order(G))
 end
 
-#TODO: do we need `one`? (Hecke defines `is_one(x::GrpAbFinGen)`.)
-# one(x::GrpAbFinGen) == zero(x)
-# one(x::GrpAbFinGenElem) == zero(x)
-# Base.inv(x::GrpAbFinGenElem) = -x
-# x^n for GrpAbFinGenElem -> n*x
+#TODO: do we need `one`? (Hecke defines `is_one(x::FinGenAbGroup)`.)
+# one(x::FinGenAbGroup) == zero(x)
+# one(x::FinGenAbGroupElem) == zero(x)
+# Base.inv(x::FinGenAbGroupElem) = -x
+# x^n for FinGenAbGroupElem -> n*x
 
-Base.:^(g::GrpAbFinGenElem, x::GrpAbFinGenElem) = g
+Base.:^(g::FinGenAbGroupElem, x::FinGenAbGroupElem) = g
 
-function comm(x::GrpAbFinGenElem, y::GrpAbFinGenElem)
+function comm(x::FinGenAbGroupElem, y::FinGenAbGroupElem)
   @req (x.parent == y.parent) "elements must belong to the same group"
   return zero(parent(x))
 end
 
-has_gens(G::GrpAbFinGen) = true
+has_gens(G::FinGenAbGroup) = true
 
-function small_generating_set(G::GrpAbFinGen)
+function small_generating_set(G::FinGenAbGroup)
    is_snf(G) && return gens(G)
    S, mp = snf(G)
    return [mp(x) for x in gens(S)]
 end
 
-function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: GrpAbFinGen
+function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: FinGenAbGroup
    @req is_subgroup(H, G)[1] "H must be a subgroup of G"
    f = count(x -> x == 0, snf(G)[1].snf) - count(x -> x == 0, snf(H)[1].snf)
    @req f == 0 "index is supported only for subgroups of finite index"
@@ -67,28 +67,28 @@ end
 
 ################################################################################
 #
-#   Conjugacy Classes in GrpAbFinGen groups: just wrap elements
+#   Conjugacy Classes in FinGenAbGroup groups: just wrap elements
 #
 ################################################################################
 
-struct GrpAbFinGenConjClass{T<:GrpAbFinGen, S<:Union{GrpAbFinGenElem,GrpAbFinGen}} <: GroupConjClass{T, S}
+struct FinGenAbGroupConjClass{T<:FinGenAbGroup, S<:Union{FinGenAbGroupElem,FinGenAbGroup}} <: GroupConjClass{T, S}
    X::T
    repr::S
 end
 
-function Base.hash(C::GrpAbFinGenConjClass, h::UInt)
+function Base.hash(C::FinGenAbGroupConjClass, h::UInt)
   return Base.hash(Representative(C), h)
 end
 
-function Base.show(io::IO, C::GrpAbFinGenConjClass)
+function Base.show(io::IO, C::FinGenAbGroupConjClass)
   print(io, string(representative(C)), " ^ ", string(C.X))
 end
 
-==(a::GrpAbFinGenConjClass, b::GrpAbFinGenConjClass) = representative(a) == representative(b)
+==(a::FinGenAbGroupConjClass, b::FinGenAbGroupConjClass) = representative(a) == representative(b)
 
-Base.length(::Type{T}, C::GrpAbFinGenConjClass) where T <: IntegerUnion = T(1)
+Base.length(::Type{T}, C::FinGenAbGroupConjClass) where T <: IntegerUnion = T(1)
 
-Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
+Base.length(C::FinGenAbGroupConjClass) = ZZRingElem(1)
 
 
 ################################################################################
@@ -97,23 +97,23 @@ Base.length(C::GrpAbFinGenConjClass) = ZZRingElem(1)
 #
 ################################################################################
 
-conjugacy_class(G::GrpAbFinGen, g::GrpAbFinGenElem) = GrpAbFinGenConjClass(G, g)
+conjugacy_class(G::FinGenAbGroup, g::FinGenAbGroupElem) = FinGenAbGroupConjClass(G, g)
 
-Base.eltype(::Type{GrpAbFinGenConjClass{T,S}}) where {T,S} = S
+Base.eltype(::Type{FinGenAbGroupConjClass{T,S}}) where {T,S} = S
 
-Base.rand(C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(C::FinGenAbGroupConjClass) = representative(C)
 
-Base.rand(rng::Random.AbstractRNG, C::GrpAbFinGenConjClass) = representative(C)
+Base.rand(rng::Random.AbstractRNG, C::FinGenAbGroupConjClass) = representative(C)
 
-number_of_conjugacy_classes(G::GrpAbFinGen) = order(ZZRingElem, G)
+number_of_conjugacy_classes(G::FinGenAbGroup) = order(ZZRingElem, G)
 
-number_of_conjugacy_classes(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion = order(T, G)
+number_of_conjugacy_classes(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion = order(T, G)
 
-conjugacy_classes(G::GrpAbFinGen) = [GrpAbFinGenConjClass(G, x) for x in G]
+conjugacy_classes(G::FinGenAbGroup) = [FinGenAbGroupConjClass(G, x) for x in G]
 
-is_conjugate(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem) = (x == y)
+is_conjugate(G::FinGenAbGroup, x::FinGenAbGroupElem, y::FinGenAbGroupElem) = (x == y)
 
-function is_conjugate_with_data(G::GrpAbFinGen, x::GrpAbFinGenElem, y::GrpAbFinGenElem)
+function is_conjugate_with_data(G::FinGenAbGroup, x::FinGenAbGroupElem, y::FinGenAbGroupElem)
    x == y ? (true, zero(G)) : (false, nothing)
 end
 
@@ -123,57 +123,49 @@ end
 #
 ################################################################################
 
-conjugacy_class(G::T, H::T) where T <: GrpAbFinGen = GrpAbFinGenConjClass(G, H)
+conjugacy_class(G::T, H::T) where T <: FinGenAbGroup = FinGenAbGroupConjClass(G, H)
 
-function conjugacy_classes_subgroups(G::GrpAbFinGen)
+function subgroup_classes(G::FinGenAbGroup; order::T = ZZRingElem(-1)) where T <: IntegerUnion
    @req is_finite(G) "G is not finite"
-   return [conjugacy_class(G, H) for (H, mp) in subgroups(G)]
-end
-
-function subgroup_reps(G::GrpAbFinGen; order::ZZRingElem = ZZRingElem(-1))
    if order > 0 && mod(Hecke.order(G), order) != 0
      # `subgroups` would throw an error
-     return GrpAbFinGen[]
+     return FinGenAbGroupConjClass{FinGenAbGroup, FinGenAbGroup}[]
    end
-   return [H for (H, mp) in subgroups(G, order = order)]
+   return [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, order = order)]
 end
 
-function low_index_subgroup_reps(G::GrpAbFinGen, n::Int)
+function low_index_subgroup_classes(G::FinGenAbGroup, n::Int)
    @req (n > 0) "index must be positive"
-   res = [G]
+   res = [conjugacy_class(G, G)]
    ord = order(G)
    for i in 2:n
      if mod(ord, i) == 0
-       append!(res, [H for (H, mp) in subgroups(G, index = i)])
+       append!(res, [conjugacy_class(G, H) for (H, mp) in Hecke.subgroups(G, index = i)])
      end
    end
    return res
 end
 
-function maximal_subgroup_reps(G::GrpAbFinGen)
+function maximal_subgroup_classes(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    primes = [p for (p, e) in factor(order(G))]
    res = typeof(G)[]
    for p in primes
-     append!(res, [H for (H, mp) in subgroups(G, index = p)])
+     append!(res, [H for (H, mp) in Hecke.subgroups(G, index = p)])
    end
-   return res
+   return [conjugacy_class(G, H) for H in res]
 end
 
-function conjugacy_classes_maximal_subgroups(G::GrpAbFinGen)
-   return [conjugacy_class(G, H) for H in maximal_subgroup_reps(G)]
-end
+conjugate_group(G::FinGenAbGroup, x::FinGenAbGroupElem) = G
 
-conjugate_group(G::GrpAbFinGen, x::GrpAbFinGenElem) = G
+Base.:^(G::FinGenAbGroup, x::FinGenAbGroupElem) = G
 
-Base.:^(G::GrpAbFinGen, x::GrpAbFinGenElem) = G
-
-function is_conjugate(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
+function is_conjugate(G::FinGenAbGroup, H::FinGenAbGroup, K::FinGenAbGroup)
    return is_subgroup(H, G)[1] && is_subgroup(K, G)[1] &&
           is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
 end
 
-function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
+function is_conjugate_with_data(G::FinGenAbGroup, H::FinGenAbGroup, K::FinGenAbGroup)
    if is_subgroup(H, K)[1] && is_subgroup(K, H)[1]
      return true, zero(G)
    else
@@ -181,14 +173,14 @@ function is_conjugate_with_data(G::GrpAbFinGen, H::GrpAbFinGen, K::GrpAbFinGen)
    end
 end
 
-is_conjugate_subgroup(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1]
-is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: GrpAbFinGen = is_subgroup(V, U)[1], zero(G)
+is_conjugate_subgroup(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1]
+is_conjugate_subgroup_with_data(G::T, U::T, V::T) where T <: FinGenAbGroup = is_subgroup(V, U)[1], zero(G)
 
-Base.IteratorSize(::Type{<:GrpAbFinGenConjClass}) = Base.HasLength()
+Base.IteratorSize(::Type{<:FinGenAbGroupConjClass}) = Base.HasLength()
 
-Base.iterate(C::GrpAbFinGenConjClass) = iterate(C, 0)
+Base.iterate(C::FinGenAbGroupConjClass) = iterate(C, 0)
 
-function Base.iterate(C::GrpAbFinGenConjClass, state::Int)
+function Base.iterate(C::FinGenAbGroupConjClass, state::Int)
   if state == 0
     return representative(C), 1
   else
@@ -203,29 +195,29 @@ end
 #
 ################################################################################
 
-function core(G::GrpAbFinGen, H::GrpAbFinGen)
+function core(G::FinGenAbGroup, H::FinGenAbGroup)
   flag, emb = is_subgroup(H, G)
   @req flag "H  must be a subgroup of G"
   return (H, emb)
 end
 
-function normalizer(G::GrpAbFinGen, H::GrpAbFinGen)
+function normalizer(G::FinGenAbGroup, H::FinGenAbGroup)
   @req is_subgroup(H, G)[1] "H  must be a subgroup of G"
   return (G, identity_map(G))
 end
 
-function normalizer(G::GrpAbFinGen, x::GrpAbFinGenElem)
+function normalizer(G::FinGenAbGroup, x::FinGenAbGroupElem)
   @req is_element(x, G) "x does not lie in G"
   return (G, identity_map(G))
 end
 
-function normal_closure(G::GrpAbFinGen, H::GrpAbFinGen)
+function normal_closure(G::FinGenAbGroup, H::FinGenAbGroup)
   flag, emb = is_subgroup(H, G)
   @req flag "H  must be a subgroup of G"
   return (H, emb)
 end
 
-pcore(G::GrpAbFinGen, p::IntegerUnion) = sylow_subgroup(G, p)
+pcore(G::FinGenAbGroup, p::IntegerUnion) = sylow_subgroup(G, p)
 
 
 ################################################################################
@@ -234,11 +226,11 @@ pcore(G::GrpAbFinGen, p::IntegerUnion) = sylow_subgroup(G, p)
 #
 ################################################################################
 
-fitting_subgroup(G::GrpAbFinGen) = (G, identity_map(G))
+fitting_subgroup(G::FinGenAbGroup) = (G, identity_map(G))
 
-function frattini_subgroup(G::GrpAbFinGen)
+function frattini_subgroup(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
-   subgens = GrpAbFinGenElem[]
+   subgens = FinGenAbGroupElem[]
    for x in gens(G)
      for (p, e) in collect(factor(order(x)))
        x = p*x
@@ -250,9 +242,9 @@ function frattini_subgroup(G::GrpAbFinGen)
    return sub(G, subgens)
 end
 
-function socle(G::GrpAbFinGen)
+function socle(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
-   subgens = GrpAbFinGenElem[]
+   subgens = FinGenAbGroupElem[]
    for x in gens(G)
      n = 1
      ord = order(x)
@@ -267,9 +259,9 @@ function socle(G::GrpAbFinGen)
    return sub(G, subgens)
 end
 
-trivial_subgroup(G::GrpAbFinGen) = sub(G, GrpAbFinGenElem[])
+trivial_subgroup(G::FinGenAbGroup) = sub(G, FinGenAbGroupElem[])
 
-solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
+solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 
 
 ################################################################################
@@ -279,26 +271,23 @@ solvable_radical(G::GrpAbFinGen) = (G, identity_map(G))
 ################################################################################
 
 #TODO: how to compute complements?
-# complement_class_reps(G::T, N::T) where T <: GrpAbFinGen
-# complement_system(G::GrpAbFinGen)
+# complement_classes(G::T, N::T) where T <: FinGenAbGroup
+# complement_system(G::FinGenAbGroup)
 
-function sylow_system(G::GrpAbFinGen)
+function sylow_system(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
-   result = GrpAbFinGen[]
+   result = FinGenAbGroup[]
    for (p, e) in collect(factor(order(G)))
      push!(result, sylow_subgroup(G, p)[1])
    end
    return result
 end
 
-# no longer documented, better use `hall_subgroup_reps`
-hall_subgroup(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion}) = hall_subgroup_reps(G, P)[1]
-
-function hall_subgroup_reps(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion})
+function hall_subgroup_classes(G::FinGenAbGroup, P::AbstractVector{<:IntegerUnion})
    @req is_finite(G) "G is not finite"
    P = unique(P)
    @req all(is_prime, P) "The integers must be prime"
-   subgens = GrpAbFinGenElem[]
+   subgens = FinGenAbGroupElem[]
    for x in gens(G)
      ord = order(x)
      for p in P
@@ -312,15 +301,15 @@ function hall_subgroup_reps(G::GrpAbFinGen, P::AbstractVector{<:IntegerUnion})
        end
      end
    end
-   return [sub(G, subgens)[1]]
+   return [conjugacy_class(G, sub(G, subgens)[1])]
 end
 
-function hall_system(G::GrpAbFinGen)
+function hall_system(G::FinGenAbGroup)
    @req is_solvable(G) "G must be solvable"
    primes = [p for (p, e) in factor(order(G))]
-   result = GrpAbFinGen[]
+   result = FinGenAbGroup[]
    for P in subsets(Set(primes))
-     push!(result, hall_subgroup_reps(G, collect(P))[1])
+     push!(result, representative(hall_subgroup_classes(G, collect(P))[1]))
    end
    return result
 end
@@ -331,23 +320,23 @@ end
 #
 ################################################################################
 
-is_almost_simple(G::GrpAbFinGen) = false
+is_almost_simple(G::FinGenAbGroup) = false
 
-is_finitely_generated(G::GrpAbFinGen) = true
+is_finitely_generated(G::FinGenAbGroup) = true
 
-is_perfect(G::GrpAbFinGen) = is_trivial(G)
+is_perfect(G::FinGenAbGroup) = is_trivial(G)
 
-is_pgroup(G::GrpAbFinGen) = is_pgroup_with_prime(G)[1]
+is_pgroup(G::FinGenAbGroup) = is_pgroup_with_prime(G)[1]
 
-is_quasisimple(G::GrpAbFinGen) = false
+is_quasisimple(G::FinGenAbGroup) = false
 
-is_simple(G::GrpAbFinGen) = is_finite(G) && is_prime(order(G))
+is_simple(G::FinGenAbGroup) = is_finite(G) && is_prime(order(G))
 
-is_solvable(G::GrpAbFinGen) = true
+is_solvable(G::FinGenAbGroup) = true
 
-is_sporadic_simple(G::GrpAbFinGen) = false
+is_sporadic_simple(G::FinGenAbGroup) = false
 
-function is_pgroup_with_prime(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+function is_pgroup_with_prime(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion
   is_trivial(G) && return true, nothing
   is_finite(G) || return false, nothing
   flag, _, p = is_prime_power_with_data(order(G))
@@ -355,7 +344,7 @@ function is_pgroup_with_prime(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
   return false, nothing
 end
 
-is_pgroup_with_prime(G::GrpAbFinGen) = is_pgroup_with_prime(ZZRingElem, G)
+is_pgroup_with_prime(G::FinGenAbGroup) = is_pgroup_with_prime(ZZRingElem, G)
 
 # Let `v` be a vector of integers.
 # This function returns the unique sorted vector `w` of zeros and prime powers
@@ -424,12 +413,12 @@ function elementary_divisors_of_vector(::Type{T}, v::Vector) where T <: IntegerU
   return reverse(invs)
 end
 
-abelian_invariants(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion =
+abelian_invariants(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion =
   abelian_invariants_of_vector(T, elementary_divisors(G))
 
-abelian_invariants(G::GrpAbFinGen) = abelian_invariants(ZZRingElem, G)
+abelian_invariants(G::FinGenAbGroup) = abelian_invariants(ZZRingElem, G)
 
-function abelian_invariants_schur_multiplier(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+function abelian_invariants_schur_multiplier(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion
   # By a theorem of I. Schur,
   # the multiplier of an abelian group with elementary divisors
   # n_1 | n_2 | ... | n_k, with k > 1,
@@ -443,9 +432,9 @@ function abelian_invariants_schur_multiplier(::Type{T}, G::GrpAbFinGen) where T 
   return abelian_invariants_of_vector(T, res)
 end
 
-abelian_invariants_schur_multiplier(G::GrpAbFinGen) = abelian_invariants_schur_multiplier(ZZRingElem, G)
+abelian_invariants_schur_multiplier(G::FinGenAbGroup) = abelian_invariants_schur_multiplier(ZZRingElem, G)
 
-nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
+nilpotency_class(G::FinGenAbGroup) = (order(G) == 1 ? 0 : 1)
 
 # helper for prime_of_pgroup: this helper is efficient thanks to
 # @gapattribute, but we also want prime_of_pgroup to accept an optional
@@ -453,21 +442,21 @@ nilpotency_class(G::GrpAbFinGen) = (order(G) == 1 ? 0 : 1)
 # up this auxiliary _prime_of_pgroup which then is called by the real
 # prime_of_pgroup.
 # TODO: enhance @gapattribute so this is not necessary
-function _prime_of_pgroup(G::GrpAbFinGen)
+function _prime_of_pgroup(G::FinGenAbGroup)
   flag, _, p = is_prime_power_with_data(order(G))
   @req flag "only supported for non-trivial p-groups"
   return p
 end
 
-function prime_of_pgroup(::Type{T}, G::GrpAbFinGen) where T <: IntegerUnion
+function prime_of_pgroup(::Type{T}, G::FinGenAbGroup) where T <: IntegerUnion
   return T(_prime_of_pgroup(G))
 end
 
-prime_of_pgroup(G::GrpAbFinGen) = prime_of_pgroup(ZZRingElem, G)
+prime_of_pgroup(G::FinGenAbGroup) = prime_of_pgroup(ZZRingElem, G)
 
 #TODO There is no underlying GAP attribute, we do not store the prime.
-#   has_prime_of_pgroup(G::GrpAbFinGen) = false
-#   function set_prime_of_pgroup(G::GrpAbFinGen, p::IntegerUnion)
+#   has_prime_of_pgroup(G::FinGenAbGroup) = false
+#   function set_prime_of_pgroup(G::FinGenAbGroup, p::IntegerUnion)
 #     # do nothing
 #   end
 # The same holds for `fitting_subgroup`, `frattini_subgroup`, `socle`, ...

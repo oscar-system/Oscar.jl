@@ -27,7 +27,7 @@ before returning the primary decomposition.
 #OUTPUT:    Primary decomposition of I with associated primes in a list 
 
 function zerodecomp(I::Singular.sideal, outputReduced::Bool = false, usefglm::Bool = false)
-  if ordering(I.base_ring) != :lex
+  if Singular.ordering(I.base_ring) != :lex
      Icopy = changeOrderOfBasering(I, :lex);
   else 
      Icopy = Singular.deepcopy(I)

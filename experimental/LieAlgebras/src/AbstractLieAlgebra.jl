@@ -85,19 +85,6 @@ function root_system(L::LieAlgebra)
   return L.root_system
 end
 
-has_root_system_type(L::AbstractLieAlgebra) =
-  has_root_system(L) && has_root_system_type(L.root_system)
-
-function root_system_type(L::AbstractLieAlgebra)
-  @req has_root_system_type(L) "No root system type known."
-  return root_system_type(root_system(L))
-end
-
-function root_system_type_string(L::AbstractLieAlgebra)
-  @req has_root_system_type(L) "No root system type known."
-  return root_system_type_string(root_system(L))
-end
-
 @doc raw"""
     chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
 
@@ -108,7 +95,7 @@ to the order of the roots in the root system.
 function chevalley_basis(L::AbstractLieAlgebra)
   @req has_root_system(L) "No root system known."
 
-  npos = nposroots(root_system(L))
+  npos = n_positive_roots(root_system(L))
   b = basis(L)
   # root vectors
   r_plus = b[1:npos]
@@ -124,23 +111,25 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::AbstractLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  has_root_system_type(L) &&
-    println(io, Indent(), "of type $(root_system_type_string(L))", Dedent())
   print(io, "over ")
   print(io, Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::AbstractLieAlgebra)
-  if get(io, :supercompact, false)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
     print(io, "Abstract Lie algebra")
   else
     io = pretty(io)
     print(io, "Abstract Lie algebra over ", Lowercase())
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 
@@ -327,8 +316,8 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
   cm = cartan_matrix(rs)
   @req is_cartan_matrix(cm; generalized=false) "The type does not correspond to a classical root system"
 
-  npos = nposroots(rs)
-  nsimp = nsimpleroots(rs)
+  npos = n_positive_roots(rs)
+  nsimp = n_simple_roots(rs)
   n = 2 * npos + nsimp
 
   #=

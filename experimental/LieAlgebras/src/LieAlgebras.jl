@@ -1,4 +1,3 @@
-function weight end
 function word end
 
 module LieAlgebras
@@ -16,7 +15,10 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
+  _is_exterior_power,
+  _is_tensor_product,
   _iso_oscar_gap,
+  _vec,
   action,
   basis_matrix,
   basis,
@@ -43,31 +45,28 @@ import ..Oscar:
   gen,
   gens,
   height,
-  hom_tensor,
   hom,
+  hom_direct_sum,
+  hom_tensor,
   ideal,
   identity_map,
   image,
   induced_map_on_exterior_power,
   inv,
   is_abelian,
-  is_exterior_power,
   is_finite,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
   is_simple,
   is_solvable,
-  is_tensor_product,
   is_welldefined,
   kernel,
   lower_central_series,
   matrix,
   normalizer,
-  number_of_generators, ngens,
-  number_of_positive_roots, nposroots,        # aliases do not work in experimental
-  number_of_roots, nroots,                    # aliases do not work in experimental
-  number_of_simple_roots, nsimpleroots,       # aliases do not work in experimental
+  number_of_generators,
+  ngens,
   order,
   parent_type,
   rank,
@@ -100,6 +99,13 @@ export WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
+export _is_direct_sum
+export _is_dual
+export _is_exterior_power
+export _is_standard_module
+export _is_symmetric_power
+export _is_tensor_power
+export _is_tensor_product
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
@@ -126,15 +132,12 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_coroot_with_index
-export is_direct_sum
 export is_dominant
-export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -143,10 +146,6 @@ export is_root_with_index
 export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
-export is_standard_module
-export is_symmetric_power
-export is_tensor_power
-export is_tensor_product
 export lie_algebra
 export lmul, lmul!
 export longest_element
@@ -157,9 +156,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, nposroots    # aliases do not work in experimental
-export number_of_roots, nroots                # aliases do not work in experimental
-export number_of_simple_roots, nsimpleroots   # aliases do not work in experimental
+export number_of_positive_roots
+export number_of_roots
+export number_of_simple_roots
 export permutations
 export permutations_with_sign
 export positive_coroot
@@ -168,8 +167,9 @@ export positive_root
 export positive_roots
 export reduced_expressions
 export reflect, reflect!
-export root_system_type, has_root_system_type
 export root_system, has_root_system
+export root_system_type, has_root_system_type
+export root_system_type_with_ordering
 export show_dynkin_diagram
 export simple_coroot
 export simple_coroots
@@ -180,6 +180,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module
@@ -187,6 +188,14 @@ export universal_enveloping_algebra
 export weyl_group
 export weyl_orbit
 export word
+
+function number_of_positive_roots end
+function number_of_roots end
+function number_of_simple_roots end
+
+@alias n_positive_roots number_of_positive_roots
+@alias n_roots number_of_roots
+@alias n_simple_roots number_of_simple_roots
 
 include("Combinatorics.jl")
 include("CartanMatrix.jl")
@@ -208,7 +217,7 @@ include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
 
-end
+end # module LieAlgebras
 
 using .LieAlgebras
 
@@ -251,15 +260,12 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
 export is_coroot_with_index
-export is_direct_sum
 export is_dominant
-export is_dual
 export is_negative_coroot_with_index
 export is_negative_root_with_index
 export is_positive_coroot_with_index
@@ -268,10 +274,6 @@ export is_root_with_index
 export is_self_normalizing
 export is_simple_coroot_with_index
 export is_simple_root_with_index
-export is_standard_module
-export is_symmetric_power
-export is_tensor_power
-export is_tensor_product
 export lie_algebra
 export lmul, lmul!
 export longest_element
@@ -281,9 +283,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, nposroots    # aliases do not work in experimental
-export number_of_roots, nroots                # aliases do not work in experimental
-export number_of_simple_roots, nsimpleroots   # aliases do not work in experimental
+export number_of_positive_roots, n_positive_roots  # alias lives in a submodule
+export number_of_roots, n_roots                    # alias lives in a submodule
+export number_of_simple_roots, n_simple_roots      # alias lives in a submodule
 export positive_coroot
 export positive_coroots
 export positive_root
@@ -291,8 +293,9 @@ export positive_roots
 export reduced_expressions
 export reflect, reflect!
 export root
-export root_system_type, has_root_system_type
 export root_system, has_root_system
+export root_system_type, has_root_system_type
+export root_system_type_with_ordering
 export roots
 export show_dynkin_diagram
 export simple_coroot
@@ -304,6 +307,7 @@ export special_linear_lie_algebra
 export special_orthogonal_lie_algebra
 export standard_module
 export symmetric_power
+export symplectic_lie_algebra
 export tensor_power
 export tensor_product_decomposition
 export trivial_module

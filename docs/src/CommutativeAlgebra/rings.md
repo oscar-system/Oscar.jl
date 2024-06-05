@@ -7,8 +7,9 @@ end
 
 # Creating Multivariate Rings
 
-In this section, for the convenience of the reader, we recall from the chapters on rings and fields
-how to create multivariate polynomial rings and their elements, adding illustrating examples.
+In this section, for the convenience of the reader, we recall from the chapters on
+[rings](@ref rings) and [fields](@ref fields) how to create multivariate polynomial
+rings and their elements, adding illustrating examples.
 At the same time, we introduce and illustrate a ring type for modelling multivariate polynomial
 rings with gradings.
 
@@ -25,15 +26,13 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
+polynomial_ring(C::Ring, V::Vector{String}; cached::Bool = true)
 ```
 
 Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
-The input `ordering=:lex` refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending
-order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z.
 
 ###### Examples
 
@@ -230,7 +229,7 @@ we follow the former book.
 
 ### Types
 
-Multivariate rings with gradings are modelled by objects of type
+Multivariate rings with gradings are modeled by objects of type
 `MPolyDecRing{T, S}  :< MPolyRing{T}`, with elements of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
@@ -253,7 +252,7 @@ While the `grade` function allows one to create a graded ring by assigning a gra
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
-grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
+grade(R::MPolyRing, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -264,7 +263,7 @@ grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 ```
 ```@docs
-graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
+graded_polynomial_ring(C::Ring, V::Vector{String}, W)
 ```
 
 ## Tests on Graded Rings
@@ -328,11 +327,11 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
-monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
-homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
+homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -406,7 +405,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate polynomial ring in 2 variables over QQ
+Builder for an element of multivariate polynomial ring
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
@@ -434,7 +433,7 @@ Given an element `f` of a multivariate polynomial ring `R` or a graded version o
     the notion of total degree ignores the weights given to the variables in the graded case.
 
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
-subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
+subsection [Monomials, Terms, and More](@ref monomials_terms_more) of the section on [Gröbner/Standard Bases](@ref gb_fields).
 
 ###### Examples
 
@@ -472,7 +471,7 @@ homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 ```
 
 ```@docs
-homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
+homogeneous_component(f::MPolyDecRingElem, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -504,5 +503,5 @@ refer to `R` and `S`, respectively.
 !!! note
     The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
     the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
 

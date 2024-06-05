@@ -10,7 +10,15 @@
 Return the hypersurface equation.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation(h);
@@ -32,13 +40,12 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> explicit_model_sections(h)
-Dict{String, MPolyRingElem} with 6 entries:
-  "c2"   => c2
-  "c1"   => c1
-  "Kbar" => Kbar
-  "c3"   => c3
-  "b"    => b
-  "c0"   => c0
+Dict{String, MPolyRingElem} with 5 entries:
+  "c2" => c2
+  "c1" => c1
+  "c3" => c3
+  "b"  => b
+  "c0" => c0
 
 julia> hypersurface_equation_parametrization(h)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
@@ -97,7 +104,15 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the hypersurface model.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> calabi_yau_hypersurface(h)

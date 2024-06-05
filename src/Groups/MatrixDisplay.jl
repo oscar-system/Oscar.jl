@@ -1,6 +1,6 @@
 #############################################################################
 ##
-##  Provide functionality for displaying labelled matrices,
+##  Provide functionality for displaying labeled matrices,
 ##  that is, two-dimensional arrays of strings
 ##  together with row labels, columns labels, header, and footer
 ##
@@ -36,8 +36,8 @@ mylpad(s::String,n::Int) = " "^(n-textwidth(s))*s
 const superscript = Dict(zip("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))
 const subscript = Dict(zip("-0123456789", "₋₀₁₂₃₄₅₆₇₈₉"))
 
-function replace_TeX(str::String)
-  if Oscar.is_unicode_allowed()
+function replace_TeX(str::String; is_unicode_allowed = Oscar.is_unicode_allowed())
+  if is_unicode_allowed
     str = replace(str, "\\chi" => "χ")
     str = replace(str, "\\phi" => "φ")
     str = replace(str, "\\varphi" => "φ")
@@ -59,7 +59,7 @@ end
 
 
 """
-    labelled_matrix_formatted(io::IO, mat::Matrix{String})
+    labeled_matrix_formatted(io::IO, mat::Matrix{String})
 
 Write a formatted version of `mat` to `io`.
 The following attributes of `io` are supported.
@@ -108,11 +108,11 @@ The following attributes of `io` are supported.
   (enter `0` for a line in front of the first column),
 
 - `:portions_row`:
-  array of numbers of rows after which a new labelled table shall be started;
+  array of numbers of rows after which a new labeled table shall be started;
   the default is to have just one portion.
 
 - `:portions_col`:
-  array of numbers of column after which a new labelled table shall be started;
+  array of numbers of column after which a new labeled table shall be started;
   the default is to have just one portion in the `:TeX` case,
   and to create portions according to the screen width otherwise,
 
@@ -131,7 +131,7 @@ julia> mat
 julia> io = IOBuffer();   # simply using `stdout` does not work in doctests
 
 julia> ioc = IOContext(io,
-              :header => ["", "a labelled matrix", ""],
+              :header => ["", "a labeled matrix", ""],
               :labels_row => [string(i) for i in 1:m],
               :labels_col => [string(j) for j in 1:n],
               :separators_row => [0],
@@ -140,12 +140,12 @@ julia> ioc = IOContext(io,
              );
 
 julia> Oscar.with_unicode() do
-         labelled_matrix_formatted(ioc, mat)
+         labeled_matrix_formatted(ioc, mat)
        end;
 
 julia> print(String(take!(io)))
 
-a labelled matrix
+a labeled matrix
 
  │     1      2      3      4
 ─┼───────────────────────────
@@ -165,7 +165,7 @@ julia> ioc = IOContext(io,
              );
 
 julia> Oscar.with_unicode() do
-         labelled_matrix_formatted(ioc, mat)
+         labeled_matrix_formatted(ioc, mat)
        end;
 
 julia> print(String(take!(io)))
@@ -189,7 +189,7 @@ julia> print(String(take!(io)))
 
 ```
 """
-function labelled_matrix_formatted(io::IO, mat::Matrix{String})
+function labeled_matrix_formatted(io::IO, mat::Matrix{String})
     TeX = get(io, :TeX, false)
 
     if Oscar.is_unicode_allowed()
@@ -250,8 +250,9 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
     if ! TeX
       # If no `TeX` output is required then
       # replace markup in the matrices, ...
-      leftpart = map(replace_TeX, leftpart)
-      rightpart = map(replace_TeX, rightpart)
+      with_unicode = Oscar.is_unicode_allowed()
+      leftpart = map(x -> replace_TeX(x, is_unicode_allowed = with_unicode), leftpart)
+      rightpart = map(x -> replace_TeX(x, is_unicode_allowed = with_unicode), rightpart)
 
       header = map(replace_TeX, header)
       footer = map(replace_TeX, footer)
@@ -259,12 +260,12 @@ function labelled_matrix_formatted(io::IO, mat::Matrix{String})
       # ... compute columns widths of the corner entries and row labels ...
       leftwidth = map(textwidth, leftpart)
       leftrows = [leftwidth[i,:] for i in 1:m]
-      widths_leftpart = map(max, leftrows...)
+      widths_leftpart = [maximum(f[i] for f in leftrows; init = 0) for i in 1:length(first(leftrows))]
 
       # ... and of the column labels and matrix entries.
       rightwidth = map(textwidth, rightpart)
       rightrows = [rightwidth[i,:] for i in 1:m]
-      widths_rightpart = map(max, rightrows...)
+      widths_rightpart = [maximum(f[i] for f in rightrows; init = 0) for i in 1:length(first(rightrows))]
 
       # Compute the width of the row labels part.
       leftwidthsum = sum(widths_leftpart) + length(widths_leftpart) - 1

@@ -11,11 +11,17 @@
   p = projection(B)
   @test domain(p) === Bcov
   @test codomain(p) === covered_scheme(P)
+
+  X = affine_space(QQ,2)
+  x1, x2 = coordinates(X)
+  I = ideal([x1^2, x2^3])
+  p = blow_up(X, I)
+  @test !is_normal(domain(p))
 end
 
 @testset "Oscar.blow_up_chart" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  A3 = Spec(R)
+  A3 = spec(R)
   M = R[x y z; y-1 z-2 x-3]
   I = ideal(R, minors(M, 2))
   BlA3 = Oscar.blow_up_chart(A3, I)
@@ -34,12 +40,12 @@ end
 
 @testset "winter school presentation" begin
   P, (x,y,z) = QQ["x", "y", "z"]
-  IA3 = Spec(P)
+  IA3 = spec(P)
   f = x^2-y*z^2
   I = ideal(P, f)
   X = subscheme(IA3, I)
   S, inc = singular_locus(X);
-  @test S isa AbsSpec
+  @test S isa AbsAffineScheme
   @test inc isa ClosedEmbedding
   B1 = Oscar.blow_up_chart(X, ideal(OO(X), [x,y,z]))
   @test B1 isa AbsProjectiveScheme
@@ -56,7 +62,7 @@ end
   @test is_smooth(Z)
 end
 
-@testset "K3 surface reconstructed" begin 
+@testset "K3 surface reconstructed" begin
   IP1 = projective_space(GF(29), ["s", "t"])
 
   O1 = twisting_sheaf(IP1, -1)

@@ -53,8 +53,8 @@ julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
 
 julia> F = hom(R, R, z -> z^2, [y, x])
 Ring homomorphism
-  from multivariate polynomial ring in 2 variables over GF(2, 2)
-  to multivariate polynomial ring in 2 variables over GF(2, 2)
+  from multivariate polynomial ring in 2 variables over K
+  to multivariate polynomial ring in 2 variables over K
 defined by
   x -> y
   y -> x
@@ -71,13 +71,13 @@ julia> S, (x, y) = polynomial_ring(Qi, ["x", "y"]);
 
 julia> G = hom(S, S, hom(Qi, Qi, -i), [x^2, y^2])
 Ring homomorphism
-  from multivariate polynomial ring in 2 variables over imaginary quadratic field defined by x^2 + 1
-  to multivariate polynomial ring in 2 variables over imaginary quadratic field defined by x^2 + 1
+  from multivariate polynomial ring in 2 variables over Qi
+  to multivariate polynomial ring in 2 variables over Qi
 defined by
   x -> x^2
   y -> y^2
 with map on coefficients
-  Map: imaginary quadratic field defined by x^2 + 1 -> imaginary quadratic field defined by x^2 + 1
+  Map: Qi -> Qi
 
 julia> G(x+i*y)
 x^2 - sqrt(-1)*y^2
@@ -134,6 +134,13 @@ end
 
 function _evaluate_plain(F::MPolyAnyMap{<: MPolyRing}, u)
   return evaluate(u, F.img_gens)
+end
+
+# See the comment in MPolyQuo.jl
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
+  A = codomain(F)
+  v = evaluate(lift(u), lift.(_images(F)))
+  return simplify(A(v))
 end
 
 function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)

@@ -84,7 +84,7 @@ normal_toric_varieties_from_glsm(charges::ZZMatrix)
 
 ```@docs
 Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
-proj(E::ToricLineBundle...)
+projectivization(E::ToricLineBundle...)
 total_space(E::ToricLineBundle...)
 ```
 

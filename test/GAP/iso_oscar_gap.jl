@@ -90,8 +90,8 @@ end
          G = GL(4,F)
          for a in gens(G)
             for b in gens(G)
-               @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
-               @test g(a.elm-b.elm) == g(a.elm)-g(b.elm)
+               @test g(matrix(a)*matrix(b)) == g(matrix(a))*g(matrix(b))
+               @test g(matrix(a)-matrix(b)) == g(matrix(a))-g(matrix(b))
             end
          end
          p2 = next_prime(p)
@@ -167,7 +167,7 @@ end
 @testset "cyclotomic fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
@@ -198,7 +198,7 @@ end
 @testset "quadratic number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    @testset for N in [ 5, -3, 12, -8 ]
       F, z = quadratic_field(N)
@@ -226,7 +226,7 @@ end
 
    # absolute number fields
    R, x = polynomial_ring(QQ, "x")
-   pols = [ x^2 - 5, x^2 + 3, x^3 - 2,  # simple
+   pols = [ x - 1, x^2 - 5, x^2 + 3, x^3 - 2,  # simple
             [x^2 - 2, x^2 + 1] ]        # non-simple
    fields = Any[number_field(pol)[1] for pol in pols]
 
@@ -256,7 +256,7 @@ end
    end
 
    # an application
-   K = fields[4]
+   K = fields[5]
    a, b = gens(K)
    M1 = 1/a*matrix(K, [1 1; 1 -1])
    M2 = matrix(K, [1 0 ; 0 b])

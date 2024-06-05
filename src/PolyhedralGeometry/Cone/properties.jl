@@ -7,7 +7,7 @@
 rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
   lineality_dim(C) == 0 ? _rays(as, C) : _empty_subobjectiterator(as, C)
 _rays(as::Type{RayVector{T}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _ray_cone, _number_of_rays(C))
+  SubObjectIterator{as}(C, _ray_cone, _n_rays(C))
 
 _ray_cone(U::Type{RayVector{T}}, C::Cone{T}, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(C), view(pm_object(C).RAYS, i, :))::U
@@ -21,9 +21,15 @@ rays(::Type{<:RayVector}, C::Cone{T}) where {T<:scalar_types} = rays(RayVector{T
 _rays(::Type{<:RayVector}, C::Cone{T}) where {T<:scalar_types} = _rays(RayVector{T}, C)
 
 @doc raw"""
-    rays(C::Cone)
+    rays([as::Type{T} = RayVector,] C::Cone)
 
-Return the rays of `C`.
+Return the rays of `C` in the format defined by `as`. The rays are defined to be the
+one-dimensional faces, so if `C` has lineality, there are no rays.
+
+See also [`rays_modulo_lineality`](@ref).
+
+Optional arguments for `as` include
+* `RayVector`.
 
 # Examples
 Here a cone is constructed from three rays. Calling `rays` reveals that one of
@@ -51,13 +57,21 @@ julia> rays(P)
  [1, 0]
  [1, 3//2]
 
-julia> matrix(QQ, rays(P))
+julia> matrix(QQ, rays(RayVector, P))
 [1      0]
 [1   3//2]
 
 julia> matrix(ZZ, rays(P))
 [1   0]
 [2   3]
+```
+A half-space has no rays:
+```
+julia> UH = cone_from_inequalities([-1 0 0])
+Polyhedral cone in ambient dimension 3
+
+julia> rays(UH)
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
 rays(C::Cone{T}) where {T<:scalar_types} = rays(RayVector{T}, C)
@@ -70,6 +84,8 @@ Return the rays of the cone of `C` up to lineality as a `NamedTuple` with two
 iterators. If `C` has lineality `L`, then the iterator `rays_modulo_lineality`
 iterates over representatives of the rays of `C/L`. The iterator
 `lineality_basis` gives a basis of the lineality space `L`.
+
+See also [`rays`](@ref) and [`lineality_space`](@ref).
 
 # Examples
 For a pointed cone, with two generators, we get the usual rays:
@@ -155,7 +171,7 @@ RayVector{QQFieldElem}[[1, 0, 0], [0, 1, 0]]
 """
 function faces(C::Cone{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(C) - 1 &&
-    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, nfacets(C))
+    return SubObjectIterator{Cone{T}}(C, _face_cone_facet, n_facets(C))
   n = face_dim - length(lineality_space(C))
   n < 1 && return nothing
   return SubObjectIterator{Cone{T}}(
@@ -212,7 +228,7 @@ _incidencematrix(::Val{_face_cone_facet}) = _ray_indices
 ## Scalar properties
 ###############################################################################
 @doc raw"""
-    number_of_facets(C::Cone)
+    n_facets(C::Cone)
 
 Return the number of facets of a cone `C`.
 
@@ -222,14 +238,14 @@ The cone over a square at height one has four facets.
 julia> C = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
 Polyhedral cone in ambient dimension 3
 
-julia> number_of_facets(C)
+julia> n_facets(C)
 4
 ```
 """
-number_of_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
+n_facets(C::Cone) = size(pm_object(C).FACETS, 1)::Int
 
 @doc raw"""
-    number_of_rays(C::Cone)
+    n_rays(C::Cone)
 
 Return the number of rays of `C`.
 
@@ -240,12 +256,12 @@ julia> R = [1 0; 0 1; 0 2];
 
 julia> PO = positive_hull(R);
 
-julia> number_of_rays(PO)
+julia> n_rays(PO)
 2
 ```
 """
-number_of_rays(C::Cone) = lineality_dim(C) == 0 ? _number_of_rays(C) : 0
-_number_of_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
+n_rays(C::Cone) = lineality_dim(C) == 0 ? _n_rays(C) : 0
+_n_rays(C::Cone) = size(pm_object(C).RAYS, 1)::Int
 
 @doc raw"""
     dim(C::Cone)
@@ -313,7 +329,7 @@ julia> f_vector(C)
  4
 
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> f_vector(square)
 2-element Vector{ZZRingElem}:
@@ -534,7 +550,7 @@ julia> f = facets(Halfspace, c)
 ```
 """
 facets(as::Type{<:Union{LinearHalfspace{T},Cone{T}}}, C::Cone{T}) where {T<:scalar_types} =
-  SubObjectIterator{as}(C, _facet_cone, nfacets(C))
+  SubObjectIterator{as}(C, _facet_cone, n_facets(C))
 
 _facet_cone(
   U::Type{LinearHalfspace{T}}, C::Cone{T}, i::Base.Integer
@@ -645,11 +661,12 @@ _hilbert_generator(
   T::Type{PointVector{ZZRingElem}}, C::Cone{QQFieldElem}, i::Base.Integer
 ) = point_vector(ZZ, view(pm_object(C).HILBERT_BASIS_GENERATORS[1], i, :))::T
 
-_generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) = if homogenized
-  homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0)
-else
-  pm_object(C).HILBERT_BASIS_GENERATORS[1]
-end
+_generator_matrix(::Val{_hilbert_generator}, C::Cone; homogenized=false) =
+  if homogenized
+    homogenize(pm_object(C).HILBERT_BASIS_GENERATORS[1], 0)
+  else
+    pm_object(C).HILBERT_BASIS_GENERATORS[1]
+  end
 
 _matrix_for_polymake(::Val{_hilbert_generator}) = _generator_matrix
 

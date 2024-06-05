@@ -275,7 +275,7 @@ julia> ZZ(1)^(-2)
 
 !!! note
     In Julia `2^-2` is called a literal power. The value returned is a
-    floating point value. To get behaviour that agrees with OSCAR, one can
+    floating point value. To get behavior that agrees with OSCAR, one can
     write `2^Int(-2)`.
 
 The following is allowed for convenience.
@@ -643,7 +643,7 @@ ERROR: 7 is not a factor of -1 * 5 * 2^2 * 3
 !!! note
     The functions in this section that take `Int` arguments will return an
     `Int`, which may overflow or throw an error. Use the `ZZRingElem` versions if
-    this is not the desired behaviour.
+    this is not the desired behavior.
 
 ### Factorial
 
@@ -716,7 +716,7 @@ julia> binomial(ZZ(72), ZZ(15))
 
 ### Integer partitions
 
-* `number_of_partitions(n::Int) -> Int`
+* `number_of_partitions(n::Int) -> ZZRingElem`
 * `number_of_partitions(n::ZZRingElem) -> ZZRingElem`
 
 Return the number of integer partitions ``p(n)`` of ``n``, i.e. the number
@@ -753,7 +753,7 @@ julia> fibonacci(-2)
 !!! note
     The functions in this section that take `Int` arguments will return a
     `Int`, which may overflow or throw an error. Use the `ZZRingElem` versions if
-    this is not the desired behaviour.
+    this is not the desired behavior.
 
 ### Moebius mu function
 

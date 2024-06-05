@@ -27,7 +27,7 @@ function multiplicative_jordan_decomposition(x::MatrixGroupElem)
    alpha = valuation(a,p)
    m = div(a, p^alpha)
    k = crt(ZZRingElem(0),ZZRingElem(p^alpha),ZZRingElem(1),ZZRingElem(m))
-#   a,b = multiplicative_jordan_decomposition(x.elm)
+#   a,b = multiplicative_jordan_decomposition(matrix(x))
    return x^k, x^(a+1-k)
 end
 
@@ -98,7 +98,7 @@ function pol_elementary_divisors(A::MatElem{T}) where T
    return V
 end
 
-pol_elementary_divisors(x::MatrixGroupElem) = pol_elementary_divisors(x.elm)
+pol_elementary_divisors(x::MatrixGroupElem) = pol_elementary_divisors(matrix(x))
 
 """
     generalized_jordan_block(f::T, n::Int) where T<:PolyRingElem
@@ -138,12 +138,12 @@ function is_conjugate_with_data_in_gl_or_sl(G::MatrixGroup, x::MatrixGroupElem, 
    (isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)) ||
    throw(ArgumentError("Group must be general or special linear group"))
 
-   Jx,ax = jordan_normal_form(x.elm)
-   Jy,ay = jordan_normal_form(y.elm)
+   Jx,ax = jordan_normal_form(matrix(x))
+   Jy,ay = jordan_normal_form(matrix(y))
    if Jx != Jy return false, nothing end
    z = inv(ax)*ay
    if G.descr==:GL return true, G(z) end
-   ED = pol_elementary_divisors(x.elm)
+   ED = pol_elementary_divisors(matrix(x))
    l = gcd([k[2] for k in ED])
    l = gcd(l, order(G.ring)-1)
    d = det(z)

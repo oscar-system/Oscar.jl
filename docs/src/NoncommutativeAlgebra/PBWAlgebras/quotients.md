@@ -7,7 +7,7 @@ end
 
 # GR-Algebras: Quotients of PBW-Algebras
 
-In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR
+In analogy to the [affine algebras](@ref affine_algebras) section in the [commutative algebra](@ref commutative_algebra) chapter, we describe OSCAR
 functionality for dealing with quotients of PBW-algebras modulo two-sided ideals.
 
 !!! note
@@ -16,7 +16,7 @@ functionality for dealing with quotients of PBW-algebras modulo two-sided ideals
 
 ## Types
 
-GR-algebras are modelled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
+GR-algebras are modeled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgQuoElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the GR-algebra
 is defined (the type `S` is added for internal use).
 
@@ -38,7 +38,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra
+exterior_algebra
 ```
 
 ## Data Associated to Affine GR-Algebras

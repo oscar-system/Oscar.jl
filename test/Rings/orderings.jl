@@ -168,7 +168,8 @@ end
                    (leading_coefficient(f), leading_exponent(f))
 
    Fp = GF(7)
-   R, (x, y, z) = polynomial_ring(Fp, 3, ordering = :deglex)
+   # Explicitly using an ordering different from the internal_ordering
+   R, (x, y, z) = polynomial_ring(Fp, 3, internal_ordering = :deglex)
    f = x*y + 5*z^3
    @test collect(monomials(f; ordering = lex(R))) == [ x*y, z^3 ]
    @test leading_monomial(f; ordering = lex(R)) == x*y
@@ -322,7 +323,7 @@ end
              negdeglex([x,y,s])*negdegrevlex([t,u]),
              negwdeglex([x,y,s],[1,2,3])*negwdegrevlex([t,u],[1,2]))
       @test O == monomial_ordering(R, singular(O))
-      @test O == monomial_ordering(R, ordering(singular_poly_ring(R, O)))
+      @test O == monomial_ordering(R, Singular.ordering(singular_poly_ring(R, O)))
    end
 
    @test_throws ErrorException monomial_ordering(R, Singular.ordering_lp(4))
@@ -354,7 +355,7 @@ end
    @test length(string(O4)) > 2
    @test string(singular(O4)) == "ordering_M([1 1 0 1 0; 0 -1 0 -1 0; 0 0 0 -1 0; 0 0 1 0 1; 0 0 0 0 -1])"
 
-   K = FreeModule(R, 4)
+   K = free_module(R, 4)
 
    O5 = invlex(gens(K))*degrevlex(gens(R))
    @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
@@ -420,4 +421,19 @@ end
    @test wdeglex([a, b], [1, 2]) == induce([a, b], wdeglex([x, y], [1, 2]))
    @test invlex([a, b])*neglex([c]) == induce([a, b, c], invlex([x, y])*neglex([z]))
    @test lex([a])*lex([b])*lex([c]) == induce([a, b, c], lex([x])*lex([y])*lex([z]))
+end
+
+@testset "Monomial Orderings comparison" begin
+  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  F = FreeMod(R, 2)
+  o = lex(gens(F))*lex(gens(R))
+  oo = lex(gens(F))*lex(gens(R))
+  @test o == oo
+  @test hash(o) == hash(oo)
+
+  F = FreeMod(R, 1)
+  o = lex(gens(F))*degrevlex(gens(R))
+  oo = degrevlex(gens(R))*invlex(gens(F))
+  @test o == oo
+  @test hash(o) == hash(oo)
 end

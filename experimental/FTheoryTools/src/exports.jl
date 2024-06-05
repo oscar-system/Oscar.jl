@@ -34,7 +34,9 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export classes_of_model_sections
 export coordinate_ring
+export defining_classes
 export defining_section_parametrization
 export discriminant
 export display_all_literature_models
@@ -82,9 +84,6 @@ export has_zero_section
 export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
-export hypersurface_model_over_del_pezzo_surface
-export hypersurface_model_over_hirzebruch_surface
-export hypersurface_model_over_projective_space
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_partially_resolved
@@ -105,6 +104,8 @@ export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
+export put_over_concrete_base
+export QSMModel
 export related_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
@@ -150,6 +151,7 @@ export set_zero_section
 export singular_loci
 export su5_tate_model_over_arbitrary_3d_base
 export su5_weierstrass_model_over_arbitrary_3d_base
+export tate_ideal_sheaf
 export tate_polynomial
 export tate_section_a1
 export tate_section_a2
@@ -157,6 +159,7 @@ export tate_section_a3
 export tate_section_a4
 export tate_section_a6
 export tune
+export weierstrass_ideal_sheaf
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface
 export weierstrass_model_over_hirzebruch_surface

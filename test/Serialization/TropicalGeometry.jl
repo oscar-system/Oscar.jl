@@ -3,7 +3,7 @@
         @testset "Tropical Curves" begin
             @testset "Abstract" begin
                 Sigma = graph_from_adjacency_matrix(Undirected,[0 1 1; 1 0 1; 1 1 0]);
-                abs_TC = tropical_curve(Sigma, ones(ZZRingElem, nedges(Sigma)))
+                abs_TC = tropical_curve(Sigma, ones(ZZRingElem, n_edges(Sigma)))
                 test_save_load_roundtrip(path, abs_TC) do loaded
                     @test graph(loaded) == graph(abs_TC)
                 end
@@ -16,7 +16,7 @@
                 TC = tropical_curve(PC)
                 test_save_load_roundtrip(path, TC) do loaded
                     loaded_PC = polyhedral_complex(loaded)
-                    @test nrays(PC) == nrays(loaded_PC)
+                    @test n_rays(PC) == n_rays(loaded_PC)
                     @test number_of_maximal_polyhedra(PC) == number_of_maximal_polyhedra(loaded_PC)
                     @test dim(PC) == dim(loaded_PC)
                 end

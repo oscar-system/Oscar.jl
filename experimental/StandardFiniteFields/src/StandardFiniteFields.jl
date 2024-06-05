@@ -451,7 +451,7 @@ end
 @doc raw"""
     standard_finite_field(p::Union{ZZRingElem, Integer}, n::Union{ZZRingElem, Integer}) -> FinField
 
-Returns a finite field of order $p^n$.
+Return a finite field of order $p^n$.
 
 # Examples
 ```jldoctest

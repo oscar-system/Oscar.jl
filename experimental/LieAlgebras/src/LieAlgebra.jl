@@ -303,7 +303,8 @@ function center(L::LieAlgebra)
     end
   end
 
-  c_dim, c_basis = left_kernel(mat)
+  c_basis = kernel(mat; side=:left)
+  c_dim = nrows(c_basis)
   return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
@@ -322,7 +323,8 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
     end
   end
 
-  c_dim, c_basis = left_kernel(mat)
+  c_basis = kernel(mat; side=:left)
+  c_dim = nrows(c_basis)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
 
@@ -475,7 +477,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(gapL::GAP.GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
+    lie_algebra(gapL::GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
 
 Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
 or by `x_i` by default.
@@ -485,7 +487,7 @@ properties of `gapL`, in particular, whether GAP knows about a matrix representa
 If `cached` is `true`, the constructed Lie algebra is cached.
 """
 function lie_algebra(
-  gapL::GAP.GapObj,
+  gapL::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
   cached::Bool=true,
 )

@@ -32,7 +32,7 @@ end
   I2 = ideal(S, [x, z])
   I3 = ideal(S, [y, z])
   I = I1*I2*I3
-  II = simplify!(IdealSheaf(IP2_proj, I))
+  II = simplify(IdealSheaf(IP2_proj, I))
   bl = blow_up(II)
   X = domain(projection(bl))
   set_attribute!(X, :is_irreducible, true)
@@ -78,7 +78,7 @@ end
 
   Oscar.inherit_gluings!(dom_cov, default_covering(X))
   Oscar.inherit_gluings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end
@@ -101,7 +101,7 @@ end
 
   Oscar.inherit_gluings!(dom_cov, default_covering(X))
   Oscar.inherit_gluings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end

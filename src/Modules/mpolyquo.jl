@@ -20,7 +20,7 @@
   g = hom(F, M, phi.(f.(gens(domain(f)))))
   K, inc = kernel(g)
   tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), tr.(gens(K)))
+  KK, inc2 = sub(domain(f), unique!(filter!(!iszero, tr.(gens(K)))))
   return KK, inc2
 end
 
@@ -44,6 +44,7 @@ end
 # Methods which should not be necessary, but the stuff doesn't work,   #
 # unless we implement them.                                            #
 ########################################################################
+#=
 @attr function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
@@ -63,6 +64,7 @@ end
   KK, inc2 = sub(domain(f), tr.(gens(K)))
   return KK, inc2
 end
+=#
 
 function coordinates(
     v::FreeModElem{T}, 
@@ -148,6 +150,18 @@ end
   FP = FreeMod(P, rank(F))
   IFP, inc = I*FP
   M, p = quo(FP, IFP)
+  # Manually set a groebner basis
+  # This is brittle! Please improve!
+  J = ideal(P, gens(groebner_basis(I))) # a groebner basis has already been computed.
+  JFP, _ = J*FP
+  G, _ = quo(FP, JFP)
+  gb = G.quo.gens
+  ord = default_ordering(M.quo)
+  gb.ordering = ord
+  singular_assure(gb)
+  gb.isGB = true
+  gb.S.isGB = true
+  M.quo.groebner_basis[ord] = gb
   return M
 end
 

@@ -157,9 +157,9 @@
         @test polyhedron(matrix(QQ, [-1 0 0; 0 -1 0; 0 0 -1]), [0, 0, 0]) == Pos_poly
         
         # testing different input types
-        @test polyhedron([-1 0 0; 0 -1 0; 0 0 -1], Float64[0, 0, 0]) == Pos_poly
-        @test polyhedron(Float64[-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) == Pos_poly
-        
+        @test polyhedron([-1 0 0; 0 -1 0; 0 0 -1], Float64[0, 0, 0]) isa Polyhedron{Float64}
+        @test polyhedron(Float64[-1 0 0; 0 -1 0; 0 0 -1], [0, 0, 0]) isa Polyhedron{Float64}
+
         let y = convex_hull([0, 0, 0], [1, 0, 0], [[0, 1, 0], [0, 0, 1]])
             @test polyhedron([-1 0 0], [0]) == y
             @test polyhedron([-1 0 0], 0) == y

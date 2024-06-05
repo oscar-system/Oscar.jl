@@ -33,7 +33,7 @@ julia> reduce(6*x, [5*x, 2*x])
 0
 ```
 
-The notion of *leading ideals*  as formulated in the previous section and the definitions of
+The notion of *leading ideals*  as formulated in [the previous section](@ref gb_fields) and the definitions of
 standard bases (Gröbner bases) carry over: A *standard basis* for an ideal $I\subset K[x]_>$
 with respect to $>$ is a finite subset $G$ of $I$ such that $\text{L}_>(G) = \text{L}_>(I)$ (a
 standard basis with respect to a global monomial ordering is also called a *Gröbner basis*).

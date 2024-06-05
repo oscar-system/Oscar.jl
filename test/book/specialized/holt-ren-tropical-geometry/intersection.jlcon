@@ -1,0 +1,34 @@
+julia> K,t = rational_function_field(QQ,"t");
+
+julia> nu = tropical_semiring_map(K,t,max);
+
+julia> R,(x,y) = K["x","y"];
+
+julia> f = t^3+x+t^2*y+x*(x^2+y^2)
+x^3 + x*y^2 + x + t^2*y + t^3
+
+julia> g = t^4+t^4*x+t^2*y+y*(x^2+y^2)
+x^2*y + t^4*x + y^3 + t^2*y + t^4
+
+julia> TropHf = tropical_hypersurface(f,nu)
+Max tropical hypersurface
+
+julia> TropHg = tropical_hypersurface(g,nu)
+Max tropical hypersurface
+
+julia> TropV = stable_intersection(TropHf,TropHg)
+Max tropical variety
+
+julia> vertices(TropV)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0]
+ [0, -4]
+ [-3, -1]
+ [-3, -2]
+
+julia> multiplicities(TropV) # same ordering as above
+4-element Vector{ZZRingElem}:
+ 4
+ 2
+ 2
+ 1

@@ -34,7 +34,7 @@ Finally, we refer to
 and regard $M$ as a submodule of that ambient module, embedded in the natural way.
 
 !!! note
-    Recall from the section on free modules that by a free $R$-module we mean a free
+    Recall from the section on [free modules](@ref free_modules) that by a free $R$-module we mean a free
     module of type $R^p$ , where we think of $R^p$ as a free module with a given
     basis, namely the basis of standard unit vectors. Accordingly, elements of free modules
     are represented by coordinate vectors, and homomorphisms between free modules by
@@ -52,7 +52,7 @@ and regard $M$ as a submodule of that ambient module, embedded in the natural wa
 All OSCAR types for the finitely presented modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 Graded or not, the subquotients belong to the abstract subtype `AbstractSubQuo{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
+they are modeled as objects of the concrete type `SubquoModule{T} <: AbstractSubQuo{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -359,11 +359,11 @@ intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ## Submodules and Quotients
 
 ```@docs
-sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}) where T
 ```
 
 ```@docs
-quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, task::Symbol = :with_morphism) where T
+quo(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
 ```
 
 ## Homomorphisms From Subqotients

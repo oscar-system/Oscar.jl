@@ -1,0 +1,12 @@
+julia> A = [1 1 1 1 1 1; 2 3 5 7 11 13; 13 8 5 3 2 1];
+
+julia> cone_list, weight_list = get_trop_A_disc(A);
+
+julia> Delta = get_polytope_from_cycle(cone_list, weight_list);
+
+julia> @time mons, coeffs = compute_A_discriminant(A,Delta,GF(101));
+Collect all lattice points.
+Sample 2754.0 points from Discriminant
+Construct Vandermonde matrix.
+Compute coefficients of the Discriminant.
+ 97.247222 seconds (210.17 M allocations: 17.505 GiB, 6.51% gc time, 0.00% compilation time)

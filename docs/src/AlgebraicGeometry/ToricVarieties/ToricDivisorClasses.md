@@ -15,7 +15,7 @@ Toric divisor classes are equivalence classes of Weil divisors modulo linear equ
 ### General constructors
 
 ```@docs
-toric_divisor_class(v::NormalToricVarietyType, class::GrpAbFinGenElem)
+toric_divisor_class(v::NormalToricVarietyType, class::FinGenAbGroupElem)
 toric_divisor_class(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <: IntegerUnion}
 toric_divisor_class(td::ToricDivisor)
 ```

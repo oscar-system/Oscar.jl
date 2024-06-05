@@ -287,11 +287,6 @@ end
 
 function _free_show(io::IO, C::AbsHyperComplex)
   # copied and adapted from src/Modules/UngradedModules/FreeResolutions.jl
-  Cn = get_attribute(C, :name)
-  if Cn === nothing
-    Cn = "F"
-  end
-
   name_mod = String[]
   rank_mod = Int[]
 
@@ -299,23 +294,18 @@ function _free_show(io::IO, C::AbsHyperComplex)
   arr = ("<--", "--")
 
   R = Nemo.base_ring(C[first(rng)])
-  R_name = get_attribute(R, :name)
-  if R_name === nothing
-    R_name = AbstractAlgebra.find_name(R)
-    if R_name === nothing
-      R_name = "$R"
-    end
+  R_name = AbstractAlgebra.get_name(R)
+  if isnothing(R_name)
+    R_name = "$R"
   end
  
   for i=reverse(rng)
     M = C[i]
-    if get_attribute(M, :name) !== nothing
-      push!(name_mod, get_attribute(M, :name))
-    elseif AbstractAlgebra.find_name(M) !== nothing
-      push!(name_mod, AbstractAlgebra.find_name(M) )
-    else
-      push!(name_mod, "$R_name^$(rank(M))")
+    M_name = AbstractAlgebra.get_name(M)
+    if isnothing(M_name)
+      M_name = "$R_name^$(rank(M))"
     end
+    push!(name_mod, M_name)
     push!(rank_mod, rank(M))
   end
 

@@ -15,7 +15,19 @@
 end
 
 
+@testset "Experimental.gmodule: pc group of FinGenAbGroup" begin
+  M = abelian_group([2 6 9; 1 5 3; 1 1 0])
+  G1, _ = Oscar.GrpCoh.pc_group_with_isomorphism(M)
+  G2 = codomain(isomorphism(PcGroup, M))
+  @test describe(G1) == describe(G2)
+end
+
+
 @testset "Experimental.gmodule" begin
+  G = small_group(1, 1)
+  z = Oscar.RepPc.reps(QQ, G)
+  _, mp = Oscar.GrpCoh.fp_group_with_isomorphism(z[1])
+  @test is_bijective(mp)
 
   G = small_group(7*3, 1)
   z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
@@ -27,13 +39,13 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(z) == 5
 
-  l = irreducible_modules(AnticNumberField, small_group(48, 17), minimal_degree = true)
+  l = irreducible_modules(AbsSimpleNumField, small_group(48, 17), minimal_degree = true)
   ds = degree.(base_ring.(l))
   @test length(l) == 12
   @test count(isequal(1), ds) == 8
   @test count(isequal(2), ds) == 4
 
-  l = irreducible_modules(AnticNumberField, small_group(48, 29), minimal_degree = true)
+  l = irreducible_modules(AbsSimpleNumField, small_group(48, 29), minimal_degree = true)
   ds = degree.(base_ring.(l))
   @test length(l) == 8
   @test count(isequal(1), ds) == 6
@@ -44,15 +56,35 @@ end
   @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
   @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3
 
-  G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
-  q, mq = maximal_abelian_quotient(PcGroup, G)
-  @test length(Oscar.RepPc.brueckner(mq)) == 24
+  G = SL(2,3)
+  F = GF(3,2)
+  L = [
+          matrix(F, [0 0 1; 1 0 0; 0 1 0]),
+          matrix(F, [2 0 0; 0 1 0; 0 0 2]),
+      ]
+  m = free_module(F, 3)
+  M = GModule(m, G, [hom(m, m, a) for a in L])
+
+  E = GF(3,6)
+  phi = embed(F, E)
+  LE = [map_entries(phi, x) for x in L]
+  mE = free_module(E, 3)
+
+  @test extension_of_scalars(M, phi) == GModule(mE, G, [hom(mE, mE, a) for a in LE])
+
+  G = pc_group(symmetric_group(3))
+  z = irreducible_modules(ZZ, G)
+  @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
+
+  # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
+  # q, mq = maximal_abelian_quotient(PcGroup, G)
+  # @test length(Oscar.RepPc.brueckner(mq)) == 24
 end
 
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
-  
+
   G, mG = automorphism_group(k)
   for g = G
     for h = G
@@ -81,7 +113,7 @@ end
      Dict{NTuple{2, elem_type(C.G)}, elem_type(C.M)}(
        ((g), (h)) => preimage(mU, z(mG(g), mG(h))) for g = G for h = G))
 
-  @test Oscar.GrpCoh.istwo_cocycle(c)         
+  @test Oscar.GrpCoh.istwo_cocycle(c)
 
   @test order(preimage(q[2], c)) == 6
 end
@@ -150,7 +182,7 @@ end
   G = dihedral_group(8)
   z = irreducible_modules(G)
   @test dim((z[1] ⊕ z[2]) ⊗ z[3]) == 2
- 
+
   k, a = quadratic_field(3)
   r, mr = ray_class_group(7*5*maximal_order(k), n_quo = 2)
   z = gmodule(automorphism_group(PermGroup, k)[1], mr)

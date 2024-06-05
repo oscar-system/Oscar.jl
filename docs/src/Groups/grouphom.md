@@ -80,7 +80,7 @@ julia> x^f
 
 A sort of "inverse" of the evaluation is the following
 ```@docs
-haspreimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
+has_preimage_with_preimage(f::GAPGroupHomomorphism, x::GAPGroupElem; check::Bool = true)
 ```
   **Example:**
 ```jldoctest
@@ -90,12 +90,9 @@ julia> f=hom(S,S,x->x^S[1]);
 
 julia> x=cperm(S,[1,2]);
 
-julia> haspreimage(f,x)
+julia> has_preimage_with_preimage(f,x)
 (true, (1,4))
 ```
-
-!!! warning
-    Do not confuse `haspreimage` with the function `has_preimage`, which works on variable of type `GrpGenToGrpGenMor`.
 
 ## Operations on homomorphisms
 
@@ -153,6 +150,15 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 
 ## Group isomorphisms
 
+For all functions that return group isomorphisms,
+we have the following rule about the direction of the result.
+
+If two groups are given as inputs then the domain of the returned isomorphism
+is the first given group and the codomain is the second.
+
+If one group is given then the domain of the result is this group,
+and the codomain is some new group constructed by the function.
+
 ```@docs
 is_isomorphic(G::GAPGroup, H::GAPGroup)
 is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
@@ -160,8 +166,8 @@ isomorphism(G::GAPGroup, H::GAPGroup)
 ```
 
 ```@docs
-isomorphism(::Type{T}, G::GAPGroup) where T <: Union{FPGroup, PcGroup, PermGroup}
-isomorphism(::Type{GrpAbFinGen}, G::GAPGroup)
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
+isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```
 

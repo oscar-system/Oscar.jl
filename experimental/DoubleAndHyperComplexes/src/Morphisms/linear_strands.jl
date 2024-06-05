@@ -79,7 +79,7 @@ function linear_strand(C::AbsHyperComplex, degree::Int=0)
   return result, result.map_to_original
 end
 
-function linear_strand(C::AbsHyperComplex, g::GrpAbFinGenElem)
+function linear_strand(C::AbsHyperComplex, g::FinGenAbGroupElem)
   return linear_strand(C, g[1])
 end
 

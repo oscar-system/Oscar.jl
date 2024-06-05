@@ -114,9 +114,70 @@ end
 end
 
 @testset "toric divisors to weil divisors" begin
-  IP = weighted_projective_space(NormalToricVariety, [3, 4, 23])
+  IP = weighted_projective_space(NormalToricVariety, [3, 2, 5])
   w = canonical_divisor(IP)
-  D = Oscar.Oscar.underlying_divisor(w; check=true)
+  D = Oscar.underlying_divisor(w; check=true)
+  D2 = Oscar.underlying_divisor(w; algorithm=:via_polymake, check=true)
+  D3 = Oscar.underlying_divisor(w; algorithm=:via_oscar, check=true)
+  @test D == D2 == D3
+
   @test w == forget_toric_structure(w)
-  @test w + D == 2*w
+  @test w + D == 2*Oscar.underlying_divisor(w)
+
+  prim = Oscar._torusinvariant_weil_divisors(IP; check=true)
+  # Delete the cache manually
+  delete!(IP.__attrs, :_torusinvariant_weil_divisors)
+  prim2 = Oscar._torusinvariant_weil_divisors(IP; check=true, algorithm=:via_oscar)
+  @test prim == prim2
+  @test prim[1] !== prim2[1]
+
+  D = WeilDivisor(Oscar._ideal_sheaf_via_polymake(IP, ZZ.([2, 3, 7])))
+  D2 = 2 * prim[1] + 3 * prim[2] + 7 * prim[3]
+  
+  @test is_effective(D)
+  @test is_effective(D2)
+
+  #@test D == D2 # Test takes too long
+  IP = projective_space(NormalToricVariety, 1)
+  w = canonical_divisor(IP)
+  K0 = Oscar.underlying_divisor(w, algorithm=:via_polymake)
+  delete!(w.__attrs, :underlying_divisor)
+  K1 = Oscar.underlying_divisor(w, algorithm=:direct)
+  delete!(w.__attrs, :underlying_divisor)
+  K2 = Oscar.underlying_divisor(w, algorithm=:via_oscar)
+  delete!(w.__attrs, :underlying_divisor)
+  
+  @test K1 == K2
+  @test K1 == K0
+  @test K2 == K0
+  
+  @test w == Oscar.underlying_divisor(w)
 end
+
+@testset "general ideal sheaves from ideals in cox ring" begin
+  c = cone([1 1; -1 1]) 
+  ntv = normal_toric_variety(c) 
+  x1, x2 = gens(cox_ring(ntv)) 
+  my_ideal = ideal([x1*x2]) 
+  is_complete(ntv) 
+  has_torusfactor(ntv) 
+  ideal_sheaf(ntv, my_ideal)
+
+  p231 = weighted_projective_space(NormalToricVariety, [2,3,1]) 
+  x1, x2, x3 = gens(cox_ring(p231)) 
+  my_ideal = ideal([x1*x2]) 
+  II = ideal_sheaf(p231, my_ideal) 
+  JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(p231, my_ideal)
+  @test II == JJ
+  pr = blow_up(p231, ideal([x1, x2]))
+  pullback(pr, II)
+  @test is_subset(total_transform(pr, II), strict_transform(pr, II))
+
+  X = p231*p231
+  a, b, c, x, y, z = gens(cox_ring(X))
+  I = ideal(cox_ring(X), [a^3 + b^2 + c^2*a^2, a*x, a*y^2 - 25*c^2*z^6])
+  II = IdealSheaf(X, I)
+  JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(X, I);
+  @test II == JJ
+end
+

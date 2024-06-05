@@ -15,10 +15,10 @@ end
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QQAbField
-    @test elem_type(K) === QQAbElem{nf_elem}
-    @test elem_type(typeof(K)) === QQAbElem{nf_elem}
-    @test parent_type(QQAbElem{nf_elem}) === QQAbField{AnticNumberField}
-    @test parent_type(one(K)) === QQAbField{AnticNumberField}
+    @test elem_type(K) === QQAbElem{AbsSimpleNumFieldElem}
+    @test elem_type(typeof(K)) === QQAbElem{AbsSimpleNumFieldElem}
+    @test parent_type(QQAbElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
+    @test parent_type(one(K)) === QQAbField{AbsSimpleNumField}
 
     a = @inferred K()
     @test a isa QQAbElem
@@ -364,13 +364,13 @@ end
   @testset "Syntax to create number fields from QabElem" begin
     K, z = abelian_closure(QQ)
     F, a = QQ[z(5)]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 4
     F, a = QQ[[z(5), z(3)]]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 8
     F, a = QQ[z(5), z(3)]
-    @test F isa AnticNumberField
+    @test F isa AbsSimpleNumField
     @test dim(F) == 8
   end
 

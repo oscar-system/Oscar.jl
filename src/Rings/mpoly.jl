@@ -20,21 +20,6 @@ function _variables_for_singular(n::Int)
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-function number_of_generators(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem}
-  return number_of_generators(base_ring(F))
-end
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
-  return F(gen(base_ring(F)))
-end
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  return F(gen(base_ring(F), i))
-end
-
-function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
-  return map(F, gens(base_ring(F)))
-end
 
 ######################################################################
 # pretty printing for iJulia notebooks..
@@ -78,12 +63,70 @@ using .Orderings
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-function default_ordering(R::MPolyRing)
-  return get_attribute!(R, :default_ordering) do
-    degrevlex(R)
-  end
+@doc raw"""
+    default_ordering(R::MPolyRing)
+
+Return the monomial ordering that is used for computations with ideals in `R`
+if no other ordering is specified -- either directly by the user or by
+requirements of a specific algorithm.
+"""
+@attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyRing}
+  return degrevlex(R)
 end
 
+# Only for internal use
+function set_default_ordering!(R::MPolyRing, o::MonomialOrdering)
+  @assert R === base_ring(o)
+  set_attribute!(R, :default_ordering, o)
+  return nothing
+end
+
+@doc raw"""
+    with_ordering(f, R::MPolyRing, o::MonomialOrdering)
+
+Use the monomial ordering `o` for computations in `R` during the execution of
+`f`.
+This may be used with `do` block syntax, see the example.
+
+This functionality is meant for advanced users. In general it should not be
+necessary to explicitly set a monomial ordering.
+Further, there is no guarantee that `o` is actually used. For example, if an
+algorithm requires an elimination ordering, `o` might be ignored.
+
+# Example
+```jldoctest withordering
+julia> R, (x, y, z) = QQ["x", "y", "z"];
+
+julia> f = x + y^2;
+
+julia> I = ideal(R, [y^2 - z, x - z^2]);
+
+julia> normal_form(f, I) # this uses degrevlex
+x + z
+
+julia> with_ordering(R, lex(R)) do
+           # this uses lex
+           normal_form(f, I)
+       end
+z^2 + z
+```
+Notice that in this small example we could have achieved the same by using the
+keyword argument `ordering`:
+```jldoctest withordering
+julia> normal_form(f, I, ordering = lex(R))
+z^2 + z
+```
+"""
+function with_ordering(f, R::MPolyRing, o::MonomialOrdering)
+  old = default_ordering(R)
+  set_default_ordering!(R, o)
+  x = try
+    f()
+  finally
+    set_default_ordering!(R, old)
+  end
+  return x
+end
 
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
@@ -158,7 +201,7 @@ mutable struct IdealGens{S}
       r.isGB = S.isGB
       r.isReduced = isReduced
       if T <: Union{MPolyRing, MPolyRingLoc}
-          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+          r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true
       return r
@@ -311,14 +354,14 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
 end
 
 @doc raw"""
-set_ordering(I::IdealGens, monord::MonomialOrdering)
+    set_ordering(I::IdealGens, monord::MonomialOrdering)
 
 Return an ideal generating system with an associated monomial ordering.
 
@@ -425,7 +468,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -544,7 +587,7 @@ function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = ordering(Rx),
+              ordering = internal_ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
@@ -560,7 +603,7 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
               ordering = ord,
@@ -613,7 +656,7 @@ Fields:
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(IdealGens(Ox, s))
     #=if s.isGB
-      ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      ord = monomial_ordering(Ox, Singular.ordering(base_ring(s)))
       r.ord = ord
       r.isGB = true
       r.gb[ord] = r.gens
@@ -727,15 +770,6 @@ end
 
 function oscar_assure(B::IdealGens)
   oscar_assure(B.gens)
-end
-
-function Base.copy(f::MPolyRingElem)
-    Ox = parent(f)
-    g = MPolyBuildCtx(Ox)
-    for (c,e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
-        push_term!(g, c, e)
-    end
-    return finish(g)
 end
 
 function map_entries(R, M::Singular.smatrix)
@@ -1242,7 +1276,3 @@ function hessian_matrix(f::MPolyRingElem)
 end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
-
-function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
-  set_attribute!(S, :default_ordering, ord)
-end

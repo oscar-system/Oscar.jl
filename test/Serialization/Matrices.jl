@@ -34,6 +34,17 @@ cases = [
           @test loaded == m
         end
       end
+
+      @testset "Sparse Matrices over $(case[1])" begin
+        m = sparse_matrix(case[1], case[2])
+        test_save_load_roundtrip(path, m) do loaded
+          @test loaded == m
+        end
+
+        test_save_load_roundtrip(path, m; params=parent(m)) do loaded
+          @test loaded == m
+        end
+      end
     end
   end
 end

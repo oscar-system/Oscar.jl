@@ -49,7 +49,7 @@ ambient_dim(SOP::SubdivisionOfPoints)
 is_regular(SOP::SubdivisionOfPoints)
 maximal_cells
 min_weights
-number_of_maximal_cells(SOP::SubdivisionOfPoints)
+n_maximal_cells(SOP::SubdivisionOfPoints)
 points(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
 secondary_cone
 ```

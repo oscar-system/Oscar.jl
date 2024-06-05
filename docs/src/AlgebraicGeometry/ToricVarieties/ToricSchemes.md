@@ -34,7 +34,7 @@ forget_toric_structure(X::NormalToricVariety)
 
 Please direct questions about this part of OSCAR to the following people:
 * [Martin Bies](https://martinbies.github.io/),
-* [Matthias Zach](https://www.mathematik.uni-kl.de/en/agag/people/members/seite).
+* [Matthias Zach](https://math.rptu.de/en/wgs/agag/people/members).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

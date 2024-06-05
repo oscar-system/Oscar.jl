@@ -9,11 +9,6 @@ Whereas tropical semirings in [MS15](@cite) and [Jos21](@cite) are extensions of
 
 ## Constructor
 Objects of type `TropicalSemiring`, as well as matrices and polynomials thereover, can be constructed as follows:
-
-!!! warning
-    OSCAR disables unicode by default, so zeroes of tropical semirings are printed as "infty" and "-infty" instead of using their proper unicode characters.  To enabled unicode in the current and future sessions, run `allow_unicode(true)`.
-
-
 ```@docs
 tropical_semiring()
 ```

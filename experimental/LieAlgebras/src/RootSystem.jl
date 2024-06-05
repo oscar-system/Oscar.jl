@@ -13,6 +13,7 @@ mutable struct RootSystem
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
+  type_ordering::Vector{Int}
 
   function RootSystem(mat::ZZMatrix)
     pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
@@ -28,50 +29,63 @@ mutable struct RootSystem
 end
 
 @doc raw"""
-    root_system(cartan_matrix::ZZMatrix; check::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{Int}; check::Bool=true) -> RootSystem
+    root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{Int}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
-Constructs the root system defined by the Cartan matrix.
+Construct the root system defined by the Cartan matrix.
 If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
+Passing `detect_type=false` will skip the detection of the root system type.
 """
-function root_system(cartan_matrix::ZZMatrix; check::Bool=true)
+function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
-  return RootSystem(cartan_matrix)
+  R = RootSystem(cartan_matrix)
+  detect_type &&
+    is_finite(weyl_group(R)) &&
+    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+  return R
 end
 
-function root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true)
-  return root_system(matrix(ZZ, cartan_matrix); check)
+function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
+  return root_system(matrix(ZZ, cartan_matrix); kwargs...)
 end
 
 @doc raw"""
     root_system(fam::Symbol, rk::Int) -> RootSystem
 
-Constructs the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
-  R = root_system(cartan; check=false)
-  R.type = [(fam, rk)]
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, [(fam, rk)])
   return R
 end
 
-function root_system(types::Tuple{Symbol,Int}...)
-  cartan = cartan_matrix(types...)
-  R = root_system(cartan; check=false)
-  R.type = collect(types)
+function root_system(type::Vector{Tuple{Symbol,Int}})
+  cartan = cartan_matrix(type)
+  R = root_system(cartan; check=false, detect_type=false)
+  set_root_system_type(R, type)
   return R
 end
 
-function Base.show(io::IO, ::MIME"text/plain", R::RootSystem)
+function root_system(type::Tuple{Symbol,Int}...)
+  return root_system(collect(type))
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", R::RootSystem)
+  @show_name(io, R)
+  @show_special(io, mime, R)
   io = pretty(io)
   println(io, "Root system defined by Cartan matrix")
   print(io, Indent())
-  show(io, MIME"text/plain"(), cartan_matrix(R))
+  show(io, mime, cartan_matrix(R))
   print(io, Dedent())
 end
 
 function Base.show(io::IO, R::RootSystem)
-  if get(io, :supercompact, false)
+  @show_name(io, R)
+  @show_special(io, R)
+  if is_terse(io)
     print(io, "Root system")
   else
     print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
@@ -85,7 +99,7 @@ end
 @doc raw"""
     cartan_matrix(R::RootSystem) -> ZZMatrix
 
-Returns the Cartan matrix defining `R`.
+Return the Cartan matrix defining `R`.
 """
 function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
@@ -100,10 +114,10 @@ This is a more efficient version for `coroots(R)[i]`.
 Also see: `coroots`.
 """
 function coroot(R::RootSystem, i::Int)
-  if i <= nposroots(R)
+  if i <= n_positive_roots(R)
     return positive_coroot(R, i)
   else
-    return negative_coroot(R, i - nposroots(R))
+    return negative_coroot(R, i - n_positive_roots(R))
   end
 end
 
@@ -127,18 +141,14 @@ end
 @doc raw"""
     fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
 
-Returns the fundamental weights corresponding to the `simple_roots` of `R`.
+Return the fundamental weights corresponding to the `simple_roots` of `R`.
 """
 function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
-function has_root_system_type(R::RootSystem)
-  return isdefined(R, :type)
-end
-
 function is_simple(R::RootSystem)
-  if has_root_system_type(R)
+  if is_finite(weyl_group(R))
     return length(root_system_type(R)) == 1
   end
   error("Not implemented") # TODO: implement is_simple
@@ -273,15 +283,35 @@ end
 @doc raw"""
     rank(R::RootSystem) -> Int
 
-Returns the rank of `R`, i.e. the number of simple roots.
+Return the rank of `R`, i.e. the number of simple roots.
 """
 function rank(R::RootSystem)
   return nrows(cartan_matrix(R))
 end
 
 function root_system_type(R::RootSystem)
-  @req has_root_system_type(R) "root system type not defined"
+  has_root_system_type(R) || error("Root system type not known and cannot be determined")
   return R.type
+end
+
+function root_system_type_with_ordering(R::RootSystem)
+  return R.type, R.type_ordering
+end
+
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+end
+
+function set_root_system_type(
+  R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
+)
+  R.type = type
+  R.type_ordering = collect(ordering)
+  return nothing
 end
 
 function root_system_type_string(R::RootSystem)
@@ -297,10 +327,10 @@ This is a more efficient version for `roots(R)[i]`.
 Also see: `roots`.
 """
 function root(R::RootSystem, i::Int)
-  if i <= nposroots(R)
+  if i <= n_positive_roots(R)
     return positive_root(R, i)
   else
-    return negative_root(R, i - nposroots(R))
+    return negative_root(R, i - n_positive_roots(R))
   end
 end
 
@@ -340,10 +370,6 @@ function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
 end
 
-function type(R::RootSystem)
-  return R.type
-end
-
 @doc raw"""
     simple_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -371,7 +397,7 @@ end
 @doc raw"""
     weyl_group(R::RootSystem) -> WeylGroup
 
-Returns the Weyl group of `R`.
+Return the Weyl group of `R`.
 """
 function weyl_group(R::RootSystem)
   return R.weyl_group::WeylGroup
@@ -380,7 +406,7 @@ end
 @doc raw"""
     weyl_vector(R::RootSystem) -> WeightLatticeElem
 
-Returns the Weyl vector $\rho$ of `R`, which is the sum of all fundamental weights,
+Return the Weyl vector $\rho$ of `R`, which is the sum of all fundamental weights,
 or half the sum of all positive roots.
 """
 function weyl_vector(R::RootSystem)
@@ -436,7 +462,7 @@ end
 @doc raw"""
     getindex(r::RootSpaceElem, i::Int) -> QQRingElem
 
-Returns the coefficient of the `i`-th simple root in `r`.
+Return the coefficient of the `i`-th simple root in `r`.
 """
 function Base.getindex(r::RootSpaceElem, i::Int)
   return coeff(r, i)
@@ -659,7 +685,7 @@ end
 @doc raw"""
     WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
 
-Returns the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
+Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
 """
 function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
@@ -700,9 +726,9 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
 end
 
 @doc raw"""
-  getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
+    getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
 
-Returns the coefficient of the `i`-th fundamental weight in `w`.
+Return the coefficient of the `i`-th fundamental weight in `w`.
 """
 function Base.getindex(w::WeightLatticeElem, i::Int)
   return coeff(w, i)
@@ -718,7 +744,7 @@ end
 @doc raw"""
     iszero(w::WeightLatticeElem) -> Bool
 
-Returns whether `w` is zero.
+Return whether `w` is zero.
 """
 function Base.iszero(w::WeightLatticeElem)
   return iszero(w.vec)
@@ -735,7 +761,7 @@ end
 @doc raw"""
     conjugate_dominant_weight(w::WeightLatticeElem) -> WeightLatticeElem
 
-Returns the unique dominant weight conjugate to `w`.
+Return the unique dominant weight conjugate to `w`.
 """
 function conjugate_dominant_weight(w::WeightLatticeElem)
   # conj will be the dominant weight conjugate to w
@@ -781,7 +807,7 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
 
   # reversing word means it is in short revlex normal form
   # and it is the element taking w to wt
-  return wt, weyl_group_elem(R, reverse!(word); normalize=false)
+  return wt, weyl_group(R)(reverse!(word); normalize=false)
 end
 
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
@@ -800,7 +826,7 @@ end
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
     
-Returns the `w` reflected at the `s`-th simple root.
+Return the `w` reflected at the `s`-th simple root.
 """
 function reflect(w::WeightLatticeElem, s::Int)
   return reflect!(deepcopy(w), s)

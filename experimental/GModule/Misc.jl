@@ -1,10 +1,46 @@
-Hecke.minpoly(a::qqbar) = minpoly(Hecke.Globals.Qx, a)
+module Misc
+using Oscar
+import Base: ==, parent
 
-function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
+export relative_field
+
+
+function primitive_element(a::Vector{QQBarFieldElem})
+  pe = a[1]
+  f = minpoly(pe)
+  Qx = parent(f)
+  for i = 2:length(a)
+    g = minpoly(a[i])
+    f = minpoly(pe)
+    k, _ = number_field(f, check = false, cached = false)
+    lf = collect(keys(factor(k, g).fac))
+    for j = 1:length(lf)
+      h = map_coefficients(x->Qx(x)(pe), lf[j])
+      if is_zero(h(a[i]))
+        d = degree(f) * degree(h)
+        mu = 0
+        while degree(minpoly(pe+mu*a[i])) != d
+          mu += 1
+          if mu > 10
+            error("too bad")
+          end
+        end
+        pe += mu*a[i]
+      end
+    end
+  end
+  return pe
+end
+
+function Hecke.number_field(::QQField, a::Vector{QQBarFieldElem}; cached::Bool = false)
+  return number_field(QQ, primitive_element(a))
+end
+
+function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   Qx = parent(k.pol)
-  function to_k(x::qqbar)
+  function to_k(x::QQBarFieldElem)
     if x == a
       return b
     end
@@ -13,8 +49,8 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
     pr = 10
     while true
       C = AcbField(pr)
-      ca = C(a)
-      lp = findall(i->contains_zero(Qx(i)(ca) - C(x)), r)
+      CalciumFieldElem = C(a)
+      lp = findall(i->contains_zero(Qx(i)(CalciumFieldElem) - C(x)), r)
       if length(lp) == 1
         return r[lp[1]]
       end
@@ -25,7 +61,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
       @assert pr < 2^16
     end
   end
-  function to_qqbar(x::nf_elem)
+  function to_qqbar(x::AbsSimpleNumFieldElem)
     return Qx(x)(a)
   end
   #TODO: make map canonical?
@@ -33,15 +69,10 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   return k, MapFromFunc(k, parent(a), to_qqbar, to_k)
 end
 
-Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
+Base.getindex(::QQField, a::QQBarFieldElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQBarFieldElem}) = number_field(QQ, a)
 
-function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
-  g = parent()
-  ccall((:fmpq_poly_get_numerator, Nemo.libflint), Cvoid, (Ref{ZZPolyRingElem}, Ref{QQPolyRingElem}), g, f)
-  return g
-end
-
-function cyclo_fixed_group_gens(a::nf_elem)
+function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
   C = parent(a)
   fl, f = Hecke.is_cyclotomic_type(C)
   @assert fl
@@ -112,7 +143,7 @@ function cyclo_fixed_group_gens(a::nf_elem)
   return gn
 end
 
-function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
+function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
   if length(A) == 0
     return [(1,1)]
   end
@@ -148,3 +179,191 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   end
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
+
+
+#############################################################################
+##
+## functions that will eventually get defined in Hecke.jl,
+## and then should get removed here
+
+function Oscar.dual(h::Map{FinGenAbGroup, FinGenAbGroup})
+  A = domain(h)
+  B = codomain(h)
+  @assert is_free(A) && is_free(B)
+  return hom(B, A, transpose(h.map))
+end
+
+function Oscar.dual(h::Map{<:AbstractAlgebra.FPModule{ZZRingElem}, <:AbstractAlgebra.FPModule{ZZRingElem}})
+  A = domain(h)
+  B = codomain(h)
+  @assert is_free(A) && is_free(B)
+  return hom(B, A, transpose(matrix(h)))
+end
+
+function Oscar.cokernel(h::Map)
+  return quo(codomain(h), image(h)[1])
+end
+
+is_sub_with_data(M::FinGenAbGroup, N::FinGenAbGroup) = is_subgroup(M, N)
+
+function Oscar.direct_product(M::AbstractAlgebra.Module...; task::Symbol = :none)
+  D, inj, pro = direct_sum(M...)
+  if task == :none
+    return D
+  elseif task == :both
+    return D, pro, inj
+  elseif task == :sum
+    return D, inj
+  elseif task == :prod
+    return D, pro
+  end
+  error("illegal task")
+end
+
+function Oscar.id_hom(A::AbstractAlgebra.FPModule)
+  return Generic.ModuleHomomorphism(A, A, identity_matrix(base_ring(A), ngens(A)))
+end
+
+Oscar.elem_type(::Type{Hecke.NfMorSet{T}}) where {T <: Hecke.LocalField} = Hecke.LocalFieldMor{T, T}
+parent(f::Hecke.LocalFieldMor) = Hecke.NfMorSet(domain(f))
+
+function (G::FinGenAbGroup)(x::FinGenAbGroupElem)
+  fl, m = is_subgroup(parent(x), G)
+  @assert fl
+  return m(x)
+end
+
+#trivia for QQ
+Base.minimum(::Map{QQField, AbsSimpleNumField}, I::Union{Hecke.AbsNumFieldOrderIdeal, Hecke.AbsNumFieldOrderFractionalIdeal}) = minimum(I)*ZZ
+
+Hecke.extend(::Hecke.QQEmb, mp::MapFromFunc{QQField, AbsSimpleNumField}) = complex_embeddings(codomain(mp))
+
+Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AbsSimpleNumField}) = complex_embeddings(QQ)[1]
+
+#XXX: have a type for an implicit field - in Hecke?
+#     add all(?) the other functions to it
+function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
+  k = domain(m)
+  K = codomain(m)
+  @assert base_field(k) == base_field(K)
+  kt, t = polynomial_ring(k, cached = false)
+  f = defining_polynomial(K)
+  Qt = parent(f)
+  #the Trager construction, works for extensions of the same field given
+  #via primitive elements
+  h = gcd(gen(k) - map_coefficients(k, Qt(m(gen(k))), parent = kt), map_coefficients(k, f, parent = kt))
+  coordinates = function(x::FieldElem)
+    @assert parent(x) == K
+    c = collect(Hecke.coefficients(map_coefficients(k, Qt(x), parent = kt) % h))
+    c = vcat(c, zeros(k, degree(h)-length(c)))
+    return c
+  end
+  rep_mat = function(x::FieldElem)
+    @assert parent(x) == K
+    c = map_coefficients(k, Qt(x), parent = kt) % h
+    m = collect(Hecke.coefficients(c))
+    m = vcat(m, zeros(k, degree(h) - length(m)))
+    r = m
+    for i in 2:degree(h)
+      c = shift_left(c, 1) % h
+      m = collect(Hecke.coefficients(c))
+      m = vcat(m, zeros(k, degree(h) - length(m)))
+      r = hcat(r, m)
+    end
+    return transpose(matrix(r))
+  end
+  return h, coordinates, rep_mat
+end
+
+Oscar.parent(H::AbstractAlgebra.Generic.ModuleHomomorphism{<:FieldElem}) = Hecke.MapParent(domain(H), codomain(H), "homomorphisms")
+
+function Oscar.hom(F::AbstractAlgebra.FPModule{T}, G::AbstractAlgebra.FPModule{T}) where T
+  k = base_ring(F)
+  @assert base_ring(G) == k
+  H = free_module(k, dim(F)*dim(G))
+  return H, MapFromFunc(H, Hecke.MapParent(F, G, "homomorphisms"), x->hom(F, G, matrix(k, dim(F), dim(G), vec(collect(x.v)))), y->H(vec(collect(transpose(matrix(y))))))
+end
+
+function Oscar.abelian_group(M::Generic.FreeModule{ZZRingElem})
+  A = free_abelian_group(rank(M))
+  return A, MapFromFunc(A, M, x->M(x.coeff), y->A(y.v))
+end
+
+#TODO: for modern fin. fields as well
+function Oscar.abelian_group(M::AbstractAlgebra.FPModule{fqPolyRepFieldElem})
+  k = base_ring(M)
+  A = abelian_group([characteristic(k) for i = 1:dim(M)*degree(k)])
+  n = degree(k)
+  function to_A(m::AbstractAlgebra.FPModuleElem{fqPolyRepFieldElem})
+    a = ZZRingElem[]
+    for i=1:dim(M)
+      c = m[i]
+      for j=0:n-1
+        push!(a, coeff(c, j))
+      end
+    end
+    return A(a)
+  end
+  function to_M(a::FinGenAbGroupElem)
+    m = fqPolyRepFieldElem[]
+    for i=1:dim(M)
+      push!(m, k([a[j] for j=(i-1)*n+1:i*n]))
+    end
+    return M(m)
+  end
+  return A, MapFromFunc(A, M, to_M, to_A)
+end
+
+function Hecke.induce_crt(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, b::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, p::ZZRingElem, q::ZZRingElem)
+  c = parent(a)()
+  pi = invmod(p, q)
+  mul!(pi, pi, p)
+  pq = p*q
+  z = ZZRingElem(0)
+
+  for i=1:nrows(a)
+    for j=1:ncols(a)
+      c[i,j] = Hecke.induce_inner_crt(a[i,j], b[i,j], pi, pq, z)
+    end
+  end
+  return c
+end
+
+function Hecke.induce_rational_reconstruction(a::Generic.MatSpaceElem{AbsSimpleNumFieldElem}, pg::ZZRingElem; ErrorTolerant::Bool = false)
+  c = parent(a)()
+  for i=1:nrows(a)
+    for j=1:ncols(a)
+      fl, c[i,j] = rational_reconstruction(a[i,j], pg)#, ErrorTolerant = ErrorTolerant)
+      fl || return fl, c
+    end
+  end
+  return true, c
+end
+
+function Hecke.induce_rational_reconstruction(a::ZZMatrix, pg::ZZRingElem; ErrorTolerant::Bool = false)
+  c = zero_matrix(QQ, nrows(a), ncols(a))
+  for i=1:nrows(a)
+    for j=1:ncols(a)
+      fl, n, d = rational_reconstruction(a[i,j], pg, ErrorTolerant = ErrorTolerant)
+      fl || return fl, c
+      c[i,j] = n//d
+    end
+  end
+  return true, c
+end
+
+
+#############################################################################
+##
+## functions that will eventually get defined in AbstractAlgebra.jl,
+## and then should get removed here
+
+Oscar.is_free(M::Generic.DirectSumModule) = all(is_free, M.m)
+
+function Oscar.pseudo_inv(h::Generic.ModuleHomomorphism)
+  return MapFromFunc(codomain(h), domain(h), x->preimage(h, x))
+end
+
+end # module
+using .Misc
+export relative_field

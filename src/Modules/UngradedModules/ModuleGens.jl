@@ -88,6 +88,8 @@ function base_ring(M::ModuleGens)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{ModuleGens{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     singular_generators(M::ModuleGens)
 
@@ -235,7 +237,7 @@ end
 Create a Singular module from a given free module over the given Singular polynomial ring.
 """
 function singular_module(F::FreeMod, ordering::ModuleOrdering)
-  Sx = singular_ring(base_ring(F), singular(ordering))
+  Sx = singular_poly_ring(base_ring(F), singular(ordering))
   return Singular.FreeModule(Sx, dim(F))
 end
 
@@ -248,7 +250,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  for (p,v) = m.coords
+  for (p,v) in coordinates(m)
     e += Sx(v)*g[p]
   end
   return e
@@ -275,6 +277,20 @@ function (F::FreeMod)(s::Singular.svector)
   end
   pv = Tuple{Int, elem_type(Rx)}[(pos[i], base_ring(F)(finish(values[i]))) for i=1:length(pos)]
   return FreeModElem(sparse_row(base_ring(F), pv), F)
+end
+
+# After creating the required infrastruture in Singular,
+# to facilitate the double book-keeping, the signature
+# lift(G1::ModuleGens{T}, G2::ModuleGens{T}) should go to Singular
+# and lift(a::FreeModElem{T}, generators::ModuleGens{T}) call it
+
+function lift(G1::ModuleGens{T}, G2::ModuleGens{T}) where {T <: MPolyRingElem}
+  results = Vector{SRow{T, Vector{T}}}()
+  for i in 1:ngens(G1)
+      s_row = lift(G1[i], G2)
+      push!(results, s_row)
+  end
+  return results
 end
 
 function lift(a::FreeModElem{T}, generators::ModuleGens{T}) where {T <: MPolyRingElem}

@@ -1,0 +1,75 @@
+julia> K, z_3 = cyclotomic_field(3)
+(Cyclotomic field of order 3, z_3)
+
+julia> g1 = matrix(K, 3, 3, [ -1 0 0; 0 1 0; 0 0 1 ]);
+
+julia> g2 = matrix(K, 3, 3, [ 0 0 1; 1 0 0; 0 1 0 ]);
+
+julia> G = matrix_group(g1, g2)
+Matrix group of degree 3
+  over cyclotomic field of order 3
+
+julia> chi = character_table(G)[6];
+
+julia> RG = invariant_ring(G)
+Invariant ring
+  of matrix group of degree 3 over K
+
+julia> semi_invariants(RG, chi)
+2-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
+ x[1]^2 + z_3*x[2]^2 + (-z_3 - 1)*x[3]^2
+ x[1]^2*x[2]^2 + (-z_3 - 1)*x[1]^2*x[3]^2 + z_3*x[2]^2*x[3]^2
+
+julia> H, HtoG = subgroup_of_pseudo_reflections(G)
+(Matrix group of degree 3 over K, Hom: H -> G)
+
+julia> RH = invariant_ring(H)
+Invariant ring
+  of matrix group of degree 3 over K
+
+julia> A, AtoR = affine_algebra(RH)
+(Quotient of multivariate polynomial ring by ideal (0), Hom: A -> graded multivariate polynomial ring)
+
+julia> map(AtoR, gens(A))
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
+ x[1]^2
+ x[2]^2
+ x[3]^2
+
+julia> VG = linear_quotient(G)
+Linear quotient by matrix group of degree 3 over K
+
+julia> B, BtoR = cox_ring(VG)
+(Quotient of multivariate polynomial ring by ideal (), Hom: B -> graded multivariate polynomial ring)
+
+julia> map(BtoR, gens(B))
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
+ z_3*x[1]^2 + (-z_3 - 1)*x[2]^2 + x[3]^2
+ x[1]^2 + x[2]^2 + x[3]^2
+ (-z_3 - 1)*x[1]^2 + z_3*x[2]^2 + x[3]^2
+
+julia> f1 = BtoR(B[1]); f2 = BtoR(B[2]); f3 = BtoR(B[3]);
+
+julia> f1^G(g2) == z_3*f1
+true
+
+julia> f2^G(g2) == f2
+true
+
+julia> f3^G(g2) == z_3^(-1)*f3
+true
+
+julia> grading_group(B)
+Z/3
+
+julia> degree(B[1])
+Abelian group element [2]
+
+julia> degree(B[2])
+Abelian group element [0]
+
+julia> degree(B[3])
+Abelian group element [1]
+
+julia> is_zero(modulus(B))
+true

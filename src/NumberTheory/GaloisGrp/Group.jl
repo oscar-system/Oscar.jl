@@ -7,14 +7,14 @@ minimal supergroups, ie. it fails in ``C_4``.
 function maximal_subgroup_chain(G::PermGroup, U::PermGroup)
   l = [G]
   while order(l[end]) > order(U)
-    m = maximal_subgroups(l[end])
+    m = collect(maximal_subgroups(l[end]))
     push!(l, m[findfirst(x -> is_subset(U, x), m)])
   end
   return reverse(l)
 
-  l = GAP.Globals.AscendingChain(G.X,U.X)
+  l = GAP.Globals.AscendingChain(GapObj(G),GapObj(U))
   map(GAP.Globals.MaximalSubgroupClassReps, l)
-  ll = GAP.Globals.RefinedChain(G.X,l)
+  ll = GAP.Globals.RefinedChain(GapObj(G),l)
   return [Oscar._as_subgroup(G, x)[1] for x = ll]
 end
 

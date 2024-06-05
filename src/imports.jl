@@ -7,7 +7,7 @@ using UUIDs
 # our packages
 import AbstractAlgebra
 import AlgebraicSolving
-# we currently need to load Polymake before GAP to avoid the crashe mentioned in
+# we currently need to load Polymake before GAP to avoid the crash mentioned in
 # https://github.com/oscar-system/Oscar.jl/pull/1902
 # Once there is a GAP_pkg_browse that links to the correct ncurses we might
 # switch this back.
@@ -85,7 +85,8 @@ import AbstractAlgebra:
   has_gens,
   Ideal,
   Indent,
-  is_finiteorder,
+  is_finite_order,
+  is_terse,
   is_trivial,
   is_unicode_allowed,
   Lowercase,
@@ -101,7 +102,7 @@ import AbstractAlgebra:
   NCRingElem,
   number_of_generators,
   number_of_variables,
-  ordering,
+  internal_ordering,
   parent_type,
   polynomial_ring,
   PolyRing,
@@ -113,6 +114,7 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
+  terse,
   total_degree,
   with_unicode
 
@@ -144,7 +146,6 @@ import Nemo:
   jacobi_symbol,
   matrix_space,
   moebius_mu,
-  number_of_partitions,
   numerator,
   primorial,
   QQ,
@@ -168,12 +169,15 @@ let exclude_hecke = [
     :leading_term,
     :monomials,
     :narrow_class_group,
+    :normalise,
+    :number_of_partitions,
     :Partition,
     :perm,
     :QQBar,
     :SymmetricGroup,
     :tail,
     :terms,
+    :YoungTableau,
   ]
   for i in names(Hecke)
     (i in exclude_hecke || !isdefined(Hecke, i)) && continue
@@ -193,4 +197,17 @@ import Hecke:
   primitive_element,
   QQBar
 
+# temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
+if !isdefined(Hecke, :torsion_free_rank)
+  torsion_free_rank(A::FinGenAbGroup) = rank(A)
+  export torsion_free_rank
+end
+
 import cohomCalg_jll
+
+import Nemo: is_cyclo_type
+import Nemo: is_maxreal_type
+import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: FpField  # FIXME: remove if/once Nemo exports this
+import Nemo: fpField  # FIXME: remove if/once Nemo exports this

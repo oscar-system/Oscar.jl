@@ -584,21 +584,21 @@ function is_ternary(M::Matroid)
 end
 
 @doc raw"""
-    number_of_connected_components(M::Matroid)
+    n_connected_components(M::Matroid)
 
 Return the number of connected components of `M`.
 See Section 4.1 in [Oxl11](@cite).
 
 # Examples
 ```jldoctest
-julia> number_of_connected_components(fano_matroid())
+julia> n_connected_components(fano_matroid())
 1
 
-julia> number_of_connected_components(uniform_matroid(3, 3))
+julia> n_connected_components(uniform_matroid(3, 3))
 3
 ```
 """
-number_of_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
+n_connected_components(M::Matroid) = length(pm_object(M).CONNECTED_COMPONENTS)
 
 @doc raw"""
     connected_components(M::Matroid)

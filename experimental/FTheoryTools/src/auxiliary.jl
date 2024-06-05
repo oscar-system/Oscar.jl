@@ -2,8 +2,8 @@
 # 1: Construct ambient space from given base
 ################################################################
 
-function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
-  @req ((toric_variety(D1) === base) && (toric_variety(D2) === base)) "The divisors must belong to the base space"
+function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass})
+  @req all(D -> toric_variety(D) === base, fiber_twist_divisor_classes) "The divisors must belong to the (same) base space"
   
   # Extract information about the toric base
   b_rays = matrix(ZZ, rays(base))
@@ -18,11 +18,10 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   f_var_names = [string(k) for k in gens(cox_ring(fiber_amb_space))]
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
-  D1_coeffs = divisor_class(D1).coeff
-  D2_coeffs = divisor_class(D2).coeff
-  m1 = reduce(vcat, [D1_coeffs, D2_coeffs])
-  m2 = transpose(f_rays[1:2,:])
-  u_matrix = solve_left(b_grades, (-1)*m2*m1)
+  fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
+  m1 = reduce(vcat, fiber_twist_divisor_classes_coeffs)
+  m2 = transpose(f_rays)
+  u_matrix = solve(b_grades, (-1)*m2*m1; side = :left)
   
   # Form toric ambient space
   a_rays = zero_matrix(ZZ, nrows(b_rays) + nrows(f_rays), ncols(b_rays) + ncols(f_rays))
@@ -35,14 +34,15 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   
   # Compute divisor group and the class group of a_space
   a_space_divisor_group = free_abelian_group(nrows(a_rays))
-  a_space_class_group = free_abelian_group(ncols(b_grades) + rank(class_group(fiber_amb_space)))
+  a_space_class_group = free_abelian_group(ncols(b_grades) + torsion_free_rank(class_group(fiber_amb_space)))
   
   # Compute grading of Cox ring of a_space
-  a_space_grading = zero_matrix(ZZ, rank(a_space_divisor_group), rank(a_space_class_group))
+  a_space_grading = zero_matrix(ZZ, torsion_free_rank(a_space_divisor_group), torsion_free_rank(a_space_class_group))
   a_space_grading[1:nrows(b_grades), 1:ncols(b_grades)] = b_grades
   a_space_grading[1+nrows(b_rays):nrows(b_rays) + nrows(f_grades), 1+ncols(b_grades):ncols(b_grades) + ncols(f_grades)] = f_grades
-  a_space_grading[1+nrows(b_rays), 1:ncols(D1_coeffs)] = D1_coeffs
-  a_space_grading[2+nrows(b_rays), 1:ncols(D2_coeffs)] = D2_coeffs
+  for k in 1:length(fiber_twist_divisor_classes_coeffs)
+    a_space_grading[k+nrows(b_rays), 1:ncols(fiber_twist_divisor_classes_coeffs[k])] = fiber_twist_divisor_classes_coeffs[k]
+  end
   
   # Set important attributes of a_space and return it
   a_space_grading = hom(a_space_divisor_group, a_space_class_group, a_space_grading)
@@ -154,6 +154,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
   g_ord = ords[2]
   d_ord = ords[3]
     
+  # Check for cases where there cannot be Tate monodromy
   if d_ord == 0
     kod_type = "I_0"
   elseif d_ord == 1 && f_ord == 0 && g_ord == 0
@@ -169,6 +170,7 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
   elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
     kod_type = "Non-minimal"
   else
+    # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
     S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
     ring_map = hom(R, S, gens(S)[2:end])
@@ -177,23 +179,39 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
     
+    # Compute monodromy polynomial and check factorization for remaining cases
     if f_ord == 0 && g_ord == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(9 * poly_g, [locus], [0]), evaluate(2 * poly_f, [locus], [0]))
+      g_quotient = divrem(9 * poly_g, locus)[2]
+      f_quotient = divrem(2 * poly_f, locus)[2]
+      quotient_val = div(g_quotient, f_quotient)
+
+      monodromy_poly = _psi^2 + quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^2), [locus], [0])
+      g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+
+      monodromy_poly = _psi^2 - g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
     elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      monodromy_poly =  _psi^3 + _psi * evaluate(divexact(poly_f, locus^2), [locus], [0]) + evaluate(divexact(poly_g, locus^3), [locus], [0])
+      f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+      g_quotient = divrem(div(poly_g, locus^3), locus)[2]
+      
+      monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7 && d_ord % 2 == 1
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^3, [locus], [0]), 4 * evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^3)
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 8 && d_ord % 2 == 0
-      monodromy_poly = _psi^2 + divexact(evaluate(divexact(poly_d, locus^d_ord) * divexact(2 * poly_f, locus^2)^2, [locus], [0]), evaluate(divexact(9 * poly_g, locus^3), [locus], [0])^2)
+    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
+      d_quotient = div(poly_d, locus^d_ord)
+      f_quotient = div(2 * poly_f, locus^2)
+      g_quotient = div(9 * poly_g, locus^3)
+      num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
+      den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
+      quotient_val = div(num_quotient, den_quotient)
+
+      monodromy_poly = _psi^2 + quotient_val
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      monodromy_poly = _psi^2 - evaluate(divexact(poly_g, locus^4), [locus], [0])
+      g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+
+      monodromy_poly = _psi^2 - g_quotient
       kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
     else
       kod_type = "Unrecognized"
@@ -204,9 +222,9 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
 end
 
 
-################################################################
-# 7: Blowups
-################################################################
+##################################################################
+# 7: Blowups (old helper function, to be used for family of bases)
+##################################################################
 
 function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMPolyRingElem}, irr::MPolyIdeal{QQMPolyRingElem}, sri::MPolyIdeal{QQMPolyRingElem}, lin::MPolyIdeal{<:MPolyRingElem}; index::Integer = 1)
   # @warn "The function _blowup_global is experimental; absence of bugs and proper results are not guaranteed"
@@ -298,13 +316,13 @@ function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vecto
 end
 
 
-function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64})
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix)
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
   w = Matrix{Int64}(reduce(vcat, [k.coeff for k in cox_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
-  D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
+  D_block = hcat([[Int(fiber_twist_divisor_classes[k,l]) for k in 1:nrows(fiber_twist_divisor_classes)] for l in 1:ncols(fiber_twist_divisor_classes)]...)
   ambient_space_grading = [base_grading D_block; z_block w']
   ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+dim(fiber_ambient_space))
   return [coordinate_ring(ambient_space), base_space, ambient_space]
@@ -364,3 +382,34 @@ eval_poly(n::Number, R) = R(n)
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
+
+
+
+##########################################
+### 10 strict_transform helpers
+##########################################
+
+_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf; coordinate_name = "e") = strict_transform(bd, II)
+
+function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal; coordinate_name = "e")
+  center_ideal = ideal_in_cox_ring(center(bd))
+  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
+    return strict_transform(bd, II)
+  end
+  S = cox_ring(domain(bd))
+  _e = eval_poly(coordinate_name, S)
+  images = MPolyRingElem[]
+  for v in gens(S)
+    v == _e && continue
+    if string(v) in [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+      push!(images, v * _e)
+    else
+      push!(images, v)
+    end
+  end
+  ring_map = hom(cox_ring(codomain(bd)), S, images)
+  total_transform = ring_map(ideal_in_cox_ring(II))
+  exceptional_ideal = total_transform + ideal([_e])
+  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
+  return ideal_sheaf(domain(bd), strict_transform)
+end

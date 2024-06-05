@@ -14,10 +14,10 @@ This information is held by a `CoveringMorphism`:
 ```
 The basic functionality of `CoveringMorphism`s comprises `domain` and `codomain` which 
 both return a `Covering`, together with 
+```julia
+getindex(f::CoveringMorphism, U::AbsAffineScheme)
 ```
-    getindex(f::CoveringMorphism, U::AbsSpec)
-```
-which for ``U = U_i`` returns the `AbsSpecMor` ``f_i : U_i \to V_{F(i)}``.
+which for ``U = U_i`` returns the `AbsAffineSchemeMor` ``f_i : U_i \to V_{F(i)}``.
 
 Note that, in general, neither the `domain` nor the `codomain` of the `covering_morphism` of 
 `f : X \to Y` need to coincide with the `default_covering` of ``X``, respectively ``Y``. 
@@ -27,15 +27,15 @@ in order to realize the covering morphism in the first place.
 ## The interface for morphisms of covered schemes
 Every `AbsCoveredSchemeMorphism` ``f : X \to Y`` is required to implement the following minimal 
 interface.
-```
-    domain(f::AbsCoveredSchemeMorphism)                 # returns X
-    codomain(f::AbsCoveredSchemeMorphism)               # returns Y
-    covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
+```julia
+domain(f::AbsCoveredSchemeMorphism)                 # returns X
+codomain(f::AbsCoveredSchemeMorphism)               # returns Y
+covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
 ```
 For the user's convenience, also the domain and codomain 
 of the underlying `covering_morphism` are forwarded as `domain_covering` and 
-`codomain_covering`, respectively, together with `getindex(phi::CoveringMorphism, U::AbsSpec)` 
-as `getindex(f::AbsCoveredSchemeMorphism, U::AbsSpec)`.
+`codomain_covering`, respectively, together with `getindex(phi::CoveringMorphism, U::AbsAffineScheme)` 
+as `getindex(f::AbsCoveredSchemeMorphism, U::AbsAffineScheme)`.
     
 The minimal concrete type of an `AbsCoveredSchemeMorphism` which 
 implements this interface, is `CoveredSchemeMorphism`.
@@ -64,7 +64,7 @@ on ``X`` and ``Y`` can be extracted from the ``f^* v_i`` more directly.
 
 A lazy concrete data structure to house this kind of morphism is 
 ```@docs
-    MorphismFromRationalFunctions
+MorphismFromRationalFunctions
 ```
 Note that the key idea of this data type is to *not* use the `underlying_morphism` 
 together with its `covering_morphism`, but to find cheaper ways to do computations! 
@@ -81,12 +81,12 @@ there is no need to realize the full `covering_morphism` of ``f``.
 In order to facilitate such computations as lazy as possible, there are various fine-grained 
 entry points and caching mechanisms to realize ``f`` on open subsets:
 ```@docs
-    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsSpec)
-    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
-    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
-    random_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
-    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
-    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsSpec, V::AbsSpec)
-    realize(Phi::MorphismFromRationalFunctions)
+realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
+realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize(Phi::MorphismFromRationalFunctions)
 ```
 

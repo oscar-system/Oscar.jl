@@ -47,7 +47,7 @@ julia> A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
 
 julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
 
-julia> C = projective_scheme(B)
+julia> C = proj(B)
 Projective scheme
   over rational field
 defined by ideal (x^2 + y^2)

@@ -50,8 +50,7 @@ linear_program(
   c::AbstractVector;
   k=0,
   convention=:max,
-) =
-  linear_program(polyhedron(f, A, b), c; k=k, convention=convention)
+) = linear_program(polyhedron(f, A, b), c; k=k, convention=convention)
 
 pm_object(lp::LinearProgram) = lp.polymake_lp
 
@@ -133,7 +132,7 @@ The following example constructs a linear program over the three dimensional cub
 obtains the vertex of the cube which maximizes the function (x,y,z) ↦ x+2y-3z.
 ```jldoctest
 julia> C=cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> LP=linear_program(C,[1,2,-3])
 Linear program
@@ -157,7 +156,9 @@ function optimal_vertex(lp::LinearProgram{T}) where {T<:scalar_types}
     opt_vert = lp.polymake_lp.MINIMAL_VERTEX
   end
   if !isnothing(opt_vert)
-    return point_vector(coefficient_field(lp), view(dehomogenize(opt_vert), :))::PointVector{T}
+    return point_vector(
+      coefficient_field(lp), view(dehomogenize(opt_vert), :)
+    )::PointVector{T}
   else
     return nothing
   end
@@ -174,7 +175,7 @@ The following example constructs a linear program over the three dimensional cub
 obtains the minimal value of the function (x,y,z) ↦ x+2y-3z over that cube.
 ```jldoctest
 julia> C=cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program

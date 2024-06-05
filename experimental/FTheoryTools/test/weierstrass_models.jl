@@ -32,7 +32,7 @@ w2 = tune(w, my_choice; completeness_check = false)
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 
 @testset "Saving and loading Weierstrass models over concrete base space" begin
   mktempdir() do path

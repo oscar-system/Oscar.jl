@@ -11,7 +11,7 @@
 ##############################################################################
 
 @doc raw"""
-     fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem 
+    fitting_ideal(M::ModuleFP{T}, i::Int) where T <: MPolyRingElem 
 
 Return the `i`-th Fitting ideal of `M`.
 
@@ -30,7 +30,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -86,7 +86,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     is_flat(M::ModuleFP{T}) where T <: MPolyRingElem 
+    is_flat(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return `true` if `M` is flat, `false` otherwise.
 
@@ -105,7 +105,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -141,7 +141,7 @@ function is_flat(M::SubquoModule{T}) where T <: MPolyRingElem
 end
 
 @doc raw"""
-     non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem 
+    non_flat_locus(M::ModuleFP{T}) where T <: MPolyRingElem 
 
 Return an ideal of `base_ring(M)` which defines the non-flat-locus of `M`
 in the sense that the localization of `M` at a prime ideal of `base_ring(M)`
@@ -162,7 +162,7 @@ julia> U = matrix([x^3-y^2 o; o x^3-y^2; -x^2 y; -y x])
 [     -x^2           y]
 [       -y           x]
 
-julia> M = quo(F,U)[1]
+julia> M = quo_object(F,U)
 Subquotient of Submodule with 2 generators
 1 -> e[1]
 2 -> e[2]
@@ -203,7 +203,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+    is_regular_sequence(V::Vector{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return `true` if the elements of `V` form, in the given order, a regular sequence on `M`.
 Return `false`, otherwise.
@@ -273,7 +273,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
+    koszul_homology(V::Vector{T}, M::ModuleFP{T}, p::Int) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the `p`-th homology 
 module of the complex $K(f_1, \dots, f_r)\otimes_R M$, where $K(f_1, \dots, f_r)$ is the
@@ -296,20 +296,20 @@ julia> V =  [x*y, x*z, y*z]
 
 julia> koszul_homology(V, F, 0)
 Subquotient of Submodule with 1 generator
-1 -> e[1]∧e[2]∧e[3]
+1 -> e[1]^e[2]^e[3]
 by Submodule with 3 generators
-1 -> y*z*e[1]∧e[2]∧e[3]
-2 -> -x*z*e[1]∧e[2]∧e[3]
-3 -> x*y*e[1]∧e[2]∧e[3]
+1 -> y*z*e[1]^e[2]^e[3]
+2 -> -x*z*e[1]^e[2]^e[3]
+3 -> x*y*e[1]^e[2]^e[3]
 
 julia> koszul_homology(V, F, 1)
 Subquotient of Submodule with 2 generators
-1 -> y*e[1]∧e[3] \otimes e[1] + z*e[2]∧e[3] \otimes e[1]
-2 -> x*e[1]∧e[2] \otimes e[1] - z*e[2]∧e[3] \otimes e[1]
+1 -> y*e[1]^e[3] \otimes e[1] + z*e[2]^e[3] \otimes e[1]
+2 -> x*e[1]^e[2] \otimes e[1] - z*e[2]^e[3] \otimes e[1]
 by Submodule with 3 generators
-1 -> -x*z*e[1]∧e[2] \otimes e[1] - y*z*e[1]∧e[3] \otimes e[1]
-2 -> x*y*e[1]∧e[2] \otimes e[1] - y*z*e[2]∧e[3] \otimes e[1]
-3 -> x*y*e[1]∧e[3] \otimes e[1] + x*z*e[2]∧e[3] \otimes e[1]
+1 -> -x*z*e[1]^e[2] \otimes e[1] - y*z*e[1]^e[3] \otimes e[1]
+2 -> x*y*e[1]^e[2] \otimes e[1] - y*z*e[2]^e[3] \otimes e[1]
+3 -> x*y*e[1]^e[3] \otimes e[1] + x*z*e[2]^e[3] \otimes e[1]
 
 julia> koszul_homology(V, F, 2)
 Subquotient of Submodule with 1 generator
@@ -327,20 +327,20 @@ julia> F = free_module(R, 1);
 
 julia> koszul_homology(gens(TC), F, 0)
 Subquotient of Submodule with 1 generator
-1 -> e[1]∧e[2]∧e[3]
+1 -> e[1]^e[2]^e[3]
 by Submodule with 3 generators
-1 -> (w*y - x^2)*e[1]∧e[2]∧e[3]
-2 -> (-w*z + x*y)*e[1]∧e[2]∧e[3]
-3 -> (x*z - y^2)*e[1]∧e[2]∧e[3]
+1 -> (w*y - x^2)*e[1]^e[2]^e[3]
+2 -> (-w*z + x*y)*e[1]^e[2]^e[3]
+3 -> (x*z - y^2)*e[1]^e[2]^e[3]
 
 julia> koszul_homology(gens(TC), F, 1)
 Subquotient of Submodule with 2 generators
-1 -> z*e[1]∧e[2] \otimes e[1] + y*e[1]∧e[3] \otimes e[1] + x*e[2]∧e[3] \otimes e[1]
-2 -> y*e[1]∧e[2] \otimes e[1] + x*e[1]∧e[3] \otimes e[1] + w*e[2]∧e[3] \otimes e[1]
+1 -> z*e[1]^e[2] \otimes e[1] + y*e[1]^e[3] \otimes e[1] + x*e[2]^e[3] \otimes e[1]
+2 -> y*e[1]^e[2] \otimes e[1] + x*e[1]^e[3] \otimes e[1] + w*e[2]^e[3] \otimes e[1]
 by Submodule with 3 generators
-1 -> (-w*z + x*y)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[1]∧e[3] \otimes e[1]
-2 -> (x*z - y^2)*e[1]∧e[2] \otimes e[1] + (-w*y + x^2)*e[2]∧e[3] \otimes e[1]
-3 -> (x*z - y^2)*e[1]∧e[3] \otimes e[1] + (w*z - x*y)*e[2]∧e[3] \otimes e[1]
+1 -> (-w*z + x*y)*e[1]^e[2] \otimes e[1] + (-w*y + x^2)*e[1]^e[3] \otimes e[1]
+2 -> (x*z - y^2)*e[1]^e[2] \otimes e[1] + (-w*y + x^2)*e[2]^e[3] \otimes e[1]
+3 -> (x*z - y^2)*e[1]^e[3] \otimes e[1] + (w*z - x*y)*e[2]^e[3] \otimes e[1]
 
 julia> koszul_homology(gens(TC), F, 2)
 Subquotient of Submodule with 1 generator
@@ -428,7 +428,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
+    depth(I::MPolyIdeal{T}, M::ModuleFP{T}) where T <: MPolyRingElem
 
 Return the depth of `I` on `M`.
 
@@ -572,7 +572,7 @@ end
 ##############################################################################
 
 @doc raw"""
-     koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyRingElem
+    koszul_matrix(V::Vector{T}, p::Int) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the matrix representing
 the `p`-th map of the Koszul complex $K(f_1, \dots, f_r)$.
@@ -626,7 +626,7 @@ function _koszul_matrix_from_singular(V::Vector{T}, i::Int) where T <: MPolyRing
 end
 
 @doc raw"""
-     koszul_complex(V::Vector{T}) where T <: MPolyRingElem
+    koszul_complex(V::Vector{T}) where T <: MPolyRingElem
 
 If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the Koszul complex $K(f_1, \dots, f_r)$.
 

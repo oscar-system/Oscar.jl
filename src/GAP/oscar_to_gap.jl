@@ -24,7 +24,7 @@ GAP.julia_to_gap(obj::ZZMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true
 GAP.julia_to_gap(obj::QQMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true)
 
 ## element of cyclotomic field to GAP cyclotomic
-function GAP.julia_to_gap(obj::nf_elem)
+function GAP.julia_to_gap(obj::AbsSimpleNumFieldElem)
     F = parent(obj)
     @req Nemo.is_cyclo_type(F) "the element does not lie in a cyclotomic field"
     N = get_attribute(F, :cyclo)
@@ -37,11 +37,11 @@ end
 ## `QQAbElem` to GAP cyclotomic
 function GAP.julia_to_gap(elm::QQAbElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # QQFieldElem
-    return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
+    return GAPWrap.CycList(GapObj(coeffs; recursive=true))
 end
 
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
-function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{nf_elem})
+function GAP.julia_to_gap(obj::AbstractAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem})
     F = base_ring(obj)
     @req Nemo.is_cyclo_type(F) "the matrix entries do not lie in a cyclotomic field"
     mat = [GAP.julia_to_gap(obj[i,j]) for i in 1:nrows(obj), j in 1:ncols(obj)]
@@ -71,4 +71,18 @@ function GAP.julia_to_gap(
     @assert GAPWrap.IsSet(gapset)
 
     return gapset
+end
+
+## TODO: remove the following once GAP.jl has it
+## (This will be the case when the change from
+## https://github.com/oscar-system/GAP.jl/pull/989
+## will be available.)
+using JSON3
+
+function GAP.julia_to_gap(
+    obj::JSON3.Array,
+    recursion_dict::IdDict{Any,Any} = IdDict();
+    recursive::Bool = false)
+
+    return GAP.julia_to_gap(copy(obj), recursion_dict; recursive)
 end
