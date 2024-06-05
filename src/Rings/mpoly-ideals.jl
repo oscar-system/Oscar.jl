@@ -45,8 +45,9 @@ function ideal(I::IdealGens{T}) where {T <: MPolyRingElem}
   return MPolyIdeal(I)
 end
 
-# TODO: Can we make this the default?
-# (Or maybe remove ideal(...) without a ring completely?)
+function ideal(x::MPolyRingElem{T}) where T <: RingElem
+  return ideal([x])
+end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyRingElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
