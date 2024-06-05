@@ -45,7 +45,7 @@ julia> elements(G)
 """
 function direct_product(L::AbstractVector{<:GAPGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
-  X = GAP.Globals.DirectProduct(GapObj(L; recursive=true))
+  X = GAP.Globals.DirectProduct(GapObj(L; recursive = true))
   DP = DirectProductGroup(X, L, X, true)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(X, i)) for i in 1:length(L)]
@@ -68,7 +68,7 @@ end
 
 Return a direct product of groups of the same type `T` as a group of type
 `T`. It works for `T` of the following types:
-- `PermGroup`, `PcGroup`, `SubPcGroup`, `FPGroup`.
+- `PermGroup`, `PcGroup`, `SubPcGroup`, `FPGroup`, `SubFPGroup`.
 
 The keyword argument `morphisms` is `false` by default. If it is set `true`, then
 the output is a triple (`G`, `emb`, `proj`), where `emb` and `proj` are the
@@ -76,9 +76,9 @@ vectors of the embeddings (resp. projections) of the direct product `G`.
 """
 function inner_direct_product(
   L::AbstractVector{T}; morphisms::Bool=false
-) where {T<:Union{PcGroup,SubPcGroup,FPGroup}}
+) where {T<:Union{PcGroup, SubPcGroup, FPGroup, SubFPGroup}}
   @req length(L) > 0 "the collection of groups must be non-empty"
-  P = GAP.Globals.DirectProduct(GapObj(L; recursive=true))
+  P = GAP.Globals.DirectProduct(GapObj(L; recursive = true))
   DP = T(P)
   if morphisms
     emb = [GAPGroupHomomorphism(L[i], DP, GAPWrap.Embedding(P, i)) for i in 1:length(L)]
@@ -94,7 +94,7 @@ end
 function inner_direct_product(L::AbstractVector{PermGroup}; morphisms::Bool=false)
   @req length(L) > 0 "the collection of groups must be non-empty"
   P = GAP.Globals.DirectProductOfPermGroupsWithMovedPoints(
-    GapObj(L; recursive=true), GAP.Obj([collect(1:degree(G)) for G in L]; recursive=true)
+    GapObj(L; recursive = true), GAP.Obj([collect(1:degree(G)) for G in L]; recursive = true)
   )
   DP = permutation_group(P, sum([degree(G) for G in L]; init=0))
   if morphisms
@@ -110,7 +110,7 @@ end
 
 function inner_direct_product(
   L::T, Ls::T...; morphisms::Bool=false
-) where {T<:Union{PcGroup,SubPcGroup,PermGroup,FPGroup}}
+) where {T<:Union{PcGroup, SubPcGroup, PermGroup, FPGroup, SubFPGroup}}
   return inner_direct_product([L, Ls...]; morphisms=morphisms)
 end
 

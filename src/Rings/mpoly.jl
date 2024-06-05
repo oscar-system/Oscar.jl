@@ -200,7 +200,7 @@ mutable struct IdealGens{S}
       r.gens = BiPolyArray(Ox, S)
       r.isGB = S.isGB
       r.isReduced = isReduced
-      if T <: Union{MPolyRing, MPolyRingLoc}
+      if T <: MPolyRing
           r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true

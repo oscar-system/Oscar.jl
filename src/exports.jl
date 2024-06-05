@@ -103,7 +103,6 @@ export MPolyQuoIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
@@ -156,6 +155,8 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubFPGroup
+export SubFPGroupElem
 export SubPcGroup
 export SubPcGroupElem
 export SubQuoHom
@@ -558,6 +559,7 @@ export free_module
 export free_module_dec
 export free_resolution
 export free_resolution_via_kernels
+export full_group
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
@@ -776,7 +778,6 @@ export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generat
 export is_finite_order
 export is_flat
 export is_full_direct_product
-export is_full_fp_group
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
@@ -999,7 +1000,6 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
 export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
-export minimal_generators
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes

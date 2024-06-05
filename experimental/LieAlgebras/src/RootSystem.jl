@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-mutable struct RootSystem
+@attributes mutable struct RootSystem
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
   positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
@@ -53,6 +53,14 @@ end
     root_system(fam::Symbol, rk::Int) -> RootSystem
 
 Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> root_system(:A, 2)
+Root system defined by Cartan matrix
+  [ 2   -1]
+  [-1    2]
+```
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)

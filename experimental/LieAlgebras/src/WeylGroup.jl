@@ -7,7 +7,7 @@
 #
 ###############################################################################
 
-struct WeylGroup <: AbstractAlgebra.Group
+@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
@@ -55,6 +55,12 @@ end
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
 Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> weyl_group(:A, 2)
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+```
 """
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
@@ -124,7 +130,7 @@ end
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for $(W.root_system)")
+  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
 end
 
 function coxeter_matrix(W::WeylGroup)

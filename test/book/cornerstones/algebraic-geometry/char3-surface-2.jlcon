@@ -28,7 +28,6 @@ julia> betti_table(FD)
 ----------------
 total: 10  10  2
 
-
 julia> P = cokernel(transpose(matrix(map(FD, 2))));
 
 julia> I = annihilator(P);
@@ -48,7 +47,6 @@ julia> betti_table(FQI)
 5    : -   7  26  20  5
 -----------------------
 total: 1  12  26  20  5
-
 
 julia> dim(I)
 3

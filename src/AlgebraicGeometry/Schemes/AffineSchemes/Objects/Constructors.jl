@@ -159,7 +159,7 @@ Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_in
     affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 
 The ``n``-dimensional affine space over a ring ``kk`` is created
-by this method. By default, the variable names are chosen as $x_1$, $x_2$
+by this method. By default, the variable names are chosen as `x1`, `x2`
 and so on. This choice can be overwritten with a third optional argument.
 
 # Examples
@@ -182,7 +182,7 @@ end
 
 
 @doc raw"""
-    affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
+    affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
 
 Create the ``n``-dimensional affine space over a ring ``kk``,
 but allows more flexibility in the choice of variable names.
@@ -190,15 +190,25 @@ The following example demonstrates this.
 
 # Examples
 ```jldoctest
-julia> affine_space(QQ,[:y1,:z2,:a])
+julia> affine_space(QQ, [:x, :y, :z])
 Affine space of dimension 3
   over rational field
-with coordinates [y1, z2, a]
+with coordinates [x, y, z]
+
+julia> affine_space(QQ, ['x', 'y', 'z'])
+Affine space of dimension 3
+  over rational field
+with coordinates [x, y, z]
+
+julia> affine_space(QQ, ["x", "y", "z"])
+Affine space of dimension 3
+  over rational field
+with coordinates [x, y, z]
 ```
 """
-function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, var_symbols)
-  return variety(spec(R), check=false)
+function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
+  R, _ = polynomial_ring(kk, var_names)
+  return spec(R)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
@@ -206,8 +216,8 @@ function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
   return variety(spec(R), check=false)
 end
 
-function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
-  R, _ = polynomial_ring(kk, var_symbols)
+function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Field}
+  R, _ = polynomial_ring(kk, var_names)
   return variety(spec(R), check=false)
 end
 
