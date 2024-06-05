@@ -25,18 +25,15 @@ function hasse_derivatives(f::MPolyRingElem)
 end
 
 function hasse_derivatives(f::MPolyQuoRingElem)
-  error("Not implemented.")
-  error("For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type MPolyQuoRingElem")
+  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type MPolyQuoRingElem")
 end
 
 function hasse_derivatives(f::Oscar.MPolyLocRingElem)
-  error("Not implemented.")
-  error("For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyLocRingElem")
+  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyLocRingElem")
 end
 
 function hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
-  error("Not implemented.")
-  error("For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyQuoLocRingElem")
+  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyQuoLocRingElem")
 end
 
 
@@ -51,7 +48,7 @@ end
 
 
 
-### internal functions for experts
+### internal functions for expert use
 
 # MPolyQuoRingElem (internal, expert use only)
 function _hasse_derivatives(f::MPolyQuoRingElem)
@@ -67,4 +64,9 @@ end
 # Oscar.MPolyQuoLocRingElem (internal, expert use only)
 function _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
   # QUESTION: How do i do this? How do i work around the localization and the modulus?
+end
+
+# for a list of elements (internal, expert use only)
+function _hasse_derivatives(v::Vector)
+  return _hasse_derivatives.(v)
 end

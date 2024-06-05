@@ -1,9 +1,78 @@
 
-# MPolyRingElem
+### MPolyRingElem
 R, x = polynomial_ring(ZZ, 4, "x")
-f1 = 3*x[2]
-f2 = 4*x[4]^3
-hasse_derivative(f1)
+f1 = R(3*x[2])
+f2 = R(4*x[4]^3)
+hasse_derivatives(f1)
+hasse_derivatives([f1, f2])
+
+R, x = polynomial_ring(QQ, 4, "x")
+f1 = R(3*x[2])
+f2 = R(4*x[4]^3)
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+### MPolyQuoRingElem
+R, x = polynomial_ring(ZZ, 4, "x")
+I = ideal(R, [x[2] - 1])
+RQ, _ = quo(R, I)
+f1 = 4*x[3] 
+f2 = 5*x[2]^2 + 2*x[4]
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+R, x = polynomial_ring(QQ, 4, "x")
+I = ideal(R, [x[2] - 1])
+RQ, _ = quo(R, I)
+f1 = RQ(4*x[3] )
+f2 = RQ(5*x[2]^2 + 2*x[4])
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+### Oscar.MPolyLocRingElem
+
+# (1) Localization at maximal ideal
+R, x = polynomial_ring(QQ, 4, "x")
+m = ideal(R, [x[1] - 3, x[2] - 2, x[3] + 2, x[4]])
+U = complement_of_prime_ideal(m)
+Rloc, _ = localization(R, U)
+f1 = Rloc(4*x[3] )
+f2 = Rloc(5*x[2]^2 + 2*x[4]^5)
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+# (2) Localization at prime ideal
+R, x = polynomial_ring(QQ, 4, "x")
+p = ideal(R, [x[1]])
+U = complement_of_prime_ideal(p)
+Rloc, _ = localization(R, U)
+f1 = Rloc(4*x[3] )
+f2 = Rloc(5*x[2]^2 + 2*x[4])
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+# (3) Localization at ring element
+
+
+### Oscar.MPolyQuoLocRingElem
+
+# (1) Localization at prime ideal
+R, x = polynomial_ring(QQ, 4, "x")
+I = ideal(R, [x[1]^3 - 1])
+RQ, _ = quo(R, I) 
+p = ideal(R, [x[2]])
+U = complement_of_prime_ideal(p)
+RQL, _ = localization(RQ, U) 
+f1 = RQL(4*x[3] )
+f2 = RQL(5*x[2]^2 + 2*x[4])
+hasse_derivatives(f2)
+hasse_derivatives([f1, f2])
+
+# (2) Localization at maximal ideal
+
+# (3) Localization at ring element
+
+
 
 
 
@@ -136,9 +205,9 @@ IX = ideal(RQ, [-y^3 + x^2])
 
 R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 I = ideal(R, [x^3 - 1])
-RQ, phi = quo(R, I) 
+RQ, _ = quo(R, I) 
 P = ideal(R, [y])
 U = complement_of_prime_ideal(P)
-RQL, iota = localization(RQ, U) 
+RQL, _ = localization(RQ, U) 
 IZ = ideal(RQL, [zero(RQL)])
 IX = ideal(RQL, [-y^3 + x^2])  # RESOVLED: IZ and IX are equal (need to understand why ^^ ) # Need to find an example with IZ != IX 
