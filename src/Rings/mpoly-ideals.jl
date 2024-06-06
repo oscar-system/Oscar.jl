@@ -2136,7 +2136,7 @@ end
 _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
  iseven(count(z -> z > t, a) + count(z -> z < t, b)) ? 1 : -1
 @doc raw"""
-    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int},n::Int; minimal::Bool=true)
+    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
 Returns the generators of the defining ideal for the complete flag variety 
 $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
@@ -2144,11 +2144,12 @@ $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
 set of this ideal corresponds to the space of $k$-step flags of linear
 subspaces $V_1\subset\dots\subset V_k$ in $\mathbb{F}^n$, where
 $\text{dim}(V_j) = d_{j}$.  You can obtain the generators for the
-$\emph{complete flag variety}$ of $\mathbb{F}^{n}$ by taking `dimensions`
+*complete flag variety* of $\mathbb{F}^{n}$ by taking `dimensions`
 $=(1,\dots,n-1)$ and `n`$=n$.  We remark that evaluating for `F = QQ` yields
 the same set of generators as any field of characteristic $0$.
 
-The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$, with $\Sum^{k}_{j=1}{n\choose d_{j}$ variables.  
+The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$,
+with $\sum^{k}_{j=1}{n\choose d_j}$ variables.
 The parameter `dimensions` needs to be a vector of distinct increasing entries.
 Evaluating this function with the parameter `minimal = true` returns the reduced Gröbner basis for
 the flag Plücker ideal with respect to the degree reverse lexicographical order. For more details, see Theorem 14.6 [MS05](@cite)

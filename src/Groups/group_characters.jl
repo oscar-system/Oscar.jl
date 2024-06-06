@@ -2407,7 +2407,7 @@ end
 Return the vector $[a_1, a_2, \ldots, a_n]$ of scalar products
 (see [`scalar_product`](@ref)) of `chi` with the irreducible characters
 $[t[1], t[2], \ldots, t[n]]$ of the character table $t$ of `chi`,
-that is, `chi` is equal to $\sum_{i==1}^n a_i t[i]$.
+that is, `chi` is equal to $\sum_{i=1}^n a_i t[i]$.
 The result is an instance of `Vector{T}`.
 
 # Examples
