@@ -325,7 +325,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
   N = _N_matrix(rs, extraspecial_pair_signs)
 
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
-  for i in 1:nroots, j in 1:nroots
+  for i in 1:nroots, j in i:nroots
     if i == j
       # [e_βi, e_βi] = 0
       struct_consts[i, j] = sparse_row(R)
@@ -353,7 +353,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     end
 
     # # [e_βj, e_βi] = -[e_βi, e_βj]
-    # struct_consts[j, i] = -struct_consts[i, j]
+    struct_consts[j, i] = -struct_consts[i, j]
   end
   for i in 1:nsimp, j in 1:nroots
     # [h_i, e_βj] = <β_j, α_i> e_βj
