@@ -320,6 +320,7 @@ end
 ################################################################################
 #
 #  Zero-dimensional ideals
+#  (p-adic valuation only) TODO: add trivial valuation
 #
 ################################################################################
 
@@ -411,6 +412,49 @@ function simultaneous_diagonalization(v::Vector{<:MatElem{T}}) where T <: Hecke.
     end
 
     return d
+end
+
+
+################################################################################
+#
+#  positive-dimensional ideals
+#  (bandaid wrapeer of Singular's tropical variety)
+#
+################################################################################
+
+function singular_fan_string_to_oscar_fan(input_string::String)
+
+    # Extracting the RAYS, ORTH_LINEALITY_SPACE and MAXIMAL_CONES sections
+    stringsParsed = Vector{SubString{String}}[]
+    for regexp in [r"RAYS\n([\s\S]*?)\nN_RAYS", r"ORTH_LINEALITY_SPACE\n([\s\S]*?)\nF_VECTOR", r"MAXIMAL_CONES\n([\s\S]*)"]
+        sectionOfInterest = match(regexp, input_string).captures[1]
+        linesOfInterest = split(sectionOfInterest, "\n")
+        linesOfInterestFiltered = [split(line, r"\s+#")[1] for line in linesOfInterest if !isempty(line)]
+        push!(stringsParsed, linesOfInterestFiltered)
+    end
+
+    # Convert Rays and ORTH_LINEALITY_SPACE to matrices
+    rayGenerators = matrix(QQ,[parse.(Int, split(line)) for line in stringsParsed[1]])
+    linealityGenerators = matrix(QQ,[parse.(Int, split(line)) for line in stringsParsed[2]])
+
+    # Convert MAXIMAL_CONES to a IncidenceMatrix
+    maxConeIncidences = IncidenceMatrix([parse.(Int, split(replace(line, r"[{}]" => ""), r"\s+")) .+ 1 for line in stringsParsed[3]])
+
+    return polyhedral_fan(maxConeIncidences, rayGenerators, linealityGenerators)
+
+end
+
+
+function tropical_variety_singular(I::MPolyIdeal,nu::TropicalSemiringMap{QQField,Nothing,typeof(max)})
+    R = base_ring(I)
+    singularConstructRing = "ring r=0,("*join(string.(symbols(R)),",")*"),dp; "
+    singularConstructIdeal = "ideal I = "*join(string.(gens(I)), ",")*"; "
+    singularLoadLibrary = "if (!defined(tropicalVariety)) { LIB \"tropical.lib\"; }; "
+    singularComputeTropicalVariety = "fan TropI = tropicalVariety(I); string TropIString = string(TropI);"
+    singularCommand = singularConstructRing*singularConstructIdeal*singularLoadLibrary*singularComputeTropicalVariety
+    Singular.call_interpreter(singularCommand)
+    TropIString = Singular.lookup_library_symbol("Top", "TropIString")
+    return singular_fan_string_to_oscar_fan(TropIString)
 end
 
 
