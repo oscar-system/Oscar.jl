@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Partitions
@@ -101,7 +99,7 @@ For counting the partitions the recurrence relation $p_k(n) = p_{k - 1}(n - 1) +
 7.2.1.4, Equation (39), and also [OEIS](@cite), [A008284](https://oeis.org/A008284).
 
 ```@docs
-partitions(::T, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
+partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
 partitions(::T, ::Vector{T}) where T <: Oscar.IntegerUnion
 ```
 

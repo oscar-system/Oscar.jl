@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Galois Theory
@@ -96,10 +94,10 @@ julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
 julia> subfields(F)
 4-element Vector{Any}:
- (Function Field over Rational field with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
- (Function Field over Rational field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
- (Function Field over Rational field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
- (Function Field over Rational field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over QQ with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over QQ with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
+ (Function Field over QQ with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
+ (Function Field over QQ with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
 (Permutation group of degree 6 and order 6, Galois context for s^6 + 108*t^2 + 540*t + 675)

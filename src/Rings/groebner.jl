@@ -103,13 +103,6 @@ degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
-  # incorrect one
-  #singular_assure(B, ordering)
-  #R = B.Sx
-  #I  = Singular.Ideal(R, gens(B.S)...)
-  #i  = Singular.std(I, complete_reduction = complete_reduction)
-  #BA = IdealGens(B.Ox, i, complete_reduction)
-  # correct one (segfaults)
   gensSord = singular_generators(B, ordering)
   i = Singular.std(gensSord, complete_reduction = complete_reduction)
   BA = IdealGens(B.Ox, i, complete_reduction)
@@ -522,8 +515,7 @@ julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
 """
 function syzygy_generators(a::Vector{<:MPolyRingElem})
   I = ideal(a)
-  singular_assure(I)
-  s = Singular.syz(I.gens.S)
+  s = Singular.syz(singular_generators(I))
   F = free_module(parent(a[1]), length(a))
   @assert rank(s) == length(a)
   return [F(s[i]) for i=1:Singular.ngens(s)]
@@ -814,8 +806,8 @@ function reduce_with_quotients_and_unit(F::Vector{T}, G::IdealGens{T}; ordering:
 end
 
 @doc raw"""
-        reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens; 
-          ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
+    reduce_with_quotients_and_unit(I::IdealGens, J::IdealGens;
+      ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M`, a
 `Vector` `res` whose elements are the underlying elements of `I`
@@ -868,7 +860,7 @@ end
 
 
 @doc raw"""
-        reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
+    reduce_with_quotients(I::IdealGens, J::IdealGens; ordering::MonomialOrdering = default_ordering(base_ring(J)), complete_reduction::Bool = false)
 
 Return a `Tuple` consisting of a `Generic.MatSpaceElem` `M` and a
 `Vector` `res` whose elements are the underlying elements of `I`
@@ -1060,7 +1052,7 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
-  if ordering == degrevlex(base_ring(J)) && is_prime(characteristic(base_ring(J)))
+  if ordering == degrevlex(base_ring(J)) && typeof(base_ring(J)) == FqField && absolute_degree(base_ring(J)) == 1
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
@@ -1157,11 +1149,13 @@ julia> Oscar._normal_form_singular(A, J, default_ordering(base_ring(J)))
 ```
 """
 function _normal_form_singular(A::Vector{T}, J::MPolyIdeal, ordering::MonomialOrdering) where { T <: MPolyRingElem }
-  SR = singular_poly_ring(base_ring(J), ordering)
-  IS = Singular.Ideal(SR, [SR(x) for x in A])
   GS = singular_groebner_generators(J, ordering)
-  K  = ideal(base_ring(J), reduce(IS, GS))
-  return [J.gens.Ox(x) for x = gens(K.gens.S)]
+  SR = base_ring(GS)
+  tmp = map(SR, A)
+  IS = Singular.Ideal(SR, tmp)
+  K = reduce(IS, GS)
+  OR = base_ring(J)
+  return map(OR, gens(K))
 end
 
 @doc raw"""
@@ -1300,8 +1294,7 @@ lex([x1, x2, x3, x4])
 """
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
-  singular_assure(G)
-  Singular.dimension(G.S) == 0 || error("Dimension of corresponding ideal must be zero.")
+  Singular.dimension(singular_generators(G)) == 0 || error("Dimension of corresponding ideal must be zero.")
   SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
 
   ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
@@ -1530,6 +1523,7 @@ function groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     end
     singular_assure(G)
     h = Singular.hilbert_series(G.S, weights)
+
   else
     # Quoting from the documentation of Singular.hilbert_series:
     # The coefficient vector is returned as a `Vector{Int32}`, and the last element is not actually part of the coefficients of Q(t).

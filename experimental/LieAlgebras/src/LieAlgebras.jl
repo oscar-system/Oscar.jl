@@ -45,8 +45,9 @@ import ..Oscar:
   gen,
   gens,
   height,
-  hom_tensor,
   hom,
+  hom_direct_sum,
+  hom_tensor,
   ideal,
   identity_map,
   image,
@@ -131,7 +132,6 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
@@ -260,7 +260,6 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix

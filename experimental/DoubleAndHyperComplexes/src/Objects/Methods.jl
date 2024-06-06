@@ -296,7 +296,7 @@ function _free_show(io::IO, C::AbsHyperComplex)
   R = Nemo.base_ring(C[first(rng)])
   R_name = AbstractAlgebra.get_name(R)
   if isnothing(R_name)
-    R_name = "$R"
+    R_name = "($R)"
   end
  
   for i=reverse(rng)

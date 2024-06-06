@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating PBW-Algebras
@@ -37,7 +35,7 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 The constructor below returns the algebras equipped with `degrevlex`.
 
 ```@docs
-    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
+weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 ```
 
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras

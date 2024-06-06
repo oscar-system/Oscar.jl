@@ -215,13 +215,13 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
             copy!(LOAD_PATH, custom_load_path)
             auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            # run from temp dir
+            temp = mktempdir()
+            cd(temp)
             if isfile(auxmain)
               # add overlay project for aux file
-              # and run it from temp dir
-              temp = mktempdir()
               Pkg.activate(temp; io=devnull)
               cp(auxmain,joinpath(temp, "main.jl"))
-              cd(temp)
               run_repl_string(mockrepl, """include("$(joinpath(temp,"main.jl"))")\n""")
               pushfirst!(LOAD_PATH, temp)
               Pkg.activate("$act_proj"; io=devnull)

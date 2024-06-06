@@ -121,7 +121,7 @@ julia> n_vertices(torus())
 n_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
 
 @doc raw"""
-     n_facets(K::SimplicialComplex)
+    n_facets(K::SimplicialComplex)
 
 Return the number of facets of the abstract simplicial complex `K`.
 """
@@ -370,7 +370,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quo
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
-(Quotient of multivariate polynomial ring by ideal (a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: R -> quotient of multivariate polynomial ring)
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
@@ -562,7 +562,7 @@ end
 ###############################################################################
 
 @doc raw"""
-     is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+    is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
 
 Checks if the given simplicial complexes are isomorphic.
 
@@ -655,11 +655,11 @@ function automorphism_group(K::SimplicialComplex; action=:on_vertices)
   if action == :on_vertices
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.RAYS_ACTION.GENERATORS)
     n = n_vertices(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   elseif action == :on_facets
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.FACETS_ACTION.GENERATORS)
     n = n_facets(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   else
     error("unsupported keyword passed to action")
   end
@@ -680,10 +680,12 @@ julia> G = automorphism_group(K)
 Permutation group of degree 4
 
 julia> g = collect(G)[2]
-(1,2)(3,4)
+(1,4)
 
-julia> on_simplicial_complex(K, g)
-Abstract simplicial complex of dimension 2 on 4 vertices
+julia> facets(on_simplicial_complex(K, g))
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 ```
 """
 function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)

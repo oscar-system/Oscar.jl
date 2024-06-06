@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # GR-Algebras: Quotients of PBW-Algebras
@@ -38,7 +36,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra
+exterior_algebra
 ```
 
 ## Data Associated to Affine GR-Algebras

@@ -82,7 +82,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
@@ -91,7 +93,9 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
-  if get(io, :supercompact, false)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
     print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
@@ -101,7 +105,7 @@ function Base.show(io::IO, L::LinearLieAlgebra)
       " over ",
       Lowercase(),
     )
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 
@@ -144,7 +148,7 @@ end
 @doc raw"""
     coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
 
-Returns the element of `L` whose matrix representation corresponds to `x`.
+Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
 """
 function coerce_to_lie_algebra_elem(

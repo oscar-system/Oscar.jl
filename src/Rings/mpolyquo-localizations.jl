@@ -122,7 +122,6 @@ coefficient_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) whe
 coefficient_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_elem_type(typeof(L))
 
 base_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(L))
 base_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
 base_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_elem_type(typeof(L))
 
@@ -221,10 +220,10 @@ function Base.show(io::IO, ::MIME"text/plain", L::MPolyQuoLocRing)
 end
 
 function Base.show(io::IO, L::MPolyQuoLocRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Localized quotient of multivariate polynomial ring")
   else
-    io = IOContext(pretty(io), :supercompact=>true)
+    io = terse(pretty(io))
     print(io, "Localization of ")
     print(io, Lowercase(), underlying_quotient(L))
     print(io, " at ", Lowercase(), inverted_set(L))
@@ -1174,7 +1173,7 @@ end
 ### printing
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), phi)
+  println(terse(io), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
   println(io, "to ", Lowercase(), codomain(phi))
@@ -1191,13 +1190,13 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyQuoLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyQuoLocalizedRingHom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
     io = pretty(io)
-    io = IOContext(io, :supercompact=>true)
+    io = terse(io)
     print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
@@ -1614,6 +1613,7 @@ end
 function simplify(L::MPolyQuoRing)
   J = modulus(L)
   R = base_ring(L)
+  is_zero(ngens(R)) && return L, identity_map(L), identity_map(L)
   SR = singular_poly_ring(R)
   SJ = singular_generators(J)
 
@@ -1711,6 +1711,7 @@ end
 gens(I::MPolyQuoLocalizedIdeal) = copy(I.gens)
 gen(I::MPolyQuoLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyQuoLocalizedIdeal) = I.W
+base_ring_type(::Type{MPolyQuoLocalizedIdeal{LRT, LET, MPT}}) where {LRT, LET, MPT} = LRT
 
 ### additional getter functions 
 map_from_base_ring(I::MPolyQuoLocalizedIdeal) = I.map_from_base_ring
@@ -1915,7 +1916,7 @@ function _get_generators_string_one_line(I::MPolyAnyIdeal, character_limit::Int 
 end
 
 function Base.show(io::IO, I::MPolyAnyIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ideal")
   else
     print(io, "Ideal ", _get_generators_string_one_line(I))
@@ -2032,7 +2033,7 @@ function primary_decomposition(
     algorithm::Symbol=:GTZ, cache::Bool=true
   )
   if has_attribute(I, :primary_decomposition)
-    return get_attribute(I, :primary_decomposition)::Tuple{typeof(I), typeof(I)}
+    return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
   end
   Q = base_ring(I)
   R = base_ring(Q)

@@ -12,9 +12,9 @@ julia> M = regular_gmodule(GF(7), G);
 
 julia> C = composition_factors_with_multiplicity(M)
 3-element Vector{Any}:
- (G-module for G acting on vector space of dimension 1 over prime field of characteristic 7, 1)
- (G-module for G acting on vector space of dimension 1 over prime field of characteristic 7, 1)
- (G-module for G acting on vector space of dimension 4 over prime field of characteristic 7, 2)
+ (G-module for G acting on vector space of dimension 1 over GF(7), 1)
+ (G-module for G acting on vector space of dimension 1 over GF(7), 1)
+ (G-module for G acting on vector space of dimension 4 over GF(7), 2)
 
 julia> [is_absolutely_irreducible(x[1]) for x in C]
 3-element Vector{Bool}:
@@ -28,12 +28,12 @@ Morphism of finite fields
   to finite field of degree 2 and characteristic 7
 
 julia> M = extension_of_scalars(C[3][1], phi)
-G-module for G acting on vector space of dimension 4 over finite field of degree 2 and characteristic 7
+G-module for G acting on vector space of dimension 4 over GF(7, 2)
 
 julia> composition_factors_with_multiplicity(M)
 2-element Vector{Any}:
- (G-module for G acting on vector space of dimension 2 over finite field of degree 2 and characteristic 7, 1)
- (G-module for G acting on vector space of dimension 2 over finite field of degree 2 and characteristic 7, 1)
+ (G-module for G acting on vector space of dimension 2 over GF(7, 2), 1)
+ (G-module for G acting on vector space of dimension 2 over GF(7, 2), 1)
 
 julia> G = pc_group(symmetric_group(4));
 

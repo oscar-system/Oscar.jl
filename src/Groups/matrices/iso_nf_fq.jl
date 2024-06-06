@@ -28,7 +28,7 @@ function _isomorphic_group_over_finite_field(matrices::Vector{<:MatrixElem{T}}; 
       error("Group is not finite")
    end
 
-   G_to_fin_pres = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GapObj([ g.X for g in gens(G) ]))
+   G_to_fin_pres = GAPWrap.IsomorphismFpGroupByGenerators(G.X, GapObj(gens(G); recursive = true))
    F = GAPWrap.Range(G_to_fin_pres)
    rels = GAPWrap.RelatorsOfFpGroup(F)
 
@@ -78,20 +78,20 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
     return Gp, MapFromFunc(G, Gp, img, preimg)
   end
 
-  matrices = map(x -> x.elm, gens(G))
+  matrices = map(matrix, gens(G))
 
   Gp, GptoF, F, OtoFq = _isomorphic_group_over_finite_field(matrices, min_char = min_char)
 
   img = function(x)
-    return Gp(_reduce(x.elm, OtoFq))
+    return Gp(_reduce(matrix(x), OtoFq))
   end
 
   gen = gens(G)
 
   preimg = function(y)
-    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(_ring_iso(Gp), y.elm))),
+    return GAP.Globals.MappedWord(GAPWrap.UnderlyingElement(GAPWrap.Image(GptoF, map_entries(_ring_iso(Gp), matrix(y)))),
                                   GAPWrap.FreeGeneratorsOfFpGroup(F),
-                                  GAP.GapObj(gen))
+                                  GapObj(gen))
   end
 
   return Gp, MapFromFunc(G, Gp, img, preimg)

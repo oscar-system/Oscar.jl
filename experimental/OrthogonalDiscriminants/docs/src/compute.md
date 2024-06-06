@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar.OrthogonalDiscriminants
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Criteria for computing orthogonal discriminants

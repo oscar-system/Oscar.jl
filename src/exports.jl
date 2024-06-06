@@ -29,6 +29,7 @@ export AbsProjectiveCurve
 export AbsProjectiveScheme
 export AbsProjectiveSchemeMorphism
 export AbsProjectiveVariety
+export AbsRationalMap
 export AbstractAlgebra
 export AffineAlgebraicSet
 export AffineHalfspace
@@ -48,6 +49,7 @@ export BorcherdsCtx
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
+export Composition
 export Cone
 export CoveredScheme
 export CoveredSchemeMorphism
@@ -75,6 +77,7 @@ export GL
 export GO
 export GSet
 export GU
+export GapObj
 export Gluing
 export Graph
 export GroupConjClass
@@ -100,7 +103,6 @@ export MPolyQuoIdeal
 export MPolyQuoRing
 export MPolyQuoRingElem
 export MPolyRingElem
-export MPolyRingElemLoc
 export MatrixGroup
 export MatrixGroupElem
 export Matroid
@@ -153,6 +155,10 @@ export SimplicialComplex
 export Singular
 export Sp
 export SubObjectIterator
+export SubFPGroup
+export SubFPGroupElem
+export SubPcGroup
+export SubPcGroupElem
 export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
@@ -169,6 +175,7 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export WeakComposition
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -189,6 +196,7 @@ export add_vertices!
 export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
+export adjunction_process
 export affine_algebra
 export affine_charts
 export affine_cone
@@ -246,6 +254,7 @@ export archimedean_solid
 export arithmetic_genus
 export as_dictionary
 export as_gset
+export ascending_compositions
 export associahedron
 export atlas_description
 export atlas_group
@@ -344,6 +353,8 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
+export composition
+export compositions
 export comm
 export comm!
 export common_components
@@ -548,6 +559,7 @@ export free_module
 export free_module_dec
 export free_resolution
 export free_resolution_via_kernels
+export full_group
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
@@ -766,7 +778,6 @@ export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generat
 export is_finite_order
 export is_flat
 export is_full_direct_product
-export is_full_fp_group
 export is_full_semidirect_product
 export is_full_wreath_product
 export is_fulldimensional
@@ -796,6 +807,7 @@ export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
 export is_left
+export is_linearly_normal
 export is_local
 export is_loopless
 export is_manifold
@@ -925,6 +937,7 @@ export lifted_denominator
 export lifted_numerator
 export lineality_dim
 export lineality_space
+export linear_characters
 export linear_equation_matrix
 export linear_halfspace
 export linear_hyperplane
@@ -987,7 +1000,6 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
 export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
-export minimal_generators
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
@@ -1080,6 +1092,7 @@ export normalizer
 export nullity
 export number_of_atlas_groups
 export number_of_complement_equations
+export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators
@@ -1135,6 +1148,8 @@ export patches
 export pbw_algebra
 export pc_group
 export pcore
+export pentagonal_hexecontahedron
+export pentagonal_icositetrahedron
 export perfect_group
 export perfect_group_identification, has_perfect_group_identification
 export perles_matroid
@@ -1233,6 +1248,7 @@ export rand_subpolytope
 export rank
 export rank_action
 export rational_equivalence_class
+export rational_map
 export rational_point_conic
 export rational_solutions
 export rational_to_continued_fraction_hirzebruch_jung
@@ -1309,12 +1325,14 @@ export save_mps
 export scalar_product
 export scheme
 export schensted
+export schur_cover
 export schur_index
 export schur_multiplier
 export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
+export sectional_genus
 export semi_invariants
 export semidirect_product
 export semistandard_tableaux
@@ -1360,6 +1378,8 @@ export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
+export snub_cube
+export snub_dodecahedron
 export socle, has_socle, set_socle
 export solvable_radical, has_solvable_radical, set_solvable_radical
 export solve_ineq
@@ -1502,6 +1522,7 @@ export weight_ordering
 export weighted_projective_space
 export weyl_algebra
 export weyl_vector
+export with_ordering
 export witt_index
 export wreath_product
 export write_as_full

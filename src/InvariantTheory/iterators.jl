@@ -91,12 +91,12 @@ function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
 end
 
 function Base.show(io::IO, AM::AllMonomials)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Iterator")
   else
     io = pretty(io)
     print(io, "Iterator over the monomials of degree $(AM.d) of")
-    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+    print(terse(io), Lowercase(), AM.R)
   end
 end
 
@@ -124,7 +124,7 @@ function dimension_via_molien_series(
 end
 
 @doc raw"""
-     iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
@@ -405,12 +405,12 @@ function Base.show(io::IO, ::MIME"text/plain", BI::FinGroupInvarRingBasisIterato
 end
 
 function Base.show(io::IO, BI::FinGroupInvarRingBasisIterator)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Iterator")
   else
     io = pretty(io)
     print(io, "Iterator over a graded component of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
+    print(terse(io), Lowercase(), BI.R)
   end
 end
 

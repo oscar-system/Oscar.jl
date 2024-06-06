@@ -271,9 +271,13 @@ given by the pullback function
   return domain(inc), inc
 end
 
-@attr function ideal_sheaf_of_singular_locus(
+function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
+    focus=zero_ideal_sheaf(X) # This should really be an AbsIdealSheaf, but the inclusion order forbids mentioning this here.
   )
+  return get_attribute!(X, :ideal_sheaf_of_singular_locus) do
+    SingularLocusIdealSheaf(X; focus)
+  end::SingularLocusIdealSheaf
   D = IdDict{AbsAffineScheme, Ideal}()
   covering = get_attribute(X, :simplified_covering, default_covering(X))
   for U in covering

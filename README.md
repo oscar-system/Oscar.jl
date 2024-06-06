@@ -144,6 +144,11 @@ If you are using BibTeX, you can use the following BibTeX entries:
       year = {2024},
       publisher = {Springer},
       series = {Algorithms and {C}omputation in {M}athematics},
+      volume = {32},
+      edition = {1},
+      url = {https://link.springer.com/book/9783031621260},
+      month = {8},
+      issn = {1431-1550},
     }
 
 ## Funding
@@ -158,7 +163,7 @@ Forschungsgemeinschaft DFG within the
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://docs.oscar-system.org/stable/
 
-[ga-img]: https://github.com/oscar-system/Oscar.jl/workflows/Run%20tests/badge.svg
+[ga-img]: https://github.com/oscar-system/Oscar.jl/actions/workflows/CI.yml/badge.svg?branch=master&event=push
 [ga-url]: https://github.com/oscar-system/Oscar.jl/actions?query=workflow%3A%22Run+tests%22
 
 [codecov-img]: https://codecov.io/gh/oscar-system/Oscar.jl/branch/master/graph/badge.svg?branch=master

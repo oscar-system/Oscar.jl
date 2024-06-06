@@ -1,24 +1,25 @@
-# Serialization
-
-This document summarizes the serialization efforts of OSCAR, how it is supposed
-to work, how it works and the overall goal.
+# [Serialization](@id dev_serialization)
+This document summarizes the serialization efforts of OSCAR, how it works, and what our long-term vision is.
 [Serialization](https://en.wikipedia.org/wiki/Serialization) broadly speaking
 is the process of reading and writing data. There are many reasons for this
 feature in OSCAR, but the main reason is communication on mathematics by
 mathematicians.
 
+We implement our serialization in accordance with the [MaRDI](https://www.mardi4nfdi.de/about/mission) file format specification described [here](https://arxiv.org/abs/2309.00465).
+Which means we use a JSON extension to serialize data.
+
+
 ## How it works
 The mechanism for saving and loading is very simple. It is implemented via two
 methods `save` and `load`, and works in the following manner:
 ```
-julia> save("/tmp/fourtitwo.json", 42);
+julia> save("/tmp/fourtitwo.mrdi", 42);
 
-julia> load("/tmp/fourtitwo.json")
+julia> load("/tmp/fourtitwo.mrdi")
 42
 
 ```
-As hinted by the filename, OSCAR writes a file in JSON format. The file looks
-as follows:
+The filename hints to the [MaRDI file format](https://arxiv.org/abs/2309.00465), which employs JSON.  The file looks as follows:
 ```
 {
   "_ns": {
@@ -31,15 +32,68 @@ as follows:
   "data": "42"
 }
 ```
-It contains the version of OSCAR used for serialization. The content is "42",
-it represents a `Base.Int`, according to the `_type` field.
+It contains the precise version of OSCAR used for this serialization.
+The content is "42", it represents a `Base.Int`, according to the `_type` field.
 
 
 ## Implementation
-All files for serialization can be found in the folder `src/Serialization`. The
-naming conventions of the files there follows the overall structure of OSCAR,
-i.e. the file `src/Serialization/PolyhedralGeometry.jl` contains functions for
+To list and describe all implementations and encodings of all types in OSCAR
+is not a possible feat due to the arbitrarily deep and nested type structures
+available in OSCAR, we point any developer looking to understand the encodings
+of certain types to the OSCAR source code. All files for serialization can be
+found in the folder `src/Serialization`. The convention of the files there
+follows the overall structure of OSCAR, i.e. the file
+`src/Serialization/PolyhedralGeometry.jl` contains functions for
 serializing objects of the polyhedral geometry section.
+
+We include a basic example of the encoding for a `QQPolyRingElem` so one can get a taste
+before delving into the source code. Here we store the polynomial `x^3 + 2x + 1//2`.
+The encoding for polynomials is to store a list of tuples, where each entry in the
+list represents a term of the polynomial and where the first entry of the tuple is
+the exponent and the second entry is the coefficient. Here we serialize a univariate
+polynomial so the first entries are always integers, in general this may be an array
+of integers. The coefficients here are elements of `QQ` however in general
+the coefficients themselves may be described as polynomials of the generators
+of some field extension, i.e. the second entry may again be a list of tuples and so on.
+The nested structure of the coefficient will depend on the description of the field
+extension.
+
+
+```
+{
+  "_ns": {
+    "Oscar": [
+      "https://github.com/oscar-system/Oscar.jl",
+      "1.1.0-DEV-6f7e717c759f5fc281b64f665c28f58578013c21"
+    ]
+  },
+  "_refs": {
+    "e6c5972c-4052-4408-a408-0f4f11f21e49": {
+      "_type": "PolyRing",
+      "data": {
+        "base_ring": {
+          "_type": "QQField"
+        },
+        "symbols": [
+          "x"
+        ]
+      }
+    }
+  },
+  "_type": {
+    "name": "PolyRingElem",
+    "params": "e6c5972c-4052-4408-a408-0f4f11f21e49"
+  },
+  "data": [  [      "0",      "1//2"    ],
+	     [      "1",      "2"       ],
+	     [      "3",      "1"       ]  ]
+}
+
+```
+
+When trying to understand an encoding of a particular type in OSCAR it is always
+best to make a minimal example and store it. Then use a pretty printer to format
+the JSON, and have it close by while going through the source code.
 
 ### Description of the saving and loading mechanisms
 
@@ -298,3 +352,34 @@ The ramifications of making mathematical data FAIR are manifold.
   an important role for this process.
 - Future generations of mathematicians will be able to reuse both data and code
   if we establish a FAIR culture.
+
+# External Implementations
+
+Any external body implementing a save/load following the `.mrdi` format specification
+and using the OSCAR namespace should be sure to check validity against our schema defined
+[here](https://www.oscar-system.org/schemas/mrdi.json).
+
+We make no attempt whatsoever to verify the mathematics of the file, and neither
+should anyone implementing a save/load. Loading should not throw a parse error
+if the mathematics of the file is incorrect, the file should be parsed and allow
+the computer algebra system to throw the error. We cannot guarantee that any file
+that has been manipulated by hand is still valid and should be validated against
+the schema. In the same way we cannot guarantee that any files created externally
+are valid in terms of the mathematics either, these will not lead to a parse error
+but instead will be handle as though the incorrect input has been passed to one
+of the Oscar functions.
+
+External implementations should not be expected to read or write all possible Oscar types.
+It is perfectly valid for external implementations to throw parse errors when a certain
+file format is unexpected. For example Oscar will parse a `QQFieldElem` that has data value
+"0 0 7 // - 1 0" as `-7//10`, even though this is not how it is serialized. We feel
+we should not restrict users when deserializing to formats that may have issues deserializing
+the same format externally.
+
+Allowing extensions to JSON is not recommended, this is to keep the scope
+of possible software that can parse the given JSON as large as possible.
+For example some JSON extensions allow comments in the files, Oscar cannot
+parse such JSONs and we recommend that any comments should be placed in the
+meta field.
+
+When writing UUIDs, adhere to version four UUIDs specified by RFC 4122.

@@ -1,5 +1,5 @@
 {
-    "model_index": "",
+    "model_index": "44",
     "arxiv_data": {
         "id": "1408.4808v2",
         "doi": "10.48550/arXiv.1408.4808",
@@ -46,19 +46,22 @@
     },
     "model_data": {
         "base_dim": 3,
-        "model_sections": ["s7", "s9"],
-        "base_coordinates": ["s7", "s9", "s1", "s6"],
-        "auxiliary_base_grading": [
-            [0, 0,  3, 1],
-            [1, 0, -1, 0],
-            [0, 1, -1, 0]
+        "defining_classes": ["s7", "s9"],
+        "model_sections": ["s1", "s6", "s7", "s9"],
+        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+            [3, 1, 0, 0],
+            [-1, 0, 1, 0],
+            [-1, 0, 0, 1]
         ],
         "fiber_ambient_space_rays": [[-1, 1], [0, -1], [1, 0], [0, 1], [-1, 0], [-1, -1], [1, 1], [2, 1], [-1, -2]],
         "fiber_ambient_space_max_cones": [[1, 4], [4, 7], [7, 8], [3, 8], [2, 3], [2, 9], [6, 9], [5, 6], [1, 5]],
         "fiber_ambient_space_coordinates": ["u", "v", "w", "e1", "e2", "e3", "e4", "e5", "e6"],
         "fiber_ambient_space_name": "P^{F_16}",
-        "D1": [-1, 0, 1],
-        "D2": [0, -1, 1],
+        "fiber_twist_matrix": [
+            [-1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, -1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0]
+        ],
         "hypersurface_equation": "s1*e1^2*e2^2*e3*e4*u^3 + s6*e1*e2*e3*e4*e5*e6*u*v*w + s7*e2*e3^2*e6^3*v^2*w + s9*e1*e4^2*e5^3*v*w^2",
         "zero_section": ["0", "1", "1", "s7", "-s9", "1", "1", "1", "1"],
         "torsion_sections": [

@@ -86,6 +86,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_terse,
   is_trivial,
   is_unicode_allowed,
   Lowercase,
@@ -113,6 +114,7 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
+  terse,
   total_degree,
   with_unicode
 
@@ -202,3 +204,10 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
+
+import Nemo: is_cyclo_type
+import Nemo: is_maxreal_type
+import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
+import Nemo: FpField  # FIXME: remove if/once Nemo exports this
+import Nemo: fpField  # FIXME: remove if/once Nemo exports this

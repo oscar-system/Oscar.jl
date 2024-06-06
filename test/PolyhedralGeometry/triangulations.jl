@@ -6,10 +6,10 @@
     @test Oscar._is_full_triangulation(sop)
     @test Oscar._is_star_triangulation(sop)
   end
-  
+
   @testset "Square" begin
-    pts = matrix(ZZ,[0 0; 1000 0; 0 1000; 501 501])
-    pts = 1000000000*pts
+    pts = matrix(ZZ, [0 0; 1000 0; 0 1000; 501 501])
+    pts = 1000000000 * pts
     triang = Oscar._find_full_star_triangulation(pts; seed=47235)
     sop = subdivision_of_points(pts, triang)
     @test Oscar._is_full_triangulation(sop)

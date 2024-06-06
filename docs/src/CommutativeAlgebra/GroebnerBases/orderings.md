@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Monomial Orderings](@id monomial_orderings)
@@ -410,7 +408,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
+Free module of rank 3 over R
 
 julia> o1 = degrevlex(R)*invlex(gens(F))
 degrevlex([w, x, y, z])*invlex([gen(1), gen(2), gen(3)])
