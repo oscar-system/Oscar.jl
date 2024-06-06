@@ -178,7 +178,108 @@ function PartitionsFixedNumParts(n::T, k::IntegerUnion, lb::IntegerUnion, ub::In
   return PartitionsFixedNumParts(n, k, lb, ub, only_distinct_parts)
 end
 
+# Iterator type: partitions of n into k parts with values in v and every value
+# occuring according to the multiplicities in mu
+struct PartitionsFixedNumPartsAndValues{T<:IntegerUnion}
+  n::T
+  k::Int
+  v::Vector{T}
+  mu::Vector{Int}
 
+  function PartitionsFixedNumPartsAndValues(n::T, k::Int, v::Vector{T}, mu::Vector{Int}) where {T <: IntegerUnion}
+    @req n >= 0 "n >= 0 required"
+    @req k >= 0 "k >= 0 required"
+    @req length(mu) == length(v) "mu and v should have the same length"
+
+    # Algorithm partb in [RJ76] assumes that v is strictly increasing.
+    # Added (and noticed) on Mar 22, 2023.
+    @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+
+    # Parta allows v[1] = 0 but this is nonsense for entries of a partition
+    @req all(>(0), v) "Entries of v must be positive"
+
+    # For safety
+    @req all(>(0), mu) "Entries of mu must be positive"
+    return new{T}(n, k, v, mu)
+  end
+end
+
+# Internal type: state of the iterator
+mutable struct PartitionsFixedNumPartsAndValuesState{T<:IntegerUnion}
+  x::Vector{T}
+  y::Vector{T}
+  ii::Vector{T}
+  N::T
+  i::Int
+  r::Int
+  done::Bool
+
+  function PartitionsFixedNumPartsAndValuesState{T}() where {T<:IntegerUnion}
+    return new{T}()
+  end
+end
+
+# Iterator type: partitions of n with values in v
+# Optionally, every value occurs according to the multiplicities in mu
+struct PartitionsFixedValues{T<:IntegerUnion}
+  n::T
+  v::Vector{T}
+  mu::Vector{Int}
+  kmin::Int # minimum number of parts
+  kmax::Int # maximum number of parts
+
+  # Constructor without multiplicities
+  function PartitionsFixedValues(n::T, v::Vector{T}) where {T <: IntegerUnion}
+    @req n >= 0 "n >= 0 required"
+    @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+    @req all(>(0), v) "Entries of v must be positive"
+
+    if n == 0 || isempty(v)
+      # We fill the multiplicities with 1s to get around the @req's.
+      # If n == 0, the multiplicities aren't checked and if isempty(v), then
+      # the multiplicities are empty (as required).
+      return new{T}(n, v, ones(Int, length(v)), 0, 0)
+    end
+
+    kmin = div(n, v[end])
+    kmax = div(n, v[1])
+    return new{T}(n, v, fill(kmax, length(v)), kmin, kmax)
+  end
+
+  # Constructor with multiplicities
+  function PartitionsFixedValues(n::T, v::Vector{T}, mu::Vector{Int}) where {T <: IntegerUnion}
+    @req n >= 0 "n >= 0 required"
+    @req length(mu) == length(v) "mu and v should have the same length"
+    @req all([v[i] < v[i + 1] for i in 1:length(v) - 1]) "v must be strictly increasing"
+    @req all(>(0), v) "Entries of v must be positive"
+    @req all(>(0), mu) "Entries of mu must be positive"
+
+    if n == 0 || isempty(v)
+      # We fill the multiplicities with 1s to get around the @req's.
+      # If n == 0, the multiplicities aren't checked and if isempty(v), then
+      # the multiplicities are empty (as required).
+      return new{T}(n, v, ones(Int, length(v)), 0, 0)
+    end
+
+    kmax = 0
+    cursum = 0
+    for i in 1:length(v), j in 1:mu[i]
+      kmax += 1
+      cursum += v[i]
+      cursum >= n && break
+    end
+
+    kmin = 0
+    cursum = 0
+    for i in length(v):-1:1, j in 1:mu[i]
+      kmin += 1
+      cursum += v[i]
+      cursum >= n && break
+    end
+
+    return new{T}(n, v, mu, kmin, kmax)
+  end
+end
 
 ################################################################################
 #
