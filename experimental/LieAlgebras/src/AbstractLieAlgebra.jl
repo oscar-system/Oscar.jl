@@ -287,7 +287,6 @@ function lie_algebra(
   return lie_algebra(R, struct_consts, s; check)
 end
 
-
 @doc raw"""
     lie_algebra(R::Field, rs::RootSystem) -> AbstractLieAlgebra{elem_type(R)}
 
@@ -325,7 +324,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
   nroots = n_roots(rs)
   npos = n_positive_roots(rs)
   nsimp = n_simple_roots(rs)
-  
+
   n = 2 * npos + nsimp
 
   N = _N_matrix(rs, extraspecial_pair_signs)
@@ -453,7 +452,6 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
   end
   return N
 end
-
 
 @doc raw"""
     lie_algebra(R::Field, fam::Symbol, rk::Int) -> AbstractLieAlgebra{elem_type(R)}

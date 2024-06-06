@@ -78,18 +78,27 @@
   end
 
   @testset "Lie algebra from root system" begin
-    function test_lie_algebras_from_root_system(rs::RootSystem; repeats::Union{Oscar.IntegerUnion, Symbol}=:all, gap_type::Union{Vector{String}, Nothing} = nothing)
+    function test_lie_algebras_from_root_system(
+      rs::RootSystem;
+      repeats::Union{Oscar.IntegerUnion,Symbol}=:all,
+      gap_type::Union{Vector{String},Nothing}=nothing,
+    )
       test_lie_algebras_from_root_system(QQ, rs; repeats, gap_type)
     end
-  
-    function test_lie_algebras_from_root_system(R::Field, rs::RootSystem; repeats::Union{Oscar.IntegerUnion, Symbol}=:all, gap_type::Union{Vector{String}, Nothing} = nothing)
+
+    function test_lie_algebras_from_root_system(
+      R::Field,
+      rs::RootSystem;
+      repeats::Union{Oscar.IntegerUnion,Symbol}=:all,
+      gap_type::Union{Vector{String},Nothing}=nothing,
+    )
       @req (repeats isa Oscar.IntegerUnion && repeats >= 0) || repeats == :all "`repeats` must be a positive integer or :all"
       n_freedom_degs = n_positive_roots(rs) - n_simple_roots(rs)
       if n_freedom_degs == 0
         signs = Bool[]
         test_lie_algebra_from_root_system(R, rs, signs; gap_type)
       elseif repeats == :all
-        for signs in AbstractAlgebra.ProductIterator([true,false], n_freedom_degs)
+        for signs in AbstractAlgebra.ProductIterator([true, false], n_freedom_degs)
           test_lie_algebra_from_root_system(R, rs, signs; gap_type)
         end
       else
@@ -101,17 +110,25 @@
       return nothing
     end
 
-    function test_lie_algebra_from_root_system(R::Field, rs::RootSystem, signs::Vector{Bool}; gap_type::Union{Vector{String}, Nothing} = nothing)
+    function test_lie_algebra_from_root_system(
+      R::Field,
+      rs::RootSystem,
+      signs::Vector{Bool};
+      gap_type::Union{Vector{String},Nothing}=nothing,
+    )
       struct_consts = Oscar.LieAlgebras._struct_consts(R, rs, signs)
       # `check=true`` is slow but tests if the structure constants define a Lie algebra, in particular if they satisfy the Jacobi identity
       L = lie_algebra(R, struct_consts; check=true)
       @test true # count the number of testcases
       if !isnothing(gap_type)
-        @test String(GAP.Globals.SemiSimpleType(codomain(Oscar._iso_oscar_gap(L)))) in gap_type
+        @test String(GAP.Globals.SemiSimpleType(codomain(Oscar._iso_oscar_gap(L)))) in
+          gap_type
       end
     end
 
-    testcases_fast = Tuple{String, RootSystem, Vector{String}, Union{Oscar.IntegerUnion, Symbol}}[
+    testcases_fast = Tuple{
+      String,RootSystem,Vector{String},Union{Oscar.IntegerUnion,Symbol}
+    }[
       ("A1", root_system(:A, 1), ["A1"], :all), # 1
       ("A2", root_system(:A, 2), ["A2"], :all), # 2
       ("A3", root_system(:A, 3), ["A3"], :all), # 8
@@ -140,7 +157,9 @@
           -1 0 0 -1 2]), ["A3 B2", "B2 A3"], 5),
     ]
 
-    testcases_indepth = Tuple{String, RootSystem, Vector{String}, Union{Oscar.IntegerUnion, Symbol}}[
+    testcases_indepth = Tuple{
+      String,RootSystem,Vector{String},Union{Oscar.IntegerUnion,Symbol}
+    }[
       ("A1", root_system(:A, 1), ["A1"], :all), # 1
       ("A2", root_system(:A, 2), ["A2"], :all), # 2
       ("A3", root_system(:A, 3), ["A3"], :all), # 8
@@ -190,7 +209,8 @@
     end
 
     @testset "other fields" begin
-      @testset "$R" for R in [cyclotomic_field(4)[1], GF(3), GF(2, 3), algebraic_closure(QQ)]
+      @testset "$R" for R in
+                        [cyclotomic_field(4)[1], GF(3), GF(2, 3), algebraic_closure(QQ)]
         test_lie_algebras_from_root_system(R, root_system(:A, 3); repeats=1)
         test_lie_algebras_from_root_system(R, root_system(:B, 3); repeats=1)
         test_lie_algebras_from_root_system(R, root_system(:C, 3); repeats=1)
@@ -200,6 +220,4 @@
       end
     end
   end
-
-  
 end
