@@ -303,9 +303,8 @@ R^2 <---- R^6 <---- R^6 <---- R^2 <---- 0
 **Note:** Over rings other than polynomial rings, the method will default to a lazy, 
 iterative kernel computation.
 """
-function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-                         ordering::ModuleOrdering = default_ordering(M),
-                         length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubquoModule{T}; 
+                         length::Int=0, algorithm::Symbol=:fres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")

@@ -263,19 +263,19 @@ Convert a Singular vector to a free module element.
 """
 function (F::FreeMod)(s::Singular.svector)
   pos = Int[]
-  values = []
   Rx = base_ring(F)
-  R = base_ring(Rx)
-  for (i, e, c) = s
+  R = coefficient_ring(Rx)
+  values = elem_type(Rx)[]
+  for (i, e, c) in s
     f = Base.findfirst(x->x==i, pos)
     if f === nothing
-      push!(values, MPolyBuildCtx(base_ring(F)))
+      push!(values, zero(Rx))
       f = length(values)
       push!(pos, i)
     end
-    push_term!(values[f], R(c), e)
+    values[f] += R(c)*prod(gens(Rx) .^ e)
   end
-  pv = Tuple{Int, elem_type(Rx)}[(pos[i], base_ring(F)(finish(values[i]))) for i=1:length(pos)]
+  pv = [(pos[i], values[i]) for i=1:length(pos)]
   return FreeModElem(sparse_row(base_ring(F), pv), F)
 end
 
