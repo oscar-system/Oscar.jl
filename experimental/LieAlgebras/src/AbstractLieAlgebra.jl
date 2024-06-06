@@ -21,21 +21,17 @@
       @req all(
         r -> all(e -> parent(last(e)) === R, r), struct_consts
       ) "Invalid structure constants."
+      @req all(iszero, struct_consts[i, i] for i in 1:dimL) "Not anti-symmetric."
       @req all(
-        iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
-      ) "Not anti-symmetric."
-      @req all(
-        iszero,
-        struct_consts[i, j][k] + struct_consts[j, i][k] for i in 1:dimL, j in 1:dimL,
-        k in 1:dimL
+        iszero, struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL, j in 1:dimL
       ) "Not anti-symmetric."
       @req all(
         iszero,
         sum(
-          struct_consts[i, j][k] * struct_consts[k, l][m] +
-          struct_consts[j, l][k] * struct_consts[k, i][m] +
-          struct_consts[l, i][k] * struct_consts[k, j][m] for k in 1:dimL
-        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL, m in 1:dimL
+          struct_consts[i, j][k] * struct_consts[k, l] +
+          struct_consts[j, l][k] * struct_consts[k, i] +
+          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL
+        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
