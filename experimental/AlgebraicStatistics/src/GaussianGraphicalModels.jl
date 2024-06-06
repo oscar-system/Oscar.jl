@@ -46,7 +46,7 @@ function show(io::IO, R::GaussianRing)
     coeffs = base_ring(R.ring)
     k = ngens(R.ring)
    
-    print("Gaussian ring over $(coeffs) in $(k) variables", "\n", chop(string(gens(R.ring)), head = 16, tail = 1))
+    print(io, "Gaussian ring over $(coeffs) in $(k) variables", "\n", chop(string(gens(R.ring)), head = 16, tail = 1))
 end
 
 
@@ -155,11 +155,11 @@ function show(io::IO, M::GraphicalModel{Graph{Directed}, GaussianRing})
     E = [(src(e), dst(e)) for e in edges(G)]
 
     if length(E) == 0
-        print("Directed Gaussian graphical model on the empty graph")
+        print(io, "Directed Gaussian graphical model on the empty graph")
     end
 
     if length(E) > 0
-        print("Gaussian graphical model on a directed graph with edges:", "\n", string(E)[2:end-1])
+        print(io, "Gaussian graphical model on a directed graph with edges:", "\n", string(E)[2:end-1])
     end
 end
 
@@ -288,11 +288,11 @@ function show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
     E = [(dst(e), src(e)) for e in edges(G)]
 
     if length(E) == 0
-        print("Undirected Gaussian graphical model on the empty graph")
+        print(io, "Undirected Gaussian graphical model on the empty graph")
     end
 
     if length(E) > 0
-        print("Gaussian graphical model on an undirected graph with edges:", "\n", string(E)[2:end-1])
+        print(io, "Gaussian graphical model on an undirected graph with edges:", "\n", string(E)[2:end-1])
     end
 end
 
