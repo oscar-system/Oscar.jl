@@ -1,31 +1,3 @@
-raw"""
-A *group action* of a group $G$ on a set $\Omega$ (from the right) is defined by
-a map $\mu:\Omega\times G\to \Omega$ that satisfies the compatibility conditions
-$\mu(\mu(x,g),h) = \mu(x, gh)$ and $\mu(x, 1_G) = x$ for all $x\in\Omega$.
-
-The maps $\mu$ are implemented as functions that take two arguments, an element
-$x$ of $\Omega$ and a group element $g$, and return the image of $x$ under $g$.
-
-In many cases, a natural action is given by the types of the elements in $\Omega$
-and in $G$.
-For example permutation groups act on positive integers by just applying
-the permutations.
-In such situations, the function `^` can be used as action function,
-and `^` is taken as the default whenever no other function is prescribed.
-
-However, the action is not always determined by the types of the involved
-objects.
-For example, permutations can act on vectors of positive integers by
-applying the permutations pointwise, or by permuting the entries;
-matrices can act on vectors by multiplying the vector with the matrix,
-or by multiplying the inverse of the matrix with the vector;
-and of course one can construct new custom actions in situations where
-default actions are already available.
-
-Thus it is in general necessary to specify the action function explicitly.
-The following ones are commonly used.
-"""
-
 #############################################################################
 ##
 ##  common actions of group elements
