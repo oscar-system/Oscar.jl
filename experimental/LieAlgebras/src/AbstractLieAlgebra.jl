@@ -287,6 +287,7 @@ function lie_algebra(
   return lie_algebra(R, struct_consts, s; check)
 end
 
+
 @doc raw"""
     lie_algebra(R::Field, rs::RootSystem) -> AbstractLieAlgebra{elem_type(R)}
 
@@ -359,7 +360,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     struct_consts[nroots + i, j] = sparse_row(
       R,
       [j],
-      [dot(coefficients(root(rs, j)), cm[i, :])], # maybe cm[:, i] instead of cm[i, :]
+      [dot(coefficients(root(rs, j)), cm[i, :])],
     )
     # [e_βj, h_i] = -[h_i, e_βj]
     struct_consts[j, nroots + i] = -struct_consts[nroots + i, j]
@@ -378,11 +379,9 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
   nsimp = n_simple_roots(rs)
   @req length(extraspecial_pair_signs) == npos - nsimp "Invalid extraspecial pair sign vector length."
 
-  # N = Matrix{Union{Missing,Int}}(missing, npos, nroots)
   N = zeros(Int, npos, nroots)
 
   # extraspecial pairs
-  # println("extraspecial")
   for (i, alpha_i) in enumerate(simple_roots(rs))
     for (l, beta_l) in enumerate(positive_roots(rs))
       fl, k = is_positive_root_with_index(alpha_i + beta_l)
@@ -395,14 +394,12 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       while is_root_with_index(beta_l - p * alpha_i)[1]
         p += 1
       end
-      # println("N[$i, $l] = $((extraspecial_pair_signs[k - nsimp] ? 1 : -1) * p)")
       N[i, l] = (extraspecial_pair_signs[k - nsimp] ? 1 : -1) * p
       N[l, i] = -N[i, l]
     end
   end
 
   # special pairs
-  # println("special")
   for (i, alpha_i) in enumerate(positive_roots(rs))
     for (j, beta_j) in enumerate(positive_roots(rs))
       i < j || continue
@@ -418,29 +415,18 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       t2 = 0
       if ((fl, m) = is_positive_root_with_index(beta_j - simple_root(rs, l)); fl)
         root_m = positive_root(rs, m)
-        # println(
-        #   "t1 = Int(N[$l, $m] * N[$i, $m] * $(dot(root_m, root_m))//$(dot(beta_j, beta_j))) = Int($(N[l, m]) * $(N[i, m]) * $(dot(root_m, root_m))//$(dot(beta_j, beta_j)))",
-        #   )
-        t1 = N[l, m] * N[i, m] * dot(root_m, root_m)//dot(beta_j, beta_j) # - maybe typo in paper
-        # N[i, j] = Int(N[l, m] * N[m, i] * dot(root_m, root_m)//dot(beta_j, beta_j)) # - maybe typo in paper
-        # N[j, i] = -N[i, j]
+        t1 = N[l, m] * N[i, m] * dot(root_m, root_m)//dot(beta_j, beta_j)
       end
       if ((fl, m) = is_positive_root_with_index(alpha_i - simple_root(rs, l)); fl)
         root_m = positive_root(rs, m)
-        # println(
-        #   "t2 = Int(N[$l, $m] * N[$j, $m] * $(dot(root_m, root_m))//$(dot(alpha_i, alpha_i))) = Int($(N[l, m]) * $(N[j, m]) * $(dot(root_m, root_m))//$(dot(alpha_i, alpha_i)))",
-        #   )
-        t2 = N[l, m] * N[j, m] * dot(root_m, root_m)//dot(alpha_i, alpha_i) # - maybe typo in paper
-        # N[i, j] = Int(N[l, m] * N[m, j] * dot(root_m, root_m)//dot(alpha_i, alpha_i)) # - maybe typo in paper
-        # N[j, i] = -N[i, j]
+        t2 = N[l, m] * N[j, m] * dot(root_m, root_m)//dot(alpha_i, alpha_i)
       end
       @assert t1 - t2 != 0
       p = 0
       while is_root_with_index(beta_j - p * alpha_i)[1]
         p += 1
       end
-      # println("N[$i, $j] = (sign($t1 - $t2) * sign(N[$l, $l_comp]) * $p) = (sign($t1 - $t2) * sign($(N[l, l_comp])) * $p) = $(sign(t1 - t2) * sign(N[l, l_comp]) * p)")
-      N[i, j] = Int(sign(t1 - t2) * sign(N[l, l_comp]) * p)
+      N[i, j] = Int(sign(t1 - t2) * sign(N[l, l_comp]) * p) # typo in paper
       N[j, i] = -N[i, j]
     end
   end
@@ -450,16 +436,10 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
     for (j, beta_j) in enumerate(positive_roots(rs))
       if ((fl, k) = is_positive_root_with_index(alpha_i - beta_j); fl)
         root_k = positive_root(rs, k)
-        # println(
-        #   "N[$i, $(npos + j)] = Int(N[$k, $j] * dot(root_k, root_k)//dot(alpha_i, alpha_i)) = Int($(N[k, j]) * dot(root_k, root_k)//dot(alpha_i, alpha_i))",
-        # )
         N[i, npos + j] = Int(N[k, j] * dot(root_k, root_k)//dot(alpha_i, alpha_i))
       end
       if ((fl, k) = is_positive_root_with_index(beta_j - alpha_i); fl)
         root_k = positive_root(rs, k)
-        # println(
-        #   "N[$i, $(npos + j)] = Int(N[$k, $j] * dot(root_k, root_k)//dot(beta_j, beta_j)) = Int($(N[k, j]) * dot(root_k, root_k)//dot(beta_j, beta_j))",
-        # )
         N[i, npos + j] = Int(N[k, i] * dot(root_k, root_k)//dot(beta_j, beta_j))
       end
     end
