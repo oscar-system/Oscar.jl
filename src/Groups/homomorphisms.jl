@@ -488,7 +488,7 @@ _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
 # from the codomain `G` in GAP by calling `T(G)` where `T` is the desired type.
 _get_iso_function(::Type{PcGroup}) = GAP.Globals.IsomorphismPcGroup
 _get_iso_function(::Type{SubPcGroup}) = GAP.Globals.IsomorphismPcGroup
-_get_iso_function(::Type{SubFPGroup}) = GAP.Globals.IsomorphismFPGroup
+_get_iso_function(::Type{SubFPGroup}) = GAP.Globals.IsomorphismFpGroup
 
 
 """
