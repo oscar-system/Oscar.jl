@@ -1,6 +1,6 @@
 # -*- Conditional independence statements -*-
 
-export ci_stmt, @CI_str, ci_statements, make_elementary
+export CIStmt, ci_stmt, @CI_str, ci_statements, make_elementary
 
 struct CIStmt
   I::Vector{String}
@@ -83,7 +83,7 @@ julia> CI"AB|X"
 [A ⫫ B | X]
 
 julia> CI"1,23|5424"
-[1 ⫫ {2, 3} | {4, 5}]
+[1 ⫫ 3 | {2, 4, 5}]
 ```
 """
 macro CI_str(str)

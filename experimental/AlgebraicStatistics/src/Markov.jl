@@ -1,6 +1,6 @@
 # -*- Markov rings for discrete random variables -*-
 
-export markov_ring, tensor_ring, ring, random_variables, unknowns, state_space, marginal, ci_ideal
+export MarkovRing, markov_ring, tensor_ring, ring, random_variables, unknowns, state_space, marginal, ci_ideal
 
 struct MarkovRing
   ring
@@ -248,7 +248,7 @@ given by `stmts`.
 ## Examples
 
 ``` jldoctest
-julia> R = MarkovRing("A" => 1:2, "B" => 1:2, "X" => 1:2);
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2);
 
 julia> ci_ideal(R, [CI"X,A|B", CI"X,B|A"])
 ideal(p[1, 1, 1]*p[2, 1, 2] - p[2, 1, 1]*p[1, 1, 2], p[1, 2, 1]*p[2, 2, 2] - p[2, 2, 1]*p[1, 2, 2], p[1, 1, 1]*p[1, 2, 2] - p[1, 2, 1]*p[1, 1, 2], p[2, 1, 1]*p[2, 2, 2] - p[2, 2, 1]*p[2, 1, 2])

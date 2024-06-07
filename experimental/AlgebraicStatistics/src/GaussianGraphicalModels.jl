@@ -4,6 +4,7 @@
 #
 ###################################################################################
 
+export GaussianRing
 export gaussian_ring, ring, gens, covariance_matrix
 export graphical_model, parameterization
 export directed_edges_matrix, error_covariance_matrix
