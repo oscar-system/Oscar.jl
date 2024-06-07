@@ -54,7 +54,7 @@ Note that the explicit elements of a G-set `Omega` can be obtained using
 `collect(Omega)`.
 
 ```@docs
-gset(G::GAPGroup, fun::Function, Omega)
+gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
 permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)
