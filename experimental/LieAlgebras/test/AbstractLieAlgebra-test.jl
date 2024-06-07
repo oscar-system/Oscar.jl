@@ -121,7 +121,7 @@
       L = lie_algebra(R, struct_consts; check=true)
       @test true # count the number of testcases
       if !isnothing(gap_type)
-        @test String(GAP.Globals.SemiSimpleType(codomain(Oscar._iso_oscar_gap(L)))) in
+        @test String(GAP.Globals.SemiSimpleType(codomain(Oscar.iso_oscar_gap(L)))) in
           gap_type
       end
     end
