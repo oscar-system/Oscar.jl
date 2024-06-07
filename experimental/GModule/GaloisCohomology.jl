@@ -159,6 +159,91 @@ function Oscar.gmodule(H::PermGroup, mu::Map{FinGenAbGroup, AbsSimpleNumField}, 
   return _gmodule(codomain(mu), H, mu, mG)
 end
 
+function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldOrderFractionalIdeal}})
+
+  zk = order(first(values(c.d)).data)
+  
+  I = AbsSimpleNumFieldOrderIdeal[]
+  for v = values(c.d)
+    if !isone(v.data)
+      for x = c.C.G
+        J = action(c.C, x, v)
+        n, d = integral_split(J.data)
+        n in I || push!(I, n)
+        d in I || push!(I, d)
+      end
+    end
+  end
+  cp = coprime_base(I)
+
+  G = c.C.G
+  k = number_field(zk)
+  MI = c.C.M
+  if length(cp) == 0
+    z = zero(MI)
+    return true, CoChain{1, PermGroupElem, elem_type(MI)}(c.C, Dict((g,) => z for g = G))
+  end
+  O = orbits(gset(G, (i, g) -> numerator(action(c.C, g, MI(i//1)).data), cp, closed = true))
+  local res
+  frst = true
+  for _o = O
+    for i = 1:2
+      if i == 1
+        o = _o
+      else
+        o = vcat([collect(values(factor(x))) for x = _o]...)
+      end
+      M = abelian_group([0 for x = o])
+      h = MapFromFunc(c.C.M, M, x->M([valuation(x.data, y) for y = o]))
+      D = gmodule(G, [hom(M, M, [h(action(c.C, g, c.C.M(i//1))) for i = o]) for g = gens(c.C.G)])
+
+      cc = map_entries(h, c, parent = D)
+      h2, mh2, icb = Oscar.GrpCoh.H_two(D)
+      fl, x = icb(cc)
+      if !fl
+        if i == 2
+          return false, nothing
+        else
+          @show :trying_harder
+          continue
+        end
+      end
+      h = MapFromFunc(M, MI, x->MI(prod((o[i]//1)^Int(x[i]) for i=1:length(o))))
+      if frst
+        frst = false
+        res = map_entries(h, x, parent = c.C)
+      else
+        res += map_entries(h, x, parent = c.C)
+      end
+      break
+    end
+  end
+
+  #problem:
+  #if G = C_2 and I = P1 P2 for 2 conjugate ideals P1, P2, then
+  #H^2(G, I) = C_2 (trivial operation), but H^2(G, <P1, P2}) = C_1
+  #thus this test will fail
+  #project down onto Galois orbits of ideals in cp
+  # if it is split on that orbit, remove it
+  #idea would be H^2(<cp>) = sum H^2(<o>) where the sum runs over the
+  #Galois orbits in cp
+  #if an orbit can be removed, fine. If not
+  #either the ideals should factor (and can be removed)
+  #or not possible
+  #so: probably better to split this into Galois orbits...
+  return true, res
+end
+
+function Oscar.map_entries(MI:: Oscar.GrpCoh.MultGrp{AbsSimpleNumFieldOrderFractionalIdeal}, c::Oscar.GrpCoh.CoChain{2, <:GAPGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}})
+  k = c.C.M.data
+  zk = maximal_order(k)
+  D = gmodule(c.C.G, [MapFromFunc(MI, MI, x->MI(hom(k, k, action(c.C, g, c.C.M(gen(k))).data)(x.data))) for g = gens(c.C.G)])
+  h = MapFromFunc(c.C.M, MI, x->MI(x.data*zk))
+  return map_entries(h, c, parent = D)
+end
+
+Oscar.isfinite(M::Generic.FreeModule{ZZRingElem}) = rank(M) == 0
+
 """
     is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldElem}})
 
@@ -171,9 +256,18 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
   @vprint :GaloisCohomology 1 "testing if 2-chain is a boundary\n"
 
   zk = maximal_order(parent(first(values(c.d)).data))
+  @vprint :GaloisCohomology 2 ".. reducing via ideals first ..\n"
+  MI = Oscar.GrpCoh.MultGrp(Hecke.FracIdealSet(zk))
+  fl, s = is_coboundary(map_entries(MI, c))
+  fl || return fl, nothing
+  ss = map_entries(MapFromFunc(s.C.M, c.C.M, x->c.C.M(Hecke.short_elem(inv(x.data)))), s, parent = c.C)
+  c += Oscar.GrpCoh.differential(ss)
+
   @vprint :GaloisCohomology 2 ".. gathering primes in the support ..\n"
+
   cp = coprime_base(vcat([numerator(norm(x.data*denominator(x.data))) for x = values(c.d)],
                          map(x->denominator(x.data), values(c.d))))
+  @vprint :GaloisCohomology 2 ".. coprime done, now factoring ..\n"
   s = Set(reduce(vcat, [collect(keys(factor(x).fac)) for x = cp], init = [1]))
   while 1 in s
     pop!(s, 1)
@@ -224,8 +318,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldE
     return fl, d
   end
   @vprint :GaloisCohomology 2 ".. explicit boundary\n"
-  MK = MultGrp(number_field(zk))
-  return fl, CoChain{1,PermGroupElem,elem_type(MK)}(c.C, Dict((h, MK(evaluate(mu(v)))) for (h,v) = d.d))
+  return fl, CoChain{1,elem_type(c.C.G),elem_type(c.C.M)}(c.C, Dict((h, c.C.M(evaluate(mu(v)))) for (h,v) = d.d)) - ss
 end
 
 function isunramified(p::AbsSimpleNumFieldOrderIdeal)
@@ -1099,7 +1192,11 @@ end
 
 function Oscar.map_entries(mp::Union{Map, Function}, C::GrpCoh.CoChain{N, G, M}; parent::GModule) where {N, G, M}
   d = Dict( k=> mp(v) for (k,v) = C.d)
-  return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
+  if isdefined(C, :D)
+    return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d, x->mp(C.D(x)))
+  else
+    return GrpCoh.CoChain{N, G, elem_type(parent.M)}(parent, d)
+  end
 end
 
 #=
@@ -1120,7 +1217,7 @@ function local_index(CC::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{Abs
   return local_index([CC], P, mG, B = B, index_only = index_only)[1]
 end
 
-function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; index_only::Bool = false)
+function local_index(C::GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}, emb::Hecke.NumFieldEmb, mG::Map = automorphism_group(PermGroup, emb.K)[2]; index_only::Bool = false)
   return local_index([C], emb, mG)[1]
 end
 
@@ -1795,7 +1892,7 @@ function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
   #the image should be the restriction I think
   gg = map_entries(pro, g, parent = tt.C)
   #gg is the non-canomical generator in Z[G_p] K_p
-  gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, FinGenAbGroupElem}(tt.C, Dict( (g, h) => gg.d[mp(g), mp(h)] for g = tt.C.G for h = tt.C.G))
+  gg = Oscar.GrpCoh.CoChain{2, PermGroupElem, FinGenAbGroupElem}(tt.C, Dict( (g, h) => gg(mp(g), mp(h)) for g = tt.C.G for h = tt.C.G))
 
   nu = cohomology_group(tt.C, 2)
   ga = preimage(nu[2], gg)
