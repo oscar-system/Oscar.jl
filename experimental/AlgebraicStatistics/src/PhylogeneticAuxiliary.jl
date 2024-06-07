@@ -1,23 +1,19 @@
 ##########################
 #### GROUP OPERATIONS ####
 ##########################
-# This function implements the group operation on Z2 x Z2 and is subsequently 
-# used to check the condition given in the computation of the Fourier
-# coordinates and to calculate the sum of the leaves beneath a given edge. 
 
 function group_sum(pm::GroupBasedPhylogeneticModel, states::Vector{Int})
   group = group_of_model(pm)
-  return sum(group[states]).%2
+  return sum(group[states])
 end
 
 function is_zero_group_sum(pm::GroupBasedPhylogeneticModel, states::Vector{Int})
-  ng = length(states)
-  return group_sum(pm, [states[1]]) == group_sum(pm, states[2:ng])
+  return group_sum(pm, states) == zero(parent(group_of_model(pm)[1]))
 end
   
-function which_group_element(pm::GroupBasedPhylogeneticModel, elem::Vector{Int64})
+function which_group_element(pm::GroupBasedPhylogeneticModel, elem::FinGenAbGroupElem)
   group = group_of_model(pm)
-  return findall([all(group[i].==elem) for i in 1:length(group)])[1]
+  return findall([all(g==elem) for g in group])[1]
 end
 
 
