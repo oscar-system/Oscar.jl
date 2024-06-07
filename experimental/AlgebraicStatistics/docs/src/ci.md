@@ -17,8 +17,7 @@ The functionality documented here deals with CI statements are combinatorial
 objects. Collections of CI statements are often used to state *Markov
 properties* of graphical models in statistics and are ultimately used
 to define ideals. Their interpretations as polynomial equations depend
-on the ambient ring ([MarkovRing](markov.html) or
-[GaussianRing](gaussian.html)).
+on the ambient ring ([`markov_ring`](@ref) or [`gaussian_ring`](@ref)).
 
 ```@docs
 ci_stmt(I, J, K)

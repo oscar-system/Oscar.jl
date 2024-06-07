@@ -35,7 +35,7 @@ error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing})
 It is easy to create new types of graphical models by overloading the methods `directed_edges_matrix` and `error_covariance_matrix`. For instance, colored graphical models may easily be created by creating a new type of `GraphicalModel{G, T}` and a new `directed_edges_matrix` function. The following two functions will then work almost immediately on this new type.
 ```@docs
 parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
-vanishing_ideal(M::GraphicalModel)
+vanishing_ideal(M::GraphicalModel{Graph{Directed}, GaussianRing})
 ```
 
 With almost all graphical models, the vanishing ideal is computed by taking the kernel of the ring map given by `parameterization(M:GraphicalModel{G, T})`. 
