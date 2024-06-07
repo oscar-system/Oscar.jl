@@ -20,9 +20,9 @@ covariance_matrix(R::GaussianRing)
 ## Directed Gaussian Graphical Models
 
 
-A directed Gaussian graphical model is constructed from `G::Graph{Directed}` and `S::GaussianRing`. Optionally, the user may specify a string `l_var_name::String` which corresponds to the edge weights in the parameterization of the model.
+A directed Gaussian graphical model is constructed from `G::Graph{Directed}` and `S::GaussianRing`. Optionally, the user may specify a string `l_var_name::String` which corresponds to the edge weights in the parameterization of the model and a string `w_var_name::String` for labeling the error covariance parameters.
 ```@docs
-graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l")
+graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")
 ```
 
 

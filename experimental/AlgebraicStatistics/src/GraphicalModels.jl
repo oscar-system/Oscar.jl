@@ -1,23 +1,9 @@
+export graph, ring, param_ring, param_gens, vanishing_ideal
+
 import Oscar.graph
 import Oscar.vertices
 import Oscar.gens
 import Base.show
-
-###################################################################################
-#
-#       Additional functions for manipulating variable indices
-#
-###################################################################################
-
-
-function var_index(x)
-
-    str = string(x)
-    index = "["*split(str, "[")[2]
-
-    eval(Meta.parse(index))
-end
-
 
 
 ###################################################################################

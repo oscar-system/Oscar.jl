@@ -4,7 +4,10 @@
 #
 ###################################################################################
 
-
+export gaussian_ring, ring, gens, covariance_matrix
+export graphical_model, parameterization
+export directed_edges_matrix, error_covariance_matrix
+export concentration_matrix
 
 struct GaussianRing
     ring::Ring
@@ -24,24 +27,26 @@ It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose
 
 ``` jldoctest gaussian_ring
 julia> R = gaussian_ring(3)
-Multivariate polynomial ring over Rational field in 6 variables
+Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
 function gaussian_ring(n::Int, s_var_name::String="s", base_ring::Field=QQ)
 
-    S, s = polynomial_ring(base_ring, reduce(vcat, [[s_var_name*string([i,j]) for j in i:n] for i in 1:n]))
+    varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
+    varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
+    S, s = polynomial_ring(base_ring, varnames)
 
-    s = Dict([(Tuple(var_index(x)), x) for x in s])
+    d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
 
-    cov_matrix = matrix([[i < j ? s[i,j] : s[j,i] for j in 1:n] for i in 1:n])
+    cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
 
-    GaussianRing(S, s, cov_matrix)
+    GaussianRing(S, d, cov_matrix)
 end
 
 
 
-function show(io::IO, R::GaussianRing)
+function Base.show(io::IO, R::GaussianRing)
 
     coeffs = base_ring(R.ring)
     k = ngens(R.ring)
@@ -125,7 +130,7 @@ end
 
 
 @doc raw"""
-    graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l")
+    graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")
 
 A parametric statistical model associated to a directed acyclic graph.
 It contains a directed acylic graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
@@ -139,17 +144,20 @@ Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l")::GraphicalModel
+function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")::GraphicalModel
 
-    R, l, w = polynomial_ring(QQ, ["l"*string([src(e), dst(e)]) for e in edges(G)], ["w"*string([v]) for v in vertices(G)])
+    l_indices = [Tuple([src(e),dst(e)]) for e in edges(G)]
+    w_indices = vertices(G)
 
-    l = Dict([(Tuple(var_index(x)), x) for x in l])
+    R, l, w = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices])
 
-    GraphicalModel(G, S, R, [l, w])
+    d = Dict([l_indices[i] => l[i] for i in 1:length(l_indices)])
+
+    GraphicalModel(G, S, R, [d, w])
 end
 
 
-function show(io::IO, M::GraphicalModel{Graph{Directed}, GaussianRing})
+function Base.show(io::IO, M::GraphicalModel{Graph{Directed}, GaussianRing})
 
     G = M.graph
     E = [(src(e), dst(e)) for e in edges(G)]
@@ -273,16 +281,19 @@ Gaussian graphical model on an undirected graph with edges:
 """
 function graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
 
-    R, k = polynomial_ring(QQ, vcat([k_var_name*string([v, v]) for v in vertices(G)], [k_var_name*string([dst(e), src(e)]) for e in edges(G)]))
+    V = vertices(G)
+    varindices = [Tuple([V[i],V[j]]) for i in 1:length(V) for j in i:length(V) if i == j || has_edge(G, V[i], V[j])]
 
-    k = Dict([(Tuple(var_index(x)), x) for x in k])
+    R, k = polynomial_ring(QQ, ["$(k_var_name)[$(i), $(j)]" for (i,j) in varindices])
 
-    GraphicalModel(G, S, R, k)
+    d = Dict([varindices[i] => k[i] for i in 1:length(varindices)])
+
+    GraphicalModel(G, S, R, d)
 end
 
 
 
-function show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function Base.show(io::IO, M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
     G = M.graph
     E = [(dst(e), src(e)) for e in edges(G)]
@@ -348,18 +359,12 @@ Ring homomorphism
   from multivariate polynomial ring in 6 variables over QQ
   to fraction field of multivariate polynomial ring
 defined by
-  s[1, 1] -> (k[2, 2]*k[3, 3] - k[2, 3]^2)//(k[1, 1]*k[2, 2]*k[3,
-   3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[1, 2] -> (-k[3, 3]*k[1, 2])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 
-  1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[1, 3] -> (k[1, 2]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1
-  ]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[2, 2] -> (k[1, 1]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1
-  ]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[2, 3] -> (-k[1, 1]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 
-  1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3,
-   3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 1] -> (k[2, 2]*k[3, 3] - k[2, 3]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 2] -> (-k[3, 3]*k[1, 2])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 3] -> (k[1, 2]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[2, 2] -> (k[1, 1]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[2, 3] -> (-k[1, 1]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
 ```
 """
 function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
