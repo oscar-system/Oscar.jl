@@ -337,8 +337,8 @@ function is_semistandard(tab::YoungTableau)
 end
 
 @doc raw"""
-    semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
-    semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
+    semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: IntegerUnion
+    semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: IntegerUnion
 
 Return an iterator over all semistandard Young tableaux of given shape `shape`
 and filling elements bounded by `max_val`.
@@ -349,71 +349,92 @@ boxes in the Young diagram).
 The list of tableaux is in lexicographic order from left to right and top
 to bottom.
 """
-function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
-  # TODO: This function first fills an array and then returns an iterator over
-  # this array. This was a stopgap, to have a stable API for version 1.0.
-  # The output should be a dedicated iterator type which constructs the tableaux
-  # on demand (if possible).
-  SST = Vector{YoungTableau{T}}()
-  len = length(shape)
-  if max_val < len
-    return (t for t in SST)
-  elseif len == 0
-    push!(SST, young_tableau(Vector{T}[], check = false))
-    return (t for t in SST)
-  end
-  tab = [Array{T}(fill(i, shape[i])) for i = 1:len]
-  m = len
-  n = shape[m]
-
-  while true
-    push!(SST, young_tableau([copy(row) for row in tab], check = false))
-
-    #raise one element by 1
-    while !(tab[m][n] < max_val &&
-           (n == shape[m] || tab[m][n] < tab[m][n + 1]) &&
-           (m == len || shape[m + 1] < n || tab[m][n] + 1 < tab[m + 1][n]))
-      if n > 1
-        n -= 1
-      elseif m > 1
-        m -= 1
-        n = shape[m]
-      else
-        return (t for t in SST)
-      end
-    end
-
-    tab[m][n] += 1
-
-    #minimize trailing elements
-    if n < shape[m]
-      i = m
-      j = n + 1
-    else
-      i = m + 1
-      j = 1
-    end
-    while (i <= len && j <= shape[i])
-      if i == 1
-        tab[1][j] = tab[1][j - 1]
-      elseif j == 1
-        tab[i][1] = tab[i - 1][1] + 1
-      else
-        tab[i][j] = max(tab[i][j - 1], tab[i - 1][j] + 1)
-      end
-      if j < shape[i]
-        j += 1
-      else
-        j = 1
-        i += 1
-      end
-    end
-    m = len
-    n = shape[len]
-  end
+function semistandard_tableaux(shape::Partition{T}, max_val::T = T(sum(shape))) where T <: IntegerUnion
+  return SemiStandardTableaux(shape, max_val)
 end
 
-function semistandard_tableaux(shape::Vector{T}, max_val::T = sum(shape)) where T <: Integer
+shape(S::SemiStandardTableaux) = S.shape
+maximal_value(S::SemiStandardTableaux) = S.max_val
+
+Base.eltype(S::SemiStandardTableaux{T}) where T = YoungTableau{T}
+
+function Base.show(io::IO, S::SemiStandardTableaux)
+  print(io, "Iterator over semistandard Young tableaux of shape $(shape(S))")
+end
+
+Base.IteratorSize(::Type{<: SemiStandardTableaux}) = Base.SizeUnknown()
+
+function iterate(S::SemiStandardTableaux{T}, state::Nothing = nothing) where T
+  shape = Oscar.shape(S)
+  max_val = maximal_value(S)
+
+  if max_val < length(shape)
+    return nothing
+  elseif isempty(shape)
+    return young_tableau(Vector{T}[], check = false), (Vector{T}[], 0, 0)
+  end
+
+  tab = [fill(T(i), Int(shape[i])) for i in 1:length(shape)]
+  m = length(shape)
+  n = Int(shape[m])
+
+  return young_tableau([copy(row) for row in tab], check = false), (tab, m, n)
+end
+
+@inline function iterate(S::SemiStandardTableaux{T}, state::Tuple{Vector{Vector{T}}, Int, Int}) where T
+  shape = Oscar.shape(S)
+  max_val = maximal_value(S)
+  tab, m, n = state
+
+  if isempty(shape)
+    return nothing
+  end
+
+  #raise one element by 1
+  while !(tab[m][n] < max_val &&
+         (n == shape[m] || tab[m][n] < tab[m][n + 1]) &&
+         (m == length(shape) || shape[m + 1] < n || tab[m][n] + 1 < tab[m + 1][n]))
+    if n > 1
+      n -= 1
+    elseif m > 1
+      m -= 1
+      n = Int(shape[m])
+    else
+      return nothing
+    end
+  end
+
+  tab[m][n] += 1
+
+  #minimize trailing elements
+  if n < shape[m]
+    i = m
+    j = n + 1
+  else
+    i = m + 1
+    j = 1
+  end
+  while (i <= length(shape) && j <= shape[i])
+    if i == 1
+      tab[1][j] = tab[1][j - 1]
+    elseif j == 1
+      tab[i][1] = tab[i - 1][1] + 1
+    else
+      tab[i][j] = max(tab[i][j - 1], tab[i - 1][j] + 1)
+    end
+    if j < shape[i]
+      j += 1
+    else
+      j = 1
+      i += 1
+    end
+  end
+  m = length(shape)
+  n = Int(shape[end])
+  return young_tableau([copy(row) for row in tab], check = false), (tab, m, n)
+end
+
+function semistandard_tableaux(shape::Vector{T}, max_val::T = T(sum(shape))) where T <: IntegerUnion
   return semistandard_tableaux(partition(shape, check = false), max_val)
 end
 
@@ -423,25 +444,45 @@ end
 Return an iterator over all semistandard Young tableaux consisting of `box_num`
 boxes and filling elements bounded by `max_val`.
 """
-function semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
-  # TODO: This function first fills an array and then returns an iterator over
-  # this array. This was a stopgap, to have a stable API for version 1.0.
-  # The output should be a dedicated iterator type which constructs the tableaux
-  # on demand (if possible).
-  @req box_num >= 0 "box_num >= 0 required"
-  SST = Vector{YoungTableau{T}}()
-  if max_val <= 0
-    return (t for t in SST)
-  end
-  shapes = partitions(box_num)
+function semistandard_tableaux(box_num::T, max_val::T = box_num) where {T <: IntegerUnion}
+  # This basically does
+  #   Iterators.flatten(semistandard_tableaux(p, max_val) for p in partitions(box_num))
+  # but that would print horribly, so we do our own type.
+  return SemiStandardTableauxFixedBoxNum(box_num, max_val)
+end
 
-  for s in shapes
-    if max_val >= length(s)
-      append!(SST, semistandard_tableaux(data(s), max_val))
-    end
-  end
+box_num(S::SemiStandardTableauxFixedBoxNum) = S.box_num
+maximal_value(S::SemiStandardTableauxFixedBoxNum) = S.max_val
 
-  return (t for t in SST)
+Base.eltype(S::SemiStandardTableauxFixedBoxNum{T}) where T = YoungTableau{T}
+
+function Base.show(io::IO, S::SemiStandardTableauxFixedBoxNum)
+  print(pretty(io), "Iterator over semistandard Young tableaux with ",
+        ItemQuantity(box_num(S), "box", "boxes"))
+end
+
+Base.IteratorSize(::Type{<: SemiStandardTableauxFixedBoxNum}) = Base.SizeUnknown()
+
+@inline function iterate(S::SemiStandardTableauxFixedBoxNum{T},
+    state::Union{Nothing, Tuple{Partitions{T}, Tuple{Vector{T}, Int, Int}, SemiStandardTableaux{T}, Tuple{Vector{Vector{T}}, Int, Int}}} = nothing) where T
+  if !isnothing(state)
+    next_tab = iterate(state[3], state[4])
+    next_tab !== nothing && return (next_tab[1], (state[1], state[2], state[3], next_tab[2]))
+  end
+  maximal_value(S) <= 0 && return nothing
+
+  P = (state === nothing ? partitions(box_num(S)) : state[1])
+  next_part = (state === nothing ? iterate(P) : iterate(P, state[2]))
+  next_part === nothing && return nothing
+  Sp = semistandard_tableaux(next_part[1], maximal_value(S))
+  next_tab = iterate(Sp)
+  while next_tab === nothing
+    next_part = iterate(P, next_part[2])
+    next_part === nothing && return nothing
+    Sp = semistandard_tableaux(next_part[1], maximal_value(S))
+    next_tab = iterate(Sp)
+  end
+  return next_tab[1], (P, next_part[2], Sp, next_tab[2])
 end
 
 @doc raw"""

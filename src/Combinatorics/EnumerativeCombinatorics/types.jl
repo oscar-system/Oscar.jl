@@ -298,3 +298,24 @@ See [`young_tableau`](@ref) for the user-facing constructor and an example.
 struct YoungTableau{T<:IntegerUnion} <: AbstractVector{AbstractVector{T}}
   t::Vector{Vector{T}}
 end
+
+# Iterator type: all semistandard tableaux of a given shape
+struct SemiStandardTableaux{T<:IntegerUnion}
+  shape::Partition{T}
+  max_val::T
+
+  function SemiStandardTableaux(p::Partition{T}, max_val::T) where {T <: IntegerUnion}
+    return new{T}(p, max_val)
+  end
+end
+
+# Iterator type: all semistandard tableaux with a given number of boxes
+struct SemiStandardTableauxFixedBoxNum{T<:IntegerUnion}
+  box_num::T
+  max_val::T
+
+  function SemiStandardTableauxFixedBoxNum(box_num::T, max_val::T) where {T <: IntegerUnion}
+    @req box_num >= 0 "box_num >= 0 required"
+    return new{T}(box_num, max_val)
+  end
+end
