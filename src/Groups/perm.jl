@@ -26,6 +26,9 @@ an integer `n` that is stored in `G`, with the following meaning.
   get the same degree as the given group.
 - The range `1:degree(G)` is used as the default set of points on which
   `G` and its element acts.
+- One can use the syntax `G(H)` in order to get a group that consists of
+  the same permutations as `H` but has the same degree as `G`,
+  provided that the elements of `H` move only points up to `degree(G)`.
 
 !!! note
     The degree of a group of permutations is not necessarily equal to the
@@ -34,7 +37,9 @@ an integer `n` that is stored in `G`, with the following meaning.
 
 # Examples
 ```jldoctest
-julia> degree(symmetric_group(4))
+julia> s4 = symmetric_group(4);
+
+julia> degree(s4)
 4
 
 julia> t4 = trivial_subgroup(symmetric_group(4))[1];
@@ -42,8 +47,13 @@ julia> t4 = trivial_subgroup(symmetric_group(4))[1];
 julia> degree(t4)
 4
 
-julia> t4 == trivial_subgroup(symmetric_group(5))[1]
+julia> t5 = trivial_subgroup(symmetric_group(5))[1];
+
+julia> t4 == t5
 false
+
+julia> t4 == s4(t5)
+true
 
 julia> show(Vector(gen(symmetric_group(4), 2)))
 [2, 1, 3, 4]
@@ -61,6 +71,19 @@ This value is always greater or equal `number_of_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
+
+# coerce a permutation group to a different degree
+function (G::PermGroup)(H::PermGroup)
+  dH = degree(H)
+  dG = degree(G)
+  if dH == dG
+    return H
+  elseif dH < dG || GAPWrap.LargestMovedPoint(GapObj(H)) <= dG
+    return permutation_group(GapObj(H), dG)
+  end
+  throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
+end
+
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}

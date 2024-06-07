@@ -229,14 +229,14 @@ end
 # - `PcGroup`, `PcGroup` and
 #   `FPGroup`, `FPGroup`:
 #   The operation is allowed whenever the parents have the same `GapObj`
-#   (in the sense of `===´),
+#   (in the sense of `===`),
 #   then the first of the two groups is taken as the parent of the result.
 #
 # - `SubPcGroup`, `SubPcGroup` and
 #   `SubFPGroup`, `SubFPGroup`:
 #   The operation is allowed whenever the `full_group` fields of the parents
 #   have the same `GapObj`
-#   (in the sense of `===´),
+#   (in the sense of `===`),
 #   then the first of the two groups is taken as the parent of the result.
 #
 # - `SubPcGroup`, `PcGroup` and
@@ -245,10 +245,14 @@ end
 #   `FPGroup`, `SubFPGroup`:
 #   The operation is allowed whenever the `full_group` of the `SubPcGroup`
 #   (`SubFPGroup`) and the `PcGroup` (`FPGroup`) have the same `GapObj`
-#   (in the sense of `===´),
+#   (in the sense of `===`),
 #   then the `full_group` of the `SubPcGroup` (`SubFPGroup`) is taken
 #   as the parent of the result.
-#   Note that we take a group of type `SubPcGroup` (`SubFpGroup`).
+#   Note that we take a group of type `SubPcGroup` (`SubFpGroup`) in order
+#   to achieve type stability:
+#   Multiplying two `SubPcGroupElem`s with identical parent yields an element
+#   with this parent, of type `SubPcGroup`, hence the product of two
+#   `SubPcGroupElem`s with different parents is also a `SubPcGroupElem`.
 #
 # - `MatrixGroup`, `MatrixGroup`:
 #   The operation is allowed whenever the two groups have the same `degree`
