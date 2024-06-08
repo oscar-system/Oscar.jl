@@ -374,7 +374,7 @@ function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
     S = ring(M)
     R = param_ring(M)
     K = concentration_matrix(M)
-    adj = adjoint(K)
+    adj = adjugate(K)
 
     hom(ring(S), fraction_field(R), reduce(vcat, [[adj[i,j]//det(K) for j in i:n_vertices(G)] for i in 1:n_vertices(G)]))
 end

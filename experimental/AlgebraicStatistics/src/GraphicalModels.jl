@@ -35,7 +35,7 @@ function cofactor(A)
 end
 
 
-function adjoint(A::Generic.MatSpaceElem)
+function adjugate(A::Generic.MatSpaceElem)
     
     transpose(cofactor(A))
 end
