@@ -49,26 +49,6 @@ function some_gens_with_markings(G::MarkedGroebnerBasis, I::AbstractVector)
   return gens_view, markings_view
 end
 
-@doc raw"""
-    divides_walk(p::MPolyRingElem, lm::MPolyRingElem)
-
-Given a polynomial `p` and a monomial `lm`, returns `(true, q)` when `lm` divides a term of `p`, and if so,
-the factor `q` in p = q*lm + "terms not divisible by lm". Otherwise, returns `(false, 0)`.
-"""
-function divides_walk(p::MPolyRingElem, lm::MPolyRingElem)
-  div = false
-  newpoly = zero(parent(p))
-
-  for term in terms(p)
-    (b, c) = divides(term, lm)
-    if b
-      newpoly += c
-      div = true
-    end
-  end
-  return div, newpoly
-end
-
 function _normal_form(p::MPolyRingElem, G::AbstractVector{<:MPolyRingElem}, mark::AbstractVector{<:MPolyRingElem})
   nf = MPolyBuildCtx(parent(p))
   MG = zip(G, mark)

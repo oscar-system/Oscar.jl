@@ -39,13 +39,13 @@ end
 Given the marked Gröbner basis `MG` and a facet normal vector `v`, compute the next marked Gröbner basis.
 """
 function generic_step(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem}, ord::MonomialOrdering)
-  facet_Generators = facet_initials(MG, v)
+  facet_generators = facet_initials(MG, v)
   H = groebner_basis(
-    ideal(facet_Generators); ordering=ord, complete_reduction=true, algorithm=:buchberger
+    ideal(facet_generators); ordering=ord, complete_reduction=true, algorithm=:buchberger
   )
 
   @vprint :groebner_walk 5 "Initials forms of facet: "
-  @vprintln :groebner_walk 5 facet_Generators
+  @vprintln :groebner_walk 5 facet_generators
 
   @vprint :groebner_walk 3 "GB of initial forms: "
   @vprintln :groebner_walk 3 H
@@ -67,7 +67,9 @@ function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG)
   lead_exp = leading_exponent_vector.(Lm)
   
-  v = [ [l-t for t in T] for (l, T) in zip(lead_exp, exponents.(G)) ]
+  v = map(zip(lead_exp, exponents.(G))) do (l,T)
+    Ref(l) .- T
+  end
   
   return [ZZ.(v)./ZZ(gcd(v)) for v in unique!(reduce(vcat, v)) if !iszero(v)]
 end
@@ -91,13 +93,13 @@ function next_gamma(
         return V
     end
 
-    minV = first(V)
-    for v in V 
-        if facet_less_than(canonical_matrix(start), canonical_matrix(target),v, minV)
-            minV = v
-        end
-    end
-    return minV 
+    return reduce(V[2:end], init=first(V)) do v,w
+      if facet_less_than(canonical_matrix(start), canonical_matrix(target), v, w)
+          return v
+      else 
+          return w
+      end
+  end
 end
 
 @doc raw"""
@@ -134,14 +136,13 @@ Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked 
 lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
 """
 function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
-  for i in 1:length(H.gens)
-    H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
-    end
-  return H
+  return map(1:length(H.gens)) do i
+      H[i] - normal_form(H[i], MG)
+  end
 end
 
 @doc raw"""
-    lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
+    lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
 
 Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked Gröbner basis `H` of initial forms,
 lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
@@ -150,7 +151,7 @@ This changes `H` in-place.
 function lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
   for i in 1:length(H.gens)
     H.gens[i] = H.gens[i] - normal_form(H.gens[i], MG)
-    end
+  end
   return H
 end
 
@@ -178,10 +179,9 @@ end
 Computes all elements $v\in V$ with $0 <_{\texttt{target}} v$ and $v <_{\texttt{start}} 0$
 """
 function filter_by_ordering(start::MonomialOrdering, target::MonomialOrdering, V::Vector{Vector{ZZRingElem}})
-  pred = v -> (
+  return unique!(filter(V) do v
     less_than_zero(canonical_matrix(target), ZZ.(v)) && !less_than_zero(canonical_matrix(start), ZZ.(v))
-  )
-  return unique!(filter(pred, V))
+  end)
 end
 
 @doc raw"""
