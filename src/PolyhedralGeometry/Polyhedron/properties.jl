@@ -1870,3 +1870,33 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
     end
   end
 end
+
+
+@doc raw"""
+    vertex_edge_graph(P::Polyhedron)
+
+Return the vertex-edge graph of `P` as an abstract graph.
+
+```jldoctest
+julia> G = vertex_edge_graph(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+```
+"""
+vertex_edge_graph(P::Polyhedron) = Graph(P.pm_polytope.GRAPH.ADJACENCY)
+
+
+@doc raw"""
+    dual_graph(P::Polyhedron)
+
+Return the dual graph of `P` as an abstract graph.
+
+```jldoctest
+julia> G = Oscar.dual_graph(cross_polytope(3))
+Undirected graph with 8 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)(5, 1)(6, 2)(6, 5)(7, 3)(7, 5)(8, 4)(8, 6)(8, 7)
+```
+"""
+dual_graph(P::Polyhedron) = Graph(P.pm_polytope.DUAL_GRAPH.ADJACENCY)
+
+

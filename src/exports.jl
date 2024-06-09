@@ -484,6 +484,7 @@ export double_cosets
 export double_dual
 export dst
 export dual_continued_fraction_hirzebruch_jung
+export dual_graph
 export dual_matroid
 export dual_subdivision
 export dualgraph
@@ -1495,6 +1496,7 @@ export vector_matrix
 export vector_space_basis
 export vector_space_dimension
 export vertex_and_ray_indices
+export vertex_edge_graph
 export vertex_figure
 export vertex_indices
 export vertex_sizes
