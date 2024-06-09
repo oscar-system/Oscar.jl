@@ -1871,7 +1871,6 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
   end
 end
 
-
 @doc raw"""
     vertex_edge_graph(P::Polyhedron)
 
@@ -1885,7 +1884,6 @@ Undirected graph with 4 nodes and the following edges:
 """
 vertex_edge_graph(P::Polyhedron) = Graph(P.pm_polytope.GRAPH.ADJACENCY)
 
-
 @doc raw"""
     dual_graph(P::Polyhedron)
 
@@ -1898,5 +1896,3 @@ Undirected graph with 8 nodes and the following edges:
 ```
 """
 dual_graph(P::Polyhedron) = Graph(P.pm_polytope.DUAL_GRAPH.ADJACENCY)
-
-
