@@ -178,7 +178,7 @@ is_unit(a::AlgClosureElem) = !iszero(a)
 
 function roots(a::AlgClosureElem, b::Int)
   ad = data(a)
-  kx, x = polynomial_ring(parent(ad), cached = false)
+  kx, x = polynomial_ring(parent(ad); cached = false)
   f = x^b-ad
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -191,7 +191,7 @@ end
 function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
-  kx, x = polynomial_ring(parent(b[1]), cached = false)
+  kx, x = polynomial_ring(parent(b[1]); cached = false)
   f = kx(b)
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
