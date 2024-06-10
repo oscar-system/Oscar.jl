@@ -760,7 +760,7 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
 
   c = get_attribute(C, :_character)
   if c !== nothing
-    set_attribute!(D, :_character => [(x[1], K(x[2].data)) for x = c])
+    set_attribute!(D, :_character => c)
   end
   c = get_attribute(C, :_character_field)
   if c !== nothing
