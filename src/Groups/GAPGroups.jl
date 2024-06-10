@@ -2062,7 +2062,10 @@ end
 
 function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   length(genimgs) == 0 && (@assert length(v) == 0; return init)
-  length(v) == 0 && return one(genimgs[1])
+  if init === nothing
+    init = one(genimgs[1])
+  end
+  length(v) == 0 && return init
   return prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
 end
 
