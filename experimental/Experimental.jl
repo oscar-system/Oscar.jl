@@ -4,7 +4,6 @@
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "GModule",
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
