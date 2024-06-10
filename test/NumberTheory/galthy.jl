@@ -36,6 +36,11 @@
                       3*x^3 + 4*x - 1, "a")
   G, C = galois_group(K)
   @test order(G) == 216
+
+  # Ehrhart
+  G, C = galois_group((2*x+1)^2)
+  @test order(G) == 1
+  @test degree(G) == 2
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
