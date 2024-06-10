@@ -233,7 +233,7 @@ function Base.iterate(P::Partitions{T}) where T
 
 end
 
-function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int}) where T
+@inline function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int}) where T
   d, k, q = state
   q==0 && return nothing
   if d[q] == 2
@@ -292,11 +292,11 @@ function number_of_partitions(n::IntegerUnion, k::IntegerUnion)
     return ZZ(1)
 
   # See https://oeis.org/A008284
-elseif n < 2*k
+  elseif n < 2*k
     return number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
 
   # See https://oeis.org/A008284
-elseif n <= 2 + 3*k
+  elseif n <= 2 + 3*k
     p = number_of_partitions(n - k) #n - k >= 0 holds since the case n<k was already handled
     for i = 0:Int(n) - 2*Int(k) - 1
       p = p - number_of_partitions(ZZ(i))
@@ -421,7 +421,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   return partition(x[1:k], check = false), (x, y, N, L2, i, true)
 end
 
-function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
+@inline function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
   k = P.k
   x, y, N, L2, i, flag = state
 
@@ -433,32 +433,40 @@ function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vec
       x[i] = x[i] - 1
       i += 1
       x[i] = y[i] + 1
-      return partition(x[1:k], check = false), (x,y,N,L2,i,false)
+      # We could do
+      #   return partition(x[1:k], check = false), (x,y,N,L2,i,false)
+      # here, but apparently having only one `return` in combination with
+      # `@inline` leads to only half as many allocations. So we have to do
+      # `if flag` ... `if !flag`.
+    else
+      flag = false
     end
   end
 
-  lcycle = false
-  for j in i - 1:-1:1
-    L2 = x[j] - y[j] - 1
-    N = N + 1
-    if N <= (k-j)*L2
-      x[j] = y[j] + L2
-      lcycle = true
-      break
+  if !flag
+    lcycle = false
+    for j in i - 1:-1:1
+      L2 = x[j] - y[j] - 1
+      N = N + 1
+      if N <= (k-j)*L2
+        x[j] = y[j] + L2
+        lcycle = true
+        break
+      end
+      N = N + L2
+      x[i] = y[i]
+      i = j
     end
-    N = N + L2
-    x[i] = y[i]
-    i = j
-  end
 
-  lcycle || return nothing
-  while N > L2
-    N -= L2
-    x[i] = y[i] + L2
-    i += 1
+    lcycle || return nothing
+    while N > L2
+      N -= L2
+      x[i] = y[i] + L2
+      i += 1
+    end
+    x[i] = y[i] + N
   end
-  x[i] = y[i] + N
-  return partition(x[1:k], check = false), (x,y,N,L2,i,true)
+  return partition(x[1:k], check = false), (x,y,N,L2,i,!flag)
 end
 
 @doc raw"""
@@ -528,7 +536,7 @@ end
 
 # We iterate over the different iterators of n into k parts for k in
 # parts_min(P), ..., parts_max(P)
-function iterate(P::PartitionsFixedValues{T}, state::Union{Nothing, Tuple{PartitionsFixedNumPartsAndValues{T}, PartitionsFixedNumPartsAndValuesState{T}}} = nothing) where T
+@inline function iterate(P::PartitionsFixedValues{T}, state::Union{Nothing, Tuple{PartitionsFixedNumPartsAndValues{T}, PartitionsFixedNumPartsAndValuesState{T}}} = nothing) where T
   n = base(P)
 
   if isnothing(state)
@@ -677,7 +685,7 @@ function _is_trivial!(P::PartitionsFixedNumPartsAndValues{T}, state::PartitionsF
   return false, nothing
 end
 
-function iterate(P::PartitionsFixedNumPartsAndValues{T}, s::Union{Nothing, PartitionsFixedNumPartsAndValuesState{T}} = nothing) where {T <: IntegerUnion}
+@inline function iterate(P::PartitionsFixedNumPartsAndValues{T}, s::Union{Nothing, PartitionsFixedNumPartsAndValuesState{T}} = nothing) where {T <: IntegerUnion}
   first_round = isnothing(s)
   state = first_round ? _initial_state(P) : s
 
