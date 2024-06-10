@@ -2665,7 +2665,11 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector, gens(G))
+  if ngens(G) == 0
+    gs = Vector{Int}[]
+  else
+    gs = map(Vector, gens(G))
+  end
   for (g, k) = lf
     for j=2:k
       for i=1:degree(g)
