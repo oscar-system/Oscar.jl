@@ -921,12 +921,12 @@ function _maximal_associated_points(
   )
   X = scheme(I)
   comps = AbsIdealSheaf[]
-  dec_inf = decomposition_info(covering)
   for U in patches(covering)
-    # A list of equations which indicate the locus in this chart 
-    # which is *not* visible in "previous" charts. 
-    loc_dec = elem_type(OO(U))[OO(U)(a) for a in dec_inf[U]]
+    loc_dec = elem_type(OO(U))[] # Initialize the variable
     if use_decomposition_info && has_decomposition_info(covering)
+      # A list of equations which indicate the locus in this chart 
+      # which is *not* visible in "previous" charts. 
+      loc_dec = elem_type(OO(U))[OO(U)(a) for a in decomposition_info(covering)[U]]
       # If the following holds, everything is visible in other charts already.
       is_one(I(U) + ideal(OO(U), loc_dec)) && continue
     else
