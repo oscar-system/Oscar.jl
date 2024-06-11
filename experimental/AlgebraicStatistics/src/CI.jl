@@ -132,7 +132,21 @@ julia> ci_statements(["A", "B", "X", "Y"])
  [B ⫫ Y | X]
  [B ⫫ Y | {A, X}]
  [X ⫫ Y | {}]
-[...]
+ [X ⫫ Y | A]
+ [X ⫫ Y | B]
+ [X ⫫ Y | {A, B}]
+ [A ⫫ X | {}]
+ [A ⫫ X | B]
+ [A ⫫ X | Y]
+ [A ⫫ X | {B, Y}]
+ [B ⫫ X | {}]
+ [B ⫫ X | A]
+ [B ⫫ X | Y]
+ [B ⫫ X | {A, Y}]
+ [A ⫫ B | {}]
+ [A ⫫ B | X]
+ [A ⫫ B | Y]
+ [A ⫫ B | {X, Y}]
 ```
 """
 function ci_statements(random_variables::Vector{String})
@@ -177,7 +191,17 @@ julia> make_elementary(CI"12,34|56")
  [1 ⫫ 3 | {5, 6, 4}]
  [1 ⫫ 3 | {5, 6, 2, 4}]
  [1 ⫫ 4 | {5, 6}]
-[...]
+ [1 ⫫ 4 | {5, 6, 2}]
+ [1 ⫫ 4 | {5, 6, 3}]
+ [1 ⫫ 4 | {5, 6, 2, 3}]
+ [2 ⫫ 3 | {5, 6}]
+ [2 ⫫ 3 | {5, 6, 1}]
+ [2 ⫫ 3 | {5, 6, 4}]
+ [2 ⫫ 3 | {5, 6, 1, 4}]
+ [2 ⫫ 4 | {5, 6}]
+ [2 ⫫ 4 | {5, 6, 1}]
+ [2 ⫫ 4 | {5, 6, 3}]
+ [2 ⫫ 4 | {5, 6, 1, 3}]
 
 julia> make_elementary(CI"12,34|56"; semigaussoid=true)
 4-element Vector{CIStmt}:

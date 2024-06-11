@@ -212,10 +212,10 @@ Returns the group the `GroupBasedPhylogeneticModel` `pm` is based on.
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> group_of_model(pm)
-4-element Vector{Vector{Int64}}:
+4-element Vector{FinGenAbGroupElem}:
  [0, 0]
- [0, 1]
  [1, 0]
+ [0, 1]
  [1, 1]
 ```
 """
