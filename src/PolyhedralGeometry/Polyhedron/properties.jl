@@ -1482,14 +1482,14 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # P has to have exactly n vertices and
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   ngon_is = findall(x -> x == n, nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])
   degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
   degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   if m == 3
     bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
     return bigdg.BIPARTITE
@@ -1870,29 +1870,3 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
     end
   end
 end
-
-@doc raw"""
-    vertex_edge_graph(P::Polyhedron)
-
-Return the vertex-edge graph of `P` as an abstract graph.
-
-```jldoctest
-julia> G = vertex_edge_graph(cube(2))
-Undirected graph with 4 nodes and the following edges:
-(2, 1)(3, 1)(4, 2)(4, 3)
-```
-"""
-vertex_edge_graph(P::Polyhedron) = Graph(P.pm_polytope.GRAPH.ADJACENCY)
-
-@doc raw"""
-    dual_graph(P::Polyhedron)
-
-Return the dual graph of `P` as an abstract graph.
-
-```jldoctest
-julia> G = Oscar.dual_graph(cross_polytope(3))
-Undirected graph with 8 nodes and the following edges:
-(2, 1)(3, 1)(4, 2)(4, 3)(5, 1)(6, 2)(6, 5)(7, 3)(7, 5)(8, 4)(8, 6)(8, 7)
-```
-"""
-dual_graph(P::Polyhedron) = Graph(P.pm_polytope.DUAL_GRAPH.ADJACENCY)

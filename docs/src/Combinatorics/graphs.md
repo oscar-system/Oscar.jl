@@ -33,8 +33,8 @@ allow for easier integration elsewhere.
 
 ```@docs
 Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
-dualgraph(p::Polyhedron)
-edgegraph(p::Polyhedron)
+dual_graph(p::Polyhedron)
+vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
 graph_from_edges
 ```
@@ -46,6 +46,7 @@ add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
 ```
 
 ## Auxiliary functions

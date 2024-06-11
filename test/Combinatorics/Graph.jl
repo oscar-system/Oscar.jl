@@ -19,6 +19,8 @@
         @test !has_vertex(g, 6)
         @test add_vertices!(g, 5) == 5
         @test n_vertices(g) == 10
+        @test rem_vertices!(g, [2, 4, 6, 11])
+        @test n_vertices(g) == 7
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
@@ -30,11 +32,16 @@
     triangle = simplex(2)
     c = cube(3)
     cr = cross_polytope(3)
-    egtriangle = edgegraph(triangle)
-    dgtriangle = dualgraph(triangle)
-    egcube = edgegraph(c)
-    dgcube = dualgraph(c)
-    egcr = edgegraph(cr)
+    pos = convex_hull([0 0 0; 1 0 0], [0 1 0; 0 0 1])
+    pl = convex_hull([0 0 0; 1 0 0], nothing, [0 1 1])
+    egtriangle = vertex_edge_graph(triangle)
+    dgtriangle = dual_graph(triangle)
+    egcube = vertex_edge_graph(c)
+    dgcube = dual_graph(c)
+    egcr = vertex_edge_graph(cr)
+    egpos = vertex_edge_graph(pos)
+    egpl = vertex_edge_graph(pl)
+    egplc = vertex_edge_graph(pl, modulo_lineality=true)
     
     @testset "graphs from polytopes" begin
         @test n_vertices(egtriangle) == 3
@@ -51,7 +58,22 @@
         @test is_isomorphic(egcr, dgcube)
         @test !is_isomorphic(egcr, egcube)
 
+        # unbounded examples
+        @test n_vertices(egpos) == 2
+        @test n_edges(egpos) == 1
+
+        @test n_vertices(egpl) == 0
+        @test n_edges(egpl) == 0
+        @test n_vertices(egplc) == 2
+        @test n_edges(egplc) == 1
+
         @test incidence_matrix(egtriangle) == IncidenceMatrix([[1,2],[1,3],[2,3]])
+
+        @test is_isomorphic(dual_graph(convex_hull([0 0 0; 1 0 0], nothing, [0 1 0])), Graph{Undirected}(2))
+        @test is_isomorphic(dual_graph(convex_hull([0 0 0], [0 0 1; 0 1 0; 1 0 0])), complete_graph(3))
+        g = dual_graph(convex_hull([0 0 0; 1 0 0], [0 0 1; 0 1 0]))
+        @test n_vertices(g) == 4
+        @test n_edges(g) == 5
     end
 
     @testset "isomorphic" begin
