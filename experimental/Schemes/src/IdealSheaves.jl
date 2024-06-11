@@ -2011,9 +2011,11 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
   if any(x->x===U, affine_charts(X)) && any(x->x===V, affine_charts(X))
     gg = default_covering(X)[U, V]
     UV, VU = gluing_domains(gg)
-    h_V = complement_equation(UV)
-    h_U = complement_equation(VU)
-    h_V in P(U) && return false # P and Q will have different support, then.
+    if UV isa PrincipalOpenSubset
+      h_V = complement_equation(UV)
+      h_U = complement_equation(VU)
+      h_V in P(U) && return false # P and Q will have different support, then.
+    end
     if P(UV) == Q(UV)
       object_cache(P)[V] = Q(V)
       object_cache(Q)[U] = P(U)
