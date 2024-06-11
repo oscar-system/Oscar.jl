@@ -568,7 +568,7 @@ export g_vector
 export galois_group
 export galois_ideal
 export galois_quotient
-export galois_sum
+export galois_orbit_sum
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group

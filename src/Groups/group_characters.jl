@@ -2913,7 +2913,7 @@ function conductor(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnio
 end
 
 @doc raw"""
-    galois_sum(chi::GAPGroupClassFunction)
+    galois_orbit_sum(chi::GAPGroupClassFunction)
 
 Return a class function `psi`.
 If `chi` is an ordinary character then `psi` is the sum of all different
@@ -2931,11 +2931,11 @@ julia> t = character_table("A5");
 julia> println([degree(character_field(x)[1]) for x in t])
 [1, 2, 2, 1, 1]
 
-julia> println([degree(character_field(galois_sum(x))[1]) for x in t])
+julia> println([degree(character_field(galois_orbit_sum(x))[1]) for x in t])
 [1, 1, 1, 1, 1]
 ```
 """
-function galois_sum(chi::GAPGroupClassFunction)
+function galois_orbit_sum(chi::GAPGroupClassFunction)
     tbl = parent(chi)
     gapchi = GapObj(chi)
     if characteristic(tbl) == 0
