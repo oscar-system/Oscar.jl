@@ -183,6 +183,11 @@
       40, 43, 49, 52, 58, 64, 70, 76, 82, 88, 98, 104, 114, 120, 130, 140,
       150, 160, 170, 180, 195, 205, 220, 230, 245, 260, 275, 290, 305, 320,
       341, 356, 377, 392, 413, 434, 455, 476, 497, 518, 546 ]
+
+    @test collect(partitions(0, Int[])) == [partition(Int[])]
+    @test collect(partitions(1, Int[])) == Partition{Int}[]
+    @test collect(partitions(0, Int[], Int[])) == [partition(Int[])]
+    @test collect(partitions(1, Int[], Int[])) == Partition{Int}[]
   end
 
 
