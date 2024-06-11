@@ -311,6 +311,7 @@ GAP.@wrap SylowSubgroup(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap SymplecticComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
+GAP.@wrap Trace(x::GapObj, y::GAP.Obj)::GAP.Obj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap UnderlyingRingElement(x::GapObj)::GapObj
 GAP.@wrap UnivariatePolynomialByCoefficients(x::GapObj, y::GapObj, z::Int)::GapObj
