@@ -38,7 +38,8 @@ end
       @test fp[Edge(4, i)][1] != fp[Edge(4, i)][2]
     end
     # group of the model
-    @test model.group == [[0],[1]]
+    G = group_of_model(model)
+    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
   end
 
   @testset "Jukes Cantor" begin
@@ -63,7 +64,8 @@ end
       @test fp[Edge(4, i)][2] == fp[Edge(4, i)][3] == fp[Edge(4, i)][4]
     end
     #group of the model
-    @test model.group == [[0,0],[0,1],[1,0],[1,1]]
+    G = group_of_model(model)
+    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
   end
 
   @testset "kimura2_model" begin
@@ -88,7 +90,8 @@ end
       @test fp[Edge(4, i)][3] == fp[Edge(4, i)][4]
     end
     # group of the model
-    @test model.group == [[0,0],[0,1],[1,0],[1,1]]
+    G = group_of_model(model)
+    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
   end
     
   @testset "kimura3_model" begin
@@ -113,7 +116,8 @@ end
       @test length(fp[Edge(4, i)]) == length(unique(fp[Edge(4, i)]))
     end
     # group of the model
-    @test model.group == [[0,0],[0,1],[1,0],[1,1]]
+    G = group_of_model(model)
+    @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
   end
 
   @testset "general_markov_model" begin
