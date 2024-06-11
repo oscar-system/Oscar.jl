@@ -842,6 +842,7 @@ function maximal_associated_points(I::AbsIdealSheaf;
     covering=default_covering(scheme(I)),
     algorithm::Symbol=:GTZ
   )
+  return _maximal_associated_points(I; covering, algorithm, use_decomposition_info=true)
   # The following would reroute to a more high-brow method with cleaner code.
   # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
   # return _maximal_associated_points(I; covering, use_decomposition_info=false)
@@ -1200,6 +1201,10 @@ function Base.show(io::IO, I::AbsIdealSheaf)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", I::PrimeIdealSheafFromChart)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+    return
+  end
   print(io, "Prime ideal sheaf on ", scheme(I), " extended from ", I.P, " on ", I.U)
 end
 
@@ -1245,6 +1250,10 @@ end
 
 function Base.show(io::IO, I::PrimeIdealSheafFromChart)
   io = pretty(io)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+    return
+  end
   print(io, "Prime ideal sheaf on ", 
         Lowercase(), scheme(I), " extended from ", 
         Lowercase(), I.P, " on ", 
@@ -1972,7 +1981,10 @@ function is_subset(P::PrimeIdealSheafFromChart, I::AbsIdealSheaf)
   X = scheme(P)
   @assert X === scheme(I)
   U = original_chart(P)
-  return is_subset(P(U), I(U))
+  is_subset(P(U), I(U)) || return false
+  # I might have support outside the support of P. Hence, we can not 
+  # avoid the full check, as it seems.
+  return all(is_subset(P(U), I(U)) for U in affine_charts(X))
 end
 
 function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
@@ -1990,12 +2002,18 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
     return PP == Q(W1)
   end
 
+  for (W2, Q2) in object_cache(Q)
+    W2 in keys(object_cache(P)) || continue
+    is_one(Q2) && continue
+    return Q2 == P(W2)
+  end
+
   if any(x->x===U, affine_charts(X)) && any(x->x===V, affine_charts(X))
     gg = default_covering(X)[U, V]
     UV, VU = gluing_domains(gg)
     h_V = complement_equation(UV)
     h_U = complement_equation(VU)
-    h_V in P(U) && !(h_U in Q(V)) && return false
+    h_V in P(U) && return false # P and Q will have different support, then.
     if P(UV) == Q(UV)
       object_cache(P)[V] = Q(V)
       object_cache(Q)[U] = P(U)
