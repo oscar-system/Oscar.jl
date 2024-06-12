@@ -568,6 +568,7 @@ export g_vector
 export galois_group
 export galois_ideal
 export galois_quotient
+export galois_orbit_sum
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -844,6 +845,7 @@ export is_q_cartier
 export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_quotient
 export is_radical
 export is_reduced
 export is_regular

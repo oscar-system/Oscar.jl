@@ -4,7 +4,6 @@
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 const oldexppkgs = [
-  "GModule",
 ]
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
@@ -17,7 +16,8 @@ const orderedpkgs = [
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",
-  "FTheoryTools"             # must be loaded after Schemes
+  "FTheoryTools",            # must be loaded after Schemes
+  "IntersectionTheory",      # must be loaded after Schemes
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
