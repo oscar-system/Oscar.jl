@@ -1615,11 +1615,13 @@ Return an `S`-nondegenerate Weyl vector of `L`.
 function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix,
                                     ample0::QQMatrix, perturbation_factor=1000)
   V = ambient_space(L)
+  @assert ambient_space(L)==ambient_space(S)
   ample = ample0
   u = u0
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
+  @vprint :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes\n"
   @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
   @vprint :K3Auto "new weyl: $(solve(basis_matrix(L),weyl; side = :left)) \n"
@@ -1628,7 +1630,6 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   end
   @vprint :K3Auto 2 "calculating QQDcapS\n"
   QQDcapS = lattice(V, span_in_S(L, S, weyl)*basis_matrix(S))
-
   N = Hecke.orthogonal_submodule(L, QQDcapS)
   N = lll(N)
   @vprint :K3Auto 2 "computing the relevant roots\n"
