@@ -135,7 +135,7 @@ function _projective_jacobian_criterion(P::AbsProjectiveScheme{<:Ring, <:MPolyQu
   R = ambient_coordinate_ring(P)
   I = defining_ideal(P)
   mat = jacobian_matrix(R, gens(I))
-  sing_locus = ideal(R, minors(mat, codim(P)))
+  sing_locus = ideal(R, minors(mat, codim(P))) + I
   irrelevant_ideal = ideal(R, gens(R))
   return is_one(saturation(sing_locus, irrelevant_ideal))
 end
