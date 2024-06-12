@@ -58,7 +58,9 @@ julia> is_smooth(C; algorithm=:covered_jacobian)
 false
 ```
 """
-function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm=:default)
+is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
+
+function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm::Symbol=:default)
   get_attribute!(P, :is_smooth) do
     if is_empty(P)
       return true
@@ -120,8 +122,8 @@ function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm=:def
   end
 end
 
-is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm=:default) = true
-is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm=:default) = true
+is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true
+is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm::Symbol=:default) = true
 
 function _projective_jacobian_criterion(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   if !(is_equidimensional(P))
