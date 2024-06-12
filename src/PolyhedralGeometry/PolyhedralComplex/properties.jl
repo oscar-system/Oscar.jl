@@ -364,6 +364,9 @@ _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
 
 Return the maximal polyhedra of `PC`
 
+Optionally `IncidenceMatrix` can be passed as a first argument to receive the
+incidence matrix specifying the maximal polyhedra of `PC`.
+
 # Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
@@ -386,6 +389,11 @@ julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
  Polytope in ambient dimension 2
+
+julia> maximal_polyhedra(IncidenceMatrix, PC)
+2×4 IncidenceMatrix
+[1, 2, 3]
+[1, 3, 4]
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
