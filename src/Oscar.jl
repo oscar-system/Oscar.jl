@@ -95,6 +95,7 @@ function __init__()
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
   for (pkg, version) in [
+     ("recog", "1.4.2"),
      ("repsn", "3.1.1"),
      ]
     GAP.Packages.install(pkg, version, interactive = false, quiet = true)
@@ -109,6 +110,7 @@ function __init__()
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
+     "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
      "smallgrp", # small groups library
      "transgrp", # transitive groups library

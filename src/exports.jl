@@ -1263,6 +1263,7 @@ export reading_word
 export real_projective_plane
 export real_solutions
 export recession_cone
+export recognize
 export reduce
 export reduce_fraction
 export reduce_with_quotients
