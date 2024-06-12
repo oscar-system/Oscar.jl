@@ -238,7 +238,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @warn "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file"
               end
               if full_file in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true
