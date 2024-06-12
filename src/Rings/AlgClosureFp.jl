@@ -81,7 +81,7 @@ function check_parent(a::AlgClosureElem, b::AlgClosureElem)
 end
 
 #TODO: Guarantee to return a field of the same type as `base_ring(A)`?
-# (Then `Nemo.fpField` cannot be supported as `base_ring(A)`)
+# (Then `fpField` cannot be supported as `base_ring(A)`)
 @doc raw"""
     ext_of_degree(A::AlgClosure, d::Int)
 
@@ -107,7 +107,7 @@ function ext_of_degree(A::AlgClosure, d::Int)
   end
     
   k = base_ring(A)
-  if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
+  if isa(k, fpField) || isa(k, fqPolyRepField)
     K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
     K = GF(characteristic(k), d, cached = false)
@@ -209,12 +209,6 @@ end
 # c = K(a); fc = minpoly(c); fc(c)  # does not work
 function minpoly(a::AlgClosureElem)
   return minpoly(data(a))
-end
-
-#TODO: Move to Nemo.
-function minpoly(a::fpFieldElem)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return x-a
 end
 
 # Note: We want the degree of the smallest finite field that contains `a`.

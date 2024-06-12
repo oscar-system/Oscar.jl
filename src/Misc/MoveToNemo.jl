@@ -9,3 +9,9 @@ function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Z
 end
 
 Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+
+#TODO: Move to Nemo.
+function minpoly(a::fpFieldElem)
+  kx, x = polynomial_ring(parent(a), cached = false)
+  return x-a
+end
