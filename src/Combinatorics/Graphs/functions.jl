@@ -942,7 +942,8 @@ Return the edge graph of a `Polyhedron`, vertices of the graph correspond to
 vertices of the polyhedron, there is an edge between two vertices if the
 polyhedron has an edge between the corresponding vertices. The resulting graph
 is `Undirected`.
-The keyword argument can be used to consider the polyhedron modulo its lineality space.
+If the polyhedron has lineality, then it has no vertices or bounded edges, so the `vertex_edge_graph` will be the empty graph.
+In this case, the keyword argument can be used to consider the polyhedron modulo its lineality space.
 
 # Examples
 Construct the edge graph of the cube. Like the cube it has 8 vertices and 12
