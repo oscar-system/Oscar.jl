@@ -22,8 +22,7 @@ brought up to Oscar standard.
 ## Structure
 For an example of the structure for a new project in `experimental` have a look
 at project folders, i.e. `experimental/PROJECT_NAME`, that have subfolders
-`docs`, `src`, and `test` (an example is
-`experimental/FTheoryTools`). The general structure is
+`docs`, `src`, and `test`. The general structure is
 ```
 experimental/PROJECT_NAME/
 ├── README.md
@@ -46,11 +45,6 @@ The file `docs/doc.main` is used for integrating your documentation in the
 Oscar manual under the `Experimental` section. Optionally please provide a
 `README.md` describing your project and its goals, especially if you are
 starting from scratch and don't have any documentation yet.
-
-!!! note
-    There are still older projects in `experimental` from before the
-    introduction of this structure. Thus we mentioned `FTheoryTools`
-    as a project having adopted to the new standard.
 
 ### Useful functions for development
 Apart from the hints in the [Introduction for new developers](@ref), there are some more specialized functions for the structure of the `experimental` folder.

@@ -1,7 +1,3 @@
-# We read experimental and filter out all packages that follow our desired
-# scheme. Remember those packages to avoid doing this all over again for docs
-# and test.
-# We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
 
 # DEVELOPER OPTION:
