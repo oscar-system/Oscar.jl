@@ -154,3 +154,11 @@ end
   =#
 end
 
+@testset "find_section" begin
+  L = integer_lattice(gram=ZZ[0 2 3;  2 -2 1; 3 1 -2])
+  f = QQ[1 0 0;]
+  s = Oscar.find_section(L,f)
+  V = ambient_space(L)
+  @test inner_product(V,f,s)==1
+  @test inner_product(V,s,s)==-2
+end

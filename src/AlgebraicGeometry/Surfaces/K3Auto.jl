@@ -2031,7 +2031,8 @@ function find_section(L::ZZLat, f::QQMatrix)
     k = nrows(K)
     Kl = integer_lattice(gram=K*transpose(K))
     # project ss to K
-    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
+    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)); side=:right
+    )
     a = QQ(1)
     cv = []
     while true
