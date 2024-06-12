@@ -930,6 +930,23 @@ end
   t = character_table(g)
   @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
   @test all(x -> x == QQAbAutomorphism(4)(x), t)
+
+  t = character_table("A5")
+  sums = [galois_orbit_sum(x) for x in t]
+  degrees = [degree(character_field(x)[1]) for x in t]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  m = mod(t, 2)
+  sums = [galois_orbit_sum(x) for x in m]
+  degrees = [degree(character_field(x)[1]) for x in m]
+  @test degrees == [1, 2, 2, 1]
+  @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+
+  # irreducibles not all rational but all are defined over the prime field
+  m = character_table("L3(2)", 2)
+  @test all(x -> x == galois_orbit_sum(x), m)
 end
 
 @testset "induction and restriction of characters" begin
