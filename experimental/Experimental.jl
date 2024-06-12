@@ -3,8 +3,7 @@
 # and test.
 # We don't want to interfere with existing stuff in experimental though.
 const expdir = joinpath(@__DIR__, "../experimental")
-const oldexppkgs = [
-]
+
 # DEVELOPER OPTION:
 # If an experimental package A depends on another experimental package B, one
 # can add `"B", "A"` to `orderedpkgs` below to ensure that B is loaded before A.
@@ -18,7 +17,7 @@ const orderedpkgs = [
   "Schemes",
   "FTheoryTools"             # must be loaded after Schemes
 ]
-exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
+exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
 
 # force trigger recompile when folder changes
@@ -30,9 +29,8 @@ include_dependency(".")
 isfile(joinpath(expdir, "NoExperimental_whitelist_.jl")) || error("experimental/NoExperimental_whitelist_.jl is missing")
 if islink(joinpath(expdir, "NoExperimental_whitelist.jl"))
   include(joinpath(expdir, "NoExperimental_whitelist.jl"))
-  issubset(whitelist, union(exppkgs, oldexppkgs)) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
+  issubset(whitelist, exppkgs) || error("experimental/NoExperimental_whitelist.jl contains unknown packages")
   filter!(in(whitelist), exppkgs)
-  filter!(in(whitelist), oldexppkgs)
 end
 
 # Error if something is incomplete in experimental
@@ -46,15 +44,6 @@ for pkg in exppkgs
   end
   # Load the package
   include(joinpath(expdir, pkg, "src", "$pkg.jl"))
-end
-
-# Force some structure for `oldexppkgs`
-for pkg in oldexppkgs
-  if !isfile(joinpath(expdir, pkg, "$pkg.jl"))
-    error("experimental/$pkg is incomplete: $pkg/$pkg.jl missing. Please fix this or remove $pkg from `oldexppkgs`.")
-  end
-  # Load the package
-  include(joinpath(expdir, pkg, "$pkg.jl"))
 end
 
 # We modify the documentation of the experimental part to attach a warning to
