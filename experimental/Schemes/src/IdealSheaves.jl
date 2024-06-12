@@ -1201,6 +1201,7 @@ function Base.show(io::IO, I::AbsIdealSheaf)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", I::PrimeIdealSheafFromChart)
+  io = pretty(io)
   if has_attribute(I, :name)
     print(io, get_attribute(I, :name))
     return
