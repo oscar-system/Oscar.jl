@@ -7,6 +7,8 @@
 # http://www.arxiv.org/abs/1909.10813
 #
 ################################################################################
+solve_left(A,B)=solve(A,B;side=:left)
+
 mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
   L26::ZZLat
@@ -188,7 +190,7 @@ function _assure_membership_test_as_set(ECtx::EnriquesBorcherdsCtx)
   imgs_mod2 = Set{FqMatrix}()
   for g in ECtx.Gplus_mat
     h = matrix(g)
-    push!(imgs_mod2, h*ECtx.Dplus)
+    push!(imgs_mod2, ECtx.Dplus*h)
   end
   ECtx.imgs_mod2 = imgs_mod2
 end
@@ -421,13 +423,13 @@ function borcherds_method(data::EnriquesBorcherdsCtx; max_nchambers=-1)
   automorphisms = Set{ZZMatrix}()
   rational_curves = Set{ZZMatrix}()
 
-  # apparently computing the small/minimal generating set is very slow
+  # apparently computing the small generating set is very slow
   autD = aut(D)
   autD_grp = matrix_group(autD)
-  @vprint :K3Auto 4 "computing minimal generating set "
+  @vprint :K3Auto 4 "computing small generating set "
   autD_mod2 = matrix_group([change_base_ring(GF(2),i) for i in autD])
   iso = hom(autD_grp, autD_mod2, gens(autD_mod2),check=false)
-  autD = [matrix(preimage(iso,i)) for i in minimal_generating_set(autD_mod2)]
+  autD = [matrix(preimage(iso,i)) for i in small_generating_set(autD_mod2)]
   if order(autD_mod2) != length(autD)
     K,i = kernel(iso)
     append!(autD, matrix.(gens(K)))
