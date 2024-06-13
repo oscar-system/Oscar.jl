@@ -325,7 +325,7 @@ function homogenize_pre_tropicalization(I::MPolyIdeal)
     Kx = base_ring(I)
     K = coefficient_ring(Kx)
     x = symbols(Kx)
-    Kxhx,_ = polynomial_ring(K,vcat([:xh],x))
+    Kxhx,_ = polynomial_ring(K,vcat([:xh],x); cached=false)
 
     Gh = Vector{elem_type(Kx)}(undef,length(G))
     for (i,g) in enumerate(G)

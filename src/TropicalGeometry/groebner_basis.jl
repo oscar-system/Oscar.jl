@@ -62,7 +62,7 @@ function simulate_valuation(I::MPolyIdeal, nu::TropicalSemiringMap)
     @req !isempty(gens(I)) "input ideal empty"
 
     R = valued_ring(nu)
-    Rtx,tx = polynomial_ring(R,vcat([:tsim],symbols(base_ring(I))))
+    Rtx,tx = polynomial_ring(R,vcat([:tsim],symbols(base_ring(I))); cached=false)
 
     sG = [R(uniformizer(nu))-tx[1]]
     for f in clear_coefficient_denominators.(gens(I))
@@ -252,7 +252,7 @@ function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalS
     Rtx = parent(first(sG))
     xSymbols = copy(symbols(Rtx))[2:end]
     K = valued_field(nu)
-    Kx,x = polynomial_ring(K,xSymbols)
+    Kx,x = polynomial_ring(K,xSymbols; cached=false)
 
     # map everything from simulation ring to original polynomial ring
     # whilst substituting first variable tsim by uniformizer

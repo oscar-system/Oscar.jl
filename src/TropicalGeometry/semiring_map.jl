@@ -241,7 +241,7 @@ end
 
 # valued ring:
 function valued_ring(nu::TropicalSemiringMap{Kt,t,minOrMax}) where {Kt<:Generic.RationalFunctionField, t<:PolyRingElem, minOrMax<:Union{typeof(min),typeof(max)}}
-    return polynomial_ring(base_ring(valued_field(nu)),symbols(valued_field(nu)))[1]
+    return polynomial_ring(base_ring(valued_field(nu)),symbols(valued_field(nu)); cached=false)[1]
 end
 
 # residue field:
