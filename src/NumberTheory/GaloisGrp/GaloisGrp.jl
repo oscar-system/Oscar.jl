@@ -835,7 +835,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = polynomial_ring(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1; cached=false)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
