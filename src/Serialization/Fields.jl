@@ -25,7 +25,7 @@ end
 
 function get_parents(parent_ring::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField}
   n = ngens(parent_ring)
-  base = polynomial_ring(base_field(parent_ring), n)[1]
+  base = polynomial_ring(base_field(parent_ring), n; cached=false)[1]
   parents = get_parents(base)
   push!(parents, parent_ring)
   return parents
@@ -277,7 +277,7 @@ function load_object(s::DeserializerState, ::Type{<: Union{AbsNonSimpleNumFieldE
   K = parents[end]
   n = ngens(K)
   # forces parent of MPolyRingElem
-  poly_ring = polynomial_ring(base_field(K), n)
+  poly_ring = polynomial_ring(base_field(K), n; cached=false)
   parents[end - 1], _ = poly_ring
   poly_elem_type = elem_type
   load_node(s) do _
@@ -564,7 +564,7 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
-  Qx, x = polynomial_ring(QQ, :x, cached = false)
+  Qx, x = polynomial_ring(QQ, :x; cached=false)
   min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
   CC = AcbField(precision; cached = false)
