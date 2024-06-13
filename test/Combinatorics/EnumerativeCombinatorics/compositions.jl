@@ -46,6 +46,11 @@
     @test allcomps2 == unique(allcomps2)
     @test Set(allcomps) == Set(allcomps2)
   end
+
+  # Test the case k > n
+  C = @inferred collect(compositions(T(2), T(3)))
+  @test C isa Vector{Oscar.Composition{T}}
+  @test isempty(C)
 end
 
 @testset "Ascending compositions with integer type $T" for T in [Int, Int8, ZZRingElem]
