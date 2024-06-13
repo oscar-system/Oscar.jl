@@ -263,3 +263,13 @@ end
     mats = GAP.evalstr("[ [ [ Z(2) ] ], [ [ Z(3) ] ] ]")
     @test_throws ArgumentError Oscar.matrices_over_cyclotomic_field(mats)
 end
+
+@testset "straight line programs" begin
+    l = GapObj([[[1, 2], 3], [[3, 2], 2], [1, 2, 2, 1]], recursive = true)
+    gapslp = GAP.Globals.StraightLineProgram(l, 2)
+    slp = straight_line_program(gapslp)
+    @test evaluate(slp, [2, 3]) == 64
+    @test GAP.Globals.ResultOfStraightLineProgram(gapslp, GapObj([2, 3])) == 64
+
+    @test_throws ArgumentError straight_line_program(l)
+end

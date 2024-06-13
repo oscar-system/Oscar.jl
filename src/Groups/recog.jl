@@ -1,118 +1,225 @@
-@attributes mutable struct GroupRecognitionNode{T <: GAPGroup}
+@attributes mutable struct GroupRecognitionTree{T <: GAPGroup}
   input_group::T
-  gap_node::GapObj
+  gap_tree::GapObj
 
-  function GroupRecognitionNode{T}(G::GAPGroup, gap_node::GapObj) where T
-     res = new{T}(G, gap_node)
+  function GroupRecognitionTree{T}(G::GAPGroup, gap_tree::GapObj) where T
+     @req G isa PermGroup || G isa MatrixGroup "only matrix and permutation groups are supported"
+     res = new{T}(G, gap_tree)
      return res
   end
 end
 
-GapObj(node::GroupRecognitionNode) = node.gap_node
+GapObj(tree::GroupRecognitionTree) = tree.gap_tree
 
-# did the recognition not fail?
-is_ready(node::GroupRecognitionNode) = GAP.Globals.IsReady(node.gap_node)
 
-# does the node describe a leaf?
-is_leaf(node::GroupRecognitionNode) = GAP.Globals.IsLeaf(node.gap_node)
+"""
+    is_ready(tree::GroupRecognitionTree)
 
-# the group from which `node` was constructed
-input_group(node::GroupRecognitionNode) = node.input_group
+Return `true` if the recognition procedure for the group of `tree`
+was successful, and `false` otherwise.
 
-# the group stored in `node`, provided that recognition did not fail;
-# the `GapObj`s of its elements store memory information
-function group(node::GroupRecognitionNode)
-  @req is_ready(node) "recognition failed, no group stored"
-  return _oscar_group(GAP.Globals.Grp(node.gap_node))
+# Examples
+```jldoctest
+julia> rec = recognize(GL(4, 2));  is_ready(rec)
+true
+```
+"""
+is_ready(tree::GroupRecognitionTree) = GAPWrap.IsReady(GapObj(tree))
+
+
+# does the tree describe a leaf?
+is_leaf(tree::GroupRecognitionTree) = GAPWrap.IsLeaf(GapObj(tree))
+
+# the group from which `tree` was constructed
+input_group(tree::GroupRecognitionTree) = tree.input_group
+
+# the group stored in `tree`, provided that recognition did not fail.
+# According to the Recog documentation, the `GapObj`s of its elements store
+# memory information, and then it makes sense to distinguish between this
+# group and the input group.
+# However, this claim is apparently not correct.
+function group(tree::GroupRecognitionTree)
+  @req is_ready(tree) "recognition failed, no group stored"
+  g = GAPWrap.Grp(GapObj(tree))
+  if GAPWrap.IsPermGroup(g)
+    # preserve the degree
+    return permutation_group(g, degree(input_group(tree)))
+  else
+    # preserve the base ring
+    return _as_subgroup_bare(input_group(tree), g)
+  end
 end
 
-function Base.show(io::IO, node::GroupRecognitionNode)
+
+"""
+    nice_gens(tree::GroupRecognitionTree)
+
+Return the vector of generators of the group of `tree` w.r.t. which
+the straight line programs for group elements computed by
+[`straight_line_program`](@ref) are written.
+
+# Examples
+```jldoctest
+julia> rec = recognize(GL(4, 2));  is_ready(rec)
+true
+
+julia> x = rand(group(rec));
+
+julia> slp = straight_line_program(rec, x);
+
+julia> evaluate(slp, nice_gens(rec)) == x
+true
+```
+"""
+function nice_gens(tree::GroupRecognitionTree)
+  return get_attribute!(tree, :nice_gens) do
+    G = group(tree)
+    return [group_element(G, x) for x in GAPWrap.NiceGens(GapObj(tree))]
+  end
+end
+
+function Base.show(io::IO, tree::GroupRecognitionTree)
   if is_terse(io)
-    print(io, "Recognition node of a group")
+    print(io, "Recognition tree of a group")
   else
-    print(io, "Recognition node of ")
+    print(io, "Recognition tree of ")
     io = pretty(io)
-    print(terse(io), Lowercase(), group(node))
+    print(terse(io), Lowercase(), group(tree))
   end
 end
 
-function Base.show(io::IO, mode::MIME"text/plain", node::GroupRecognitionNode)
+function Base.show(io::IO, mode::MIME"text/plain", tree::GroupRecognitionTree)
   io = pretty(io)
-  _show_recursive(io, mode, GapObj(node); toplevel = true)
+  _show_recursive(io, mode, GapObj(tree); toplevel = true)
 end
 
-function _show_recursive(io::IO, mode::MIME"text/plain", gnode::GapObj; toplevel::Bool = true)
+function _show_recursive(io::IO, mode::MIME"text/plain", gtree::GapObj; toplevel::Bool = true)
 
-  if GAP.Globals.IsReady(gnode)
-    init = "Recognition node:"
+  if GAPWrap.IsReady(gtree)
+    init = "Recognition tree:"
   else
-    init = "Failed recognition node:"
+    init = "Failed recognition tree:"
   end
-  if GAP.hasbangproperty(gnode, :projective) &&
-     GAP.getbangproperty(gnode, :projective)
+  if GAP.hasbangproperty(gtree, :projective) &&
+     GAP.getbangproperty(gtree, :projective)
     init = "$init (projective)"
   end
-  if GAP.Globals.Hasfhmethsel(gnode)
-    ms = GAP.Globals.fhmethsel(gnode)
-    if GAP.Globals.IsRecord(ms)
+  if GAPWrap.Hasfhmethsel(gtree)
+    ms = GAPWrap.fhmethsel(gtree)
+    if GAPWrap.IsRecord(ms)
       if hasproperty(ms, :successMethod)
-        init = "$init $(String(getproperty(ms, :successMethod)))"
+        init = "$init $(string(getproperty(ms, :successMethod)))"
       else
         init = "$init NO STAMP"
       end
-    elseif GAP.Globals.IsString(ms)
+    elseif GAPWrap.IsString(ms)
       init = "$init $String(ms)"
     end
-    if GAP.hasbangproperty(gnode, :comment)
-      init = "$init Comment=$(String(GAP.getbangproperty(gnode, :comment)))"
+    if GAP.hasbangproperty(gtree, :comment)
+      init = "$init Comment=$(string(GAP.getbangproperty(gtree, :comment)))"
     end
   end
-  if GAP.Globals.HasIsRecogInfoForSimpleGroup(gnode) && GAP.Globals.IsRecogInfoForSimpleGroup(gnode)
+  if GAPWrap.HasIsRecogInfoForSimpleGroup(gtree) && GAPWrap.IsRecogInfoForSimpleGroup(gtree)
     init = "$init Simple"
-  elseif GAP.Globals.HasIsRecogInfoForAlmostSimpleGroup(gnode) && GAP.Globals.IsRecogInfoForAlmostSimpleGroup(gnode)
+  elseif GAPWrap.HasIsRecogInfoForAlmostSimpleGroup(gtree) && GAPWrap.IsRecogInfoForAlmostSimpleGroup(gtree)
     init = "$init AlmostSimple"
   end
-  if GAP.Globals.HasSize(gnode)
-    init = "$init Size=$(GAP.Globals.Size(gnode))"
+  if GAPWrap.HasSize(gtree)
+    init = "$init Size=$(string(GAPWrap.Size(gtree)))"
   end
-  if GAP.Globals.HasGrp(gnode) && GAP.Globals.IsMatrixGroup(GAP.Globals.Grp(gnode))
-    init = "$init Dim=$(GAP.getbangproperty(gnode, :dimension)) Field=$(GAP.Globals.Size(GAP.getbangproperty(gnode, :field)))"
+  if GAPWrap.HasGrp(gtree) && GAPWrap.IsMatrixGroup(GAPWrap.Grp(gtree))
+    init = "$init Dim=$(string(GAP.getbangproperty(gtree, :dimension))) Field=$(string(GAPWrap.Size(GAP.getbangproperty(gtree, :field))))"
   end
   if toplevel
-    println(io, init)
+    print(io, init)
   else
-    println(io, Lowercase(), init)
+    print(io, Lowercase(), init)
   end
 
-  print(io, Indent())
-  if ! GAP.Globals.IsLeaf(gnode)
-    println(io, "F:")
-    print(io, Indent())
-    if GAP.Globals.HasImageRecogNode(gnode)
-      _show_recursive(io, mode, GAP.Globals.ImageRecogNode(gnode); toplevel = false)
+  if ! GAPWrap.IsLeaf(gtree)
+    println(io, Indent())
+    print(io, "F: ")
+    if GAPWrap.HasImageRecogNode(gtree)
+      _show_recursive(io, mode, GAPWrap.ImageRecogNode(gtree); toplevel = false)
+      println(io, "")
     else
       println(io, "has no image")
     end
-    print(io, Dedent())
-    println(io, "K:")
-    print(io, Indent())
-    if GAP.Globals.HasKernelRecogNode(gnode)
-      if GAP.Globals.KernelRecogNode(gnode) === GAP.Globals.fail
-        println(io, "trivial kernel")
+    print(io, "K: ")
+    if GAPWrap.HasKernelRecogNode(gtree)
+      if GAPWrap.KernelRecogNode(gtree) === GAP.Globals.fail
+        print(io, "trivial kernel")
       else
-        _show_recursive(io, mode, GAP.Globals.KernelRecogNode(gnode); toplevel = false)
+        _show_recursive(io, mode, GAPWrap.KernelRecogNode(gtree); toplevel = false)
       end
     else
-      println(io, "has no kernel")
+      print(io, "has no kernel")
     end
     print(io, Dedent())
   end
-  print(io, Dedent())
 end
 
-# call GAP's recognition algorithm
+
+"""
+    recognize(G::Union{PermGroup, MatrixGroup})
+
+Return a `GroupRecognitionTree` object that describes the structure of `G`
+in a recursive way.
+If the recognition was successful (see [`is_ready`](@ref)) then
+the result provides a membership test that is usually more efficient than
+the membership test without the recognition information.
+
+# Examples
+```jldoctest
+julia> recognize(symmetric_group(5))
+Recognition tree: MovesOnlySmallPoints Size=120
+
+julia> g = general_linear_group(4, 9);
+
+julia> s = sub(g, [rand(g), rand(g)])[1];
+
+julia> rec = recognize(s);  is_ready(rec)
+true
+
+julia> rand(s) in rec
+true
+```
+"""
 function recognize(G::Union{PermGroup, MatrixGroup})
-  res = GAP.Globals.RecognizeGroup(GapObj(G))
+  res = GAPWrap.RecognizeGroup(GapObj(G))
   T = typeof(G)
-  return GroupRecognitionNode{T}(G, res)
+  return GroupRecognitionTree{T}(G, res)
+end
+
+# membership test:
+# Note that we cannot simply delegate the question to GAP.
+# - A matrix group element is regarded as an element of a matrix group
+#   only if the `base_ring` values are equal,
+#   whereas GAP uses natural embeddings of base rings.
+# - For a permutation and a permutation group, we do not require the degrees
+#   to be equal.
+Base.in(g::PermGroupElem, tree::GroupRecognitionTree{PermGroup}) = GapObj(g) in GapObj(tree)
+
+function Base.in(g::MatrixGroupElem{T, S}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
+  base_ring(parent(g)) != base_ring(group(tree)) && return false
+  return GapObj(g) in GapObj(tree)
+end
+
+# For convenience, we support also membership tests for matrices.
+function Base.in(g::MatElem{T}, tree::GroupRecognitionTree{MatrixGroup{T, S}}) where {T, S}
+  G = group(tree)
+  base_ring(g) != base_ring(G) && return false
+  return map_entries(_ring_iso(G), g) in GapObj(tree)
+end
+
+
+"""
+    straight_line_program(tree::GroupRecognitionTree, g::GAPGroupElem)
+
+Return a straight line program for the element `g` of the group of `tree`.
+The inputs of this program correspond to `nice_gens(tree)`,
+see [`nice_gens`](@ref) for an example.
+"""
+function straight_line_program(tree::GroupRecognitionTree, g::GAPGroupElem)
+  return straight_line_program(GAPWrap.SLPforElement(GapObj(tree), GapObj(g)))
 end

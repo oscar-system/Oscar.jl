@@ -105,14 +105,22 @@ GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
 GAP.@wrap GroupOfPcgs(x::GapObj)::GapObj
+GAP.@wrap Grp(x::GapObj)::GapObj
 GAP.@wrap HasCharacterParameters(x::GapObj)::Bool
 GAP.@wrap HasClassParameters(x::GapObj)::Bool
+GAP.@wrap HasGrp(x::GapObj)::Bool
+GAP.@wrap HasImageRecogNode(x::GapObj)::Bool
+GAP.@wrap HasIsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
+GAP.@wrap HasIsRecogInfoForSimpleGroup(x::GapObj)::Bool
+GAP.@wrap HasKernelRecogNode(x::GapObj)::Bool
 GAP.@wrap HasMaxes(x::GapObj)::Bool
 GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
 GAP.@wrap HasSize(x::Any)::Bool
+GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
 GAP.@wrap Identity(x::GapObj)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
+GAP.@wrap ImageRecogNode(x::GapObj)::GapObj
 GAP.@wrap ImagesRepresentative(x::GapObj, y::Any)::GAP.Obj
 GAP.@wrap ImagesSource(x::GapObj)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
@@ -179,6 +187,7 @@ GAP.@wrap IsInnerAutomorphism(x::Any)::Bool
 GAP.@wrap IsInt(x::Any)::Bool
 GAP.@wrap IsIntegers(x::Any)::Bool
 GAP.@wrap IsIrreducibleCharacter(x::Any)::Bool
+GAP.@wrap IsLeaf(x::GapObj)::Bool
 GAP.@wrap IsLetterAssocWordRep(x::Any)::Bool
 GAP.@wrap IsLetterWordsFamily(x::Any)::Bool
 GAP.@wrap IsLieAlgebra(x::Any)::Bool
@@ -211,6 +220,10 @@ GAP.@wrap IsPrimitive(x::Any, y::Any)::Bool
 GAP.@wrap IsQuasisimpleGroup(x::Any)::Bool
 GAP.@wrap IsQuaternionGroup(x::Any)::Bool
 GAP.@wrap IsRationals(x::Any)::Bool
+GAP.@wrap IsReady(x::GapObj)::Bool
+GAP.@wrap IsRecogInfoForSimpleGroup(x::GapObj)::Bool
+GAP.@wrap IsRecogInfoForAlmostSimpleGroup(x::GapObj)::Bool
+GAP.@wrap IsRecord(x::Any)::Bool
 GAP.@wrap IsRegular(x::Any)::Bool
 GAP.@wrap IsRegular(x::Any, y::Any)::Bool
 GAP.@wrap IsSemiRegular(x::Any)::Bool
@@ -220,6 +233,7 @@ GAP.@wrap IsSimpleGroup(x::Any)::Bool
 GAP.@wrap IsSingularForm(x::Any)::Bool
 GAP.@wrap IsSolvableGroup(x::Any)::Bool
 GAP.@wrap IsSporadicSimpleGroup(x::Any)::Bool
+GAP.@wrap IsString(x::Any)::Bool
 GAP.@wrap IsSubgroupFpGroup(x::Any)::Bool
 GAP.@wrap IsSubset(x::Any, y::Any)::Bool
 GAP.@wrap IsSupersolvableGroup(x::Any)::Bool
@@ -238,6 +252,7 @@ GAP.@wrap IsZmodnZObj(x::Any)::Bool
 GAP.@wrap IsZmodnZObjNonprimeCollection(x::Any)::Bool
 GAP.@wrap Iterator(x::Any)::GapObj
 GAP.@wrap KernelOfCharacter(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap KernelRecogNode(x::GapObj)::GapObj
 GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LetterRepAssocWord(x::GapObj)::GapObj
@@ -252,6 +267,7 @@ GAP.@wrap mod(x::Any, y::Any)::GAP.Obj
 GAP.@wrap NameFunction(x::GapObj)::GapObj
 GAP.@wrap NamesOfFusionSources(x::GapObj)::GapObj
 GAP.@wrap NextIterator(x::GapObj)::Any
+GAP.@wrap NiceGens(x::GapObj)::GapObj
 GAP.@wrap NormalClosure(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Normalizer(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap NormalSubgroupClasses(x::GapObj, y::GAP.Obj)::GapObj
@@ -286,12 +302,14 @@ GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj, i::Int)::GapObj
 GAP.@wrap Range(x::GapObj)::GapObj
+GAP.@wrap RecognizeGroup(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RepresentativeAction(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RootSystem(x::GapObj)::GapObj
+GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
@@ -324,6 +342,7 @@ GAP.@wrap WeylGroup(x::GapObj)::GapObj
 GAP.@wrap WeylOrbitIterator(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Z(x::Any)::GAP.Obj
 GAP.@wrap Zero(x::Any)::GAP.Obj
+GAP.@wrap fhmethsel(x::GapObj)::GAP.Obj
 
 # for Int arguments we can sometimes provide better alternatives
 Conductor(x::Int) = 1
