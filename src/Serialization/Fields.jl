@@ -64,13 +64,13 @@ end
 # non-ZZRingElem variant
 @register_serialization_type Nemo.fpField
 
-function save_object(s::SerializerState, F::Nemo.fpField)
+function save_object(s::SerializerState, F::fpField)
   save_object(s, string(characteristic(F)))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.fpField})
+function load_object(s::DeserializerState, ::Type{fpField})
   load_node(s) do str
-    return Nemo.fpField(parse(UInt64, str))
+    return fpField(parse(UInt64, str))
   end
 end
 
@@ -81,7 +81,7 @@ function save_object(s::SerializerState, elem::fpFieldElem)
   save_data_basic(s, string(elem))
 end
 
-function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::Nemo.fpField)
+function load_object(s::DeserializerState, ::Type{fpFieldElem}, F::fpField)
   load_node(s) do str
     return F(parse(UInt64, str))
   end
@@ -91,13 +91,13 @@ end
 # ZZRingElem variant
 @register_serialization_type Nemo.FpField
 
-function save_object(s::SerializerState, F::Nemo.FpField)
+function save_object(s::SerializerState, F::FpField)
   save_object(s, string(characteristic(F)))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.FpField})
+function load_object(s::DeserializerState, ::Type{FpField})
   load_node(s) do str
-    Nemo.FpField(parse(ZZRingElem, str))
+    FpField(parse(ZZRingElem, str))
   end
 end
 
@@ -108,7 +108,7 @@ function save_object(s::SerializerState, elem::FpFieldElem)
   save_data_basic(s, string(elem))
 end
 
-function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::Nemo.FpField)
+function load_object(s::DeserializerState, ::Type{FpFieldElem}, F::FpField)
   load_node(s) do str
     F(parse(ZZRingElem, str))
   end
@@ -392,13 +392,13 @@ end
 @register_serialization_type ArbField
 @register_serialization_type ArbFieldElem uses_params
 
-function save_object(s::SerializerState, RR::Nemo.ArbField)
+function save_object(s::SerializerState, RR::ArbField)
   save_object(s, precision(RR))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.ArbField})
+function load_object(s::DeserializerState, ::Type{ArbField})
   prec = load_object(s, Int64, :precision)
-  return Nemo.ArbField(prec)
+  return ArbField(prec)
 end
 
 # elements
@@ -411,7 +411,7 @@ function save_object(s::SerializerState, r::ArbFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{ArbFieldElem}, parent::ArbField)
-  r = Nemo.ArbFieldElem()
+  r = ArbFieldElem()
   load_node(s) do str
     ccall((:arb_load_str, Nemo.libflint),
           Int32, (Ref{ArbFieldElem}, Ptr{UInt8}), r, str)

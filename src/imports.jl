@@ -160,6 +160,8 @@ import Nemo:
   ZZRing,
   ZZRingElem
 
+# By default we import everything exported by Hecke, and then also re-export
+# it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
     :change_uniformizer,
     :coefficients,
@@ -204,10 +206,3 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
-
-import Nemo: is_cyclo_type
-import Nemo: is_maxreal_type
-import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: FpField  # FIXME: remove if/once Nemo exports this
-import Nemo: fpField  # FIXME: remove if/once Nemo exports this
