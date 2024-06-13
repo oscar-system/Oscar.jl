@@ -1,5 +1,5 @@
 K = GF(2)
-Kx,(x1,x2,x3,x4) = polynomial_ring(K,4);
+Kx,(x1,x2,x3,x4) = polynomial_ring(K,4; cached=false);
 inI = ideal([x2 + x3 + x4, x1 + x3])
 println(inI) # same print as input for tropical_link
 println(base_ring(inI)) # same print as input for tropical_link
@@ -13,7 +13,7 @@ singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing
 inI1 = ideal(Kx,singularIdeal)
 
 L,t = rational_function_field(K,"t")
-Lx,x = polynomial_ring(L,symbols(Kx))
+Lx,x = polynomial_ring(L,symbols(Kx); cached=false)
 inI1 = ideal(Lx,[change_base_ring(L,g) for g in gens(inI1)])
 
 hyperplanes = [x[i]-t for i in [2,3,4]]
@@ -37,7 +37,7 @@ end
 
 
 
-Kx,(x1,x2,x3,x4) = polynomial_ring(QQ,4);
+Kx,(x1,x2,x3,x4) = polynomial_ring(QQ,4; cached=false);
 p = 2;
 I = ideal([x1-p*x2+(p+1)*x3,3*x2-p^2*x3+(p^2+1)*x4]);
 w = Int[-1, 1, -1, 1]
@@ -49,7 +49,7 @@ w = Int[-1, 1, -1, 1]
 
 # Step 1.1: running simulate_valuation
 G = gens(I)
-Rtx,tx = polynomial_ring(ZZ,vcat([:t],symbols(parent(G[1]))))
+Rtx,tx = polynomial_ring(ZZ,vcat([:t],symbols(parent(G[1]))); cached=false)
 vvG = [p-tx[1]]
 for f in G
   fRtx = MPolyBuildCtx(Rtx)
@@ -75,7 +75,7 @@ x = copy(symbols(Rx))
 popfirst!(x)
 
 K = QQ
-Kx,_ = polynomial_ring(K,x)
+Kx,_ = polynomial_ring(K,x; cached=false)
 
 GB = []
 for i = 2:3
@@ -94,6 +94,6 @@ end
 # Step 2: construct initial ideal from the tropical groebner basis
 ###
 f = GB[1]
-kx, x = polynomial_ring(GF(2),[repr(x) for x in gens(parent(f))])
+kx, x = polynomial_ring(GF(2),[repr(x) for x in gens(parent(f))]; cached=false)
 
 initialf = MPolyBuildCtx(kx)
