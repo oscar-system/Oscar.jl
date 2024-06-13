@@ -89,7 +89,7 @@ homogenization_map(P::AbsProjectiveScheme, U::AbsAffineScheme)
 
 Further properties of projective schemes:
 ```@docs
-is_smooth(P::AbsProjectiveScheme)
+is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm=:default)
 ```
 ```julia
 is_empty(P::AbsProjectiveScheme{<:Field})
