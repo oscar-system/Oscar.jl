@@ -258,8 +258,8 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
-    G = abelian_group(2)
-    group = [G[0],G[1]]
+    G = collect(abelian_group(2))
+    group = [G[1],G[2]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
@@ -302,8 +302,8 @@ function jukes_cantor_model(graph::Graph{Directed})
     [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
   #group = [[0,0], [0,1], [1,0], [1,1]]
-  G = abelian_group(2,2)
-  group = [G[0],G[1],G[2],G[1]+G[2]]
+  G = collect(abelian_group(2,2))
+  group = [G[1],G[3],G[2],G[4]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
@@ -345,8 +345,8 @@ function kimura2_model(graph::Graph{Directed})
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,3], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
-  G = abelian_group(2,2)
-  group = [G[0],G[1],G[2],G[1]+G[2]]
+    G = collect(abelian_group(2,2))
+    group = [G[1],G[3],G[2],G[4]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
@@ -388,8 +388,8 @@ function kimura3_model(graph::Graph{Directed})
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2], list_x[i,3], list_x[i,4]] for (i, e) in zip(1:ne, edgs))
   
-  G = abelian_group(2,2)
-  group = [G[0],G[1],G[2],G[1]+G[2]]
+  G = collect(abelian_group(2,2))
+  group = [G[1],G[3],G[2],G[4]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
