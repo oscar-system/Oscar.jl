@@ -112,6 +112,7 @@ end
 
 @doc raw"""
     rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
+    rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}}
 
 Remove edge `(s,t)` from the graph `g`.
 Return `true` if there was an edge from `s` to `t` and it got removed, `false`
@@ -175,6 +176,8 @@ end
 
 Remove the vertex `v` from the graph `g`. Return `true` if node `v` existed and
 was actually removed, `false` otherwise.
+Please note that this will shift the indices of the vertices with index larger than `v`,
+but it will preserve the vertex ordering.
 
 # Examples
 ```jldoctest
@@ -199,6 +202,35 @@ function rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirect
   return n_vertices(g) + 1 == old_nvertices
 end
 
+@doc raw"""
+    rem_vertices!(g::Graph{T}, a::AbstractArray{Int64}) where {T <: Union{Directed, Undirected}}
+
+Remove the vertices in `a` from the graph `g`. Return `true` if at least one vertex was removed.
+Please note that this will shift the indices of some of the remaining vertices, but it will preserve the vertex ordering.
+
+# Examples
+```jldoctest
+julia> g = Graph{Directed}(2);
+
+julia> n_vertices(g)
+2
+
+julia> rem_vertices!(g, [1, 2])
+true
+
+julia> n_vertices(g)
+0
+```
+"""
+function rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
+  pmg = pm_object(g)
+  old_nvertices = n_vertices(g)
+  for v in a
+    0 < v <= old_nvertices && Polymake._rem_vertex(pmg, v-1)
+  end
+  Polymake._squeeze(pmg)
+  return n_vertices(g) < old_nvertices
+end
 
 @doc raw"""
     add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
@@ -284,6 +316,8 @@ Vector{Int}(e::Edge) = [src(e), dst(e)]
 
 Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
 
+rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
+  rem_edge!(g, src(e), dst(e))
 
 @doc raw"""
     reverse(e::Edge)
@@ -344,7 +378,7 @@ The edge graph of the cube has eight vertices, just like the cube itself.
 ```jldoctest
 julia> c = cube(3);
 
-julia> g = edgegraph(c);
+julia> g = vertex_edge_graph(c);
 
 julia> n_vertices(g)
 8
@@ -364,7 +398,7 @@ The edge graph of the cube has 12 edges just like the cube itself.
 ```jldoctest
 julia> c = cube(3);
 
-julia> g = edgegraph(c);
+julia> g = vertex_edge_graph(c);
 
 julia> n_edges(g)
 12
@@ -384,7 +418,7 @@ A triangle has three edges.
 ```jldoctest
 julia> triangle = simplex(2);
 
-julia> g = edgegraph(triangle);
+julia> g = vertex_edge_graph(triangle);
 
 julia> collect(edges(g))
 3-element Vector{Edge}:
@@ -408,7 +442,7 @@ Check for the edge $1\to 2$ in the edge graph of a triangle.
 ```jldoctest
 julia> triangle = simplex(2);
 
-julia> g = edgegraph(triangle);
+julia> g = vertex_edge_graph(triangle);
 
 julia> has_edge(g, 1, 2)
 true
@@ -433,7 +467,7 @@ The edge graph of a triangle only has 3 vertices.
 ```jldoctest
 julia> triangle = simplex(2);
 
-julia> g = edgegraph(triangle);
+julia> g = vertex_edge_graph(triangle);
 
 julia> has_vertex(g, 1)
 true
@@ -845,10 +879,10 @@ Checks if the graph `g1` is isomorphic to the graph `g2`.
 
 # Examples
 ```jldoctest
-julia> is_isomorphic(edgegraph(simplex(3)), dualgraph(simplex(3)))
+julia> is_isomorphic(vertex_edge_graph(simplex(3)), dual_graph(simplex(3)))
 true
 
-julia> is_isomorphic(edgegraph(cube(3)), dualgraph(cube(3)))
+julia> is_isomorphic(vertex_edge_graph(cube(3)), dual_graph(cube(3)))
 false
 ```
 """
@@ -862,7 +896,7 @@ of the nodes of `G1` such that both graphs agree.
 
 # Examples
 ```jldoctest
-julia> is_isomorphic_with_permutation(edgegraph(simplex(3)), dualgraph(simplex(3)))
+julia> is_isomorphic_with_permutation(vertex_edge_graph(simplex(3)), dual_graph(simplex(3)))
 (true, [1, 2, 3, 4])
 
 ```
@@ -902,12 +936,14 @@ end
 ################################################################################
 ################################################################################
 @doc raw"""
-    edgegraph(p::Polyhedron)
+    vertex_edge_graph(p::Polyhedron)
 
 Return the edge graph of a `Polyhedron`, vertices of the graph correspond to
 vertices of the polyhedron, there is an edge between two vertices if the
 polyhedron has an edge between the corresponding vertices. The resulting graph
 is `Undirected`.
+If the polyhedron has lineality, then it has no vertices or bounded edges, so the `vertex_edge_graph` will be the empty graph.
+In this case, the keyword argument can be used to consider the polyhedron modulo its lineality space.
 
 # Examples
 Construct the edge graph of the cube. Like the cube it has 8 vertices and 12
@@ -915,7 +951,7 @@ edges.
 ```jldoctest
 julia> c = cube(3);
 
-julia> g = edgegraph(c);
+julia> g = vertex_edge_graph(c);
 
 julia> n_vertices(g)
 8
@@ -924,13 +960,15 @@ julia> n_edges(g)
 12
 ```
 """
-function edgegraph(p::Polyhedron)
-    pmg = pm_object(p).GRAPH.ADJACENCY
-    return Graph{Undirected}(pmg)
+function vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
+  lineality_dim(p) != 0 && !modulo_lineality && return Graph{Undirected}(0)
+  og = Graph{Undirected}(pm_object(p).GRAPH.ADJACENCY)
+  is_bounded(p) || rem_vertices!(og, _ray_indices(pm_object(p)))
+  return og
 end
 
 @doc raw"""
-    dualgraph(p::Polyhedron)
+    dual_graph(p::Polyhedron)
 
 Return the dual graph of a `Polyhedron`, vertices of the graph correspond to
 facets of the polyhedron and there is an edge between two vertices if the
@@ -946,7 +984,7 @@ octahedron, so it has 6 vertices and 12 edges.
 ```jldoctest
 julia> c = cube(3);
 
-julia> g = dualgraph(c);
+julia> g = dual_graph(c);
 
 julia> n_vertices(g)
 6
@@ -955,9 +993,22 @@ julia> n_edges(g)
 12
 ```
 """
-function dualgraph(p::Polyhedron)
-    pmg = pm_object(p).DUAL_GRAPH.ADJACENCY
-    return Graph{Undirected}(pmg)
+function dual_graph(p::Polyhedron)
+  pop = pm_object(p)
+  og = Graph{Undirected}(pop.DUAL_GRAPH.ADJACENCY)
+  fai = _facet_at_infinity(pop)
+  if fai <= n_vertices(og)
+    rem_vertex!(og, fai)
+  elseif !is_bounded(p)
+    f = facets(IncidenceMatrix, p)
+    farface = _ray_indices(pop)
+    for e in edges(og)
+      if is_subset(intersect(row(f, src(e)), row(f, dst(e))), farface)
+        rem_edge!(og, e)
+      end
+    end
+  end
+  return og
 end
 
 
