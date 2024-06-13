@@ -1904,15 +1904,31 @@ and initial angle divided by pi `alpha_0` (defaults to $0$).
 To store the regular pentagon in the variable p, do this:
 ```jldoctest
 julia> p = n_gon(3)
-Polytope in ambient dimension 2
+Polytope in ambient dimension 2 with QQBarFieldElem type coefficients
 
-julia> n_gon(3,r=3)
-Polytope in ambient dimension 2
+julia> volume(n_gon(4, r=2, alpha_0=1//4))
+Root 8.00000 of x - 8
 ```
 """
-function n_gon(n::Int; r::RationalUnion=1, alpha_0::RationalUnion=0)
+function n_gon(
+  n::Int;
+  r::Union{RationalUnion,QQBarFieldElem}=1,
+  alpha_0::Union{RationalUnion,QQBarFieldElem}=0,
+)
   @req 0 < r && n >= 3 "n >= 3 and r > 0 required"
-  return polyhedron(Polymake.polytope.n_gon(n, r, alpha_0))
+  K = algebraic_closure(QQ)
+  e = one(K)
+  s, c = sincospi(2 * e / n)
+  mat_rot = matrix([c -s; s c])
+  G_mat = matrix_group(mat_rot)
+  p = K.([r, 0])
+  if !iszero(alpha_0)
+    s, c = sincospi(alpha_0 * e)
+    p = p * matrix([c -s; s c])
+  end
+  orb = orbit(G_mat, *, p)
+  pts = collect(orb)
+  return convex_hull(K, pts; non_redundant=true)
 end
 
 @doc raw"""
