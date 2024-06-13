@@ -78,10 +78,10 @@ struct CompositionsFixedNumParts{T<:IntegerUnion}
     if k > n
       # 1 does not have any weak compositions into 0 parts, so this will
       # produce an empty iterator
-      nk = 1
+      nk = T(1)
       kk = 0
     else
-      nk = n - k
+      nk = n - T(k)
       kk = k
     end
     return new{T}(n, k, weak_compositions(nk, kk))
@@ -165,7 +165,7 @@ struct PartitionsFixedNumParts{T<:IntegerUnion}
     if lb == 0
       lb = 1
     end
-    return new{T}(n, convert(T, k), T(lb), T(ub), only_distinct_parts)
+    return new{T}(n, Int(k), T(lb), T(ub), only_distinct_parts)
   end
 
 end
