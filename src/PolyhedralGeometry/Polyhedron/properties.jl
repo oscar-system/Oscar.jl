@@ -1059,7 +1059,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1101,7 +1101,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return h_star_polynomial(R, P)
 end
 

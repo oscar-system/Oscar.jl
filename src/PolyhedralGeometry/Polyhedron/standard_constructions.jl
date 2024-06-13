@@ -1087,7 +1087,7 @@ x1^3*x2*x3 + x1^2*x2^2*x3 + x1*x2^3*x3
 function demazure_character(lambda::AbstractVector, sigma::PermGroupElem)
   genGT = gelfand_tsetlin_polytope(lambda, sigma)
   n = length(lambda)
-  R = polynomial_ring(ZZ, n)
+  R = polynomial_ring(ZZ, n; cached=false)
   x = R[2]
   s = R[1](0)
   for P in lattice_points(genGT)
