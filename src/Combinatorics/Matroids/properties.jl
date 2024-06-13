@@ -897,7 +897,7 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 ```
 """
 function tutte_polynomial(M::Matroid)
-    R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
+    R, (x, y) = polynomial_ring(ZZ, ["x", "y"]; cached=false)
     poly = pm_object(M).TUTTE_POLYNOMIAL
     exp = Polymake.monomials_as_matrix(poly)
     return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
@@ -918,7 +918,7 @@ q^3 - 7*q^2 + 14*q - 8
 ```
 """
 function characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
+    R, q = polynomial_ring(ZZ, 'q'; cached=false)
     return (-1)^rank(M)*tutte_polynomial(M)(1-q,0)
 end
 
@@ -936,7 +936,7 @@ q^2 - 6*q + 8
 ```
 """
 function reduced_characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
+    R, q = polynomial_ring(ZZ, 'q'; cached=false)
     p = characteristic_polynomial(M)
     c = Vector{Int}(undef,degree(p))
     s = 0
