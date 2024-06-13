@@ -182,7 +182,9 @@ julia> p = probability_map(pm);
 
 julia> q = fourier_map(pm);
 
-julia> p_equivclasses = compute_equivalent_classes(p)
+julia> p_equivclasses = compute_equivalent_classes(p);
+
+julia> p_equivclasses.param_classes
 Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
   [(1, 2, 2), (1, 3, 3), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2…
   [(1, 2, 3), (1, 2, 4), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4…
@@ -190,27 +192,42 @@ Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
   [(1, 1, 2), (1, 1, 3), (… => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2…
   [(1, 1, 1), (2, 2, 2), (… => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
 
-julia> q_equivclasses = compute_equivalent_classes(q)
-Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
-  [(2, 1, 2), (3, 1, 3), (4, 1, 4)]                   => x[2, 1]*x[1, 2]*x[3, 2]
-  [(2, 2, 1), (3, 3, 1), (4, 4, 1)]                   => x[3, 1]*x[1, 2]*x[2, 2]
-  [(1, 2, 2), (1, 3, 3), (1, 4, 4)]                   => x[1, 1]*x[2, 2]*x[3, 2]
-  [(2, 3, 4), (2, 4, 3), (3, 2, 4), (3, 4, 2), (4, 2… => x[1, 2]*x[2, 2]*x[3, 2]
-  [(1, 1, 2), (1, 1, 3), (1, 1, 4), (1, 2, 1), (1, 2… => 0
-  [(1, 1, 1)]                                         => x[1, 1]*x[2, 1]*x[3, 1]
+julia> p_equivclasses.classes
+Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
+  [(1, 2, 2), (1, 3, 3), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2…
+  [(1, 2, 3), (1, 2, 4), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4…
+  [(1, 2, 1), (1, 3, 1), (… => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2…
+  [(1, 1, 2), (1, 1, 3), (… => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2…
+  [(1, 1, 1), (2, 2, 2), (… => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
+
+julia> q_equivclasses = compute_equivalent_classes(q);
+
+julia> q_equivclasses.param_classes
+Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 5 entries:
+  [(1, 2, 2), (1, 3, 3), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*a[3]*b[1] + 1//2…
+  [(1, 2, 3), (1, 2, 4), (… => 1//4*a[1]*b[2]*b[3] + 1//4*a[2]*b[1]*b[3] + 1//4…
+  [(1, 2, 1), (1, 3, 1), (… => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2…
+  [(1, 1, 2), (1, 1, 3), (… => 1//4*a[1]*a[2]*b[3] + 1//4*a[3]*b[1]*b[2] + 1//2…
+  [(1, 1, 1), (2, 2, 2), (… => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
 ```
 """
 function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
   polys = unique(collect(values(parametrization)))
-  
+  polys = polys[findall(x -> x!=0, polys)]
+
   equivalent_keys = []
   for value in polys
-      eqv_class = [key for key in keys(parametrization) if parametrization[key] == value]
-      #sort!(eqv_class)
+      eqv_class = sort([key for key in keys(parametrization) if parametrization[key] == value])
       append!(equivalent_keys, [eqv_class])
   end
-  equivalenceclass_dictionary = Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}(sort(equivalent_keys[i]) => parametrization[equivalent_keys[i][1]] for i in 1:length(equivalent_keys))
-  return equivalenceclass_dictionary
+
+  param_classes = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(
+                  k[1] => parametrization[k[1]] for k in equivalent_keys)
+
+  classes = Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}(
+            k[1] => k for k in equivalent_keys)
+            
+  return (param_classes=param_classes, classes=classes)
 end
 
 @doc raw"""
