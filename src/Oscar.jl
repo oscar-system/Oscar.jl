@@ -83,7 +83,6 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
-  __GAP_info_messages_off()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
@@ -124,6 +123,7 @@ function __init__()
      ]
     GAP.Packages.load(pkg)
   end
+  __GAP_info_messages_off()
   __init_group_libraries()
 
   add_verbosity_scope(:K3Auto)
