@@ -1199,3 +1199,26 @@ function graph_from_edges(edges::Vector{Vector{Int}},
                           n_vertices::Int=-1)
   return graph_from_edges(Undirected, [Edge(e[1], e[2]) for e in edges], n_vertices)
 end
+
+
+
+@doc raw"""
+    adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return an unsigned (boolean) adjacency matrix representing a graph `g`.
+"""
+function adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+  Polymake.@convert_to IncidenceMatrix Polymake.common.adjacency_matrix(pm_object(g))
+end
+
+
+@doc raw"""
+    laplacian_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+
+Return the Laplacian matrix of the graph `g`.
+"""
+function laplacian_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+  D = diagonal_matrix(degree(g))
+  A = matrix(ZZ, adjacency_matrix(g))
+  return D-A
+end
