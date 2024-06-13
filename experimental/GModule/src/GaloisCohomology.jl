@@ -8,7 +8,7 @@ import Base: parent
 import Oscar: direct_sum
 import Oscar: pretty, Lowercase, Indent, Dedent, terse
 
-export is_coboundary, idel_class_gmodule, relative_brauer_group
+export is_coboundary, idele_class_gmodule, relative_brauer_group
 export local_invariants, global_fundamental_class, shrink
 export local_index, units_mod_ideal
 
@@ -610,9 +610,9 @@ Sort:
 # - ???
 # - a different type containing all this drivel? (probably)
 #    YES - need to have maps to and from local stuff
-#    use Klueners/ Acciaro to map arbitrary local into idel
+#    use Klueners/ Acciaro to map arbitrary local into idele
 #    use ...               to project to ray class
-# - a magic(?) function to get idel-approximations in and out?
+# - a magic(?) function to get idele approximations in and out?
 
 """
 M has to be a torsion free Z module with a C_2 action by sigma.
@@ -627,7 +627,7 @@ Two arrays are returned:
 
 Follows Debeerst rather closely...
 
-(Helper for the idel-class stuff)
+(Helper for the idele class stuff)
 """
 function debeerst(M::FinGenAbGroup, sigma::Map{FinGenAbGroup, FinGenAbGroup})
   @assert domain(sigma) == codomain(sigma) == M
@@ -756,13 +756,13 @@ end
 
 
 """
-    IdelParent
+    IdeleParent
 
-A container structure for computations around idel-class cohomology.
+A container structure for computations around idele class cohomology.
 Describes a gmodule that is cohomologically equivalent to the 
-idel-class group, following Chinberg/ Debeerst/ Aslam.
+idele class group, following Chinberg/Debeerst/Aslam.
 """
-mutable struct IdelParent
+mutable struct IdeleParent
   k::AbsSimpleNumField
   mG::Map # AutGrp -> Automorphisms
   S::Vector{AbsNumFieldOrderIdeal} # for each prime number ONE ideal above
@@ -785,29 +785,29 @@ mutable struct IdelParent
 
   data
 
-  function IdelParent()
+  function IdeleParent()
     return new()
   end
 end
 
 """
-    idel_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[])
+    idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[])
 
 Following Debeerst:
   Algorithms for Tamagawa Number Conjectures. Dissertation, University of Kassel, June 2011.
 or Ali, 
 
 Find a gmodule C s.th. C is cohomology-equivalent to the cohomology
-of the idel-class group. The primes in `s` will always be used.
+of the idele class group. The primes in `s` will always be used.
 """
-function idel_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false)
+function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::Bool=false)
   @vprint :GaloisCohomology 2 "Ideal class group cohomology for $k\n"
-  I = get_attribute(k, :IdelClassGmodule)
+  I = get_attribute(k, :IdeleClassGmodule)
   if !redo && I !== nothing
     return I
   end
 
-  I = IdelParent()
+  I = IdeleParent()
   I.k = k
   G, mG = automorphism_group(PermGroup, k)
   I.mG = mG
@@ -1012,17 +1012,17 @@ function idel_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo::
   @hassert :GaloisCohomology 1 is_consistent(q)
   I.mq = mq
   I.data = (q, F[1])
-  set_attribute!(k, :IdelClassGmodule=>I)
+  set_attribute!(k, :IdeleClassGmodule=>I)
   return I
 end
 
 """
-returns a `Dict` containing the prime ideals where the idel
+returns a `Dict` containing the prime ideals where the idele
 represented by `a` as an element of `I` can be non-trivial, 
 ie. at the places in `I`.
 The values are elements in the corresponding completion.
 """
-function idel_finite(I::IdelParent, a::FinGenAbGroupElem)
+function idele_finite(I::IdeleParent, a::FinGenAbGroupElem)
   a = preimage(I.mq, a)
   #a lives in a direct product
   #  1st the units - induced, thus a direct product
@@ -1055,10 +1055,10 @@ function _local_norm(m0::AbsSimpleNumFieldOrderIdeal, a::AbsNumFieldOrderElem, p
 end
 
 
-#maybe we need Idel's as independent objects?
+#maybe we need Idele's as independent objects?
 #realizes C -> Cl (or the coprime version into a ray class group:
-#for the idel `a` in `I` find an "equivalent" ideal.
-function Oscar.ideal(I::IdelParent, a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
+#for the idele `a` in `I` find an "equivalent" ideal.
+function Oscar.ideal(I::IdeleParent, a::FinGenAbGroupElem; coprime::Union{AbsSimpleNumFieldOrderIdeal, Nothing})
   a = preimage(I.mq, a)
   zk = maximal_order(I.k)
   o_zk = zk
@@ -1092,7 +1092,7 @@ function Oscar.galois_group(A::ClassField)
 end
 
 """
-    galois_group(A::ClassField, ::QQField; idel_parent::IdelParent = idel_class_gmodule(base_field(A)))
+    galois_group(A::ClassField, ::QQField; idele_parent::IdeleParent = idele_class_gmodule(base_field(A)))
 
 Determines the Galois group (over `QQ`) of the extension parametrized by `A`.
 `A` needs to be normal over `QQ`.
@@ -1107,9 +1107,9 @@ julia> a = ray_class_field(8*3*maximal_order(k), n_quo = 2);
 
 julia> a = filter(is_normal, subfields(a, degree = 2));
 
-julia> I = idel_class_gmodule(k);
+julia> I = idele_class_gmodule(k);
 
-julia> b = [galois_group(x, QQ, idel_parent = I) for x = a];
+julia> b = [galois_group(x, QQ, idele_parent = I) for x = a];
 
 julia> [describe(x[1]) for x = b]
 3-element Vector{String}:
@@ -1119,7 +1119,7 @@ julia> [describe(x[1]) for x = b]
 
 ```
 """    
-function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelParent,Nothing} = nothing) 
+function Oscar.galois_group(A::ClassField, ::QQField; idele_parent::Union{IdeleParent,Nothing} = nothing) 
 
   m0, m_inf = defining_modulus(A)
   @assert length(m_inf) == 0
@@ -1134,20 +1134,20 @@ function Oscar.galois_group(A::ClassField, ::QQField; idel_parent::Union{IdelPar
     s, ms = split_extension(gmodule(A))
     return permutation_group(s), ms
   end
-  if idel_parent === nothing
-    idel_parent = idel_class_gmodule(base_field(A))
+  if idele_parent === nothing
+    idele_parent = idele_class_gmodule(base_field(A))
   end
 
-  qI = cohomology_group(idel_parent, 2)
+  qI = cohomology_group(idele_parent, 2)
   q, mq = snf(qI[1])
   a = qI[2](image(mq, q[1])) # should be a 2-cycle in q
   @assert Oscar.GrpCoh.istwo_cocycle(a)
-  gA = gmodule(A, idel_parent.mG)
+  gA = gmodule(A, idele_parent.mG)
   qA = cohomology_group(gA, 2)
   n = degree(Hecke.nf(zk))
   aa = map_entries(a, parent = gA) do x
     x = parent(x)(Hecke.mod_sym(x.coeff, gcd(n, degree(A))))
-    J = ideal(idel_parent, x, coprime = m0)
+    J = ideal(idele_parent, x, coprime = m0)
     mQ(preimage(mR, numerator(J)) - preimage(mR, denominator(J)*zk))
   end
   @assert Oscar.GrpCoh.istwo_cocycle(aa)
@@ -1158,7 +1158,7 @@ function Oscar.components(A::FinGenAbGroup)
   return get_attribute(A, :direct_product)
 end
 
-function Oscar.completion(I::IdelParent, P::AbsNumFieldOrderIdeal)
+function Oscar.completion(I::IdeleParent, P::AbsNumFieldOrderIdeal)
   s = [minimum(x) for x = I.S]
   p = findfirst(isequal(minimum(P)), s)
   @assert p !== nothing
@@ -1843,7 +1843,7 @@ function Hecke.StructureConstantAlgebra(CC::GrpCoh.CoChain{2, PermGroupElem, Grp
   return Hecke.StructureConstantAlgebra(base_field(k), M)
 end
 
-function serre(A::IdelParent, P::AbsNumFieldOrderIdeal)
+function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   C = A.data[1]
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
@@ -1860,7 +1860,7 @@ function serre(A::IdelParent, P::AbsNumFieldOrderIdeal)
   return c
 end
 
-function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
+function serre(A::IdeleParent, P::Union{Integer, ZZRingElem})
   C = A.data[1]
   t = findfirst(isequal(ZZ(P)), [minimum(x) for x = A.S])
   Inj = canonical_injection(A.M, t+1)
@@ -1885,10 +1885,10 @@ function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
   #g is the (non-canonical) generator of H^2 of the induced module
   hg = map_entries(Inj*A.mq, g, parent = C)
   #hg is the (non-canonical) generator of H^2 of the induced module
-  #in the global idel-class cohomology
+  #in the global idele class cohomology
   #             
   #Z[G_p] K_p   <-> Ind_G_p^G K_p = Z[G] prod K_p over all conjugate primes
-  #              -> Z[G] C the idel-class group
+  #              -> Z[G] C the idele class group
   #the image should be the restriction I think
   gg = map_entries(pro, g, parent = tt.C)
   #gg is the non-canomical generator in Z[G_p] K_p
@@ -1906,16 +1906,16 @@ function serre(A::IdelParent, P::Union{Integer, ZZRingElem})
 end
 
 """
-    global_fundamental_class(A::IdelParent)
+    global_fundamental_class(A::IdeleParent)
 
 Tries to find the canonical generator of `H^2(C)` the  2nd
-cohomology group of the idel-class group.
+cohomology group of the idele class group.
 
 Currently only works if this can be inferred from the local data in
 the field, ie. if the `lcm` of the degrees of the completions is the
 full field degree.
 """    
-function global_fundamental_class(A::IdelParent)
+function global_fundamental_class(A::IdeleParent)
   C = A.data[1]
   d = lcm([ramification_index(P) * inertia_degree(P) for P = A.S])
   G = C.G
@@ -1963,7 +1963,7 @@ function global_fundamental_class(A::IdelParent)
   return p[1]
 end
 
-function Oscar.cohomology_group(A::IdelParent, i::Int)
+function Oscar.cohomology_group(A::IdeleParent, i::Int)
   return Oscar.cohomology_group(A.data[1], i)
 end
 
@@ -2024,12 +2024,19 @@ end
 
 #deliberately at the end as it messes up the syntax-highlighting for me
 #confusion about " and ()...
-function Base.show(io::IO, I::IdelParent)
-  print(io, "Idel-group for $(I.k) using $(sort(collect(Set(minimum(x) for x = I.S)))) as places")
+function Base.show(io::IO, I::IdeleParent)
+  io = pretty(io)
+  #print(io, "Relative Brauer group for ", Lowercase(), B.K, " over ", Lowercase(), B.k)
+  println(io, "Idele group of")
+  print(io, Indent())
+  println(io, Lowercase(), I.k)
+  plcs = sort(collect(Set(minimum(x) for x = I.S)))
+  print(io, "using prime ideals over [", join(plcs, ", "), "] as places")
+  print(io, Dedent())
 end
 
 end # module GrpCoh
 
 using .GaloisCohomology_Mod
-export is_coboundary, idel_class_gmodule, relative_brauer_group, units_mod_ideal
+export is_coboundary, idele_class_gmodule, relative_brauer_group, units_mod_ideal
 
