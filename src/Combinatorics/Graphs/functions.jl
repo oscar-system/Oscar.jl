@@ -507,6 +507,23 @@ function neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected
     return [x+1 for x in result]
 end
 
+@doc raw"""
+    degree(g::Graph{T} [, v::Int64]) where {T <: Union{Directed, Undirected}}
+
+Return the degree of the vertex `v` in the graph `g`.
+If `v` is missing, return the list of degrees of all vertices.
+
+# Examples
+```jldoctest
+julia> g = vertex_edge_graph(icosahedron());
+
+julia> degree(g, 1)
+5
+```
+"""
+degree(g::Graph, v::Int64) = length(neighbors(g, v))
+degree(g::Graph) = [ length(neighbors(g, v)) for v in 1:n_vertices(g) ]
+
 
 @doc raw"""
     inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
