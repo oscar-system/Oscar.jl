@@ -806,6 +806,7 @@ export is_isomorphism
 export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
+export is_leaf
 export is_left
 export is_linearly_normal
 export is_local
@@ -845,6 +846,7 @@ export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
 export is_radical
+export is_ready
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -1065,6 +1067,7 @@ export neighbors
 export newick
 export newton_polytope
 export newton_subdivision
+export nice_gens
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid
@@ -1405,6 +1408,7 @@ export stanley_reisner_ring
 export star_subcomplex
 export star_subdivision
 export star_triangulations
+export straight_line_program
 export strongly_connected_components
 export structure_sheaf
 export sub
