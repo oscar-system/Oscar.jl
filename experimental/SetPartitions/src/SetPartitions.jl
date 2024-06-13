@@ -7,7 +7,9 @@ import Base:
     deepcopy,
     deepcopy_internal,
     hash,
-    size
+    size,
+    -,
+    +
     
 import Oscar:
     ⊗,
@@ -19,11 +21,13 @@ import Oscar:
     parent,
     degree,
     tensor_product,
-    @req
+    @req,
+    RingElement
 
 export ColoredPartition
 export SetPartition
 export SpatialPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops
@@ -51,6 +55,13 @@ export set_partition
 export spatial_partition
 export upper_colors
 export upper_points
+export simplify_operation_zero
+export simplify_operation
+export add
+export scale
+export composition
+export subtract
+
 
 
 include("AbstractPartition.jl")
@@ -60,6 +71,7 @@ include("ColoredPartition.jl")
 include("SpatialPartition.jl")
 include("PartitionProperties.jl")
 include("GenerateCategory.jl")
+include("LinearCombinations.jl")
 end
 
 using .SetPartitions
@@ -67,6 +79,7 @@ using .SetPartitions
 export ColoredPartition
 export SetPartition
 export SpatialPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops
@@ -94,3 +107,9 @@ export set_partition
 export spatial_partition
 export upper_colors
 export upper_points
+export simplify_operation_zero
+export simplify_operation
+export add
+export scale
+export composition
+export subtract

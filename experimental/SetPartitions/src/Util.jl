@@ -123,3 +123,37 @@ function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) wher
 
     return vector
 end
+
+"""TODO sebvz comment"""
+function simplify_operation(partition_sum::Vector) # TODO type
+
+    partitions = Dict()
+
+    for (i1, i2) in partition_sum
+        
+        if i2 == 0 # TODO RingElem
+            deleteat!(partition_sum, findall(x -> x == (i1, i2), partition_sum))
+            continue
+        end
+        
+        if !(i1 in keys(partitions))
+            partitions[i1] = i2
+        else
+            deleteat!(partition_sum, findall(x -> x == (i1, i2), partition_sum))
+            deleteat!(partition_sum, findall(x -> x == (i1, get(partitions, i1, -1)), partition_sum))
+            push!(partition_sum, (i1, get(partitions, i1, -1) + i2))
+            partitions[i1] = get(partitions, i1, -1) + i2
+        end
+    end
+    partition_sum
+end
+
+function simplify_operation_zero(p::Dict)
+    result = Dict()
+    for (i1, i2) in pairs(p)
+        if i2 != 0 # TODO RingElem
+            result[i1] = i2
+        end
+    end
+    result
+end
