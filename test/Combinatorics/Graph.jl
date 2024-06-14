@@ -161,4 +161,15 @@
         @test n_edges(G2) == 5
 
     end
+
+    @testset "adjacency_matrix laplacian_matrix" begin
+      G0 = Graph{Directed}(3)
+      add_edge!(G0,1,2)
+      add_edge!(G0,1,3)
+      @test matrix(ZZ, adjacency_matrix(G0)) == matrix(ZZ, [0 1 1; 0 0 0; 0 0 0])
+      @test laplacian_matrix(G0) == matrix(ZZ, [2 -1 -1; 0 0 0; 0 0 0])
+      G1 = vertex_edge_graph(cube(2))
+      @test matrix(ZZ, adjacency_matrix(G1)) == matrix(ZZ, [0 1 1 0; 1 0 0 1; 1 0 0 1; 0 1 1 0])
+      @test laplacian_matrix(G1) == matrix(ZZ, [2 -1 -1 0; -1 2 0 -1; -1 0 2 -1; 0 -1 -1 2])
+    end
 end

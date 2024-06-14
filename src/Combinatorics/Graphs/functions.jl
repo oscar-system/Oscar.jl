@@ -1255,8 +1255,7 @@ julia> matrix(ZZ, adjacency_matrix(G))
 [0   1   1   0]
 ```
 """
-adjacency_matrix(g::Graph{Undirected}) = Polymake.@convert_to IncidenceMatrix Polymake.common.adjacency_matrix(pm_object(g))
-adjacency_matrix(g::Graph{Directed}) = Polymake.call_function(:common, Symbol("IncidenceMatrix::new"), "Directed", Polymake.common.adjacency_matrix(pm_object(g)))
+adjacency_matrix(g::Graph) = Polymake.call_function(:common, Symbol("IncidenceMatrix::new"), nothing, Polymake.common.adjacency_matrix(pm_object(g)))
 
 
 @doc raw"""
@@ -1280,7 +1279,7 @@ julia> laplacian_matrix(G)
 [ 0   -1   -1    2]
 ```
 """
-function laplacian_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+function laplacian_matrix(g::Graph)
   D = diagonal_matrix(degree(g))
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
