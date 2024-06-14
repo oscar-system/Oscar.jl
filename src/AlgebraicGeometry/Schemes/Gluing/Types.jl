@@ -140,11 +140,11 @@ end
                           f::AbsAffineSchemeMor,
                           g::AbsAffineSchemeMor;
                           check::Bool=true
-    )
-      return new{typeof(X), typeof(Y),
-              typeof(U), typeof(V),
-              typeof(f), typeof(g)
-            }(X, Y, U, V, f, g)
+                        )
+    return new{typeof(X), typeof(Y),
+            typeof(U), typeof(V),
+            typeof(f), typeof(g)
+          }(X, Y, U, V, f, g)
   end
 end 
 
