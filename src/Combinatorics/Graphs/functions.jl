@@ -1205,17 +1205,80 @@ end
 @doc raw"""
     adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Return an unsigned (boolean) adjacency matrix representing a graph `g`.
+Return an unsigned (boolean) adjacency matrix representing a graph `g`. If `g`
+is undirected, the adjacency matrix will be symmetric. For `g` being directed,
+the adjacency matrix has a `1` at `(u,v)` if there is an edge `u->v`.
+
+# Examples
+Adjacency matrix for a directed graph:
+```jldoctest
+julia> G = Graph{Directed}(3)
+Directed graph with 3 nodes and no edges
+
+julia> add_edge!(G,1,3)
+true
+
+julia> add_edge!(G,1,2)
+true
+
+julia> adjacency_matrix(G)
+3×3 IncidenceMatrix
+[2, 3]
+[]
+[]
+
+
+julia> matrix(ZZ, adjacency_matrix(G))
+[0   1   1]
+[0   0   0]
+[0   0   0]
+```
+
+Adjacency matrix for an undirected graph:
+```jldoctest
+julia> G = vertex_edge_graph(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
+julia> adjacency_matrix(G)
+4×4 IncidenceMatrix
+[2, 3]
+[1, 4]
+[1, 4]
+[2, 3]
+
+
+julia> matrix(ZZ, adjacency_matrix(G))
+[0   1   1   0]
+[1   0   0   1]
+[1   0   0   1]
+[0   1   1   0]
+```
 """
-function adjacency_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
-  Polymake.@convert_to IncidenceMatrix Polymake.common.adjacency_matrix(pm_object(g))
-end
+adjacency_matrix(g::Graph{Undirected}) = Polymake.@convert_to IncidenceMatrix Polymake.common.adjacency_matrix(pm_object(g))
+adjacency_matrix(g::Graph{Directed}) = Polymake.call_function(:common, Symbol("IncidenceMatrix::new"), "Directed", Polymake.common.adjacency_matrix(pm_object(g)))
 
 
 @doc raw"""
     laplacian_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 
-Return the Laplacian matrix of the graph `g`.
+Return the Laplacian matrix of the graph `g`. The Laplacian matrix of a graph
+can be written as the difference of `D`, where `D` is a quadratic matrix with
+the degrees of `g` on the diagonal, and the adjacency matrix of `g`. For an
+undirected graph, the Laplacian matrix is symmetric.
+
+# Examples
+```
+julia> G = vertex_edge_graph(cube(2))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(4, 2)(4, 3)
+
+julia> laplacian_matrix(G)
+[ 2   -1   -1    0]
+[-1    2    0   -1]
+[-1    0    2   -1]
+[ 0   -1   -1    2]
+```
 """
 function laplacian_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
   D = diagonal_matrix(degree(g))
