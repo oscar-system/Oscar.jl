@@ -51,13 +51,16 @@ rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed,
 
 ## Auxiliary functions
 ```@docs
+adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
+degree(g::Graph, v::Int)
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+laplacian_matrix(g::Graph)
 n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
