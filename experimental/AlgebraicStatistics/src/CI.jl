@@ -133,11 +133,7 @@ julia> ci_statements(["A", "B", "X", "Y"])
  [B ⫫ Y | {A, X}]
  [X ⫫ Y | {}]
  [X ⫫ Y | A]
- [X ⫫ Y | B]
- [X ⫫ Y | {A, B}]
- [A ⫫ X | {}]
- [A ⫫ X | B]
- [A ⫫ X | Y]
+ ⋮
  [A ⫫ X | {B, Y}]
  [B ⫫ X | {}]
  [B ⫫ X | A]

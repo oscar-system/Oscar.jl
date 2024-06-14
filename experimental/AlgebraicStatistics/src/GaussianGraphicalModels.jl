@@ -26,7 +26,7 @@ It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose
 
 ## Examples
 
-``` jldoctest gaussian_ring
+``` jldoctest
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -65,7 +65,11 @@ Return the Oscar multivariate polynomial ring inside the `GaussianRing`.
 
 ## Examples
 
-``` jldoctest gaussian_ring
+``` jldoctest 
+julia> R = gaussian_ring(3)
+Gaussian ring over Rational field in 6 variables
+s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+
 julia> ring(R)
 Multivariate polynomial ring in 6 variables s[1, 1], s[1, 2], s[1, 3], s[2, 2], ..., s[3, 3]
   over rational field
@@ -84,7 +88,11 @@ Return the generators of the multivariate polynomial ring inside the GaussianRin
 
 ## Examples
 
-``` jldoctest gaussian_ring
+``` jldoctest
+julia> R = gaussian_ring(3)
+Gaussian ring over Rational field in 6 variables
+s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+
 julia> gens(R)
 Dict{Tuple{Int64, Int64}, QQMPolyRingElem} with 6 entries:
   (1, 2) => s[1, 2]
@@ -109,7 +117,11 @@ Return the covariance matrix associated to `R` as a matrix over the underlying p
 
 ## Examples
 
-``` jldoctest gaussian_ring
+``` jldoctest
+julia> R = gaussian_ring(3)
+Gaussian ring over Rational field in 6 variables
+s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
+
 julia> covariance_matrix(R)
 [s[1, 1]   s[1, 2]   s[1, 3]]
 [s[1, 2]   s[2, 2]   s[2, 3]]
@@ -181,7 +193,11 @@ Creates the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose en
 
 ## Examples
 
-``` jldoctest directed_ggm
+``` jldoctest
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on a directed graph with edges:
+(1, 2), (2, 3)
+
 julia> directed_edges_matrix(M)
 [0   l[1, 2]         0]
 [0         0   l[2, 3]]
@@ -203,7 +219,11 @@ Creates the covariance matrix $ \Omega $ of the independent error terms in a dir
 
 ## Examples
 
-``` jldoctest directed_ggm
+``` jldoctest
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on a directed graph with edges:
+(1, 2), (2, 3)
+
 julia> error_covariance_matrix(M)
 [w[1]      0      0]
 [   0   w[2]      0]
@@ -228,7 +248,11 @@ $(Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{T} \mapsto \Sigma$ where $\Lambda =$
 
 ## Examples
 
-``` jldoctest directed_ggm
+``` jldoctest
+julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on a directed graph with edges:
+(1, 2), (2, 3)
+
 julia> parameterization(M)
 Ring homomorphism
   from multivariate polynomial ring in 6 variables over QQ
@@ -316,7 +340,11 @@ Creates the concentration matrix `K` of an undirected Gaussian graphical model w
 whose nonzero entries correspond to the edges of the associated graph. 
 ## Examples
 
-``` jldoctest undirected_ggm
+``` jldoctest
+julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on an undirected graph with edges:
+(1, 2), (2, 3)
+
 julia> concentration_matrix(M)
 [k[1, 1]   k[1, 2]         0]
 [k[1, 2]   k[2, 2]   k[2, 3]]
@@ -354,18 +382,22 @@ $ K \mapsto K^{-1}$ where $ K = $  `concentration_matrix(M)` and the entries of 
 
 ## Examples
 
-``` jldoctest undirected_ggm
+``` jldoctest
+julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on an undirected graph with edges:
+(1, 2), (2, 3)
+
 julia> parameterization(M)
 Ring homomorphism
   from multivariate polynomial ring in 6 variables over QQ
   to fraction field of multivariate polynomial ring
 defined by
-  s[1, 1] -> (k[2, 2]*k[3, 3] - k[2, 3]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[1, 2] -> (-k[3, 3]*k[1, 2])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[1, 3] -> (k[1, 2]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[2, 2] -> (k[1, 1]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[2, 3] -> (-k[1, 1]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
-  s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[3, 3]*k[1, 2]^2)
+  s[1, 1] -> (k[2, 2]*k[3, 3] - k[2, 3]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
+  s[1, 2] -> (-k[1, 2]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
+  s[1, 3] -> (k[1, 2]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
+  s[2, 2] -> (k[1, 1]*k[3, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
+  s[2, 3] -> (-k[1, 1]*k[2, 3])//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
+  s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
 ```
 """
 function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
@@ -391,6 +423,10 @@ and then eliminating all variables `k[i,j]` where $ K =$ `concentration_matrix(M
 ## Examples
 
 ``` jldoctest undirected_ggm
+julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
+Gaussian graphical model on an undirected graph with edges:
+(1, 2), (2, 3)
+
 julia> vanishing_ideal(M)
 Ideal generated by
   -s[1, 2]*s[2, 3] + s[1, 3]*s[2, 2]
