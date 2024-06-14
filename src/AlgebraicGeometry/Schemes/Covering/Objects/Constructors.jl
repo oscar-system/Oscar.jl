@@ -96,6 +96,11 @@ function disjoint_union(C1::Covering, C2::Covering)
   for (X, Y) in keys(gluings(C2))
     add_gluing!(C, C2[X, Y])
   end
+  for X in patches(C1)
+    for Y in patches(C2)
+      add_gluing!(C, disjoint_gluing(X, Y))
+    end
+  end
   return C
 end
 

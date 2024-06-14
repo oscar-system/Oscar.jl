@@ -119,3 +119,43 @@ Concrete instance of an `AbsGluing` for gluings of affine schemes
   end
 end
 
+
+@attributes mutable struct DisjointGluing{LST<:AbsAffineScheme,
+                                         RST<:AbsAffineScheme,
+                                         LOT<:AbsAffineScheme,
+                                         ROT<:AbsAffineScheme,
+                                         LMT<:SchemeMor,
+                                         RMT<:SchemeMor
+                                        } <: AbsGluing{LST, RST, LOT, ROT, LMT, RMT}
+  X::LST
+  Y::RST
+  U::LOT
+  V::ROT
+  f::LMT
+  g::RMT
+  function DisjointGluing(X::AbsAffineScheme, 
+                          Y::AbsAffineScheme, 
+                          U::AbsAffineScheme, 
+                          V::AbsAffineScheme,
+                          f::AbsAffineSchemeMor,
+                          g::AbsAffineSchemeMor;
+                          check::Bool=true
+    )
+      return new{typeof(X), typeof(Y),
+              typeof(U), typeof(V),
+              typeof(f), typeof(g)
+            }(X, Y, U, V, f, g)
+  end
+end 
+
+#TODO: Make the (trivial) gluing domains and morphisms lazy to save memory
+function disjoint_gluing(X::AbsAffineScheme, Y::AbsAffineScheme)
+  U = subscheme(X, OO(X)(1))
+  V = subscheme(Y, OO(Y)(1))
+  
+  f = morphism(U,V, [zero(OO(U)) for i in 1:ngens(OO(V))])
+  g = morphism(V,U, [zero(OO(V)) for i in 1:ngens(OO(U))])
+  return DisjointGluing(X,Y,U,V,f,g)
+end 
+
+

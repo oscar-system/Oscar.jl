@@ -759,6 +759,7 @@ export is_cyclic, has_is_cyclic, set_is_cyclic
 export is_degenerate
 export is_dense
 export is_dihedral_group, has_is_dihedral_group, set_is_dihedral_group
+export is_disjoint_gluing
 export is_du_val_singularity
 export is_duplicate_table
 export is_effective

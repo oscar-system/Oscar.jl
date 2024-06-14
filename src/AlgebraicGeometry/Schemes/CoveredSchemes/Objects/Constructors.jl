@@ -148,6 +148,8 @@ function disjoint_union(Xs::Vector{<:AbsCoveredScheme})
   return X, injections
 end
 
+disjoint_union(X::AbsCoveredScheme, Y::AbsCoveredScheme) = disjoint_union([X,Y])
+
 ### Conversion of an affine scheme into a covered scheme
 CoveredScheme(X::AbsAffineScheme) = CoveredScheme(Covering(X))
 

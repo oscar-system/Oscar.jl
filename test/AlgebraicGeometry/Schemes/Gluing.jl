@@ -159,3 +159,13 @@ end
   end
 end
 
+@testset "disjoint gluings" begin 
+  P2a = projective_space(QQ,2)
+  P2b = projective_space(QQ,2)
+  P2ac = covered_scheme(P2a)
+  P2bc = covered_scheme(P2b)
+  D,_ = disjoint_union(P2ac,P2bc)
+  @test is_disjoint_gluing(D[1][1,4]) 
+  @test !is_disjoint_gluing(D[1][1,2]) 
+end 
+
