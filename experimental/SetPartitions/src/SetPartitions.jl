@@ -22,12 +22,13 @@ import Oscar:
     degree,
     tensor_product,
     @req,
-    RingElement
+    RingElement,
+    scale
 
 export ColoredPartition
 export SetPartition
 export SpatialPartition
-export LinearPartition
+export LinearSetPartition
 
 export colored_partition
 export compose_count_loops
@@ -57,9 +58,12 @@ export upper_colors
 export upper_points
 export simplify_operation_zero
 export simplify_operation
+export linear_partition
+export get_term
 export add
 export scale
-export composition
+export linear_composition
+export linear_tensor_product
 export subtract
 
 
@@ -79,7 +83,7 @@ using .SetPartitions
 export ColoredPartition
 export SetPartition
 export SpatialPartition
-export LinearPartition
+export LinearSetPartition
 
 export colored_partition
 export compose_count_loops
@@ -109,7 +113,10 @@ export upper_colors
 export upper_points
 export simplify_operation_zero
 export simplify_operation
+export linear_partition
+export get_term
 export add
 export scale
-export composition
+export linear_composition
+export linear_tensor_product
 export subtract
