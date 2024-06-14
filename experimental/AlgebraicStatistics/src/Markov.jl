@@ -27,7 +27,7 @@ with the Macaulay2 package `GraphicalModels`.
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
 ```
@@ -58,7 +58,9 @@ Return the Oscar multivariate polynomial ring inside the MarkovRing.
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> ring(R)
 Multivariate Polynomial Ring in 16 variables p[1, 1, 1, 1], p[2, 1, 1, 1], p[1, 2, 1, 1], p[2, 2, 1, 1], ..., p[2, 2, 2, 2] over Rational field
 ```
@@ -74,7 +76,9 @@ Return the list of random variables used to create the MarkovRing.
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> random_variables(R)
 4-element Vector{String}:
  "A"
@@ -92,7 +96,9 @@ end
 
 Returns all the `CIStmt` objects which can be formed on the `random_variables(R)`.
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> ci_statements(R)
 24-element Vector{CIStmt}:
  [A ⫫ B | {}]
@@ -116,7 +122,9 @@ Return the tensor of variables in the polynomial ring.
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> unknowns(R)
 2×2×2×2 Array{Nemo.QQMPolyRingElem, 4}:
 [:, :, 1, 1] =
@@ -179,7 +187,9 @@ in the ring `R`. The result is an `Iterators.product` iterator unless
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> collect(state_space(R, ["A", "B"]))
 2×2 Matrix{Tuple{Int64, Int64}}:
  (1, 1)  (1, 2)
@@ -218,7 +228,9 @@ variables in `R` are summed over their respective state spaces.
 
 ## Examples
 
-``` jldoctest ring_props
+``` jldoctest
+julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
+
 julia> marginal(R, ["A", "X"], [1,2])
 p[1, 1, 2, 1] + p[1, 2, 2, 1] + p[1, 1, 2, 2] + p[1, 2, 2, 2]
 ```
