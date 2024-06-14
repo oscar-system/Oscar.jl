@@ -267,7 +267,7 @@ end
 ##############################################
 
 @doc raw"""
-    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
+    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
 Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
 
