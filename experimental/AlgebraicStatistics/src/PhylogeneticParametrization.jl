@@ -234,7 +234,7 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
 end
 
 @doc raw"""
-    sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
+    sum_equivalent_classes(equivalent_classes::NamedTuple{(:parametrization, :classes), Tuple{Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}, Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}}})
 
 Take the output of the function `compute_equivalent_classes` for `PhylogeneticModel` and multiply by a factor to obtain probabilities as specified on the original small trees database.
 
@@ -267,7 +267,7 @@ end
 ##############################################
 
 @doc raw"""
-specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
+    specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})  
 
 Reparametrize between a model specification in terms of probability and Fourier cooordinates. The input of equivalent classes is optional, if they are not entered they will be computed.
 
@@ -323,7 +323,7 @@ function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
 end
 
 @doc raw"""
-    inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}) 
+    inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 
 Reparametrize between a model specification in terms of Fourier and probability cooordinates.
 

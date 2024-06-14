@@ -50,9 +50,9 @@ For each phylogenetic model, we can calculate the parametrization, a map from tr
 probability_map(pm::PhylogeneticModel)
 fourier_map(pm::GroupBasedPhylogeneticModel)
 compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
-sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
-specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
-inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, f_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
+sum_equivalent_classes(equivalent_classes::NamedTuple{(:parametrization, :classes), Tuple{Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}, Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}}})
+specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
+inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
 ```
 
 ## Contact
