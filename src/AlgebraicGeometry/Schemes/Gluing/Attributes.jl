@@ -78,40 +78,6 @@ gluing_domains(G::SimpleGluing) = (G.U, G.V)
 end
 
 ########################################################################
-# Getters for DisjointGluing                                           #
-########################################################################
-
-patches(G::DisjointGluing) = G.X, G.Y
-function gluing_morphisms(G::DisjointGluing) 
-  if !isdefined(G,:f) ||!isdefined(G,:g)
-    U, V = gluing_domains(G)
-    G.f = inclusion_morphism(U,X)
-    G.g = inclusion_morphism(V,Y)
-  end
-  return G.f, G.g
-end
-
-function gluing_domains(G::DisjointGluing)
-  if !isdefined(G,:U) || !isdefined(G,:V)
-    G.U = subscheme(X, OO(X)(1))
-    G.V = subscheme(Y, OO(Y)(1))
-  end
-  return G.U, G.V
-end
-
-@attr function inverse(G::DisjointGluing)
-  X,Y = patches(G)
-  U,V = gluing_domains(G)
-  f,g = gluing_morphisms(G)
-  Ginv = DisjointGluing(Y, X, V, U, g, f; check=false)
-  set_attribute!(Ginv, :inverse, G)
-  return Ginv
-end
-
-is_disjoint_gluing(G::DisjointGluing) = true
-has_is_disjoint_gluing(G::DisjointGluing) = true
-
-########################################################################
 # Further methods                                                      #
 ########################################################################
 

@@ -101,6 +101,21 @@ function Gluing(
 end
 
 ########################################################################
+# Disjoint gluing                                                      #
+########################################################################
+
+function disjoint_gluing(X::AbsAffineScheme, Y::AbsAffineScheme)
+  U = EmptyPrincipalOpenSubset(X)
+  V = EmptyPrincipalOpenSubset(Y)
+  f = morphism(U,V, [zero(OO(U)) for i in 1:ngens(OO(V))])
+  g = morphism(V,U, [zero(OO(V)) for i in 1:ngens(OO(U))])
+  S = SimpleGluing(X,Y,f,g)
+  set_attribute!(S, :is_disjoint_gluing=>true)
+  return S
+end
+
+
+########################################################################
 # Restrictions of Gluings to closed subschemes                        #
 ########################################################################
 function restrict(G::AbsGluing, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)
