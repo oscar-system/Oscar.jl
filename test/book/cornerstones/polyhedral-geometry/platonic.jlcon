@@ -1,0 +1,7 @@
+julia> [ f_vector(P) for P in [T, cube(3), cross_polytope(3), dodecahedron(), icosahedron()] ]
+5-element Vector{Vector{ZZRingElem}}:
+ [4, 6, 4]
+ [8, 12, 6]
+ [6, 12, 8]
+ [20, 30, 12]
+ [12, 30, 20]

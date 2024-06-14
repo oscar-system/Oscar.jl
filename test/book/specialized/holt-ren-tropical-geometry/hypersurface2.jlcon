@@ -1,0 +1,5 @@
+julia> tropf = tropical_polynomial(f,nu)
+x^3 + x*y^2 + x + (-2)*y + (-3)
+
+julia> tropical_hypersurface(tropf)
+Max tropical hypersurface

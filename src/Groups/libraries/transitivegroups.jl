@@ -143,7 +143,7 @@ function transitive_group_identification(G::PermGroup)
   @req is_transitive(G, moved) "group is not transitive on its moved points"
   deg = length(moved)
   @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
-  res = GAP.Globals.TransitiveIdentification(G.X)::Int
+  res = GAP.Globals.TransitiveIdentification(GapObj(G))::Int
   return deg, res
 end
 

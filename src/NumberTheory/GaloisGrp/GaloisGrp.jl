@@ -835,7 +835,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = polynomial_ring(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1; cached=false)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
@@ -1676,7 +1676,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #TODO: wrap this properly
     if hasproperty(GAP.Globals, :ConStabilize)
       tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(G.X), tmp)))
+      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
       G = Oscar._as_subgroup(G, H)[1]
     else
       #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
@@ -2664,7 +2664,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector, gens(G))
+  gs = map(Vector{Int}, gens(G))
   for (g, k) = lf
     for j=2:k
       for i=1:degree(g)
@@ -2730,14 +2730,22 @@ function are_disjoint(G::GaloisCtx{T}, S::GaloisCtx{T}) where T <: Union{Hecke.q
     @vprint :GaloisGroup 2 "\n poly discs have small gcd ($g)..."
     o1 = any_order(number_field(G.f, cached = false, check = false)[1])
     p = radical(g)
-    O1 = pmaximal_overorder(o1, p)
+    if is_probable_prime(p)
+      O1 = pmaximal_overorder(o1, p)
+    else
+      O1, = Hecke._TameOverorderBL(o1, [p])
+    end
     p = gcd(discriminant(O1), p)
     if isone(p)
       @vprint :GaloisGroup 2 "p-maximal order of 1st is p-free\n"
       return true
     end
     o2 = any_order(number_field(S.f, cached = false, check = false)[1])
-    O2 = pmaximal_overorder(o2, p)
+    if is_probable_prime(p)
+      O2 = pmaximal_overorder(o2, p)
+    else
+      O2, = Hecke._TameOverorderBL(o2, [p])
+    end
     @vprint :GaloisGroup 2 "p-maximal order of 2nd is "
     p = gcd(discriminant(O2), p)
     if isone(p)

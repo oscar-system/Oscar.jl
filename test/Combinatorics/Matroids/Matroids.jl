@@ -349,4 +349,18 @@
         U = matroid_from_bases([[1,2],[2,3],[1,3]],5)
         @test automorphism_group(U) == automorphism_group(dual_matroid(U)) 
     end
+
+    @testset "matroid quotient" begin
+	   Q1 = uniform_matroid(1, 3)
+	   Q2 = uniform_matroid(2, 3)
+	   @test is_quotient(Q1, Q2) == true
+	   Q1 = matroid_from_bases([[3]], 3)
+	   Q2 = matroid_from_bases([[1, 2]], 3)
+	   @test is_quotient(Q1, Q2) == false
+	   M1 = uniform_matroid(1, 4)
+           M2 = uniform_matroid(3, 4)
+	   @test is_quotient(M1,M2) == true
+	   @test_throws ArgumentError is_quotient(M2, M1)
+	   @test_throws ArgumentError is_quotient(Q2, M2)
+   end
 end

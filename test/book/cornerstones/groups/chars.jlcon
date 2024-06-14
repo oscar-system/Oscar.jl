@@ -1,0 +1,48 @@
+julia> t = character_table("J2");
+
+julia> mx = character_table.(maxes(t));
+
+julia> pis = [trivial_character(s)^t for s in mx];
+
+julia> ords = orders_class_representatives(t);  println(ords)
+[1, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6, 6, 7, 8, 10, 10, 10, 10, 12, 15, 15]
+
+julia> ord7 = findall(is_equal(7), ords);
+
+julia> filt = filter(pi -> pi[ord7[1]] != 0, pis);
+
+julia> degree.(filt)
+2-element Vector{QQFieldElem}:
+ 100
+ 1800
+
+julia> ord5 = findall(is_equal(5), ords);
+
+julia> s = sum(filt);
+
+julia> all(i -> s[i] == 0, ord5)
+true
+
+julia> (x -> [x["1a"], x["2b"], x["3a"], x["3b"]]).(filt)
+2-element Vector{Vector{QQAbElem{AbsSimpleNumFieldElem}}}:
+ [100, 0, 10, 4]
+ [1800, 20, 0, 6]
+
+julia> ord3 = findall(is_equal(3), ords);
+
+julia> [class_multiplication_coefficient(t, 3, i, ord7[1]) for i in ord3]
+2-element Vector{ZZRingElem}:
+ 0
+ 70
+
+julia> s = mx[findfirst(is_equal(filt[2]), pis)];
+
+julia> identifier(s)
+"L3(2).2"
+
+julia> possible_class_fusions(s, t)
+1-element Vector{Vector{Int64}}:
+ [1, 2, 5, 6, 13, 3, 12, 14, 14]
+
+julia> class_multiplication_coefficient(s, 6, 3, 5)
+0

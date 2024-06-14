@@ -6,3 +6,4 @@ import_to_using = false
 indent = 2
 short_to_long_function_def = false
 always_for_in = true
+join_lines_based_on_source = true

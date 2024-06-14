@@ -14,8 +14,8 @@ This information is held by a `CoveringMorphism`:
 ```
 The basic functionality of `CoveringMorphism`s comprises `domain` and `codomain` which 
 both return a `Covering`, together with 
-```
-    getindex(f::CoveringMorphism, U::AbsAffineScheme)
+```julia
+getindex(f::CoveringMorphism, U::AbsAffineScheme)
 ```
 which for ``U = U_i`` returns the `AbsAffineSchemeMor` ``f_i : U_i \to V_{F(i)}``.
 
@@ -27,10 +27,10 @@ in order to realize the covering morphism in the first place.
 ## The interface for morphisms of covered schemes
 Every `AbsCoveredSchemeMorphism` ``f : X \to Y`` is required to implement the following minimal 
 interface.
-```
-    domain(f::AbsCoveredSchemeMorphism)                 # returns X
-    codomain(f::AbsCoveredSchemeMorphism)               # returns Y
-    covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
+```julia
+domain(f::AbsCoveredSchemeMorphism)                 # returns X
+codomain(f::AbsCoveredSchemeMorphism)               # returns Y
+covering_morphism(f::AbsCoveredSchemeMorphism)      # returns the underlying covering morphism {f_i}
 ```
 For the user's convenience, also the domain and codomain 
 of the underlying `covering_morphism` are forwarded as `domain_covering` and 
@@ -64,7 +64,7 @@ on ``X`` and ``Y`` can be extracted from the ``f^* v_i`` more directly.
 
 A lazy concrete data structure to house this kind of morphism is 
 ```@docs
-    MorphismFromRationalFunctions
+MorphismFromRationalFunctions
 ```
 Note that the key idea of this data type is to *not* use the `underlying_morphism` 
 together with its `covering_morphism`, but to find cheaper ways to do computations! 
@@ -81,12 +81,12 @@ there is no need to realize the full `covering_morphism` of ``f``.
 In order to facilitate such computations as lazy as possible, there are various fine-grained 
 entry points and caching mechanisms to realize ``f`` on open subsets:
 ```@docs
-    realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
-    realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-    realize(Phi::MorphismFromRationalFunctions)
+realize_on_patch(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme)
+realize_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realization_preview(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+random_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize_maximally_on_open_subset(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
+realize(Phi::MorphismFromRationalFunctions)
 ```
 

@@ -1,13 +1,11 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # GR-Algebras: Quotients of PBW-Algebras
 
-In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR
+In analogy to the [affine algebras](@ref affine_algebras) section in the [commutative algebra](@ref commutative_algebra) chapter, we describe OSCAR
 functionality for dealing with quotients of PBW-algebras modulo two-sided ideals.
 
 !!! note
@@ -38,7 +36,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra
+exterior_algebra
 ```
 
 ## Data Associated to Affine GR-Algebras

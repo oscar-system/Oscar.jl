@@ -1,0 +1,16 @@
+julia> sort(collect(orbit_counts.dict))
+14-element Vector{Pair{Int64, Int64}}:
+  2 => 26
+  3 => 24
+  4 => 17
+  5 => 8
+  7 => 5
+  8 => 2
+  9 => 2
+ 12 => 1
+ 14 => 1
+ 15 => 1
+ 17 => 1
+ 20 => 1
+ 27 => 1
+ 29 => 2

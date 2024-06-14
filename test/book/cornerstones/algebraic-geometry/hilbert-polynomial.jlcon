@@ -1,0 +1,17 @@
+julia> R, (w,x,y,z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [x*w-y*z, y*w-(x-z)*(x-2*z)]);
+
+julia> Q = projective_scheme(I);
+
+julia> is_smooth(Q)
+true
+
+julia> hilbert_polynomial(Q)
+4*t
+
+julia> degree(Q)
+4
+
+julia> arithmetic_genus(Q)
+1

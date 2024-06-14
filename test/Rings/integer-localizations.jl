@@ -4,7 +4,7 @@
 
 using Oscar
 
-import Oscar: base_ring, inverted_set, ring, localization, parent, numerator, denominator, one, zero, reduce_fraction
+import Oscar: base_ring, base_ring_type, inverted_set, ring, localization, parent, numerator, denominator, one, zero, reduce_fraction
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export FmpzComplementOfPrimeIdeal, FmpzPowersOfElement, FmpzComplementOfZeroIdeal
@@ -139,6 +139,7 @@ end
 
 ### required getter functions
 base_ring(W::FmpzLocalizedRing) = ZZ::ZZRing
+base_ring_type(::Type{<:FmpzLocalizedRing}) = ZZRing
 inverted_set(W::FmpzLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultSetType
 
 ### required extensions of the localization function

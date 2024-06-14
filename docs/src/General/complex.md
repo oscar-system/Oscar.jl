@@ -28,3 +28,10 @@ algorithms on polyhedra need a double description.
 - Face lattice
 - Lattice points
 - Hilbert basis
+
+## Omitted input sanity checks
+Some input sanity checks are omitted on purpose, since they would be too
+expensive to verify performance wise. We will continue to add to the following
+list.
+- Checking that the input for `subdivision_of_points` actually defines a proper
+  polyhedral complex covering the convex hull of the given points.

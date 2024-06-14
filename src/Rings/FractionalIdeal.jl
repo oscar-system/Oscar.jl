@@ -30,6 +30,8 @@ function base_ring(a::FractionalIdeal)
   return base_ring(numerator(a))
 end
 
+base_ring_type(::Type{FractionalIdeal{S, T}}) where {S, T} = base_ring_type(S)
+
 function iszero(a::FractionalIdeal)
   return iszero(numerator(a))
 end

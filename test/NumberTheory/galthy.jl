@@ -36,6 +36,11 @@
                       3*x^3 + 4*x - 1, "a")
   G, C = galois_group(K)
   @test order(G) == 216
+
+  # Ehrhart
+  G, C = galois_group((2*x+1)^2)
+  @test order(G) == 1
+  @test degree(G) == 2
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
@@ -77,4 +82,10 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
     @test all(G -> !an_sn_by_shape(sample_cycle_structures(G),n) || naive_is_giant(G), grps[n] )
   end
 
+  let # Ehrhart polynomial problems
+    Qx, x = QQ["x"]
+    f = 4//45*x^6 + 4//15*x^5 + 14//9*x^4 + 8//3*x^3 + 196//45*x^2 + 46//15*x + 1
+    G, = galois_group(f)
+    @test small_group_identification(G) == (4, 2)
+  end
 end

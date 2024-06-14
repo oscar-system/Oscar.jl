@@ -42,7 +42,7 @@ julia> R, (x,y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,2)
-Free module of rank 2 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 2 over R
 
 julia> O = [x*F[1]+F[2],y*F[2]]
 2-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -187,7 +187,7 @@ free module homomorphisms with codomain `F` represented by `A` and `B`.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AR = R[x; y]
 [x]
@@ -214,7 +214,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 1)
-Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
+Free module of rank 1 over Localization of R at complement of prime ideal (x, y, z)
 
 julia> ARL = RL[x; y]
 [x]
@@ -571,7 +571,7 @@ Return the cokernel of `A` as an object of type `SubquoModule` with ambient free
 julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
@@ -658,7 +658,7 @@ Return the image of `A` as an object of type `SubquoModule` with ambient free mo
 julia> R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> A = R[x y; 2*x^2 3*y^2]
 [    x       y]
@@ -838,7 +838,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AM = R[x;]
 [x]
@@ -966,7 +966,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AM = R[x;]
 [x]
@@ -1165,7 +1165,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AM = R[x;]
 [x]
@@ -1347,7 +1347,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AM = R[x;]
 [x]
@@ -1450,7 +1450,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> AM = R[x;]
 [x]

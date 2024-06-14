@@ -1,0 +1,9 @@
+julia> collector_cones = GITFans.orbit_cones(a, Q, G);
+
+julia> length(collector_cones)
+4
+
+julia> orbit_list = GITFans.orbit_cone_orbits(collector_cones, matrix_action);
+
+julia> println(map(length, orbit_list))
+[10, 15, 10, 1]

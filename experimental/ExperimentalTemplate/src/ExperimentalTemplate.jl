@@ -12,4 +12,3 @@ This is a dummy sample function to teach the use of docstrings.
 function my_access_func(S::ExampleStruct)
   return S.i
 end
-

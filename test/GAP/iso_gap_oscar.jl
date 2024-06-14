@@ -92,7 +92,7 @@ end
 end
 
 @testset "field of rationals, ring of integers" begin
-  for (R, x, y) in [(GAP.Globals.Rationals, GAP.GapObj(2//3), 1),
+  for (R, x, y) in [(GAP.Globals.Rationals, GapObj(2//3), 1),
                     (GAP.Globals.Integers, 2, 3),
                    ]
     iso = Oscar.iso_gap_oscar(R)

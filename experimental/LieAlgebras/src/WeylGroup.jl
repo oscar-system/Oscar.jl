@@ -7,7 +7,7 @@
 #
 ###############################################################################
 
-struct WeylGroup <: AbstractAlgebra.Group
+@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
@@ -55,6 +55,12 @@ end
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
 Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> weyl_group(:A, 2)
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+```
 """
 function weyl_group(fam::Symbol, rk::Int)
   return weyl_group(root_system(fam, rk))
@@ -82,7 +88,7 @@ end
     (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
-  return weyl_group_elem(W, word; normalize=normalize)
+  return WeylGroupElem(W, word; normalize=normalize)
 end
 
 function Base.IteratorSize(::Type{WeylGroup})
@@ -122,7 +128,9 @@ function Base.one(W::WeylGroup)
 end
 
 function Base.show(io::IO, W::WeylGroup)
-  print(io, "Weyl group for $(W.root_system)")
+  @show_name(io, W)
+  @show_special(io, W)
+  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
 end
 
 function coxeter_matrix(W::WeylGroup)
@@ -221,14 +229,6 @@ end
 ###############################################################################
 # Weyl group elements
 
-function weyl_group_elem(R::RootSystem, word::Vector{<:Integer}; normalize::Bool=true)
-  return WeylGroupElem(weyl_group(R), word; normalize=normalize)
-end
-
-function weyl_group_elem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
-  return WeylGroupElem(W, word; normalize=normalize)
-end
-
 function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
 
@@ -269,26 +269,33 @@ function Base.:(^)(x::WeylGroupElem, n::Int)
 end
 
 @doc raw"""
-    Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
+    <(x::WeylGroupElem, y::WeylGroupElem) -> Bool
 
-Returns whether `x` is smaller than `y` with respect to the Bruhat order.
+Returns whether `x` is smaller than `y` with respect to the Bruhat order,
+i.e., whether some (not necessarily connected) subexpression of a reduced
+decomposition of `y`, is a reduced decomposition of `x`.
 """
 function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
   @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
 
   if length(x) >= length(y)
     return false
+  elseif isone(x)
+    return true
   end
 
-  # x < y in the Bruhat order, iff some (not necessarily connected) subexpression
-  # of a reduced decomposition of y, is a reduced decomposition of x
-  j = length(x)
-  for i in length(y):-1:1
-    if word(y)[i] == word(x)[j]
-      j -= 1
-      if j == 0
+  tx = deepcopy(x)
+  for i in 1:length(y)
+    b, j, _ = explain_lmul(tx, y[i])
+    if !b
+      deleteat!(word(tx), j)
+      if isone(tx)
         return true
       end
+    end
+
+    if length(tx) > length(y) - i
+      return false
     end
   end
 
@@ -377,6 +384,8 @@ function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup}
 end
 
 function Base.show(io::IO, x::WeylGroupElem)
+  @show_name(io, x)
+  @show_special_elem(io, x)
   if length(x.word) == 0
     print(io, "id")
   else
@@ -399,6 +408,20 @@ end
 Returns the result of multiplying `x` in place from the left by the `i`th simple reflection.
 """
 function lmul!(x::WeylGroupElem, i::Integer)
+  b, j, r = explain_lmul(x, i)
+  if b
+    insert!(word(x), j, r)
+  else
+    deleteat!(word(x), j)
+  end
+
+  return x
+end
+
+# explains what multiplication of s_i from the left will do.
+# Returns a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
+# the second entry is the position, and the third is the simple root.
+function explain_lmul(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
 
   insert_index = 1
@@ -407,14 +430,13 @@ function lmul!(x::WeylGroupElem, i::Integer)
   root = insert_letter
   for s in 1:length(x)
     if x[s] == root
-      deleteat!(word(x), s)
-      return x
+      return false, s, x[s]
     end
 
     root = parent(x).refl[Int(x[s]), Int(root)]
     if iszero(root)
       # r is no longer a minimal root, meaning we found the best insertion point
-      break
+      return true, insert_index, insert_letter
     end
 
     # check if we have a better insertion point now. Since word[i] is a simple
@@ -425,8 +447,7 @@ function lmul!(x::WeylGroupElem, i::Integer)
     end
   end
 
-  insert!(word(x), insert_index, insert_letter)
-  return x
+  return true, insert_index, insert_letter
 end
 
 function parent_type(::Type{WeylGroupElem})

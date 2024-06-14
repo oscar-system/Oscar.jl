@@ -1,0 +1,41 @@
+julia> C = cube(3,0,1)
+Polytope in ambient dimension 3
+
+julia> SP = secondary_polytope(C)
+Polytope in ambient dimension 8
+
+julia> V = point_matrix(vertices(NP))[:, 4:11].+1;
+
+julia> SP == convex_hull(V)
+true
+
+julia> AllTriangulations = all_triangulations(C);
+
+julia> Tri_as_SOP = [subdivision_of_points(C,T)
+                     for T in AllTriangulations];
+
+julia> GKZ_Vectors = [gkz_vector(T) for T in Tri_as_SOP];
+
+julia> SP_from_GKZ = convex_hull(GKZ_Vectors)
+Polyhedron in ambient dimension 8
+
+julia> SP_from_GKZ == SP
+true
+
+julia> T = AllTriangulations[1]
+6-element Vector{Vector{Int64}}:
+ [1, 2, 3, 5]
+ [2, 3, 4, 5]
+ [2, 4, 5, 6]
+ [3, 4, 5, 7]
+ [4, 5, 6, 7]
+ [4, 6, 7, 8]
+
+julia> S = subdivision_of_points(C,T)
+Subdivision of points in ambient dimension 3
+
+julia> is_regular(S)
+true
+
+julia> show(min_weights(S))
+[3, 1, 1, 0, 0, 0, 0, 1]

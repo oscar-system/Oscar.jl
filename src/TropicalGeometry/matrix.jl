@@ -29,7 +29,7 @@ julia> det(A)
 (5)
 ```
 """
-function det(A::Generic.MatSpaceElem{<:TropicalSemiringElem})
+function det(A::Generic.MatSpaceElem{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
     detA = zero(base_ring(A))
     nrows(A)!=ncols(A) && return detA # return tropical zero if matrix not square
     for sigma in AbstractAlgebra.SymmetricGroup(nrows(A)) # otherwise follow Leibniz Formula
@@ -38,6 +38,6 @@ function det(A::Generic.MatSpaceElem{<:TropicalSemiringElem})
     return detA
 end
 
-function det(A::Matrix{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(min),typeof(max)}}
-    return det(matrix(TropicalSemiring{minOrMax},A))
+function det(A::Matrix{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
+    return det(matrix(parent(first(A)),A))
 end

@@ -91,6 +91,58 @@ include(
     # test_GroupElem_interface(rand(G, 2)...)
   end
 
+  @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
+    # for rank 2 v < w iff l(v) < l(w), since W is a dihedral group
+    for fam in [:A, :B, :C, :G]
+      W = weyl_group(fam, 2)
+      for v in W
+        v2 = deepcopy(v)
+        for w in W
+          w2 = deepcopy(w)
+          @test (v < w) == (length(v) < length(w))
+          @test v == v2 && w == w2
+        end
+      end
+    end
+
+    # test case where normal form of the lhs is not in the rhs
+    W = weyl_group(:A, 3)
+    s = gens(W)
+    @test s[1] * s[2] * s[1] < s[2] * s[3] * s[1] * s[2]
+
+    # different implementation for Bruhat order
+    # was not as performant in benchmarks
+    function bruhat_less(x::WeylGroupElem, y::WeylGroupElem)
+      if length(x) >= length(y)
+        return false
+      elseif isone(x)
+        return true
+      end
+
+      wt = x * weyl_vector(root_system(parent(x)))
+      j = length(x)
+      for i in 1:length(y)
+        if wt[Int(y[i])] < 0
+          reflect!(wt, Int(y[i]))
+
+          j -= 1
+          if j == 0
+            return true
+          end
+        end
+      end
+
+      return false
+    end
+
+    for (fam, rk) in [(:A, 3), (:B, 3), (:D, 4)]
+      W = weyl_group(fam, rk)
+      for v in W, w in W
+        @test (v < w) == bruhat_less(v, w)
+      end
+    end
+  end
+
   @testset "inv(x::WeylGroupElem)" begin
     W = weyl_group(:A, 2)
     s = gens(W)

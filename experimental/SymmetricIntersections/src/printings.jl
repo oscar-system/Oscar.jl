@@ -6,7 +6,7 @@
 
 function Base.show(io::IO, EC::ElevCtx{T, U}) where {T, U}
   d = degree_of_elevations(EC)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Elevator")
   else
     print(io, "Degree $d elevator of a list with entries of type $T")
@@ -30,7 +30,7 @@ function Base.show(io::IO, ::MIME"text/plain", LR::LinRep)
 end 
 
 function Base.show(io::IO, LR::LinRep)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Linear representation")
   else
     print(io, "Linear representation of finite group of dimension $(dimension_representation(LR))")
@@ -48,7 +48,7 @@ function Base.show(io::IO, ::MIME"text/plain", PR::ProjRep)
 end
 
 function Base.show(io::IO, PR::ProjRep)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Projective representation")
   else
     print(io, "Projective representation of finite group of dimension ", dimension_representation(PR))
@@ -66,7 +66,7 @@ function Base.show(io::IO, ::MIME"text/plain", RR::RepRing)
 end
 
 function Base.show(io::IO, RR::RepRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Representation ring")
   else
     print(io, "Representation ring of finite group over a field of characteristic 0")
@@ -91,7 +91,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::IsotGrass)
 end
 
 function Base.show(io::IO, M::IsotGrass)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Isotypical Grassmannian")
   else
     print(io, "Isotypical Grassmannian of dimension $(projective_dimension(M))")
@@ -111,7 +111,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::CharGrass)
 end
 
 function Base.show(io::IO, M::CharGrass)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Character Grassmannian")
   else
     print(io, "Character Grassmannian of dimension $(projective_dimension(M))")
@@ -130,7 +130,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::DetGrass)
 end
 
 function Base.show(io::IO, M::DetGrass)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Determinant Grassmannian")
   else
     print(io, "Determinant Grassmannian of dimension $(projective_dimension(M))")
@@ -147,7 +147,7 @@ function Base.show(io::IO, ::MIME"text/plain", M::InvGrass)
 end
 
 function Base.show(io::IO, M::InvGrass)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Invariant Grassmannian")
   else
     print(io, "Invariant Grassmannian of dimension $(projective_dimension(M))")
@@ -185,13 +185,13 @@ function Base.show(io::IO, ::MIME"text/plain", symci::SymInter)
   println(io, Indent(), "of type $(ty)")
   println(io, "in projective $(n-1)-space")
   print(io, Indent(), "over ", Lowercase())
-  Base.show(IOContext(io, :supercompact => true), F)
+  Base.show(terse(io), F)
   println(io)
   print(io, Dedent(), Dedent(), "preserved under the action of ", Lowercase(), G)
 end
 
 function Base.show(io::IO, symci::SymInter)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Symmetric intersections")
   else
     print(io, "Parameter space for symmetric intersections")

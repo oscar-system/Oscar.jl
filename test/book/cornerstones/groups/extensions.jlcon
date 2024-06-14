@@ -1,0 +1,46 @@
+julia> Oscar.randseed!(42)
+
+julia> G = dihedral_group(PermGroup, 10);
+
+julia> h = epimorphism_from_free_group(G)
+Group homomorphism
+  from free group of rank 2
+  to permutation group of degree 5
+
+julia> gens(G)
+2-element Vector{PermGroupElem}:
+ (1,2,3,4,5)
+ (2,5)(3,4)
+
+julia> g = rand(G)
+(1,4)(2,3)
+
+julia> w = preimage(h, g)
+x1^-1*x2^-1*x1^-3
+
+julia> map_word(w, gens(G))  # evaluate w at generators to get back g
+(1,4)(2,3)
+
+julia> k, mk = kernel(h);  # mk is a map from k to domain(h)
+
+julia> ngens(k)
+11
+
+julia> mk(k[2])            # pick any kernel generator ...
+x1*x2^-2*x1^-1
+
+julia> G[1]*G[-2]^2*G[-1]  # ... and it evaluates to the identity
+()
+
+julia> U = cyclic_group(5); V = cyclic_group(2); F = free_group(2);
+
+julia> q = quo(F, [F[1]^5, F[2]^2*F[1]])[1];
+
+julia> describe(q)
+"C10"
+
+julia> q, mq = quo(F, [F[1]^5, F[2]^2, F[-1]*F[-2]*F[1]*F[2]*F[1]^2])
+(Finitely presented group, Hom: F -> q)
+
+julia> describe(q)
+"D10"

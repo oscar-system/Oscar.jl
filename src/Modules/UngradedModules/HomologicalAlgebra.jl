@@ -233,7 +233,7 @@ function tor(M::ModuleFP, N::ModuleFP, i::Int)
   return simplify_light(homology(lifted_resolution,i))[1]
 end
 
-simplify_light(F::FreeMod) = F
+simplify_light(F::FreeMod) = (F, identity_map(F), identity_map(F))
 
 #TODO, mF
 #  (hom lift) => hom and tensor functor

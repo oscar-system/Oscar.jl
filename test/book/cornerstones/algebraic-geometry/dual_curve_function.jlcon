@@ -1,0 +1,28 @@
+function dual_curve(f::MPolyRingElem, P_dual::MPolyRing)
+  P = parent(f)
+  vars_P = gens(P)
+  nvars_P = ngens(P)
+  vars_P_dual = gens(P_dual)
+  # Extend the original polynomial ring to include the variables of P_dual
+  P_ext, vars_ext = polynomial_ring(base_ring(P), [[string(v) for v in vars_P]; [string(v) for v in vars_P_dual]])
+  inc = hom(P, P_ext, vars_ext[1:nvars_P])
+  f_ext = inc(f)
+  # Compute the Jacobian matrix with respect to the original variables
+  jf = transpose(jacobian_matrix(f_ext)[1:nvars_P, 1:1])
+  # Form the matrix with the last 'ngens(P_dual)' variables of P_ext
+  A = matrix([vars_ext[(end-ngens(P_dual)+1):end]])
+  # Stack the Jacobian matrix and the matrix A
+  m2x3 = vcat(jf, A)
+  # Compute minors and saturate
+  I = ideal(minors(m2x3, 2))
+  J = ideal([jf[1, i] for i in 1:ncols(jf)])
+  Isat = saturation(I + ideal([f_ext]), J)
+  # Project to the dual space
+  proj_dual_images = vcat([zero(P_dual) for _ in 1:nvars_P], gens(P_dual))
+  proj = hom(P_ext, P_dual, proj_dual_images)
+  dual_curve = groebner_basis(proj(Isat))
+  return dual_curve[1]
+end
+
+# output
+dual_curve (generic function with 1 method)

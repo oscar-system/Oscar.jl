@@ -19,13 +19,13 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety{<:Field,<:MPolyQ
 end
 
 function Base.show(io::IO, X::AffineVariety{<:Field,<:MPolyQuoRing})
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Affine variety")
   elseif get_attribute(X, :is_empty, false)
     io = pretty(io)
     print(io, "Empty affine variety over ")
     K = base_ring(X)
-    print(IOContext(io, :supercompact => true), Lowercase(), K)
+    print(terse(io), Lowercase(), K)
   else
     print(io, underlying_scheme(X))
   end
@@ -42,13 +42,13 @@ function Base.show(io::IO, ::MIME"text/plain", X::AffineVariety)
 end
 
 function Base.show(io::IO, X::AffineVariety)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Affine variety")
   elseif get_attribute(X, :is_empty, false)
     io = pretty(io)
     print(io, "Empty affine variety over ")
     K = base_ring(X)
-    print(IOContext(io, :supercompact => true), Lowercase(), K)
+    print(terse(io), Lowercase(), K)
   else
     io = pretty(io)
     print(io, "Affine open subset of ", Lowercase(), closure(X, ambient_space(X)))
@@ -76,7 +76,7 @@ end
 function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
   io = pretty(io)
   show_coord = get(io, :show_coordinates, true)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
       print(io, LowercaseOff(), "𝔸$(ltx["\\^$(dim(X))"])")
@@ -86,7 +86,7 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine space over ")
     K = base_ring(X)
-    print(IOContext(io, :supercompact => true), Lowercase(), K)
+    print(terse(io), Lowercase(), K)
   else
     if is_unicode_allowed()
       ltx = Base.REPL_MODULE_REF.x.REPLCompletions.latex_symbols
@@ -96,7 +96,7 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
         print(io, ltx["\\^$d"])
       end
       print(io, " over ")
-      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+      print(terse(io), Lowercase(), base_ring(X))
       if show_coord
         c = coordinates(X)
         print(io, " with coordinate")
@@ -106,7 +106,7 @@ function Base.show(io::IO, X::AffineVariety{<:Field, <:MPolyRing})
       end
     else
       print(io, "Affine $(dim(X))-space over ")
-      print(IOContext(io, :supercompact => true), Lowercase(), base_ring(X))
+      print(terse(io), Lowercase(), base_ring(X))
       if show_coord
         c = coordinates(X)
         print(io, " with coordinate")

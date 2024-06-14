@@ -332,6 +332,14 @@ function can_compute(fac::BaseChangeFromOriginalFactory, phi::AbsHyperComplexMor
 end
 
 
+function simplify(c::FreeResolution)
+  return simplify(SimpleComplexWrapper(c.C))
+end
+
+function simplify(c::ComplexOfMorphisms)
+  return simplify(SimpleComplexWrapper(c))
+end
+
 function simplify(c::AbsHyperComplex{ChainType, MorphismType}) where {ChainType, MorphismType}
   @assert dim(c) == 1 "complex must be one-dimensional"
   chain_fac = SimplifiedChainFactory(c)
@@ -531,7 +539,7 @@ function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) wher
   n = ngens(W)
   result = sparse_matrix(kk, m, n)
   for i in 1:m
-    result[i] = phi(V[i]).coords
+    result[i] = coordinates(phi(V[i]))
   end
   return result
 end
@@ -658,8 +666,8 @@ function kernel(simp::SimplifiedComplex{ChainType}, p::Int, i::Tuple) where {Cha
     return K, inc
   end
 
-  psi = map_to_original(simp)[i]
-  phi = map(c, p, i)
+  psi = map_to_original_complex(simp)[i]
+  phi = map(original_complex(simp), p, i)
   K, inc = kernel(compose(psi, phi))
   c.kernel_cache[(i, p)] = inc
   return K, inc

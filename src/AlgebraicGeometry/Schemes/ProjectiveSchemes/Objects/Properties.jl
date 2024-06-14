@@ -17,7 +17,7 @@ end
 end
 
 @doc raw"""
-    is_smooth(P::AbsProjectiveScheme; algorithm=:default) -> Bool
+    is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default) -> Bool
 
 Check whether the scheme `P` is smooth.
 
@@ -26,20 +26,19 @@ Check whether the scheme `P` is smooth.
 There are three possible algorithms for checking smoothness, determined
 by the value of the keyword argument `algorithm`:
   * `:projective_jacobian` - uses the Jacobian criterion for projective
-    varieties, see Exercise 4.2.10 of [Liu06](@cite),
+    schemes, see Exercise 4.2.10 of [Liu06](@cite),
   * `:covered_jacobian` - uses covered version of the Jacobian criterion,
   * `:affine_cone` - checks that the affine cone is smooth outside the origin.
 
 The `:projective_jacobian` and the `:covered` algorithms only work for equidimensional schemes. The algorithms first check for equidimensionality, which can be expensive.
-
-By default, if the base ring is a field, then we first compute whether the scheme is equidimensional. If yes, then the `:projective_jacobian` algorithm is used. Otherwise, the `:affine_cone` algorithm is used.
-
 If you already know that the scheme is equidimensional, then you can
 avoid recomputing that by writing
   `set_attribute!(P, :is_equidimensional, true)`
 before checking for smoothness.
 
-We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
+The algorithms `:covered_jacobian` and `:affine_cone` only work when the base ring is a field.
+
+The default algorithm is `:projective_jacobian` if the scheme is equidimensional, otherwise it is `:affine_cone`.
 
 # Examples
 ```jldoctest
@@ -59,20 +58,26 @@ julia> is_smooth(C; algorithm=:covered_jacobian)
 false
 ```
 """
-function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
+is_smooth(P::AbsProjectiveScheme; algorithm::Symbol=:default)
+
+function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm::Symbol=:default)
   get_attribute!(P, :is_smooth) do
     if is_empty(P)
       return true
     end
 
     if algorithm == :default
-      if (
-        base_ring(P) isa Field
-        && is_equidimensional(P)
-      )
+      if is_equidimensional(P)
         algorithm = :projective_jacobian
-      else
+      elseif base_ring(P) isa Field
         algorithm = :affine_cone
+      else
+        if !(base_ring(P) isa Field)
+          throw(NotImplementedError(
+            :is_smooth,
+            "is_smooth only implemented when the scheme is equidimensional or the base ring is a field"
+          ))
+        end
       end
     end
 
@@ -89,8 +94,24 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
     end
 
     if algorithm == :covered_jacobian
+      if !(base_ring(P) isa Field)
+        throw(NotImplementedError(
+          :is_smooth,
+          "Algorithm `:covered_jacobian` only implemented when the base ring is a field"
+          # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
+        ))
+      end
       return _jacobian_criterion(covered_scheme(P))
     elseif algorithm == :affine_cone
+      if !(base_ring(P) isa Field)
+        throw(NotImplementedError(
+          :is_smooth,
+          "Algorithm `:affine_cone` only implemented when the base ring is a field"
+          # because this algorithm uses `is_smooth` for affine schemes, and `is_smooth` is not implemented for affine schemes over a non-field base ring
+        ))
+      end
+#       TODO: Implement `is_smooth` for affine schemes. Then, this algorithm would work for arbitrary schemes. A similar algorithm can be used for quasismoothness of subschemes of toric varieties.
+#       We explain why the algorithm of `:affine_cone` works for arbitrary schemes over arbitrary base schemes. By Remark 13.38(1) of [GW20](@cite), the morphism from the pointed affine cone to $P$ is locally the morphism $\mathbb{A}_U^1 \setminus \{0\} \to U$, where $U$ is an affine open of $P$ and $\mathbb{A}_U^1$ is the relative affine 1-space over $U$. By Definition 6.14(1) of [GW20](@cite), the Jacobian matrix for $U$ differs from the Jacobian matrix for $P$ only by a column containing zeros, implying that the ranks of the Jacobian matrices are the same. Therefore, $P$ is smooth if and only if the affine cone is smooth outside the origin.
       aff, _ = affine_cone(P)
       sing, _ = singular_locus(aff)
       origin = ideal(gens(ambient_coordinate_ring(sing)))
@@ -101,24 +122,22 @@ function is_smooth(P::AbsProjectiveScheme; algorithm=:default)
   end
 end
 
-function _projective_jacobian_criterion(P::AbsProjectiveScheme)
-  if !(base_ring(P) isa Field)
-    throw(NotImplementedError(
-      :is_smooth,
-      "projective Jacobian criterion only implemented when base ring is a field"
-    ))
-  end
+is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true
+is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyLocRing}; algorithm::Symbol=:default) = true
+
+function _projective_jacobian_criterion(P::AbsProjectiveScheme{<:Ring, <:MPolyQuoRing})
   if !(is_equidimensional(P))
     throw(NotImplementedError(
       :is_smooth,
       "projective Jacobian criterion only implemented when scheme is equidimensional"
     ))
   end
-  R = base_ring(homogeneous_coordinate_ring(P))
+  R = ambient_coordinate_ring(P)
   I = defining_ideal(P)
   mat = jacobian_matrix(R, gens(I))
-  sing_locus = ideal(R, minors(mat, codim(P)))
-  return dim(sing_locus + I) <= 0
+  sing_locus = ideal(R, minors(mat, codim(P))) + I
+  irrelevant_ideal = ideal(R, gens(R))
+  return is_one(saturation(sing_locus, irrelevant_ideal))
 end
 
 @attr Bool function is_irreducible(P::AbsProjectiveScheme)

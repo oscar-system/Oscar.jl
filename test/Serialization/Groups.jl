@@ -55,7 +55,7 @@
       @test parent(loadedw[1]) === parent(loadedv[1])
     end
 
-    @testset "Free groups" begin
+    @testset "Free groups and their subgroups" begin
       F = free_group(2)
 
       # single element
@@ -79,11 +79,6 @@
         @test y == loaded
       end
 
-#T missing: serialize a subgroup, deser. must be compatible with full group!
-
-#T missing: two subgroups of a free group (or full group plus subgroup);
-#T must be compatible after deser. into new session!
-
       # elements and groups together (`Vector{Any}` is not supported)
       v = (x, y, F, U)
       filenamev = joinpath(path, "v")
@@ -103,6 +98,8 @@
        Oscar.reset_global_serializer_state()
        loadedv = load(filenamev)
        @test parent(loadedv[1]) === loadedv[3]
+       @test parent(loadedv[2]) === loadedv[4]
+       @test is_subgroup(loadedv[4], loadedv[3])[1]
 
        loadedw = load(filenamew)
        @test parent(loadedw[1]) === parent(loadedw[2])
@@ -113,7 +110,7 @@
        @test parent(loadedw[1]) === parent(loadedv[1])
     end
 
-    @testset "Finitely presented groups" begin
+    @testset "Finitely presented groups and their subgroups" begin
       F = free_group(2)
       x1 = gen(F, 1)
       x2 = gen(F, 2)
@@ -159,6 +156,8 @@
        Oscar.reset_global_serializer_state()
        loadedv = load(filenamev)
        @test parent(loadedv[1]) === loadedv[3]
+       @test parent(loadedv[2]) === loadedv[4]
+       @test is_subgroup(loadedv[4], loadedv[3])[1]
 
        loadedw = load(filenamew)
        @test parent(loadedw[1]) === parent(loadedw[2])
@@ -169,7 +168,7 @@
        @test parent(loadedw[1]) === parent(loadedv[1])
     end
 
-    @testset "Pc groups" begin
+    @testset "Pc groups and sub pc groups" begin
       paras = [(1, 1), (5, 1), (24, 12)]
       for (n, i) in paras
         G = small_group(n, i)
@@ -214,6 +213,9 @@
         Oscar.reset_global_serializer_state()
         loadedv = load(filenamev)
         @test parent(loadedv[1]) === loadedv[3]
+        @test parent(loadedv[2]) === loadedv[4]
+        @test is_subgroup(loadedv[4], loadedv[3])[1]
+
         loadedw = load(filenamew)
         @test parent(loadedv[1]) === parent(loadedw[2])
         @test parent(loadedw[1]) === parent(loadedw[2])

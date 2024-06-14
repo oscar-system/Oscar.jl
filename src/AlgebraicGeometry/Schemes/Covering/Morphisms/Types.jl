@@ -13,9 +13,9 @@ some patch `codomain(f[U])` in `D` for some affine patches ``U'`` covering ``U``
 do not need to coincide! However, given the gluings in `C` and `D`, all affine maps
 have to coincide on their overlaps.
 """
-mutable struct CoveringMorphism{DomainType<:Covering, 
-                                CodomainType<:Covering, 
-                                MorphismType<:AbsAffineSchemeMor, 
+mutable struct CoveringMorphism{DomainType<:Covering,
+                                CodomainType<:Covering,
+                                MorphismType<:AbsAffineSchemeMor,
                                 BaseMorType
                                }
   domain::DomainType

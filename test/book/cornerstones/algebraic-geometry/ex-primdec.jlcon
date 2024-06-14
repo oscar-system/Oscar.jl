@@ -1,0 +1,22 @@
+julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+
+julia> I = ideal(R, [x*y, y*z]);
+
+julia> minimal_primes(I)
+2-element Vector{MPolyIdeal{QQMPolyRingElem}}:
+ Ideal (z, x)
+ Ideal (y)
+
+julia> J = ideal(R, [x^2+1])^2;
+
+julia> primary_decomposition(J)
+1-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}}}:
+ (Ideal (x^4 + 2*x^2 + 1), Ideal (x^2 + 1))
+
+julia> L = absolute_primary_decomposition(J)
+1-element Vector{Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, Int64}}:
+ (Ideal (x^4 + 2*x^2 + 1), Ideal (x^2 + 1), Ideal (x - _a), 2)
+
+julia> base_ring(L[1][3])
+Multivariate polynomial ring in 3 variables x, y, z
+  over number field of degree 2 over QQ

@@ -1,0 +1,63 @@
+julia> T = genchartab("SL3.n1")
+Generic character table
+  of order q^8 - q^6 - q^5 + q^3
+  with 8 irreducible character types
+  with 8 class types
+  with parameters (a, b, m, n)
+
+julia> printval(T,char=4,class=4)
+Value of character type 4 on class type
+  4: (q + 1) * exp(2π𝑖(1//(q - 1)*a*n)) + (1) * exp(2π𝑖(-2//(q - 1)*a*n))
+
+julia> h = tensor!(T,2,2)
+9
+
+julia> scalar(T,4,h)
+(0, Set(ParameterException{QQPolyRingElem}[(2*n1)//(q - 1) ∈ ℤ]))
+
+julia> print_decomposition(T, h)
+Decomposing character 9:
+  <1,9> = 1  
+  <2,9> = 2  
+  <3,9> = 2  
+  <4,9> = 0  with possible exceptions:
+    (2*n1)//(q - 1) ∈ ℤ
+  <5,9> = 0  with possible exceptions:
+    (2*n1)//(q - 1) ∈ ℤ
+  <6,9> = 0  with possible exceptions:
+    (m1 + n1)//(q - 1) ∈ ℤ
+    (2*m1 - n1)//(q - 1) ∈ ℤ
+    (m1)//(q - 1) ∈ ℤ
+    (n1)//(q - 1) ∈ ℤ
+    (m1 - n1)//(q - 1) ∈ ℤ
+    (m1 - 2*n1)//(q - 1) ∈ ℤ
+  <7,9> = 0  with possible exceptions:
+    (n1)//(q - 1) ∈ ℤ
+  <8,9> = 0  with possible exceptions:
+    ((q + 1)*n1)//(q^2 + q + 1) ∈ ℤ
+    (q*n1)//(q^2 + q + 1) ∈ ℤ
+    (n1)//(q^2 + q + 1) ∈ ℤ
+julia> chardeg(T, lincomb!(T,[1,2,2],[1,2,3]))
+2*q^3 + 2*q^2 + 2*q + 1
+
+julia> chardeg(T, h)
+q^4 + 2*q^3 + q^2
+
+julia> printcharparam(T,4)
+4	n ∈ {1,…, q - 1} except (n)//(q - 1) ∈ ℤ
+
+julia> T2 = setcongruence(T, (0,2));
+
+julia> (q, (a, b, m, n)) = params(T2);
+
+julia> x = param(T2, "x");  # create an additional "free" variable
+
+julia> speccharparam!(T2, 6, m, -n + (q-1)*x)  # force m = -n (mod q-1)
+
+julia> s, e = scalar(T2,6,h); s
+1
+
+julia> e
+Set{ParameterException{QQPolyRingElem}} with 2 elements:
+  (2*n1)//(q - 1) ∈ ℤ
+  (3*n1)//(q - 1) ∈ ℤ

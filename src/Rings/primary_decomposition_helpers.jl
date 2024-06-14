@@ -35,8 +35,8 @@ function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union
   d = degree(f)
   powers = elem_type(P)[theta^k for k in 0:d-1]
   R_flat, pr = quo(P, ideal(P, evaluate(f, theta)))
-  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr(theta)), gens(R_flat)[2:end])
-  to_R = hom(R_flat, R, vcat([R(alpha)], gens(R)))
+  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr(theta); check=false), gens(R_flat)[2:end]; check=false)
+  to_R = hom(R_flat, R, vcat([R(alpha)], gens(R)); check=false)
   return R_flat, to_R, to_R_flat
 end
 
@@ -52,8 +52,8 @@ function _expand_coefficient_field(
   f = defining_polynomials(K)
   d = degree.(f)
   R_flat, pr = quo(P, ideal(P, [evaluate(a, b) for (a, b) in zip(f, theta)]))
-  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr.(theta)), gens(R_flat)[r+1:end])
-  to_R = hom(R_flat, R, vcat(R.(alpha), gens(R)))
+  to_R_flat = hom(R, R_flat, hom(K, R_flat, pr.(theta); check=false), gens(R_flat)[r+1:end]; check=false)
+  to_R = hom(R_flat, R, vcat(R.(alpha), gens(R)); check=false)
   return R_flat, to_R, to_R_flat
 end
 
@@ -67,8 +67,8 @@ function _expand_coefficient_field(
   r = ngens(R_exp) - ngens(R) # The first r variables have been added for the field extension
   theta = gens(A_exp)[1:r]
   alpha = gens(coefficient_ring(A))
-  to_A = hom(A_exp, A, vcat(A.(alpha), gens(A)))
-  to_A_exp = hom(A, A_exp, hom(coefficient_ring(A), A_exp, theta), gens(A_exp)[r+1:end])
+  to_A = hom(A_exp, A, vcat(A.(alpha), gens(A)); check=false)
+  to_A_exp = hom(A, A_exp, hom(coefficient_ring(A), A_exp, theta; check=false), gens(A_exp)[r+1:end]; check=false)
   return A_exp, to_A, to_A_exp
 end
 
@@ -87,10 +87,10 @@ function _expand_coefficient_field(R::MPolyDecRing{T}; rec_depth::Int=0) where {
   # Add the modulus again
   gr_mod = ideal(P_exp, P_exp.(gens(modulus(RR_exp))))
   R_exp, _ = quo(P_exp, gr_mod)
-  iso_gr = hom(R_exp, R, R.(iso.(gens(RR_exp))))
+  iso_gr = hom(R_exp, R, R.(iso.(gens(RR_exp))); check=false)
   coeff_map = coefficient_map(iso_inv)
   @assert coeff_map(one(coefficient_ring(R))) == one(RR_exp) "coefficient map is incorrect"
-  iso_inv_gr = hom(R, R_exp, x->R_exp(lift(coeff_map(x))), R_exp.(lift.(iso_inv.(gens(RR)))))
+  iso_inv_gr = hom(R, R_exp, x->R_exp(lift(coeff_map(x))), R_exp.(lift.(iso_inv.(gens(RR)))); check=false)
   return R_exp, iso_gr, iso_inv_gr
 end
 
@@ -101,27 +101,33 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
   I_flat = ideal(R_flat, iso_inv.(gens(I)))
   Q_flat, pr = quo(R_flat, I_flat)
   alpha = first(gens(coefficient_ring(Q)))
-  to_Q = hom(Q_flat, Q, vcat([Q(alpha)], gens(Q)))
+  to_Q = hom(Q_flat, Q, vcat([Q(alpha)], gens(Q)); check=false)
   theta = Q_flat[1]
   f = defining_polynomial(coefficient_ring(Q))
   d = degree(f)
   powers = [theta^k for k in 0:d-1]
-  to_Q_flat = hom(Q, Q_flat, hom(coefficient_ring(Q), Q_flat, theta), gens(Q_flat)[2:end])
+  to_Q_flat = hom(Q, Q_flat, hom(coefficient_ring(Q), Q_flat, theta; check=false), gens(Q_flat)[2:end]; check=false)
   return Q_flat, to_Q, to_Q_flat
 end
 
 function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
-  R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
-  res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
-  return res, compose(a, to_R), compose(to_R_flat, b)
+  get_attribute(R, :coefficient_field_expansion) do
+    R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+    res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
+    return res, compose(a, to_R), compose(to_R_flat, b)
+  end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
-  return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+  get_attribute(R, :coefficient_field_expansion) do
+    return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+  end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+  get_attribute(R, :coefficient_field_expansion) do
+    return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
+  end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 @attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
@@ -175,6 +181,7 @@ end
   return result
 end
 
+#=
 function change_base_ring(phi::Any, A::MPolyQuoRing)
   R = base_ring(A)
   RR, map_R = change_base_ring(phi, R)
@@ -183,11 +190,12 @@ function change_base_ring(phi::Any, A::MPolyQuoRing)
   psi = hom(A, AA, phi, gens(AA), check=false)
   return AA, psi
 end
+=#
 
 function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
   L = parent(phi(zero(kk)))
   RR, _ = polynomial_ring(L, symbols(R))
-  psi = hom(R, RR, phi, gens(RR))
+  psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end

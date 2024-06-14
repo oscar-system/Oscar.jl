@@ -28,9 +28,9 @@ function matrix_group(F::Ring, m::Int, V::AbstractVector{T}; check::Bool=true) w
 # TODO: this part of code from here
          if isdefined(V[i],:elm)
             if isdefined(V[i],:X)
-               L[i] = MatrixGroupElem(G,V[i].elm,V[i].X)
+               L[i] = MatrixGroupElem(G,matrix(V[i]),V[i].X)
             else
-               L[i] = MatrixGroupElem(G,V[i].elm)
+               L[i] = MatrixGroupElem(G,matrix(V[i]))
             end
          else
             L[i] = MatrixGroupElem(G,V[i].X)
@@ -65,7 +65,7 @@ end
 
 function _as_subgroup_bare(G::MatrixGroup, H::GapObj)
   H1 = typeof(G)(base_ring(G), degree(G))
-  H1.ring_iso = G.ring_iso
+  H1.ring_iso = _ring_iso(G)
   H1.X = H
   return H1
 end
@@ -90,13 +90,13 @@ function Base.deepcopy_internal(x::MatrixGroupElem, dict::IdDict)
   if isdefined(x, :X)
     X = Base.deepcopy_internal(x.X, dict)
     if isdefined(x, :elm)
-      elm = Base.deepcopy_internal(x.elm, dict)
+      elm = Base.deepcopy_internal(matrix(x), dict)
       return MatrixGroupElem(x.parent, elm, X)
     else
       return MatrixGroupElem(x.parent, X)
     end
   elseif isdefined(x, :elm)
-    elm = Base.deepcopy_internal(x.elm, dict)
+    elm = Base.deepcopy_internal(matrix(x), dict)
     return MatrixGroupElem(x.parent, elm)
   end
   error("$x has neither :X nor :elm")
@@ -118,7 +118,7 @@ function _print_matrix_group_desc(io::IO, x::MatrixGroup)
   elseif x.ring isa Field && is_finite(x.ring)
     print(io, order(x.ring),")")
   else
-    print(IOContext(io, :supercompact => true), x.ring)
+    print(terse(io), x.ring)
     print(io ,")")
   end
 end
@@ -137,20 +137,22 @@ function Base.show(io::IO, x::MatrixGroup)
   @show_special(io, x)
   isdefined(x, :descr) && return _print_matrix_group_desc(io, x)
   print(io, "Matrix group")
-  if !get(io, :supercompact, false)
+  if !is_terse(io)
     print(io, " of degree ", degree(x))
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), " over ", Lowercase(), base_ring(x))
+    print(terse(io), " over ", Lowercase(), base_ring(x))
   end
 end
 
-Base.show(io::IO, x::MatrixGroupElem) = show(io, x.elm)
-Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, x.elm)
+Base.show(io::IO, x::MatrixGroupElem) = show(io, matrix(x))
+Base.show(io::IO, mi::MIME"text/plain", x::MatrixGroupElem) = show(io, mi, matrix(x))
 
 group_element(G::MatrixGroup, x::GapObj) = MatrixGroupElem(G,x)
 
+# Compute and store the component `G.X` if this is possible.
 function assign_from_description(G::MatrixGroup)
-   F = codomain(G.ring_iso)
+   F = codomain(_ring_iso(G))
+   GAP.Globals.IsBaseRingSupportedForClassicalMatrixGroup(F, GapObj(G.descr)) || error("no generators are known for the matrix group of type $(G.descr) over $(base_ring(G))")
    if G.descr==:GL G.X=GAP.Globals.GL(G.deg, F)
    elseif G.descr==:SL G.X=GAP.Globals.SL(G.deg, F)
    elseif G.descr==:Sp G.X=GAP.Globals.Sp(G.deg, F)
@@ -198,32 +200,56 @@ function assign_from_description(G::MatrixGroup)
    end
 end
 
+function _ring_iso(G::MatrixGroup{T}) where T
+  if !isdefined(G, :ring_iso)
+    if T === QQBarFieldElem
+      # get all matrix entries into one vector
+      entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
+      # construct a number field over which all matrices are already defined
+      nf, nf_to_QQBar = number_field(QQ, entries)
+      iso = iso_oscar_gap(nf)
+      G.ring_iso = MapFromFunc(G.ring, codomain(iso),
+                               x -> iso(preimage(nf_to_QQBar, x)),
+                               y -> nf_to_QQBar(preimage(iso, y))
+                               )
+    else
+      G.ring_iso = iso_oscar_gap(G.ring)
+    end
+  end
+  return G.ring_iso
+end
+
+function GAP.julia_to_gap(G::MatrixGroup)
+  if !isdefined(G, :X)
+    if isdefined(G, :descr)
+      assign_from_description(G)
+    elseif isdefined(G, :gens)
+      V = GapObj(gens(G); recursive = true)
+      G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
+    else
+      error("Cannot determine underlying GAP object")
+    end
+  end
+  return G.X
+end
+
+function GAP.julia_to_gap(x::MatrixGroupElem)
+  if !isdefined(x, :X)
+    x.X = map_entries(_ring_iso(x.parent), x.elm)
+  end
+  return x.X
+end
+
 # return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
 function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
 
    isdefined(G,sym) && return getfield(G,sym)
 
-   if sym === :ring_iso
-      if T === QQBarFieldElem
-         # get all matrix entries into one vector
-         entries = reduce(vcat, vec(collect(matrix(g))) for g in gens(G))
-         # construct a number field over which all matrices are already defined
-         nf, nf_to_QQBar = number_field(QQ, entries)
-         psi = pseudo_inv(nf_to_QQBar)
-         iso = iso_oscar_gap(nf)
-         G.ring_iso = MapFromFunc(G.ring, codomain(iso),
-                                  x -> iso(preimage(nf_to_QQBar, x)),
-                                  y -> preimage(iso,nf_to_QQBar(y))
-                                  )
-      else
-         G.ring_iso = iso_oscar_gap(G.ring)
-      end
-
-   elseif sym === :X
+   if sym === :X
       if isdefined(G,:descr)
          assign_from_description(G)
       elseif isdefined(G,:gens)
-         V = GAP.GapObj([g.X for g in gens(G)])
+         V = GapObj([g.X for g in gens(G)])
          G.X = isempty(V) ? GAP.Globals.Group(V, one(G).X) : GAP.Globals.Group(V)
       else
          error("Cannot determine underlying GAP object")
@@ -240,16 +266,14 @@ function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
    isdefined(x,sym) && return getfield(x,sym)
 
    if sym === :X
-      x.X = map_entries(x.parent.ring_iso, x.elm)
-   elseif sym == :elm
-      x.elm = preimage_matrix(x.parent.ring_iso, x.X)
+      x.X = map_entries(_ring_iso(x.parent), x.elm)
    end
    return getfield(x,sym)
 end
 
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
-Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(G.X))
+Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
 function Base.iterate(G::MatrixGroup, state::GapObj)
   GAPWrap.IsDoneIterator(state) && return nothing
@@ -273,7 +297,7 @@ function ==(G::MatrixGroup,H::MatrixGroup)
    if isdefined(G, :gens) && isdefined(H, :gens)
       gens(G)==gens(H) && return true
    end
-   return G.X==H.X
+   return GapObj(G)==GapObj(H)
 end
 
 
@@ -284,7 +308,7 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    if isone(x) return true, x_gap end
    if isdefined(G,:gens)
       for g in gens(G)
-         if x==g.elm
+         if x==matrix(g)
             return true, x_gap
          end
       end
@@ -294,16 +318,16 @@ function lies_in(x::MatElem, G::MatrixGroup, x_gap)
    elseif isdefined(G,:descr) && G.descr === :SL
       return det(x)==1, x_gap
    elseif x_gap === nothing
-      x_gap = map_entries(G.ring_iso, x)
+      x_gap = map_entries(_ring_iso(G), x)
    end
-   return (x_gap in G.X), x_gap
+   return (x_gap in GapObj(G)), x_gap
 end
 
 Base.in(x::MatElem, G::MatrixGroup) = lies_in(x,G,nothing)[1]
 
 function Base.in(x::MatrixGroupElem, G::MatrixGroup)
-   isdefined(x,:X) && return lies_in(x.elm,G,x.X)[1]
-   _is_true, x_gap = lies_in(x.elm,G,nothing)
+   isdefined(x,:X) && return lies_in(matrix(x),G,GapObj(x))[1]
+   _is_true, x_gap = lies_in(matrix(x),G,nothing)
    if x_gap !== nothing
       x.X = x_gap
    end
@@ -331,20 +355,20 @@ function (G::MatrixGroup)(x::MatrixGroupElem; check::Bool=true)
    end
    if isdefined(x,:X)
       if isdefined(x,:elm)
-         _is_true = lies_in(x.elm,G,x.X)[1]
+         _is_true = lies_in(matrix(x),G,GapObj(x))[1]
          @req _is_true "Element not in the group"
-         return MatrixGroupElem(G,x.elm,x.X)
+         return MatrixGroupElem(G,matrix(x),GapObj(x))
       else
-         @req x.X in G.X "Element not in the group"
-         return MatrixGroupElem(G,x.X)
+         @req GapObj(x) in GapObj(G) "Element not in the group"
+         return MatrixGroupElem(G,GapObj(x))
       end
    else
-      _is_true, x_gap = lies_in(x.elm,G,nothing)
+      _is_true, x_gap = lies_in(matrix(x),G,nothing)
       @req _is_true "Element not in the group"
       if x_gap === nothing
-        return MatrixGroupElem(G,x.elm)
+        return MatrixGroupElem(G,matrix(x))
       end
-      return MatrixGroupElem(G,x.elm,x_gap)
+      return MatrixGroupElem(G,matrix(x),x_gap)
    end
 end
 
@@ -364,41 +388,43 @@ end
 # we are not currently keeping track of the parent; two elements coincide iff their matrices coincide
 function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
    if isdefined(x,:X) && isdefined(y,:X) return x.X==y.X
-   else return x.elm==y.elm
+   else return matrix(x)==matrix(y)
    end
 end
 
 function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   x === y && return x
    @assert x.deg == y.deg
    @assert x.ring === y.ring
-   x === y && return x
    return GL(x.deg, x.ring)::T
 end
 
-# Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
-# if the parents are different, the parent of the output product is set as GL(n,q)
+# Base.:* is defined in src/Groups/GAPGroups.jl,
+# and it calls the function _prod below.
+# If the parents are different,
+# the parent of the product is set as GL(n, R)
 function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    G = _common_parent_group(parent(x), parent(y))
 
    # if the underlying GAP matrices are both defined, but not both Oscar matrices,
    # then use the GAP matrices.
    # Otherwise, use the Oscar matrices, which if necessary are implicitly computed
-   # by the Base.getproperty(::MatrixGroupElem, ::Symbol) method .
+   # by the matrix(::MatrixGroupElem) method .
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return T(G, x.X*y.X)
    else
-      return T(G, x.elm*y.elm)
+      return T(G, matrix(x)*matrix(y))
    end
 end
 
-Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = x.elm*y
-Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*y.elm
+Base.:*(x::MatrixGroupElem{RE, T}, y::T) where RE where T = matrix(x)*y
+Base.:*(x::T, y::MatrixGroupElem{RE, T}) where RE where T = x*matrix(y)
 
-Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, x.elm^n)
+Base.:^(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x)^n)
 
-Base.isone(x::MatrixGroupElem) = isone(x.elm)
+Base.isone(x::MatrixGroupElem) = isone(matrix(x))
 
-Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(x.elm))
+Base.inv(x::MatrixGroupElem) = MatrixGroupElem(x.parent, inv(matrix(x)))
 
 # if the parents are different, the parent of the output is set as GL(n,q)
 function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
@@ -406,11 +432,12 @@ function Base.:^(x::MatrixGroupElem, y::MatrixGroupElem)
    if isdefined(x,:X) && isdefined(y,:X) && !(isdefined(x,:elm) && isdefined(y,:elm))
       return MatrixGroupElem(G, inv(y.X)*x.X*y.X)
    else
-      return MatrixGroupElem(G,inv(y.elm)*x.elm*y.elm)
+      return MatrixGroupElem(G,inv(matrix(y))*matrix(x)*matrix(y))
    end
 end
 
 comm(x::MatrixGroupElem, y::MatrixGroupElem) = inv(x)*conj(x,y)
+#T why needed? GAPGroupElem has x^-1*x^y
 
 """
     det(x::MatrixGroupElem)
@@ -426,6 +453,8 @@ Return the base ring of the underlying matrix of `x`.
 """
 base_ring(x::MatrixGroupElem) = x.parent.ring
 
+base_ring_type(::Type{<:MatrixGroupElem{RE}}) where {RE} = parent_type(RE)
+
 parent(x::MatrixGroupElem) = x.parent
 
 """
@@ -433,9 +462,14 @@ parent(x::MatrixGroupElem) = x.parent
 
 Return the underlying matrix of `x`.
 """
-matrix(x::MatrixGroupElem) = x.elm
+function matrix(x::MatrixGroupElem)
+  if !isdefined(x, :elm)
+    x.elm = preimage_matrix(_ring_iso(x.parent), x.X)
+  end
+  return x.elm
+end
 
-Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = x.elm[i,j]
+Base.getindex(x::MatrixGroupElem, i::Int, j::Int) = matrix(x)[i,j]
 
 """
     number_of_rows(x::MatrixGroupElem)
@@ -464,10 +498,10 @@ tr(x::MatrixGroupElem) = tr(matrix(x))
 
 #FIXME for the following functions, the output may not belong to the parent group of x
 #=
-frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in x.elm]))
+frobenius(x::MatrixGroupElem, n::Int) = MatrixGroupElem(x.parent, matrix(x.parent.ring, x.parent.deg, x.parent.deg, [frobenius(y,n) for y in matrix(x)]))
 frobenius(x::MatrixGroupElem) = frobenius(x,1)
 
-transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
+transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(matrix(x)))
 =#
 
 ########################################################################
@@ -482,6 +516,8 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(x.parent, transpose(x.elm))
 Return the base ring of the matrix group `G`.
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
+
+base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 
 """
     degree(G::MatrixGroup)
@@ -616,14 +652,14 @@ end
 
 Return the general linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field or a residue ring or `ZZ`.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = general_linear_group(2,F)
+julia> H = general_linear_group(2, F)
 GL(2,7)
 
 julia> gens(H)
@@ -631,6 +667,8 @@ julia> gens(H)
  [3 0; 0 1]
  [6 1; 6 0]
 
+julia> order(general_linear_group(2, residue_ring(ZZ, 6)[1]))
+288
 ```
 """
 function general_linear_group(n::Int, R::Ring)
@@ -650,14 +688,14 @@ end
 
 Return the special linear group of dimension `n` over the ring `R` respectively the field `GF(q)`.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field or a residue ring or `ZZ`.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = special_linear_group(2,F)
+julia> H = special_linear_group(2, F)
 SL(2,7)
 
 julia> gens(H)
@@ -665,6 +703,8 @@ julia> gens(H)
  [3 0; 0 5]
  [6 1; 6 0]
 
+julia> order(special_linear_group(2, residue_ring(ZZ, 6)[1]))
+144
 ```
 """
 function special_linear_group(n::Int, R::Ring)
@@ -685,14 +725,15 @@ end
 Return the symplectic group of dimension `n` over the ring `R` respectively the
 field `GF(q)`. The dimension `n` must be even.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = symplectic_group(2,F)
+julia> H = symplectic_group(2, F)
 Sp(2,7)
 
 julia> gens(H)
@@ -700,6 +741,8 @@ julia> gens(H)
  [3 0; 0 5]
  [6 1; 6 0]
 
+julia> order(symplectic_group(2, residue_ring(ZZ, 4)[1]))
+48
 ```
 """
 function symplectic_group(n::Int, R::Ring)
@@ -722,21 +765,24 @@ Return the orthogonal group of dimension `n` over the ring `R` respectively the
 field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and `e`=`0`
 for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = symplectic_group(2,F)
-Sp(2,7)
+julia> H = orthogonal_group(1, 2, F)
+GO+(2,7)
 
 julia> gens(H)
 2-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
  [3 0; 0 5]
- [6 1; 6 0]
+ [0 1; 1 0]
 
+julia> order(orthogonal_group(-1, 2, residue_ring(ZZ, 9)[1]))
+24
 ```
 """
 function orthogonal_group(e::Int, n::Int, R::Ring)
@@ -774,14 +820,15 @@ Return the special orthogonal group of dimension `n` over the ring `R` respectiv
 the field `GF(q)`, and of type `e`, where `e` in {`+1`,`-1`} for `n` even and
 `e`=`0` for `n` odd. If `n` is odd, `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = special_orthogonal_group(1,2,F)
+julia> H = special_orthogonal_group(1, 2, F)
 SO+(2,7)
 
 julia> gens(H)
@@ -790,6 +837,8 @@ julia> gens(H)
  [5 0; 0 3]
  [1 0; 0 1]
 
+julia> order(special_orthogonal_group(-1, 2, residue_ring(ZZ, 9)[1]))
+12
 ```
 """
 function special_orthogonal_group(e::Int, n::Int, R::Ring)
@@ -827,20 +876,23 @@ Return the Omega group of dimension `n` over the field `GF(q)` of type `e`,
 where `e` in {`+1`,`-1`} for `n` even and `e`=`0` for `n` odd. If `n` is odd,
 `e` can be omitted.
 
-Currently, this function only supports rings of type `FqField`.
+Currently `R` must be either a finite field
+or a residue ring of odd prime power order.
 
 # Examples
 ```jldoctest
-julia> F = GF(7,1)
+julia> F = GF(7)
 Prime field of characteristic 7
 
-julia> H = omega_group(1,2,F)
+julia> H = omega_group(1, 2, F)
 Omega+(2,7)
 
 julia> gens(H)
 1-element Vector{MatrixGroupElem{FqFieldElem, FqMatrix}}:
  [2 0; 0 4]
 
+julia> order(omega_group(0, 3, residue_ring(ZZ, 9)[1]))
+324
 ```
 """
 function omega_group(e::Int, n::Int, R::Ring)
@@ -943,7 +995,7 @@ function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    K,f = _as_subgroup(G, H)
    L = Vector{elem_type(K)}(undef, length(elements))
    for i in 1:length(L)
-      L[i] = MatrixGroupElem(K, elements[i].elm, elements[i].X)
+      L[i] = MatrixGroupElem(K, matrix(elements[i]), elements[i].X)
    end
    K.gens = L
    return K,f

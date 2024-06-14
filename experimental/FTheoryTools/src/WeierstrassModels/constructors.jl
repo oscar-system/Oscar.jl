@@ -69,7 +69,8 @@ function weierstrass_model(base::NormalToricVariety,
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
   D2 = 3 * anticanonical_divisor_class(base)
-  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  D3 = trivial_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, [D1, D2, D3])
   
   # construct the model
   pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))

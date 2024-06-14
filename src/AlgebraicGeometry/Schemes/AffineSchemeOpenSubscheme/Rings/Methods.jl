@@ -450,7 +450,7 @@ end
 ###############################################################################
 
 function Base.show(io::IO, R::AffineSchemeOpenSubschemeRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ring of regular functions")
   else
     io = pretty(io)
@@ -468,7 +468,7 @@ function Base.show(io::IO, ::MIME"text/plain", R::AffineSchemeOpenSubschemeRing)
 end
 
 function Base.show(io::IO, a::AffineSchemeOpenSubschemeRingElem)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Reguler function")
   else
     io = pretty(io)

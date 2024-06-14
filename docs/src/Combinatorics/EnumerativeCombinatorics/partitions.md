@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Partitions
@@ -86,12 +84,12 @@ julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
 ```
 and there are 4562 ways for the first question in the exercise:
 ```jldoctest
-julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
+julia> length(collect(partitions(100, [1, 2, 5, 10, 20, 50])))
 4562
 ```
 The original "Ways to change one dollar" problem has 292 solutions:
 ```jldoctest
-julia> length(partitions(100, [1, 5, 10, 25, 50]))
+julia> length(collect(partitions(100, [1, 5, 10, 25, 50])))
 292
 ```
 ```@docs
@@ -101,7 +99,7 @@ For counting the partitions the recurrence relation $p_k(n) = p_{k - 1}(n - 1) +
 7.2.1.4, Equation (39), and also [OEIS](@cite), [A008284](https://oeis.org/A008284).
 
 ```@docs
-partitions(::T, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion) where T <: Oscar.IntegerUnion
+partitions(::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion, ::Oscar.IntegerUnion)
 partitions(::T, ::Vector{T}) where T <: Oscar.IntegerUnion
 ```
 

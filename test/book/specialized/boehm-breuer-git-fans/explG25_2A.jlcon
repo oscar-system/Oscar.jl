@@ -1,0 +1,17 @@
+julia> matrix_action = GITFans.action_on_target(Q, G)
+Group homomorphism
+  from permutation group of degree 10 and order 120
+  to matrix group of degree 5 over QQ
+
+julia> x = gen(G, 2)
+(1,5,9,10,3)(2,7,8,4,6)
+
+julia> Ax = matrix_action(x)
+[-1   1   -1   -1   -2]
+[ 1   0    1    1    1]
+[ 1   0    0    1    1]
+[ 0   0    0    0    1]
+[ 1   0    1    0    1]
+
+julia> matrix(QQ, Q[Vector{Int}(x), 1:5]) == matrix(QQ, Q) * Ax
+true

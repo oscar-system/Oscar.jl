@@ -76,7 +76,7 @@ function (F::QQField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFie
   return F(x.d)
 end
 
-function (F::Nemo.fpField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T <: Union{fpPolyRingElem, fpMPolyRingElem}
+function (F::fpField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T <: Union{fpPolyRingElem, fpMPolyRingElem}
   num = numerator(x)
   cst_num = constant_coefficient(num)
   denom = denominator(x)
@@ -85,7 +85,7 @@ function (F::Nemo.fpField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T 
   F(cst_num) // F(cst_denom)
 end
 
-function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T <: Union{FqPolyRingElem, FqMPolyRingElem}
+function (F::FqField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T <: Union{FqPolyRingElem, FqMPolyRingElem}
   num = numerator(x)
   cst_num = constant_coefficient(num)
   denom = denominator(x)
@@ -94,11 +94,11 @@ function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.FracFieldElem{T}) where T 
   F(cst_num) // F(cst_denom)
 end
 
-function (F::Nemo.fpField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{fpFieldElem})
+function (F::fpField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{fpFieldElem})
   return F(x.d)
 end
 
-function (F::Nemo.FqField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{FqFieldElem})
+function (F::FqField)(x::AbstractAlgebra.Generic.RationalFunctionFieldElem{FqFieldElem})
   return F(x.d)
 end
 

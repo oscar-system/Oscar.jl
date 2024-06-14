@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Ideals in Multivariate Rings
@@ -90,7 +88,7 @@ cm_regularity(I::MPolyIdeal)
 ```@docs
 degree(I::MPolyIdeal)
 ```
-    
+
 ## Operations on Ideals
 
 ### Simple Ideal Operations
@@ -100,6 +98,7 @@ degree(I::MPolyIdeal)
 ```@docs
 ^(I::MPolyIdeal, m::Int)
 ```
+
 #### Sum of Ideals
 
 ```@docs

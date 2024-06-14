@@ -55,31 +55,6 @@ end
 
 ###############################################################################
 #
-# Combinatoric functions
-# 
-
-# partitions of n with at most k numbers each ≤ m
-function partitions(n::Int, k::Int=n, m::Int=-1)
-  ans = Partition[]
-  (n > 0 && k == 0) && return ans
-  if m < 0 m = n end
-  n <= m && push!(ans, partition(n > 0 ? [n] : Int[]))
-  for v in Int(min(n-1,m)):-1:1
-    for p in partitions(n-v, k-1, v)
-      push!(ans, partition(pushfirst!(collect(p), v)))
-    end
-  end
-  ans
-end
-
-# make combinations work for arrays
-# function combinations(I::AbstractUnitRange, k::Int) combinations(collect(I), k) end
-# function combinations(l::Vector, k::Int)
-#   [[l[i] for i in c] for c in combinations(length(l), k)]
-# end
-
-###############################################################################
-#
 # pretty printing
 #
 

@@ -1,7 +1,6 @@
 @testset "Cone{$T}" for (f, T) in _prepare_scalar_types()
-
   pts = [1 0; 0 0; 0 1]
-  Cone1=positive_hull(f, pts)
+  Cone1 = positive_hull(f, pts)
   R = [1 0 0; 0 0 1]
   L = [0 1 0]
   Cone2 = positive_hull(f, R, L)
@@ -38,8 +37,8 @@
     @test rays(RayVector, Cone1) isa SubObjectIterator{RayVector{T}}
     @test vector_matrix(rays(Cone1)) == matrix(f, [1 0; 0 1])
     if T == QQFieldElem
-      @test matrix(QQ,rays(Cone1)) == matrix(QQ, [1 0; 0 1])
-      @test matrix(ZZ,rays(Cone6)) == matrix(ZZ, [2 3; 2 5])
+      @test matrix(QQ, rays(Cone1)) == matrix(QQ, [1 0; 0 1])
+      @test matrix(ZZ, rays(Cone6)) == matrix(ZZ, [2 3; 2 5])
     end
     @test length(rays(Cone1)) == 2
     @test rays(Cone1) == [[1, 0], [0, 1]]
@@ -64,7 +63,8 @@
         end
       end
     end
-    @test facets(IncidenceMatrix, Cone1) == IncidenceMatrix(T == QQFieldElem ? [[2], [1]] : [[1], [2]])
+    @test facets(IncidenceMatrix, Cone1) ==
+      IncidenceMatrix(T == QQFieldElem ? [[2], [1]] : [[1], [2]])
     @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{T}}
     @test facets(Cone1) isa SubObjectIterator{LinearHalfspace{T}}
     @test linear_span(Cone4) isa SubObjectIterator{LinearHyperplane{T}}
@@ -136,30 +136,33 @@
 
   @testset "constructors" begin
     @test cone_from_inequalities(f, [-1 0 0; 0 0 -1]) == Cone2
-    @test cone_from_inequalities(f, [-1 0 0; 0 0 -1]; non_redundant = true) == Cone2
+    @test cone_from_inequalities(f, [-1 0 0; 0 0 -1]; non_redundant=true) == Cone2
     @test cone_from_inequalities(f, facets(Cone4), linear_span(Cone4)) == Cone4
-    @test cone_from_inequalities(f, facets(Cone4), linear_span(Cone4); non_redundant = true) == Cone4
-    @test cone_from_equations(f, [0 1 0]) == cone_from_inequalities(f, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
+    @test cone_from_inequalities(
+      f, facets(Cone4), linear_span(Cone4); non_redundant=true
+    ) == Cone4
+    @test cone_from_equations(f, [0 1 0]) ==
+      cone_from_inequalities(f, Matrix{Int}(undef, 0, 3), linear_span(Cone4))
   end
 end
 
 @testset "transform $T" for (f, T) in _prepare_scalar_types()
   pts = [1 0 0 0; 1 1 0 0; 1 1 1 0; 1 0 1 0]
   lin = [0 0 0 1]
-  A = [ -6    3   1    3;
-       -24    7   4   13;
-       -31    9   5   17;
-       -37   11   6   20]
+  A = [-6 3 1 3;
+    -24 7 4 13;
+    -31 9 5 17;
+    -37 11 6 20]
   # We also put inverse here, since inversion in Julia produces float errors
   # and we don't want to do complicated matrix conversions here.
-  invA = [1   2   3   -4;
-          1   0   1   -1;
-          1   9   0   -6;
-          1   1   5   -5]
+  invA = [1 2 3 -4;
+    1 0 1 -1;
+    1 9 0 -6;
+    1 1 5 -5]
   C = positive_hull(f, pts, lin)
-  Ctarget = positive_hull(f, pts*transpose(A), lin*transpose(A))
+  Ctarget = positive_hull(f, pts * transpose(A), lin * transpose(A))
   for props in (["RAYS", "LINEALITY_SPACE"],
-                ["FACETS", "LINEAR_SPAN"])
+    ["FACETS", "LINEAR_SPAN"])
     Ccopy = Polymake.polytope.Cone{Oscar._scalar_type_to_polymake(T)}()
     for prop in props
       Polymake.take(Ccopy, prop, Polymake.give(Oscar.pm_object(C), prop))

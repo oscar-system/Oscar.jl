@@ -374,3 +374,56 @@ end
   @test dim(Y) == 0
   @test degree(Y) == 4
 end
+
+@testset "normalization" begin
+  R, (x,y) = polynomial_ring(QQ,[:x,:y])
+  # non-normal
+  I = ideal(R, x^3-y^2)
+  X1 = spec(R,I)
+  @test !is_normal(X1; check=false)
+  N1 = normalization(X1)
+  @test length(N1) == 1
+  @test is_normal(N1[1][1]; check=false)
+  @test is_smooth(N1[1][1])
+  # normal
+  J = ideal(R, x)
+  X2 = spec(R, J)
+  N2 = normalization(X2)
+  @test length(N2) == 1
+  @test is_smooth(N2[1][1])
+  # reducible
+  K = ideal(R, x^4-y^2*x)
+  X3 = spec(R,K)
+  N3 = normalization(X3)
+  @test all(is_smooth(i[1]) for i in N3)
+  @test length(N3) == 2
+
+  # normalization in positive characteristic
+  R, (x,y) = polynomial_ring(GF(5),[:x,:y])
+  # non-normal
+  I = ideal(R, x^3-y^2)
+  X1 = spec(R,I)
+  N1 = normalization(X1)
+  @test length(N1) == 1
+  @test is_smooth(N1[1][1])
+  # normal
+  J = ideal(R, x)
+  X2 = spec(R, J)
+  N2 = normalization(X2)
+  @test length(N2) == 1
+  @test is_smooth(N2[1][1])
+  # reducible
+  K = ideal(R, x^4-y^2*x)
+  X3 = spec(R,K)
+  N3 = normalization(X3)
+  @test all(is_smooth(i[1]) for i in N3)
+  @test length(N3) == 2
+
+  # data corruption bug, throws an error if bug reappears
+  P,(a,b) = polynomial_ring(QQ,[:a,:b])
+  I = ideal(P,a^2-b)
+  Q = normalization(quo(P,I)[1])[1][1]
+  R = base_ring(Q)
+  J = ideal(R, R[1])
+  Sat = saturation(modulus(Q),J)
+end

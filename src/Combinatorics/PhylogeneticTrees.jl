@@ -43,7 +43,7 @@ function phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::Strin
 end
 
 @doc raw"""
-   phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
+    phylogenetic_tree(M::Matrix{T}, taxa::Vector{String}) where T <: Union{Float64, QQFieldElem}
 
 Constructs a phylogenetic tree with cophenetic matrix `M` and taxa `taxa`. The matrix `M` must be
 ultrametric, otherwise an error will be thrown.

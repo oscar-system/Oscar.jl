@@ -1,0 +1,20 @@
+julia> points = matrix(ZZ,collect(exponents(tropf)))
+[3   0]
+[1   2]
+[1   0]
+[0   1]
+[0   0]
+
+julia> heights = QQ.(collect(coefficients(tropf)))
+5-element Vector{QQFieldElem}:
+ 0
+ 0
+ 0
+ -2
+ -3
+
+julia> Delta = subdivision_of_points(points,heights)
+Subdivision of points in ambient dimension 2
+
+julia> tropical_hypersurface(Delta,max)
+Max tropical hypersurface

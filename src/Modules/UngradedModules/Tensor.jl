@@ -29,13 +29,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
   function pure(g::FreeModElem...)
     @assert length(g) == length(G)
     @assert all(i -> parent(g[i]) === G[i], 1:length(G))
-    z = [[x] for x = g[1].coords.pos]
-    zz = g[1].coords.values
+    z = [[x] for x = coordinates(g[1]).pos]
+    zz = coordinates(g[1]).values
     for h = g[2:end]
       zzz = Vector{Int}[]
       zzzz = elem_type(F.R)[]
       for i = 1:length(z)
-        for (p, v) = h.coords
+        for (p, v) in coordinates(h)
           push!(zzz, push!(deepcopy(z[i]), p))
           push!(zzzz, zz[i]*v)
         end
@@ -50,12 +50,13 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return pure(T...)
   end
   function inv_pure(e::FreeModElem)
-    if length(e.coords.pos) == 0
+    c = coordinates(e)
+    if length(c.pos) == 0
       return Tuple(zero(g) for g = G)
     end
-    @assert length(e.coords.pos) == 1
-    @assert isone(e.coords.values[1])
-    return Tuple(gen(G[i], t[e.coords.pos[1]][i]) for i = 1:length(G))
+    @assert length(c.pos) == 1
+    @assert isone(c.values[1])
+    return Tuple(gen(G[i], t[c.pos[1]][i]) for i = 1:length(G))
   end
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)

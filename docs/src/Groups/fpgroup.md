@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Finitely presented groups
@@ -10,9 +8,11 @@ end
 ```@docs
 FPGroup
 FPGroupElem
+SubFPGroup
+SubFPGroupElem
 free_group(n::Int)
-is_full_fp_group(G::FPGroup)
+full_group(G::Union{SubFPGroup, SubPcGroup})
 relators(G::FPGroup)
-length(g::FPGroupElem)
-map_word
+length(g::Union{FPGroupElem, SubFPGroupElem})
+map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 ```

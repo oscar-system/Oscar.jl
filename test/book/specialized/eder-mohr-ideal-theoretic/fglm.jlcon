@@ -1,0 +1,12 @@
+julia> R, (x1, x2, x3, x4, x5, x6, x7, x8) = polynomial_ring(GF(65521), ["x1","x2","x3","x4","x5","x6", "x7","x8"]);
+
+julia> I = ideal(R, [x1 + 2*x2 + 2*x3 + 2*x4 + 2*x5 + 2*x6 + 2*x7 + 2*x8 - 1, x1^2 - x1 + 2*x2^2 + 2*x3^2 + 2*x4^2 + 2*x5^2 + 2*x6^2 + 2*x7^2 + 2*x8^2, 2*x1*x2 + 2*x2*x3 - x2 + 2*x3*x4 + 2*x4*x5 + 2*x5*x6 + 2*x6*x7 + 2*x7*x8, 2*x1*x3 + x2^2 + 2*x2*x4 + 2*x3*x5 - x3 + 2*x4*x6 + 2*x5*x7 + 2*x6*x8, 2*x1*x4 + 2*x2*x3 + 2*x2*x5 + 2*x3*x6 + 2*x4*x7 - x4 + 2*x5*x8, 2*x1*x5 + 2*x2*x4 + 2*x2*x6 + x3^2 + 2*x3*x7 + 2*x4*x8 - x5, 2*x1*x6 + 2*x2*x5 + 2*x2*x7 + 2*x3*x4 + 2*x3*x8 - x6, 2*x1*x7 + 2*x2*x6 + 2*x2*x8 + 2*x3*x5 + x4^2 - x7]);
+
+julia> @time groebner_basis_f4(I);
+  0.010955 seconds (57.13 k allocations: 3.081 MiB)
+
+julia> dim(I) == 0
+true
+
+julia> @time fglm(I, destination_ordering = lex(R));
+  0.062046 seconds (130.52 k allocations: 3.313 MiB)

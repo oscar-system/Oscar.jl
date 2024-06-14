@@ -5,8 +5,6 @@
 - Julia evaluates `2^100` to `0` because `2` is regarded as a 64 bit integer.
   Write `ZZRingElem(2)^100` to get a long.
 
-- TODO: add more hints of this kind
-
 
 ## Notes for GAP users
 
@@ -64,6 +62,18 @@ This section describes differences between GAP and Oscar.
     ```
     (The situation with `while` loops is analogous.)
 
+- The interactive sessions behave differently.
+
+  When an error occurs or when the user hits ctrl-C in a GAP session,
+  usually a break loop is entered,
+  from which one can either try to continue the computations,
+  by entering `return`, or return to the GAP prompt, by entering `quit`;
+  in the latter case, some objects may be corrupted afterwards.
+
+  In a Julia session, one gets automatically back to the Julia prompt
+  when an error occurs or when the user hits ctrl-C,
+  and again some objects may be corrupted afterwards.
+
 - Variable names in GAP and Julia are recommended to be written in
   camel case and snake case, respectively, see [Naming conventions](@ref).
   For example, the GAP function `SylowSubgroup` corresponds to
@@ -110,11 +120,6 @@ This section describes differences between GAP and Oscar.
   transitive in GAP but as intransitive in Oscar.
 
 
-## Notes for Singular users
-
-- TODO
-- TODO: also talk about how to use it from OSCAR?
-
 ## Notes for Polymake users
 
 - OSCAR (and Julia) is `1`-based, meaning that it counts from `1`, rather than
@@ -144,12 +149,3 @@ This section describes differences between GAP and Oscar.
   c = Polymake.polytope.cube(3)
   Polymake.polytope.ambient_dim(c)
   ```
-
-
-## Notes for Magma users
-
-- TODO
-
-## Notes for SageMath users
-
-- TODO

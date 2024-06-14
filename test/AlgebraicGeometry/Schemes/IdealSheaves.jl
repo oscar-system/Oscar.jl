@@ -45,7 +45,7 @@
   I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
   J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
 
-  @test I+J == IdealSheaf(X, U, [one(OO(U))])
+  @test I+J == Oscar.unit_ideal_sheaf(X)
   K = I*J
 end
 
@@ -106,9 +106,9 @@ end
   X = covered_scheme(P)
   U = affine_charts(X)
   @test pbII(U[1]) isa Ideal
-  @test !haskey(pbII.I.obj_cache, U[2])
+  @test !haskey(Oscar.object_cache(pbII), U[2])
   @test pbII(U[2]) isa Ideal
-  @test haskey(pbII.I.obj_cache, U[2])
+  @test haskey(Oscar.object_cache(pbII), U[2])
 end
 
 @testset "colength of ideal sheaves" begin
@@ -163,6 +163,10 @@ end
   J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
   #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
   JJ = Oscar.maximal_associated_points(ideal_sheaf(X, J))
+  JJ2 = Oscar._maximal_associated_points(ideal_sheaf(X, J))
+  @test all(x->(x in JJ2), JJ)
+  @test all(x->(x in JJ), JJ2)
+
   X = covered_scheme(X)
   C = Oscar._separate_disjoint_components(JJ, covering=Oscar.simplified_covering(X))
   for U in patches(C)
@@ -196,3 +200,23 @@ end
   JJ = pushforward(bl, E)
   @test JJ == II
 end
+
+@testset "subschemes of ideal sheaves" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+
+  X = covered_scheme(IP2)
+  S = homogeneous_coordinate_ring(IP2)
+  x, y, z = gens(S)
+  I = ideal(S, [x*y, x*z, y*z])
+  II = IdealSheaf(IP2, I)
+  H = IdealSheaf(IP2, ideal(S, z))
+  Y = subscheme(II + H)
+  U = affine_charts(Y)
+  @test length(U) == 2
+  f, g = gluing_morphisms(Y[1][U[1], U[2]])
+  A = domain(f)
+  B = domain(g)
+  @test isempty(A)
+  @test isempty(B)
+end
+

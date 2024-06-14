@@ -111,7 +111,8 @@ end
   @test is_cyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
   @test is_isomorphic(G, G1)
-  G = abelian_group(PcGroup, [ZZ(2)^70])
+# G = abelian_group(PcGroup, [ZZ(2)^70])
+  G = abelian_group(SubPcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=

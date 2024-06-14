@@ -23,13 +23,13 @@ abstract type `AbsDoubleComplexOfMorphisms`. These functions comprise
   getindex(D::AbsDoubleComplexOfMorphisms, i::Int, j::Int) # Get the `(i,j)`-th entry of `D`
 ```
 ```@docs
-    horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
-    vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+horizontal_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
+vertical_map(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)
 ```
 In which direction the maps in the rows and columns go can be asked with the following methods:
 ```@docs
-    horizontal_direction(dc::AbsDoubleComplexOfMorphisms)
-    vertical_direction(dc::AbsDoubleComplexOfMorphisms)
+horizontal_direction(dc::AbsDoubleComplexOfMorphisms)
+vertical_direction(dc::AbsDoubleComplexOfMorphisms)
 ```
 Double complexes can be bounded or unbounded. It is important to note that even if such 
 bounds exist and are known, this is a priori **not** related to whether or not 
@@ -50,28 +50,28 @@ various generic functionalities.
 For example, computing a total complex is only possible in practice if one has an a priori estimate 
 where the non-zero entries are located. For such purposes, we provide the following functionality:
 ```@docs
-    has_upper_bound(D::AbsDoubleComplexOfMorphisms)
-    has_lower_bound(D::AbsDoubleComplexOfMorphisms)
-    has_right_bound(D::AbsDoubleComplexOfMorphisms)
-    has_left_bound(D::AbsDoubleComplexOfMorphisms)
+has_upper_bound(D::AbsDoubleComplexOfMorphisms)
+has_lower_bound(D::AbsDoubleComplexOfMorphisms)
+has_right_bound(D::AbsDoubleComplexOfMorphisms)
+has_left_bound(D::AbsDoubleComplexOfMorphisms)
 ```
 If they exist, these bounds can be asked for using 
 ```@docs
-    right_bound(D::AbsDoubleComplexOfMorphisms)
-    left_bound(D::AbsDoubleComplexOfMorphisms)
-    upper_bound(D::AbsDoubleComplexOfMorphisms)
-    lower_bound(D::AbsDoubleComplexOfMorphisms)
+right_bound(D::AbsDoubleComplexOfMorphisms)
+left_bound(D::AbsDoubleComplexOfMorphisms)
+upper_bound(D::AbsDoubleComplexOfMorphisms)
+lower_bound(D::AbsDoubleComplexOfMorphisms)
 ```
 It is also possible to query whether or not a double complex 
 is already complete in the sense that it knows about all of its 
 non-zero entries.
 ```@docs
-    is_complete(D::AbsDoubleComplexOfMorphisms)
+is_complete(D::AbsDoubleComplexOfMorphisms)
 ```
 
 ## Generic functionality
 ```@docs
-    total_complex(D::AbsDoubleComplexOfMorphisms)
+total_complex(D::AbsDoubleComplexOfMorphisms)
 ```
 
 ## Constructors

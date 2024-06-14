@@ -1,0 +1,8 @@
+julia> P3 = orbit_polytope([1,2,3,4], symmetric_group(4))
+Polyhedron in ambient dimension 4
+
+julia> dim(P3)
+3
+
+julia> describe(combinatorial_symmetries(P3))
+"C2 x S4"

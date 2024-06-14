@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-    using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 
 ```@docs
-    standard_finite_field(p::IntegerUnion, n::IntegerUnion)
+standard_finite_field(p::IntegerUnion, n::IntegerUnion)
 ```

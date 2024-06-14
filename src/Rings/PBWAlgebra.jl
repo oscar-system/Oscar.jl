@@ -599,6 +599,8 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
+base_ring_type(::Type{PBWAlgIdeal{D, T, S}}) where {D, T, S} = PBWAlgRing{T, S}
+
 function number_of_generators(a::PBWAlgIdeal)
   return number_of_generators(a.sdata)
 end

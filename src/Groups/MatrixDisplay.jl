@@ -36,8 +36,8 @@ mylpad(s::String,n::Int) = " "^(n-textwidth(s))*s
 const superscript = Dict(zip("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))
 const subscript = Dict(zip("-0123456789", "₋₀₁₂₃₄₅₆₇₈₉"))
 
-function replace_TeX(str::String)
-  if Oscar.is_unicode_allowed()
+function replace_TeX(str::String; is_unicode_allowed = Oscar.is_unicode_allowed())
+  if is_unicode_allowed
     str = replace(str, "\\chi" => "χ")
     str = replace(str, "\\phi" => "φ")
     str = replace(str, "\\varphi" => "φ")
@@ -250,8 +250,9 @@ function labeled_matrix_formatted(io::IO, mat::Matrix{String})
     if ! TeX
       # If no `TeX` output is required then
       # replace markup in the matrices, ...
-      leftpart = map(replace_TeX, leftpart)
-      rightpart = map(replace_TeX, rightpart)
+      with_unicode = Oscar.is_unicode_allowed()
+      leftpart = map(x -> replace_TeX(x, is_unicode_allowed = with_unicode), leftpart)
+      rightpart = map(x -> replace_TeX(x, is_unicode_allowed = with_unicode), rightpart)
 
       header = map(replace_TeX, header)
       footer = map(replace_TeX, footer)
@@ -259,12 +260,12 @@ function labeled_matrix_formatted(io::IO, mat::Matrix{String})
       # ... compute columns widths of the corner entries and row labels ...
       leftwidth = map(textwidth, leftpart)
       leftrows = [leftwidth[i,:] for i in 1:m]
-      widths_leftpart = map(max, leftrows...)
+      widths_leftpart = [maximum(f[i] for f in leftrows; init = 0) for i in 1:length(first(leftrows))]
 
       # ... and of the column labels and matrix entries.
       rightwidth = map(textwidth, rightpart)
       rightrows = [rightwidth[i,:] for i in 1:m]
-      widths_rightpart = map(max, rightrows...)
+      widths_rightpart = [maximum(f[i] for f in rightrows; init = 0) for i in 1:length(first(rightrows))]
 
       # Compute the width of the row labels part.
       leftwidthsum = sum(widths_leftpart) + length(widths_leftpart) - 1

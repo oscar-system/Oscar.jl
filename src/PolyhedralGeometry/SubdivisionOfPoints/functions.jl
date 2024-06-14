@@ -28,8 +28,6 @@ julia> dim(C)
 4
 ```
 """
-function secondary_cone(SOP::SubdivisionOfPoints{T}) where T<:scalar_types
-   Cone{T}(Polymake.fan.secondary_cone(pm_object(SOP)), coefficient_field(SOP))
+function secondary_cone(SOP::SubdivisionOfPoints{T}) where {T<:scalar_types}
+  Cone{T}(Polymake.fan.secondary_cone(pm_object(SOP)), coefficient_field(SOP))
 end
-
-

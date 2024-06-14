@@ -1,0 +1,47 @@
+julia> B = [[1,2],[1,3],[1,4],[2,3],[2,4]];
+
+julia> M = matroid_from_bases(B,4)
+Matroid of rank 2 on 4 elements
+
+julia> independent_sets(M)
+10-element Vector{Vector{Int64}}:
+ []
+ [1]
+ [2]
+ [3]
+ [4]
+ [1, 4]
+ [2, 4]
+ [1, 3]
+ [2, 3]
+ [1, 2]
+
+julia> flats(M)
+5-element Vector{Vector{Int64}}:
+ []
+ [1]
+ [2]
+ [3, 4]
+ [1, 2, 3, 4]
+
+julia> circuits(M)
+3-element Vector{Vector{Int64}}:
+ [3, 4]
+ [1, 2, 4]
+ [1, 2, 3]
+
+julia> X = matrix(GF(2), [1 0 1 0 1 0 1; 0 1 1 0 0 1 1; 0 0 0 1 1 1 1])
+[1   0   1   0   1   0   1]
+[0   1   1   0   0   1   1]
+[0   0   0   1   1   1   1]
+
+julia> F = matroid_from_matrix_columns(X)
+Matroid of rank 3 on 7 elements
+
+julia> is_isomorphic(F, fano_matroid())
+true
+
+julia> G = automorphism_group(F);
+
+julia> describe(G)
+"PSL(3,2)"

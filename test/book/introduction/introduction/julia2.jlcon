@@ -1,0 +1,67 @@
+julia> R, mR = quo(ZZ, 2)
+(Integers modulo 2, Map: ZZ -> ZZ/(2))
+
+julia> S, mS = quo(ZZ, 3)
+(Integers modulo 3, Map: ZZ -> ZZ/(3))
+
+julia> typeof(R(1))
+zzModRingElem
+
+julia> typeof(S(1))
+zzModRingElem
+
+julia> S(1) + R(1)
+ERROR: Operations on distinct residue rings not supported
+Stacktrace:
+ [1] error(s::String)
+   @ Base ./error.jl:35
+ [2] check_parent
+   @ ~/.julia/packages/Nemo/F0iQ2/src/flint/nmod.jl:22 [inlined]
+ [3] +(x::zzModRingElem, y::zzModRingElem)
+   @ Nemo ~/.julia/packages/Nemo/F0iQ2/src/flint/nmod.jl:138
+[...]
+
+julia> one(Int)
+1
+
+julia> one(Float64)
+1.0
+
+julia> [S(1) R(1)]
+1×2 Matrix{zzModRingElem}:
+ 1  1
+
+julia> dot(ans, ans)
+ERROR: Operations on distinct residue rings not supported
+Stacktrace:
+[...]
+
+julia> matrix(S, 1, 2, [1, 2])
+[1   2]
+
+julia> dot(ans, ans)
+2
+
+julia> det([1 2; 3 4])
+-2.0
+
+julia> det(BigInt[1 2; 3 4])
+-2
+
+julia> inv(BigInt[1 2; 3 4])
+2×2 Matrix{BigFloat}:
+ -2.0   1.0
+  1.5  -0.5
+
+julia> inv(BigInt[1 2; 0 1])
+2×2 Matrix{BigFloat}:
+ 1.0  -2.0
+ 0.0   1.0
+
+julia> inv(ZZ[1 2; 3 4])
+ERROR: Matrix not invertible
+[...]
+
+julia> inv(QQ[1 2; 3 4])
+[  -2       1]
+[3//2   -1//2]

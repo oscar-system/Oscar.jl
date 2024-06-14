@@ -82,7 +82,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
@@ -91,7 +93,9 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
-  if get(io, :supercompact, false)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
     print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
@@ -101,7 +105,7 @@ function Base.show(io::IO, L::LinearLieAlgebra)
       " over ",
       Lowercase(),
     )
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 
@@ -144,7 +148,7 @@ end
 @doc raw"""
     coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
 
-Returns the element of `L` whose matrix representation corresponds to `x`.
+Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
 """
 function coerce_to_lie_algebra_elem(
@@ -327,7 +331,7 @@ function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
   for i in 1:n, j in 1:n
     x = zero_matrix(R, n, n)
     x[i, j] = 1
-    eqs[(i-1) * n + j, :] = _vec(x + invform * transpose(x) * form)
+    eqs[(i - 1) * n + j, :] = _vec(x + invform * transpose(x) * form)
   end
   ker = kernel(eqs)
   rref!(ker) # we cannot assume anything about the kernel, but want to have a consistent output
@@ -335,7 +339,7 @@ function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
   basis = [zero_matrix(R, n, n) for _ in 1:dim]
   for i in 1:n
     for k in 1:dim
-      basis[k][i, 1:n] = ker[k, (i-1) * n .+ (1:n)]
+      basis[k][i, 1:n] = ker[k, (i - 1) * n .+ (1:n)]
     end
   end
   return basis

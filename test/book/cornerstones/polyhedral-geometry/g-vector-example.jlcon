@@ -1,0 +1,9 @@
+julia> P = rand_spherical_polytope(6,30)
+Polytope in ambient dimension 6
+
+julia> show(f_vector(P))
+ZZRingElem[30, 336, 1468, 2874, 2568, 856]
+julia> show(h_vector(P))
+ZZRingElem[1, 24, 201, 404, 201, 24, 1]
+julia> show(g_vector(P))
+ZZRingElem[1, 23, 177, 203]

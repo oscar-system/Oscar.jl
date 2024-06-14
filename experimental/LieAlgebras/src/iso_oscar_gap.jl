@@ -5,7 +5,7 @@
 ###############################################################################
 
 function _iso_oscar_gap_lie_algebra_functions(
-  LO::LieAlgebra{C}, LG::GAP.GapObj, coeffs_iso::MapFromFunc
+  LO::LieAlgebra{C}, LG::GapObj, coeffs_iso::MapFromFunc
 ) where {C<:FieldElem}
   basis_LG = GAPWrap.Basis(LG)
 

@@ -1,0 +1,8 @@
+julia> Q = convex_hull([0 0 0], [0 1 0; 0 0 1], [1 0 0])
+Polyhedron in ambient dimension 3
+
+julia> vertices(Q)
+0-element SubObjectIterator{PointVector{QQFieldElem}}
+
+julia> minimal_faces(Q)
+(base_points = PointVector{QQFieldElem}[[0, 0, 0]], lineality_basis = RayVector{QQFieldElem}[[1, 0, 0]])

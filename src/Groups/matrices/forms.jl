@@ -149,7 +149,7 @@ quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = SesquilinearForm(f, :
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyRingElem{T}) where T <: FieldElem
    @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homogeneous of degree 2"
-   R1 = polynomial_ring(base_ring(f), [string(parent(f).S)])[1]
+   R1 = polynomial_ring(base_ring(f), [string(parent(f).S)]; cached=false)[1]
 
    return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
 end
@@ -274,7 +274,7 @@ function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
 
    @req f.descr == :quadratic "Polynomial defined only for quadratic forms"
-   R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix) )[1]
+   R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix); cached=false)[1]
    p = zero(R)
    for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
       p += f.matrix[i,j] * R[i]*R[j]
@@ -285,22 +285,37 @@ end
 
 
 function assign_from_description(f::SesquilinearForm)
-   if f.descr == :quadratic f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   elseif f.descr == :symmetric || f.descr == :alternating f.X = GAP.Globals.BilinearFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   elseif f.descr == :hermitian f.X = GAP.Globals.HermitianFormByMatrix(map_entries(f.ring_iso, gram_matrix(f)), codomain(f.ring_iso))
-   else error("unsupported description")
-   end
+  if f.descr == :quadratic
+    f.X = GAP.Globals.QuadraticFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  elseif f.descr == :symmetric || f.descr == :alternating
+    f.X = GAP.Globals.BilinearFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  elseif f.descr == :hermitian
+    f.X = GAP.Globals.HermitianFormByMatrix(map_entries(_ring_iso(f), gram_matrix(f)), codomain(_ring_iso(f)))
+  else
+    error("unsupported description")
+  end
 end
 
+
+function _ring_iso(f::SesquilinearForm)
+  if !isdefined(f, :ring_iso)
+      f.ring_iso = iso_oscar_gap(base_ring(f))
+  end
+  return f.ring_iso
+end
+
+function GAP.julia_to_gap(f::SesquilinearForm)
+  if !isdefined(f, :X)
+    assign_from_description(f)
+  end
+  return f.X
+end
 
 function Base.getproperty(f::SesquilinearForm, sym::Symbol)
 
    if isdefined(f,sym) return getfield(f,sym) end
 
-   if sym === :ring_iso
-      f.ring_iso = iso_oscar_gap(base_ring(f))
-
-   elseif sym == :X
+   if sym == :X
       if !isdefined(f, :X)
          assign_from_description(f)
       end
@@ -346,7 +361,7 @@ function Base.:^(f::SesquilinearForm{T}, x::MatElem{T}; check=false) where T <: 
    return SesquilinearForm(m, f.descr)
 end
 
-Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^x.elm
+Base.:^(f::SesquilinearForm{T}, x::MatrixGroupElem{T}; check=false) where T <: RingElem = f^matrix(x)
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    @req f.descr!=:quadratic "Quadratic forms requires only one argument"
@@ -380,12 +395,12 @@ The radical of a quadratic form `Q` is the set of vectors `v` such that `Q(v)=0`
  and `v` lies in the radical of the corresponding bilinear form.
 """
 function radical(f::SesquilinearForm{T}) where T
-   V = VectorSpace(base_ring(f), nrows(gram_matrix(f)) )
-   R = GAP.Globals.RadicalOfForm(f.X)
+   V = vector_space(base_ring(f), nrows(gram_matrix(f)) )
+   R = GAP.Globals.RadicalOfForm(GapObj(f))
    GAPWrap.Dimension(R) == 0 && return sub(V, [])
    L = AbstractAlgebra.Generic.FreeModuleElem{T}[]
    for l in GAP.Globals.GeneratorsOfVectorSpace(R)
-      v = V([preimage(f.ring_iso, t) for t in l])
+      v = V([preimage(_ring_iso(f), t) for t in l])
       push!(L,v)
    end
    return sub(V,L)
@@ -397,7 +412,7 @@ end
 Return the Witt index of the form induced by `f` on `V/Rad(f)`.
 The Witt Index is the dimension of a maximal totally isotropic (singular for quadratic forms) subspace.
 """
-witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(f.X)
+witt_index(f::SesquilinearForm{T}) where T = GAP.Globals.WittIndex(GapObj(f))
 
 """
     is_degenerate(f::SesquilinearForm{T})
@@ -417,6 +432,6 @@ For a quadratic form `Q`, return whether `Q` is singular, i.e. `Q` has nonzero r
 """
 function is_singular(f::SesquilinearForm{T}) where T
    @req f.descr == :quadratic "The form is not quadratic"
-   return GAPWrap.IsSingularForm(f.X)
+   return GAPWrap.IsSingularForm(GapObj(f))
 end
 

@@ -3,27 +3,31 @@ function _internal_save_lp(io::IO, p::Polymake.BigObject, lp::Polymake.BigObject
   # the string to the IO object
   # to pass the object to the polymake shell we use a randomly generated variable name
   rstr = randstring(['A':'Z'; 'a':'z'], 12)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_poly", p)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_lp", lp)
-  out, err = Polymake.shell_execute("""polytope::poly2lp(\$$(rstr)_poly, \$$(rstr)_lp, $(max ? 1 : 0));""")
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_poly", p)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_lp", lp)
+  out, err = Polymake.shell_execute(
+    """polytope::poly2lp(\$$(rstr)_poly, \$$(rstr)_lp, $(max ? 1 : 0));"""
+  )
   write(io, out)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_poly", 0)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_lp", 0)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_poly", 0)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_lp", 0)
   nothing
 end
 
 function _internal_save_mps(io::IO, p::Polymake.BigObject, lp::Polymake.BigObject)
   rstr = randstring(['A':'Z'; 'a':'z'], 12)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_poly", p)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_lp", lp)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_poly", p)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_lp", lp)
   out, err = Polymake.shell_execute("""polytope::poly2mps(\$$(rstr)_poly, \$$(rstr)_lp);""")
   write(io, out)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_poly", 0)
-  Polymake.call_function(:User, :set_shell_scalar, rstr*"_lp", 0)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_poly", 0)
+  Polymake.call_function(:User, :set_shell_scalar, rstr * "_lp", 0)
   nothing
 end
 
-function _internal_save_lp(filename::String, p::Polymake.BigObject, lp::Polymake.BigObject, max::Bool)
+function _internal_save_lp(
+  filename::String, p::Polymake.BigObject, lp::Polymake.BigObject, max::Bool
+)
   Polymake.polytope.poly2lp(p, lp, max, filename)
   nothing
 end
@@ -32,8 +36,6 @@ function _internal_save_mps(filename::String, p::Polymake.BigObject, lp::Polymak
   Polymake.polytope.poly2mps(p, lp, Polymake.Set{Int}(), filename)
   nothing
 end
-
-
 
 @doc raw"""
     save_lp(target::Union{String, IO}, lp::Union{MixedIntegerLinearProgram,LinearProgram})
@@ -67,11 +69,13 @@ GENERAL
 END
 ```
 """
-function save_lp(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
-  _internal_save_lp(target,
-                    pm_object(feasible_region(lp)),
-                    pm_object(lp),
-                    lp.convention == :max)
+function save_lp(
+  target::Union{String,IO},
+  lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}},
+)
+  _internal_save_lp(
+    target, pm_object(feasible_region(lp)), pm_object(lp), lp.convention == :max
+  )
 end
 
 @doc raw"""
@@ -119,10 +123,11 @@ BOUNDS
 ENDATA
 ```
 """
-function save_mps(target::Union{String,IO}, lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}})
-  _internal_save_mps(target,
-                     pm_object(feasible_region(lp)),
-                     pm_object(lp))
+function save_mps(
+  target::Union{String,IO},
+  lp::Union{MixedIntegerLinearProgram{QQFieldElem},LinearProgram{QQFieldElem}},
+)
+  _internal_save_mps(target, pm_object(feasible_region(lp)), pm_object(lp))
 end
 
 @doc raw"""
@@ -145,7 +150,6 @@ function load_mps(file::String)
   end
 end
 
-
 @doc raw"""
     load_lp(file::String)
 
@@ -167,4 +171,3 @@ function load_lp(file::String)
     error("load_lp: cannot find LP or MILP subobject in polymake object")
   end
 end
-

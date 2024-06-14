@@ -1,7 +1,9 @@
 using JSON
 using TOPCOM_jll
 
-function _postprocess_polymake_triangs(triangs::Polymake.Array{Polymake.Set{Polymake.Set{Polymake.to_cxx_type(Int)}}})
+function _postprocess_polymake_triangs(
+  triangs::Polymake.Array{Polymake.Set{Polymake.Set{Polymake.to_cxx_type(Int)}}}
+)
   result = Vector{Vector{Int}}[]
   for triang in triangs
     push!(result, [Polymake.to_one_based_indexing(Vector{Int}(t)) for t in triang])
@@ -9,62 +11,67 @@ function _postprocess_polymake_triangs(triangs::Polymake.Array{Polymake.Set{Poly
   return result
 end
 
-function topcom_regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
+function topcom_regular_triangulations(
+  pts::AbstractCollection[PointVector]; full::Bool=false
+)
   input = homogenized_matrix(pts, 1)
-  PC = Polymake.polytope.PointConfiguration(POINTS=input)
-  result = full ? Polymake.polytope.topcom_fine_and_regular_triangulations(PC) : Polymake.polytope.topcom_regular_triangulations(PC)
+  PC = Polymake.polytope.PointConfiguration(; POINTS=input)
+  result = if full
+    Polymake.polytope.topcom_fine_and_regular_triangulations(PC)
+  else
+    Polymake.polytope.topcom_regular_triangulations(PC)
+  end
   return _postprocess_polymake_triangs(result)
 end
 
-function topcom_regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
-    input = homogenized_matrix(pts, 1)
-    inputstr = join(["["*join(input[i,:], ",")*"]" for i in 1:nrows(input)],",\n")
-    in = Pipe()
-    out = Pipe()
-    err = Pipe()
-    Base.link_pipe!(in, writer_supports_async=true)
-    Base.link_pipe!(out, reader_supports_async=true)
-    Base.link_pipe!(err, reader_supports_async=true)
-    cmd = Oscar.TOPCOM_jll.points2placingtriang()
-    if full
-        cmd = Oscar.TOPCOM_jll.points2finetriang()
-    end
-    proc = run(pipeline(`$(cmd) --regular`, stdin=in, stdout=out, stderr=err), wait=false)
-    task = @async begin
-        write(in, "[\n$inputstr\n]\n")
-        close(in)
-    end
-    close(in.out)
-    close(out.in)
-    close(err.in)
-    result = Vector{Vector{Vector{Int}}}()
-    for line in eachline(out)
-        m = match(r"{{.*}}", line)
-        triang = replace(m.match, "{"=>"[")
-        triang = replace(triang, "}"=>"]")
-        triang = convert(Vector{Vector{Int}},JSON.parse(triang))
-        push!(result, Polymake.to_one_based_indexing(triang))
-    end
-    wait(task)
-    if !success(proc)
-        msg = eof(err) ? "unknown error" : readchomp(err)
-        error("Failed to run TOPCOM: $msg")
-    end
-    return result
+function topcom_regular_triangulation(
+  pts::AbstractCollection[PointVector]; full::Bool=false
+)
+  input = homogenized_matrix(pts, 1)
+  inputstr = join(["[" * join(input[i, :], ",") * "]" for i in 1:nrows(input)], ",\n")
+  in = Pipe()
+  out = Pipe()
+  err = Pipe()
+  Base.link_pipe!(in; writer_supports_async=true)
+  Base.link_pipe!(out; reader_supports_async=true)
+  Base.link_pipe!(err; reader_supports_async=true)
+  cmd = Oscar.TOPCOM_jll.points2placingtriang()
+  if full
+    cmd = Oscar.TOPCOM_jll.points2finetriang()
+  end
+  proc = run(pipeline(`$(cmd) --regular`; stdin=in, stdout=out, stderr=err); wait=false)
+  task = @async begin
+    write(in, "[\n$inputstr\n]\n")
+    close(in)
+  end
+  close(in.out)
+  close(out.in)
+  close(err.in)
+  result = Vector{Vector{Vector{Int}}}()
+  for line in eachline(out)
+    m = match(r"{{.*}}", line)
+    triang = replace(m.match, "{" => "[")
+    triang = replace(triang, "}" => "]")
+    triang = convert(Vector{Vector{Int}}, JSON.parse(triang))
+    push!(result, Polymake.to_one_based_indexing(triang))
+  end
+  wait(task)
+  if !success(proc)
+    msg = eof(err) ? "unknown error" : readchomp(err)
+    error("Failed to run TOPCOM: $msg")
+  end
+  return result
 end
-
 
 ################################################################################
 
 function _is_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
   ad = ambient_dim(sop)
   for mc in maximal_cells(sop)
-     ad == length(mc)-1 || return false
+    ad == length(mc) - 1 || return false
   end
   return true
 end
-
-
 
 function _is_full_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
   _is_triangulation(sop) || return false
@@ -72,9 +79,8 @@ function _is_full_triangulation(sop::SubdivisionOfPoints{QQFieldElem})
   return true
 end
 
-_is_star_triangulation(sop::SubdivisionOfPoints{QQFieldElem}) = all(cell -> 1 in cell, maximal_cells(sop))
-
-
+_is_star_triangulation(sop::SubdivisionOfPoints{QQFieldElem}) =
+  all(cell -> 1 in cell, maximal_cells(sop))
 
 function _find_full_star_triangulation(pts::ZZMatrix; seed::Int=-1)
   seed == -1 || Random.seed!(seed)
@@ -91,16 +97,14 @@ function _find_full_star_triangulation(pts::ZZMatrix; seed::Int=-1)
   return collect(maximal_cells(sop))
 end
 
-
-
 function _is_star_triangulation(triang::Vector{Vector{Int}})
-    u = Set{Int}()
-    for v in triang
-        if !(1 in v)
-            return false
-        end
+  u = Set{Int}()
+  for v in triang
+    if !(1 in v)
+      return false
     end
-    return true
+  end
+  return true
 end
 
 @doc raw"""
@@ -135,13 +139,16 @@ julia> all_triangulations(V)
 ```
 """
 function all_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
-    input = homogenized_matrix(pts, 1)
-    PC = Polymake.polytope.PointConfiguration(POINTS=input)
-    PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    result = full ? Polymake.polytope.topcom_fine_triangulations(PC) : Polymake.polytope.topcom_all_triangulations(PC)
-    return _postprocess_polymake_triangs(result)
+  input = homogenized_matrix(pts, 1)
+  PC = Polymake.polytope.PointConfiguration(; POINTS=input)
+  PC.FULL_DIM::Bool || error("Input points must have full rank.")
+  result = if full
+    Polymake.polytope.topcom_fine_triangulations(PC)
+  else
+    Polymake.polytope.topcom_all_triangulations(PC)
+  end
+  return _postprocess_polymake_triangs(result)
 end
-
 
 @doc raw"""
     all_triangulations(P::Polyhedron)
@@ -167,11 +174,10 @@ julia> all_triangulations(c)
 ```
 """
 function all_triangulations(P::Polyhedron)
-    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
-    is_bounded(P) || error("Input polytope must be bounded.")
-    return all_triangulations(vertices(P); full=false)
+  is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+  is_bounded(P) || error("Input polytope must be bounded.")
+  return all_triangulations(vertices(P); full=false)
 end
-
 
 @doc raw"""
     star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false)
@@ -186,13 +192,15 @@ a simplex as the set of indices of the vertices of the simplex. I.e. the
 `Vector{Int}` `[1,2,4]` corresponds to the simplex that is the convex hull of
 the first, second, and fourth input point.
 """
-function star_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false)
-    if regular
-        result = regular_triangulations(pts; full=full)
-    else
-        result = all_triangulations(pts; full=full)
-    end
-    return [t for t in result if _is_star_triangulation(t)]
+function star_triangulations(
+  pts::AbstractCollection[PointVector]; full::Bool=false, regular::Bool=false
+)
+  if regular
+    result = regular_triangulations(pts; full=full)
+  else
+    result = all_triangulations(pts; full=full)
+  end
+  return [t for t in result if _is_star_triangulation(t)]
 end
 
 @doc raw"""
@@ -238,18 +246,15 @@ julia> star_triangulations(P)
 ```
 """
 function star_triangulations(P::Polyhedron; full::Bool=false, regular::Bool=false)
-    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
-    is_bounded(P) || error("Input polytope must be bounded.")
-    zero = [0 for i in 1:ambient_dim(P)]
-    @req zero in P "Input polyhedron must contain origin."
-    V = vertices(P)
-    V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
-    pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
-    return pts, star_triangulations(pts; full=full, regular=regular)
+  is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+  is_bounded(P) || error("Input polytope must be bounded.")
+  zero = [0 for i in 1:ambient_dim(P)]
+  @req zero in P "Input polyhedron must contain origin."
+  V = vertices(P)
+  V = [Vector{QQFieldElem}(v) for v in V if !iszero(v)]
+  pts = vcat(matrix(QQ, transpose(zero)), matrix(QQ, transpose(hcat(V...))))
+  return pts, star_triangulations(pts; full=full, regular=regular)
 end
-
-
-
 
 @doc raw"""
     regular_triangulations(pts::AbstractCollection[PointVector]; full=false)
@@ -287,12 +292,11 @@ julia> regular_triangulations(V)
 ```
 """
 function regular_triangulations(pts::AbstractCollection[PointVector]; full::Bool=false)
-    input = homogenized_matrix(pts, 1)
-    PC = Polymake.polytope.PointConfiguration(POINTS=input)
-    PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    return topcom_regular_triangulations(pts; full=full)
+  input = homogenized_matrix(pts, 1)
+  PC = Polymake.polytope.PointConfiguration(; POINTS=input)
+  PC.FULL_DIM::Bool || error("Input points must have full rank.")
+  return topcom_regular_triangulations(pts; full=full)
 end
-
 
 @doc raw"""
     regular_triangulations(P::Polyhedron)
@@ -323,14 +327,10 @@ julia> regular_triangulations(c)
 ```
 """
 function regular_triangulations(P::Polyhedron)
-    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
-    is_bounded(P) || error("Input polytope must be bounded.")
-    return regular_triangulations(vertices(P); full=false)
+  is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+  is_bounded(P) || error("Input polytope must be bounded.")
+  return regular_triangulations(vertices(P); full=false)
 end
-
-
-
-
 
 @doc raw"""
     regular_triangulation(pts::AbstractCollection[PointVector]; full=false)
@@ -369,12 +369,11 @@ julia> regular_triangulation(V)
 ```
 """
 function regular_triangulation(pts::AbstractCollection[PointVector]; full::Bool=false)
-    input = homogenized_matrix(pts, 1)
-    PC = Polymake.polytope.PointConfiguration(POINTS=input)
-    PC.FULL_DIM::Bool || error("Input points must have full rank.")
-    return topcom_regular_triangulation(pts; full=full)
+  input = homogenized_matrix(pts, 1)
+  PC = Polymake.polytope.PointConfiguration(; POINTS=input)
+  PC.FULL_DIM::Bool || error("Input points must have full rank.")
+  return topcom_regular_triangulation(pts; full=full)
 end
-
 
 @doc raw"""
     regular_triangulation(P::Polyhedron)
@@ -406,13 +405,10 @@ julia> regular_triangulation(c)
 ```
 """
 function regular_triangulation(P::Polyhedron)
-    is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
-    is_bounded(P) || error("Input polytope must be bounded.")
-    return regular_triangulation(vertices(P); full=false)
+  is_fulldimensional(P) || error("Input polytope must be full-dimensional.")
+  is_bounded(P) || error("Input polytope must be bounded.")
+  return regular_triangulation(vertices(P); full=false)
 end
-
-
-
 
 @doc raw"""
     secondary_polytope(P::Polyhedron)
@@ -431,8 +427,10 @@ julia> sc = secondary_polytope(c)
 Polytope in ambient dimension 8
 ```
 """
-function secondary_polytope(P::Polyhedron{T}) where T<:scalar_types
-    return Polyhedron{T}(Polymake.polytope.secondary_polytope(pm_object(P)), coefficient_field(P))
+function secondary_polytope(P::Polyhedron{T}) where {T<:scalar_types}
+  return Polyhedron{T}(
+    Polymake.polytope.secondary_polytope(pm_object(P)), coefficient_field(P)
+  )
 end
 
 @doc raw"""
@@ -453,13 +451,9 @@ true
 ```
 """
 function is_regular(pts::AbstractCollection[PointVector], cells::Vector{Vector{Int64}})
-    as_sop = subdivision_of_points(pts,cells)
-    is_regular(as_sop)
+  as_sop = subdivision_of_points(pts, cells)
+  is_regular(as_sop)
 end
-
-
-
-
 
 @doc raw"""
     subdivision_of_points(P::Polyhdron, cells::IncidenceMatrix)
@@ -483,8 +477,8 @@ julia> S = subdivision_of_points(C, cells)
 Subdivision of points in ambient dimension 2
 ```
 """
-subdivision_of_points(P::Polyhedron, cells::IncidenceMatrix) = subdivision_of_points(vertices(P), cells)
-
+subdivision_of_points(P::Polyhedron, cells::IncidenceMatrix) =
+  subdivision_of_points(vertices(P), cells)
 
 @doc raw"""
     subdivision_of_points(P::Polyhdron, weights::AbstractVector)
@@ -508,14 +502,17 @@ julia> S = subdivision_of_points(C, weights)
 Subdivision of points in ambient dimension 2
 ```
 """
-subdivision_of_points(P::Polyhedron, weights::AbstractVector) = subdivision_of_points(vertices(P), weights)
-subdivision_of_points(P::Polyhedron, cells::Vector{Vector{Int64}}) = subdivision_of_points(vertices(P), IncidenceMatrix(cells))
-subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) = subdivision_of_points(point_matrix(Iter), cells)
-subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) = subdivision_of_points(point_matrix(Iter), weights)
-subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}) = subdivision_of_points(point_matrix(Iter), IncidenceMatrix(cells))
-
-
-
+subdivision_of_points(P::Polyhedron, weights::AbstractVector) =
+  subdivision_of_points(vertices(P), weights)
+subdivision_of_points(P::Polyhedron, cells::Vector{Vector{Int64}}) =
+  subdivision_of_points(vertices(P), IncidenceMatrix(cells))
+subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, cells::IncidenceMatrix) =
+  subdivision_of_points(point_matrix(Iter), cells)
+subdivision_of_points(Iter::SubObjectIterator{<:PointVector}, weights::AbstractVector) =
+  subdivision_of_points(point_matrix(Iter), weights)
+subdivision_of_points(
+  Iter::SubObjectIterator{<:PointVector}, cells::Vector{Vector{Int64}}
+) = subdivision_of_points(point_matrix(Iter), IncidenceMatrix(cells))
 
 @doc raw"""
     gkz_vector(SOP::SubdivisionOfPoints)
@@ -539,14 +536,14 @@ julia> gkz_vector(Triang)
 ```
 """
 function gkz_vector(SOP::SubdivisionOfPoints)
-    V = SOP.pm_subdivision.POINTS
-    T = SOP.pm_subdivision.MAXIMAL_CELLS
-    n = ambient_dim(SOP)
-    for i in 1:size(T,1)
-        @assert sum(T[i,:]) == n+1 #poor check that subdivision is triangulation
-    end
-    TT = [Polymake.to_zero_based_indexing(Polymake.row(T,i)) for i in 1:Polymake.nrows(T)]
-    F = coefficient_field(SOP)
-    tt = elem_type(F)
-    tt[F(e) for e in  Polymake.call_function(:polytope, :gkz_vector, V, TT)]
+  V = SOP.pm_subdivision.POINTS
+  T = SOP.pm_subdivision.MAXIMAL_CELLS
+  n = ambient_dim(SOP)
+  for i in 1:size(T, 1)
+    @assert sum(T[i, :]) == n + 1 #poor check that subdivision is triangulation
+  end
+  TT = [Polymake.to_zero_based_indexing(Polymake.row(T, i)) for i in 1:Polymake.nrows(T)]
+  F = coefficient_field(SOP)
+  tt = elem_type(F)
+  tt[F(e) for e in Polymake.call_function(:polytope, :gkz_vector, V, TT)]
 end

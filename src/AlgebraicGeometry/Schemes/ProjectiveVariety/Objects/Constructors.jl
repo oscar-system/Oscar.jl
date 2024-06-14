@@ -13,7 +13,7 @@ end
 
 
 @doc raw"""
-    variety(I::MPolyIdeal; is_prime::Bool, check::Bool=true) -> ProjectiveVariety
+    variety(I::MPolyIdeal{<:MPolyDecRingElem}; check::Bool=true, is_radical::Bool=false) -> ProjectiveVariety
 
 Return the projective variety defined by the homogeneous prime ideal ``I``.
 
@@ -41,7 +41,7 @@ julia> dim(X)
 julia> Y = variety(ideal([s0^3 + s1^3 + s2^3 + s3^3, s0]))
 Projective variety
   in projective 3-space over QQ with coordinates [s0, s1, s2, s3]
-defined by ideal (s0, s1^3 + s2^3 + s3^3)
+defined by ideal (s0^3 + s1^3 + s2^3 + s3^3, s0)
 
 julia> dim(Y)
 1

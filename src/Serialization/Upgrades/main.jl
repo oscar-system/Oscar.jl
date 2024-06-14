@@ -92,6 +92,7 @@ include("0.12.0.jl")
 include("0.12.2.jl")
 include("0.13.0.jl")
 include("0.15.0.jl")
+include("1.1.0.jl")
 
 upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)

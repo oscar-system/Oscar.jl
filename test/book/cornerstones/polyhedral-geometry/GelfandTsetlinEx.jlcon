@@ -1,0 +1,20 @@
+julia> lambda = Partition([3,1,1])
+[3, 1, 1]
+
+julia> GT = gelfand_tsetlin_polytope(lambda)
+Polyhedron in ambient dimension 6
+
+julia> lattice_points(GT)
+6-element SubObjectIterator{PointVector{ZZRingElem}}:
+ [3, 1, 1, 1, 1, 1]
+ [3, 1, 1, 2, 1, 1]
+ [3, 1, 1, 2, 1, 2]
+ [3, 1, 1, 3, 1, 1]
+ [3, 1, 1, 3, 1, 2]
+ [3, 1, 1, 3, 1, 3]
+
+julia> ehrhart_polynomial(GT)
+2*x^2 + 3*x + 1
+
+julia> volume(project_full(GT))
+2

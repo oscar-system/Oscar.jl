@@ -11,8 +11,8 @@
         QQFieldElem,
         residue_ring(ZZ, ZZ(6))[1],
         residue_ring(ZZ, 6)[1],
-        Nemo.fpField(UInt(7)),
-        Nemo.FpField(ZZRingElem(7)),
+        fpField(UInt(7)),
+        FpField(ZZRingElem(7)),
         #PadicField(7, 30),
         #tropical_semiring()
       )

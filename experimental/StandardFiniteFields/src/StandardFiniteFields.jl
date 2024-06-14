@@ -5,7 +5,7 @@ export standard_finite_field
 
 
 const IntegerUnion = Oscar.IntegerUnion
-const PrimeField = Union{Nemo.fpField,Nemo.FpField}
+const PrimeField = Union{fpField,FpField}
 const PrimeFieldElem = Union{fpFieldElem,FpFieldElem}
 const PrimeFieldMatrix = Union{FpMatrix,fpMatrix}
 
@@ -23,10 +23,11 @@ function pop_largest_factor!(f::Fac{ZZRingElem})
 end
 
 # TODO : Should be fixed in Nemo
-function (k::Nemo.FpField)(a::Vector)
+function (k::FpField)(a::Vector)
   @assert isone(length(a))
   return k(a[1])
 end
+
 function (k::FqPolyRepField)(a::Vector)
   return k(polynomial(Native.GF(ZZ(characteristic(k))), a))
 end
@@ -451,7 +452,7 @@ end
 @doc raw"""
     standard_finite_field(p::Union{ZZRingElem, Integer}, n::Union{ZZRingElem, Integer}) -> FinField
 
-Returns a finite field of order $p^n$.
+Return a finite field of order $p^n$.
 
 # Examples
 ```jldoctest

@@ -30,7 +30,7 @@ See [`inclusion_morphism(::AbsAffineScheme, ::AbsAffineScheme)`](@ref) for a way
 
 ```@docs
 affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
+affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
 ```
 
 ### Closed subschemes
@@ -107,7 +107,10 @@ is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
 ## Methods
 ```@docs
 tangent_space(X::AbsAffineScheme{<:Field}, P::AbsAffineRationalPoint)
+is_normal(X::AbsAffineScheme; check::Bool=true)
+normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
 ```
+
 ### Comparison
 
 Two schemes ``X`` and ``Y`` can be compared if their ambient affine spaces are equal.

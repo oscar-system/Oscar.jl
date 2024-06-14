@@ -126,7 +126,7 @@ Internal method to check whether a module `M` was created as
 some ``p``-th exterior power of the Kaehler differentials 
 ``Ω¹(R/𝕜)`` of some ``𝕜``-algebra ``R``. 
 
-Returns `(true, R, p)` in the affirmative case and 
+Return `(true, R, p)` in the affirmative case and 
 `(false, base_ring(M), 0)` otherwise.
 """
 function is_kaehler_differential_module(M::ModuleFP)
@@ -138,7 +138,7 @@ end
 @doc raw"""
     de_rham_complex(R::Ring; cached::Bool=true)
 
-Constructs the relative de Rham complex of a ``𝕜``-algebra `R` 
+Construct the relative de Rham complex of a ``𝕜``-algebra `R`
 as a `ComplexOfMorphisms`.
 """
 function de_rham_complex(R::Ring; cached::Bool=true)

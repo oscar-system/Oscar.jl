@@ -1281,5 +1281,9 @@ Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian 
 function schubert_classes(G::AbstractVariety, m::Int)
   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
   S, Q = G.bundles
-  [schubert_class(G, λ) for λ in partitions(m, rank(S), rank(Q))]
+  res = elem_type(G.ring)[]
+  for i in 0:rank(S)
+    append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
+  end
+  return res
 end

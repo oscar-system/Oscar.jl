@@ -319,7 +319,7 @@ function matrix_action_on_cones(C::Cone{QQFieldElem}, M::QQMatrix)
 end
 
 function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) where T
-    matgens = [image(ghom, g).elm for g in gens(domain(ghom))]
+    matgens = [matrix(image(ghom, g)) for g in gens(domain(ghom))]
     act = matrix_action_on_cones
    
     result = Vector{Vector{Cone{T}}}([])
@@ -352,7 +352,7 @@ function action_on_orbit_cone_orbits(orbs::Vector{Vector{Cone{T}}}, ghom::GAPGro
     end
 
     Ggens = gens(G)
-    matgens = [image(ghom, g).elm for g in Ggens]
+    matgens = [matrix(image(ghom, g)) for g in Ggens]
     act = matrix_action_on_cones
     
     res = GAPGroupHomomorphism[]
@@ -533,7 +533,7 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
     #   each given by its defining rays, via the row indices (zero based)
     #   in the matrix of rays.
     matgens = [image(ghom, x) for x in gens(domain(ghom))]
-    mats_transp = [transpose(x.elm) for x in matgens]
+    mats_transp = [transpose(matrix(x)) for x in matgens]
 
     # Note that the matrices have been transposed because we use
     # matrix times vector multiplication.

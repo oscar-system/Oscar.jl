@@ -1,0 +1,8 @@
+julia> P1 = projective_space(NormalToricVariety,1)
+Normal toric variety
+
+julia> l = toric_line_bundle(P1*P1, [-3,1])
+Toric line bundle on a normal toric variety
+
+julia> cohomology(l, 1)
+4

@@ -281,7 +281,7 @@ end
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
-    V = VectorSpace(F, n)
+    V = vector_space(F, n)
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
@@ -437,4 +437,32 @@ end
   @test rep[1]
   @test inv(rep[2]) * x == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
+end
+
+@testset "G-sets of FinGenAbGroups" begin
+  # Define an action on class functions.
+  function galois_conjugate(chi::Oscar.GAPGroupClassFunction,
+                            sigma::QQAbAutomorphism)
+    return Oscar.class_function(parent(chi), [x^sigma for x in values(chi)])
+  end
+
+  # Compute Galois orbits on irreducible characters.
+  t = character_table("L2(8)")
+  N = lcm(map(conductor, t))
+  u, mu = unit_group(quo(ZZ, N)[1])
+  @test u isa FinGenAbGroup
+  f = function(chi, g)
+    return galois_conjugate(chi, QQAbAutomorphism(Int(lift(mu(g)))))
+  end
+
+  orb = orbit(u, f, t[3])
+  @test length(collect(orb)) == 3
+
+  Omega = gset(u, f, t)
+  orbs = orbits(Omega)
+  @test length(orbs) == 5
+  @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
+  @test all(o -> conductor(sum(collect(o))) == 1, orbs)
+  o = orbs[findfirst(o -> length(o) == 3, orbs)]
+  @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
 end

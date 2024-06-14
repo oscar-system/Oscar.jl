@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Monomial Orderings
+# [Monomial Orderings](@id monomial_orderings)
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
 be the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
@@ -37,7 +35,7 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 !!! note
     The lexicograpical monomial ordering specifies the default way of storing and displaying multivariate polynomials in OSCAR (terms are sorted in descending order).
     The other orderings which can be attached to a multivariate polynomial ring are the degree lexicographical ordering  and the degree reverse lexicographical
-    ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+    ordering. Independently of the attached orderings, Gröbner bases can be computed with respect to any monomial ordering. See the section on [Gröbner bases](@ref gb_fields).
 
 In this section, we show how to create monomial orderings in OSCAR. 
 
@@ -410,7 +408,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the
 julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 4 variables over QQ
+Free module of rank 3 over R
 
 julia> o1 = degrevlex(R)*invlex(gens(F))
 degrevlex([w, x, y, z])*invlex([gen(1), gen(2), gen(3)])

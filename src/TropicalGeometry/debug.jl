@@ -7,8 +7,7 @@ println(base_ring(inI)) # same print as input for tropical_link
 x = gens(Kx)
 inI1 = inI + ideal(Kx,[x[1]+1])
 
-singular_assure(inI1)
-singularIdeal = inI1.gens.S
+singularIdeal = singular_generators(inI1)
 singularRing = base_ring(singularIdeal)
 singularIdeal = Singular.satstd(singularIdeal,Singular.MaximalIdeal(singularRing,1))
 inI1 = ideal(Kx,singularIdeal)

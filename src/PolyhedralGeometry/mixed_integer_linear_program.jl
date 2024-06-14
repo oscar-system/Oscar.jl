@@ -57,11 +57,15 @@ function mixed_integer_linear_program(
   integer_variables=Vector{Int64}([]),
   k=0,
   convention=:max,
-  ) where {T<:scalar_types}
+) where {T<:scalar_types}
   P = polyhedron(T, A, b)
   return mixed_integer_linear_program(
-    P, c, coefficient_field(P);
-    integer_variables=integer_variables, k=k, convention=convention
+    P,
+    c,
+    coefficient_field(P);
+    integer_variables=integer_variables,
+    k=k,
+    convention=convention,
   )
 end
 

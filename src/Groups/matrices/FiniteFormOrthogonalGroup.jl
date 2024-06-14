@@ -1024,7 +1024,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     if i == n
       # f is a full isometry
       g = G(hom(S, S, f), check = false)
-      if !(g in G.X)
+      if !(g in GapObj(G))
         G = Oscar._orthogonal_group(S, [matrix(s) for s in union(Hecke.gens(G), [g])], check=false)
         if !isempty(waiting)
           waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]

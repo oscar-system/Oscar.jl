@@ -1,0 +1,7 @@
+julia> ch = character_table("R(27)")[16];
+
+julia> degree(ch)
+18278
+
+julia> Oscar.OrthogonalDiscriminants.od_from_p_subgroup(ch, 3)
+(true, "-3")

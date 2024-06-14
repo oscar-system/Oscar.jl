@@ -32,7 +32,7 @@ end
   I2 = ideal(S, [x, z])
   I3 = ideal(S, [y, z])
   I = I1*I2*I3
-  II = simplify!(IdealSheaf(IP2_proj, I))
+  II = simplify(IdealSheaf(IP2_proj, I))
   bl = blow_up(II)
   X = domain(projection(bl))
   set_attribute!(X, :is_irreducible, true)

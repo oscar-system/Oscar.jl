@@ -40,7 +40,7 @@ graph(f::AbsAffineSchemeMor)
 In addition to the standard getters and methods for instances
 of `AffineSchemeMor`, we also have
 ```@docs
-    image_ideal(f::ClosedEmbedding)
+image_ideal(f::ClosedEmbedding)
 ```
 
 ### Undocumented

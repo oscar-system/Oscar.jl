@@ -1454,13 +1454,13 @@ total: 1  3  2
 ```
 """
 function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
+  @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
   rng = Hecke.map_range(C)
   n = first(rng)
   for i in 0:n
     module_degrees = F[i].d
-    module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
     for degree in module_degrees
       idx = (i, degree)
       generator_count[idx] = get(generator_count, idx, 0) + 1
@@ -1498,7 +1498,7 @@ function Base.show(io::IO, b::BettiTable)
     print(io, "Empty table")
     return
   end
-  
+
   T = induce_shift(b.B)
   x = collect(keys(T))
   if isempty(x)
@@ -1513,7 +1513,7 @@ function Base.show(io::IO, b::BettiTable)
     col_width_from_header = ndigits(abs(j))# + (j < 0 ? 1 : 0)
     column_widths[j] = max(col_width_from_sum, col_width_from_header) + 2
   end
-  
+
   if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
@@ -1558,7 +1558,6 @@ function Base.show(io::IO, b::BettiTable)
           print(io, " "^(column_widths[i_total] - ndigits(sum_row)-1))
         end
       end
-      print(io, "\n")
     end
   else
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
@@ -1609,8 +1608,6 @@ function Base.show(io::IO, b::BettiTable)
     end
   end
 end
-
-
 
 
 
@@ -2155,6 +2152,8 @@ Return the underlying ring of `F`.
 """
 base_ring(F::FreeMod_dec) = forget_decoration(F).R
 
+base_ring_type(::Type{FreeMod_dec{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     rank(F::FreeMod_dec)
 
@@ -2574,7 +2573,6 @@ julia> betti_table(FA)
 ------------------
 total: 1  5  6  2  
 
-
 julia> minimal_betti_table(FA)
        0  1  2  3  
 ------------------
@@ -2633,7 +2631,10 @@ function generators_of_degree(
   return [g for g in gens(F) if degree(g) == d]
 end
 
-function _indices_of_generators_of_degree(F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true) where {T<:MPolyDecRingElem}
+function _indices_of_generators_of_degree(
+    F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true
+  ) where {T<:Union{MPolyDecRingElem{<:FieldElem}, 
+                    MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}}}
   return Int[i for (i, g) in enumerate(gens(F)) if degree(g; check) == d]
 end
 
@@ -2641,8 +2642,10 @@ function _constant_sub_matrix(
     phi::FreeModuleHom{T, T},
     d::FinGenAbGroupElem;
     check::Bool=true
-  ) where {RET<:MPolyDecRingElem{<:FieldElem}, T<:FreeMod{RET}}
-  S = base_ring(domain(phi))::MPolyDecRing
+  ) where {RET<:Union{MPolyDecRingElem{<:FieldElem}, 
+                      MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}
+                     }, T<:FreeMod{RET}}
+  S = base_ring(domain(phi))::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
   kk = coefficient_ring(S)::Field
   F = domain(phi)
   G = codomain(phi)
@@ -2657,11 +2660,14 @@ function _constant_sub_matrix(
     for (j, k) in enumerate(ind_cod)
       success, c = _has_index(v, k)
       !success && continue
-      result[i, j] = first(coefficients(c))
+      result[i, j] = _constant_coeff(c)
     end
   end
   return ind_dom, ind_cod, result
 end
+
+_constant_coeff(f::MPolyDecRingElem) = first(coefficients(f))
+_constant_coeff(f::MPolyQuoRingElem) = first(coefficients(lift(f)))
 
 # TODO: This will be provided soon from different sources.
 function complex(F::FreeResolution) 
@@ -2681,11 +2687,15 @@ Given a finitely presented graded module `M` over a $\mathbb Z$-graded multivari
 polynomial ring with positive weights, return the truncation of `M` at degree `g`.
 
 Put more precisely, return the truncation as an object of type `SubquoModule`. 
+
 Additionally, if `N` denotes this object,
+
 - return the inclusion map `N` $\to$ `M` if `task = :with_morphism` (default),
 - return and cache the inclusion map `N` $\to$ `M` if `task = :cache_morphism`,
 - do none of the above if `task = :none`.
+
 If `task = :only_morphism`, return only the inclusion map.
+
     truncate(M::ModuleFP, d::Int, task::Symbol = :with_morphism)
 
 Given a module `M` as above, and given an integer `d`, convert `d` into an element `g`
@@ -3101,10 +3111,9 @@ function rand_homogeneous(R::MPolyRing, degree::Int)
       throw(ArgumentError("Base ring is not finite"))
   end
   n = nvars(R)
-  comps = weak_compositions(degree, n)
   M = MPolyBuildCtx(R)
-  for p in comps 
-      push_term!(M, rand(K), p)
+  for p in weak_compositions(degree, n)
+    push_term!(M, rand(K), data(p))
   end
   return finish(M)
 end

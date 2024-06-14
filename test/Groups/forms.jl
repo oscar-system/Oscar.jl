@@ -24,7 +24,7 @@
    @test f isa SesquilinearForm
    @test gram_matrix(f)==B
    @test is_hermitian(f)
-   @test f.X isa GAP.GapObj
+   @test GAP.Obj(f) isa GapObj
    @test_throws AssertionError f = symmetric_form(B)
    @test_throws AssertionError f = alternating_form(B)
    @test_throws ArgumentError corresponding_quadratic_form(f)
@@ -83,7 +83,7 @@ end
 
 @testset "Evaluating forms" begin
    F,z = finite_field(3,2,"z")
-   V=VectorSpace(F,6)
+   V=vector_space(F,6)
 
    x = matrix(F,6,6,[1,0,0,0,z+1,0,0,0,0,2,1+2*z,1,0,0,1,0,0,z,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,1])
    f = alternating_form(x-transpose(x))
@@ -121,7 +121,7 @@ end
 
 @testset "Methods with forms" begin
    F = GF(5,1)
-   V = VectorSpace(F,6)
+   V = vector_space(F,6)
    x = zero_matrix(F,6,6)
    f = symmetric_form(x)
    @test radical(f)[1]==sub(V,gens(V))[1]
@@ -388,14 +388,14 @@ end
    L = invariant_sesquilinear_forms(G)
    @testset for f in L
        for g in gens(G)
-          @test g.elm*f*conjugate_transpose(g.elm)==f
+          @test matrix(g)*f*conjugate_transpose(matrix(g))==f
        end
    end
    G = GO(-1,4,3)
    L = invariant_bilinear_forms(G)
    @testset for f in L
        for g in gens(G)
-          @test g.elm*f*transpose(g.elm)==f
+          @test matrix(g)*f*transpose(matrix(g))==f
        end
    end
    L = invariant_quadratic_forms(G)
@@ -450,7 +450,7 @@ end
    end
    B = Oscar.invariant_bilinear_form(G)
    @testset for g in gens(G)
-      @test g.elm*B*transpose(g.elm)==B
+      @test matrix(g)*B*transpose(matrix(g))==B
    end
    L = preserved_sesquilinear_forms(G)
    @testset for f in L
@@ -469,11 +469,11 @@ end
    end
    B = Oscar.invariant_bilinear_form(G)
    @testset for g in gens(G)
-      @test g.elm*B*transpose(g.elm)==B
+      @test matrix(g)*B*transpose(matrix(g))==B
    end
    B = Oscar.invariant_quadratic_form(G)
    @testset for g in gens(G)
-      @test is_alternating(g.elm*B*transpose(g.elm)-B)
+      @test is_alternating(matrix(g)*B*transpose(matrix(g))-B)
    end
 
    G = GU(4,5)
@@ -485,7 +485,7 @@ end
    end
    B = Oscar.invariant_sesquilinear_form(G)
    @testset for g in gens(G)
-      @test g.elm*B*conjugate_transpose(g.elm)==B
+      @test matrix(g)*B*conjugate_transpose(matrix(g))==B
    end
 
    G = general_linear_group(2, 3)

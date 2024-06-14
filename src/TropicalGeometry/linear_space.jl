@@ -287,7 +287,7 @@ end
 @doc raw"""
     tropical_linear_space(I::MPolyIdeal, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
 
-Return the tropicalization of the vanishing set of `I` with respect to the tropical semiring map `nu`.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Return the tropicalization of the vanishing set of `I` with respect to the tropical semiring map `nu`.  Requires the generators of `I` to be linear and homogeneous.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
 # Examples
 
@@ -310,6 +310,9 @@ Min tropical linear space
 function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
     # initialize nu as the trivial valuation if not specified by user
     isnothing(nu) && (nu=tropical_semiring_map(coefficient_ring(I)))
+
+    # check that the input ideal is homogeneous and of degree 1
+    @req all(isone, total_degree.(Iterators.flatten(monomials.(gens(I))))) "generators of ideal must be linear and homogeneous"
 
     x = gens(base_ring(I))
     G = gens(I)

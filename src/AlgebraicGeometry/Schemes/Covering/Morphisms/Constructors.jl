@@ -74,7 +74,7 @@ function refinement_morphism(ref::Covering, orig::Covering)
   for U in patches(ref)
     inc, h = _find_chart(U, orig)
     # TODO: construct and cache the inverse on image
-    map_dict[U] = PrincipalOpenEmbedding(inc, h)
+    map_dict[U] = PrincipalOpenEmbedding(inc, h; check=false)
   end
-  return CoveringMorphism(ref, orig, map_dict)
+  return CoveringMorphism(ref, orig, map_dict; check=false)
 end

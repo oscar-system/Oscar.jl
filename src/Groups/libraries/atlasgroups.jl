@@ -29,8 +29,7 @@ ERROR: ArgumentError: the group atlas does not provide a representation for M
 function atlas_group(name::String)
   G = GAP.Globals.AtlasGroup(GapObj(name))
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $name"
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
@@ -40,8 +39,7 @@ function atlas_group(::Type{T}, name::String) where T <: Union{PermGroup, Matrix
     G = GAP.Globals.AtlasGroup(GapObj(name), GAP.Globals.IsMatrixGroup, true)::GapObj
   end
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation of type $T for $name"
-  TT = _get_type(G)
-  return TT(G)
+  return _oscar_group(G)
 end
 
 
@@ -66,7 +64,7 @@ Permutation group of degree 5 and order 60
 function atlas_group(info::Dict)
   gapname = info[:name]
   l = GAP.Globals.AGR.MergedTableOfContents(GapObj("all"), GapObj(gapname))::GapObj
-  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GAP.GapObj}(l))
+  pos = findfirst(r -> String(r.repname) == info[:repname], Vector{GapObj}(l))
   @req (pos !== nothing) "no Atlas group for $info"
   G = GAP.Globals.AtlasGroup(l[pos])
   @req (G !== GAP.Globals.fail) "the group atlas does not provide a representation for $info"
@@ -81,8 +79,7 @@ function atlas_group(info::Dict)
     matgrp.X = G
     return matgrp
   else
-    TT = _get_type(G)
-    return TT(G)
+    return _oscar_group(G)
   end
 end
 
@@ -130,10 +127,10 @@ Permutation group of degree 11 and order 720
 ```
 """
 function atlas_subgroup(G::GAPGroup, nr::Int)
-  @req GAP.Globals.HasAtlasRepInfoRecord(G.X) "$G was not constructed with atlas_group"
-  info = GAP.Globals.AtlasRepInfoRecord(G.X)
+  @req GAP.Globals.HasAtlasRepInfoRecord(GapObj(G)) "$G was not constructed with atlas_group"
+  info = GAP.Globals.AtlasRepInfoRecord(GapObj(G))
   @req (info.groupname == info.identifier[1]) "$G was not constructed with atlas_group"
-  H = GAP.Globals.AtlasSubgroup(G.X, nr)
+  H = GAP.Globals.AtlasSubgroup(GapObj(G), nr)
   if H === GAP.Globals.fail
     name = string(info.groupname)
     error("the group atlas does not provide the restriction to the $nr-th class of maximal subgroups of $name")
@@ -218,7 +215,7 @@ function all_atlas_group_infos(name::String, L...)
         iso = iso_oscar_gap(data)
         push!(gapargs, gapfunc, codomain(iso))
       elseif func === character
-        push!(gapargs, gapfunc, data.values)
+        push!(gapargs, gapfunc, GapObj(data))
       else
         # we can translate `data` to GAP
         push!(gapargs, gapfunc, GAP.Obj(data))
@@ -309,7 +306,7 @@ function atlas_program(name, paras...)
     slp = GAP.Globals.AtlasProgram(GapObj(name), GapObj("classes"))::GapObj
     slp === GAP.Globals.fail && return nothing
     gapcode = GAP.Globals.LinesOfStraightLineProgram(slp.program)::GapObj
-    juliacode = GAP.gap_to_julia(gapcode, recursive = true)
+    juliacode = GAP.gap_to_julia(gapcode; recursive = true)
     return Oscar.StraightLinePrograms.GAPSLProgram(juliacode)
   else
     error("not yet ...")

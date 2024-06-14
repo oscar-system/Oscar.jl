@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Group characters
@@ -112,6 +110,7 @@ character_field
 conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
+galois_orbit_sum
 indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
@@ -142,6 +141,7 @@ orders_class_representatives
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 regular_character(tbl::GAPGroupCharacterTable)
+linear_characters(tbl::GAPGroupCharacterTable)
 ```
 
 The following properties of a group can be read off from its
@@ -165,6 +165,7 @@ is_supersolvable(tbl::GAPGroupCharacterTable)
 ## Construct group characters from groups
 
 ```@docs
+linear_characters(G::GAPGroup)
 natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT

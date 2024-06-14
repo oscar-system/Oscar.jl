@@ -404,3 +404,105 @@ function compose_count_loops(p::SetPartition, q::SetPartition)
     
     return (ret, length(related_comp))
 end
+
+"""
+    number_of_blocks(p::SetPartition)
+
+Return the number of blocks of `p`.
+
+# Examples
+```jldoctest
+julia> number_of_blocks(set_partition([1, 2, 3], [2, 1, 3, 3]))
+3
+```
+"""
+function number_of_blocks(p::SetPartition)
+    # obtain one vector describing the partition V
+    vec = vcat(upper_points(p), lower_points(p))
+
+    # return the maximum number in vec
+    maximum(vec; init=0)
+end
+
+"""
+    is_dominated_by(p::SetPartition, q::SetPartition)
+
+Check if the set partition `p` is dominated by the set partition `q`. This is the case if every block of `p`
+is contained in exactly one block of `q`.
+
+# Examples
+```jldoctest
+julia> is_dominated_by(set_partition([1, 1, 2], [1, 2, 3]), set_partition([1, 1, 2], [1, 2, 1]))
+true
+```
+"""
+function is_dominated_by(p::SetPartition, q::SetPartition)
+    @req size(p) == size(q) "arguments must have the same size"
+
+    # obtain vectors describing the partitions p and q
+    p_vec = vcat(upper_points(p), lower_points(p))
+    q_vec = vcat(upper_points(q), lower_points(q))
+
+    # introduce a dictionary to store a mapping from the blocks of p to the blocks of q
+    block_map = Dict{Int, Int}()
+
+    for (index, block) in enumerate(p_vec)
+        # if the block of the index in p has already been mapped to a block of q,
+        # check if the mapping is consistent, otherwise add the mapping
+        if haskey(block_map, block) && q_vec[index] != block_map[block]
+            return false
+        else
+            block_map[block] = q_vec[index]
+        end
+    end
+    return true
+end
+
+"""
+    cycle_partition(p::PermGroupElem)
+
+Return the set partition whose blocks are the cycles of the permutation `p`. This set partition has no lower points.
+
+# Examples
+```jldoctest
+julia> cycle_partition(perm(symmetric_group(3), [2, 1, 3]))
+SetPartition([1, 1, 2], Int64[])
+```
+"""
+function cycle_partition(p::PermGroupElem)
+    cycle_list = collect(cycles(p))
+    n = degree(parent(p))
+    partition_vector = zeros(Int64, n)
+
+    for (index, cycle) in enumerate(cycle_list)
+        for element in cycle
+            partition_vector[element] = index
+        end
+    end
+
+    return set_partition(partition_vector, Int64[])
+end
+
+"""
+    join(p::SetPartition, q::SetPartition)
+
+Return the join of `p` and `q`. This is the unqiue set partition, where two elements are in the same block of the partition
+iff this is the case in `p` or `q`.
+
+# Examples
+```jldoctest
+julia> join(set_partition([1, 2], [2, 3]), set_partition([1, 2], [1, 3]))
+SetPartition([1, 1], [1, 2])
+```
+"""
+function join(p::SetPartition, q::SetPartition)
+    @req length(upper_points(p)) == length(upper_points(q)) "p and q must have the same number of upper points"
+    @req length(lower_points(p)) == length(lower_points(q)) "p and q must have the same number of lower points"
+
+    _p = set_partition(vcat(upper_points(p), lower_points(p)), vcat(upper_points(p), lower_points(p)))
+    _q = set_partition(vcat(upper_points(q), lower_points(q)), vcat(upper_points(q), lower_points(q)))
+
+    join_p_q = upper_points(compose(_p, _q))
+
+    return set_partition(join_p_q[1:length(upper_points(p))], join_p_q[(length(upper_points(p))+1):end])
+end

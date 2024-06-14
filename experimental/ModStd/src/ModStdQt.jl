@@ -1,0 +1,1151 @@
+module ModStdQt
+
+using Oscar
+import Oscar.Nemo
+import Oscar.Hecke
+
+function __init__()
+  Hecke.add_verbosity_scope(:ModStdQt)
+end
+
+function Oscar.evaluate(f::FracElem{<:MPolyRingElem}, v::Vector{<:RingElem}; ErrorTolerant::Bool = false)
+  n = evaluate(numerator(f), v)
+  d = evaluate(denominator(f), v)
+  if iszero(d) 
+    if ErrorTolerant
+      return n//1
+    else
+      throw(DivideError())
+    end
+  end
+  return n//d
+end
+
+#Oscar.set_length!(f::QQPolyRingElem, ::Int64) = error("no set_length") #f
+
+#=
+function points(p::Vector{T}, j::Int, z::Vector{T}, s::Vector{T}) where {T}
+
+  pp = map(ZZRingElem, p)
+  zz = map(ZZRingElem, z)
+  ss = map(ZZRingElem, s)
+
+  return [[[pp[i]^l*zz[k]+ss[i] for i=1:length(pp)] for k=1:length(z)] for l=0:j]
+end
+
+function eval(f::FracElem{QQMPolyRingElem}, pt; ErrorTolerant::Bool = false)
+  return [[evaluate(f, x, ErrorTolerant= ErrorTolerant) for x = y] for y = pt]
+end
+=#
+
+"""
+same as crt_env in Hecke, but a different point of view:
+crt_env deals with the chinese remainder theorem in euclidean rings,
+while this is for interpolation of polynomials, hence
+has a different interface:
+ - creation via the evaluation points rather than the linear polynomials
+ - use via the values, not (constant) polynomials
+"""
+mutable struct InterpolateCtx{T}
+  C::Hecke.crt_env{T}
+  function InterpolateCtx(a::Vector{S}, parent = polynomial_ring(parent(a[1]), cached = false)[1]) where {S}
+    bt = parent
+    t = gen(bt)
+    r = new{elem_type(bt)}()
+    r.C = Hecke.crt_env([t - i for i = a])
+    return r
+  end
+end
+
+function Oscar.base_ring(I::InterpolateCtx)
+  return base_ring(base_ring(I.C))
+end
+
+function Oscar.interpolate(v::Vector, I::InterpolateCtx)
+  bt = base_ring(I.C)
+  return crt([bt(i) for i = v], I.C)
+end
+
+function Oscar.base_ring(C::Hecke.crt_env)
+  return parent(C.pr[1])
+end
+
+function Oscar.prod(C::Hecke.crt_env)
+  return C.pr[end]
+end
+
+#does not exist in general... why
+Hecke.rem!(a::T, b::T, c::T) where {T <: RingElem} = rem(b, c)
+
+function Oscar.rational_reconstruction(f::PolyRingElem, I::InterpolateCtx; ErrorTolerant::Bool = false)
+  return rational_reconstruction(f, prod(I.C), ErrorTolerant = ErrorTolerant)
+end
+
+"""
+  for evaluation of multivariate rational functions at
+   [z*p[i]^j + s[i]] for 0<=j <= ?
+"""
+mutable struct MPolyPt{T}
+  pt_z::Vector{T}
+  pt_p::Vector{T}
+  pt_s::Vector{T}
+  j::Int
+
+  function MPolyPt(n::Int)
+    p = Vector{Int}()
+    for q = PrimesSet(11, -1)
+      push!(p, q)
+      if length(p) == n
+        break
+      end
+    end
+    return new{Int}(Int[], p, Int[rand(-10000:10000) for i=1:n], 0)
+  end
+  function MPolyPt(lp::Vector{Int}, z::AbstractVector, s::Vector{Int}, j::Int)
+    r = new{Int}()
+    r.pt_z = collect(z)
+    r.pt_p = lp
+    r.pt_s = s
+    r.j = j
+    return r
+  end
+end
+
+#=
+function eval(f::FracElem{QQMPolyRingElem}, P::MPolyPt; ErrorTolerant::Bool = false)
+  return eval(f, points(P.pt_p, P.j, P.pt_z, P.pt_s), ErrorTolerant = ErrorTolerant)
+end
+=#
+
+function Base.push!(pt::MPolyPt, p::Int)
+  if p in pt.pt_z
+    error("point already there")
+  end
+  push!(pt.pt_z, p)
+end
+
+mutable struct MPolyInterpolateCtx{T}
+  R#::parent_type(T)
+  parent#::FracField{T}
+
+  pt::MPolyPt
+  I::InterpolateCtx#{T}
+  status::Symbol
+
+  function MPolyInterpolateCtx(F::FracField{<:MPolyRingElem{S}}, pt::MPolyPt) where {S}
+    r = new{S}()
+    r.parent = F
+    r.R = base_ring(F)
+    r.pt = pt
+    r.I = InterpolateCtx(map(base_ring(r.R), pt.pt_z))
+    return r
+  end
+  function MPolyInterpolateCtx(F::MPolyRing{S}, pt::MPolyPt) where {S}
+    r = new{S}()
+    r.parent = F
+    r.R = F
+    r.pt = pt
+    r.I = InterpolateCtx(map(base_ring(r.R), pt.pt_z))
+    return r
+  end
+end
+
+is_integral(M::MPolyInterpolateCtx) = isa(M.parent, MPolyRing)
+
+function set_status!(M::MPolyInterpolateCtx, s::Symbol)
+  @vprint :ModStdQt 2 "setting status to $s\n"
+  M.status = s
+end
+
+mutable struct Vals{T}
+  v::Vector{Vector{T}}
+  nd::Vector{Tuple{<:PolyRingElem{T}, <:PolyRingElem{T}}}
+  G::RingElem # can be Generic.FracFieldElem{<:MPolyRingElem{T}} or PolyRingElem
+  function Vals(v::Vector{Vector{S}}) where {S}
+    r = new{S}()
+    r.v = v
+    return r
+  end
+end
+
+#Ben-Or Tiwari...
+function Oscar.interpolate(Val::Vals{T}, M::MPolyInterpolateCtx) where {T}
+
+  if isdefined(Val, :G)
+    set_status!(M, :OK)
+    return true, Val.G
+  end
+
+  set_status!(M, :univariate_failed)
+
+  if !isdefined(Val, :nd) || length(Val.nd) < length(Val.v)
+    nd = []
+    val = Val.v
+    i = 1
+    for x = val
+      f = interpolate(x, M.I)
+      i += 1
+      if is_integral(M)
+        mu = (true, f, parent(f)(1))
+      else
+        mu = rational_reconstruction(f, M.I, ErrorTolerant = true)
+      end
+      if !mu[1]
+        set_status!(M, :univariate_failed)
+        return false, zero(M.R) # more z
+      end
+      t = inv(trailing_coefficient(mu[3]))
+      push!(nd, (mu[2]*t, mu[3]*t))
+    end
+    Val.nd = nd
+  else
+    nd = Val.nd
+  end
+  Qx = parent(nd[1][1])
+  @assert parent(nd[1][2]) == Qx
+
+  R = [M.R(), M.R()]
+  for ii = 1:2
+    cor = elem_type(Qx)[zero(Qx) for i=1:length(nd)]
+    for i=maximum(degree(x[ii]) for x = nd):-1:0
+      bm = berlekamp_massey([coeff(nd[x][ii]-cor[x], i) for x = 1:length(nd)], ErrorTolerant = true)
+      if !bm[1]
+        set_status!(M, :BM_failed)
+        return false, zero(M.R)
+      end
+      if is_constant(bm[2])
+        continue #why? but is necessary
+      end
+
+      r = roots(bm[2])
+      if length(r) != degree(bm[2]) 
+        set_status!(M, :no_roots)
+        return false, zero(M.R)
+      end
+      if !all(isinteger, r) || any(iszero, r)
+        set_status!(M, :wrong_roots)
+        return false, zero(M.R)
+      end
+
+      V = Vandermonde(r)
+      s = solve_left(V, matrix(QQ, 1, length(r), [coeff(nd[x][ii]-cor[x], i) for x=1:length(r)]))
+      G = MPolyBuildCtx(M.R)
+      for i=1:length(r)
+        push_term!(G, s[1,i], [valuation(r[i], p) for p = M.pt.pt_p])
+      end
+      g = finish(G)
+      R[ii] += g
+      for j=0:length(nd)-1
+        t = evaluate(g, [T(M.pt.pt_p[l])^j*gen(Qx) + M.pt.pt_s[l] for l=1:length(M.pt.pt_p)])
+  #      @show t, leading_coefficient(t), leading_coefficient(nd[j+1][2] - cor[j+1])
+        cor[j+1] += t
+      end
+  #    @show cor
+    end
+  end
+  if iszero(R[2])
+    set_status!(M, :bad)
+    return false, zero(M.R)
+  end
+  set_status!(M, :OK)
+  if is_integral(M)
+    Val.G = R[1]
+    @assert isone(R[2])
+  else
+    Val.G = R[1]//R[2]
+  end
+
+  return true, Val.G
+end
+
+
+function Base.setindex!(v::Vals{T}, c::T, i::Int, j::Int) where {T}
+  if i > length(v.v)
+    push!(v.v, zeros(parent(v.v[1][1]), length(v.v[1])))
+  end
+  if j > length(v.v[i])
+    while length(v.v[i]) < j-1
+      push!(v.v[i], parent(v.v[1][1])(0))
+    end
+    @assert j == length(v.v[i])+1
+    push!(v.v[i], c)
+    return
+  end
+  v.v[i][j] = c
+end
+
+function exp_groebner_basis(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracFieldElem{QQMPolyRingElem}}}; ord::Symbol = :degrevlex, complete_reduction::Bool = true)
+  Oscar.exp_groebner_assure(I, ord, complete_reduction = complete_reduction)
+end
+
+function exp_groebner_assure(I::Oscar.MPolyIdeal{<:Generic.MPoly{<:Generic.FracFieldElem{QQMPolyRingElem}}}, ord::Symbol = :degrevlex; complete_reduction::Bool = true)
+  T = QQFieldElem
+  if ord == :degrevlex && isdefined(I, :gb)
+    return I.gb
+  end
+  S = base_ring(I)
+  R = base_ring(S)
+  n = ngens(base_ring(R))
+  P = MPolyPt(n)
+  Q = base_ring(base_ring(R))
+  Qy, _ = polynomial_ring(Q, ngens(S))
+  frst = true
+  lst = []
+  do_z = true
+  local lst
+  while true
+    if do_z 
+      @vprint :ModStdQt 1 "adding z-evaluation $(length(P.pt_z)+1)\n"
+      push!(P, length(P.pt_z)+1)
+    else
+      @vprint :ModStdQt 1 "increasing power-of-prime to $(P.j+1)\n"
+      P.j += 1
+    end
+
+    idx = 1
+    while true
+      gens_J = elem_type(Qy)[]
+      if do_z
+        if idx > P.j+1
+          break
+        end
+        pt = T[Q(P.pt_p[i])^(idx-1) * Q(P.pt_z[end]) + Q(P.pt_s[i]) for i=1:n]
+#        println( "z: j = ", idx -1, ", z = ", P.pt_z[end])
+      else
+        if idx > length(P.pt_z)
+          break
+        end
+        pt = T[Q(P.pt_p[i])^P.j * Q(P.pt_z[idx]) + Q(P.pt_s[i]) for i=1:n]
+#        println("P: j = ", P.j, ", z = ", P.pt_z[idx])
+      end
+      idx += 1
+      @vprint :ModStdQt 2 "using evaluation point $pt\n"
+      @vtime :ModStdQt 2 for g = gens(I)
+        G = MPolyBuildCtx(Qy)
+        for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+          push_term!(G, evaluate(c, pt, ErrorTolerant = true), e)
+        end
+        push!(gens_J, finish(G))
+      end
+      J = ideal(Qy, gens_J)
+      #@vtime :ModStdQt 2 gJ = groebner_basis(J, ord = ord, complete_reduction = true, Proof = false)
+      # Tommy: There is not groebner_basis with Proof = false. But there is groebner_assure ...
+      if frst
+        lst = []
+        for _g = gJ
+          g = inv(AbstractAlgebra.leading_coefficient(_g))*_g
+          f = []
+          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+            push!(f, (e, Vals(Vector{T}[[c]])))
+          end
+          push!(lst, f)
+        end
+        frst = false
+      else
+        for ig = 1:length(gJ)
+          g = gJ[ig]
+          g *= inv(AbstractAlgebra.leading_coefficient(g))
+          jg = 1
+          for (c, e) = zip(Generic.MPolyCoeffs(g), Generic.MPolyExponentVectors(g))
+            if lst[ig][jg][1] != e #TODO: sort and match
+              @assert lst[ig][jg][1] == e
+#              @show ig, jg
+#              for y = 1:length(lst)
+#                @show y, [x[1] for x = lst[y]]
+#              end
+#              @show gJ[ig]
+#              @show gJ
+              if do_z
+                lst[ig][jg][2][idx-1, length(P.pt_z)] = T(0)
+              else
+                lst[ig][jg][2][P.j+1, idx-1] = T(0)
+              end
+              jg += 1
+              @assert lst[ig][jg][1] == e
+            end
+            if do_z
+              lst[ig][jg][2][idx-1, length(P.pt_z)] = c
+            else
+              lst[ig][jg][2][P.j+1, idx-1] = c
+            end
+            jg += 1
+          end
+        end
+      end
+    end
+    
+    res = elem_type(S)[]
+    @vprint :ModStdQt 1 "starting interpolation...\n"
+    M = MPolyInterpolateCtx(R, P)
+    local fl = true
+    @vtime :ModStdQt 2 for F = lst
+      f = MPolyBuildCtx(S)
+      for C = F
+        fl, c = interpolate(C[2], M)
+        if fl
+          push_term!(f, c, C[1])
+        else
+          break
+        end
+      end
+      fl || break
+      push!(res, finish(f))
+    end
+    if fl
+      @vprint :ModStdQt 1 "success\n"
+      if ord == :degrevlex
+        I.gb = Oscar.IdealGens(res, keep_ordering = false, isGB = true)
+      end
+      return res
+    end
+
+    @vprint :ModStdQt 1 "failed, more points\n"
+    
+    if M.status == :univariate_failed
+#      @show "needs more z"
+      do_z = true
+      continue
+    end
+
+    if M.status == :BM_failed && P.j > 10 
+#      @show "needs more j"
+      do_z = !true
+      continue
+    end
+
+
+    do_z = !do_z
+#    if length(P.pt_z) > 15 || P.j > 15
+#      error("did not finish")
+#      break
+#    end
+  end
+  return lst, P
+end
+
+#TODO: for QQMatrix: don't copy
+function is_zero_entry(M::MatElem, i::Int, j::Int)
+  return iszero(M[i,j])
+end
+
+"""
+A generic fraction-free row echelon form (ref), that is no complete
+reduction, ie. no cleaning upwards.
+"""
+function ref_ff!(M::MatElem)
+  rk = 0
+  for i=1:nrows(M)
+    j = i
+    while j <= ncols(M) && is_zero_entry(M, i,j)
+      j += 1
+    end
+    if j<=ncols(M)
+      rk += 1
+    else
+      continue
+    end
+    for k=i+1:nrows(M)
+      M[k, :] = M[i, j]*M[k, :] - M[k, j] * M[i, :]
+    end
+  end
+  return rk
+end
+
+function Hecke.content(M::MatrixElem{<:MPolyRingElem})
+  m = []
+  for idx = eachindex(M)
+    l = length(M[idx]) # should be 0 iff entry is zero
+    if l != 0
+      push!(m, (idx, l))
+    end
+  end
+  if length(m) == 0
+    return zero(base_ring(M))
+  end
+  sort!(m, lt = (a,b) -> isless(a[2], b[2]))
+  g = zero(base_ring(M))
+  for (idx, _) = m
+    g = gcd(g, M[idx])
+    if isone(g)
+      return g
+    end
+  end
+  return g
+end
+
+"""
+A generic fraction free row echelon form for matrices over multivariate
+  polynomial ring. Removes the row-contents, but dose not clean-up upwards.
+"""
+function ref_ff_rc!(M::MatElem{<:MPolyRingElem})
+  rk = 0
+  for i=1:nrows(M)
+    c = content(M[i:i, :])
+    if !isone(c)
+      M[i, :] = divexact(M[i:i, :], c)
+    end
+  end
+  j = 1
+  for i=1:nrows(M)
+    best_j = 0
+    best_t = typemax(Int)
+    while j <= ncols(M) 
+      best_i = 0
+      best_t = 0
+      for ii = i:nrows(M)
+        if is_zero_entry(M, ii, j)
+          continue
+        end
+        if best_i == 0
+          best_i = ii
+          best_t = length(M[ii,j])
+        elseif best_t > length(M[ii, j])
+          best_t = length(M[ii, j])
+          best_i = ii
+        end
+      end
+      if best_i == 0
+        j += 1
+        continue
+      end
+      if best_i > i
+        M = swap_rows!(M, i, best_i)
+      end
+      break
+    end
+    if j > ncols(M)
+      return rk
+    end
+    rk += 1
+
+    for k=i+1:nrows(M)
+      if iszero(M[k, j])
+        continue
+      end
+      g, a, b = gcd_with_cofactors(M[k, j], M[i, j])
+      M[k, :] = b*M[k:k, :] - a * M[i:i, :]
+      M[k, :] = divexact(M[k:k, :], content(M[k:k, :]))
+    end
+    j += 1
+  end
+  return rk
+end
+
+#to, basically, make the doctest stable
+function _cmp(f::MPolyRingElem, g::MPolyRingElem)
+  mf = leading_term(f)
+  mg = leading_term(g)
+  while exponent_vector(mf, 1) == exponent_vector(mg, 1)
+    f -= mf
+    g -= mg
+    if iszero(f) && iszero(g)
+      return 0
+    end
+    if iszero(f)
+      return -1
+    end
+    if iszero(g)
+      return 1
+    end
+    mf = leading_term(f)
+    mg = leading_term(g)
+  end
+  if isless(mf, mg)
+    return -1
+  else
+    return 1
+  end
+end
+
+@doc raw"""
+    factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
+
+For an irreducible polynomial in Q[A][X], perform an absolute
+factorisation, ie. a factorisation in K[X] where K is the
+algebraic closure of Q(A).
+
+The return value is an array 
+- first entry is a leading coefficient
+- the others are tuples, one for each irreducible factor of the input, namely
+
+  two polynomials and an integer: the polynomials are 
+      over a finite extension of Q(A) given as a residue field,
+      Q(A)[t]/h, s.th. the first polynomial is an abs. irreducible factor over this
+      extension, the last entry (the integer) is the multiplicity.
+      Since there are degree(h(t)) many abs. irreducible factors, which 
+      are all conjugate to the 1st tuple entry, we return the product of the 
+      remaining degree - 1 many as the 2nd entry.
+
+# Examples     
+
+```jldoctest
+julia> Qa, a = polynomial_ring(QQ, :a=>1:2);
+
+julia> R, X = polynomial_ring(fraction_field(Qa), :X=>1:2);
+
+julia> f = factor_absolute((X[1]^2+a[1]*X[2]^2)*(X[1]+2*X[2]+3*a[1]+4*a[2]))
+3-element Vector{Any}:
+ 1
+ (X[1] + t*X[2], X[1] - t*X[2], 1)
+ (X[1] + 2*X[2] + 3*a[1] + 4*a[2], 1, 1)
+
+julia> parent(f[3][1])
+Multivariate polynomial ring in 2 variables X[1], X[2]
+  over fraction field of Qa
+
+julia> parent(f[2][1])
+Multivariate polynomial ring in 2 variables X[1], X[2]
+  over residue field of univariate polynomial ring modulo t^2 + a[1]
+```  
+"""
+function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
+  Qtx = parent(f)                 # Q[t1,t2][x1,x2]
+  Qt = base_ring(base_ring(Qtx))  # Q[t1,t2]
+  Rx, x = polynomial_ring(QQ, ngens(Qtx) + ngens(Qt)) # Q[x1,x2,t1,t2]
+  # write f = cont*F, cont in Qt, F in Rx
+  F, cont = Oscar.AbstractAlgebra._remove_denominators(Rx, f)
+  lF = factor(F)
+  an = []
+  push!(an, Qtx(cont)*Oscar.AbstractAlgebra._restore_numerators(Qtx, lF.unit))
+  K = base_ring(f)
+  Kt, t = polynomial_ring(K, "t", cached = false)
+  for (k, e) = sort(collect(lF), lt = (a,b) -> _cmp(a[1], b[1]) <= 0)
+    res = afact(k, collect(ngens(Qtx)+1:ngens(Qtx)+ngens(Qt)))
+    if res === nothing
+      push!(an, (Oscar.AbstractAlgebra._restore_numerators(Qtx, k), parent(k)(1), e))
+      continue
+    end
+    p, c, ex = res
+    #p is a univariate over S
+    #c[i] lives in quo(p)
+    #S is a FracField(MPoly(QQ, ngens(Qt)))
+    R = residue_field(Kt, Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients(p)]))[1]
+    RX, X = polynomial_ring(R, map(String, Qtx.S), cached = false)
+    b = MPolyBuildCtx(RX)
+    for i=1:length(c)
+      C = R(Kt([evaluate(numerator(x), gens(Qt))//evaluate(denominator(x), gens(Qt)) for x = coefficients((c[i]))]))
+      push_term!(b, C, ex[i][1:ngens(Qtx)])
+      @assert iszero(ex[i][ngens(Qtx)+1:end])
+    end
+    bb = finish(b)
+    b = zero(RX)
+    for (c, ex) = zip(AbstractAlgebra.coefficients(k), AbstractAlgebra.exponent_vectors(k))
+      b += c*R(K(monomial(Qt, ex[ngens(Qtx)+1:end])))*monomial(RX, ex[1:ngens(Qtx)])
+    end
+    kk = b
+    push!(an, (bb, divexact(kk, bb), e))
+  end
+  return an
+end
+
+function Oscar.is_absolutely_irreducible(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
+  lf = factor_absolute(f)
+  @assert length(lf) > 1
+  return length(lf) == 2 && lf[2][end] == 1 && is_one(lf[2][2]) 
+end
+
+function Oscar.monomial(R::MPolyRing, v::Vector{Int})
+  b = MPolyBuildCtx(R)
+  push_term!(b, one(base_ring(R)), v)
+  return finish(b)
+end
+
+#=TODO
+ - if after a specialisation the degree of the field is wrong (too high) 
+   or the multiplicity is wrong (not squarefree)
+   discard the evaluation
+ - for every discarded evaluation: choose a different z as to not
+   loose the geometric progression of the p-powers
+ - if after a specialisation the field degree is wrong (too low), discard everything 
+   so far...change shift?
+ - deal with coefficients that are non-primitive
+ - write up and publish...
+=#
+"""
+Helper function for the absolute factorisation:
+    g in Q[T] where T = A cup X
+is factored over K[X] for K the algebraic closure of Q(A). 
+The subset of variables in A is identified by the indices in `a`
+"""
+function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
+  T = QQFieldElem
+  S = parent(g)
+  n = length(a)
+  P = MPolyPt(n)
+  Q = base_ring(S)
+  na = setdiff(1:ngens(S), a) 
+  Qy, y = polynomial_ring(Q, cached = false)
+
+  F = polynomial_ring(QQ, n, cached = false)[1]
+  if !int
+    F = fraction_field(F)
+  end
+
+  frst = true
+  do_z = true
+  lst = []
+  local lst
+
+  res = elem_type(F)[]
+  local degs, fac, fpt
+  while true
+    if do_z 
+      @vprint :ModStdQt 1 "adding z-evaluation $(length(P.pt_z)+1)\n"
+      push!(P, length(P.pt_z)+1)
+    else
+      @vprint :ModStdQt 1 "increasing power-of-prime to $(P.j+1)\n"
+      P.j += 1
+    end
+
+    idx = 1
+    while true
+      gens_J = elem_type(Qy)[]
+      if do_z
+        if idx > P.j+1
+          break
+        end
+        pt = T[Q(P.pt_p[i])^(idx-1) * Q(P.pt_z[end]) + Q(P.pt_s[i]) for i=1:n]
+      else
+        if idx > length(P.pt_z)
+          break
+        end
+        pt = T[Q(P.pt_p[i])^P.j * Q(P.pt_z[idx]) + Q(P.pt_s[i]) for i=1:n]
+      end
+      idx += 1
+      @vprint :ModStdQt 2 "using evaluation point $pt\n"
+      v = []
+      j = 1
+      for k = 1:ngens(S)
+        if k in na
+          push!(v, gen(S, k))
+        else
+          @assert k in a
+          push!(v, pt[j])
+          j += 1
+        end
+      end
+
+      @vtime :ModStdQt 2 MM = g(v...)
+      fg = factor_absolute(MM)
+      if length(fg) > 2 #TODO: think how to avoid the complete restart
+        @vprint :ModStdQt 2 "bad evaluation point, restarting...\n"
+        frst = true
+        do_z = true
+        empty!(lst)
+        empty!(res)
+        P = MPolyPt(n)
+        break
+      end
+      @assert length(fg) == 2
+      if isa(base_ring(fg[2][1][1]), QQField)
+        return nothing
+      end
+      @assert isa(base_ring(fg[2][1][1]), AbsSimpleNumField)
+      MM = vcat([collect(coefficients(minpoly(coeff(fg[2][1][1], i)))) for i=1:length(fg[2][1][1])]...)
+      if frst
+        degs = [degree(minpoly(coeff(fg[2][1][1], i))) for i=1:length(fg[2][1][1])]
+        fac = fg[2][1][1]
+        fpt = pt
+        lst = []
+        for x = MM 
+          push!(lst, Vals(Vector{T}[[x]]))
+        end
+        frst = false
+      else
+        for ig = 1:length(MM)
+          c = MM[ig]
+          if do_z 
+            lst[ig][idx-1, length(P.pt_z)] = c
+          else
+            lst[ig][P.j+1, idx-1] = c
+          end
+        end
+      end
+    end
+    
+    @vprint :ModStdQt 1 "starting interpolation...\n"
+    if length(lst) == 0 # after a bad point, we restart, thus nothing
+      continue          # to interpolate
+    end
+    MI = MPolyInterpolateCtx(F, P)
+
+    local fl = length(res) > 0
+    @vtime :ModStdQt 2 for Fi = length(res)+1:length(lst)
+      local F
+      F = lst[Fi]
+      fl, c = interpolate(F, MI)
+      if fl
+#        @show total_degree(c)
+        push!(res, c)
+      else
+        break
+      end
+    end
+    if fl
+      @vprint :ModStdQt 1 "success\n"
+      Qt, t = polynomial_ring(parent(res[1]), cached = false)
+      pres = []
+      i = 1
+      for j=degs
+        push!(pres, Qt(res[i:i+j]))
+        i += j+1
+      end
+      d = findfirst(x->x == maximum(degs), degs)
+      co = []
+      for i=1:length(pres)
+        push!(co, lift(pres[d], pres[i], coeff(fac, d), coeff(fac, i), fpt))
+      end
+      return pres[d], co, collect(AbstractAlgebra.exponent_vectors(fac))
+    end
+
+    @vprint :ModStdQt 1 "failed, more points\n"
+    
+    if MI.status == :univariate_failed
+#      @show "needs more z"
+      do_z = true
+      continue
+    end
+
+    if MI.status == :BM_failed && P.j > 10 
+#      @show "needs more j"
+      do_z = !true
+      continue
+    end
+
+
+    do_z = !do_z
+  end
+  return lst, P
+end
+
+#=
+ Task: given f, g in Q(P)[t] for a multivariate P
+             V evaluation point
+             a, b in Q[t]/bar(f) where bar is the map P -> V (either evaluation
+                or mod (P_i - V_i))
+             A = t mod f (and thus bar(A) = a)
+       find  B in Q(t) s.th.
+             g(B(A)) = 0
+             bar(B(A)) = b
+
+ Plan:
+  - make everything monic: A -> d_a A s.th minpoly in Q[P][t]
+                           B -> d_b B
+  - find B_0 s.th. B_0(bar(d_a) a) = bar(d_b b)
+    (lin. alg in Q)
+  - lift Newton until
+    (B * f'(A) mod ??)//f'(A) is a root of g
+  - translate back to the original A and B (ie. remove denominators)
+=#  
+
+function my_reduce(A, d)
+  a = lift(A)
+  S = base_ring(a)
+  b = elem_type(S)[]
+  for i=0:length(a)-1
+    c = coeff(a, i)
+    @assert isone(denominator(c))
+    push!(b, S(divrem(numerator(c), d)[2]))
+  end
+  return parent(A)(parent(a)(b))
+end
+
+function Oscar.lift(f::PolyRingElem, g::PolyRingElem, a::AbsSimpleNumFieldElem, b::AbsSimpleNumFieldElem, V::Vector{QQFieldElem})
+  S = base_ring(f) # should be a FracFieldElem{MPoly}
+  R = base_ring(S)
+
+  d_a = reduce(lcm, map(denominator, coefficients(f)))
+  d_b = reduce(lcm, map(denominator, coefficients(g)))
+
+  ff = evaluate(f, gen(parent(f))*inv(S(d_a))) * d_a^(degree(f))
+  @assert all(x->isone(denominator(x)), coefficients(ff))
+  @assert is_monic(ff)
+
+  gg = evaluate(g, gen(parent(f))*inv(S(d_b))) * d_b^(degree(g))
+  @assert all(x->isone(denominator(x)), coefficients(gg))
+  @assert is_monic(gg)
+
+  q = residue_field(parent(f), ff)[1]
+
+  if degree(g) == 0
+    return lift(q(coeff(g, 0)))
+  end
+  if degree(g) == 1
+    return lift(q(-coeff(g, 0)//coeff(g, 1)))
+  end
+
+  #now "b" as a function of "a"...
+  n = degree(parent(a))
+  @assert parent(a) == parent(b)
+  m = zero_matrix(QQ, n, n)
+  d = evaluate(d_a, V)
+  z = one(a)
+  for i=1:n
+    for j=1:n
+      m[j, i] = coeff(z, j-1)
+    end
+    z *= a*d
+  end
+  mm = zero_matrix(QQ, n, 1)
+  d = evaluate(d_b, V)
+  for i=1:n
+    mm[i, 1] = coeff(d*b, i-1)
+  end
+  s = solve(m, mm; side = :right)
+  B = q(parent(f)(vec(collect(s))))
+  @assert all(x->iszero(evaluate(numerator(x), V)), coefficients(lift(gg(B))))
+  o = lift(inv(derivative(gg)(B)))
+  for i=0:length(o)-1
+    c = coeff(o, i)
+    setcoeff!(o, i, S(evaluate(numerator(c), V)//evaluate(denominator(c), V)))
+  end
+  O = q(o)
+
+  D = q(derivative(ff))
+  red = [gen(R, i) - V[i] for i=1:length(V)]
+  while true
+    for i=1:length(V)
+      red[i] *= red[i]
+      B = B - gg(B)*O
+      B = my_reduce(B, red)
+      O = O*(2-derivative(gg)(B)*O)
+      O = my_reduce(O, red)
+    end
+    if gg(my_reduce(B*D, red)//D) == 0
+      #need to translate the denominators back in.
+      B = lift(B)(gen(parent(f))*d_a)*inv(S(d_b))
+      #need to re-arrange to have all lifts in the same ring
+      #(this seems to not be necessary - there are parent checks missing)
+      #need to, if necessary, find a primitive element...
+      return B
+    end
+    if sum(map(total_degree, red)) > 100
+      error("did not work")
+    end
+  end
+end
+
+
+#=
+ From
+ Sparse Polynomial Interpolation and
+  Berlekamp/Massey Algorithms That Correct Outlier
+  Errors in Input Values
+
+  https://dl.acm.org/doi/10.1145/2442829.2442852
+
+=#
+
+function cleanup(Lambda::PolyRingElem{T}, E::Int, c::Vector{T}, k::Int) where {T}
+  c = copy(c)
+  t = degree(Lambda)
+  i = k+2*t
+  e = 0
+  n = length(c)
+  while i <= n-1
+    d = sum(coeff(Lambda, j)*c[i+j-t+1] for j=0:t-1)
+    if d != -c[i+1] 
+      c[i+1] = -d
+      e += 1
+    end
+    i += 1
+  end
+  i = k-1
+  while i>= 0 && e <= E
+    d = sum(coeff(Lambda, j)*c[i+j+1] for j=1:t)
+    if d+coeff(Lambda, 0)*c[i+1] != 0
+      c[i+1] = -d//coeff(Lambda, 0)
+      e += 1
+    end
+    i -= 1
+  end
+  return c, e
+end
+
+function FTBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
+  R = parent(c[1])
+  Rt, t = polynomial_ring(R, cached = false)
+  L = []
+  n = length(c)
+  for i=0:div(n, 2*T)-1
+    Lambda = berlekamp_massey(c[2*T*i+1:2*T*(i+1)], parent = Rt)[2]
+    if constant_coefficient(Lambda) != 0
+      a, e = cleanup(Lambda, E, c, 2*T*i)
+      if e <= E
+        push!(L, (a, e))
+      end
+    end
+  end
+  return L
+end
+
+function MRBM(c::Vector{Q}, T::Int, E::Int) where {Q <: FieldElem}
+  R = parent(c[1])
+  Rt, t = polynomial_ring(R, cached = false)
+  L = Dict{elem_type(Rt), Set{Int}}()
+  n = length(c)
+  for i=0:div(n, 2*T)-1
+    Lambda = berlekamp_massey(c[2*T*i+1:2*T*(i+1)], parent = Rt)[2]
+    if constant_coefficient(Lambda) == 0 || 2*degree(Lambda)+1 >length(c)
+      continue
+    end
+    @assert parent(Lambda) == Rt
+    if haskey(L, Lambda)
+      push!(L[Lambda], i)
+    else
+      L[Lambda] = Set(i)
+    end
+  end
+  if length(L) == 0
+    return false, t
+  end
+  m = 0
+  local Lambda
+  for (k, v) = L
+    if length(v) > m
+      m = length(v)
+      Lambda = k
+    end
+  end
+  for i = L[Lambda]
+    a, e = cleanup(Lambda, E, c, 2*T*i)
+    if e <= E
+      return true, Lambda
+    end
+  end
+  return false, t
+end
+function MRBM(c::Vector{Q}) where {Q <: FieldElem}
+  n = length(c)
+  #we need, by paper: (2T)(2E+1) <= n
+  #assuming E < T/2 => (2T)(T+1) = 2T^2+2T <= n
+  #so T <= root(n)/2
+  T = div(root(n, 2), 2)
+  E = floor(Int, (n/2/T-1)/2)
+  local L
+  for e = 0:E
+    T = floor(Int, n/(2*e+1)/2)
+    fl, L = MRBM(c, T, e)
+    if fl
+      return fl, L
+    end
+  end
+  return false, L
+end
+
+
+#####################################################################
+function ben_or(lp::Vector{Int}, a::Vector{ZZRingElem}, P::ZZRingElem)
+  #tries to write a as a product of powers of lp
+
+  K = GF(Int(P))
+  R = quo(ZZ, length(K)-1)[1]
+  f = factor(P-1)
+  g = generator(K, f)
+  A = DiscLogCtx(g, f)
+
+  dl = [disc_log(A, K(x)) for x = lp]
+  @show ddl = [disc_log(A, K(aa)) for aa = a]
+  z = ([identity_matrix(ZZ, length(lp)) matrix(ZZ, length(lp), 1, dl); zero_matrix(ZZ, 1, length(lp)) matrix(ZZ, 1, 1, [P-1])])
+  return z, ddl
+end
+#= external memory
+
+B = {p_1, ..., p_k}, m = prod p_i^n_i
+task: find n_i
+
+for any other prime q we have p_i = g^x_i mod q, m = g^y mod q, so
+
+  sum n_i x_i = y mod q-1
+      equivalently
+  prod p_i^n_i = m mod q
+
+furthermore, n_i are "small" since fixed.
+
+suppose we have 
+  prod p_i^r_i = 1 mod q_j, ie. for several j, then
+    (CRT) prod q_j | (prod p_i^r_i) - 1
+  so, in particular prod p_i^r_i > prod q_j
+  thus
+  sum r_i log_2 p_i > sum log q_j
+  or
+  sum log q_j < sum r_i log p_i <= |r_i, i|_2 |log p_i, i|_2
+  via Cauchy-Schwarz, so this gives a LOWER BOUND on |r_i, i|_2
+
+  fix q_i, then { r_i | q_j | (prod p_i^r_i) -1 } forms a lattice,
+  we have lower bounds on the minimum (above)
+
+  Thus LLL can find the n_i from above - if the minimum is > 2*n_i I'd guess.
+
+  So lets add more primes!
+=#
+
+#############################################################################
+# some special lin. alg
+#############################################################################
+struct Vandermonde{T} <: MatElem{T}
+  val::Vector{T}
+end
+
+Base.size(V::Vandermonde) = (length(V.val), V.val)
+Base.getindex(V::Vandermonde, i::Int, j::Int) = V.val[i]^(j-1)
+Oscar.number_of_rows(V::Vandermonde) = size(V)[1]
+Oscar.number_of_columns(V::Vandermonde) = size(V)[1]
+Oscar.base_ring(V::Vandermonde) = parent(V.val[1])
+
+struct VandermondeT{T} <: MatElem{T}
+  V::Vandermonde{T}
+end
+
+Base.size(V::VandermondeT) = size(V.V)
+Base.getindex(V::VandermondeT, i::Int, j::Int) = V.V[j,i]
+Oscar.number_of_rows(V::VandermondeT) = size(V)[1]
+Oscar.number_of_columns(V::VandermondeT) = size(V)[1]
+Oscar.base_ring(V::VandermondeT) = base_ring(V.V)
+
+Base.transpose(V::Vandermonde) = VandermondeT(V)
+Base.transpose(V::VandermondeT) = V.V
+
+struct Hankel{T} <: MatElem{T}
+  v::Vector{T}
+end
+Base.size(V::Hankel) = (div(length(V.v)+1, 2), div(length(V.v)+1, 2))
+Oscar.number_of_rows(V::Hankel) = size(V)[1]
+Oscar.number_of_columns(V::Hankel) = size(V)[1]
+Oscar.base_ring(V::Hankel) = parent(V.v[1])
+Base.getindex(V::Hankel, i::Int, j::Int)  = V.v[j+i-1]
+
+function solve_left(V::Vandermonde{T}, b::MatElem{T}) where {T <: Oscar.FieldElem}
+  Qx = Oscar.Hecke.Globals.Qx
+  x = gen(Qx)
+  f = reduce(*, [x-i for i=V.val], init = one(Qx)) #stupid: this is the poly from BM
+  z = zero(base_ring(V))
+  H = Hankel(vcat([coeff(f, i) for i=1:nrows(V)], [z for i=nrows(V):2*nrows(V)-1]))
+  Vt = transpose(V)
+  #TODO: for fun, use mult-point evaluation to find D
+  # and use a special type of matrix again
+  D = diagonal_matrix([inv(derivative(f)(x)) for x = V.val])
+  return ((b*H)*Vt)*D
+end
+
+
+end
+
+#= from Dereje:
+
+ Qt, t = polynomial_ring(QQ, :t=>1:2)
+ Qtx, x = polynomial_ring(fraction_field(Qt), :x => 1:3)
+
+ f1 = x[1]^2*x[2]^3*x[3] + 2*t[1]*x[1]*x[2]*x[3]^2 + 7*x[2]^3
+ f2 = x[1]^2*x[2]^4*x[3] + (t[1]-7*t[2])*x[1]^2*x[2]*x[3]^2 - x[1]*x[2]^2*x[3]^2+2*x[1]^2*x[2]*x[3] - 12*x[1] + t[2]*x[2]
+ f3 = (t[1]^2+t[2]-2)*x[2]^5*x[3] + (t[1]+5*t[2])*x[1]^2*x[2]^2*x[3] - t[2]*x[1]*x[2]^3*x[3] - t[2]*x[1]*x[2]^3*x[3] - x[1]*x[2]^3+x[2]^4+2*t[1]^2*x[2]^2*x[3]
+ f4 = t[1]*x[2]^2*x[2]^2*x[3] - x[1]*x[2]^3 *x[3] + (-t[1]+4)*x[2]^3*x[3]^2 + 3*t[1]*x[1]*x[2]*x[3]^3 + 4*x[3]^2 - t[2]*x[1]
+
+ z = groebner_basis(ideal(Qtx, [f1, f2, f3, f4]))
+ z = groebner_basis(ideal(Qtx, [f1, f2, f3, f4]), ord = :lex)
+
+
+=#
+
+
+

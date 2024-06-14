@@ -131,6 +131,21 @@
       end
     end
 
+    @testset "(de)serialization Dict{Symbol, T}" begin
+      Qx, x = QQ[:x]
+      for (T, values) in ((Int, [1, 2]), (PolyRingElem, [x^2, x - 1]))
+        original = Dict{Symbol, T}(:a => values[1], :b => values[2])
+        test_save_load_roundtrip(path, original) do loaded
+          @test original == loaded
+        end
+      end
+
+      original = Dict{Symbol, Int}()
+      test_save_load_roundtrip(path, original) do loaded
+        @test original == loaded
+      end
+    end
+
     @testset "Testing (de)serialization of Set" begin
       original = Set([Set([1, 2])])
       test_save_load_roundtrip(path, original) do loaded
