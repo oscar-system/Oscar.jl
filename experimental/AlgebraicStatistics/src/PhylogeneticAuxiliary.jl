@@ -54,20 +54,6 @@ function vertex_descendants(v::Int, gr::Graph, desc::Vector{Any})
   return d
 end
 
-function cherries(graph::Graph)
-  lvs = leaves(graph)
-  cherry = Vector{Edge}[]
-  for l in lvs
-    in_node = inneighbors(graph,l)[1]
-    lvs_cherr = outneighbors(graph, in_node)
-    if length(intersect(lvs_cherr, lvs)) == 2
-      push!(cherry, [Edge(in_node, lvs_cherr[1]), Edge(in_node, lvs_cherr[2])])
-    end
-  end
-  
-  return unique(cherry)
-end
-
 function root(graph::Graph)
   n_parents = [length(inneighbors(graph, v)) for v in 1:n_vertices(graph)]
   return findall(x -> x == 0, n_parents)[1]

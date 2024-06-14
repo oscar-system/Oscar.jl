@@ -183,7 +183,19 @@ end
       @test length(unique(vcat(H.(collect(values(p_eqclasses.parametrization))), classes))) == length(p_eqclasses.parametrization)
 
        # Test the keys for a specific class
-      @test setdiff(p_eqclasses.classes[1,1,1], [(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)]) == []    end
+      @test setdiff(p_eqclasses.classes[1,1,1], [(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)]) == []    
+    end
+
+    @testset "Sum equivalent classes Fourier" begin
+      p_eqclasses = compute_equivalent_classes(p)
+      sum_p = sum_equivalent_classes(p_eqclasses)
+      @test H(sum_p[1,2,1]) == 3*a[1]*a[3]*b[2] + 3*a[2]*b[1]*b[3] + 6*b[1]*b[2]*b[3]
+      @test H(sum_p[1,1,1]) == a[1]*a[2]*a[3] + 3*b[1]*b[2]*b[3]
+      @test H(sum_p[1,2,2]) == 3*a[1]*b[2]*b[3] + 3*a[2]*a[3]*b[1] + 6*b[1]*b[2]*b[3]
+      @test H(sum_p[1,2,3]) == 6*a[1]*b[2]*b[3] + 6*a[2]*b[1]*b[3] + 6*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
+      @test H(sum_p[1,1,2]) == 3*a[1]*a[2]*b[3] + 3*a[3]*b[1]*b[2] + 6*b[1]*b[2]*b[3]
+
+    end
   end
 
   @testset "Fourier parametrization" begin

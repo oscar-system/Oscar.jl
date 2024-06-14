@@ -17,6 +17,7 @@ function monomial_parametrization(pm::PhylogeneticModel, states::Dict{Int, Int})
 
   return monomial
 end
+
 function monomial_parametrization(pm::GroupBasedPhylogeneticModel, states::Dict{Int, Int})
   monomial_parametrization(phylogenetic_model(pm), states)
 end
@@ -40,6 +41,7 @@ function probability_parametrization(pm::PhylogeneticModel, leaves_states::Vecto
   end 
   return poly
 end 
+
 function probability_parametrization(pm::GroupBasedPhylogeneticModel, leaves_states::Vector{Int})
   probability_parametrization(phylogenetic_model(pm), leaves_states)
 end
@@ -87,6 +89,7 @@ function probability_map(pm::PhylogeneticModel)
   probability_coordinates = Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}(Tuple(leaves_states) => probability_parametrization(pm, leaves_states) for leaves_states in leaves_indices)
   return probability_coordinates
 end
+
 function probability_map(pm::GroupBasedPhylogeneticModel)
   probability_map(phylogenetic_model(pm))
 end
@@ -253,11 +256,10 @@ Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
   [(1, 1, 1)]                                       => x[1, 1]*x[2, 1]*x[3, 1]
 ```
 """
-function sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
-
-
-
-  return Dict(key => equivalent_classes[key]*length(vcat([key]...)) for key in keys(equivalent_classes))
+function sum_equivalent_classes(equivalent_classes::NamedTuple{(:parametrization, :classes), Tuple{Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem}, Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}}})
+  param = equivalent_classes.parametrization
+  classes = equivalent_classes.classes
+  return Dict(key => param[key]*length(classes[key]) for key in keys(param))
 end
 
 
