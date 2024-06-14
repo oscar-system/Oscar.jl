@@ -129,19 +129,3 @@ end
 # Method for compatibility with internal methods of the gluings
   
 Gluing(g::LazyGluing) = Gluing(underlying_gluing(g))
-
-# ask the underlying gluing if it knows more
-function has_is_disjoint_gluing(G::LazyGluing)
-  return has_attribute(G, :is_disjoint_gluing) || has_is_disjoint_gluing(underlying_gluing(G))
-end
-
-# forward attributes ... do we want this?
-function has_attribute(G::LazyGluing, s::Symbol)
-  has_attribute(G, s) && return true
-  return has_attribute(underlying_gluing(G), s)
-end
-
-function get_attribute(G::LazyGluing, s::Symbol)
-  has_attribute(G, s) && return get_attribute(G, s)
-  return get_attribute(underlying_gluing(G), s)
-end
