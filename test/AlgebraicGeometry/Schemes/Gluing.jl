@@ -167,5 +167,6 @@ end
   D,_ = disjoint_union(P2ac,P2bc)
   @test is_disjoint_gluing(D[1][1,4]) 
   @test !is_disjoint_gluing(D[1][1,2]) 
+  @test 12 == number_of_edges(gluing_graph(D))
 end 
 

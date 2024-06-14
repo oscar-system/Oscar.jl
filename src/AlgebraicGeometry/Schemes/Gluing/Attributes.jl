@@ -109,14 +109,17 @@ end
 end
 
 is_disjoint_gluing(G::DisjointGluing) = true
+has_is_disjoint_gluing(G::DisjointGluing) = true
+
 ########################################################################
 # Further methods                                                      #
 ########################################################################
-
 
 @attr function is_disjoint_gluing(G::AbsGluing)
   U = gluing_domains(G)[1]
   return is_empty(U)
 end
 
-
+function has_is_disjoint_gluing(G::AbsGluing)
+  return has_attribute(G, :is_disjoint_gluing)
+end

@@ -148,8 +148,17 @@ end
   end
 end 
 
-#TODO: Make the (trivial) gluing domains and morphisms lazy to save memory
 function disjoint_gluing(X::AbsAffineScheme, Y::AbsAffineScheme)
+  U = EmptyPrincipalOpenSubset(X)
+  V = EmptyPrincipalOpenSubset(Y)
+  f = morphism(U,V, [zero(OO(U)) for i in 1:ngens(OO(V))])
+  g = morphism(V,U, [zero(OO(V)) for i in 1:ngens(OO(U))])
+  S = SimpleGluing(X,Y,f,g)
+  set_attribute!(S, :is_disjoint_gluing=>true)
+  return S
+end
+  
+function disjoint_gluing2(X::AbsAffineScheme, Y::AbsAffineScheme)
   U = subscheme(X, OO(X)(1))
   V = subscheme(Y, OO(Y)(1))
   
@@ -157,5 +166,11 @@ function disjoint_gluing(X::AbsAffineScheme, Y::AbsAffineScheme)
   g = morphism(V,U, [zero(OO(V)) for i in 1:ngens(OO(U))])
   return DisjointGluing(X,Y,U,V,f,g)
 end 
-
-
+  
+function disjoint_gluing3(X::AbsAffineScheme, Y::AbsAffineScheme)
+  U = AffineSchemeOpenSubscheme(X,ideal(OO(X)(0)))
+  V = AffineSchemeOpenSubscheme(Y,ideal(OO(Y)(0)))
+  f = AffineSchemeOpenSubschemeMor(U,V,AbsAffineSchemeMor[])
+  g = AffineSchemeOpenSubschemeMor(V,U,AbsAffineSchemeMor[])
+  return Gluing(X,Y,f,g; check=false)
+end 
