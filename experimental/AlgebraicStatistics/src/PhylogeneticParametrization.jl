@@ -184,7 +184,7 @@ julia> q = fourier_map(pm);
 
 julia> p_equivclasses = compute_equivalent_classes(p);
 
-julia> p_equivclasses.param_classes
+julia> p_equivclasses.parametrization
 Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 5 entries:
   (1, 2, 1) => 1//4*a[1]*a[3]*b[2] + 1//4*a[2]*b[1]*b[3] + 1//2*b[1]*b[2]*b[3]
   (1, 1, 1) => 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]
@@ -202,7 +202,7 @@ Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}} with 5 entries:
 
 julia> q_equivclasses = compute_equivalent_classes(q);
 
-julia> q_equivclasses.param_classes
+julia> q_equivclasses.parametrization
 Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 5 entries:
   (1, 1, 1) => x[1, 1]*x[2, 1]*x[3, 1]
   (2, 3, 4) => x[1, 2]*x[2, 2]*x[3, 2]
@@ -227,7 +227,7 @@ function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, 
   classes = Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}(
             k[1] => k for k in equivalent_keys)
             
-  return (param_classes=param_classes, classes=classes)
+  return (parametrization=param_classes, classes=classes)
 end
 
 @doc raw"""
@@ -254,6 +254,9 @@ Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem} with 6 entries:
 ```
 """
 function sum_equivalent_classes(equivalent_classes::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
+
+
+
   return Dict(key => equivalent_classes[key]*length(vcat([key]...)) for key in keys(equivalent_classes))
 end
 
@@ -275,7 +278,7 @@ julia> p_equivclasses = compute_equivalent_classes(probability_map(pm));
 
 julia> q_equivclasses = compute_equivalent_classes(fourier_map(pm));
 
-julia> specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
+julia> specialized_fourier_transform(pm, p_equivclasses.classes, q_equivclasses.classes)
 5×5 Matrix{QQMPolyRingElem}:
  1  1      1      1      1
  1  -1//3  -1//3  1      -1//3
@@ -284,40 +287,38 @@ julia> specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
  1  -1//3  -1//3  -1//3  1//3
 ```
 """
-function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
-  R = probability_ring(pm)
-  ns = number_states(pm)
-
-  np = length(p_equivclasses)
-  nq = length(q_equivclasses) - 1
-
-  ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
-  p_equivclasses_sorted = collect(keys(p_equivclasses))
-  [sort!(p_eqclass) for p_eqclass in p_equivclasses_sorted]
-  sort!(p_equivclasses_sorted)
-
-  q_equivclasses = collect(keys(filter(x -> !is_zero(x.second), q_equivclasses)))
-  [sort!(f_eqclass) for f_eqclass in q_equivclasses]
-  sort!(q_equivclasses)
-
-  H = R.(hadamard(matrix_space(ZZ, ns, ns)))
-
-  specialized_ft_matrix = R.(Int.(zeros(nq, np)))
-  for i in 1:nq
-    current_fourier_classes = q_equivclasses[i]
-    for j in 1:np
-      current_prob_classes = p_equivclasses_sorted[j]
-      current_entriesin_M = [prod([H[y,x] for (x,y) in zip(p,q)]) for p in current_prob_classes, q in current_fourier_classes]
-      specialized_ft_matrix[i,j] = R.(1//(length(current_prob_classes)*length(current_fourier_classes))*sum(current_entriesin_M))
+function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, 
+                                       q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
+    R = probability_ring(pm)
+    ns = number_states(pm)
+    
+    np = length(p_classes)
+    nq = length(q_classes)
+    
+    ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
+    keys_p_classes = collect(keys(p_classes))
+    sort!(keys_p_classes)
+    keys_q_classes = collect(keys(q_classes))
+    sort!(keys_q_classes)
+    
+    H = R.(hadamard(matrix_space(ZZ, ns, ns)))
+    
+    specialized_ft_matrix = R.(Int.(zeros(nq, np)))
+    for i in 1:nq
+      current_fourier_class = q_classes[keys_q_classes[i]]
+      for j in 1:np
+        current_prob_class = p_classes[keys_p_classes[j]]
+        current_entriesin_M = [prod([H[y,x] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class]
+        specialized_ft_matrix[i,j] = R.(1//(length(current_prob_class)*length(current_fourier_class))*sum(current_entriesin_M))
+      end
     end
-  end
-  return specialized_ft_matrix
+    return specialized_ft_matrix
 end
 
 function specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   p_equivclasses = compute_equivalent_classes(probability_map(pm))
   q_equivclasses = compute_equivalent_classes(fourier_map(pm))
-  specialized_fourier_transform(pm, p_equivclasses,q_equivclasses)
+  specialized_fourier_transform(pm, p_equivclasses.classes, q_equivclasses.classes)
 end
 
 @doc raw"""
@@ -333,7 +334,7 @@ julia> p_equivclasses = compute_equivalent_classes(probability_map(pm));
 
 julia> q_equivclasses = compute_equivalent_classes(fourier_map(pm));
 
-julia> inverse_specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
+julia> inverse_specialized_fourier_transform(pm, p_equivclasses.classes, q_equivclasses.classes)
 5×5 Matrix{QQMPolyRingElem}:
  1//16  3//16   3//16   3//16   3//8
  3//16  -3//16  -3//16  9//16   -3//8
@@ -342,30 +343,28 @@ julia> inverse_specialized_fourier_transform(pm, p_equivclasses, q_equivclasses)
  3//8   -3//8   -3//8   -3//8   3//4
 ```
 """
-function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem}, q_equivclasses::Dict{Vector{Tuple{Vararg{Int64}}}, QQMPolyRingElem})
+function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel, p_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}}, 
+                                               q_classes::Dict{Tuple{Vararg{Int64}}, Vector{Tuple{Vararg{Int64}}}})
   R = probability_ring(pm)
   ns = number_states(pm)
 
-  np = length(p_equivclasses)
-  nq = length(q_equivclasses) - 1
+  np = length(p_classes)
+  nq = length(q_classes)
 
   ## We need to sort the equivalence classes: both inside each class as well as the collection of classes. 
-  p_equivclasses_sorted = collect(keys(p_equivclasses))
-  [sort!(p_eqclass) for p_eqclass in p_equivclasses_sorted]
-  sort!(p_equivclasses_sorted)
-
-  q_equivclasses_sorted = collect(keys(filter(x -> !is_zero(x.second), q_equivclasses)))
-  [sort!(f_eqclass) for f_eqclass in q_equivclasses_sorted]
-  sort!(q_equivclasses_sorted)
+  keys_p_classes = collect(keys(p_classes))
+  sort!(keys_p_classes)
+  keys_q_classes = collect(keys(q_classes))
+  sort!(keys_q_classes)
 
   H = R.(hadamard(matrix_space(ZZ, ns, ns)))
   Hinv = 1//ns * H 
 
   inverse_spec_ft_matrix = R.(Int.(zeros(np, nq)))
   for i in 1:np
-    current_prob_class = p_equivclasses_sorted[i]
+    current_prob_class = p_classes[keys_p_classes[i]]
     for j in 1:nq
-      current_fourier_class = q_equivclasses_sorted[j]
+      current_fourier_class = q_classes[keys_q_classes[j]]
       current_entriesin_Minv = [prod([Hinv[x,y] for (x,y) in zip(p,q)]) for p in current_prob_class, q in current_fourier_class] 
       inverse_spec_ft_matrix[i,j] = R.(sum(current_entriesin_Minv))
     end
@@ -376,5 +375,5 @@ end
 function inverse_specialized_fourier_transform(pm::GroupBasedPhylogeneticModel)
   p_equivclasses = compute_equivalent_classes(probability_map(pm))
   q_equivclasses = compute_equivalent_classes(fourier_map(pm))
-  inverse_specialized_fourier_transform(pm, p_equivclasses,q_equivclasses)
+  inverse_specialized_fourier_transform(pm, p_equivclasses.classes, q_equivclasses.classes)
 end

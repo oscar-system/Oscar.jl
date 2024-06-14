@@ -345,8 +345,8 @@ function kimura2_model(graph::Graph{Directed})
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,3], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
   
-    G = collect(abelian_group(2,2))
-    group = [G[1],G[3],G[2],G[4]]
+  G = collect(abelian_group(2,2))
+  group = [G[1],G[3],G[2],G[4]]
 
   pm = PhylogeneticModel(graph, ns, R, root_distr, matrices)
   return GroupBasedPhylogeneticModel(pm, S, fourier_param, group)

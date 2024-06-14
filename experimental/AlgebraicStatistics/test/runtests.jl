@@ -180,12 +180,10 @@ end
                 1//4*a[1]*a[2]*a[3] + 3//4*b[1]*b[2]*b[3]]
 
       # Test that we get the expected number and polynomials in equivalent classes
-      @test length(unique(vcat(H.(collect(values(p_eqclasses))), classes))) == length(p_eqclasses)
+      @test length(unique(vcat(H.(collect(values(p_eqclasses.parametrization))), classes))) == length(p_eqclasses.parametrization)
 
-      # Test the keys for a specific class
-      i = findall(x -> x == classes[5], H.(collect(values(p_eqclasses))))[1]
-      @test setdiff(collect(keys(p_eqclasses))[i], [Tuple([1,1,1]), Tuple([2,2,2]), Tuple([3,3,3]), Tuple([4,4,4])]) == []
-    end
+       # Test the keys for a specific class
+      @test setdiff(p_eqclasses.classes[1,1,1], [(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4)]) == []    end
   end
 
   @testset "Fourier parametrization" begin
@@ -217,15 +215,17 @@ end
                 x[1, 1]*x[2, 1]*x[3, 1]]
   
       # Test that we get the expected number and polynomials in equivalent classes
-      @test length(unique(vcat(H.(collect(values(q_eqclasses))), classes))) == length(q_eqclasses)
-  
-      # Test the keys for a specific class
-      i = findall(x -> x == classes[1], H.(collect(values(q_eqclasses))))[1]
-      @test setdiff(collect(keys(q_eqclasses))[i], [Tuple([3,1,3]), Tuple([4,1,4]), Tuple([2,1,2])]) == []
-  
-      # Thest that the keys for the zero coordinates are in the same class
-      i = findall(x -> x == 0, H.(collect(values(q_eqclasses))))[1]
-      @test setdiff(collect(keys(q_eqclasses))[i], zerokeys) == []
+      @test length(unique(vcat(H.(collect(values(q_eqclasses.parametrization))), classes))) == length(q_eqclasses.parametrization)
+
+      # Test all classes
+      @test H(q_eqclasses.parametrization[1,1,1]) == x[1, 1]*x[2, 1]*x[3, 1]
+      @test H(q_eqclasses.parametrization[1,2,2]) == x[1, 1]*x[2, 2]*x[3, 2]
+      @test H(q_eqclasses.parametrization[2,1,2]) == x[2, 1]*x[1, 2]*x[3, 2]
+      @test H(q_eqclasses.parametrization[2,2,1]) == x[3, 1]*x[1, 2]*x[2, 2]
+      @test H(q_eqclasses.parametrization[2,3,4]) == x[1, 2]*x[2, 2]*x[3, 2]
+
+      # Thest that the keys for one class are the expected ones
+      @test setdiff(q_eqclasses.classes[2,3,4],  [(2,3,4),(2,4,3),(3,2,4),(3,4,2),(4,2,3),(4,3,2)]) == []
     end
   end
 
@@ -247,10 +247,10 @@ end
     @test specialized_fourier_transform(model) == FT
     @test inverse_specialized_fourier_transform(model) == IFT
 
-    p_equivclasses = sum_equivalent_classes(compute_equivalent_classes(probability_map(model)))
-    f_equivclasses = sum_equivalent_classes(compute_equivalent_classes(fourier_map(model)))
-    @test specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == FT
-    @test inverse_specialized_fourier_transform(model,p_equivclasses,f_equivclasses) == IFT
+    p_equivclasses = compute_equivalent_classes(probability_map(model))
+    f_equivclasses = compute_equivalent_classes(fourier_map(model))
+    @test specialized_fourier_transform(model, p_equivclasses.classes, f_equivclasses.classes) == FT
+    @test inverse_specialized_fourier_transform(model, p_equivclasses.classes, f_equivclasses.classes) == IFT
   end
 
   @testset "Affine parametrization" begin
