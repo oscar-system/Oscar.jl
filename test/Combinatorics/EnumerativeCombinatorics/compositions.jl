@@ -55,7 +55,7 @@ end
 
 @testset "Ascending compositions with integer type $T" for T in [Int, Int8, ZZRingElem]
   for n in 0:20
-    C = collect(ascending_compositions(T(n)))
+    C = @inferred collect(ascending_compositions(T(n)))
     @test length(C) == number_of_partitions(T(n))
     @test C == unique(C)
     for lambda in C
