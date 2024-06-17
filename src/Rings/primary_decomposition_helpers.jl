@@ -29,7 +29,7 @@ function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union
   K = coefficient_ring(R)
   alpha = first(gens(K))
   kk = base_field(K)
-  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)")], symbols(R)), cached=false)
+  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)")], symbols(R)); cached = false)
   theta = first(gens(P))
   f = defining_polynomial(K)
   d = degree(f)
@@ -47,7 +47,7 @@ function _expand_coefficient_field(
   alpha = gens(K)
   r = length(alpha)
   kk = base_field(K)
-  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)_$i") for i in 1:r], symbols(R)), cached=false)
+  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)_$i") for i in 1:r], symbols(R)); cached = false)
   theta = gens(P)[1:r]
   f = defining_polynomials(K)
   d = degree.(f)
@@ -195,7 +195,7 @@ end
 function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
   L = parent(phi(zero(kk)))
-  RR, _ = polynomial_ring(L, symbols(R))
+  RR, _ = polynomial_ring(L, symbols(R); cached = false)
   psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end

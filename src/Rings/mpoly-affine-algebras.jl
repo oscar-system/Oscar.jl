@@ -268,7 +268,7 @@ julia> hilbert_series(A)
 function hilbert_series(A::MPolyQuoRing; #=backend::Symbol=:Singular, algorithm::Symbol=:BayerStillmanA,=# parent::Union{Nothing,Ring}=nothing)
   R = base_ring(A.I)
   @req is_z_graded(R) "ring must be graded by the integers"
-  parent, t = (parent === nothing) ? polynomial_ring(ZZ, "t") : (parent, first(gens(parent)));
+  parent, t = (parent === nothing) ? polynomial_ring(ZZ, "t"; cached = false) : (parent, first(gens(parent)));
   W = R.d
   W = [Int(W[i][1]) for i = 1:ngens(R)]
   @req minimum(W) > 0 "The weights must be positive"
@@ -596,7 +596,7 @@ function multi_hilbert_series(
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:length(R.d)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached = false)
     map_into_S = hom(R, S, gens(S))
     J = map_into_S(I)
     AA, _ = quo(S, J)

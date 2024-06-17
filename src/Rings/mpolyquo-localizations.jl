@@ -1533,14 +1533,14 @@ end
 # ring R and returns a triple consisting of the new ring, the embedding 
 # of the original one, and a list of the new variables. 
 function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
-  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)); cached = false)
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1:n], check=false)
   return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
 function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
-  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)); cached = false)
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)], check=false)
   return ext_R, phi, gens(ext_R)[(1:length(v))]
@@ -1566,7 +1566,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached = false)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
@@ -1622,7 +1622,7 @@ function simplify(L::MPolyQuoRing)
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb, cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached=false)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
@@ -1653,7 +1653,7 @@ function simplify(L::MPolyQuoRing)
 end
 
 function simplify(R::MPolyRing)
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R), cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R); cached=false)
   f = hom(R, Rnew, gens(Rnew), check=false)
   finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv

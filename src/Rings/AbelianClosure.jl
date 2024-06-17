@@ -827,7 +827,7 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
   if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
-    _, x = polynomial_ring(parent(a), cached = false)
+    _, x = polynomial_ring(parent(a); cached = false)
     fl || return roots(x^n-a)::Vector{QQAbElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
