@@ -196,6 +196,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
       M = abelian_group([0 for x = o])
       h = MapFromFunc(c.C.M, M, x->M([valuation(x.data, y) for y = o]))
       D = gmodule(G, [hom(M, M, [h(action(c.C, g, c.C.M(i//1))) for i = o]) for g = gens(c.C.G)])
+#      @assert all(is_bijective, D.ac)
 
       cc = map_entries(h, c, parent = D)
       h2, mh2, icb = Oscar.GrpCoh.H_two(D)
@@ -204,7 +205,6 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
         if i == 2
           return false, nothing
         else
-          @show :trying_harder
           continue
         end
       end
@@ -234,7 +234,7 @@ function is_coboundary(c::CoChain{2,PermGroupElem,MultGrpElem{AbsSimpleNumFieldO
   return true, res
 end
 
-function Oscar.map_entries(MI:: Oscar.GrpCoh.MultGrp{AbsSimpleNumFieldOrderFractionalIdeal}, c::Oscar.GrpCoh.CoChain{2, <:GAPGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}})
+function Oscar.map_entries(MI::Oscar.GrpCoh.MultGrp{AbsSimpleNumFieldOrderFractionalIdeal}, c::Oscar.GrpCoh.CoChain{2, <:GAPGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}})
   k = c.C.M.data
   zk = maximal_order(k)
   D = gmodule(c.C.G, [MapFromFunc(MI, MI, x->MI(hom(k, k, action(c.C, g, c.C.M(gen(k))).data)(x.data))) for g = gens(c.C.G)])
@@ -428,7 +428,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
   #if K/k is unramified, then the units are cohomological trivial,
   #   so Z (with trivial action) is correct for the gmodule
-  #if K/k is tame, then the 1-units are cohomologycal trivial, hence
+  #if K/k is tame, then the 1-units are cohomological trivial, hence
   #   Z time k^* is enough...
 
   e = divexact(absolute_ramification_index(K), absolute_ramification_index(k))
@@ -513,7 +513,18 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
 
 
   @vprint :GaloisCohomology 2 " .. quotient ..\n"
-  Q, mQ = quo(U, [preimage(mU, 1+prime(k)^4*x) for x = o])
+  if prime(k) == 2
+    #we need val(p^k) > 1/(p-1)
+    #val(p) = 1 and the only critical one is p=2, where k>1 is
+    #neccessary
+    ex = 2
+  else
+    ex = 1
+  end
+  #x -> 1+pi*x is in general, not injective, not even for a basis
+  # if valuation(dm) == 0, then by Lorenz Alg II, 26.F10 it should
+  # be, but we're not using it. This was used to avoid exp
+  Q, mQ = quo(U, [preimage(mU, exp(prime(k)^ex*x)) for x = o])
   S, mS = snf(Q)
   Q = S
   mQ = mQ*inv(mS)
@@ -525,7 +536,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   end
 
   @vprint :GaloisCohomology 2 " .. the module ..\n"
-  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]) for i=gens(G)]
+  hh = [hom(Q, Q, [mQ(preimage(mU, mG(i)(mU(preimage(mQ, g))))) for g = gens(Q)]; check = false) for i=gens(G)]
   Hecke.assure_has_hnf(Q)
   return gmodule(G, hh), mG, pseudo_inv(mQ)*mU
 end
@@ -1287,6 +1298,7 @@ function induce_hom(ml::Hecke.CompletionMap, mL::Hecke.CompletionMap, mkK::NumFi
 end
 
 function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}}, P::AbsSimpleNumFieldOrderIdeal, mG::Map = automorphism_group(PermGroup, Hecke.nf(order(P)))[2]; B::Any = nothing, index_only::Bool = false)
+  
   k = Hecke.nf(order(P))
 
   if B !== nothing && haskey(B.lp, P)
