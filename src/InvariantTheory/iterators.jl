@@ -543,7 +543,7 @@ end
 function vector_space_iterator(
   K::FieldT, basis_iterator::IteratorT
 ) where {
-  FieldT<:Union{Nemo.fpField,Nemo.FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
+  FieldT<:Union{fpField,FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
 }
   return VectorSpaceIteratorFiniteField(K, basis_iterator)
 end

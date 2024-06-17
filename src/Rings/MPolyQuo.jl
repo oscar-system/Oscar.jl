@@ -208,7 +208,7 @@ HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 # For polynomial rings over the integers we can compute Gröbner bases but
 # in general can not compute normal forms.
 HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
-HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
 # This list can (and should) be extended by eventual new types which 
 # are supposed to make use of the Singular backend; see above.

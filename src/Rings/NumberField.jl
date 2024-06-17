@@ -675,7 +675,7 @@ function minpoly(a::NfNSGenElem)
   z *= a
   elem_to_mat_row!(M, 2, z)
   i = 2
-  Qt, _ = polynomial_ring(k, "t", cached = false)
+  Qt, _ = polynomial_ring(k, "t"; cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
       N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))

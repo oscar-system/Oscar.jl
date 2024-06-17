@@ -83,7 +83,6 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
-  __GAP_info_messages_off()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
@@ -95,6 +94,7 @@ function __init__()
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
   for (pkg, version) in [
+     ("recog", "1.4.2"),
      ("repsn", "3.1.1"),
      ]
     GAP.Packages.install(pkg, version, interactive = false, quiet = true)
@@ -109,6 +109,7 @@ function __init__()
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
+     "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
      "smallgrp", # small groups library
      "transgrp", # transitive groups library
@@ -122,6 +123,7 @@ function __init__()
      ]
     GAP.Packages.load(pkg)
   end
+  __GAP_info_messages_off()
   __init_group_libraries()
 
   add_verbosity_scope(:K3Auto)

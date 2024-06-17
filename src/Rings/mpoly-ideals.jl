@@ -959,9 +959,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   if is_graded(Qx)
-    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)]; cached = false)
   else
-    Rx, _ = polynomial_ring(R, symbols(Qx))
+    Rx, _ = polynomial_ring(R, symbols(Qx); cached = false)
   end
   return _map_last_var(Rx, I, 2, a)
 end

@@ -1059,7 +1059,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1101,7 +1101,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1482,14 +1482,14 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # P has to have exactly n vertices and
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   ngon_is = findall(x -> x == n, nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])
   degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
   degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   if m == 3
     bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
     return bigdg.BIPARTITE

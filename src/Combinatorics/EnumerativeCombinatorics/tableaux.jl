@@ -351,6 +351,10 @@ The list of tableaux is in lexicographic order from left to right and top
 to bottom.
 """
 function semistandard_tableaux(shape::Partition{T}, max_val::T = sum(shape)) where T <: Integer
+  # TODO: This function first fills an array and then returns an iterator over
+  # this array. This was a stopgap, to have a stable API for version 1.0.
+  # The output should be a dedicated iterator type which constructs the tableaux
+  # on demand (if possible).
   SST = Vector{YoungTableau{T}}()
   len = length(shape)
   if max_val < len
@@ -421,6 +425,10 @@ Return an iterator over all semistandard Young tableaux consisting of `box_num`
 boxes and filling elements bounded by `max_val`.
 """
 function semistandard_tableaux(box_num::T, max_val::T = box_num) where T <: Integer
+  # TODO: This function first fills an array and then returns an iterator over
+  # this array. This was a stopgap, to have a stable API for version 1.0.
+  # The output should be a dedicated iterator type which constructs the tableaux
+  # on demand (if possible).
   @req box_num >= 0 "box_num >= 0 required"
   SST = Vector{YoungTableau{T}}()
   if max_val <= 0
@@ -445,6 +453,10 @@ Return an iterator over all semistandard Young tableaux with shape `s` and given
 weight. This requires that `sum(s) = sum(weight)`.
 """
 function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integer
+  # TODO: This function first fills an array and then returns an iterator over
+  # this array. This was a stopgap, to have a stable API for version 1.0.
+  # The output should be a dedicated iterator type which constructs the tableaux
+  # on demand (if possible).
   n_max = sum(s)
   @req n_max == sum(weight) "sum(s) == sum(weight) required"
 
@@ -621,6 +633,10 @@ end
 Return an iterator over all standard Young tableaux of a given shape `s`.
 """
 function standard_tableaux(s::Partition)
+  # TODO: This function first fills an array and then returns an iterator over
+  # this array. This was a stopgap, to have a stable API for version 1.0.
+  # The output should be a dedicated iterator type which constructs the tableaux
+  # on demand (if possible).
   tabs = Vector{YoungTableau}()
   if isempty(s)
     push!(tabs, young_tableau(Vector{Int}[], check = false))
@@ -680,6 +696,10 @@ end
 Return an iterator over all standard Young tableaux with `n` boxes.
 """
 function standard_tableaux(n::Integer)
+  # TODO: This function first fills an array and then returns an iterator over
+  # this array. This was a stopgap, to have a stable API for version 1.0.
+  # The output should be a dedicated iterator type which constructs the tableaux
+  # on demand (if possible).
   @req n >= 0 "n >= 0 required"
   ST = Vector{YoungTableau}()
   for s in partitions(n)

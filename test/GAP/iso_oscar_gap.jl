@@ -33,7 +33,7 @@ end
 
 @testset "finite fields" begin
    @testset for p in [2, 3]
-      for F in [Nemo.fpField(UInt(p)), Nemo.FpField(ZZRingElem(p))]
+      for F in [fpField(UInt(p)), FpField(ZZRingElem(p))]
          f = Oscar.iso_oscar_gap(F)
          for a in F
             for b in F
@@ -56,7 +56,7 @@ end
    end
 
    p = 257  # GAP regards the Conway polynomial for `GF(257, 1)` as not cheap.
-   @testset for F in [Nemo.fpField(UInt(257)), Nemo.FpField(ZZRingElem(257))]
+   @testset for F in [fpField(UInt(257)), FpField(ZZRingElem(257))]
       f = Oscar.iso_oscar_gap(F)
       oO = one(F)
       oG = f(oO)
@@ -285,8 +285,8 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `FqPolyRepPolyRing`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpPolyRing`
                 Nemo.Native.GF(2),            # yields `fpPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModPolyRing`
-                Nemo.ZZModRing(ZZRingElem(6)),    # yields `ZZModPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModPolyRing`
+                ZZModRing(ZZRingElem(6)),     # yields `ZZModPolyRing`
                ]
 #TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
@@ -312,7 +312,7 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `AbstractAlgebra.Generic.MPolyRing{FqPolyRepFieldElem}`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpMPolyRing`
                 Nemo.Native.GF(2),            # yields `fpMPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModMPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModMPolyRing`
                ]
 #TODO: How to get `FpMPolyRing`, `FqMPolyRing`?
    @testset for R in baserings

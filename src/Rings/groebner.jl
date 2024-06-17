@@ -1572,7 +1572,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)); cached = false)
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
@@ -1696,9 +1696,9 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
 
   p = iterate(primes)[1]
   Qt = base_ring(I)
-  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)]; cached = false)[1]
 
-  Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)]; cached = false)
   std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
     map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
   end
@@ -1711,7 +1711,7 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
   while !done
     while n_stable_primes < 2
       p = iterate(primes, p)[1]
-      Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)]; cached = false)
       std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
         map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
       end
