@@ -631,38 +631,34 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
 end
 
 function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
-gauge_algebras = [];
-C = algebraic_closure(QQ);
-for i in 1:length(algebras)
-    g = algebras[i];
+  C = algebraic_closure(QQ)
+  function _construct(g::String)
     if g == "0"
-      continue
+      return nothing
     end
     if g == "u(1)"
-      algebra = lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"]);
-      push!(gauge_algebras, algebra);
+      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
     elseif g[1:2] == "su"
-      algebra = special_linear_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
-      push!(gauge_algebras, algebra);
+      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
     elseif g[1:2] == "so"
-      algebra = special_orthogonal_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
-      push!(gauge_algebras, algebra);
+      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
     elseif g[1:2] == "sp"
-      algebra = symplectic_lie_algebra(C,eval(Meta.parse(g[4:end-1])));
-      push!(gauge_algebras, algebra);
+      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
       #For the algebras that are constructed from their Dynkin diagramms we cannot use QQBarField as the current implementation looks for a GAP iso and finds none.
     elseif g[1] == "e"
-      algebra = lie_algebra(QQ,Symbol('E'),eval(Meta.parse(g[3:end-1])));
-      push!(gauge_algebras, algebra);
+      return lie_algebra(QQ, Symbol('E'), parse(Int, g[3:end-1]))
     elseif g[1] == "g"
-      algebra = lie_algebra(QQ,Symbol('G'),eval(Meta.parse(g[3:end-1])));
-      push!(gauge_algebras, algebra);
+      return lie_algebra(QQ, Symbol('G'), parse(Int, g[3:end-1]))
     #elseif g[1] == "f" This is not implemented yet  
-      #algebra = lie_algebra(C,Symbol('G'),eval(Meta.parse(g[3:end-1])));
-      #push!(gauge_algebras, algebra);
+      #return lie_algebra(C,Symbol('G'),parse(Int, g[3:end-1]));
     end
+  end
+  gauge_algebras = [_construct(g) for g in algebras]
+  set_attribute!(m, :gauge_algebra => gauge_algebras)
 end
-set_attribute!(m, :gauge_algebra => gauge_algebras)
+
+function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+ set_attribute!(m, :global_gauge_quotients => quotients)
 end
 
 
