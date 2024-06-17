@@ -47,7 +47,7 @@ _matrix_for_polymake(::Val{_point}) = _point_matrix
 
 Return an iterator over the maximal cells of `SOP`.
 
-Optionally `IncidenceMatrix` can be passed as a first argument to receive the
+Optionally `IncidenceMatrix` can be passed as a first argument to return the
 incidence matrix specifying the maximal cells of `SOP`.
 
 # Examples

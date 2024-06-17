@@ -147,7 +147,7 @@ rays_modulo_lineality(::Type{<:RayVector}, F::_FanLikeType) = _rays(F)
 
 Return the maximal cones of `PF`.
 
-Optionally `IncidenceMatrix` can be passed as a first argument to receive the
+Optionally `IncidenceMatrix` can be passed as a first argument to return the
 incidence matrix specifying the maximal cones of `PF`.
 
 # Examples

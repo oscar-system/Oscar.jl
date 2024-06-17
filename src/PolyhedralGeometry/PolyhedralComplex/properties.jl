@@ -364,7 +364,7 @@ _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
 
 Return the maximal polyhedra of `PC`
 
-Optionally `IncidenceMatrix` can be passed as a first argument to receive the
+Optionally `IncidenceMatrix` can be passed as a first argument to return the
 incidence matrix specifying the maximal polyhedra of `PC`.
 
 # Examples
