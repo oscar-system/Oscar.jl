@@ -18,6 +18,7 @@
   @test is_standard(young_tableau([[1,4],[2,4]])) == false
   @test is_standard(young_tableau([[1,2],[4]])) == false
   @test is_standard(young_tableau([[1,3,2],[4]])) == false
+  @test is_standard(young_tableau([[-1]])) == false
 
   # is_semistandard
   @test is_semistandard(young_tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
@@ -28,6 +29,7 @@
   @test is_semistandard(young_tableau([[1,2,2],[3]])) == true
   @test is_semistandard(young_tableau([[1,2,3],[1,4]])) == false
   @test is_semistandard(young_tableau([[1,2,1],[2,4]])) == false
+  @test is_semistandard(young_tableau([[-1]])) == true
 
   # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
   shapes = [[3,2,1],[3,3,1],[2,2,2]]
