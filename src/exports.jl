@@ -194,6 +194,7 @@ export add_gluing!
 export add_vertex!
 export add_vertices!
 export adjacency_tree
+export adjacency_matrix
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
@@ -915,6 +916,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export laplacian_matrix
 export lattice_points
 export lattice_volume
 export leading_coefficient
