@@ -1057,7 +1057,9 @@ If no gauge quotients are known, an error is raised.
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
 Assuming that the first row of the given grading is the grading under Kbar
+
 Hypersurface model over a not fully specified base
+
 julia> global_gauge_quotients(t)
 5-element Vector{Vector{String}}:
  ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
