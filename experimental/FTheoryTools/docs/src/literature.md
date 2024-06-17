@@ -98,7 +98,9 @@ following methods:
 * `has_weighted_resolutions(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_zero_section(m::AbstractFTheoryModel)`.
+* `has_zero_section(m::AbstractFTheoryModel)`,
+* `has_gauge_algebra(m::AbstractFTheoryModel)`,
+* `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 
 
 ## Methods

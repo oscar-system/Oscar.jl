@@ -34,8 +34,8 @@
     },
     "model_descriptors": {
         "type": "tate",
-        "description": "SU(2k+1) Tate model",
-        "gauge_algebra": ["su(2k+1)"]
+        "description": "SU(2*k+1) Tate model",
+        "gauge_algebra": ["su(2*k+1)"]
     },
     "model_parameters": ["k"],
     "model_data": {
