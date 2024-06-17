@@ -500,29 +500,29 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
   n_max = sum(s)
   @req n_max == sum(weight) "sum(s) == sum(weight) required"
 
-  tabs = Vector{YoungTableau}()
+  tabs = Vector{YoungTableau{T}}()
   if isempty(s)
-    push!(tabs, young_tableau(Vector{Int}[], check = false))
+    push!(tabs, young_tableau(Vector{T}[], check = false))
     return (t for t in tabs)
   end
   ls = length(s)
 
-  tab = young_tableau([ [0 for j = 1:s[i]] for i = 1:length(s)], check = false)
-  sub_s = zeros(Integer, length(s))
+  tab = young_tableau([ T[0 for j = 1:s[i]] for i = 1:length(s)], check = false)
+  sub_s = zeros(Int, length(s))
 
   #tracker_row = zeros(Integer, n_max)
 
-  function rec_sst!(n::Integer)
+  function rec_sst!(n::Int)
 
     #fill the remaining boxes if possible, else set them to 0
     if n == length(weight)
       for i = 1:ls
         for j = sub_s[i] + 1:s[i]
-          tab[i][j] = n
+          tab[i][j] = T(n)
           if i != 1 && tab[i - 1][j] == n
             for k = 1:i
               for l = sub_s[k] + 1:s[k]
-                tab[i][j] = 0
+                tab[i][j] = T(0)
               end
             end
             return
@@ -540,7 +540,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
     end
 
     #here starts the main part of the function
-    tracker_row = zeros(Integer, weight[n])
+    tracker_row = zeros(Int, weight[n])
     i = 1
     while sub_s[i] == s[i]
       i += 1
@@ -551,7 +551,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
     while m >= 0
       if m == weight[n]   # jump to next recursive step
         rec_sst!(n + 1)
-        tab[tracker_row[m]][sub_s[tracker_row[m]]] = 0
+        tab[tracker_row[m]][sub_s[tracker_row[m]]] = T(0)
         i = tracker_row[m] + 1
         if i <= ls
           j = sub_s[i] + 1
@@ -563,7 +563,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
         if m == 0
           return
         else
-          tab[tracker_row[m]][sub_s[tracker_row[m]]] = 0
+          tab[tracker_row[m]][sub_s[tracker_row[m]]] = T(0)
           i = tracker_row[m] + 1
           if i <= ls
             j = sub_s[i] + 1
@@ -574,7 +574,7 @@ function semistandard_tableaux(s::Vector{T}, weight::Vector{T}) where T <: Integ
 
       elseif j <= s[i] && (i == 1 || (j <= sub_s[i - 1] && n > tab[i - 1][j]))  #add an entry
         m += 1
-        tab[i][j] = n
+        tab[i][j] = T(n)
         sub_s[i] += 1
         tracker_row[m] = i
         j += 1
