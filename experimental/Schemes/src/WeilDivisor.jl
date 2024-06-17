@@ -706,8 +706,6 @@ of generators.
 """
 function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n)
   # find one chart in which P is supported
-  # TODO: There might be preferred choices for charts with
-  # the least complexity.
   if coeff(weil_divisor(L),P) == -n
     return L, identity_matrix(ZZ, length(gens(L)))
   end
@@ -715,14 +713,30 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n)
   X === space(P) || error("input incompatible")
   C = default_covering(X)
   U = first(patches(C))
-  for V in patches(C)
-    if !(one(OO(V)) in P(V))
-      U = V
-      break
+
+  found = false
+  d = inf
+  for V in keys(object_cache(P))
+    if !isone(P(V)) && V in patches(C)
+      # TODO: There might be better choices for charts with
+      # the least complexity. We take among the known charts the one with the smalles degree
+      dd = sum(total_degree(lifted_numerator(i)) for i in gens(P(V)))
+      if dd < d
+        U = V
+        d = dd
+        found = true
+      end
+    end
+  end
+  if !found 
+    for V in patches(C)
+      if !isone(P(V))
+        U = V
+        break
+      end
     end
   end
   # Now U it is.
-
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
   loc_rep = [g[U] for g in gens(L)]
