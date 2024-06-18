@@ -990,9 +990,6 @@ function weighted_resolution_zero_sections(m::AbstractFTheoryModel)
 end
 
 
-# This example cannot be used until we support literature hypersurface models
-# At that point, we should simply be able to uncomment this block
-
 @doc raw"""
     zero_section(m::AbstractFTheoryModel)
 
