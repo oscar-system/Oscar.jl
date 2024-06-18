@@ -1,8 +1,33 @@
 export hasse_derivatives
 
 
-
+################################################################################
 ### HASSE-SCHMIDT derivatives for single polynomials
+
+@doc raw"""
+    hasse_derivatives(f::MPolyRingElem)
+
+Return the Hasse-Schmidt derivatives of `f`.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
+
+julia> f = R(5*x^2 + 3*y^5);
+
+julia> hasse_derivatives(f)
+9-element Vector{ZZMPolyRingElem}:
+ 3*y^5
+ 15*y^4
+ 30*y^3
+ 30*y^2
+ 15*y
+ 3
+ 5*x^2
+ 10*x
+ 5
+```
+"""
 
 #  MPolyRingElem
 function hasse_derivatives(f::MPolyRingElem)
@@ -37,7 +62,7 @@ function hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
 end
 
 
-
+################################################################################
 ### HASSE-SCHMIDT derivatives for a list of polynomials
 
 function hasse_derivatives(v::Vector)
@@ -47,13 +72,12 @@ end
 
 
 
-
+################################################################################
 ### internal functions for expert use
 
 # MPolyQuoRingElem (internal, expert use only)
 function _hasse_derivatives(f::MPolyQuoRingElem)
-  R = base_ring(f) # QUESTION: Is base_ring of Quotient ring always a MPolyRing?
-  return hasse_derivatives(R(f)) 
+  return hasse_derivatives(lifted_numerator(f)) 
 end
 
 # Oscar.MPolyLocRingElem (internal, expert use only)
@@ -63,7 +87,7 @@ end
 
 # Oscar.MPolyQuoLocRingElem (internal, expert use only)
 function _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
-  # QUESTION: How do i do this? How do i work around the localization and the modulus?
+  return hasse_derivatives(lifted_numerator(f))
 end
 
 # for a list of elements (internal, expert use only)

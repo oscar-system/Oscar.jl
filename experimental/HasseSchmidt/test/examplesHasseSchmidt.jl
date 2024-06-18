@@ -1,10 +1,15 @@
 
 ### MPolyRingElem
+R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
+f = R(5*x^2 + 3*y^5);
+hasse_derivatives(f)
+
 R, x = polynomial_ring(ZZ, 4, "x")
+f = R(5*x[2]^2 + 2*x[4]^5)
 f1 = R(3*x[2])
 f2 = R(4*x[4]^3)
-hasse_derivatives(f1)
-hasse_derivatives([f1, f2])
+hasse_derivatives(f)
+hasse_derivatives([f, f1, f2])
 
 R, x = polynomial_ring(QQ, 4, "x")
 f1 = R(3*x[2])
@@ -16,8 +21,8 @@ hasse_derivatives([f1, f2])
 R, x = polynomial_ring(ZZ, 4, "x")
 I = ideal(R, [x[2] - 1])
 RQ, _ = quo(R, I)
-f1 = 4*x[3] 
-f2 = 5*x[2]^2 + 2*x[4]
+f1 = RQ(4*x[3])
+f2 = RQ(5*x[2]^2 + 2*x[4])
 hasse_derivatives(f2)
 hasse_derivatives([f1, f2])
 
