@@ -719,13 +719,18 @@ function convert(
   abort = false
   # find some power which works
   while !abort
-   if length(terms(last(powers_of_d))) > 10000
+   if length(terms(last(powers_of_d))) > 100
       id, id_inv = _as_affine_algebra_with_many_variables(L)
-      aa = simplify(id(L(a)))
-      bb = simplify(id(L(b)))
-      success, cc = _divides_hack(aa, bb)
-      !success && error("element can not be converted to localization")
-      return id_inv(simplify(cc))
+      cc = id(L(a)) # the result
+      fac_b = factor(b)
+      for (f, k) in fac_b
+        ff = id(L(f))
+        for i in 1:k
+          success, cc = _divides_hack(cc, ff)
+          @assert success "element can not be converted to localization"
+        end
+      end
+      return id_inv(simplify(cc))*inv(unit(fac_b))
     end
     (abort, coefficient) = _divides_hack(Q(a*last(powers_of_d)), Q(b))
     if !abort
@@ -770,7 +775,11 @@ function +(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   if lifted_denominator(a) == lifted_denominator(b) 
     return (parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false)
   end
-  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
+  gcd_ab = gcd([lifted_denominator(b), lifted_denominator(a)])
+  p = divexact(lifted_denominator(a), gcd_ab)
+  q = divexact(lifted_denominator(b), gcd_ab)
+  new_den = p*lifted_denominator(b)
+  return (parent(a))(lifted_numerator(a)*q + lifted_numerator(b)*p, new_den, check=false)
 end
 
 # TODO: improve this method.
@@ -780,16 +789,18 @@ function addeq!(a::T, b::T) where {T<:MPolyQuoLocRingElem}
 end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if lifted_denominator(a) == lifted_denominator(b) 
-    return (parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false)
-  end
-  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
+  return a + (-b)
 end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   parent(a) === parent(b) || error("the arguments do not have the same parent ring")
-  return (parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false)
+  p = gcd([lifted_numerator(a), lifted_denominator(b)])
+  q = gcd([lifted_numerator(b), lifted_denominator(a)])
+  aa = divexact(lifted_numerator(a), p)
+  bb = divexact(lifted_numerator(b), q)
+  da = divexact(lifted_denominator(a), q)
+  db = divexact(lifted_denominator(b), p)
+  return (parent(a))(aa*bb, da*db, check=false)
 end
 
 function *(a::RET, b::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -884,7 +895,7 @@ end
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   return f # Disable reduction here, because it slows down arithmetic.
-  return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
+  # return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
@@ -1118,6 +1129,18 @@ end
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
+  if total_degree(lifted_denominator(a)) > 10
+    res = restricted_map(f)
+    img_num = res(lifted_numerator(a))
+    den = lifted_denominator(a)
+    img_den = one(img_num)
+    fac_den = factor(den)
+    for (a, k) in fac_den
+      img_den = img_den * inv(res(a))^k
+    end
+    img_den = img_den * inv(res(unit(fac_den)))
+    return img_num * img_den
+  end
   b = a #simplify(a)
   return codomain(f)(restricted_map(f)(lifted_numerator(b)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(b))))
 end

@@ -580,7 +580,23 @@ function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I))
         is_one(I(U)) || return false
       end
     end
-
+    
+    if has_decomposition_info(covering)
+      dec = decomposition_info(covering)
+      for U in covering 
+        D = ideal(OO(U), dec[U])
+        K = D
+        for J in summands(I) # shortcut for trivial patches
+          if U in keys(object_cache(J))
+            K = K + J(U)
+          end 
+        end
+        isone(K) && continue
+        
+        isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
+      end 
+      return true
+    end
     return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
   end::Bool
 end
@@ -607,6 +623,9 @@ end
 function is_prime(I::PrimeIdealSheafFromChart)
   return true
 end
+
+has_is_prime(I::PrimeIdealSheafFromChart) = true
+has_is_prime(I::AbsIdealSheaf) = has_attribute(I, :is_prime)
 
 @doc raw"""
     is_locally_prime(I::AbsIdealSheaf) -> Bool
@@ -822,6 +841,14 @@ function pushforward(inc::ClosedEmbedding, I::Ideal)
               )
 end
 
+function radical_membership(x::RingElem, I::MPolyLocalizedIdeal)
+  return radical_membership(lifted_numerator(x), saturated_ideal(I))
+end
+
+function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
+  return radical_membership(lifted_numerator(x), saturated_ideal(I))
+end
+
 ########################################################################
 # primary decomposition
 ########################################################################
@@ -838,81 +865,7 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::AbsIdealSheaf; 
-    covering=default_covering(scheme(I)),
-    algorithm::Symbol=:GTZ
-  )
-  # The following would reroute to a more high-brow method with cleaner code.
-  # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
-  # return _maximal_associated_points(I; covering, use_decomposition_info=false)
-  !isone(I) || return typeof(I)[]
-  X = scheme(I)
-  OOX = OO(X)
-
-  charts_todo = copy(patches(covering))           ## todo-list of charts
-
-  associated_primes_temp = Vector{IdDict{AbsAffineScheme, Ideal}}()  ## already identified components
-                                                  ## may not yet contain all relevant charts. but
-                                                  ## at least one for each identified component
-
-  result = AbsIdealSheaf[]
-  # run through all charts and try to match the components
-  while length(charts_todo) > 0
-    @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
-    U = pop!(charts_todo)
-    !is_one(I(U)) || continue                        ## supp(I) might not meet all components
-    components_here = minimal_primes(I(U); algorithm)
-    
-    ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for comp in components_here
-      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
-      nmatches = length(matches)
-
-      if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsAffineScheme,Ideal}()         ## create new dict
-        add_dict[U] = comp                         ## and fill it
-        push!(associated_primes_temp, add_dict)
-      elseif nmatches == 1                         ## unique match, update it
-        component_index = matches[1]
-        associated_primes_temp[component_index][U] = comp
-      else                                                ## more than one match, form union
-        target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = comp
-      end
-    end
-  end
-
-  # fill the gaps arising from a support not meeting a patch
-  # Warning: This relies on the current implementation of `==` for 
-  # `PrimeIdealSheafFromChart`s which cache intermediate results.
-  for U in affine_charts(X)
-    I_one = ideal(OOX(U),one(OOX(U)))
-    for i in 1:length(associated_primes_temp)
-      !haskey(associated_primes_temp[i],U) || continue
-      associated_primes_temp[i][U] = I_one
-    end
-  end
-
-  # make sure to return ideal sheaves, not dicts
-  associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
-  for Itemp in associated_primes_result
-    set_attribute!(Itemp, :is_prime=>true)
-  end
-  return associated_primes_result
-end
-
-function radical_membership(x::RingElem, I::MPolyLocalizedIdeal)
-  return radical_membership(lifted_numerator(x), saturated_ideal(I))
-end
-
-function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
-  return radical_membership(lifted_numerator(x), saturated_ideal(I))
-end
-
-# Proof of concept method
-function _maximal_associated_points(
+function maximal_associated_points(
     I::AbsIdealSheaf; 
     covering=default_covering(scheme(I)), 
     use_decomposition_info::Bool=true,
@@ -920,12 +873,12 @@ function _maximal_associated_points(
   )
   X = scheme(I)
   comps = AbsIdealSheaf[]
-  dec_inf = decomposition_info(covering)
   for U in patches(covering)
-    # A list of equations which indicate the locus in this chart 
-    # which is *not* visible in "previous" charts. 
-    loc_dec = elem_type(OO(U))[OO(U)(a) for a in dec_inf[U]]
+    loc_dec = elem_type(OO(U))[] # Initialize the variable
     if use_decomposition_info && has_decomposition_info(covering)
+      # A list of equations which indicate the locus in this chart 
+      # which is *not* visible in "previous" charts. 
+      loc_dec = elem_type(OO(U))[OO(U)(a) for a in decomposition_info(covering)[U]]
       # If the following holds, everything is visible in other charts already.
       is_one(I(U) + ideal(OO(U), loc_dec)) && continue
     else
@@ -1200,6 +1153,11 @@ function Base.show(io::IO, I::AbsIdealSheaf)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", I::PrimeIdealSheafFromChart)
+  io = pretty(io)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+    return
+  end
   print(io, "Prime ideal sheaf on ", scheme(I), " extended from ", I.P, " on ", I.U)
 end
 
@@ -1245,6 +1203,10 @@ end
 
 function Base.show(io::IO, I::PrimeIdealSheafFromChart)
   io = pretty(io)
+  if has_attribute(I, :name)
+    print(io, get_attribute(I, :name))
+    return
+  end
   print(io, "Prime ideal sheaf on ", 
         Lowercase(), scheme(I), " extended from ", 
         Lowercase(), I.P, " on ", 
@@ -1630,6 +1592,9 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
 
   sort!(fat, by=complexity)
   for W in fat
+    # In case there is no gluing there is no extension.
+    !haskey(gluings(default_covering(X)), (W, V2)) && continue
+
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
@@ -1765,7 +1730,19 @@ function cheap_sub_ideal(II::AbsIdealSheaf, U::AbsAffineScheme)
   return II(U)
 end
 
+
 function cheap_sub_ideal(II::SumIdealSheaf, U::AbsAffineScheme)
+  for J in summands(II) # shortcut for trivial patches
+    if U in keys(object_cache(J))
+      if has_attribute(J(U),:is_one) && is_one(J(U))
+        return J(U)
+      else
+        # sometimes the ideal is obviously one but the attribute not set
+        ngens(J(U))==1 && isone(J(U))
+        return J(U)
+      end      
+    end 
+  end
   return sum(cheap_sub_ideal(J, U) for J in summands(II); init = ideal(OO(U), elem_type(OO(U))[]))
 end
 
@@ -1972,7 +1949,10 @@ function is_subset(P::PrimeIdealSheafFromChart, I::AbsIdealSheaf)
   X = scheme(P)
   @assert X === scheme(I)
   U = original_chart(P)
-  return is_subset(P(U), I(U))
+  is_subset(P(U), I(U)) || return false
+  # I might have support outside the support of P. Hence, we can not 
+  # avoid the full check, as it seems.
+  return all(is_subset(P(U), I(U)) for U in affine_charts(X) if !is_one(I(U)))
 end
 
 function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
@@ -1990,16 +1970,38 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
     return PP == Q(W1)
   end
 
+  for (W2, Q2) in object_cache(Q)
+    W2 in keys(object_cache(P)) || continue
+    is_one(Q2) && continue
+    return Q2 == P(W2)
+  end
+
   if any(x->x===U, affine_charts(X)) && any(x->x===V, affine_charts(X))
     gg = default_covering(X)[U, V]
     UV, VU = gluing_domains(gg)
-    h_V = complement_equation(UV)
-    h_U = complement_equation(VU)
-    h_V in P(U) && !(h_U in Q(V)) && return false
-    if P(UV) == Q(UV)
-      object_cache(P)[V] = Q(V)
-      object_cache(Q)[U] = P(U)
-      return true
+    if UV isa PrincipalOpenSubset
+      h_V = complement_equation(UV)
+      h_U = complement_equation(VU)
+      h_V in P(U) && return false # P and Q will have different support, then.
+    end
+
+    if UV isa AffineSchemeOpenSubscheme && VU isa AffineSchemeOpenSubscheme
+      # We have to handle this special case differently as there 
+      # is no type for ideals in the associated rings.
+      if all(P(UV[i]) == Q(UV[i]) for i in 1:ngens(UV)) 
+        object_cache(P)[V] = Q(V)
+        object_cache(Q)[U] = P(U)
+        return true
+      end
+    elseif UV isa AbsAffineScheme && VU isa AbsAffineScheme
+      # This should be the default case
+      if P(UV) == Q(UV)
+        object_cache(P)[V] = Q(V)
+        object_cache(Q)[U] = P(U)
+        return true
+      end
+    else
+      error("case of this type is not handled")
     end
   end
 
