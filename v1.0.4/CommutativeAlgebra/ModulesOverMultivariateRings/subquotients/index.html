@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Subquotients · Oscar.jl</title><meta name="title" content="Subquotients · Oscar.jl"/><meta property="og:title" content="Subquotients · Oscar.jl"/><meta property="twitter:title" content="Subquotients · Oscar.jl"/><meta name="description" content="Documentation for Oscar.jl."/><meta property="og:description" content="Documentation for Oscar.jl."/><meta property="twitter:description" content="Documentation for Oscar.jl."/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../../../"><img src="../../../assets/logo.png" alt="Oscar.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Oscar.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../../">Welcome to OSCAR</a></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">General</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../General/architecture/">Architecture</a></li><li><a class="tocitem" href="../../../General/other/">Notes for users of other computer algebra systems</a></li><li><a class="tocitem" href="../../../General/faq/">Frequently Asked Questions</a></li><li><a class="tocitem" href="../../../General/serialization/">Saving and loading files</a></li><li><a class="tocitem" href="../../../General/complex/">Complex Algorithms in OSCAR</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Groups</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Groups/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Groups/basics/">Basics</a></li><li><a class="tocitem" href="../../../Groups/subgroups/">Subgroups</a></li><li><a class="tocitem" href="../../../Groups/quotients/">Quotients</a></li><li><a class="tocitem" href="../../../Groups/products/">Products of groups</a></li><li><a class="tocitem" href="../../../Groups/permgroup/">Permutation groups</a></li><li><a class="tocitem" href="../../../Groups/fpgroup/">Finitely presented groups</a></li><li><a class="tocitem" href="../../../Groups/pcgroup/">Polycyclic groups</a></li><li><a class="tocitem" href="../../../Groups/matgroup/">Matrix groups</a></li><li><a class="tocitem" href="../../../Groups/action/">Group Actions</a></li><li><a class="tocitem" href="../../../Groups/grouphom/">Group homomorphisms</a></li><li><a class="tocitem" href="../../../Groups/autgroup/">Groups of automorphisms</a></li><li><a class="tocitem" href="../../../Groups/grouplib/">Group libraries</a></li><li><a class="tocitem" href="../../../Hecke/abelian/introduction/">Abelian Groups</a></li><li><a class="tocitem" href="../../../Groups/group_characters/">Group characters</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Rings/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/ring/">Ring functionality</a></li><li><a class="tocitem" href="../../../Rings/integer/">Integers</a></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Univariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/polynomial/">Univariate polynomial functionality</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-5" type="checkbox"/><label class="tocitem" for="menuitem-4-5"><span class="docs-label">Multivariate Polynomials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/mpolynomial/">Sparse distributed multivariate polynomials</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-6" type="checkbox"/><label class="tocitem" for="menuitem-4-6"><span class="docs-label">Series Rings</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/series/">Power series</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/puiseux/">Generic Puiseux series</a></li><li><a class="tocitem" href="../../../Nemo/series/">Power series and Laurent series</a></li><li><a class="tocitem" href="../../../Nemo/puiseux/">Puiseux series</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/field/">Field functionality</a></li><li><a class="tocitem" href="../../../Rings/rational/">Rationals</a></li><li><a class="tocitem" href="../../../Hecke/FacElem/">Factored Elements</a></li><li><a class="tocitem" href="../../../Hecke/class_fields/intro/">Class Field Theory</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/fraction/">Generic fraction fields</a></li><li><input class="collapse-toggle" id="menuitem-5-7" type="checkbox"/><label class="tocitem" for="menuitem-5-7"><span class="docs-label">Local Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Nemo/padic/">Padics</a></li><li><a class="tocitem" href="../../../Nemo/qadic/">Qadics</a></li></ul></li><li><a class="tocitem" href="../../../Nemo/finitefield/">Finite fields</a></li><li><a class="tocitem" href="../../../Nemo/algebraic/">Algebraic numbers</a></li><li><a class="tocitem" href="../../../Fields/algebraic_closure_fp/">Algebraic closure of finite prime fields</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Linear Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../LinearAlgebra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/sparse/intro/">Sparse linear algebra</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix/">Matrix functionality</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/matrix_algebras/">Generic matrix algebras</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AbstractAlgebra/module/">Finitely presented modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/free_module/">Free Modules and Vector Spaces</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/submodule/">Submodules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/quotient_module/">Quotient modules</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/direct_sum/">Direct Sums</a></li><li><a class="tocitem" href="../../../AbstractAlgebra/module_homomorphism/">Module Homomorphisms</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Quadratic and Hermitian forms</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/quad_forms/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/basics/">Spaces</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/lattices/">Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/genusherm/">Genera for hermitian lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/integer_lattices/">Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/Zgenera/">Genera of Integer Lattices</a></li><li><a class="tocitem" href="../../../Hecke/quad_forms/discriminant_group/">Discriminant Groups</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">Number Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NumberTheory/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-7-2" type="checkbox"/><label class="tocitem" for="menuitem-7-2"><span class="docs-label">Number Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/number_fields/intro/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/fields/">Number field operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/elements/">Element operations</a></li><li><a class="tocitem" href="../../../Hecke/number_fields/internal/">Internals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7-3" type="checkbox"/><label class="tocitem" for="menuitem-7-3"><span class="docs-label">Orders</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Hecke/orders/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Hecke/orders/orders/">Orders</a></li><li><a class="tocitem" href="../../../Hecke/orders/elements/">Elements</a></li><li><a class="tocitem" href="../../../Hecke/orders/ideals/">Ideals</a></li><li><a class="tocitem" href="../../../Hecke/orders/frac_ideals/">Fractional ideals</a></li></ul></li><li><a class="tocitem" href="../../../NumberTheory/abelian_closure/">Abelian closure of the rationals</a></li><li><a class="tocitem" href="../../../NumberTheory/galois/">Galois Theory</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-8-2" type="checkbox"/><label class="tocitem" for="menuitem-8-2"><span class="docs-label">Polyhedra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/intro/">Introduction</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/constructions/">Constructions</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/polymake/"><code>Polyhedron</code> and <code>polymake</code>&#39;s <code>Polytope</code></a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/Polyhedra/auxiliary/">Auxiliary functions</a></li></ul></li><li><a class="tocitem" href="../../../PolyhedralGeometry/cones/">Cones</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/fans/">Polyhedral Fans</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/polyhedral_complexes/">Polyhedral Complexes</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/linear_programs/">Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/mixed_integer_linear_programs/">Mixed Integer Linear Programs</a></li><li><a class="tocitem" href="../../../PolyhedralGeometry/subdivisions_of_points/">Subdivisions of Points</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox" checked/><label class="tocitem" for="menuitem-9"><span class="docs-label">Commutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../intro/">Introduction</a></li><li><a class="tocitem" href="../../rings/">Creating Multivariate Rings</a></li><li><a class="tocitem" href="../../ideals/">Ideals in Multivariate Rings</a></li><li><a class="tocitem" href="../../affine_algebras/">Affine Algebras and Their Ideals</a></li><li><a class="tocitem" href="../../localizations/">Localized Rings and Their Ideals</a></li><li><input class="collapse-toggle" id="menuitem-9-6" type="checkbox" checked/><label class="tocitem" for="menuitem-9-6"><span class="docs-label">Modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../intro/">Introduction</a></li><li><a class="tocitem" href="../free_modules/">Free Modules</a></li><li class="is-active"><a class="tocitem" href>Subquotients</a><ul class="internal"><li><a class="tocitem" href="#Types"><span>Types</span></a></li><li><a class="tocitem" href="#Constructors"><span>Constructors</span></a></li><li><a class="tocitem" href="#Data-Associated-to-Subqotients"><span>Data Associated to Subqotients</span></a></li><li><a class="tocitem" href="#Elements-of-Subqotients"><span>Elements of Subqotients</span></a></li><li><a class="tocitem" href="#Tests-on-Subqotients"><span>Tests on Subqotients</span></a></li><li><a class="tocitem" href="#Basic-Operations-on-Subquotients"><span>Basic Operations on Subquotients</span></a></li><li><a class="tocitem" href="#Submodules-and-Quotients"><span>Submodules and Quotients</span></a></li><li><a class="tocitem" href="#Homomorphisms-From-Subqotients"><span>Homomorphisms From Subqotients</span></a></li></ul></li><li><a class="tocitem" href="../module_operations/">Operations on Modules</a></li><li><a class="tocitem" href="../hom_operations/">Operations on Module Maps</a></li><li><a class="tocitem" href="../complexes/">Chain and Cochain Complexes</a></li></ul></li><li><a class="tocitem" href="../../homological_algebra/">Homological Algebra</a></li><li><input class="collapse-toggle" id="menuitem-9-8" type="checkbox"/><label class="tocitem" for="menuitem-9-8"><span class="docs-label">Gröbner/Standard Bases</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../GroebnerBases/orderings/">Monomial Orderings</a></li><li><a class="tocitem" href="../../GroebnerBases/groebner_bases/">Gröbner/Standard Bases Over Fields</a></li><li><a class="tocitem" href="../../GroebnerBases/groebner_bases_integers/">Gröbner/Standard Bases Over <span>$\mathbb Z$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-9" type="checkbox"/><label class="tocitem" for="menuitem-9-9"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Miscellaneous/binomial_ideals/">Binomial Primary Decomposition</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9-10" type="checkbox"/><label class="tocitem" for="menuitem-9-10"><span class="docs-label">Frameworks for Developers</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../FrameWorks/ring_localizations/">A Framework for Localizing Rings</a></li><li><a class="tocitem" href="../../FrameWorks/module_localizations/">Localizations of modules over computable rings</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">Invariant Theory</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../InvariantTheory/intro/">Introduction</a></li><li><a class="tocitem" href="../../../InvariantTheory/finite_groups/">Invariants of Finite Groups</a></li><li><a class="tocitem" href="../../../InvariantTheory/tori/">Invariants of Tori</a></li><li><a class="tocitem" href="../../../InvariantTheory/reductive_groups/">Invariants of Linearly Reductive Groups</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Algebraic Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-11-2" type="checkbox"/><label class="tocitem" for="menuitem-11-2"><span class="docs-label">Schemes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/GeneralSchemes/">General schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/AffineSchemes/">Affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes/">Morphisms of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes/">Architecture of affine schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemes/">Covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveringsAndGluings/">Coverings</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/CoveredSchemeMorphisms/">Morphisms of covered schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/ProjectiveSchemes/">Projective schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes/">Morphisms of projective schemes</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-3" type="checkbox"/><label class="tocitem" for="menuitem-11-3"><span class="docs-label">Sheaf Cohomology</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/SheafCohomology/sheaf_cohomology/">Sheaves on Projective Space</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-4" type="checkbox"/><label class="tocitem" for="menuitem-11-4"><span class="docs-label">Algebraic Sets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet/">Affine Algebraic Sets</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicSets/ProjectiveAlgebraicSet/">Projective Algebraic Sets</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-5" type="checkbox"/><label class="tocitem" for="menuitem-11-5"><span class="docs-label">Algebraic Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/AffineVariety/">Affine Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety/">Projective Varieties</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-6" type="checkbox"/><label class="tocitem" for="menuitem-11-6"><span class="docs-label">Rational Points</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/RationalPoints/Affine/">Affine</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/RationalPoints/Projective/">Projective</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-7" type="checkbox"/><label class="tocitem" for="menuitem-11-7"><span class="docs-label">Toric Varieties</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/intro/">Introduction</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/NormalToricVarieties/">Normal Toric Varieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CyclicQuotientSingularities/">Cyclic Quotient Singularities</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisors/">Toric Divisors</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricDivisorClasses/">Toric Divisor Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricLineBundles/">Toric Line Bundles</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/cohomCalg/">Line bundle cohomology with cohomCalg</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/CohomologyClasses/">Cohomology Classes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/Subvarieties/">Subvarieties</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/AlgebraicCycles/">The Chow ring</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricMorphisms/">ToricMorphisms</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricSchemes/">Toric Schemes</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/ToricIdealSheaves/">Toric Ideal Sheaves (Experimental)</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/ToricVarieties/BlowdownMorphisms/">Toric Blowdown Morphisms (Experimental)</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-8" type="checkbox"/><label class="tocitem" for="menuitem-11-8"><span class="docs-label">Curves</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/AffinePlaneCurves/">Affine plane curves</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/ProjectiveCurves/">Projective Curves</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Curves/ProjectivePlaneCurves/">Projective Plane Curves</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-9" type="checkbox"/><label class="tocitem" for="menuitem-11-9"><span class="docs-label">Surfaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/K3Surfaces/">Automorphism Groups of  K3 surfaces</a></li><li><a class="tocitem" href="../../../AlgebraicGeometry/Surfaces/SurfacesP4/">Nongeneral Type Surfaces in <span>$\mathbb P^4$</span></a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11-10" type="checkbox"/><label class="tocitem" for="menuitem-11-10"><span class="docs-label">Miscellaneous</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../AlgebraicGeometry/Miscellaneous/miscellaneous/">Some Special Ideals</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-12" type="checkbox"/><label class="tocitem" for="menuitem-12"><span class="docs-label">Tropical Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../TropicalGeometry/intro/">Introduction</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring/">Tropical semirings, matrices, and polynomials</a></li><li><a class="tocitem" href="../../../TropicalGeometry/semiring_map/">Tropical semiring maps</a></li><li><a class="tocitem" href="../../../TropicalGeometry/variety/">Tropical varieties</a></li><li><a class="tocitem" href="../../../TropicalGeometry/hypersurface/">Tropical hypersurfaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/curve/">Tropical curves</a></li><li><a class="tocitem" href="../../../TropicalGeometry/linear_space/">Tropical linear spaces</a></li><li><a class="tocitem" href="../../../TropicalGeometry/groebner_theory/">Groebner theory</a></li><li><a class="tocitem" href="../../../TropicalGeometry/tropicalization/">Tropicalization of polynomial ideals</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-13" type="checkbox"/><label class="tocitem" for="menuitem-13"><span class="docs-label">Noncommutative Algebra</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/intro/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-13-2" type="checkbox"/><label class="tocitem" for="menuitem-13-2"><span class="docs-label">PBW-Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/intro/">Introduction</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/creation/">Creating PBW-Algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/ideals/">Ideals in PBW-algebras</a></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/PBWAlgebras/quotients/">GR-Algebras: Quotients of PBW-Algebras</a></li></ul></li><li><a class="tocitem" href="../../../NoncommutativeAlgebra/free_associative_algebra/">Free Associative Algebras</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-14" type="checkbox"/><label class="tocitem" for="menuitem-14"><span class="docs-label">Combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/graphs/">Graphs</a></li><li><a class="tocitem" href="../../../Combinatorics/matroids/">Matroids</a></li><li><a class="tocitem" href="../../../Combinatorics/simplicialcomplexes/">Simplicial Complexes</a></li><li><a class="tocitem" href="../../../Combinatorics/phylogenetic_trees/">Phylogenetic Trees</a></li><li><input class="collapse-toggle" id="menuitem-14-5" type="checkbox"/><label class="tocitem" for="menuitem-14-5"><span class="docs-label">Enumerative combinatorics</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/partitions/">Partitions</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/tableaux/">Tableaux</a></li><li><a class="tocitem" href="../../../Combinatorics/EnumerativeCombinatorics/schur_polynomials/">Schur polynomials</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-15" type="checkbox"/><label class="tocitem" for="menuitem-15"><span class="docs-label">Straight Line Programs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../StraightLinePrograms/intro/">Introduction</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/gapslps/">GAP&#39;s SLPs</a></li><li><a class="tocitem" href="../../../StraightLinePrograms/abstractalgebra/">AbstractAlgebra&#39;s polynomial interface</a></li></ul></li><li><a class="tocitem" href="../../../references/">References</a></li><li><a class="tocitem" href="../../../manualindex/">Index</a></li><li><input class="collapse-toggle" id="menuitem-18" type="checkbox"/><label class="tocitem" for="menuitem-18"><span class="docs-label">Developer Documentation</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/new_developers/">Introduction for new developers</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/styleguide/">Developer Style Guide</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/documentation/">Documenting OSCAR code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/printing_details/">Details on printing in Oscar</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/debugging/">Debugging OSCAR Code</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/serialization/">Serialization</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/design_decisions/">Design Decisions</a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/gap_integration/">GAP Integration</a></li><li><input class="collapse-toggle" id="menuitem-18-9" type="checkbox"/><label class="tocitem" for="menuitem-18-9"><span class="docs-label">Polyhedral Geometry</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../DeveloperDocumentation/AbstractCollection/"><code>AbstractCollection</code></a></li><li><a class="tocitem" href="../../../DeveloperDocumentation/SubObjectIterator/"><code>SubObjectIterator</code></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-19" type="checkbox"/><label class="tocitem" for="menuitem-19"><span class="docs-label">Experimental</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/intro/">Adding new projects to experimental</a></li><li><input class="collapse-toggle" id="menuitem-19-2" type="checkbox"/><label class="tocitem" for="menuitem-19-2"><span class="docs-label">Double complexes</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/DoubleAndHyperComplexes/user_interface/">Double complexes – the user&#39;s interface</a></li><li><a class="tocitem" href="../../../Experimental/DoubleAndHyperComplexes/advice_for_the_programmer/">Advice for the programmer</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-3" type="checkbox"/><label class="tocitem" for="menuitem-19-3"><span class="docs-label">F-Theory Tools</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/FTheoryTools/introduction/">Welcome to FTheoryTools</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/generalities/">Functionality for all F-theory models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/weierstrass/">Weierstrass models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/tate/">Global Tate models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/hypersurface/">Hypersurface models</a></li><li><a class="tocitem" href="../../../Experimental/FTheoryTools/literature/">Literature constructions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-4" type="checkbox"/><label class="tocitem" for="menuitem-19-4"><span class="docs-label">Linear Quotients</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/LinearQuotients/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/LinearQuotients/linear_quotients/">Construction and basic functionality</a></li><li><a class="tocitem" href="../../../Experimental/LinearQuotients/cox_rings/">Cox rings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-5" type="checkbox"/><label class="tocitem" for="menuitem-19-5"><span class="docs-label">Matroid Realization Spaces</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/MatroidRealizationSpaces/introduction/">Matroid Realization Spaces</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-6" type="checkbox"/><label class="tocitem" for="menuitem-19-6"><span class="docs-label">Orthogonal discriminants</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/access/">Access to precomputed OD data</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/compute/">Criteria for computing orthogonal discriminants</a></li><li><a class="tocitem" href="../../../Experimental/OrthogonalDiscriminants/misc/">Miscellaneous functions</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-7" type="checkbox"/><label class="tocitem" for="menuitem-19-7"><span class="docs-label">Quadratic forms and isometries</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/introduction/">Quadratic forms and isometries</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/spacewithisom/">Quadratic spaces with isometry</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/latwithisom/">Lattices with isometry</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/enumeration/">Enumeration of isometries</a></li><li><a class="tocitem" href="../../../Experimental/QuadFormAndIsom/primembed/">Nikulin&#39;s theory on primitive embeddings</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-8" type="checkbox"/><label class="tocitem" for="menuitem-19-8"><span class="docs-label">Standard Finite Fields</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/StandardFiniteFields/introduction/">-</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-9" type="checkbox"/><label class="tocitem" for="menuitem-19-9"><span class="docs-label">Lie Algebras</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/LieAlgebras/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/lie_algebras/">Lie algebras</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/ideals_and_subalgebras/">Ideals and Lie subalgebras</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/lie_algebra_homs/">Lie algebra homomorphisms</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/modules/">Lie algebra modules</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/module_homs/">Lie algebra module homomorphisms</a></li><li><a class="tocitem" href="../../../Experimental/LieAlgebras/cartan_matrix/">Cartan Matrices</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-19-10" type="checkbox"/><label class="tocitem" for="menuitem-19-10"><span class="docs-label">Bases for highest weight modules</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Experimental/BasisLieHighestWeight/introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Experimental/BasisLieHighestWeight/user_functions/">User-facing functions</a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Commutative Algebra</a></li><li><a class="is-disabled">Modules</a></li><li class="is-active"><a href>Subquotients</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Subquotients</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/oscar-system/Oscar.jl/blob/master/docs/src/CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Subquotients"><a class="docs-heading-anchor" href="#Subquotients">Subquotients</a><a id="Subquotients-1"></a><a class="docs-heading-anchor-permalink" href="#Subquotients" title="Permalink"></a></h1><p>A subquotient  is a submodule of a quotient of a free module. In this section, the expression <em>subquotient</em> refers to a subquotient over a ring of type <code>MPolyRing</code>, <code>MPolyQuoRing</code>, <code>MPolyLocRing</code>, or <code>MPolyQuoLocRing</code>. That is, given a ring <span>$R$</span> of one of these types, a subquotient <span>$M$</span> over <span>$R$</span> is a module of type</p><p class="math-container">\[M = (\text{im } a + \text{im } b)/\text{im } b,\]</p><p>where</p><p class="math-container">\[a:R^s ⟶R^p \;\text{ and }\; b:R^t ⟶R^p\]</p><p>are two homomorphisms of free <span>$R$</span>-modules with the same codomain. We then refer to</p><ul><li>the module <span>$M$</span> as the <em>subquotient defined by <span>$a$</span> and <span>$b$</span></em>,</li><li>the codomain <span>$R^p$</span> as the <em>ambient free module</em> of <span>$M$</span>,</li><li>the images of the canonical basis vectors of <span>$R^s$</span> in <span>$R^p$</span> as the <em>ambient representatives of the generators</em> of <span>$M$</span>, and</li><li>the images of the canonical basis vectors of <span>$R^t$</span> in <span>$R^p$</span> as the <em>relations</em> of <span>$M$</span>.</li></ul><p>Alternatively, we speak of the <em>subquotient of</em> <span>$\;\text{im } a\;$</span> <em>by</em> <span>$\;\text{im } b\;$</span> or the <em>subquotient defined by <span>$A$</span> and <span>$B$</span></em>, where <span>$A$</span> and <span>$B$</span> are the matrices representing <span>$a$</span> and <span>$b$</span>, respectively.</p><p>Finally, we refer to</p><ul><li>the quotient of <span>$R^p$</span> by the submodule generated by the relations of <span>$M$</span> as the <em>ambient module of <span>$M$</span></em>,</li></ul><p>and regard <span>$M$</span> as a submodule of that ambient module, embedded in the natural way.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Recall from the section on <a href="../free_modules/#free_modules">free modules</a> that by a free <span>$R$</span>-module we mean a free module of type <span>$R^p$</span> , where we think of <span>$R^p$</span> as a free module with a given basis, namely the basis of standard unit vectors. Accordingly, elements of free modules are represented by coordinate vectors, and homomorphisms between free modules by matrices. Here, by convention, vectors are row vectors, and matrices operate by multiplication on the right.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Over a graded ring <span>$R$</span>, we work with graded free modules <span>$R^s$</span>, <span>$R^p$</span>, <span>$R^t$</span> and graded homomorphisms <span>$a$</span>, <span>$b$</span>. As a consequence, every module involved in the construction of the subquotient defined by <span>$a$</span> and <span>$b$</span> carries an induced grading. In particular, the subquotient itself carries an induced grading.</p></div></div><h2 id="Types"><a class="docs-heading-anchor" href="#Types">Types</a><a id="Types-1"></a><a class="docs-heading-anchor-permalink" href="#Types" title="Permalink"></a></h2><p>All OSCAR types for the finitely presented modules considered here belong to the abstract type <code>ModuleFP{T}</code>, where <code>T</code> is the element type of the underlying ring. Graded or not, the subquotients belong to the abstract subtype <code>AbstractSubQuo{T} &lt;: ModuleFP{T}</code>, they are modeled as objects of the concrete type <code>SubquoModule{T} &lt;: AbstractSubQuo{T}</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Canonical maps such us the canonical projection onto a quotient module arise in many  constructions in commutative algebra. The <code>SubquoModule</code> type is designed so that it allows for the caching of such maps when executing functions. The <code>tensor_product</code> function discussed in this section provides an example.</p></div></div><h2 id="Constructors"><a class="docs-heading-anchor" href="#Constructors">Constructors</a><a id="Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Constructors" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="subquotient-Tuple{FreeModuleHom, FreeModuleHom}" href="#subquotient-Tuple{FreeModuleHom, FreeModuleHom}"><code>subquotient</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">subquotient(a::FreeModuleHom, b::FreeModuleHom)</code></pre><p>Given homomorphisms <code>a</code> and <code>b</code> between free modules such that  <code>codomain(a) === codomain(b)</code>,  return <span>$(\text{im } a + \text{im } b)/\text{im } b$</span>.</p><pre><code class="nohighlight hljs">subquotient(F::FreeMod{T}, A::MatElem{T}, B::MatElem{T}) where T</code></pre><p>Given matrices <code>A</code> and <code>B</code> with rank <code>F</code> columns, return   <span>$(\text{im } a + \text{im } b)/\text{im } b$</span>, where <code>a</code> and <code>b</code> are free module homomorphisms with codomain <code>F</code> represented by <code>A</code> and <code>B</code>.</p><pre><code class="nohighlight hljs">subquotient(A::MatElem{T}, B::MatElem{T}) where T</code></pre><p>Given matrices <code>A</code> and <code>B</code> with the same number of columns, create a free module <code>F</code> whose rank  is that number, and return <span>$(\text{im } a + \text{im } b)/\text{im } b$</span>, where <code>a</code> and <code>b</code> are  free module homomorphisms with codomain <code>F</code> represented by <code>A</code> and <code>B</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; FR = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AR = R[x; y]
+[x]
+[y]
+
+julia&gt; BR = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; MR = SubquoModule(FR, AR, BR)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; P = ideal(R, [x, y, z]);
+
+julia&gt; U = complement_of_prime_ideal(P);
+
+julia&gt; RL, _ = localization(R, U);
+
+julia&gt; FRL = free_module(RL, 1)
+Free module of rank 1 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
+
+julia&gt; ARL = RL[x; y]
+[x]
+[y]
+
+julia&gt; BRL = RL[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; MRL = SubquoModule(FRL, ARL, BRL)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; RQ, _ = quo(R, ideal(R, [2*x^2-y^3, 2*x^2-y^5]));
+
+julia&gt; FRQ = free_module(RQ, 1)
+Free module of rank 1 over RQ
+
+julia&gt; ARQ = RQ[x; y]
+[x]
+[y]
+
+julia&gt; BRQ = RQ[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; MRQ = SubquoModule(FRQ, ARQ, BRQ)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; 2*x^2*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; RQL, _ = localization(RQ, U);
+
+julia&gt; FRQL = free_module(RQL, 1)
+Free module of rank 1 over Localization of RQ at complement of prime ideal
+
+julia&gt; ARQL = RQL[x; y]
+[x]
+[y]
+
+julia&gt; BRQL = RQL[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; MRQL = SubquoModule(FRQL, ARQL, BRQL)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; 0
+2 -&gt; 0
+3 -&gt; z^4*e[1]</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F1 = graded_free_module(Rg, [2,2,2]);
+
+julia&gt; F2 = graded_free_module(Rg, [2]);
+
+julia&gt; G = graded_free_module(Rg, [1,1]);
+
+julia&gt; V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]
+
+julia&gt; V2 = [z*G[2]+y*G[1]]
+1-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1] + z*e[2]
+
+julia&gt; a1 = hom(F1, G, V1)
+F1 -&gt; G
+e[1] -&gt; y*e[1]
+e[2] -&gt; (x + y)*e[1] + y*e[2]
+e[3] -&gt; z*e[2]
+Homogeneous module homomorphism
+
+julia&gt; a2 = hom(F2, G, V2)
+F2 -&gt; G
+e[1] -&gt; y*e[1] + z*e[2]
+Homogeneous module homomorphism
+
+julia&gt; V = subquotient(a1,a2)
+Graded subquotient of submodule of G generated by
+1 -&gt; y*e[1]
+2 -&gt; (x + y)*e[1] + y*e[2]
+3 -&gt; z*e[2]
+by submodule of G generated by
+1 -&gt; y*e[1] + z*e[2]
+
+julia&gt; A1 = Rg[x y; 2*x^2 3*y^2]
+[    x       y]
+[2*x^2   3*y^2]
+
+julia&gt; A2 = Rg[x^3 x^2*y; (2*x^2+x*y)*x (2*y^3+y*x^2)]
+[          x^3           x^2*y]
+[2*x^3 + x^2*y   x^2*y + 2*y^3]
+
+julia&gt; B = Rg[4*x*y^3 (2*x+y)^4]
+[4*x*y^3   16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4]
+
+julia&gt; F2 = graded_free_module(Rg,[0,0])
+Graded free module Rg^2([0]) of rank 2 over Rg
+
+julia&gt; M1 = SubquoModule(F2, A1, B)
+Graded subquotient of submodule of F2 generated by
+1 -&gt; x*e[1] + y*e[2]
+2 -&gt; 2*x^2*e[1] + 3*y^2*e[2]
+by submodule of F2 generated by
+1 -&gt; 4*x*y^3*e[1] + (16*x^4 + 32*x^3*y + 24*x^2*y^2 + 8*x*y^3 + y^4)*e[2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L165-L344">source</a></section></article><h2 id="Data-Associated-to-Subqotients"><a class="docs-heading-anchor" href="#Data-Associated-to-Subqotients">Data Associated to Subqotients</a><a id="Data-Associated-to-Subqotients-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Associated-to-Subqotients" title="Permalink"></a></h2><p>If <code>M</code> is a subquotient with ambient free <code>R</code>-module <code>F</code>, then</p><ul><li><code>base_ring(M)</code> refers to <code>R</code>,</li><li><code>ambient_free_module(M)</code> to <code>F</code>,</li><li><code>gens(M)</code> to the generators of <code>M</code>, </li><li><code>number_of_generators(M)</code> / <code>ngens(M)</code> to the number of these generators, </li><li><code>M[i]</code>, <code>gen(M, i)</code> to the <code>i</code>th such generator,</li><li><code>ambient_representatives_generators(M)</code> to the ambient representatives of the generators of <code>M</code> in <code>F</code>,</li><li><code>relations(M)</code> to the relations of <code>M</code>, and</li><li><code>ambient_module(M)</code> to the ambient module of <code>M</code>.</li></ul><h5 id="Examples"><a class="docs-heading-anchor" href="#Examples">Examples</a><a id="Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Examples" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; base_ring(M)
+Multivariate polynomial ring in 3 variables x, y, z
+  over rational field
+
+julia&gt; F === ambient_free_module(M)
+true
+
+julia&gt; gens(M)
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*e[1]
+ y*e[1]
+
+julia&gt; number_of_generators(M)
+2
+
+julia&gt; gen(M, 2)
+y*e[1]
+
+julia&gt; ambient_representatives_generators(M)
+2-element Vector{FreeModElem{QQMPolyRingElem}}:
+ x*e[1]
+ y*e[1]
+
+julia&gt; relations(M)
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
+ x^2*e[1]
+ y^3*e[1]
+ z^4*e[1]
+
+julia&gt; ambient_module(M)
+Subquotient of Submodule with 1 generator
+1 -&gt; e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]</code></pre><p>In the graded case, we also have:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grading_group-Tuple{SubquoModule}" href="#grading_group-Tuple{SubquoModule}"><code>grading_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grading_group(M::SubquoModule)</code></pre><p>Return the grading group of <code>base_ring(M)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F1 = graded_free_module(Rg, [2,2,2]);
+
+julia&gt; F2 = graded_free_module(Rg, [2]);
+
+julia&gt; G = graded_free_module(Rg, [1,1]);
+
+julia&gt; V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia&gt; V2 = [z*G[2]+y*G[1]];
+
+julia&gt; a1 = hom(F1, G, V1);
+
+julia&gt; a2 = hom(F2, G, V2);
+
+julia&gt; M = subquotient(a1,a2);
+
+julia&gt; grading_group(M)
+Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L994-L1022">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degrees_of_generators-Tuple{SubquoModule}" href="#degrees_of_generators-Tuple{SubquoModule}"><code>degrees_of_generators</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degrees_of_generators(M::SubquoModule; check::Bool=true)</code></pre><p>Return the degrees of the generators of <code>M</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F1 = graded_free_module(Rg, [2,2,2]);
+
+julia&gt; F2 = graded_free_module(Rg, [2]);
+
+julia&gt; G = graded_free_module(Rg, [1,1]);
+
+julia&gt; V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia&gt; V2 = [z*G[2]+y*G[1]];
+
+julia&gt; a1 = hom(F1, G, V1);
+
+julia&gt; a2 = hom(F2, G, V2);
+
+julia&gt; M = subquotient(a1,a2);
+
+julia&gt; degrees_of_generators(M)
+3-element Vector{FinGenAbGroupElem}:
+ [2]
+ [2]
+ [2]
+
+julia&gt; gens(M)
+3-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ (x + y)*e[1] + y*e[2]
+ z*e[2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1027-L1064">source</a></section></article><h2 id="Elements-of-Subqotients"><a class="docs-heading-anchor" href="#Elements-of-Subqotients">Elements of Subqotients</a><a id="Elements-of-Subqotients-1"></a><a class="docs-heading-anchor-permalink" href="#Elements-of-Subqotients" title="Permalink"></a></h2><p>All OSCAR types for elements of finitely presented modules considered here belong to the abstract type <code>ModuleElemFP{T}</code>, where <code>T</code> is the element type of the polynomial ring. For elements of subquotients, there  are the abstract subtype <code>AbstractSubQuoElem{T} &lt;: ModuleFPElem{T}</code> and its concrete descendant <code>SubquoModuleElem{T}</code> which implements an element <span>$m$</span> of a subquotient <span>$M$</span> over a ring <span>$R$</span> as a sparse row, that is, as an object of type <code>SRow{T}</code>. This object specifies the coefficients of an <span>$R$</span>-linear combination of the generators of <span>$M$</span> giving <span>$m$</span>. To create an element, enter the coefficients as a sparse row or a vector: </p><pre><code class="language- hljs">(M::SubquoModule{T})(c::SRow{T}) where T</code></pre><pre><code class="language- hljs">(M::SubquoModule{T})(c::Vector{T}) where T</code></pre><p>Alternatively, directly write the element as an <span>$R$</span>-linear combination of generators of <span>$M$</span>.</p><h5 id="Examples-2"><a class="docs-heading-anchor" href="#Examples-2">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-2" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; m = M(sparse_row(R, [(1,z),(2,one(R))]))
+(x*z + y)*e[1]
+
+julia&gt; n = M([z, one(R)])
+(x*z + y)*e[1]
+
+julia&gt; o = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia&gt; m == n == o
+true
+</code></pre><p>Given an element <code>m</code> of a subquotient <code>M</code> over a ring <span>$R$</span> with element type <code>T</code>,</p><ul><li><code>parent(m)</code> refers to <code>M</code>, </li><li><code>coordinates(m)</code> to an object of type <code>SRow{T}</code> specifying the coefficients of an <span>$R$</span>-linear combination of the generators of <span>$M$</span> which gives <span>$m$</span>, and</li><li><code>ambient_representative(m)</code> to an element of the ambient free module of <code>M</code> which represents <code>m</code>.</li></ul><p>Given an element <code>f</code> of the ambient free module of a subquotient <code>M</code> such that <code>f</code> represents an element of <code>M</code>, the function below creates the represented element:</p><pre><code class="language- hljs">(M::SubquoModule{T})(f::FreeModElem{T}; check::Bool = true) where T</code></pre><p>By default (<code>check = true</code>), it is tested whether <code>f</code> indeed represents an element of <code>M</code>. If this is already clear, it may be convenient to omit the test (<code>check = false</code>).</p><h5 id="Examples-3"><a class="docs-heading-anchor" href="#Examples-3">Examples</a><a class="docs-heading-anchor-permalink" href="#Examples-3" title="Permalink"></a></h5><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; m = z*M[1] + M[2]
+(x*z + y)*e[1]
+
+julia&gt; parent(m)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; coordinates(m)
+Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
+
+julia&gt; fm = ambient_representative(m)
+(x*z + y)*e[1]
+
+julia&gt; typeof(m)
+SubquoModuleElem{QQMPolyRingElem}
+
+julia&gt; typeof(fm)
+FreeModElem{QQMPolyRingElem}
+
+julia&gt; parent(fm) === ambient_free_module(M)
+true
+
+julia&gt; F = ambient_free_module(M)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; f = x*F[1]
+x*e[1]
+
+julia&gt; M(f)
+x*e[1]
+
+julia&gt; typeof(f)
+FreeModElem{QQMPolyRingElem}
+
+julia&gt; typeof(M(f))
+SubquoModuleElem{QQMPolyRingElem}
+</code></pre><p>The zero element of a subquotient is obtained as follows:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="zero-Tuple{SubquoModule}" href="#zero-Tuple{SubquoModule}"><code>zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">zero(M::SubquoModule)</code></pre><p>Return the zero element of <code>M</code>.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModuleElem.jl#L967-L971">source</a></section></article><p>Whether a given element of a subquotient is zero can be tested as follows:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_zero-Tuple{SubquoModuleElem}" href="#is_zero-Tuple{SubquoModuleElem}"><code>is_zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_zero(m::SubquoModuleElem)</code></pre><p>Return <code>true</code> if <code>m</code> is zero, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; is_zero(M[1])
+false
+
+julia&gt; is_zero(x*M[1])
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1)
+Graded free module Rg^1([0]) of rank 1 over Rg
+
+julia&gt; A = Rg[x; y]
+[x]
+[y]
+
+julia&gt; B = Rg[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; is_zero(M[1])
+false
+
+julia&gt; is_zero(x*M[1])
+true
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModuleElem.jl#L1030-L1099">source</a></section></article><p>In the graded case, we additionally have:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_homogeneous-Tuple{SubquoModuleElem}" href="#is_homogeneous-Tuple{SubquoModuleElem}"><code>is_homogeneous</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_homogeneous(m::SubquoModuleElem)</code></pre><p>Return  <code>true</code> if <code>m</code> is homogeneous, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F1 = graded_free_module(Rg, [2,2,2]);
+
+julia&gt; F2 = graded_free_module(Rg, [2]);
+
+julia&gt; G = graded_free_module(Rg, [1,1]);
+
+julia&gt; V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia&gt; V2 = [z*G[2]+y*G[1]];
+
+julia&gt; a1 = hom(F1, G, V1);
+
+julia&gt; a2 = hom(F2, G, V2);
+
+julia&gt; M = subquotient(a1,a2);
+
+julia&gt; m1 = x*M[1]+y*M[2]+z*M[3]
+(2*x*y + y^2)*e[1] + (y^2 + z^2)*e[2]
+
+julia&gt; is_homogeneous(m1)
+true
+
+julia&gt; is_homogeneous(zero(M))
+true
+
+julia&gt; m2 = M[1]+x*M[2]
+(x^2 + x*y + y)*e[1] + x*y*e[2]
+
+julia&gt; is_homogeneous(m2)
+false
+
+julia&gt; m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia&gt; is_homogeneous(m3)
+true
+
+julia&gt; simplify(m3)
+x*e[1] + (y - z)*e[2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1073-L1122">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{SubquoModuleElem}" href="#degree-Tuple{SubquoModuleElem}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(m::SubquoModuleElem; check::Bool=true)</code></pre><p>Given a homogeneous element <code>m</code> of a graded subquotient, return the degree of <code>m</code>.</p><pre><code class="nohighlight hljs">degree(::Type{Vector{Int}}, m::SubquoModuleElem)</code></pre><p>Given a homogeneous element <code>m</code> of a <span>$\mathbb Z^m$</span>-graded subquotient, return the degree of <code>m</code>, converted to a vector of integer numbers.</p><pre><code class="nohighlight hljs">degree(::Type{Int}, m::SubquoModuleElem)</code></pre><p>Given a homogeneous element <code>m</code> of a <span>$\mathbb Z$</span>-graded subquotient, return the degree of <code>m</code>, converted to an integer number.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F1 = graded_free_module(Rg, [2,2,2]);
+
+julia&gt; F2 = graded_free_module(Rg, [2]);
+
+julia&gt; G = graded_free_module(Rg, [1,1]);
+
+julia&gt; V1 = [y*G[1], (x+y)*G[1]+y*G[2], z*G[2]];
+
+julia&gt; V2 = [z*G[2]+y*G[1]];
+
+julia&gt; a1 = hom(F1, G, V1);
+
+julia&gt; a2 = hom(F2, G, V2);
+
+julia&gt; M = subquotient(a1,a2);
+
+julia&gt; m = x*y*z*M[1]
+x*y^2*z*e[1]
+
+julia&gt; degree(m)
+[5]
+
+julia&gt; degree(Int, m)
+5
+
+julia&gt; m3 = x*M[1]+M[2]+x*M[3]
+(x*y + x + y)*e[1] + (x*z + y)*e[2]
+
+julia&gt; degree(m3)
+[2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1145-L1193">source</a></section></article><h2 id="Tests-on-Subqotients"><a class="docs-heading-anchor" href="#Tests-on-Subqotients">Tests on Subqotients</a><a id="Tests-on-Subqotients-1"></a><a class="docs-heading-anchor-permalink" href="#Tests-on-Subqotients" title="Permalink"></a></h2><p>The functions <a href="../free_modules/#is_graded-Tuple{FreeModuleHom}"><code>is_graded</code></a>, <a href="../../rings/#is_standard_graded-Tuple{MPolyDecRing}"><code>is_standard_graded</code></a>, <a href="../../rings/#is_z_graded-Tuple{MPolyDecRing}"><code>is_z_graded</code></a>, and <a href="../../rings/#is_zm_graded-Tuple{MPolyDecRing}"><code>is_zm_graded</code></a> carry over analogously to subquotients. They return <code>true</code> if the respective property is satisfied, and <code>false</code> otherwise. In addition, we have:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="==-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T" href="#==-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T"><code>==</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">==(M::SubquoModule{T}, N::SubquoModule{T}) where {T}</code></pre><p>Given subquotients <code>M</code> and <code>N</code> such that <code>ambient_module(M) == ambient_module(N)</code>, return <code>true</code> if <code>M</code> equals <code>N</code>, where <code>M</code> and <code>N</code> are regarded as submodules  of the common ambient module.</p><p>Here, <code>ambient_module(M) == ambient_module(N)</code> if</p><ul><li><code>ambient_free_module(M) === ambient_free_module(N)</code>, and</li><li>the submodules of the common ambient free module generated by the relations of <code>M</code> and <code>N</code>, respectively, are equal.</li></ul><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AM = R[x;]
+[x]
+
+julia&gt; BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = R[x; y]
+[x]
+[y]
+
+julia&gt; BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; (x^2 + y^4)*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; M == N
+false</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 2);
+
+julia&gt; O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia&gt; O1a = [x*F[1],y*F[2]];
+
+julia&gt; O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia&gt; M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1] + y*e[2]
+2 -&gt; y*e[2]
+by submodule of F generated by
+1 -&gt; x^2*e[1] + y^2*e[2]
+2 -&gt; y^2*e[2]
+
+julia&gt; M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[2]
+by submodule of F generated by
+1 -&gt; x^2*e[1] + y^2*e[2]
+2 -&gt; y^2*e[2]
+
+julia&gt; M1 == M2
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L950-L1039">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_subset-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T" href="#is_subset-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T"><code>is_subset</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_subset(M::SubquoModule{T}, N::SubquoModule{T}) where T</code></pre><p>Given subquotients <code>M</code> and <code>N</code> such that <code>ambient_module(M) == ambient_module(N)</code>, return <code>true</code> if <code>M</code> is contained in <code>N</code>, where <code>M</code> and <code>N</code> are regarded as submodules  of the common ambient module.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AM = R[x;]
+[x]
+
+julia&gt; BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = R[x; y]
+[x]
+[y]
+
+julia&gt; BN = R[x^2+y^4; y^3; z^4]
+[x^2 + y^4]
+[      y^3]
+[      z^4]
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; (x^2 + y^4)*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; is_subset(M, N)
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 2);
+
+julia&gt; O1 = [x*F[1]+y*F[2],y*F[2]];
+
+julia&gt; O1a = [x*F[1],y*F[2]];
+
+julia&gt; O2 = [x^2*F[1]+y^2*F[2],y^2*F[2]];
+
+julia&gt; M1 = SubquoModule(F, O1, O2)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1] + y*e[2]
+2 -&gt; y*e[2]
+by submodule of F generated by
+1 -&gt; x^2*e[1] + y^2*e[2]
+2 -&gt; y^2*e[2]
+
+julia&gt; M2 = SubquoModule(F, O1a, O2)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[2]
+by submodule of F generated by
+1 -&gt; x^2*e[1] + y^2*e[2]
+2 -&gt; y^2*e[2]
+
+julia&gt; is_subset(M1,M2)
+true
+
+julia&gt; is_subset(M2,M1)
+true
+
+julia&gt; M1 == M2
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L827-L917">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_zero-Tuple{SubquoModule}" href="#is_zero-Tuple{SubquoModule}"><code>is_zero</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_zero(M::SubquoModule)</code></pre><p>Return <code>true</code> if <code>M</code> is the zero module, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x^2+y^2;]
+[x^2 + y^2]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 1 generator
+1 -&gt; (x^2 + y^2)*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; is_zero(M)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModuleElem.jl#L974-L1006">source</a></section></article><h2 id="Basic-Operations-on-Subquotients"><a class="docs-heading-anchor" href="#Basic-Operations-on-Subquotients">Basic Operations on Subquotients</a><a id="Basic-Operations-on-Subquotients-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Operations-on-Subquotients" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="+-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T" href="#+-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T"><code>+</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">+(M::SubquoModule{T},N::SubquoModule{T}) where T</code></pre><p>Given subquotients <code>M</code> and <code>N</code> such that <code>ambient_module(M) == ambient_module(N)</code>, return the sum of <code>M</code> and <code>N</code> regarded as submodules of the common ambient module. </p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AM = R[x;]
+[x]
+
+julia&gt; BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = R[y;]
+[y]
+
+julia&gt; BN = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Subquotient of Submodule with 1 generator
+1 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; O = M + N
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; AM = Rg[x;];
+
+julia&gt; BM = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = Rg[y;];
+
+julia&gt; BN = Rg[x^2; y^3; z^4];
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; M + N
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L1337-L1433">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="sum-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T" href="#sum-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T"><code>sum</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">sum(M::SubquoModule{T},N::SubquoModule{T}) where T</code></pre><p>Given subquotients <code>M</code> and <code>N</code> such that <code>ambient_module(M) == ambient_module(N)</code>, return the sum of <code>M</code> and <code>N</code> regarded as submodules of the common ambient module.</p><p>Additionally, return the inclusion maps <code>M</code> <span>$\to$</span> <code>M + N</code> and <code>N</code> <span>$\to$</span> <code>M + N</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AM = R[x;]
+[x]
+
+julia&gt; BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = R[y;]
+[y]
+
+julia&gt; BN = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Subquotient of Submodule with 1 generator
+1 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; O = sum(M, N);
+
+julia&gt; O[1]
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; O[2]
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; O[3]
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 1 generator
+1 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; AM = Rg[x;];
+
+julia&gt; BM = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = Rg[y;];
+
+julia&gt; BN = Rg[x^2; y^3; z^4];
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; sum(M, N)
+(Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1], M -&gt; Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+x*e[1] -&gt; x*e[1]
+Homogeneous module homomorphism, N -&gt; Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+y*e[1] -&gt; y*e[1]
+Homogeneous module homomorphism)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L1153-L1309">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="intersect-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T" href="#intersect-Union{Tuple{T}, Tuple{SubquoModule{T}, SubquoModule{T}}} where T"><code>intersect</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T</code></pre><p>Given subquotients <code>M</code> and <code>N</code> such that <code>ambient_module(M) == ambient_module(N)</code>, return the intersection of <code>M</code> and <code>N</code> regarded as submodules of the common ambient module.</p><p>Additionally, return the inclusion maps <code>M</code> <span>$\cap$</span> <code>N</code> <span>$\to$</span> <code>M</code> and <code>M</code> <span>$\cap$</span> <code>N</code> <span>$\to$</span> <code>N</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; AM = R[x;]
+[x]
+
+julia&gt; BM = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = R[y;]
+[y]
+
+julia&gt; BN = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Subquotient of Submodule with 1 generator
+1 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; intersect(M, N)
+(Subquotient of Submodule with 2 generators
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1], Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 1 generator
+1 -&gt; x*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1], Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 1 generator
+1 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1])</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; AM = Rg[x;];
+
+julia&gt; BM = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, AM, BM)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; AN = Rg[y;];
+
+julia&gt; BN = Rg[x^2; y^3; z^4];
+
+julia&gt; N = SubquoModule(F, AN, BN)
+Graded subquotient of submodule of F generated by
+1 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; intersect(M, N)
+(Graded subquotient of submodule of F generated by
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1], Graded subquotient of submodule of F generated by
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1] -&gt; M
+-x*y*e[1] -&gt; -x*y*e[1]
+x*z^4*e[1] -&gt; x*z^4*e[1]
+Homogeneous module homomorphism, Graded subquotient of submodule of F generated by
+1 -&gt; -x*y*e[1]
+2 -&gt; x*z^4*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1] -&gt; N
+-x*y*e[1] -&gt; x*y*e[1]
+x*z^4*e[1] -&gt; 0
+Homogeneous module homomorphism)
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModule.jl#L1438-L1588">source</a></section></article><h2 id="Submodules-and-Quotients"><a class="docs-heading-anchor" href="#Submodules-and-Quotients">Submodules and Quotients</a><a id="Submodules-and-Quotients-1"></a><a class="docs-heading-anchor-permalink" href="#Submodules-and-Quotients" title="Permalink"></a></h2><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="sub-Union{Tuple{T}, Tuple{ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T" href="#sub-Union{Tuple{T}, Tuple{ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T"><code>sub</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">sub(M::ModuleFP{T}, V::Vector{&lt;:ModuleFPElem{T}}; cache_morphism::Bool=false) where T</code></pre><p>Given a vector <code>V</code> of (homogeneous) elements of <code>M</code>, return the (graded) submodule <code>I</code> of <code>M</code> generated by these elements together with its inclusion map `inc : I ↪ M.</p><p>When <code>cache_morphism</code> is set to true, then <code>inc</code> will be cached and available for <code>transport</code> and friends.</p><p>If only the submodule itself is desired, use <code>sub_object</code> instead.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = free_module(R, 1);
+
+julia&gt; V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+
+julia&gt; N, incl = sub(F, V);
+
+julia&gt; N
+Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+represented as subquotient with no relations.
+
+julia&gt; incl
+Map with following data
+Domain:
+=======
+Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+represented as subquotient with no relations.
+Codomain:
+=========
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModuleElem.jl#L588-L629">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="quo-Union{Tuple{T}, Tuple{ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T" href="#quo-Union{Tuple{T}, Tuple{ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T"><code>quo</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">quo(M::ModuleFP{T}, V::Vector{&lt;:ModuleFPElem{T}}; cache_morphism::Bool=false) where T</code></pre><p>Given a vector <code>V</code> of (homogeneous) elements of <code>M</code>, return a pair <code>(N, pr)</code> consisting of the quotient <code>N = M/⟨V⟩</code> and the projection map <code>pr : M → N</code>.</p><p>If one is only interested in the actual object <code>M</code>, but not the map, use <code>quo_object</code> instead.</p><p>If <code>cache_morphism</code> is set to <code>true</code>, the projection is cached and available to <code>transport</code> and friends.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = free_module(R, 1);
+
+julia&gt; V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+
+julia&gt; N, proj = quo(F, V);
+
+julia&gt; N
+Subquotient of Submodule with 1 generator
+1 -&gt; e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; proj
+Map with following data
+Domain:
+=======
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Codomain:
+=========
+Subquotient of Submodule with 1 generator
+1 -&gt; e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubquoModuleElem.jl#L793-L835">source</a></section></article><h2 id="Homomorphisms-From-Subqotients"><a class="docs-heading-anchor" href="#Homomorphisms-From-Subqotients">Homomorphisms From Subqotients</a><a id="Homomorphisms-From-Subqotients-1"></a><a class="docs-heading-anchor-permalink" href="#Homomorphisms-From-Subqotients" title="Permalink"></a></h2><p>All OSCAR types for homomorphisms of finitely presented modules considered here belong to the abstract type <code>ModuleFPHom{T1, T2}</code>, where <code>T1</code> and <code>T2</code> are the types of domain and codomain respectively. For homomorphisms from subquotients, OSCAR provides the concrete type <code>SubQuoHom{T1, T2} &lt;: ModuleFPHom{T1, T2}</code> as well as the following constructors:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="hom-Union{Tuple{T}, Tuple{SubquoModule{T}, ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T" href="#hom-Union{Tuple{T}, Tuple{SubquoModule{T}, ModuleFP{T}, Vector{&lt;:ModuleFPElem{T}}}} where T"><code>hom</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{&lt;:ModuleFPElem{T}}) where T</code></pre><p>Given a vector <code>V</code> of <code>ngens(M)</code> elements of <code>N</code>, return the homomorphism <code>M</code> <span>$\to$</span> <code>N</code> which sends the <code>i</code>-th generator <code>M[i]</code> of <code>M</code> to the <code>i</code>-th entry of <code>V</code>.</p><pre><code class="nohighlight hljs">hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T})) where T</code></pre><p>Given a matrix <code>A</code> with <code>ngens(M)</code> rows and <code>ngens(N)</code> columns, return the homomorphism <code>M</code> <span>$\to$</span> <code>N</code> which sends the <code>i</code>-th generator <code>M[i]</code> of <code>M</code> to the linear combination <span>$\sum_j A[i,j]*N[j]$</span> of the generators <code>N[j]</code> of <code>N</code>.</p><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The module <code>N</code> may be of type <code>FreeMod</code> or <code>SubquoMod</code>. If both modules <code>M</code> and <code>N</code> are graded, the data must define a graded module homomorphism of some degree. If this degree is the zero element of the (common) grading group, we refer to the homomorphism under consideration as a <em>homogeneous module homomorphism</em>.</p></div></div><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The functions do not check whether the resulting homomorphism is well-defined, that is, whether it sends the relations of <code>M</code> into the relations of <code>N</code>.</p></div></div><p>If you are uncertain with regard to well-definedness, use the function below. Note, however, that the check performed by the function requires a Gröbner basis computation. This may take some time.</p><pre><code class="nohighlight hljs">is_welldefined(a::ModuleFPHom)</code></pre><p>Return <code>true</code> if <code>a</code> is well-defined, and <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y^2*e[1]
+ x*y*e[1]
+
+julia&gt; a = hom(M, N, V)
+Map with following data
+Domain:
+=======
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+Codomain:
+=========
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; is_welldefined(a)
+true
+
+julia&gt; W = R[y^2 0; 0 x]
+[y^2   0]
+[  0   x]
+
+julia&gt; b = hom(M, N, W);
+
+julia&gt; a == b
+true</code></pre><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y];
+
+julia&gt; B = R[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B);
+
+julia&gt; N = M;
+
+julia&gt; W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{QQMPolyRingElem}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia&gt; c = hom(M, N, W);
+
+julia&gt; is_welldefined(c)
+false</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; A = Rg[x; y];
+
+julia&gt; B = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x^2*N[2]];
+
+julia&gt; a = hom(M, N, V)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; is_welldefined(a)
+true
+
+julia&gt; W = Rg[y^2 0; 0 x^2]
+[y^2     0]
+[  0   x^2]
+
+julia&gt; b = hom(M, N, W)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; a == b
+true
+
+julia&gt; W = [y*N[1], x*N[2]]
+2-element Vector{SubquoModuleElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ x*y*e[1]
+ x*y*e[1]
+
+julia&gt; c = hom(M, N, W)
+M -&gt; M
+x*e[1] -&gt; x*y*e[1]
+y*e[1] -&gt; x*y*e[1]
+Graded module homomorphism of degree [1]
+
+julia&gt; is_welldefined(c)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubQuoHom.jl#L88-L269">source</a></section></article><p>Given a homomorphism of type <code>SubQuoHom</code>, a matrix <code>A</code> representing it is recovered by the following function:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="matrix-Tuple{SubQuoHom}" href="#matrix-Tuple{SubQuoHom}"><code>matrix</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">matrix(a::SubQuoHom)</code></pre><p>Given a homomorphism <code>a</code> of type  <code>SubQuoHom</code> with domain <code>M</code> and codomain <code>N</code>, return a matrix <code>A</code> with <code>ngens(M)</code> rows and <code>ngens(N)</code> columns such that <code>a == hom(M, N, A)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia&gt; F = free_module(R, 1)
+Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+
+julia&gt; A = R[x; y]
+[x]
+[y]
+
+julia&gt; B = R[x^2; y^3; z^4]
+[x^2]
+[y^3]
+[z^4]
+
+julia&gt; M = SubquoModule(F, A, B)
+Subquotient of Submodule with 2 generators
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by Submodule with 3 generators
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x*N[2]];
+
+julia&gt; a = hom(M, N, V);
+
+julia&gt; A = matrix(a)
+[y^2   0]
+[  0   x]
+
+julia&gt; a(M[1])
+x*y^2*e[1]</code></pre><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; A = Rg[x; y];
+
+julia&gt; B = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B)
+Graded subquotient of submodule of F generated by
+1 -&gt; x*e[1]
+2 -&gt; y*e[1]
+by submodule of F generated by
+1 -&gt; x^2*e[1]
+2 -&gt; y^3*e[1]
+3 -&gt; z^4*e[1]
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x^2*N[2]];
+
+julia&gt; a = hom(M, N, V)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; matrix(a)
+[y^2     0]
+[  0   x^2]
+</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/UngradedModules/SubQuoHom.jl#L373-L453">source</a></section></article><p>The domain and codomain of a homomorphism <code>a</code>  of type <code>SubQuoHom</code> can be recovered by entering <code>domain(a)</code> and <code>codomain(a)</code>, respectively.</p><p>The functions below test whether a homomorphism of type <code>SubQuoHom</code> is graded and homogeneous, respectively.</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_graded-Tuple{SubQuoHom}" href="#is_graded-Tuple{SubQuoHom}"><code>is_graded</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_graded(a::ModuleFPHom)</code></pre><p>Return <code>true</code> if <code>a</code> is graded, <code>false</code> otherwise.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; R, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(R, 3)
+Graded free module R^3([0]) of rank 3 over R
+
+julia&gt; G = graded_free_module(R, 2)
+Graded free module R^2([0]) of rank 2 over R
+
+julia&gt; V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
+3-element Vector{FreeModElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ y*e[1]
+ x*e[1] + y*e[2]
+ z*e[2]
+
+julia&gt; a = hom(F, G, V)
+F -&gt; G
+e[1] -&gt; y*e[1]
+e[2] -&gt; x*e[1] + y*e[2]
+e[3] -&gt; z*e[2]
+Graded module homomorphism of degree [1]
+
+julia&gt; is_graded(a)
+true</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L813-L844">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="is_homogeneous-Tuple{SubQuoHom}" href="#is_homogeneous-Tuple{SubQuoHom}"><code>is_homogeneous</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">is_homogeneous(a::SubQuoHom)</code></pre><p>Return <code>true</code> if <code>a</code> is homogeneous, <code>false</code> otherwise</p><p>Here, if <code>G</code> is the grading group of <code>a</code>, <code>a</code> is homogeneous if <code>a</code> is graded of degree <code>zero(G)</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; A = Rg[x; y];
+
+julia&gt; B = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B);
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x^2*N[2]];
+
+julia&gt; a = hom(M, N, V)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; is_homogeneous(a)
+false</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1353-L1386">source</a></section></article><p>In the graded case, we additionally have:</p><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="degree-Tuple{SubQuoHom}" href="#degree-Tuple{SubQuoHom}"><code>degree</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">degree(a::SubQuoHom; check::Bool=true)</code></pre><p>If <code>a</code> is graded, return the degree of <code>a</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; A = Rg[x; y];
+
+julia&gt; B = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B);
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x^2*N[2]];
+
+julia&gt; a = hom(M, N, V)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; degree(a)
+[2]</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1239-L1269">source</a></section></article><article class="docstring"><header><a class="docstring-article-toggle-button fa-solid fa-chevron-down" href="javascript:;" title="Collapse docstring"></a><a class="docstring-binding" id="grading_group-Tuple{SubQuoHom}" href="#grading_group-Tuple{SubQuoHom}"><code>grading_group</code></a> — <span class="docstring-category">Method</span></header><section><div><pre><code class="language-julia hljs">grading_group(a::SubQuoHom)</code></pre><p>If <code>a</code> is graded, return the grading group of <code>a</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; Rg, (x, y, z) = graded_polynomial_ring(QQ, [&quot;x&quot;, &quot;y&quot;, &quot;z&quot;]);
+
+julia&gt; F = graded_free_module(Rg, 1);
+
+julia&gt; A = Rg[x; y];
+
+julia&gt; B = Rg[x^2; y^3; z^4];
+
+julia&gt; M = SubquoModule(F, A, B);
+
+julia&gt; N = M;
+
+julia&gt; V = [y^2*N[1], x^2*N[2]];
+
+julia&gt; a = hom(M, N, V)
+M -&gt; M
+x*e[1] -&gt; x*y^2*e[1]
+y*e[1] -&gt; x^2*y*e[1]
+Graded module homomorphism of degree [2]
+
+julia&gt; grading_group(a)
+Z</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/oscar-system/Oscar.jl/blob/1ce4c1231f122f2edc9c4ecd8d27b3c283014aea/src/Modules/ModulesGraded.jl#L1318-L1348">source</a></section></article></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../free_modules/">« Free Modules</a><a class="docs-footer-nextpage" href="../module_operations/">Operations on Modules »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Tuesday 18 June 2024 09:31">Tuesday 18 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
