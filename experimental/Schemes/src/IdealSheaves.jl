@@ -580,7 +580,23 @@ function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I))
         is_one(I(U)) || return false
       end
     end
-
+    
+    if has_decomposition_info(covering)
+      dec = decomposition_info(covering)
+      for U in covering 
+        D = ideal(OO(U), dec[U])
+        K = D
+        for J in summands(I) # shortcut for trivial patches
+          if U in keys(object_cache(J))
+            K = K + J(U)
+          end 
+        end
+        isone(K) && continue
+        
+        isone(D + cheap_sub_ideal(I, U)) || isone(I(U)+D) || return false
+      end 
+      return true
+    end
     return all(x->(isone(cheap_sub_ideal(I, x)) || isone(I(x))), covering)
   end::Bool
 end
@@ -1775,7 +1791,19 @@ function cheap_sub_ideal(II::AbsIdealSheaf, U::AbsAffineScheme)
   return II(U)
 end
 
+
 function cheap_sub_ideal(II::SumIdealSheaf, U::AbsAffineScheme)
+  for J in summands(II) # shortcut for trivial patches
+    if U in keys(object_cache(J))
+      if has_attribute(J(U),:is_one) && is_one(J(U))
+        return J(U)
+      else
+        # sometimes the ideal is obviously one but the attribute not set
+        ngens(J(U))==1 && isone(J(U))
+        return J(U)
+      end      
+    end 
+  end
   return sum(cheap_sub_ideal(J, U) for J in summands(II); init = ideal(OO(U), elem_type(OO(U))[]))
 end
 
