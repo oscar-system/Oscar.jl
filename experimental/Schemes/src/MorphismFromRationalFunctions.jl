@@ -678,6 +678,11 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
   return nothing
 end
 
+#=
+# The following was thought to be easier. But it turns out not to be.
+# with a complicated map it is in general cheaper to first spread out 
+# the ideal sheaf in the codomain and then have more choices as to which 
+# pair of charts to use for pullback.
 function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
   X = domain(phi)
   Y = codomain(phi)
@@ -717,6 +722,7 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::PrimeId
 
   return nothing
 end
+=#
 
 function _pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
   V0 = original_chart(I)
