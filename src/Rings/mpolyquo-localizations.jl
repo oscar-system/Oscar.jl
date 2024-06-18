@@ -775,6 +775,12 @@ function +(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   if lifted_denominator(a) == lifted_denominator(b) 
     return (parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false)
   end
+  gcd_ab = gcd([lifted_denominator(b), lifted_denominator(a)])
+  p = divexact(lifted_denominator(a), gcd_ab)
+  q = divexact(lifted_denominator(b), gcd_ab)
+  new_den = p*lifted_denominator(b)
+  return (parent(a))(lifted_numerator(a)*q + lifted_numerator(b)*p, new_den, check=false)
+
   return (parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
@@ -785,6 +791,7 @@ function addeq!(a::T, b::T) where {T<:MPolyQuoLocRingElem}
 end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocRingElem}
+  return a + (-b)
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   if lifted_denominator(a) == lifted_denominator(b) 
     return (parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false)
@@ -794,6 +801,14 @@ end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   parent(a) === parent(b) || error("the arguments do not have the same parent ring")
+  p = gcd([lifted_numerator(a), lifted_denominator(b)])
+  q = gcd([lifted_numerator(b), lifted_denominator(a)])
+  aa = divexact(lifted_numerator(a), p)
+  bb = divexact(lifted_numerator(b), q)
+  da = divexact(lifted_denominator(a), q)
+  db = divexact(lifted_denominator(b), p)
+  return (parent(a))(aa*bb, da*db, check=false)
+
   return (parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false)
 end
 
