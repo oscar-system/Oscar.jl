@@ -1949,7 +1949,7 @@ function is_subset(P::PrimeIdealSheafFromChart, I::AbsIdealSheaf)
   is_subset(P(U), I(U)) || return false
   # I might have support outside the support of P. Hence, we can not 
   # avoid the full check, as it seems.
-  return all(is_subset(P(U), I(U)) for U in affine_charts(X))
+  return all(is_subset(P(U), I(U)) for U in affine_charts(X) if !is_one(I(U)))
 end
 
 function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
