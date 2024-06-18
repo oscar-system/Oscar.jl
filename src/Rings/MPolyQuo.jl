@@ -642,6 +642,7 @@ function ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
   end
   return MPolyQuoIdeal(A, V)
 end
+
 function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MPolyRingElem
   #@assert length(V) > 0
   if length(V) == 0
@@ -652,6 +653,9 @@ function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MP
   end
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
 end
+
+ideal(R::MPolyQuoRing, V::Vector) = ideal(R, R.(V))
+
 
 function ideal(A::MPolyQuoRing{T}, x::T) where T <: MPolyRingElem
   return ideal(A,[x])
