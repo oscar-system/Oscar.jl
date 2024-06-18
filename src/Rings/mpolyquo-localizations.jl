@@ -895,7 +895,7 @@ end
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   return f # Disable reduction here, because it slows down arithmetic.
-  return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
+  # return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
 end
 
 # for local orderings, reduction does not give the correct result.

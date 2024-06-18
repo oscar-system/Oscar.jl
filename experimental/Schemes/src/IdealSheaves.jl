@@ -624,6 +624,9 @@ function is_prime(I::PrimeIdealSheafFromChart)
   return true
 end
 
+has_is_prime(I::PrimeIdealSheafFromChart) = true
+has_is_prime(I::AbsIdealSheaf) = has_attribute(I, :is_prime)
+
 @doc raw"""
     is_locally_prime(I::AbsIdealSheaf) -> Bool
 

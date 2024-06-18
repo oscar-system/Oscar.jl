@@ -2015,7 +2015,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   for D in lat_X
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
-    @assert I isa PrimeIdealSheafFromChart || (has_attribute(I, :is_prime) && get_attribute(I, :is_prime)=== true) "ideal sheaf must be known to be prime"
+    @assert has_is_prime(I) && is_prime(I) "ideal sheaf must be known to be prime"
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
