@@ -93,6 +93,9 @@ function inherit_decomposition_info!(
   !has_decomposition_info(orig_cov) && return ref_cov
   OX = OO(X)
 
+  # For every chart U of `ref_cov`, we find its patch `V` in `orig_cov`, 
+  # together with a list of equations h₁,…,hₙ ∈ 𝒪 (V) such that 
+  # D(h₁⋅…⋅hₙ) ≅ U.
   decomp_dict = IdDict{AbsAffineScheme, Tuple{AbsAffineScheme, Vector{RingElem}}}()
   for U in patches(ref_cov)
     inc_U, d_U = _find_chart(U, orig_cov)
@@ -100,13 +103,22 @@ function inherit_decomposition_info!(
   end
 
   for V in patches(orig_cov)
+    # Collect the patches in `ref_cov` refining V
     V_ref = [U for U in patches(ref_cov) if decomp_dict[U][1] === V]
+    # Collect the corresponding complement equations
     comp_eqns = [decomp_dict[U][2] for U in V_ref]
+    # Start out from the original decomposition info
     dec_inf = copy(decomposition_info(orig_cov)[V])
-    for U in V_ref
+    for (i, U) in enumerate(V_ref)
+      # Cast the already made decomposition info down to U
       tmp = elem_type(OO(U))[OX(V, U)(i) for i in dec_inf] # help the compiler
+      # Append the equations for the previously covered patches
+      for j in 1:i-1
+        W = V_ref[j]
+        surplus = OX(V, U).(decomp_dict[W][2])
+        push!(tmp, prod(surplus; init=one(OO(U))))
+      end
       set_decomposition_info!(ref_cov, U, tmp)
-      append!(dec_inf, decomp_dict[U][2])
     end
   end
   return ref_cov

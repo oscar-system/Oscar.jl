@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar.OrthogonalDiscriminants
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Access to precomputed OD data

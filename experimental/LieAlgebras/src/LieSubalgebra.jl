@@ -87,7 +87,7 @@ function basis(S::LieSubalgebra, i::Int)
 end
 
 @doc raw"""
-  dim(S::LieSubalgebra) -> Int
+    dim(S::LieSubalgebra) -> Int
 
 Return the dimension of the Lie subalgebra `S`.
 """
@@ -99,7 +99,9 @@ dim(S::LieSubalgebra) = length(basis(S))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
+function Base.show(io::IO, mime::MIME"text/plain", S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, mime, S)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie subalgebra")
   println(io, Indent(), "of dimension $(dim(S))", Dedent())
@@ -111,12 +113,14 @@ function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
 end
 
 function Base.show(io::IO, S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, S)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(S))
+    print(terse(io), base_lie_algebra(S))
   end
 end
 

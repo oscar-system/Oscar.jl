@@ -186,11 +186,11 @@ end
 
 # We use a pattern for printings morphisms, gluings, etc...
 #
-# In supercompact printing, we just write what it is, super shortly.
+# In terse printing, we just write what it is, super shortly.
 # For normal compact printing, we mention what it is, then use colons to
 # describe "domain -> codomain".
 function Base.show(io::IO, f::AbsCoveredSchemeMorphism)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Covered scheme morphism")
   else
     io = pretty(io)

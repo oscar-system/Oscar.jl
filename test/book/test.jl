@@ -202,7 +202,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
@@ -215,13 +215,13 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
             copy!(LOAD_PATH, custom_load_path)
             auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")
+            # run from temp dir
+            temp = mktempdir()
+            cd(temp)
             if isfile(auxmain)
               # add overlay project for aux file
-              # and run it from temp dir
-              temp = mktempdir()
               Pkg.activate(temp; io=devnull)
               cp(auxmain,joinpath(temp, "main.jl"))
-              cd(temp)
               run_repl_string(mockrepl, """include("$(joinpath(temp,"main.jl"))")\n""")
               pushfirst!(LOAD_PATH, temp)
               Pkg.activate("$act_proj"; io=devnull)
@@ -238,7 +238,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @warn "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file"
               end
               if full_file in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true

@@ -162,7 +162,7 @@ end
 
 GAP.gap_to_julia(::Type{QQAbElem}, a::GapInt) = QQAbElem(a)
 
-(::QQAbField)(a::GAP.GapObj) = GAP.gap_to_julia(QQAbElem, a)
+(::QQAbField)(a::GapObj) = GAP.gap_to_julia(QQAbElem, a)
 
 ## nonempty list of GAP matrices over a given cyclotomic field
 function matrices_over_cyclotomic_field(F::AbsSimpleNumField, gapmats::GapObj)
@@ -235,4 +235,12 @@ function matrices_over_field(gapmats::GapObj)
 
     z = gen(F)
     return result, F, z
+end
+
+## GAP straight line program
+function straight_line_program(slp::GapObj)
+  @req GAP.Globals.IsStraightLineProgram(slp) "slp must be a straight line program in GAP"
+  lines = GAP.gap_to_julia(GAP.Globals.LinesOfStraightLineProgram(slp); recursive = true)
+  n = GAP.Globals.NrInputsOfStraightLineProgram(slp)
+  return SLP.GAPSLProgram(lines, n)
 end

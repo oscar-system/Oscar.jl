@@ -93,6 +93,90 @@ _setactiveproject(s::String) = @static if VERSION >= v"1.8"
                                end
 
 @doc raw"""
+    Oscar.@_AuxDocTest "Name of the test set", (fix = bool),
+    raw\"\"\"
+    docstring content here
+    \"\"\"
+
+This macro is used to define a doctest from within a testfile.
+The first argument is the name of the test set introduced for the doctest.
+`bool` may be any expression that evaluates to a boolean value (e.g. `true` or `false`),
+and is used to determine whether the doctest should be fixed automatically or not.
+
+This macro is dependent on the correct usage of commas and parentheses. Please refer to the
+example above.
+"""
+macro _AuxDocTest(data::Expr)
+  @assert data.head == :tuple
+  @assert length(data.args) == 3
+  testset = data.args[1]
+  @assert data.args[2].head == :(=)
+  @assert data.args[2].args[1] == :fix
+  fix = data.args[2].args[2]
+  docstring = data.args[3]
+  @assert docstring.head == :macrocall
+  @assert docstring.args[1] == Symbol("@raw_str")
+  module_name = Symbol("AuxDocTest_", lstrip(string(gensym()), '#'))
+  logging_flag_var = Symbol("logging_flag_", gensym())
+  result = Expr(
+    :toplevel,
+    :(import Documenter),
+    :(
+      module $(esc(module_name))
+      @doc $(docstring) function dummy_placeholder end
+      end # module
+    ),
+    # temporarily disable GC logging to avoid glitches in the doctests
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          $(logging_flag_var) = GC.logging_enabled()
+          GC.enable_logging(false)
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(false)))
+      end
+    )
+    else
+      nothing
+    end,
+    esc(
+      quote
+        Documenter.doctest(
+          nothing,
+          [$(module_name)];
+          fix=$(fix),
+          testset=$(testset),
+          doctestfilters=[
+            r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
+          ],
+        )
+      end,
+    ),
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          GC.enable_logging($(logging_flag_var))
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(true)))
+      end
+    )
+    else
+      nothing
+    end,
+  )
+  Meta.replace_sourceloc!(__source__, result)
+  return result
+end
+
+@doc raw"""
     test_module(path::AbstractString; new::Bool = true, timed::Bool=false, ignore=[])
 
 Run the Oscar tests in `path`:

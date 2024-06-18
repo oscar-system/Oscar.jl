@@ -107,7 +107,7 @@
   # S4 (natural permutation module in characteristic 5)
   gl = general_linear_group(4, 5)
   gapmats = [
-    GAP.Globals.PermutationMat(elm.X, 4, GAP.Globals.GF(5)) for
+    GAP.Globals.PermutationMat(GapObj(elm), 4, GAP.Globals.GF(5)) for
     elm in gens(symmetric_group(4))
   ]
   s4 = sub(gl, [MatrixGroupElem(gl, x) for x in gapmats])[1]

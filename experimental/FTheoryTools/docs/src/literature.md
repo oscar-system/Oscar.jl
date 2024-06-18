@@ -13,7 +13,7 @@ su5_tate_model_over_arbitrary_3d_base()
 ```
 More generally, we support literature constructions.
 ```@docs
-literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
+literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
 ```
 
 ## Attributes
@@ -98,7 +98,9 @@ following methods:
 * `has_weighted_resolutions(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
-* `has_zero_section(m::AbstractFTheoryModel)`.
+* `has_zero_section(m::AbstractFTheoryModel)`,
+* `has_gauge_algebra(m::AbstractFTheoryModel)`,
+* `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 
 
 ## Methods

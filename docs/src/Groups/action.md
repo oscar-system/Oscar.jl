@@ -1,21 +1,19 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Group Actions
+# Group actions
 
-A *group action* of a group G on a set Ω (from the right) is defined by
-a map μ: Ω × G → Ω that satisfies the compatibility conditions
-μ(μ(x, g), h) = μ(x, g*h) and μ(x, one(G)) == x for all x ∈ Ω.
+A *group action* of a group $G$ on a set $\Omega$ (from the right) is defined by
+a map $\mu:\Omega\times G\to \Omega$ that satisfies the compatibility conditions
+$\mu(\mu(x,g),h) = \mu(x, gh)$ and $\mu(x, 1_G) = x$ for all $x\in\Omega$.
 
-The maps μ are implemented as functions that take two arguments, an element
-x of Ω and a group element g, and return the image of x under g.
+The maps $\mu$ are implemented as functions that take two arguments, an element
+$x$ of $\Omega$ and a group element $g$, and return the image of $x$ under $g$.
 
-In many cases, a natural action is given by the types of the elements in Ω
-and in G.
+In many cases, a natural action is given by the types of the elements in $\Omega$
+and in $G$.
 For example permutation groups act on positive integers by just applying
 the permutations.
 In such situations, the function `^` can be used as action function,
@@ -56,7 +54,7 @@ Note that the explicit elements of a G-set `Omega` can be obtained using
 `collect(Omega)`.
 
 ```@docs
-gset(G::GAPGroup, fun::Function, Omega)
+gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, Omega)
 permutation
 acting_group(Omega::GSetByElements)
 action_function(Omega::GSetByElements)

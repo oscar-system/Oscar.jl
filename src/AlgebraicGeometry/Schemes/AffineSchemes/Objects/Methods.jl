@@ -43,7 +43,7 @@ end
 function Base.show(io::IO, X::AbsAffineScheme)
   if has_attribute(X, :name)
     print(io, name(X))
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine scheme")
@@ -418,7 +418,7 @@ function base_change(phi::Any, X::AbsAffineScheme)
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
   Y = spec(R_red)
-  return Y, morphism(Y, X, Phi)
+  return Y, morphism(Y, X, Phi; check=false)
 end
 
 ### Some helper functions
@@ -426,7 +426,7 @@ function _change_base_ring(phi::Any, R::MPolyRing)
   K = coefficient_ring(R)
   kk = parent(phi(zero(K)))
   P, _ = polynomial_ring(kk, symbols(R))
-  Phi = hom(R, P, phi, gens(P))
+  Phi = hom(R, P, phi, gens(P); check=false)
   return P, Phi
 end
 

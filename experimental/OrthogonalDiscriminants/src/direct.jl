@@ -195,9 +195,9 @@ function od_from_atlas_group(chi::GAPGroupClassFunction)
 #T     and ask it whether it is abs. irreducible.
         l = next_prime(max([x[1] for x in factor(order(tbl))]...))
         Gbar, _ = Oscar.isomorphic_group_over_finite_field(G, min_char = Int(l))
-        GG = Gbar.X
+        GG = GapObj(Gbar)
       else
-        GG = G.X
+        GG = GapObj(G)
       end
       M = GAP.Globals.GModuleByMats(GAP.Globals.GeneratorsOfGroup(GG),
                                     GAP.Globals.FieldOfMatrixGroup(GG))

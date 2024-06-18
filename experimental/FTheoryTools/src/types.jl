@@ -55,6 +55,7 @@ end
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
+  defining_classes::Dict{String, ToricDivisorClass}
   function HypersurfaceModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                              hypersurface_equation_parametrization::MPolyRingElem,
                              hypersurface_equation::MPolyRingElem,
@@ -74,6 +75,7 @@ end
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
+  defining_classes::Dict{String, ToricDivisorClass}
 
   function WeierstrassModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                             defining_section_parametrization::Dict{String, <: MPolyRingElem},
@@ -112,6 +114,7 @@ end
   base_space::FTheorySpace
   ambient_space::FTheorySpace
   fiber_ambient_space::AbsCoveredScheme
+  defining_classes::Dict{String, ToricDivisorClass}
 
   function GlobalTateModel(explicit_model_sections::Dict{String, <: MPolyRingElem},
                           defining_section_parametrization::Dict{String, <: MPolyRingElem},

@@ -20,7 +20,7 @@ defined by ideal (x0*x1^2, x2)
 julia> Y = algebraic_set(X)
 Projective algebraic set
   in projective 2-space over QQ with coordinates [x0, x1, x2]
-defined by ideal (x2, x0*x1)
+defined by ideal (x0*x1^2, x2)
 
 ```
 """
@@ -39,7 +39,7 @@ julia> P,(x0,x1) = graded_polynomial_ring(QQ,[:x0,:x1]);
 julia> algebraic_set(ideal([x0,x1]))
 Projective algebraic set
   in projective 1-space over QQ with coordinates [x0, x1]
-defined by ideal (x1, x0)
+defined by ideal (x0, x1)
 
 ```
 """

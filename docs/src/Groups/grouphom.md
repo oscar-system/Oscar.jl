@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Group homomorphisms
@@ -150,6 +148,15 @@ preimage(f::GAPGroupHomomorphism{S, T}, H::T) where S <: GAPGroup where T <: GAP
 
 ## Group isomorphisms
 
+For all functions that return group isomorphisms,
+we have the following rule about the direction of the result.
+
+If two groups are given as inputs then the domain of the returned isomorphism
+is the first given group and the codomain is the second.
+
+If one group is given then the domain of the result is this group,
+and the codomain is some new group constructed by the function.
+
 ```@docs
 is_isomorphic(G::GAPGroup, H::GAPGroup)
 is_isomorphic_with_map(G::GAPGroup, H::GAPGroup)
@@ -157,7 +164,7 @@ isomorphism(G::GAPGroup, H::GAPGroup)
 ```
 
 ```@docs
-isomorphism(::Type{T}, G::GAPGroup) where T <: Union{PcGroup, PermGroup}
+isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, PermGroup}
 isomorphism(::Type{FinGenAbGroup}, G::GAPGroup)
 simplified_fp_group(G::FPGroup)
 ```

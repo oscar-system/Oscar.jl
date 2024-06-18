@@ -32,7 +32,7 @@ affine_scheme(kk::Ring, R::Ring) = AffineScheme(kk, R)
 @doc raw"""
     spec(R::MPolyRing, I::MPolyIdeal)
 
-Constructs the affine scheme of the ideal ``I`` in the ring ``R``.
+Construct the affine scheme of the ideal ``I`` in the ring ``R``.
 This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
@@ -159,7 +159,7 @@ Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_in
     affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
 
 The ``n``-dimensional affine space over a ring ``kk`` is created
-by this method. By default, the variable names are chosen as $x_1$, $x_2$
+by this method. By default, the variable names are chosen as `x1`, `x2`
 and so on. This choice can be overwritten with a third optional argument.
 
 # Examples
@@ -182,23 +182,33 @@ end
 
 
 @doc raw"""
-    affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
+    affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
 
-Creates the ``n``-dimensional affine space over a ring ``kk``,
+Create the ``n``-dimensional affine space over a ring ``kk``,
 but allows more flexibility in the choice of variable names.
 The following example demonstrates this.
 
 # Examples
 ```jldoctest
-julia> affine_space(QQ,[:y1,:z2,:a])
+julia> affine_space(QQ, [:x, :y, :z])
 Affine space of dimension 3
   over rational field
-with coordinates [y1, z2, a]
+with coordinates [x, y, z]
+
+julia> affine_space(QQ, ['x', 'y', 'z'])
+Affine space of dimension 3
+  over rational field
+with coordinates [x, y, z]
+
+julia> affine_space(QQ, ["x", "y", "z"])
+Affine space of dimension 3
+  over rational field
+with coordinates [x, y, z]
 ```
 """
-function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, var_symbols)
-  return variety(spec(R), check=false)
+function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
+  R, _ = polynomial_ring(kk, var_names)
+  return spec(R)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
@@ -206,8 +216,8 @@ function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
   return variety(spec(R), check=false)
 end
 
-function affine_space(kk::BRT, var_symbols::Vector{Symbol}) where {BRT<:Field}
-  R, _ = polynomial_ring(kk, var_symbols)
+function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Field}
+  R, _ = polynomial_ring(kk, var_names)
   return variety(spec(R), check=false)
 end
 
@@ -445,6 +455,7 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = lifted_numerator(f)
   U = MPolyPowersOfElement(h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -456,6 +467,7 @@ function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {Affine
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   h = numerator(f)
   U = MPolyPowersOfElement(h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -466,6 +478,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(f)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -476,6 +489,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::RingElem) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   parent(f) == OO(X) || return hypersurface_complement(X, OO(X)(f))
   U = MPolyPowersOfElement(lift(f))
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -524,6 +538,7 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = lifted_numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -535,6 +550,7 @@ function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) whe
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   h = numerator.(f)
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), h)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -545,6 +561,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), f)
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)
@@ -555,6 +572,7 @@ end
 function hypersurface_complement(X::AffineSchemeType, f::Vector{<:RingElem}) where {AffineSchemeType<:AbsAffineScheme{<:Any, <:MPolyQuoRing}}
   all(x->(parent(x) == OO(X)), f) || return hypersurface_complement(X, OO(X).(f))
   U = MPolyPowersOfElement(ambient_coordinate_ring(X), lift.(f))
+  #simplify!(U)
   simplify_light!(U)
   W, _ = localization(OO(X), U)
   Y = spec(W)

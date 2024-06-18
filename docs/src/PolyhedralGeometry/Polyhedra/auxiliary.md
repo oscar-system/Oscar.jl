@@ -8,8 +8,8 @@ CurrentModule = Oscar
 
 ```@docs
 facets(P::Polyhedron)
-vertices(P::Polyhedron)
-rays(P::Polyhedron)
+vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
+rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types
 minimal_faces(P::Polyhedron{T}) where T<:scalar_types
 affine_hull(P::Polyhedron{T}) where T<:scalar_types

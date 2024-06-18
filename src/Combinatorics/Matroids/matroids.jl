@@ -1019,3 +1019,28 @@ function automorphism_group(M::Matroid)
   resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end
+
+@doc raw"""
+    is_quotient(Q1::Matroid, Q2::Matroid)
+
+Let `Q1` and `Q2` be matroids on the same groundset with rank $rank(Q1) \leq rank(Q2)$.  
+Check if `Q1` is a matroid quotient of `Q2`.
+
+# Examples
+
+```jldoctest
+julia> Q1 = uniform_matroid(1, 3)
+Matroid of rank 1 on 3 elements
+
+julia> Q2 = uniform_matroid(2, 3)
+Matroid of rank 2 on 3 elements
+
+julia> is_quotient(Q1, Q2)
+true
+```
+"""
+function is_quotient(Q1::Matroid, Q2::Matroid)
+    @req matroid_groundset(Q1) == matroid_groundset(Q2) "matroids must be on same groundset" 
+    @req rank(Q1)<=rank(Q2) "matroids must be of equal or increasing rank"
+    return issubset(flats(Q1), flats(Q2))
+end

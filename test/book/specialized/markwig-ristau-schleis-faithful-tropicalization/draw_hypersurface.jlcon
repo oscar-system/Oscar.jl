@@ -2,7 +2,7 @@ julia> Kt,t = rational_function_field(QQ,"t")
 (Rational function field over QQ, t)
 
 julia> Kxy, (x,y) = Kt["x", "y"]
-(Multivariate polynomial ring in 2 variables over rational function field, AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem, QQPolyRingElem}}[x, y])
+(Multivariate polynomial ring in 2 variables over Kt, AbstractAlgebra.Generic.MPoly{AbstractAlgebra.Generic.RationalFunctionFieldElem{QQFieldElem, QQPolyRingElem}}[x, y])
 
 julia> f=-x^3-4*x^2+y^2+(-8*t^4)*x
 -x^3 - 4*x^2 - 8*t^4*x + y^2

@@ -31,7 +31,6 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
 
   S = elem_type(R)[]
   G = IdealGens(R, elem_type(R)[], ordR)
-  singular_assure(G)
   GO = elem_type(R)[]
 
   g = order(Int, group(RG))
@@ -92,7 +91,7 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
 
     # Compute the monomials which would be input for the Reynolds operator
     # TODO: Properly wrap kbase (or reimplement it; an iterator would be lovely)
-    mons = gens(ideal(R, Singular.kbase(G.S, d)))
+    mons = gens(ideal(R, Singular.kbase(singular_generators(G), d)))
     if isempty(mons) || (length(mons) == 1 && is_zero(mons[1]))
       break
     end
@@ -142,7 +141,8 @@ function fundamental_invariants_via_king(RG::FinGroupInvarRing, beta::Int=0)
   invars_cache.invars = [inv(AbstractAlgebra.leading_coefficient(f)) * f for f in polys_ext]
   invars_cache.via_primary_and_secondary = false
   invars_cache.S = graded_polynomial_ring(
-    coefficient_ring(R), ["y$i" for i in 1:length(S)], [total_degree(f) for f in S]
+    coefficient_ring(R), ["y$i" for i in 1:length(S)], [total_degree(f) for f in S];
+    cached=false,
   )[1]
   return invars_cache
 end
@@ -175,7 +175,8 @@ function fundamental_invariants_via_primary_and_secondary(IR::FinGroupInvarRing)
     invars_cache.S = graded_polynomial_ring(
       K,
       ["y$i" for i in 1:length(invars_cache.invars)],
-      [total_degree(forget_grading(f)) for f in invars_cache.invars],
+      [total_degree(forget_grading(f)) for f in invars_cache.invars];
+      cached=false,
     )[1]
     invars_cache.toS = Dict{elem_type(R),elem_type(invars_cache.S)}(
       invars_cache.invars[i] => gen(invars_cache.S, i) for
@@ -203,7 +204,8 @@ function fundamental_invariants_via_primary_and_secondary(IR::FinGroupInvarRing)
   # Bookkeeping: we need to transform the relations in rels to the new ordering
   # (and potentially less variables)
   T, _ = graded_polynomial_ring(
-    K, ["y$i" for i in 1:length(res)], [total_degree(forget_grading(x)) for x in res]
+    K, ["y$i" for i in 1:length(res)], [total_degree(forget_grading(x)) for x in res];
+    cached=false,
   )
 
   invars_cache.invars = res
