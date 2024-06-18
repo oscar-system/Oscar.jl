@@ -719,13 +719,18 @@ function convert(
   abort = false
   # find some power which works
   while !abort
-   if length(terms(last(powers_of_d))) > 10000
+   if length(terms(last(powers_of_d))) > 100
       id, id_inv = _as_affine_algebra_with_many_variables(L)
-      aa = simplify(id(L(a)))
-      bb = simplify(id(L(b)))
-      success, cc = _divides_hack(aa, bb)
-      !success && error("element can not be converted to localization")
-      return id_inv(simplify(cc))
+      cc = id(L(a)) # the result
+      fac_b = factor(b)
+      for (f, k) in fac_b
+        ff = id(L(f))
+        for i in 1:k
+          success, cc = _divides_hack(cc, ff)
+          @assert success "element can not be converted to localization"
+        end
+      end
+      return id_inv(simplify(cc))*inv(unit(fac_b))
     end
     (abort, coefficient) = _divides_hack(Q(a*last(powers_of_d)), Q(b))
     if !abort
