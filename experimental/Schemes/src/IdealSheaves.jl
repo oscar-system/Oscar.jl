@@ -838,6 +838,14 @@ function pushforward(inc::ClosedEmbedding, I::Ideal)
               )
 end
 
+function radical_membership(x::RingElem, I::MPolyLocalizedIdeal)
+  return radical_membership(lifted_numerator(x), saturated_ideal(I))
+end
+
+function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
+  return radical_membership(lifted_numerator(x), saturated_ideal(I))
+end
+
 ########################################################################
 # primary decomposition
 ########################################################################
@@ -854,82 +862,7 @@ Background:
 More generally, a point ``x`` on a scheme ``X`` associated to a quasi-coherent sheaf ``F`` is embedded, if it is the specialization of another associated point of ``F``.
 Note that maximal associated points of an ideal sheaf on an affine scheme ``Spec(A)`` correspond to the minimal associated primes of the corresponding ideal in ``A``.
 """
-function maximal_associated_points(I::AbsIdealSheaf; 
-    covering=default_covering(scheme(I)),
-    algorithm::Symbol=:GTZ
-  )
-  return _maximal_associated_points(I; covering, algorithm, use_decomposition_info=true)
-  # The following would reroute to a more high-brow method with cleaner code.
-  # It performs equally well in terms of time and memory consumption, but is disabled for the moment. 
-  # return _maximal_associated_points(I; covering, use_decomposition_info=false)
-  !isone(I) || return typeof(I)[]
-  X = scheme(I)
-  OOX = OO(X)
-
-  charts_todo = copy(patches(covering))           ## todo-list of charts
-
-  associated_primes_temp = Vector{IdDict{AbsAffineScheme, Ideal}}()  ## already identified components
-                                                  ## may not yet contain all relevant charts. but
-                                                  ## at least one for each identified component
-
-  result = AbsIdealSheaf[]
-  # run through all charts and try to match the components
-  while length(charts_todo) > 0
-    @vprint :MaximalAssociatedPoints 2 "$(length(charts_todo)) remaining charts to go through\n"
-    U = pop!(charts_todo)
-    !is_one(I(U)) || continue                        ## supp(I) might not meet all components
-    components_here = minimal_primes(I(U); algorithm)
-    
-    ## run through all primes in MinAss(I(U)) and try to match them with previously found ones
-    for comp in components_here
-      matches = match_on_intersections(X,U,comp,associated_primes_temp,false)
-      nmatches = length(matches)
-
-      if nmatches == 0                             ## not found
-        add_dict = IdDict{AbsAffineScheme,Ideal}()         ## create new dict
-        add_dict[U] = comp                         ## and fill it
-        push!(associated_primes_temp, add_dict)
-      elseif nmatches == 1                         ## unique match, update it
-        component_index = matches[1]
-        associated_primes_temp[component_index][U] = comp
-      else                                                ## more than one match, form union
-        target_comp = pop!(matches)
-        merge!(associated_primes_temp[target_comp], associated_primes_temp[x] for x in matches)
-        deleteat!(associated_primes_temp,matches)
-        associated_primes_temp[target_comp][U] = comp
-      end
-    end
-  end
-
-  # fill the gaps arising from a support not meeting a patch
-  # Warning: This relies on the current implementation of `==` for 
-  # `PrimeIdealSheafFromChart`s which cache intermediate results.
-  for U in affine_charts(X)
-    I_one = ideal(OOX(U),one(OOX(U)))
-    for i in 1:length(associated_primes_temp)
-      !haskey(associated_primes_temp[i],U) || continue
-      associated_primes_temp[i][U] = I_one
-    end
-  end
-
-  # make sure to return ideal sheaves, not dicts
-  associated_primes_result = [IdealSheaf(X,associated_primes_temp[i],check=false) for i in 1:length(associated_primes_temp)]
-  for Itemp in associated_primes_result
-    set_attribute!(Itemp, :is_prime=>true)
-  end
-  return associated_primes_result
-end
-
-function radical_membership(x::RingElem, I::MPolyLocalizedIdeal)
-  return radical_membership(lifted_numerator(x), saturated_ideal(I))
-end
-
-function radical_membership(x::RingElem, I::MPolyQuoLocalizedIdeal)
-  return radical_membership(lifted_numerator(x), saturated_ideal(I))
-end
-
-# Proof of concept method
-function _maximal_associated_points(
+function maximal_associated_points(
     I::AbsIdealSheaf; 
     covering=default_covering(scheme(I)), 
     use_decomposition_info::Bool=true,
