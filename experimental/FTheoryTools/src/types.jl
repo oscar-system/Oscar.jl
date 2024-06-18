@@ -220,20 +220,3 @@ struct QSMModel
   genus_of_components_of_simplified_dual_graph::Dict{String, Int64}
   
 end
-
-
-function _parse_rational(str::String)
-  if occursin("/", str)
-      # If the string contains a '/', parse as a rational number
-      parts = split(str, '/')
-      if length(parts) != 2
-          throw(ArgumentError("Invalid rational number format"))
-      end
-      numerator = parse(Int, parts[1])
-      denominator = parse(Int, parts[2])
-      return QQ(numerator//denominator)
-  else
-      # If the string doesn't contain a '/', parse as a whole number
-      return QQ(parse(Int, str))
-  end
-end
