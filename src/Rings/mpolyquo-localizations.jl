@@ -1118,7 +1118,7 @@ end
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
-  if total_degree(denominator(a)) > 10
+  if total_degree(lifted_denominator(a)) > 10
     res = restricted_map(f)
     img_num = res(lifted_numerator(a))
     den = lifted_denominator(a)
