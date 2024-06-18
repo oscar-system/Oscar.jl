@@ -44,6 +44,8 @@ function underlying_gluing(G::LazyGluing)
 end
 
 function is_computed(G::LazyGluing)
+  U, V = patches(G)
+  U === V && return true
   return isdefined(G, :G)
 end
 

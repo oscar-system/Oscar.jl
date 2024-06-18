@@ -37,7 +37,7 @@ gluings(C::Covering) = C.gluings
 getindex(C::Covering, i::Int) = C.patches[i]
 getindex(C::Covering, i::Int, j::Int) = gluings(C)[(patches(C)[i], patches(C)[j])]
 function getindex(C::Covering, X::AbsAffineScheme, Y::AbsAffineScheme) 
-  @vprintln :Gluing 1 "Requesting gluing ($(findfirst(==(X),patches(C))),$(findfirst(==(Y),patches(C))))"
+  @vprintln :Gluing 1 "Requesting gluing ($(indexin(X,C)[1]),$(indexin(Y,C)[1]))"
   return gluings(C)[(X, Y)]
 end
 #edge_dict(C::Covering) = C.edge_dict
