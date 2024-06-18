@@ -1,18 +1,7 @@
 """
-Sebvz todos:
-- deepcopy
-- dict zugriffe verbessern wenn möglich
-- tests (done)
-- rename composition (done)
-- LinearSetPartition -> linear_partition
-- doctest aufräumen (done)
-"""
-
-"""
 Fragen an Nicolas:
 - name LinearSetPartition okay? (davor war er nur LinearPartition)
-- Kommentar zeile 189, 139
-- Kommentar in LinearComb-test.jl Zeile 18 (da failt noch ein Test wegen nervigen Typen bruh), Zeile 20
+- Kommentar zeile 195, 139
 """
 
 """
@@ -45,12 +34,32 @@ function linear_partition(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <
     LinearSetPartition{S, T}(coeffs)
 end
 
+"""
+    get_term(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
 
-# TODO hash
+Get the constructor field `coefficients`, the partition term, in form of a `Dict` from
+`SetPartition` to coefficient.
+"""
+function get_term(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
+    p.coefficients
+end
+
+function hash(p::LinearSetPartition, h::UInt)
+    return hash(p.coefficients)
+end
 
 function ==(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    p.coefficients == q.coefficients
+        get_term(p) == get_term(q)
+end
+
+function deepcopy_internal(p::LinearSetPartition, stackdict::IdDict)
+    if haskey(stackdict, p)
+        return stackdict[p]
+    end
+    q = LinearSetPartition(deepcopy_internal(get_term(p), stackdict))
+    stackdict[p] = q
+    return q
 end
 
 """
@@ -77,15 +86,7 @@ function linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartit
     LinearSetPartition(term)
 end
 
-"""
-    get_term(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
 
-Get the constructor field `coefficients`, the partition term, in form of a `Dict` from
-`SetPartition` to coefficient.
-"""
-function get_term(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
-    p.coefficients
-end
 
 """
     add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -97,7 +98,7 @@ Return the addition between `p` and `q`.
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in x over QQ, d)
-julia> a = LinearSetPartition([(set_partition([1, 2], [1, 1]), S(4)), 
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
 (set_partition([1, 1], [1, 1]), 4*d)])
 julia> add(a, a)
 LinearSetPartition(Dict(set_partition([1, 2], [1, 1]) => S(8), 
@@ -107,13 +108,13 @@ SetPartition([1, 1], [1, 1]) => 8*d))
 function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement } 
 
-    result = copy(p.coefficients)
+    result = deepcopy(p)
 
-    for i in pairs(q.coefficients)
-        result[i[1]] = get(result, i[1], 0) + i[2]
+    for i in pairs(get_term(q))
+        get_term(result)[i[1]] = get(get_term(result), i[1], 0) + i[2]
     end
     
-    LinearSetPartition(result)
+    LinearSetPartition(get_term(result))
 end
 
 function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -132,7 +133,7 @@ the result.
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in x over QQ, d)
-julia> scale(0.5, LinearSetPartition(set_partition([1, 2], [1, 1]) => S(8), 
+julia> scale(0.5, linear_partition(set_partition([1, 2], [1, 1]) => S(8), 
 set_partition([1, 1], [1, 1]) => 8*d))
 LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => S(4), 
 SetPartition([1, 1], [1, 1]) => 4*d))
@@ -142,7 +143,7 @@ function scale(a::RingElement, p::LinearSetPartition{S, T}) where # Doctest geht
         { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
 
-    for (i, n) in pairs(p.coefficients)
+    for (i, n) in pairs(get_term(p))
         result[i] = a * n
     end
     LinearSetPartition(result)
@@ -154,8 +155,8 @@ function *(a::RingElement, p::LinearSetPartition{S, T}) where
 end
 
 """
-    linear_composition(p::LinearSetPartition{P, R}, q::LinearSetPartition{P, R}, d::R) where 
-        { P <: AbstractPartition, R <: RingElement }
+    linear_composition(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T) where 
+        { S <: AbstractPartition, T <: RingElement }
 
 Multiply each coefficient from `p` with each coefficient from `q`
 as well as perform a composition between each SetPartition part 
@@ -165,20 +166,20 @@ in `p` and `q` and return the result.
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in x over QQ, d)
-julia> a = LinearSetPartition([(set_partition([1, 2], [1, 1]), S(4)), 
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
 (SetPartition([1, 1], [1, 1]), 4*d)])
-julia> linear_composition(a, a)
+julia> linear_composition(a, a, d)
 LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => 16*d + 16, 
 SetPartition([1, 1], [1, 1]) => 16*d^2 + 16*d))
 ```
 """
-function linear_composition(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::RingElement) where 
+function linear_composition(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T) where 
         { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
     
-    for i in pairs(p.coefficients)
-        for ii in pairs(q.coefficients)
-            (composition, loop) = composition_loops(i[1], ii[1])
+    for i in pairs(get_term(p))
+        for ii in pairs(get_term(q))
+            (composition, loop) = compose_count_loops(i[1], ii[1])
             new_coefficient = i[2] * ii[2] * (d^loop)
             result[composition] = get(result, composition, 0) + new_coefficient
         end
@@ -201,13 +202,13 @@ Perform a tensor product similar
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in x over QQ, d)
-julia> a = LinearSetPartition([(set_partition([1, 2], [1, 1]), S(4)), 
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
 (set_partition([1, 1], [1, 1]), 4*d)])
 julia> linear_tensor_product(a, a)
-LinearSetPartition(Dict(SetPartition([1, 1, 2, 2], [1, 1, 2, 2]) => 8*d, 
-SetPartition([1, 2, 3, 3], [1, 1, 3, 3]) => 4*d + 4, 
+LinearSetPartition(Dict(SetPartition([1, 1, 2, 2], [1, 1, 2, 2]) => 16*d^2, 
+SetPartition([1, 2, 3, 3], [1, 1, 3, 3]) => 16*d, 
 SetPartition([1, 2, 3, 4], [1, 1, 3, 3]) => S(16), 
-SetPartition([1, 1, 2, 3], [1, 1, 2, 2]) => 4*d + 4)))
+SetPartition([1, 1, 2, 3], [1, 1, 2, 2]) => 16*d)))
 ```
 """
 function linear_tensor_product(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -215,8 +216,8 @@ function linear_tensor_product(p::LinearSetPartition{S, T}, q::LinearSetPartitio
 
     result = Dict{S, T}()
     
-    for i in pairs(p.coefficients)
-        for ii in pairs(q.coefficients)
+    for i in pairs(get_term(p))
+        for ii in pairs(get_term(q))
             composition = tensor_product(i[1], ii[1])
             new_coefficient = i[2] * ii[2]
             result[composition] = get(result, composition, 0) + new_coefficient
@@ -232,8 +233,6 @@ function ⊗(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
     linear_tensor_product(p, q)
 end
 
-# TODO think about involution
-
 """
     subtract(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
@@ -244,7 +243,7 @@ Perform a subtraction between `p` and `q`and return the result.
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in x over QQ, d)
-julia> a = LinearSetPartition([(set_partition([1, 2], [1, 1]), S(4)), 
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
 (SetPartition([1, 1], [1, 1]), 4*d)])
 julia> subtract(a, a)
 LinearSetPartition(Dict(SetPartition([1, 1], [1, 1]) => S(0)))
