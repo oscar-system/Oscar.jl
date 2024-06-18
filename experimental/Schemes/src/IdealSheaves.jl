@@ -1656,6 +1656,9 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
 
   sort!(fat, by=complexity)
   for W in fat
+    # In case there is no gluing there is no extension.
+    !haskey(gluings(default_covering(X)), (W, V2)) && continue
+
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
