@@ -2045,10 +2045,24 @@ function ==(P::PrimeIdealSheafFromChart, Q::PrimeIdealSheafFromChart)
       h_U = complement_equation(VU)
       h_V in P(U) && return false # P and Q will have different support, then.
     end
-    if P(UV) == Q(UV)
-      object_cache(P)[V] = Q(V)
-      object_cache(Q)[U] = P(U)
-      return true
+
+    if UV isa AffineSchemeOpenSubscheme && VU isa AffineSchemeOpenSubscheme
+      # We have to handle this special case differently as there 
+      # is no type for ideals in the associated rings.
+      if all(P(UV[i]) == Q(UV[i]) for i in 1:ngens(UV)) 
+        object_cache(P)[V] = Q(V)
+        object_cache(Q)[U] = P(U)
+        return true
+      end
+    elseif UV isa AbsAffineScheme && VU isa AbsAffineScheme
+      # This should be the default case
+      if P(UV) == Q(UV)
+        object_cache(P)[V] = Q(V)
+        object_cache(Q)[U] = P(U)
+        return true
+      end
+    else
+      error("case of this type is not handled")
     end
   end
 
