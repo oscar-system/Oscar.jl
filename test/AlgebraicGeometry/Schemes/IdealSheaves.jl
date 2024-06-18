@@ -220,3 +220,34 @@ end
   @test isempty(B)
 end
 
+@testset "maximal associated points" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  R = OO(IA3)
+  (x, y, z) = gens(R)
+
+  I = ideal(R, z*(z-1))
+  X, inc_X = sub(IA3, I)
+
+  A = OO(X)
+  J = ideal(A, [x, y])*ideal(A, [y-1, z-1])
+
+  JJ = IdealSheaf(X, J)
+
+  @test dim(JJ) == 1
+  comp = Oscar.maximal_associated_points(JJ)
+  @test length(comp) == 3
+  @test 1 in dim.(comp)
+  @test 0 in dim.(comp)
+
+  Z = ideal(R, [x, y, z])
+
+  bl = blow_up(IA3, Z)
+
+  str_JJ = strict_transform(bl, IdealSheaf(IA3, pushforward(inc_X, J), covered_scheme=codomain(bl)))
+
+  comp2 = Oscar.maximal_associated_points(str_JJ)
+  @assert length(comp2) == 2
+  @test 1 in dim.(comp2)
+  @test 0 in dim.(comp2)
+end
+
