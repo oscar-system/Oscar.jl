@@ -865,7 +865,7 @@ function _find_good_representative_chart(I::PullbackIdealSheaf)
   error("no chart found")
 end
 
-function _find_good_representative_chart(I::AbsIdealSheaf)
+function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   # We assume that I is prime
   # TODO: Make this an hassert?
   @assert is_prime(I)
@@ -874,7 +874,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
   # Some heuristics to choose a reasonably "easy" chart
   cand = AbsAffineScheme[]
   for U in keys(object_cache(I))
-    any(x->x===U, affine_charts(X)) || continue
+    any(x->x===U, patches(covering)) || continue
     !is_one(I(U)) && push!(cand, U)
   end
 
@@ -890,7 +890,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
     return cand[i]
   end
 
-  for U in affine_charts(X)
+  for U in patches(covering)
     !is_one(I(U)) && return U
   end
   error("no chart found")

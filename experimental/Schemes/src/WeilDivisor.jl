@@ -704,38 +704,17 @@ of the subsystem of elements in ``|D|`` that vanish to order at least n at ``P``
 The matrix ``A`` for its inclusion into ``L`` on the given set
 of generators.
 """
-function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n)
+function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=simplified_covering(scheme(P)))
   # find one chart in which P is supported
   if coeff(weil_divisor(L),P) == -n
     return L, identity_matrix(ZZ, length(gens(L)))
   end
   X = variety(L)
   X === space(P) || error("input incompatible")
-  C = default_covering(X)
-  U = first(patches(C))
+  C = covering
 
-  found = false
-  d = inf
-  for V in keys(object_cache(P))
-    if !isone(P(V)) && V in patches(C)
-      # TODO: There might be better choices for charts with
-      # the least complexity. We take among the known charts the one with the smalles degree
-      dd = sum(total_degree(lifted_numerator(i)) for i in gens(P(V)))
-      if dd < d
-        U = V
-        d = dd
-        found = true
-      end
-    end
-  end
-  if !found 
-    for V in patches(C)
-      if !isone(P(V))
-        U = V
-        break
-      end
-    end
-  end
+  U = _find_good_representative_chart(P; covering)
+
   # Now U it is.
   # Assemble the local representatives
   R = ambient_coordinate_ring(U)
