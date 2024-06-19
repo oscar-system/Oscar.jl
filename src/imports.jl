@@ -164,6 +164,7 @@ let exclude_hecke = [
     :change_uniformizer,
     :coefficients,
     :exponent_vectors,
+    :free_module,
     :leading_coefficient,
     :leading_monomial,
     :leading_term,
