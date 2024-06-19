@@ -99,7 +99,7 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring
     V = [preimage(iso, x) for x in gens(G)]
     isoinv = hom(G, H, V)
     W = [isoinv(R.d[i]) for i = 1:ngens(R)]
-    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W)
+    S, _ = graded_polynomial_ring(coefficient_ring(R), symbols(R), W; cached=false)
     map_into_S = hom(R, S, gens(S))
     SubM2,_ = change_base_ring(map_into_S,SubM) # !!! BUG this seems to forget that things are graded BUG (issue #2657) !!!
     (numer, denom), _ = hilbert_series(SubM2; parent=parent, backend=backend)
@@ -163,7 +163,7 @@ julia> den
 function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t)
+    parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
   end
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
@@ -172,7 +172,7 @@ end
 function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
   @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t)
+    parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
   end
   return hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
