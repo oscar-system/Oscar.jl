@@ -2,8 +2,8 @@
 # 1: Construct ambient space from given base
 ################################################################
 
-function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVariety, D1::ToricDivisorClass, D2::ToricDivisorClass)
-  @req ((toric_variety(D1) === base) && (toric_variety(D2) === base)) "The divisors must belong to the base space"
+function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass})
+  @req all(D -> toric_variety(D) === base, fiber_twist_divisor_classes) "The divisors must belong to the (same) base space"
   
   # Extract information about the toric base
   b_rays = matrix(ZZ, rays(base))
@@ -18,10 +18,9 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   f_var_names = [string(k) for k in gens(cox_ring(fiber_amb_space))]
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
-  D1_coeffs = divisor_class(D1).coeff
-  D2_coeffs = divisor_class(D2).coeff
-  m1 = reduce(vcat, [D1_coeffs, D2_coeffs])
-  m2 = transpose(f_rays[1:2,:])
+  fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
+  m1 = reduce(vcat, fiber_twist_divisor_classes_coeffs)
+  m2 = transpose(f_rays)
   u_matrix = solve(b_grades, (-1)*m2*m1; side = :left)
   
   # Form toric ambient space
@@ -41,8 +40,9 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   a_space_grading = zero_matrix(ZZ, torsion_free_rank(a_space_divisor_group), torsion_free_rank(a_space_class_group))
   a_space_grading[1:nrows(b_grades), 1:ncols(b_grades)] = b_grades
   a_space_grading[1+nrows(b_rays):nrows(b_rays) + nrows(f_grades), 1+ncols(b_grades):ncols(b_grades) + ncols(f_grades)] = f_grades
-  a_space_grading[1+nrows(b_rays), 1:ncols(D1_coeffs)] = D1_coeffs
-  a_space_grading[2+nrows(b_rays), 1:ncols(D2_coeffs)] = D2_coeffs
+  for k in 1:length(fiber_twist_divisor_classes_coeffs)
+    a_space_grading[k+nrows(b_rays), 1:ncols(fiber_twist_divisor_classes_coeffs[k])] = fiber_twist_divisor_classes_coeffs[k]
+  end
   
   # Set important attributes of a_space and return it
   a_space_grading = hom(a_space_divisor_group, a_space_class_group, a_space_grading)
@@ -316,13 +316,13 @@ function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vecto
 end
 
 
-function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, D1::Vector{Int64}, D2::Vector{Int64})
+function _construct_generic_sample(base_grading::Matrix{Int64}, base_vars::Vector{String}, d::Int, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::ZZMatrix)
   base_space = family_of_spaces(polynomial_ring(QQ, base_vars, cached = false)[1], base_grading, d)
   ambient_space_vars = vcat(base_vars, coordinate_names(fiber_ambient_space))
   coordinate_ring_ambient_space = polynomial_ring(QQ, ambient_space_vars, cached = false)[1]
   w = Matrix{Int64}(reduce(vcat, [k.coeff for k in cox_ring(fiber_ambient_space).d]))
   z_block = zeros(Int64, ncols(w), ncols(base_grading))
-  D_block = [D1 D2 zeros(Int64, nrows(base_grading), nrows(w)-2)]
+  D_block = hcat([[Int(fiber_twist_divisor_classes[k,l]) for k in 1:nrows(fiber_twist_divisor_classes)] for l in 1:ncols(fiber_twist_divisor_classes)]...)
   ambient_space_grading = [base_grading D_block; z_block w']
   ambient_space = family_of_spaces(coordinate_ring_ambient_space, ambient_space_grading, d+dim(fiber_ambient_space))
   return [coordinate_ring(ambient_space), base_space, ambient_space]

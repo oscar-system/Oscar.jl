@@ -18,6 +18,7 @@
   @test is_standard(young_tableau([[1,4],[2,4]])) == false
   @test is_standard(young_tableau([[1,2],[4]])) == false
   @test is_standard(young_tableau([[1,3,2],[4]])) == false
+  @test is_standard(young_tableau([[-1]])) == false
 
   # is_semistandard
   @test is_semistandard(young_tableau([[1,2,4,7,8],[3,5,6,9],[10]])) == true
@@ -28,6 +29,7 @@
   @test is_semistandard(young_tableau([[1,2,2],[3]])) == true
   @test is_semistandard(young_tableau([[1,2,3],[1,4]])) == false
   @test is_semistandard(young_tableau([[1,2,1],[2,4]])) == false
+  @test is_semistandard(young_tableau([[-1]])) == true
 
   # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
   shapes = [[3,2,1],[3,3,1],[2,2,2]]
@@ -155,11 +157,8 @@
 end
 
 
-using Documenter
-
-# This module only exists to "host" a doctest used by the test suite.
-module AuxDocTest_young_tableau_printing
-@doc raw"""
+Oscar.@_AuxDocTest "Print Young Tableaux", (fix = false),
+raw"""
     some (potentially mathematically meaningless) "tableau"
 
 ```jldoctest young_tableau_printing.test
@@ -260,13 +259,3 @@ julia> young_tableau([[1, 2, 3, 4, 5, 6, 7, 8, 9], [10]])
 julia> Oscar.allow_unicode(old_unicode; temporary=true);
 ```
 """
-function dummy_placeholder end
-
-end
-
-@testset "Print Young Tableaux" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_young_tableau_printing])
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
-end

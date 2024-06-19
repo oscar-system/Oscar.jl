@@ -152,7 +152,7 @@ end
 @doc raw"""
     maximal_groebner_cone(G::Oscar.IdealGens{<:MPolyRingElem}; homogeneityWeight::Union{Nothing,Vector{ZZRingElem}}=nothing)
 
-Returns the maximal Groebner cone of a Groebner basis `G`, i.e., the closure of all weight vectors with respect to whose weighted ordering `G` is a Groebner basis (independent of tie-breaker).
+Return the maximal Groebner cone of a Groebner basis `G`, i.e., the closure of all weight vectors with respect to whose weighted ordering `G` is a Groebner basis (independent of tie-breaker).
 
 If `homogeneityWeight==nothing`, assumes that `G` is not quasi-homogeneous, i.e. not homogeneous with respect to any positive weight vector, and returns a cone inside the positive orthant.
 

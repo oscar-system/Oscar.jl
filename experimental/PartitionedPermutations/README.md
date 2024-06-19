@@ -22,12 +22,12 @@ We implemented the type `PartitionedPermutation` together with the following met
 - functions `length`, `length2` for computing the number $n$ of underlying elements of a partitioned permutation $(V, \pi)$ and the number $|(V, \pi)|$, respectively
 - a function `enumerate_partitioned_permutations` that enumerates all partitioned permutations of a fixed length $n$
 - a function `*` that returns the product of two partitioned permutations
-- a function `factorization_partitioned_permutation` that determines the factorization of a given partitioned permutation
+- a function `factor` that determines the factorization of a given partitioned permutation
 
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* Björn Schäfer (bjoern.schaefer@stud.tu-darmstadt.de)
+* Björn Schäfer (bschaefer@math.uni-sb.de)
 * Sebastian Volz (s8sevolz@stud.uni-saarland.de)
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).

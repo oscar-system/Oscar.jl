@@ -122,6 +122,82 @@ function defining_section_parametrization(m::AbstractFTheoryModel)
 end
 
 
+@doc raw"""
+    classes_of_model_sections(m::AbstractFTheoryModel)
+
+Return the divisor classes of all model sections.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> classes_of_model_sections(t)
+Dict{String, ToricDivisorClass} with 9 entries:
+  "a21" => Divisor class on a normal toric variety
+  "a6"  => Divisor class on a normal toric variety
+  "a3"  => Divisor class on a normal toric variety
+  "w"   => Divisor class on a normal toric variety
+  "a2"  => Divisor class on a normal toric variety
+  "a1"  => Divisor class on a normal toric variety
+  "a43" => Divisor class on a normal toric variety
+  "a4"  => Divisor class on a normal toric variety
+  "a32" => Divisor class on a normal toric variety
+```
+"""
+@attr Dict{String, ToricDivisorClass} function classes_of_model_sections(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :explicit_model_sections) "explicit_model_sections not supported for this F-theory model"
+  @req base_space(m) isa NormalToricVariety "classes_of_model_sections only supported for models over a toric base"
+  my_dict = Dict{String, ToricDivisorClass}()
+  for (key, value) in explicit_model_sections(m)
+    sec = value
+    @req is_homogeneous(sec) "Encountered a non-homogeneous model section"
+    if is_zero(sec)
+      my_dict[key] = trivial_divisor_class(base_space(m))
+    else
+      deg = collect(keys(homogeneous_components(sec)))[1]
+      my_dict[key] = toric_divisor_class(base_space(m), deg)
+    end
+  end
+  return my_dict
+end
+
+
+@doc raw"""
+    defining_classes(m::AbstractFTheoryModel)
+
+Return the defining divisor classes of the model in question.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> w = torusinvariant_prime_divisors(B3)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> defining_classes(t)
+Dict{String, ToricDivisorClass} with 2 entries:
+  "w"    => Divisor class on a normal toric variety
+  "Kbar" => Divisor class on a normal toric variety
+```
+"""
+function defining_classes(m::AbstractFTheoryModel)
+  @req hasfield(typeof(m), :defining_classes) "defining_classes not supported for this F-theory model"
+  return m.defining_classes
+end
+
 
 ##########################################
 ### (2) Meta data attributes
@@ -597,7 +673,7 @@ If no `model_parameters` are known, an error is raised.
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
 Assuming that the first row of the given grading is the grading under Kbar
 
-Global Tate model over a not fully specified base -- SU(2k+1) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
 
 julia> model_parameters(m)
 Dict{String, Int64} with 1 entry:
@@ -717,7 +793,7 @@ the given model, but that are distinct from the given model. If no
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
 Assuming that the first row of the given grading is the grading under Kbar
 
-Global Tate model over a not fully specified base -- SU(2k+1) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
+Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
 
 julia> related_literature_models(m)
 6-element Vector{String}:
@@ -941,4 +1017,59 @@ julia> zero_section(h)
 function zero_section(m::AbstractFTheoryModel)
   @req has_zero_section(m) "No zero section stored for this model"
   return get_attribute(m, :zero_section)
+end
+
+
+@doc raw"""
+    gauge_algebra(m::AbstractFTheoryModel)
+
+Return the gauge algebra of the given model.
+If no gauge algebra is known, an error is raised.
+This information is typically available for all models, however.
+
+```jldoctest
+julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> gauge_algebra(t)
+5-element Vector{LinearLieAlgebra{QQBarFieldElem}}:
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Special linear Lie algebra of degree 2 over QQBar
+ Linear Lie algebra with 1x1 matrices over QQBar
+```
+"""
+function gauge_algebra(m::AbstractFTheoryModel)
+  @req has_gauge_algebra(m) "No gauge algebra stored for this model"
+  return get_attribute(m, :gauge_algebra)
+end
+
+
+@doc raw"""
+    global_gauge_quotients(m::AbstractFTheoryModel)
+Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by gauge_algebra(m).
+These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
+This list combined with gauge_algebra(m) completely determines the gauge group of the model.
+If no gauge quotients are known, an error is raised.
+```jldoctest
+julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> global_gauge_quotients(t)
+5-element Vector{Vector{String}}:
+ ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
+ ["-identity_matrix(C,2)"]
+ ["-identity_matrix(C,2)"]
+ ["-identity_matrix(C,2)", "-identity_matrix(C,2)"]
+ ["-identity_matrix(C,1)"]
+```
+"""
+function global_gauge_quotients(m::AbstractFTheoryModel)
+  @req has_global_gauge_quotients(m) "No gauge quotients stored for this model"
+  return get_attribute(m, :global_gauge_quotients)
 end

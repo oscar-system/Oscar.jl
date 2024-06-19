@@ -6,6 +6,7 @@ export admissible_triples
 export ambient_isometry
 export discriminant_representation
 export enumerate_classes_of_lattices_with_isometry
+export enumerate_prime_power_isometries
 export equivariant_primitive_extensions
 export image_centralizer_in_Oq
 export integer_lattice_with_isometry

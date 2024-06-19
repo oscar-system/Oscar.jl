@@ -16,7 +16,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -34,7 +34,7 @@ Normal toric variety
 julia> b = torusinvariant_prime_divisors(B2)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+julia> w = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Weierstrass model over a concrete base -- U(1) Weierstrass model based on arXiv paper 1208.2695 Eq. (B.19)
@@ -63,7 +63,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -101,7 +101,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -200,7 +200,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -582,6 +582,12 @@ function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Stri
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
+function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+end
+
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
   set_attribute!(m, :resolutions => desired_value)
 end
@@ -624,6 +630,36 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
+  C = algebraic_closure(QQ)
+  function _construct(g::String)
+    if g == "0"
+      return nothing
+    end
+    if g == "u(1)"
+      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
+    elseif g[1:2] == "su"
+      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "so"
+      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "sp"
+      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
+      #For the algebras that are constructed from their Dynkin diagramms we cannot use QQBarField as the current implementation looks for a GAP iso and finds none.
+    elseif g[1] == "e"
+      return lie_algebra(QQ, Symbol('E'), parse(Int, g[3:end-1]))
+    elseif g[1] == "g"
+      return lie_algebra(QQ, Symbol('G'), parse(Int, g[3:end-1]))
+    #elseif g[1] == "f" This is not implemented yet  
+      #return lie_algebra(C,Symbol('G'),parse(Int, g[3:end-1]));
+    end
+  end
+  gauge_algebras = [_construct(g) for g in algebras]
+  set_attribute!(m, :gauge_algebra => gauge_algebras)
+end
+
+function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+ set_attribute!(m, :global_gauge_quotients => quotients)
+end
 
 
 ##########################################
@@ -702,7 +738,7 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
@@ -728,7 +764,7 @@ Multivariate polynomial ring in 12 variables over QQ graded by
 julia> w2 = 2 * torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w2), completeness_check = false, generic = true)
+julia> t3 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w2), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)

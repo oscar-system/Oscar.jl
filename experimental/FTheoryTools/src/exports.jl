@@ -34,14 +34,18 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export classes_of_model_sections
 export coordinate_ring
+export defining_classes
 export defining_section_parametrization
 export discriminant
 export display_all_literature_models
 export explicit_model_sections
 export family_of_spaces
 export fiber_ambient_space
+export gauge_algebra
 export generating_sections
+export global_gauge_quotients
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
 export global_tate_model_over_hirzebruch_surface
@@ -54,7 +58,9 @@ export has_arxiv_model_page
 export has_arxiv_model_section
 export has_arxiv_version
 export has_associated_literature_models
+export has_gauge_algebra
 export has_generating_sections
+export has_global_gauge_quotients
 export has_journal_doi
 export has_journal_link
 export has_journal_model_equation_number
@@ -82,9 +88,6 @@ export has_zero_section
 export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
-export hypersurface_model_over_del_pezzo_surface
-export hypersurface_model_over_hirzebruch_surface
-export hypersurface_model_over_projective_space
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_partially_resolved
@@ -106,6 +109,7 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export put_over_concrete_base
+export QSMModel
 export related_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
@@ -120,7 +124,9 @@ export set_arxiv_model_page
 export set_arxiv_model_section
 export set_arxiv_version
 export set_associated_literature_models
+export set_gauge_algebra
 export set_generating_sections
+export set_global_gauge_quotients
 export set_global_tate_model
 export set_journal_doi
 export set_journal_link

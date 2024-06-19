@@ -30,7 +30,7 @@ julia> schur_index(T[end])
 2
 
 julia> gmodule_minimal_field(S)
-G-module for G acting on vector space of dimension 6 over number field of degree 4 over QQ
+G-module for G acting on vector space of dimension 6 over number field
 
 julia> B, mB = relative_brauer_group(base_ring(S), character_field(S));
 

@@ -62,15 +62,15 @@ end
 ########################################################################
 # Base change
 ########################################################################
-function base_change(phi::Any, f::CoveringMorphism;
+function base_change(phi::Any, f::CoveringMorphism{<:Any, <:Any, MorphismType, BaseMorType};
     domain_map::CoveringMorphism=base_change(phi, domain(f))[2],
     codomain_map::CoveringMorphism=base_change(phi, codomain(f))[2]
-  )
+  ) where {MorphismType, BaseMorType}
   D = domain(f)
   C = codomain(f)
   DD = domain(domain_map)
   CC = domain(codomain_map)
-  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+  mor_dict = IdDict{AbsAffineScheme, MorphismType}()
   for UU in patches(DD)
     U = codomain(domain_map[UU])
     V = codomain(f[U])
@@ -93,7 +93,7 @@ function Base.show(io::IO, f::CoveringMorphism)
   io = pretty(io)
   if get(io, :show_semi_compact, false)
     _show_semi_compact(io, f)
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Covering morphism")
   else
     print(io, "Hom: ", Lowercase(), domain(f), " -> ", Lowercase(), codomain(f))

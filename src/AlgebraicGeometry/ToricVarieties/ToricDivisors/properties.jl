@@ -15,7 +15,15 @@ julia> is_cartier(td)
 true
 ```
 """
-@attr Bool is_cartier(td::ToricDivisor) = pm_object(td).CARTIER
+@attr Bool function is_cartier(td::ToricDivisor)
+  try
+    pm_object(td).CARTIER
+  catch
+    rethrow(ArgumentError("polymake could not determine whether divisor is Cartier"))
+  end
+  @req !isnothing(pm_object(td).CARTIER) "polymake could not determine whether divisor is Cartier"
+  return pm_object(td).CARTIER::Bool
+end
 
 
 @doc raw"""
@@ -122,7 +130,11 @@ julia> is_ample(td)
 false
 ```
 """
-@attr Bool is_ample(td::ToricDivisor) = pm_object(td).AMPLE
+@attr Bool function is_ample(td::ToricDivisor)
+  @req is_complete(toric_variety(td)) "Definition of ample divisor requires underlying toric variety to be complete. ([Def 6.1.9 CLS11])"
+  @req is_cartier(td) "Definition of ample divisor requires divisor to be Cartier. ([Def 6.1.9 CLS11])"
+  return pm_object(td).AMPLE::Bool
+end
 
 
 @doc raw"""

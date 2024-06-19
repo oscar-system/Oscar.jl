@@ -86,6 +86,7 @@ import AbstractAlgebra:
   Ideal,
   Indent,
   is_finite_order,
+  is_terse,
   is_trivial,
   is_unicode_allowed,
   Lowercase,
@@ -113,6 +114,7 @@ import AbstractAlgebra:
   set_attribute!,
   SetMap,
   symbols,
+  terse,
   total_degree,
   with_unicode
 
@@ -158,6 +160,8 @@ import Nemo:
   ZZRing,
   ZZRingElem
 
+# By default we import everything exported by Hecke, and then also re-export
+# it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
     :change_uniformizer,
     :coefficients,

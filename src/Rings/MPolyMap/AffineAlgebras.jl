@@ -99,7 +99,7 @@ Return `true` if `F` is bijective, `false` otherwise.
 function is_bijective(F::AffAlgHom)
   return is_injective(F) && is_surjective(F)
 end
-
+ 
 ################################################################################
 #
 #  Finiteness
@@ -204,7 +204,6 @@ function has_preimage_with_preimage(F::AffAlgHom, f::Union{MPolyRingElem, MPolyQ
 
   T, inc, pr, J = _groebner_data(F)
   o = induce(gens(T)[1:n], default_ordering(S))*induce(gens(T)[n + 1:end], default_ordering(R))
-  gb = groebner_basis(J, ordering = o)
   nf = normal_form(inc(lift(f)), J, ordering = o)
   if isone(cmp(o, gen(T, n), leading_monomial(nf, ordering = o)))
     return true, pr(nf)
@@ -266,7 +265,7 @@ function _groebner_data(F::AffAlgHom)
   J = get_attribute!(F, :groebner_data) do
     K = coefficient_ring(R)
     @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
-    T, _ = polynomial_ring(K, m + n)
+    T, _ = polynomial_ring(K, m + n; cached = false)
 
     S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
 

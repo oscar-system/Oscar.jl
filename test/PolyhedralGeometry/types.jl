@@ -1,15 +1,12 @@
 @testset "types" begin
-    
   @testset "IncidenceMatrix" begin
-        
-    im = IncidenceMatrix([[1,2,3],[4,5,6]])
+    im = IncidenceMatrix([[1, 2, 3], [4, 5, 6]])
     @test nrows(im) == 2
     @test ncols(im) == 6
     @test row(im, 1) isa Set{Int}
     @test row(im, 1) == Set{Int}([1, 2, 3])
     @test column(im, 2) isa Set{Int}
     @test column(im, 2) == Set{Int}([1])
-        
   end
 
   a = [1, 2, 3]
@@ -18,14 +15,11 @@
   (ENF, _) = _prepare_scalar_types()[2]
 
   @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
-
     @test fun(a) isa T{QQFieldElem}
 
     for f in (ZZ, QQ, ENF)
-
       U = elem_type(f)
       @testset "$T{$U}" begin
-
         @test T{U} <: AbstractVector
         @test T{U} <: AbstractVector{U}
 
@@ -63,7 +57,6 @@
           @test *(g(3), A) isa T
 
           @test *(g(3), A) == 3 * a
-
         end
 
         for op in [+, -]
@@ -82,25 +75,20 @@
             @test Ah isa Vector{Int}
             @test Ah == [1, 2, 3]
           end
-          
+
           let h = ENF
             Ah = h.(A)
             @test Ah isa T{elem_type(ENF)}
             @test Ah == [1, 2, 3]
           end
         end
-
       end
     end
-
   end
 
-
-
-
-
-  @testset "$T" for (T, f) in ((AffineHalfspace, affine_halfspace), (AffineHyperplane, affine_hyperplane))
-        
+  @testset "$T" for (T, f) in (
+    (AffineHalfspace, affine_halfspace), (AffineHyperplane, affine_hyperplane)
+  )
     for p in [QQ, ENF]
       U = elem_type(p)
       @test f(p, a, 0) isa T{U}
@@ -117,18 +105,17 @@
       @test normal_vector(A) == a
       @test negbias(A) isa U
       @test negbias(A) == 0
-            
-            
+
       @test normal_vector(B) == b
       @test negbias(B) == 2
     end
-        
+
     @test f(a, 0) isa T{QQFieldElem}
-        
   end
-    
-  @testset "$T" for (T, f) in ((LinearHalfspace, linear_halfspace), (LinearHyperplane, linear_hyperplane))
-        
+
+  @testset "$T" for (T, f) in (
+    (LinearHalfspace, linear_halfspace), (LinearHyperplane, linear_hyperplane)
+  )
     for p in [QQ, ENF]
       U = elem_type(p)
       @test f(p, a) isa T{U}
@@ -145,16 +132,14 @@
       @test normal_vector(A) == a
       @test negbias(A) isa U
       @test negbias(A) == 0
-            
-            
+
       @test normal_vector(B) == b
       @test negbias(B) == 0
     end
-        
+
     @test f(a) isa T{QQFieldElem}
-        
   end
-    
+
   for p in [QQ, ENF]
     U = elem_type(p)
     let A = linear_halfspace(p, a)
@@ -169,10 +154,9 @@
       @test negbias(Ai) == -8
     end
   end
-    
+
   @test halfspace(a) isa LinearHalfspace{QQFieldElem}
   @test hyperplane(a) isa LinearHyperplane{QQFieldElem}
   @test halfspace(a, 0) isa AffineHalfspace{QQFieldElem}
   @test hyperplane(a, 0) isa AffineHyperplane{QQFieldElem}
-
 end

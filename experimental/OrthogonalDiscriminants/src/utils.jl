@@ -150,10 +150,10 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
   pos != nothing && return [induced_cyclic(tbl, [pos])[1]]
 
   # Do we have the table of marks?
-  tom = GAP.Globals.TableOfMarks(Oscar.GAPTable(tbl))
+  tom = GAP.Globals.TableOfMarks(GapObj(tbl))
   if tom != GAP.Globals.fail
     pos = findfirst(x -> x == q, Vector{Int}(GAP.Globals.OrdersTom(tom)))
-    return [Oscar.class_function(tbl, GAP.Globals.PermCharsTom(Oscar.GAPTable(tbl), tom)[pos])]
+    return [Oscar.class_function(tbl, GAP.Globals.PermCharsTom(GapObj(tbl), tom)[pos])]
   end
 
   # Does the table have a nontrivial 'p'-core
@@ -193,7 +193,7 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
             for i in npos
               pi[i] = index
             end
-            pi = GAP.Globals.ClassFunction(Oscar.GAPTable(s), GapObj(pi, true))
+            pi = GAP.Globals.ClassFunction(GapObj(s), GapObj(pi, true))
             return [Oscar.class_function(s, pi)^tbl]
           else
             # Try to recurse.
@@ -216,11 +216,11 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
           if cand != nothing
             extcand = []
             for pi in cand
-              pi = GAP.Globals.CompositionMaps(pi.values,
+              pi = GAP.Globals.CompositionMaps(GapObj(pi),
                        GAP.Globals.InverseMap(GapObj(fus)))
               union!(extcand, [Oscar.class_function(tbl, x) for x in
-                                GAP.Globals.PermChars(Oscar.GAPTable(tbl),
-                                  GAP.GapObj(Dict(:torso => pi), true))])
+                                GAP.Globals.PermChars(GapObj(tbl),
+                                  GapObj(Dict(:torso => pi), true))])
             end
             if candlist == nothing
               candlist = extcand

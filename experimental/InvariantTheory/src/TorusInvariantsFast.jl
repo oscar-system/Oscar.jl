@@ -61,7 +61,7 @@ field(G::TorusGroup) = G.field
 function Base.show(io::IO, G::TorusGroup)
     io = pretty(io)
     println(io, "Torus of rank ", rank(G))
-    print(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(G))
+    print(terse(io), Indent(), "over ", Lowercase(), field(G))
     print(io, Dedent())
 end
 
@@ -152,7 +152,7 @@ group(R::RepresentationTorusGroup) = R.group
 function Base.show(io::IO, R::RepresentationTorusGroup)
     io = pretty(io)
         println(io, "Representation of torus of rank ", rank(group(R)))
-        println(IOContext(io, :supercompact => true), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
+        println(terse(io), Indent(), "over ", Lowercase(), field(group(R)), " and weights ")
         print(io, R.weights)
         print(io, Dedent())
 end

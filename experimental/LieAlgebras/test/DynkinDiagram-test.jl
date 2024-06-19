@@ -1,10 +1,8 @@
-using Documenter
+@testset "LieAlgebras.DynkinDiagram" begin
 
-#
-# This module only exists to "host" a doctest used by the test suite.
-#
-module AuxDocTest_DynkinDiagram
-@doc raw"""
+#! format: off
+Oscar.@_AuxDocTest "show and print Dynkin diagrams", (fix = false),
+raw"""
 canonical labels
 
 ```jldoctest show_dynkin_diagram.test
@@ -381,16 +379,6 @@ julia> show_dynkin_diagram(root_system(transpose(cartan_matrix(:G, 2))))
 2 <<< 1
 ```
 """
-function dummy_placeholder end
+#! format: on
 
-end
-
-@testset "LieAlgebras.DynkinDiagram" begin
-  @testset "show and print Dynkin diagrams" begin
-    # temporarily disable GC logging to avoid glitches in the doctests
-    VERSION >= v"1.8.0" && GC.enable_logging(false)
-    doctest(nothing, [AuxDocTest_DynkinDiagram])
-    #doctest(nothing, [AuxDocTest_DynkinDiagram]; fix=true)
-    VERSION >= v"1.8.0" && GC.enable_logging(true)
-  end
 end

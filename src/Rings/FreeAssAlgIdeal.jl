@@ -51,6 +51,10 @@ function base_ring(I::FreeAssAlgIdeal{T}) where T
   return I.gens.Ox::parent_type(T)
 end
 
+function base_ring_type(::Type{<:FreeAssAlgIdeal{T}}) where T
+  return parent_type(T)
+end
+
 function number_of_generators(a::FreeAssAlgIdeal)
   return length(a.gens)
 end

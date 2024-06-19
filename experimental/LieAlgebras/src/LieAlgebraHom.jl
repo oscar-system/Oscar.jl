@@ -69,9 +69,11 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
+function Base.show(io::IO, mime::MIME"text/plain", h::LieAlgebraHom)
+  @show_name(io, h)
+  @show_special(io, mime, h)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), h)
+  println(io, LowercaseOff(), "Lie algebra morphism")
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))
@@ -79,8 +81,10 @@ function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
 end
 
 function Base.show(io::IO, h::LieAlgebraHom)
+  @show_name(io, h)
+  @show_special(io, h)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra morphism")
   else
     print(io, LowercaseOff(), "Lie algebra morphism: ")

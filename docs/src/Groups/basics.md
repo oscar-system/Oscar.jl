@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Basics
@@ -97,5 +95,6 @@ describe(G::GAPGroup)
 nilpotency_class(G::GAPGroup)
 prime_of_pgroup
 derived_length
+schur_cover(G::GAPGroup)
 schur_multiplier(G::Union{GAPGroup, FinGenAbGroup})
 ```

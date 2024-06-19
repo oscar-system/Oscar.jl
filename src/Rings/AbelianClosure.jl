@@ -34,7 +34,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
+import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
@@ -150,6 +150,9 @@ parent(::QQAbElem{AbsSimpleNumFieldElem}) = _QQAb
 elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbElem{AbsNonSimpleNumFieldElem}
 parent_type(::Type{QQAbElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
 parent(::QQAbElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
+
+base_ring(::QQAbField) = Union{}
+base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
 
 ################################################################################
 #
@@ -447,7 +450,7 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldE
       b = similar(a)
       OK = true
       for x = eachindex(a)
-        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
+        y = Hecke.force_coerce_cyclo(K, a[x], Val(false))
         if y === nothing
           OK = false
         else
@@ -824,7 +827,7 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
   if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
-    _, x = polynomial_ring(parent(a), cached = false)
+    _, x = polynomial_ring(parent(a); cached = false)
     fl || return roots(x^n-a)::Vector{QQAbElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)

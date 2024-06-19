@@ -133,7 +133,9 @@ struct AllMonomials{PolyRingT}
 
   function AllMonomials{PolyRingT}(R::PolyRingT, d::Int) where {PolyRingT}
     @assert d >= 0
-    return new{PolyRingT}(R, d, weak_compositions(d, ngens(R)), true, ngens(R))
+    return new{PolyRingT}(
+      R, d, weak_compositions(d, ngens(R); inplace=true), true, ngens(R)
+    )
   end
 
   function AllMonomials{PolyRingT}(
@@ -149,7 +151,9 @@ struct AllMonomials{PolyRingT}
     end
 
     tmp = zeros(Int, ngens(R))
-    return new{PolyRingT}(R, d, weak_compositions(d, n_vars), false, n_vars, vars, tmp)
+    return new{PolyRingT}(
+      R, d, weak_compositions(d, n_vars; inplace=true), false, n_vars, vars, tmp
+    )
   end
 end
 
@@ -220,7 +224,7 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT,IteratorT,ElemT} <:
   function VectorSpaceIteratorFiniteField(
     K::FieldT, basis_iterator::IteratorT
   ) where {
-    FieldT<:Union{Nemo.fpField,Nemo.FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
+    FieldT<:Union{fpField,FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
   }
     VSI = new{FieldT,IteratorT,eltype(basis_iterator)}()
     VSI.field = K
@@ -232,7 +236,7 @@ end
 
 struct MSetPartitions{T}
   M::MSet{T}
-  num_to_key::Vector{Int}
+  num_to_key::Vector{T}
   key_to_num::Dict{T,Int}
 
   function MSetPartitions(M::MSet{T}) where {T}

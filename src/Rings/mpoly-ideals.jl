@@ -45,8 +45,9 @@ function ideal(I::IdealGens{T}) where {T <: MPolyRingElem}
   return MPolyIdeal(I)
 end
 
-# TODO: Can we make this the default?
-# (Or maybe remove ideal(...) without a ring completely?)
+function ideal(x::MPolyRingElem{T}) where T <: RingElem
+  return ideal([x])
+end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyRingElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
@@ -597,13 +598,16 @@ function radical(
     factor_generators::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   get_attribute!(I, :radical) do
+    is_one(I) && return I
     R = base_ring(I)
     J = ideal(R, zero(R))
     if factor_generators
       # In practice this will often lead to significant speedup due to reduction of degrees.
       # TODO:  is the following faster? radical(ab,c) = intersect(radical(a,c),radical(b,c)) 
       for g in gens(I)
+        is_zero(g) && continue
         fact = factor(g)
+        is_empty(fact) && continue
         h = one(g)
         for (x, k) in fact
           h = h*x
@@ -618,6 +622,7 @@ function radical(
     I_flat_rad = radical(I_flat)
     Irad = iso(I_flat_rad)
     set_attribute!(Irad, :is_radical => true)
+    @hassert :IdealSheaves 2 !is_one(Irad)
     Irad
   end::MPolyIdeal{T}
 end
@@ -954,9 +959,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   if is_graded(Qx)
-    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)]; cached = false)
   else
-    Rx, _ = polynomial_ring(R, symbols(Qx))
+    Rx, _ = polynomial_ring(R, symbols(Qx); cached = false)
   end
   return _map_last_var(Rx, I, 2, a)
 end
@@ -1103,13 +1108,57 @@ end
 function minimal_primes(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, 
+    factor_generators::Bool=true,
+    simplify_ring::Bool=true,
     cache::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
 
   R = base_ring(I)
+  is_one(I) && return typeof(I)[]
+
+  # Try to eliminate variables first. This will often speed up computations significantly.
+  if simplify_ring
+    Q, pr = quo(R, I)
+    W, id, id_inv = simplify(Q)
+    @assert domain(id) === codomain(id_inv) === Q
+    @assert codomain(id) === domain(id_inv) === W
+    res_simp = minimal_primes(modulus(W); algorithm, factor_generators, simplify_ring=false)
+    result = [I + ideal(R, lift.(id_inv.(W.(gens(j))))) for j in res_simp]
+    for p in result
+      set_attribute!(p, :is_prime=>true)
+    end
+    return result
+  end
+
+  # This will in many cases lead to an easy simplification of the problem
+  if factor_generators
+    J = typeof(I)[ideal(R, elem_type(R)[])]
+    for g in gens(I)
+      K = typeof(I)[]
+      is_zero(g) && continue
+      for (b, k) in factor(g)
+        for j in J
+          push!(K, j + ideal(R, b))
+        end
+      end
+      J = K
+    end
+    result = unique!(filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...)))
+    # The list might not consist of minimal primes only. We have to discard the embedded ones
+    final_list = typeof(I)[]
+    for p in result
+      any((q !== p && is_subset(q, p)) for q in result) && continue
+      push!(final_list, p)
+    end
+    for p in final_list
+      set_attribute!(p, :is_prime=>true)
+    end
+    return final_list
+  end
+
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
-  I_flat = ideal(R_flat, iso_inv.(gens(I)))
+  I_flat = ideal(R_flat, elem_type(R_flat)[g for g in iso_inv.(gens(I))])
   dec = minimal_primes(I_flat; algorithm)
   result = Vector{typeof(I)}()
   for Q in dec
@@ -1651,6 +1700,8 @@ function base_ring(I::MPolyIdeal{S}) where {S}
   return I.gens.Ox::parent_type(S)
 end
 
+base_ring_type(::Type{MPolyIdeal{S}}) where {S} = parent_type(S)
+
 #######################################################
 @doc raw"""
     coefficient_ring(I::MPolyIdeal)
@@ -1755,6 +1806,7 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
+  is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
   I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
 end
@@ -2002,13 +2054,14 @@ small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; algorithm::Symbol=:simpl
 # Grassmann Pluecker Ideal
 #
 ################################################################################
+#returns Pluecker ideal in ring with standard grading
 function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
   I = convert(MPolyIdeal{QQMPolyRingElem},
               Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
-  base = base_ring(I)
+  base, _ = grade(base_ring(I))
   o = degrevlex(base)
 
-  return ideal(IdealGens(base, gens(I), o;
+  return ideal(IdealGens(base,base.(gens(I)), o;
                    keep_ordering=true,
                    isReduced=true,
                    isGB=true))
@@ -2017,9 +2070,9 @@ end
 @doc raw"""
     grassmann_pluecker_ideal([ring::MPolyRing,] subspace_dimension::Int, ambient_dimension::Int)
 
-Given a ring, an ambient dimension and a subspace dimension return the ideal in the given ring
-generated by the Plücker relations. If the ring is not specified return the ideal 
-in a multivariate polynomial ring over the rationals.
+Given a (possibly graded) ring, an ambient dimension, and a subspace dimension, return the ideal in the ring
+generated by the Plücker relations. If the input ring is not graded, return the ideal in the ring with the standard grading.
+If the ring is not specified return the ideal in a multivariate polynomial ring over the rationals with the standard grading.
 
 The Grassmann-Plücker ideal is the homogeneous ideal generated by the relations defined by 
 the Plücker Embedding of the Grassmannian. That is given Gr$(k, n)$ the Moduli 
@@ -2051,6 +2104,9 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     @assert is_integral(c)
     return coeff_ring(numerator(c))
   end
+  if !is_graded(ring)
+	 ring, _ = grade(ring)
+  end
   h = hom(base_ring(I), ring, coeffmap, gens(ring))
   converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
   ideal(IdealGens(ring, converted_generators, o;
@@ -2080,7 +2136,7 @@ end
 _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
  iseven(count(z -> z > t, a) + count(z -> z < t, b)) ? 1 : -1
 @doc raw"""
-    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int},n::Int; minimal::Bool=true)
+    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
 Returns the generators of the defining ideal for the complete flag variety 
 $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
@@ -2088,11 +2144,12 @@ $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
 set of this ideal corresponds to the space of $k$-step flags of linear
 subspaces $V_1\subset\dots\subset V_k$ in $\mathbb{F}^n$, where
 $\text{dim}(V_j) = d_{j}$.  You can obtain the generators for the
-$\emph{complete flag variety}$ of $\mathbb{F}^{n}$ by taking `dimensions`
+*complete flag variety* of $\mathbb{F}^{n}$ by taking `dimensions`
 $=(1,\dots,n-1)$ and `n`$=n$.  We remark that evaluating for `F = QQ` yields
 the same set of generators as any field of characteristic $0$.
 
-The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$, with $\Sum^{k}_{j=1}{n\choose d_{j}$ variables.  
+The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$,
+with $\sum^{k}_{j=1}{n\choose d_j}$ variables.
 The parameter `dimensions` needs to be a vector of distinct increasing entries.
 Evaluating this function with the parameter `minimal = true` returns the reduced Gröbner basis for
 the flag Plücker ideal with respect to the degree reverse lexicographical order. For more details, see Theorem 14.6 [MS05](@cite)

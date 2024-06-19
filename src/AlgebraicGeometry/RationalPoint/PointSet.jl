@@ -36,7 +36,7 @@ end
 
 function (S::RationalPointSet{<:Any,<:AbsProjectiveScheme})(c::Vector; check::Bool=true)
   k = coefficient_ring(S)
-  c = S.(c)
+  c = k.(c)
   return ProjectiveRationalPoint(S, c; check=check)
 end
 

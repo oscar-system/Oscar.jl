@@ -22,6 +22,13 @@ function FreeModElem(c::Vector{T}, parent::FreeMod{T}) where T
   return FreeModElem{T}(sparse_coords,parent)
 end
 
+function FreeModElem(i::Int, x::T, parent::FreeMod{T}) where T
+  @assert 1 <= i <= rank(parent)
+  sparse_coords = sparse_row(base_ring(parent), [i], [x])
+  return FreeModElem{T}(sparse_coords, parent)
+end
+
+
 #@doc raw"""
 #    (F::FreeMod{T})(c::SRow{T}) where T
 #
@@ -84,7 +91,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = FreeMod(R,3)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> f = x*gen(F,1)+y*gen(F,3)
 x*e[1] + y*e[3]
@@ -124,7 +131,7 @@ end
 
 function expressify(e::AbstractFreeModElem; context = nothing)
   sum = Expr(:call, :+)
-  for (pos, val) in e.coords
+  for (pos, val) in coordinates(e)
      # assuming generator_symbols(parent(e)) is an array of strings/symbols
      push!(sum.args, Expr(:call, :*, expressify(val, context = context), generator_symbols(parent(e))[pos]))
   end
@@ -147,10 +154,11 @@ end
 Return the standard basis of `F`.
 """
 function basis(F::AbstractFreeMod)
-  bas = elem_type(F)[]
+  bas = Vector{elem_type(F)}(undef, dim(F))
+  e = one(base_ring(F))
   for i=1:dim(F)
-    s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
-    push!(bas, F(s))
+    s = sparse_row(base_ring(F), [i], [e])
+    bas[i] = F(s)
   end
   return bas
 end
@@ -172,7 +180,8 @@ Return the `i`th basis vector of `F`, that is, return the `i`th standard unit ve
 """
 function basis(F::AbstractFreeMod, i::Int)
   @assert 0 < i <= ngens(F)
-  s = Hecke.sparse_row(base_ring(F), [(i, base_ring(F)(1))])
+  e = one(base_ring(F))
+  s = sparse_row(base_ring(F), [i], [e])
   return F(s)
 end
 gen(F::AbstractFreeMod, i::Int) = basis(F,i)
@@ -206,7 +215,7 @@ function (==)(a::AbstractFreeModElem, b::AbstractFreeModElem)
   if parent(a) !== parent(b)
     return false
   end
-  return a.coords == b.coords
+  return coordinates(a) == coordinates(b)
 end
 
 function hash(a::AbstractFreeModElem, h::UInt)
@@ -273,7 +282,7 @@ end
 
 Return the zero element of  `F`.
 """
-zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F), Tuple{Int, elem_type(base_ring(F))}[]))
+zero(F::AbstractFreeMod) = F(sparse_row(base_ring(F)))
 
 @doc raw"""
     parent(a::AbstractFreeModElem)

@@ -50,6 +50,42 @@ Perform( Oscar._iso_gap_oscar_methods,
 
 ############################################################################
 
+# GAP supports classical matrix groups over the ring `R` in the following
+# cases.
+# - `descr` one of "GL", "SL":
+#   finite fields, Z, residue rings of Z,
+# - `descr` "Sp":
+#   finite fields, residue rings Z/p^n Z for primes p,
+# - `descr` one of "GO", "GO+", "GO-", "SO", "SO+", "SO-",
+#   "Omega", "Omega+", "Omega-":
+#   finite fields, residue rings Z/p^n Z for odd primes p,
+# - `descr` one of "GU", "SU":
+#   finite fields.
+BindGlobal( "IsBaseRingSupportedForClassicalMatrixGroup", function( R, descr )
+  if descr in [ "GL", "SL" ] then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           IsIntegers( R ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) );
+  elif descr = "Sp" then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) and
+             IsPrimePowerInt( Size( R ) ) );
+  elif descr in [ "GO", "GO+", "GO-", "SO", "SO+", "SO-",
+                  "Omega", "Omega+", "Omega-" ] then
+    return ( IsField( R ) and IsFinite( R ) ) or
+           ( IsZmodnZObjNonprimeCollection( R ) and
+             HasIsWholeFamily( R ) and IsWholeFamily( R ) and
+             IsOddInt( Size( R ) ) and IsPrimePowerInt( Size( R ) ) );
+  elif descr in [ "GU", "SU" ] then
+    return IsField( R ) and IsFinite( R );
+  fi;
+  return false;
+end );
+
+############################################################################
+
 BindGlobal("_OSCAR_GroupElem", Oscar.AbstractAlgebra.GroupElem);
 
 # the following code ensures that `GAP.Globals.Group` accepts a GAP list
@@ -64,6 +100,32 @@ InstallMethod( IsGeneratorsOfMagmaWithInverses,
        ForAll( gens, x -> Julia.isa(x, _OSCAR_GroupElem) ) );
 
 ############################################################################
+
+InstallMethod( GroupGeneratorsDefinePresentation,
+   [ "IsPcGroup" ],
+   G -> GeneratorsOfGroup(G) = FamilyPcgs(G) );
+
+InstallMethod( GroupGeneratorsDefinePresentation,
+   [ "IsPcpGroup" ],
+   function( G )
+     local n, Ggens, i, w;
+
+     n:= One( G )!.collector![ PC_NUMBER_OF_GENERATORS ];
+     Ggens:= GeneratorsOfGroup( G );
+     if Length( Ggens ) <> n then
+       return false;
+     fi;
+     for i in [ 1 .. n ] do
+       w:= Ggens[i]!.word;
+       if not ( Length(w) = 2 and w[1] = i and w[2] = 1 ) then
+         return false;
+       fi;
+     od;
+     return true;
+   end );
+
+############################################################################
+
 
 Perform( Oscar._GAP_serializations,
          function( entry )

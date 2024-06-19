@@ -2,7 +2,7 @@ julia> S,(b2,b34,b4,b56,b6,b7)=polynomial_ring(QQ,["b2", "b34", "b4", "b56", "b6
 (Multivariate polynomial ring in 6 variables over QQ, QQMPolyRingElem[b2, b34, b4, b56, b6, b7])
 
 julia> R,(x, y, z)=polynomial_ring(S,["x", "y", "z"])
-(Multivariate polynomial ring in 3 variables over multivariate polynomial ring, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}[x, y, z])
+(Multivariate polynomial ring in 3 variables over S, AbstractAlgebra.Generic.MPoly{QQMPolyRingElem}[x, y, z])
 
 julia> g = y^2-x*(x-b2^2)*(x-(b34+b4)^2)*(x-(b4)^2)*(x-(b6+b56)^2)*(x-(b6)^2)*(x+(b7)^2);
 
