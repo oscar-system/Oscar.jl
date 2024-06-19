@@ -90,10 +90,10 @@ function __init__()
   # Up to now, hopefully the GAP packages listed below have not been loaded.
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
-  for url in [
-     "https://github.com/danielrademacher/recog.git",
+  for (url, branch) in [
+     ("https://github.com/danielrademacher/recog.git", ""),
      ]
-    GAP.Packages.install(url, interactive = false, quiet = true)
+    GAP_Packages_install(url, interactive = false, branch = branch)
   end
   for (pkg, version) in [
      ("repsn", "3.1.1"),
