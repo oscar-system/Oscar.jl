@@ -1,5 +1,9 @@
 export hasse_derivatives
 
+### Implementation of Hasse-Schmidt derivatives as seen in 
+###
+###     Fruehbis-Krueger, Ristau, Schober: 'Embedded desingularization for arithmetic surfaces -- toward a parallel implementation'
+
 
 ################################################################################
 ### HASSE-SCHMIDT derivatives for single polynomials
@@ -7,7 +11,7 @@ export hasse_derivatives
 @doc raw"""
     hasse_derivatives(f::MPolyRingElem)
 
-Return the Hasse-Schmidt derivatives of `f`.
+Return Hasse-Schmidt derivatives of `f`.
 
 # Examples
 ```jldoctest
@@ -28,8 +32,6 @@ julia> hasse_derivatives(f)
  5
 ```
 """
-
-#  MPolyRingElem
 function hasse_derivatives(f::MPolyRingElem)
   R = parent(f)
   n = ngens(R)
@@ -65,7 +67,26 @@ end
 ################################################################################
 ### HASSE-SCHMIDT derivatives for a list of polynomials
 
-function hasse_derivatives(v::Vector)
+@doc raw"""
+    hasse_derivatives(v::Vector{MPolyRingElem})
+
+For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of the lifted numerator of `f`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(ZZ, 4, "x");
+
+julia> f1 = R(3*x[2]^2);
+
+julia> f2 = R(6*x[4]^3);
+
+julia> hasse_derivatives([f1, f2])
+2-element Vector{Vector{ZZMPolyRingElem}}:
+ [3*x2^2, 6*x2, 3]
+ [6*x4^3, 18*x4^2, 18*x4, 6]
+```
+"""
+function hasse_derivatives(v::Vector{MPolyRingElem})
   return hasse_derivatives.(v)
 end
 
@@ -76,21 +97,130 @@ end
 ### internal functions for expert use
 
 # MPolyQuoRingElem (internal, expert use only)
+@doc raw"""
+    _hasse_derivatives(f::MPolyQuoRingElem)
+
+Return Hasse-Schmidt derivatives of lifted numerator of `f`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(ZZ, 4, "x");
+
+julia> I = ideal(R, [x[2] - 1]);
+
+julia> RQ, _ = quo(R, I);
+
+julia> f = RQ(2*x[2]^4);
+
+julia> _hasse_derivatives(f)
+5-element Vector{ZZMPolyRingElem}:
+ 2*x2^4
+ 8*x2^3
+ 12*x2^2
+ 8*x2
+ 2
+```
+"""
 function _hasse_derivatives(f::MPolyQuoRingElem)
   return hasse_derivatives(lifted_numerator(f)) 
 end
 
 # Oscar.MPolyLocRingElem (internal, expert use only)
+@doc raw"""
+    _hasse_derivatives(f::Oscar.MPolyLocRingElem)
+
+Return Hasse-Schmidt derivatives of numerator of `f`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(QQ, 4, "x");
+
+julia> m = ideal(R, [x[1] - 3, x[2] - 2, x[3] + 2, x[4]]);
+
+julia> U = complement_of_prime_ideal(m);
+
+julia> Rloc, _ = localization(R, U);
+
+julia> f = Rloc(2*x[4]^5);
+
+julia> _hasse_derivatives(f)
+9-element Vector{QQMPolyRingElem}:
+ 2*x4^5
+ 10*x4^4
+ 20*x4^3
+ 20*x4^2
+ 10*x4
+ 2
+```
+"""
 function _hasse_derivatives(f::Oscar.MPolyLocRingElem)
   return hasse_derivatives(numerator(f)) 
 end
 
 # Oscar.MPolyQuoLocRingElem (internal, expert use only)
+@doc raw"""
+    _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
+
+Return Hasse-Schmidt derivatives of lifted numerator of `f`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(QQ, 4, "x");
+
+julia> I = ideal(R, [x[1]^3 - 1]);
+
+julia> RQ, _ = quo(R, I);
+
+julia> p = ideal(R, [x[2]]);
+
+julia> U = complement_of_prime_ideal(p);
+
+julia> RQL, _ = localization(RQ, U);
+
+julia> f = RQL(4*x[3]^3);
+
+julia> _hasse_derivatives(f)
+4-element Vector{QQMPolyRingElem}:
+ 4*x3^3
+ 12*x3^2
+ 12*x3
+ 4
+```
+"""
 function _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
   return hasse_derivatives(lifted_numerator(f))
 end
 
 # for a list of elements (internal, expert use only)
-function _hasse_derivatives(v::Vector)
+@doc raw"""
+    _hasse_derivatives(v::Vector{Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
+
+For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of the lifted numerator of `f`.
+
+# Examples
+```jldoctest
+julia> R, x = polynomial_ring(QQ, 4, "x");
+
+julia> I = ideal(R, [x[1]^3 - 1]);
+
+julia> RQ, _ = quo(R, I);
+
+julia> p = ideal(R, [x[2]]);
+
+julia> U = complement_of_prime_ideal(p);
+
+julia> RQL, _ = localization(RQ, U);
+
+julia> f1 = RQ(4*x[3]^3);
+
+julia> f2 = RQL(3*x[2]^2);
+
+julia> _hasse_derivatives([f1, f2])
+2-element Vector{Vector{QQMPolyRingElem}}:
+ [4*x3^3, 12*x3^2, 12*x3, 4]
+ [3*x2^2, 6*x2, 3]
+```
+"""
+function _hasse_derivatives(v::Vector{Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
   return _hasse_derivatives.(v)
 end
