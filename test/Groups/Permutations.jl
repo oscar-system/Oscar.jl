@@ -72,6 +72,17 @@ end
   @test_throws ErrorException @permutation_group(1, (1,0))
 end
 
+@testset "parent coercion for permutation groups" begin
+  g = symmetric_group(5)
+  s = stabilizer(g, 5)[1]
+  g4 = symmetric_group(4)
+  @test s != g4   # different degree
+  s4 = g4(s)
+  @test s4 == g4  # same degree
+
+  @test_throws ArgumentError g4(g)
+end
+
 @testset "constructors for projective groups" begin
    @testset for n in 4:5, q in [2, 3, 4]
       G = projective_general_linear_group(n, q)

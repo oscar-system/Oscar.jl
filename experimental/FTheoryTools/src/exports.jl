@@ -43,7 +43,9 @@ export display_all_literature_models
 export explicit_model_sections
 export family_of_spaces
 export fiber_ambient_space
+export gauge_algebra
 export generating_sections
+export global_gauge_quotients
 export global_tate_model
 export global_tate_model_over_del_pezzo_surface
 export global_tate_model_over_hirzebruch_surface
@@ -56,7 +58,9 @@ export has_arxiv_model_page
 export has_arxiv_model_section
 export has_arxiv_version
 export has_associated_literature_models
+export has_gauge_algebra
 export has_generating_sections
+export has_global_gauge_quotients
 export has_journal_doi
 export has_journal_link
 export has_journal_model_equation_number
@@ -120,7 +124,9 @@ export set_arxiv_model_page
 export set_arxiv_model_section
 export set_arxiv_version
 export set_associated_literature_models
+export set_gauge_algebra
 export set_generating_sections
+export set_global_gauge_quotients
 export set_global_tate_model
 export set_journal_doi
 export set_journal_link

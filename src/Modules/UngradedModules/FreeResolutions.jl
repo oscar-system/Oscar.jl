@@ -13,7 +13,7 @@ function free_show(io::IO, C::ComplexOfMorphisms)
   R = Nemo.base_ring(C[first(rng)])
   R_name = AbstractAlgebra.get_name(R)
   if isnothing(R_name)
-    R_name = "$R"
+    R_name = "($R)"
   end
  
   for i=reverse(rng)
@@ -199,12 +199,6 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   #= adjust length for extension length in Oscar =#
   slen = slen > len ? len : slen
 
-  br_name = AbstractAlgebra.get_name(base_ring(kernel_entry))
-  if br_name === nothing
-    br_name = "R"
-  end
-
-
   while j <= slen
     rk = Singular.ngens(res[j])
     if is_graded(dom)
@@ -214,12 +208,10 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
       #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
       map = graded_map(codom, gens(SM); check=false)
       dom = domain(map)
-      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
-      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
       #generator_matrix(SM)
       map = hom(dom, codom, gens(SM); check=false)
     end
@@ -229,7 +221,6 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   # Finalize maps.
   if slen < len
     Z = FreeMod(br, 0)
-    AbstractAlgebra.set_name!(Z, "0")
     pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
     cc.complete = true
   end
@@ -457,11 +448,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     slen =  slen > length ? length : slen
   end
 
-  br_name = AbstractAlgebra.get_name(base_ring(M))
-  if br_name === nothing
-    br_name = "R"
-  end
-
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
   j   = 1
@@ -474,7 +460,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       #ff = graded_map(codom, SM.matrix)
       ff = graded_map(codom, gens(SM); check=false)
       dom = domain(ff)
-      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
       insert!(maps, 1, ff)
       j += 1
     else
@@ -483,7 +468,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
       #generator_matrix(SM)
-      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
       insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
       j += 1
     end
@@ -495,7 +479,6 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     else
       Z = FreeMod(br, 0)
     end
-    AbstractAlgebra.set_name!(Z, "0")
     insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
@@ -531,7 +514,6 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       K, inc = kernel(map(C, i))
       nz = findall(x->!iszero(x), gens(K))
       F = FreeMod(R, length(nz))
-      iszero(length(nz)) && AbstractAlgebra.set_name!(F, "0")
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
     end
@@ -562,7 +544,6 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       else
         Z = FreeMod(base_ring(M), 0)
-        AbstractAlgebra.set_name!(Z, "0")
         h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       end
       insert!(mp, 1, h)

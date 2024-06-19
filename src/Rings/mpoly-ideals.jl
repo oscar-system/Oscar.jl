@@ -45,8 +45,9 @@ function ideal(I::IdealGens{T}) where {T <: MPolyRingElem}
   return MPolyIdeal(I)
 end
 
-# TODO: Can we make this the default?
-# (Or maybe remove ideal(...) without a ring completely?)
+function ideal(x::MPolyRingElem{T}) where T <: RingElem
+  return ideal([x])
+end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyRingElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
@@ -958,9 +959,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   if is_graded(Qx)
-    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)]; cached = false)
   else
-    Rx, _ = polynomial_ring(R, symbols(Qx))
+    Rx, _ = polynomial_ring(R, symbols(Qx); cached = false)
   end
   return _map_last_var(Rx, I, 2, a)
 end
@@ -2038,6 +2039,12 @@ function small_generating_set(
   # If we are unlucky, mstd can even produce a larger generating set
   # than the original one!!!
   return_value = filter(!iszero, (R).(gens(sing_min)))
+
+  # The following is a common phenomenon which we can not fully explain yet. So far nothing but a 
+  # restart really seems to help, unfortunately.
+  if is_zero(length(return_value))
+    !is_zero(I) && error("singular crashed in the background; please restart your session!")
+  end
   if length(return_value) <= ngens(I)
     return return_value
   else
@@ -2135,7 +2142,7 @@ end
 _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
  iseven(count(z -> z > t, a) + count(z -> z < t, b)) ? 1 : -1
 @doc raw"""
-    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int},n::Int; minimal::Bool=true)
+    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
 Returns the generators of the defining ideal for the complete flag variety 
 $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
@@ -2143,11 +2150,12 @@ $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
 set of this ideal corresponds to the space of $k$-step flags of linear
 subspaces $V_1\subset\dots\subset V_k$ in $\mathbb{F}^n$, where
 $\text{dim}(V_j) = d_{j}$.  You can obtain the generators for the
-$\emph{complete flag variety}$ of $\mathbb{F}^{n}$ by taking `dimensions`
+*complete flag variety* of $\mathbb{F}^{n}$ by taking `dimensions`
 $=(1,\dots,n-1)$ and `n`$=n$.  We remark that evaluating for `F = QQ` yields
 the same set of generators as any field of characteristic $0$.
 
-The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$, with $\Sum^{k}_{j=1}{n\choose d_{j}$ variables.  
+The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$,
+with $\sum^{k}_{j=1}{n\choose d_j}$ variables.
 The parameter `dimensions` needs to be a vector of distinct increasing entries.
 Evaluating this function with the parameter `minimal = true` returns the reduced Gröbner basis for
 the flag Plücker ideal with respect to the degree reverse lexicographical order. For more details, see Theorem 14.6 [MS05](@cite)

@@ -165,6 +165,7 @@ Functions that compute subgroups of `G` return groups of type `SubPcGroup`.
 """
 @attributes mutable struct PcGroup <: GAPGroup
   X::GapObj
+  as_sub_pc_group::GAPGroup  # we cannot prescribe `SubPcGroup`
 
   function PcGroup(G::GapObj)
     # The constructor is not allowed to replace the given GAP group.
@@ -193,6 +194,12 @@ function _is_full_pc_group(G::GapObj)
 end
 #T the code for PcpGroups is too expensive!
 
+function as_sub_pc_group(G::PcGroup)
+  if !isdefined(G, :as_sub_pc_group)
+    G.as_sub_pc_group = sub_pc_group(G)
+  end
+  return G.as_sub_pc_group::SubPcGroup
+end
 
 """
     PcGroupElem
@@ -293,7 +300,8 @@ Functions that compute subgroups of `G` return groups of type `SubFPGroup`.
 """
 @attributes mutable struct FPGroup <: GAPGroup
   X::GapObj
-  
+  as_sub_fp_group::GAPGroup  # we cannot prescribe `SubFPGroup`
+
   function FPGroup(G::GapObj)
     # Accept only full f.p. groups.
     @assert GAPWrap.IsFpGroup(G)
@@ -314,6 +322,13 @@ end
 # Return `true` if the generators of `G` fit
 # to those of its underlying presentation.
 _is_full_fp_group(G::GapObj) = GAPWrap.IsFpGroup(G)
+
+function as_sub_fp_group(G::FPGroup)
+  if !isdefined(G, :as_sub_fp_group)
+    G.as_sub_fp_group = sub_fp_group(G)
+  end
+  return G.as_sub_fp_group::SubFPGroup
+end
 
 """
     FPGroupElem

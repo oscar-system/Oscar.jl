@@ -157,7 +157,7 @@ end
 
 Base.length(C::CompositionsFixedNumParts) = BigInt(number_of_compositions(base(C), parts(C)))
 
-function Base.iterate(C::CompositionsFixedNumParts{T}, state::Union{Nothing,Vector{T}}=nothing) where T
+@inline function Base.iterate(C::CompositionsFixedNumParts{T}, state::Union{Nothing,Vector{T}}=nothing) where T
   w = iterate(C.weak_comp_iter, state)
   if w === nothing
     return nothing
@@ -233,26 +233,21 @@ function iterate(C::Compositions, state::Nothing = nothing)
   return next[1], (Ck, next[2])
 end
 
-function iterate(C::Compositions{T}, state::Tuple{CompositionsFixedNumParts{T}, Vector{T}}) where T <: IntegerUnion
+@inline function iterate(C::Compositions{T}, state::Tuple{CompositionsFixedNumParts{T}, Vector{T}}) where T <: IntegerUnion
   n = base(C)
   Ck = state[1]
   Ck_state = state[2]
 
   next = iterate(Ck, Ck_state)
 
-  if next !== nothing
-    return next[1], (Ck, next[2])
-  else
+  if next === nothing
     k = parts(Ck)
-    if k == n
-      return nothing
-    else
-      k += 1
-      Ck = compositions(n, k)
-      next = iterate(Ck)
-      return next[1], (Ck, next[2])
-    end
+    k == n && return nothing
+    k += 1
+    Ck = compositions(n, k)
+    next = iterate(Ck)
   end
+  return next[1], (Ck, next[2])
 end
 
 ################################################################################
@@ -301,7 +296,7 @@ end
 Base.length(C::AscendingCompositions) = BigInt(number_of_partitions(base(C)))
 
 # Algorithm 4.1 in KO14
-function iterate(C::AscendingCompositions{T}, state::Union{Nothing,AscendingCompositionsState{T}}=nothing) where T
+@inline function iterate(C::AscendingCompositions{T}, state::Union{Nothing,AscendingCompositionsState{T}}=nothing) where T
   n = base(C)
 
   if isnothing(state)

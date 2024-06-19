@@ -146,7 +146,7 @@ Return the closed embedding of `P` into its ambient scheme `X`.
 function closed_embedding(P::AbsAffineRationalPoint)
   I = ideal(P)
   X = ambient_scheme(P)
-  return ClosedEmbedding(X, I)
+  return ClosedEmbedding(X, ideal(OO(X),OO(X).(gens(I))))
 end
 
 

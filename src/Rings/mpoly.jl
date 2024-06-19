@@ -453,13 +453,13 @@ end
 
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
-singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
+singular_coeff_ring(::ZZRing) = Singular.Integers()
+singular_coeff_ring(::QQField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::fpField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
+function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
   return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
 end
 
@@ -496,7 +496,7 @@ function singular_coeff_ring(F::fqPolyRepField)
 end
 
 # Nonsense for FqField (aka fq_default from flint)
-function singular_coeff_ring(F::Nemo.FqField)
+function singular_coeff_ring(F::FqField)
   # we are way beyond type stability, so just do what you want
   @assert is_absolute(F)
   ctx = Nemo._fq_default_ctx_type(F)

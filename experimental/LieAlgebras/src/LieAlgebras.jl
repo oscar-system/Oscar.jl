@@ -1,4 +1,4 @@
-function word end
+isdefined(Oscar, :word) || function word end
 
 module LieAlgebras
 
