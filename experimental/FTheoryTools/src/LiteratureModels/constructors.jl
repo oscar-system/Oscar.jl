@@ -1,98 +1,4 @@
 #######################################################
-#  Struct for Quadrillion F-theory Standard Model (QSM) model, i.e. QSM-Model or for short QSMModel.
-
-struct QSMModel
-  # Information about the polytope underlying the F-theory QSM.
-  vertices::Vector{Vector{QQFieldElem}}
-  poly_index::Int
-
-  # We build toric 3-fold from triangulating the lattice points in said polytope.
-  # Oftentimes, there are a lot of such triangulations (up to 10^15 for the case at hand), which we cannot
-  # hope to enumerate in a reasonable time in a computer. The following gives us metadata, to gauge how hard
-  # this triangulation task is. First, the boolean triang_quick tells if we can hope to enumerate all
-  # triangulations in a reasonable time. This in turn is linked to the question if we can find
-  # fine regular triangulations of all facets, the difficulty of which scales primarily with the number of
-  # lattice points. Hence, we also provide the maximal number of lattice points in a facet of the polytope in question
-  # in the integer max_lattice_pts_in_facet. On top of this, an estimate for the total number of triangulations
-  # is provided by the big integer estimated_number_oftriangulations. This estimate is exact if triang_quick = true.
-  triang_quick::Bool
-  max_lattice_pts_in_facet::Int
-  estimated_number_of_triangulations::Int
-
-  # We select one of the many triangulations, construct a 3d toric base B3 and thereby the hypersurface model in question,
-  # that is then the key object of study of this F-theory construction.
-  hs_model::HypersurfaceModel
-
-  # As per usual, topological data of this geometry is important. Key is the triple intersection number of the
-  # anticanonical divisor of the 3-dimensional toric base, as well as its Hodge numbers.
-  Kbar3::Int
-  h11::Int
-  h12::Int
-  h13::Int
-  h22::Int
-
-  # Recall that B3 is 3-dimensional toric variety. Let s in H^0(B3, Kbar_B3), then V(s) is a K3-surface.
-  # Moreover, let xi the coordinates of the Cox ring of B3. Then V(xi) is a divisor in B3.
-  # Furthermore, Ci = V(xi) cap V(s) is a divisor in the K3-surface V(s). We study these curves Ci in large detail.
-  # Here is some information about these curves:
-  genus_ci::Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int}
-  degree_of_Kbar_of_tv_restricted_to_ci::Dict{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}, Int}
-  intersection_number_among_ci_cj::Matrix{Int}
-  index_facet_interior_divisors::Vector{Int}
-  intersection_number_among_nontrivial_ci_cj::Matrix{Int}
-  
-  # The collection of the Ci form a nodal curve. To every nodal curve one can associate a (dual) graph. In this graph,
-  # every irreducible component of the nodal curve becomes a node/vertex of the dual graph, and every
-  # nodal singularity of the nodal curve turns into an edge of the dual graph. Here this is rather simple.
-  # Every Ci above is an irreducible component of the nodal curve in question and the topological intersection numbers
-  # among the Ci tell us how many nodal singularities link the Ci. Hence, we construct the dual graph as follows:
-  # 1. View the Ci as nodes of an undirected graph G.
-  # 2. If the top. intersection number of Ci and Cj is zero, there is no edge between the nodes of G corresponding to Ci and Cj.
-  # 3. If the top. intersection number of Ci and Cj is n (> 0), then there are n edges between the nodes of G corresponding to Ci and Cj.
-  # The following lists the information about this dual graph.
-  # Currently, we cannot label the nodes/vertices of a OSCAR graph. However, it is important to remember what vertex/node in the
-  # dual graph corresponds to which geometric locus V(xi, s). Therefore, we keep the labels that link the node of the OSCAR graph
-  # to the geometric loci V(xi, s) in the vector components_of_dual_graph::Vector{String}. At least for now.
-  # Should it ever be possible (favorable?) to directly attach these labels to the graph, one can remove components_of_dual_graph.
-  dual_graph::Graph{Undirected}
-  components_of_dual_graph::Vector{String}
-  degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph::Dict{String, Int64}
-  genus_of_components_of_dual_graph::Dict{String, Int64}
-
-  # In our research, we conduct certain combinatoric computations based on this graph, the data in
-  # degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph, genus_of_components_of_dual_graph and a bit more meta data
-  # that is not currently included (yet). These computations are hard. It turns out, that one can replace the graph with another
-  # graph, so that the computations are easier (a.k.a. the runtimes are a lot shorter). In a nutshell, this means to remove
-  # a lot of nodes, and adjust the edges accordingly. Let me not go into more details here. A full description can e.g. be found in
-  # https://arxiv.org/abs/2104.08297 and the follow-up papers thereof. Here we collect the information of said simplified graph,
-  # by mirroring the strategy for the above dual graph.
-  simplified_dual_graph::Graph{Undirected}
-  components_of_simplified_dual_graph::Vector{String}
-  degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph::Dict{String, Int64}
-  genus_of_components_of_simplified_dual_graph::Dict{String, Int64}
-  
-end
-
-
-function _parse_rational(str::String)
-  if occursin("/", str)
-      # If the string contains a '/', parse as a rational number
-      parts = split(str, '/')
-      if length(parts) != 2
-          throw(ArgumentError("Invalid rational number format"))
-      end
-      numerator = parse(Int, parts[1])
-      denominator = parse(Int, parts[2])
-      return QQ(numerator//denominator)
-  else
-      # If the string doesn't contain a '/', parse as a whole number
-      return QQ(parse(Int, str))
-  end
-end
-
-
-
-#######################################################
 # 1. User interface for literature models
 #######################################################
 
@@ -218,73 +124,6 @@ Hypersurface model over a concrete base
 julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
-A yet more special instance of literature model are the F-theory QSMs. Those consist of 708 families of geometries,
-each of which is obtained from triangulations of polytopes in the 3-dimensional Kreuzer-Skarke list. In particular,
-for each of these 708 families, a lot of information is known. Still, those geometries are also somewhat involved.
-Let us demonstrate this on the F-theory QSM based on the 4th polytope in the 3-dimensional Kreuzer-Skarke list.
-We can create and study this model as follows (TODO: currently under development):
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4));
-
-julia> model = qsm_model.hs_model
-Hypersurface model over a concrete base
-
-julia> cox_ring(base_space(model))
-Multivariate polynomial ring in 29 variables over QQ graded by
-  x1 -> [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x2 -> [0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x3 -> [0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x4 -> [0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x5 -> [0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x6 -> [0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x7 -> [0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x8 -> [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x9 -> [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x10 -> [0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x11 -> [0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x12 -> [0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x13 -> [0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0]
-  x14 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0]
-  x15 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0]
-  x16 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0]
-  x17 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0]
-  x18 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0]
-  x19 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
-  x20 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
-  x21 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0]
-  x22 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0]
-  x23 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0]
-  x24 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0]
-  x25 -> [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0]
-  x26 -> [1 4 0 1 2 3 1 2 3 4 0 1 1 1 1 1 1 1 1 4 0 2 3 4 4 5]
-  x27 -> [3 2 2 0 -1 -1 1 0 0 1 1 2 0 1 -1 0 -2 -1 -3 -2 -2 1 1 -1 0 0]
-  x28 -> [-2 -4 -1 -1 -1 -2 -1 -2 -3 -4 -1 -2 -2 -2 -1 -1 0 0 1 -2 1 -2 -3 -3 -3 -4]
-  x29 -> [0 -1 0 -1 -1 -1 0 -1 -1 -1 0 0 0 0 0 0 0 0 0 -1 0 -1 -1 -1 -1 -1]
-
-julia> qsm_model.Kbar3
-6
-
-julia> qsm_model.triang_quick
-true
-
-julia> qsm_model.estimated_number_of_triangulations
-212533333333
-
-julia> qsm_model.dual_graph
-Undirected graph with 21 nodes and the following edges:
-(5, 1)(6, 5)(7, 6)(8, 7)(9, 4)(9, 8)(10, 1)(11, 4)(12, 3)(12, 10)(13, 3)(13, 11)(14, 1)(15, 4)(16, 3)(17, 3)(18, 2)(18, 14)(19, 2)(19, 15)(20, 2)(20, 16)(21, 2)(21, 17)
-
-julia> qsm_model.components_of_simplified_dual_graph
-4-element Vector{String}:
- "C0"
- "C1"
- "C2"
- "C3"
-
-julia> qsm_model.simplified_dual_graph
-Undirected graph with 4 nodes and the following edges:
-(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
-```
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
@@ -321,20 +160,48 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   # (2) The QSM need special treatment...
   if model_dict["arxiv_data"]["id"] == "1903.00009"
 
-    # Remember how we identified this model
+    # Read in the QSM-model form the database
     model_dict["literature_identifier"] = "1903.00009"
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
-    # TODO: Antony, please notice that the serialization of hs_model (as well as Tate and Weierstrass_model) involves a
-    # a hack to serialize a dicts. Maybe this can be fixed in this PR? Maybe even must?
 
-    # TODO: Also notice, that the serialization of hs_model will forget all of the meta_data that is set by the command
-    # _set_all_attributes(hs_model, model_dict, model_parameters)
-    # So also this needs addressing?
+    # Create the hypersurface model and set meta data attributes
+    model = qsm_model.hs_model
+    _set_all_attributes(model, model_dict, model_parameters)
 
-    # Finally, return the QSMModel in question...
-    return qsm_model
+    # Set specialized attributes regarding the polytope
+    set_attribute!(model, :vertices, qsm_model.vertices)
+    set_attribute!(model, :poly_index, qsm_model.poly_index)
+    set_attribute!(model, :triang_quick, qsm_model.triang_quick)
+    set_attribute!(model, :max_lattice_pts_in_facet, qsm_model.max_lattice_pts_in_facet)
+    set_attribute!(model, :estimated_number_of_triangulations, qsm_model.estimated_number_of_triangulations)
+
+    # Set specialized attributes regarding the general geometry of the base space
+    set_attribute!(model, :Kbar3, qsm_model.Kbar3)
+    set_attribute!(model, :h11, qsm_model.h11)
+    set_attribute!(model, :h12, qsm_model.h12)
+    set_attribute!(model, :h13, qsm_model.h13)
+    set_attribute!(model, :h22, qsm_model.h22)
+
+    # Set specialized attributes regarding the root bundle counting
+    set_attribute!(model, :genus_ci, qsm_model.genus_ci)
+    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_ci, qsm_model.degree_of_Kbar_of_tv_restricted_to_ci)
+    set_attribute!(model, :intersection_number_among_ci_cj, qsm_model.intersection_number_among_ci_cj)
+    set_attribute!(model, :index_facet_interior_divisors, qsm_model.index_facet_interior_divisors)
+    set_attribute!(model, :intersection_number_among_nontrivial_ci_cj, qsm_model.intersection_number_among_nontrivial_ci_cj)
+    set_attribute!(model, :dual_graph, qsm_model.dual_graph)
+    set_attribute!(model, :components_of_dual_graph, qsm_model.components_of_dual_graph)
+    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph, qsm_model.degree_of_Kbar_of_tv_restricted_to_components_of_dual_graph)
+    set_attribute!(model, :genus_of_components_of_dual_graph, qsm_model.genus_of_components_of_dual_graph)
+    set_attribute!(model, :simplified_dual_graph, qsm_model.simplified_dual_graph)
+    set_attribute!(model, :components_of_simplified_dual_graph, qsm_model.components_of_simplified_dual_graph)
+    set_attribute!(model, :degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph, qsm_model.degree_of_Kbar_of_tv_restricted_to_components_of_simplified_dual_graph)
+    set_attribute!(model, :genus_of_components_of_simplified_dual_graph, qsm_model.genus_of_components_of_simplified_dual_graph)
+
+    # Finally, return the QSM model
+    return model
+
   end
 
 
