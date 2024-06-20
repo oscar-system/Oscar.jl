@@ -50,7 +50,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
   else
     version_string = "Version " * version_string
   end
-  
+
   if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
@@ -86,20 +86,25 @@ function __init__()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
-  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
-  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
-    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
-  end
+
+  # Up to now, hopefully the GAP packages listed below have not been loaded.
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
+  for (url, branch) in [
+     ("https://github.com/danielrademacher/recog.git", ""),
+     ]
+    GAP_Packages_install(url, interactive = false, branch = branch)
+  end
   for (pkg, version) in [
-     ("recog", "1.4.2"),
      ("repsn", "3.1.1"),
      ]
     GAP.Packages.install(pkg, version, interactive = false, quiet = true)
   end
-  # We need some GAP packages.
+
+  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+  end
+  # We need some GAP packages (currently with unspecified versions).
   for pkg in [
      "atlasrep",
      "ctbllib",  # character tables
@@ -123,6 +128,13 @@ function __init__()
      ]
     GAP.Packages.load(pkg)
   end
+  # Load the OscarInterface package in the end.
+  # It needs some other GAP packages,
+  # and is not needed by packages that can be loaded before Oscar.
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
+  # Switch off GAP's info messages,
+  # also those that are triggered from GAP packages.
   __GAP_info_messages_off()
   __init_group_libraries()
 
