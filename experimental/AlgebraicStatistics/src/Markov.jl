@@ -9,16 +9,16 @@ struct MarkovRing
 end
 
 @doc raw"""
-    markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
-    tensor_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+    markov_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
+    tensor_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
 
 The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
 and `Q` is the list of states it takes. The polynomial ring being constructed
 will have one variable for each element in the cartesian product of the `Q`s.
 It is an Oscar multivariate polynomial ring whose variables are named `p[...]`
-and whose `base_ring` is by default `QQ`. These settings can be changed via
-the optional arguments.
+and whose coefficient field `K` is by default `QQ`. These settings can be
+changed via the optional arguments.
 
 The name `tensor_ring` is an alias for the constructor `markov_ring` because
 that is really what a `MarkovRing` is: the coordinate ring of tensors of a
@@ -32,11 +32,11 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
 ```
 """
-function markov_ring(rvs::Pair...; unknown="p", base_ring=QQ)::MarkovRing
+function markov_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
   return MarkovRing(
-    polynomial_ring(base_ring, unknown => Tuple(state_spaces)),
+    polynomial_ring(K, unknown => Tuple(state_spaces)),
     random_variables,
     state_spaces
   )

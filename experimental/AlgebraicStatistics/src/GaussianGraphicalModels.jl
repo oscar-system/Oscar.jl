@@ -17,10 +17,10 @@ struct GaussianRing
 end
 
 @doc raw"""
-    gaussian_ring(n::Int; s_var_name::String="s", base_ring=QQ)
+    gaussian_ring(n::Int; s_var_name::String="s", K::Field=QQ)
 
 A polynomial ring whose variables correspond to the entries of a covariance matrix of `n` Gaussian random variables.
-It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose `base_ring` is by default `QQ`. 
+It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose coefficient field `K` is by default `QQ`. 
 
 ## Examples
 
@@ -30,10 +30,10 @@ Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
-function gaussian_ring(n::Int, s_var_name::String="s", base_ring::Field=QQ)
+function gaussian_ring(n::Int, s_var_name::String="s", K::Field=QQ)
   varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
   varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
-  S, s = polynomial_ring(base_ring, varnames)
+  S, s = polynomial_ring(K, varnames)
   d = Dict([varindices[i] => s[i] for i in 1:length(varindices)])
   cov_matrix = matrix([[i < j ? d[i,j] : d[j,i] for j in 1:n] for i in 1:n])
   GaussianRing(S, d, cov_matrix)

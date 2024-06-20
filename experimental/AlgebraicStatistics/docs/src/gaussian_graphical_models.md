@@ -11,7 +11,7 @@ The OSCAR type for graphical models is of parameterized form `GraphicalModel{G, 
 ## Gaussian Rings
 
 ```@docs
-gaussian_ring(n::Int, s_var_name::String="s", base_ring::Field=QQ)
+gaussian_ring(n::Int, s_var_name::String="s", K::Field=QQ)
 gens(R::GaussianRing)
 covariance_matrix(R::GaussianRing)
 ```
