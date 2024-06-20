@@ -11,7 +11,7 @@ The OSCAR type for graphical models is of parameterized form `GraphicalModel{G, 
 ## Gaussian Rings
 
 ```@docs
-gaussian_ring(n::Int, s_var_name::String="s", K::Field=QQ)
+gaussian_ring(n::Int, s_var_name::VarName="s", K::Field=QQ)
 gens(R::GaussianRing)
 covariance_matrix(R::GaussianRing)
 ```
@@ -22,7 +22,7 @@ covariance_matrix(R::GaussianRing)
 
 A directed Gaussian graphical model is constructed from `G::Graph{Directed}` and `S::GaussianRing`. Optionally, the user may specify a string `l_var_name::String` which corresponds to the edge weights in the parameterization of the model and a string `w_var_name::String` for labeling the error covariance parameters.
 ```@docs
-graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")
+graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::VarName="l", w_var_name::VarName="w")
 ```
 
 
@@ -47,7 +47,7 @@ With almost all graphical models, the vanishing ideal is computed by taking the 
 
 A undirected Gaussian graphical model is constructed from `G::Graph{Undirected}`, `S::GaussianRing`. Optionally, the user may specify a string `k_var_name::String` which corresponds to the entries of the concentration matrix.
 ```@docs
-graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
+graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::VarName="k")
 ```
 
 As with their directed counterpart, it is very easy to create new subtypes of graphical models by overloading the function `concentration_matrix` below. Unlike most other types of graphical models though, the vanishing ideal computation of an undirected graphical model is done by eliminating all concentration variables $k_{ij}$ from the ideal given by the equations $\Sigma K - Id$ after saturating by $\det(K)$. 

@@ -17,7 +17,7 @@ struct GaussianRing
 end
 
 @doc raw"""
-    gaussian_ring(n::Int; s_var_name::String="s", K::Field=QQ)
+    gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ)
 
 A polynomial ring whose variables correspond to the entries of a covariance matrix of `n` Gaussian random variables.
 It is a multivariate polynomial ring whose variables are named `s[i,j]`and whose coefficient field `K` is by default `QQ`. 
@@ -30,7 +30,7 @@ Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
 ```
 """
-function gaussian_ring(n::Int, s_var_name::String="s", K::Field=QQ)
+function gaussian_ring(n::Int, s_var_name::VarName="s", K::Field=QQ)
   varindices = [Tuple([i,j]) for i in 1:n for j in i:n]
   varnames = ["$(s_var_name)[$(i), $(j)]" for (i,j) in varindices]
   S, s = polynomial_ring(K, varnames)
@@ -123,7 +123,7 @@ end
 ###################################################################################
 
 @doc raw"""
-    graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")
+    graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::VarName="l", w_var_name::VarName="w")
 
 A parametric statistical model associated to a directed acyclic graph.
 It contains a directed acylic graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
@@ -137,7 +137,7 @@ Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::String="l", w_var_name::String="w")::GraphicalModel
+function graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::VarName="l", w_var_name::VarName="w")::GraphicalModel
   l_indices = [Tuple([src(e),dst(e)]) for e in edges(G)]
   w_indices = vertices(G)
   R, l, w = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices])
@@ -251,7 +251,7 @@ end
 ###################################################################################
 
 @doc raw"""
-    graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
+    graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::VarName="k")
 
 A parametric statistical model associated to an undirected graph.
 It contains an undirected graph `G`, a GaussianRing `S` where the vanishing ideal of the model naturally lives, 
@@ -265,7 +265,7 @@ Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::String="k")
+function graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::VarName="k")
   V = vertices(G)
   varindices = [Tuple([V[i],V[j]]) for i in 1:length(V) for j in i:length(V) if i == j || has_edge(G, V[i], V[j])]
   R, k = polynomial_ring(QQ, ["$(k_var_name)[$(i), $(j)]" for (i,j) in varindices])

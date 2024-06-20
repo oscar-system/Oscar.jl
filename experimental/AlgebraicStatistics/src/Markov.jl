@@ -9,8 +9,8 @@ struct MarkovRing
 end
 
 @doc raw"""
-    markov_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
-    tensor_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
+    markov_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+    tensor_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
 
 The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
@@ -32,7 +32,7 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A → {1, 2}, B → {1, 2}, X → {1, 2}, Y → {1, 2} in 16 variables over Rational field
 ```
 """
-function markov_ring(rvs::Pair...; unknown="p", K::Field=QQ)::MarkovRing
+function markov_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
   return MarkovRing(

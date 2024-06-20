@@ -14,8 +14,8 @@ with the ambient polynomial ring in these ``p`` variables, special forms
 in them like marginals, and conditional independence ideals.
 
 ```@docs
-markov_ring(rvs::Pair...; unknown="p", K::Field=QQ)
-tensor_ring(rvs::Pair...; unknown="p", K::Field=QQ)
+markov_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)
+tensor_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)
 ring(R::MarkovRing)
 random_variables(R::MarkovRing)
 ci_statements(R::MarkovRing)
