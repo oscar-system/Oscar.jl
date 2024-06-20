@@ -6,7 +6,7 @@
 
 export GaussianRing
 export gaussian_ring, ring, gens, covariance_matrix
-export graphical_model, parameterization
+export graphical_model, parametrization
 export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 
@@ -207,10 +207,10 @@ function error_covariance_matrix(M::GraphicalModel{Graph{Directed}, GaussianRing
 end
 
 @doc raw"""
-    parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
+    parametrization(M::GraphicalModel{Graph{Directed}, GaussianRing})
 
-Creates the polynomial map which parameterizes the vanishing ideal of the directed Gaussian graphical model `M`.
-The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$ given by
+Creates the polynomial map which parametrizes the vanishing ideal of the directed Gaussian graphical model `M`.
+The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
 $(Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{T} \mapsto \Sigma$ where $\Lambda =$ `directed_edges_matrix(M)` and  $ \Omega = $  `error_covariance_matrix(M)`.
 
 ## Examples
@@ -220,7 +220,7 @@ julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 
-julia> parameterization(M)
+julia> parametrization(M)
 Ring homomorphism
   from multivariate polynomial ring in 6 variables over QQ
   to multivariate polynomial ring in 5 variables over QQ
@@ -233,7 +233,7 @@ defined by
   s[3, 3] -> l[1, 2]^2*l[2, 3]^2*w[1] + l[2, 3]^2*w[2] + w[3]
 ```
 """
-function parameterization(M::GraphicalModel{Graph{Directed}, GaussianRing})
+function parametrization(M::GraphicalModel{Graph{Directed}, GaussianRing})
   S = ring(M)
   R = param_ring(M)
   G = graph(M)
@@ -323,10 +323,10 @@ function concentration_matrix(M::GraphicalModel{Graph{Undirected}, GaussianRing}
 end
 
 @doc raw"""
-    parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+    parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
 
-Creates the polynomial map which parameterizes the vanishing ideal of the undirected Gaussian graphical model `M`.
-The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parameterization $\phi_G$ given by
+Creates the polynomial map which parametrizes the vanishing ideal of the undirected Gaussian graphical model `M`.
+The vanishing ideal of the statistical model is the kernel of this map. This ring map is the pull back of the parametrization $\phi_G$ given by
 $ K \mapsto K^{-1}$ where $ K = $  `concentration_matrix(M)` and the entries of $ K^{-1} $ are given by the standard cofactor formula.
 
 ## Examples
@@ -336,7 +336,7 @@ julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
 
-julia> parameterization(M)
+julia> parametrization(M)
 Ring homomorphism
   from multivariate polynomial ring in 6 variables over QQ
   to fraction field of multivariate polynomial ring
@@ -349,7 +349,7 @@ defined by
   s[3, 3] -> (k[1, 1]*k[2, 2] - k[1, 2]^2)//(k[1, 1]*k[2, 2]*k[3, 3] - k[1, 1]*k[2, 3]^2 - k[1, 2]^2*k[3, 3])
 ```
 """
-function parameterization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
+function parametrization(M::GraphicalModel{Graph{Undirected}, GaussianRing})
   G = graph(M)
   S = ring(M)
   R = param_ring(M)
