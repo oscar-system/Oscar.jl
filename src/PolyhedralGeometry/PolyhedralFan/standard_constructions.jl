@@ -349,6 +349,5 @@ function arrangement_polynomial(A::MatElem{<: FieldElem}, ring::MPolyRing{<: Fie
     @req dim(ring) == nrows(A) "dimension of ring must be number of rows of input matrix"
     @req base_ring(A) == coefficient_ring(ring) "entries of input matrix must be coefficients from ring"
     x = gens(ring)
-    n = ncols(A)
-    return prod([sum([A[i,j]*x[i] for i in 1:length(x)]) for j in 1:n])
+    return prod(transpose(A)*x)
 end
