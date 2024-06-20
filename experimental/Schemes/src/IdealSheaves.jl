@@ -1583,7 +1583,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
 
   function complexity(X1::AbsAffineScheme)
     init = maximum(total_degree.(lifted_numerator.(gens(F(X1)))); init=0)
-    glue = default_covering(X)[V, X1]
+    glue = default_covering(X)[X1, V2]
     if glue isa SimpleGluing || (glue isa LazyGluing && is_computed(glue))
       return init
     end
@@ -1598,7 +1598,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
-      complement_equation(codomain(g)) in F(W) && continue # We know the ideal is prime. No need to saturate!
+      complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
       I2 = F(codomain(g))
       I = pullback(g)(I2)
       I = ideal(OO(V2), lifted_numerator.(gens(I)))

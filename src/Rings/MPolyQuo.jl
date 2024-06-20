@@ -654,7 +654,7 @@ function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MP
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
 end
 
-ideal(R::MPolyQuoRing, V::Vector) = ideal(R, R.(V))
+ideal(R::MPolyQuoRing, V::Vector) = ideal(R, elem_type(R)[R(x) for x in V])
 
 
 function ideal(A::MPolyQuoRing{T}, x::T) where T <: MPolyRingElem
