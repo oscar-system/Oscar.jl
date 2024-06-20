@@ -176,4 +176,15 @@ end
   AA = identity_matrix(GF(3), 3)
   @test_throws ArgumentError arrangement_polynomial(R, A)
   @test_throws ArgumentError arrangement_polynomial(R, AA)
+  A = matrix(QQ, [1 1 0])
+  Avv = [A[i,:] for i in 1:1]
+  AM = Matrix(A)
+  apAvv = arrangement_polynomial(Avv)
+  RAvv = parent(apAvv)
+  apAM = arrangement_polynomial(RAvv, AM)
+  @test nvars(RAvv) == 3
+  @test apAvv = apAM
+  @test nvars(parent(arrangement_polynomial(AM))) == 3
+  @test nvars(parent(arrangement_polynomial(RAvv, Avv))) == 3
+  @test arrangement_polynomial(RAvv, Avv) == apAvv
 end
