@@ -183,7 +183,7 @@ end
   RAvv = parent(apAvv)
   apAM = arrangement_polynomial(RAvv, AM)
   @test nvars(RAvv) == 3
-  @test apAvv = apAM
+  @test apAvv == apAM
   @test nvars(parent(arrangement_polynomial(AM))) == 3
   @test nvars(parent(arrangement_polynomial(RAvv, Avv))) == 3
   @test arrangement_polynomial(RAvv, Avv) == apAvv
