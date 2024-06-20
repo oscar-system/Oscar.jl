@@ -22,12 +22,23 @@ end
 #
 ###################################################################################
 
-function cofactor(A)
-  matrix(base_ring(A), [[(-1)^(i+j)*det(A[filter(l -> l != i, 1:n_rows(A)), filter(l -> l != j, 1:n_columns(A))]) for j in 1:n_columns(A)] for i in 1:n_rows(A)])
-end
-
 function adjugate(A::Generic.MatSpaceElem)
-  transpose(cofactor(A))
+  if nrows(A) != ncols(A)
+    error("adjugate can only be computed for a square matrix")
+  end
+  adj, _ = pseudo_inv(A)
+  # pseudo_inv guarantees only that A*adj == d*Id but that allows adj and d
+  # to both differ from the adjugate and the determinant, respectively, by
+  # a sign. We compute one cofactor by hand to make sure we get sign right.
+  n = nrows(A)
+  c = det(A[1:n-1, 1:n-1])
+  if c == adj[n,n]
+    return adj
+  elseif c == -adj[n,n]
+    return -adj
+  else # unlikely, but fall back to computing many determinants
+    return matrix(base_ring(A), [[(-1)^(i+j)*det(A[setdiff(1:n, j), setdiff(1:n, i)]) for j in 1:n] for i in 1:n])
+  end
 end
 
 ###################################################################################
