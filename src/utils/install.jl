@@ -19,7 +19,7 @@ function GAP_Packages_install(url::String; interactive::Bool = false, branch::St
              x -> GAP.Globals.StartsWith(x.InstallationPath, GAP.Globals.PKGMAN_PackageDir()))
   dirs = GAP.Globals.List(info, i -> i.InstallationPath)
   repo = GAP.Globals.Filename(GAP.Globals.List(dirs, GAP.Globals.Directory), GapObj(".git"));
-  if repo !== GAP.Globals.fail && interactive
+  if repo !== GAP.Globals.fail
     # the package is already installed, update it
     return GAP.Globals.UpdatePackage(name, interactive)
   end
