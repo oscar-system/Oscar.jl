@@ -11,9 +11,9 @@ export directed_edges_matrix, error_covariance_matrix
 export concentration_matrix
 
 struct GaussianRing
-  ring::Ring
-  gens::Dict
-  covariance_matrix
+  ring::MPolyRing
+  gens::Dict{Tuple{Int64, Int64}, <:MPolyRingElem}
+  covariance_matrix::MatElem
 end
 
 @doc raw"""

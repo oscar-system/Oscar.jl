@@ -1,16 +1,17 @@
 # -*- Markov rings for discrete random variables -*-
 
-export MarkovRing, markov_ring, tensor_ring, ring, random_variables, unknowns, state_space, marginal, ci_ideal
+export MarkovRing, markov_ring, tensor_ring, ring, random_variables, unknowns, gens, state_space, marginal, ci_ideal
 
 struct MarkovRing
-  ring
-  random_variables
-  state_spaces
+  ring::MPolyRing
+  gens::Dict{<:Tuple, <:MPolyRingElem}
+  random_variables::Vector{VarName}
+  state_spaces::Vector{AbstractArray}
 end
 
 @doc raw"""
-    markov_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
-    tensor_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+    markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+    tensor_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
 
 The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
@@ -32,11 +33,16 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 ```
 """
-function markov_ring(rvs::Pair...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+function markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
+  varindices = collect(Iterators.product(state_spaces...))
+  varnames = [["$(unknown)[$(join(i, ", "))]" for i in varindices]...]
+  R, p = polynomial_ring(K, varnames)
+  d = Dict([varindices[i] => p[i] for i in 1:length(varindices)])
   return MarkovRing(
-    polynomial_ring(K, unknown => Tuple(state_spaces)),
+    R,
+    d,
     random_variables,
     state_spaces
   )
@@ -69,7 +75,7 @@ Multivariate polynomial ring in 16 variables p[1, 1, 1, 1], p[2, 1, 1, 1], p[1, 
 ```
 """
 function ring(R::MarkovRing)
-  return R.ring[1]
+  return R.ring
 end
 
 @doc raw"""
@@ -84,7 +90,7 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> random_variables(R)
-4-element Vector{String}:
+4-element Vector{Union{Char, AbstractString, Symbol}}:
  "A"
  "B"
  "X"
@@ -106,26 +112,26 @@ MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 
 
 julia> ci_statements(R)
 24-element Vector{CIStmt}:
- [A ⫫ Y | {}]
- [A ⫫ Y | B]
- [A ⫫ Y | X]
- [A ⫫ Y | {B, X}]
- [B ⫫ Y | {}]
- [B ⫫ Y | A]
- [B ⫫ Y | X]
- [B ⫫ Y | {A, X}]
- [X ⫫ Y | {}]
- [X ⫫ Y | A]
+ [A _||_ Y | {}]
+ [A _||_ Y | B]
+ [A _||_ Y | X]
+ [A _||_ Y | {B, X}]
+ [B _||_ Y | {}]
+ [B _||_ Y | A]
+ [B _||_ Y | X]
+ [B _||_ Y | {A, X}]
+ [X _||_ Y | {}]
+ [X _||_ Y | A]
  ⋮
- [A ⫫ X | {B, Y}]
- [B ⫫ X | {}]
- [B ⫫ X | A]
- [B ⫫ X | Y]
- [B ⫫ X | {A, Y}]
- [A ⫫ B | {}]
- [A ⫫ B | X]
- [A ⫫ B | Y]
- [A ⫫ B | {X, Y}]
+ [A _||_ X | {B, Y}]
+ [B _||_ X | {}]
+ [B _||_ X | A]
+ [B _||_ X | Y]
+ [B _||_ X | {A, Y}]
+ [A _||_ B | {}]
+ [A _||_ B | X]
+ [A _||_ B | Y]
+ [A _||_ B | {X, Y}]
 ```
 """
 ci_statements(R::MarkovRing) = ci_statements(random_variables(R))
@@ -133,7 +139,7 @@ ci_statements(R::MarkovRing) = ci_statements(random_variables(R))
 @doc raw"""
     unknowns(R::MarkovRing)
 
-Return the tensor of variables in the polynomial ring.
+Return the generators of the polynomial ring.
 
 ## Examples
 
@@ -142,26 +148,36 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
 julia> unknowns(R)
-2×2×2×2 Array{QQMPolyRingElem, 4}:
-[:, :, 1, 1] =
- p[1, 1, 1, 1]  p[1, 2, 1, 1]
- p[2, 1, 1, 1]  p[2, 2, 1, 1]
-
-[:, :, 2, 1] =
- p[1, 1, 2, 1]  p[1, 2, 2, 1]
- p[2, 1, 2, 1]  p[2, 2, 2, 1]
-
-[:, :, 1, 2] =
- p[1, 1, 1, 2]  p[1, 2, 1, 2]
- p[2, 1, 1, 2]  p[2, 2, 1, 2]
-
-[:, :, 2, 2] =
- p[1, 1, 2, 2]  p[1, 2, 2, 2]
- p[2, 1, 2, 2]  p[2, 2, 2, 2]
+Dict{NTuple{4, Int64}, QQMPolyRingElem} with 16 entries:
+  (2, 2, 2, 2) => p[2, 2, 2, 2]
+  (2, 2, 2, 1) => p[2, 2, 2, 1]
+  (1, 2, 1, 2) => p[1, 2, 1, 2]
+  (1, 2, 1, 1) => p[1, 2, 1, 1]
+  (2, 2, 1, 2) => p[2, 2, 1, 2]
+  (2, 2, 1, 1) => p[2, 2, 1, 1]
+  (1, 1, 2, 2) => p[1, 1, 2, 2]
+  (1, 1, 2, 1) => p[1, 1, 2, 1]
+  (2, 1, 2, 2) => p[2, 1, 2, 2]
+  (2, 1, 2, 1) => p[2, 1, 2, 1]
+  (1, 1, 1, 2) => p[1, 1, 1, 2]
+  (1, 1, 1, 1) => p[1, 1, 1, 1]
+  (1, 2, 2, 2) => p[1, 2, 2, 2]
+  (1, 2, 2, 1) => p[1, 2, 2, 1]
+  (2, 1, 1, 2) => p[2, 1, 1, 2]
+  (2, 1, 1, 1) => p[2, 1, 1, 1]
 ```
 """
 function unknowns(R::MarkovRing)
-  return R.ring[2]
+  return R.gens
+end
+
+@doc raw"""
+    gens(R::MarkovRing)
+
+Alias for `unknowns`. Return generators of the polynomial ring.
+"""
+function gens(R::MarkovRing)
+  return R.gens
 end
 
 @doc raw"""
@@ -258,11 +274,10 @@ function marginal(R::MarkovRing, K, x)
   N = random_variables(R)
   M = setdiff(N, K)
   summands = Vector()
-  ix = find_state(R, K, x)
-  for iy in state_space_indices(R, M)
+  for y in state_space(R, M)
     idx = apply_permutation(
       find_random_variables(R, [K..., M...]),
-      [ix..., iy...]
+      [x..., y...]
     )
     push!(summands, p[idx...])
   end
