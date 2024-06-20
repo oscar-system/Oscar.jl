@@ -443,7 +443,7 @@ Return the tropical matrix used to construct `TropL`.  Raises an error, if it is
 """
 function tropical_matrix(TropL::TropicalLinearSpace{minOrMax}) where minOrMax
     @req has_attribute(TropL,:tropical_matrix) "no tropical matrix cached"
-    return get_attribute(TropL, :tropical_matrix)::Generic.MatSpaceElem{TropicalSemiringElem{minOrMax}}
+    return get_attribute(TropL, :tropical_matrix)::dense_matrix_type(TropicalSemiringElem{minOrMax})
 end
 
 

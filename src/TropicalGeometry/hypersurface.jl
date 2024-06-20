@@ -250,7 +250,7 @@ Return the tropical polynomial used to construct `TropH`.  Raises an error if it
 """
 function tropical_polynomial(TropH::TropicalHypersurface{minOrMax}) where minOrMax
     @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
-    return get_attribute(TropH,:tropical_polynomial)::Generic.MPoly{TropicalSemiringElem{minOrMax}}
+    return get_attribute(TropH,:tropical_polynomial)::mpoly_type(TropicalSemiringElem{minOrMax})
 end
 
 
