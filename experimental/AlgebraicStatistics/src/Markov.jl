@@ -16,9 +16,9 @@ The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
 and `Q` is the list of states it takes. The polynomial ring being constructed
 will have one variable for each element in the cartesian product of the `Q`s.
-It is an Oscar multivariate polynomial ring whose variables are named `p[...]`
-and whose coefficient field `K` is by default `QQ`. These settings can be
-changed via the optional arguments.
+It is a multivariate polynomial ring whose variables are named `p[...]` and
+whose coefficient field `K` is by default `QQ`. These settings can be changed
+via the optional arguments.
 
 The name `tensor_ring` is an alias for the constructor `markov_ring` because
 that is really what a `MarkovRing` is: the coordinate ring of tensors of a
@@ -55,7 +55,7 @@ end
 @doc raw"""
     ring(R::MarkovRing)
 
-Return the Oscar multivariate polynomial ring inside the MarkovRing.
+Return the multivariate polynomial ring inside `R`.
 
 ## Examples
 

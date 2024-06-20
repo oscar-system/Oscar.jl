@@ -50,7 +50,7 @@ end
 @doc raw"""
     ring(R::GaussianRing)
 
-Return the Oscar multivariate polynomial ring inside the `GaussianRing`.
+Return the multivariate polynomial ring inside `R`.
 
 ## Examples
 
