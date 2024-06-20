@@ -434,7 +434,7 @@ end
 ##############################
 
 @doc raw"""
-   affine_phylogenetic_model!(pm::PhylogeneticModel)
+    affine_phylogenetic_model!(pm::PhylogeneticModel)
 
 Moves a `PhylogeneticModel` or `GroupBasedPhylogeneticModel` from projective into affine space.
 
