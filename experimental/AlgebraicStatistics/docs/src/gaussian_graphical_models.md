@@ -10,7 +10,7 @@ The OSCAR type for graphical models is of parametrized form `GraphicalModel{G, T
 ## Gaussian Rings
 
 ```@docs
-gaussian_ring(n::Int, s_var_name::VarName="s", K::Field=QQ)
+gaussian_ring(n::Int; s_var_name::VarName="s", K::Field=QQ, cached=false)
 gens(R::GaussianRing)
 covariance_matrix(R::GaussianRing)
 ```
@@ -19,7 +19,7 @@ covariance_matrix(R::GaussianRing)
 
 A directed Gaussian graphical model is constructed from `G::Graph{Directed}` and `S::GaussianRing`. Optionally, the user may specify a string `l_var_name::String` which corresponds to the edge weights in the parametrization of the model and a string `w_var_name::String` for labeling the error covariance parameters.
 ```@docs
-graphical_model(G::Graph{Directed}, S::GaussianRing, l_var_name::VarName="l", w_var_name::VarName="w")
+graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)
 ```
 
 The parametrization for a directed Gaussian graphical model on a DAG $G$ is built from the weighted adjacency matrix $\Lambda$ and the covariance matrix $\Omega$ of the error terms. The model is then the set of all covariance matrices $\Sigma = (Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{-1}$. $\Lambda$ and $\Omega$ can be built with the following functions:
@@ -43,7 +43,7 @@ With almost all graphical models, the vanishing ideal is computed by taking the 
 
 A undirected Gaussian graphical model is constructed from `G::Graph{Undirected}`, `S::GaussianRing`. Optionally, the user may specify a string `k_var_name::String` which corresponds to the entries of the concentration matrix.
 ```@docs
-graphical_model(G::Graph{Undirected}, S::GaussianRing, k_var_name::VarName="k")
+graphical_model(G::Graph{Undirected}, S::GaussianRing; k_var_name::VarName="k", cached=false)
 ```
 
 As with their directed counterpart, it is very easy to create new subtypes of graphical models by overloading the function `concentration_matrix` below. Unlike most other types of graphical models though, the vanishing ideal computation of an undirected graphical model is done by eliminating all concentration variables $k_{ij}$ from the ideal given by the equations $\Sigma K - Id$ after saturating by $\det(K)$. 

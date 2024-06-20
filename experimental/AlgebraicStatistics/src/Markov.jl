@@ -10,8 +10,8 @@ struct MarkovRing
 end
 
 @doc raw"""
-    markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
-    tensor_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+    markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)::MarkovRing
+    tensor_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)::MarkovRing
 
 The polynomial ring whose unknowns are the entries of a probability tensor.
 `rvs` is a list of pairs `X => Q` where `X` is the name of a random variable
@@ -20,6 +20,8 @@ will have one variable for each element in the cartesian product of the `Q`s.
 It is a multivariate polynomial ring whose variables are named `p[...]` and
 whose coefficient field `K` is by default `QQ`. These settings can be changed
 via the optional arguments.
+
+If `cached` is `true`, the internally generated polynomial ring will be cached.
 
 The name `tensor_ring` is an alias for the constructor `markov_ring` because
 that is really what a `MarkovRing` is: the coordinate ring of tensors of a
@@ -33,12 +35,12 @@ julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 ```
 """
-function markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ)::MarkovRing
+function markov_ring(rvs::Pair{<:VarName, <:AbstractArray}...; unknown::VarName="p", K::Field=QQ, cached=false)::MarkovRing
   random_variables = [p.first for p in rvs];
   state_spaces = [p.second for p in rvs];
   varindices = collect(Iterators.product(state_spaces...))
   varnames = [["$(unknown)[$(join(i, ", "))]" for i in varindices]...]
-  R, p = polynomial_ring(K, varnames)
+  R, p = polynomial_ring(K, varnames; cached=cached)
   d = Dict([varindices[i] => p[i] for i in 1:length(varindices)])
   return MarkovRing(
     R,
