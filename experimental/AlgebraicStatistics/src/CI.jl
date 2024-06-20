@@ -3,13 +3,13 @@
 export CIStmt, ci_stmt, @CI_str, ci_statements, make_elementary
 
 struct CIStmt
-  I::Vector{String}
-  J::Vector{String}
-  K::Vector{String}
+  I::Vector{<:VarName}
+  J::Vector{<:VarName}
+  K::Vector{<:VarName}
 end
 
 @doc raw"""
-    ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
+  ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
 
 A conditional independence statement asserting that `I` is independent
 of `J` given `K`. These parameters are lists of names of random variables.
@@ -38,7 +38,7 @@ julia> ci_stmt(["1"], ["2", "3"], ["4", "5"])
 [1 _||_ {2, 3} | {4, 5}]
 ```
 """
-function ci_stmt(I, J, K; symmetric=true, semigraphoid=true)
+function ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
   if length(intersect(I, J)) > 0
     error("Functional dependence statements are not yet implemented")
   end
@@ -105,14 +105,14 @@ end
 function Base.show(io::IO, stmt::CIStmt)
   fmt(K) = length(K) == 1 ? string(K[1]) : "{" * join([string(x) for x in K], ", ") * "}"
   if Oscar.is_unicode_allowed()
-    print(io, "[$(fmt(stmt.I)) _||_ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
-  else
     print(io, "[$(fmt(stmt.I)) ⫫ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
+  else
+    print(io, "[$(fmt(stmt.I)) _||_ $(fmt(stmt.J)) | $(fmt(stmt.K))]")
   end
 end
 
 @doc raw"""
-    ci_statements(random_variables::Vector{String})
+    ci_statements(random_variables::Vector{<:VarName})
 
 Return a list of all elementary CI statements over a given set of
 variable names. A `CIStmt(I, J, K)` is elementary if both `I` and
@@ -149,7 +149,7 @@ julia> ci_statements(["A", "B", "X", "Y"])
  [A _||_ B | {X, Y}]
 ```
 """
-function ci_statements(random_variables::Vector{String})
+function ci_statements(random_variables::Vector{<:VarName})
   N = collect(1:length(random_variables))
   stmts = Vector{CIStmt}()
   for ij in subsets(N, 2)

@@ -20,10 +20,10 @@ to define ideals. Their interpretations as polynomial equations depend
 on the ambient ring ([`markov_ring`](@ref) or [`gaussian_ring`](@ref)).
 
 ```@docs
-ci_stmt(I, J, K)
+ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName})
 @CI_str(str)
 Base.:(==)(lhs::CIStmt, rhs::CIStmt)
 Base.hash(stmt::CIStmt, h::UInt)
-ci_statements(random_variables::Vector{String})
+ci_statements(random_variables::Vector{<:VarName})
 make_elementary(stmt::CIStmt; semigaussoid=false)
 ```
