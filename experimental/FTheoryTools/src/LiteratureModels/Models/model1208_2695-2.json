@@ -35,7 +35,7 @@
     "model_descriptors": {
         "type": "weierstrass",
         "description": "U(1) Weierstrass model",
-        "gauge_algebra": ["u1"]
+        "gauge_algebra": ["u(1)"]
     },
     "model_data": {
         "base_dim": 2,

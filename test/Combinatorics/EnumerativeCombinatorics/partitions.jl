@@ -20,28 +20,31 @@
   ############################################################################
   # number_of_partitions(n)
   ############################################################################
-  @testset "number_of_partitions(n)" begin
+  @testset "number_of_partitions(n) for integer type $T" for T in [Int, Int8, ZZRingElem]
     # From https://oeis.org/A000041
-    @test [ number_of_partitions(i) for i in 0:49 ] ==
+    @test [ number_of_partitions(T(i)) for i in 0:49 ] ==
       ZZRingElem[ 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77, 101, 135, 176, 231, 297, 385, 490, 627, 792, 1002, 1255, 1575, 1958, 2436, 3010, 3718, 4565, 5604, 6842, 8349, 10143, 12310, 14883, 17977, 21637, 26015, 31185, 37338, 44583, 53174, 63261, 75175, 89134, 105558, 124754, 147273, 173525 ]
 
 
     # For some random large numbers, checked with Sage
     # Partitions(991).cardinality()
-    @test number_of_partitions(991) == ZZ(16839773100833956878604913215477)
+    if T !== Int8
+      @test number_of_partitions(T(991)) == ZZ(16839773100833956878604913215477)
+    end
 
-    @test number_of_partitions(-1) == ZZ(0)
+    @test number_of_partitions(T(-1)) == ZZ(0)
   end
 
   ############################################################################
   # partitions(n)
   ############################################################################
-  @testset "partitions($n)" for n in 0:10
-    P = collect(partitions(n))
+  @testset "partitions($n) for integer type $T" for n in 0:10, T in [Int, Int8, ZZRingElem]
+    P = @inferred collect(partitions(T(n)))
+    @test P isa Vector{Oscar.Partition{T}}
 
     # Check that the number of partitions is correct
     # Note that number_of_partitions(n) is computed independently of partitions(n)
-    @test length(P) == number_of_partitions(n)
+    @test length(P) == number_of_partitions(T(n))
 
     # Check that all partitions are distinct
     @test P == unique(P)
@@ -55,59 +58,65 @@
   ############################################################################
   # number_of_partitions(n,k)
   ############################################################################
-  @testset "number_of_partitions(n,k)" begin
-    @test number_of_partitions(0,0) == 1
-    @test number_of_partitions(1,0) == 0
-    @test number_of_partitions(1,1) == 1
-    @test number_of_partitions(0,1) == 0
-    @test number_of_partitions(2,3) == 0
+  @testset "number_of_partitions(n,k) for integer type $T" for T in [Int, Int8, ZZRingElem]
+    @test number_of_partitions(T(0), T(0)) == 1
+    @test number_of_partitions(T(1), T(0)) == 0
+    @test number_of_partitions(T(1), T(1)) == 1
+    @test number_of_partitions(T(0), T(1)) == 0
+    @test number_of_partitions(T(2), T(3)) == 0
 
     # From https://oeis.org/A008284
-    @test [ number_of_partitions(n,k) for n in 1:14 for k in 1:n ] ==
+    @test [ number_of_partitions(T(n), T(k)) for n in 1:14 for k in 1:n ] ==
       ZZRingElem[ 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 2, 2, 1, 1, 1, 3, 3, 2, 1, 1, 1, 3, 4, 3, 2, 1, 1, 1, 4, 5, 5, 3, 2, 1, 1, 1, 4, 7, 6, 5, 3, 2, 1, 1, 1, 5, 8, 9, 7, 5, 3, 2, 1, 1, 1, 5, 10, 11, 10, 7, 5, 3, 2, 1, 1, 1, 6, 12, 15, 13, 11, 7, 5, 3, 2, 1, 1, 1, 6, 14, 18, 18, 14, 11, 7, 5, 3, 2, 1, 1, 1, 7, 16, 23, 23, 20, 15, 11, 7, 5, 3, 2, 1, 1 ]
 
     # For some random large numbers, checked with Sage
     # Partitions(1991,length=170).cardinality()
-    @test number_of_partitions(1991,170) == ZZ(22381599503916828837298114953756766080813312)
-    @test number_of_partitions(1991,1000) == ZZ(16839773100833956878604913215477)
-    @test number_of_partitions(1991,670) == ZZ(3329965216307826492368402165868892548)
-    @test number_of_partitions(1991,1991) == ZZ(1)
-    @test number_of_partitions(1991,1) == ZZ(1)
+    if T !== Int8
+      @test number_of_partitions(T(1991), T(170)) == ZZ(22381599503916828837298114953756766080813312)
+      @test number_of_partitions(T(1991), T(1000)) == ZZ(16839773100833956878604913215477)
+      @test number_of_partitions(T(1991), T(670)) == ZZ(3329965216307826492368402165868892548)
+      @test number_of_partitions(T(1991), T(1991)) == ZZ(1)
+      @test number_of_partitions(T(1991), T(1)) == ZZ(1)
+    end
 
     # From Knuth (2011), p. 25.
-    @test sum([number_of_partitions(30, i) for i in 0:10]) == 3590
+    @test sum([number_of_partitions(T(30), T(i)) for i in 0:10]) == 3590
 
-    @test number_of_partitions(-1, 0) == ZZ(0)
-    @test number_of_partitions(0, -1) == ZZ(0)
+    @test number_of_partitions(T(-1), T(0)) == ZZ(0)
+    @test number_of_partitions(T(0), T(-1)) == ZZ(0)
   end
 
   ############################################################################
   # partitions(n,k)
   ############################################################################
-  @testset "partitions($n,$k)" for n in 0:10, k in 0:n+1
-    P = collect(partitions(n,k))
+  @testset "partitions($n, $k) for integer type $T" for n in 0:10, k in 0:n+1, T in [Int, Int8, ZZRingElem]
+    P = @inferred collect(partitions(T(n), T(k)))
+    @test P isa Vector{Oscar.Partition{T}}
 
     # Create the same by filtering all partitions
-    Q = collect(partitions(n))
-    filter!( Q->length(Q) == k, Q)
+    Q = @inferred collect(partitions(T(n)))
+    @test Q isa Vector{Oscar.Partition{T}}
+    filter!(Q -> length(Q) == k, Q)
 
     # Check that P and Q coincide (up to reordering)
     @test length(P) == length(Q)
     @test Set(P) == Set(Q)
 
     # Compare length with number_of_partitions(n,k)
-    @test length(P) == number_of_partitions(n,k)
+    @test length(P) == number_of_partitions(T(n), T(k))
   end
 
   ############################################################################
   # partitions(n,k,lb,ub)
   ############################################################################
-  @testset "partitions($n,$k,lb,ub)" for n in 0:10, k in 0:n+1
-    @testset "partitions($n,$k,$lb,$ub)" for lb in 0:n, ub in lb:n
-      P = collect(partitions(n,k,lb,ub))
+  @testset "partitions($n, $k, lb, ub)" for n in 0:10, k in 0:n+1
+    @testset "partitions($n, $k, $lb, $ub) for integer type $T" for lb in 0:n, ub in lb:n, T in [Int, Int8, ZZRingElem]
+      P = @inferred collect(partitions(T(n), T(k), T(lb), T(ub)))
+      @test P isa Vector{Oscar.Partition{T}}
 
       # Create the same by filtering all partitions
-      Q = collect(partitions(n,k))
+      Q = @inferred collect(partitions(T(n), T(k)))
+      @test Q isa Vector{Oscar.Partition{T}}
       filter!( Q->all(>=(lb),Q), Q)
       filter!( Q->all(<=(ub),Q), Q)
 
@@ -120,12 +129,14 @@
   ############################################################################
   # partitions(n,k,lb,ub; only_distinct_parts=true)
   ############################################################################
-  @testset "partitions($n,$k,lb,ub; only_distinct_parts=true)" for n in 0:10, k in 0:n+1
-    @testset "partitions($n,$k,$lb,$ub; only_distinct_parts=true)" for lb in 0:n, ub in lb:n
-      P = collect(partitions(n, k, lb, ub; only_distinct_parts=true))
+  @testset "partitions($n, $k, lb, ub; only_distinct_parts=true)" for n in 0:10, k in 0:n+1
+    @testset "partitions($n, $k, $lb, $ub; only_distinct_parts=true) for integer type $T" for lb in 0:n, ub in lb:n, T in [Int, Int16, ZZRingElem]
+      P = @inferred collect(partitions(T(n), T(k), T(lb), T(ub); only_distinct_parts=true))
+      @test P isa Vector{Oscar.Partition{T}}
 
       # Create the same by filtering all partitions
-      Q = collect(partitions(n, k, lb, ub))
+      Q = @inferred collect(partitions(T(n), T(k), T(lb), T(ub)))
+      @test Q isa Vector{Oscar.Partition{T}}
       filter!( Q->Q==unique(Q), Q )
 
       # Check that P and Q coincide (up to reordering)
@@ -137,34 +148,36 @@
   ############################################################################
   # partitions(n,k,v,mu)
   ############################################################################
-  @testset "partitions(n,k,v,mu)" begin
+  @testset "partitions(n, k, v, mu) for integer type $T" for T in [Int, Int16, ZZRingElem]
     # Check argument errors
-    @test_throws ArgumentError partitions(5,2, [1,2], [1,2,3])
-    @test_throws ArgumentError partitions(-1,2, [1,2,3], [1,2,3])
-    @test_throws ArgumentError partitions(5,0,[1,2,3], [1,2])
-    @test_throws ArgumentError partitions(6,3,[3,2,1],[1,2,3]) #req v strictly increasing
-    @test_throws ArgumentError partitions(6,3,[3,2,1],[0,2,3]) #mu > 0
-    @test_throws ArgumentError partitions(6,3,[0,2,1],[1,2,3]) #v > 0
+    @test_throws ArgumentError partitions(T(5), 2, T[1,2], [1,2,3])
+    @test_throws ArgumentError partitions(T(-1), 2, T[1,2,3], [1,2,3])
+    @test_throws ArgumentError partitions(T(5), 0, T[1,2,3], [1,2])
+    @test_throws ArgumentError partitions(T(6), 3, T[3,2,1], [1,2,3]) #req v strictly increasing
+    @test_throws ArgumentError partitions(T(6), 3, T[3,2,1], [0,2,3]) #mu > 0
+    @test_throws ArgumentError partitions(T(6), 3, T[0,2,1], [1,2,3]) #v > 0
 
     # Issues from https://github.com/oscar-system/Oscar.jl/issues/2043
-    @test length(collect(partitions(17, 3, [1, 4], [1,4]))) == 0
-    @test collect(partitions(17, 5, [1, 4], [1, 4])) == [ partition(4, 4, 4, 4, 1) ]
-    @test length(collect(partitions(17, 6, [1, 2], [1, 7]))) == 0
-    @test length(collect(partitions(20, 5, [1, 2, 3], [1, 3, 6]))) == 0
+    @test length(collect(partitions(T(17), 3, T[1, 4], [1,4]))) == 0
+    @test collect(partitions(T(17), 5, T[1, 4], [1, 4])) == [ partition(T[4, 4, 4, 4, 1]) ]
+    @test length(collect(partitions(T(17), 6, T[1, 2], [1, 7]))) == 0
+    @test length(collect(partitions(T(20), 5, T[1, 2, 3], [1, 3, 6]))) == 0
 
     # Issues UT found
-    @test length(collect(partitions(1, 1, [1], [1]))) == 1
-    @test length(collect(partitions(100, 7, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))) == 1
+    @test length(collect(partitions(T(1), 1, T[1], [1]))) == 1
+    @test length(collect(partitions(T(100), 7, T[1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))) == 1
 
     # Special cases
     @testset "Special cases n=$n, k=$k" for n in 0:20, k in 0:n+1
-      P = collect(partitions(n, k, [i for i in 1:n], [n for i in 1:n]))
-      Q = collect(partitions(n, k))
+      P = @inferred collect(partitions(T(n), k, T[i for i in 1:n], [n for i in 1:n]))
+      @test P isa Vector{Oscar.Partition{T}}
+      Q = collect(partitions(T(n), T(k)))
       @test length(P) == length(Q)
       @test Set(P) == Set(Q)
 
-      P = collect(partitions(n, k, [i for i in 1:n], [1 for i in 1:n]))
-      Q = collect(partitions(n, k, 1, n; only_distinct_parts=true))
+      P = @inferred collect(partitions(T(n), k, T[i for i in 1:n], [1 for i in 1:n]))
+      @test P isa Vector{Oscar.Partition{T}}
+      Q = collect(partitions(T(n), T(k), T(1), T(n); only_distinct_parts=true))
       @test length(P) == length(Q)
       @test Set(P) == Set(Q)
     end
@@ -189,7 +202,6 @@
     @test collect(partitions(0, Int[], Int[])) == [partition(Int[])]
     @test collect(partitions(1, Int[], Int[])) == Partition{Int}[]
   end
-
 
   ############################################################################
   # dominates(P)
