@@ -1589,12 +1589,12 @@ degree at most ``4`` to Weierstrass form, apply Tate's algorithm and
 return the corresponding relatively minimal elliptic surface 
 as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
+function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem}; minimize=true)
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  Y2, phi1 = _elliptic_surface_with_trafo(g2)
+  Y2, phi1 = _elliptic_surface_with_trafo(g2; minimize)
   return Y2, phi2 * phi1  
 end
 
@@ -2304,7 +2304,7 @@ end
 # The transformation is a morphism from the fraction field of the 
 # parent of g to the fraction field of the `ambient_coordinate_ring` 
 # of the `weierstrass_chart` of the resulting surface.
-function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem})
+function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem}; minimize::Bool=true)
   x, y = gens(parent(g))
   E = elliptic_curve(g, x, y)
   kkt = base_field(E)
@@ -2314,11 +2314,13 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
 
   # The following three commands won't work unless we convert to a rational_function_field
   EE = base_change(x->evaluate(x, t), E)
-
-  EE = tates_algorithm_global(EE)
-  EE, _ = short_weierstrass_model(EE)
-  EE, _ = integral_model(EE)
-
+  @show EE
+  if minimize
+    EE = tates_algorithm_global(EE)
+    EE, _ = short_weierstrass_model(EE)
+    EE, _ = integral_model(EE)
+  end
+  
   # ...and back.
   E2 = base_change(x->evaluate(x, gen(kkt)), EE)
 
