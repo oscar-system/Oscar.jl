@@ -2314,7 +2314,6 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
 
   # The following three commands won't work unless we convert to a rational_function_field
   EE = base_change(x->evaluate(x, t), E)
-  @show EE
   if minimize
     EE = tates_algorithm_global(EE)
     EE, _ = short_weierstrass_model(EE)
