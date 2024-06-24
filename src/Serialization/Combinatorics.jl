@@ -20,6 +20,28 @@ function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{D
 end
 
 ###############################################################################
+## Matroid
+###############################################################################
+@register_serialization_type Matroid "Matroid"
+
+function save_object(s::SerializerState, m::Matroid) 
+  @req isa(m.groundset, Vector{Int}) "Groundset must be a Vector{Int}"
+
+  save_data_dict(s) do
+    save_object(s, pm_object(m), :matroid)
+    save_object(s, m.groundset, :groundset)
+  end
+end
+
+
+function load_object(s::DeserializerState, m::Type{Matroid})
+  mt = load_object(s, Polymake.BigObject, :matroid)
+  grds = load_object(s, Vector{Int}, :groundset)
+  return m(mt, grds)
+end
+
+
+###############################################################################
 ## IncidenceMatrix
 ###############################################################################
 @register_serialization_type Polymake.IncidenceMatrixAllocated{Polymake.NonSymmetric}
