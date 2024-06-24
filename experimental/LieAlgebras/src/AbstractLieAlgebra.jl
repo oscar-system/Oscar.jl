@@ -297,7 +297,7 @@ The experienced user may supply a boolean vector of length `n_positive_roots(rs)
 via the kwarg `extraspecial_pair_signs::Vector{Bool}` to specify the concrete Lie algebra to be constructed.
 If $(\alpha,\beta)$ is the extraspecial pair for the non-simple root `root(rs, i)`,
 then $\varepsilon_{\alpha,\beta} = 1$ iff `extraspecial_pair_signs[i - n_simple_roots(rs)] = true`.
-For the used notation and the definition of extraspecial pairs, see [CMT04](cite).
+For the used notation and the definition of extraspecial pairs, see [CMT04](@cite).
 """
 function lie_algebra(
   R::Field,
