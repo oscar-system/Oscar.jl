@@ -913,8 +913,9 @@ function maximal_associated_points(
     # we can at least remember some partial information 
     for U in patches(covering)
       if isone(I(U))
+        I_one = ideal(OO(U), one(OO(U)))
         for P in comps
-          object_cache(P)[U] = I(U)
+          object_cache(P)[U] = I_one
         end
       end
     end
