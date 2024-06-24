@@ -9,7 +9,7 @@ struct CIStmt
 end
 
 @doc raw"""
-  ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
+    ci_stmt(I::Vector{<:VarName}, J::Vector{<:VarName}, K::Vector{<:VarName}; symmetric=true, semigraphoid=true)
 
 A conditional independence statement asserting that `I` is independent
 of `J` given `K`. These parameters are lists of names of random variables.

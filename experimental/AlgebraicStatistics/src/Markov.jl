@@ -315,16 +315,12 @@ function ci_ideal(R::MarkovRing, stmts)::MPolyIdeal
     QI = state_space(R, stmt.I)
     QJ = state_space(R, stmt.J)
     IJK = [stmt.I..., stmt.J..., stmt.K...]
-    for z in state_space(R, stmt.K)
-      for x in subsets(collect(QI), 2)
-        for y in subsets(collect(QJ), 2)
-          p11 = marginal(R, IJK, [x[1], y[1], z...]);
-          p12 = marginal(R, IJK, [x[1], y[2], z...]);
-          p21 = marginal(R, IJK, [x[2], y[1], z...]);
-          p22 = marginal(R, IJK, [x[2], y[2], z...]);
-          push!(eqs, p11*p22 - p12*p21)
-        end
-      end
+    for z in state_space(R, stmt.K), x in subsets(collect(QI), 2), y in subsets(collect(QJ), 2)
+      p11 = marginal(R, IJK, [x[1], y[1], z...]);
+      p12 = marginal(R, IJK, [x[1], y[2], z...]);
+      p21 = marginal(R, IJK, [x[2], y[1], z...]);
+      p22 = marginal(R, IJK, [x[2], y[2], z...]);
+      push!(eqs, p11*p22 - p12*p21)
     end
   end
   return ideal(eqs)
