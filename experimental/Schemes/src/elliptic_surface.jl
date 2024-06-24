@@ -948,15 +948,46 @@ end
 
 Return the fiber components of the fiber over the point $P \in C$.
 """
-function fiber_components(S::EllipticSurface, P)
+function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors)
   @vprint :EllipticSurface 2 "computing fiber components over $(P)\n"
-  F = fiber_cartier(S, P)
-  @vprint :EllipticSurface 2 "decomposing fiber   "
-  comp = maximal_associated_points(ideal_sheaf(F))
-  @vprint :EllipticSurface 2 "done decomposing fiber\n"
-  return [weil_divisor(c, check=false) for c in comp]
+  P = base_ring(S).(P)
+  W = codomain(S.inc_Weierstrass)
+  Fcart = fiber_cartier(S, P)
+  if isone(P[2])
+    U = default_covering(W)[1]
+    (x,y,t) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(t - P[1]))
+  elseif isone(P[1])
+    U = default_covering(W)[4]
+    (x,y,s) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(s - P[2]))
+  end 
+  FF = ideal_sheaf(Fcart)
+  EE = exceptional_divisors(S)
+  EP = filter(E->issubset(FF, E), EE)
+  for bl in S.ambient_blowups
+    F = strict_transform(bl, F)
+  end
+  F = pullback(S.inc_Y, F)
+  F = weil_divisor(F, ZZ)
+  fiber_components = [weil_divisor(E, ZZ) for E in EP]
+  push!(fiber_components, F)
+  return fiber_components
 end
-
+  
+@attr function exceptional_divisors(S::EllipticSurface)
+  PP = AbsIdealSheaf[]
+  @vprintln :EllipticSurface 2 "computing exceptional divisors"
+  for E in S.ambient_exceptionals
+    @vprintln :EllipticSurface 4 "decomposing divisor "
+    mp = maximal_associated_points(ideal_sheaf(pullback(S.inc_Y,E));
+                                   use_decomposition_info=true)
+    append!(PP, mp)
+  end 
+  @vprintln :EllipticSurface 3 "done"
+  return PP
+end
+  
 function fiber(X::EllipticSurface)
   b, pt, F = irreducible_fiber(X)
   if b
