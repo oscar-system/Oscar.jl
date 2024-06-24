@@ -1029,6 +1029,147 @@ function min_revlex_basis_encoding(M::Matroid)
     min_rvlx = first(Polymake.lex_minimize_vector(st, convert(Polymake.PolymakeType, v)))
     return _revlex_basis_from_vector(min_rvlx)
 end
+#=
+x=15
+y = digits(x, base=2, pad=16) |> reverse
+y = join(y)
+parse(Int, y, base=2)
+digits(x, base=10) |> reverse |> join |> x-> parse(Int,x, base=10)
+
+parse(Int,"101101", base=2)
+tmp = Oscar._to_padded_char([1,0,1,1,0,1])
+tmp_bin = Oscar._from_padded_char(tmp)
+parse(Int,join(tmp_bin|>reverse), base=2)
+
+=#
+
+function _to_padded_char(x::Vector{Int},pad::Int=6)
+    for _ in 1:(pad-length(x)%pad)
+        push!(x,false)
+    end
+    x = reshape(x,pad,:)
+    x = [sum([x[i,j]*2^(pad-i) for i in 1:pad])+63 |> Char for j in 1:size(x)[2]]
+    return x 
+end
+
+function _from_padded_char(x::Vector{Char})
+    x = [Int(c)-63 |> x->digits(x,base=2,pad=6) |> reverse for c in x]
+    x = foldl(append!,x)
+    return x
+end
+function _from_padded_char(x::String)
+    split(x,"") |> _from_padded_char
+end
+
+
+
+
+"""
+  matroid6(M::Matroid)
+
+Stores a matroid as a
+
+```jldoctest
+matroid6(fano_matroid())
+matroid6(uniform_matroid(2,4))
+matroid6(non_fano_matroid())
+```
+"""
+function matroid6(M::Matroid)::String
+  #Beginnin of string is left
+  rvlx = min_revlex_basis_encoding(M)
+  #Beginning
+  v = _revlex_basis_to_vector(rvlx)
+  v = _to_padded_char(v)
+  #pushfirst a : to the beginning
+  r=rank(M)
+  r_vec = digits(r, base=2, pad=6)
+  r_vec = _to_padded_char(r_vec)
+  n=length(M)
+  n_vec = digits(n, base=2, pad=6)
+  n_vec = _to_padded_char(n_vec)
+
+  return "<$(join(r_vec)):$(join(n_vec))>" * join(v)
+end
+
+"""
+  matroid_from_matroid6(str::AbstractString)
+
+```jldoctest
+matroid_from_matroid6(matroid6(fano_matroid()))
+min_revlex_basis_encoding(fano_matroid())
+
+bases(matroid_from_matroid6(matroid6(uniform_matroid(2,4))))
+bases(uniform_matroid(2,4))
+min_revlex_basis_encoding(uniform_matroid(2,4))
+```
+"""
+function matroid_from_matroid6(str::AbstractString)::Matroid
+    @req str[1] == '<' "Not a valid matroid6 string"
+    #delete the first character
+    #write regex for r and n
+    sep = split(str,">")
+    (r,n) = split(sep[1][2:end],":")
+    r = parse(Int,join(_from_padded_char(collect(r))|>reverse), base=2)
+    n = parse(Int,join(_from_padded_char(collect(n))|>reverse), base=2)
+    S = sep[2]
+    v = [Int(c)-63 |> x->digits(x,base=2,pad=6) |> reverse for c in S[1:end]] 
+    S =  join(isone(x) ? '*' : '0' for x in foldl(append!,v)[1:binomial(n,r)])
+    #return the rightmost padding such that the size is 
+    #if length(S) < binomial(n,r)
+    #    S = "0"^(binomial(n,r) - length(S))*S
+    #end
+    return matroid_from_revlex_basis_encoding(S,r,n)
+end
+
+"""
+  matroid_hex(M::Matroid)
+
+Stores a matroid as a string of hex characters
+
+```
+matroid_hex(fano_matroid())
+matroid_hex(uniform_matroid(2,4))
+
+```
+"""
+function matroid_hex(M::Matroid)::String
+    rvlx = min_revlex_basis_encoding(M)
+    r,n = rank(M), length(M) 
+    
+    v = _revlex_basis_to_vector(rvlx)
+    for _ in 1:(4-length(v)%4)
+        pushfirst!(v,0)
+    end
+    v = reshape(v,4,:)
+    v = [string(parse(Int,join(v[:,j]),base=2),base=16) for j in 1:size(v)[2]]
+
+      return "r$(r)n$(n)_" * join(v)
+end
+
+"""
+  matroid_from_matroid_hex(str::AbstractString)
+
+Returns a matroid from a string of hex characters
+
+```
+matroid_from_matroid_hex(matroid_hex(fano_matroid()))
+min_revlex_basis_encoding(fano_matroid())
+
+matroid_from_matroid_hex(matroid_hex(uniform_matroid(2,4)))
+min_revlex_basis_encoding(uniform_matroid(2,4))
+
+```
+"""
+function matroid_from_matroid_hex(str::AbstractString)
+    sep = split(str,"_")
+    (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+    v = [digits(parse(Int,x,base=16),base=2,pad=4) |> reverse for x in sep[2]]
+    v = foldl(append!,v)
+    v = v[(length(v)-binomial(n,r)+1):end]
+    return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v),r,n)
+end
+
 
 @doc raw"""
     is_isomorphic(M1::Matroid, M2::Matroid)
