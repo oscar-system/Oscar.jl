@@ -1,9 +1,4 @@
-# The tests for elliptic surfaces have lead to random failure of the CI-tests, 
-# see issue no. 3676. 
-#
-# They are now disabled, also because in general they tend to take quite long.
-# We keep them, however, to allow for running them locally.
-#=
+
 @testset "elliptic surfaces" begin
   @testset "trivial lattice" begin
     k = GF(29)
@@ -27,9 +22,18 @@
     X = elliptic_surface(E, 2)
     triv = trivial_lattice(X)
     @test det(triv[2])==-3
+  end
+    
+  @testset "trivial lattice QQ" begin
+    Qt, t = polynomial_ring(QQ, :t)
+    Qtf = fraction_field(Qt)
+    E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
+    X3 = elliptic_surface(E, 2)
+    weierstrass_contraction(X3)
+    trivial_lattice(X3)
   end  
   
-  # This test takes about 1 minute
+  # This test takes about 30 seconds
   @testset "mordel weil lattices" begin
     k = GF(29,2)
     # The generic fiber of the elliptic fibration
@@ -51,17 +55,9 @@
     X1 = elliptic_surface(short_weierstrass_model(E)[1],2)
     Oscar.isomorphism_from_generic_fibers(X,X1)
   end
-  #=
-  # this test is quite expensive
-  # probably because it is over QQ
-  # ... and because there are loads of complicated singular fibers
-  Qt, t = polynomial_ring(QQ, :t)
-  Qtf = fraction_field(Qt)
-  E = elliptic_curve(Qtf, [0,0,0,0,t^5*(t-1)^2])
-  X3 = elliptic_surface(E, 2)
-  weierstrass_contraction(X3)
-  trivial_lattice(X3)
-  =#
+
+
+
 
   @testset "elliptic parameter" begin
     k = GF(29)
@@ -126,8 +122,7 @@ end
 
 
 #=
-# These tests are disabled, because they take too long, about 5 minutes. But one can run them if in doubt.
-# most of the time is spent in decomposing the fibers
+# These tests are disabled, because they are dependent on factorisation order...
 @testset "two neighbor steps" begin
   K = GF(7)
   Kt, t = polynomial_ring(K, :t)
@@ -188,9 +183,9 @@ end
   # The following should not take more than at most two minutes.
   # But it broke the tests at some point leading to timeout, 
   # so we put it here to indicate regression.
-  for (i, g) in enumerate(values(gluings(default_covering(X))))
-    gluing_domains(g) # Trigger the computation once
-  end
+  #for (i, g) in enumerate(values(gluings(default_covering(X))))
+  #  gluing_domains(g) # Trigger the computation once
+  #end
 
   D_P = section(X, P)
  
@@ -272,4 +267,4 @@ end
   P = Oscar.extract_mordell_weil_basis(torsion_translation)
   @test length(P) == 2
 end
-=#
+
