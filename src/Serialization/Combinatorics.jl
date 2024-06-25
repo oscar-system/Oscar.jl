@@ -25,11 +25,12 @@ end
 @register_serialization_type Matroid "Matroid"
 
 function save_object(s::SerializerState, m::Matroid) 
-  @req isa(m.groundset, Vector{Int}) "Groundset must be a Vector{Int}"
+  @req m.groundset isa Vector{Int} "Groundset must be a Vector{Int}"
 
   save_data_dict(s) do
     save_object(s, pm_object(m), :matroid)
     save_object(s, m.groundset, :groundset)
+    save_object(s, m.gs2num, :gs2num)
   end
 end
 
@@ -37,7 +38,8 @@ end
 function load_object(s::DeserializerState, m::Type{Matroid})
   mt = load_object(s, Polymake.BigObject, :matroid)
   grds = load_object(s, Vector{Int}, :groundset)
-  return m(mt, grds)
+  gs2num = load_object(s, Dict{Int,Int}, :gs2num)
+  return m(mt, grds, gs2num)
 end
 
 

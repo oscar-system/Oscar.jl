@@ -1062,15 +1062,14 @@ julia> matroid6(fano_matroid())
 ```
 """
 function matroid6(M::Matroid)::String
-  #Beginnin of string is left
   rvlx = min_revlex_basis_encoding(M)
-  #Beginning
   v = _revlex_basis_to_vector(rvlx)
   v = _to_padded_char(v)
-  #pushfirst a : to the beginning
+
   r=rank(M)
   r_vec = digits(r, base=2, pad=6)
   r_vec = _to_padded_char(r_vec)
+
   n=length(M)
   n_vec = digits(n, base=2, pad=6)
   n_vec = _to_padded_char(n_vec)
@@ -1093,13 +1092,16 @@ Matroid of rank 3 on 7 elements
 """
 function matroid_from_matroid6(str::AbstractString)::Matroid
   @req str[1] == '<' "Not a valid matroid6 string"
+
   sep = split(str,">")
   (r,n) = split(sep[1][2:end],":")
   r = parse(Int,join(_from_padded_char(collect(r))|>reverse), base=2)
   n = parse(Int,join(_from_padded_char(collect(n))|>reverse), base=2)
+
   S = sep[2]
   v = [Int(c)-63 |> x->digits(x,base=2,pad=6) |> reverse for c in S[1:end]] 
   S =  join(isone(x) ? '*' : '0' for x in foldl(append!,v)[1:binomial(n,r)])
+
   return matroid_from_revlex_basis_encoding(S,r,n)
 end
 
@@ -1147,9 +1149,11 @@ Matroid of rank 3 on 7 elements
 function matroid_from_matroid_hex(str::AbstractString)::Matroid
   sep = split(str,"_")
   (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+
   v = [digits(parse(Int,x,base=16),base=2,pad=4) |> reverse for x in sep[2]]
   v = foldl(append!,v)
   v = v[(length(v)-binomial(n,r)+1):end]
+
   return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v),r,n)
 end
 
