@@ -1094,7 +1094,7 @@ Matroid of rank 3 on 7 elements
 function matroid_from_matroid6(str::AbstractString)::Matroid
   @req str[1] == '<' "Not a valid matroid6 string"
   sep = split(str,">")
-  r,n) = split(sep[1][2:end],":")
+  (r,n) = split(sep[1][2:end],":")
   r = parse(Int,join(_from_padded_char(collect(r))|>reverse), base=2)
   n = parse(Int,join(_from_padded_char(collect(n))|>reverse), base=2)
   S = sep[2]
