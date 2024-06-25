@@ -1140,7 +1140,7 @@ Returns a matroid from a string of hex characters.
 # Examples
 To retrieve the fano matroid from its hex encoding write:
 
-```
+```jldoctest
 julia> matroid_from_matroid_hex("r3n7_3f7eefd6f")
 Matroid of rank 3 on 7 elements
 
