@@ -376,5 +376,10 @@
     N1 = matroid_from_matroid6(matroid6(N))
     @test is_isomorphic(M, M1)
     @test is_isomorphic(N, N1)
+
+    M2 = matroid_from_matroid_hex(matroid_hex(M)) 
+    N2 = matroid_from_matroid_hex(matroid_hex(N))
+    @test is_isomorphic(M, M2)
+    @test is_isomorphic(N, N2)
   end
 end
