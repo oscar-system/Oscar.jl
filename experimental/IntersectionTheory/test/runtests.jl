@@ -153,7 +153,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # Grassmannian
     G = abstract_grassmannian(2, 4)
-    S, Q = bundles(G)
+    S, Q = tautological_bundles(G)
     c1, c2 = gens(G.ring)
     @test betti(G) == [1,1,2,1,1]
     @test euler(G) == 6
@@ -168,7 +168,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # Grassmannian: TnVariety version
     G = abstract_grassmannian(2, 4, bott=true)
-    S, Q = bundles(G)
+    S, Q = tautological_bundles(G)
     @test G isa IntersectionTheory.TnVariety
     @test S isa IntersectionTheory.TnBundle
     @test rank(tangent_bundle(G)) == 4
