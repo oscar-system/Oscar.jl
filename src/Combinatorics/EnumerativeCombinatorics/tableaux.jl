@@ -806,12 +806,6 @@ Base.IteratorSize(::Type{<: StandardTableauxFixedBoxNum}) = Base.SizeUnknown()
   next_part === nothing && return nothing
   Sp = standard_tableaux(next_part[1])
   next_tab = iterate(Sp)
-  while next_tab === nothing
-    next_part = iterate(P, next_part[2])
-    next_part === nothing && return nothing
-    Sp = standard_tableaux(next_part[1])
-    next_tab = iterate(Sp)
-  end
   return next_tab[1], (P, next_part[2], Sp, next_tab[2])
 end
 
