@@ -66,7 +66,7 @@ export AbstractBundle
 include("Types.jl")
 include("Misc.jl")
 
-#include("Bott.jl")   # integration using Bott's formula
+include("Bott.jl")   # integration using Bott's formula
 include("Main.jl")   # basic constructions for Schubert calculus
 #include("blowup.jl") # blowup
 # include("Moduli.jl") # moduli of matrices, twisted cubics
