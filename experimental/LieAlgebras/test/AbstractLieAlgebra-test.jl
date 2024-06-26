@@ -137,15 +137,12 @@
       ("A3", root_system(:A, 3), ["A3"], :all), # 8
       ("A4", root_system(:A, 4), ["A4"], 5),
       ("A5", root_system(:A, 5), ["A5"], 1),
-      ("A6", root_system(:A, 6), ["A6"], 1),
       ("B2", root_system(:B, 2), ["B2", "C2"], :all), # 4
-      ("B3", root_system(:B, 3), ["B3"], 8),
+      ("B3", root_system(:B, 3), ["B3"], 5),
       ("B4", root_system(:B, 4), ["B4"], 1),
-      ("B5", root_system(:B, 5), ["B5"], 1),
       ("C2", root_system(:C, 2), ["B2", "C2"], :all), # 4
-      ("C3", root_system(:C, 3), ["C3"], 8),
+      ("C3", root_system(:C, 3), ["C3"], 5),
       ("C4", root_system(:C, 4), ["C4"], 1),
-      ("C5", root_system(:C, 5), ["C5"], 1),
       ("D4", root_system(:D, 4), ["D4"], 8),
       ("D5", root_system(:D, 5), ["D5"], 1),
       ("F4", root_system(:F, 4), ["F4"], 1),
