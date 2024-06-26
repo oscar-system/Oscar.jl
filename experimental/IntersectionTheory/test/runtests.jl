@@ -49,8 +49,8 @@ let pushforward = IntersectionTheory.pushforward
 
   @testset "VarietyHom" begin
 
-    p = IntersectionTheory.point()
-    P2 = IntersectionTheory.abstract_projective_space(2)
+    p = abstract_point()
+    P2 = abstract_projective_space(2)
     i = hom(P2, P2)
     @test i.domain == P2
     @test i.codomain == P2
