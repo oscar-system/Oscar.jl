@@ -20,7 +20,6 @@ export base
 export betti
 #export blowup
 #export blowup_points
-export bundles
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -89,7 +88,6 @@ export base
 export betti
 #export blowup
 #export blowup_points
-export bundles
 export canonical_bundle
 export canonical_class
 export chern_character

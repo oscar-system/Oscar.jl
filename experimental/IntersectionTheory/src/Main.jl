@@ -263,7 +263,7 @@ julia> R, (h,) = graded_polynomial_ring(QQ, ["h"])
 (Graded multivariate polynomial ring in 1 variable over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[h])
 
 julia> A, _ = quo(R, ideal(R, [h^3]))
-(Quotient of multivariate polynomial ring by ideal (h^3), Map: R -> CR)
+(Quotient of multivariate polynomial ring by ideal (h^3), Map: R -> A)
 
 julia> P2 = abstract_variety(2, A)
 AbstractVariety of dim 2
@@ -399,7 +399,7 @@ julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
 julia> TB = tautological_bundles(P2)
-2-element Vector{Oscar.IntersectionTheory.AbstractBundle}:
+2-element Vector{AbstractBundle}:
  AbstractBundle of rank 1 on AbstractVariety of dim 2
  AbstractBundle of rank 2 on AbstractVariety of dim 2
 
@@ -416,7 +416,7 @@ julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
 
 julia> tautological_bundles(G)
-2-element Vector{Oscar.IntersectionTheory.AbstractBundle}:
+2-element Vector{AbstractBundle}:
  AbstractBundle of rank 3 on AbstractVariety of dim 6
  AbstractBundle of rank 2 on AbstractVariety of dim 6
 
@@ -469,7 +469,7 @@ Alternatively, use `OO`.
 
 # Examples
 ```jldoctest
-P2 = abstract_projective_space(2)
+julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
 julia> tautological_bundles(P2)[1] == OO(P2, -1)
