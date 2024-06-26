@@ -39,8 +39,8 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   FM = P[0]
   r = rank(FM)
   r == length(var_names) || error("wrong number of variable names given")
-  sym_FM, s = polynomial_ring(R, Symbol.(var_names))
-  sym_F, t = polynomial_ring(R, [Symbol("t$i") for i in 1:rank(F)])
+  sym_FM, s = polynomial_ring(R, Symbol.(var_names); cached = false)
+  sym_F, t = polynomial_ring(R, [Symbol("t$i") for i in 1:rank(F)]; cached = false)
   imgs = Vector{elem_type(sym_F)}()
   for v in gens(FM)
     w = coordinates(f(p(v)))
@@ -57,7 +57,7 @@ function rees_algebra(M::FreeMod;
   )
   R = base_ring(M)
   r = rank(M)
-  S, s = polynomial_ring(R, Symbol.(var_names))
+  S, s = polynomial_ring(R, Symbol.(var_names); cached = false)
   return S
 end
 
@@ -71,7 +71,7 @@ function rees_algebra(M::SubquoModule;
     # modulo linear equations in the variables parametrized by the base.
     R = base_ring(M)
     r = ngens(M)
-    S, s = polynomial_ring(R, Symbol.(var_names))
+    S, s = polynomial_ring(R, Symbol.(var_names); cached = false)
     A = matrix(compose(sigma, p)) # The projector matrix:
     # M is a direct summand of a free module via p : F ↔ M : sigma.
     # Hence, the composition sigma ∘ p is the internal projection

@@ -40,7 +40,7 @@
     "model_descriptors": {
         "type": "hypersurface",
         "description": "U(1)xU(1) hypersurface model",
-        "gauge_algebra": ["u1", "u1"]
+        "gauge_algebra": ["u(1)", "u(1)"]
     },
     "model_data": {
         "base_dim": 2,

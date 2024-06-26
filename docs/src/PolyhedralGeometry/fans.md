@@ -36,6 +36,7 @@ face_fan(P::Polyhedron{T}) where T<:scalar_types
 ## Auxiliary functions
 ```@docs
 ambient_dim(PF::PolyhedralFan)
+arrangement_polynomial
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
 is_complete(PF::PolyhedralFan)

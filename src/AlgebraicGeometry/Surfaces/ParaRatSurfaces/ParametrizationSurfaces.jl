@@ -22,7 +22,6 @@ Given a smooth rational surface `X` which is linearly normal in the given embedd
 # Examples
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators

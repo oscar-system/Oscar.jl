@@ -1015,7 +1015,7 @@ Permutation group of degree 4
 """
 function automorphism_group(M::Matroid) 
   @req length(M) > 0 "The matroid should not be empty."
-  I = rank(M) < 1 ? IncidenceMatrix(bases(dual_matroid(M))) : IncidenceMatrix(bases(M))
+  I = rank(M) < 1 ? IncidenceMatrix(bases(Int, dual_matroid(M))) : IncidenceMatrix(bases(Int, M))
   resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
 end

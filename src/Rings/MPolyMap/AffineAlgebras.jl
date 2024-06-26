@@ -265,7 +265,7 @@ function _groebner_data(F::AffAlgHom)
   J = get_attribute!(F, :groebner_data) do
     K = coefficient_ring(R)
     @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
-    T, _ = polynomial_ring(K, m + n)
+    T, _ = polynomial_ring(K, m + n; cached = false)
 
     S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
 

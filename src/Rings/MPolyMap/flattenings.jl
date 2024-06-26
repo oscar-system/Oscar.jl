@@ -27,7 +27,7 @@
     ) where {RingElemType <: MPolyRingElem}
     R = base_ring(S)
     kk = coefficient_ring(R)
-    S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    S_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)); cached = false)
     R_to_S_flat = hom(R, S_flat, gens(S_flat)[ngens(S)+1:end], check=false)
     S_to_S_flat = hom(S, S_flat, R_to_S_flat, gens(S_flat)[1:ngens(S)], check=false)
     S_flat_to_S = hom(S_flat, S, vcat(gens(S), S.(gens(R))), check=false)
@@ -45,7 +45,7 @@
     G = grading_group(S)
     w = degree.(gens(S))
     new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
-    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    S_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
     set_default_ordering!(S_flat, 
          matrix_ordering(S_flat, 
              block_diagonal_matrix(
@@ -71,7 +71,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
-    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)); cached = false)
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     I_flat = ideal(T_flat, R_to_T_flat.(gens(I)))
@@ -101,7 +101,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(
@@ -137,7 +137,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)); cached = false)
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     T_flat_loc, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
@@ -174,7 +174,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(
@@ -210,7 +210,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)))
+    T_flat, _ = polynomial_ring(kk, vcat(symbols(S), symbols(R)); cached = false)
     R_to_T_flat = hom(R, T_flat, gens(T_flat)[ngens(S)+1:end], check=false)
 
     S_flat, _ = localization(T_flat, R_to_T_flat(U)) # Will throw if multiplicative set can not be transferred. 
@@ -241,7 +241,7 @@
 
     # Before building S_flat, we have to create a polynomial 
     # ring T_flat from which we can pass to the localized quotient.
-    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w)
+    T_flat, _ = graded_polynomial_ring(kk, vcat(symbols(S), symbols(R)), new_w; cached = false)
     set_default_ordering!(T_flat, 
          matrix_ordering(T_flat, 
              block_diagonal_matrix(

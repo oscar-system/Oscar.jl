@@ -35,7 +35,7 @@
     "model_descriptors": {
         "type": "tate",
         "description": "E6 Tate model",
-        "gauge_algebra": ["e6"]
+        "gauge_algebra": ["e(6)"]
     },
     "model_data": {
         "base_dim": 3,

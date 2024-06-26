@@ -959,9 +959,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   if is_graded(Qx)
-    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)]; cached = false)
   else
-    Rx, _ = polynomial_ring(R, symbols(Qx))
+    Rx, _ = polynomial_ring(R, symbols(Qx); cached = false)
   end
   return _map_last_var(Rx, I, 2, a)
 end
@@ -2039,6 +2039,12 @@ function small_generating_set(
   # If we are unlucky, mstd can even produce a larger generating set
   # than the original one!!!
   return_value = filter(!iszero, (R).(gens(sing_min)))
+
+  # The following is a common phenomenon which we can not fully explain yet. So far nothing but a 
+  # restart really seems to help, unfortunately.
+  if is_zero(length(return_value))
+    !is_zero(I) && error("singular crashed in the background; please restart your session!")
+  end
   if length(return_value) <= ngens(I)
     return return_value
   else

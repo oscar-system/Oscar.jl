@@ -1,7 +1,7 @@
 {
     "model_index": "25",
     "arxiv_data": {
-        "id": "1408.4808v2",
+        "id": "1408.4808",
         "doi": "10.48550/arXiv.1408.4808",
         "version": "2",
         "discipline": "hep-th",
@@ -41,7 +41,7 @@
     "model_descriptors": {
         "type": "weierstrass",
         "description": "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_7",
-        "gauge_algebra": ["u1", "u1", "u1"]
+        "gauge_algebra": ["u(1)", "u(1)", "u(1)"]
     },
     "model_data": {
         "base_dim": 3,

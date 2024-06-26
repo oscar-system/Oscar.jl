@@ -58,8 +58,7 @@ young_tableau(v::Vector{Vector{T}}; check::Bool = true) where T <: IntegerUnion 
 data(tab::YoungTableau) = tab.t
 
 function Base.show(io::IO, tab::YoungTableau)
-  print(io, "Young tableau")
-  # TODO: is there meaningful information to add in one-line mode?
+  print(io, data(tab))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", tab::YoungTableau)
@@ -591,7 +590,7 @@ function is_standard(tab::YoungTableau)
   numbs = falses(n)
   for i = 1:length(s)
     for j = 1:s[i]
-      if tab[i][j] > n
+      if tab[i][j] < 1 || tab[i][j] > n
         return false
       end
       numbs[tab[i][j]] = true

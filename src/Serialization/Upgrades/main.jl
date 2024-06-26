@@ -115,8 +115,8 @@ function upgrade(format_version::VersionNumber, dict::Dict)
     if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
-      @info("upgrading serialized data....",
-            maxlog=1)
+      @debug("upgrading serialized data....",
+             maxlog=1)
 
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load

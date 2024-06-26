@@ -678,6 +678,11 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
   return nothing
 end
 
+#=
+# The following was thought to be easier. But it turns out not to be.
+# with a complicated map it is in general cheaper to first spread out 
+# the ideal sheaf in the codomain and then have more choices as to which 
+# pair of charts to use for pullback.
 function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
   X = domain(phi)
   Y = codomain(phi)
@@ -717,6 +722,7 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::PrimeId
 
   return nothing
 end
+=#
 
 function _pullback(phi::MorphismFromRationalFunctions, I::PrimeIdealSheafFromChart)
   V0 = original_chart(I)
@@ -865,7 +871,7 @@ function _find_good_representative_chart(I::PullbackIdealSheaf)
   error("no chart found")
 end
 
-function _find_good_representative_chart(I::AbsIdealSheaf)
+function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   # We assume that I is prime
   # TODO: Make this an hassert?
   @assert is_prime(I)
@@ -874,7 +880,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
   # Some heuristics to choose a reasonably "easy" chart
   cand = AbsAffineScheme[]
   for U in keys(object_cache(I))
-    any(x->x===U, affine_charts(X)) || continue
+    any(x->x===U, patches(covering)) || continue
     !is_one(I(U)) && push!(cand, U)
   end
 
@@ -890,7 +896,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf)
     return cand[i]
   end
 
-  for U in affine_charts(X)
+  for U in patches(covering)
     !is_one(I(U)) && return U
   end
   error("no chart found")
@@ -909,7 +915,8 @@ function _prepare_pushforward_prime_divisor(
   sorted_charts = copy(codomain_charts)
   if has_decomposition_info(default_covering(Y))
     info = decomposition_info(default_covering(Y))
-    sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
+    # Enabling the following line seems to lead to wrong results. Why?
+    #sorted_charts = filter!(V->dim(OO(V)) - dim(ideal(OO(V), elem_type(OO(V))[OO(V)(a) for a in info[V]])) <= 1, sorted_charts)
   end
 
   function compl(V::AbsAffineScheme)

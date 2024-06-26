@@ -161,7 +161,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyRingElem})
   @req dim(I) == 0 "Dimension must be zero"
   @assert length(gb) == ngens(base_ring(I))
   R = base_ring(I)
-  Qx, _ = polynomial_ring(base_ring(R), cached = false)
+  Qx, _ = polynomial_ring(base_ring(R); cached = false)
   rts = [elem_type(Qx)[zero(Qx) for i = gens(R)]]
   i = ngens(R)
   for f in gb
@@ -205,7 +205,7 @@ function rational_solutions(I::MPolyIdeal{<:MPolyDecRingElem})
   #TODO: make this work for non-standard gradings
   S = base_ring(I)
   R = S.R
-  RS, _ = polynomial_ring(base_ring(R), ngens(S) - 1, cached = false)
+  RS, _ = polynomial_ring(base_ring(R), ngens(S) - 1; cached = false)
   Q = base_ring(R)
   all_S = Vector{elem_type(Q)}[]
   for i=1:ngens(S)

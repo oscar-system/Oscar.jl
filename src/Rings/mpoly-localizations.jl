@@ -2241,6 +2241,24 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
+### Mapping of elements
+function (f::MPolyLocalizedRingHom)(a::AbsLocalizedRingElem)
+  parent(a) === domain(f) || return f(domain(f)(a))
+  if total_degree(denominator(a)) > 10
+    res = restricted_map(f)
+    img_num = res(numerator(a))
+    den = denominator(a)
+    img_den = one(img_num)
+    fac_den = factor(den)
+    for (a, k) in fac_den
+      img_den = img_den * inv(res(a))^k
+    end
+    img_den = img_den * inv(res(unit(fac_den)))
+    return img_num * img_den
+  end
+  return codomain(f)(restricted_map(f)(numerator(a)))*inv(codomain(f)(restricted_map(f)(denominator(a))))
+end
+
 ### additional constructors
 function MPolyLocalizedRingHom(
       R::MPolyRing,
