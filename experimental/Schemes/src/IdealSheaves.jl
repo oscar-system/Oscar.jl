@@ -1621,6 +1621,15 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
       complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
+      pb_f = pullback(f)::AbsLocalizedRingHom
+      pb_f_res = restricted_map(pb_f)
+      @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
+      Q = preimage(pb_f_res, F(domain(f)))
+      result = ideal(OO(V2), gens(Q))
+      @assert !isone(Q)
+      set_attribute!(result, :is_prime=>true)
+      @hassert :IdealSheaves 1 is_prime(result)
+      return result
       I2 = F(codomain(g))
       I = pullback(g)(I2)
       I = ideal(OO(V2), lifted_numerator.(gens(I)))
@@ -1785,6 +1794,7 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   if has_ancestor(x->(x===U2), U)
     iso = _flatten_open_subscheme(U, U2)  # an embedding U -> V \subseteq U2
     iso_inv = inverse(iso)
+    P = II(U)
     pb_P = pullback(iso_inv)(P)
     # avoids a saturation by discarding denominators but only produces a subideal
     result = ideal(OO(U2), [g for g in OO(U2).(lifted_numerator.(gens(pb_P))) if !iszero(g)])
