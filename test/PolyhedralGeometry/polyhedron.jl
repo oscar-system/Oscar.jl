@@ -446,9 +446,13 @@
 
       @test_throws ArgumentError n_gon(2)
       let gon = n_gon(4; r=2)
-        @test gon isa Polyhedron{T}
+        @test gon isa Polyhedron{QQBarFieldElem}
         @test length(vertices(gon)[1]) == 2
         @test n_vertices(gon) == 4
+      end
+      let gon = n_gon(20)
+        K = coefficient_field(gon)
+        @test volume(gon) == 5//2 * (sqrt(K(5)) - 1)
       end
 
       @test_throws ArgumentError permutahedron(-1)

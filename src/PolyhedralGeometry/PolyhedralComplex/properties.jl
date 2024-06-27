@@ -131,6 +131,34 @@ _vertices(
   PC, _vertex_or_ray_complex, length(_all_vertex_indices(pm_object(PC)))
 )
 
+@doc raw"""
+    vertices_and_rays(PC::PolyhedralComplex)
+
+Return the vertices and rays of `PC` as a combined set, up to lineality. This
+function is mainly a helper function for [`maximal_polyhedra`](@ref).
+
+# Examples
+```jldoctest
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
+Polyhedral complex in ambient dimension 3
+
+julia> for vr in vertices_and_rays(PC)
+       println("$vr : $(typeof(vr))")
+       end
+QQFieldElem[0, 0, 0] : PointVector{QQFieldElem}
+QQFieldElem[1, 0, 0] : RayVector{QQFieldElem}
+QQFieldElem[0, 1, 0] : RayVector{QQFieldElem}
+QQFieldElem[-1, 0, 0] : RayVector{QQFieldElem}
+```
+"""
 vertices_and_rays(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
   _vertices(Union{PointVector{T},RayVector{T}}, PC)
 
@@ -364,6 +392,10 @@ _vertex_and_ray_indices(::Val{_maximal_polyhedron}, PC::PolyhedralComplex) =
 
 Return the maximal polyhedra of `PC`
 
+Optionally `IncidenceMatrix` can be passed as a first argument to return the
+incidence matrix specifying the maximal polyhedra of `PC`. The indices returned
+refer to the output of [`vertices_and_rays`](@ref).
+
 # Examples
 ```jldoctest
 julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
@@ -386,6 +418,11 @@ julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
  Polytope in ambient dimension 2
+
+julia> maximal_polyhedra(IncidenceMatrix, PC)
+2×4 IncidenceMatrix
+[1, 2, 3]
+[1, 3, 4]
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =

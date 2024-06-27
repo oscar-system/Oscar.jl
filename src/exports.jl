@@ -194,6 +194,7 @@ export add_gluing!
 export add_vertex!
 export add_vertices!
 export adjacency_tree
+export adjacency_matrix
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
@@ -251,6 +252,7 @@ export anticanonical_divisor
 export anticanonical_divisor_class
 export approximate_class_fusion
 export archimedean_solid
+export arrangement_polynomial
 export arithmetic_genus
 export as_dictionary
 export as_gset
@@ -484,12 +486,11 @@ export double_cosets
 export double_dual
 export dst
 export dual_continued_fraction_hirzebruch_jung
+export dual_graph
 export dual_matroid
 export dual_subdivision
-export dualgraph
 export dwarfed_cube
 export dwarfed_product_polygons
-export edgegraph
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
@@ -568,6 +569,7 @@ export g_vector
 export galois_group
 export galois_ideal
 export galois_quotient
+export galois_orbit_sum
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -806,6 +808,7 @@ export is_isomorphism
 export is_johnson_solid
 export is_k_separation
 export is_lattice_polytope
+export is_leaf
 export is_left
 export is_linearly_normal
 export is_local
@@ -844,7 +847,9 @@ export is_q_cartier
 export is_q_gorenstein
 export is_quasisimple, has_is_quasisimple, set_is_quasisimple
 export is_quaternion_group, has_is_quaternion_group, set_is_quaternion_group
+export is_quotient
 export is_radical
+export is_ready
 export is_reduced
 export is_regular
 export is_regular_sequence
@@ -912,6 +917,7 @@ export koszul_complex
 export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
+export laplacian_matrix
 export lattice_points
 export lattice_volume
 export leading_coefficient
@@ -1065,6 +1071,7 @@ export neighbors
 export newick
 export newton_polytope
 export newton_subdivision
+export nice_gens
 export nilpotency_class, has_nilpotency_class, set_nilpotency_class
 export noether_normalization
 export non_fano_matroid
@@ -1262,6 +1269,7 @@ export reading_word
 export real_projective_plane
 export real_solutions
 export recession_cone
+export recognize
 export reduce
 export reduce_fraction
 export reduce_with_quotients
@@ -1283,6 +1291,7 @@ export relative_invariants
 export relators
 export rem_edge!
 export rem_vertex!
+export rem_vertices!
 export renest
 export repres
 export representative
@@ -1404,6 +1413,7 @@ export stanley_reisner_ring
 export star_subcomplex
 export star_subdivision
 export star_triangulations
+export straight_line_program
 export strongly_connected_components
 export structure_sheaf
 export sub
@@ -1495,6 +1505,7 @@ export vector_matrix
 export vector_space_basis
 export vector_space_dimension
 export vertex_and_ray_indices
+export vertex_edge_graph
 export vertex_figure
 export vertex_indices
 export vertex_sizes

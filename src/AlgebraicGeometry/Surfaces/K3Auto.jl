@@ -1640,6 +1640,7 @@ Return an `S`-nondegenerate Weyl vector of `L`.
 function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMatrix,
                                     ample0::QQMatrix, perturbation_factor=1000)
   V = ambient_space(L)
+  @assert ambient_space(L)==ambient_space(S)
   ample = ample0
   u = u0
 
@@ -1654,7 +1655,6 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   end
   @vprint :K3Auto 2 "calculating QQDcapS\n"
   QQDcapS = lattice(V, span_in_S(L, S, weyl)*basis_matrix(S))
-
   N = Hecke.orthogonal_submodule(L, QQDcapS)
   N = lll(N)
   @vprint :K3Auto 2 "computing the relevant roots\n"
@@ -2066,7 +2066,8 @@ function find_section(L::ZZLat, f::QQMatrix)
     k = nrows(K)
     Kl = integer_lattice(gram=K*transpose(K))
     # project ss to K
-    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)))
+    sK = solve(change_base_ring(QQ,K*transpose(K)),change_base_ring(QQ,K*transpose(ss)); side=:right
+    )
     a = QQ(1)
     cv = []
     lb = 0

@@ -1,7 +1,7 @@
 {
     "model_index": "32",
     "arxiv_data": {
-        "id": "1408.4808v2",
+        "id": "1408.4808",
         "doi": "10.48550/arXiv.1408.4808",
         "version": "2",
         "discipline": "hep-th",
@@ -41,7 +41,7 @@
     "model_descriptors": {
         "type": "hypersurface",
         "description": "F-theory hypersurface model with fiber ambient space F_10",
-        "gauge_algebra": ["su2","su3"]
+        "gauge_algebra": ["su(2)","su(3)"]
     },
     "model_data": {
         "base_dim": 3,

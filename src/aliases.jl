@@ -14,6 +14,8 @@ function n_points end
 function n_polyhedra end
 function n_rays end
 function n_vertices end
+function dual_graph end
+function vertex_edge_graph end
 
 function number_of_compositions end
 function number_of_partitions end
@@ -48,3 +50,7 @@ function number_of_weak_compositions end
 @alias n_generators ngens
 @alias n_rows nrows
 @alias n_variables nvars
+
+# for backwards compatibility
+@alias dualgraph dual_graph
+@alias edgegraph vertex_edge_graph

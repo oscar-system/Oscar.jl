@@ -1,6 +1,6 @@
 # Schur polynomials
 
-Given a partition $\lambda$ of $n$, the **Schur polynomial** is defined to be
+Given a partition $\lambda$ with $n$ parts, the **Schur polynomial** is defined to be
 the polynomial
 
 $$s_\lambda := \sum x_1^{m_1}\dots x_n^{m_n}$$

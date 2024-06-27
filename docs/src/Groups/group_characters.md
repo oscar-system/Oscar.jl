@@ -110,6 +110,7 @@ character_field
 conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
+galois_orbit_sum
 indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)

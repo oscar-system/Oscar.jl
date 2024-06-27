@@ -2407,7 +2407,7 @@ end
 Return the vector $[a_1, a_2, \ldots, a_n]$ of scalar products
 (see [`scalar_product`](@ref)) of `chi` with the irreducible characters
 $[t[1], t[2], \ldots, t[n]]$ of the character table $t$ of `chi`,
-that is, `chi` is equal to $\sum_{i==1}^n a_i t[i]$.
+that is, `chi` is equal to $\sum_{i=1}^n a_i t[i]$.
 The result is an instance of `Vector{T}`.
 
 # Examples
@@ -2832,7 +2832,7 @@ function character_field(chi::GAPGroupClassFunction)
       gappol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
       gapcoeffs = GAPWrap.CoefficientsOfUnivariatePolynomial(gappol)
       v = Vector{QQFieldElem}(gapcoeffs)
-      R, = polynomial_ring(QQ, "x")
+      R, = polynomial_ring(QQ, "x"; cached=false)
       f = R(v)
       F, _ = number_field(f, "z"; cached = true, check = false)
       nfelm = QQAbElem(gapgens[1])
@@ -2912,6 +2912,50 @@ function conductor(::Type{T}, chi::GAPGroupClassFunction) where T <: IntegerUnio
     return T(GAPWrap.Conductor(GapObj(chi)))
 end
 
+@doc raw"""
+    galois_orbit_sum(chi::GAPGroupClassFunction)
+
+Return a class function `psi`.
+If `chi` is an ordinary character then `psi` is the sum of all different
+Galois conjugates of `chi`;
+the values of `psi` are rationals.
+If `chi` is a Brauer character then `psi` is the sum of all different
+images of `chi` under powers of the Frobenius automorphism;
+thus `psi` is afforded by a representation over the prime field,
+but the values of `psi` need not be rationals.
+
+# Examples
+```jldoctest
+julia> t = character_table("A5");
+
+julia> println([degree(character_field(x)[1]) for x in t])
+[1, 2, 2, 1, 1]
+
+julia> println([degree(character_field(galois_orbit_sum(x))[1]) for x in t])
+[1, 1, 1, 1, 1]
+```
+"""
+function galois_orbit_sum(chi::GAPGroupClassFunction)
+    tbl = parent(chi)
+    gapchi = GapObj(chi)
+    if characteristic(tbl) == 0
+      F = GAPWrap.Field(gapchi)
+      F == GAP.Globals.Rationals && return chi
+      sums = [GAPWrap.Trace(F, x) for x in gapchi]
+    else
+      q = order_field_of_definition(chi)
+      flag, e, p = is_prime_power_with_data(q)
+      @assert flag
+      e == 1 && return chi
+      sums = gapchi
+      q = GAP.Obj(p)
+      for i in 2:e
+        sums = sums + GAPWrap.GaloisCyc(gapchi, q)
+        q = q*p
+      end
+    end
+    return class_function(tbl, GAPWrap.ClassFunction(GapObj(tbl), GapObj(sums)))
+end
 
 @doc raw"""
     schur_index(chi::GAPGroupClassFunction) -> Int
