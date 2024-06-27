@@ -153,7 +153,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # Grassmannian
     G = abstract_grassmannian(2, 4)
-    S, Q = tautological_bundles(G)
+    S, Q = bundles(G)
     c1, c2 = gens(G.ring)
     @test betti(G) == [1,1,2,1,1]
     @test euler(G) == 6
@@ -167,10 +167,10 @@ let pushforward = IntersectionTheory.pushforward
     @test [length(schubert_classes(G, i)) for i in 0:4] == [1,1,2,1,1]
 
     # Grassmannian: TnVariety version
-    G = abstract_grassmannian(2, 4, bott=true)
-    S, Q = tautological_bundles(G)
-    @test G isa IntersectionTheory.TnVariety
-    @test S isa IntersectionTheory.TnBundle
+    G = tn_grassmannian(2, 4)
+    S, Q = bundles(G)
+    @test G isa TnVariety
+    @test S isa TnBundle
     @test rank(tangent_bundle(G)) == 4
     @test euler(G) == 6
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 27
@@ -186,7 +186,7 @@ let pushforward = IntersectionTheory.pushforward
     @test euler(F) == 6
 
     # flag abstract_variety: TnVariety version
-    F = abstract_flag_variety(1, 2, 3, bott=true)
+    F = tn_flag_variety([1, 2, 3])
     A, B, C = bundles(F)
     @test dim(F) == 3
     @test rank.(bundles(F)) == [1, 1, 1]

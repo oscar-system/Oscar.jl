@@ -20,6 +20,7 @@ export base
 export betti
 #export blowup
 #export blowup_points
+export bundles
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -36,6 +37,7 @@ export euler_pairing
 export graph
 export intersection_matrix
 export l_genus
+export linear_subspaces_on_hypersurface
 export line_bundle
 export OO
 export point_class
@@ -51,6 +53,8 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_flag_variety
+export tn_grassmannian
 export todd_class
 export top_chern_class
 export total_chern_class
@@ -62,6 +66,8 @@ export MPolyDecRingOrQuo
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
+export TnBundle
+export TnVariety
 
 include("Types.jl")
 include("Misc.jl")
@@ -88,6 +94,7 @@ export base
 export betti
 #export blowup
 #export blowup_points
+export bundles
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -104,6 +111,7 @@ export euler_pairing
 export graph
 export intersection_matrix
 export l_genus
+export linear_subspaces_on_hypersurface
 export line_bundle
 export OO
 export point_class
@@ -119,6 +127,8 @@ export segre_class
 export structure_map
 export tangent_bundle
 export tautological_bundles
+export tn_flag_variety
+export tn_grassmannian
 export todd_class
 export top_chern_class
 export total_chern_class
@@ -130,3 +140,5 @@ export MPolyDecRingOrQuo
 export AbstractVariety
 export AbstractVarietyMap
 export AbstractBundle
+export TnBundle
+export TnVariety

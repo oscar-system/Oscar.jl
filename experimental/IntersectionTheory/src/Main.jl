@@ -293,7 +293,6 @@ end
 
 @doc raw"""
     chow_ring(X::AbstractVariety)
-    chow_ring(X::TnVariety)
 
 Return the Chow ring of `X`.
 
@@ -322,7 +321,6 @@ gens(X::AbstractVariety) = gens(X.ring)
 
 @doc raw"""
     base(X::AbstractVariety)
-    base(X::TnVariety)
 
 Return the coefficient ring of the polynomial ring underlying the Chow ring of `X`.
 
@@ -346,7 +344,6 @@ base(X::AbstractVariety) = X.base
 
 @doc raw"""
     point_class(X::AbstractVariety)
-    point_class(X::TnVariety)
 
 Return the point class of `X`.
 
@@ -367,7 +364,6 @@ point_class(X::AbstractVariety) = X.point
 
 @doc raw"""
     trivial_line_bundle(X::AbstractVariety)
-    trivial_line_bundle(X::TnVariety)
 
 Return the trivial line bundle $\mathcal O_X$ on $X$. Alternatively, use `OO`.
 
@@ -389,7 +385,6 @@ trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
 
 @doc raw"""
     tautological_bundles(X::AbstractVariety)
-    tautological_bundles(X::TnVariety)
 
 Return the tautological_bundles of $X$ (if applicable).
 
@@ -426,7 +421,6 @@ tautological_bundles(X::AbstractVariety) = X.bundles
 
 @doc raw"""
     structure_map(X::AbstractVariety)
-    structure_map(X::TnVariety)
 
 Return the structure map of $X$.
 
@@ -502,7 +496,6 @@ degree(X::AbstractVariety) = integral(X.O1^X.dim)
 
 @doc raw"""
     tangent_bundle(X::AbstractVariety)
-    tangent_bundle(X::TnVariety)
 
 Return the tangent bundle of `X`.
 
@@ -523,7 +516,6 @@ tangent_bundle(X::AbstractVariety) = X.T
 
 @doc raw"""
     cotangent_bundle(X::AbstractVariety)
-    cotangent_bundle(X::TnVariety)
 
 Return the cotangent bundle of $X$.
 
@@ -1420,13 +1412,10 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
 end
 
 @doc raw"""
-    abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::Ring = QQ, symbol::String = "c")
+    abstract_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
 
 Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspaces of an 
 `n`-dimensional vector space.
-
-Use the argument `bott = true` to construct the Grassmannian as a `TnVariety` for
-computing integrals using Bott's formula.
 
 # Examples
 ```jldoctest
@@ -1442,13 +1431,7 @@ Quotient
 
 ```
 """
-function abstract_grassmannian(k::Int, n::Int; bott::Bool=false, weights=:int, base::Ring=QQ, symbol::String="c")
-  # combine the interface for AbstractVariety and TnVariety versions
-  bott && return tn_grassmannian(k, n, weights=weights)
-  abs_grassmannian(k, n, base=base, symbol=symbol)
-end
-
-function abs_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
+function abstract_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
   @assert k < n
  
   d = k*(n-k)
@@ -1473,15 +1456,12 @@ function abs_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    abstract_flag_variety(dims::Int...; bott::Bool = false, weights = :int, base::Ring = QQ, symbol::String = "c")
-    abstract_flag_variety(dims::Vector{Int}; bott::Bool = false, weights = :int, base::Ring = QQ, symbol::String = "c")
+    abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
+    abstract_flag_variety(dims::Vector{Int}; base::Ring = QQ, symbol::String = "c")
 
 Given integers, say, $d_1, \dots, d_{k}, n$ or a vector of such integers, return the abstract 
 flag variety $\mathrm{F}(d_1, \dots, d_{k}; n)$ of nested sequences of subspaces of dimensions 
 $d_1; \dots, d_{k}$ of an $n$-dimensional vector space.
-
-Use the argument `bott = true` to construct the flag variety as a `TnVariety` for
-computing integrals using Bott's formula.
 
 # Examples
 ```jldoctest
@@ -1500,13 +1480,10 @@ Quotient
 ```
 """
 function abstract_flag_variety(dims::Int...; bott::Bool=false, weights=:int, base::Ring=QQ, symbol::String="c")
-  # combine the interface for AbstractVariety and TnVariety versions
-  bott && return tn_flag(collect(dims), weights=weights)
   abs_flag(collect(dims), base=base, symbol=symbol)
 end
 
 function abstract_flag_variety(dims::Vector{Int}; bott::Bool=false, weights=:int, base::Ring=QQ, symbol::String="c")
-  bott && return tn_flag(dims, weights=weights)
   abs_flag(dims, base=base, symbol=symbol)
 end
 
