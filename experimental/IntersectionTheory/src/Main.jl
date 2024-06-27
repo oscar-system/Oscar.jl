@@ -1412,7 +1412,7 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
 end
 
 @doc raw"""
-    abstract_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
+    abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
 Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspaces of an 
 `n`-dimensional vector space.
@@ -1431,7 +1431,7 @@ Quotient
 
 ```
 """
-function abstract_grassmannian(k::Int, n::Int; base::Ring=QQ, symbol::String="c")
+function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
   @assert k < n
  
   d = k*(n-k)
