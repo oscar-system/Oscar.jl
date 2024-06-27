@@ -1944,7 +1944,9 @@ and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
-of the underlying free group.
+of the underlying free group of `full_group(parent(g))`.
+In particular, `genimgs` are interpreted as the images of the generators
+of this free group, not of `gens(parent(g))`.
 
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
@@ -2027,13 +2029,13 @@ end
 
 
 @doc raw"""
-    map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
 which is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
-of $G$ and the $e_i$ are nonzero integers,
+of `full_group(parent(g))` and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 # Examples
