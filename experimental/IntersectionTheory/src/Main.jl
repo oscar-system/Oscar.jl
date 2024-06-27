@@ -219,9 +219,9 @@ end
 @doc raw"""
     abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}) where T
 
-Construct a generic abstract_variety of dimension $n$ with some bundles of given ranks.
+Construct a generic abstract variety of dimension $n$ with some bundles of given ranks.
 
-Return the abstract_variety and the list of bundles.
+Return the abstract variety and the list of bundles.
 """
 function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) where T
   symbols = vcat([_parse_symbol(s,1:r) for (r,s) in bundles]...)
@@ -508,7 +508,7 @@ julia> TG = tangent_bundle(G)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
 julia> chern_character(TG)
--5//6*c₁^3 + 5//24*c₁^2*c₂ + 3//2*c₁^2 + 5//2*c₁*c₂ - 5*c₁ + 7//72*c₂^3 - 25//24*c₂^2 - c₂ + 6
+-5//6*c[1]^3 + 5//24*c[1]^2*c[2] + 3//2*c[1]^2 + 5//2*c[1]*c[2] - 5*c[1] + 7//72*c[2]^3 - 25//24*c[2]^2 - c[2] + 6
 
 ```
 """
@@ -1425,9 +1425,9 @@ AbstractVariety of dim 4
 julia> chow_ring(G)
 Quotient
   of multivariate polynomial ring in 2 variables over QQ graded by
-    c₁ -> [1]
-    c₂ -> [2]
-  by ideal (-c₁^3 + 2*c₁*c₂, c₁^4 - 3*c₁^2*c₂ + c₂^2)
+    c[1] -> [1]
+    c[2] -> [2]
+  by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
 
 ```
 """
@@ -1471,10 +1471,10 @@ AbstractVariety of dim 5
 julia> chow_ring(F)
 Quotient
   of multivariate polynomial ring in 4 variables over QQ graded by
-    c₁,₁ -> [1]
-    c₂,₁ -> [1]
-    c₂,₂ -> [2]
-    c₃,₁ -> [1]
+    c[1, 1] -> [1]
+    c[2, 1] -> [1]
+    c[2, 2] -> [2]
+    c[3, 1] -> [1]
   by ideal with 4 generators
 
 ```
