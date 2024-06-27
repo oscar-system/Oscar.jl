@@ -1,7 +1,7 @@
 using Oscar.IntersectionTheory
 
 let pushforward = IntersectionTheory.pushforward
-  @testset "GenericVariety" begin
+  @testset "GenericVariety" begin	
     
     # # generic abstract_variety
     # C = abstract_variety(1)
@@ -179,9 +179,9 @@ let pushforward = IntersectionTheory.pushforward
 
     # flag abstract_variety
     F = abstract_flag_variety(1, 2, 3)
-    A, B, C = bundles(F)
+    A, B, C = tautological_bundles(F)
     @test dim(F) == 3
-    @test rank.(bundles(F)) == [1, 1, 1]
+    @test rank.(tautological_bundles(F)) == [1, 1, 1]
     @test betti(F) == [1,2,2,1]
     @test euler(F) == 6
 
@@ -196,7 +196,7 @@ let pushforward = IntersectionTheory.pushforward
     X, (F,) = abstract_variety(3, [3=>"c"])
     PF = abstract_projective_bundle(F)
     @test dim(PF) == 5
-    @test rank.(bundles(PF)) == [1, 2]
+    @test rank.(tautological_bundles(PF)) == [1, 2]
     p = PF.struct_map
     @test p.codomain == X
     @test pullback(p, X(1)) == 1
@@ -207,7 +207,7 @@ let pushforward = IntersectionTheory.pushforward
     X, (F,) = abstract_variety(2, [4=>"c"])
     FlF = abstract_flag_variety(F, 2)
     @test dim(FlF) == 6
-    @test rank.(bundles(FlF)) == [2, 2]
+    @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = FlF.struct_map
     @test p.codomain == X
     @test pullback(p, X(1)) == 1
