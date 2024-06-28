@@ -51,6 +51,7 @@ and `gluing_morphisms` in opposite order compared to `G`.
   return Ginv
 end
 
+
 ########################################################################
 # Getters for Gluing                                                  #
 ########################################################################
@@ -76,4 +77,15 @@ gluing_domains(G::SimpleGluing) = (G.U, G.V)
   return Ginv
 end
 
+########################################################################
+# Further methods                                                      #
+########################################################################
 
+@attr function is_disjoint_gluing(G::AbsGluing)
+  U = gluing_domains(G)[1]
+  return is_empty(U)
+end
+
+function has_is_disjoint_gluing(G::AbsGluing)
+  return has_attribute(G, :is_disjoint_gluing)
+end

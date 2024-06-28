@@ -64,7 +64,9 @@ function update_gluing_graph(C::Covering; all_dense::Bool=false)
       add_edge!(gg, C[X], C[Y])
       add_edge!(gg, C[Y], C[X])
     else
-      (U, V) = gluing_domains(C[X,Y])
+      G = C[X,Y]
+      has_is_disjoint_gluing(G) && is_disjoint_gluing(G) && continue
+      (U, V) = gluing_domains(G)
       is_dense(U) && add_edge!(gg, C[X], C[Y])
       is_dense(V) && add_edge!(gg, C[Y], C[X])
     end
@@ -81,11 +83,13 @@ function pruned_gluing_graph(C::Covering)
   m = length(v)
   gt = Graph{Undirected}(m)
   for (X, Y) in keys(gluings(C))
+    G = C[X,Y]
+    has_is_disjoint_gluing(G) && is_disjoint_gluing(G) && continue
     i = findfirst(==(C[X]),v)
     !isnothing(i) || continue
     j = findfirst(==(C[Y]),v)
     !isnothing(j) || continue
-    (U, V) = gluing_domains(C[X,Y])
+    (U, V) = gluing_domains(G)
     is_dense(U) && add_edge!(gt, i, j)
     is_dense(V) && add_edge!(gt, j, i)
   end

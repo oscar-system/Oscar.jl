@@ -28,8 +28,18 @@
     )
     U = spec(R)
     @check U == hypersurface_complement(X, f) "scheme is not isomorphic to the anticipated open subset"
-    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, lifted_numerator.(f))
+    n = lifted_numerator(f)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, [n], n)
   end
+  
+  function PrincipalOpenSubset(X::AbsAffineScheme, U::AffineScheme, f::RingElem;
+      check::Bool=true
+    )
+    @check ((iszero(f) && is_empty(U)) || U == hypersurface_complement(X, f)) "scheme is not isomorphic to the anticipated open subset"
+    n = lifted_numerator(f)
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, [n], n)
+  end
+  
   function PrincipalOpenSubset(X::AbsAffineScheme, R::Ring, f::Vector{T};
       check::Bool=true
     ) where {T<:RingElem}
