@@ -411,6 +411,16 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   return MS, map
 end
 
+function change_base_ring(phi::Any, f::ModuleFPHom; 
+    domain_base_change=change_base_ring(phi, domain(f))[2], 
+    codomain_base_change=change_base_ring(phi, codomain(f))[2]
+  )
+  new_dom = codomain(domain_base_change)
+  new_cod = codomain(codomain_base_change)
+  return hom(new_dom, new_cod, codomain_base_change.(f.(gens(domain(f)))))
+end
+
+
 ### Duals of modules
 @doc raw"""
     dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
