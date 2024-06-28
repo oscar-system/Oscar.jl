@@ -397,6 +397,10 @@ function load_object(s::DeserializerState, ::Type{Dict{String, Int}})
   return Dict{String, Int}(string(k) => parse(Int, v) for (k,v) in s.obj)
 end
 
+function load_object(s::DeserializerState, ::Type{Dict{Int, Int}})
+  return Dict{Int, Int}(parse(Int,string(k)) => parse(Int, v) for (k,v) in s.obj)
+end
+
 function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, Any})
   key_type = params[:key_type]
   value_type = haskey(params, :value_type) ? params[:value_type] : Any
