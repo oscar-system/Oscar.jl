@@ -21,13 +21,12 @@ julia> f = R(5*x^2 + 3*y^5);
 
 julia> hasse_derivatives(f)
 9-element Vector{ZZMPolyRingElem}:
- 3*y^5
+ 5*x^2 + 3*y^5
  15*y^4
  30*y^3
  30*y^2
  15*y
  3
- 5*x^2
  10*x
  5
 ```
@@ -41,12 +40,15 @@ function hasse_derivatives(f::MPolyRingElem)
   # replace f(x_i) -> f(y_i + t_i)
   F = evaluate(f, gens(Rtemp)[1:n] + gens(Rtemp)[n+1:2n])
   # i = 1 # counter to iterate though degrees of monomials
-  HasseDerivativesList = empty([f])
+  # HasseDerivativesList = empty([f])
+  HasseDerivativesList = [f]
   varR = vcat(gens(R), ones(typeof(base_ring(R)(1)), n))
   # getting hasse derivs without extra attention on ordering
   for term in terms(F)
-    # hasse derivatives are the factors in front of the monomial in t
-    push!(HasseDerivativesList, evaluate(term, varR))
+    if sum(degrees(term)[n+1:2n]) != 0
+      # hasse derivatives are the factors in front of the monomial in t
+      push!(HasseDerivativesList, evaluate(term, varR))
+    end
   end
   return HasseDerivativesList
 end
@@ -86,7 +88,7 @@ julia> hasse_derivatives([f1, f2])
  [6*x4^3, 18*x4^2, 18*x4, 6]
 ```
 """
-function hasse_derivatives(v::Vector{MPolyRingElem})
+function hasse_derivatives(v::Vector{<:MPolyRingElem})
   return hasse_derivatives.(v)
 end
 
