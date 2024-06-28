@@ -9,7 +9,7 @@ import Oscar: GAPWrap, IntegerUnion, MapHeader
 import Random
 
 # not importet in Oscar
-using AbstractAlgebra: ProductIterator, ordinal_number_string
+using AbstractAlgebra: ProductIterator, _number_of_direct_product_factors, ordinal_number_string
 
 using AbstractAlgebra.PrettyPrinting
 
@@ -85,6 +85,7 @@ import ..Oscar:
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DirectSumLieAlgebra, DirectSumLieAlgebraElem
 export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
@@ -211,6 +212,7 @@ include("LinearLieAlgebra.jl")
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraHom.jl")
+include("DirectSumLieAlgebra.jl")
 include("LieAlgebraModule.jl")
 include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
@@ -222,6 +224,7 @@ end # module LieAlgebras
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DirectSumLieAlgebra, DirectSumLieAlgebraElem
 export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
