@@ -11,45 +11,36 @@
     R::Field,
     struct_consts::Matrix{SRow{C}},
     s::Vector{Symbol};
-    cached::Bool=true,
     check::Bool=true,
   ) where {C<:FieldElem}
-    return get_cached!(
-      AbstractLieAlgebraDict, (R, struct_consts, s), cached
-    ) do
-      (n1, n2) = size(struct_consts)
-      @req n1 == n2 "Invalid structure constants dimensions."
-      dimL = n1
-      @req length(s) == dimL "Invalid number of basis element names."
-      if check
-        @req all(
-          r -> all(e -> parent(last(e)) === R, r), struct_consts
-        ) "Invalid structure constants."
-        @req all(
-          iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
-        ) "Not anti-symmetric."
-        @req all(
-          iszero,
-          struct_consts[i, j][k] + struct_consts[j, i][k] for i in 1:dimL, j in 1:dimL,
-          k in 1:dimL
-        ) "Not anti-symmetric."
-        @req all(
-          iszero,
-          sum(
-            struct_consts[i, j][k] * struct_consts[k, l][m] +
-            struct_consts[j, l][k] * struct_consts[k, i][m] +
-            struct_consts[l, i][k] * struct_consts[k, j][m] for k in 1:dimL
-          ) for i in 1:dimL, j in 1:dimL, l in 1:dimL, m in 1:dimL
-        ) "Jacobi identity does not hold."
-      end
-      new{C}(R, dimL, struct_consts, s)
-    end::AbstractLieAlgebra{C}
+    (n1, n2) = size(struct_consts)
+    @req n1 == n2 "Invalid structure constants dimensions."
+    dimL = n1
+    @req length(s) == dimL "Invalid number of basis element names."
+    if check
+      @req all(
+        r -> all(e -> parent(last(e)) === R, r), struct_consts
+      ) "Invalid structure constants."
+      @req all(
+        iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
+      ) "Not anti-symmetric."
+      @req all(
+        iszero,
+        struct_consts[i, j][k] + struct_consts[j, i][k] for i in 1:dimL, j in 1:dimL,
+        k in 1:dimL
+      ) "Not anti-symmetric."
+      @req all(
+        iszero,
+        sum(
+          struct_consts[i, j][k] * struct_consts[k, l][m] +
+          struct_consts[j, l][k] * struct_consts[k, i][m] +
+          struct_consts[l, i][k] * struct_consts[k, j][m] for k in 1:dimL
+        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL, m in 1:dimL
+      ) "Jacobi identity does not hold."
+    end
+    return new{C}(R, dimL, struct_consts, s)
   end
 end
-
-const AbstractLieAlgebraDict = CacheDictType{
-  Tuple{Field,Matrix{SRow},Vector{Symbol}},AbstractLieAlgebra
-}()
 
 struct AbstractLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::AbstractLieAlgebra{C}
@@ -181,7 +172,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Field, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -193,7 +184,6 @@ such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
 
 * `s`: A vector of basis element names. This is 
   `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
-* `cached`: If `true`, cache the result. This is `true` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
 """
@@ -201,15 +191,14 @@ function lie_algebra(
   R::Field,
   struct_consts::Matrix{SRow{C}},
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
-  cached::Bool=true,
   check::Bool=true,
 ) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
-  return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); cached, check)
+  return AbstractLieAlgebra{elem_type(R)}(R, struct_consts, Symbol.(s); check)
 end
 
 @doc raw"""
-    lie_algebra(R::Field, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; cached::Bool, check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -221,7 +210,6 @@ such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
 
 * `s`: A vector of basis element names. This is
   `[Symbol("x_$i") for i in 1:size(struct_consts, 1)]` by default.
-* `cached`: If `true`, cache the result. This is `true` by default.
 * `check`: If `true`, check that the structure constants are anti-symmetric and
   satisfy the Jacobi identity. This is `true` by default.
 
@@ -266,7 +254,6 @@ function lie_algebra(
   R::Field,
   struct_consts::Array{C,3},
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
-  cached::Bool=true,
   check::Bool=true,
 ) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
@@ -279,7 +266,7 @@ function lie_algebra(
     )
   end
 
-  return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); cached, check)
+  return AbstractLieAlgebra{elem_type(R)}(R, struct_consts2, Symbol.(s); check)
 end
 
 function lie_algebra(
@@ -304,14 +291,13 @@ function lie_algebra(
 end
 
 @doc raw"""
-    lie_algebra(R::Field, dynkin::Tuple{Char,Int}; cached::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, dynkin::Tuple{Char,Int}) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the simple Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
 The internally used basis of this Lie algebra is the Chevalley basis.
 
-If `cached` is `true`, the constructed Lie algebra is cached.
 """
-function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
+function lie_algebra(R::Field, S::Symbol, n::Int)
   rs = root_system(S, n)
   cm = cartan_matrix(rs)
   @req is_cartan_matrix(cm; generalized=false) "The type does not correspond to a classical root system"
@@ -355,7 +341,7 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
     [Symbol("h_$i") for i in 1:nsimp]
   ]
 
-  L = lie_algebra(R, struct_consts, s; cached, check=true) # TODO: remove check
+  L = lie_algebra(R, struct_consts, s; check=true) # TODO: remove check
   =#
 
   # start temporary workaround # TODO: reenable code above
@@ -373,7 +359,7 @@ function lie_algebra(R::Field, S::Symbol, n::Int; cached::Bool=true)
     [Symbol("h_$i") for i in 1:nsimp]
   ]
   L = codomain(
-    _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso, cached)
+    _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso)
   )::AbstractLieAlgebra{elem_type(R)}
   # end temporary workaround
 
