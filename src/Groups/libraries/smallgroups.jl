@@ -74,12 +74,25 @@ solvable, otherwise it will be of type `PermGroup`.
 ```jldoctest
 julia> small_group(60, 4)
 Pc group of order 60
+with 4 generators
+  f1
+  f2
+  f3
+  f4
 
 julia> small_group(60, 5)
 Permutation group of degree 5 and order 60
+with 2 generators
+  (1,2,3,4,5)
+  (1,2,3)
 
 julia> small_group(PcGroup, 60, 4)
 Pc group of order 60
+with 4 generators
+  f1
+  f2
+  f3
+  f4
 ```
 """
 function small_group(::Type{T}, n::IntegerUnion, m::IntegerUnion) where T

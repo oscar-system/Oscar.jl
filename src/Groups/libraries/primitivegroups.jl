@@ -89,6 +89,9 @@ The output is a group of type `PermGroup`.
 ```jldoctest
 julia> primitive_group(10,1)
 Permutation group of degree 10 and order 60
+with 2 generators
+  (1,5,7)(2,9,4)(3,8,10)
+  (2,6)(3,5)(4,7)(9,10)
 
 julia> primitive_group(10,10)
 ERROR: ArgumentError: there are only 9 primitive permutation groups of degree 10, not 10
@@ -120,6 +123,9 @@ true
 
 julia> S = stabilizer(G, 1)[1]
 Permutation group of degree 7 and order 720
+with 2 generators
+  (2,7,6,5,4,3)
+  (6,7)
 
 julia> is_primitive(S)
 false

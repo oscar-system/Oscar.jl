@@ -59,12 +59,17 @@ Polyhedron in ambient dimension 2
 
 julia> G = combinatorial_symmetries(quad)
 Permutation group of degree 4
+with 2 generators
+  (2,4)
+  (1,2)(3,4)
 
 julia> order(G)
 8
 
 julia> G = linear_symmetries(quad)
 Permutation group of degree 4
+with 1 generator
+  (2,4)
 
 julia> order(G)
 2
@@ -89,6 +94,10 @@ Polytope in ambient dimension 3
 
 julia> G = linear_symmetries(c)
 Permutation group of degree 8
+with 3 generators
+  (3,5)(4,6)
+  (2,3)(6,7)
+  (1,2)(3,4)(5,6)(7,8)
 
 julia> order(G)
 48
@@ -102,6 +111,8 @@ Polyhedron in ambient dimension 2
 
 julia> G = linear_symmetries(quad)
 Permutation group of degree 4
+with 1 generator
+  (2,4)
 
 julia> order(G)
 2

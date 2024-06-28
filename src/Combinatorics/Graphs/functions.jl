@@ -700,6 +700,10 @@ julia> g = complete_graph(4);
 
 julia> automorphism_group(g)
 Permutation group of degree 4
+with 3 generators
+  (3,4)
+  (2,3)
+  (1,2)
 ```
 """
 function automorphism_group(g::Graph{T}) where {T <: Union{Directed, Undirected}}

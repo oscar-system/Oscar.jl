@@ -340,6 +340,11 @@ Return the G-set that consists of the elements `fun(omega, g)` where
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> Omega = gset(G, [1, 5]);
 
@@ -404,6 +409,11 @@ Return the vector of transitive G-sets in `Omega`.
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> orbs = orbits(gset(G));
 
@@ -433,6 +443,11 @@ Return the orbits of the natural G-set of `G`.
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> orbs = orbits(G);
 
@@ -728,6 +743,11 @@ To also obtain a conjugating element use [`is_conjugate_with_data`](@ref).
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> Omega = gset(G);
 
@@ -754,6 +774,11 @@ If the conjugating element `g` is not needed, use [`is_conjugate`](@ref).
 ```jldoctest
 julia> G = sylow_subgroup(symmetric_group(6), 2)[1]
 Permutation group of degree 6 and order 16
+with 4 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
+  (5,6)
 
 julia> Omega = gset(G);
 
@@ -841,6 +866,10 @@ An exception is thrown if this action is not transitive.
 ```jldoctest
 julia> g = sylow_subgroup(symmetric_group(4), 2)[1]
 Permutation group of degree 4 and order 8
+with 3 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
 
 julia> collect(blocks(g))
 2-element Vector{Vector{Int64}}:
@@ -870,6 +899,9 @@ An exception is thrown if this action is not transitive.
 ```jldoctest
 julia> G = transitive_group(8, 2)
 Permutation group of degree 8
+with 2 generators
+  (1,2,3,8)(4,5,6,7)
+  (1,5)(2,6)(3,7)(4,8)
 
 julia> collect(maximal_blocks(G))
 2-element Vector{Vector{Int64}}:
@@ -900,6 +932,9 @@ An exception is thrown if this action is not transitive.
 ```jldoctest
 julia> G = transitive_group(8, 2)
 Permutation group of degree 8
+with 2 generators
+  (1,2,3,8)(4,5,6,7)
+  (1,5)(2,6)(3,7)(4,8)
 
 julia> minimal_block_reps(G)
 3-element Vector{Vector{Int64}}:
@@ -924,6 +959,9 @@ for the action of `G` on the set of moved points of `G`.
 ```jldoctest
 julia> G = transitive_group(8, 2)
 Permutation group of degree 8
+with 2 generators
+  (1,2,3,8)(4,5,6,7)
+  (1,5)(2,6)(3,7)(4,8)
 
 julia> all_blocks(G)
 6-element Vector{Vector{Int64}}:
@@ -957,12 +995,19 @@ julia> G = symmetric_group(4); rank_action(G)  # 4-transitive
 
 julia> H = sylow_subgroup(G, 2)[1]
 Permutation group of degree 4 and order 8
+with 3 generators
+  (1,2)
+  (3,4)
+  (1,3)(2,4)
 
 julia> rank_action(H)  # not 2-transitive
 3
 
 julia> K = stabilizer(G, 1)[1]
 Permutation group of degree 4 and order 6
+with 2 generators
+  (2,4,3)
+  (3,4)
 
 julia> rank_action(K, 2:4)  # 2-transitive
 2
@@ -1081,6 +1126,8 @@ julia> G = symmetric_group(6);
 
 julia> H = sub(G, [G([2, 3, 4, 5, 6, 1])])[1]
 Permutation group of degree 6
+with 1 generator
+  (1,2,3,4,5,6)
 
 julia> is_regular(H)
 true
@@ -1104,6 +1151,8 @@ julia> G = symmetric_group(6);
 
 julia> H = sub(G, [G([2, 3, 1, 5, 6, 4])])[1]
 Permutation group of degree 6
+with 1 generator
+  (1,2,3)(4,5,6)
 
 julia> is_semiregular(H)
 true
