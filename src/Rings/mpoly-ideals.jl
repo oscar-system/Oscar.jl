@@ -1139,11 +1139,12 @@ function minimal_primes(
 
   # This will in many cases lead to an easy simplification of the problem
   if factor_generators
-    J = typeof(I)[ideal(R, elem_type(R)[])]
+    J = [ideal(R, gens(I))] # A copy of I as initialization
     for g in gens(I)
       K = typeof(I)[]
       is_zero(g) && continue
       for (b, k) in factor(g)
+        # Split the already collected components with b
         for j in J
           push!(K, j + ideal(R, b))
         end
@@ -1161,14 +1162,6 @@ function minimal_primes(
       set_attribute!(p, :is_prime=>true)
     end
     return final_list
-  end
-
-  if base_ring(R) isa QQField && is_zero(dim(I)) # Special functionality available here
-    # Flattening does not do good in the examples we tested
-    L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
-    result = typeof(I)[ideal(R, q) for q in L]
-    cache && set_attribute!(I, :minimal_primes=>result)
-    return result
   end
 
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
