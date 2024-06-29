@@ -1625,10 +1625,11 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
       pb_f_res = restricted_map(pb_f)
       @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
       Q = preimage(pb_f_res, F(domain(f)))
-      result = ideal(OO(V2), gens(Q))
-      @assert !isone(Q)
-      set_attribute!(result, :is_prime=>true)
+      rest = OOX(V2, U2)
+      result = ideal(OO(U2), rest.(gens(Q)))
+      @hassert :IdealSheaves 1 !isone(Q)
       @hassert :IdealSheaves 1 is_prime(result)
+      set_attribute!(result, :is_prime=>true)
       return result
       I2 = F(codomain(g))
       I = pullback(g)(I2)
@@ -1693,7 +1694,9 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
   if any(x->x===U, patches(dom))
     f_loc = f_cov[U]
     V = codomain(f_loc)
-    return pullback(f_loc)(original_ideal_sheaf(I)(V))
+    KK = original_ideal_sheaf(I)(V)
+    @assert base_ring(KK) === OO(V)
+    return pullback(f_loc)(KK)
   end
 
   # We are in a chart below a patch in the domain covering
