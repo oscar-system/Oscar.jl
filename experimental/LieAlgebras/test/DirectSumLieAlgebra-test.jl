@@ -43,14 +43,14 @@
 
       lie_algebra_conformance_test(
         L, DirectSumLieAlgebra{AbsSimpleNumFieldElem},
-        DirectSumLieAlgebraElem{AbsSimpleNumFieldElem}
+        DirectSumLieAlgebraElem{AbsSimpleNumFieldElem},
       )
       @test dim(L) == dim(S1) + dim(S2) + dim(S3)
 
       L = direct_sum([S1, S2, S3])
       lie_algebra_conformance_test(
         L, DirectSumLieAlgebra{AbsSimpleNumFieldElem},
-        DirectSumLieAlgebraElem{AbsSimpleNumFieldElem}
+        DirectSumLieAlgebraElem{AbsSimpleNumFieldElem},
       )
       @test dim(L) == dim(S1) + dim(S2) + dim(S3)
     end
@@ -87,7 +87,8 @@
 
     for _ in 1:5
       x = L(rand(-10:10, dim(L)))
-      @test x == sum([canonical_injection(L, i)(canonical_projection(L, i)(x)) for i in 1:2])
+      @test x ==
+        sum([canonical_injection(L, i)(canonical_projection(L, i)(x)) for i in 1:2])
 
       x1 = S1(rand(-10:10, dim(S1)))
       x2 = S2(rand(-10:10, dim(S2)))

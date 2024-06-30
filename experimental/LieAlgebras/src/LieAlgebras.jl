@@ -9,7 +9,8 @@ import Oscar: GAPWrap, IntegerUnion, MapHeader
 import Random
 
 # not importet in Oscar
-using AbstractAlgebra: ProductIterator, _number_of_direct_product_factors, ordinal_number_string
+using AbstractAlgebra:
+  ProductIterator, _number_of_direct_product_factors, ordinal_number_string
 
 using AbstractAlgebra.PrettyPrinting
 

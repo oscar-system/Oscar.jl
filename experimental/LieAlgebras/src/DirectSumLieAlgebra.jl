@@ -6,13 +6,12 @@
 
   function DirectSumLieAlgebra{C}(
     R::Field,
-    summands::Vector{<:LieAlgebra{C}}
-    ) where {C<:FieldElem}
+    summands::Vector{<:LieAlgebra{C}},
+  ) where {C<:FieldElem}
     @req all(x -> coefficient_ring(x) == R, summands) "Summands must have the same coefficient ring."
     totaldim = sum(dim, summands; init=0)
     s = [Symbol("$(x)^($(i))") for (i, S) in enumerate(summands) for x in symbols(S)]
     L = new{C}(R, totaldim, summands, s)
-    
     return L
   end
 end
@@ -22,14 +21,14 @@ struct DirectSumLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   mat::MatElem{C}
 end
 
-
 ###############################################################################
 #
 #   Basic manipulation
 #
 ###############################################################################
 
-parent_type(::Type{DirectSumLieAlgebraElem{C}}) where {C<:FieldElem} = DirectSumLieAlgebra{C}
+parent_type(::Type{DirectSumLieAlgebraElem{C}}) where {C<:FieldElem} =
+  DirectSumLieAlgebra{C}
 
 elem_type(::Type{DirectSumLieAlgebra{C}}) where {C<:FieldElem} = DirectSumLieAlgebraElem{C}
 
@@ -38,7 +37,6 @@ parent(x::DirectSumLieAlgebraElem) = x.parent
 coefficient_ring(L::DirectSumLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::DirectSumLieAlgebra) = L.dim
-
 
 ###############################################################################
 #
@@ -67,7 +65,11 @@ function Base.show(io::IO, L::DirectSumLieAlgebra)
     print(io, "Direct sum Lie algebra")
   else
     io = pretty(io)
-    print(io, "Direct sum of $(_number_of_direct_product_factors(L)) Lie algebras over ", Lowercase())
+    print(
+      io,
+      "Direct sum of $(_number_of_direct_product_factors(L)) Lie algebras over ",
+      Lowercase(),
+    )
     print(terse(io), coefficient_ring(L))
   end
 end
@@ -101,14 +103,14 @@ function bracket(
     offset = index
     dimS = dim(S)
     index += dimS
-    
-    xS_vec = _matrix(x)[:, offset + 1:offset + dimS]
+
+    xS_vec = _matrix(x)[:, (offset + 1):(offset + dimS)]
     iszero(xS_vec) && continue
     xS = S(xS_vec)
-    yS_vec = _matrix(y)[:, offset + 1:offset + dimS]
+    yS_vec = _matrix(y)[:, (offset + 1):(offset + dimS)]
     iszero(yS_vec) && continue
-    yS = S(_matrix(y)[:, offset + 1:offset + dimS])
-    vec[:, offset + 1:offset + dimS] = _matrix(bracket(xS, yS))
+    yS = S(_matrix(y)[:, (offset + 1):(offset + dimS)])
+    vec[:, (offset + 1):(offset + dimS)] = _matrix(bracket(xS, yS))
   end
   return D(vec)
 end
@@ -123,29 +125,32 @@ function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
 end
 
-
 ###############################################################################
 #
 #   Direct sum functionality
 #
 ###############################################################################
 
-AbstractAlgebra._number_of_direct_product_factors(D::DirectSumLieAlgebra) = length(D.summands)
+AbstractAlgebra._number_of_direct_product_factors(D::DirectSumLieAlgebra) =
+  length(D.summands)
 
 function canonical_injection(D::DirectSumLieAlgebra, i::Int)
   @boundscheck @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
   S = D.summands[i]
-  mat = Generic.inj_proj_mat(coefficient_ring(D), dim(S), dim(D), sum(dim, D.summands[1:i-1]; init=0)+1)
+  mat = Generic.inj_proj_mat(
+    coefficient_ring(D), dim(S), dim(D), sum(dim, D.summands[1:(i - 1)]; init=0) + 1
+  )
   return hom(S, D, mat; check=false)
 end
 
 function canonical_projection(D::DirectSumLieAlgebra, i::Int)
   @boundscheck @req 1 <= i <= _number_of_direct_product_factors(D) "Invalid index."
   S = D.summands[i]
-  mat = Generic.inj_proj_mat(coefficient_ring(D), dim(D), dim(S), sum(dim, D.summands[1:i-1]; init=0)+1 )
+  mat = Generic.inj_proj_mat(
+    coefficient_ring(D), dim(D), dim(S), sum(dim, D.summands[1:(i - 1)]; init=0) + 1
+  )
   return hom(D, S, mat; check=false)
 end
-
 
 ###############################################################################
 #
