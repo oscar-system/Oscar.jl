@@ -1151,7 +1151,22 @@ function minimal_primes(
       end
       J = K
     end
-    result = unique!(filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...)))
+
+    unique_comp = typeof(I)[]
+    for q in J
+      is_one(q) && continue
+      q in unique_comp && continue
+      push!(unique_comp, q)
+    end
+    J = unique_comp
+    result = typeof(I)[]
+    # `unique!` does not work for lists of ideals. I don't know why, but for the moment we need the 
+    # following workaround.
+    for p in filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...))
+      p in result && continue
+      push!(result, p)
+    end
+    
     # The list might not consist of minimal primes only. We have to discard the embedded ones
     final_list = typeof(I)[]
     for p in result
