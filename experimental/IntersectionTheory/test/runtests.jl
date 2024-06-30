@@ -1,7 +1,7 @@
 using Oscar.IntersectionTheory
 
 let pushforward = IntersectionTheory.pushforward
-  @testset "GenericVariety" begin
+  @testset "GenericVariety" begin	
     
     # # generic abstract_variety
     # C = abstract_variety(1)
@@ -49,8 +49,8 @@ let pushforward = IntersectionTheory.pushforward
 
   @testset "VarietyHom" begin
 
-    p = IntersectionTheory.point()
-    P2 = IntersectionTheory.abstract_projective_space(2)
+    p = abstract_point()
+    P2 = abstract_projective_space(2)
     i = hom(P2, P2)
     @test i.domain == P2
     @test i.codomain == P2
@@ -153,7 +153,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # Grassmannian
     G = abstract_grassmannian(2, 4)
-    S, Q = bundles(G)
+    S, Q = tautological_bundles(G)
     c1, c2 = gens(G.ring)
     @test betti(G) == [1,1,2,1,1]
     @test euler(G) == 6
@@ -167,10 +167,10 @@ let pushforward = IntersectionTheory.pushforward
     @test [length(schubert_classes(G, i)) for i in 0:4] == [1,1,2,1,1]
 
     # Grassmannian: TnVariety version
-    G = abstract_grassmannian(2, 4, bott=true)
+    G = tn_grassmannian(2, 4)
     S, Q = bundles(G)
-    @test G isa IntersectionTheory.TnVariety
-    @test S isa IntersectionTheory.TnBundle
+    @test G isa TnVariety
+    @test S isa TnBundle
     @test rank(tangent_bundle(G)) == 4
     @test euler(G) == 6
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 27
@@ -179,14 +179,14 @@ let pushforward = IntersectionTheory.pushforward
 
     # flag abstract_variety
     F = abstract_flag_variety(1, 2, 3)
-    A, B, C = bundles(F)
+    A, B, C = tautological_bundles(F)
     @test dim(F) == 3
-    @test rank.(bundles(F)) == [1, 1, 1]
+    @test rank.(tautological_bundles(F)) == [1, 1, 1]
     @test betti(F) == [1,2,2,1]
     @test euler(F) == 6
 
     # flag abstract_variety: TnVariety version
-    F = abstract_flag_variety(1, 2, 3, bott=true)
+    F = tn_flag_variety([1, 2, 3])
     A, B, C = bundles(F)
     @test dim(F) == 3
     @test rank.(bundles(F)) == [1, 1, 1]
@@ -196,7 +196,7 @@ let pushforward = IntersectionTheory.pushforward
     X, (F,) = abstract_variety(3, [3=>"c"])
     PF = abstract_projective_bundle(F)
     @test dim(PF) == 5
-    @test rank.(bundles(PF)) == [1, 2]
+    @test rank.(tautological_bundles(PF)) == [1, 2]
     p = PF.struct_map
     @test p.codomain == X
     @test pullback(p, X(1)) == 1
@@ -207,7 +207,7 @@ let pushforward = IntersectionTheory.pushforward
     X, (F,) = abstract_variety(2, [4=>"c"])
     FlF = abstract_flag_variety(F, 2)
     @test dim(FlF) == 6
-    @test rank.(bundles(FlF)) == [2, 2]
+    @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = FlF.struct_map
     @test p.codomain == X
     @test pullback(p, X(1)) == 1
