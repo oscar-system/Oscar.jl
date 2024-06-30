@@ -2054,7 +2054,8 @@ function small_generating_set(
   computed_gb = IdealGens(ring, sing_gb, true)
   if !haskey(I.gb,computed_gb.ord)
   # if not yet present, store gb for later use
-    I.gb[computed_gb.ord] = computed_gb
+    I.gb[computed_gb.ord]      = computed_gb
+    I.gb[computed_gb.ord].isGB = true
   end
 
   # we do not have a notion of minimal generating set in this context!
