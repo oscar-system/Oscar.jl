@@ -248,3 +248,14 @@ end
   @test 0 in dim.(comp2)
 end
 
+@testset "production of ideals" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+  P2 = covered_scheme(IP2)
+  U = first(affine_charts(P2))
+  y, z = gens(OO(U))
+  I = ideal(OO(U), y-z)
+  II = IdealSheaf(P2, U, I)
+  Oscar.produce_object(II, affine_charts(P2)[2]; algorithm=:pullback)
+  Oscar.produce_object(II, affine_charts(P2)[3]; algorithm=:pushforward)
+end
+
