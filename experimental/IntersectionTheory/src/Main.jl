@@ -1478,9 +1478,7 @@ AbstractVariety of dim 4
 julia> chow_ring(G)
 Quotient
   of multivariate polynomial ring in 2 variables over QQ graded by
-    c₁ -> [1]
-    c₂ -> [2]
-  by ideal (-c₁^3 + 2*c₁*c₂, c₁^4 - 3*c₁^2*c₂ + c₂^2)    c[1] -> [1]
+    c[1] -> [1]
     c[2] -> [2]
   by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
 

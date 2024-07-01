@@ -32,10 +32,6 @@ abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::
 abstract_flag_variety(dims::Int...; bott::Bool = false)
 ```
 
-For examples of constructors starting from already given abstract varieties, vector bundles, or homomorphisms
-between vector bundles see  [`product`](@ref), [`complete_intersection`](@ref), [`abstract_projective_bundle`](@ref), 
-[`section_zero_locus`](@ref), and [`degeneracy_locus`](@ref).
-
 ## Underlying Data of an Abstract Variety
 
 An abstract variety is made up from (a selection of) the data discussed here:
