@@ -59,13 +59,11 @@ end
 #
 
 # generate a list of symbols [x₁,…,xₙ] using LaTeX / unicode for IJulia / REPL
-import AbstractAlgebra.Generic: subscriptify
+
 function _parse_symbol(symbol::String, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$i}" for i in I]
-  [symbol*subscriptify(i) for i in I]
-end
-function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$n,$i}" for i in I]
-  [symbol*subscriptify(n)*","*subscriptify(i) for i in I]
+  return ["$symbol[$i]" for i in I]
 end
 
+function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
+  return [symbol*"[$n, $i]" for i in I]
+end
