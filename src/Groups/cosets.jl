@@ -588,7 +588,7 @@ function double_cosets_representatives_and_sizes(G::T, H::GAPGroup, K::GAPGroup)
   res = Vector{Tuple{elem_type(T), ZZRingElem}}(undef, length(dcs))
   for i in 1:length(res)
     g = group_element(G, dcs[i][1])
-    n = GAP.gap_to_julia(ZZRingElem, dcs[i][2])
+    n = ZZ(dcs[i][2])
     res[i] = (g,n)
   end
   return res 

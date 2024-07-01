@@ -150,7 +150,7 @@ function perm(L::AbstractVector{<:IntegerUnion})
 end
 
 """
-  smaller_degree_permutation_representation(G::PermGroup) -> PermGroup, map
+    smaller_degree_permutation_representation(G::PermGroup) -> PermGroup, map
   
 Return an isomorphic permutation group of smaller degree and the isomorphism.
 """
