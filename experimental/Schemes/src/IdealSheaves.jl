@@ -1564,7 +1564,11 @@ function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
 end
 
 ### PrimeIdealSheafFromChart
-function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
+function produce_object(
+    F::PrimeIdealSheafFromChart, U2::AbsAffineScheme; 
+    algorithm::Symbol=:pushforward # Either :pushforward or :pullback
+                                   # This determines how to extend through the gluings.
+  )
   # Initialize some local variables
   X = scheme(F)
   OOX = OO(X)
@@ -1620,24 +1624,29 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
-      complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
-      pb_f = pullback(f)::AbsLocalizedRingHom
-      pb_f_res = restricted_map(pb_f)
-      @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
-      Q = preimage(pb_f_res, F(domain(f)))
-      rest = OOX(V2, U2)
-      result = ideal(OO(U2), rest.(gens(Q)))
-      @hassert :IdealSheaves 1 !isone(Q)
-      @hassert :IdealSheaves 1 is_prime(result)
-      set_attribute!(result, :is_prime=>true)
-      return result
-      I2 = F(codomain(g))
-      I = pullback(g)(I2)
-      I = ideal(OO(V2), lifted_numerator.(gens(I)))
-      I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
-      result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
-      @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
-      return result
+      if algorithm == :pushforward
+        complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
+        pb_f = pullback(f)::AbsLocalizedRingHom
+        pb_f_res = restricted_map(pb_f)
+        @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
+        Q = preimage(pb_f_res, F(domain(f)))
+        rest = OOX(V2, U2)
+        result = ideal(OO(U2), rest.(gens(Q)))
+        @hassert :IdealSheaves 1 !isone(Q)
+        @hassert :IdealSheaves 1 is_prime(result)
+        set_attribute!(result, :is_prime=>true)
+        return result
+      elseif algorithm == :pullback
+        I2 = F(codomain(g))
+        I = pullback(g)(I2)
+        I = ideal(OO(V2), lifted_numerator.(gens(I)))
+        I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
+        result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
+        @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
+        return result
+      else
+        error("algorithm not recognized")
+      end
     else
       Z = subscheme(W, F(W))
       pZ = preimage(g, Z, check=false)
