@@ -81,7 +81,11 @@ julia> den
 
 ```
 """
-function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(
+    SubM::SubquoModule{T}; 
+    parent::Union{Nothing, Ring} = hilbert_series_parent(base_ring(SubM)), 
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   R = base_ring(SubM)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   @req is_positively_graded(R) "ring must be positively graded"
@@ -117,7 +121,11 @@ function multi_hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing, Ring
   return (numer, denom), (G, identity_map(G))
 end
 
-function multi_hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function multi_hilbert_series(
+    F::FreeMod{T}; 
+    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(F)), 
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
   return multi_hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
@@ -160,7 +168,11 @@ julia> den
 
 ```
 """
-function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function hilbert_series(
+    SubM::SubquoModule{T}; 
+    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(SubM)), 
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
     parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
@@ -169,10 +181,30 @@ function hilbert_series(SubM::SubquoModule{T}; parent::Union{Nothing,Ring} = not
   return HS
 end
 
-function hilbert_series(F::FreeMod{T}; parent::Union{Nothing,Ring} = nothing, backend::Symbol = :Abbott)  where T <: MPolyRingElem
+function hilbert_series(
+    F::FreeMod{T}; 
+    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(F)), 
+    backend::Symbol = :Abbott
+  )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
   if parent === nothing
     parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
   end
   return hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
+
+function hilbert_series_parent(S::MPolyDecRing)
+  if !isdefined(S, :hilbert_series_parent)
+    if is_z_graded(S)
+      S.hilbert_series_parent = laurent_polynomial_ring(ZZ, :t; cached=false)[1]
+    elseif is_zm_graded(S)
+      G = grading_group(S)
+      m = ngens(G)
+      S.hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : [Symbol("t[$i]") for i in 1:m]); cached=false)[1]
+    else
+      error("default ring for hilbert series not implemented")
+    end
+  end
+  return S.hilbert_series_parent
+end
+
