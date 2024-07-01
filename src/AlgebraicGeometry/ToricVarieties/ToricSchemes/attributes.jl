@@ -227,7 +227,7 @@ with default covering
   for (k, A) in enumerate(patch_list)
     C = cone(pm_object(A).WEIGHT_CONE)
     n = length(hilbert_basis(C))
-    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n], cached = false);
+    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n]; cached=false);
     set_attribute!(A, :toric_ideal, toric_ideal(R, A))
   end
   cov = Covering(patch_list)
