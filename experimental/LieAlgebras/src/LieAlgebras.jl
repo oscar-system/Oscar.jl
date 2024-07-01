@@ -9,7 +9,7 @@ import Oscar: GAPWrap, IntegerUnion, MapHeader
 import Random
 
 # not importet in Oscar
-using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
+using AbstractAlgebra: ProductIterator, ordinal_number_string
 
 using AbstractAlgebra.PrettyPrinting
 
