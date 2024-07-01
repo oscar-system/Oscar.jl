@@ -575,6 +575,24 @@ function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T
    #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
 end
 
+"""
+    double_cosets_representatives_and_sizes(G::GAPGroup, H::GAPGroup, K::GAPGroup)
+    
+Return representatives of the double coset `H\G/K` and their size. 
+
+This function is faster and consumes less memory than [`double_cosets`](@ref)
+since no double cosets are created and stored.    
+"""
+function double_cosets_representatives_and_sizes(G::T, H::GAPGroup, K::GAPGroup) where T <: GAPGroup
+  dcs = GAP.Globals.DoubleCosetRepsAndSizes(G.X,H.X,K.X)
+  res = Vector{Tuple{elem_type(T), ZZRingElem}}(undef, length(dcs))
+  for i in 1:length(res)
+    g = group_element(G, dcs[i][1])
+    n = GAP.gap_to_julia(ZZRingElem, dcs[i][2])
+    res[i] = (g,n)
+  end
+  return res 
+end
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
