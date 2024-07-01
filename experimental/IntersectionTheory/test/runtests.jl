@@ -244,7 +244,7 @@ let pushforward = IntersectionTheory.pushforward
     P2 = abstract_projective_space(2)
     P5 = abstract_projective_space(5)
     i = hom(P2, P5, [2P2.O1])
-    Bl, E, j = blowup(j)
+    Bl, E, j = blowup(i)
     c = top_chern_class(tangent_bundle(Bl))
     @test integral(pushforward(structure_map(Bl), c)) == 12
     @test integral(c) == 12

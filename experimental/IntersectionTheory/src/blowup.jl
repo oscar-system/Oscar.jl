@@ -1,11 +1,8 @@
-import AbstractAlgebra.Generic: subscriptify
 function _parse_symbol(symbol::String, I::UnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$i}" for i in I]
-  [symbol*subscriptify(i) for i in I]
+  return ["$symbol[$i]" for i in I]
 end
 function _parse_symbol(symbol::String, n::Int, I::UnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$n,$i}" for i in I]
-  [symbol*subscriptify(n)*","*subscriptify(i) for i in I]
+  return [symbol*"[$n, $i]" for i in I]
 end
 
 @doc raw"""
