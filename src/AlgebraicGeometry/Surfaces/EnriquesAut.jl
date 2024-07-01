@@ -56,6 +56,17 @@ function deltaYbarplus(SY,SX)
   sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
   return roots_mod2 = Set([change_base_ring(GF(2),solve_left(basis_matrix(SY),matrix(QQ,1,26,2*lift(phi(i))))) for i in sv2])
 end
+  
+function tau_type(SY, SX)
+  Sm = orthogonal_submodule(SX, SY)
+  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+  # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
+  H_Sm = cover(domain(phi))
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
+  V = ambient_space(Sm)
+  R =  rescale(lattice(V, 2*matrix(QQ,length(sv2),dim(V),transpose(reduce(hcat,sv2)));isbasis=false),1//2)
+  return R, root_lattice_recognition(R)
+end
 
 function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   # X K3 ---> Y Enriques
@@ -664,6 +675,10 @@ function _identify_fibers(D::Vector{TorQuadModElem},fbar)
       end
     end
   end
+  return _identify_ADE(g)
+end
+
+function _identify_ADE(g::MatElem)
   G = graph_from_adjacency_matrix(Undirected,g)
   # We identify an ADE lattice by
   # ((number of roots) // 2, rank of gram mod 2)
@@ -688,5 +703,14 @@ function _identify_fibers(D::Vector{TorQuadModElem},fbar)
   return fiber_types
 end
 
+function contraction_type(hbar, enr::EnriquesBorcherdsCtx)
+  phi = enr.roots_mod2
+  k = base_ring(hbar)
+  SY = change_base_ring(k, 1//2*gram_matrix(enr.SY))
+  SYh = SY*transpose(hbar)
+  phi_h = reduce(vcat,[r for r in phi if r*SYh ==0], init=zero_matrix(k,0,10))
+  g = phi_h*SY*transpose(phi_h)
+  return _identify_ADE(g)
+end 
 
 
