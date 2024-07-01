@@ -276,6 +276,8 @@ end
 *(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
 *(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 *(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+*(a::PBWAlgQuoElem, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
+*(a::PBWAlgElem, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
 
 @doc raw"""
     zero(F::AbstractFreeMod)
