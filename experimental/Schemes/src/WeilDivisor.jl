@@ -439,16 +439,27 @@ function has_dimension_leq_zero(I::AbsIdealSheaf; covering::Covering=default_cov
   return true
 end
 
-function has_dimension_leq_zero(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I)))
+function has_dimension_leq_zero(I::SumIdealSheaf; 
+    covering::Covering=default_covering(scheme(I)),
+    use_decomposition_info::Bool=true
+  )
   J = summands(I)
-  k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
-  if k !== nothing 
-    P = J[k]
-    U = original_chart(P)
-    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-      has_dimension_leq_zero(I(U)) || return false
-    end
-  end
+
+# k = findfirst(x->x isa PrimeIdealSheafFromChart, J)
+# if k !== nothing 
+#   P = J[k]
+#   U = original_chart(P)
+#   if has_decomposition_info(covering) && use_decomposition_info
+#     K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+#     if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
+#       has_dimension_leq_zero(I(U) + K) || return false
+#     end
+#   else
+#     if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+#       has_dimension_leq_zero(I(U)) || return false
+#     end
+#   end
+# end
 
   common_patches = keys(object_cache(first(J)))
   for JJ in J[2:end]
@@ -461,8 +472,56 @@ function has_dimension_leq_zero(I::SumIdealSheaf; covering::Covering=default_cov
 
   all_patches = patches(covering)
   for U in all_patches
-    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-      has_dimension_leq_zero(I(U)) || return false
+    patch_ok = false
+    # go through the object cache of the summands
+    if U in keys(object_cache(I))
+      i = I(U)
+      if has_decomposition_info(covering) && use_decomposition_info
+        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+        has_dimension_leq_zero(K + i) && (patch_ok = true)
+      else
+        has_dimension_leq_zero(i) && (patch_ok = true)
+      end
+      patch_ok && continue
+    end
+
+    # Do the same for the summands
+    for j in summands(I)
+      if U in keys(object_cache(j))
+        j_loc = j(U)
+        if has_decomposition_info(covering) && use_decomposition_info
+          K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+          has_dimension_leq_zero(K + j_loc) && (patch_ok = true)
+        else
+          has_dimension_leq_zero(j_loc) && (patch_ok = true)
+        end
+        patch_ok && break
+      end
+    end
+    patch_ok && continue
+
+    # repeat with cheap sub-ideals
+    for j in summands(I)
+      j_cheap = cheap_sub_ideal(j, U)
+      if has_decomposition_info(covering) && use_decomposition_info
+        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+        has_dimension_leq_zero(K + j_cheap) && (patch_ok = true)
+      else
+        has_dimension_leq_zero(j_cheap) && (patch_ok = true)
+      end
+      patch_ok && break
+    end
+    patch_ok && continue
+
+    if has_decomposition_info(covering) && use_decomposition_info
+      K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
+      if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
+        has_dimension_leq_zero(I(U) + K) || return false
+      end
+    else
+      if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
+        has_dimension_leq_zero(I(U)) || return false
+      end
     end
   end
   return true
@@ -479,13 +538,53 @@ function _self_intersection(I::AbsIdealSheaf)
   return get_attribute(I, :_self_intersection)::Int
 end
 
+function _is_known_to_be_one(I::AbsIdealSheaf, U::AbsAffineScheme;
+    dec_inf::Vector = elem_type(OO(U))[]
+  )
+  K = ideal(OO(U), dec_inf)
+  if U in keys(object_cache(I))
+    i = I(U)
+    has_attribute(i, :is_one) && get_attribute(i, :is_one) === true && return true
+    one(OO(U)) in gens(i) && return true
+    is_one(K + i) && return true
+  end
+  j = cheap_sub_ideal(I, U)
+  is_one(j + K) && return true
+  return false
+end
+
+function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
+    dec_inf::Vector = elem_type(OO(U))[]
+  )
+  K = ideal(OO(U), dec_inf)
+  for J in summands(I)
+    if U in keys(object_cache(J))
+      j = J(U)
+      has_attribute(j, :is_one) && get_attribute(j, :is_one) === true && return true
+      one(OO(U)) in gens(j) && return true
+      is_one(K + j) && return true
+    end
+  end
+  if U in keys(object_cache(I))
+    i = I(U)
+    has_attribute(i, :is_one) && get_attribute(i, :is_one) === true && return true
+    one(OO(U)) in gens(i) && return true
+    is_one(K + i) && return true
+  end
+  j = cheap_sub_ideal(I, U)
+  is_one(j + K) && return true
+  return false
+end
+
+
 function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
   all_patches = copy(patches(covering))
   patches_done = AbsAffineScheme[]
   patches_todo = AbsAffineScheme[]
   for U in all_patches
-    if U in keys(object_cache(I)) && has_attribute(I(U), :is_one) && is_one(I(U))
+    dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
+    if _is_known_to_be_one(I, U; dec_inf)
       push!(patches_done, U)
     else
       push!(patches_todo, U)
