@@ -575,7 +575,7 @@ function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T
    #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
 end
 
-"""
+raw"""
     double_cosets_representatives_and_sizes(G::GAPGroup, H::GAPGroup, K::GAPGroup)
     
 Return representatives of the double coset `H\G/K` and their size. 
