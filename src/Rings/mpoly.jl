@@ -281,13 +281,13 @@ function show(io::IO, I::IdealGens)
       print(io, "Standard basis")
     end
     if !is_terse(io)
-      print(io, " with $(length(I)) elements")
+      print(io, " with $(ItemQuantity(length(I), "element"))")
       print(io, " w.r.t. ", I.ord)
     end
   else
     print(io, "Ideal generating system")
     if !is_terse(io)
-      print(io, " with $(length(I)) elements")
+      print(io, " with $(ItemQuantity(length(I), "element"))")
       print(io, " with associated ordering ", I.ord)
     end
   end
