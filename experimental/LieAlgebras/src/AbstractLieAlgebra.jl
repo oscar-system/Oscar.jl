@@ -21,21 +21,17 @@
       @req all(
         r -> all(e -> parent(last(e)) === R, r), struct_consts
       ) "Invalid structure constants."
+      @req all(iszero, struct_consts[i, i] for i in 1:dimL) "Not anti-symmetric."
       @req all(
-        iszero, struct_consts[i, i][k] for i in 1:dimL, k in 1:dimL
-      ) "Not anti-symmetric."
-      @req all(
-        iszero,
-        struct_consts[i, j][k] + struct_consts[j, i][k] for i in 1:dimL, j in 1:dimL,
-        k in 1:dimL
+        iszero, struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL, j in 1:dimL
       ) "Not anti-symmetric."
       @req all(
         iszero,
         sum(
-          struct_consts[i, j][k] * struct_consts[k, l][m] +
-          struct_consts[j, l][k] * struct_consts[k, i][m] +
-          struct_consts[l, i][k] * struct_consts[k, j][m] for k in 1:dimL
-        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL, m in 1:dimL
+          struct_consts[i, j][k] * struct_consts[k, l] +
+          struct_consts[j, l][k] * struct_consts[k, i] +
+          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL
+        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
@@ -85,6 +81,7 @@ to the order of the roots in the root system.
 """
 function chevalley_basis(L::AbstractLieAlgebra)
   @req has_root_system(L) "No root system known."
+  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
 
   npos = n_positive_roots(root_system(L))
   b = basis(L)
@@ -174,7 +171,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
+Construct the Lie algebra over the field `R` with structure constants `struct_consts`
 and with basis element names `s`.
 
 The Lie bracket on the newly constructed Lie algebra `L` is determined by the structure
@@ -200,7 +197,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, struct_consts::Array{elem_type(R),3}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with structure constants `struct_consts`
+Construct the Lie algebra over the field `R` with structure constants `struct_consts`
 and with basis element names `s`.
 
 The Lie bracket on the newly constructed Lie algebra `L` is determined by the structure
@@ -291,79 +288,183 @@ function lie_algebra(
 end
 
 @doc raw"""
-    lie_algebra(R::Field, dynkin::Tuple{Char,Int}) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, rs::RootSystem) -> AbstractLieAlgebra{elem_type(R)}
 
-Construct the simple Lie algebra over the ring `R` with Dynkin type given by `dynkin`.
+Construct a simple Lie algebra over the field `R` with the root system `rs`.
 The internally used basis of this Lie algebra is the Chevalley basis.
 
+The experienced user may supply a boolean vector of length `n_positive_roots(rs) - n_simple_roots(rs)`
+via the kwarg `extraspecial_pair_signs::Vector{Bool}` to specify the concrete Lie algebra to be constructed.
+If $(\alpha,\beta)$ is the extraspecial pair for the non-simple root `root(rs, i)`,
+then $\varepsilon_{\alpha,\beta} = 1$ iff `extraspecial_pair_signs[i - n_simple_roots(rs)] = true`.
+For the used notation and the definition of extraspecial pairs, see [CMT04](@cite).
 """
-function lie_algebra(R::Field, S::Symbol, n::Int)
-  rs = root_system(S, n)
-  cm = cartan_matrix(rs)
-  @req is_cartan_matrix(cm; generalized=false) "The type does not correspond to a classical root system"
+function lie_algebra(
+  R::Field,
+  rs::RootSystem;
+  extraspecial_pair_signs=fill(true, n_positive_roots(rs) - n_simple_roots(rs)),
+)
+  struct_consts = _struct_consts(R, rs, extraspecial_pair_signs)
 
+  s = [
+    [Symbol("x_$i") for i in 1:n_positive_roots(rs)]
+    [Symbol("y_$i") for i in 1:n_positive_roots(rs)]
+    [Symbol("h_$i") for i in 1:n_simple_roots(rs)]
+  ]
+
+  L = lie_algebra(R, struct_consts, s; check=false)
+  L.root_system = rs
+  return L
+end
+
+function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
+  cm = cartan_matrix(rs)
+  @req is_cartan_matrix(cm; generalized=false) "The root system does not induce a finite dimensional Lie algebra."
+
+  nroots = n_roots(rs)
   npos = n_positive_roots(rs)
   nsimp = n_simple_roots(rs)
+
   n = 2 * npos + nsimp
 
-  #=
+  N = _N_matrix(rs, extraspecial_pair_signs)
+
   struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
-  for i in 1:npos, j in 1:npos
-    # [x_i, x_j]
-    fl, k = is_positive_root_with_index(positive_root(rs, i) + positive_root(rs, j))
-    struct_consts[i, j] = fl ? sparse_row(R, [k], [1]) : sparse_row(R)
-    # [x_i, y_j] = δ_ij h_i
-    struct_consts[i, npos + j] = i == j ? sparse_row(R, [2 * npos + i], [1]) : sparse_row(R)
-    # [y_j, x_i] = -[x_i, y_j]
-    struct_consts[npos + j, i] = -struct_consts[i, npos + j]
-    # [y_i, y_j]
-    fl, k = is_negative_root_with_index(negative_root(rs, i) + negative_root(rs, j))
-    struct_consts[npos + i, npos + j] = fl ? sparse_row(R, [npos + k], [1]) : sparse_row(R)
+  for i in 1:nroots, j in i:nroots
+    if i == j
+      # [e_βi, e_βi] = 0
+      struct_consts[i, j] = sparse_row(R)
+      continue
+    end
+    beta_i = root(rs, i)
+    beta_j = root(rs, j)
+    if iszero(beta_i + beta_j)
+      # [e_βi, e_-βi] = h_βi
+      struct_consts[i, j] = sparse_row(
+        R, collect((nroots + 1):(nroots + nsimp)), _vec(coefficients(coroot(rs, i)))
+      )
+    elseif ((fl, k) = is_root_with_index(beta_i + beta_j); fl)
+      # complicated case
+      if i <= npos
+        struct_consts[i, j] = sparse_row(R, [k], [N[i, j]])
+      elseif j <= npos
+        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j + npos]])
+      else
+        struct_consts[i, j] = sparse_row(R, [k], [-N[i - npos, j - npos]])
+      end
+    else
+      # [e_βi, e_βj] = 0
+      struct_consts[i, j] = sparse_row(R)
+    end
+
+    # # [e_βj, e_βi] = -[e_βi, e_βj]
+    struct_consts[j, i] = -struct_consts[i, j]
   end
-  for i in 1:nsimp, j in 1:npos
-    # [h_i, x_j] = <α_j, α_i> x_j
-    struct_consts[2 * npos + i, j] = sparse_row(R, [j], [cm[j, i]])
-    # [h_i, y_j] = - <α_j, α_i> y_j
-    struct_consts[2 * npos + i, npos + j] = sparse_row(R, [npos + j], [-cm[j, i]])
-    # [x_j, h_i] = -[h_i, x_j]
-    struct_consts[j, 2 * npos + i] = -struct_consts[2 * npos + i, j]
-    # [y_j, h_i] = -[h_i, y_j]
-    struct_consts[npos + j, 2 * npos + i] = -struct_consts[2 * npos + i, npos + j]
+  for i in 1:nsimp, j in 1:nroots
+    # [h_i, e_βj] = <β_j, α_i> e_βj
+    struct_consts[nroots + i, j] = sparse_row(
+      R,
+      [j],
+      [dot(coefficients(root(rs, j)), cm[i, :])],
+    )
+    # [e_βj, h_i] = -[h_i, e_βj]
+    struct_consts[j, nroots + i] = -struct_consts[nroots + i, j]
   end
   for i in 1:nsimp, j in 1:nsimp
     # [h_i, h_j] = 0
-    struct_consts[2 * npos + i, 2 * npos + j] = sparse_row(R)
+    struct_consts[nroots + i, nroots + j] = sparse_row(R)
   end
 
-  s = [
-    [Symbol("x_$i") for i in 1:npos]
-    [Symbol("y_$i") for i in 1:npos]
-    [Symbol("h_$i") for i in 1:nsimp]
-  ]
+  return struct_consts
+end
 
-  L = lie_algebra(R, struct_consts, s; check=true) # TODO: remove check
-  =#
+function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
+  # computes the matrix N_αβ from CTM04 Ch. 3 indexed by root indices
+  nroots = n_roots(rs)
+  npos = n_positive_roots(rs)
+  nsimp = n_simple_roots(rs)
+  @req length(extraspecial_pair_signs) == npos - nsimp "Invalid extraspecial pair sign vector length."
 
-  # start temporary workaround # TODO: reenable code above
-  type = only(root_system_type(rs))
-  if type == (:F, 4)
-    # GAP uses a non-canonical order of simple roots for F4. Until we have our own implementation, we disable it to avoid confusion.
-    error("Not implemented for F4.")
+  N = zeros(Int, npos, nroots)
+
+  # extraspecial pairs
+  for (i, alpha_i) in enumerate(simple_roots(rs))
+    for (l, beta_l) in enumerate(positive_roots(rs))
+      fl, k = is_positive_root_with_index(alpha_i + beta_l)
+      fl || continue
+      all(
+        j -> !is_positive_root_with_index(alpha_i + beta_l - simple_root(rs, j))[1],
+        1:(i - 1),
+      ) || continue
+      p = 0
+      while is_root_with_index(beta_l - p * alpha_i)[1]
+        p += 1
+      end
+      N[i, l] = (extraspecial_pair_signs[k - nsimp] ? 1 : -1) * p
+      N[l, i] = -N[i, l]
+    end
   end
-  coeffs_iso = inv(Oscar.iso_oscar_gap(R))
-  LG = GAP.Globals.SimpleLieAlgebra(GAP.Obj(string(type[1])), type[2], domain(coeffs_iso))
-  @req GAPWrap.Dimension(LG) == n "Dimension mismatch. Something went wrong."
-  s = [
-    [Symbol("x_$i") for i in 1:npos]
-    [Symbol("y_$i") for i in 1:npos]
-    [Symbol("h_$i") for i in 1:nsimp]
-  ]
-  L = codomain(
-    _iso_gap_oscar_abstract_lie_algebra(LG, s; coeffs_iso)
-  )::AbstractLieAlgebra{elem_type(R)}
-  # end temporary workaround
 
-  set_attribute!(L, :is_simple, true)
+  # special pairs
+  for (i, alpha_i) in enumerate(positive_roots(rs))
+    for (j, beta_j) in enumerate(positive_roots(rs))
+      i < j || continue
+      fl = is_positive_root_with_index(alpha_i + beta_j)[1]
+      fl || continue
+      l = findfirst(
+        l -> is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))[1], 1:nsimp
+      )
+      l == i && continue # already extraspecial
+      fl, l_comp = is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))
+      @assert fl
+      t1 = 0
+      t2 = 0
+      if ((fl, m) = is_positive_root_with_index(beta_j - simple_root(rs, l)); fl)
+        root_m = positive_root(rs, m)
+        t1 = N[l, m] * N[i, m] * dot(root_m, root_m)//dot(beta_j, beta_j)
+      end
+      if ((fl, m) = is_positive_root_with_index(alpha_i - simple_root(rs, l)); fl)
+        root_m = positive_root(rs, m)
+        t2 = N[l, m] * N[j, m] * dot(root_m, root_m)//dot(alpha_i, alpha_i)
+      end
+      @assert t1 - t2 != 0
+      p = 0
+      while is_root_with_index(beta_j - p * alpha_i)[1]
+        p += 1
+      end
+      N[i, j] = Int(sign(t1 - t2) * sign(N[l, l_comp]) * p) # typo in CMT04
+      N[j, i] = -N[i, j]
+    end
+  end
+
+  # rest
+  for (i, alpha_i) in enumerate(positive_roots(rs))
+    for (j, beta_j) in enumerate(positive_roots(rs))
+      if ((fl, k) = is_positive_root_with_index(alpha_i - beta_j); fl)
+        root_k = positive_root(rs, k)
+        N[i, npos + j] = Int(N[k, j] * dot(root_k, root_k)//dot(alpha_i, alpha_i))
+      end
+      if ((fl, k) = is_positive_root_with_index(beta_j - alpha_i); fl)
+        root_k = positive_root(rs, k)
+        N[i, npos + j] = Int(N[k, i] * dot(root_k, root_k)//dot(beta_j, beta_j))
+      end
+    end
+  end
+  return N
+end
+
+@doc raw"""
+    lie_algebra(R::Field, fam::Symbol, rk::Int) -> AbstractLieAlgebra{elem_type(R)}
+
+Construct a simple Lie algebra over the field `R` with Dynkin type given by `fam` and `rk`.
+See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+The internally used basis of this Lie algebra is the Chevalley basis.
+"""
+function lie_algebra(R::Field, S::Symbol, n::Int)
+  rs = root_system(S, n)
+  L = lie_algebra(R, rs)
+
+  characteristic(R) == 0 && set_attribute!(L, :is_simple, true)
   return L
 end
 
