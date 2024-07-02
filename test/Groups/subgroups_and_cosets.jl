@@ -267,6 +267,8 @@ end
    @test Set(intersect(lc,H))==Set(H)
    lc = left_coset(H,x)
    @test intersect(lc,H)==[]
+   LL = double_cosets_representatives_and_sizes(G,H,K)
+   @test length(LL)==length(L)
 end
 
 @testset "Predicates for groups" begin
