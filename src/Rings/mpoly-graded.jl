@@ -4,6 +4,8 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  hilbert_series_parent::Ring
+
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
