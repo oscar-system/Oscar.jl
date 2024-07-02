@@ -298,3 +298,53 @@ See [`young_tableau`](@ref) for the user-facing constructor and an example.
 struct YoungTableau{T<:IntegerUnion} <: AbstractVector{AbstractVector{T}}
   t::Vector{Vector{T}}
 end
+
+# Iterator type: all semistandard tableaux of a given shape
+struct SemiStandardTableaux{T<:IntegerUnion}
+  shape::Partition{T}
+  max_val::T
+
+  function SemiStandardTableaux(p::Partition{T}, max_val::T) where {T <: IntegerUnion}
+    return new{T}(p, max_val)
+  end
+end
+
+# Iterator type: all semistandard tableaux with a given number of boxes
+struct SemiStandardTableauxFixedBoxNum{T<:IntegerUnion}
+  box_num::T
+  max_val::T
+
+  function SemiStandardTableauxFixedBoxNum(box_num::T, max_val::T) where {T <: IntegerUnion}
+    @req box_num >= 0 "Number of boxes must be non-negative"
+    return new{T}(box_num, max_val)
+  end
+end
+
+# Iterator type: all standard tableaux of a given shape
+struct StandardTableaux{T<:IntegerUnion}
+  shape::Partition{T}
+
+  function StandardTableaux(p::Partition{T}) where {T <: IntegerUnion}
+    return new{T}(p)
+  end
+end
+
+# Internal type: state of the iterator
+mutable struct StandardTableauxState{T<:IntegerUnion}
+  n::Int
+  i::Int
+  j::Int
+  tab::YoungTableau{T}
+  sub_s::Vector{Int}
+  tracker_row::Vector{Int}
+end
+
+# Iterator type: all standard tableaux with a given number of boxes
+struct StandardTableauxFixedBoxNum{T<:IntegerUnion}
+  box_num::T
+
+  function StandardTableauxFixedBoxNum(box_num::T) where {T <: IntegerUnion}
+    @req box_num >= 0 "Number of boxes must be non-negative"
+    return new{T}(box_num)
+  end
+end
