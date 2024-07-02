@@ -18,8 +18,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti
-#export blowup
-#export blowup_points
+export blowup
+export blowup_points
 export bundles
 export canonical_bundle
 export canonical_class
@@ -42,7 +42,7 @@ export line_bundle
 export OO
 export point_class
 export pontryagin_class
-#export present_finite_extension_ring
+export present_finite_extension_ring
 export product
 export pullback
 export pushforward
@@ -74,7 +74,7 @@ include("Misc.jl")
 
 include("Bott.jl")   # integration using Bott's formula
 include("Main.jl")   # basic constructions for Schubert calculus
-#include("blowup.jl") # blowup
+include("blowup.jl") # blowup
 # include("Moduli.jl") # moduli of matrices, twisted cubics
 # include("Weyl.jl")   # weyl groups
 
@@ -92,8 +92,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti
-#export blowup
-#export blowup_points
+export blowup
+export blowup_points
 export bundles
 export canonical_bundle
 export canonical_class
@@ -116,7 +116,7 @@ export line_bundle
 export OO
 export point_class
 export pontryagin_class
-#export present_finite_extension_ring
+export present_finite_extension_ring
 export product
 export pullback
 export pushforward

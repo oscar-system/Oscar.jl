@@ -1,8 +1,8 @@
 using Oscar.IntersectionTheory
 
 let pushforward = IntersectionTheory.pushforward
-  @testset "GenericVariety" begin	
-    
+  @testset "GenericVariety" begin
+
     # # generic abstract_variety
     # C = abstract_variety(1)
     # c = gens(C.ring)[1]
@@ -237,86 +237,92 @@ let pushforward = IntersectionTheory.pushforward
   #   @test sum(g .* f.salg.(pf(x.f))) == x.f
   # end
 
-  # # testset borrowed from Schubert2
-  # @testset "Blowup" begin
+  # testset borrowed from Schubert2
+  @testset "Blowup" begin
     
-  #   # blowup Veronese
-  #   P2 = abstract_projective_space(2)
-  #   P5 = abstract_projective_space(5)
-  #   v = hom(P2, P5, [2P2.O1])
-  #   Bl, E = blowup(v)
-  #   c = top_chern_class(tangent_bundle(Bl))
-  #   @test integral(pushforward(Bl → P5, c)) == 12
-  #   @test integral(c) == 12
-  #   e = pushforward(E → Bl, E(1))
-  #   quad = pullback(Bl → P5, 2P5.O1) - e
-  #   @test integral(quad^5) == 1
-  #   sext = pullback(Bl → P5, 6P5.O1) - 2e
-  #   @test integral(sext^5) == 3264
+    # blowup Veronese
+    P2 = abstract_projective_space(2)
+    P5 = abstract_projective_space(5)
+    i = hom(P2, P5, [2P2.O1])
+    Bl, E, j = blowup(i)
+    c = top_chern_class(tangent_bundle(Bl))
+    @test integral(pushforward(structure_map(Bl), c)) == 12
+    @test integral(c) == 12
+    e = pushforward(j, E(1))
+    quad = pullback(structure_map(Bl), 2P5.O1) - e
+    @test integral(quad^5) == 1
+    sext = pullback(structure_map(Bl), 6P5.O1) - 2e
+    @test integral(sext^5) == 3264
     
-  #   # blowup point in P2
-  #   P2 = abstract_projective_space(2)
-  #   Bl, E = blowup(point() → P2)
-  #   e = pushforward(E → Bl, E(1))
-  #   @test integral(e^2) == -1
-  #   @test integral(pullback(E → Bl, e)) == -1
-  #   @test euler(Bl) == 4
+    # blowup point in P2
+    P2 = abstract_projective_space(2)
+    P = abstract_point(base = P2.base)
+    Bl, E, j = blowup(hom(P, P2, [zero(P.ring)]))
+    e = pushforward(j, E(1))
+    @test integral(e^2) == -1
+    @test integral(pullback(j, e)) == -1
+    @test euler(Bl) == 4
 
-  #   # blowup point in P7
-  #   P7 = abstract_projective_space(7)
-  #   Bl, E = blowup(point() → P7)
-  #   e = pushforward(E → Bl, E(1))
-  #   @test euler(Bl) == 14
+    # blowup point in P7
+    P7 = abstract_projective_space(7)
+    P = abstract_point(base = P2.base)
+    Bl, E, j = blowup(hom(P, P7, [zero(P.ring)]))
+    e = pushforward(j, E(1))
+    @test euler(Bl) == 14
     
-  #   # blowup twisted cubic
-  #   P1 = abstract_projective_space(1)
-  #   P3 = abstract_projective_space(3)
-  #   i = hom(P1, P3, [3P1.O1])
-  #   Bl, E = blowup(i)
-  #   e = pushforward(E → Bl, E(1))
-  #   quad = pullback(Bl → P3, 2P3.O1) - e
-  #   @test integral(quad^3) == 0
-  #   cubic = pullback(Bl → P3, 3P3.O1) - e
-  #   @test integral(quad^2 * cubic) == 1
+    # blowup twisted cubic
+    P1 = abstract_projective_space(1)
+    P3 = abstract_projective_space(3)
+    i = hom(P1, P3, [3P1.O1])
+    Bl, E, j = blowup(i)
+    e = pushforward(j, E(1))
+    quad = pullback(structure_map(Bl), 2P3.O1) - e
+    @test integral(quad^3) == 0
+    cubic = pullback(structure_map(Bl), 3P3.O1) - e
+    @test integral(quad^2 * cubic) == 1
     
-  #   # blowup twisted cubic, with parameters
-  #   F, (r, s, t) = function_field(Singular.QQ, ["r", "s", "t"])
-  #   P1 = abstract_projective_space(1, base=F)
-  #   P3 = abstract_projective_space(3, base=F)
-  #   i = hom(P1, P3, [3P1.O1])
-  #   Bl, E = blowup(i)
-  #   e = pushforward(E → Bl, E(1))
-  #   rH, sH, tH = [pullback(Bl → P3, x * P3.O1) - e for x in [r,s,t]]
-  #   @test integral(rH * sH * tH) == r*s*t - 3*r - 3*s - 3*t + 10
+    # blowup twisted cubic, with parameters
+    T, (r, s, t) =  polynomial_ring(QQ, ["r", "s", "t"])
+    F = fraction_field(T)
+    (r, s, t) = gens(F)
+    P1 = abstract_projective_space(1, base = F)
+    P3 = abstract_projective_space(3, base = F)
+    i = hom(P1, P3, [3P1.O1])
+    Bl, E, j = blowup(i)
+    e = pushforward(j, E(1))
+    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
+    @test integral(rH * sH * tH) == r*s*t - 3*r - 3*s - 3*t + 10
 
-  #   G = abstract_grassmannian(2, 5)
-  #   P9 = abstract_projective_space(9)
-  #   i = hom(G, P9, [G.O1])
-  #   Bl, E = blowup(i)
-  #   e = pushforward(E → Bl, E(1))
-  #   quad = pullback(Bl → P9, 2P9.O1) - e
-  #   @test simplify(quad^5) == 0
-  #   @test simplify(e^5) != 0
+    G = abstract_grassmannian(2, 5)
+    P9 = abstract_projective_space(9)
+    i = hom(G, P9, [G.O1])
+    Bl, E, j = blowup(i)
+    e = pushforward(j, E(1))
+    quad = pullback(structure_map(Bl), 2P9.O1)-e
+    @test_broken simplify(quad^5) == 0
+    @test simplify(e^5) != 0
     
-  #   # blowup space curve of degree d and genus g
-  #   F, (r,s,t,d,g) = function_field(Singular.QQ, ["r", "s", "t", "d", "g"])
-  #   P3 = abstract_projective_space(3, base=F)
-  #   C = abstract_variety(1, base=F)
-  #   trim!(C.ring)
-  #   C.point = 1//(2-2g) * chern_class(1, C)
-  #   i = hom(C, P3, [d * C.point])
-  #   Bl, E = blowup(i)
-  #   e = pushforward(E → Bl, E(1))
-  #   rH, sH, tH = [pullback(Bl → P3, x * P3.O1) - e for x in [r,s,t]]
-  #   @test integral(rH * sH * tH) == r*s*t - d*(r+s+t) + (2g-2+4d)
+    # blowup space curve of degree d and genus g
+    T, (r,s,t,d,g) =  polynomial_ring(QQ, ["r", "s", "t", "d", "g"])
+    F = fraction_field(T)
+    (r, s, t, d, g) = gens(F)
+    P2 = abstract_projective_space(2, base = F)  
+    P3 = abstract_projective_space(3, base = F)   
+    C = zero_locus_section(OO(P2,d))
+    C.point = 1//(2-2g) * chern_class(C, 1)
+    i = hom(C, P3, [d * C.point])
+    Bl, E, j = blowup(i)
+    e = pushforward(j, E(1))
+    rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
+    @test integral(rH * sH * tH) == r*s*t - d*(r+s+t) + (2g-2+4d)
     
-  #   G = abstract_grassmannian(2, 5)
-  #   Z = zero_locus_section(3line_bundle(G, 1))
-  #   Bl, E = blowup(Z → G)
-  #   @test dim(Bl) == 6
-  #   @test euler(Bl) == 18
-  #   @test betti(Bl) == [1,2,4,4,4,2,1]
-  #   @test [euler_characteristic(exterior_power(i, cotangent_bundle(Bl))) for i in 0:6] == [1,-2,4,-4,4,-2,1]
+    G = abstract_grassmannian(2, 5)
+    Z = zero_locus_section(3line_bundle(G, 1))
+    Bl, E = blowup(structure_map(Z))
+    @test dim(Bl) == 6
+    @test euler(Bl) == 18
+    @test betti(Bl) == [1,2,4,4,4,2,1]
+    @test [euler_characteristic(exterior_power(cotangent_bundle(Bl), i)) for i in 0:6] == [1,-2,4,-4,4,-2,1]
 
-  # end
+   end
 end

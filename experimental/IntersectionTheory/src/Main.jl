@@ -4,14 +4,67 @@
 # AbstractBundle
 #
 @doc raw"""
-    abstract_bundle(X::AbstractVariety, ch)
-    abstract_bundle(X::AbstractVariety, r, c)
+    abstract_bundle(X::AbstractVariety, ch::Union{MPolyDecRingElem, MPolyQuoRingElem})
+    abstract_bundle(X::AbstractVariety, r::RingElement, c::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Construct a bundle on $X$ by specifying its Chern character, or its rank and
+Return a bundle on `X` by specifying its Chern character. Equivalently, specify its rank and
 total Chern class.
+
+# Examples
+
+We show two ways of constructing the Horrocks-Mumford bundle `F` [HM73](@cite). First, we create `F` as the
+cohomology bundle of its Beilinson monad
+
+$0 \rightarrow \mathcal O_{\mathbb P^4} ^5(2)\rightarrow \Lambda^2 T^*_{\mathbb P^4}(5)
+\rightarrow \mathcal O_{\mathbb P^4}^5(3)\rightarrow 0.$
+
+Then, we show the constructor above at work.
+
+```jldoctest
+julia> T, (d,) = polynomial_ring(QQ, ["d"])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[d])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P4 = abstract_projective_space(4, base = QT)
+AbstractVariety of dim 4
+
+julia> A = 5*line_bundle(P4, 2)
+AbstractBundle of rank 5 on AbstractVariety of dim 4
+
+julia> B = 2*exterior_power(cotangent_bundle(P4), 2)*OO(P4, 5)
+AbstractBundle of rank 12 on AbstractVariety of dim 4
+
+julia> C = 5*line_bundle(P4, 3)
+AbstractBundle of rank 5 on AbstractVariety of dim 4
+
+julia> F = B-A-C
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> chern_class(F, 1)
+5*h
+
+julia> chern_class(F, 2)
+10*h^2
+
+julia> rank(F)
+2
+
+julia> total_chern_class(F)
+10*h^2 + 5*h + 1
+
+julia> h = gens(P4)[1]
+h
+
+julia> F == abstract_bundle(P4, 2, 10*h^2 + 5*h + 1)
+true
+
+```
 """
-abstract_bundle(X::V, ch::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT = AbstractBundle(X, ch)
-abstract_bundle(X::V, r::RingElement, c::MPolyDecRingOrQuoElem) where V <: AbstractVarietyT = AbstractBundle(X, r, c)
+abstract_bundle(X::AbstractVariety, ch::MPolyDecRingOrQuoElem) = AbstractBundle(X, ch)
+abstract_bundle(X::AbstractVariety, r::RingElement, c::MPolyDecRingOrQuoElem) = AbstractBundle(X, r, c)
 
 ==(F::AbstractBundle, G::AbstractBundle) = chern_character(F) == chern_character(G)
 
