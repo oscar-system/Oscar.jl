@@ -76,16 +76,16 @@ For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of the lift
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(ZZ, 4, "x");
+julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
 
-julia> f1 = R(3*x[2]^2);
+julia> f1 = R(3*x^2);
 
-julia> f2 = R(6*x[4]^3);
+julia> f2 = R(6*y^3);
 
 julia> hasse_derivatives([f1, f2])
 2-element Vector{Vector{ZZMPolyRingElem}}:
- [3*x2^2, 6*x2, 3]
- [6*x4^3, 18*x4^2, 18*x4, 6]
+ [3*x^2, 6*x, 3]
+ [6*y^3, 18*y^2, 18*y, 6]
 ```
 """
 function hasse_derivatives(v::Vector{<:MPolyRingElem})
@@ -223,6 +223,18 @@ julia> _hasse_derivatives([f1, f2])
  [3*x2^2, 6*x2, 3]
 ```
 """
-function _hasse_derivatives(v::Vector{Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
+function _hasse_derivatives(v::Vector{<:Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
+  return _hasse_derivatives.(v)
+end
+function _hasse_derivatives(v::Vector{RingElem})
+  return _hasse_derivatives.(v)
+end
+function _hasse_derivatives(v::Vector{MPolyQuoRingElem})
+  return _hasse_derivatives.(v)
+end
+function _hasse_derivatives(v::Vector{Oscar.MPolyLocRingElem})
+  return _hasse_derivatives.(v)
+end
+function _hasse_derivatives(v::Vector{Oscar.MPolyQuoLocRingElem})
   return _hasse_derivatives.(v)
 end
