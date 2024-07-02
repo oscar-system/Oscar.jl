@@ -1,7 +1,7 @@
 """
 Fragen an Nicolas:
 - name LinearSetPartition okay? (davor war er nur LinearPartition)
-- Kommentar zeile 195, 139
+- Kommentar zeile 140
 """
 
 """
@@ -45,7 +45,7 @@ function get_term(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T
 end
 
 function hash(p::LinearSetPartition, h::UInt)
-    return hash(p.coefficients)
+    return hash(p.coefficients, h)
 end
 
 function ==(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -186,11 +186,6 @@ function linear_composition(p::LinearSetPartition{S, T}, q::LinearSetPartition{S
     end
     LinearSetPartition(result)
 end 
-
-function linear_composition(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::RingElement) where 
-        { S <: AbstractPartition, T <: RingElement }
-    linear_composition(p, q, d) # Wofür hatten wir die funktion nochmal?
-end
 
 """
     linear_tensor_product(p::LinearSetPartition{P, R}, q::LinearSetPartition{P, R}) where 
