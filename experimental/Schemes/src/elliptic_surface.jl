@@ -948,15 +948,46 @@ end
 
 Return the fiber components of the fiber over the point $P \in C$.
 """
-function fiber_components(S::EllipticSurface, P)
+function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors)
   @vprint :EllipticSurface 2 "computing fiber components over $(P)\n"
-  F = fiber_cartier(S, P)
-  @vprint :EllipticSurface 2 "decomposing fiber   "
-  comp = maximal_associated_points(ideal_sheaf(F))
-  @vprint :EllipticSurface 2 "done decomposing fiber\n"
-  return [weil_divisor(c, check=false) for c in comp]
+  P = base_ring(S).(P)
+  W = codomain(S.inc_Weierstrass)
+  Fcart = fiber_cartier(S, P)
+  if isone(P[2])
+    U = default_covering(W)[1]
+    (x,y,t) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(t - P[1]))
+  elseif isone(P[1])
+    U = default_covering(W)[4]
+    (x,y,s) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(s - P[2]))
+  end 
+  FF = ideal_sheaf(Fcart)
+  EE = exceptional_divisors(S)
+  EP = filter(E->issubset(FF, E), EE)
+  for bl in S.ambient_blowups
+    F = strict_transform(bl, F)
+  end
+  F = pullback(S.inc_Y, F)
+  F = weil_divisor(F, ZZ)
+  fiber_components = [weil_divisor(E, ZZ) for E in EP]
+  push!(fiber_components, F)
+  return fiber_components
 end
-
+  
+@attr function exceptional_divisors(S::EllipticSurface)
+  PP = AbsIdealSheaf[]
+  @vprintln :EllipticSurface 2 "computing exceptional divisors"
+  for E in S.ambient_exceptionals
+    @vprintln :EllipticSurface 4 "decomposing divisor "
+    mp = maximal_associated_points(ideal_sheaf(pullback(S.inc_Y,E));
+                                   use_decomposition_info=true)
+    append!(PP, mp)
+  end 
+  @vprintln :EllipticSurface 3 "done"
+  return PP
+end
+  
 function fiber(X::EllipticSurface)
   b, pt, F = irreducible_fiber(X)
   if b
@@ -1589,12 +1620,12 @@ degree at most ``4`` to Weierstrass form, apply Tate's algorithm and
 return the corresponding relatively minimal elliptic surface 
 as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
+function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem}; minimize=true)
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  Y2, phi1 = _elliptic_surface_with_trafo(g2)
+  Y2, phi1 = _elliptic_surface_with_trafo(g2; minimize)
   return Y2, phi2 * phi1  
 end
 
@@ -1628,6 +1659,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     return switch(g_trans), new_trans
   end
 
+  g = inv(coeff(g,[0,2]))*g # normalise g
   kk = coefficient_ring(R)
   kkx, X = polynomial_ring(kk, :x, cached=false)
   kkxy, Y = polynomial_ring(kkx, :y, cached=false)
@@ -1640,11 +1672,19 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   @assert all(h->degree(h)<=4, coefficients(G)) "input polynomial must be of degree <= 4 in x"
   @assert iszero(coefficients(G)[1]) "coefficient of linear term in y must be zero"
   @assert isone(coefficients(G)[2]) "leading coefficient in y must be one"
+  
+  if length(P) == 3 && isone(P[3])
+      P = P[1:2]
+  end 
+      
 
-  length(P) == 2 || error("need precisely two point coordinates")
-  (px, py) = P
+  if length(P) == 2
+    @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
+    (px, py) = P
+  else 
+    px = P[1]
+  end
   #    assert g.subs({x:px,y:py})==0
-  @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
   gx = -evaluate(g, [X + px, zero(X)])
   coeff_gx = collect(coefficients(gx))
   A = coeff(gx, 4)
@@ -1653,7 +1693,16 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   D = coeff(gx, 1)
   E = coeff(gx, 0)
   #E, D, C, B, A = coeff_gx
-  if !iszero(E)
+  if length(P)==3
+    @req all(h->degree(h)<=3, coefficients(G)) "infinity (0:1:0) is not a point of this hypersurface"
+    # y^2 = B*x^3+C*x^2+C*x+D
+    x1 = F(inv(B)*x)
+    y1 = F(inv(B)*y)
+    trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+    f_trans = B^2*trans(F(g))
+    result = numerator(B^2*f_trans)
+    return result, trans
+  elseif !iszero(E)
     b = py
     a4, a3, a2, a1, a0 = A,B,C,D,E
     A = b
@@ -2286,7 +2335,7 @@ end
 # The transformation is a morphism from the fraction field of the 
 # parent of g to the fraction field of the `ambient_coordinate_ring` 
 # of the `weierstrass_chart` of the resulting surface.
-function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem})
+function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem}; minimize::Bool=true)
   x, y = gens(parent(g))
   E = elliptic_curve(g, x, y)
   kkt = base_field(E)
@@ -2296,11 +2345,12 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
 
   # The following three commands won't work unless we convert to a rational_function_field
   EE = base_change(x->evaluate(x, t), E)
-
-  EE = tates_algorithm_global(EE)
-  EE, _ = short_weierstrass_model(EE)
-  EE, _ = integral_model(EE)
-
+  if minimize
+    EE = tates_algorithm_global(EE)
+    EE, _ = short_weierstrass_model(EE)
+    EE, _ = integral_model(EE)
+  end
+  
   # ...and back.
   E2 = base_change(x->evaluate(x, gen(kkt)), EE)
 

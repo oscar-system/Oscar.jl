@@ -869,7 +869,8 @@ function maximal_associated_points(
     I::AbsIdealSheaf; 
     covering=default_covering(scheme(I)), 
     use_decomposition_info::Bool=true,
-    algorithm::Symbol=:GTZ
+    algorithm::Symbol=:GTZ,
+    mode::Symbol=:save_gluings
   )
   X = scheme(I)
   comps = AbsIdealSheaf[]
@@ -899,8 +900,27 @@ function maximal_associated_points(
     end
   end
 
+  if mode==:save_gluings && length(comps)==1
+    R = radical(I)
+    set_attribute!(R, :is_prime=>true)
+    P = comps[1]
+    U = original_chart(P)
+    object_cache(R)[U] = P(U)
+    comps = AbsIdealSheaf[R]
+  end
   # Manually fill up the cache
-  if !use_decomposition_info # We can only do this if all we treated all components on all charts.
+  if use_decomposition_info 
+    # we can at least remember some partial information 
+    for U in patches(covering)
+      if isone(I(U))
+        I_one = ideal(OO(U), one(OO(U)))
+        for P in comps
+          object_cache(P)[U] = I_one
+        end
+      end
+    end
+  else 
+    # We can only do this if all we treated all components on all charts.
     for U in patches(covering)
       I_one = ideal(OO(U), one(OO(U)))
       for P in comps
@@ -1390,6 +1410,7 @@ function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
 end
 
 function pushforward(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
+  @req domain(f)===space(II) "ideal sheaf not defined on domain of morphism"
   f_cov = covering_morphism(f)
   dom_cov = domain(f_cov)
   cod_cov = codomain(f_cov)
@@ -1401,6 +1422,7 @@ function pushforward(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
   end
   return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
 end
+  
 
 function Base.:^(II::AbsIdealSheaf, k::IntegerUnion)
   k < 0 && error("negative powers of ideal sheaves are not allowed")
@@ -1933,7 +1955,7 @@ function is_subset(I::PrimeIdealSheafFromChart, rad::RadicalOfIdealSheaf)
   U = original_chart(I)
   return all(g->radical_membership(g, rad(U)), gens(I(U)))
 end
-
+ 
 function radical(I::AbsIdealSheaf)
   result = RadicalOfIdealSheaf(I)
   return result
@@ -1944,6 +1966,13 @@ is_radical(rad::RadicalOfIdealSheaf) = true
 ########################################################################
 # custom functionality for prime ideal sheaves from chart
 ########################################################################
+function is_subset(I::AbsIdealSheaf, P::PrimeIdealSheafFromChart)
+  X = scheme(I)
+  @assert X === scheme(P)
+  U = original_chart(P)
+  return is_subset(I(U), P(U))
+end
+
 
 function is_subset(P::PrimeIdealSheafFromChart, I::AbsIdealSheaf)
   X = scheme(P)
