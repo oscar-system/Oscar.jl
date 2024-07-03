@@ -653,8 +653,12 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
       #return lie_algebra(C,Symbol('G'),parse(Int, g[3:end-1]));
     end
   end
-  gauge_algebras = [_construct(g) for g in algebras]
-  set_attribute!(m, :gauge_algebra => gauge_algebras)
+  if length(algebras) == 0
+    # Trivial Lie algebra not yet implemented?
+    set_attribute!(m, :gauge_algebra => [])
+  else
+    set_attribute!(m, :gauge_algebra => direct_sum([_construct(g) for g in algebras]))
+  end
 end
 
 function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
