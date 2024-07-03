@@ -195,7 +195,7 @@ end
 
 # for a list of elements (internal, expert use only)
 @doc raw"""
-    _hasse_derivatives(v::Vector{Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
+    _hasse_derivatives(v::Vector{RingElem}})
 
 For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of the lifted numerator of `f`.
 
@@ -223,18 +223,6 @@ julia> _hasse_derivatives([f1, f2])
  [3*x2^2, 6*x2, 3]
 ```
 """
-function _hasse_derivatives(v::Vector{<:Union{MPolyQuoRingElem, Oscar.MPolyLocRingElem, Oscar.MPolyQuoLocRingElem}})
-  return _hasse_derivatives.(v)
-end
-function _hasse_derivatives(v::Vector{RingElem})
-  return _hasse_derivatives.(v)
-end
-function _hasse_derivatives(v::Vector{MPolyQuoRingElem})
-  return _hasse_derivatives.(v)
-end
-function _hasse_derivatives(v::Vector{Oscar.MPolyLocRingElem})
-  return _hasse_derivatives.(v)
-end
-function _hasse_derivatives(v::Vector{Oscar.MPolyQuoLocRingElem})
+function _hasse_derivatives(v::Vector{RingElem}) # type of input has not to be very strict, because it gets checked for each element of v
   return _hasse_derivatives.(v)
 end

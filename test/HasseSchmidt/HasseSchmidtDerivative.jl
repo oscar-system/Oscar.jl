@@ -2,6 +2,8 @@
   R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
   @test [x^3, 3x^2, 3x, R(1)] == hasse_derivatives(R(x^3))
   @test [5x^2 + 3y^5, 15y^4, 30y^3, 30y^2, 15y, R(3), 10x, R(5)] == hasse_derivatives(R(5*x^2 + 3*y^5))
+  @test [x^2*y^3, 2*x*y^3, y^3, 3*x^2*y^2, 6*x*y^2, 3*y^2, 3*x^2*y, 6*x*y, 3*y, x^2, 2*x, R(1)] == hasse_derivatives(R(x^2*y^3))
+  @test [y^2 + z^4, 4*z^3, 6*z^2, 4*z, R(1), 2*y, R(1)] == hasse_derivatives(R(z^4 + y^2))
 end
 
 @testset "hasse_derivatives list" begin
@@ -44,22 +46,5 @@ end
   I = ideal(R, [x^2 - 1]);
   RQ, _ = quo(R, I);
   RQL, _ = localization(RQ, U);
-
+  @test [[5*x^3, 15*x^2, 15*x, 5], [3*y^4, 12*y^3, 18*y^2, 12*y, 3], [2*z^5, 10*z^4, 20*z^3, 20*z^2, 10*z, 2]] == _hasse_derivatives([RL(5x^3), RQ(3y^4), RQL(2z^5)])
 end
-
-
-R, x = polynomial_ring(QQ, 4, "x");
-m = ideal(R, [x, y, z]);
-I = ideal(R, [x[1]^3 - 1]);
-RQ, _ = quo(R, I);
-p = ideal(R, [x[2]]);
-U = complement_of_prime_ideal(p);
-RQL, _ = localization(RQ, U);
-f1 = RQ(4*x[3]^3);
-f2 = RQL(3*x[2]^2);
-_hasse_derivatives([f1, f2])
-
-f1 = RL(5x^3);
-f2 = RQ(3y^4);
-f3 = RQL(2z^5);
-_hasse_derivatives([f1, f2, f3])
