@@ -1031,12 +1031,15 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> gauge_algebra(t)
-5-element Vector{LinearLieAlgebra{QQBarFieldElem}}:
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Linear Lie algebra with 1x1 matrices over QQBar
+Direct sum Lie algebra
+  of dimension 13
+with summands
+  sl_2
+  sl_2
+  sl_2
+  sl_2
+  linear Lie algebra
+over field of algebraic numbers
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
