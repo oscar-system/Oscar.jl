@@ -634,9 +634,8 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
   C = algebraic_closure(QQ)
   function _construct(g::String)
     if g == "0"
-      return nothing
-    end
-    if g == "u(1)"
+      return abelian_lie_algebra(C, 0)
+    elseif g == "u(1)"
       return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
     elseif g[1:2] == "su"
       return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
