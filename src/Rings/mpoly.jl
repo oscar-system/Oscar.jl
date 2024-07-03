@@ -401,10 +401,10 @@ julia> g = generating_system(I);
 
 julia> set_ordering(g, degrevlex(gens(R)))
 Ideal generating system with elements
-1 -> x0*x1
-2 -> x2
+  1 -> x0*x1
+  2 -> x2
 with associated ordering
-degrevlex([x0, x1, x2])
+  degrevlex([x0, x1, x2])
 ```
 """
 function set_ordering(G::IdealGens, monord::MonomialOrdering)
@@ -817,8 +817,8 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
 julia> generating_system(I)
 Ideal generating system with elements
-1 -> x^2 + x
-2 -> x^2 + x*y - y^2 - 2*y
+  1 -> x^2 + x
+  2 -> x^2 + x*y - y^2 - 2*y
 ```
 """
 function generating_system(I::MPolyIdeal)
