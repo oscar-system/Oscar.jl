@@ -45,7 +45,7 @@ end
 
 
 @doc raw"""
-    multi_hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+    multi_hilbert_series(M::SubquoModule; parent::Ring)
 
 Compute a pair of pairs `(N ,D), (H ,iso)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
 series of the subquotient `M`, and `H` is the SNF of the grading group together with the identifying isomorphism `iso`.
@@ -83,7 +83,7 @@ julia> den
 """
 function multi_hilbert_series(
     SubM::SubquoModule{T}; 
-    parent::Union{Nothing, Ring} = hilbert_series_parent(base_ring(SubM)), 
+    parent::Ring = hilbert_series_parent(base_ring(SubM)), 
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   R = base_ring(SubM)
@@ -132,7 +132,7 @@ end
 
 
 @doc raw"""
-    hilbert_series(M::SubquoModule; parent::Union{Nothing,Ring} = nothing)
+    hilbert_series(M::SubquoModule; parent::Ring)
 
 Compute a pair `(N,D)` where `N` and `D` are the non-reduced numerator and denominator of the Hilbert
 series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
@@ -170,26 +170,20 @@ julia> den
 """
 function hilbert_series(
     SubM::SubquoModule{T}; 
-    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(SubM)), 
+    parent::Ring = hilbert_series_parent(base_ring(SubM)), 
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
-  if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
-  end
   HS, _ = multi_hilbert_series(SubM; parent=parent, backend=backend)
   return HS
 end
 
 function hilbert_series(
     F::FreeMod{T}; 
-    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(F)), 
+    parent::Ring = hilbert_series_parent(base_ring(F)), 
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(F)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
-  if parent === nothing
-    parent, _ = laurent_polynomial_ring(ZZ, :t; cached=false)
-  end
   return hilbert_series(sub_object(F,gens(F)); parent=parent, backend=backend)
 end
 
