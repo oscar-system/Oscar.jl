@@ -37,7 +37,8 @@ julia> using Oscar
  / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
 | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
 | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.1.1julia> k, a = quadratic_field(-5)
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.1.1
+julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
 
 julia> zk = maximal_order(k)
