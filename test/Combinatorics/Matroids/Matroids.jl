@@ -347,7 +347,12 @@
         @test order(automorphism_group(M)) == 120
         @test automorphism_group(uniform_matroid(0, 2)) == symmetric_group(2)
         U = matroid_from_bases([[1,2],[2,3],[1,3]],5)
-        @test automorphism_group(U) == automorphism_group(dual_matroid(U)) 
+        @test automorphism_group(U) == automorphism_group(dual_matroid(U))
+
+        g = complete_graph(4)
+        rem_edge!(g,1,2)
+        M = cycle_matroid(g)
+        @test degree(automorphism_group(M)) == 5
     end
 
     @testset "matroid quotient" begin

@@ -1,7 +1,7 @@
 name = "Oscar"
 uuid = "f1435218-dba5-11e9-1e4d-f1a5fab5fc13"
 authors = ["The OSCAR Team <oscar@oscar-system.org>"]
-version = "1.1.0-DEV"
+version = "1.2.0-DEV"
 
 [deps]
 AbstractAlgebra = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
@@ -26,7 +26,7 @@ cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 
 [compat]
 AbstractAlgebra = "0.41.3"
-AlgebraicSolving = "0.4.15"
+AlgebraicSolving = "0.5.0"
 Distributed = "1.6"
 GAP = "0.10.2"
 Hecke = "0.32.0"

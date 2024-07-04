@@ -726,7 +726,7 @@
     @test (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :E, 6), [6, 5, 4, 3, 2, 1]
     )) == ZZ(53947263633682628459250)
-    @test_skip (@inferred dim_of_simple_module(
+    @test (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :F, 4), [2, 4, 1, 2]
     )) == ZZ(5989283015625)
     @test (@inferred dim_of_simple_module(lie_algebra(QQ, :G, 2), [2, 2])) == 729

@@ -31,101 +31,108 @@
   @test is_semistandard(young_tableau([[1,2,1],[2,4]])) == false
   @test is_semistandard(young_tableau([[-1]])) == true
 
-  # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
-  shapes = [[3,2,1],[3,3,1],[2,2,2]]
-  for s in shapes
-    SST = collect(semistandard_tableaux(s))
-    #check that all tableaux are distinct
-    @test SST == unique(SST)
-
-    #check that all tableaux are semistandard_tableaux
-    for tab in SST
-      @test is_semistandard(tab)
-    end
-  end
-  @test isempty(semistandard_tableaux([3,2,1],2))
-
-  # semistandard_tableaux(s::Array{T,1}, weight::Array{T,1})
-  shapes = [[5,3,1,1],[4,3,2,1],[2,2,2,2,2]]
-  weights = [[1,1,1,1,1,1,1,1,1,1],[3,0,2,0,0,5],[4,3,2,1]]
-  for s in shapes
-    for w in weights
-      SST = collect(semistandard_tableaux(s, w))
+  @testset "Generating tableaux with integer type $T" for T in [Int8, Int]
+    # semistandard_tableaux(shape::Array{T,1}, max_val=sum(shape)::Integer)
+    shapes = [T[3, 2, 1], T[3, 3, 1], T[2, 2, 2]]
+    for s in shapes
+      SST = @inferred collect(semistandard_tableaux(s))
+      @test SST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
       @test SST == unique(SST)
+
       #check that all tableaux are semistandard_tableaux
       for tab in SST
         @test is_semistandard(tab)
       end
-      #check that all tableaux have the correct shape
-      for tab in SST
-        @test shape(tab) == s
-      end
-      #check that all tableaux have the correct weight
-      for tab in SST
-        @test weight(tab) == w
-      end
     end
-  end
-  @test collect(semistandard_tableaux(Int[], Int[])) == [young_tableau(Array{Int,1}[])]
+    @test isempty(semistandard_tableaux(T[3, 2, 1], T(2)))
 
-  #semistandard_tableaux(box_num, max_val)
-  BoxNum = 0:5
-  MaxVal = 1:6
-  for box_num in BoxNum
-    for max_val in MaxVal
-      SST = collect(semistandard_tableaux(box_num, max_val))
-      #check that all tableaux are distinct
-      @test SST == unique(SST)
-      #check that all tableaux are semistandard_tableaux
-      for tab in SST
-        @test is_semistandard(tab)
-      end
-      #check that all tableaux have box_num boxes
-      for tab in SST
-        @test sum(shape(tab)) == box_num
-      end
-      #check that all tableaux have values ≤ max_val
-      for tab in SST
-        for i in 1:length(tab)
-          @test tab[i][end] <= max_val
+    # semistandard_tableaux(s::Array{T,1}, weight::Array{T,1})
+    shapes = [T[5, 3, 1, 1], T[4, 3, 2, 1], T[2, 2, 2, 2, 2]]
+    weights = [T[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], T[3, 0, 2, 0, 0, 5], T[4, 3, 2, 1]]
+    for s in shapes
+      for w in weights
+        SST = @inferred collect(semistandard_tableaux(s, w))
+        @test SST isa Vector{Oscar.YoungTableau{T}}
+        #check that all tableaux are distinct
+        @test SST == unique(SST)
+        #check that all tableaux are semistandard_tableaux
+        for tab in SST
+          @test is_semistandard(tab)
+        end
+        #check that all tableaux have the correct shape
+        for tab in SST
+          @test shape(tab) == s
+        end
+        #check that all tableaux have the correct weight
+        for tab in SST
+          @test weight(tab) == w
         end
       end
     end
-  end
+    @test collect(semistandard_tableaux(T[], T[])) == [young_tableau(Vector{T}[])]
 
-  # number_of_standard_tableaux
-  # standard_tableaux(s::Partition)
-  for i = 1:10
-    for s in partitions(i)
-      ST = collect(standard_tableaux(s))
+    #semistandard_tableaux(box_num, max_val)
+    BoxNum = T(0):T(5)
+    MaxVal = T(1):T(6)
+    for box_num in BoxNum
+      for max_val in MaxVal
+        SST = @inferred collect(semistandard_tableaux(box_num, max_val))
+        @test SST isa Vector{Oscar.YoungTableau{T}}
+        #check that all tableaux are distinct
+        @test SST == unique(SST)
+        #check that all tableaux are semistandard_tableaux
+        for tab in SST
+          @test is_semistandard(tab)
+        end
+        #check that all tableaux have box_num boxes
+        for tab in SST
+          @test sum(shape(tab)) == box_num
+        end
+        #check that all tableaux have values ≤ max_val
+        for tab in SST
+          for i in 1:length(tab)
+            @test tab[i][end] <= max_val
+          end
+        end
+      end
+    end
+
+    # number_of_standard_tableaux
+    # standard_tableaux(s::Partition)
+    for i = 1:10
+      for s in partitions(T(i))
+        ST = @inferred collect(standard_tableaux(s))
+        @test ST isa Vector{Oscar.YoungTableau{T}}
+        #check that all tableaux are distinct
+        @test ST == unique(ST)
+        #check that all tableaux are standard_tableaux
+        for tab in ST
+          @test is_standard(tab)
+        end
+        #check that all tableaux where found
+        @test length(ST) == number_of_standard_tableaux(s)
+      end
+    end
+    @test collect(standard_tableaux(partition(T[]))) == [young_tableau(Vector{T}[])]
+    @test collect(standard_tableaux(T[3, 2, 1])) == collect(standard_tableaux(partition(T[3, 2, 1])))
+
+    # standard_tableaux(n::Integer)
+    for n = 0:10
+      ST = @inferred collect(standard_tableaux(T(n)))
+      @test ST isa Vector{Oscar.YoungTableau{T}}
       #check that all tableaux are distinct
       @test ST == unique(ST)
       #check that all tableaux are standard_tableaux
       for tab in ST
         @test is_standard(tab)
       end
-      #check that all tableaux where found
-      @test length(ST) == number_of_standard_tableaux(s)
+      #check that all tableaux have n boxes
+      for tab in ST
+        @test sum(shape(tab)) == n
+      end
     end
-  end
-  @test collect(standard_tableaux(partition(Int[]))) == [young_tableau(Array{Int,1}[])]
-  @test collect(standard_tableaux([3, 2, 1])) == collect(standard_tableaux(partition([3, 2, 1])))
-
-  # standard_tableaux(n::Integer)
-  for n = 0:10
-    ST = collect(standard_tableaux(n))
-    #check that all tableaux are distinct
-    @test ST == unique(ST)
-    #check that all tableaux are standard_tableaux
-    for tab in ST
-      @test is_standard(tab)
-    end
-    #check that all tableaux have n boxes
-    for tab in ST
-      @test sum(shape(tab)) == n
-    end
-  end
+  end # testest "Generating tableaux"
 
   # hook_length
   @test hook_length(partition([1]),1,1) == 1
