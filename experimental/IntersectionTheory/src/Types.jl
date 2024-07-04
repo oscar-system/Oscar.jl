@@ -7,6 +7,25 @@ Base.parent(F::Bundle) = F.parent
 rank(F::Bundle) = F.rank
 
 abstract type Variety end
+
+@doc raw"""
+     dim(X::AbstractVariety)
+
+Return the dimension of `X`.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P3 = abstract_projective_space(3)
+AbstractVariety of dim 3
+
+julia> dim(P2*P3)
+5
+
+```
+"""
 dim(X::Variety) = X.dim
 
 abstract type VarietyHom end

@@ -2039,6 +2039,12 @@ function small_generating_set(
   # If we are unlucky, mstd can even produce a larger generating set
   # than the original one!!!
   return_value = filter(!iszero, (R).(gens(sing_min)))
+
+  # The following is a common phenomenon which we can not fully explain yet. So far nothing but a 
+  # restart really seems to help, unfortunately.
+  if is_zero(length(return_value))
+    !is_zero(I) && error("singular crashed in the background; please restart your session!")
+  end
   if length(return_value) <= ngens(I)
     return return_value
   else
