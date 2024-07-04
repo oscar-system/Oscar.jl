@@ -35,7 +35,6 @@ We currently support the following attributes:
 coordinate_ring(f::FamilyOfSpaces)
 weights(f::FamilyOfSpaces)
 dim(f::FamilyOfSpaces)
-stanley_reisner_ideal(f::FamilyOfSpaces)
 irrelevant_ideal(f::FamilyOfSpaces)
 ideal_of_linear_relations(f::FamilyOfSpaces)
 ```
@@ -56,6 +55,10 @@ base_space(m::AbstractFTheoryModel)
 fiber_ambient_space(m::AbstractFTheoryModel)
 explicit_model_sections(m::AbstractFTheoryModel)
 defining_section_parametrization(m::AbstractFTheoryModel)
+classes_of_model_sections(m::AbstractFTheoryModel)
+defining_classes(m::AbstractFTheoryModel)
+gauge_algebra(m::AbstractFTheoryModel)
+global_gauge_quotients(m::AbstractFTheoryModel)
 ```
 
 
@@ -71,6 +74,8 @@ is_partially_resolved(m::AbstractFTheoryModel)
 
 ```@docs
 blow_up(m::AbstractFTheoryModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String = "e")
+blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
 tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Bool = true)
 put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{String, <:Any}; completeness_check::Bool = true)
 ```

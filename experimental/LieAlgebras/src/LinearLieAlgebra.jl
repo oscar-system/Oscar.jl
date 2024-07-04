@@ -10,30 +10,21 @@
     n::Int,
     basis::Vector{<:MatElem{C}},
     s::Vector{Symbol};
-    cached::Bool=true,
     check::Bool=true,
   ) where {C<:FieldElem}
-    return get_cached!(
-      LinearLieAlgebraDict, (R, n, basis, s), cached
-    ) do
-      @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
-      @req length(s) == length(basis) "Invalid number of basis element names."
-      L = new{C}(R, n, length(basis), basis, s)
-      if check
-        @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-        # TODO: make work
-        # for xi in basis(L), xj in basis(L)
-        #   @req (xi * xj) in L
-        # end
-      end
-      return L
-    end::LinearLieAlgebra{C}
+    @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
+    @req length(s) == length(basis) "Invalid number of basis element names."
+    L = new{C}(R, n, length(basis), basis, s)
+    if check
+      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
+      # TODO: make work
+      # for xi in basis(L), xj in basis(L)
+      #   @req (xi * xj) in L
+      # end
+    end
+    return L
   end
 end
-
-const LinearLieAlgebraDict = CacheDictType{
-  Tuple{Field,Int,Vector{<:MatElem},Vector{Symbol}},LinearLieAlgebra
-}()
 
 struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
   parent::LinearLieAlgebra{C}
@@ -82,7 +73,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
+function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
   io = pretty(io)
   println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
   println(io, Indent(), "of dimension $(dim(L))", Dedent())
@@ -91,7 +84,9 @@ function Base.show(io::IO, ::MIME"text/plain", L::LinearLieAlgebra)
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
-  if get(io, :supercompact, false)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
     print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
   else
     io = pretty(io)
@@ -101,7 +96,7 @@ function Base.show(io::IO, L::LinearLieAlgebra)
       " over ",
       Lowercase(),
     )
-    print(IOContext(io, :supercompact => true), coefficient_ring(L))
+    print(terse(io), coefficient_ring(L))
   end
 end
 
@@ -144,7 +139,7 @@ end
 @doc raw"""
     coerce_to_lie_algebra_elem(L::LinearLieAlgebra{C}, x::MatElem{C}) -> LinearLieAlgebraElem{C}
 
-Returns the element of `L` whose matrix representation corresponds to `x`.
+Return the element of `L` whose matrix representation corresponds to `x`.
 If no such element exists, an error is thrown.
 """
 function coerce_to_lie_algebra_elem(
@@ -191,24 +186,23 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; check::Bool=true) -> LinearLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the field `R` with basis `basis` and basis element names
 given by `s`. The basis elements must be square matrices of size `n`.
-We require `basis` to be linearly independent, and to contain the Lie bracket of any
-two basis elements in its span.
 
-If `cached` is `true`, the constructed Lie algebra is cached.
+We require `basis` to be linearly independent, and to contain the Lie bracket of any
+two basis elements in its span (this is currently not checked).
+Setting `check=false` disables these checks (once they are in place).
 """
 function lie_algebra(
   R::Field,
   n::Int,
   basis::Vector{<:MatElem{C}},
   s::Vector{<:VarName};
-  cached::Bool=true,
   check::Bool=true,
 ) where {C<:FieldElem}
-  return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); cached)
+  return LinearLieAlgebra{elem_type(R)}(R, n, basis, Symbol.(s); check)
 end
 
 function lie_algebra(
@@ -327,7 +321,7 @@ function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
   for i in 1:n, j in 1:n
     x = zero_matrix(R, n, n)
     x[i, j] = 1
-    eqs[(i-1) * n + j, :] = _vec(x + invform * transpose(x) * form)
+    eqs[(i - 1) * n + j, :] = _vec(x + invform * transpose(x) * form)
   end
   ker = kernel(eqs)
   rref!(ker) # we cannot assume anything about the kernel, but want to have a consistent output
@@ -335,7 +329,7 @@ function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
   basis = [zero_matrix(R, n, n) for _ in 1:dim]
   for i in 1:n
     for k in 1:dim
-      basis[k][i, 1:n] = ker[k, (i-1) * n .+ (1:n)]
+      basis[k][i, 1:n] = ker[k, (i - 1) * n .+ (1:n)]
     end
   end
   return basis

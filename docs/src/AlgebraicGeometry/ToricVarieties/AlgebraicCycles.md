@@ -61,7 +61,7 @@ rational_equivalence_class(v::NormalToricVarietyType, p::MPolyQuoRingElem)
 rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
 ```
 
-### Special constructors
+### [Special constructors](@id toric_special_constructors)
 
 ```@docs
 rational_equivalence_class(d::ToricDivisor)
@@ -95,7 +95,7 @@ An algebraic cycle can be intersected `n`- with itself via `^n`,
 where `n` can be an integer of of type `ZZRingElem`.
 
 A closed subvarieties defines in a natural way a rational equivalence
-class (cf. section on special constructors above). This allows to
+class (cf. [Special constructors](@ref toric_special_constructors)). This allows to
 compute intersection products among closed subvarieties and rational
 equivalence classes in the Chow ring.
 

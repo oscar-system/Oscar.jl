@@ -75,7 +75,7 @@ in Julia. This will create a directory `~/.julia/dev/Oscar`. This directory is
 a git clone of the central OSCAR repository. You can develop your code here,
 however you will still have to fork OSCAR, as you have no rights to push to the
 central repository. You can then add your fork as another remote, have a look
-at the section on rebasing below for hints.
+at the section on [rebasing](@ref rebasing) below for hints.
 
 
 ## The edit process
@@ -160,7 +160,7 @@ naming conventions, code formatting, etc.
 To build and test the documentation, please have a look at [Documenting OSCAR
 code](@ref).
 
-### Rebasing
+### [Rebasing](@id rebasing)
 One way to stay up to date with the current master is rebasing. In order to do
 this, add the main Oscar.jl repository as a remote, fetch, and then rebase.
 ```

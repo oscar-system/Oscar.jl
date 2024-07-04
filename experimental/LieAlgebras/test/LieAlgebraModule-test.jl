@@ -242,7 +242,9 @@
             @test_broken ds_V !== direct_sum([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of ds_V should not change type of V
             @test Oscar._is_direct_sum(ds_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(Oscar._is_direct_sum(ds_V)[2], [V for _ in 1:k]))
+            @test all(
+              x -> x[1] === x[2], zip(Oscar._is_direct_sum(ds_V)[2], [V for _ in 1:k])
+            )
             @test dim(ds_V) == k * dim(V)
             @test length(repr(ds_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -283,7 +285,9 @@
             @test_broken tp_V !== tensor_product([V for _ in 1:k]...; cached=false)
             @test type_V == module_type_bools(V) # construction of tp_V should not change type of V
             @test Oscar._is_tensor_product(tp_V) == (true, [V for _ in 1:k])
-            @test all(x -> x[1] === x[2], zip(Oscar._is_tensor_product(tp_V)[2], [V for _ in 1:k]))
+            @test all(
+              x -> x[1] === x[2], zip(Oscar._is_tensor_product(tp_V)[2], [V for _ in 1:k])
+            )
             @test dim(tp_V) == dim(V)^k
             @test length(repr(tp_V)) < 10^4 # outputs tend to be excessively long due to recursion
 
@@ -292,7 +296,8 @@
 
             x = L(rand(-10:10, dim(L)))
             a = [V(rand(-10:10, dim(V))) for _ in 1:k]
-            @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) == x * tp_V(a)
+            @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:k) ==
+              x * tp_V(a)
 
             @test tp_V == tensor_power(V, k)[1]
           end
@@ -313,7 +318,8 @@
 
           x = L(rand(-10:10, dim(L)))
           a = [Vi(rand(-10:10, dim(Vi))) for Vi in [V1, V2]]
-          @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:2) == x * tp_V(a)
+          @test sum(tp_V([i == j ? x * v : v for (j, v) in enumerate(a)]) for i in 1:2) ==
+            x * tp_V(a)
         end
 
         @testset "exterior_power" begin
@@ -720,7 +726,7 @@
     @test (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :E, 6), [6, 5, 4, 3, 2, 1]
     )) == ZZ(53947263633682628459250)
-    @test_skip (@inferred dim_of_simple_module(
+    @test (@inferred dim_of_simple_module(
       ZZRingElem, lie_algebra(QQ, :F, 4), [2, 4, 1, 2]
     )) == ZZ(5989283015625)
     @test (@inferred dim_of_simple_module(lie_algebra(QQ, :G, 2), [2, 2])) == 729

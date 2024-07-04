@@ -303,7 +303,7 @@ function center(L::LieAlgebra)
     end
   end
 
-  c_basis = kernel(mat; side = :left)
+  c_basis = kernel(mat; side=:left)
   c_dim = nrows(c_basis)
   return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
@@ -323,7 +323,7 @@ function centralizer(L::LieAlgebra, xs::AbstractVector{<:LieAlgebraElem})
     end
   end
 
-  c_basis = kernel(mat; side = :left)
+  c_basis = kernel(mat; side=:left)
   c_dim = nrows(c_basis)
   return sub(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
 end
@@ -477,26 +477,24 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(gapL::GAP.GapObj, s::Vector{<:VarName}; cached::Bool) -> LieAlgebra{elem_type(R)}
+    lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra{elem_type(R)}
 
 Construct a Lie algebra isomorphic to the GAP Lie algebra `gapL`. Its basis element are named by `s`,
 or by `x_i` by default.
 We require `gapL` to be a finite-dimensional GAP Lie algebra. The return type is dependent on
 properties of `gapL`, in particular, whether GAP knows about a matrix representation.
 
-If `cached` is `true`, the constructed Lie algebra is cached.
 """
 function lie_algebra(
-  gapL::GAP.GapObj,
+  gapL::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(gapL)];
-  cached::Bool=true,
 )
-  @req GAPWrap.IsLieAlgebra(gapL) "gapL must be a Lie algebra."
+  @req GAPWrap.IsLieAlgebra(gapL) "input must be a Lie algebra."
   if GAPWrap.IsFiniteDimensional(gapL)
     if GAPWrap.IsLieObjectCollection(gapL)
-      return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s; cached))
+      return codomain(_iso_gap_oscar_linear_lie_algebra(gapL, s))
     else
-      return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s; cached))
+      return codomain(_iso_gap_oscar_abstract_lie_algebra(gapL, s))
     end
   end
   error("Not implemented.")

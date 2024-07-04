@@ -17,7 +17,6 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
   R = base_ring(fac.orig_mod)
 
   if iszero(i)
-    n = ngens(fac.orig_mod)
     return _make_free_module(fac.orig_mod, gens(fac.orig_mod))
   end
 
@@ -51,6 +50,43 @@ function (fac::ResolutionModuleFactory{ChainType})(c::AbsHyperComplex, I::Tuple)
   
   return next
 end
+
+# Modified version to use Schreyer's resolution where applicable
+function (fac::ResolutionModuleFactory{ChainType})(
+             c::AbsHyperComplex, I::Tuple
+           ) where {ChainType <: ModuleFP{<:MPolyRingElem{<:FieldElem}}}
+  i = first(I)
+  R = base_ring(fac.orig_mod)
+
+  is_zero(i) && return _make_free_module(fac.orig_mod, gens(fac.orig_mod))
+
+  if is_empty(fac.map_cache)
+    # start the resolution from scratch
+    # It turns out to usually be better to compute the full Schreyer resolution at once 
+    # instead of incrementally.
+    res = free_resolution(fac.orig_mod; algorithm=:fres)
+    phi = map(res, 1)
+    F = c[0] # caught above
+    id = hom(codomain(phi), F, gens(F))
+    push!(fac.map_cache, compose(phi, id))
+    r = first(range(res.C)) # the index of the last module
+    for j in 2:r
+      push!(fac.map_cache, map(res, j))
+    end
+    @assert is_zero(domain(last(fac.map_cache)))
+  end
+
+  m = length(fac.map_cache)
+  i == 0 && return codomain(first(fac.map_cache))
+  i <= m && return domain(fac.map_cache[i])
+
+  for j in m+1:i
+    next, inc = zero_object(domain(last(fac.map_cache)))
+    push!(fac.map_cache, inc)
+  end
+  return domain(last(fac.map_cache))
+end
+
 
 function zero_object(M::ModuleFP)
   if is_graded(M)
@@ -136,13 +172,16 @@ augmentation_map(c::SimpleFreeResolution) = c.augmentation_map
 function betti(b::SimpleFreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool = false)
   return betti_table(b; project, reverse_direction)
 end
-function betti_table(C::AbsHyperComplex; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
+function betti_table(C::AbsHyperComplex; 
+    lower_bound::Union{Int, Nothing}=(has_lower_bound(C) ? Oscar.lower_bound(C) : nothing),
+    upper_bound::Union{Int, Nothing}=(has_upper_bound(C) ? Oscar.upper_bound(C) : nothing),
+    project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false
+  )
   @assert dim(C) == 1 "complex must be one-dimensional"
-  @assert has_upper_bound(C) "no upper bound known for this resolution"
+  @assert lower_bound !== nothing && upper_bound !== nothing "explicit bounds must be known"
+  @assert direction(C, 1) == :chain "only implemented for chain complexes"
   generator_count = Dict{Tuple{Int, Any}, Int}()
-  rng = upper_bound(C):-1:lower_bound(C)
-  n = first(rng)
-  for i in 0:upper_bound(C)
+  for i in lower_bound:upper_bound
     @assert is_graded(C[i]) "one of the modules in the graded free resolution is not graded"
     module_degrees = degree.(gens(C[i]))
     for degree in module_degrees
@@ -153,12 +192,16 @@ function betti_table(C::AbsHyperComplex; project::Union{FinGenAbGroupElem, Nothi
   return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
 end
 
-function minimal_betti_table(C::AbsHyperComplex)
+function minimal_betti_table(C::AbsHyperComplex;
+    lower_bound::Union{Int, Nothing}=(has_lower_bound(C) ? Oscar.lower_bound(C) : nothing),
+    upper_bound::Union{Int, Nothing}=(has_upper_bound(C) ? Oscar.upper_bound(C) : nothing)
+  )
   @assert dim(C) == 1 "complex must be one-dimensional"
-  @assert has_lower_bound(C) && has_upper_bound(C) "resolution must be bounded"
+  @assert lower_bound !== nothing && upper_bound !== nothing "explicit bounds must be known"
+  @assert direction(C, 1) == :chain "only implemented for chain complexes"
   offsets = Dict{FinGenAbGroupElem, Int}()
   betti_hash_table = Dict{Tuple{Int, Any}, Int}()
-  for i in 1:upper_bound(C)+1
+  for i in lower_bound+1:upper_bound+1
     phi = map(C, i)
     F = domain(phi)
     @assert is_graded(F) "modules must be graded"

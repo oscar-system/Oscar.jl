@@ -61,7 +61,7 @@
   #println("starting primary decomposition of singular locus")
   decomp = Oscar.maximal_associated_points(I_sing_X3)
   #println("finished primary decomposition of singular locus")
-  l = small_generating_set.([a for a in decomp])
+  l = simplify.([a for a in decomp])
 
   #@show "blowing up first center"
   #@show gens.(l[1].(patches(Oscar.simplified_covering(X3))))

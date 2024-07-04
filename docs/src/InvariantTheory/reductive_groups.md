@@ -4,7 +4,7 @@ CurrentModule = Oscar
 
 # Invariants of Linearly Reductive Groups
 
-In this section, with notation as in the introduction to this chapter,
+In this section, with notation as in the [introduction](@ref invariant_theory) to this chapter,
 $G$ will be a *linearly algebraic group* over an algebraically closed
 field $K$, $\rho: G \to \text{GL}(V)\cong \text{GL}_n(K)$ will
 be a *rational* representation of $G$, and

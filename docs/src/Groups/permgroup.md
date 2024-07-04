@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Permutation groups
@@ -89,6 +87,7 @@ sign(g::PermGroupElem)
 isodd(g::PermGroupElem)
 iseven(g::PermGroupElem)
 cycle_structure(g::PermGroupElem)
+cycles(g::PermGroupElem)
 ```
 
 ## Permutations as functions

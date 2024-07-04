@@ -92,6 +92,7 @@ include("0.12.0.jl")
 include("0.12.2.jl")
 include("0.13.0.jl")
 include("0.15.0.jl")
+include("1.1.0.jl")
 
 upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
@@ -114,8 +115,8 @@ function upgrade(format_version::VersionNumber, dict::Dict)
     if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
-      @info("upgrading serialized data....",
-            maxlog=1)
+      @debug("upgrading serialized data....",
+             maxlog=1)
 
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load

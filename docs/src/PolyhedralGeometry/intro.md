@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Introduction
@@ -177,7 +175,7 @@ fan for its construction, see [`polyhedral_fan`](@ref).
 Lower dimensional polyhedral objects can be visualized through polymake's backend.
 
 ```@docs
-visualize(P::Union{Polyhedron{T}, Cone{T}, PolyhedralFan{T}, PolyhedralComplex{T}}) where T<:Union{QQFieldElem, Float64, EmbeddedNumFieldElem}
+visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, Graph, SimplicialComplex}; kwargs...)
 ```
 
 

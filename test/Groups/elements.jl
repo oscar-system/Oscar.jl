@@ -11,7 +11,7 @@
     @test typeof(Vector(y))==Vector{Int64}
     @test typeof(Vector{ZZRingElem}(y))==Vector{ZZRingElem}
     @test x==G(Vector(x))
-    @test is_finiteorder(x)
+    @test is_finite_order(x)
     @test order(x) == lcm(15,n-8)
     for T in [Int, BigInt, ZZRingElem]
       @test order(T, x) == lcm(15,n-8)
@@ -151,12 +151,52 @@ end
 @testset "deepcopy" begin
    for g in [symmetric_group(5), free_group(2), small_group(8, 1),
              automorphism_group(alternating_group(4))]
-     m = Oscar.BasicGAPGroupElem(g, gen(g, 1).X)
+     m = Oscar.BasicGAPGroupElem(g, GAP.Obj(gen(g, 1)))
      @test isdefined(m, :X)
      c = deepcopy(m);
      @test isdefined(c, :X)
-     @test c.X == m.X
+     @test GAP.Obj(c) == GAP.Obj(m)
 
      @test deepcopy([one(g)]) == [one(g)]
    end
+end
+
+@testset "compatibility of parents" begin
+   G = symmetric_group(4)
+   g = symmetric_group(3); a = automorphism_group(g)
+   L = [G,
+        automorphism_group(alternating_group(4)),
+        general_linear_group(2, 3),
+        direct_product(cyclic_group(2), cyclic_group(3)),
+        semidirect_product(g, id_hom(a), a),
+        wreath_product(symmetric_group(2), symmetric_group(3))]
+   for T in [FPGroup, SubFPGroup, PcGroup, SubPcGroup]
+     push!(L, codomain(isomorphism(T, G)))
+   end
+   @testset for g in L
+     s2 = sylow_subgroup(g, 2)[1]
+     s3 = sylow_subgroup(g, 3)[1]
+     @test parent(one(s2) * one(g)) == g
+     @test parent(one(g) * one(s2)) == g
+     @test parent(one(s2) * one(s3)) == g
+     @test parent(one(s2) * one(s2)) == s2
+
+     x = gen(s2, 1)
+     y = gen(s3, 1)
+     z = gen(g, 1)
+     c = conj(x, y)
+     @test c == inv(y) * x * y
+     @test c == x^y
+     @test parent(c) == parent(inv(y) * x * y)
+     c = conj(x, z)
+     @test c == inv(z) * x * z
+     @test c == x^z
+     @test parent(c) == parent(inv(z) * x * z)
+   end
+
+   @test_throws MethodError one(L[1]) * one(L[2])  # no generic method for different types
+   @test_throws ArgumentError one(small_group(12, 1)) * one(small_group(12,2))
+   g1 = codomain(isomorphism(FPGroup, L[1]))
+   g2 = codomain(isomorphism(FPGroup, L[2]))
+   @test_throws ArgumentError one(g1) * one(g2)
 end

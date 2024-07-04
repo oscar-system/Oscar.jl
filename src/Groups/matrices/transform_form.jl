@@ -38,8 +38,8 @@ end
 function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_symmetric::Bool=false) where T <: FinFieldElem
 
    @assert !_is_symmetric || nr==nc
-   V1 = VectorSpace(F,nc)
-   V2 = VectorSpace(F,nr)
+   V1 = vector_space(F,nc)
+   V2 = vector_space(F,nr)
    K, embK = kernel(ModuleHomomorphism(V1, V2, _is_symmetric ? B : transpose(B)))
    U, embU = complement(V1,K)
    d = dim(U)
@@ -391,8 +391,8 @@ function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <:
    
    if f.descr==:quadratic
       if iseven(characteristic(F))            # in this case we use the GAP algorithms
-         Bg = preimage_matrix(g.ring_iso, GAP.Globals.BaseChangeToCanonical(g.X))
-         Bf = preimage_matrix(f.ring_iso, GAP.Globals.BaseChangeToCanonical(f.X))
+         Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(g.X))
+         Bf = preimage_matrix(_ring_iso(f), GAP.Globals.BaseChangeToCanonical(f.X))
 
          UTf = _upper_triangular_version(Bf*gram_matrix(f)*transpose(Bf))
          UTg = _upper_triangular_version(Bg*gram_matrix(g)*transpose(Bg))

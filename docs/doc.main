@@ -25,6 +25,7 @@
      "Groups/grouplib.md",
      "Hecke/abelian/introduction.md",
      "Groups/group_characters.md",
+     "Groups/recog.md",
   ],
 
   "Rings" => [
@@ -163,15 +164,13 @@
         "AlgebraicGeometry/Schemes/GeneralSchemes.md",
         "AlgebraicGeometry/Schemes/AffineSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
-        "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/RationalPointsAffine.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGluings.md",
         "AlgebraicGeometry/Schemes/CoveredSchemeMorphisms.md",
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
-     ],
-     "Sheaf Cohomology" => [
-        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
+        "AlgebraicGeometry/Schemes/RationalPointsProjective.md",
      ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
@@ -181,9 +180,20 @@
         "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
         "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
      ],
-     "Rational Points" => [
-        "AlgebraicGeometry/RationalPoints/Affine.md",
-        "AlgebraicGeometry/RationalPoints/Projective.md",
+     "Curves" => [
+         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
+         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
+         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
+	 "AlgebraicGeometry/Curves/ParametrizationPlaneCurves.md",
+     ],
+     "Surfaces" => [
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
+	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
+        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+     ],
+     "Sheaf Cohomology" => [
+        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
@@ -201,18 +211,12 @@
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
         "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
      ],
-     "Curves" => [
-         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
-         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
-         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
-     ],
-     "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
-        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
-     ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
-     ]
+     ],
+     "Frameworks for Developers" => [
+        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
+     ],
   ],
 
   "Tropical Geometry" => [
@@ -247,6 +251,7 @@
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
+      "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
   ],
 
@@ -264,9 +269,11 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
+    "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",
+    "DeveloperDocumentation/release.md",
     "Polyhedral Geometry" => [
         "DeveloperDocumentation/AbstractCollection.md",
         "DeveloperDocumentation/SubObjectIterator.md",

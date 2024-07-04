@@ -77,7 +77,9 @@ coefficient_ring(a::PBWAlgQuoElem) = coefficient_ring(parent(a))
 
 modulus(Q::PBWAlgQuo) = Q.I
 
-base_ring(Q::PBWAlgQuo) = Q.I.basering
+base_ring(Q::PBWAlgQuo) = base_ring(Q.I)
+
+base_ring_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = base_ring_type(PBWAlgIdeal{0, T, S})
 
 base_ring(a::PBWAlgQuoElem) = base_ring(parent(a))
 

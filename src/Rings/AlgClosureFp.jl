@@ -14,9 +14,9 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
-import ..Oscar.AbstractAlgebra: pretty, Lowercase
+import ..Oscar: pretty, Lowercase
 
-import ..Oscar: algebraic_closure, base_field, base_ring, characteristic, data, degree, divexact,
+import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
   elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
@@ -31,11 +31,12 @@ end
 
 function show(io::IO, A::AlgClosure)
   io = pretty(io)
-  print(io, "Algebraic Closure of ", Lowercase(), A.k)
+  print(io, "Algebraic closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
+base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
 
 struct AlgClosureElem{T} <: FieldElem
@@ -80,7 +81,7 @@ function check_parent(a::AlgClosureElem, b::AlgClosureElem)
 end
 
 #TODO: Guarantee to return a field of the same type as `base_ring(A)`?
-# (Then `Nemo.fpField` cannot be supported as `base_ring(A)`)
+# (Then `fpField` cannot be supported as `base_ring(A)`)
 @doc raw"""
     ext_of_degree(A::AlgClosure, d::Int)
 
@@ -106,7 +107,7 @@ function ext_of_degree(A::AlgClosure, d::Int)
   end
     
   k = base_ring(A)
-  if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
+  if isa(k, fpField) || isa(k, fqPolyRepField)
     K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
     K = GF(characteristic(k), d, cached = false)
@@ -177,7 +178,7 @@ is_unit(a::AlgClosureElem) = !iszero(a)
 
 function roots(a::AlgClosureElem, b::Int)
   ad = data(a)
-  kx, x = polynomial_ring(parent(ad), cached = false)
+  kx, x = polynomial_ring(parent(ad); cached = false)
   f = x^b-ad
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -190,7 +191,7 @@ end
 function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
-  kx, x = polynomial_ring(parent(b[1]), cached = false)
+  kx, x = polynomial_ring(parent(b[1]); cached = false)
   f = kx(b)
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -208,12 +209,6 @@ end
 # c = K(a); fc = minpoly(c); fc(c)  # does not work
 function minpoly(a::AlgClosureElem)
   return minpoly(data(a))
-end
-
-#TODO: Move to Nemo.
-function minpoly(a::fpFieldElem)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return x-a
 end
 
 # Note: We want the degree of the smallest finite field that contains `a`.

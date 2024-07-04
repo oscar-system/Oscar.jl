@@ -78,6 +78,7 @@ divisors is at most 2).
 
 ```@docs
 enumerate_classes_of_lattices_with_isometry(::ZZLat, ::IntegerUnion)
+enumerate_prime_power_isometries(::ZZLat, ::IntegerUnion, ::IntegerUnion)
 ```
 
 As a remark: if $n = p^dq^e$ is the chosen order, with $p < q$ prime numbers,

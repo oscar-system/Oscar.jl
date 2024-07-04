@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Subquotients
@@ -34,7 +32,7 @@ Finally, we refer to
 and regard $M$ as a submodule of that ambient module, embedded in the natural way.
 
 !!! note
-    Recall from the section on free modules that by a free $R$-module we mean a free
+    Recall from the section on [free modules](@ref free_modules) that by a free $R$-module we mean a free
     module of type $R^p$ , where we think of $R^p$ as a free module with a given
     basis, namely the basis of standard unit vectors. Accordingly, elements of free modules
     are represented by coordinate vectors, and homomorphisms between free modules by
@@ -86,7 +84,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -181,7 +179,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -237,7 +235,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -285,7 +283,7 @@ julia> parent(fm) === ambient_free_module(M)
 true
 
 julia> F = ambient_free_module(M)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> f = x*F[1]
 x*e[1]

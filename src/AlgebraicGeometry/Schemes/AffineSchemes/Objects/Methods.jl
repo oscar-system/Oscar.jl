@@ -43,7 +43,7 @@ end
 function Base.show(io::IO, X::AbsAffineScheme)
   if has_attribute(X, :name)
     print(io, name(X))
-  elseif get(io, :supercompact, false)
+  elseif is_terse(io)
     print(io, "Affine scheme")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty affine scheme")
@@ -172,6 +172,134 @@ function is_non_zero_divisor(f::RingElem, X::AbsAffineScheme{<:Ring, <:MPolyQuoL
 end
 
 ########################################################################
+# Normalization                                                        #
+########################################################################
+
+@doc raw"""
+    is_normal(X::AbsAffineScheme; check::Bool=true) -> Bool
+
+# Input:
+- a reduced scheme ``X``,
+- if `check` is `true`, then confirm that ``X`` is reduced; this is expensive.
+
+# Output:
+Returns whether the scheme ``X`` is normal.
+
+# Examples
+```jldoctest
+julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+
+julia> X = spec(R);
+
+julia> is_normal(X)
+true
+```
+"""
+function is_normal(X::AbsAffineScheme; check::Bool=true)
+  !check || is_reduced(X) || return false
+  R = coordinate_ring(X)
+  return is_normal(R; check=check)
+end
+
+# Todo: Normalizations of localizations
+#function _normalization(X::AbsAffineScheme{<:Field, <:MPolyLocRing}; algorithm=:equidimDec)
+#  L = OO(X)
+#  R = base_ring(L)
+#  Y, phi, loc = _normalization(spec(R))[1]
+#end
+
+"""
+    _normalization
+
+Return a vector of triples
+`(Xnorm_k, f_k, phi_k)`
+where the normalization is the disjoint union of the `Xnorm_k`
+`f_k: Xnorm_k -> X` is the restriction of the normalization map.
+Let `X_k` be the image of `f_k`.
+Then `phi_k` maps the coordinate ring of `Xnorm_k` to the
+total field of fraction of `OO(X_k)`.
+"""
+_normalization(X::AbsAffineScheme; algorithm, check::Bool=true) = error("not implemented")
+
+
+
+function _normalization(X::AbsAffineScheme{<:Field, <:MPolyRing}; algorithm=:equidimDec, check::Bool=true)
+  R = OO(X)
+  K = total_ring_of_fractions(R)
+  Y = spec(R)
+  phi = morphism(Y, X, gens(OO(X)); check=false)
+  loc = hom(R, K, [K(x, one(R), false) for x in gens(R)]; check=false)
+  return [(X, phi, loc)]
+end
+
+function _normalization(X::AbsAffineScheme{<:Field, <:MPolyQuoRing}; algorithm=:equidimDec, check::Bool=true)
+  @check is_reduced(X) "The scheme X=$(X) needs to be reduced."
+  A = OO(X)
+  A_norm = normalization(A; algorithm)
+  output = Tuple{<:AbsAffineScheme, <:AbsAffineSchemeMor, <:Map}[]
+  F = ambient_embedding(X)
+  if length(A_norm) == 1 && is_one(A_norm[1][3][1])
+    # Workaround, normalization for rings buggy if already normal
+    Xnorm_k = X
+    X_k = X
+    F_k = identity_map(X)
+    K_k = total_ring_of_fractions(X_k)
+    A_k = OO(Xnorm_k)
+    A_k_to_K_k = hom(A_k, K_k, K_k.(gens(A_k)); check=false)
+    push!(output, (Xnorm_k, F_k, A_k_to_K_k))
+    return output
+  end
+  for (A_k, f_k, a_k) in A_norm
+    d_k = a_k[1] # An element so that 1/(d_k) J_k = A_k; J_k = d_k[2]
+    Xnorm_k = spec(A_k)
+    F_k = morphism(Xnorm_k, X, f_k; check=false)
+    if length(A_norm) == 1
+      # X = X_k is integral
+      X_k = X
+      inc_k = identity_map(X)
+    else
+      I = kernel(pullback(F_k))
+      X_k, inc_k = sub(X, I) # the component of X lying over Xnorm_k
+    end
+    K_k = total_ring_of_fractions(X_k)
+    d_k = pullback(inc_k)(d_k)
+    gens_to_K_k_coordinates = vcat(
+      [ K_k(pullback(inc_k)(g_k), d_k, false) for g_k in gens(a_k[2])[1:end-1] ],
+      gens(OO(X_k))
+    )
+    A_k_to_K_k = hom(A_k, K_k, gens_to_K_k_coordinates; check=false)
+
+    push!(output, (Xnorm_k, F_k, A_k_to_K_k))
+  end
+  return output
+end
+
+# further documented for `Scheme`
+"""
+    normalization(X::AbsAffineScheme) -> Vector{Tuple{AbsAffineScheme, AbsAffineSchemeMor}}
+
+Return the normalization of the reduced affine scheme ``X``.
+
+# Input:
+- A reduced affine scheme ``X``
+- if `check` is `true` confirm that ``X`` is reduced; this is expensive
+- the keyword argument `algorithm` is passed on to [`normalization(::MPolyQuoRing)`](@ref)
+
+# Output:
+A list of pairs ``(Y_i, f_i)`` where ``Y_i`` is a normal scheme and
+``f_i`` is a morphism from ``Y_i`` to ``X``.
+The disjoint union of the ``Y_i`` is the normalization of ``X``
+and the ``f_i`` are the restrictions of the normalization morphism to ``Y_i``.
+"""
+function normalization(X::AbsAffineScheme; check::Bool=true, algorithm=:equidimDec)
+  @check is_reduced(X) "only reduced schemes can be normalized"
+  norm_outputs = _normalization(X; algorithm)
+  return [i[1:2] for i in norm_outputs]
+end
+
+
+
+########################################################################
 # High level constructors of subschemes                                #
 ########################################################################
 
@@ -290,7 +418,7 @@ function base_change(phi::Any, X::AbsAffineScheme)
   R = OO(X)
   R_red, Phi = _change_base_ring(phi, R)
   Y = spec(R_red)
-  return Y, morphism(Y, X, Phi)
+  return Y, morphism(Y, X, Phi; check=false)
 end
 
 ### Some helper functions
@@ -298,7 +426,7 @@ function _change_base_ring(phi::Any, R::MPolyRing)
   K = coefficient_ring(R)
   kk = parent(phi(zero(K)))
   P, _ = polynomial_ring(kk, symbols(R))
-  Phi = hom(R, P, phi, gens(P))
+  Phi = hom(R, P, phi, gens(P); check=false)
   return P, Phi
 end
 
@@ -321,7 +449,9 @@ function _change_base_ring(phi::Any,
   U = inverted_set(W)
   U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
   W_red, loc_map = localization(P, U_red)
-  return W_red, hom(W, W_red, compose(Phi, loc_map), check=false)
+  res_map = hom(W, W_red, compose(Phi, loc_map), check=false)
+  #@assert _has_coefficient_map(res_map)
+  return W_red, res_map
 end
 
 function _change_base_ring(phi::Any,
@@ -335,6 +465,7 @@ function _change_base_ring(phi::Any,
   I_red = ideal(W_red, Phi_W.(gens(I)))
   L_red, pr = quo(W_red, I_red)
   res = compose(restricted_map(Phi_W), pr)
-  return L_red, hom(L, L_red, res, check=false)
+  res_map = hom(L, L_red, res, check=false)
+  #@assert _has_coefficient_map(res_map)
+  return L_red, res_map
 end
-

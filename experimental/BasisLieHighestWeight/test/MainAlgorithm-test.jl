@@ -565,14 +565,23 @@ end
 
 @testset "Coordinate ring of Kodaira embedding" begin
   @testset "general case" begin
-    mbs = basis_coordinate_ring_kodaira(
+    mbs = @inferred basis_coordinate_ring_kodaira(
       :B, 3, [0, 0, 1], 4, [3, 2, 3, 2, 1, 2, 3, 2, 1]; monomial_ordering=:neglex
     )
     @test length(mbs) == 4
-    @test dim(mbs[1][1]) == mbs[1][2]
-    @test mbs[2][2] > 0
-    @test mbs[3][2] == 0
-    @test mbs[4][2] == 0
+
+    @test dim(mbs[1][1]) == length(mbs[1][2])
+    @test issetequal(monomials(mbs[1][1]), mbs[1][2])
+
+    @test length(mbs[2][2]) > 0
+    @test issubset(monomials(mbs[1][1]), monomials(mbs[2][1]))
+    @test issubset(mbs[2][2], monomials(mbs[2][1]))
+
+    @test isempty(mbs[3][2])
+    @test issubset(monomials(mbs[2][1]), monomials(mbs[3][1]))
+
+    @test isempty(mbs[4][2])
+    @test issubset(monomials(mbs[3][1]), monomials(mbs[4][1]))
   end
 
   @testset "FFL" begin
@@ -583,14 +592,15 @@ end
       (:G, 2, [1, 0], 6),
     ]
       dynkin, n, lambda, degree = case
-      mbs = basis_coordinate_ring_kodaira_ffl(dynkin, n, lambda, degree)
+      mbs = @inferred basis_coordinate_ring_kodaira_ffl(dynkin, n, lambda, degree)
       L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(dynkin), n, GAP.Globals.Rationals)
       gap_dim = GAP.Globals.DimensionOfHighestWeightModule(L, GAP.Obj(lambda))
       @test length(mbs) == degree
       @test dim(mbs[1][1]) == gap_dim
-      @test dim(mbs[1][1]) == mbs[1][2]
+      @test dim(mbs[1][1]) == length(mbs[1][2])
+      @test issetequal(monomials(mbs[1][1]), mbs[1][2])
       for i in 2:degree
-        @test mbs[i][2] == 0
+        @test isempty(mbs[i][2])
       end
     end
   end

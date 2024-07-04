@@ -3,17 +3,15 @@
 ################################################################################
 
 for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
-  
   @eval begin
-
     struct $T{U} <: AbstractVector{U}
       p::MatElem{U}
 
-      $T{U}(p::MatElem{U}) where U<:scalar_types_extended = new{U}(p)
+      $T{U}(p::MatElem{U}) where {U<:scalar_types_extended} = new{U}(p)
     end
 
     Base.IndexStyle(::Type{<:$T}) = IndexLinear()
-    Base.getindex(po::$T{U}, i::Base.Integer) where U = po.p[1, i]::U
+    Base.getindex(po::$T{U}, i::Base.Integer) where {U} = po.p[1, i]::U
 
     function Base.setindex!(po::$T, val, i::Base.Integer)
       @boundscheck 1 <= length(po) <= i
@@ -27,43 +25,47 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
 
     coefficient_field(po::$T) = base_ring(po.p)
 
-    function $_t(p::Union{scalar_type_or_field, ZZRing}, v::AbstractVector)
+    function $_t(p::Union{scalar_type_or_field,ZZRing}, v::AbstractVector)
       parent_field, scalar_type = _determine_parent_and_scalar(p, v)
       n = length(v)
       mat = matrix(parent_field, 1, n, collect(v)) # collect: workaround for constructor typing
       return $T{scalar_type}(mat)
     end
 
-    function $_t(p::Union{scalar_type_or_field, ZZRing}, n::Base.Integer)
+    function $_t(p::Union{scalar_type_or_field,ZZRing}, n::Base.Integer)
       parent_field, scalar_type = _determine_parent_and_scalar(p)
       mat = zero_matrix(parent_field, 1, n)
       return $T{scalar_type}(mat)
     end
 
-    $_t(x::Union{AbstractVector, Base.Integer}) = $_t(QQ, x)
+    $_t(x::Union{AbstractVector,Base.Integer}) = $_t(QQ, x)
 
-    function Base.similar(X::$T, ::Type{S}, dims::Dims{1}) where S <: scalar_types_extended
+    function Base.similar(X::$T, ::Type{S}, dims::Dims{1}) where {S<:scalar_types_extended}
       return $_t(coefficient_field(X), dims...)
     end
 
     Base.BroadcastStyle(::Type{<:$T}) = Broadcast.ArrayStyle{$T}()
 
-    _parent_or_coefficient_field(::Type{TT}, po::$T{<:TT}) where TT <: FieldElem = coefficient_field(po)
+    _parent_or_coefficient_field(::Type{TT}, po::$T{<:TT}) where {TT<:FieldElem} =
+      coefficient_field(po)
     _find_elem_type(po::$T) = elem_type(coefficient_field(po))
 
-    function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType<:scalar_types_extended
+    function Base.similar(
+      bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}
+    ) where {ElType<:scalar_types_extended}
       e = bc.f(first.(bc.args)...)
       return $_t(parent(e), axes(bc)...)
     end
 
-    function Base.similar(bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}) where ElType
+    function Base.similar(
+      bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{ElType}
+    ) where {ElType}
       return Vector{ElType}(undef, length(axes(bc)...))
     end
 
     Base.:*(k::scalar_types_extended, po::$T) = k .* po
 
     Base.:*(A::MatElem, v::$T) = A * transpose(v.p)
-    
   end
 end
 
@@ -88,7 +90,6 @@ ray_vector
 ################################################################################
 
 for (h, comp) in (("halfspace", "≤"), ("hyperplane", "="))
-
   H = uppercasefirst(h)
   Habs = Symbol(H)
   Haff = Symbol("Affine", H)
@@ -98,7 +99,6 @@ for (h, comp) in (("halfspace", "≤"), ("hyperplane", "="))
   Flin = Symbol("linear_", h)
 
   @eval begin
-
     abstract type $Habs{T} end
 
     # Affine types
@@ -106,13 +106,14 @@ for (h, comp) in (("halfspace", "≤"), ("hyperplane", "="))
       a::MatElem{T}
       b::T
 
-      $Haff{T}(a::MatElem{T}, b::T) where T<:scalar_types = new{T}(a, b)
+      $Haff{T}(a::MatElem{T}, b::T) where {T<:scalar_types} = new{T}(a, b)
     end
 
-    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(a, b)
-    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b) = $Faff(f, a, b)
+    $Fabs(a::Union{MatElem,AbstractMatrix,AbstractVector}, b) = $Faff(a, b)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem,AbstractMatrix,AbstractVector}, b) =
+      $Faff(f, a, b)
 
-    invert(H::$Haff{T}) where T<:scalar_types = $Haff{T}(-H.a, -negbias(H))
+    invert(H::$Haff{T}) where {T<:scalar_types} = $Haff{T}(-H.a, -negbias(H))
 
     @doc """
     $($Faff)(p = QQ, a, b)
@@ -121,27 +122,29 @@ Return the `$($Haff)` `H(a,b)`, which is given by a vector `a` and a value `b` s
 \$\$H(a,b) = \\{ x | ax $($comp) b \\}.\$\$
 `p` specifies the `Field` or `Type` of its coefficients.
     """
-    function $Faff(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0)
+    function $Faff(
+      f::scalar_type_or_field, a::Union{MatElem,AbstractMatrix,AbstractVector}, b=0
+    )
       parent_field, scalar_type = _determine_parent_and_scalar(f, a, b)
       mat = matrix(parent_field, 1, length(a), collect(a))
       return $Haff{scalar_type}(mat, parent_field(b))
     end
 
-    $Faff(a::Union{MatElem, AbstractMatrix, AbstractVector}, b = 0) = $Faff(QQ, a, b)
-
+    $Faff(a::Union{MatElem,AbstractMatrix,AbstractVector}, b=0) = $Faff(QQ, a, b)
 
     # Linear types
 
     struct $Hlin{T} <: $Habs{T}
       a::MatElem{T}
-    
-      $Hlin{T}(a::MatElem{T}) where T<:scalar_types = new{T}(a)
+
+      $Hlin{T}(a::MatElem{T}) where {T<:scalar_types} = new{T}(a)
     end
 
-    $Fabs(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(a)
-    $Fabs(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(f, a)
+    $Fabs(a::Union{MatElem,AbstractMatrix,AbstractVector}) = $Flin(a)
+    $Fabs(f::scalar_type_or_field, a::Union{MatElem,AbstractMatrix,AbstractVector}) =
+      $Flin(f, a)
 
-    invert(H::$Hlin{T}) where T<:scalar_types = $Hlin{T}(-H.a)
+    invert(H::$Hlin{T}) where {T<:scalar_types} = $Hlin{T}(-H.a)
 
     @doc """
     $($Flin)(p = QQ, a, b)
@@ -150,29 +153,28 @@ Return the `$($Hlin)` `H(a)`, which is given by a vector `a` such that
 \$\$H(a,b) = \\{ x | ax $($comp) 0 \\}.\$\$
 `p` specifies the `Field` or `Type` of its coefficients.
     """
-    function $Flin(f::scalar_type_or_field, a::Union{MatElem, AbstractMatrix, AbstractVector})
+    function $Flin(f::scalar_type_or_field, a::Union{MatElem,AbstractMatrix,AbstractVector})
       parent_field, scalar_type = _determine_parent_and_scalar(f, a)
       mat = matrix(parent_field, 1, length(a), collect(a))
       return $Hlin{scalar_type}(mat)
     end
 
-    $Flin(a::Union{MatElem, AbstractMatrix, AbstractVector}) = $Flin(QQ, a)
+    $Flin(a::Union{MatElem,AbstractMatrix,AbstractVector}) = $Flin(QQ, a)
 
     coefficient_field(h::$Habs) = base_ring(h.a)
 
     _find_elem_type(h::$Habs) = elem_type(coefficient_field(h))
-    _parent_or_coefficient_field(::Type{T}, h::$Habs{<:T}) where T <: FieldElem = coefficient_field(h)
-
+    _parent_or_coefficient_field(::Type{T}, h::$Habs{<:T}) where {T<:FieldElem} =
+      coefficient_field(h)
   end
-
 end
 
 #  Field access
-negbias(H::Union{AffineHalfspace, AffineHyperplane}) = H.b
-negbias(H::Union{LinearHalfspace, LinearHyperplane}) = coefficient_field(H)(0)
-normal_vector(H::Union{Halfspace, Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
+negbias(H::Union{AffineHalfspace,AffineHyperplane}) = H.b
+negbias(H::Union{LinearHalfspace,LinearHyperplane}) = coefficient_field(H)(0)
+normal_vector(H::Union{Halfspace,Hyperplane}) = [H.a[1, i] for i in 1:length(H.a)]
 
-_ambient_dim(x::Union{Halfspace, Hyperplane}) = length(x.a)
+_ambient_dim(x::Union{Halfspace,Hyperplane}) = length(x.a)
 
 function Base.:(==)(x::Halfspace, y::Halfspace)
   ax = normal_vector(x)
@@ -224,20 +226,21 @@ Additional data required for specifying the property can be given using
 keyword arguments.
 """
 struct SubObjectIterator{T} <: AbstractVector{T}
-    Obj::PolyhedralObjectUnion
-    Acc::Function
-    n::Int
-    options::NamedTuple
+  Obj::PolyhedralObjectUnion
+  Acc::Function
+  n::Int
+  options::NamedTuple
 end
 
 # `options` is empty by default
-SubObjectIterator{T}(Obj::PolyhedralObjectUnion, Acc::Function, n::Base.Integer) where T = SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
+SubObjectIterator{T}(Obj::PolyhedralObjectUnion, Acc::Function, n::Base.Integer) where {T} =
+  SubObjectIterator{T}(Obj, Acc, n, NamedTuple())
 
 Base.IndexStyle(::Type{<:SubObjectIterator}) = IndexLinear()
 
-function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where T
-    @boundscheck 1 <= i && i <= iter.n
-    return iter.Acc(T, iter.Obj, i; iter.options...)::T
+function Base.getindex(iter::SubObjectIterator{T}, i::Base.Integer) where {T}
+  @boundscheck 1 <= i && i <= iter.n
+  return iter.Acc(T, iter.Obj, i; iter.options...)::T
 end
 
 Base.firstindex(::SubObjectIterator) = 1
@@ -247,101 +250,134 @@ Base.size(iter::SubObjectIterator) = (iter.n,)
 ################################################################################
 
 # Incidence matrices
-for (sym, name) in (("facet_indices", "Incidence matrix resp. facets"), ("ray_indices", "Incidence Matrix resp. rays"), ("vertex_indices", "Incidence Matrix resp. vertices"), ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"))
-    M = Symbol(sym)
-    _M = Symbol("_", sym)
-    @eval begin
-        $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
-        $_M(::Any, ::PolyhedralObjectUnion) = throw(ArgumentError(string($name, " not defined in this context.")))
-    end
+for (sym, name) in (
+  ("facet_indices", "Incidence matrix resp. facets"),
+  ("ray_indices", "Incidence Matrix resp. rays"),
+  ("vertex_indices", "Incidence Matrix resp. vertices"),
+  ("vertex_and_ray_indices", "Incidence Matrix resp. vertices and rays"),
+)
+  M = Symbol(sym)
+  _M = Symbol("_", sym)
+  @eval begin
+    $M(iter::SubObjectIterator) = $_M(Val(iter.Acc), iter.Obj; iter.options...)
+    $_M(::Any, ::PolyhedralObjectUnion) =
+      throw(ArgumentError(string($name, " not defined in this context.")))
+  end
 end
 
 # Matrices with rational or integer elements
-for (sym, name) in (("point_matrix", "Point Matrix"), ("vector_matrix", "Vector Matrix"), ("generator_matrix", "Generator Matrix"))
-    M = Symbol(sym)
-    _M = Symbol("_", sym)
-    @eval begin
-        $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) = matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) = matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) = matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
-        $_M(::Any, ::PolyhedralObjectUnion) = throw(ArgumentError(string($name, " not defined in this context.")))
-    end
+for (sym, name) in (
+  ("point_matrix", "Point Matrix"),
+  ("vector_matrix", "Vector Matrix"),
+  ("generator_matrix", "Generator Matrix"),
+)
+  M = Symbol(sym)
+  _M = Symbol("_", sym)
+  @eval begin
+    $M(iter::SubObjectIterator{<:AbstractVector{QQFieldElem}}) =
+      matrix(QQ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+    $M(iter::SubObjectIterator{<:AbstractVector{ZZRingElem}}) =
+      matrix(ZZ, $_M(Val(iter.Acc), iter.Obj; iter.options...))
+    $M(iter::SubObjectIterator{<:AbstractVector{<:FieldElem}}) =
+      matrix(coefficient_field(iter.Obj), $_M(Val(iter.Acc), iter.Obj; iter.options...))
+    $_M(::Any, ::PolyhedralObjectUnion) =
+      throw(ArgumentError(string($name, " not defined in this context.")))
+  end
 end
 
 function matrix_for_polymake(iter::SubObjectIterator; homogenized=false)
-    if hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return _matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; homogenized=homogenized, iter.options...)
-    else
-        throw(ArgumentError("Matrix for Polymake not defined in this context."))
-    end
+  if hasmethod(_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    return _matrix_for_polymake(Val(iter.Acc))(
+      Val(iter.Acc), iter.Obj; homogenized=homogenized, iter.options...
+    )
+  else
+    throw(ArgumentError("Matrix for Polymake not defined in this context."))
+  end
 end
 
 function IncidenceMatrix(iter::SubObjectIterator)
-    if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
-        return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-    else
-        throw(ArgumentError("IncidenceMatrix not defined in this context."))
-    end
+  if hasmethod(_incidencematrix, Tuple{Val{iter.Acc}})
+    return _incidencematrix(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
+  else
+    throw(ArgumentError("IncidenceMatrix not defined in this context."))
+  end
 end
 
 # primitive generators only for ray based iterators
 matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
-    matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
-matrix(R::ZZRing, iter::SubObjectIterator{<:Union{RayVector{ZZRingElem},PointVector{ZZRingElem}}}) =
-    matrix(R, matrix_for_polymake(iter))
-matrix(R::QQField, iter::SubObjectIterator{<:Union{RayVector{QQFieldElem}, PointVector{QQFieldElem}}}) =
-    matrix(R, matrix_for_polymake(iter))
-matrix(K, iter::SubObjectIterator{<:Union{RayVector{<:FieldElem}, PointVector{<:FieldElem}}}) =
-    matrix(K, matrix_for_polymake(iter))
-
+  matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))
+matrix(
+  R::ZZRing, iter::SubObjectIterator{<:Union{RayVector{ZZRingElem},PointVector{ZZRingElem}}}
+) = matrix(R, matrix_for_polymake(iter))
+matrix(
+  R::QQField,
+  iter::SubObjectIterator{<:Union{RayVector{QQFieldElem},PointVector{QQFieldElem}}},
+) = matrix(R, matrix_for_polymake(iter))
+matrix(
+  K, iter::SubObjectIterator{<:Union{RayVector{<:FieldElem},PointVector{<:FieldElem}}}
+) = matrix(K, matrix_for_polymake(iter))
 
 function linear_matrix_for_polymake(iter::SubObjectIterator)
-    if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-    elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        res = _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-        @req iszero(res[:, 1]) "Input not linear."
-        return res[:, 2:end]
-    end
-    throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
+  if hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    return _linear_matrix_for_polymake(Val(iter.Acc))(
+      Val(iter.Acc), iter.Obj; iter.options...
+    )
+  elseif hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    res = _affine_matrix_for_polymake(Val(iter.Acc))(
+      Val(iter.Acc), iter.Obj; iter.options...
+    )
+    @req iszero(res[:, 1]) "Input not linear."
+    return res[:, 2:end]
+  end
+  throw(ArgumentError("Linear Matrix for Polymake not defined in this context."))
 end
 
 function affine_matrix_for_polymake(iter::SubObjectIterator)
-    if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return _affine_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...)
-    elseif hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
-        return homogenize(_linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...), 0)
-    end
-    throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
+  if hasmethod(_affine_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    return _affine_matrix_for_polymake(Val(iter.Acc))(
+      Val(iter.Acc), iter.Obj; iter.options...
+    )
+  elseif hasmethod(_linear_matrix_for_polymake, Tuple{Val{iter.Acc}})
+    return homogenize(
+      _linear_matrix_for_polymake(Val(iter.Acc))(Val(iter.Acc), iter.Obj; iter.options...),
+      0,
+    )
+  end
+  throw(ArgumentError("Affine Matrix for Polymake not defined in this context."))
 end
 
-Polymake.convert_to_pm_type(::Type{SubObjectIterator{RayVector{T}}}) where T = Polymake.Matrix{T}
-Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where T = Polymake.Matrix{T}
-Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) = assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
+Polymake.convert_to_pm_type(::Type{SubObjectIterator{RayVector{T}}}) where {T} =
+  Polymake.Matrix{T}
+Polymake.convert_to_pm_type(::Type{SubObjectIterator{PointVector{T}}}) where {T} =
+  Polymake.Matrix{T}
+Base.convert(::Type{<:Polymake.Matrix}, iter::SubObjectIterator) =
+  assure_matrix_polymake(matrix_for_polymake(iter; homogenized=true))
 
-function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number = 1)
-    @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
-    return matrix_for_polymake(x; homogenized=true)
+function homogenized_matrix(x::SubObjectIterator{<:PointVector}, v::Number=1)
+  @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
+  return matrix_for_polymake(x; homogenized=true)
 end
-function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number = 0)
-    @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
-    return matrix_for_polymake(x; homogenized=true)
-end
-
-function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number = 1)
-    @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
-    return stack((homogenize(x[i], v) for i in 1:length(x))...)
-end
-function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number = 0)
-    @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
-    return stack((homogenize(x[i], v) for i in 1:length(x))...)
+function homogenized_matrix(x::SubObjectIterator{<:RayVector}, v::Number=0)
+  @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
+  return matrix_for_polymake(x; homogenized=true)
 end
 
-homogenized_matrix(::SubObjectIterator, v::Number) = throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
+function homogenized_matrix(x::AbstractVector{<:PointVector}, v::Number=1)
+  @req v == 1 "PointVectors can only be (re-)homogenized with parameter 1, please convert to a matrix first"
+  return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+function homogenized_matrix(x::AbstractVector{<:RayVector}, v::Number=0)
+  @req v == 0 "RayVectors can only be (re-)homogenized with parameter 0, please convert to a matrix first"
+  return stack((homogenize(x[i], v) for i in 1:length(x))...)
+end
+
+homogenized_matrix(::SubObjectIterator, v::Number) =
+  throw(ArgumentError("Content of SubObjectIterator not suitable for homogenized_matrix."))
 
 unhomogenized_matrix(x::SubObjectIterator{<:RayVector}) = matrix_for_polymake(x)
 
-unhomogenized_matrix(x::AbstractVector{<:PointVector}) = throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
+unhomogenized_matrix(x::AbstractVector{<:PointVector}) =
+  throw(ArgumentError("unhomogenized_matrix only meaningful for RayVectors"))
 
 _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(pm_object(x.Obj))
 
@@ -352,50 +388,57 @@ _ambient_dim(x::SubObjectIterator) = Polymake.polytope.ambient_dim(pm_object(x.O
 
 _empty_access() = nothing
 
-function _empty_subobjectiterator(::Type{T}, Obj::PolyhedralObjectUnion) where T
-    return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
+function _empty_subobjectiterator(::Type{T}, Obj::PolyhedralObjectUnion) where {T}
+  return SubObjectIterator{T}(Obj, _empty_access, 0, NamedTuple())
 end
 
 for f in ("_point_matrix", "_vector_matrix", "_generator_matrix")
-    M = Symbol(f)
-    @eval begin
-        function $M(::Val{_empty_access}, P::PolyhedralObjectUnion; homogenized=false)
-            typename = Polymake.bigobject_eltype(pm_object(P))
-            T = typename == "OscarNumber" ? Polymake.OscarNumber : _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized)
-        end
+  M = Symbol(f)
+  @eval begin
+    function $M(::Val{_empty_access}, P::PolyhedralObjectUnion; homogenized=false)
+      typename = Polymake.bigobject_eltype(pm_object(P))
+      T = if typename == "OscarNumber"
+        Polymake.OscarNumber
+      else
+        _scalar_type_to_polymake(scalar_type_to_oscar[typename])
+      end
+      return Polymake.Matrix{T}(
+        undef, 0, Polymake.polytope.ambient_dim(pm_object(P)) + homogenized
+      )
     end
+  end
 end
 
 for f in ("_facet_indices", "_ray_indices", "_vertex_indices", "_vertex_and_ray_indices")
-    M = Symbol(f)
-    @eval begin
-        $M(::Val{_empty_access}, P::PolyhedralObjectUnion) = return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
-    end
+  M = Symbol(f)
+  @eval begin
+    $M(::Val{_empty_access}, P::PolyhedralObjectUnion) =
+      return Polymake.IncidenceMatrix(0, Polymake.polytope.ambient_dim(P))
+  end
 end
 
 for f in ("_linear_inequality_matrix", "_linear_equation_matrix")
-    M = Symbol(f)
-    @eval begin
-        function $M(::Val{_empty_access}, P::PolyhedralObjectUnion)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
-            typename = scalar_regexp[1]
-            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
-        end
+  M = Symbol(f)
+  @eval begin
+    function $M(::Val{_empty_access}, P::PolyhedralObjectUnion)
+      scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+      typename = scalar_regexp[1]
+      T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P))
     end
+  end
 end
 
 for f in ("_affine_inequality_matrix", "_affine_equation_matrix")
-    M = Symbol(f)
-    @eval begin
-        function $M(::Val{_empty_access}, P::PolyhedralObjectUnion)
-            scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
-            typename = scalar_regexp[1]
-            T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
-            return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
-        end
+  M = Symbol(f)
+  @eval begin
+    function $M(::Val{_empty_access}, P::PolyhedralObjectUnion)
+      scalar_regexp = match(r"[^<]*<(.*)>[^>]*", String(Polymake.type_name(P)))
+      typename = scalar_regexp[1]
+      T = _scalar_type_to_polymake(scalar_type_to_oscar[typename])
+      return Polymake.Matrix{T}(undef, 0, Polymake.polytope.ambient_dim(P) + 1)
     end
+  end
 end
 
 _matrix_for_polymake(::Val{_empty_access}) = _point_matrix
@@ -407,14 +450,38 @@ _matrix_for_polymake(::Val{_empty_access}) = _point_matrix
 # vector-like types: (un-)homogenized_matrix -> matrix_for_polymake
 # linear types: linear_matrix_for_polymake 
 # affine types: affine_matrix_for_polymake
-const AbstractCollection = Dict{UnionAll, Union}([(PointVector, AnyVecOrMat),
-                                                    (RayVector, AnyVecOrMat),
-                                                    (LinearHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, AnyVecOrMat}),
-                                                    (LinearHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, AnyVecOrMat}),
-                                                    (AffineHalfspace, Union{AbstractVector{<:Halfspace}, SubObjectIterator{<:Halfspace}, Tuple{<:AnyVecOrMat, <:Any}}),
-                                                    (AffineHyperplane, Union{AbstractVector{<:Hyperplane}, SubObjectIterator{<:Hyperplane}, Tuple{<:AnyVecOrMat, <:Any}})])
+const AbstractCollection = Dict{UnionAll,Union}([
+  (PointVector, AnyVecOrMat),
+  (RayVector, AnyVecOrMat),
+  (
+    LinearHalfspace,
+    Union{AbstractVector{<:Halfspace},SubObjectIterator{<:Halfspace},AnyVecOrMat},
+  ),
+  (
+    LinearHyperplane,
+    Union{AbstractVector{<:Hyperplane},SubObjectIterator{<:Hyperplane},AnyVecOrMat},
+  ),
+  (
+    AffineHalfspace,
+    Union{
+      AbstractVector{<:Halfspace},SubObjectIterator{<:Halfspace},Tuple{<:AnyVecOrMat,<:Any}
+    },
+  ),
+  (
+    AffineHyperplane,
+    Union{
+      AbstractVector{<:Hyperplane},
+      SubObjectIterator{<:Hyperplane},
+      Tuple{<:AnyVecOrMat,<:Any},
+    },
+  ),
+])
 
-affine_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = stack(augment(normal_vector(x), -negbias(x)))
-affine_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((affine_matrix_for_polymake(x[i]) for i in 1:length(x))...)
-linear_matrix_for_polymake(x::Union{Halfspace, Hyperplane}) = negbias(x) == 0 ? stack(normal_vector(x)) : throw(ArgumentError("Input not linear."))
-linear_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace, Hyperplane}}) = stack((linear_matrix_for_polymake(x[i]) for i in 1:length(x))...)
+affine_matrix_for_polymake(x::Union{Halfspace,Hyperplane}) =
+  stack(augment(normal_vector(x), -negbias(x)))
+affine_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+  stack((affine_matrix_for_polymake(x[i]) for i in 1:length(x))...)
+linear_matrix_for_polymake(x::Union{Halfspace,Hyperplane}) =
+  negbias(x) == 0 ? stack(normal_vector(x)) : throw(ArgumentError("Input not linear."))
+linear_matrix_for_polymake(x::AbstractVector{<:Union{Halfspace,Hyperplane}}) =
+  stack((linear_matrix_for_polymake(x[i]) for i in 1:length(x))...)

@@ -29,6 +29,7 @@ cases = [
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
   (FF, FF(1), r, "Default Finite Field"),
+  (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
 
@@ -117,7 +118,7 @@ cases = [
       end
 
       @testset "Universal Polynomial over $(case[4])" begin
-        R = UniversalPolynomialRing(case[1])
+        R = universal_polynomial_ring(case[1])
         z, w = gens(R, ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded

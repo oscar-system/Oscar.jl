@@ -204,7 +204,7 @@ end
    @test x^z==y
    vero, z = is_conjugate_with_data(S, x, y)
    @test !vero
-   x.elm[7,8]=l^8
+   matrix(x)[7,8]=l^8
    vero, z = is_conjugate_with_data(S, x, y)
    @test z in S
    @test x^z==y

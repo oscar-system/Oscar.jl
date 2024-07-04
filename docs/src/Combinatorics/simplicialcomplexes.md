@@ -46,6 +46,7 @@ complex_projective_plane()
 
 ```@docs
 n_vertices(K::SimplicialComplex)
+n_facets(K::SimplicialComplex)
 dim(K::SimplicialComplex)
 f_vector(K::SimplicialComplex)
 h_vector(K::SimplicialComplex)
@@ -98,6 +99,10 @@ stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex)
 
 ```@docs
 is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+automorphism_group(K::SimplicialComplex; action=:on_vertices)
+on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
 ```
 
 ## Saving and loading

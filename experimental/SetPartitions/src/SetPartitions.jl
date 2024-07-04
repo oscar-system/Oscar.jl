@@ -12,7 +12,12 @@ import Base:
 import Oscar:
     ⊗,
     compose,
+    cycles,
     involution,
+    join,
+    PermGroupElem,
+    parent,
+    degree,
     tensor_product,
     @req
 
@@ -23,13 +28,17 @@ export SpatialPartition
 export colored_partition
 export compose_count_loops
 export construct_category
+export cycle_partition
 export is_balanced
 export is_composable
+export is_dominated_by
 export is_non_crossing
 export is_pair
+export join
 export levels
 export lower_colors
 export lower_points
+export number_of_blocks
 export number_of_lower_points
 export number_of_upper_points
 export print_trace
@@ -62,13 +71,17 @@ export SpatialPartition
 export colored_partition
 export compose_count_loops
 export construct_category
+export cycle_partition
 export is_balanced
 export is_composable
+export is_dominated_by
 export is_non_crossing
 export is_pair
+export join
 export levels
 export lower_colors
 export lower_points
+export number_of_blocks
 export number_of_lower_points
 export number_of_upper_points
 export print_trace
