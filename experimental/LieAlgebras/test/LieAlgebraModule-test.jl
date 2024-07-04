@@ -1,13 +1,5 @@
 
 @testset "LieAlgebras.LieAlgebraModule" begin
-  sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
-  sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
-  sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])
-  sc[2, 1] = sparse_row(QQ, [1, 2], [0, 1])
-  sc[2, 2] = sparse_row(QQ, [1, 2], [0, 0])
-  sc[3, 1] = sparse_row(QQ, [1, 2], [1, 0])
-  sc[3, 2] = sparse_row(QQ, [1, 2], [0, -1])
-
   @testset "conformance tests" begin
     @testset "0-dim module of sl_2(QQ)" begin
       L = special_linear_lie_algebra(QQ, 2)
@@ -22,6 +14,14 @@
     end
 
     @testset "V of sl_2(QQ) using structure constants" begin
+      sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
+      sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
+      sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])
+      sc[2, 1] = sparse_row(QQ, [1, 2], [0, 1])
+      sc[2, 2] = sparse_row(QQ, [1, 2], [0, 0])
+      sc[3, 1] = sparse_row(QQ, [1, 2], [1, 0])
+      sc[3, 2] = sparse_row(QQ, [1, 2], [0, -1])
+
       L = special_linear_lie_algebra(QQ, 2)
       V = abstract_module(L, 2, sc)
       lie_algebra_module_conformance_test(L, V)
@@ -180,17 +180,17 @@
     end
   end
 
-  module_type_bools(V) = (
-    Oscar._is_standard_module(V),
-    Oscar._is_dual(V)[1],
-    Oscar._is_direct_sum(V)[1],
-    Oscar._is_tensor_product(V)[1],
-    Oscar._is_exterior_power(V)[1],
-    Oscar._is_symmetric_power(V)[1],
-    Oscar._is_tensor_power(V)[1],
-  )
-
   @testset "module constructions" begin
+    module_type_bools(V) = (
+      Oscar._is_standard_module(V),
+      Oscar._is_dual(V)[1],
+      Oscar._is_direct_sum(V)[1],
+      Oscar._is_tensor_product(V)[1],
+      Oscar._is_exterior_power(V)[1],
+      Oscar._is_symmetric_power(V)[1],
+      Oscar._is_tensor_power(V)[1],
+    )
+
     @testset for R in [QQ, cyclotomic_field(4)[1], GF(3), GF(2, 3)]
       @testset for L in [special_linear_lie_algebra(R, 3)]
         @testset "standard_module" begin
@@ -709,8 +709,6 @@
       struct_const_V
   end
 
-  is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
-
   @testset "dim_of_simple_module" begin
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     @test (@inferred dim_of_simple_module(
@@ -733,6 +731,8 @@
   end
 
   @testset "dominant_character" begin
+    is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
+
     function check_dominant_character(L::LieAlgebra, hw::Vector{Int})
       domchar = @inferred dominant_character(L, hw)
       @test domchar[hw] == 1
