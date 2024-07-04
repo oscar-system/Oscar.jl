@@ -606,8 +606,54 @@ end
 # 6. Function to display all known literature models
 #######################################################
 
-function display_all_literature_models()
+@doc raw"""
+    display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
+
+Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occuring in index.json.
+
+```jldoctest
+julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))
+Model 33:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")
+
+Model 34:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "34", "type" => "hypersurface")
+
+Model 39:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "39", "type" => "weierstrass")
+
+Model 40:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "40", "type" => "hypersurface")
+
+Model 45:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "2", "arxiv_id" => "1903.00009", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_equation" => "2", "journal_page" => "2", "arxiv_equation" => "2", "journal_doi" => "10.1103/PhysRevLett.123.101601", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903.00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
+
+julia> display_all_literature_models(Dict("gauge_algebra" => "e"))
+Model 8:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(6)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.1", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-5.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "8", "type" => "tate")
+
+Model 9:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(7)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.7", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-6.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "9", "type" => "tate")
+
+Model 10:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(8)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.13", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-7.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "10", "type" => "tate")
+```
+"""
+function display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  @req issubset(keys(model_fields), keys(file_index[1])) "The inputted criteria aren't supported"
+  for field in keys(model_fields)
+    if field == "gauge_algebra"
+      for s in model_fields["gauge_algebra"]
+        filter!(x -> occursin(s, join(x["gauge_algebra"])), file_index)
+      end
+    else
+      filter!(x -> x[field] == model_fields[field], file_index)
+    end
+  end
+  if length(file_index) == 0
+    println("No such models found in database")
+  end
   sorted_dicts = sort(file_index, by = x -> parse(Int, x["model_index"]))
   for dict in sorted_dicts
     print("Model $(dict["model_index"]):\n")
