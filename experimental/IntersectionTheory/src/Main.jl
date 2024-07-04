@@ -1241,12 +1241,63 @@ Compute the (generic) $n$-th $\hat A$ genus.
 a_hat_genus(n::Int)
 
 @doc raw"""
-    zero_locus_section(F::AbstractBundle)
+    zero_locus_section(F::AbstractBundle; class::Bool = false)
 
-Construct the zero locus of a general section of a bundle $F$.
+Return the zero locus of a general section of `F`.
 
-Use the argument `class=true` to only compute the class of the zero locus (same
+Use the argument `class = true` to only compute the class of the zero locus (same
 as `top_chern_class(F)`).
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> C = zero_locus_section(OO(P2, 3)) # a plane cubic curve
+AbstractVariety of dim 1
+
+julia> dim(C)
+1
+
+julia> degree(C)
+3
+
+```
+```
+julia> P3 = abstract_projective_space(3)
+AbstractVariety of dim 3
+
+julia> C = zero_locus_section(OO(P3, 2) + OO(P3, 2)) # a complete intersection
+AbstractVariety of dim 1
+
+julia> dim(C)
+1
+
+julia> degree(C)
+4
+
+```
+
+```
+julia> P4 = abstract_projective_space(4)
+AbstractVariety of dim 4
+
+julia> h = gens(P4)[1]
+h
+
+julia> F = abstract_bundle(P4, 2, 10*h^2 + 5*h + 1) # Horrocks-Mumford bundle
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> A = zero_locus_section(F) # abelian surface
+AbstractVariety of dim 2
+
+julia> dim(A)
+2
+
+julia> degree(A)
+10
+
+```
 """
 function zero_locus_section(F::AbstractBundle; class::Bool=false)
   X = parent(F)
@@ -1288,8 +1339,24 @@ end
     complete_intersection(X::AbstractVariety, degs::Int...)
     complete_intersection(X::AbstractVariety, degs::Vector{Int})
 
-Construct the complete intersection in $X$ of general hypersurfaces with
-degrees $d_1,\dots,d_k$.
+Return the complete intersection in `X` of general hypersurfaces with
+the given degrees.
+
+# Examples
+```jldoctest
+julia> P3 = abstract_projective_space(3)
+AbstractVariety of dim 3
+
+julia> CI = complete_intersection(P3, 2, 2)
+AbstractVariety of dim 1
+
+julia> dim(CI)
+1
+
+julia> degree(CI)
+4
+
+```
 """
 complete_intersection(X::AbstractVariety, degs::Int...) = complete_intersection(X, collect(degs))
 complete_intersection(X::AbstractVariety, degs::Vector{Int}) = (
@@ -1298,11 +1365,11 @@ complete_intersection(X::AbstractVariety, degs::Vector{Int}) = (
   Y)
 
 @doc raw"""
-    degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle)
+    degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
 
-Construct the $k$-degeneracy locus for a general bundle map from $F$ to $G$.
+Return the `k`-degeneracy locus of a general map from `F` to `G`.
 
-Use the argument `class=true` to only compute the class of the degeneracy locus.
+Use the argument `class = true` to only compute the class of the degeneracy locus.
 """
 function degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
   F, G = _coerce(F, G)
@@ -1422,12 +1489,33 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
 end
 
 @doc raw"""
-    abstract_projective_bundle(F::AbstractBundle)
+    abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
 
-Construct the projectivization of a bundle $F$, parametrizing 1-dimensional
-*subspaces*.
+Return the projective bundle of 1-dimensional subspaces of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3, 5)
+AbstractVariety of dim 6
+
+julia> USBd = dual(tautological_bundles(G)[1])
+AbstractBundle of rank 3 on AbstractVariety of dim 6
+
+julia> F = symmetric_power(USBd, 2)
+AbstractBundle of rank 6 on AbstractVariety of dim 6
+
+julia> PF = abstract_projective_bundle(F)
+AbstractVariety of dim 11
+
+julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)
+AbstractBundle of rank 11 on AbstractVariety of dim 11
+
+julia> integral(top_chern_class(A))
+609250
+
+```
 """
-function abstract_projective_bundle(F::AbstractBundle; symbol::String="h")
+function abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
