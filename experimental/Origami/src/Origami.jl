@@ -56,7 +56,11 @@ end
 
 function Base.:(==)(a::Origami, b::Origami)
     # TODO rewrite this? for now use Gap equality
-    return GAP.evalstr("$(string(a)) = $(string(b))")
+    return (a.h == b.h) && (a.v == b.v) #GAP.evalstr("$(string(a)) = $(string(b))")
+end
+
+function Base.hash(o::Origami, h::UInt=0x000000000)
+    return hash(o.h, hash(o.v, hash(o.d, h)))
 end
 
 function horizontal_perm(o::Origami)
