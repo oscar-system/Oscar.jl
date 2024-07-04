@@ -972,6 +972,7 @@ export map_gens_of_chow_ring_to_cox_ring
 export map_on_affine_cones
 export map_range
 export map_word
+export marks_vector
 export mat_elem_type
 export mathieu_group
 export matrix_group
@@ -1437,6 +1438,7 @@ export symplectic_components
 export symplectic_group
 export syz
 export syzygy_generators
+export table_of_marks
 export tail
 export tangent_lines
 export tangent_space

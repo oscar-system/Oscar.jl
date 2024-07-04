@@ -26,6 +26,7 @@
      "Hecke/abelian/introduction.md",
      "Groups/group_characters.md",
      "Groups/recog.md",
+     "Groups/tom.md",
   ],
 
   "Rings" => [
