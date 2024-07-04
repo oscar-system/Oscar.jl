@@ -69,7 +69,7 @@ end
 @doc raw"""
     hasse_derivatives(v::Vector{MPolyRingElem})
 
-For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of the lifted numerator of `f`.
+For every `f` in `v`: Return a list of all Hasse-Schmidt derivatives of `f`.
 
 # Examples
 ```jldoctest
