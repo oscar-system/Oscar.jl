@@ -342,7 +342,16 @@ nothing
 ```
 """
 function character_table(id::String, p::Int = 0)
-    p != 0 && return mod(character_table(id, 0), p)
+    if p != 0
+      tbl = character_table(id, 0)
+      tbl === nothing && return nothing
+      return mod(tbl, p)
+    end
+    # normalize `id`
+    info = GAP.Globals.LibInfoCharacterTable(GapObj(id))
+    if info !== GAP.Globals.fail
+      id = string(info.firstName)
+    end
     return get!(character_tables_by_id, id) do
       tbl = GAPWrap.CharacterTable(GapObj(id))
       tbl === GAP.Globals.fail && return nothing

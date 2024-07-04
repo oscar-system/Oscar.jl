@@ -16,5 +16,6 @@ include("abelian_aut.jl")
 include("spinor_norms.jl")
 include("GrpAb.jl")
 include("group_characters.jl")  # needs some Rings functionality
+include("tom.jl")
 include("action.jl")  # needs some PolynomialRings functionality
 include("recog.jl")
