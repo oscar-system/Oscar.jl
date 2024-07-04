@@ -1,5 +1,15 @@
 @testset "all_od_infos" begin
+  iob = IOBuffer()
+  show_OD_info("G2(3)", iob)
+  str1 = String(take!(iob))
+
   all_entries = all_od_infos();
+  @test all_entries isa Vector
+
+  show_OD_info("G2(3)", iob)
+  str2 = String(take!(iob))
+  @test str1 == str2
+
   @test length(all_entries) == length(all_od_infos(is_simple)) +
                                length(all_od_infos(! is_simple))
   @test length(all_entries) == length(all_od_infos(is_sporadic_simple)) +
@@ -50,7 +60,20 @@ end
   end
 end
 
+@testset "orthogonal_discriminants for central extensions" begin
+  name = "2.L3(4)"
+  t = character_table(name)
+  @test orthogonal_discriminants(t) ==
+  ["","21","","","","","","","","105","","","1","1","1","1","-1","-1"]
+end
+
 using Documenter
+
+# Make sure that the tests start without cached character tables.
+# (Running the tests will store information that changes some test outputs,
+# thus running the tests twice needs these calls.)
+GAP.Globals.UnloadCharacterTableData()
+empty!(Oscar.character_tables_by_id)
 
 #
 # This module only exists to "host" a doctest used by the test suite.

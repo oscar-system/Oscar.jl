@@ -60,7 +60,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
 
   set_attribute!(F, :tensor_pure_function => pure, :tensor_generator_decompose_function => inv_pure)
 
-  if all(is_graded(g) for g in G)
+  if all(is_graded, G)
     tensor_degrees = [sum(G[i].d[tplidx[i]] for i in 1:length(G)) for tplidx in t] 
     F.d = tensor_degrees
   end
@@ -69,7 +69,7 @@ function tensor_product(G::FreeMod...; task::Symbol = :none)
     return F
   end
 
-  return F, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), F, pure, inv_pure)
+  return F, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), F, pure, inv_pure)
 end
 
 ⊗(G::ModuleFP...) = tensor_product(G..., task = :none)
@@ -126,12 +126,12 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
   corresponding_tuples = map(index_tuple -> Tuple(map(index -> G[index][index_tuple[index]],1:length(index_tuple))), corresponding_tuples_as_indices)
 
   generating_tensors::Vector{elem_type(F)} = map(mF, map(tuple -> map(x -> parent(x) isa FreeMod ? x : repres(x), tuple), corresponding_tuples))
-  s, emb = sub(F, generating_tensors, :with_morphism)
+  s, emb = sub(F, generating_tensors)
   #s, emb = sub(F, vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(gens(x, ambient_free_module(x)) for x = G))]), :with_morphism)
   q::Vector{elem_type(F)} = vcat([vec([mF(x) for x = Base.Iterators.ProductIterator(Tuple(i == j ? rels(G[i]) : gens(ambient_free_module(G[i])) for i=1:length(G)))]) for j=1:length(G)]...) 
   local projection_map
   if length(q) != 0
-    s, projection_map = quo(s, q, :with_morphism)
+    s, projection_map = quo(s, q)
   end
 
   tuples_pure_tensors_dict = IdDict(zip(corresponding_tuples_as_indices, gens(s)))
@@ -163,7 +163,7 @@ function tensor_product(G::ModuleFP...; task::Symbol = :none)
     return s
   end
 
-  return s, MapFromFunc(Hecke.TupleParent(Tuple([g[0] for g = G])), s, pure)
+  return s, MapFromFunc(Hecke.TupleParent(Tuple([zero(g) for g = G])), s, pure, decompose_generator)
 end
 
 

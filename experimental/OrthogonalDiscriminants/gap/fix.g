@@ -8,7 +8,7 @@
 
 ###############################################################################
 ##
-##  Improve the behaviour of 'Indicator' in characteristic 2.
+##  Improve the behavior of 'Indicator' in characteristic 2.
 ##
 InstallMethod( IndicatorOp,
     "for a Brauer character table and <n> = 2",

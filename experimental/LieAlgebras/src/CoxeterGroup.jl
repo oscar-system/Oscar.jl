@@ -1,4 +1,4 @@
-abstract type CoxeterGroup end # <: Group
+abstract type CoxeterGroup end
 
 #function is_coxeter_matrix(M::ZZMatrix) end
 

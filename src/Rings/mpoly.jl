@@ -15,87 +15,14 @@
 # (:x), (:x, :y), (:x, :y, :z)
 # (:x1, :x2, ...)
 function _variables_for_singular(n::Int)
-  n > 3 && return _make_strings("x#" => 1:n)
+  n > 3 && return [Symbol("x[$i]") for i in 1:n]
   return [ :x, :y, :z ][1:n]
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
-_make_variable(a, i) = _make_variable(String(a), i)
-
-function _make_variable(a::String, i)
-  ii = join(i, ", ")
-  if occursin('#', a)
-    aa = replace(a, '#' => "$ii")
-  else
-    if Hecke.inNotebook()
-      aa = "$(a)_{$ii}"
-    else
-      aa = "$a[$ii]"
-    end
-  end
-  return Symbol(aa)
+function number_of_generators(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem}
+  return number_of_generators(base_ring(F))
 end
-
-# Type stable recursive function to create strings from "a" => 1:2 or
-# "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:VarName, <:Any})
-  lv = last(v)
-  if lv isa Tuple
-    p = Iterators.product(lv...)
-  else
-    p = lv
-  end
-  res = Symbol[]
-  a = first(v)
-  for i in p
-    push!(res, _make_variable(a, i))
-  end
-  return res
-end
-
-function _make_strings(v)
-  s = _make_strings(first(v))
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _make_strings(Base.tail(v))...)
-end
-
-# Type stable recursive function that given a vector of
-# variables (or any polynomials) and v = "a" => 1:2 or "a" =>
-# (1:2, 1:3) extracts the first variables into an
-# n-dimensional array with the given dimensions.
-# For example, _collect_variables([x1, x2, x3, x4, x5], "a" => (1:2, 1:2))
-# returns [x1 x3; x2 x4], 5
-function _collect_variables(c::Vector, v::Pair, start = 1)
-  lv = last(v)
-  if lv isa Tuple
-    res = Array{eltype(c)}(undef, map(length, lv))
-  else
-    res = Vector{eltype(c)}(undef, length(lv))
-  end
-  for i in eachindex(res)
-    res[i] = c[start]
-    start += 1
-  end
-  return res, start
-end
-
-function _collect_variables(c, v, start = 1)
-  s, next = _collect_variables(c, first(v), start)
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _collect_variables(c, Base.tail(v), next)...)
-end
-
-function Base.getindex(R::MPolyRing, i::Int)
-  i == 0 && return zero(R)
-  return gen(R, i)
-end
-
-ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
 
 function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
   return F(gen(base_ring(F)))
@@ -107,11 +34,6 @@ end
 
 function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
   return map(F, gens(base_ring(F)))
-end
-
-function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  i == 0 && return zero(F)
-  return gen(F, i)
 end
 
 ######################################################################
@@ -236,7 +158,7 @@ mutable struct IdealGens{S}
       r.isGB = S.isGB
       r.isReduced = isReduced
       if T <: Union{MPolyRing, MPolyRingLoc}
-          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+          r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true
       return r
@@ -389,7 +311,7 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
@@ -495,7 +417,7 @@ singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
 singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
 
 function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
-  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))
+  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
 end
 
 singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
@@ -503,7 +425,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -528,6 +450,63 @@ function singular_coeff_ring(F::fqPolyRepField)
   end
   SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
   return SF
+end
+
+# Nonsense for FqField (aka fq_default from flint)
+function singular_coeff_ring(F::Nemo.FqField)
+  # we are way beyond type stability, so just do what you want
+  @assert is_absolute(F)
+  ctx = Nemo._fq_default_ctx_type(F)
+  if ctx == Nemo._FQ_DEFAULT_NMOD
+    return Singular.Fp(Int(characteristic(F)))
+  elseif nbits(characteristic(F)) <= 29
+    # TODO: the Fp(Int(char)) can throw
+    minpoly = modulus(F)
+    Fa = parent(minpoly)
+    SFa, (Sa,) = Singular.FunctionField(Singular.Fp(Int(characteristic(F))),
+                                        _variables_for_singular(symbols(Fa)))
+    Sminpoly = SFa(lift(ZZ, coeff(minpoly, 0)))
+    for i in 1:degree(minpoly)
+      Sminpoly += SFa(lift(ZZ, coeff(minpoly, i)))*Sa^i
+    end
+    SF, _ = Singular.AlgebraicExtensionField(SFa, Sminpoly)
+    return SF
+  else
+    return Singular.CoefficientRing(F)
+  end
+end
+
+function (K::FqField)(a::Singular.n_algExt)
+  SK = parent(a)
+  SF = parent(Singular.modulus(SK))
+  SFa = SF(a)
+  numSa = Singular.n_transExt_to_spoly(numerator(SFa))
+  denSa = first(AbstractAlgebra.coefficients(Singular.n_transExt_to_spoly(denominator(SFa))))
+  @assert isone(denSa)
+  res = zero(K)
+  Ka = gen(K)
+  for (c, e) in zip(AbstractAlgebra.coefficients(numSa), AbstractAlgebra.exponent_vectors(numSa))
+    res += K(Int(c))*Ka^e[1]
+  end
+  return res
+end
+
+function (SF::Singular.N_AlgExtField)(a::FqFieldElem)
+  F = parent(a)
+  SFa = gen(SF)
+  res = SF(lift(ZZ, coeff(a, 0)))
+  for i in 1:degree(F)-1
+    res += SF(lift(ZZ, coeff(a, i)))*SFa^i
+  end
+  return res
+end
+
+function (F::FqField)(a::Singular.n_Zp)
+  return F(Int(a))
+end
+
+function (SF::Singular.N_ZpField)(a::FqFieldElem)
+   return SF(lift(ZZ, a))
 end
 
 #### TODO stuff to move to singular.jl
@@ -565,7 +544,7 @@ function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = ordering(Rx),
+              ordering = internal_ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
@@ -634,7 +613,7 @@ Fields:
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(IdealGens(Ox, s))
     #=if s.isGB
-      ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      ord = monomial_ordering(Ox, Singular.ordering(base_ring(s)))
       r.ord = ord
       r.isGB = true
       r.gb[ord] = r.gens
@@ -659,12 +638,6 @@ Fields:
     end
     return r
   end
-end
-
-@enable_all_show_via_expressify MPolyIdeal
-
-function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
 end
 
 function ideal(g::Vector{Any})
@@ -743,7 +716,7 @@ end
 
 function oscar_assure(B::BiPolyArray)
   if !isdefined(B, :O) || !isassigned(B.O, 1)
-    if typeof(B.Ox) <: MPolyQuoRing
+    if B.Ox isa MPolyQuoRing
       R = oscar_origin_ring(B.Ox)
     else
       R = B.Ox
@@ -821,40 +794,40 @@ function (F::Generic.FreeModule)(s::Singular.svector)
 end
 
 @doc raw"""
-    jacobi_matrix(f::MPolyRingElem)
+    jacobian_matrix(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian matrix ``J_f=(\partial_{x_1}f,...,\partial_{x_n}f)^T`` of $f$.
 """
-function jacobi_matrix(f::MPolyRingElem)
+function jacobian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return matrix(R, n, 1, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_ideal(f::MPolyRingElem)
+    jacobian_ideal(f::MPolyRingElem)
 
 Given a polynomial $f$, return the Jacobian ideal of $f$.
 """
-function jacobi_ideal(f::MPolyRingElem)
+function jacobian_ideal(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
   return ideal(R, [derivative(f, i) for i=1:n])
 end
 
 @doc raw"""
-    jacobi_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
+    jacobian_matrix([R::MPolyRing,] g::Vector{<:MPolyRingElem})
 
 Given an array ``g=[f_1,...,f_m]`` of polynomials over the same base ring `R`,
 return the Jacobian matrix ``J=(\partial_{x_i}f_j)_{i,j}`` of ``g``.
 """
-function jacobi_matrix(g::Vector{<:MPolyRingElem})
+function jacobian_matrix(g::Vector{<:MPolyRingElem})
   @req length(g) > 0 "specify the common parent as first argument"
   R = parent(g[1])
-  return jacobi_matrix(R, g)
+  return jacobian_matrix(R, g)
 end
 
-function jacobi_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
+function jacobian_matrix(R::MPolyRing, g::Vector{<:MPolyRingElem})
   n = nvars(R)
   @req all(x->parent(x) === R, g) "polynomials must be elements of R"
   return matrix(R, n, length(g), [derivative(x, i) for i=1:n for x = g])
@@ -1209,21 +1182,6 @@ end
 #
 ##############################################################################
 
-#=
-function factor(f::MPolyRingElem)
-  I = ideal(parent(f), [f])
-  fS = Singular.factor(I.gens[Val(:S), 1])
-  R = parent(f)
-  return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
-end
-=#
-
-# generic fallback since this is not implemented specifically anywhere yet
-function is_irreducible(a::MPolyRingElem)
-  af = factor(a)
-  return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
-end
-
 ################################################################################
 
 @doc raw"""
@@ -1273,7 +1231,7 @@ lift(f::MPolyRingElem) = f
 function hessian_matrix(f::MPolyRingElem)
   R = parent(f)
   n = nvars(R)
-  df = jacobi_matrix(f)
+  df = jacobian_matrix(f)
   result = zero_matrix(R, n, n)
   for i in 1:n
     for j in i:n

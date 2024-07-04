@@ -38,9 +38,9 @@ is_embedded(PC::PolyhedralComplex)
 maximal_polyhedra(PC::PolyhedralComplex{T}) where T<:scalar_types
 minimal_faces(PC::PolyhedralComplex{T}) where T<:scalar_types
 n_maximal_polyhedra(PC::PolyhedralComplex)
-npolyhedra(PC::PolyhedralComplex)
-nrays(PC::PolyhedralComplex)
-nvertices(PC::PolyhedralComplex)
+n_polyhedra(PC::PolyhedralComplex)
+n_rays(PC::PolyhedralComplex)
+n_vertices(PC::PolyhedralComplex)
 polyhedra_of_dim
 rays(PC::PolyhedralComplex{T}) where T<:scalar_types
 rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types

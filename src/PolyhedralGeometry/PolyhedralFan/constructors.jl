@@ -91,8 +91,8 @@ function polyhedral_fan(f::scalar_type_or_field,
   end
 end
 polyhedral_fan(f::scalar_type_or_field, Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = polyhedral_fan(f, Incidence, Rays, nothing; non_redundant)
-polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Incidence, Rays, LS; non_redundant)
-polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = polyhedral_fan(QQFieldElem, Incidence, Rays; non_redundant)
+polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector], LS::Union{AbstractCollection[RayVector], Nothing}; non_redundant::Bool = false) = polyhedral_fan(_guess_fieldelem_type(Rays, LS), Incidence, Rays, LS; non_redundant)
+polyhedral_fan(Incidence::IncidenceMatrix, Rays::AbstractCollection[RayVector]; non_redundant::Bool = false) = polyhedral_fan(_guess_fieldelem_type(Rays), Incidence, Rays; non_redundant)
 
 """
     pm_object(PF::PolyhedralFan)

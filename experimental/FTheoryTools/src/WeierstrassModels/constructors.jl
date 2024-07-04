@@ -41,11 +41,23 @@ Weierstrass model over a concrete base
 ```
 """
 function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyRingElem; completeness_check::Bool = true)
-  @req ((parent(f) == cox_ring(base)) && (parent(g) == cox_ring(base))) "All Weierstrass sections must reside in the Cox ring of the base toric variety"
-  
+  return weierstrass_model(base, Dict("f" => f, "g" => g), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+end
+
+function weierstrass_model(base::NormalToricVariety,
+                           explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
+                           defining_section_parametrization::Dict{String, <:MPolyRingElem};
+                           completeness_check::Bool = true)
+  vs = collect(values(explicit_model_sections))
+  @req all(x -> parent(x) == cox_ring(base), vs) "All model sections must reside in the Cox ring of the base toric variety"
+  @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
+  @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
+  vs2 = collect(keys(defining_section_parametrization))
+  @req all(x -> x in ["f", "g"], vs2) "Only the Weierstrass sections f, g must be parametrized"
+
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   if completeness_check
@@ -60,9 +72,8 @@ function weierstrass_model(base::NormalToricVariety, f::MPolyRingElem, g::MPolyR
   ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
   
   # construct the model
-  pw = _weierstrass_polynomial(f, g, cox_ring(ambient_space))
-  model = WeierstrassModel(f, g, pw, base, ambient_space)
-  set_attribute!(model, :base_fully_specified, true)
+  pw = _weierstrass_polynomial(explicit_model_sections["f"], explicit_model_sections["g"], cox_ring(ambient_space))
+  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -112,48 +123,41 @@ Weierstrass model over a not fully specified base
 """
 function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
-  # Is there a grading [1, 0, ..., 0]?
-  Kbar_grading_present = false
-  for i in 1:ncols(auxiliary_base_grading)
-    col = auxiliary_base_grading[:,i]
-    if length(col) == 1 && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-  end
-  
-  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
-  auxiliary_base_vars = gens(auxiliary_base_ring)
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
-  if Kbar_grading_present == false
-    @req ("Kbar" in gens_base_names) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
-    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
-    Kbar_grading[1] = 1
-    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
-    push!(gens_base_names, "Kbar")
-  end
-
   # Execute consistency checks
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :WeierstrassModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # Inform about the assume Kbar grading
-  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # Construct the model
+  # Compute Weierstrass polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
   ring_map = hom(parent(weierstrass_f), S, gens(S)[1:ngens(parent(weierstrass_f))])
   (f, g) = [ring_map(weierstrass_f), ring_map(weierstrass_g)]
   pw = _weierstrass_polynomial(f, g, coordinate_ring(auxiliary_ambient_space))
-  model = WeierstrassModel(f, g, pw, auxiliary_base_space, auxiliary_ambient_space)
-  set_attribute!(model, :base_fully_specified, false)
+
+  # Compute explicit model sections
+  explicit_model_sections = Dict("f" => f, "g" => g)
+  section_candidates = gens(S)
+  for k in section_candidates
+    haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
+  end
+
+  # Compute defining_section_parametrization
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
+  vars_S = [string(k) for k in gens(S)]
+  if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
+    defining_section_parametrization["f"] = f
+  end
+  if !("g" in vars_S) || (g != eval_poly("g", parent(g)))
+    defining_section_parametrization["g"] = g
+  end
+  
+  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -170,7 +174,7 @@ function Base.show(io::IO, w::WeierstrassModel)
   else
     push!(properties_string, "Weierstrass model over a")
   end
-  if base_fully_specified(w)
+  if is_base_space_fully_specified(w)
     push!(properties_string, "concrete base")
   else
     push!(properties_string, "not fully specified base")

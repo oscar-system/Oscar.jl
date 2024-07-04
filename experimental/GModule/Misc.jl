@@ -1,10 +1,44 @@
-Hecke.minpoly(a::qqbar) = minpoly(Hecke.Globals.Qx, a)
+module Misc
+using Oscar
 
-function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
+Hecke.minpoly(a::QQBarFieldElem) = minpoly(Hecke.Globals.Qx, a)
+
+function primitive_element(a::Vector{QQBarFieldElem})
+  pe = a[1]
+  f = minpoly(pe)
+  Qx = parent(f)
+  for i = 2:length(a)
+    g = minpoly(a[i])
+    f = minpoly(pe)
+    k, _ = number_field(f, check = false, cached = false)
+    lf = collect(keys(factor(k, g).fac))
+    for j = 1:length(lf)
+      h = map_coefficients(x->Qx(x)(pe), lf[j])
+      if is_zero(h(a[i]))
+        d = degree(f) * degree(h)
+        mu = 0
+        while degree(minpoly(pe+mu*a[i])) != d
+          mu += 1
+          if mu > 10
+            error("too bad")
+          end
+        end
+        pe += mu*a[i]
+      end
+    end
+  end
+  return pe
+end
+
+function Hecke.number_field(::QQField, a::Vector{QQBarFieldElem}; cached::Bool = false)
+  return number_field(QQ, primitive_element(a))
+end
+
+function Hecke.number_field(::QQField, a::QQBarFieldElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   Qx = parent(k.pol)
-  function to_k(x::qqbar)
+  function to_k(x::QQBarFieldElem)
     if x == a
       return b
     end
@@ -13,8 +47,8 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
     pr = 10
     while true
       C = AcbField(pr)
-      ca = C(a)
-      lp = findall(i->contains_zero(Qx(i)(ca) - C(x)), r)
+      CalciumFieldElem = C(a)
+      lp = findall(i->contains_zero(Qx(i)(CalciumFieldElem) - C(x)), r)
       if length(lp) == 1
         return r[lp[1]]
       end
@@ -25,7 +59,7 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
       @assert pr < 2^16
     end
   end
-  function to_qqbar(x::nf_elem)
+  function to_qqbar(x::AbsSimpleNumFieldElem)
     return Qx(x)(a)
   end
   #TODO: make map canonical?
@@ -33,7 +67,8 @@ function Hecke.number_field(::QQField, a::qqbar; cached::Bool = false)
   return k, MapFromFunc(k, parent(a), to_qqbar, to_k)
 end
 
-Base.getindex(::QQField, a::qqbar) = number_field(QQ, a)
+Base.getindex(::QQField, a::QQBarFieldElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQBarFieldElem}) = number_field(QQ, a)
 
 function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Zx)
   g = parent()
@@ -41,7 +76,7 @@ function Hecke.numerator(f::QQPolyRingElem, parent::ZZPolyRing = Hecke.Globals.Z
   return g
 end
 
-function cyclo_fixed_group_gens(a::nf_elem)
+function cyclo_fixed_group_gens(a::AbsSimpleNumFieldElem)
   C = parent(a)
   fl, f = Hecke.is_cyclotomic_type(C)
   @assert fl
@@ -112,7 +147,7 @@ function cyclo_fixed_group_gens(a::nf_elem)
   return gn
 end
 
-function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
+function cyclo_fixed_group_gens(A::AbstractArray{AbsSimpleNumFieldElem})
   if length(A) == 0
     return [(1,1)]
   end
@@ -148,3 +183,6 @@ function cyclo_fixed_group_gens(A::AbstractArray{nf_elem})
   end
   return [(mR(sR(ms(x))), F) for x = gens(s)]
 end
+
+end # module
+using .Misc

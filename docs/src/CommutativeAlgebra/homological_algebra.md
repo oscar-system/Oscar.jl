@@ -104,7 +104,7 @@ homology(C::ComplexOfMorphisms{<:ModuleFP}, i::Int)
 ## Hom and Ext
 
 ```@docs
-hom(M::ModuleFP, N::ModuleFP, algorithm::Symbol=:maps)
+hom(M::ModuleFP, N::ModuleFP; algorithm::Symbol=:maps)
 ```
 
 ```@docs

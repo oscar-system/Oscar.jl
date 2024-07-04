@@ -68,7 +68,7 @@ true
     if is_projective(v) == false
         return false
     end
-    if rank(class_group(v)) > 1
+    if torsion_free_rank(class_group(v)) > 1
         return false
     end
     w = [[Int(x) for x in transpose(g.coeff)] for g in gens(class_group(v))]

@@ -275,12 +275,57 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
       F = GroupFilter() # no filter: need also intransitive groups
                         # could restrict (possibly) to only those
                         # cannot use short_cosets...
+                        #TODO: the alg. closure of Q in the function
+                        #      field is normal, hence should be fixed
+                        #      by a normal group. If a decent is found 
+                        #      for U, we can replace U by the core,
+                        #      the intersection of the conjugates
+                        #      (might be pointless: if U descents, then
+                        #      all conjugates also do, hence this is automatic)
+                        #      (it might save a cheap evaluation)
       descent(C, C.G, F, one(C.G), grp_id = x->order(x))
       return C.G, C, fixed_field(S, C.G^pr)
     end
     return C.G, C
   end
   #if any fails, "t" was bad and I need to find a way of restarting
+end
+
+#turn bivariate into univariate over rational function field
+#trans decides which of the 2 becomes the rational transcendental
+#the other is then the main polynomial variable
+function to_uni(f::MPolyRingElem, trans::Int = 1)
+  @assert nvars(parent(f)) == 2
+  k = base_ring(f)
+  Qs, s = rational_function_field(k, "s", cached = false)
+  Qst, t = polynomial_ring(Qs, "t", cached = false)
+  if trans == 1
+    ev = [Qst(s), t]
+  else
+    ev = [t, Qst(s)]
+  end
+  return evaluate(f, ev)
+end
+
+@doc raw"""
+    function_field(f::MPolyRingElem, trans::Int, s::VarName = :_a; cached::Bool = false, check::Bool = true)
+ 
+Let $f$ in $K[s, t]$ for trans == 1, return the function field $K(s)/f$
+otherwise $K(t)/f$.
+"""
+function Oscar.function_field(f::MPolyRingElem, trans::Int, s::VarName = :_a; cached::Bool = false, check::Bool = true)
+  return function_field(to_uni(f, trans), s; cached)
+end
+
+@doc raw"""
+    galois_group(f::QQMPolyRingElem, trans::Int = 1)
+
+Let $f \in QQ[s,t]$, then this computes 
+the Galois group of $f$ as an element in $K(s)[t]$ if trans = 1 or
+as $K(t)[s]$ if trans = 2.
+"""
+function galois_group(f::QQMPolyRingElem, trans::Int = 1)
+  return galois_group(to_uni(f, trans))
 end
 
 """
@@ -581,7 +626,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
   return ps, emb
 end
 
-function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, r::Generic.RelSeries{qadic})
+function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, r::Generic.RelSeries{QadicFieldElem})
 #  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
@@ -661,11 +706,11 @@ function valuation_of_roots(f::QQPolyRingElem, p)
   return valuation_of_roots(numerator(f), p)
 end
 
-function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   dev = collect(coefficients(f))
   d = degree(base_ring(f))
   a = Tuple{Int, Int}[]
-  #careful: valuation is q-valued, normalised for val(p) == 1
+  #careful: valuation is q-valued, normalized for val(p) == 1
   #         lines have Int corredinated, so we scale by the degree of the field
   # => the slopes are also multiplied by this!!!
   for i = 0:length(dev) -1
@@ -678,7 +723,7 @@ function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{
   return NewtonPolygon(P, f, gen(parent(f)), p, [parent(f)(x) for x = dev])
 end
 
-function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   d = degree(base_ring(f))
   return [(QQFieldElem(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end

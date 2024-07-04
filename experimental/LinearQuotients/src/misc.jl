@@ -1,3 +1,6 @@
+export is_pseudo_reflection
+export subgroup_of_pseudo_reflections
+
 @doc raw"""
     is_pseudo_reflection(g::MatrixGroupElem)
 

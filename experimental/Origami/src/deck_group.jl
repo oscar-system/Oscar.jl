@@ -1,8 +1,7 @@
 function in_deck_group(o::Origami, sigma::PermGroupElem)
-    degree_list = collect(1:degree(o))
     h = horizontal_perm(o)
     v = vertical_perm(o)
-    for i in degree_list
+    for i in 1:degree(o)
         if (i^sigma)^h != (i^h)^sigma || (i^sigma)^v != (i^v)^sigma
             return false
         end
@@ -12,7 +11,7 @@ end
 
 function deck_group(o::Origami)
     function candidate_for_deck(origami, j)
-        sheets_to_visit = collect(2:degree(origami))
+        sheets_to_visit = 2:degree(origami)
         sigma = [j]
         append!(sigma, fill(-1, degree(origami) - 1))
         while length(sheets_to_visit) > 0
@@ -39,8 +38,7 @@ function deck_group(o::Origami)
     end
 
     deck::Vector{PermGroupElem} = []
-    degree_list = collect(1:degree(o))
-    for i in degree_list
+    for i in 1:degree(o)
         candidate = candidate_for_deck(o, i)
         if GapObj(candidate) != GAP.Globals.fail && in_deck_group(o, candidate)
             push!(deck, candidate)

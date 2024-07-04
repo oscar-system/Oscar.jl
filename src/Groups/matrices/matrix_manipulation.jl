@@ -228,8 +228,6 @@ end
 #
 ########################################################################
 
-Base.getindex(V::AbstractAlgebra.Generic.FreeModule, i::Int) = gen(V, i)
-
 
 Base.:*(v::AbstractAlgebra.Generic.FreeModuleElem{T},x::MatElem{T}) where T <: RingElem = v.parent(v.v*x)
 Base.:*(x::MatElem{T},u::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem = x*transpose(u.v)

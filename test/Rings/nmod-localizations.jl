@@ -5,12 +5,12 @@
 using Oscar
 
 import Oscar.Nemo.zzModRing
-import Oscar: base_ring, inverted_set, ambient_ring, localization, parent, numerator, denominator, one, zero
+import Oscar: base_ring, inverted_set, ring, localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
 export NmodComplementOfPrimeIdeal, NmodLocalizedRing, NmodLocalizedRingElem
 
-export generator, ambient_ring, localization, parent, numerator, denominator
+export generator, ring, localization, parent, numerator, denominator
 
 
 #######################################################################
@@ -42,14 +42,14 @@ function Base.in(b::zzModRingElem, S::NmodComplementOfPrimeIdeal)
 end
 
 ### required getter functions
-ambient_ring(S::NmodComplementOfPrimeIdeal) = S.R
+ring(S::NmodComplementOfPrimeIdeal) = S.R
 
 ### additional constructors
 NmodComplementOfPrimeIdeal(R::zzModRing, i::Oscar.IntegerUnion) = NmodComplementOfPrimeIdeal(R(i))
 
 ### additional functionality
 generator(S::NmodComplementOfPrimeIdeal) = S.gen
-Base.in(b::Oscar.IntegerUnion, S::NmodComplementOfPrimeIdeal) = (ambient_ring(S)(b) in S)
+Base.in(b::Oscar.IntegerUnion, S::NmodComplementOfPrimeIdeal) = (ring(S)(b) in S)
 
 #######################################################################
 # Localizations of ℤ/nℤ                                               #
@@ -65,7 +65,7 @@ mutable struct NmodLocalizedRing{MultSetType <: AbsMultSet{zzModRing, zzModRingE
   S::MultSetType # the set at which has been localized
 
   function NmodLocalizedRing(S::MultSetType) where {MultSetType <: AbsMultSet{zzModRing, zzModRingElem}}
-    return new{MultSetType}(ambient_ring(S), S)
+    return new{MultSetType}(ring(S), S)
   end
 end
 
@@ -151,9 +151,9 @@ parent_type(T::Type{NmodLocalizedRingElem{MultSetType}}) where {MultSetType} = N
   @test !(13^5 in U)
   @test !(13*4289729837 in U)
   @test 5783790198374098 in U
-  @test ambient_ring(U) == R
+  @test ring(U) == R
   W, _ = localization(U)
-  @test base_ring(W) == ambient_ring(U)
+  @test base_ring(W) == ring(U)
   @test inverted_set(W) == U
   a = W(4, 17)
   b = W(4*17)

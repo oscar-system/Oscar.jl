@@ -17,7 +17,7 @@ Permutation group of degree 5 and order 60
 
 julia> atlas_group(MatrixGroup, "A5")
 Matrix group of degree 4
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia> atlas_group("M11")  # Mathieu group M11
 Permutation group of degree 11 and order 7920
@@ -56,7 +56,7 @@ Typically, `info` is obtained from [`all_atlas_group_infos`](@ref).
 ```jldoctest
 julia> info = all_atlas_group_infos("A5", degree => 5)
 1-element Vector{Dict{Symbol, Any}}:
- Dict(:repname => "A5G1-p5B0", :degree => 5, :name => "A5")
+ Dict(:constituents => [1, 4], :repname => "A5G1-p5B0", :degree => 5, :name => "A5")
 
 julia> atlas_group(info[1])
 Permutation group of degree 5 and order 60
@@ -121,7 +121,7 @@ Permutation group of degree 11 and order 720
 
 julia> h3, emb = atlas_subgroup(MatrixGroup, "M11", 1 );  h3
 Matrix group of degree 10
-  over finite field of degree 1 over GF(2)
+  over prime field of characteristic 2
 
 julia> info = all_atlas_group_infos("M11", degree => 11);
 
@@ -184,19 +184,19 @@ and for matrix groups
 ```jldoctest
 julia> info = all_atlas_group_infos("A5", degree => [5, 6])
 2-element Vector{Dict{Symbol, Any}}:
- Dict(:repname => "A5G1-p5B0", :degree => 5, :name => "A5")
- Dict(:repname => "A5G1-p6B0", :degree => 6, :name => "A5")
+ Dict(:constituents => [1, 4], :repname => "A5G1-p5B0", :degree => 5, :name => "A5")
+ Dict(:constituents => [1, 5], :repname => "A5G1-p6B0", :degree => 6, :name => "A5")
 
 julia> atlas_group(info[1])
 Permutation group of degree 5 and order 60
 
 julia> info = all_atlas_group_infos("A5", dim => 4, characteristic => 3)
 1-element Vector{Dict{Symbol, Any}}:
- Dict(:dim => 4, :repname => "A5G1-f3r4B0", :name => "A5")
+ Dict(:dim => 4, :constituents => [4], :repname => "A5G1-f3r4B0", :name => "A5")
 
 julia> atlas_group(info[1])
 Matrix group of degree 4
-  over finite field of degree 1 over GF(3)
+  over prime field of characteristic 3
 
 ```
 """
@@ -244,6 +244,11 @@ function all_atlas_group_infos(name::String, L...)
     # groupname and repname are always present
     d = Dict{Symbol, Any}(:name => string(r.groupname), :repname => string(r.repname))
 
+    # the character may be stored
+    if hasproperty(r, :constituents)
+      d[:constituents] = Vector{Int}(r.constituents)
+    end
+
     # permutation groups have a degree
     if hasproperty(r, :p)
       d[:degree] = r.p
@@ -267,29 +272,29 @@ end
 
 
 """
-    number_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
+    number_of_atlas_groups([::Type{T}, ]name::String) where T <: Union{PermGroup, MatrixGroup}
 
 Return the number of groups from the Atlas of Group Representations
 whose isomorphism type is given by `name` and have the type `T`.
 
 # Examples
 ```jldoctest
-julia> number_atlas_groups("A5")
+julia> number_of_atlas_groups("A5")
 18
 
-julia> number_atlas_groups(PermGroup, "A5")
+julia> number_of_atlas_groups(PermGroup, "A5")
 3
 
-julia> number_atlas_groups(MatrixGroup, "A5")
+julia> number_of_atlas_groups(MatrixGroup, "A5")
 15
 
 ```
 """
-function number_atlas_groups(name::String)
+function number_of_atlas_groups(name::String)
   return length(GAP.Globals.AllAtlasGeneratingSetInfos(GapObj(name))::GapObj)
 end
 
-function number_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
+function number_of_atlas_groups(::Type{T}, name::String) where T <: Union{PermGroup, MatrixGroup}
   if T === PermGroup
     return length(GAP.Globals.AllAtlasGeneratingSetInfos(
                     GapObj(name), GAP.Globals.IsPermGroup, true)::GapObj)

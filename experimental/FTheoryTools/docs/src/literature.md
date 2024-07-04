@@ -18,7 +18,7 @@ literature_model(; doi::String="", arxiv_id::String="", version::String="", equa
 
 ## Attributes
 
-For literature models, we provide the following attributes:
+For literature models, we provide the following attributes referencing meta data:
 ```@docs
 arxiv_id(m::AbstractFTheoryModel)
 arxiv_doi(m::AbstractFTheoryModel)
@@ -34,18 +34,28 @@ journal_link(m::AbstractFTheoryModel)
 journal_model_equation_number(m::AbstractFTheoryModel)
 journal_model_page(m::AbstractFTheoryModel)
 journal_model_section(m::AbstractFTheoryModel)
+journal_name(m::AbstractFTheoryModel)
 journal_pages(m::AbstractFTheoryModel)
 journal_report_numbers(m::AbstractFTheoryModel)
 journal_volume(m::AbstractFTheoryModel)
 journal_year(m::AbstractFTheoryModel)
 literature_identifier(m::AbstractFTheoryModel)
-model_description(m::AbstractFTheoryModel)
 model_parameters(m::AbstractFTheoryModel)
 paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
 related_literature_models(m::AbstractFTheoryModel)
+```
+Such meta data can be modified with setters. For instance, there is a function
+`set_description(m::AbstractFTheoryModel, description::String)`, which takes the
+model in question as the first argument and the desired description - provided as string -
+as the second argument. Such a setter function exists for all of the above. If appropriate,
+we also offer a method that adds a new value. For instance, we have a function
+`add_paper_buzzword(m::AbstractFTheoryModel, addition::String)`.
+
+In addition, the following attributes are available to access advanced model information:
+```@docs
 resolutions(m::AbstractFTheoryModel)
 resolution_generating_sections(m::AbstractFTheoryModel)
 resolution_zero_sections(m::AbstractFTheoryModel)
@@ -53,14 +63,9 @@ weighted_resolutions(m::AbstractFTheoryModel)
 weighted_resolution_generating_sections(m::AbstractFTheoryModel)
 weighted_resolution_zero_sections(m::AbstractFTheoryModel)
 ```
-One can add this information for a model that does
-not have it:
-```@docs
-set_description(m::AbstractFTheoryModel, description::String)
-```
-Note however, that these changes will (currently) not be stored
-in our data base. One can also check if a model has a particular
-set of information. This is achieved with the following methods:
+
+One can check if a model has a particular set of information. This is achieved with the
+following methods:
 * `has_arxiv_id(m::AbstractFTheoryModel)`,
 * `has_arxiv_doi(m::AbstractFTheoryModel)`,
 * `has_arxiv_link(m::AbstractFTheoryModel)`,
@@ -104,8 +109,8 @@ A central task in F-theory is to resolve a singular model.
 For literature models, we have stored resolutions in our data base.
 Upon construction of a literature model, we load these known resolutions.
 
-In addition to listing the known resolutions with `resolutions(m::AbstractFTheoryModel)`, the user might want to add a resolution. This can be achieved with
-the following method:
+In addition to listing the known resolutions with `resolutions(m::AbstractFTheoryModel)`,
+the user might want to add a resolution. This can be achieved with the following method:
 ```@docs
 add_resolution(m::AbstractFTheoryModel, centers::Vector{Vector{String}}, exceptionals::Vector{String})
 ```

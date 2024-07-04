@@ -41,7 +41,7 @@ We discuss the relevant OSCAR functionality below.
 
 ## Creating Invariant Rings
 
-### How Groups are Given
+### How Finite Groups are Given
 
 The invariant theory part of OSCAR  distinguishes two ways of how  finite groups and their actions on $K[x_1, \dots, x_n]\cong K[V]$ are specified:
 
@@ -93,10 +93,8 @@ Matrix group of degree 3
   over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-  Matrix group of degree 3 over cyclotomic field of order 3
-with generators
-  AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> group(IR)
 Matrix group of degree 3
@@ -107,13 +105,13 @@ Number field with defining polynomial _$^2 + _$ + 1
   over rational field
 
 julia> R = polynomial_ring(IR)
-Multivariate polynomial ring in 3 variables over cyclotomic field of order 3 graded by
+Multivariate polynomial ring in 3 variables over K graded by
   x[1] -> [1]
   x[2] -> [1]
   x[3] -> [1]
 
 julia> x = gens(R)
-3-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+3-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]
  x[2]
  x[3]
@@ -126,64 +124,64 @@ false
 ## The Reynolds Operator
 
 ```@docs
-reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
+reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
-reynolds_operator(IR::InvRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
+reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction) where {FldT, GrpT, T <: MPolyRingElem}
 ```
 
 ## Invariants of a Given Degree
 
 ```@docs
-basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
-basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ```@docs
-iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
-iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+iterate_basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 ```
 
 ## The Molien Series
 
 ```@docs
- molien_series([S::PolyRing], I::InvRing, [chi::GAPGroupClassFunction])
+ molien_series([S::PolyRing], I::FinGroupInvarRing, [chi::GAPGroupClassFunction])
 ```
 
 ## Primary Invariants
 
 ```@docs
-primary_invariants(IR::InvRing)
+primary_invariants(IR::FinGroupInvarRing)
 ```
 
 ## Secondary Invariants
 
 ```@docs
-secondary_invariants(IR::InvRing)
+secondary_invariants(IR::FinGroupInvarRing)
 ```
 
 ```@docs
-irreducible_secondary_invariants(IR::InvRing)
+irreducible_secondary_invariants(IR::FinGroupInvarRing)
 ```
 
 ```@docs
-module_syzygies(RG::InvRing)
+module_syzygies(RG::FinGroupInvarRing)
 ```
 
 ## Fundamental Systems of Invariants
 
 ```@docs
-fundamental_invariants(IR::InvRing, algorithm::Symbol = :default; beta::Int = 0)
+fundamental_invariants(IR::FinGroupInvarRing, algorithm::Symbol = :default; beta::Int = 0)
 ```
 
 ## Invariant Rings as Affine Algebras
 
 ```@docs
-affine_algebra(IR::InvRing)
+affine_algebra(IR::FinGroupInvarRing)
 ```
 
 ## Semi-invariants / relative invariants
 ```@docs
-semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+semi_invariants(IR::FinGroupInvarRing, chi::GAPGroupClassFunction)
 ```

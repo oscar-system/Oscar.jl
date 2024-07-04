@@ -635,6 +635,8 @@ end
   @test order(Oscar._isometry_group_via_decomposition(L, closed=false)[1]) == 32
   @test order(Oscar._isometry_group_via_decomposition(L, closed=false, direct=false)[1]) == 32
   @test order(Oscar._isometry_group_via_decomposition(L, closed=true, direct=false)[1]) == 32
+  L = integer_lattice(; gram=QQ[4 0 0 0 0; 0 16 4 10 8; 0 4 2 3 2; 0 10 3 10 5; 0 8 2 5 34]) # avoid caching
+  @test order(isometry_group(L, algorithm = :decomposition, depth = 1, bacher_depth = 0)) == 32
 
   gram = ZZ[2 1 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; 1 2 -1 -1 -1 1 1 -1 0 0 0 0 0 0 0 0; -1 -1 2 0 1 0 -1 1 0 0 0 0 0 0 0 0; -1 -1 0 2 1 -1 0 0 0 0 0 0 0 0 0 0; -1 -1 1 1 2 0 -1 0 0 0 0 0 0 0 0 0; 1 1 0 -1 0 2 0 -1 0 0 0 0 0 0 0 0; 1 1 -1 0 -1 0 2 -1 0 0 0 0 0 0 0 0; -1 -1 1 0 0 -1 -1 2 0 0 0 0 0 0 0 0; 0 0 0 0 0 0 0 0 2 1 1 0 1 1 1 0; 0 0 0 0 0 0 0 0 1 2 1 0 1 1 0 0; 0 0 0 0 0 0 0 0 1 1 2 0 0 0 1 0; 0 0 0 0 0 0 0 0 0 0 0 2 1 0 -1 0; 0 0 0 0 0 0 0 0 1 1 0 1 4 1 0 1; 0 0 0 0 0 0 0 0 1 1 0 0 1 4 0 0; 0 0 0 0 0 0 0 0 1 0 1 -1 0 0 8 1; 0 0 0 0 0 0 0 0 0 0 0 0 1 0 1 18]
   L = integer_lattice(; gram)

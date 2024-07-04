@@ -36,10 +36,10 @@
     @test is_complete(NFsquare)
     @test !is_complete(F0)
     @test length(rays(F0)) == 3
-    @test nrays(F1) == 3
+    @test n_rays(F1) == 3
     @test dim(F1) == 2
     @test ambient_dim(F1) == 3
-    @test nrays(F2) == 0
+    @test n_rays(F2) == 0
     @test lineality_dim(F2) == 1
     RMLF2 = rays_modulo_lineality(F2)
     @test length(RMLF2[:rays_modulo_lineality]) == 2
@@ -48,7 +48,7 @@
     @test ray_indices(maximal_cones(F1)) == incidence1
     @test IncidenceMatrix(maximal_cones(F1)) == incidence1
     @test maximal_cones(IncidenceMatrix, F1) == incidence1
-    @test n_maximal_cones(F1) == 2
+    @test number_of_maximal_cones(F1) == 2
     @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
     @test generator_matrix(lineality_space(F2)) == matrix(f, L)
     if T == QQFieldElem
@@ -67,9 +67,9 @@
 
     II = ray_indices(maximal_cones(NFsquare))
     NF0 = polyhedral_fan(II, rays(NFsquare))
-    @test nrays(NF0) == 4
+    @test n_rays(NF0) == 4
     FF0 = face_fan(C0)
-    @test nrays(FF0) == 4
+    @test n_rays(FF0) == 4
     if T == QQFieldElem
       @test !is_smooth(FF0)
     end
@@ -77,7 +77,7 @@
     @test rays(F1NR) == collect(eachrow(I3))
     @test ray_indices(maximal_cones(F1NR)) == incidence1
     @test IncidenceMatrix(maximal_cones(F1NR)) == incidence1
-    @test nrays(F2NR) == 0
+    @test n_rays(F2NR) == 0
     @test lineality_dim(F2NR) == 1
     RMLF2NR = rays_modulo_lineality(F2NR)
     @test length(RMLF2NR[:rays_modulo_lineality]) == 2
@@ -88,14 +88,14 @@
 
     C = positive_hull(f, identity_matrix(ZZ, 0))
     pf = polyhedral_fan(C)
-    @test n_maximal_cones(pf) == 1
+    @test number_of_maximal_cones(pf) == 1
     @test dim(pf) == 0
     pfc = polyhedral_fan(maximal_cones(pf))
-    @test n_maximal_cones(pfc) == 1
+    @test number_of_maximal_cones(pfc) == 1
 
     C = positive_hull(f, vcat(identity_matrix(ZZ, 4), -identity_matrix(ZZ,4)))
     pf = polyhedral_fan(C)
-    @test n_maximal_cones(pf) == 1
+    @test number_of_maximal_cones(pf) == 1
 
     @test polyhedral_fan(maximal_cones(F2NR)) isa PolyhedralFan
     # this should just deepcopy the object
@@ -122,21 +122,21 @@ end
   m_bad = matrix(f, [1 1])
   nf_transformed = transform(nf_square, m_good)
   @test nf_transformed isa PolyhedralFan{T}
-  @test nrays(nf_transformed) == 4
-  @test n_maximal_cones(nf_transformed) == 4
+  @test n_rays(nf_transformed) == 4
+  @test number_of_maximal_cones(nf_transformed) == 4
   @test_throws ErrorException transform(nf_square, m_bad)
   nf_unverified = transform(nf_square, m_good; check=false)
   @test nf_unverified isa PolyhedralFan{T}
-  @test nrays(nf_unverified) == 4
-  @test n_maximal_cones(nf_unverified) == 4
+  @test n_rays(nf_unverified) == 4
+  @test number_of_maximal_cones(nf_unverified) == 4
 
   cdeg = convex_hull(f, [1 0 0; 0 0 0])
   nflin = normal_fan(cdeg)
   mm = matrix(f, [1 0 0; 0 1 0; 0 0 1])
   nflin_transformed = transform(nflin, mm)
   @test nflin_transformed isa PolyhedralFan{T}
-  @test nrays(nflin_transformed) == 0
-  @test n_maximal_cones(nflin_transformed) == 2
+  @test n_rays(nflin_transformed) == 0
+  @test number_of_maximal_cones(nflin_transformed) == 2
   @test lineality_dim(nflin_transformed) == 2
 end
 
@@ -150,9 +150,9 @@ end
   sf0 = star_subdivision(f, v0)
   sf1 = star_subdivision(f, v1)
   sf2 = star_subdivision(f, v2)
-  @test n_maximal_cones(sf0) == 2
-  @test n_maximal_cones(sf1) == 3
-  @test n_maximal_cones(sf2) == 4
+  @test number_of_maximal_cones(sf0) == 2
+  @test number_of_maximal_cones(sf1) == 3
+  @test number_of_maximal_cones(sf2) == 4
 
   ff = polyhedral_fan(IncidenceMatrix([[1],[2,3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
@@ -161,7 +161,7 @@ end
   w1 = [-1;1;0]
   sff0 = star_subdivision(ff, w0)
   sff1 = star_subdivision(ff, w1)
-  @test n_maximal_cones(sff0) == 2
-  @test n_maximal_cones(sff1) == 3
+  @test number_of_maximal_cones(sff0) == 2
+  @test number_of_maximal_cones(sff1) == 3
 
 end

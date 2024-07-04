@@ -363,7 +363,7 @@ chosen prime number rather than for $I$ itself.
 groebner_basis_hilbert_driven(I::MPolyIdeal{P};
     destination_ordering::MonomialOrdering,
     complete_reduction::Bool = false,
-    weights::Vector{Int} = ones(Int, ngens(base_ring(I))),
+    weights::Vector{Int} = ones(Int, number_of_generators(base_ring(I))),
     hilbert_numerator::Union{Nothing, ZZPolyRingElem} = nothing) where {P <: MPolyRingElem}
 ```
 

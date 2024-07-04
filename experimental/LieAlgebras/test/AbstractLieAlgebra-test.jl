@@ -30,7 +30,7 @@
       CF4 = cyclotomic_field(4)[1]
       L = lie_algebra(CF4, sl2_struct_consts(CF4), ["e", "f", "h"])
       lie_algebra_conformance_test(
-        L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
+        L, AbstractLieAlgebra{AbsSimpleNumFieldElem}, AbstractLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
@@ -59,14 +59,14 @@
     @testset "A_4(CF(4))" begin
       L = lie_algebra(cyclotomic_field(4)[1], :A, 4)
       lie_algebra_conformance_test(
-        L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
+        L, AbstractLieAlgebra{AbsSimpleNumFieldElem}, AbstractLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
 
     @testset "B_3(CF(4))" begin
       L = lie_algebra(cyclotomic_field(4)[1], :B, 3)
       lie_algebra_conformance_test(
-        L, AbstractLieAlgebra{nf_elem}, AbstractLieAlgebraElem{nf_elem}
+        L, AbstractLieAlgebra{AbsSimpleNumFieldElem}, AbstractLieAlgebraElem{AbsSimpleNumFieldElem}
       )
     end
   end

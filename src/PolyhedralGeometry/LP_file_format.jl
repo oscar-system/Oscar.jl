@@ -46,7 +46,7 @@ Print the object in LP format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program
@@ -85,7 +85,7 @@ Print the object in MPS format to stdout:
 
 ```jldoctest
 julia> c = cube(2, -1//2, 3//2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> milp = mixed_integer_linear_program(c, [1,1], integer_variables=[1])
 Mixed integer linear program

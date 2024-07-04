@@ -130,9 +130,20 @@ function Base.iterate(AM::AllMonomials, s::Vector{Int})
   end
 end
 
+function Base.show(io::IO, ::MIME"text/plain", AM::AllMonomials)
+  io = pretty(io)
+  println(io, "Iterator over over the monomials of degree $(AM.d)")
+  print(io, Indent(), "of ", Lowercase(), AM.R, Dedent())
+end
+
 function Base.show(io::IO, AM::AllMonomials)
-  println(io, "Iterator over the monomials of degree $(AM.d) of")
-  print(io, AM.R)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over the monomials of degree $(AM.d) of")
+    print(IOContext(io, :supercompact => true), Lowercase(), AM.R)
+  end
 end
 
 ################################################################################
@@ -144,7 +155,7 @@ end
 # Return the dimension of the graded component of degree d.
 # If we cannot compute the Molien series (so far in the modular case), we return
 # -1.
-function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
+function dimension_via_molien_series(::Type{T}, R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing) where T <: IntegerUnion
   if !is_molien_series_implemented(R)
     return -1
   end
@@ -157,7 +168,7 @@ function dimension_via_molien_series(::Type{T}, R::InvRing, d::Int, chi::Union{G
 end
 
 @doc raw"""
-     iterate_basis(IR::InvRing, d::Int, algorithm::Symbol = :default)
+     iterate_basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return an iterator over a basis
 for the invariants in degree `d`.
@@ -174,7 +185,7 @@ all at once when calling the function.
 See also [`basis`](@ref).
 
 # Examples
-```
+```jldoctest
 julia> K, a = cyclotomic_field(3, "a")
 (Cyclotomic field of order 3, a)
 
@@ -189,23 +200,19 @@ julia> M2 = matrix(K, [1 0 0; 0 a 0; 0 0 -a-1])
 [0   0   -a - 1]
 
 julia> G = matrix_group(M1, M2)
-Matrix group of degree 3 over Cyclotomic field of order 3
+Matrix group of degree 3
+  over cyclotomic field of order 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Invariant ring
+  of matrix group of degree 3 over K
 
 julia> B = iterate_basis(IR, 6)
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of G
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^2*x[2]^2*x[3]^2
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -217,28 +224,24 @@ julia> M = matrix(GF(3), [0 1 0; -1 0 0; 0 0 -1])
 [0   0   2]
 
 julia> G = matrix_group(M)
-Matrix group of degree 3 over Galois field with characteristic 3
+Matrix group of degree 3
+  over prime field of characteristic 3
 
 julia> IR = invariant_ring(G)
-Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
-with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Invariant ring
+  of matrix group of degree 3 over GF(3)
 
 julia> B = iterate_basis(IR, 2)
-Iterator over a basis of the component of degree 2 of
-Invariant ring of
-Matrix group of degree 3 over Galois field with characteristic 3
-with generators
-fpMatrix[[0 1 0; 2 0 0; 0 0 2]]
+Iterator over a basis of the component of degree 2
+  of invariant ring of G
 
 julia> collect(B)
-2-element Vector{MPolyDecRingElem{fpFieldElem, fpMPolyRingElem}}:
+2-element Vector{MPolyDecRingElem{FqFieldElem, FqMPolyRingElem}}:
  x[1]^2 + x[2]^2
  x[3]^2
 ```
 """
-function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
+function iterate_basis(R::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
   @assert d >= 0 "Degree must be non-negative"
 
   if algorithm == :default
@@ -276,7 +279,7 @@ function iterate_basis(R::InvRing, d::Int, algorithm::Symbol = :default)
 end
 
 @doc raw"""
-    iterate_basis(IR::InvRing, d::Int, chi::GAPGroupClassFunction)
+    iterate_basis(IR::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction)
 
 Given an invariant ring `IR`, an integer `d` and an irreducible character `chi`,
 return an iterator over a basis for the semi-invariants (or relative invariants)
@@ -290,7 +293,7 @@ This function is only implemented in the case of characteristic zero.
 See also [`basis`](@ref).
 
 # Examples
-```
+```jldoctest
 julia> K, a = cyclotomic_field(3, "a");
 
 julia> M1 = matrix(K, [0 0 1; 1 0 0; 0 1 0]);
@@ -302,15 +305,12 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> B = iterate_basis(IR, 6, trivial_character(G))
-Iterator over a basis of the component of degree 6 of
-Invariant ring of
-Matrix group of degree 3 over Cyclotomic field of order 3
-with generators
-AbstractAlgebra.Generic.MatSpaceElem{nf_elem}[[0 0 1; 1 0 0; 0 1 0], [1 0 0; 0 a 0; 0 0 -a-1]]
+Iterator over a basis of the component of degree 6
+  of invariant ring of G
 relative to a character
 
 julia> collect(B)
-4-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+4-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  x[1]^6 + x[2]^6 + x[3]^6
  x[1]^4*x[2]*x[3] + x[1]*x[2]^4*x[3] + x[1]*x[2]*x[3]^4
  x[1]^3*x[2]^3 + x[1]^3*x[3]^3 + x[2]^3*x[3]^3
@@ -323,14 +323,11 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
-Iterator over a basis of the component of degree 3 of
-Invariant ring of
-Sym( [ 1 .. 2 ] )
-with generators
-PermGroupElem[(1,2)]
+Iterator over a basis of the component of degree 3
+  of invariant ring of S2
 relative to a character
 
 julia> collect(B)
@@ -340,9 +337,9 @@ julia> collect(B)
 
 ```
 """
-iterate_basis(R::InvRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
+iterate_basis(R::FinGroupInvarRing, d::Int, chi::GAPGroupClassFunction) = iterate_basis_reynolds(R, d, chi)
 
-function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
+function iterate_basis_reynolds(R::FinGroupInvarRing, d::Int, chi::Union{GAPGroupClassFunction, Nothing} = nothing)
   @assert !is_modular(R)
   @assert d >= 0 "Degree must be non-negative"
   if chi !== nothing
@@ -361,11 +358,11 @@ function iterate_basis_reynolds(R::InvRing, d::Int, chi::Union{GAPGroupClassFunc
 
   N = zero_matrix(base_ring(polynomial_ring(R)), 0, 0)
 
-  return InvRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
+  return FinGroupInvarRingBasisIterator{typeof(R), typeof(reynolds), typeof(monomials), eltype(monomials), typeof(N)}(R, d, k, true, reynolds, monomials, Vector{eltype(monomials)}(), N)
 end
 
 # Sadly, we can't really do much iteratively here.
-function iterate_basis_linear_algebra(IR::InvRing, d::Int)
+function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   @assert d >= 0 "Degree must be non-negative"
 
   R = polynomial_ring(IR)
@@ -375,7 +372,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
     N = zero_matrix(base_ring(R), 0, 0)
     mons = elem_type(R)[]
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
+    return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(dummy_mons), eltype(mons), typeof(N)}(IR, d, k, false, nothing, dummy_mons, mons, N)
   end
 
   mons_iterator = monomials_of_degree(R, d)
@@ -383,7 +380,7 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
   if d == 0
     N = identity_matrix(base_ring(R), 1)
     dummy_mons = monomials_of_degree(R, 0)
-    return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
+    return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, k, false, nothing, mons_iterator, mons, N)
   end
 
   mons_to_rows = Dict{elem_type(R), Int}(mons .=> 1:length(mons))
@@ -413,39 +410,50 @@ function iterate_basis_linear_algebra(IR::InvRing, d::Int)
       end
     end
   end
-  n, N = right_kernel(M)
+  N = kernel(M, side = :right)
 
-  return InvRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, n, false, nothing, mons_iterator, mons, N)
+  return FinGroupInvarRingBasisIterator{typeof(IR), Nothing, typeof(mons_iterator), eltype(mons), typeof(N)}(IR, d, ncols(N), false, nothing, mons_iterator, mons, N)
 end
 
-Base.eltype(BI::InvRingBasisIterator) = elem_type(polynomial_ring(BI.R))
+Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
 
-Base.length(BI::InvRingBasisIterator) = BI.dim
+Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
-function Base.show(io::IO, BI::InvRingBasisIterator)
-  println(io, "Iterator over a basis of the component of degree $(BI.degree) of")
-  print(io, BI.R)
+function Base.show(io::IO, ::MIME"text/plain", BI::FinGroupInvarRingBasisIterator)
+  io = pretty(io)
+  println(io, "Iterator over a basis of the component of degree $(BI.degree)")
+  print(io, Indent(), "of ", Lowercase(), BI.R, Dedent())
   if BI.reynolds_operator !== nothing
     # We don't save the character in the iterator unfortunately
     print(io, "\nrelative to a character")
   end
 end
 
-function Base.iterate(BI::InvRingBasisIterator)
+function Base.show(io::IO, BI::FinGroupInvarRingBasisIterator)
+  if get(io, :supercompact, false)
+    print(io, "Iterator")
+  else
+    io = pretty(io)
+    print(io, "Iterator over a graded component of ")
+    print(IOContext(io, :supercompact => true), Lowercase(), BI.R)
+  end
+end
+
+function Base.iterate(BI::FinGroupInvarRingBasisIterator)
   if BI.reynolds
     return iterate_reynolds(BI)
   end
   return iterate_linear_algebra(BI)
 end
 
-function Base.iterate(BI::InvRingBasisIterator, state)
+function Base.iterate(BI::FinGroupInvarRingBasisIterator, state)
   if BI.reynolds
     return iterate_reynolds(BI, state)
   end
   return iterate_linear_algebra(BI, state)
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator)
   @assert BI.reynolds
   if BI.dim == 0
     return nothing
@@ -476,7 +484,7 @@ function iterate_reynolds(BI::InvRingBasisIterator)
   end
 end
 
-function iterate_reynolds(BI::InvRingBasisIterator, state)
+function iterate_reynolds(BI::FinGroupInvarRingBasisIterator, state)
   @assert BI.reynolds
 
   B = state[1]
@@ -510,7 +518,7 @@ function iterate_reynolds(BI::InvRingBasisIterator, state)
   end
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator)
   @assert !BI.reynolds
   if BI.dim == 0
     return nothing
@@ -532,7 +540,7 @@ function iterate_linear_algebra(BI::InvRingBasisIterator)
   return inv(AbstractAlgebra.leading_coefficient(f))*f, 2
 end
 
-function iterate_linear_algebra(BI::InvRingBasisIterator, state::Int)
+function iterate_linear_algebra(BI::FinGroupInvarRingBasisIterator, state::Int)
   @assert !BI.reynolds
   if state > BI.dim
     return nothing
@@ -557,7 +565,7 @@ end
 #
 ################################################################################
 
-function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField}, IteratorT}
+function vector_space_iterator(K::FieldT, basis_iterator::IteratorT) where {FieldT <: Union{Nemo.fpField, Nemo.FpField, fqPolyRepField, FqPolyRepField, FqField}, IteratorT}
   return VectorSpaceIteratorFiniteField(K, basis_iterator)
 end
 

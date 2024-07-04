@@ -93,6 +93,7 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations
 test_large = [
+              "test/Aqua.jl",
               "experimental/FTheoryTools/test/weierstrass.jl",
               "test/PolyhedralGeometry/timing.jl",
               "experimental/GITFans/test/runtests.jl",
@@ -105,6 +106,8 @@ test_large = [
               "test/Modules/UngradedModules.jl",
               "test/GAP/oscarinterface.jl",
               "test/AlgebraicGeometry/Schemes/CoveredProjectiveSchemes.jl",
+              "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
+              "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
               "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
               "experimental/QuadFormAndIsom/test/runtests.jl",
               "experimental/GModule/test/runtests.jl",
@@ -129,12 +132,16 @@ end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
-stats = merge(pmap(x -> Oscar.test_module(x; new=false, timed=true), testlist)...)
+stats = reduce(merge, pmap(testlist) do x
+                        println("Starting tests for $x")
+                        Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                      end)
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
 if numprocs == 1 && test_subset != "short"
-   push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+  println("Starting tests for Serialization/IPC.jl")
+  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
 end
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")

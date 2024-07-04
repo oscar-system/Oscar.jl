@@ -7,7 +7,7 @@ using UUIDs
 # our packages
 import AbstractAlgebra
 import AlgebraicSolving
-# we currently need to load Polymake before GAP to avoid the crashe mentioned in
+# we currently need to load Polymake before GAP to avoid the crash mentioned in
 # https://github.com/oscar-system/Oscar.jl/pull/1902
 # Once there is a GAP_pkg_browse that links to the correct ncurses we might
 # switch this back.
@@ -82,8 +82,11 @@ import AbstractAlgebra:
   gens,
   get_attribute,
   get_attribute!,
+  has_gens,
   Ideal,
   Indent,
+  is_finiteorder,
+  is_trivial,
   is_unicode_allowed,
   Lowercase,
   LowercaseOff,
@@ -96,9 +99,9 @@ import AbstractAlgebra:
   MPolyRingElem,
   NCRing,
   NCRingElem,
-  ngens,
-  nvars,
-  ordering,
+  number_of_generators,
+  number_of_variables,
+  internal_ordering,
   parent_type,
   polynomial_ring,
   PolyRing,
@@ -112,12 +115,6 @@ import AbstractAlgebra:
   symbols,
   total_degree,
   with_unicode
-
-import AbstractAlgebra.GroupsCore
-import AbstractAlgebra.GroupsCore:
-  hasgens,
-  isfiniteorder,
-  istrivial
 
 import GAP:
   @gapattribute,
@@ -138,6 +135,7 @@ import Nemo:
   fqPolyRepFieldElem,
   fraction_field,
   height,
+  is_embedded,
   is_prime,
   is_probable_prime,
   is_square,
@@ -146,7 +144,6 @@ import Nemo:
   jacobi_symbol,
   matrix_space,
   moebius_mu,
-  number_of_partitions,
   numerator,
   primorial,
   QQ,
@@ -170,12 +167,15 @@ let exclude_hecke = [
     :leading_term,
     :monomials,
     :narrow_class_group,
+    :normalise,
+    :number_of_partitions,
     :Partition,
     :perm,
     :QQBar,
     :SymmetricGroup,
     :tail,
     :terms,
+    :YoungTableau,
   ]
   for i in names(Hecke)
     (i in exclude_hecke || !isdefined(Hecke, i)) && continue
@@ -194,5 +194,11 @@ import Hecke:
   multiplicative_jordan_decomposition,
   primitive_element,
   QQBar
+
+# temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
+if !isdefined(Hecke, :torsion_free_rank)
+  torsion_free_rank(A::FinGenAbGroup) = rank(A)
+  export torsion_free_rank
+end
 
 import cohomCalg_jll

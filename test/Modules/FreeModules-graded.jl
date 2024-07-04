@@ -52,7 +52,7 @@ end
   NFx = polynomial_ring(k1, ["x", "y", "z"])[1]
   k2 = Nemo.GF(23)
   GFx = polynomial_ring(k2, ["x", "y", "z"])[1]
-  RNmodx = polynomial_ring(Nemo.residue_ring(ZZ,17), :x => 1:3)[1]
+  RNmodx = polynomial_ring(Nemo.residue_ring(ZZ,17)[1], :x => 1:3)[1]
   Rings = [Qx, NFx, GFx, RNmodx]
 
   A = abelian_group([0 3 0; 2 1 2])
@@ -103,7 +103,7 @@ end
         #@test (5::Integer)*((4::Int)* (-(FreeModElems[1]))) == QQ(-20) * FreeModElems[1]
         Oscar.BiModArray(FreeModElems, F)
         Hom_FreeModElemst = []
-        len = Dict{GrpAbFinGenElem, Int64}()
+        len = Dict{FinGenAbGroupElem, Int64}()
         for c = 1:6
           for k in keys(homogeneous_components(FreeModElems[c]))
             if haskey(len, k)

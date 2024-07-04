@@ -9,6 +9,7 @@ This page is still in its development stage. Currently, it only contains the fun
 ## Grassmann Plücker Ideal
 
 ```@docs
+flag_pluecker_ideal
 grassmann_pluecker_ideal
 ```
 

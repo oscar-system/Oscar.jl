@@ -124,7 +124,7 @@ of its ambient projective space.
 function scheme(P::AbsProjectiveRationalPoint)
   I = ideal(P)
   R = ambient_coordinate_ring(codomain(P))
-  return ProjectiveScheme(R, I)
+  return proj(R, I)
 end
 
 function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRationalPoint)
@@ -173,11 +173,11 @@ function ==(a::AbsProjectiveRationalPoint{S, T}, b::AbsProjectiveRationalPoint{S
     i += 1
   end
   iszero(b[i]) && return false
-  ca = a[i]
+  CalciumFieldElem = a[i]
   cb = b[i]
   i += 1
   while i <= n
-    ca^w[i] * b[i] == cb^w[i] * a[i] || return false
+    CalciumFieldElem^w[i] * b[i] == cb^w[i] * a[i] || return false
     i += 1
   end
   return true
@@ -193,13 +193,14 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
   while iszero(a[i])
     i += 1
   end
-  ca = inv(a[i])
+  CalciumFieldElem = inv(a[i])
   a[i] = one(coefficient_ring(a))
   w = weights(codomain(a))
   any(x->!isone(x), w) && error("cannot normalize with weights")
   i += 1
+  l = length(w)
   while i <= l
-    a[i] = ca^w[i]*a[i]
+    a[i] = CalciumFieldElem^w[i]*a[i]
     i += 1
   end
   return a
@@ -219,18 +220,19 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
   end
   w = weights(codomain(a))
   any(x->!isone(x), w) && error("cannot normalize with weights")
-  ca = sign(a[i])
+  CalciumFieldElem = sign(a[i])
   while i <= dim(codomain(a))
-    a[i] = ca*a[i]  #TODO: weights
+    a[i] = CalciumFieldElem*a[i]  #TODO: weights
     i += 1
   end
   return a
 end
 
 function Base.hash(a::AbsProjectiveRationalPoint, u::UInt=UInt(123432))
-  if is_weighted(codomain(a))
+  w = weights(codomain(a))
+  if any(!isone, w)
     return u
   end
   normalize!(a)
-  return hash(a.v, u)
+  return hash(coordinates(a), u)
 end

@@ -1,6 +1,5 @@
 export LinearSystem
 export WeilDivisor
-export coefficient_dict
 export coefficient_ring
 export coefficient_ring_type
 export coefficient_type
@@ -101,7 +100,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P, I);
+julia> Y = proj(P, I);
 
 julia> Ycov = covered_scheme(Y);
 
@@ -135,7 +134,7 @@ julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal([x^3-y^2*z]);
 
-julia> Y = projective_scheme(P);
+julia> Y = proj(P);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -416,7 +415,7 @@ end
 function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
   X = scheme(I)
   patches_todo = copy(patches(covering))
-  patches_done = AbsSpec[]
+  patches_done = AbsAffineScheme[]
   result = 0
   while length(patches_todo) != 0
     U = pop!(patches_todo)
@@ -439,12 +438,12 @@ function colength(I::IdealSheaf; covering::Covering=default_covering(scheme(I)))
       # To avoid overcounting, throw away all components that 
       # were already visible in other charts.
       for V in patches_done
-        if !haskey(glueings(covering), (U, V))
+        if !haskey(gluings(covering), (U, V))
           continue
         end
         G = covering[U, V]
-        (UV, VU) = glueing_domains(G)
-        UV isa PrincipalOpenSubset || error("method is only implemented for simple glueings")
+        (UV, VU) = gluing_domains(G)
+        UV isa PrincipalOpenSubset || error("method is only implemented for simple gluings")
         f = complement_equation(UV)
         # Find a sufficiently high power of f such that it throws
         # away all components away from the horizon, but does not affect
@@ -486,7 +485,7 @@ function in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regula
     # we have to check that f[U] has no poles outside the support of D[U]
     J = intersect([J(U) for J in components(D)])
     incH = ClosedEmbedding(U, J)
-    W = complement(incH) # This is a SpecOpen
+    W = complement(incH) # This is a AffineSchemeOpenSubscheme
     is_regular(f, W) || return false
   end
   return true
@@ -571,7 +570,7 @@ function weil_divisor(L::LinearSystem)
   return L.D
 end
 gens(L::LinearSystem) = L.f
-ngens(L::LinearSystem) = length(L.f)
+number_of_generators(L::LinearSystem) = length(L.f)
 gen(L::LinearSystem,i::Int) = L.f[i]
 
 @doc raw"""
@@ -676,7 +675,8 @@ function _subsystem(L::LinearSystem, P::IdealSheaf, n)
       A[i, k] = c
     end
   end
-  r, K = left_kernel(A)
+  K = kernel(A; side = :left)
+  r = nrows(K)
   new_gens = [sum([K[i,j]*gen(L, j) for j in 1:ncols(K)]) for i in 1:r]
   W = weil_divisor(L)
   PW = WeilDivisor(P, check=false)

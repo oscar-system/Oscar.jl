@@ -140,7 +140,7 @@ ambient_dim(SOP::SubdivisionOfPoints) = pm_object(SOP).VECTOR_AMBIENT_DIM::Int -
 
 
 @doc raw"""
-    npoints(SOP::SubdivisionOfPoints)
+    n_points(SOP::SubdivisionOfPoints)
 
 Return the number of points of a `SubdivisionOfPoints`.
 
@@ -150,11 +150,11 @@ julia> moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2];
 
 julia> SOP = subdivision_of_points(moaepts, [1,1,1,1,1,1]);
 
-julia> npoints(SOP)
+julia> n_points(SOP)
 6
 ```
 """
-npoints(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
+n_points(SOP::SubdivisionOfPoints) = pm_object(SOP).N_POINTS::Int
 
 
 

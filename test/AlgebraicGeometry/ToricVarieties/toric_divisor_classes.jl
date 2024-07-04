@@ -20,7 +20,7 @@
   end
   
   @testset "Basic attributes" begin
-    @test rank(parent(divisor_class(DC2))) == 2
+    @test torsion_free_rank(parent(divisor_class(DC2))) == 2
     @test dim(toric_variety(DC2)) == 2
   end
   

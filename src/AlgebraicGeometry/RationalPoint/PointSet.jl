@@ -28,7 +28,7 @@ function Base.show(io::IO, X::RationalPointSet)
 end
 
 
-function (S::RationalPointSet{<:Any,<:AbsSpec})(c::Vector; check::Bool=true)
+function (S::RationalPointSet{<:Any,<:AbsAffineScheme})(c::Vector; check::Bool=true)
   k = coefficient_ring(S)
   c = k.(c)
   return AffineRationalPoint(S, c; check=check)

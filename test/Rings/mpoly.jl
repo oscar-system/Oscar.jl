@@ -85,6 +85,13 @@ end
   @test intersect(I,J,P) == ideal(R,[x^2*y^2, x^4, x*y^4])
   @test intersect(I,J,P) == intersect([I,J,P])
 
+  I = ideal(R, [x^3, x*y^2, x^2*y])
+  J = ideal(R, [x,y])
+  @test saturation(I) == ideal(R, [x])
+  @test saturation(I) == saturation(I, J)
+  @test saturation_with_index(I) == (ideal(R, [x]), 2)
+  @test saturation_with_index(I) == saturation_with_index(I, J)
+
   @test I != J
   RR, (xx, yy) = grade(R, [1, 1])
   @test_throws ErrorException ideal(R, [x]) == ideal(RR, [xx])
@@ -102,9 +109,9 @@ end
   r2 = b^2*c+c^3+2*c^2+2
   L = gens(radical(J))
 
-  @test jacobi_ideal(f) == ideal(R, [2*x, 2*y])
-  @test jacobi_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
-  @test jacobi_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
+  @test jacobian_ideal(f) == ideal(R, [2*x, 2*y])
+  @test jacobian_matrix(f) == matrix(R, 2, 1, [2*x, 2*y])
+  @test jacobian_matrix(I) == matrix(R, 2, 2, [2*x, 4*x^3*y-y^3, 2*y, x^4-3*x*y^2])
   @test length(L) == 2
 
   # Test disabled because it could not be reliably reproduced and also 
@@ -223,16 +230,18 @@ end
 
   # Test coefficient rings that are actually fields for safety. The first three
   # are native to singular while FpFieldElem now has a proper wrapper
-  for Zn in [residue_ring(ZZ, 11), residue_ring(ZZ, ZZRingElem(10)^50+151), GF(11),
+  for Zn in [residue_ring(ZZ, 11)[1], residue_ring(ZZ, ZZRingElem(10)^50+151)[1], GF(11),
              GF(ZZRingElem(10)^50+151)]
-    R, (x, y) = polynomial_ring(Zn, ["x", "y"], ordering = :degrevlex)
+    # Setting the internal_ordering is necessary for divrem to use the correct ordering
+    R, (x, y) = polynomial_ring(Zn, ["x", "y"], internal_ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
     g = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
     @test iszero(divrem(l[1] + l[2], g)[2])
   end
 
   F, a = finite_field(11, 2, "a")
-  R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], ordering = :degrevlex)
+  # Setting the internal_ordering is necessary for divrem to use the correct ordering
+  R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], internal_ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
   @test iszero(divrem(l[1] + l[2], gb)[2])
@@ -288,11 +297,10 @@ end
   @test gen(F, 2) == F(y)
   @test gens(F) == elem_type(F)[ F(x), F(y), F(z) ]
   @test F[1] == F(x)
-  @test F[0] == zero(F)
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7), "x" => (1:2, 1:3), ordering=:degrevlex)
+    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
     test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end
@@ -494,7 +502,7 @@ end
   @test is_prime(I) == false
 end
 
-@testset "primary decomposition over NfAbsNS" begin
+@testset "primary decomposition over AbsNonSimpleNumField" begin
   _, x = QQ[:x]
   K, a = number_field([x - 1, x - 2]);
   Kt, t = K["t"];
@@ -507,14 +515,14 @@ end
   primary_decomposition(ideal(S, [gen(S, 1)]))
 end
 
-@testset "primary decomposition over NfRelNS" begin
+@testset "primary decomposition over RelNonSimpleNumField" begin
   Pt, t = QQ[:t]
   f = t^2 + 1
   kk, i = number_field(f)
   _, T = kk[:T]
   g = T^3 - 5
   K, zeta = number_field([g], "zeta")
-  @test K isa Hecke.NfRelNS
+  @test K isa Hecke.RelNonSimpleNumField
   _, s = K[:s]
   h = s-1
   L, xi = number_field(h)
@@ -525,4 +533,17 @@ end
   @test is_graded(Oscar._expand_coefficient_field_to_QQ(S)[1])
   IS = ideal(S, x^2 + y^2)
   @test length(primary_decomposition(IS)) == 2
+end
+
+@testset "flag pluecker ideal" begin
+  dimension_vector = [2]
+  ambient_dimension = 4
+  I = flag_pluecker_ideal(dimension_vector, ambient_dimension)
+  R = base_ring(I)
+  @test dim(R) == 6
+  x = gens(R)
+  f1 = -x[1]*x[5]+x[2]*x[4]-x[3]*x[6] 
+  @test [f1] == gens(I)
+  I2 = flag_pluecker_ideal(GF(3),[1,2,3], 4);
+  @test length(gens(I2)) == 10
 end

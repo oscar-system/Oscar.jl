@@ -61,7 +61,7 @@ This is a standard triangle, defined via a (redundant) $V$-representation  and
 its unique minimal $H$-representation:
 
 ```jldoctest
-julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
+julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1//2 ])
 Polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))

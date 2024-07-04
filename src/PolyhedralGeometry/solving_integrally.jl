@@ -4,7 +4,7 @@ function solve_mixed(as::Type{SubObjectIterator{PointVector{ZZRingElem}}}, A::ZZ
     @req nrows(C) == nrows(d) "solve_mixed(A,b,C,d): C and d must have the same number of rows."
     @req ncols(b) == 1 "solve_mixed(A,b,C,d): b must be a matrix with a single column."
     @req ncols(d) == 1 "solve_mixed(A,b,C,d): d must be a matrix with a single column."
-    P = polyhedron((-C, vec(-d)), (A, vec(b)))
+    P = polyhedron((-C, _vec(-d)), (A, _vec(b)))
     if !permit_unbounded
       return lattice_points(P)
     else

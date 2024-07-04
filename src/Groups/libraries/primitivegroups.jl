@@ -1,21 +1,21 @@
 """
-    has_number_primitive_groups(deg::Int)
+    has_number_of_primitive_groups(deg::Int)
 
 Return `true` if the number of primitive permutation groups of degree `deg` is available
-via `number_primitive_groups`, otherwise `false`.
+via `number_of_primitive_groups`, otherwise `false`.
 
 Currently the number of primitive permutation groups is available up to degree 4095.
 
 # Examples
 ```jldoctest
-julia> has_number_primitive_groups(50)
+julia> has_number_of_primitive_groups(50)
 true
 
-julia> has_number_primitive_groups(5000)
+julia> has_number_of_primitive_groups(5000)
 false
 ```
 """
-has_number_primitive_groups(deg::Int) = has_primitive_groups(deg) # for now just an alias
+has_number_of_primitive_groups(deg::Int) = has_primitive_groups(deg) # for now just an alias
 
 """
     has_primitive_group_identification(deg::Int)
@@ -59,22 +59,22 @@ function has_primitive_groups(deg::Int)
 end
 
 """
-    number_primitive_groups(deg::Int)
+    number_of_primitive_groups(deg::Int)
 
 Return the number of primitive permutation groups of degree `deg`,
 up to permutation isomorphism.
 
 # Examples
 ```jldoctest
-julia> number_primitive_groups(10)
+julia> number_of_primitive_groups(10)
 9
 
-julia> number_primitive_groups(4096)
+julia> number_of_primitive_groups(4096)
 ERROR: ArgumentError: the number of primitive permutation groups of degree 4096 is not available
 ```
 """
-function number_primitive_groups(deg::Int)
-  @req has_number_primitive_groups(deg) "the number of primitive permutation groups of degree $deg is not available"
+function number_of_primitive_groups(deg::Int)
+  @req has_number_of_primitive_groups(deg) "the number of primitive permutation groups of degree $deg is not available"
   return GAP.Globals.NrPrimitiveGroups(deg)::Int
 end
 
@@ -96,7 +96,7 @@ ERROR: ArgumentError: there are only 9 primitive permutation groups of degree 10
 """
 function primitive_group(deg::Int, i::Int)
   @req has_primitive_groups(deg) "primitive permutation groups of degree $deg are not available"
-  N = number_primitive_groups(deg)
+  N = number_of_primitive_groups(deg)
   @req i <= N "there are only $N primitive permutation groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.PrimitiveGroup(deg,i), deg)
 end
@@ -163,10 +163,14 @@ may be of one of the following forms:
 - `func` selects groups for which the function `func` returns `true`
 - `!func` selects groups for which the function `func` returns `false`
 
+As a special case, the first argument may also be one of the following:
+- `intval` selects groups whose degree equals `intval`; this is equivalent to `degree => intval`
+- `intlist` selects groups whose degree is in `intlist`; this is equivalent to `degree => intlist`
+
 The following functions are currently supported as values for `func`:
 - `degree`
 - `is_abelian`
-- `is_almostsimple`
+- `is_almost_simple`
 - `is_cyclic`
 - `is_nilpotent`
 - `is_perfect`
@@ -177,8 +181,8 @@ The following functions are currently supported as values for `func`:
 - `is_solvable`
 - `is_supersolvable`
 - `is_transitive`
-- `number_conjugacy_classes`
-- `number_moved_points`
+- `number_of_conjugacy_classes`
+- `number_of_moved_points`
 - `order`
 - `transitivity`
 
@@ -186,15 +190,22 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
+julia> all_primitive_groups(4)
+2-element Vector{PermGroup}:
+ Alt(4)
+ Sym(4)
+
 julia> all_primitive_groups(degree => 3:5, is_abelian)
 2-element Vector{PermGroup}:
- Permutation group of degree 3 and order 3
+ Alt(3)
  Permutation group of degree 5 and order 5
 ```
-returns the list of all abelian primitive permutation groups acting on 3, 4 or 5 points.
 """
 function all_primitive_groups(L...)
    @req !isempty(L) "must specify at least one filter"
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (degree => L[1], L[2:end]...)
+   end
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllPrimitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]

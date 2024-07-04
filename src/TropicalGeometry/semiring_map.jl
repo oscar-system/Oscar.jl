@@ -10,7 +10,7 @@
 struct TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}
     valued_field::typeofValuedField
     uniformizer::typeofUniformizer
-    tropical_semiring::TropicalSemiring
+    tropical_semiring::TropicalSemiring{minOrMax}
 end
 
 
@@ -23,9 +23,12 @@ end
 valued_field(nu::TropicalSemiringMap) = nu.valued_field
 uniformizer(nu::TropicalSemiringMap) = nu.uniformizer
 tropical_semiring(nu::TropicalSemiringMap) = nu.tropical_semiring
-convention(nu::TropicalSemiringMap) = convention(tropical_semiring(nu))
 
+convention(nu::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(min)}) where {typeofValuedField,typeofUniformizer} = min
+convention(nu::TropicalSemiringMap{typeofValuedField,typeofUniformizer,typeof(max)}) where {typeofValuedField,typeofUniformizer} = max
 
+is_trivial(nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}} = true
+is_trivial(nu::TropicalSemiringMap) = false
 
 ################################################################################
 #

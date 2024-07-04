@@ -32,7 +32,7 @@ _wrap_for_gap(m::MatrixElem) = GAP.Globals.MakeJuliaMatrixRep(m)
 
 ################################################################################
 """
-    matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
+    matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
 
 Construct a GAP group `G` where the generators on the GAP side are wrappers
 of type `JuliaMatrixRep` around the given Oscar matrices `matrices`.
@@ -53,7 +53,7 @@ julia> Oscar.MatrixGroups.matrix_group([m1, m2])
 GAP: <group with 2 generators>
 ```
 """
-function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, nf_elem}
+function matrix_group(matrices::Vector{<:MatrixElem{T}}; check::Bool = true) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
      # Compute the reduction map to a matrix group over a finite field `F`.
      G, G_to_fin_pres, F, OtoFq = Oscar._isomorphic_group_over_finite_field(matrices, check = check)
 

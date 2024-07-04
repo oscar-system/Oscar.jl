@@ -2,23 +2,23 @@
 
     @testset "core functionality" begin
         g = Graph{Directed}(5)
-        @test nv(g) == 5
-        @test ne(g) == 0
+        @test n_vertices(g) == 5
+        @test n_edges(g) == 0
         add_edge!(g, 1, 2)
-        @test ne(g) == 1
+        @test n_edges(g) == 1
         @test has_edge(g, 1, 2)
         rem_edge!(g, 1, 2)
-        @test ne(g) == 0
+        @test n_edges(g) == 0
         @test !has_edge(g, 1, 2)
         @test add_vertex!(g)
-        @test nv(g) == 6
+        @test n_vertices(g) == 6
         @test has_vertex(g, 6)
         rem_vertex!(g, 1)
-        @test nv(g) == 5
+        @test n_vertices(g) == 5
         @test has_vertex(g, 1)
         @test !has_vertex(g, 6)
         @test add_vertices!(g, 5) == 5
-        @test nv(g) == 10
+        @test n_vertices(g) == 10
 
         g = Graph{Directed}(4)
         add_edge!(g, 1, 2)
@@ -37,14 +37,14 @@
     egcr = edgegraph(cr)
     
     @testset "graphs from polytopes" begin
-        @test nv(egtriangle) == 3
-        @test ne(egtriangle) == 3
-        @test nv(dgtriangle) == 3
-        @test ne(dgtriangle) == 3
-        @test nv(egcube) == 8
-        @test ne(egcube) == 12
-        @test nv(dgcube) == 6
-        @test ne(dgcube) == 12
+        @test n_vertices(egtriangle) == 3
+        @test n_edges(egtriangle) == 3
+        @test n_vertices(dgtriangle) == 3
+        @test n_edges(dgtriangle) == 3
+        @test n_vertices(egcube) == 8
+        @test n_edges(egcube) == 12
+        @test n_vertices(dgcube) == 6
+        @test n_edges(dgcube) == 12
 
         @test is_isomorphic(dgtriangle, egtriangle)
 
@@ -123,5 +123,20 @@
     @testset "errors" begin
         g = Graph{Undirected}(1)
         @test !add_edge!(g,1,2)
+    end
+
+    @testset "grap_from_edges" begin
+        x1 = [[5,6],[7,8],[11,12]]
+        G1 = graph_from_edges(x1)
+
+        @test n_vertices(G1) == 12
+        @test n_edges(G1) == 3
+      
+        x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
+        G2 = graph_from_edges(Undirected, x2, 13)
+
+        @test n_vertices(G2) == 13
+        @test n_edges(G2) == 5
+
     end
 end

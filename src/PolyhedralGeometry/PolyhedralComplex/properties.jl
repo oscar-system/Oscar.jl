@@ -307,7 +307,7 @@ Polyhedral complex in ambient dimension 2
 julia> maximal_polyhedra(PC)
 2-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
+ Polytope in ambient dimension 2
 ```
 """
 maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
@@ -417,11 +417,11 @@ julia> PC = polyhedral_complex(IM, VR);
 
 julia> P1s = polyhedra_of_dim(PC,1)
 5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
- Polyhedron in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polytope in ambient dimension 2
 
 julia> for p in P1s
        println(dim(p))
@@ -522,7 +522,7 @@ function f_vector(PC::PolyhedralComplex)
 end
 
 @doc raw"""
-    nrays(PC::PolyhedralComplex)
+    n_rays(PC::PolyhedralComplex)
 
 Return the number of rays of `PC`.
 
@@ -536,15 +536,15 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
-julia> nrays(PC)
+julia> n_rays(PC)
 3
 ```
 """
-nrays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nrays(PC) : 0
-_nrays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
+n_rays(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_rays(PC) : 0
+_n_rays(PC::PolyhedralComplex) = length(pm_object(PC).FAR_VERTICES)
 
 @doc raw"""
-    nvertices(PC::PolyhedralComplex)
+    n_vertices(PC::PolyhedralComplex)
 
 Return the number of vertices of `PC`.
 
@@ -558,15 +558,15 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
-julia> nvertices(PC)
+julia> n_vertices(PC)
 1
 ```
 """
-nvertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _nvertices(PC) : 0
-_nvertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _nrays(PC)
+n_vertices(PC::PolyhedralComplex) = lineality_dim(PC) == 0 ? _n_vertices(PC) : 0
+_n_vertices(PC::PolyhedralComplex) = pm_object(PC).N_VERTICES - _n_rays(PC)
 
 @doc raw"""
-    npolyhedra(PC::PolyhedralComplex)
+    n_polyhedra(PC::PolyhedralComplex)
 
 Return the total number of polyhedra in the polyhedral complex `PC`.
 
@@ -580,11 +580,11 @@ julia> far_vertices = [2,3,4];
 
 julia> PC = polyhedral_complex(IM, VR, far_vertices);
 
-julia> npolyhedra(PC)
+julia> n_polyhedra(PC)
 6
 ```
 """
-npolyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
+n_polyhedra(PC::PolyhedralComplex) = sum(f_vector(PC))
 
 @doc raw"""
     codim(PC::PolyhedralComplex)

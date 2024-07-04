@@ -13,11 +13,12 @@ include("Methods.jl")
 include("AffineSchemes/Objects/Types.jl")
 include("AffineSchemes/Morphisms/Types.jl")
 include("PrincipalOpenSubset/Objects/Types.jl")
-include("SpecOpen/Objects/Types.jl")
-include("SpecOpen/Rings/Types.jl")
-include("SpecOpen/Morphisms/Types.jl")
-include("ClosedEmbedding/Types.jl") # Needs SpecOpen for their complements
-include("Glueing/Types.jl")
+include("PrincipalOpenInclusion/Types.jl")
+include("AffineSchemeOpenSubscheme/Objects/Types.jl")
+include("AffineSchemeOpenSubscheme/Rings/Types.jl")
+include("AffineSchemeOpenSubscheme/Morphisms/Types.jl")
+include("ClosedEmbedding/Types.jl") # Needs AffineSchemeOpenSubscheme for their complements
+include("Gluing/Types.jl")
 include("Covering/Objects/Types.jl")
 include("Covering/Morphisms/Types.jl")
 include("CoveredSchemes/Objects/Types.jl")
@@ -63,22 +64,26 @@ include("PrincipalOpenSubset/Objects/Properties.jl")
 include("PrincipalOpenSubset/Objects/Attributes.jl")
 include("PrincipalOpenSubset/Objects/Methods.jl")
 
+include("PrincipalOpenInclusion/Constructors.jl")
+include("PrincipalOpenInclusion/Methods.jl")
+include("PrincipalOpenInclusion/Attributes.jl")
+
 ########################################################################
 # Open subsets of affine schemes                                       #
 ########################################################################
-include("SpecOpen/Objects/Constructors.jl")
-include("SpecOpen/Objects/Properties.jl")
-include("SpecOpen/Objects/Attributes.jl")
-include("SpecOpen/Objects/Methods.jl")
+include("AffineSchemeOpenSubscheme/Objects/Constructors.jl")
+include("AffineSchemeOpenSubscheme/Objects/Properties.jl")
+include("AffineSchemeOpenSubscheme/Objects/Attributes.jl")
+include("AffineSchemeOpenSubscheme/Objects/Methods.jl")
 
-include("SpecOpen/Rings/Constructors.jl")
-include("SpecOpen/Rings/Properties.jl")
-include("SpecOpen/Rings/Attributes.jl")
-include("SpecOpen/Rings/Methods.jl")
+include("AffineSchemeOpenSubscheme/Rings/Constructors.jl")
+include("AffineSchemeOpenSubscheme/Rings/Properties.jl")
+include("AffineSchemeOpenSubscheme/Rings/Attributes.jl")
+include("AffineSchemeOpenSubscheme/Rings/Methods.jl")
 
-include("SpecOpen/Morphisms/Constructors.jl")
-include("SpecOpen/Morphisms/Attributes.jl")
-include("SpecOpen/Morphisms/Methods.jl")
+include("AffineSchemeOpenSubscheme/Morphisms/Constructors.jl")
+include("AffineSchemeOpenSubscheme/Morphisms/Attributes.jl")
+include("AffineSchemeOpenSubscheme/Morphisms/Methods.jl")
 
 ########################################################################
 # ClosedEmbeddings of affine schemes                                   #
@@ -87,11 +92,11 @@ include("SpecOpen/Morphisms/Methods.jl")
 include("ClosedEmbedding/Attributes.jl")
 
 ########################################################################
-# Glueings of affine schemes                                           #
+# Gluings of affine schemes                                           #
 ########################################################################
-include("Glueing/Constructors.jl")
-include("Glueing/Attributes.jl")
-include("Glueing/Methods.jl")
+include("Gluing/Constructors.jl")
+include("Gluing/Attributes.jl")
+include("Gluing/Methods.jl")
 
 ########################################################################
 # Coverings of schemes                                                 #

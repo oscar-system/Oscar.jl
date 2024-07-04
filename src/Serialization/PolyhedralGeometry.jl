@@ -39,27 +39,51 @@ function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObjec
   end
 end
 
-function save_object(s::SerializerState, obj::PolyhedralObject)
+function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
+end
+
+function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
+  if typeof(obj) <: Union{MixedIntegerLinearProgram, LinearProgram}
+    T = typeof(obj)
+    error("Unsupported type $T for serialization")
+  end
+  save_data_dict(s) do
+    save_typed_object(s, _polyhedral_object_as_dict(obj))
+  end
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
   return load_typed_object(s)
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field) 
-  return  load_from_polymake(T{elem_type(field)}, Dict{Symbol, Any}(s.obj))
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
+                     field::U) where {U <: Union{QQField, AbstractAlgebra.Floats}}
+  return load_from_polymake(T{elem_type(field)}, Dict{Symbol, Any}(s.obj))
+end
+
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
+    field::U) where {S <: Union{QQFieldElem, Float64}, U <: Union{QQField, AbstractAlgebra.Floats}}
+  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+end
+
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
+  return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      field::Field) where S <: FieldElem
-  return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
+  polymake_dict = load_typed_object(s)
+  bigobject = _dict_to_bigobject(polymake_dict)
+  return T(bigobject, field)
 end
 
 ##############################################################################
 @register_serialization_type LinearProgram uses_params
 
-function save_object(s::SerializerState, lp::LinearProgram)
+function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
   serialized = Polymake.call_function(Symbol("Core::Serializer"), :serialize, lpcoeffs)
   jsonstr = Polymake.call_function(:common, :encode_json, serialized)
@@ -70,7 +94,7 @@ function save_object(s::SerializerState, lp::LinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::Field)
+function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
@@ -92,7 +116,7 @@ end
 ##############################################################################
 @register_serialization_type MixedIntegerLinearProgram uses_params
 
-function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
+function save_object(s::SerializerState, milp::MixedIntegerLinearProgram{QQFieldElem})
   milp_coeffs = milp.polymake_milp.LINEAR_OBJECTIVE
   int_vars = milp.polymake_milp.INTEGER_VARIABLES
   coeffs_serialized = Polymake.call_function(
@@ -109,7 +133,7 @@ function save_object(s::SerializerState, milp::MixedIntegerLinearProgram)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::Field) 
+function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram}, field::QQField) 
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
   milp_coeffs = load_node(s, :milp_coeffs) do coeffs
@@ -137,7 +161,7 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
   end
   lp = Polymake._lookup_multi(pm_object(fr), "MILP", index-1)
   T = elem_type(field)
-  return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv))
+  return MixedIntegerLinearProgram{T}(fr, lp, Symbol(conv), field)
 end
 
 # use generic serialization for the other types:

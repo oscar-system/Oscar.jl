@@ -125,7 +125,7 @@ Return the maximal polyhedra of `TropV`.
 """
 function maximal_polyhedra_and_multiplicities(TropV::TropicalVarietySupertype)
     TropVmults = multiplicities(TropV)
-    return [ (sigma,TropVmults[sigma]) for sigma in maximal_polyhedra(TropV) ]
+    return collect(zip(maximal_polyhedra(TropV),multiplicities(TropV)))
 end
 
 
@@ -160,22 +160,22 @@ end
 
 
 @doc raw"""
-    npolyhedra(TropV::TropicalVariety)
+    n_polyhedra(TropV::TropicalVariety)
 
 Return the number of polyhedra of `TropV`.
 """
-function npolyhedra(TropV::TropicalVarietySupertype)
-    return npolyhedra(TropV.polyhedralComplex)
+function n_polyhedra(TropV::TropicalVarietySupertype)
+    return n_polyhedra(TropV.polyhedralComplex)
 end
 
 
 @doc raw"""
-    nvertices(TropV::TropicalVariety)
+    n_vertices(TropV::TropicalVariety)
 
 Return the number of vertices of `TropV`.
 """
-function nvertices(TropV::TropicalVarietySupertype)
-    return nvertices(TropV.polyhedralComplex)
+function n_vertices(TropV::TropicalVarietySupertype)
+    return n_vertices(TropV.polyhedralComplex)
 end
 
 

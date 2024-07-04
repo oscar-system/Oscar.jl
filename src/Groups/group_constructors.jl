@@ -20,7 +20,7 @@ Return the full symmetric group on the set `{1, 2, ..., n}`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> order(G)
 120
@@ -41,12 +41,12 @@ on its moved points, and `false` otherwise.
 @gapattribute is_natural_symmetric_group(G::GAPGroup) = GAP.Globals.IsNaturalSymmetricGroup(G.X)::Bool
 
 """
-    is_isomorphic_with_symmetric_group(G::GAPGroup)
+    is_isomorphic_to_symmetric_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with a symmetric group,
+Return `true` if `G` is isomorphic to a symmetric group,
 and `false` otherwise.
 """
-@gapattribute is_isomorphic_with_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
+@gapattribute is_isomorphic_to_symmetric_group(G::GAPGroup) = GAP.Globals.IsSymmetricGroup(G.X)::Bool
 
 """
     alternating_group(n::Int)
@@ -56,7 +56,7 @@ Return the full alternating group on the set `{1, 2, ..., n}`..
 # Examples
 ```jldoctest
 julia> G = alternating_group(5)
-Permutation group of degree 5 and order 60
+Alt(5)
 
 julia> order(G)
 60
@@ -77,12 +77,12 @@ on its moved points, and `false` otherwise.
 @gapattribute is_natural_alternating_group(G::GAPGroup) = GAP.Globals.IsNaturalAlternatingGroup(G.X)::Bool
 
 """
-    is_isomorphic_with_alternating_group(G::GAPGroup)
+    is_isomorphic_to_alternating_group(G::GAPGroup)
 
-Return `true` if `G` is isomorphic with an alternating group,
+Return `true` if `G` is isomorphic to an alternating group,
 and `false` otherwise.
 """
-@gapattribute is_isomorphic_with_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
+@gapattribute is_isomorphic_to_alternating_group(G::GAPGroup) = GAP.Globals.IsAlternatingGroup(G.X)::Bool
 
 """
     cyclic_group(::Type{T} = PcGroup, n::IntegerUnion)
@@ -169,7 +169,7 @@ Here, `T` must be one of `PermGroup`, `FPGroup`, or `PcGroup`.
 
 !!! warning
     The type need to be specified in the input of the function `abelian_group`,
-    otherwise a group of type `GrpAbFinGen` is returned,
+    otherwise a group of type `FinGenAbGroup` is returned,
     which is not a GAP group type.
     In future versions of Oscar, this may change.
 """
@@ -471,13 +471,23 @@ where the `i`-th generator is printed as `L[i]`.
 
 !!! warning "Note"
     Variables named like the group generators are *not* created by this function.
+
+# Examples
+```jldoctest
+julia> F = free_group(:a, :b)
+Free group of rank 2
+
+julia> w = F[1]^3 * F[2]^F[1] * F[-2]^2
+a^2*b*a*b^-2
+```
 """
 function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
    @req n >= 0 "n must be a non-negative integer"
+   t = s isa Char ? string(s) : s
    if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
    else
-     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(s))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(n, GAP.GapObj(t))::GapObj)
    end
    GAP.Globals.SetRankOfFreeGroup(G.X, n)
    return G
@@ -490,12 +500,14 @@ function free_group(L::Vector{<:VarName})
    return G
 end
 
-function free_group(L::VarName...)
-   J = GAP.GapObj(L, recursive = true)
+function free_group(L::Vector{<:Char})
+   J = GAP.GapObj(Symbol.(L), recursive = true)
    G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(G.X, length(J))
    return G
 end
+
+free_group(L::VarName...) = free_group(collect(L))
 
 # FIXME: a function `free_abelian_group` with the same signature is
 # already being defined by Hecke

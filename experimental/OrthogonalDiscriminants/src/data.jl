@@ -6,9 +6,40 @@ const OD_data = JSON.parsefile(joinpath(@__DIR__, "../data/odresults.json"))
 
 const OD_simple_names = Dict{String, String}()
 
+@doc raw"""
+    OD_split_string(str::String, sep::String)
+
+Return a vector of strings obtained by splitting `str` at characters in `sep`,
+but only at those positions where the brackets `(` and `)` are balanced.
+"""
+function OD_split_string(str::String, sep::String)
+  open = 0
+  res = String[]
+  start = 0
+  for i in 1:length(str)
+    if str[i] == '('
+      open = open + 1
+    elseif str[i] == ')'
+      open = open - 1
+    elseif str[i] in sep && open == 0
+      push!(res, str[(start+1):(i-1)])
+      start = i
+    end
+  end
+  push!(res, str[(start+1):length(str)])
+
+  return res
+end
+
+
 for simpnam in OD_data["names"]
   for x in OD_data[simpnam]["names"]
     OD_simple_names[x] = simpnam
+    for p in keys(OD_data[simpnam][x])
+      for v in OD_data[simpnam][x][p]
+        v[end] = OD_split_string(v[end], ",")
+      end
+    end
   end
 end
 
@@ -95,11 +126,12 @@ julia> println(orthogonal_discriminants(t % 3))
 function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
   p = characteristic(tbl)
   if p == 0
-    id = identifier(tbl)
+    ordtbl = tbl
   else
-    id = identifier(ordinary_table(tbl))
+    ordtbl = ordinary_table(tbl)
   end
-  res = fill("", number_conjugacy_classes(tbl))
+  id = identifier(ordtbl)
+  res = fill("", number_of_conjugacy_classes(tbl))
   if haskey(OD_simple_names, id)
     simp = OD_simple_names[id]
     data = OD_data[simp]
@@ -112,13 +144,76 @@ function orthogonal_discriminants(tbl::Oscar.GAPGroupCharacterTable)
           res[l[2]] = l[4]
         end
         return res
+      else
+#TODO: compute the reductions mod p (not dividing the group order)
+      end
+    end
+  else
+    # Perhaps a factor of `tbl` belongs to the database.
+    facttbl = nothing
+    for r in known_class_fusions(ordtbl)
+      if 1 < length(class_positions_of_kernel(r[2]))
+        id = r[1]
+        if haskey(OD_simple_names, id)
+          simp = OD_simple_names[id]
+          data = OD_data[simp]
+          if haskey(data, id)
+            data = data[id]
+            facttbl = character_table(id)
+            if haskey(data, string(p))
+              if p != 0
+                facttbl = mod(facttbl, p)
+              end
+              facttbl != nothing && break
+            end
+          end
+        end
+      end
+    end
+    if facttbl != nothing
+      # Set the known values for the factor.
+      mp = [findfirst(is_equal(restrict(x, tbl)), tbl) for x in facttbl]
+      data = data[string(p)]
+      for l in data
+        res[mp[l[2]]] = l[4]
+      end
+      # Set values for faithful characters if applicable.
+      perf = (count(chi -> degree(chi) == 1, tbl) == 1)
+      if perf && order(tbl) == 2*order(facttbl) && p != 2
+        # deal with the faithful characters of a perfect central extension 2.G,
+        # the image of the spinor norm is trivial
+        for i in 1:length(tbl)
+          chi = tbl[i]
+          deg = degree(chi)
+          ind = indicator(chi)
+          if ind == 1 && length(class_positions_of_kernel(chi)) == 1
+            if mod(deg, 4) == 0
+              if p == 0
+                res[i] = "1"
+              else
+                res[i] = "O+"
+              end
+            elseif mod(deg, 2) == 0
+              if p == 0
+                res[i] = "-1"
+              else
+                # Check whether -1 is a square in the character field.
+                if mod(p-1, 4) == 0 || mod(degree(character_field(chi)[1]), 2) == 0
+                  res[i] = "O+"
+                else
+                  res[i] = "O-"
+                end
+              end
+            end
+          end
+        end
       end
     end
   end
 
-  # `tbl` is outside the scope of the database.
+  # Fill missing values.
   for i in 1:length(tbl)
-    if indicator(tbl[i]) == 1 && is_even(numerator(degree(tbl[i])))
+    if res[i] == "" && indicator(tbl[i]) == 1 && is_even(numerator(degree(tbl[i])))
       res[i] = "?"
     end
   end
@@ -155,7 +250,7 @@ function is_equal_field(emb1, emb2)
   p == characteristic(dom2) || return false
   degree(dom1) == degree(dom2) || return false
   p == 0 || return order(dom1) == order(dom2)
-  return has_preimage(emb2, emb1(gen(dom1)))[1]
+  return has_preimage_with_preimage(emb2, emb1(gen(dom1)))[1]
 end
 
 
@@ -200,32 +295,6 @@ function __init_OD()
 end
 
 __init_OD()
-
-
-@doc raw"""
-    OD_split_string(str::String, sep::String)
-
-Return a vector of strings obtained by splitting `str` at characters in `sep`,
-but only at those positions where the brackets `(` and `)` are balanced.
-"""
-function OD_split_string(str::String, sep::String)
-  open = 0
-  res = String[]
-  start = 0
-  for i in 1:length(str)
-    if str[i] == '('
-      open = open + 1
-    elseif str[i] == ')'
-      open = open - 1
-    elseif str[i] in sep && open == 0
-      push!(res, str[(start+1):(i-1)])
-      start = i
-    end
-  end
-  push!(res, str[(start+1):length(str)])
-
-  return res
-end
 
 
 function _od_info(groupname, p, v)
@@ -427,9 +496,6 @@ function all_od_infos(L...)
       end
       good_char || continue
       for entry in D[string(char)]
-        if entry[end] isa String
-          entry[end] = OD_split_string(entry[end], ",")
-        end
         good_dim = true
         if haskey(conditions, Hecke.dim)
           dim = parse(Int, filter(isdigit, entry[1]))
@@ -480,7 +546,7 @@ function all_od_infos(L...)
             (!comment_matches(comment)) && (good_comment = false)
           elseif comment_matches isa String
             (!(comment_matches in comment)) && (good_comment = false)
-          elseif is_empty(intersect(comment, comment_matches ))
+          elseif is_empty(intersect(comment, comment_matches))
             good_comment = false
           end
         end

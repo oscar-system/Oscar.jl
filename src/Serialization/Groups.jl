@@ -87,8 +87,9 @@
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
+GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-function save_type_params(s::SerializerState, p::T) where T <: GAPGroupElem
+function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
   # this has just been more or less copied from the Rings section
   # and might be removed from this file during a future refactor
   save_data_dict(s) do
@@ -103,10 +104,9 @@ function save_type_params(s::SerializerState, p::T) where T <: GAPGroupElem
   end
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:GAPGroupElem})
+function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
   return load_typed_object(s)
 end
-
 
 ##############################################################################
 # PermGroup
@@ -228,4 +228,28 @@ function load_object(s::DeserializerState, ::Type{PcGroupElem}, parent_group::Pc
   fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
   gapelm = GAP.Globals.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
   return Oscar.group_element(parent_group, gapelm)
+end
+
+##############################################################################
+# FinGenAbGroup
+
+@register_serialization_type FinGenAbGroup uses_id
+
+function save_object(s::SerializerState, G::FinGenAbGroup)
+  save_object(s, rels(G))
+end
+
+function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
+  return abelian_group(load_object(s, Matrix, ZZRingElem))
+end
+
+# elems
+@register_serialization_type FinGenAbGroupElem uses_params
+
+function save_object(s::SerializerState, g::FinGenAbGroupElem)
+  save_object(s, _coeff(g))
+end
+
+function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
+  return G(vec(load_object(s, Matrix, ZZRingElem)))
 end

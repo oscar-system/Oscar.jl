@@ -14,9 +14,9 @@
   function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String)
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, nrays(v) + 1)
+    new_vars = Vector{String}(undef, n_rays(v) + 1)
     index_of_new_ray = nothing
-    for i in 1:nrays(v)+1
+    for i in 1:n_rays(v)+1
         j = findfirst(==(rays(new_variety)[i]), rays(v))
         new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
         j === nothing && (index_of_new_ray = i)

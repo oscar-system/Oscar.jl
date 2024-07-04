@@ -130,10 +130,18 @@ end
   end
 end
 
-@testset "are_algebraically_independent" begin
+@testset "algebraicaic independence" begin
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   V = [x, y]
-  fl, I = are_algebraically_independent(V)
+  fl, I = is_algebraically_independent_with_relations(V)
   @test fl
   @test is_zero(I)
+  @test fl == is_algebraically_independent(V)
+
+  V = [2x, 3y+x^3, y]
+  fl, I = is_algebraically_independent_with_relations(V)
+  @test !fl
+  t1, t2, t3 = gens(base_ring(I))
+  @test I == ideal([t2 - 1//8*t1^3 - 3t3])
+  @test fl == is_algebraically_independent(V)
 end

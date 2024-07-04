@@ -86,7 +86,7 @@ function pullback(f::AbsCoveredSchemeMorphism, II::IdealSheaf)
   Y = codomain(f)
   scheme(II) === Y || error("ideal sheaf is not defined on the codomain of the function")
   phi = covering_morphism(f)
-  ID = IdDict{AbsSpec, Ideal}()
+  ID = IdDict{AbsAffineScheme, Ideal}()
   for U in patches(domain(phi))
     f_U = phi[U]
     V = codomain(f_U)
@@ -114,7 +114,7 @@ function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   # restrict f to that, obtain a new underlying covering morphism psi cov1' → cov', 
   # and pull back along psi.
   phi = covering_morphism(f)
-  triv_dict = IdDict{AbsSpec, RingElem}()
+  triv_dict = IdDict{AbsAffineScheme, RingElem}()
   E, a, b = common_refinement(codomain(phi), trivializing_covering(C))
   psi = restrict(f, E)
   psi = compose(psi, b)
@@ -191,7 +191,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
   # The covering DD has patches Vⱼ in the codomain Y of f.
   # Their preimages must be taken in every patch Uᵢ of X in 
   # the domain's covering for phi. 
-  res_dict = IdDict{AbsSpec, AbsSpecMor}()
+  res_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(domain(phi))
     V = codomain(phi[U])
     for W in patches(DD)
@@ -210,7 +210,7 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
         h = complement_equation(codomain(iso_W_flat))
         UW = PrincipalOpenSubset(U, pullback(phi[U])(OOY(par, V)(h)))
         # Manually assemble the restriction of phi to this new patch
-        ff = SpecMor(UW, W_flat, 
+        ff = morphism(UW, W_flat, 
                      hom(OO(W_flat), OO(UW), OO(UW).(pullback(phi[U]).(OOY(par, V).(gens(OO(par))))), check=false),
                      check=false
                     )
@@ -219,8 +219,8 @@ function restrict(f::AbsCoveredSchemeMorphism, DD::Covering)
       end
     end
   end
-  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsSpec, AbsSpec}, AbsGlueing}())
-  inherit_glueings!(new_domain, domain(phi))
+  new_domain = Covering(collect(keys(res_dict)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
+  inherit_gluings!(new_domain, domain(phi))
   _register!(new_domain, X)
 
   psi = CoveringMorphism(new_domain, DD, res_dict, check=false)
@@ -235,7 +235,7 @@ function _register!(C::Covering, X::AbsCoveredScheme)
 end
 
 function _canonical_map(C::Covering, D::Covering)
-  map_dict = IdDict{AbsSpec, AbsSpecMor}()
+  map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(C)
     f, _ = _find_chart(U, D)
     map_dict[U] = f
@@ -256,20 +256,20 @@ end
   return res_dict
 end
 
-struct InheritGlueingData
+struct InheritGluingData
   orig::Covering
-  X::AbsSpec
-  Y::AbsSpec
+  X::AbsAffineScheme
+  Y::AbsAffineScheme
 end
 
-function _compute_inherited_glueing(gd::InheritGlueingData)
+function _compute_inherited_gluing(gd::InheritGluingData)
   X = gd.X
   Y = gd.Y
   C = gd.orig
 
   success, Z = _have_common_ancestor(X, Y)
   if success
-    # This is the easy case: Glueing within one chart. 
+    # This is the easy case: Gluing within one chart. 
     # Keep in mind, however, that we might have gone through some simplify(...) calls, 
     # so we can not assume everything to be happening in the same ambient_ring.
     iso_X = _flatten_open_subscheme(X, Z)
@@ -279,11 +279,11 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     XY = PrincipalOpenSubset(X, pullback(iso_X)(OO(codomain(iso_X))(h_Y)))
     YX = PrincipalOpenSubset(Y, pullback(iso_Y)(OO(codomain(iso_Y))(h_X)))
     if iszero(h_X*h_Y)
-      # Glueing along the empty set. This is trivial.
-      g = SpecMor(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
-      f = SpecMor(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
+      # Gluing along the empty set. This is trivial.
+      g = morphism(YX, XY, hom(OO(XY), OO(YX), [zero(OO(YX)) for i in 1:ngens(OO(XY))], check=false), check=false)
+      f = morphism(XY, YX, hom(OO(YX), OO(XY), [zero(OO(XY)) for i in 1:ngens(OO(YX))], check=false), check=false)
       
-      return SimpleGlueing(X, Y, f, g, check=false)
+      return SimpleGluing(X, Y, f, g, check=false)
     end
 
     XYZ = PrincipalOpenSubset(Z, h_X*h_Y)
@@ -293,28 +293,28 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
     x_img = OO(XYZ).(x_img)
     phi = restrict(iso_Y, YX, XYZ, check=false)
     x_img = pullback(phi).(x_img)
-    g = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+    g = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
     
     y_img = gens(OO(Y))
     y_img = pullback(inverse(iso_Y)).(y_img)
     y_img = OO(XYZ).(y_img)
     psi = restrict(iso_X, XY, XYZ, check=false)
     y_img = pullback(psi).(y_img)
-    f = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
-    return SimpleGlueing(X, Y, f, g, check=false)
+    f = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+    return SimpleGluing(X, Y, f, g, check=false)
   end
 
   # As the easy case would have been caught before, we are now facing an inherited 
-  # glueing across charts: X ↪ A ⊃ U ≅ V ⊂ B ↩ Y. 
+  # gluing across charts: X ↪ A ⊃ U ≅ V ⊂ B ↩ Y. 
   # We need to compute the intersection of X with Y along the identifications of U and V
-  # and cook up the SimpleGlueing from that.
+  # and cook up the SimpleGluing from that.
   iso_X = _flatten_open_subscheme(X, C)
   iso_Y = _flatten_open_subscheme(Y, C)
   A = ambient_scheme(codomain(iso_X))
   B = ambient_scheme(codomain(iso_Y))
-  G = C[A, B] # The original glueing needed
-  U, V = glueing_domains(G)
-  f, g = glueing_morphisms(G)
+  G = C[A, B] # The original gluing needed
+  U, V = gluing_domains(G)
+  f, g = gluing_morphisms(G)
   U isa PrincipalOpenSubset && ambient_scheme(U) === A || error("incorrect intermediate result")
   V isa PrincipalOpenSubset && ambient_scheme(V) === B || error("incorrect intermediate result")
 
@@ -345,7 +345,7 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   x_img = pullback(gres).(x_img)
   phi = restrict(iso_Y, YX, VYX, check=false)
   x_img = pullback(phi).(x_img)
-  gg = SpecMor(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
+  gg = morphism(YX, XY, hom(OO(XY), OO(YX), x_img, check=false), check=false)
 
   y_img = gens(OO(Y))
   y_img = pullback(inverse(iso_Y)).(y_img)
@@ -353,26 +353,26 @@ function _compute_inherited_glueing(gd::InheritGlueingData)
   y_img = pullback(fres).(y_img)
   psi = restrict(iso_X, XY, UXY, check=false)
   y_img = pullback(psi).(y_img)
-  ff = SpecMor(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
+  ff = morphism(XY, YX, hom(OO(YX), OO(XY), y_img, check=false), check=false)
 
-  return SimpleGlueing(X, Y, ff, gg, check=false)
+  return SimpleGluing(X, Y, ff, gg, check=false)
 end
 
-ngens(Q::MPolyQuoLocRing) = ngens(base_ring(Q))
+number_of_generators(Q::MPolyQuoLocRing) = number_of_generators(base_ring(Q))
 
 @doc raw"""
-    inherit_glueings!(ref::Covering, orig::Covering)
+    inherit_gluings!(ref::Covering, orig::Covering)
 
-For a refinement `ref` of a `Covering` `orig` add all missing glueings 
-in `ref` as inherited glueings from those in `orig`.
+For a refinement `ref` of a `Covering` `orig` add all missing gluings 
+in `ref` as inherited gluings from those in `orig`.
 """
-function inherit_glueings!(ref::Covering, orig::Covering)
+function inherit_gluings!(ref::Covering, orig::Covering)
   for U in patches(ref)
     for V in patches(ref)
-      if !haskey(glueings(ref), (U, V))
-        glueings(ref)[(U, V)] = LazyGlueing(U, V, 
-                                            _compute_inherited_glueing,
-                                            InheritGlueingData(orig, U, V)
+      if !haskey(gluings(ref), (U, V))
+        gluings(ref)[(U, V)] = LazyGluing(U, V, 
+                                            _compute_inherited_gluing,
+                                            InheritGluingData(orig, U, V)
                                            )
       end
     end
@@ -383,4 +383,101 @@ end
 ### Generic pullback and pushforward for composite maps
 pushforward(f::Generic.CompositeMap, a::Any) = pushforward(map2(f), pushforward(map1(f), a))
 pullback(f::Generic.CompositeMap, a::Any) = pullback(map1(f), pullback(map2(f), a))
+
+
+### Strands of graded modules
+function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRingElem, T <: FreeModElem{B}}
+  F = parent(v)
+  R = base_ring(F)
+  kk = coefficient_ring(R)
+  result = SRow(kk)
+  iszero(v) && return result
+  pos = [findfirst(k->k==m, b) for m in monomials(v)]
+  vals = collect(coefficients(v))
+  return SRow(kk, pos, vals)
+end
+
+### Take a complex of graded modules and twist all 
+# modules so that the (co-)boundary maps become homogenous 
+# of degree zero. 
+function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
+  R = base_ring(C[first(range(C))])
+  is_standard_graded(R) || error("ring must be standard graded")
+  all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")
+  all(k->is_graded(C[k]), range(C)) || error("complex must be graded")
+  all(k->C[k] isa FreeMod, range(C)) || error("terms in complex must be free")
+
+  new_maps = Map[]
+  new_chains = [C[first(range(C))]]
+  offset = zero(grading_group(R))
+  for i in range(C)
+    i == last(range(C)) && break
+    phi = map(C, i)
+    dom = domain(phi)
+    cod = codomain(phi)
+    x = gens(dom)
+    if !isempty(x)
+      delta = degree(phi(first(x))) - degree(first(x))
+      @assert all(u->degree(phi(u)) - degree(u) == delta, x[2:end]) "map is not homogeneous"
+      offset = offset + delta
+    end
+    new_chain = twist(cod, offset)
+    imgs = phi.(gens(domain(phi)))
+    imgs = [new_chain(coordinates(y)) for y in imgs]
+    new_map = hom(last(new_chains), new_chain, imgs)
+    push!(new_maps, new_map)
+    push!(new_chains, new_chain)
+  end
+  
+  return ComplexOfMorphisms(T, new_maps, typ = :chain, seed=last(range(C)))
+end
+
+### Take a complex of free ℤ-graded modules with (co-)boundary 
+# maps of degree zero and return the complex given by all the 
+# degree d parts.
+function strand(C::ComplexOfMorphisms{T}, d::Int) where {T<:ModuleFP}
+  R = base_ring(C[first(range(C))])
+  is_standard_graded(R) || error("ring must be standard graded")
+  all(k->base_ring(C[k])===R, range(C)) || error("terms in complex must have the same base ring")
+  all(k->is_graded(C[k]), range(C)) || error("complex must be graded")
+  all(k->C[k] isa FreeMod, range(C)) || error("terms in complex must be free")
+
+  kk = coefficient_ring(R)
+  res_maps = Map[]
+
+  i = first(range(C))
+  mons = collect(all_monomials(C[i], d))
+  chains = [FreeMod(kk, length(mons))]
+  
+  for i in range(C)
+    i == last(range(C)) && break # How else to skip that???
+    new_mons = collect(all_monomials(C[i-1], d))
+    push!(chains, FreeMod(kk, length(new_mons)))
+    imgs = elem_type(last(chains))[]
+    phi = map(C, i)
+    M = last(chains)
+    for x in mons
+      c = _coordinates_in_monomial_basis(phi(x), new_mons)
+      v = sum(x*M[i] for (i, x) in c; init=zero(M))
+      push!(imgs, v)
+    end
+    push!(res_maps, hom(chains[end-1], chains[end], imgs))
+    mons = new_mons
+  end
+  return ComplexOfMorphisms(typeof(domain(first(res_maps))), res_maps, typ = :chain, seed=last(range(C)), check=false)
+end
+
+### Get a subcomplex in a specific range. 
+function getindex(c::ComplexOfMorphisms{T}, r::UnitRange) where {T}
+  first(r) in range(c) || error("range out of bounds")
+  last(r) in range(c) || error("range out of bounds")
+  if is_chain_complex(c)
+    maps = [map(c, i) for i in last(r):-1:first(r)+1]
+    return ComplexOfMorphisms(T, maps, seed=first(r), typ=:chain, check=false)
+  else
+    maps = [map(c, i) for i in first(r):last(r)-1]
+    return ComplexOfMorphisms(T, maps, seed=first(r), typ=:cochain, check=false)
+  end
+end
+
 

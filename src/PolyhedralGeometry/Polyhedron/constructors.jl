@@ -20,9 +20,9 @@ struct Polyhedron{T<:scalar_types} <: PolyhedralObject{T} #a real polymake polyh
     Polyhedron{QQFieldElem}(p::Polymake.BigObject) = new{QQFieldElem}(p, QQ)
 end
 
-# default scalar type: `QQFieldElem`
-polyhedron(A, b) = polyhedron(QQFieldElem, A, b)
-polyhedron(A) = polyhedron(QQFieldElem, A)
+# default scalar type: guess from input and fall back to `QQFieldElem`
+polyhedron(A, b) = polyhedron(_guess_fieldelem_type(A,b), A, b)
+polyhedron(A) = polyhedron(_guess_fieldelem_type(A), A)
 
 @doc raw"""
     polyhedron(P::Polymake.BigObject)
@@ -31,7 +31,7 @@ Construct a `Polyhedron` corresponding to a `Polymake.BigObject` of type `Polyto
 """
 function polyhedron(p::Polymake.BigObject)
   T, f = _detect_scalar_and_field(Polyhedron, p)
-  if T == EmbeddedElem{nf_elem} && Hecke.isquadratic_type(number_field(f))[1] && Polymake.bigobject_eltype(p) == "QuadraticExtension"
+  if T == EmbeddedNumFieldElem{AbsSimpleNumFieldElem} && Hecke.is_quadratic_type(number_field(f))[1] && Polymake.bigobject_eltype(p) == "QuadraticExtension"
     p = _polyhedron_qe_to_on(p, f)
   end 
   return Polyhedron{T}(p, f)
@@ -226,7 +226,7 @@ function convex_hull(f::scalar_type_or_field, V::AbstractCollection[PointVector]
   end
 end
 
-convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(QQFieldElem, V, R, L; non_redundant=non_redundant)
+convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayVector], Nothing} = nothing, L::Union{AbstractCollection[RayVector], Nothing} = nothing; non_redundant::Bool = false) = convex_hull(_guess_fieldelem_type(V,R,L), V, R, L; non_redundant=non_redundant)
 
 ###############################################################################
 ###############################################################################
@@ -234,12 +234,19 @@ convex_hull(V::AbstractCollection[PointVector], R::Union{AbstractCollection[RayV
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, P::Polyhedron{T}) where T<:scalar_types
+    pm_P = pm_object(P)
+    known_to_be_bounded = false
+    # if the vertices and rays are known, then it is easy to check if the polyhedron is bounded
+    if Polymake.exists(pm_P, "VERTICES") || Polymake.exists(pm_P, "BOUNDED")
+        known_to_be_bounded = pm_P.BOUNDED
+    end
+    poly_word = known_to_be_bounded ? "Polytope" : "Polyhedron"
     try
         ad = ambient_dim(P)
-        print(io, "Polyhedron in ambient dimension $(ad)")
+        print(io, "$(poly_word) in ambient dimension $(ad)")
         T != QQFieldElem && print(io, " with $T type coefficients")
     catch e
-        print(io, "Polyhedron without ambient dimension")
+        print(io, "$(poly_word) without ambient dimension")
     end
 end
 

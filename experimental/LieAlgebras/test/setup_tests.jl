@@ -1,3 +1,7 @@
+if !isdefined(Main, :GAPWrap)
+  import Oscar: GAPWrap
+end
+
 if !isdefined(Main, :lie_algebra_conformance_test)
   function lie_algebra_conformance_test(
     L::LieAlgebra{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10

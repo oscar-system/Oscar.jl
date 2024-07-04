@@ -60,7 +60,7 @@ function gen(I::LieAlgebraIdeal, i::Int)
   return I.gens[i]
 end
 
-function ngens(I::LieAlgebraIdeal)
+function number_of_generators(I::LieAlgebraIdeal)
   return length(gens(I))
 end
 

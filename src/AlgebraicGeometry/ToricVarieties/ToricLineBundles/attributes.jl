@@ -16,9 +16,7 @@ julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
 julia> picard_class(l)
-Element of
-GrpAb: Z
-with components [2]
+Abelian group element [2]
 ```
 """
 picard_class(l::ToricLineBundle) = l.picard_class

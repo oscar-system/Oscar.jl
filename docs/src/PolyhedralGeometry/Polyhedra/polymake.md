@@ -33,7 +33,7 @@ The following shows all the data currently known for a `Polyhedron`.
 
 ```jldoctest
 julia> C = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> C.pm_polytope
 type: Polytope<Rational>

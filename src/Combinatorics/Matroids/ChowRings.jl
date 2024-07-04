@@ -57,7 +57,8 @@ function chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended:
             #add the variables for the simplicial generators
             var_names = [var_names; ["h_{" * join(S, ",") * "}" for S in [proper_flats;[Flats[number_flats]]]]]
         end
-        
+
+        @req length(var_names) > 0 "Chow ring is empty"
         if graded
             ring, vars = graded_polynomial_ring(QQ, var_names, cached=false)
         else

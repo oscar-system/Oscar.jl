@@ -5,7 +5,7 @@ mutable struct LinearQuotient{S, T}
   # for consistency
   root_of_unity::Tuple{S, Int}
 
-  class_group::Tuple{GrpAbFinGen, Generic.CompositeMap{MatrixGroup{S, T}, GrpAbFinGen}}
+  class_group::Tuple{FinGenAbGroup, Generic.CompositeMap{MatrixGroup{S, T}, FinGenAbGroup}}
 
   function LinearQuotient(G::MatrixGroup{S, T}) where {S, T}
     L = new{S, T}()
@@ -23,7 +23,7 @@ mutable struct HomBasisBuilder{RingType, RingElemType}
   C::PowerProductCache{RingType, RingElemType}
 
   # Group acting linearly on the subalgebra A via action
-  G::GrpAbFinGen
+  G::FinGenAbGroup
   action::Function
   eigenvalues_to_group::Function
 
@@ -33,11 +33,11 @@ mutable struct HomBasisBuilder{RingType, RingElemType}
   # The homogeneous generators of A represented as elements of T, so
   # hom_gens[i](power_base(C)...) gives the actual element in R
   hom_gens::Vector{RingElemType}
-  degrees::Vector{GrpAbFinGenElem}
+  degrees::Vector{FinGenAbGroupElem}
 
   power_base_to_hom_gens::Dict{RingElemType, RingElemType}
 
-  function HomBasisBuilder(C::PowerProductCache{RingType, RingElemType}, G::GrpAbFinGen, action::Function, eigenvalues_to_group::Function) where {RingType, RingElemType}
+  function HomBasisBuilder(C::PowerProductCache{RingType, RingElemType}, G::FinGenAbGroup, action::Function, eigenvalues_to_group::Function) where {RingType, RingElemType}
     R = base_ring(C)
     T, _ = polynomial_ring(coefficient_ring(R), "t" => 1:length(power_base(C)))
     hom_gens = elem_type(T)[]

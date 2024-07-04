@@ -67,6 +67,7 @@ end
         general_linear_lie_algebra(RO, 2),
         special_linear_lie_algebra(RO, 3),
         special_orthogonal_lie_algebra(RO, 4),
+        symplectic_lie_algebra(RO, 6),
       ]
 
       @testset for LO in lie_algebras

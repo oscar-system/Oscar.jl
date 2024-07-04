@@ -94,12 +94,13 @@ julia> c == ctt
 true
 ```
 """
-function transform(C::Cone{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{U}}) where {T<:scalar_types, U<:FieldElem}
+function transform(C::Cone{T}, A::Union{AbstractMatrix{<:Union{Number, FieldElem}}, MatElem{<:FieldElem}}) where {T<:scalar_types}
   @assert ambient_dim(C) == nrows(A) "Incompatible dimension of cone and transformation matrix"
   @assert nrows(A) == ncols(A) "Transformation matrix must be square"
   @assert Polymake.common.rank(A) == nrows(A) "Transformation matrix must have full rank."
   return _transform(C, A)
 end
+
 function _transform(C::Cone{T}, A::AbstractMatrix{<:FieldElem}) where T<:scalar_types
     U, f = _promote_scalar_field(A)
     V, g = _promote_scalar_field(coefficient_field(C), f)

@@ -30,7 +30,7 @@ The latter function must return a vector ``v = (a_1,\dots, a_r)``
 of elements in ``R`` such that ``f = a_1 \cdot g_1 + \dots + a_r \cdot g_r``
 where ``g_1,\dots,g_r`` is the set of `gens(I)`. When ``f`` does
 not belong to ``I``, it must error. Note that the ring returned by
-`quo` must again be admissible for the `AbsSpec` interface.
+`quo` must again be admissible for the `AbsAffineScheme` interface.
 
 With a view towards the use of the `ambient_coordinate_ring(X)` for computations,
 it is customary to also implement
@@ -83,68 +83,68 @@ Note that the morphism ``P → R`` is induced by natural coercions.
 
 The abstract type for affine schemes is
 ```@docs
-    AbsSpec{BaseRingType, RingType<:Ring}
+    AbsAffineScheme{BaseRingType, RingType<:Ring}
 ```
 For any concrete instance of this type, we require the following
 functions to be implemented:
-- `base_ring(X::AbsSpec)`,
-- `OO(X::AbsSpec)`.
+- `base_ring(X::AbsAffineScheme)`,
+- `OO(X::AbsAffineScheme)`.
 
 A concrete instance of this type is
 ```@docs
-    Spec{BaseRingType, RingType}
+    AffineScheme{BaseRingType, RingType}
 ```
 It provides an implementation of affine schemes for rings ``R`` of type
 `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, and `MPolyQuoLocRing`
 defined over the integers or algebraic field extensions of ``\mathbb Q``.
 This minimal implementation can be used internally, when deriving new
-concrete types `MySpec<:AbsSpec` such as, for instance,
+concrete types `MyAffineScheme<:AbsAffineScheme` such as, for instance,
 group schemes, toric schemes, schemes of a particular dimension
 like curves and surfaces, etc. To this end, one has to store
-an instance `Y` of `Spec` in `MySpec` and implement the methods
+an instance `Y` of `AffineScheme` in `MyAffineScheme` and implement the methods
 ```
-    underlying_scheme(X::MySpec)::Spec # return Y as above
+    underlying_scheme(X::MyAffineScheme)::AffineScheme # return Y as above
 ```
-Then all methods implemented for `Spec` are automatically
-forwarded to any instance of `MySpec`.
+Then all methods implemented for `AffineScheme` are automatically
+forwarded to any instance of `MyAffineScheme`.
 
-**Note:** The above method necessarily returns an instance of `Spec`!
-Of course, it can be overwritten for any higher type `MySpec<:AbsSpec` as needed.
+**Note:** The above method necessarily returns an instance of `AffineScheme`!
+Of course, it can be overwritten for any higher type `MyAffineScheme<:AbsAffineScheme` as needed.
 
 
 ## Existing types of affine scheme morphisms and how to derive new types
 
 Any abstract morphism of affine schemes is of the following type:
 ```@docs
-    AbsSpecMor{DomainType<:AbsSpec,
-               CodomainType<:AbsSpec,
+    AbsAffineSchemeMor{DomainType<:AbsAffineScheme,
+               CodomainType<:AbsAffineScheme,
                PullbackType<:Map,
                MorphismType,
                BaseMorType
                }
 ```
 Any such morphism has the attributes `domain`, `codomain` and `pullback`.
-A concrete and minimalistic implementation exist for the type `SpecMor`:
+A concrete and minimalistic implementation exist for the type `AffineSchemeMor`:
 ```@docs
-    SpecMor{DomainType<:AbsSpec,
-            CodomainType<:AbsSpec,
+    AffineSchemeMor{DomainType<:AbsAffineScheme,
+            CodomainType<:AbsAffineScheme,
             PullbackType<:Map
            }
 ```
 This basic functionality consists of
-- `compose(f::AbsSpecMor, g::AbsSpecMor)`,
-- `identity_map(X::AbsSpec)`,
-- `restrict(f::AbsSpecMor, X::AbsSpec, Y::AbsSpec; check::Bool=true)`,
-- `==(f::AbsSpecMor, g::AbsSpecMor)`,
-- `preimage(f::AbsSpecMor, Z::AbsSpec)`.
-In particular, for every concrete instance of a type `MySpec<:AbsSpec` that
-implements `underlying_scheme`, this basic functionality of `SpecMor`
+- `compose(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,
+- `identity_map(X::AbsAffineScheme)`,
+- `restrict(f::AbsAffineSchemeMor, X::AbsAffineScheme, Y::AbsAffineScheme; check::Bool=true)`,
+- `==(f::AbsAffineSchemeMor, g::AbsAffineSchemeMor)`,
+- `preimage(f::AbsAffineSchemeMor, Z::AbsAffineScheme)`.
+In particular, for every concrete instance of a type `MyAffineScheme<:AbsAffineScheme` that
+implements `underlying_scheme`, this basic functionality of `AffineSchemeMor`
 should run naturally.
 
-We may derive higher types of morphisms of affine schemes `MySpecMor<:AbsSpecMor`
-by storing an instance `g` of `SpecMor` inside an instance `f` of
-`MySpecMor` and implementing
+We may derive higher types of morphisms of affine schemes `MyAffineSchemeMor<:AbsAffineSchemeMor`
+by storing an instance `g` of `AffineSchemeMor` inside an instance `f` of
+`MyAffineSchemeMor` and implementing
 ```
-    underlying_morphism(f::MySpecMor)::SpecMor # return g
+    underlying_morphism(f::MyAffineSchemeMor)::AffineSchemeMor # return g
 ```
 For example, this allows us to define closed embeddings.

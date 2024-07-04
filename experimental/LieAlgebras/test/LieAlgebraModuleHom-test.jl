@@ -36,8 +36,8 @@
   @testset "Identity and zero map" begin
     L = special_linear_lie_algebra(QQ, 3)
     stdV = standard_module(L)
-    V1 = symmetric_power(stdV, 3)
-    V2 = exterior_power(stdV, 2)
+    V1 = symmetric_power(stdV, 3)[1]
+    V2 = exterior_power(stdV, 2)[1]
 
     h = identity_map(V1)
     @test domain(h) == V1
@@ -104,7 +104,7 @@
   @testset "Direct sum constructions" begin
     L = special_orthogonal_lie_algebra(QQ, 4)
     Vs = [
-      standard_module(L), dual(standard_module(L)), exterior_power(standard_module(L), 2)
+      standard_module(L), dual(standard_module(L)), exterior_power(standard_module(L), 2)[1]
     ]
     V = direct_sum(Vs...)
 
@@ -127,7 +127,7 @@
     L = special_orthogonal_lie_algebra(QQ, 4)
     V11 = standard_module(L)
     V12 = dual(standard_module(L))
-    V21 = exterior_power(standard_module(L), 2)
+    V21 = exterior_power(standard_module(L), 2)[1]
     V22 = dual(dual(standard_module(L)))
     V1 = direct_sum(V11, V12)
     V2 = direct_sum(V21, V22)
@@ -149,7 +149,7 @@
     V11 = standard_module(L)
     V12 = dual(standard_module(L))
     V21 = dual(dual(standard_module(L)))
-    V22 = exterior_power(standard_module(L), 2)
+    V22 = exterior_power(standard_module(L), 2)[1]
     V1 = tensor_product(V11, V12)
     V2 = tensor_product(V21, V22)
     h1 = hom(V11, V21, basis(V21))
@@ -164,7 +164,7 @@
     V12 = dual(standard_module(L))
     V2i = dual(dual(standard_module(L)))
     V1 = tensor_product(V11, V12)
-    V2 = tensor_power(V2i, 2)
+    V2 = tensor_power(V2i, 2)[1]
     h1 = hom(V11, V2i, basis(V2i))
     h2 = hom(V12, V2i, [zero(V2i) for _ in basis(V12)])
 
@@ -174,17 +174,17 @@
     @test is_welldefined(h)
   end
 
-  @testset "hom_power ($f_power)" for f_power in
-                                      [exterior_power, symmetric_power, tensor_power]
+  @testset "hom (lift $f_power)" for f_power in
+                                     [exterior_power, symmetric_power, tensor_power]
     for k in 0:3
       L = special_orthogonal_lie_algebra(QQ, 4)
       Vb = standard_module(L)
       Wb = dual(dual(standard_module(L)))
-      V = f_power(Vb, k)
-      W = f_power(Wb, k)
+      V, _ = f_power(Vb, k)
+      W, _ = f_power(Wb, k)
       hb = hom(Vb, Wb, [2 * b for b in basis(Wb)])
 
-      h = hom_power(V, W, hb)
+      h = hom(V, W, hb)
       @test domain(h) == V
       @test codomain(h) == W
       @test is_welldefined(h)

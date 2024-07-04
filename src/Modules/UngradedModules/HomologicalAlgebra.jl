@@ -214,8 +214,9 @@ by Submodule with 4 generators
 4 -> x*y*e[1] \otimes e[1]
 
 julia> T1 = tor(Q, M, 1)
-Subquotient of Submodule with 1 generator
-1 -> -x*e[1] \otimes e[1]
+Subquotient of Submodule with 2 generators
+1 -> x*e[1] \otimes e[1]
+2 -> x*y*e[1] \otimes e[1]
 by Submodule with 3 generators
 1 -> x^2*e[1] \otimes e[1]
 2 -> y^3*e[1] \otimes e[1]
@@ -352,13 +353,13 @@ julia> range(D)
 3:5
 ```
 """
-function hom(C::Hecke.ComplexOfMorphisms{ModuleFP}, P::ModuleFP)
+function hom(C::Hecke.ComplexOfMorphisms{T}, P::ModuleFP) where {T<:ModuleFP}
   #hom_chain = Hecke.map_type(C)[]
   hom_chain = valtype(C.maps)[]
   hom_chain = Map[]
   chain_range = Hecke.map_range(C)
-  hom_modules = [hom(domain(map(C,first(chain_range))),P)]
-  append!(hom_modules, [hom(codomain(map(C,i)), P) for i in chain_range])
+  hom_modules = Tuple{ModuleFP, Map}[hom(domain(map(C,first(chain_range))),P)]
+  append!(hom_modules, Tuple{ModuleFP, Map}[hom(codomain(map(C,i)), P) for i in chain_range])
 
   for i=1:length(chain_range)
     A = hom_modules[i][1]
@@ -524,9 +525,9 @@ function homology(C::Hecke.ComplexOfMorphisms{<:ModuleFP}, i::Int)
     return cokernel(f)    
   elseif i in chain_range
     if Hecke.is_chain_complex(C)
-      return quo(kernel(map(C,i))[1], image(map(C,i+1))[1], :module)
+      return quo_object(kernel(map(C,i))[1], image(map(C,i+1))[1])
     else
-      return quo(kernel(map(C,i))[1], image(map(C,i-1))[1], :module)
+      return quo_object(kernel(map(C,i))[1], image(map(C,i-1))[1])
     end
   else
     return FreeMod(base_ring(obj(C,first(chain_range))),0)
@@ -549,7 +550,7 @@ julia> F = FreeMod(R, 1);
 
 julia> V = [x*F[1], y*F[1]];
 
-julia> M = quo(F, V)[1]
+julia> M = quo_object(F, V)
 Subquotient of Submodule with 1 generator
 1 -> e[1]
 by Submodule with 2 generators
@@ -560,26 +561,25 @@ julia> ext(M, M, 0)
 Subquotient of Submodule with 1 generator
 1 -> (e[1] -> e[1])
 by Submodule with 2 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
+1 -> y*(e[1] -> e[1])
+2 -> x*(e[1] -> e[1])
 
 julia> ext(M, M, 1)
 Subquotient of Submodule with 2 generators
-1 -> (e[2] -> e[1])
-2 -> (e[1] -> e[1])
+1 -> (e[1] -> e[1])
+2 -> (e[2] -> e[1])
 by Submodule with 4 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
-3 -> x*(e[2] -> e[1])
-4 -> y*(e[2] -> e[1])
+1 -> y*(e[1] -> e[1])
+2 -> x*(e[1] -> e[1])
+3 -> y*(e[2] -> e[1])
+4 -> x*(e[2] -> e[1])
 
 julia> ext(M, M, 2)
 Subquotient of Submodule with 1 generator
 1 -> (e[1] -> e[1])
-by Submodule with 3 generators
-1 -> x*(e[1] -> e[1])
-2 -> y*(e[1] -> e[1])
-3 -> -x*(e[1] -> e[1])
+by Submodule with 2 generators
+1 -> y*(e[1] -> e[1])
+2 -> x*(e[1] -> e[1])
 
 julia> ext(M, M, 3)
 Submodule with 0 generators

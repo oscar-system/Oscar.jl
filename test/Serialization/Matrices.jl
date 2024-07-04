@@ -1,9 +1,9 @@
 R, x = polynomial_ring(QQ, "x")
 q = x^2 + 3//4
 K, a = number_field(q)
-Z7 = residue_ring(ZZ, 7)
-Z7t, t = polynomial_ring(Z7, "t")
-Fin, d = finite_field(t^2 + t + 1)
+Z7 = residue_ring(ZZ, 7)[1]
+Z7t, t = polynomial_ring(GF(7), "t")
+Fin, d = finite_field(t^2 + t + 3)
 Frac = fraction_field(R)
 
 cases = [
@@ -26,6 +26,17 @@ cases = [
     for case in cases
       @testset "Matrices over $(case[1])" begin
         m = matrix(case[1], case[2])
+        test_save_load_roundtrip(path, m) do loaded
+          @test loaded == m
+        end
+
+        test_save_load_roundtrip(path, m; params=parent(m)) do loaded
+          @test loaded == m
+        end
+      end
+
+      @testset "Sparse Matrices over $(case[1])" begin
+        m = sparse_matrix(case[1], case[2])
         test_save_load_roundtrip(path, m) do loaded
           @test loaded == m
         end

@@ -3,11 +3,6 @@
 end
 
 function free_show(io::IO, C::ComplexOfMorphisms)
-  Cn = get_attribute(C, :name)
-  if Cn === nothing
-    Cn = "F"
-  end
-
   name_mod = String[]
   rank_mod = Int[]
 
@@ -16,23 +11,18 @@ function free_show(io::IO, C::ComplexOfMorphisms)
   arr = ("<--", "--")
 
   R = Nemo.base_ring(C[first(rng)])
-  R_name = get_attribute(R, :name)
-  if R_name === nothing
-    R_name = AbstractAlgebra.find_name(R)
-    if R_name === nothing
-      R_name = "$R"
-    end
+  R_name = AbstractAlgebra.get_name(R)
+  if isnothing(R_name)
+    R_name = "$R"
   end
  
   for i=reverse(rng)
     M = C[i]
-    if get_attribute(M, :name) !== nothing
-      push!(name_mod, get_attribute(M, :name))
-    elseif AbstractAlgebra.find_name(M) !== nothing
-      push!(name_mod, AbstractAlgebra.find_name(M) )
-    else
-      push!(name_mod, "$R_name^$(rank(M))")
+    M_name = AbstractAlgebra.get_name(M)
+    if isnothing(M_name)
+      M_name = "$R_name^$(rank(M))"
     end
+    push!(name_mod, M_name)
     push!(rank_mod, rank(M))
   end
 
@@ -204,31 +194,43 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
   dom = domain(cc.maps[1])
   j   = 2
 
-  while j <= Singular.length(res)
+  #= get correct length of Singular sresolution =#
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  #= adjust length for extension length in Oscar =#
+  slen = slen > len ? len : slen
+
+  br_name = AbstractAlgebra.get_name(base_ring(kernel_entry))
+  if br_name === nothing
+    br_name = "R"
+  end
+
+
+  while j <= slen
     rk = Singular.ngens(res[j])
     if is_graded(dom)
       codom = dom
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      map = graded_map(codom, SM.matrix)
+      #generator_matrix(SM)
+      #map = graded_map(codom, SM.matrix) # going via matrices does a lot of unnecessary allocation and copying!
+      map = graded_map(codom, gens(SM); check=false)
       dom = domain(map)
-      set_attribute!(dom, :name => "R^$rk")
+      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
     else
       codom = dom
       dom   = free_module(br, Singular.ngens(res[j]))
       SM    = SubModuleOfFreeModule(codom, res[j])
-      set_attribute!(dom, :name => "R^$rk")
-      generator_matrix(SM)
-      map = hom(dom, codom, SM.matrix)
+      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
+      #generator_matrix(SM)
+      map = hom(dom, codom, gens(SM); check=false)
     end
     pushfirst!(cc, map) 
     j += 1
   end
   # Finalize maps.
-  if Singular.length(res) < len
+  if slen < len
     Z = FreeMod(br, 0)
-    set_attribute!(Z, :name => "0")
-    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}()))
+    AbstractAlgebra.set_name!(Z, "0")
+    pushfirst!(cc, hom(Z, domain(cc.maps[1]), Vector{elem_type(domain(cc.maps[1]))}(); check=false))
     cc.complete = true
   end
   set_attribute!(cc, :show => free_show)
@@ -345,11 +347,16 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     error("Unsupported algorithm $algorithm")
   end
 
-  if length == 0 || Singular.length(res) < length
+  slen = iszero(res[Singular.length(res)+1]) ? Singular.length(res) : Singular.length(res)+1
+  if length == 0 || slen < length
     cc_complete = true
   end
 
-  br_name = AbstractAlgebra.find_name(base_ring(M))
+  if length != 0
+    slen =  slen > length ? length : slen
+  end
+
+  br_name = AbstractAlgebra.get_name(base_ring(M))
   if br_name === nothing
     br_name = "R"
   end
@@ -357,15 +364,16 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   #= Add maps from free resolution computation, start with second entry
    = due to inclusion of presentation(M) at the beginning. =#
   j   = 1
-  while j <= Singular.length(res)
+  while j <= slen
     if is_graded(M)
       codom = domain(maps[1])
       rk    = Singular.ngens(res[j])
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      ff = graded_map(codom, SM.matrix)
+      #generator_matrix(SM)
+      #ff = graded_map(codom, SM.matrix)
+      ff = graded_map(codom, gens(SM); check=false)
       dom = domain(ff)
-      set_attribute!(dom, :name => "$br_name^$rk")
+      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
       insert!(maps, 1, ff)
       j += 1
     else
@@ -373,9 +381,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
       rk    = Singular.ngens(res[j])
       dom   = free_module(br, rk)
       SM    = SubModuleOfFreeModule(codom, res[j])
-      generator_matrix(SM)
-      set_attribute!(dom, :name => "$br_name^$rk")
-      insert!(maps, 1, hom(dom, codom, SM.matrix))
+      #generator_matrix(SM)
+      AbstractAlgebra.set_name!(dom, "$br_name^$rk")
+      insert!(maps, 1, hom(dom, codom, gens(SM); check=false))
       j += 1
     end
   end
@@ -386,8 +394,8 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
     else
       Z = FreeMod(br, 0)
     end
-    set_attribute!(Z, :name => "0")
-    insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}()))
+    AbstractAlgebra.set_name!(Z, "0")
+    insert!(maps, 1, hom(Z, domain(maps[1]), Vector{elem_type(domain(maps[1]))}(); check=false))
   end
 
   cc = Hecke.ComplexOfMorphisms(Oscar.ModuleFP, maps, check = false, seed = -2)
@@ -414,7 +422,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
 
       if iszero(N) # Fill up with zero maps
         C.complete = true
-        phi = hom(N, N, elem_type(N)[])
+        phi = hom(N, N, elem_type(N)[]; check=false)
         pushfirst!(C.maps, phi)
         continue
       end
@@ -422,8 +430,8 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       K, inc = kernel(map(C, i))
       nz = findall(x->!iszero(x), gens(K))
       F = FreeMod(R, length(nz))
-      iszero(length(nz)) && set_attribute!(F, :name => "0")
-      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]))
+      iszero(length(nz)) && AbstractAlgebra.set_name!(F, "0")
+      phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
     end
     return first(C.maps)
@@ -450,11 +458,11 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
     nz = findall(x->!iszero(x), gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
-        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+        h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       else
         Z = FreeMod(base_ring(M), 0)
-        set_attribute!(Z, :name => "0")
-        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}())
+        AbstractAlgebra.set_name!(Z, "0")
+        h = hom(Z, domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)
       end
       insert!(mp, 1, h)
       break
@@ -462,10 +470,10 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
       break
     end
     if is_graded(codomain(mk))
-      g = graded_map(codomain(mk), collect(k.sub.gens)[nz])
+      g = graded_map(codomain(mk), collect(k.sub.gens)[nz]; check=false)
     else
       F = FreeMod(base_ring(M), length(nz))
-      g = hom(F, codomain(mk), collect(k.sub.gens)[nz])
+      g = hom(F, codomain(mk), collect(k.sub.gens)[nz]; check=false)
     end
     insert!(mp, 1, g)
   end
@@ -488,9 +496,9 @@ minimal free resolutions are returned.
 function free_resolution(I::MPolyIdeal;
                          length::Int=0, algorithm::Symbol=:fres)
   S = ideal_as_module(I)
-  n = Hecke.find_name(I)
+  n = AbstractAlgebra.get_name(I)
   if n !== nothing
-    AbstractAlgebra.set_name!(S, string(n))
+    AbstractAlgebra.set_name!(S, n)
   end
   return free_resolution(S, length = length, algorithm = algorithm)
 end
@@ -509,9 +517,9 @@ minimal free resolutions are returned.
 function free_resolution(Q::MPolyQuoRing;
                          length::Int=0, algorithm::Symbol=:fres)
   q = quotient_ring_as_module(Q)
-  n = Hecke.find_name(Q)
+  n = AbstractAlgebra.get_name(Q)
   if n !== nothing
-    AbstractAlgebra.set_name!(q, String(n))
+    AbstractAlgebra.set_name!(q, n)
   end
   return free_resolution(q, length = length, algorithm = algorithm)
 end

@@ -4,10 +4,11 @@ using Oscar
 import Oscar: AbstractAlgebra, Hecke, GaloisGrp.GaloisCtx
 
 function __init__()
-  Hecke.add_verbose_scope(:SolveRadical)
-  Hecke.add_assert_scope(:SolveRadical)
+  Hecke.add_verbosity_scope(:SolveRadical)
+  Hecke.add_assertion_scope(:SolveRadical)
 end
 
+@deprecate recognise recognize
 
 mutable struct SubField
   coeff_field::Union{Nothing, SubField}
@@ -25,8 +26,8 @@ mutable struct SubField
   basis_abs::Vector
 
   #Caches:
-  num_basis::MatElem{<:RingElem} # qadic or power series
-  num_dual_basis::Vector{Vector{<:RingElem}} #padic or power series
+  num_basis::MatElem{<:RingElem} # QadicFieldElem or power series
+  num_dual_basis::Vector{Vector{<:RingElem}} #PadicFieldElem or power series
 
   function SubField()
     return new()
@@ -290,12 +291,12 @@ one, compute the corresponding subfields as a tower.
 julia> Qx, x = QQ["x"];
 
 julia> G, C = galois_group(x^3-3*x+17)
-(Permutation group of degree 3 and order 6, Galois context for x^3 - 3*x + 17 and prime 7)
+(Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
 
 julia> d = derived_series(G)
 3-element Vector{PermGroup}:
- Permutation group of degree 3 and order 6
- Permutation group of degree 3 and order 3
+ Sym(3)
+ Alt(3)
  Permutation group of degree 3 and order 1
 
 julia> fixed_field(C, d)
@@ -366,7 +367,7 @@ function length_bound(C::GaloisCtx, S::SubField, x::AbstractAlgebra.Generic.Func
 end
 
 
-function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = arb)
+function Hecke.length(x::NumFieldElem, abs_tol::Int = 32, T = ArbFieldElem)
   return sum(x^2 for x = Oscar.conjugates(x, abs_tol, T))
 end
 
@@ -376,13 +377,13 @@ function conjugates(C::GaloisCtx, S::SubField, a::QQFieldElem, pr::Int = 10)
   return [parent(rt[1])(a)]
 end
 
-function recognise(C::GaloisCtx, S::SubField, I::SLPoly)
-  r = recognise(C, S, [I])
+function recognize(C::GaloisCtx, S::SubField, I::SLPoly)
+  r = recognize(C, S, [I])
   r === nothing && return r
   return r[1]
 end
 
-function recognise(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly}, d=false)
+function recognize(C::GaloisCtx, S::SubField, J::Vector{<:SLPoly}, d=false)
   if d != false
     B = d
   elseif isdefined(S, :ts)
@@ -420,7 +421,7 @@ a corresponding primitive n-th root of 1, find an isomorphic radical extension
 using Lagrange resolvents.
 """
 function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem; simplify::Bool = !false)
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
 
   g = gen(K)
   d = degree(K)
@@ -444,7 +445,8 @@ function as_radical_extension(K::NumField, aut::Map, zeta::NumFieldElem; simplif
     p = parent(s)
     k, ma = absolute_simple_field(p)
     t = ma(evaluate(Hecke.reduce_mod_powers(preimage(ma, s), d)))
-    r = ma(root(preimage(ma, s//t), d))*r
+    rt = ma(root(preimage(ma, s//t), d))
+    r *= inv(rt)
     s = t
     @hassert :SolveRadical 1 s == r^d
   end
@@ -467,7 +469,7 @@ The necessary roots of unity are not themselves computed as radicals.
 See also [`galois_group`](@ref).
 
 # VERBOSE
-Supports `set_verbose_level(:SolveRadical, i)` to obtain information.
+Supports `set_verbosity_level(:SolveRadical, i)` to obtain information.
 
 
 # Examples
@@ -482,7 +484,7 @@ julia> K, r = solve(x^3+3*x+5)
 julia> #z_3 indicates the 3-rd root-of-1 used
 
 julia> map(x^3+3*x+5, r)
-3-element Vector{Hecke.NfRelElem{Hecke.NfRelElem{nf_elem}}}:
+3-element Vector{Hecke.RelSimpleNumFieldElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}}:
  0
  0
  0
@@ -499,9 +501,10 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   #in a couple of places...
 
   scale = leading_coefficient(f)
+  @req is_squarefree(f) "Polynomial must be square-free"
 
   #switches check = true in hom and number_field on
-  CHECK = get_assert_level(:SolveRadical) > 0
+  CHECK = get_assertion_level(:SolveRadical) > 0
   @vprint :SolveRadical 1 "computing initial galois group...\n"
   @vtime :SolveRadical 1 G, C = galois_group(f)
   lp = [p for p = keys(factor(order(G)).fac) if p > 2]
@@ -539,20 +542,20 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   
   cyclo = fld_arr[length(pp)+1]
   @vprint :SolveRadical 1 "finding roots-of-1...\n"
-  @vtime :SolveRadical 1 zeta = [recognise(C, cyclo, gens(parent(cyclo.pe))[i])//scale for i=pp]
+  @vtime :SolveRadical 1 zeta = [recognize(C, cyclo, gens(parent(cyclo.pe))[i])//scale for i=pp]
   @hassert :SolveRadical 1 all(i->isone(zeta[i]^lp[i]), 1:length(pp))
   aut = []
   @vprint :SolveRadical 1 "finding automorphisms...\n"
   for i=length(pp)+2:length(fld_arr)
     @vprint :SolveRadical 1 "..on level $(i-length(pp)-1)...\n"
     K = fld_arr[i]
-    @vtime :SolveRadical 1 push!(aut, hom(K.fld, K.fld, recognise(C, K, K.pe^K.conj[2])))
+    @vtime :SolveRadical 1 push!(aut, hom(K.fld, K.fld, recognize(C, K, K.pe^K.conj[2])))
   end
   for i=1:length(pp)
     fld_arr[i+1].fld.S = Symbol("z_$(lp[i])")
   end
   @vprint :SolveRadical 1 "find roots...\n"
-  @vtime :SolveRadical 1 R = recognise(C, All, gens(S)[rt])
+  @vtime :SolveRadical 1 R = recognize(C, All, gens(S)[rt])
   R = R .// scale
   #now, rewrite as radicals..
   #the cyclos are fine:
@@ -613,7 +616,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
         h = hom(L, K, h_data..., check = CHECK)
       end
     else
-      @vtime :SolveRadical 2 Ra, hh = as_radical_extension(L, aut[i-length(pp)-1], zeta[findfirst(isequal(degree(L)), lp)])
+      @vtime :SolveRadical 2 Ra, hh = as_radical_extension(L, aut[i-length(pp)-1], zeta[findfirst(isequal(degree(L)), lp)]; simplify)
       #hh: new -> old
 
       @vtime :SolveRadical 2 g = map_coefficients(h, parent(defining_polynomial(L))(preimage(hh, gen(L))))
@@ -685,7 +688,7 @@ function conj_from_basis(C::GaloisCtx, S::SubField, a, pr)
   for i=0:degree(S.fld)-1
     d = conjugates(C, S.coeff_field, coeff(a, i), pr)
     for j=1:length(d)
-      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
+      tmp[1, (j-1)*degree(S.fld)+1:j*degree(S.fld)] = d[j]*nb[i+1:i+1, (j-1)*degree(S.fld)+1:j*degree(S.fld)]
     end
     res += tmp
   end
@@ -759,7 +762,7 @@ function galois_factor(C::GaloisCtx)
     end
   end
   z = _fixed_field(C, Gi, invar = I)
-  return recognise(C, z, x)
+  return recognize(C, z, x)
 end
 
 end # SolveRadical

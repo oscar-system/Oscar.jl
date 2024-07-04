@@ -20,7 +20,7 @@ mutable struct PBWAlgElem{T, S} <: NCRingElem
   sdata::Singular.spluralg{S}
 end
 
-mutable struct PBWAlgIdeal{D, T, S}
+mutable struct PBWAlgIdeal{D, T, S} <: Ideal{PBWAlgElem{T, S}}
   basering::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal, always defined
   sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
@@ -237,7 +237,7 @@ end
 
 
 
-function ngens(R::PBWAlgRing)
+function number_of_generators(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
 
@@ -247,10 +247,6 @@ end
 
 function gen(R::PBWAlgRing, i::Int)
   return PBWAlgElem(R, gen(R.sring, i))
-end
-
-function Base.getindex(R::PBWAlgRing, i::Int)
-  return gen(R, i)
 end
 
 function var_index(a::PBWAlgElem)
@@ -533,7 +529,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     n = length(revs)
     bsring = Singular.PluralRing{S}(ptr, a.sring.base_ring, revs)
     bspolyring, _ = Singular.polynomial_ring(a.sring.base_ring,
-                                revs, ordering = ordering(bsring))
+                                revs, ordering = Singular.ordering(bsring))
     bsrel = Singular.zero_matrix(bspolyring, n, n)
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
@@ -603,8 +599,8 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
-function ngens(a::PBWAlgIdeal)
-  return ngens(a.sdata)
+function number_of_generators(a::PBWAlgIdeal)
+  return number_of_generators(a.sdata)
 end
 
 function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}
@@ -616,8 +612,6 @@ function gen(a::PBWAlgIdeal, i::Int)
   R = base_ring(a)
   return PBWAlgElem(R, a.sdata[i])
 end
-
-getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
 
 function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal

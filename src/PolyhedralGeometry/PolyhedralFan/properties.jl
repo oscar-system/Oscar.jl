@@ -44,7 +44,7 @@ julia> matrix(QQ, rays(NF))
 ```
 """
 rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _rays(PF) : _empty_subobjectiterator(RayVector{_get_scalar_type(PF)}, PF)
-_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _nrays(PF))
+_rays(PF::_FanLikeType) = SubObjectIterator{RayVector{_get_scalar_type(PF)}}(PF, _ray_fan, _n_rays(PF))
 
 _ray_fan(U::Type{RayVector{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
   ray_vector(coefficient_field(PF), view(pm_object(PF).RAYS, i, :))::U
@@ -118,7 +118,7 @@ the 3-cube and use that `maximal_cones` returns an iterator.
 julia> PF = face_fan(cube(3));
 
 julia> for c in maximal_cones(PF)
-       println(nrays(c))
+         println(n_rays(c))
        end
 4
 4
@@ -292,19 +292,19 @@ julia> ambient_dim(normal_fan(cube(4)))
 ambient_dim(PF::_FanLikeType) = pm_object(PF).FAN_AMBIENT_DIM::Int
 
 @doc raw"""
-    nrays(PF::PolyhedralFan)
+    n_rays(PF::PolyhedralFan)
 
 Return the number of rays of `PF`.
 
 # Examples
 The 3-cube has 8 vertices. Accordingly, its face fan has 8 rays.
 ```jldoctest
-julia> nrays(face_fan(cube(3)))
+julia> n_rays(face_fan(cube(3)))
 8
 ```
 """
-nrays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _nrays(PF) : 0
-_nrays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
+n_rays(PF::_FanLikeType) = lineality_dim(PF) == 0 ? _n_rays(PF) : 0
+_n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 
 
 @doc raw"""
@@ -318,7 +318,7 @@ The f-vector of the normal fan of a polytope is the reverse of the f-vector of
 the polytope.
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> f_vector(c)
 3-element Vector{ZZRingElem}:
@@ -553,7 +553,7 @@ julia> primitive_collections(normal_fan(simplex(3)))
 function primitive_collections(PF::_FanLikeType)
     @req is_simplicial(PF) "PolyhedralFan must be simplicial."
     I = ray_indices(maximal_cones(PF))
-    K = SimplicialComplex(I)
+    K = simplicial_complex(I)
     return minimal_nonfaces(K)
 end
 

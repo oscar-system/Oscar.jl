@@ -7,19 +7,19 @@ Ky, y = K["y"]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
-Fin, d = finite_field(t^2 + t + 1)
+Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
+Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = tropical_semiring()
-F, o  = Hecke.Nemo._FiniteField(4)
+F, o  = finite_field(4)
 Fs, s = F["s"]
-FF, r = Hecke.Nemo._FiniteField(s^2 + o * s + 1, "r")
+FF, r = finite_field(s^2 + o * s + 1, "r")
 
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
   (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
-  (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
+  (residue_ring(ZZ, 6)[1], 3, 5, "Integers Modulo 6"),
   (L, e, f, "Non Simple Extension"),
   (K, a, a + 1, "Simple Extension"),
   (Tow, a^2 * b, a + b, "Tower Extension"),
@@ -39,6 +39,23 @@ cases = [
       i = Oscar.ideal(QQ[:x, :y][1], [])
       test_save_load_roundtrip(path, i) do loaded
         @test loaded == i
+      end
+    end
+
+    @testset "Graded Ring" begin
+      R, (x, y) = QQ[:x, :y]
+      A = [1 3; 2 1]
+      M, (m1, m2) = grade(R, A)
+
+      test_save_load_roundtrip(path, m1 * m2) do loaded
+        @test loaded == m1 * m2
+        @test grading_group(parent(loaded)) == grading_group(M)
+      end
+
+      GM, _ = grade(M, A)
+      test_save_load_roundtrip(path, GM) do loaded
+        @test loaded == GM
+        @test forget_grading(loaded) == forget_grading(GM)
       end
     end
 
@@ -72,7 +89,7 @@ cases = [
 
         if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
           @testset "MPoly Ideals over $(case[4])" begin
-            q = w^2 + z
+            q = z
             i = Oscar.ideal(R, [p, q])
             test_save_load_roundtrip(path, i) do loaded_i
               S = parent(loaded_i[1])
@@ -83,6 +100,17 @@ cases = [
             S = parent(i[1])
             test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test i == loaded_i
+            end
+
+            gb = groebner_basis(i)
+            test_save_load_roundtrip(path, gb;) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
+            end
+
+            test_save_load_roundtrip(path, gb; params=S) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
             end
           end
         end

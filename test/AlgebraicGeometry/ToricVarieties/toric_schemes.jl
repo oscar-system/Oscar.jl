@@ -4,8 +4,8 @@
   antv = affine_normal_toric_variety(C)
   
   @testset "A simplicial (and not smooth) affine toric scheme" begin
-    @test is_smooth(underlying_scheme(antv)) == is_smooth(antv)
-    @test dim(underlying_scheme(antv)) == dim(antv)
+    @test is_smooth(Oscar.underlying_scheme(antv)) == is_smooth(antv)
+    @test dim(Oscar.underlying_scheme(antv)) == dim(antv)
     @test polarize(cone(antv)) == weight_cone(antv)
     @test ngens(ambient_coordinate_ring(antv)) == nrows(hilbert_basis(antv)) == 3
   end
@@ -13,8 +13,8 @@
   X = hirzebruch_surface(NormalToricVariety, 3)
   
   @testset "Toric Scheme of Hirzebruch surface F3" begin
-    @test is_smooth(underlying_scheme(X)) == is_smooth(X)
-    @test dim(underlying_scheme(X)) == dim(X)
+    @test is_smooth(Oscar.underlying_scheme(X)) == is_smooth(X)
+    @test dim(Oscar.underlying_scheme(X)) == dim(X)
   end
   
   IP1 = projective_space(NormalToricVariety, 1)
@@ -22,8 +22,8 @@
   Y = IP1*IP1
   
   @testset "Product of projective spaces" begin
-    @test is_smooth(underlying_scheme(Y)) == is_smooth(Y)
-    @test length(values(glueings(default_covering(Y)))) == 16
+    @test is_smooth(Oscar.underlying_scheme(Y)) == is_smooth(Y)
+    @test length(values(gluings(default_covering(Y)))) == 16
   end
 
   IP2 = projective_space(NormalToricVariety, 2)
@@ -34,7 +34,7 @@
     @test X isa CoveredScheme
     @test codomain(iso) === IP2
     @test is_smooth(X) == is_smooth(IP2)
-    @test length(keys(glueings(default_covering(X)))) == 9
+    @test length(keys(gluings(default_covering(X)))) == 9
     @test domain(iso) === X
     @test codomain(iso) === IP2
     @test domain(inverse(iso)) === IP2
@@ -89,34 +89,67 @@
   II = IdealSheaf(IP2, I)
 
   @testset "Blowups that leave the toric setting" begin
-    @test is_surjective(grid_morphism(underlying_morphism(bl)))
-    @test is_injective(grid_morphism(underlying_morphism(bl)))
+    @test is_surjective(grid_morphism(Oscar.underlying_morphism(bl)))
+    @test is_injective(grid_morphism(Oscar.underlying_morphism(bl)))
     @test length(Oscar.maximal_associated_points(pullback(bl,II))) == 3
     @test length(Oscar.maximal_associated_points(strict_transform(bl, II))) == 2
   end
 end
 
-@testset "Lazy glueings" begin
+@testset "Lazy gluings" begin
   f = polyhedral_fan(IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
-  n_maximal_cones(f)
+  number_of_maximal_cones(f)
   ntv = normal_toric_variety(f)
-  X = underlying_scheme(ntv)
-  for g in values(glueings(default_covering(X)))
-    @test !(g isa Oscar.LazyGlueing) || !isdefined(g, :G)
+  X = Oscar.underlying_scheme(ntv)
+  for g in values(gluings(default_covering(X)))
+    @test !(g isa Oscar.LazyGluing) || !isdefined(g, :G)
   end
 
-  for g in values(glueings(default_covering(X)))
-    g isa Oscar.LazyGlueing || continue
-    g_sub = underlying_glueing(g)
-    @test g_sub isa Oscar.SimpleGlueing
+  for g in values(gluings(default_covering(X)))
+    g isa Oscar.LazyGluing || continue
+    g_sub = Oscar.underlying_gluing(g)
+    @test g_sub isa Oscar.SimpleGluing
     @test g_sub === g.G
   end
 end
 
 @testset "toric divisors to weil divisors" begin
-  IP = weighted_projective_space(NormalToricVariety, [3, 4, 23])
+  IP = weighted_projective_space(NormalToricVariety, [3, 2, 5])
   w = canonical_divisor(IP)
   D = Oscar.underlying_divisor(w; check=true)
+  D2 = Oscar.underlying_divisor(w; algorithm=:via_polymake, check=true)
+  D3 = Oscar.underlying_divisor(w; algorithm=:via_oscar, check=true)
+  @test D == D2 == D3
+
   @test w == forget_toric_structure(w)
-  @test w + D == 2*w
+  @test w + D == 2*Oscar.underlying_divisor(w)
+
+  prim = Oscar._torusinvariant_weil_divisors(IP; check=true)
+  # Delete the cache manually
+  delete!(IP.__attrs, :_torusinvariant_weil_divisors)
+  prim2 = Oscar._torusinvariant_weil_divisors(IP; check=true, algorithm=:via_oscar)
+  @test prim == prim2
+  @test prim[1] !== prim2[1]
+
+  D = WeilDivisor(Oscar._ideal_sheaf_via_polymake(IP, ZZ.([2, 3, 7])))
+  D2 = 2 * prim[1] + 3 * prim[2] + 7 * prim[3]
+  
+  @test is_effective(D)
+  @test is_effective(D2)
+
+  #@test D == D2 # Test takes too long
+  IP = projective_space(NormalToricVariety, 1)
+  w = canonical_divisor(IP)
+  K0 = Oscar.underlying_divisor(w, algorithm=:via_polymake)
+  delete!(w.__attrs, :underlying_divisor)
+  K1 = Oscar.underlying_divisor(w, algorithm=:direct)
+  delete!(w.__attrs, :underlying_divisor)
+  K2 = Oscar.underlying_divisor(w, algorithm=:via_oscar)
+  delete!(w.__attrs, :underlying_divisor)
+  
+  @test K1 == K2
+  @test K1 == K0
+  @test K2 == K0
+  
+  @test w == Oscar.underlying_divisor(w)
 end

@@ -255,8 +255,8 @@
             @test is_regular(M) == values[8]
             @test is_binary(M) == values[9]
             @test is_ternary(M) == values[10]
-            @test n_connected_components(M) == length(connected_components(M))
-            @test is_connected(M) == (n_connected_components(M)<2)
+            @test number_of_connected_components(M) == length(connected_components(M))
+            @test is_connected(M) == (number_of_connected_components(M) < 2)
             @test is_simple(M) == values[11]
         end      
     

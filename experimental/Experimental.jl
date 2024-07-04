@@ -12,13 +12,13 @@ const oldexppkgs = [
   "Schemes",
 ]
 # DEVELOPER OPTION:
-# The following lines ensure that ToricSchemes is loaded before FTheoryTools.
+# If an experimental package A depends on another experimental package B, one
+# can add `"B", "A"` to `orderedpkgs` below to ensure that B is loaded before A.
 # DO NOT USE THIS UNLESS YOU KNOW THE CONSEQUENCES.
 # For more background, see https://github.com/oscar-system/Oscar.jl/issues/2300.
 const orderedpkgs = [
-  "JuLie",
-  "IntersectionTheory",
-  "OrthogonalDiscriminants",  # needs code from JuLie
+  "LieAlgebras",
+  "BasisLieHighestWeight",   # nees code from LieAlgebras
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in oldexppkgs) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
@@ -58,9 +58,9 @@ include("Schemes/AlgebraicCycles.jl")
 include("Schemes/WeilDivisor.jl")
 include("Schemes/CoveredProjectiveSchemes.jl")
 
-include("Schemes/SimplifiedSpec.jl")
+include("Schemes/SimplifiedAffineScheme.jl")
 include("Schemes/CoherentSheaves.jl")
-include("Schemes/LazyGlueing.jl")
+include("Schemes/LazyGluing.jl")
 include("Schemes/CartierDivisor.jl")
 include("Schemes/Auxiliary.jl")
 include("Schemes/BlowupMorphism.jl")
@@ -82,4 +82,6 @@ include("Schemes/ToricBlowups/attributes.jl")
 include("Schemes/ToricBlowups/methods.jl")
 
 include("ExteriorAlgebra/ExteriorAlgebra.jl")
+
+include("Schemes/DerivedPushforward.jl")
 

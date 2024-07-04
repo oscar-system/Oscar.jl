@@ -112,6 +112,8 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
     return "Special linear Lie algebra of degree $n"
   elseif type == :special_orthogonal
     return "Special orthogonal Lie algebra of degree $n"
+  elseif type == :symplectic
+    return "Symplectic Lie algebra of degree $n"
   else
     return "Linear Lie algebra with $(n)x$(n) matrices"
   end
@@ -191,7 +193,7 @@ end
 @doc raw"""
     lie_algebra(R::Field, n::Int, basis::Vector{<:MatElem{elem_type(R)}}, s::Vector{<:VarName}; cached::Bool) -> LinearLieAlgebra{elem_type(R)}
 
-Construct the Lie algebra over the ring `R` with basis `basis` and basis element names
+Construct the Lie algebra over the field `R` with basis `basis` and basis element names
 given by `s`. The basis elements must be square matrices of size `n`.
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
 two basis elements in its span.
@@ -225,7 +227,7 @@ end
     abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
     abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
 
-Return the abelian Lie algebra of dimension `n` over the ring `R`.
+Return the abelian Lie algebra of dimension `n` over the field `R`.
 The first argument can be optionally provided to specify the type of the returned
 Lie algebra.
 """
@@ -246,7 +248,8 @@ end
 @doc raw"""
     general_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
-Return the general linear Lie algebra $\mathfrak{gl}_n(R)$.
+Return the general linear Lie algebra $\mathfrak{gl}_n(R)$,
+i.e., the Lie algebra of all $n \times n$ matrices over the field `R`.
 
 # Examples
 ```jldoctest
@@ -281,7 +284,8 @@ end
 @doc raw"""
     special_linear_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
 
-Return the special linear Lie algebra $\mathfrak{sl}_n(R)$.
+Return the special linear Lie algebra $\mathfrak{sl}_n(R)$,
+i.e., the Lie algebra of all $n \times n$ matrices over the field `R` with trace zero.
 
 # Examples
 ```jldoctest
@@ -317,37 +321,193 @@ function special_linear_lie_algebra(R::Field, n::Int)
   return L
 end
 
+function _lie_algebra_basis_from_form(R::Field, n::Int, form::MatElem)
+  invform = inv(form)
+  eqs = zero_matrix(R, n^2, n^2)
+  for i in 1:n, j in 1:n
+    x = zero_matrix(R, n, n)
+    x[i, j] = 1
+    eqs[(i-1) * n + j, :] = _vec(x + invform * transpose(x) * form)
+  end
+  ker = kernel(eqs)
+  rref!(ker) # we cannot assume anything about the kernel, but want to have a consistent output
+  dim = nrows(ker)
+  basis = [zero_matrix(R, n, n) for _ in 1:dim]
+  for i in 1:n
+    for k in 1:dim
+      basis[k][i, 1:n] = ker[k, (i-1) * n .+ (1:n)]
+    end
+  end
+  return basis
+end
+
 @doc raw"""
     special_orthogonal_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    special_orthogonal_lie_algebra(R::Field, n::Int, gram::MatElem) -> LinearLieAlgebra{elem_type(R)}
+    special_orthogonal_lie_algebra(R::Field, n::Int, gram::Matrix) -> LinearLieAlgebra{elem_type(R)}
 
 Return the special orthogonal Lie algebra $\mathfrak{so}_n(R)$.
 
+Given a non-degenerate symmetric bilinear form $f$ via its Gram matrix `gram`,
+$\mathfrak{so}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
+such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
+
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+is used, and for $n = 2k + 1$ the form defined by $\begin{matrix} 1 & 0 & 0 \\ 0 & 0 I_k \\ 0 & I_k & 0 \end{matrix}$.
+
 # Examples
 ```jldoctest
-julia> L = special_orthogonal_lie_algebra(QQ, 3)
+julia> L1 = special_orthogonal_lie_algebra(QQ, 4)
+Special orthogonal Lie algebra of degree 4
+  of dimension 6
+over rational field
+
+julia> basis(L1)
+6-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ x_1
+ x_2
+ x_3
+ x_4
+ x_5
+ x_6
+
+julia> matrix_repr_basis(L1)
+6-element Vector{QQMatrix}:
+ [1 0 0 0; 0 0 0 0; 0 0 -1 0; 0 0 0 0]
+ [0 1 0 0; 0 0 0 0; 0 0 0 0; 0 0 -1 0]
+ [0 0 0 1; 0 0 -1 0; 0 0 0 0; 0 0 0 0]
+ [0 0 0 0; 1 0 0 0; 0 0 0 -1; 0 0 0 0]
+ [0 0 0 0; 0 1 0 0; 0 0 0 0; 0 0 0 -1]
+ [0 0 0 0; 0 0 0 0; 0 1 0 0; -1 0 0 0]
+
+julia> L2 = special_orthogonal_lie_algebra(QQ, 3, identity_matrix(QQ, 3))
 Special orthogonal Lie algebra of degree 3
   of dimension 3
 over rational field
 
-julia> basis(L)
+julia> basis(L2)
 3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
- x_1_2
- x_1_3
- x_2_3
+ x_1
+ x_2
+ x_3
 
-julia> matrix_repr_basis(L)
+julia> matrix_repr_basis(L2)
 3-element Vector{QQMatrix}:
  [0 1 0; -1 0 0; 0 0 0]
  [0 0 1; 0 0 0; -1 0 0]
  [0 0 0; 0 0 1; 0 -1 0]
 ```
 """
-function special_orthogonal_lie_algebra(R::Field, n::Int)
-  basis = [
-    (b = zero_matrix(R, n, n); b[i, j] = 1; b[j, i] = -1; b) for i in 1:n for j in (i + 1):n
-  ]
-  s = ["x_$(i)_$(j)" for i in 1:n for j in (i + 1):n]
+special_orthogonal_lie_algebra
+
+function special_orthogonal_lie_algebra(R::Field, n::Int, gram::MatElem)
+  form = map_entries(R, gram)
+  @req size(form) == (n, n) "Invalid matrix dimensions"
+  @req is_symmetric(form) "Bilinear form must be symmetric"
+  @req is_invertible(form) "Bilinear form must be non-degenerate"
+  basis = _lie_algebra_basis_from_form(R, n, form)
+  dim = length(basis)
+  @assert characteristic(R) != 0 || dim == div(n^2 - n, 2)
+  s = ["x_$(i)" for i in 1:dim]
   L = lie_algebra(R, n, basis, s; check=false)
-  set_attribute!(L, :type => :special_orthogonal)
+  set_attribute!(L, :type => :special_orthogonal, :form => form)
   return L
+end
+
+function special_orthogonal_lie_algebra(R::Field, n::Int, gram::Matrix)
+  return special_orthogonal_lie_algebra(R, n, matrix(R, gram))
+end
+
+function special_orthogonal_lie_algebra(R::Field, n::Int)
+  if is_even(n)
+    k = div(n, 2)
+    form = zero_matrix(R, n, n)
+    form[1:k, k .+ (1:k)] = identity_matrix(R, k)
+    form[k .+ (1:k), 1:k] = identity_matrix(R, k)
+  else
+    k = div(n - 1, 2)
+    form = zero_matrix(R, n, n)
+    form[1, 1] = one(R)
+    form[1 .+ (1:k), 1 + k .+ (1:k)] = identity_matrix(R, k)
+    form[1 + k .+ (1:k), 1 .+ (1:k)] = identity_matrix(R, k)
+  end
+  return special_orthogonal_lie_algebra(R, n, form)
+end
+
+@doc raw"""
+    symplectic_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    symplectic_lie_algebra(R::Field, n::Int, gram::MatElem) -> LinearLieAlgebra{elem_type(R)}
+    symplectic_lie_algebra(R::Field, n::Int, gram::Matrix) -> LinearLieAlgebra{elem_type(R)}
+
+Return the symplectic Lie algebra $\mathfrak{sp}_n(R)$.
+
+Given a non-degenerate skew-symmetric bilinear form $f$ via its Gram matrix `gram`,
+$\mathfrak{sp}_n(R)$ is the Lie algebra of all $n \times n$ matrices $x$ over the field `R`
+such that $f(xv, w) = -f(v, xw)$ for all $v, w \in R^n$.
+
+If `gram` is not provided, for $n = 2k$ the form defined by $\begin{matrix} 0 & I_k \\ -I_k & 0 \end{matrix}$
+is used.
+For odd $n$ there is no non-degenerate skew-symmetric bilinear form on $R^n$.
+
+# Examples
+```jldoctest
+julia> L = symplectic_lie_algebra(QQ, 4)
+Symplectic Lie algebra of degree 4
+  of dimension 10
+over rational field
+
+julia> basis(L)
+10-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ x_1
+ x_2
+ x_3
+ x_4
+ x_5
+ x_6
+ x_7
+ x_8
+ x_9
+ x_10
+
+julia> matrix_repr_basis(L)
+10-element Vector{QQMatrix}:
+ [1 0 0 0; 0 0 0 0; 0 0 -1 0; 0 0 0 0]
+ [0 1 0 0; 0 0 0 0; 0 0 0 0; 0 0 -1 0]
+ [0 0 1 0; 0 0 0 0; 0 0 0 0; 0 0 0 0]
+ [0 0 0 1; 0 0 1 0; 0 0 0 0; 0 0 0 0]
+ [0 0 0 0; 1 0 0 0; 0 0 0 -1; 0 0 0 0]
+ [0 0 0 0; 0 1 0 0; 0 0 0 0; 0 0 0 -1]
+ [0 0 0 0; 0 0 0 1; 0 0 0 0; 0 0 0 0]
+ [0 0 0 0; 0 0 0 0; 1 0 0 0; 0 0 0 0]
+ [0 0 0 0; 0 0 0 0; 0 1 0 0; 1 0 0 0]
+ [0 0 0 0; 0 0 0 0; 0 0 0 0; 0 1 0 0]
+```
+"""
+symplectic_lie_algebra
+
+function symplectic_lie_algebra(R::Field, n::Int, gram::MatElem)
+  form = map_entries(R, gram)
+  @req size(form) == (n, n) "Invalid matrix dimensions"
+  @req is_skew_symmetric(form) "Bilinear form must be skew-symmetric"
+  @req is_even(n) && is_invertible(form) "Bilinear form must be non-degenerate"
+  basis = _lie_algebra_basis_from_form(R, n, form)
+  dim = length(basis)
+  @assert characteristic(R) != 0 || dim == div(n^2 + n, 2)
+  s = ["x_$(i)" for i in 1:dim]
+  L = lie_algebra(R, n, basis, s; check=false)
+  set_attribute!(L, :type => :symplectic, :form => form)
+  return L
+end
+
+function symplectic_lie_algebra(R::Field, n::Int, gram::Matrix)
+  return symplectic_lie_algebra(R, n, matrix(R, gram))
+end
+
+function symplectic_lie_algebra(R::Field, n::Int)
+  @req is_even(n) "Dimension must be even"
+  k = div(n, 2)
+  form = zero_matrix(R, n, n)
+  form[1:k, k .+ (1:k)] = identity_matrix(R, k)
+  form[k .+ (1:k), 1:k] = -identity_matrix(R, k)
+  return symplectic_lie_algebra(R, n, form)
 end

@@ -112,7 +112,7 @@ Construct the normal toric variety $X_{PF}$ corresponding to a polyhedral fan `P
 Take `PF` to be the normal fan of the square.
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> nf = normal_fan(square)
 Polyhedral fan in ambient dimension 2
@@ -141,7 +141,7 @@ from the affine relations of the lattice points in `P`, if `P` is very ample.
 Set `P` to be a square.
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> ntv = normal_toric_variety(square)
 Normal toric variety
