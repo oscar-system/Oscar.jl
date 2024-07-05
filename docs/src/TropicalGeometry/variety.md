@@ -38,6 +38,3 @@ vertices_and_rays(TropV::TropicalVariety)
 vertices(TropV::TropicalVariety)
 visualize(TropV::TropicalVariety)
 ```
-
-## Examples
-I am working on creating some examples.
