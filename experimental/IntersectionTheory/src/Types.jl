@@ -3,7 +3,46 @@ const MPolyDecRingOrQuo = Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
 const MPolyDecRingOrQuoElem = Union{MPolyDecRingElem, MPolyQuoRingElem}
 
 abstract type Bundle end
+
+
+@doc raw"""
+     parent(F::AbstractBundle)
+
+Return the underlying abstract variety of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> parent(Q) == G
+true
+
+```
+"""
 Base.parent(F::Bundle) = F.parent
+
+@doc raw"""
+     rank(F::AbstractBundle)
+
+Return the rank of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> rank(symmetric_power(Q,3))
+4
+
+```
+"""
 rank(F::Bundle) = F.rank
 
 abstract type Variety end
