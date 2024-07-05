@@ -12,9 +12,9 @@ Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = tropical_semiring()
-F, o  = finite_field(4)
+F  = GF(2, 2)
 Fs, s = F["s"]
-FF, r = finite_field(s^2 + o * s + 1, "r")
+FF, r = finite_field(s^2 + gen(F) * s + 1, "r")
 
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),

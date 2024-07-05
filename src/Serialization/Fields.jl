@@ -233,7 +233,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, parent::FqField)
   load_node(s) do str
-    return load_object(s, ZZRingElem, str)
+    return parent(parse(ZZRingElem, str))
   end
 end
 
