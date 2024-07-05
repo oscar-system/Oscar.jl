@@ -592,11 +592,11 @@ on the right cosets of its subgroup `representative(parent(chi), i)`.
 ```jldoctest
 julia> tom = table_of_marks("A5");  tbl = character_table(tom);
 
-julia> chi = tom[3]
-marks_vector(table of marks of A5, ZZRingElem[20, 0, 2])
+julia> chi = tom[5]
+marks_vector(table of marks of A5, ZZRingElem[12, 0, 0, 0, 2])
 
-julia> values(restrict(chi, tbl))
-QQAbElem{AbsSimpleNumFieldElem}[20, 0, 2, 0, 0]
+julia> println(values(restrict(chi, tbl)))
+QQAbElem{AbsSimpleNumFieldElem}[12, 0, 0, 2, 2]
 ```
 """
 function restrict(chi::GAPGroupMarksVector, tbl::GAPGroupCharacterTable)

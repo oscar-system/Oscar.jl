@@ -348,7 +348,7 @@ function character_table(id::String, p::Int = 0)
       return mod(tbl, p)
     end
     # normalize `id`
-    info = GAP.Globals.LibInfoCharacterTable(GapObj(id))
+    info = GAPWrap.LibInfoCharacterTable(GapObj(id))
     if info !== GAP.Globals.fail
       id = string(info.firstName)
     end
@@ -1454,7 +1454,7 @@ Dict{Symbol, Vector{Int64}} with 2 entries:
 """
 function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
   @req characteristic(tbl) == 0 "character table must be ordinary"
-  blocks = GAP.Globals.PrimeBlocks(GapObj(tbl), GAP.Obj(p))
+  blocks = GAPWrap.PrimeBlocks(GapObj(tbl), GAP.Obj(p))
   return Dict(:defect => Vector{Int}(blocks.defect),
               :block => Vector{Int}(blocks.block))
 end
@@ -2056,7 +2056,7 @@ function natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where 
     p = characteristic(base_ring(G))
     tbl = character_table(G, p)
     ccl = conjugacy_classes(tbl)
-    vals = [GAP.Globals.BrauerCharacterValue(representative(x).X) for x in ccl]
+    vals = [GAPWrap.BrauerCharacterValue(representative(x).X) for x in ccl]
     vals = GAPWrap.ClassFunction(GapObj(tbl), GapObj(vals))
 
     return class_function(G, vals)
@@ -2103,7 +2103,7 @@ function natural_character(rho::GAPGroupHomomorphism)
         # Brauer character
         modtbl = mod(tbl, p)
         ccl = conjugacy_classes(modtbl)  # p-regular classes
-        vals = [GAP.Globals.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
+        vals = [GAPWrap.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
         vals = GAPWrap.ClassFunction(GapObj(modtbl), GapObj(vals))
       end
     else
