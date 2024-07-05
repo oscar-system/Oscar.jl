@@ -277,6 +277,9 @@ end
   @test GapObj(t) === t.GAPTable
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
+
+  d = Dict(t => 0)
+  @test t in keys(d)
 end
 
 @testset "attributes of tables of marks" begin
@@ -308,8 +311,11 @@ end
   @test coordinates(sum(t)) == ones(ZZRingElem, length(t))
   chi = t[2]
   @test chi isa Oscar.GAPGroupMarksVector
+  @test group(chi) === g
+  @test GapObj([chi], recursive = true)[1] == GapObj(values(chi))
   @test chi[4] == t[2,4]
   @test [chi[i] for i in 1:2] == values(chi)
+  @test [2*chi[i] for i in 1:2] == values(2 * chi)
   @test [2*chi[i] for i in 1:2] == values(chi + chi)
   @test [chi[i]^2 for i in 1:2] == values(chi * chi)
   @test chi * t[end] == chi
@@ -325,6 +331,9 @@ end
   @test res isa Vector{ZZRingElem}
   @test coordinates(Int, chi) isa Vector{Int}
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
+
+  d = Dict(chi => 0)
+  @test chi in keys(d)
 end
 
 @testset "restriction to the character table" begin
