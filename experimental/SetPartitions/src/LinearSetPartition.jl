@@ -19,7 +19,7 @@ struct LinearSetPartition{S <: AbstractPartition, T <: RingElement}
     coefficients :: Dict{S, T}
 
     function LinearSetPartition{S, T}(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElement}
-        new(simplify_operation_zero(coeffs))
+        return new(simplify_operation_zero(coeffs))
     end
 end 
 
@@ -36,7 +36,7 @@ julia> linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(4), set_partitio
 LinearSetPartition(Dict(set_partition([1, 2], [1, 1]) => S(4), set_partition([1, 1], [1, 1]) => 4*d))
 """
 function linear_partition(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElement}
-    LinearSetPartition{S, T}(coeffs)
+    return LinearSetPartition{S, T}(coeffs)
 end
 
 """
@@ -46,7 +46,7 @@ Get the constructor field `coefficients`, the partition term, in form of a `Dict
 `SetPartition` to coefficient.
 """ 
 function get_coefficients(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
-    p.coefficients
+    return p.coefficients
 end
 
 function hash(p::LinearSetPartition, h::UInt)
@@ -55,7 +55,7 @@ end
 
 function ==(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-        get_coefficients(p) == get_coefficients(q)
+        return get_coefficients(p) == get_coefficients(q)
 end
 
 function deepcopy_internal(p::LinearSetPartition, stackdict::IdDict)
@@ -76,7 +76,7 @@ into disjoint subsets. See Section 4.1.1 in [Gro20](@cite).
 # NICOLAS paper LinearSetPartitions (find da aber vllt selber was muss ja nur bei Moritz gucken)
 """
 function LinearSetPartition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
-    linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
+    return linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
 end
 
 """
@@ -96,7 +96,7 @@ LinearSetPartition(Dict(set_partition([1, 1], [1, 1]) => 4 + 4*d))
 ```
 """
 function linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
-    LinearSetPartition(term)
+    return LinearSetPartition(term)
 end
 
 """
@@ -125,12 +125,12 @@ function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
         get_coefficients(result)[i[1]] = get(get_coefficients(result), i[1], 0) + i[2]
     end
     
-    linear_partition(get_coefficients(result))
+    return linear_partition(get_coefficients(result))
 end
 
 function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    add(p, q)
+    return add(p, q)
 end
 
 """
@@ -157,12 +157,12 @@ function scale(a::RingElement, p::LinearSetPartition{S, T}) where
     for (i, n) in pairs(get_coefficients(p))
         result[i] = a * n
     end
-    linear_partition(result)
+    return linear_partition(result)
 end 
 
 function *(a::RingElement, p::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    scale(a, p)
+    return scale(a, p)
 end
 
 """ nur composition TODO
@@ -195,7 +195,7 @@ function compose(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T)
             result[composition] = get(result, composition, 0) + new_coefficient
         end
     end
-    linear_partition(result)
+    return linear_partition(result)
 end 
 
 """
@@ -230,13 +230,12 @@ function tensor_product(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}
         end
     end
 
-    linear_partition(result)
-    
+    return linear_partition(result)
 end 
 
 function ⊗(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    tensor_product(p, q)
+    return tensor_product(p, q)
 end
 
 """
@@ -257,10 +256,10 @@ LinearSetPartition(Dict(SetPartition([1, 1], [1, 1]) => S(0)))
 """
 function subtract(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    add(p, scale(-1, q))
+    return add(p, scale(-1, q))
 end 
 
 function -(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
     { S <: AbstractPartition, T <: RingElement }
-    subtract(p, q)
+    return subtract(p, q)
 end 
