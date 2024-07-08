@@ -12,6 +12,7 @@ Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = tropical_semiring()
+PF = GF(7)
 F  = GF(2, 2)
 Fs, s = F["s"]
 FF, r = finite_field(s^2 + gen(F) * s + 1, "r")
@@ -28,6 +29,7 @@ cases = [
   (Qu, u, 1 // u, "RationalFunctionField"),
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
+  (PF, PF(1), PF(6), "Default Prime Field"),
   (FF, FF(1), r, "Default Finite Field"),
   (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
