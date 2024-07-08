@@ -59,11 +59,9 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export get_term
+export get_coefficients
 export add
 export scale
-export linear_composition
-export linear_tensor_product
 export subtract
 
 
@@ -75,7 +73,7 @@ include("ColoredPartition.jl")
 include("SpatialPartition.jl")
 include("PartitionProperties.jl")
 include("GenerateCategory.jl")
-include("LinearCombinations.jl")
+include("LinearSetPartition.jl")
 end
 
 using .SetPartitions
@@ -114,9 +112,7 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export get_term
+export get_coefficients
 export add
 export scale
-export linear_composition
-export linear_tensor_product
 export subtract
