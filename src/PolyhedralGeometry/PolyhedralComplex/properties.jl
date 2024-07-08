@@ -587,6 +587,29 @@ function _ith_polyhedron(
   )
 end
 
+@doc raw"""
+    lineality_space(PC::PolyhedralComplex)
+
+Return the lineality space of `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
+Polyhedral complex in ambient dimension 3
+
+julia> lineality_space(PC)
+1-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 0, 1]
+```
+"""
 lineality_space(PC::PolyhedralComplex{T}) where {T<:scalar_types} =
   SubObjectIterator{RayVector{T}}(PC, _lineality_complex, lineality_dim(PC))
 
@@ -604,6 +627,28 @@ _generator_matrix(::Val{_lineality_complex}, PC::PolyhedralComplex; homogenized=
 
 _matrix_for_polymake(::Val{_lineality_complex}) = _generator_matrix
 
+@doc raw"""
+    lineality_dim(PC::PolyhedralComplex)
+
+Return the lineality dimension of `PC`.
+
+# Examples
+```jldoctest
+julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
+
+julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+
+julia> far_vertices = [2,3,4];
+
+julia> L = [0 0 1];
+
+julia> PC = polyhedral_complex(IM, VR, far_vertices, L)
+Polyhedral complex in ambient dimension 3
+
+julia> lineality_dim(PC)
+1
+```
+"""
 lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
 
 @doc raw"""
