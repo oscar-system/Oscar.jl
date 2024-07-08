@@ -1079,13 +1079,16 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   sch = det(matrix(S, M)) # Jacobi-Trudi
   R = X.ring
   if R isa MPolyQuoRing
-    StoX = hom(S, R.R.R, [wi.f.f for wi in w])
-    return AbstractBundle(X, X(R.R(StoX(sch))))
+    # StoX = hom(S, R.R.R, [wi.f.f for wi in w])
+    StoX = hom(S, base_ring(R).R, [wi.f.f for wi in w])
+    # return AbstractBundle(X, X(R.R(StoX(sch))))
+    return AbstractBundle(X, X(base_ring(R)(StoX(sch))))
   else
     StoX = hom(S, R.R, [wi.f for wi in w])
     return AbstractBundle(X, X(StoX(sch)))
   end
 end
+
 function giambelli(F::AbstractBundle, λ::Vector{Int})
   R = F.parent.ring
   M = [chern_class(F, λ[i]-i+j).f for i in 1:length(λ), j in 1:length(λ)]
@@ -1450,9 +1453,28 @@ complete_intersection(X::AbstractVariety, degs::Vector{Int}) = (
 @doc raw"""
     degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
 
-Return the `k`-degeneracy locus of a general map from `F` to `G`.
+Return the `k`-th degeneracy locus of a general map from `F` to `G`.
 
-Use the argument `class = true` to only compute the class of the degeneracy locus.
+Use the argument `class = true` to only compute the class of the degeneracy locus (Porteous' formula).
+
+# Examples
+```jldoctest
+julia> P4 = abstract_projective_space(4, symbol = "H")
+AbstractVariety of dim 4
+
+julia> F = 2*OO(P4, -1)
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> G = OO(P4)+2*OO(P4, 1)
+AbstractBundle of rank 3 on AbstractVariety of dim 4
+
+julia> CZ = degeneracy_locus(1,F, G, class = true)
+8*H^2
+
+julia> CZ == chern_class(G-F, 2) # Porteous' formula
+true
+
+```
 """
 function degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
   F, G = _coerce(F, G)
@@ -1574,7 +1596,7 @@ end
 @doc raw"""
     abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
 
-Return the projective bundle of 1-dimensional subspaces of `F`.
+Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
 
 # Examples
 ```jldoctest
@@ -1746,12 +1768,12 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    abstract_flag_variety(d::Int, F::AbstractBundle)
-    abstract_flag_variety(dims::Vector{Int}, F::AbstractBundle)
+    abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c")
+    abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
 
-Construct the relative flag abstract_variety of a bundle $F$, parametrizing
-flags of subspaces $V_{d_1}\subset V_{d_2}\subset\cdots\subset V_{d_k}$. The
-last dimension (i.e., the rank of $F$) can be omitted.
+Given integers, say, $d_1, \dots, d_{k}$ or a vector of such integers, and given an
+abstract bundle $F$, return the abstract flag variety (flag bundle) of nested sequences 
+of subspaces of dimensions $d_1; \dots, d_{k}$ in the fibers of $F$.
 """
 function abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c") abstract_flag_variety(F, [d], symbol=symbol) end
 function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
@@ -1770,11 +1792,17 @@ function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::Str
   # FIXME ordering
   # construct the ring
   R = X.ring
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(R.R)))
+  if R isa MPolyQuoRing
+    PR = base_ring(R)
+  else
+    PR = R
+  end
+  # syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(R.R)))
+  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(PR)))
   # ord = prod(ordering_dp(r) for r in ranks) * ordering(X.ring.R.R)
   w = vcat([collect(1:r) for r in ranks]..., gradings(R))
   R1 = graded_polynomial_ring(X.base, syms, w)[1]
-  pback = hom(R, R1, gens(R1)[n+1:end])
+  pback = hom(R, R1, gens(R1)[n+1:end])   # FIXME should always be well-defined
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
   
   # compute the relations

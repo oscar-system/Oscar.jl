@@ -32,10 +32,18 @@ abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::
 abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
 ```
 
-## New Varieties From Given Varieties/Bundles
+### New Varieties From Given Varieties/Bundles
 
 ```@docs
 complete_intersection(X::AbstractVariety, degs::Int...)
+```
+
+```@docs
+abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
+```
+
+```@docs
+abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c")
 ```
 
 ```@docs
@@ -44,10 +52,6 @@ zero_locus_section(F::AbstractBundle; class::Bool = false)
 
 ```@docs
 degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
-```
-
-```@docs
-abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
 ```
 
 !!! note
