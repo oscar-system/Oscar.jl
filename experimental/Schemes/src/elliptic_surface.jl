@@ -347,10 +347,11 @@ Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
     end
     r = 1
     i = 0
+    dp = typeof(O)[]
     while true
       i = i+1
       @vprint :EllipticSurface 2 "computing $(p^i)-torsion"
-      global dp = division_points(O, p^i)
+      dp = division_points(O, p^i)
       if length(dp) == r
         break
       end
@@ -438,7 +439,7 @@ function weierstrass_model(X::EllipticSurface)
   a = [numerator(a)(t) for a in a]
   (a1,a2,a3,a4,a6) = a
   ft = y^2  + a1*x*y + a3*y - (x^3 + a2*x^2 + a4*x+a6)
-  I = IdealSheaf(P, U, [ft])
+  I = IdealSheaf(P, U, [ft]; check=false)
 
   inc_S = CoveredClosedEmbedding(P, I)
   Scov = domain(inc_S)  # The ADE singular elliptic K3 surface
@@ -533,7 +534,7 @@ function _separate_singularities!(X::EllipticSurface)
   # no extra singularities in the X = 1 chart
   # therefore we just exclude all the singularities visible here
   for W in [P[1][2],P[1][5]]
-    local Ising = I_sing_P(W)
+    Ising = I_sing_P(W)
     if isone(Ising)
       push!(refined_charts, W)
       continue
@@ -849,9 +850,10 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   @req all(is_prime(i) for i in f) "not a vector of prime divisors"
   f = copy(f)
   O = components(zero_section(S))[1]
+  local f0
   for (i,D) in enumerate(f)
     if !isone(O+components(D)[1])
-      global f0 = D
+      f0 = D
       deleteat!(f,i)
       break
     end
