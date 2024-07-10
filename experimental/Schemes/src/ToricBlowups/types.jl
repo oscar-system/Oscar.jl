@@ -31,25 +31,26 @@
   }
     # Compute position of new ray
     new_rays = matrix(ZZ, rays(new_variety))
-    position_new_ray = nothing
-    for i in 1:nrows(new_rays)
-      if new_ray == new_rays[i, :]
-        position_new_ray = i
-        break
-      end
-    end
+    position_new_ray = findfirst(i->new_ray==new_rays[i,:], 1:n_rays(new_variety))
     @req position_new_ray !== nothing "Could not identify position of new ray"
 
     # Set variable names of the new variety
     old_vars = string.(symbols(cox_ring(v)))
     @req !(coordinate_name in old_vars) "The name for the blowup coordinate is already taken"
-    new_vars = Vector{String}(undef, n_rays(v) + 1)
-    for i in 1:n_rays(v)+1
-        j = findfirst(==(rays(new_variety)[i]), rays(v))
-        new_vars[i] = j !== nothing ? old_vars[j] : coordinate_name
+    new_vars = Vector{String}(undef, n_rays(new_variety))
+    old_rays = matrix(ZZ, rays(v))
+    old_indices = Dict{AbstractVector, Int64}([old_rays[i,:]=>i for i in 1:n_rays(v)])
+    for i in 1:n_rays(new_variety)
+      if haskey(old_indices, new_rays[i,:])
+        new_vars[i] = old_vars[old_indices[new_rays[i,:]]]
+      else
+        new_vars[i] = coordinate_name
+      end
     end
     set_attribute!(new_variety, :coordinate_names, new_vars)
-    @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
+    if n_rays(new_variety) > n_rays(v)
+      @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
+    end
 
     # Construct the toric morphism and construct the object
     bl_toric = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
