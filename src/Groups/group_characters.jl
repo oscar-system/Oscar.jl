@@ -1507,13 +1507,11 @@ julia> character_parameters(character_table("S5"))
 julia> character_parameters(character_table("M11"))
 ```
 """
-function character_parameters(tbl::GAPGroupCharacterTable)
-    return get_attribute!(tbl, :character_parameters) do
-      GAPt = GapObj(tbl)
-      GAPWrap.HasCharacterParameters(GAPt) || return nothing
-      paras = Vector{GAP.Obj}(GAPWrap.CharacterParameters(GAPt))
-      return _translate_parameter_list(paras)
-    end
+@attr Vector function character_parameters(tbl::GAPGroupCharacterTable)
+    GAPt = GapObj(tbl)
+    GAPWrap.HasCharacterParameters(GAPt) || return nothing
+    paras = Vector{GAP.Obj}(GAPWrap.CharacterParameters(GAPt))
+    return _translate_parameter_list(paras)
 end
 
 @doc raw"""
@@ -1537,13 +1535,11 @@ julia> class_parameters(character_table("S5"))
 julia> class_parameters(character_table("M11"))
 ```
 """
-function class_parameters(tbl::GAPGroupCharacterTable)
-    return get_attribute!(tbl, :class_parameters) do
-      GAPt = GapObj(tbl)
-      GAPWrap.HasClassParameters(GAPt) || return nothing
-      paras = Vector{GAP.Obj}(GAPWrap.ClassParameters(GAPt))
-      return _translate_parameter_list(paras)
-    end
+@attr Vector function class_parameters(tbl::GAPGroupCharacterTable)
+    GAPt = GapObj(tbl)
+    GAPWrap.HasClassParameters(GAPt) || return nothing
+    paras = Vector{GAP.Obj}(GAPWrap.ClassParameters(GAPt))
+    return _translate_parameter_list(paras)
 end
 
 
@@ -1562,10 +1558,8 @@ julia> println(class_names(character_table("S5")))
 ["1a", "2a", "3a", "5a", "2b", "4a", "6a"]
 ```
 """
-function class_names(tbl::GAPGroupCharacterTable)
-    return get_attribute!(tbl, :class_names) do
-      return Vector{String}(GAPWrap.ClassNames(GapObj(tbl)))
-    end
+@attr Vector{String} function class_names(tbl::GAPGroupCharacterTable)
+    return Vector{String}(GAPWrap.ClassNames(GapObj(tbl)))
 end
 
 

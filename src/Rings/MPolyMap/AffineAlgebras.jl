@@ -271,7 +271,7 @@ function _groebner_data(F::AffAlgHom)
 
     fs = map(lift, _images(F))
     return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
-  end
+  end # TODO: should add a type assertion here
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
   TtoR = hom(T, R, append!(zeros(R, n), gens(R)))
