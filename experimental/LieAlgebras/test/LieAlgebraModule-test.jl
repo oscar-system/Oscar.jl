@@ -1,13 +1,5 @@
 
 @testset "LieAlgebras.LieAlgebraModule" begin
-  sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
-  sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
-  sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])
-  sc[2, 1] = sparse_row(QQ, [1, 2], [0, 1])
-  sc[2, 2] = sparse_row(QQ, [1, 2], [0, 0])
-  sc[3, 1] = sparse_row(QQ, [1, 2], [1, 0])
-  sc[3, 2] = sparse_row(QQ, [1, 2], [0, -1])
-
   @testset "conformance tests" begin
     @testset "0-dim module of sl_2(QQ)" begin
       L = special_linear_lie_algebra(QQ, 2)
@@ -22,6 +14,14 @@
     end
 
     @testset "V of sl_2(QQ) using structure constants" begin
+      sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
+      sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
+      sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])
+      sc[2, 1] = sparse_row(QQ, [1, 2], [0, 1])
+      sc[2, 2] = sparse_row(QQ, [1, 2], [0, 0])
+      sc[3, 1] = sparse_row(QQ, [1, 2], [1, 0])
+      sc[3, 2] = sparse_row(QQ, [1, 2], [0, -1])
+
       L = special_linear_lie_algebra(QQ, 2)
       V = abstract_module(L, 2, sc)
       lie_algebra_module_conformance_test(L, V)
@@ -180,17 +180,17 @@
     end
   end
 
-  module_type_bools(V) = (
-    Oscar._is_standard_module(V),
-    Oscar._is_dual(V)[1],
-    Oscar._is_direct_sum(V)[1],
-    Oscar._is_tensor_product(V)[1],
-    Oscar._is_exterior_power(V)[1],
-    Oscar._is_symmetric_power(V)[1],
-    Oscar._is_tensor_power(V)[1],
-  )
-
   @testset "module constructions" begin
+    module_type_bools(V) = (
+      Oscar._is_standard_module(V),
+      Oscar._is_dual(V)[1],
+      Oscar._is_direct_sum(V)[1],
+      Oscar._is_tensor_product(V)[1],
+      Oscar._is_exterior_power(V)[1],
+      Oscar._is_symmetric_power(V)[1],
+      Oscar._is_tensor_power(V)[1],
+    )
+
     @testset for R in [QQ, cyclotomic_field(4)[1], GF(3), GF(2, 3)]
       @testset for L in [special_linear_lie_algebra(R, 3)]
         @testset "standard_module" begin
@@ -709,30 +709,52 @@
       struct_const_V
   end
 
-  is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
-
   @testset "dim_of_simple_module" begin
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    @test (@inferred dim_of_simple_module(
-      Int, lie_algebra(QQ, :A, 6), [1, 3, 5, 0, 1, 0]
-    )) == ZZ(393513120)
-    @test (@inferred dim_of_simple_module(
-      ZZRingElem, lie_algebra(QQ, :B, 7), [7, 2, 5, 1, 0, 2, 6]
-    )) == ZZ(307689492858882008424585750)
-    @test (@inferred dim_of_simple_module(lie_algebra(QQ, :C, 3), [3, 3, 3])) == 262144
-    @test (@inferred dim_of_simple_module(
-      Int128, lie_algebra(QQ, :D, 5), [1, 2, 3, 4, 5]
-    )) == Int128(591080490000)
-    @test (@inferred dim_of_simple_module(
-      ZZRingElem, lie_algebra(QQ, :E, 6), [6, 5, 4, 3, 2, 1]
-    )) == ZZ(53947263633682628459250)
-    @test (@inferred dim_of_simple_module(
-      ZZRingElem, lie_algebra(QQ, :F, 4), [2, 4, 1, 2]
-    )) == ZZ(5989283015625)
-    @test (@inferred dim_of_simple_module(lie_algebra(QQ, :G, 2), [2, 2])) == 729
+    let L = lie_algebra(QQ, :A, 6)
+      @test (@inferred dim_of_simple_module(
+        Int, L, [1, 3, 5, 0, 1, 0]
+      )) == ZZ(393513120)
+    end
+
+    let L = lie_algebra(QQ, :B, 7)
+      @test_skip (@inferred dim_of_simple_module(
+        ZZRingElem, L, [7, 2, 5, 1, 0, 2, 6]
+      )) == ZZ(307689492858882008424585750) # re-enable this once this is computed without GAP
+    end
+
+    let L = lie_algebra(QQ, :C, 3)
+      @test (@inferred dim_of_simple_module(
+        L, [3, 3, 3]
+      )) == 262144
+    end
+
+    let L = lie_algebra(QQ, :D, 5)
+      @test (@inferred dim_of_simple_module(
+        Int128, L, [1, 2, 3, 4, 5]
+      )) == Int128(591080490000)
+    end
+
+    let L = lie_algebra(QQ, :E, 6)
+      @test (@inferred dim_of_simple_module(
+        ZZRingElem, L, [6, 5, 4, 3, 2, 1]
+      )) == ZZ(53947263633682628459250)
+    end
+
+    let L = lie_algebra(QQ, :F, 4)
+      @test (@inferred dim_of_simple_module(
+        ZZRingElem, L, [2, 4, 1, 2]
+      )) == ZZ(5989283015625)
+    end
+
+    let L = lie_algebra(QQ, :G, 2)
+      @test (@inferred dim_of_simple_module(L, [2, 2])) == 729
+    end
   end
 
   @testset "dominant_character" begin
+    is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
+
     function check_dominant_character(L::LieAlgebra, hw::Vector{Int})
       domchar = @inferred dominant_character(L, hw)
       @test domchar[hw] == 1
@@ -742,87 +764,87 @@
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    L = lie_algebra(QQ, :A, 3)
-    hw = [1, 1, 1]
-    domchar = check_dominant_character(L, hw)
-    @test domchar == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
+    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 1]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
+    end
 
-    L = lie_algebra(QQ, :C, 3)
-    hw = [2, 0, 1]
-    domchar = check_dominant_character(L, hw)
-    @test domchar == Dict(
-      [2, 0, 1] => 1,
-      [0, 1, 1] => 1,
-      [3, 0, 0] => 1,
-      [1, 1, 0] => 3,
-      [0, 0, 1] => 6,
-      [1, 0, 0] => 7,
-    )
+    let L = lie_algebra(QQ, :C, 3), hw = [2, 0, 1]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [2, 0, 1] => 1,
+        [0, 1, 1] => 1,
+        [3, 0, 0] => 1,
+        [1, 1, 0] => 3,
+        [0, 0, 1] => 6,
+        [1, 0, 0] => 7,
+      )
+    end
 
-    L = lie_algebra(QQ, :D, 4)
-    hw = [0, 3, 1, 0]
-    domchar = check_dominant_character(L, hw)
-    @test domchar == Dict(
-      [0, 3, 1, 0] => 1,
-      [1, 1, 2, 1] => 1,
-      [1, 2, 0, 1] => 2,
-      [2, 0, 3, 0] => 1,
-      [2, 0, 1, 2] => 2,
-      [0, 0, 3, 2] => 1,
-      [2, 1, 1, 0] => 3,
-      [0, 1, 3, 0] => 2,
-      [0, 1, 1, 2] => 3,
-      [0, 2, 1, 0] => 7,
-      [3, 0, 0, 1] => 4,
-      [1, 0, 2, 1] => 8,
-      [1, 0, 0, 3] => 4,
-      [1, 1, 0, 1] => 12,
-      [2, 0, 1, 0] => 16,
-      [0, 0, 3, 0] => 12,
-      [0, 0, 1, 2] => 16,
-      [0, 1, 1, 0] => 26,
-      [1, 0, 0, 1] => 36,
-      [0, 0, 1, 0] => 56,
-    )
+    let L = lie_algebra(QQ, :D, 4), hw = [0, 3, 1, 0]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [0, 3, 1, 0] => 1,
+        [1, 1, 2, 1] => 1,
+        [1, 2, 0, 1] => 2,
+        [2, 0, 3, 0] => 1,
+        [2, 0, 1, 2] => 2,
+        [0, 0, 3, 2] => 1,
+        [2, 1, 1, 0] => 3,
+        [0, 1, 3, 0] => 2,
+        [0, 1, 1, 2] => 3,
+        [0, 2, 1, 0] => 7,
+        [3, 0, 0, 1] => 4,
+        [1, 0, 2, 1] => 8,
+        [1, 0, 0, 3] => 4,
+        [1, 1, 0, 1] => 12,
+        [2, 0, 1, 0] => 16,
+        [0, 0, 3, 0] => 12,
+        [0, 0, 1, 2] => 16,
+        [0, 1, 1, 0] => 26,
+        [1, 0, 0, 1] => 36,
+        [0, 0, 1, 0] => 56,
+      )
+    end
 
-    L = lie_algebra(QQ, :E, 6)
-    hw = [1, 0, 1, 0, 1, 0]
-    domchar = check_dominant_character(L, hw)
-    @test domchar == Dict(
-      [1, 0, 1, 0, 1, 0] => 1,
-      [0, 0, 0, 1, 1, 0] => 2,
-      [2, 1, 0, 0, 0, 1] => 3,
-      [0, 1, 1, 0, 0, 1] => 6,
-      [2, 0, 1, 0, 0, 0] => 10,
-      [1, 0, 0, 0, 1, 1] => 16,
-      [1, 2, 0, 0, 0, 0] => 15,
-      [0, 0, 2, 0, 0, 0] => 20,
-      [1, 0, 0, 1, 0, 0] => 44,
-      [0, 1, 0, 0, 0, 2] => 36,
-      [0, 1, 0, 0, 1, 0] => 92,
-      [2, 0, 0, 0, 0, 1] => 104,
-      [0, 0, 1, 0, 0, 1] => 204,
-      [1, 1, 0, 0, 0, 0] => 425,
-      [0, 0, 0, 0, 0, 2] => 416,
-      [0, 0, 0, 0, 1, 0] => 836,
-      [1, 0, 0, 0, 0, 0] => 1600,
-    )
+    let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [1, 0, 1, 0, 1, 0] => 1,
+        [0, 0, 0, 1, 1, 0] => 2,
+        [2, 1, 0, 0, 0, 1] => 3,
+        [0, 1, 1, 0, 0, 1] => 6,
+        [2, 0, 1, 0, 0, 0] => 10,
+        [1, 0, 0, 0, 1, 1] => 16,
+        [1, 2, 0, 0, 0, 0] => 15,
+        [0, 0, 2, 0, 0, 0] => 20,
+        [1, 0, 0, 1, 0, 0] => 44,
+        [0, 1, 0, 0, 0, 2] => 36,
+        [0, 1, 0, 0, 1, 0] => 92,
+        [2, 0, 0, 0, 0, 1] => 104,
+        [0, 0, 1, 0, 0, 1] => 204,
+        [1, 1, 0, 0, 0, 0] => 425,
+        [0, 0, 0, 0, 0, 2] => 416,
+        [0, 0, 0, 0, 1, 0] => 836,
+        [1, 0, 0, 0, 0, 0] => 1600,
+      )
+    end
 
-    L = lie_algebra(QQ, :G, 2)
-    hw = [1, 2]
-    domchar = check_dominant_character(L, hw)
-    @test domchar == Dict(
-      [1, 2] => 1,
-      [4, 0] => 1,
-      [2, 1] => 2,
-      [0, 2] => 2,
-      [3, 0] => 3,
-      [1, 1] => 5,
-      [2, 0] => 7,
-      [0, 1] => 7,
-      [1, 0] => 10,
-      [0, 0] => 10,
-    )
+    let L = lie_algebra(QQ, :G, 2), hw = [1, 2]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [1, 2] => 1,
+        [4, 0] => 1,
+        [2, 1] => 2,
+        [0, 2] => 2,
+        [3, 0] => 3,
+        [1, 1] => 5,
+        [2, 0] => 7,
+        [0, 1] => 7,
+        [1, 0] => 10,
+        [0, 0] => 10,
+      )
+    end
   end
 
   @testset "character" begin
@@ -837,43 +859,43 @@
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    L = lie_algebra(QQ, :A, 3)
-    hw = [1, 1, 0]
-    char = check_character(L, hw)
-    @test char == Dict(
-      [1, 1, 0] => 1,
-      [2, -1, 1] => 1,
-      [-1, 2, 0] => 1,
-      [2, 0, -1] => 1,
-      [0, 0, 1] => 2,
-      [1, -2, 2] => 1,
-      [0, 1, -1] => 2,
-      [-2, 1, 1] => 1,
-      [1, -1, 0] => 2,
-      [-1, -1, 2] => 1,
-      [-2, 2, -1] => 1,
-      [1, 0, -2] => 1,
-      [-1, 0, 0] => 2,
-      [0, -2, 1] => 1,
-      [-1, 1, -2] => 1,
-      [0, -1, -1] => 1,
-    )
+    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 0]
+      char = check_character(L, hw)
+      @test char == Dict(
+        [1, 1, 0] => 1,
+        [2, -1, 1] => 1,
+        [-1, 2, 0] => 1,
+        [2, 0, -1] => 1,
+        [0, 0, 1] => 2,
+        [1, -2, 2] => 1,
+        [0, 1, -1] => 2,
+        [-2, 1, 1] => 1,
+        [1, -1, 0] => 2,
+        [-1, -1, 2] => 1,
+        [-2, 2, -1] => 1,
+        [1, 0, -2] => 1,
+        [-1, 0, 0] => 2,
+        [0, -2, 1] => 1,
+        [-1, 1, -2] => 1,
+        [0, -1, -1] => 1,
+      )
+    end
 
-    L = lie_algebra(QQ, :C, 3)
-    hw = [2, 0, 1]
-    char = check_character(L, hw)
+    let L = lie_algebra(QQ, :C, 3), hw = [2, 0, 1]
+      char = check_character(L, hw)
+    end
 
-    L = lie_algebra(QQ, :D, 4)
-    hw = [0, 3, 1, 0]
-    char = check_character(L, hw)
+    let L = lie_algebra(QQ, :D, 4), hw = [0, 3, 1, 0]
+      char = check_character(L, hw)
+    end
 
-    L = lie_algebra(QQ, :E, 6)
-    hw = [1, 0, 1, 0, 1, 0]
-    char = check_character(L, hw)
+    let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
+      char = check_character(L, hw)
+    end
 
-    L = lie_algebra(QQ, :G, 2)
-    hw = [3, 2]
-    char = check_character(L, hw)
+    let L = lie_algebra(QQ, :G, 2), hw = [3, 2]
+      char = check_character(L, hw)
+    end
   end
 
   @testset "tensor_product_decomposition" begin
@@ -890,82 +912,76 @@
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    L = lie_algebra(QQ, :A, 3)
-    hw1 = [2, 1, 2]
-    hw2 = [1, 0, 1]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
-    @test dec == multiset(
-      Dict(
-        [3, 1, 3] => 1,
-        [3, 2, 1] => 1,
-        [1, 2, 3] => 1,
-        [4, 0, 2] => 1,
-        [2, 0, 4] => 1,
-        [1, 3, 1] => 1,
-        [2, 1, 2] => 3,
-        [2, 2, 0] => 1,
-        [0, 2, 2] => 1,
-        [3, 0, 1] => 1,
-        [1, 0, 3] => 1,
-        [1, 1, 1] => 1,
-      ),
-    )
+    let L = lie_algebra(QQ, :A, 3), hw1 = [2, 1, 2], hw2 = [1, 0, 1]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(
+        Dict(
+          [3, 1, 3] => 1,
+          [3, 2, 1] => 1,
+          [1, 2, 3] => 1,
+          [4, 0, 2] => 1,
+          [2, 0, 4] => 1,
+          [1, 3, 1] => 1,
+          [2, 1, 2] => 3,
+          [2, 2, 0] => 1,
+          [0, 2, 2] => 1,
+          [3, 0, 1] => 1,
+          [1, 0, 3] => 1,
+          [1, 1, 1] => 1,
+        ),
+      )
+    end
 
-    L = lie_algebra(QQ, :B, 4)
-    hw1 = [1, 1, 0, 0]
-    hw2 = [0, 1, 0, 1]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
-    @test dec == multiset(
-      Dict(
-        [1, 2, 0, 1] => 1,
-        [2, 0, 1, 1] => 1,
-        [0, 1, 1, 1] => 1,
-        [2, 1, 0, 1] => 1,
-        [1, 0, 0, 3] => 1,
-        [0, 2, 0, 1] => 1,
-        [1, 0, 1, 1] => 2,
-        [3, 0, 0, 1] => 1,
-        [1, 1, 0, 1] => 3,
-        [0, 0, 0, 3] => 1,
-        [0, 0, 1, 1] => 2,
-        [2, 0, 0, 1] => 2,
-        [0, 1, 0, 1] => 2,
-        [1, 0, 0, 1] => 2,
-        [0, 0, 0, 1] => 1,
-      ),
-    )
+    let L = lie_algebra(QQ, :B, 4), hw1 = [1, 1, 0, 0], hw2 = [0, 1, 0, 1]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(
+        Dict(
+          [1, 2, 0, 1] => 1,
+          [2, 0, 1, 1] => 1,
+          [0, 1, 1, 1] => 1,
+          [2, 1, 0, 1] => 1,
+          [1, 0, 0, 3] => 1,
+          [0, 2, 0, 1] => 1,
+          [1, 0, 1, 1] => 2,
+          [3, 0, 0, 1] => 1,
+          [1, 1, 0, 1] => 3,
+          [0, 0, 0, 3] => 1,
+          [0, 0, 1, 1] => 2,
+          [2, 0, 0, 1] => 2,
+          [0, 1, 0, 1] => 2,
+          [1, 0, 0, 1] => 2,
+          [0, 0, 0, 1] => 1,
+        ),
+      )
+    end
 
-    L = lie_algebra(QQ, :C, 2)
-    hw1 = [2, 2]
-    hw2 = [2, 0]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
-    @test dec == multiset(
-      Dict(
-        [4, 2] => 1,
-        [2, 3] => 1,
-        [4, 1] => 1,
-        [0, 4] => 1,
-        [2, 2] => 2,
-        [4, 0] => 1,
-        [0, 3] => 1,
-        [2, 1] => 1,
-        [0, 2] => 1,
-      ),
-    )
+    let L = lie_algebra(QQ, :C, 2), hw1 = [2, 2], hw2 = [2, 0]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(
+        Dict(
+          [4, 2] => 1,
+          [2, 3] => 1,
+          [4, 1] => 1,
+          [0, 4] => 1,
+          [2, 2] => 2,
+          [4, 0] => 1,
+          [0, 3] => 1,
+          [2, 1] => 1,
+          [0, 2] => 1,
+        ),
+      )
+    end
 
-    L = lie_algebra(QQ, :D, 5)
-    hw1 = [1, 1, 3, 0, 2]
-    hw2 = [2, 1, 0, 2, 0]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    let L = lie_algebra(QQ, :D, 5), hw1 = [1, 1, 3, 0, 2], hw2 = [2, 1, 0, 2, 0]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+    end
 
-    L = lie_algebra(QQ, :E, 6)
-    hw1 = [1, 1, 0, 0, 1, 2]
-    hw2 = [2, 0, 1, 1, 0, 0]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    let L = lie_algebra(QQ, :E, 6), hw1 = [1, 1, 0, 0, 1, 2], hw2 = [2, 0, 1, 1, 0, 0]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+    end
 
-    L = lie_algebra(QQ, :G, 2)
-    hw1 = [1, 3]
-    hw2 = [5, 2]
-    dec = test_tensor_product_decomposition(L, hw1, hw2)
+    let L = lie_algebra(QQ, :G, 2), hw1 = [1, 3], hw2 = [5, 2]
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+    end
   end
 end

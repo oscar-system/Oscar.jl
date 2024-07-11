@@ -457,15 +457,24 @@ foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hy
   @test model_description(foah15) == "F-theory hypersurface model with fiber ambient space F_15"
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
   @test haskey(explicit_model_sections(foah6), "s9") == false
-  @test length(global_gauge_quotients(foah6)) == length(gauge_algebra(foah6))
-  @test length(global_gauge_quotients(foah8)) == length(gauge_algebra(foah8))
-  @test length(global_gauge_quotients(foah9)) == length(gauge_algebra(foah9))
-  @test length(global_gauge_quotients(foah11)) == length(gauge_algebra(foah11))
-  @test length(global_gauge_quotients(foah12)) == length(gauge_algebra(foah12))
-  @test length(global_gauge_quotients(foah13)) == length(gauge_algebra(foah13))
-  @test length(global_gauge_quotients(foah14)) == length(gauge_algebra(foah14))
-  @test length(global_gauge_quotients(foah15)) == length(gauge_algebra(foah15))
-  @test length(global_gauge_quotients(foah16)) == length(gauge_algebra(foah16))
+  @test dim(gauge_algebra(foah6)) == 4
+  @test length(global_gauge_quotients(foah6)) == 2
+  @test dim(gauge_algebra(foah8)) == 7
+  @test length(global_gauge_quotients(foah8)) == 3
+  @test dim(gauge_algebra(foah9)) == 5
+  @test length(global_gauge_quotients(foah9)) == 3
+  @test dim(gauge_algebra(foah11)) == 12
+  @test length(global_gauge_quotients(foah11)) == 3
+  @test dim(gauge_algebra(foah12)) == 8
+  @test length(global_gauge_quotients(foah12)) == 4
+  @test dim(gauge_algebra(foah13)) == 21
+  @test length(global_gauge_quotients(foah13)) == 3
+  @test dim(gauge_algebra(foah14)) == 15
+  @test length(global_gauge_quotients(foah14)) == 4
+  @test dim(gauge_algebra(foah15)) == 13
+  @test length(global_gauge_quotients(foah15)) == 5
+  @test dim(gauge_algebra(foah16)) == 24
+  @test length(global_gauge_quotients(foah16)) == 3
 end
 
 

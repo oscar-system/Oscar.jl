@@ -29,8 +29,33 @@ abstract_grassmannian(k::Int, n::Int; bott::Bool = false, weights = :int, base::
 ```
 
 ```@docs 
-abstract_flag_variety(dims::Int...; bott::Bool = false)
+abstract_flag_variety(dims::Int...; base::Ring = QQ, symbol::String = "c")
 ```
+
+### New Varieties From Given Varieties/Bundles
+
+```@docs
+complete_intersection(X::AbstractVariety, degs::Int...)
+```
+
+```@docs
+abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
+```
+
+```@docs
+abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c")
+```
+
+```@docs
+zero_locus_section(F::AbstractBundle; class::Bool = false)
+```
+
+```@docs
+degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
+```
+
+!!! note
+    Products and blowups are described elsewhere.
 
 ## Underlying Data of an Abstract Variety
 
@@ -53,10 +78,6 @@ point_class(X::AbstractVariety)
 ```
 
 ```@docs
-trivial_line_bundle(X::AbstractVariety)
-```
-
-```@docs
 tangent_bundle(X::AbstractVariety)
 ```
 
@@ -68,14 +89,19 @@ tautological_bundles(X::AbstractVariety)
 structure_map(X::AbstractVariety)
 ```
 
-## Further Data Associated to Abstract Varieties
+## Further Data Associated to an Abstract Variety
+
 
 ```@docs
-cotangent_bundle(X::AbstractVariety)
+trivial_line_bundle(X::AbstractVariety)
 ```
 
 ```@docs
 line_bundle(X::AbstractVariety, n::RingElement)
+```
+
+```@docs
+cotangent_bundle(X::AbstractVariety)
 ```
 
 ```@docs
@@ -90,11 +116,14 @@ canonical_bundle(X::AbstractVariety)
 degree(X::AbstractVariety)
 ```
 
-If `X` is of type `AbstractVariety` or `TnVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
-Similarly for entering `euler(X)`, `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, `pontryagin_class(X, k)`
+!!! note
+    If `X` is of type `AbstractVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`. Similarly for entering `euler(X)`, `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, `pontryagin_class(X, k)`
 
 ## Operations on Abstract Varieties
 
 ```@docs
 product(X::AbstractVariety, Y::AbstractVariety)
 ```
+
+!!! note
+    Blowups are described in their own section.

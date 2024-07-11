@@ -31,7 +31,7 @@ function _create_literature_model_index()
     model_data = JSON.parsefile(model_directory * model)
     model_index = get(model_indices, model, "")
     if model_index == ""
-      model_index = string.(length(model_indices) + 1)
+      model_index = string.(maximum([parse(Int, x) for x in collect(values(model_indices))]) + 1)
       model_indices[model] = model_index
     end
     
@@ -82,7 +82,15 @@ function _create_literature_model_index()
       push!(index, index_entry)
     end
   end
-
+  
+  #Check if any models have been removed and update the index accordingly
+  if issetequal(collect(keys(model_indices)), models) == false
+    difference = setdiff(collect(keys(model_indices)), models)
+    for key in difference
+      delete!(model_indices, key)
+    end
+  end
+  
   open(joinpath(@__DIR__,"index.json"), "w") do file
     JSON.print(file, index)
   end
