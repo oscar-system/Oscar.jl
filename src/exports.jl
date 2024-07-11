@@ -351,6 +351,7 @@ export center, has_center, set_center
 export central_character
 export centralizer
 export chain_complex
+export chain_polytope
 export chain_range
 export chamber
 export chamber_invariants
@@ -402,6 +403,7 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
+export comparability_graph
 export comm
 export comm!
 export common_components
@@ -583,6 +585,7 @@ export exterior_derivative
 export exterior_power
 export f_vector
 export face_fan
+export face_lattice
 export faces
 export facet_degrees
 export facet_indices
@@ -1129,11 +1132,13 @@ export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abeli
 export maximal_associated_points
 export maximal_blocks
 export maximal_cells
+export maximal_chains
 export maximal_cones
 export maximal_extension
 export maximal_groebner_cone
 export maximal_normal_subgroups, has_maximal_normal_subgroups, set_maximal_normal_subgroups
 export maximal_polyhedra, maximal_polyhedra_and_multiplicities
+export maximal_ranked_poset
 export maximal_subgroup_classes, has_maximal_subgroup_classes, set_maximal_subgroup_classes
 export maximal_subgroups
 export metadata
@@ -1291,6 +1296,7 @@ export orbits
 export order, has_order, set_order
 export order_field_of_definition
 export order_of_vanishing
+export order_polytope
 export ordering
 export orders_centralizers
 export orders_class_representatives
@@ -1306,6 +1312,7 @@ export parallel_extension
 export parametrization
 export parametrization_conic
 export parent
+export partially_ordered_set
 export partition
 export partitions
 export patches
