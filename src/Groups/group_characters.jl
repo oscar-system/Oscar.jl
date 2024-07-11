@@ -340,6 +340,17 @@ julia> println(character_table("A5", 2))
 julia> println(character_table("J5"))
 nothing
 ```
+
+Several names can be admissible for the same character table from the library.
+For example, the alternating group on five points is isomorphic to the
+projective special linear groups in dimension 2 over the fields with
+four or five elements, and each of the strings `"A5"`, `"L2(4)"`, `"L2(5)"`
+is an admissible name for its library character table.
+The names are not case sensitive, thus also `"a5"` is admissible.
+
+Use [`all_character_table_names`](@ref) for creating a vector that contains
+one admissible name for each available character table,
+perhaps filtered by some conditions.
 """
 function character_table(id::String, p::Int = 0)
     if p != 0
@@ -461,8 +472,9 @@ true
 """
     all_character_table_names(L...; ordered_by = nothing)
 
-Return an vector of strings that contains all those names of character tables
-in the character table library that satisfy the conditions in the vector `L`.
+Return a vector of strings that contains an admissible name of each
+character table in the character table library that satisfies the conditions
+in the vector `L`.
 
 # Examples
 ```
@@ -493,6 +505,24 @@ function all_character_table_names(L...; ordered_by = nothing)
     end
     return Vector{String}(K)
 end
+
+
+"""
+    is_character_table_name(name::String)
+
+Return `true` if `character_table(name)` returns a character table,
+and `false` otherwise
+
+# Examples
+```jldoctest
+julia> is_character_table_name("J1")
+true
+
+julia> is_character_table_name("J5")
+false
+```
+"""
+is_character_table_name(name::String) = GAPWrap.LibInfoCharacterTable(GapObj(name)) !== GAP.Globals.fail
 
 
 ##############################################################################

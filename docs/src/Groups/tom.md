@@ -30,6 +30,11 @@ These tables of marks can be fetched via the names of these groups,
 which coincide with the names of the character tables of these groups
 in the Character Table Library, see [`table_of_marks(id::String)`](@ref).
 
+Like the library of character tables, the library of tables of marks
+can be used similar to group libraries (see [Group libraries](@ref))
+in the sense that [`all_table_of_marks_names`](@ref) returns descriptions
+of all those available tables of marks that have certain properties.
+
 ## Construct tables of marks
 
 ```@docs
@@ -37,6 +42,8 @@ GAPGroupTableOfMarks
 table_of_marks(G::Union{GAPGroup, FinGenAbGroup})
 table_of_marks(id::String)
 Base.show(io::IO, ::MIME"text/plain", tom::GAPGroupTableOfMarks)
+all_table_of_marks_names
+is_table_of_marks_name
 ```
 
 ## Attributes and operations for tables of marks

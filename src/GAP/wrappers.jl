@@ -120,6 +120,7 @@ GAP.@wrap HasMaxes(x::GapObj)::Bool
 GAP.@wrap HasMaximalAbelianQuotient(x::Any)::Bool
 GAP.@wrap HasSize(x::Any)::Bool
 GAP.@wrap Hasfhmethsel(x::GapObj)::Bool
+GAP.@wrap Identifier(x::GapObj)::GapObj
 GAP.@wrap Identity(x::GapObj)::GapObj
 GAP.@wrap Image(x::Any)::GapObj
 GAP.@wrap Image(x::Any, y::Any)::GapObj
@@ -247,6 +248,7 @@ GAP.@wrap IsSyllableAssocWordRep(x::Any)::Bool
 GAP.@wrap IsSyllableWordsFamily(x::Any)::Bool
 GAP.@wrap IsSymmetricForm(x::Any)::Bool
 GAP.@wrap IsSymmetricGroup(x::Any)::Bool
+GAP.@wrap IsTableOfMarks(x::Any)::Bool
 GAP.@wrap IsTransitive(x::Any)::Bool
 GAP.@wrap IsTransitive(x::Any, y::Any)::Bool
 GAP.@wrap IsTrivial(x::Any)::Bool
