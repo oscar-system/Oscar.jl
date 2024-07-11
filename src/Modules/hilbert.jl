@@ -83,7 +83,7 @@ julia> den
 """
 function multi_hilbert_series(
     SubM::SubquoModule{T}; 
-    parent::Ring = hilbert_series_parent(base_ring(SubM)), 
+    parent::Ring = multi_hilbert_series_parent(base_ring(SubM)),
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   R = base_ring(SubM)
@@ -111,19 +111,19 @@ function multi_hilbert_series(
   end
 
   # Now we may assume that the grading group is free Abelian.
-  m = ngens(G)  
+  m = ngens(G)
   n = ngens(R)
-  HSRing = _hilbert_series_ring(parent, m)
+  @req ngens(parent) >= m "Parent ring does not contain sufficiently many variables"
   # Get the weights as Int values: W[k] contains the weight(s) of x[k]
   W = [[ Int(R.d[i][j])  for j in 1:m]  for i in 1:n]
-  denom = _hilbert_series_denominator(HSRing, W)
-  numer = HSNum_module(SubM, HSRing, backend)
+  denom = _hilbert_series_denominator(parent, W)
+  numer = HSNum_module(SubM, parent, backend)
   return (numer, denom), (G, identity_map(G))
 end
 
 function multi_hilbert_series(
-    F::FreeMod{T}; 
-    parent::Union{Nothing,Ring} = hilbert_series_parent(base_ring(F)), 
+    F::FreeMod{T};
+    parent::Union{Nothing,Ring} = multi_hilbert_series_parent(base_ring(F)),
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
@@ -169,8 +169,8 @@ julia> den
 ```
 """
 function hilbert_series(
-    SubM::SubquoModule{T}; 
-    parent::Ring = hilbert_series_parent(base_ring(SubM)), 
+    SubM::SubquoModule{T};
+    parent::Ring = hilbert_series_parent(base_ring(SubM)),
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   @req is_z_graded(base_ring(SubM)) "ring must be ZZ-graded; use `multi_hilbert_series` otherwise"
@@ -189,16 +189,16 @@ end
 
 function hilbert_series_parent(S::MPolyDecRing)
   if !isdefined(S, :hilbert_series_parent)
-    if is_z_graded(S)
-      S.hilbert_series_parent = laurent_polynomial_ring(ZZ, :t; cached=false)[1]
-    elseif is_zm_graded(S)
-      G = grading_group(S)
-      m = ngens(G)
-      S.hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : [Symbol("t[$i]") for i in 1:m]); cached=false)[1]
-    else
-      error("default ring for hilbert series not implemented")
-    end
+    S.hilbert_series_parent = laurent_polynomial_ring(ZZ, :t; cached=false)[1]
   end
   return S.hilbert_series_parent
 end
 
+function multi_hilbert_series_parent(S::MPolyDecRing)
+  if !isdefined(S, :multi_hilbert_series_parent)
+    G = grading_group(S)
+    m = ngens(G)
+    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : [Symbol("t[$i]") for i in 1:m]); cached=false)[1]
+  end
+  return S.multi_hilbert_series_parent
+end
