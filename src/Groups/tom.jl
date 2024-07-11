@@ -23,14 +23,45 @@ Objects of type `GAPGroupTableOfMarks` support [`get_attribute`](@ref).
   isomorphism::Map  # isomorphism from `group` to a group in GAP
 
   function GAPGroupTableOfMarks(G::Union{GAPGroup, FinGenAbGroup}, tom::GapObj, iso::Map)
+    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
     return new(tom, G, iso)
   end
 
   function GAPGroupTableOfMarks(tom::GapObj)
     # group and isomorphism are left undefined
+    @req GAPWrap.IsTableOfMarks(tom) "tom must be a GAP table of marks"
     return new(tom)
   end
 end
+
+
+# If `tblid` is an admissible name for a library character table
+# then translate it to the GAP name of the corresponding
+# library table of marks if there is one.
+function _table_of_marks_name_in_GAP(tblid::String)
+  info = GAPWrap.LibInfoCharacterTable(GapObj(tblid))
+  info === GAP.Globals.fail && return false, ""
+
+  tblid = string(info.firstName::GapObj)
+  info = GAP.Globals.LIBLIST.TOM_TBL_INFO::GapObj
+  pos = findfirst(isequal(GapObj(lowercase(tblid))), Vector{GapObj}(info[2]))
+  pos === nothing && return false, ""
+
+  return true, string(info[1][pos]::GapObj)
+end
+
+# If `tomid` is the GAP name for a library table of marks
+# then translate it to the GAP name of the corresponding
+# library character table.
+# (There is always such a character table.)
+function _character_table_name_in_GAP(tomid::String)
+  info = GAP.Globals.LIBLIST.TOM_TBL_INFO
+  pos = findfirst(isequal(GapObj(lowercase(tomid))), Vector{GapObj}(info[1]))
+  pos === nothing && return false, ""
+  info = GAPWrap.LibInfoCharacterTable(info[2][pos])
+  return true, string(info.firstName)
+end
+
 
 # access to field values via functions
 GapObj(tom::GAPGroupTableOfMarks) = tom.GAPTable
@@ -69,12 +100,10 @@ Table of marks of Sym(3)
 4: 1 1 1 1
 ```
 """
-function table_of_marks(G::Union{GAPGroup, FinGenAbGroup})
-  return get_attribute!(G, :table_of_marks) do
-    iso = isomorphism_to_GAP_group(G)
-    gaptom = GAPWrap.TableOfMarks(codomain(iso))
-    return GAPGroupTableOfMarks(G, gaptom, iso)
-  end
+@attr GAPGroupTableOfMarks function table_of_marks(G::Union{GAPGroup, FinGenAbGroup})
+  iso = isomorphism_to_GAP_group(G)
+  gaptom = GAPWrap.TableOfMarks(codomain(iso))
+  return GAPGroupTableOfMarks(G, gaptom, iso)
 end
 
 # A table of marks constructed from a group is stored in this group.
@@ -101,14 +130,11 @@ nothing
 ```
 """
 function table_of_marks(id::String)
-  # normalize `id`
-  info = GAPWrap.LibInfoCharacterTable(GapObj(id))
-  if info !== GAP.Globals.fail
-    id = string(info.firstName)
-  end
-  return get!(tables_of_marks_by_id, id) do
-    tom = GAPWrap.TableOfMarks(GapObj(id))
-    tom === GAP.Globals.fail && return nothing
+  flag, tomid =_table_of_marks_name_in_GAP(id)
+  flag || return nothing
+  return get!(tables_of_marks_by_id, tomid) do
+    tom = GAPWrap.TableOfMarks(GapObj(tomid))
+    @assert tom !== GAP.Globals.fail "no table of marks with name $tomid?"
     if GAP.Globals.HasUnderlyingGroup(tom)
       G = _oscar_group(GAPWrap.UnderlyingGroup(tom))
       iso = isomorphism_to_GAP_group(G)
@@ -116,8 +142,64 @@ function table_of_marks(id::String)
     else
       return GAPGroupTableOfMarks(tom)
     end
-  end
+  end::GAPGroupTableOfMarks
 end
+
+"""
+    all_table_of_marks_names(L...; ordered_by = nothing)
+
+Return a vector of strings that contains an admissible name of each
+table of marks in the library of tables of marks that satisfies the
+conditions in the vector `L`.
+
+The supported conditions in `L` are the same as for
+[`all_character_table_names`](@ref),
+and the returned vector contains the subset of those names returned by
+`all_character_table_names` with the same input for which a table of marks
+is available in the library.
+
+# Examples
+```
+julia> spor_names = all_table_of_marks_names(is_sporadic_simple => true);
+
+julia> println(spor_names[1:5])
+["Co3", "HS", "He", "J1", "J2"]
+
+julia> spor_names = all_table_of_marks_names(is_sporadic_simple;
+         ordered_by = order);
+
+julia> println(spor_names[1:5])
+["M11", "M12", "J1", "M22", "J2"]
+
+julia> length(all_table_of_marks_names(number_of_conjugacy_classes => 5))
+4
+```
+"""
+function all_table_of_marks_names(L...; ordered_by = nothing)
+  names = all_character_table_names(L...; ordered_by = ordered_by)
+  return filter(x -> _table_of_marks_name_in_GAP(x)[1], names)
+end
+#TODO: As soon as the character table library provides an *a priori*
+#      filtering of names for which a table of marks is available,
+#      use this instead of filtering afterwards.
+
+
+"""
+    is_table_of_marks_name(name::String)
+
+Return `true` if `table_of_marks(name)` returns a table of marks,
+and `false` otherwise
+
+# Examples
+```jldoctest
+julia> is_table_of_marks_name("J1")
+true
+
+julia> is_table_of_marks_name("J4")
+false
+```
+"""
+is_table_of_marks_name(name::String) = _table_of_marks_name_in_GAP(name)[1]
 
 
 # For tables of marks with stored group, we take the hash value of the group.
@@ -305,11 +387,20 @@ julia> identifier(table_of_marks("A5"))
 
 julia> identifier(table_of_marks(symmetric_group(3)))
 ""
+
+!!! warning "Note:"
+    The `identifier` of a table of marks from the library is equal to
+    the `identifier` of the corresponding library character table.
+    In a few cases, this value differs from the `GAP.Globals.Identifier`
+    value of the underlying `GapObj` of  the table of marks.
 ```
 """
-function identifier(tom::GAPGroupTableOfMarks)
-  GAP.Globals.HasIdentifier(GapObj(tom)) || return ""
-  return string(GAP.Globals.Identifier(GapObj(tom)))
+@attr String function identifier(tom::GAPGroupTableOfMarks)
+  gaptom = GapObj(tom)
+  GAPWrap.IsLibTomRep(gaptom) || return ""
+  flag, id = _character_table_name_in_GAP(string(GAPWrap.Identifier(gaptom)))
+  @assert flag "no character table for GAP table of marks?"
+  return id
 end
 
 
@@ -535,18 +626,10 @@ julia> character_table(tom) == character_table(g)
 true
 ```
 """
-function character_table(tom::GAPGroupTableOfMarks)
-  tbl = get_attribute!(tom, :character_table) do
-    if GAPWrap.IsLibTomRep(GapObj(tom))
-      info = GAP.Globals.LIBLIST.TOM_TBL_INFO
-      pos = findfirst(isequal(GapObj(lowercase(identifier(tom)))), Vector{GapObj}(info[1]))
-      pos !== GAP.Globals.fail && return character_table(string(info[2][pos]))
-    end
-    return character_table(group(tom))
-  end
-
+@attr GAPGroupCharacterTable function character_table(tom::GAPGroupTableOfMarks)
+  GAPWrap.IsLibTomRep(GapObj(tom)) && return character_table(identifier(tom))
+  tbl = character_table(group(tom))
   set_attribute!(tbl, :table_of_marks, tom)
-
   return tbl
 end
 
@@ -566,14 +649,11 @@ julia> table_of_marks(tbl) == table_of_marks(g)
 true
 ```
 """
-function table_of_marks(tbl::GAPGroupCharacterTable)
-  tom = get_attribute!(tbl, :table_of_marks) do
-    isdefined(tbl, :group) && return table_of_marks(group(tbl))
-    return table_of_marks(identifier(tbl))
-  end
-
+@attr Union{Nothing, GAPGroupTableOfMarks} function table_of_marks(tbl::GAPGroupCharacterTable)
+  isdefined(tbl, :group) && return table_of_marks(group(tbl))
+  tom = table_of_marks(identifier(tbl))
+  tom === nothing && return nothing
   set_attribute!(tom, :character_table, tbl)
-
   return tom
 end
 

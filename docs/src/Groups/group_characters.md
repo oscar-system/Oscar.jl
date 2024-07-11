@@ -101,6 +101,7 @@ characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
+is_character_table_name
 ```
 
 ## Attributes of group characters

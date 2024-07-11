@@ -230,6 +230,7 @@ export all_perfect_groups
 export all_primitive_groups
 export all_small_groups
 export all_subsets_matroid
+export all_table_of_marks_names
 export all_transitive_groups
 export all_triangulations
 export allow_unicode
@@ -745,6 +746,7 @@ export is_canonically_isomorphic
 export is_canonically_isomorphic_with_map
 export is_cartier
 export is_cellular
+export is_character_table_name
 export is_characteristic_subgroup
 export is_closed_embedding
 export is_clutter
@@ -873,6 +875,7 @@ export is_subscheme
 export is_subset
 export is_supersolvable, has_is_supersolvable, set_is_supersolvable
 export is_surjective
+export is_table_of_marks_name
 export is_ternary
 export is_total
 export is_transitive
