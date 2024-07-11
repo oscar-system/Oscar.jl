@@ -30,18 +30,22 @@ using Oscar: _integer_variables
 
     @testset "Polyhedron" begin
       square = cube(2)
+      f_vector(square)
       test_save_load_roundtrip(path, square) do loaded
         @test n_vertices(square) == n_vertices(loaded)
         @test dim(square) == dim(loaded)
         @test square == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
 
       n2 = (QQBarField()(5))^(QQ(4//5))
       c = cube(QQBarField(), 3, -1, n2)
+      f_vector(c)
       test_save_load_roundtrip(path, square) do loaded
         @test n_vertices(square) == n_vertices(loaded)
         @test dim(square) == dim(loaded)
         @test square == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
 
       d_hedron = dodecahedron()
