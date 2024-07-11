@@ -149,6 +149,17 @@ function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
 end
 
+"""
+    smaller_degree_permutation_representation(G::PermGroup) -> PermGroup, map
+  
+Return an isomorphic permutation group of smaller or equal degree and the isomorphism.
+"""
+function smaller_degree_permutation_representation(G::PermGroup)
+     mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
+     img = PermGroup(GAP.Globals.Image(mp))
+     return img, GAPGroupHomomorphism(G, img, mp)
+end
+
 
 @doc raw"""
     perm(G::PermGroup, L::AbstractVector{<:IntegerUnion})

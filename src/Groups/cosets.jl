@@ -457,22 +457,42 @@ end
 Group double coset.
 Two double cosets are equal if, and only if, they contain the same elements.
 """
-struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
+mutable struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
    G::T
    H::GAPGroup
    K::GAPGroup
    repr::S
    X::GapObj
+   size
+   
+   function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
+     D = new{T, S}()
+     D.G = G 
+     D.H = H
+     D.K = K
+     D.repr = representative
+     return D
+   end 
 end
 
-GAP.julia_to_gap(obj::GroupDoubleCoset) = obj.X
+function GAP.julia_to_gap(obj::GroupDoubleCoset)
+  if isdefined(obj,:X)
+    return obj.X
+  end 
+  x = GapObj(representative(obj))
+  H = GapObj(obj.H)
+  K = GapObj(obj.K)
+  obj.X = GAP.Globals.DoubleCoset(H, x, K)
+  return obj.X
+end
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
-   return x.X == y.X
+   # TODO:can we avoid creation of a gap object here?
+   return GapObj(x) == GapObj(y)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
@@ -526,9 +546,9 @@ Double coset of Sym(3)
 """
 function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
 #T what if g is in some subgroup of a group of which G, H are also a subgroup?
-   @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
-   @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
-   return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
+   @req GAPWrap.IsSubset(parent(g).X, G.X) "G is not a subgroup of parent(g)"
+   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
+   return GroupDoubleCoset(parent(g), G, H, g)
 end
 
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
@@ -558,31 +578,42 @@ julia> double_cosets(G,H,K)
 ```
 """
 function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
-   if !check
-      dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
-   else
+   if check
       @assert is_subset(H, G) "H is not a subgroup of G"
       @assert is_subset(K, G) "K is not a subgroup of G"
-      dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
-   res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
-   for i = 1:length(res)
-     dc = dcs[i]
-     g = group_element(G, GAPWrap.Representative(dc))
-     res[i] = GroupDoubleCoset(G,H,K,g,dc)
+   dcs = GAP.Globals.DoubleCosetRepsAndSizes(G.X, H.X, K.X)
+   res = Vector{GroupDoubleCoset{T, elem_type(T)}}(undef, length(dcs))
+   for i in 1:length(res)
+     g = group_element(G, dcs[i][1])
+     C = GroupDoubleCoset(G, H, K, g)
+     n = dcs[i][2]
+     C.size = n
+     res[i] = C
    end
-   return res
-   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
+   return res 
 end
-
 
 """
     order(C::Union{GroupCoset,GroupDoubleCoset})
 
 Return the cardinality of the (double) coset `C`.
 """
-order(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
+order(C::Union{GroupCoset,GroupDoubleCoset})
+
+function order(C::GroupCoset)
+  return GAPWrap.Size(GapObj(C))
+end
+
+function order(C::GroupDoubleCoset)
+  if isdefined(C, :size)
+    return C.size
+  end
+  C.size = GAPWrap.Size(GapObj(C))
+  return C.size
+end 
+
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = order(C)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})
@@ -593,7 +624,7 @@ using the random number generator `rng`.
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = Base.rand(Random.GLOBAL_RNG, C)
 
 function Base.rand(rng::Random.AbstractRNG, C::Union{GroupCoset,GroupDoubleCoset})
-  s = GAP.Globals.Random(GAP.wrap_rng(rng), C.X)
+  s = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(C))
   return group_element(C.G, s)
 end
 
@@ -620,7 +651,7 @@ right_acting_group(C::GroupDoubleCoset) = C.K
 
 Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 
-Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
+Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
 function Base.iterate(G::GroupDoubleCoset, state)
   GAPWrap.IsDoneIterator(state) && return nothing
@@ -640,7 +671,7 @@ function intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleC
    else
       G = V[1].G
    end
-   l = GAP.Obj([v.X for v in V])
+   l = GAP.Obj([GapObj(v) for v in V])
    ints = GAP.Globals.Intersection(l)
    L = Vector{typeof(G)}(undef, length(ints))
    for i in 1:length(ints)
