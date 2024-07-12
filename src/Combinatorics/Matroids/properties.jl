@@ -1052,7 +1052,7 @@ function matroid_hex(M::Matroid)::String
     pushfirst!(v,0)
   end
   v = reshape(v,4,:)
-  v = [string(parse(Int,join(v[:,j]),base=2),base=16) for j in 1:size(v)[2]]
+  v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
 
   return "r$(r)n$(n)_" * join(v)
 end
