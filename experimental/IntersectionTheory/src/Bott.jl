@@ -188,7 +188,11 @@ function tn_grassmannian(k::Int, n::Int; weights=:int)
   return G
 end
 
-function tn_flag(dims::Vector{Int}; weights=:int)
+function tn_flag_variety(dims::Int...; weights = :int)
+  return tn_flag_variety(collect(dims), weights  = weights)
+end
+
+function tn_flag_variety(dims::Vector{Int}; weights = :int)
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(r->r>0, ranks)
@@ -207,17 +211,21 @@ function tn_flag(dims::Vector{Int}; weights=:int)
 end
 
 @doc raw"""
-    linear_subspaces_on_hypersurface(k::Int, d::Int)
+    linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
 
 Compute the number of $k$-dimensional subspaces on a generic degree-$d$
 hypersurface in a projective space of dimension $n=\frac1{k+1}\binom{d+k}d+k$.
 
-The computation uses Bott's formula by default. Use the argument `bott=false`
+The computation uses Bott's formula by default. Use the argument `bott = false`
 to switch to Schubert calculus.
 """
-function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool=true)
+function linear_subspaces_on_hypersurface(k::Int, d::Int; bott::Bool = true)
   n = Int(binomial(d+k, d) // (k+1)) + k
-  G = abstract_grassmannian_variety(k+1, n+1, bott=bott)
+  if bott == true
+    G = tn_grassmannian(k+1, n+1)
+  else
+    G = abstract_grassmannian(k+1, n+1)
+  end
   S, Q = G.bundles
   integral(top_chern_class(symmetric_power(dual(S), d)))
 end

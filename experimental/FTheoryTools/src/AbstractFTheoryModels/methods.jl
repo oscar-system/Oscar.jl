@@ -634,9 +634,8 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
   C = algebraic_closure(QQ)
   function _construct(g::String)
     if g == "0"
-      return nothing
-    end
-    if g == "u(1)"
+      return abelian_lie_algebra(C, 0)
+    elseif g == "u(1)"
       return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
     elseif g[1:2] == "su"
       return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
@@ -644,17 +643,16 @@ function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
       return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
     elseif g[1:2] == "sp"
       return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
-      #For the algebras that are constructed from their Dynkin diagramms we cannot use QQBarField as the current implementation looks for a GAP iso and finds none.
-    elseif g[1] == "e"
-      return lie_algebra(QQ, Symbol('E'), parse(Int, g[3:end-1]))
-    elseif g[1] == "g"
-      return lie_algebra(QQ, Symbol('G'), parse(Int, g[3:end-1]))
-    #elseif g[1] == "f" This is not implemented yet  
-      #return lie_algebra(C,Symbol('G'),parse(Int, g[3:end-1]));
+    elseif g[1:1] == "e"
+      return lie_algebra(C, :E, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "f"
+      return lie_algebra(C, :F, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "g"
+      return lie_algebra(C, :G, parse(Int, g[3:end-1]))
     end
+    error("Unknown algebra description")
   end
-  gauge_algebras = [_construct(g) for g in algebras]
-  set_attribute!(m, :gauge_algebra => gauge_algebras)
+  set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
 end
 
 function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
