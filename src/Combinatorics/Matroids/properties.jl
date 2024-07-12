@@ -1072,14 +1072,16 @@ Matroid of rank 3 on 7 elements
 ```
 """
 function matroid_from_matroid_hex(str::AbstractString)::Matroid
-  sep = split(str,"_")
+  @req occursin(r"^r\d+n\d+_[0-9a-f]+$", str) "Invalid hex encoding"
+
+  sep = split(str, "_")
   (r,n) = parse.(Int,split(sep[1][2:end],"n"))
 
-  v = [digits(parse(Int,x,base=16),base=2,pad=4) |> reverse for x in sep[2]]
-  v = foldl(append!,v)
-  v = v[(length(v)-binomial(n,r)+1):end]
+  v = [digits(parse(Int, x, base=16), base=2, pad=4) |> reverse for x in sep[2]]
+  v = foldl(append!, v)
+  v = v[(length(v)-binomial(n, r)+1):end]
 
-  return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v),r,n)
+  return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v), r, n)
 end
 
 @doc raw"""
