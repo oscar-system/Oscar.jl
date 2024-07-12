@@ -369,7 +369,7 @@
 	   @test_throws ArgumentError is_quotient(Q2, M2)
    end
     
-  @testset "matroid6 and matroid_hex" begin
+  @testset "matroid_hex" begin
     M = fano_matroid() 
     N = uniform_matroid(2, 4)
 

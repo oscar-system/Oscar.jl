@@ -1030,24 +1030,6 @@ function min_revlex_basis_encoding(M::Matroid)
     return _revlex_basis_from_vector(min_rvlx)
 end
 
-function _to_padded_char(x::Vector{Int},pad::Int=6)
-  for _ in 1:(pad-length(x)%pad)
-    push!(x,false)
-  end
-  x = reshape(x,pad,:)
-  x = [sum([x[i,j]*2^(pad-i) for i in 1:pad])+63 |> Char for j in 1:size(x)[2]]
-  return x 
-end
-
-function _from_padded_char(x::Vector{Char})
-  x = [Int(c)-63 |> x->digits(x,base=2,pad=6) |> reverse for c in x]
-  x = foldl(append!,x)
-  return x
-end
-function _from_padded_char(x::String)
-  split(x,"") |> _from_padded_char
-end
-
 @doc raw"""
     matroid_hex(M::Matroid)
 
