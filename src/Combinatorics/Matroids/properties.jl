@@ -1049,63 +1049,6 @@ function _from_padded_char(x::String)
 end
 
 @doc raw"""
-    matroid6(M::Matroid)
-
-Stores a matroid as a a string of ASCII characters. All Characters are between 64 and 127. The first character is a '<'. The String is of the form <r:n> where r is the rank of the matroid and n is the number of elements. This is followed by the matroid encoded as the revlex basis encoding. The encoding is done by converting the basis encoding to a vector of bits and then to a string of characters. The bits are padded to a multiple of 6 and then converted to characters. The characters are shifted by 63 to be in the ASCII range.
-
-# Examples
-To get the matroid6 encoding of the fano matroid write:
-```jldoctest
-julia> matroid6(fano_matroid())
-"<o?:w?>^nv^j]"
-
-```
-"""
-function matroid6(M::Matroid)::String
-  rvlx = min_revlex_basis_encoding(M)
-  v = _revlex_basis_to_vector(rvlx)
-  v = _to_padded_char(v)
-
-  r=rank(M)
-  r_vec = digits(r, base=2, pad=6)
-  r_vec = _to_padded_char(r_vec)
-
-  n=length(M)
-  n_vec = digits(n, base=2, pad=6)
-  n_vec = _to_padded_char(n_vec)
-
-  return "<$(join(r_vec)):$(join(n_vec))>" * join(v)
-end
-
-@doc raw"""
-    matroid_from_matroid6(str::AbstractString)
-
-Returns the matroid from a matroid6 string.
-
-# Examples
-To retrieve the fano matroid from its matroid6 encoding write:
-```jldoctest
-julia> matroid_from_matroid6("<o?:w?>^nv^j]")
-Matroid of rank 3 on 7 elements
-
-```
-"""
-function matroid_from_matroid6(str::AbstractString)::Matroid
-  @req str[1] == '<' "Not a valid matroid6 string"
-
-  sep = split(str,">")
-  (r,n) = split(sep[1][2:end],":")
-  r = parse(Int,join(_from_padded_char(collect(r))|>reverse), base=2)
-  n = parse(Int,join(_from_padded_char(collect(n))|>reverse), base=2)
-
-  S = sep[2]
-  v = [Int(c)-63 |> x->digits(x,base=2,pad=6) |> reverse for c in S[1:end]] 
-  S =  join(isone(x) ? '*' : '0' for x in foldl(append!,v)[1:binomial(n,r)])
-
-  return matroid_from_revlex_basis_encoding(S,r,n)
-end
-
-@doc raw"""
     matroid_hex(M::Matroid)
 
 Stores a matroid as a string of hex characters. The first part of the string is "r" followed by the rank of the matroid. This is followed by "n" and the number of elements. The rest of the string is the revlex basis encoding. The encoding is done by converting the basis encoding to a vector of bits and then to a string of characters. The bits are padded to a multiple of 4 and then converted to hex characters.
