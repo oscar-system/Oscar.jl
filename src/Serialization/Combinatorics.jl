@@ -25,7 +25,7 @@ end
 @register_serialization_type Matroid "Matroid"
 
 function save_object(s::SerializerState, m::Matroid) 
-  @req m.groundset isa Vector{Int} "Groundset must be a Vector{Int}"
+  @req groundset(m) isa Vector{Int} "Groundset must be a Vector{Int}"
 
   save_data_dict(s) do
     save_object(s, pm_object(m), :matroid)
