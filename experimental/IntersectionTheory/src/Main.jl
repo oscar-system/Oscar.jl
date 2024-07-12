@@ -969,7 +969,7 @@ end
     +(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
     
-Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of F` and `G`, respectively.
+Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
 
 # Examples
 ```jldoctest
