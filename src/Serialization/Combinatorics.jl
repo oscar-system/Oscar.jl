@@ -29,8 +29,8 @@ function save_object(s::SerializerState, m::Matroid)
 
   save_data_dict(s) do
     save_object(s, pm_object(m), :matroid)
-    save_object(s, m.groundset, :groundset)
-    save_object(s, m.gs2num, :gs2num)
+    save_object(s, matroid_groundset(m), :groundset)
+    save_object(s, create_gs2num(m), :gs2num)
   end
 end
 
