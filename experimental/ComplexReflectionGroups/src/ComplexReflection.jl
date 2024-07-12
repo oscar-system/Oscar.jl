@@ -2,8 +2,11 @@ export ComplexReflection
 export scalar_product
 export unitary_reflection
 export hyperplane
-export coroot
 export eigenvalue
+
+# Function coroot implemented in LieAlgebras already. It's just about the name, we do not
+# rely on LieAlgebras here.
+#import Oscar.LieAlgebras: coroot 
 
 struct ComplexReflection{T <: QQAlgFieldElem}
     base_ring::QQAlgField #this should be the parent of T

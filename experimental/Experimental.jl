@@ -13,6 +13,7 @@ const orderedpkgs = [
   "Schemes",
   "FTheoryTools",            # must be loaded after Schemes
   "IntersectionTheory",      # must be loaded after Schemes
+  "ComplexReflectionGroups"   # Because LieAlgebra implements coroot 
 ]
 exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
