@@ -189,7 +189,7 @@ end
 @doc raw"""
      hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
-Return a an abstract variety morphism from `X` to `Y` by specifying the pullbacks of
+Return an abstract variety morphism from `X` to `Y` by specifying the pullbacks of
 the generators of the Chow ring of `Y`. 
 
 !!! note
