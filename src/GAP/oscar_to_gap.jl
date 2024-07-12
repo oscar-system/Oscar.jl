@@ -34,8 +34,8 @@ function GAP.julia_to_gap(obj::AbsSimpleNumFieldElem)
     return GAPWrap.CycList(GAP.julia_to_gap(v; recursive = true))
 end
 
-## `QQAbElem` to GAP cyclotomic
-function GAP.julia_to_gap(elm::QQAbElem)
+## `QQAbFieldElem` to GAP cyclotomic
+function GAP.julia_to_gap(elm::QQAbFieldElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # QQFieldElem
     return GAPWrap.CycList(GapObj(coeffs; recursive = true))
 end
