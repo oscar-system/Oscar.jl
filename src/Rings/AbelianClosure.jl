@@ -47,6 +47,12 @@ import Hecke: conductor, data
 #
 ################################################################################
 
+@doc raw"""
+    QQAbField
+
+The type of the abelian closure of the rationals. An object of this type can
+be constructed using [`abelian_closure(::QQField)`](@ref).
+"""
 @attributes mutable struct QQAbField{T} <: Nemo.Field # union of cyclotomic fields
   fields::Dict{Int, T} # Cache for the cyclotomic fields
   s::String
@@ -59,6 +65,12 @@ end
 const _QQAb = QQAbField{AbsSimpleNumField}(Dict{Int, AbsSimpleNumField}())
 const _QQAb_sparse = QQAbField{AbsNonSimpleNumField}(Dict{Int, AbsNonSimpleNumField}())
 
+@doc raw"""
+    QQAbFieldElem
+
+Element type for the abelian closure of the rationals.
+For more details see [`abelian_closure(::QQField)`](@ref).
+"""
 mutable struct QQAbFieldElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
