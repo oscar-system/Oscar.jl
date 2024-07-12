@@ -187,7 +187,7 @@ end
 # AbstractVarietyMap
 #
 @doc raw"""
-     hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+    hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety morphism from `X` to `Y` by specifying the pullbacks of
 the generators of the Chow ring of `Y`. 
@@ -1800,7 +1800,10 @@ Given integers, say, $d_1, \dots, d_{k}$ or a vector of such integers, and given
 abstract bundle $F$, return the abstract flag variety (flag bundle) of nested sequences 
 of subspaces of dimensions $d_1; \dots, d_{k}$ in the fibers of $F$.
 """
-function abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c") abstract_flag_variety(F, collect(dims), symbol=symbol) end
+function abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
+  abstract_flag_variety(F, collect(dims), symbol=symbol)
+end
+
 function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   X, n = F.parent, F.rank
   !(n isa Int) && error("expect rank to be an integer")
