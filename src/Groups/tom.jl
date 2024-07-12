@@ -387,13 +387,13 @@ julia> identifier(table_of_marks("A5"))
 
 julia> identifier(table_of_marks(symmetric_group(3)))
 ""
+```
 
 !!! warning "Note:"
     The `identifier` of a table of marks from the library is equal to
     the `identifier` of the corresponding library character table.
     In a few cases, this value differs from the `GAP.Globals.Identifier`
     value of the underlying `GapObj` of  the table of marks.
-```
 """
 @attr String function identifier(tom::GAPGroupTableOfMarks)
   gaptom = GapObj(tom)
