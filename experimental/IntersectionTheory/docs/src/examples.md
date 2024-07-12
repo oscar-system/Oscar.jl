@@ -5,6 +5,10 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Illustrating Examples From Enumerative Geometry
 
+
+#### How Many Conics in $\mathbb P^3$ meet eight general lines
+
+
 #### Steiner's Problem: How Many Conics are Tangent to 5 General Conics in $\mathbb P^2$?
 
 ```jldoctest

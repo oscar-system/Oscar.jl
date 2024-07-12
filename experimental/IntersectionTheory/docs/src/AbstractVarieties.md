@@ -43,7 +43,7 @@ abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
 ```
 
 ```@docs
-abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c")
+abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ```
 
 ```@docs
@@ -51,7 +51,7 @@ zero_locus_section(F::AbstractBundle; class::Bool = false)
 ```
 
 ```@docs
-degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
+degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
 ```
 
 !!! note
