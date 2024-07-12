@@ -5,6 +5,39 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Illustrating Examples From Enumerative Geometry
 
+
+#### How Many Conics in $\mathbb P^3$ meet eight general lines
+
+```jldoctest
+julia> G = abstract_grassmannian(3, 4)
+AbstractVariety of dim 3
+
+julia> USBd = dual(tautological_bundles(G)[1])
+AbstractBundle of rank 3 on AbstractVariety of dim 3
+
+julia> F = symmetric_power(USBd, 2)
+AbstractBundle of rank 6 on AbstractVariety of dim 3
+
+julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
+AbstractVariety of dim 8
+
+julia> UQB = tautological_bundles(G)[2]
+AbstractBundle of rank 1 on AbstractVariety of dim 3
+
+julia> p = pullback(structure_map(PF), chern_class(UQB, 1))
+-c[1]
+
+julia> Z = dual(tautological_bundles(PF)[1])
+AbstractBundle of rank 1 on AbstractVariety of dim 8
+
+julia> z = chern_class(Z, 1)
+h
+
+julia> integral((2*p + z)^8)
+92
+
+```
+
 #### Steiner's Problem: How Many Conics are Tangent to 5 General Conics in $\mathbb P^2$?
 
 ```jldoctest
