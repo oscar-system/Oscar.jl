@@ -1507,7 +1507,7 @@ julia> character_parameters(character_table("S5"))
 julia> character_parameters(character_table("M11"))
 ```
 """
-@attr Vector function character_parameters(tbl::GAPGroupCharacterTable)
+@attr Union{Nothing, Vector} function character_parameters(tbl::GAPGroupCharacterTable)
     GAPt = GapObj(tbl)
     GAPWrap.HasCharacterParameters(GAPt) || return nothing
     paras = Vector{GAP.Obj}(GAPWrap.CharacterParameters(GAPt))
@@ -1535,7 +1535,7 @@ julia> class_parameters(character_table("S5"))
 julia> class_parameters(character_table("M11"))
 ```
 """
-@attr Vector function class_parameters(tbl::GAPGroupCharacterTable)
+@attr Union{Nothing, Vector} function class_parameters(tbl::GAPGroupCharacterTable)
     GAPt = GapObj(tbl)
     GAPWrap.HasClassParameters(GAPt) || return nothing
     paras = Vector{GAP.Obj}(GAPWrap.ClassParameters(GAPt))
