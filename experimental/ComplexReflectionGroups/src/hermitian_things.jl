@@ -36,14 +36,8 @@ end
 ###########################################################################################
 function is_orthogonal(M::MatElem)
 
-  if !is_square(M)
-    return false
-  end
+  return is_square(M) && is_one(M*transpose(M))
 
-  K = base_ring(M)
-  n = ncols(M)
-
-  return M*transpose(M) == identity_matrix(K,n)
 end
 
 function is_unitary(M::QQMatrix)
@@ -65,12 +59,14 @@ function is_unitary(M::MatElem{T}) where T <: NumFieldElem
   conj = complex_conjugation(K)
   Mct = transpose(map_entries(conj, M))
 
-  return M*Mct == identity_matrix(K,n)
+  return is_one(M*Mct)
 
 end
 
 function is_unitary(M::MatrixGroupElem{T}) where T <: QQAlgFieldElem
+
   return is_unitary(matrix(M))
+
 end
 
 function is_unitary(G::MatrixGroup{T}) where T <: QQAlgFieldElem
