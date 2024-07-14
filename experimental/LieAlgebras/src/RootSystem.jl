@@ -8,7 +8,9 @@
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
   #fw::QQMatrix # fundamental weights as linear combination of simple roots
   positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
+  positive_roots_map::Dict{QQMatrix,Int}
   positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
+  positive_coroots_map::Dict{QQMatrix,Int}
   weyl_group::Any     #::WeylGroup (cyclic reference)
 
   # optional:
@@ -21,7 +23,13 @@
 
     R = new(mat)
     R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
+    R.positive_roots_map = Dict(
+      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_roots)
+    )
     R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
+    R.positive_coroots_map = Dict(
+      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_coroots)
+    )
     R.weyl_group = WeylGroup(finite, refl, R)
 
     return R
@@ -507,26 +515,41 @@ function height(r::RootSpaceElem)
   return sum(coefficients(r))
 end
 
+function is_root(r::RootSpaceElem)
+  return is_positive_root(r) || is_negative_root(r)
+end
+
 function is_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), roots(root_system(r)))
-  if isnothing(i)
-    return false, 0
-  else
+  fl, i = is_positive_root_with_index(r)
+  if fl
     return true, i
   end
+  fl, j = is_negative_root_with_index(r)
+  if fl
+    return true, j + number_of_positive_roots(root_system(r))
+  end
+  return false, 0
+end
+
+function is_positive_root(r::RootSpaceElem)
+  return haskey(root_system(r).positive_roots_map, coefficients(r))
 end
 
 function is_positive_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), positive_roots(root_system(r)))
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
     return true, i
   end
+end
+
+function is_negative_root(r::RootSpaceElem)
+  return haskey(root_system(r).positive_roots_map, -coefficients(r))
 end
 
 function is_negative_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), negative_roots(root_system(r)))
+  i = get(root_system(r).positive_roots_map, -coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
@@ -534,9 +557,13 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+function is_simple_root(r::RootSpaceElem)
+  return is_simple_root_with_index(r)[1]
+end
+
 function is_simple_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), simple_roots(root_system(r)))
-  if isnothing(i)
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
     return true, i
@@ -638,26 +665,41 @@ function height(r::DualRootSpaceElem)
   return sum(coefficients(r))
 end
 
+function is_coroot(r::DualRootSpaceElem)
+  return is_positive_coroot(r) || is_negative_coroot(r)
+end
+
 function is_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), coroots(root_system(r)))
-  if isnothing(i)
-    return false, 0
-  else
+  fl, i = is_positive_coroot_with_index(r)
+  if fl
     return true, i
   end
+  fl, j = is_negative_coroot_with_index(r)
+  if fl
+    return true, j + number_of_positive_roots(root_system(r))
+  end
+  return false, 0
+end
+
+function is_positive_coroot(r::DualRootSpaceElem)
+  return haskey(root_system(r).positive_coroots_map, coefficients(r))
 end
 
 function is_positive_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), positive_coroots(root_system(r)))
+  i = get(root_system(r).positive_coroots_map, coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
     return true, i
   end
+end
+
+function is_negative_coroot(r::DualRootSpaceElem)
+  return haskey(root_system(r).positive_coroots_map, -coefficients(r))
 end
 
 function is_negative_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), negative_coroots(root_system(r)))
+  i = get(root_system(r).positive_coroots_map, -coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
@@ -665,9 +707,13 @@ function is_negative_coroot_with_index(r::DualRootSpaceElem)
   end
 end
 
+function is_simple_coroot(r::DualRootSpaceElem)
+  return is_simple_coroot_with_index(r)[1]
+end
+
 function is_simple_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), simple_coroots(root_system(r)))
-  if isnothing(i)
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
     return true, i

@@ -138,15 +138,23 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_negative_coroot
 export is_negative_coroot_with_index
+export is_negative_root
 export is_negative_root_with_index
+export is_positive_coroot
 export is_positive_coroot_with_index
+export is_positive_root
 export is_positive_root_with_index
+export is_root
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot
 export is_simple_coroot_with_index
+export is_simple_root
 export is_simple_root_with_index
 export lie_algebra
 export lmul, lmul!
@@ -268,15 +276,23 @@ export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_negative_coroot
 export is_negative_coroot_with_index
+export is_negative_root
 export is_negative_root_with_index
+export is_positive_coroot
 export is_positive_coroot_with_index
+export is_positive_root
 export is_positive_root_with_index
+export is_root
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot
 export is_simple_coroot_with_index
+export is_simple_root
 export is_simple_root_with_index
 export lie_algebra
 export lmul, lmul!
