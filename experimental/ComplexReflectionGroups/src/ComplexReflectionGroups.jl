@@ -1,7 +1,7 @@
 
 # A union type for all algebraic extensions of the field of rational numbers
-QQAlgField = Union{NumField, QQField, QQBarField, QQAbField}
-QQAlgFieldElem = Union{NumFieldElem, QQFieldElem, QQBarFieldElem, QQAbElem}
+const QQAlgField = Union{NumField, QQField, QQBarField, QQAbField}
+const QQAlgFieldElem = Union{NumFieldElem, QQFieldElem, QQBarFieldElem, QQAbElem}
 
 # Imports (for stuff from experimental)
 import Oscar.LieAlgebras: coroot #no conflict, just same function name
