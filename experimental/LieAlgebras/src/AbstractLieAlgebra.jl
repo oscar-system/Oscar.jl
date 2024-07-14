@@ -396,11 +396,11 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       fl, k = is_positive_root_with_index(alpha_i + beta_l)
       fl || continue
       all(
-        j -> !is_positive_root_with_index(alpha_i + beta_l - simple_root(rs, j))[1],
+        j -> !is_positive_root(alpha_i + beta_l - simple_root(rs, j)),
         1:(i - 1),
       ) || continue
       p = 0
-      while is_root_with_index(beta_l - p * alpha_i)[1]
+      while is_root(beta_l - p * alpha_i)
         p += 1
       end
       N[i, l] = (extraspecial_pair_signs[k - nsimp] ? 1 : -1) * p
@@ -412,10 +412,9 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
   for (i, alpha_i) in enumerate(positive_roots(rs))
     for (j, beta_j) in enumerate(positive_roots(rs))
       i < j || continue
-      fl = is_positive_root_with_index(alpha_i + beta_j)[1]
-      fl || continue
+      is_positive_root(alpha_i + beta_j) || continue
       l = findfirst(
-        l -> is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))[1], 1:nsimp
+        l -> is_positive_root(alpha_i + beta_j - simple_root(rs, l)), 1:nsimp
       )
       l == i && continue # already extraspecial
       fl, l_comp = is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))
@@ -432,7 +431,7 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       end
       @assert t1 - t2 != 0
       p = 0
-      while is_root_with_index(beta_j - p * alpha_i)[1]
+      while is_root(beta_j - p * alpha_i)
         p += 1
       end
       N[i, j] = Int(sign(t1 - t2) * sign(N[l, l_comp]) * p) # typo in CMT04
