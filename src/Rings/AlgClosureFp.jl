@@ -20,6 +20,13 @@ import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, charac
   elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
+"""
+    AlgClosure{T} <: AbstractAlgebra.Field
+
+Type for the algebraic closure of a finite field.
+
+See [`algebraic_closure`](@ref).
+"""
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
   k::T
