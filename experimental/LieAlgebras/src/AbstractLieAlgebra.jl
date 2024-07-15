@@ -368,7 +368,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     struct_consts[nroots + i, j] = sparse_row(
       R,
       [j],
-      [dot(coefficients(root(rs, j)), cm[i, :])],
+      [dot(coefficients(root(rs, j)), view(cm, i, :))],
     )
     # [e_βj, h_i] = -[h_i, e_βj]
     struct_consts[j, nroots + i] = -struct_consts[nroots + i, j]
