@@ -9,3 +9,10 @@
     end
 
 end
+
+@testset "tropical general position" begin
+	A = matrix(tropical_semiring(),[1 0;0 1])
+	@test tropically_generic(A,min) == true
+	A = matrix(tropical_semiring(max),[1 0;0 1])
+	@tes_throws ArgumentError tropically_generic(A,min)
+end
