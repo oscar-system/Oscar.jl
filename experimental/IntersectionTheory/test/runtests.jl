@@ -31,8 +31,8 @@ let pushforward = IntersectionTheory.pushforward
     X, (A, B) = abstract_variety(2, [3=>"a", 3=>"b"])
     @test schur_functor(A, [1,1]) == exterior_power(A, 2)
     @test schur_functor(A, [2]) == symmetric_power(A, 2)
-    D = degeneracy_locus(2, A, B)
-    @test pushforward(hom(D, X), D(1)) == degeneracy_locus(2, A, B, class=true)
+    D = degeneracy_locus(A, B, 2)
+    @test pushforward(hom(D, X), D(1)) == degeneracy_locus(A, B, 2, class=true)
 
     # characteristic classes
     t = todd_class(2)
