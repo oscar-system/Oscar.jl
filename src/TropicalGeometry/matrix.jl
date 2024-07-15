@@ -43,11 +43,11 @@ function det(A::Matrix{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{t
 end
 
 @doc raw"""
-    tropically_generic(A::Generic.MatSpaceElem{<: TropicalSemiringElem}, maxormin)
-Checks if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `maxormin` convention.
+    tropically_generic(A::Generic.MatSpaceElem{<: TropicalSemiringElem}, minOrMax)
+Checks if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
 # Examples
 ```jldoctest
-julia> A = matrix(tropcial_semiring(),[1 0;01])
+julia> A = matrix(tropical_semiring(),[1 0;01])
 [(1)   (0)]
 [(0)   (1)]
 
