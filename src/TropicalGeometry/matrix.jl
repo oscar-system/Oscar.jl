@@ -43,19 +43,21 @@ function det(A::Matrix{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{t
 end
 
 @doc raw"""
-    tropically_generic(A::Generic.MatSpaceElem{<: TropicalSemiringElem}, minOrMax)
-Checks if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
+    is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
+
+Check if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
+
 # Examples
 ```jldoctest
 julia> A = matrix(tropical_semiring(),[1 0;0 1])
 [(1)   (0)]
 [(0)   (1)]
 
-julia> tropically_generic(A,min)
+julia> is_tropically_generic(A,min)
 true
 ```
 """
-function tropically_generic(A::Generic.MatSpaceElem{<:TropicalSemiringElem}, minOrMax)
+function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
     @req convention(A) == minOrMax "Semiring convention not as declared"
     if ncols(A) == nrows(A)
         return Polymake.tropical.tsgn(A) != 0
