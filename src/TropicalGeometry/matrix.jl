@@ -47,7 +47,7 @@ end
 Checks if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
 # Examples
 ```jldoctest
-julia> A = matrix(tropical_semiring(),[1 0;01])
+julia> A = matrix(tropical_semiring(),[1 0;0 1])
 [(1)   (0)]
 [(0)   (1)]
 
