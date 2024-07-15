@@ -122,7 +122,7 @@ julia> g, phi1 = two_neighbor_step(Y1, fibers[2][I]); g
 
 julia> kt2 = base_ring(parent(g)); P = kt2.([0,0]);
 
-julia> Y2, phi2 = elliptic_surface(g, P); Y2
+julia> Y2, phi2 = elliptic_surface(g, P; minimize=false); Y2
 Elliptic surface
   over rational field
 with generic fiber
@@ -130,9 +130,9 @@ with generic fiber
 and relatively minimal model
   scheme over QQ covered with 47 patches
 
-julia> E2 = generic_fiber(Y2); t2 = gen(kt2);
+julia> E2 = generic_fiber(Y2); tt = gen(kt2);
 
-julia> P2 = E2([t2^3, t2^3]); set_mordell_weil_basis!(Y2, [P2]);
+julia> P2 = E2([tt^3, tt^3]); set_mordell_weil_basis!(Y2, [P2]);
 
 julia> U2 = weierstrass_chart_on_minimal_model(Y2); U1 = weierstrass_chart_on_minimal_model(Y1);
 
@@ -148,7 +148,7 @@ julia> set_attribute!(phi_rat, :is_isomorphism=>true);
 
 julia> pullbackDivY1 = [pullback(phi_rat, D) for D in basisNSY1];
 
-julia> B = [basis_representation(Y2, D) for D in pullbackDivY1];
+julia> B = [basis_representation(Y2, D) for D in pullbackDivY1]
 20-element Vector{Vector{QQFieldElem}}:
  [4, 2, 0, 0, 0, 0, 0, 0, 0, -4, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -191,3 +191,50 @@ julia> f3 = fibers[3][I]; representative(elliptic_parameter(Y1, f3))
 
 julia> g3a, phi3a = two_neighbor_step(Y1, f3); g3a
 -x^3 + (-t^3 + 2)*x^2 - x + y^2
+
+julia> @assert all(inner_product(ambient_space(NSY2), i,i) == 0 for i in fibers_in_Y2)
+
+julia> [representative(elliptic_parameter(Y2, f)) for f in fibers_in_Y2[4:6]]
+3-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQMPolyRingElem}}:
+ (y//z)//((x//z)*t)
+ ((y//z) + t^3)//((x//z)*t - t^4)
+ ((y//z) + t^3)//((x//z) - t^3)
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[4]);g
+-1//4*x^4 - 1//2*t^2*x^3 - 1//4*t^4*x^2 + x + y^2
+
+julia> R = parent(g); K_t = base_ring(R);
+
+julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E4 = elliptic_curve(g, x, y)
+Elliptic curve with equation
+y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[5]);g
+t^2*x^3 + (-1//4*t^4 + 2*t)*x^2 + x + y^2
+
+julia> R = parent(g); K_t = base_ring(R);
+
+julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E5 = elliptic_curve(g, x, y)
+Elliptic curve with equation
+y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
+
+julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[6]);g
+(t^2 + 2*t + 1)*x^3 + y^2 - 1//4*t^4
+
+julia> R = parent(g); K_t = base_ring(R); t = gen(K_t);
+
+julia> (x,y) = gens(R); P = K_t.([0,1//2*t^2]); # rational point
+
+julia> g, _ = transform_to_weierstrass(g, x, y, P);
+
+julia> E6 = elliptic_curve(g, x, y)
+Elliptic curve with equation
+y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3
