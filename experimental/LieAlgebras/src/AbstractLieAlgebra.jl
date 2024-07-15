@@ -31,7 +31,7 @@
         sum(
           struct_consts[i, j][k] * struct_consts[k, l] +
           struct_consts[j, l][k] * struct_consts[k, i] +
-          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL
+          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL; init=sparse_row(R)
         ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
@@ -415,7 +415,7 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       is_positive_root(alpha_i + beta_j) || continue
       l = findfirst(
         l -> is_positive_root(alpha_i + beta_j - simple_root(rs, l)), 1:nsimp
-      )
+      )::Int
       l == i && continue # already extraspecial
       fl, l_comp = is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))
       @assert fl

@@ -24,11 +24,11 @@
     R = new(mat)
     R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
     R.positive_roots_map = Dict(
-      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_roots)
+      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_roots::Vector{RootSpaceElem})
     )
     R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
     R.positive_coroots_map = Dict(
-      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_coroots)
+      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 
@@ -183,7 +183,7 @@ This is a more efficient version for `negative_roots(R)[i]`.
 Also see: `negative_roots`.
 """
 function negative_root(R::RootSystem, i::Int)
-  return -R.positive_roots[i]::RootSpaceElem
+  return -(R.positive_roots::Vector{RootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -206,7 +206,7 @@ This is a more efficient version for `negative_coroots(R)[i]`.
 Also see: `negative_coroots`.
 """
 function negative_coroot(R::RootSystem, i::Int)
-  return -R.positive_coroots[i]::DualRootSpaceElem
+  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -262,7 +262,7 @@ This is a more efficient version for `positive_roots(R)[i]`.
 Also see: `positive_roots`.
 """
 function positive_root(R::RootSystem, i::Int)
-  return R.positive_roots[i]::RootSpaceElem
+  return (R.positive_roots::Vector{RootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -286,7 +286,7 @@ This is a more efficient version for `positive_coroots(R)[i]`.
 Also see: `positive_coroots`.
 """
 function positive_coroot(R::RootSystem, i::Int)
-  return R.positive_coroots[i]::DualRootSpaceElem
+  return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -450,13 +450,13 @@ function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
 end
 
 function Base.:(+)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return RootSpaceElem(root_system(r), r.vec + r2.vec)
 end
 
 function Base.:(-)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return RootSpaceElem(root_system(r), r.vec - r2.vec)
 end
@@ -504,7 +504,7 @@ function coeff(r::RootSpaceElem, i::Int)
 end
 
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r1) === root_system(r2) "$r1 and $r2 must belong to the same root space"
+  @req root_system(r1) === root_system(r2) "parent root system mismatch"
 
   return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2))
 end
@@ -606,13 +606,13 @@ function Base.:(*)(q::RationalUnion, r::DualRootSpaceElem)
 end
 
 function Base.:(+)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return DualRootSpaceElem(root_system(r), r.vec + r2.vec)
 end
 
 function Base.:(-)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return DualRootSpaceElem(root_system(r), r.vec - r2.vec)
 end
@@ -754,13 +754,13 @@ function Base.:(*)(n::IntegerUnion, w::WeightLatticeElem)
 end
 
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
   return RootSpaceElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec - w2.vec)
 end
@@ -923,8 +923,12 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
         continue
       end
 
-      pairing = sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank)
-      copairing = sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank)
+      pairing = let i = i
+        sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank; init=zero(ZZ))
+      end
+      copairing = let i = i
+        sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank; init=zero(ZZ))
+      end
       if pairing * copairing >= 4
         refl[s, i] = 0
         continue
