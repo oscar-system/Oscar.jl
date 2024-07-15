@@ -24,11 +24,13 @@
     R = new(mat)
     R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
     R.positive_roots_map = Dict(
-      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_roots::Vector{RootSpaceElem})
+      (coefficients(root), ind) for
+      (ind, root) in enumerate(R.positive_roots::Vector{RootSpaceElem})
     )
     R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
     R.positive_coroots_map = Dict(
-      (coefficients(root), ind) for (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
+      (coefficients(root), ind) for
+      (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 

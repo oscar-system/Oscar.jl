@@ -60,7 +60,8 @@ coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_ty
 
 dim(L::AbstractLieAlgebra) = L.dim
 
-_struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.struct_consts::Matrix{sparse_row_type(C)}
+_struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
+  L.struct_consts::Matrix{sparse_row_type(C)}
 
 ###############################################################################
 #

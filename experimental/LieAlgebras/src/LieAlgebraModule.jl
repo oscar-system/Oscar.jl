@@ -684,7 +684,9 @@ function abstract_module(
 
   transformation_matrices = [zero_matrix(coefficient_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV
-    transformation_matrices[i][j, :] = dense_row(struct_consts[i, j]::sparse_row_type(C), dimV)
+    transformation_matrices[i][j, :] = dense_row(
+      struct_consts[i, j]::sparse_row_type(C), dimV
+    )
   end
 
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)

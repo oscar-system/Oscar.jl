@@ -45,17 +45,25 @@
       @test all(i -> negative_root(R, i) == negative_roots(R)[i], 1:npositive_roots)
       @test simple_roots(R) == positive_roots(R)[1:rk]
       @test all(is_root, roots(R))
-      @test !is_root(root(R,1) - root(R,1))
-      @test all(r -> !is_root(2*r), roots(R))
+      @test !is_root(root(R, 1) - root(R, 1))
+      @test all(r -> !is_root(2 * r), roots(R))
       @test all(is_root_with_index(r) == (true, i) for (i, r) in enumerate(roots(R)))
       @test all(r -> is_positive_root(r) == is_positive_root_with_index(r)[1], roots(R))
       @test all(r -> is_negative_root(r) == is_negative_root_with_index(r)[1], roots(R))
       @test all(r -> is_simple_root(r) == is_simple_root_with_index(r)[1], roots(R))
-      @test all(is_positive_root_with_index(r) == (true, i) for (i, r) in enumerate(positive_roots(R)))
+      @test all(
+        is_positive_root_with_index(r) == (true, i) for
+        (i, r) in enumerate(positive_roots(R))
+      )
       @test all(!is_negative_root, positive_roots(R))
-      @test all(is_negative_root_with_index(r) == (true, i) for (i, r) in enumerate(negative_roots(R)))
+      @test all(
+        is_negative_root_with_index(r) == (true, i) for
+        (i, r) in enumerate(negative_roots(R))
+      )
       @test all(!is_positive_root, negative_roots(R))
-      @test all(is_simple_root_with_index(r) == (true, i) for (i, r) in enumerate(simple_roots(R)))
+      @test all(
+        is_simple_root_with_index(r) == (true, i) for (i, r) in enumerate(simple_roots(R))
+      )
       @test all(is_positive_root, simple_roots(R))
       @test all(!is_negative_root, simple_roots(R))
       @test all(iszero, positive_roots(R) + negative_roots(R))
@@ -69,17 +77,30 @@
       @test all(i -> negative_coroot(R, i) == negative_coroots(R)[i], 1:npositive_roots)
       @test simple_coroots(R) == positive_coroots(R)[1:rk]
       @test all(is_coroot, coroots(R))
-      @test !is_coroot(coroot(R,1) - coroot(R,1))
-      @test all(r -> !is_coroot(2*r), coroots(R))
+      @test !is_coroot(coroot(R, 1) - coroot(R, 1))
+      @test all(r -> !is_coroot(2 * r), coroots(R))
       @test all(is_coroot_with_index(r) == (true, i) for (i, r) in enumerate(coroots(R)))
-      @test all(r -> is_positive_coroot(r) == is_positive_coroot_with_index(r)[1], coroots(R))
-      @test all(r -> is_negative_coroot(r) == is_negative_coroot_with_index(r)[1], coroots(R))
+      @test all(
+        r -> is_positive_coroot(r) == is_positive_coroot_with_index(r)[1], coroots(R)
+      )
+      @test all(
+        r -> is_negative_coroot(r) == is_negative_coroot_with_index(r)[1], coroots(R)
+      )
       @test all(r -> is_simple_coroot(r) == is_simple_coroot_with_index(r)[1], coroots(R))
-      @test all(is_positive_coroot_with_index(r) == (true, i) for (i, r) in enumerate(positive_coroots(R)))
+      @test all(
+        is_positive_coroot_with_index(r) == (true, i) for
+        (i, r) in enumerate(positive_coroots(R))
+      )
       @test all(!is_negative_coroot, positive_coroots(R))
-      @test all(is_negative_coroot_with_index(r) == (true, i) for (i, r) in enumerate(negative_coroots(R)))
+      @test all(
+        is_negative_coroot_with_index(r) == (true, i) for
+        (i, r) in enumerate(negative_coroots(R))
+      )
       @test all(!is_positive_coroot, negative_coroots(R))
-      @test all(is_simple_coroot_with_index(r) == (true, i) for (i, r) in enumerate(simple_coroots(R)))
+      @test all(
+        is_simple_coroot_with_index(r) == (true, i) for
+        (i, r) in enumerate(simple_coroots(R))
+      )
       @test all(is_positive_coroot, simple_coroots(R))
       @test all(!is_negative_coroot, simple_coroots(R))
       @test all(iszero, positive_coroots(R) + negative_coroots(R))
