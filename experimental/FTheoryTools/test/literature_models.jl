@@ -58,7 +58,7 @@ end
   @test_throws ArgumentError associated_literature_models(t1)
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
-  @test_throws ArgumentError related_literature_models(t1)
+  @test_throws ArgumentError birational_literature_models(t1)
 end
 
 set_model_description(t1, "Testing...")
@@ -134,7 +134,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError birational_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -201,7 +201,7 @@ end
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
-  @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError birational_literature_models(t3)
   @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
 end
 
@@ -296,7 +296,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError birational_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
@@ -607,7 +607,7 @@ foah12_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type
 foah13_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass")
 foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass")
 foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
-foah16_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass")
+foah16_weier = weierstrass_model(foah16)
 
 @testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
@@ -684,7 +684,7 @@ end
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3_weier = weierstrass_model(foah1_B3)
 foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
 foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)

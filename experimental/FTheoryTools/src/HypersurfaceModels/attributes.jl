@@ -66,10 +66,35 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
 
 Return the Weierstrass model corresponding to the
 hypersurface model, provided that the latter is known.
+
+```jldoctest
+julia> t = literature_model(14)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Hypersurface model over a not fully specified base
+
+julia> weierstrass_model(t)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_1 based on arXiv paper 1408.4808 Eq. (3.4)
+```
 """
 function weierstrass_model(h::HypersurfaceModel)
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
-  return get_attribute(h, :weierstrass_model)
+  w = get_attribute(h, :weierstrass_model)
+  if typeof(w) == String
+    directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+    model_indices = JSON.parsefile(directory * "model_indices.json")
+    if is_base_space_fully_specified(h)
+      w_model = literature_model(parse(Int, model_indices[w]), base_space = base_space(h), defining_classes = defining_classes(h), completeness_check = false)
+    else
+      w_model = literature_model(parse(Int, model_indices[w]))
+    end
+    set_weierstrass_model(h, w_model)
+    return w_model
+  else
+    return w
+  end
 end
 
 

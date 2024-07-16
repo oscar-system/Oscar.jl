@@ -530,8 +530,8 @@ function set_paper_title(m::AbstractFTheoryModel, desired_value::String)
   set_attribute!(m, :paper_title => desired_value)
 end
 
-function set_related_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :related_literature_models => desired_value)
+function set_birational_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
+  set_attribute!(m, :birational_literature_models => desired_value)
 end
 
 
@@ -565,9 +565,9 @@ function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
   !(addition in values) && set_attribute!(m, :paper_buzzwords => vcat(values, [addition]))
 end
 
-function add_related_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = has_related_literature_models(m) ? related_literature_models(m) : []
-  !(addition in values) && set_attribute!(m, :related_literature_models => vcat(values, [addition]))
+function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+  values = has_birational_literature_models(m) ? birational_literature_models(m) : []
+  !(addition in values) && set_attribute!(m, :birational_literature_models => vcat(values, [addition]))
 end
 
 
@@ -665,7 +665,7 @@ end
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = has_generating_sections(m) ? related_literature_models(m) : []
+  values = has_generating_sections(m) ? birational_literature_models(m) : []
   !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
 end
 

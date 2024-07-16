@@ -15,7 +15,7 @@ export add_journal_report_number
 export add_model_parameter
 export add_paper_author
 export add_paper_buzzword
-export add_related_literature_model
+export add_birational_literature_model
 export add_resolution
 export add_resolution_generating_section
 export add_resolution_zero_section
@@ -89,7 +89,7 @@ export has_paper_buzzwords
 export has_paper_description
 export has_paper_title
 export has_quick_triangulation
-export has_related_literature_models
+export has_birational_literature_models
 export has_resolution_generating_sections
 export has_resolution_zero_sections
 export has_resolutions
@@ -122,6 +122,7 @@ export literature_identifier
 export literature_model
 export max_lattice_pts_in_facet
 export model_description
+export model_index
 export model_parameters
 export paper_authors
 export paper_buzzwords
@@ -129,7 +130,7 @@ export paper_description
 export paper_title
 export polytope_index
 export put_over_concrete_base
-export related_literature_models
+export birational_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
@@ -164,7 +165,7 @@ export set_paper_authors
 export set_paper_buzzwords
 export set_paper_description
 export set_paper_title
-export set_related_literature_models
+export set_birational_literature_models
 export set_resolution_generating_sections
 export set_resolution_zero_sections
 export set_resolutions
