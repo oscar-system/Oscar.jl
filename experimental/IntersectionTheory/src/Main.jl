@@ -1792,7 +1792,7 @@ Return the `n`-th Hirzebruch surface.
 # Examples
 
 ```jldoctest
-julia> H2 =  hirzebruch_surface(2)
+julia> H2 =  abstract_hirzebruch_surface(2)
 AbstractVariety of dim 2
 
 julia> chow_ring(H2)

@@ -10,7 +10,7 @@ CurrentModule = Oscar
 hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 ```
 
-## Underlying Data of an Abstract Variety
+## Underlying Data of an Abstract Variety Map
 
 An abstract variety map is made up from (a selection of) the data discussed here:
 
