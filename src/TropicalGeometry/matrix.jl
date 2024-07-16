@@ -58,20 +58,20 @@ true
 ```
 """
 function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
-	@req convention(A) == minOrMax "Semiring convention not as declared"
-	function helper(C,B)
-		for b in subsets(C,B)
-			Polymake.tropical.tsgn(A[b,:]) == 0 && return false
-		end
-		return true
-	end
-	nca = ncols(A)
-	nra = nrows(A)
-	if nca == nra
-		return Polymake.tropical.tsgn(A) != 0
-	elseif nca>nra
-		return helper(nca,nra)
-	else 
-		return helper(nra,nca)
-	end
+  @req convention(A) == minOrMax "Semiring convention not as declared"
+  function helper(C,B)
+    for b in subsets(C,B)
+      Polymake.tropical.tsgn(A[b,:]) == 0 && return false
+    end
+    return true
+  end
+  nca = ncols(A)
+  nra = nrows(A)
+  if nca == nra
+    return Polymake.tropical.tsgn(A) != 0
+  elseif nca>nra
+    return helper(nca,nra)
+  else 
+    return helper(nra,nca)
+  end
 end
