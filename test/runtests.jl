@@ -111,6 +111,7 @@ test_large = [
               "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
               "experimental/QuadFormAndIsom/test/runtests.jl",
               "experimental/GModule/test/runtests.jl",
+              "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
               "test/Modules/ModulesGraded.jl",
               "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
              ]

@@ -776,7 +776,7 @@ function _try_randomized_pullback(phi::MorphismFromRationalFunctions, I::AbsIdea
   min_var = minimum([ngens(OO(V)) for V in all_V])
   all_V = [V for V in all_V if ngens(OO(V)) == min_var]
   deg_bound = minimum([maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) for V in all_V])
-  all_V = [V for V in all_V if minimum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
+  all_V = [V for V in all_V if maximum([total_degree(lifted_numerator(g)) for g in gens(I(V))]) == deg_bound]
   V = first(all_V)
 
   all_U = copy(affine_charts(X))

@@ -1369,15 +1369,18 @@ end
   n = ngens(P)
   imgs_y = t[r+1:(r+n)]
   imgs_x = t[r+n+1:end]
-  I = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
+  # Sometimes for unnecessarily complicated sets of generators for I the computation 
+  # wouldn't finish. We try to pass to a `small_generating_set` to hopefully reduce the dependency 
+  # on a particular set of generators. 
+  J = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
                     [theta[i]*evaluate(num, imgs_y) - imgs_x[i] for (i, num) in enumerate(nums)], # Graph relations
-                    [evaluate(g, imgs_y) for g in gens(I)])) # codomain's modulus
+                    [evaluate(g, imgs_y) for g in small_generating_set(I)])) # codomain's modulus
   # We eliminate the Rabinowitsch variables first, the codomain variables second, 
   # and finally get to the domain variables. This elimination should be quicker 
   # than one which does not know the Rabinowitsch property.
   oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
   #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
-  gb = groebner_basis(I, ordering=oo)
+  gb = groebner_basis(J, ordering=oo)
 
   # TODO: Speed up and use build context.
   res_gens = elem_type(A)[f for f in gb if all(e->all(k->is_zero(e[k]), 1:(n+r)), exponents(f))]
