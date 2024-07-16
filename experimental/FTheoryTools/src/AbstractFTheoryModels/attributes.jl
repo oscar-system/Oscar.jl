@@ -385,7 +385,7 @@ julia> birational_literature_models(m)
 ```
 """
 function birational_literature_models(m::AbstractFTheoryModel)
-  @req has_birational_literature_models(m) "No birational models known for this model"
+  @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
   return get_attribute(m, :birational_literature_models)
 end
 
