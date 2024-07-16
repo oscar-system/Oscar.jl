@@ -20,7 +20,6 @@ $0 \rightarrow \mathcal O_{\mathbb P^4} ^5(2)\rightarrow \Lambda^2 T^*_{\mathbb 
 
 Then, we show the constructor above at work.
 
-# Examples
 ```jldoctest
 julia> T, (d,) = polynomial_ring(QQ, ["d"])
 (Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[d])
@@ -189,7 +188,7 @@ end
 @doc raw"""
     hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
-Return an abstract variety morphism from `X` to `Y` by specifying the pullbacks of
+Return an abstract variety map `X` $\rightarrow$ `Y` by specifying the pullbacks of
 the generators of the Chow ring of `Y`. 
 
 !!! note
@@ -209,49 +208,143 @@ end
 @doc raw"""
     dim(f::AbstractVarietyMap)
 
-Return the relative dimension of `f`.
+Return the relative dimension of `f`, that is, return `dim(domain(f)) - dim(codomain(f))`.
+
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P5 = abstract_projective_space(5, symbol = "H")
+AbstractVariety of dim 5
+
+julia> h = gens(P2)[1]
+h
+
+julia> i = hom(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
+julia> dim(i)
+-3
+
+```
 """
 dim(f::AbstractVarietyMap) = f.dim
 
 @doc raw"""
     tangent_bundle(f::AbstractVarietyMap)
 
-Return the relative tangent bundle.
+Return the relative tangent bundle of `f`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> T = tangent_bundle(P2)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> PT = abstract_projective_bundle(T)
+AbstractVariety of dim 3
+
+julia> pi = structure_map(PT)
+AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
+
+julia> PBT = pullback(pi, T)
+AbstractBundle of rank 2 on AbstractVariety of dim 3
+
+julia> PBT*OO(PT, 1) - OO(PT) == tangent_bundle(pi) # relative Euler sequence
+true
+
+```
 """
 tangent_bundle(f::AbstractVarietyMap) = f.T
 
 @doc raw"""
     cotangent_bundle(f::AbstractVarietyMap)
 
-Return the relative cotangent bundle.
+Return the relative cotangent bundle of `f`.
 """
 cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
 
 @doc raw"""
     todd_class(f::AbstractVarietyMap)
 
-Compute the Todd class of the relative tangent bundle.
+Return the Todd class of the relative tangent bundle of `f`.
 """
 todd_class(f::AbstractVarietyMap) = todd_class(f.T)
 
 @doc raw"""
-    pullback(f::AbstractVarietyMap, x::MPolyDecRingElem)
-    pullback(f::AbstractVarietyMap, F::AbstractBundle)
+    pullback(f::AbstractVarietyMap, y::MPolyDecRingElem)
 
-Compute the pullback of a Chow ring element $x$ or a bundle $F$ by a morphism $f$.
+Return the pullback of `y` via `f`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P5 = abstract_projective_space(5, symbol = "H")
+AbstractVariety of dim 5
+
+julia> h = gens(P2)[1]
+h
+
+julia> H = gens(P5)[1]
+H
+
+julia> i = hom(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
+julia> pullback(i, H)
+2*h
+
+```
 """
 pullback(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pullback(x)
+
+@doc raw"""
+    pullback(f::AbstractVarietyMap, F::AbstractBundle)
+
+Return the pullback of `F` via `f`.
+"""
 pullback(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.domain, f.pullback(chern_character(F)))
 
 @doc raw"""
     pushforward(f::AbstractVarietyMap, x::MPolyDecRingElem)
-    pushforward(f::AbstractVarietyMap, F::AbstractBundle)
 
-Compute the pushforward of a Chow ring element $x$ or a bundle $F$ by a
-morphism $f$. For abstract bundles, the pushforward is derived, e.g., for a
-bundle $F$ it is understood as the alternating sum of all direct images.
+Return the pushforward of `x` via `f`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P5 = abstract_projective_space(5, symbol = "H")
+AbstractVariety of dim 5
+
+julia> h = gens(P2)[1]
+h
+
+julia> i = hom(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
+julia> pushforward(i, h)
+2*H^4
+```
 """
 pushforward(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pushforward(x)
+
+@doc raw"""
+    pushforward(f::AbstractVarietyMap, F::AbstractBundle)
+
+Return the pushforward of `F` via `f`, that is, return the alternating sum of all direct images of `F` via `f`.
+"""
 pushforward(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.codomain, f.pushforward(chern_character(F) * todd_class(f))) # Grothendieck-Hirzebruch-Riemann-Roch
 
 function identity_hom(X::V) where V <: AbstractVarietyT
@@ -259,11 +352,11 @@ function identity_hom(X::V) where V <: AbstractVarietyT
 end
 
 @doc raw"""
-    *(f::AbstractVarietyMap, g::AbstractVarietyMap)
+    compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
 
-Construct the composition morphism $g\circ f: X\to Z$ for $f: X\to Y$ and $g:Y\to Z$.
+Given abstract variety maps `f` : `X` $\to$ `Y` and `g` : `Y` $\to$ `Z`, say, return their composition.
 """
-function *(f::AbstractVarietyMap, g::AbstractVarietyMap)
+function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   X, Y = f.domain, f.codomain
   @assert g.domain == Y
   Z = g.codomain
@@ -274,6 +367,8 @@ function *(f::AbstractVarietyMap, g::AbstractVarietyMap)
   gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
   return gof
 end
+
+*(f::AbstractVarietyMap, g::AbstractVarietyMap) = compose(f, g) # TODO mention in docu, skip?
 
 ###############################################################################
 #
@@ -829,7 +924,7 @@ end
 @doc raw"""
     hom(X::AbstractVariety, Y::AbstractVariety)
 
-Return a canonicallly defined morphism from `X` to `Y`.
+Return a canonically defined morphism from `X` to `Y`.
 """
 function hom(X::AbstractVariety, Y::AbstractVariety)
   get_attribute(Y, :point) !== nothing && return hom(X, Y, [X(0)]) # Y is a point
@@ -976,7 +1071,7 @@ Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` 
 julia> P3 = abstract_projective_space(3)
 AbstractVariety of dim 3
 
-julia> 4*OO(P3)-OO(P3, -1) == tangent_bundle(P3)*OO(P3, -1) # Euler sequence
+julia> 4*OO(P3, 1) - OO(P3) == tangent_bundle(P3) # Euler sequence
 true
 
 ```
@@ -1443,6 +1538,12 @@ julia> dim(CI)
 julia> degree(CI)
 4
 
+julia> chow_ring(CI)
+Quotient
+  of multivariate polynomial ring in 1 variable over QQ graded by
+    h -> [1]
+  by ideal (h^2)
+
 ```
 """
 complete_intersection(X::AbstractVariety, degs::Int...) = complete_intersection(X, collect(degs))
@@ -1595,7 +1696,7 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
 end
 
 @doc raw"""
-    abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
+    abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
 
 Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
 
@@ -1607,15 +1708,15 @@ AbstractVariety of dim 2
 julia> T = tangent_bundle(P2)
 AbstractBundle of rank 2 on AbstractVariety of dim 2
 
-julia> E = abstract_projective_bundle(T, symbol = "H")
+julia> PT = abstract_projective_bundle(T)
 AbstractVariety of dim 3
 
-julia> chow_ring(E)
+julia> chow_ring(PT)
 Quotient
   of multivariate polynomial ring in 2 variables over QQ graded by
-    H -> [1]
+    z -> [1]
     h -> [1]
-  by ideal (h^3, H^2 + 3*H*h + 3*h^2)
+  by ideal (h^3, z^2 + 3*z*h + 3*h^2)
 
 julia> [chern_class(T, i) for i = 1:2]
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
@@ -1645,7 +1746,7 @@ julia> integral(top_chern_class(A))
 
 ```
 """
-function abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
+function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
@@ -1681,6 +1782,36 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "h")
   set_attribute!(PF, :grassmannian => :relative)
   return PF
 end
+
+@doc raw"""
+    abstract_hirzebruch_surface(n::Int)
+
+Return the `n`-th Hirzebruch surface.
+
+!!! note
+    Recall that the `n`-th Hirzebruch surface is the projective bundle associated to the bundle $\mathcal O_{\mathbb P_1} \oplus O_{\mathbb P_1(-n)}$.
+
+# Examples
+
+```jldoctest
+julia> H2 =  abstract_hirzebruch_surface(2)
+AbstractVariety of dim 2
+
+julia> chow_ring(H2)
+Quotient
+  of multivariate polynomial ring in 2 variables over QQ graded by
+    z -> [1]
+    h -> [1]
+  by ideal (h^2, z^2 - 2*z*h)
+
+```
+"""
+function abstract_hirzebruch_surface(n::Int)
+  P1 = abstract_projective_space(1)
+  E = OO(P1)+OO(P1, -n)
+  return abstract_projective_bundle(E)
+end
+
 
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")

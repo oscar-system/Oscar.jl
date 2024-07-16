@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 # Illustrating Examples From Enumerative Geometry
 
 
-#### How Many Conics in $\mathbb P^3$ meet eight general lines
+#### How Many Conics in $\mathbb P^3$ Meet Eight General Lines
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 4)
