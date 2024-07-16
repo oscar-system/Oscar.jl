@@ -1,15 +1,13 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating PBW-Algebras
 
 ## Types
 
-PBW-algebras are modelled by objects of type `PBWAlgRing{T, S} <: NCRing`, their elements are objects of type
+PBW-algebras are modeled by objects of type `PBWAlgRing{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the PBW-algebra
 is defined (the type `S` is added for internal use).
 
@@ -37,7 +35,7 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 The constructor below returns the algebras equipped with `degrevlex`.
 
 ```@docs
-    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
+weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 ```
 
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras
@@ -66,7 +64,7 @@ Given a PBW-algebra `A` over a field `K`,
 
 - `coefficient_ring(A)` refers to `K`,
 - `gens(A)` to the generators of `A`,
-- `ngens(A)` to the number of these generators, and
+- `number_of_generators(A)` / `ngens(A)` to the number of these generators, and
 - `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -95,7 +93,7 @@ y
 julia> A[3]
 z 
 
-julia> ngens(A)
+julia> number_of_generators(A)
 3
 
 ```

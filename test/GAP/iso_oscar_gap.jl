@@ -1,6 +1,6 @@
 @testset "residue rings" begin
    @testset for n in [2, 3, 6]
-      for R in [residue_ring(ZZ, n), residue_ring(ZZ, ZZRingElem(n))]
+      for R in [residue_ring(ZZ, n)[1], residue_ring(ZZ, ZZRingElem(n))[1]]
          f = Oscar.iso_oscar_gap(R)
          a = one(R)
          b = -one(R)
@@ -14,7 +14,7 @@
             end
          end
          n2 = n + 1
-         one2 = one(residue_ring(ZZ, n2))
+         one2 = one(residue_ring(ZZ, n2)[1])
          @test_throws ErrorException f(one2)
          @test_throws ErrorException image(f, one2)
          @test_throws ErrorException preimage(f, GAP.Globals.ZmodnZObj(1, GAP.Obj(n2)))
@@ -22,7 +22,7 @@
    end
 
    n = ZZRingElem(2)^100
-   R = residue_ring(ZZ, n)
+   R = residue_ring(ZZ, n)[1]
    f = Oscar.iso_oscar_gap(R)
    a = -one(R)
    @test f(a) == -f(one(R))
@@ -33,7 +33,7 @@ end
 
 @testset "finite fields" begin
    @testset for p in [2, 3]
-      for F in [Nemo.fpField(UInt(p)), Nemo.FpField(ZZRingElem(p))]
+      for F in [fpField(UInt(p)), FpField(ZZRingElem(p))]
          f = Oscar.iso_oscar_gap(F)
          for a in F
             for b in F
@@ -56,7 +56,7 @@ end
    end
 
    p = 257  # GAP regards the Conway polynomial for `GF(257, 1)` as not cheap.
-   @testset for F in [Nemo.fpField(UInt(257)), Nemo.FpField(ZZRingElem(257))]
+   @testset for F in [fpField(UInt(257)), FpField(ZZRingElem(257))]
       f = Oscar.iso_oscar_gap(F)
       oO = one(F)
       oG = f(oO)
@@ -90,8 +90,8 @@ end
          G = GL(4,F)
          for a in gens(G)
             for b in gens(G)
-               @test g(a.elm*b.elm) == g(a.elm)*g(b.elm)
-               @test g(a.elm-b.elm) == g(a.elm)-g(b.elm)
+               @test g(matrix(a)*matrix(b)) == g(matrix(a))*g(matrix(b))
+               @test g(matrix(a)-matrix(b)) == g(matrix(a))-g(matrix(b))
             end
          end
          p2 = next_prime(p)
@@ -167,7 +167,7 @@ end
 @testset "cyclotomic fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    fields = Any[cyclotomic_field(n) for n in [1, 3, 4, 5, 8, 15, 45]]
    push!(fields, (QQ, 1))
@@ -198,7 +198,7 @@ end
 @testset "quadratic number fields" begin
    # for computing random elements of the fields in question
    my_rand_bits(F::QQField, b::Int) = rand_bits(F, b)
-   my_rand_bits(F::AnticNumberField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
+   my_rand_bits(F::AbsSimpleNumField, b::Int) = F([rand_bits(QQ, b) for i in 1:degree(F)])
 
    @testset for N in [ 5, -3, 12, -8 ]
       F, z = quadratic_field(N)
@@ -226,7 +226,7 @@ end
 
    # absolute number fields
    R, x = polynomial_ring(QQ, "x")
-   pols = [ x^2 - 5, x^2 + 3, x^3 - 2,  # simple
+   pols = [ x - 1, x^2 - 5, x^2 + 3, x^3 - 2,  # simple
             [x^2 - 2, x^2 + 1] ]        # non-simple
    fields = Any[number_field(pol)[1] for pol in pols]
 
@@ -256,7 +256,7 @@ end
    end
 
    # an application
-   K = fields[4]
+   K = fields[5]
    a, b = gens(K)
    M1 = 1/a*matrix(K, [1 1; 1 -1])
    M2 = matrix(K, [1 0 ; 0 b])
@@ -285,8 +285,8 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `FqPolyRepPolyRing`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpPolyRing`
                 Nemo.Native.GF(2),            # yields `fpPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModPolyRing`
-                Nemo.ZZModRing(ZZRingElem(6)),    # yields `ZZModPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModPolyRing`
+                ZZModRing(ZZRingElem(6)),     # yields `ZZModPolyRing`
                ]
 #TODO: How to get `AbstractAlgebra.Generic.PolyRing`?
    @testset for R in baserings
@@ -312,7 +312,7 @@ end
                 FqPolyRepField(ZZRingElem(2),2,:z),  # yields `AbstractAlgebra.Generic.MPolyRing{FqPolyRepFieldElem}`
                 Nemo.Native.GF(ZZRingElem(2)),# yields `FpMPolyRing`
                 Nemo.Native.GF(2),            # yields `fpMPolyRing`
-                Nemo.zzModRing(UInt64(6)),     # yields `zzModMPolyRing`
+                zzModRing(UInt64(6)),         # yields `zzModMPolyRing`
                ]
 #TODO: How to get `FpMPolyRing`, `FqMPolyRing`?
    @testset for R in baserings

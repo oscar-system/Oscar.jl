@@ -4,18 +4,21 @@
 ###################################################################
 ###################################################################
 
-
-#####################################################
-# 1.1 Hypersurface equation
-#####################################################
-
 @doc raw"""
     hypersurface_equation(h::HypersurfaceModel)
 
 Return the hypersurface equation.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> hypersurface_equation(h);
@@ -24,62 +27,31 @@ julia> hypersurface_equation(h);
 hypersurface_equation(h::HypersurfaceModel) = h.hypersurface_equation
 
 
-#####################################################
-# 1.2 Base, ambient space and fiber ambient space
-#####################################################
-
 @doc raw"""
-    base_space(h::HypersurfaceModel)
+    hypersurface_equation_parametrization(h::HypersurfaceModel)
 
-Return the base space of the hypersurface model.
+Return the parametrization of the hypersurface
+equation by the model sections.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5")
+Assuming that the first row of the given grading is the grading under Kbar
 
-julia> base_space(h)
-Normal toric variety
+Hypersurface model over a not fully specified base
+
+julia> explicit_model_sections(h)
+Dict{String, MPolyRingElem} with 5 entries:
+  "c2" => c2
+  "c1" => c1
+  "c3" => c3
+  "b"  => b
+  "c0" => c0
+
+julia> hypersurface_equation_parametrization(h)
+b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-function base_space(h::HypersurfaceModel)
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY base space.\n"
-  return h.base_space
-end
-
-
-@doc raw"""
-    ambient_space(h::HypersurfaceModel)
-
-Return the ambient space of the hypersurface model.
-
-```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-
-julia> ambient_space(h)
-Normal toric variety without torusfactor
-```
-"""
-function ambient_space(h::HypersurfaceModel)
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning AUXILIARY ambient space.\n"
-  return h.ambient_space
-end
-
-
-@doc raw"""
-    fiber_ambient_space(HypersurfaceModel)
-
-Return the fiber ambient space of the hypersurface model.
-
-```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
-Hypersurface model over a concrete base
-
-julia> fiber_ambient_space(h)
-Normal toric variety
-```
-"""
-fiber_ambient_space(h::HypersurfaceModel) = h.fiber_ambient_space
+hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equation_parametrization
 
 
 
@@ -132,7 +104,15 @@ Return the Calabi-Yau hypersurface in the toric ambient space
 which defines the hypersurface model.
 
 ```jldoctest
-julia> h = hypersurface_model_over_projective_space(2)
+julia> B2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> b = torusinvariant_prime_divisors(B2)[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> h = literature_model(arxiv_id = "1208.2695", equation = "B.5", base_space = B2, defining_classes = Dict("b" => b))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
 Hypersurface model over a concrete base
 
 julia> calabi_yau_hypersurface(h)
@@ -140,8 +120,8 @@ Closed subvariety of a normal toric variety
 ```
 """
 @attr ClosedSubvarietyOfToricVariety function calabi_yau_hypersurface(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties/schemes as base space"
-  base_fully_specified(h) || @vprint :HypersurfaceModel 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
+  @req base_space(h) isa NormalToricVariety "Calabi-Yau hypersurface currently only supported for toric varieties as base space"
+  is_base_space_fully_specified(h) || @vprint :FTheoryModelPrinter 1 "Base space was not fully specified. Returning hypersurface in AUXILIARY ambient space.\n"
   return closed_subvariety_of_toric_variety(ambient_space(h), [hypersurface_equation(h)])
 end
 
@@ -156,7 +136,7 @@ end
 Return the discriminant of the hypersurface model.
 """
 @attr MPolyRingElem function discriminant(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Discriminant currently only supported for toric varieties/schemes as base space"
+  @req base_space(h) isa NormalToricVariety "Discriminant currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return discriminant(weierstrass_model(h))
 end
@@ -170,7 +150,7 @@ vanishing of the Weierstrass sections and discriminant ``(f, g, \Delta)```
 at each locus. Also the refined Tate fiber type is returned.
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)
-  @req typeof(base_space(h)) <: NormalToricVariety "Singular loci currently only supported for toric varieties/schemes as base space"
+  @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   return singular_loci(weierstrass_model(h))
 end

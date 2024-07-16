@@ -1,5 +1,5 @@
 ########################################################################
-# Abstract type for morphisms of projective schemes for which the 
+# Abstract type for morphisms of projective schemes for which the
 # generic interface is defined.
 ########################################################################
 abstract type AbsProjectiveSchemeMorphism{
@@ -50,7 +50,7 @@ space over the same ring with the identity on the base.
   domain::DomainType
   codomain::CodomainType
   pullback::PullbackType
-  base_ring_morphism::Map
+  base_ring_morphism::BaseMorType
 
   #fields for caching
   map_on_base_schemes::SchemeMor
@@ -73,29 +73,13 @@ space over the same ring with the identity on the base.
       #TODO: Check map on ideals (not available yet)
       true
     end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
-  end
-  
-  ### Morphisms with an underlying base change
-  function ProjectiveSchemeMor(
-      P::DomainType,
-      Q::CodomainType,
-      f::PullbackType;
-      check::Bool=true
-    ) where {DomainType<:AbsProjectiveScheme,
-             CodomainType<:AbsProjectiveScheme,
-             PullbackType<:MPolyAnyMap{<:Any, <:Any, <:Map}
-            }
-    T = homogeneous_coordinate_ring(P)
-    S = homogeneous_coordinate_ring(Q)
-    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
-    @check begin
-      #TODO: Check map on ideals (not available yet)
-      true
+    # TODO: Can we make this type stable? Or is it already?
+    if _has_coefficient_map(f)
+      return new{DomainType, CodomainType, PullbackType, typeof(coefficient_map(f))}(P, Q, f, coefficient_map(f))
+    else
+      return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f)
     end
-    return new{DomainType, CodomainType, PullbackType, Nothing}(P, Q, f, coefficient_map(f))
   end
-
 
   ### complicated morphisms over a non-trivial morphism of base schemes
   function ProjectiveSchemeMor(
@@ -117,7 +101,9 @@ space over the same ring with the identity on the base.
     OO(codomain(h)) == coefficient_ring(S) || error("base scheme map not compatible")
     @check T(pbh(one(OO(codomain(h))))) == f(S(one(OO(codomain(h))))) == one(T) "maps not compatible"
     @check coefficient_map(f) == pbh "maps not compatible"
-    return new{DomainType, CodomainType, PullbackType, BaseMorType}(P, Q, f, coefficient_map(f), h)
+    return new{
+               DomainType, CodomainType, PullbackType, typeof(coefficient_map(f))
+              }(P, Q, f, coefficient_map(f), h)
   end
 end
 
@@ -142,7 +128,7 @@ end
     S = homogeneous_coordinate_ring(P)
     @req base_ring(I) === S "ideal must be defined in the homogeneous coordinate ring of the scheme"
     T, pr = quo(S, I)
-    Q = ProjectiveScheme(T)
+    Q = proj(T)
     f = ProjectiveSchemeMor(Q, P, pr, check=false)
     return new{typeof(Q), DomainType, typeof(pr), Nothing, IdealType}(f, I)
   end
@@ -153,7 +139,7 @@ end
       check::Bool=true
     )
     Y = codomain(f)
-    SY = homogeneous_coordinate_ring(Y) 
+    SY = homogeneous_coordinate_ring(Y)
     ambient_coordinate_ring(Y) === ambient_coordinate_ring(domain(f)) || error("ambient coordinate rings are not compatible")
     base_ring(I) === SY || error("ideal does not belong to the correct ring")
     @check begin
@@ -161,6 +147,77 @@ end
       kernel(pbf) == I || error("ideal does not coincide with the kernel of the pullback")
     end
     return new{typeof(domain(f)), typeof(Y), typeof(pullback(f)), Nothing, typeof(I)}(f, I)
+  end
+end
+
+
+########################################################################
+# Abstract type for rational maps of projective varieties
+########################################################################
+abstract type AbsRationalMap{
+    DomainType<:AbsProjectiveScheme,
+    CodomainType<:AbsProjectiveScheme,
+    SelfType, # The concrete type itself as required by the generic `Map` implementation
+  } <: SchemeMor{DomainType, CodomainType,
+                 SelfType,
+                 Nothing
+                }
+end
+
+########################################################################
+# Concrete rational maps of projective varieties                       #
+########################################################################
+@doc raw"""
+    RationalMap
+
+A rational map of projective varieties over a field 𝕜
+```
+     ℙˢ     ℙʳ
+     ∪      ∪
+     P  →   Q
+```
+given by means of a commutative diagram of homomorphisms of
+their `homogeneous_coordinate_rings` 
+```
+    𝕜[u₀,…,uₛ]/I ← 𝕜[v₀,…,vᵣ]/J
+```
+"""
+@attributes mutable struct RationalMap{
+    DomainType<:AbsProjectiveScheme,
+    CodomainType<:AbsProjectiveScheme,
+    PullbackType<:Map,
+  } <: AbsRationalMap{
+                      DomainType, CodomainType,
+                      RationalMap
+                     }
+  domain::DomainType
+  codomain::CodomainType
+  pullback::PullbackType
+
+  # Fields for caching
+  graph_ring::Tuple{<:MPolyQuoRing, <:Map, <:Map}
+
+  ### Simple morphism of projective schemes over the same base scheme
+  function RationalMap(
+      P::DomainType,
+      Q::CodomainType,
+      f::PullbackType;
+      check::Bool=true
+    ) where {DomainType<:AbsProjectiveScheme,
+             CodomainType<:AbsProjectiveScheme,
+             PullbackType<:Map
+            }
+    T = homogeneous_coordinate_ring(P)
+    S = homogeneous_coordinate_ring(Q)
+    (S === domain(f) && T === codomain(f)) || error("pullback map incompatible")
+    @check begin
+      is_irreducible(P) || error("domain must be irreducible")
+      is_irreducible(Q) || error("codomain must be irreducible")
+      is_reduced(P) || error("domain must be reduced")
+      is_reduced(Q) || error("codomain must be reduced")
+      true
+    end
+    return new{DomainType, CodomainType, PullbackType}(P, Q, f)
   end
 end
 

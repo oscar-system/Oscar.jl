@@ -14,11 +14,11 @@ struct SparseVectorSpaceBasis
   pivot::Vector{Int}
 end
 
+"""
+divides vector by gcd of nonzero entries, returns vector and first nonzero index
+used: addAndReduce!
+"""
 function normalize(v::SRow{ZZRingElem})
-  """
-  divides vector by gcd of nonzero entries, returns vector and first nonzero index
-  used: addAndReduce!
-  """
   if isempty(v)
     return (0, 0)
   end
@@ -30,14 +30,14 @@ end
 
 reduceCol(a, b, i::Int) = b[i] * a - a[i] * b
 
+"""
+for each pivot of sp.A we make entry of v zero and return the result
+0 => linear dependent
+* => linear independent, new column element of sp.A since it increases basis
+invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
+           elements of A are integers, gcd of each column is 1
+"""
 function addAndReduce!(sp::SparseVectorSpaceBasis, v::SRow{ZZRingElem})
-  """
-  for each pivot of sp.A we make entry of v zero and return the result
-  0 => linear dependent
-  * => linear independent, new column element of sp.A since it increases basis
-  invariants: the row of a pivotelement in any column in A is 0 (except the pivotelement)
-             elements of A are integers, gcd of each column is 1
-  """
   A = sp.A
   pivot = sp.pivot
   v, newPivot = normalize(v)
@@ -75,15 +75,14 @@ function lieAlgebra(t::String, n::Int)
   return L, NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(L))
 end
 
+"""
+used to create tensorMatricesForOperators
+"""
 function matricesForOperators(L, hw, ops)
-  """
-  used to create tensorMatricesForOperators
-  """
   M = GAP.Globals.HighestWeightModule(L, GAP.Obj(hw))
   mats = map(
-    o -> sparse_matrix(
-      transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))
-    ),
+    o ->
+      sparse_matrix(transpose(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o)))),
     ops,
   )
   denominators = map(y -> denominator(y[2]), union(union(mats...)...))
@@ -135,10 +134,10 @@ tensorProducts(As, Bs) = (AB -> tensorProduct(AB[1], AB[2])).(zip(As, Bs))
 tensorPower(A, n) = (n == 1) ? A : tensorProduct(tensorPower(A, n - 1), A)
 tensorPowers(As, n) = (A -> tensorPower(A, n)).(As)
 
+"""
+Calculates the matrices g_i corresponding to the operator ops[i].
+"""
 function tensorMatricesForOperators(L, hw, ops)
-  """
-  Calculates the matrices g_i corresponding to the operator ops[i].
-  """
   mats = []
 
   for i in 1:length(hw)
@@ -164,12 +163,11 @@ Compute a monomial basis for the highest weight module with highest weight ``hw`
 
 Example
 ======
-```jldoctest
+```julia
 julia> dim, monomials, vectors = PolyBases.MB.basisLieHighestWeight(:A, 2, [1,0])
 (3, Vector{UInt8}[[0x00, 0x00, 0x00], [0x01, 0x00, 0x00], [0x00, 0x00, 0x01]], SparseArrays.SparseVector{Int64, Int64}[  [1]  =  1,   [2]  =  1,   [3]  =  1])
 ```
 """
-
 function basisLieHighestWeight(t::String, n::Int, hw::Vector{Int}; roots=[]) #--- :: Tuple{Int64,Vector{Vector{UInt8}},Vector{SRow{ZZRingElem}}}
   L, CH = lieAlgebra(t, n)
   ops = CH[1] # positive root vectors

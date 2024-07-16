@@ -84,7 +84,7 @@ normal_toric_varieties_from_glsm(charges::ZZMatrix)
 
 ```@docs
 Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
-proj(E::ToricLineBundle...)
+projectivization(E::ToricLineBundle...)
 total_space(E::ToricLineBundle...)
 ```
 
@@ -174,8 +174,8 @@ method `coefficient_ring(v::NormalToricVarietyType)` always return
 the field of rational numbers. For the coordinate names, we provide the
 following setter functions:
 ```@docs
-set_coordinate_names(v::NormalToricVarietyType, coordinate_names::Vector{String})
-set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::Vector{String})
+set_coordinate_names(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
+set_coordinate_names_of_torus(v::NormalToricVarietyType, coordinate_names::AbstractVector{<:VarName})
 ```
 The following methods allow to etract the chosen coordinates:
 ```@docs

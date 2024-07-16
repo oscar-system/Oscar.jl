@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of Q^ab, the abelian closure of the rationals,
-# which is modelled as the union of cyclotomic fields.
+# which is modeled as the union of cyclotomic fields.
 #
 # We make Q^ab a singleton, similar to ZZ and QQ. Thus there will ever be only
 # one copy of Q^ab. In particular the elements do not have a parent stored.
@@ -19,7 +19,7 @@
 # Note that there are two possibilities construct a nth root of unity when n is
 # even and n%4!=0. either we can construct the field Q(z_n) or we take -z_(n/2)
 # as a primitive n-th root. to change between these two options, use
-# PCharSaturateAll with allroots or allrootsNew (change this in the code)
+# saturations with allroots or allrootsNew (change this in the code)
 
 abstract type CyclotomicField end
 
@@ -34,8 +34,8 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, characteristic, elem_type, divexact, gen,
-                has_preimage, is_root_of_unity, is_unit, mul!, parent,
+import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
+                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
 using Hecke
@@ -56,8 +56,8 @@ import Hecke: conductor, data
   end
 end
 
-const _QQAb = QQAbField{AnticNumberField}(Dict{Int, AnticNumberField}())
-const _QQAb_sparse = QQAbField{NfAbsNS}(Dict{Int, NfAbsNS}())
+const _QQAb = QQAbField{AbsSimpleNumField}(Dict{Int, AbsSimpleNumField}())
+const _QQAb_sparse = QQAbField{AbsNonSimpleNumField}(Dict{Int, AbsNonSimpleNumField}())
 
 mutable struct QQAbElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
@@ -119,8 +119,8 @@ end
 Return the generator of the abelian closure `K` that can be used to construct
 primitive roots of unity.
 """
-gen(K::QQAbField{AnticNumberField}) = _QQAbGen
-gen(K::QQAbField{NfAbsNS}) = _QQAbGen_sparse
+gen(K::QQAbField{AbsSimpleNumField}) = _QQAbGen
+gen(K::QQAbField{AbsNonSimpleNumField}) = _QQAbGen_sparse
 
 """
     gen(K::QQAbField, s::String)
@@ -143,13 +143,16 @@ end
 #
 ################################################################################
 
-elem_type(::Type{QQAbField{AnticNumberField}}) = QQAbElem{nf_elem}
-parent_type(::Type{QQAbElem{nf_elem}}) = QQAbField{AnticNumberField}
-parent(::QQAbElem{nf_elem}) = _QQAb
+elem_type(::Type{QQAbField{AbsSimpleNumField}}) = QQAbElem{AbsSimpleNumFieldElem}
+parent_type(::Type{QQAbElem{AbsSimpleNumFieldElem}}) = QQAbField{AbsSimpleNumField}
+parent(::QQAbElem{AbsSimpleNumFieldElem}) = _QQAb
 
-elem_type(::Type{QQAbField{NfAbsNS}}) = QQAbElem{NfAbsNSElem}
-parent_type(::Type{QQAbElem{NfAbsNSElem}}) = QQAbField{NfAbsNS}
-parent(::QQAbElem{NfAbsNSElem}) = _QQAb_sparse
+elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbElem{AbsNonSimpleNumFieldElem}
+parent_type(::Type{QQAbElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
+parent(::QQAbElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
+
+base_ring(::QQAbField) = Union{}
+base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
 
 ################################################################################
 #
@@ -167,16 +170,16 @@ function _variable(K::QQAbField)
   end
 end
 
-_variable(b::QQAbElem{nf_elem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
+_variable(b::QQAbElem{AbsSimpleNumFieldElem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
 
-function _variable(b::QQAbElem{NfAbsNSElem}) 
+function _variable(b::QQAbElem{AbsNonSimpleNumFieldElem}) 
   k = parent(b.data)
   lc = get_attribute(k, :decom)
   n = get_attribute(k, :cyclo)
   return [Expr(:call, Symbol(_variable(parent(b))), n, divexact(n, i)) for i = lc]
 end
 
-function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
+function Hecke.cyclotomic_field(K::QQAbField{AbsSimpleNumField}, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, gen(k)
@@ -187,7 +190,7 @@ function Hecke.cyclotomic_field(K::QQAbField{AnticNumberField}, c::Int)
   end
 end
 
-function ns_gen(K::NfAbsNS)
+function ns_gen(K::AbsNonSimpleNumField)
   #z_pq^p = z_q and z_pg^q = z_p
   #thus z_pq = z_p^a z_q^b implies
   #z_pq^p = z_q^pb, so pb = 1 mod q
@@ -197,7 +200,7 @@ function ns_gen(K::NfAbsNS)
   return prod(gen(K, i)^invmod(divexact(n, lc[i]), lc[i]) for i=1:length(lc))
 end
 
-function Hecke.cyclotomic_field(K::QQAbField{NfAbsNS}, c::Int)
+function Hecke.cyclotomic_field(K::QQAbField{AbsNonSimpleNumField}, c::Int)
   if haskey(K.fields, c)
     k = K.fields[c]
     return k, ns_gen(k)
@@ -219,7 +222,7 @@ Hecke.data(a::QQAbElem) = a.data
 # This function finds a primitive root of unity in our field, note this is
 # not always e^(2*pi*i)/n
 
-function root_of_unity(K::QQAbField{AnticNumberField}, n::Int)
+function root_of_unity(K::QQAbField{AbsSimpleNumField}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -227,13 +230,13 @@ function root_of_unity(K::QQAbField{AnticNumberField}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QQAbElem{nf_elem}(z, c)
+    return QQAbElem{AbsSimpleNumFieldElem}(z, c)
   else
-    return QQAbElem{nf_elem}(-z, c)
+    return QQAbElem{AbsSimpleNumFieldElem}(-z, c)
   end
 end
 
-function root_of_unity(K::QQAbField{NfAbsNS}, n::Int)
+function root_of_unity(K::QQAbField{AbsNonSimpleNumField}, n::Int)
   if n % 2 == 0 && n % 4 != 0
     c = div(n, 2)
   else
@@ -241,9 +244,9 @@ function root_of_unity(K::QQAbField{NfAbsNS}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QQAbElem{NfAbsNSElem}(z, c)
+    return QQAbElem{AbsNonSimpleNumFieldElem}(z, c)
   else
-    return QQAbElem{NfAbsNSElem}(-z, c)
+    return QQAbElem{AbsNonSimpleNumFieldElem}(-z, c)
   end
 end
 
@@ -283,14 +286,24 @@ end
 
 (K::QQAbField)() = zero(K)
 
-function (K::QQAbField)(a::nf_elem)
+function (K::QQAbField)(a::AbsSimpleNumFieldElem)
+  F = parent(a)
+
   # Cyclotomic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_cyclotomic_type(parent(a))
+  fl, f = Hecke.is_cyclotomic_type(F)
   fl && return QQAbElem(a, f)
 
   # Quadratic fields are naturally embedded into `K`.
-  fl, f = Hecke.is_quadratic_type(parent(a))
-  if fl
+  if degree(F) == 2
+    # If the defining polynomial of `F` is `X^2 + A X + B` then
+    # `D = A^2 - 4 B` is a square in `F` (cf. [Coh93, p. 218]).
+    pol = F.pol
+    A = coeff(pol, 1)
+    D = A^2 - 4*coeff(pol, 0)
+    Dn = numerator(D)
+    Dd = denominator(D)
+    f = Dn * Dd
+
     x = coeff(a, 0)
     y = coeff(a, 1)
     iszero(y) && return QQAbElem(parent(a)(x), 1)
@@ -311,7 +324,7 @@ function (K::QQAbField)(a::nf_elem)
       N = 4*abs(d)
     end
     r = square_root_in_cyclotomic_field(K, Int(d), Int(N))
-    return x + y*c*r
+    return (x - y*A//2) + (y*c//(2*Dd)) * r
   end
 
   # We have no natural embeddings for other (abelian) number fields.
@@ -324,16 +337,16 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, a::QQAbField{NfAbsNS})
+function Base.show(io::IO, a::QQAbField{AbsNonSimpleNumField})
   print(io, "(Sparse) abelian closure of Q")
 end
 
-function Base.show(io::IO, a::QQAbField{AnticNumberField})
+function Base.show(io::IO, a::QQAbField{AbsSimpleNumField})
   print(io, "Abelian closure of Q")
 end
 
 function Base.show(io::IO, a::QQAbFieldGen)
-  if isa(a.K, QQAbField{AnticNumberField})
+  if isa(a.K, QQAbField{AbsSimpleNumField})
     print(io, "Generator of abelian closure of Q")
   else
     print(io, "Generator of sparse abelian closure of Q")
@@ -360,12 +373,12 @@ of the rationals.
 """
 get_variable(K::QQAbField) = _variable(K)
 
-function AbstractAlgebra.expressify(b::QQAbElem{nf_elem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbElem{AbsSimpleNumFieldElem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(parent(parent(a).pol)(a), _variable(b), context = context)
 end
 
-function AbstractAlgebra.expressify(b::QQAbElem{NfAbsNSElem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbElem{AbsNonSimpleNumFieldElem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(a.data, _variable(b), context = context)
 end
@@ -395,26 +408,26 @@ function is_conductor(n::Int)
   return n % 4 == 0
 end
 
-function coerce_up(K::AnticNumberField, n::Int, a::QQAbElem{nf_elem})
+function coerce_up(K::AbsSimpleNumField, n::Int, a::QQAbElem{AbsSimpleNumFieldElem})
   d = div(n, a.c)
   @assert n % a.c == 0
   #z_n^(d) = z_a
   R = parent(parent(data(a)).pol)
-  return QQAbElem{nf_elem}(evaluate(R(data(a)), gen(K)^d), n)
+  return QQAbElem{AbsSimpleNumFieldElem}(evaluate(R(data(a)), gen(K)^d), n)
 end
 
-function coerce_up(K::NfAbsNS, n::Int, a::QQAbElem{NfAbsNSElem})
+function coerce_up(K::AbsNonSimpleNumField, n::Int, a::QQAbElem{AbsNonSimpleNumFieldElem})
   d = div(n, a.c)
   @assert n % a.c == 0
   lk = get_attribute(parent(a.data), :decom)
   #gen(k, i) = gen(K, j)^n for the unique j s.th. gcd(lk[i], lK[j])
   # and n = lK[j]/lk[i]
   #z_n^(d) = z_a
-  return QQAbElem{NfAbsNSElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
+  return QQAbElem{AbsNonSimpleNumFieldElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
 end
 
 
-function coerce_down(K::AnticNumberField, n::Int, a::QQAbElem)
+function coerce_down(K::AbsSimpleNumField, n::Int, a::QQAbElem)
   throw(Hecke.NotImplemented())
 end
 
@@ -427,7 +440,7 @@ function make_compatible(a::QQAbElem{T}, b::QQAbElem{T}) where {T}
   return coerce_up(K, d, a), coerce_up(K, d, b)
 end
 
-function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
+function minimize(::typeof(CyclotomicField), a::AbstractArray{AbsSimpleNumFieldElem})
   fl, c = Hecke.is_cyclotomic_type(parent(a[1]))
   @assert all(x->parent(x) == parent(a[1]), a)
   @assert fl
@@ -437,7 +450,7 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
       b = similar(a)
       OK = true
       for x = eachindex(a)
-        y = Hecke.force_coerce_cyclo(K, a[x], Val{false})
+        y = Hecke.force_coerce_cyclo(K, a[x], Val(false))
         if y === nothing
           OK = false
         else
@@ -455,17 +468,27 @@ function minimize(::typeof(CyclotomicField), a::AbstractArray{nf_elem})
   return a
 end
 
-function minimize(::typeof(CyclotomicField), a::MatElem{nf_elem})
+function minimize(::typeof(CyclotomicField), a::MatElem{AbsSimpleNumFieldElem})
   return matrix(minimize(CyclotomicField, a.entries))
 end
 
-function minimize(::typeof(CyclotomicField), a::nf_elem)
+function minimize(::typeof(CyclotomicField), a::AbsSimpleNumFieldElem)
   return minimize(CyclotomicField, [a])[1]
 end
 
-conductor(a::nf_elem) = conductor(parent(minimize(CyclotomicField, a)))
+#TODO:
+# Here we use conductor in the sense that
+# an abelian number field K has conductor n iff the n-th cyclotomic field
+# is the smallest cyclotomic field that contains K,
+# and the conductor of a field element is the conductor of the field
+# it generates.
+# Claus says that the conductor of a field element can also be read
+# w.r.t. an order.
+# Do we have a naming problem?
+# (If not then we can just add documentation.)
+conductor(a::AbsSimpleNumFieldElem) = conductor(parent(minimize(CyclotomicField, a)))
 
-function conductor(k::AnticNumberField)
+function conductor(k::AbsSimpleNumField)
   f, c = Hecke.is_cyclotomic_type(k)
   f || error("field is not of cyclotomic type")
   return c
@@ -473,9 +496,14 @@ end
 
 conductor(a::QQAbElem) = conductor(data(a))
 
+# What we want is the conductor of the domain of the map, but we need the map.
+function conductor(phi::MapFromFunc{T, QQAbField{T}}) where T
+  return lcm([conductor(phi(x)) for x in gens(domain(phi))])
+end
+
 ################################################################################
 #
-#  Conversions to `ZZRingElem` and `QQFieldElem` (like for `nf_elem`)
+#  Conversions to `ZZRingElem` and `QQFieldElem` (like for `AbsSimpleNumFieldElem`)
 #
 ################################################################################
 
@@ -799,7 +827,7 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
   if !is_root_of_unity(a) 
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
-    _, x = polynomial_ring(parent(a), cached = false)
+    _, x = polynomial_ring(parent(a); cached = false)
     fl || return roots(x^n-a)::Vector{QQAbElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
@@ -882,13 +910,33 @@ end
 # If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
 # is mapped to `QQAbElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
-function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
-                    x::QQAbElem{nf_elem})
-  R, = polynomial_ring(QQ, "x")
+function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
+                    x::QQAbElem{AbsSimpleNumFieldElem})
+  C1, z = cyclotomic_field(1)
+
+  f = function(x::QQFieldElem)
+    return QQAbElem(C1(x), 1)
+  end
+
+  finv = function(x::QQAbElem; check::Bool = false)
+    if conductor(x) == 1
+      return Hecke.force_coerce_cyclo(C1, data(x))
+    elseif check
+      return
+    else
+      error("element has no preimage")
+    end
+  end
+
+  return MapFromFunc(F, K, f, finv)
+end
+
+function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
+                    x::QQAbElem{AbsSimpleNumFieldElem})
   fl, n = Hecke.is_cyclotomic_type(F)
   if fl
     # This is cheaper.
-    f = function(x::nf_elem)
+    f = function(x::AbsSimpleNumFieldElem)
       return QQAbElem(x, n)
     end
 
@@ -909,8 +957,9 @@ function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
               for i in 0:degree(F)-1]
     c = transpose(matrix(QQ, powers))
+    R = parent(F.pol)
 
-    f = function(z::nf_elem)
+    f = function(z::AbsSimpleNumFieldElem)
       return QQAbElem(evaluate(R(z), x), n)
     end
 
@@ -923,7 +972,7 @@ function _embedding(F::AnticNumberField, K::QQAbField{AnticNumberField},
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
-      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a))
+      fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if fl
         b = transpose(sol)
         b = [b[i] for i in 1:length(b)]
@@ -940,7 +989,7 @@ end
 
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
-function has_preimage(mp::MapFromFunc{AnticNumberField, QQAbField{AnticNumberField}}, x::QQAbElem{nf_elem})
+function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbElem{AbsSimpleNumFieldElem})
   pre = mp.g(x, check = true)
   if isnothing(pre)
     return false, zero(domain(mp))
@@ -995,7 +1044,7 @@ function ^(val::QQAbElem, sigma::QQAbAutomorphism)
     @assert gg == 1 "n0 and n1 should be coprime"
     k = k*a*n0 + b*n1
   end
-  data = val.data  # nf_elem
+  data = val.data  # AbsSimpleNumFieldElem
   coeffs = Nemo.coefficients(data)
   res = zeros(eltype(coeffs), n)
   res[1] = coeffs[1]
@@ -1107,7 +1156,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 end
 
 """
-    quadratic_irrationality_info(a::QQAbModule.QQAbElem)
+    quadratic_irrationality_info(a::QQAbElem)
 
 Return `(x, y, n)`, where `x`, `y` are of type `QQFieldElem` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.

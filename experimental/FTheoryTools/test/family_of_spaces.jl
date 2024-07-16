@@ -7,7 +7,6 @@ f = family_of_spaces(coord_ring, grading, d)
   @test coordinate_ring(f) == coord_ring
   @test weights(f) == grading
   @test dim(f) == d
-  @test ngens(stanley_reisner_ideal(f)) == 1
   @test ngens(irrelevant_ideal(f)) == 4
   @test ngens(ideal_of_linear_relations(f)) == 2
 end

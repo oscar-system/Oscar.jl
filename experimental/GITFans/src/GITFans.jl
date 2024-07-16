@@ -186,7 +186,7 @@ Group homomorphism
 
 ```
 
-Note that $\rho(\pi)$, for $\pi \in $`G`, satisfies
+Note that $\rho(\pi)$, for $\pi \in$ `G`, satisfies
 `Q`$^\pi$ = `Q` * $\rho(\pi^{-1})$, where `Q`$^\pi$ is the matrix obtained
 from `Q` by permuting its rows by $\pi$.
 
@@ -207,7 +207,7 @@ function action_on_target(Q::Matrix{Int}, G::PermGroup)
     matgens = typeof(mat)[]
     for ppi in permgens
       matimg = mat[Vector{Int}(ppi), 1:n]  # permute the rows with `ppi`
-      push!(matgens, solve(mat, matimg))
+      push!(matgens, solve(mat, matimg; side = :right))
     end
 
     # Create the matrix group.
@@ -319,7 +319,7 @@ function matrix_action_on_cones(C::Cone{QQFieldElem}, M::QQMatrix)
 end
 
 function orbit_cone_orbits(cones::Vector{Cone{T}}, ghom::GAPGroupHomomorphism) where T
-    matgens = [image(ghom, g).elm for g in gens(domain(ghom))]
+    matgens = [matrix(image(ghom, g)) for g in gens(domain(ghom))]
     act = matrix_action_on_cones
    
     result = Vector{Vector{Cone{T}}}([])
@@ -352,7 +352,7 @@ function action_on_orbit_cone_orbits(orbs::Vector{Vector{Cone{T}}}, ghom::GAPGro
     end
 
     Ggens = gens(G)
-    matgens = [image(ghom, g).elm for g in Ggens]
+    matgens = [matrix(image(ghom, g)) for g in Ggens]
     act = matrix_action_on_cones
     
     res = GAPGroupHomomorphism[]
@@ -428,7 +428,7 @@ end
 
 #T is not needed anymore, thanks to `relative_interior_point`
 function get_interior_point_weighted(cone::Cone)
-    weights = rand(-100:100, nrays(cone))
+    weights = rand(-100:100, n_rays(cone))
     return sum(rays(cone) .* weights)
 end
 
@@ -465,7 +465,7 @@ function fan_traversal(orbit_list::Vector{Vector{Cone{T}}}, q_cone::Cone{T}, per
         neighbor_hashes = []
         for i in 1:length(facet_points)
           !any(f->facet_points[i] in f, facets(Cone, q_cone)) || continue
-          push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i, :]...])))
+          push!(neighbor_hashes, get_neighbor_hash(orbit_list, facet_points[i], Vector{T}([ic_facets[i:i, :]...])))
         end
 
         neighbor_hashes = [find_smallest_orbit_element(i, generators_new_perm, bitlist_oper_tuple, ==, less_or_equal_array_bitlist) for i in neighbor_hashes]
@@ -533,7 +533,7 @@ function hashes_to_polyhedral_fan(orbit_list::Vector{Vector{Cone{T}}}, hash_list
     #   each given by its defining rays, via the row indices (zero based)
     #   in the matrix of rays.
     matgens = [image(ghom, x) for x in gens(domain(ghom))]
-    mats_transp = [transpose(x.elm) for x in matgens]
+    mats_transp = [transpose(matrix(x)) for x in matgens]
 
     # Note that the matrices have been transposed because we use
     # matrix times vector multiplication.

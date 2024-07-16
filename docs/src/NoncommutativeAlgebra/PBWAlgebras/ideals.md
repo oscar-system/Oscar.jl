@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Ideals in PBW-algebras
@@ -30,7 +28,7 @@ If `I` is an ideal of a PBW-algebra  `A`, then
 
 - `base_ring(I)` refers to `A`,
 - `gens(I)` to the generators of `I`,
-- `ngens(I)` to the number of these generators, and
+- `number_of_generators(I)` / `ngens(I)` to the number of these generators, and
 - `gen(I, k)` as well as `I[k]` to the `k`-th such generator.
 
 ###### Examples
@@ -50,7 +48,7 @@ julia> gens(I)
  x
  dx
 
-julia> ngens(I)
+julia> number_of_generators(I)
 2
 
 julia> gen(I, 2)

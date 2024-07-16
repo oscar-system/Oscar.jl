@@ -178,7 +178,7 @@ function character_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism{T, 
   Q = abelian_closure(QQ)[1]
   coll = elem_type(Q)[]
   H = conjugacy_classes(underlying_group(RR))
-  # Any representation rho affords the character e -> trace(rho(e)) 
+  # Any representation rho affords the character e -> trace(rho(e))
   for h in H
     b = f(representative(h))
     push!(coll, Q(trace(b)))
@@ -234,7 +234,7 @@ end
 Given a class function `chi` on a group `G`, return whether `chi` defines a
 character of `G` (over its codomain).
 """
-is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GAPTable(parent(chi)), chi.values)::Bool
+is_character(chi::Oscar.GAPGroupClassFunction) = GG.IsCharacter(GapObj(parent(chi)), GapObj(chi))::Bool
 
 @doc raw"""
     is_constituent(chi::T, nu::T) where T <: Oscar.GAPGroupClassFunction -> Bool
@@ -265,12 +265,12 @@ Given a character `chi` and an integer `t`, return all the constituents of
 function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
   @req is_character(chi) "chi should be a character"
   @req t >= 0 "t must be non negative"
-  
+
   # sort of fallback when t = degree(chi)
   if t == 0
     return typeof(chi)[zero(chi)]
   end
-  
+
   # constituents of degree t in chi corresponds bijectively to their
   # complement which are of degree degree(chi)-t. So to do the smallest
   # computations, we always reduce to the case t <= floor(degree(chi)/2)
@@ -278,15 +278,15 @@ function constituents(chi::Oscar.GAPGroupClassFunction, t::Int)
     els = constituents(chi, Int(degree(chi)) - t)
     return typeof(chi)[chi-nu for nu in els]
   end
-  
+
   cd = character_decomposition(chi)
   L = [c[2] for c in cd]
   ubs = [c[1] for c in cd]
-  
+
   function _deg(x::Oscar.GAPGroupClassFunction)
     return ZZ(degree(x))
   end
-  
+
   # _deg(L) represents the degree of all irreducible constituents of chi,
   # and ubs keeps track of their multiplicities in chi. So that we return
   # all the t-elevations of (L, _deg) where we impose some upper bound
@@ -370,7 +370,7 @@ If not provided, `chi` is automatically computed.
 """
 function linear_representation(RR::RepRing{S, T}, f::GAPGroupHomomorphism, chi::Oscar.GAPGroupClassFunction) where {S, T}
   @req parent(chi) === character_table_underlying_group(RR) "Character should belong to the character table attached to the given representation ring"
-  @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"  
+  @req domain(f) === underlying_group(RR) "f should be defined over the underlying group of the given representation ring"
   @req codomain(f) isa MatrixGroup "f should take value in a matrix group"
   return LinRep{S, T, elem_type(S)}(RR, f, chi)
 end
@@ -494,7 +494,7 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   else
     irr_rep = Dict{Oscar.GAPGroupClassFunction, LinRep{S, T, elem_type(S)}}()
   end
-  haskey(irr_rep, chi) && return irr_rep[chi] 
+  haskey(irr_rep, chi) && return irr_rep[chi]
   F = base_field(RR)
 
   # we use F and H to make the translation between the representation
@@ -502,12 +502,12 @@ function irreducible_affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPG
   H = generators_underlying_group(RR)
 
   # the GAP function which we rely on
-  rep = GG.IrreducibleAffordingRepresentation(chi.values)::GAP.GapObj
+  rep = GG.IrreducibleAffordingRepresentation(GapObj(chi))::GapObj
 
   # we compute certain images than we will convert then.
-  # we use them then to construct the mapping in 
+  # we use them then to construct the mapping in
   # `_linear_representation`
-  _Mat = GAP.GapObj[GG.Image(rep, h.X) for h in H]
+  _Mat = GapObj[GG.Image(rep, h.X) for h in H]
   Mat = AbstractAlgebra.Generic.MatSpaceElem{elem_type(F)}[]
   for _M in _Mat
     rM = eltype(Mat)[transpose(matrix(F.(m))) for m in _M]
@@ -535,7 +535,7 @@ function affording_representation(RR::RepRing{S, T}, chi::Oscar.GAPGroupClassFun
   cd = character_decomposition(chi)
 
   # The blocks for the block diagonal representation. The
-  # easiest way for us is to start by looking at the 
+  # easiest way for us is to start by looking at the
   # irreducible constituents of chi and their multiplicities
   # and then we take the direct sum of the corresponding
   # irreducible affording representations with the given multiplicities
@@ -617,20 +617,20 @@ function is_faithful(rep::LinRep)
 end
 
 @doc raw"""
-    is_projectively_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
-    is_projectively_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(rep::LinRep, p::GAPGroupHomomorphism) -> Bool
+    is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism) -> Bool
 
 Given a linear representation `rep` of the domain `E` of the cover `p` affording the
 character `chi`, return whether `rep` is `p`-faithful, i.e. `rep` reduces to a faithful
 projective representation of the codomain of `p`.
 
-This is equivalent to ask that the center of `chi` coincides with the kernel of `p`.
+This is equivalent to asking that the center of `chi` coincides with the kernel of `p`.
 """
 function is_faithful(chi::Oscar.GAPGroupClassFunction, p::GAPGroupHomomorphism{T, V}) where {T, V}
   E = group(parent(chi))::T
   @req E === domain(p) "Incompatible underlying group of chi and domain of the cover p"
   @req is_projective(chi, p) "chi is not afforded by a p-projective representation"
-  Z = center(chi)[1]::T
+  Z = center(chi)[1]
   Q = kernel(p)[1]
   return Q.X == Z.X
 end
@@ -711,7 +711,7 @@ end
 @doc raw"""
     is_isotypical_component(rep::T, rep2::T) where T <: LinRep -> Bool
     is_isotypical_component(prep::T, prep2::T) where T <: ProjRep -> Bool
-    
+
 Given two linear representations `rep` and `rep2` into the same representation
 ring `RR` of the finite group `E` over the field `F`, return whether
 the abstract `FE`-module represented by `rep2` is an isotypical component of
@@ -834,10 +834,10 @@ end
 """
 A bunch of operations on symmetric/anti-symmetric tensors.
 """
-function _change_basis(w, basis::Vector{Vector{T}}) where T 
-  @req length(w) == length(basis) "Change of basis impossible" 
+function _change_basis(w, basis::Vector{Vector{T}}) where T
+  @req length(w) == length(basis) "Change of basis impossible"
   gene = Tuple{eltype(w), eltype(basis)}[(w[i], basis[i]) for i =1:length(w) if !iszero(w[i])]
-  return gene 
+  return gene
 end
 
 function _decompose_in_standard_basis(v)
@@ -894,7 +894,7 @@ function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem
   bsp = reverse!(RdtoR.(gens(Rd)))
   coll = eltype(mr)[]
   for m in mr
-    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i,:]))) for i in 1:nrows(m)]
+    poly_m = elem_type(R)[R1toR(R1(reverse_cols!(m[i:i,:]))) for i in 1:nrows(m)]
     @assert length(poly_m) == n
     m2 = zero_matrix(F, length(bsp), length(bsp))
     for i = 1:length(bsp)
@@ -1060,18 +1060,18 @@ end
 function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   # we start by computing a Schur cover and we turn it into an Oscar object
   G_gap = G.X
-  f_gap = GG.EpimorphismSchurCover(G_gap)::GAP.GapObj
-  H_gap = GG.Source(f_gap)::GAP.GapObj
+  f_gap = GG.EpimorphismSchurCover(G_gap)::GapObj
+  H_gap = GG.Source(f_gap)::GapObj
   n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
-    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.EpimorphismPGroup(H_gap, p)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   else
-    fff_gap = GG.IsomorphismPermGroup(H_gap)::GAP.GapObj
-    E_gap = fff_gap(H_gap)::GAP.GapObj
+    fff_gap = GG.IsomorphismPermGroup(H_gap)::GapObj
+    E_gap = fff_gap(H_gap)::GapObj
   end
-  E = Oscar._get_type(E_gap)(E_gap)
-  H = Oscar._get_type(H_gap)(H_gap)
+  E = Oscar._oscar_group(E_gap)
+  H = Oscar._oscar_group(H_gap)
   fff = inv(GAPGroupHomomorphism(H, E, fff_gap))
   f = GAPGroupHomomorphism(H, G, f_gap)
   pschur = compose(fff, f)
@@ -1151,7 +1151,7 @@ end
     basis_isotypical_component(rep::LinRep{S, T, U},
                                chi::Oscar.GAPGroupClassFunction)
                                           where {S, T, U} -> Vector{MatElem{U}}
-                                                      
+
 Given an irreducible character `chi` which is constituent of the character of
 `rep`, return a basis for the isotypical component of `rep` associated to `chi`.
 The output is a set of bases each of them corresponding to a copy of a module
@@ -1175,7 +1175,7 @@ end
                                  where {S, T, U} -> LinRep{S, T, U}, MatElem{U}
     to_equivalent_block_representation(rep::ProjRep{S, T, U, V})
                           where {S, T, U, V} -> ProjRep(S, T, U, V}, MatElem{U}
-                                                         
+
 Given a linear representation `rep` of a group, return an equivalent
 representation `rep2` whose matrix representation is given by block in the
 irreducible subrepresentations of `rep`, together with the matrix of change of
@@ -1235,7 +1235,7 @@ end
 @doc raw"""
     action_on_submodule(rep::LinRep{S, T, U}, M::W)
                             where {S, T, U, W <: MatElem{U}} -> LinRep{S, T, U}
-                                                                             
+
 Given a matrix `M` whose rows define the coordinates of a submodule of `rep` in
 the standard basis of the underlying vector space of `rep`, return the induced
 action on the submodule defined by `M`, as a linear representation in the
@@ -1278,14 +1278,14 @@ function complement_submodule(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <: M
       _K = zero_matrix(F, d*length(B1), d*length(B2))
       for j in 1:length(B2)
         B2j = B2[j]
-        B2jM = (B2j*M)[1,:]
-        B1u = reduce(vcat, [BB[1,:] for BB in B1])
-        _Kj = solve_left(B1u, B2jM)
+        B2jM = (B2j*M)[1:1,:]
+        B1u = reduce(vcat, [BB[1:1,:] for BB in B1])
+        _Kj = solve(B1u, B2jM; side = :left)
         for i in 1:d, k in 1:length(B1)
           _K[(k-1)*d + i, i + (j-1)*d] = _Kj[1, k]
         end
       end
-      a, K2 = left_kernel(_K)
+      K2 = kernel(_K; side = :left)
       Borth = K2*reduce(vcat, B1)
       @assert is_submodule(rep, Borth)
       bas = vcat(bas, Borth)
@@ -1316,8 +1316,7 @@ function quotient_representation(rep::LinRep{S, T, U}, M::W) where {S, T, U, W <
   mr = matrix_representation(rep)
   coll = eltype(mr)[]
   for m in mr
-    ok, mm = can_solve_with_solution(proj, m*proj; side=:right)
-    @assert ok
+    mm = solve(proj, m*proj; side=:right)
     push!(coll, mm)
   end
   repQ = _linear_representation(representation_ring(rep), coll)

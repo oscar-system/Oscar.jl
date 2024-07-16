@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - 'release-*'
   pull_request:
   workflow_dispatch:
 
@@ -28,8 +29,8 @@ jobs:
       matrix:
         julia-version:
           - '1.6'
-          - '1.9'   # to be removed in the near future
           - '1.10'
+          - '1.11-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os:
@@ -48,30 +49,36 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
             group: 'short'
-            os: macOS-latest
+            os: [macOS, RPTU]  # runs on self-hosted runner
           - julia-version: '1.10'
             group: 'long'
-            os: macOS-latest
-          - julia-version: 'nightly'
-            group: 'short'
-            os: macOS-latest
-          - julia-version: 'nightly'
-            group: 'long'
-            os: macOS-latest
+            os: [macOS, RPTU]  # runs on self-hosted runner
+          - julia-version: '1.10'
+            group: 'book'
+            os: ubuntu-latest
+          # nightly on macos is disabled for now since the macos jobs take too long
+          # with just 5 runners
+          #- julia-version: 'nightly'
+          #  group: 'short'
+          #  os: macOS-latest
+          #- julia-version: 'nightly'
+          #  group: 'long'
+          #  os: macOS-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
+        if: runner.environment != 'self-hosted'
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }}
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
@@ -79,6 +86,10 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
+      - name: "Use multiple processes for self-hosted runners"
+        if: runner.os == 'macOS' && runner.environment == 'self-hosted'
+        # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
+        run: echo "NUMPROCS=5" >> $GITHUB_ENV
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
@@ -96,7 +107,9 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   doctest:
     runs-on: ${{ matrix.os }}
@@ -105,8 +118,8 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.9'   # to be removed in the near future
           - '1.10'
+          - '1.11-nightly'
           - 'nightly'
         os:
           - ubuntu-latest
@@ -118,21 +131,22 @@ jobs:
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
-            os: macOS-latest
+            os: [macOS, RPTU] # runs on self hosted runner
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           # For Codecov, we must also fetch the parent of the HEAD commit to
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
+        if: runner.environment != 'self-hosted'
         with:
-          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }}
+          cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
           include-matrix: false
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
@@ -163,4 +177,6 @@ jobs:
       - name: "Upload coverage data to Codecov"
         if: matrix.julia-version == '1.10' && matrix.depwarn != 'depwarn=error'
         continue-on-error: true
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

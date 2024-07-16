@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Lie algebra modules
@@ -62,18 +60,4 @@ symmetric_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
 tensor_power(::LieAlgebraModule{C}, ::Int) where {C<:FieldElem}
 abstract_module(::LieAlgebra{C}, ::Int, ::Vector{<:MatElem{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
 abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; ::Bool) where {C<:FieldElem}
-```
-
-# Type-dependent getters
-
-```@docs
-is_standard_module(::LieAlgebraModule)
-is_dual(::LieAlgebraModule)
-is_direct_sum(::LieAlgebraModule)
-is_tensor_product(::LieAlgebraModule)
-is_exterior_power(::LieAlgebraModule)
-is_symmetric_power(::LieAlgebraModule)
-is_tensor_power(::LieAlgebraModule)
-base_module(::LieAlgebraModule{C}) where {C<:FieldElem}
-base_modules(::LieAlgebraModule{C}) where {C<:FieldElem}
 ```

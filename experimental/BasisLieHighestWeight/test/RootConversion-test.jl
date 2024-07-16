@@ -19,7 +19,6 @@
         !(dynkin == :G && (n != 2))
       )
         weight = [rand(QQ, -10:10) for _ in 1:n]
-        print(".")
         L = BasisLieHighestWeight.lie_algebra(dynkin, n)
         test_inverse_alpha_w(L, weight)
       end

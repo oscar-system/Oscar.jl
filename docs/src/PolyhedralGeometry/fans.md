@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Polyhedral Fans
@@ -38,6 +36,7 @@ face_fan(P::Polyhedron{T}) where T<:scalar_types
 ## Auxiliary functions
 ```@docs
 ambient_dim(PF::PolyhedralFan)
+arrangement_polynomial
 dim(PF::PolyhedralFan)
 f_vector(PF::PolyhedralFan)
 is_complete(PF::PolyhedralFan)
@@ -52,7 +51,7 @@ cones(PF::PolyhedralFan, cone_dim::Int)
 cones(PF::PolyhedralFan)
 n_maximal_cones(PF::PolyhedralFan)
 n_cones(PF::PolyhedralFan)
-nrays(PF::PolyhedralFan)
+n_rays(PF::PolyhedralFan)
 rays(PF::PolyhedralFan)
 rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)

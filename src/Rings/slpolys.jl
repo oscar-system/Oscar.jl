@@ -22,6 +22,8 @@ SLPolyRing(r::Ring, v::Pair{<:VarName,
 
 base_ring(S::SLPolyRing) = S.base_ring
 
+base_ring_type(::Type{SLPolyRing{T,R}}) where {T,R} = R
+
 elem_type(::Type{S}) where {T,S<:SLPolyRing{T}} = SLPoly{T,S}
 
 symbols(S::SLPolyRing) = S.S
@@ -39,8 +41,8 @@ end
 
 gens(S::SLPolyRing) = [S(SLP.Gen(s)) for s in symbols(S)]
 
-ngens(S::SLPolyRing) = length(symbols(S))
-nvars(S::SLPolyRing) = ngens(S)
+number_of_generators(S::SLPolyRing) = length(symbols(S))
+number_of_variables(S::SLPolyRing) = number_of_generators(S)
 
 # TODO: how to name this function? namespace it?
 function SLPolynomialRing(R::Ring, s; cached::Bool = false)

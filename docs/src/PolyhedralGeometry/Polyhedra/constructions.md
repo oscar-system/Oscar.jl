@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Constructions
@@ -61,7 +59,7 @@ This is a standard triangle, defined via a (redundant) $V$-representation  and
 its unique minimal $H$-representation:
 
 ```jldoctest
-julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1/2 ])
+julia> T = convex_hull([ 0 0 ; 1 0 ; 0 1; 0 1//2 ])
 Polyhedron in ambient dimension 2
 
 julia> halfspace_matrix_pair(facets(T))
@@ -131,6 +129,18 @@ catalan_solid
 regular_24_cell
 regular_120_cell
 regular_600_cell
+```
+
+Like some of the Johnson solids, the following four Archimedean and Catalan
+solids are constructed using [serialized data](@ref serialization).
+In order to properly document the respective sources, they also come as
+seperate functions. 
+
+```@docs
+snub_cube
+snub_dodecahedron
+pentagonal_icositetrahedron
+pentagonal_hexecontahedron
 ```
 
 ## Other polytope constructions

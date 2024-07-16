@@ -1,7 +1,7 @@
-@attributes mutable struct LieAlgebraHom{T1<:LieAlgebra,T2<:LieAlgebra} <:
+@attributes mutable struct LieAlgebraHom{T1<:LieAlgebra,T2<:LieAlgebra,MatT<:MatElem} <:
                            Map{T1,T2,Hecke.HeckeMap,LieAlgebraHom}
   header::MapHeader{T1,T2}
-  matrix::MatElem
+  matrix::MatT
 
   inverse_isomorphism::LieAlgebraHom{T2,T1}
 
@@ -22,8 +22,9 @@
   function LieAlgebraHom(L1::LieAlgebra, L2::LieAlgebra, mat::MatElem; check::Bool=true)
     @req coefficient_ring(L1) === coefficient_ring(L2) "Coefficient rings must be the same" # for now at least
     @req size(mat) == (dim(L1), dim(L2)) "Matrix size must match dimensions of domain and codomain"
-    h = new{typeof(L1),typeof(L2)}()
-    h.matrix = mat::dense_matrix_type(coefficient_ring(L2))
+    @req mat isa MatElem{elem_type(coefficient_ring(L2))} "Matrix must be over coefficient ring of codomain"
+    h = new{typeof(L1),typeof(L2),typeof(mat)}()
+    h.matrix = mat
     h.header = MapHeader(L1, L2)
     if check
       @req is_welldefined(h) "Not a homomorphism"
@@ -45,8 +46,8 @@ Return the transformation matrix of `h` w.r.t. the bases of the domain and codom
 
 Note: The matrix operates on the coefficient vectors from the right.
 """
-function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra{C2}}) where {C2<:FieldElem}
-  return (h.matrix)::dense_matrix_type(C2)
+function matrix(h::LieAlgebraHom{<:LieAlgebra,<:LieAlgebra,MatT}) where {MatT<:MatElem}
+  return (h.matrix)::MatT
 end
 
 @doc raw"""
@@ -69,9 +70,11 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
+function Base.show(io::IO, mime::MIME"text/plain", h::LieAlgebraHom)
+  @show_name(io, h)
+  @show_special(io, mime, h)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), h)
+  println(io, LowercaseOff(), "Lie algebra morphism")
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))
@@ -79,8 +82,10 @@ function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraHom)
 end
 
 function Base.show(io::IO, h::LieAlgebraHom)
+  @show_name(io, h)
+  @show_special(io, h)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra morphism")
   else
     print(io, LowercaseOff(), "Lie algebra morphism: ")
@@ -159,7 +164,9 @@ end
 Return the kernel of `h` as an ideal of the domain.
 """
 function kernel(h::LieAlgebraHom)
-  ker_dim, ker_b = left_kernel(matrix(h))
+  ker_b = kernel(matrix(h); side=:left)
+  ker_dim = nrows(ker_b)
+
   return ideal(domain(h), [domain(h)(ker_b[i, :]) for i in 1:ker_dim])
 end
 

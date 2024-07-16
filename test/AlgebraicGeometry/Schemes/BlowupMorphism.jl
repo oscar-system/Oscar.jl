@@ -1,18 +1,17 @@
 @testset "basics about blowups" begin
   R, (x,y,z) = QQ["x", "y", "z"]
   f = x^2 + y^3 + z^5
-  X = CoveredScheme(Spec(R, ideal(R, f)))
-  U = X[1][1] # the first chart
-
-  IZ = IdealSheaf(X, U, OO(U).([x, y, z]))
+  X = spec(R, ideal(R, f))
+  I = ideal(OO(X), [x, y, z])
+  IZ = IdealSheaf(X, I)
 
   bl = blow_up(IZ)
 
-  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(X), Nothing, BlowupMorphism}
-  @test underlying_morphism(bl) === projection(bl)
+  @test bl isa AbsCoveredSchemeMorphism{<:AbsCoveredScheme, typeof(space(IZ)), Nothing, <:BlowupMorphism}
+  @test Oscar.underlying_morphism(bl) === projection(bl)
 
   Y = domain(bl)
-  @test codomain(bl) === X
+  @test codomain(bl) === space(IZ)
   @test Y isa AbsCoveredScheme
 
   E = exceptional_divisor(bl)
@@ -66,7 +65,7 @@ end
   C_up, inc_C_up, p_res = strict_transform(p, inc_C)
 
   @test is_isomorphism(Oscar.isomorphism_on_open_subset(p_res))
-  
+
   KC_up = function_field(C_up)
   KC = function_field(C)
   aa = KC(a[affine_charts(Y)[3]])
@@ -119,18 +118,18 @@ end
   @test pushforward(pr_res, pullback(pr_res, yy0)^2) == yy0^2
 
   pr_inc = compose(compose(inc2, pr2), pr1)
-  @test underlying_morphism(pr1) isa CoveredSchemeMorphism
-  @test domain(underlying_morphism(pr1)) === domain(pr1)
-  @test codomain(underlying_morphism(pr1)) === codomain(pr1)
+  @test Oscar.underlying_morphism(pr1) isa CoveredSchemeMorphism
+  @test domain(Oscar.underlying_morphism(pr1)) === domain(pr1)
+  @test codomain(Oscar.underlying_morphism(pr1)) === codomain(pr1)
   @test compose(inc2, pr2) isa Oscar.CompositeCoveredSchemeMorphism
   @test domain(compose(inc2, pr2)) === domain(inc2)
   @test codomain(compose(inc2, pr2)) === codomain(pr2)
 
   @test domain(pr1) === codomain(compose(inc2, pr2))
-  @test domain(underlying_morphism(pr1)) === codomain(compose(inc2, pr2))
-  pr_inc2 = compose(compose(inc2, pr2), underlying_morphism(pr1))
-  pr_inc3 = compose(underlying_morphism(compose(inc2, pr2)), underlying_morphism(pr1))
-  pr_inc4 = compose(underlying_morphism(compose(inc2, pr2)), pr1)
+  @test domain(Oscar.underlying_morphism(pr1)) === codomain(compose(inc2, pr2))
+  pr_inc2 = compose(compose(inc2, pr2), Oscar.underlying_morphism(pr1))
+  pr_inc3 = compose(Oscar.underlying_morphism(compose(inc2, pr2)), Oscar.underlying_morphism(pr1))
+  pr_inc4 = compose(Oscar.underlying_morphism(compose(inc2, pr2)), pr1)
 
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc2)
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc3)
@@ -138,8 +137,8 @@ end
 
   pr_inc_alt = Oscar.composite_map(pr2_res, compose(inc1, pr1))
   pr_inc_alt2 = Oscar.composite_map(compose(pr2_res, inc1), pr1)
-  pr_inc_alt3 = Oscar.composite_map(pr2_res, compose(inc1, underlying_morphism(pr1)))
-  pr_inc_alt4 = Oscar.composite_map(compose(pr2_res, inc1), underlying_morphism(pr1))
+  pr_inc_alt3 = Oscar.composite_map(pr2_res, compose(inc1, Oscar.underlying_morphism(pr1)))
+  pr_inc_alt4 = Oscar.composite_map(compose(pr2_res, inc1), Oscar.underlying_morphism(pr1))
 
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt)
   @test CoveredSchemeMorphism(pr_inc) == CoveredSchemeMorphism(pr_inc_alt2)

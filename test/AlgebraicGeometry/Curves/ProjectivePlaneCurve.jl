@@ -103,7 +103,7 @@
     @test geometric_genus(C) == 1
     R, (a, b) = polynomial_ring(GF(7), ["a", "b"])
     D = plane_curve(b^9 - a^2 * (a - 1)^9)
-    @test_broken geometric_genus(D) == 0
+    @test geometric_genus(D) == 0
     @test arithmetic_genus(projective_closure(D)) == 45
   end
 end

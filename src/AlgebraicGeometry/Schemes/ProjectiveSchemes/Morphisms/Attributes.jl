@@ -12,7 +12,7 @@ underlying_morphism(f::AbsProjectiveSchemeMorphism) = error("no underlying morph
 domain(phi::ProjectiveSchemeMor) = phi.domain
 codomain(phi::ProjectiveSchemeMor) = phi.codomain
 @doc raw"""
-     pullback(phi::ProjectiveSchemeMor)
+    pullback(phi::ProjectiveSchemeMor)
 
 For a morphism `phi` of projective schemes, this returns the associated 
 morphism of graded affine algebras.
@@ -42,7 +42,7 @@ over `psi : Spec(A) → Spec(B)` this returns `psi`.
 """
 function base_map(phi::ProjectiveSchemeMor)
   if !isdefined(phi, :map_on_base_schemes)
-    phi.map_on_base_schemes = SpecMor(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
+    phi.map_on_base_schemes = morphism(base_scheme(domain(phi)), base_scheme(codomain(phi)), coefficient_map(pullback(phi)))
   end
   return phi.map_on_base_schemes::SchemeMor
 end
@@ -81,7 +81,7 @@ function map_on_affine_cones(
     C_cod, flat_cod = affine_cone(codomain(phi))
     v = inverse(flat_cod).(gens(OO(C_cod)))
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(inverse(flat_cod).(gens(OO(C_cod))))), check=check) # TODO: Set check=false
-    phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
+    phi.map_on_affine_cones = morphism(C_dom, C_cod, pb_res)
   end
   return phi.map_on_affine_cones
 end
@@ -124,9 +124,9 @@ function map_on_affine_cones(
     CP, mP = affine_cone(P)
     CQ, mQ = affine_cone(Q)
     imgs_fiber = [mP(g) for g in pullback(phi).(gens(S))]
-    phi.map_on_affine_cones = SpecMor(CP, CQ, vcat(imgs_fiber, imgs_base), check=check)
+    phi.map_on_affine_cones = morphism(CP, CQ, vcat(imgs_fiber, imgs_base), check=check)
   end
-  return phi.map_on_affine_cones::AbsSpecMor
+  return phi.map_on_affine_cones::AbsAffineSchemeMor
 end
 
 function map_on_affine_cones(
@@ -139,12 +139,12 @@ function map_on_affine_cones(
     C_dom, flat_dom = affine_cone(domain(phi))
     C_cod, flat_cod = affine_cone(codomain(phi))
     pb_res = hom(OO(C_cod), OO(C_dom), flat_dom.(pb_phi.(gens(homogeneous_coordinate_ring(codomain(phi))))), check=false)
-    phi.map_on_affine_cones = SpecMor(C_dom, C_cod, pb_res)
+    phi.map_on_affine_cones = morphism(C_dom, C_cod, pb_res)
   end
-  return phi.map_on_affine_cones::AbsSpecMor
+  return phi.map_on_affine_cones::AbsAffineSchemeMor
 end
 
-function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:SpecOpenRing}, <:AbsProjectiveScheme{<:SpecOpenRing}})
+function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:AffineSchemeOpenSubschemeRing}, <:AbsProjectiveScheme{<:AffineSchemeOpenSubschemeRing}})
   if !isdefined(phi, :map_on_affine_cones)
     X = domain(phi)
     CX, map_X = affine_cone(X)
@@ -161,10 +161,10 @@ function map_on_affine_cones(phi::ProjectiveSchemeMor{<:AbsProjectiveScheme{<:Sp
     coord_imgs = vcat(base_coord_imgs, fiber_coord_imgs)
 
     list = [restriction_map(CX, CX[i]).(coord_imgs) for i in 1:ngens(CX)]
-    list = [SpecMor(CX[i], Q, restriction_map(CX, CX[i]).(coord_imgs)) for i in 1:ngens(CX)]
-    phi.map_on_affine_cones = SpecOpenMor(CX, CY, list, check=false)
+    list = [morphism(CX[i], Q, restriction_map(CX, CX[i]).(coord_imgs)) for i in 1:ngens(CX)]
+    phi.map_on_affine_cones = AffineSchemeOpenSubschemeMor(CX, CY, list, check=false)
   end
-  return phi.map_on_affine_cones::SpecOpenMor
+  return phi.map_on_affine_cones::AffineSchemeOpenSubschemeMor
 end
 
 
@@ -174,4 +174,41 @@ end
 
 underlying_morphism(f::ProjectiveClosedEmbedding) = f.underlying_morphism
 image_ideal(f::ProjectiveClosedEmbedding) = f.ideal_of_image 
+
+########################################################################
+# Rational maps
+########################################################################
+
+### generic getters
+domain(f::AbsRationalMap) = domain(underlying_rational_map(f))
+codomain(f::AbsRationalMap) = codomain(underlying_rational_map(f))
+pullback(f::AbsRationalMap) = pullback(underlying_rational_map(f))
+graph_ring(f::AbsRationalMap) = graph_ring(underlying_rational_map(f))
+
+underlying_rational_map(f::AbsRationalMap) = error("no underlying rational map for rational map of type $(typeof(f))")
+
+### getters for the minimal concrete type
+domain(phi::RationalMap) = phi.domain
+codomain(phi::RationalMap) = phi.codomain
+@doc raw"""
+    pullback(phi::RationalMap)
+
+For a rational map `phi` of projective varieties, this returns the associated 
+morphism of graded affine algebras.
+"""
+pullback(phi::RationalMap) = phi.pullback
+
+function graph_ring(f::RationalMap)
+  if !isdefined(f, :graph_ring)
+    pbf = pullback(f)
+    SY = domain(pbf)
+    SX = codomain(pbf)
+    S, inc_SX, inc_SY = tensor_product(SX, SY)
+    IG = ideal(S, elem_type(S)[inc_SY(y) - inc_SX(pbf(y)) for y in gens(SY)])
+    SG, pr = quo(S, IG)
+    f.graph_ring = SG, hom(SX, SG, pr.(inc_SX.(gens(SX))); check=false), hom(SY, SG, pr.(inc_SY.(gens(SY))); check=false)
+  end
+  return f.graph_ring
+end
+
 

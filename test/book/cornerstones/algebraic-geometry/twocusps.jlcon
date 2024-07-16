@@ -1,0 +1,30 @@
+julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+
+julia> f = y^2-x^3;
+
+julia> g = 2*y^2-x^3;
+
+julia> U = complement_of_point_ideal(R, [0 ,0]);
+
+julia> Rloc, _ = localization(R, U);
+
+julia> I = ideal(Rloc, [f, g]);
+
+julia> A, _ = quo(Rloc, I);
+
+julia> vector_space_dimension(A)
+6
+
+julia> C = plane_curve(f)
+Affine plane curve
+  defined by 0 = x^3 - y^2
+
+julia> D = plane_curve(g);
+
+julia> P = D([0, 0])
+Rational point
+  of scheme(x^3 - 2*y^2)
+with coordinates (0, 0)
+
+julia> intersection_multiplicity(C, D, P)
+6

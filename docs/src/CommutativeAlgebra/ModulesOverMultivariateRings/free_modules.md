@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Free Modules
+# [Free Modules](@id free_modules)
 
 In this section, the expression *free module*  refers to a free module of finite rank
 over a ring of type `MPolyRing`, `MPolyQuoRing`, `MPolyLocRing`, or `MPolyQuoLocRing`.
@@ -22,7 +20,7 @@ and homomorphisms between free modules by matrices.
 All OSCAR types for the modules considered here belong to the
 abstract type `ModuleFP{T}`, where `T` is the element type of the underlying ring.
 Graded or not, the free modules belong to the abstract subtype `AbstractFreeMod{T} <: ModuleFP{T}`,
-they are modelled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
+they are modeled as objects of the concrete type `FreeMod{T} <: AbstractFreeMod{T}`.
 
 !!! note
     Canonical maps such us the canonical projection onto a quotient module arise in many 
@@ -42,7 +40,7 @@ by assigning a grading to a free module already constructed, the `graded_free_mo
 meant to create a graded free module all at once.
 
 ```@docs
-grade(F::FreeMod, W::Vector{GrpAbFinGenElem})
+grade(F::FreeMod, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -50,7 +48,7 @@ grade(F::FreeMod, W::Vector{<:Vector{<:IntegerUnion}})
 ```
 
 ```@docs
-graded_free_module(R::Ring, p::Int, W::Vector{GrpAbFinGenElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 ```
 
 ```@docs
@@ -63,7 +61,7 @@ If `F` is a free `R`-module, then
 
 - `base_ring(F)` refers to `R`,
 - `basis(F)`, `gens(F)` to the basis vectors of `F`, 
-- `rank(F)`, `ngens(F)`, `dim(F)` to the number of these vectors, and
+- `rank(F)`, `number_of_generators(F)` / `ngens(F)`, `dim(F)` to the number of these vectors, and
 - `F[i]`, `basis(F, i)`, `gen(F, i)` to the `i`-th such vector.
 
 ###### Examples
@@ -98,7 +96,7 @@ degrees_of_generators(F::FreeMod)
 All OSCAR types for elements of the modules considered here belong
 to the abstract type `ModuleElemFP{T}`, where `T` is the element type of the underlying ring.
 The free modules belong to the abstract subtype `AbstractFreeModElem{T} <: ModuleFPElem{T}`.
-They are modelled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
+They are modeled as objects of the concrete type `FreeModElem{T} <: AbstractFreeModElem{T}`
 which implements an element $f$ of a free module $F$ as a sparse row, that is, as an object of
 type `SRow{T}`. This object specifies the coordinates of $f$ with respect to the basis of standard
 unit vectors of $F$. To create an element, enter its coordinates as a sparse row or a vector: 
@@ -148,7 +146,7 @@ julia> f = x*F[1] + y*F[3]
 x*e[1] + y*e[3]
 
 julia> parent(f)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> coordinates(f)
 Sparse row with positions [1, 3] and values QQMPolyRingElem[x, y]
@@ -174,7 +172,7 @@ is_homogeneous(f::FreeModElem)
 ```
 
 ```@docs
-degree(f::FreeModElem)
+degree(f::FreeModElem{T}) where {T<:Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem}}}
 ```
 
 

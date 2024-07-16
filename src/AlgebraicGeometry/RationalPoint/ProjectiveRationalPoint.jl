@@ -124,7 +124,7 @@ of its ambient projective space.
 function scheme(P::AbsProjectiveRationalPoint)
   I = ideal(P)
   R = ambient_coordinate_ring(codomain(P))
-  return ProjectiveScheme(R, I)
+  return proj(R, I)
 end
 
 function (f::ProjectiveSchemeMor{<:Any,<:Any,<:Any,Nothing})(P::AbsProjectiveRationalPoint)
@@ -198,6 +198,7 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
   w = weights(codomain(a))
   any(x->!isone(x), w) && error("cannot normalize with weights")
   i += 1
+  l = length(w)
   while i <= l
     a[i] = ca^w[i]*a[i]
     i += 1
@@ -228,9 +229,10 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
 end
 
 function Base.hash(a::AbsProjectiveRationalPoint, u::UInt=UInt(123432))
-  if is_weighted(codomain(a))
+  w = weights(codomain(a))
+  if any(!isone, w)
     return u
   end
   normalize!(a)
-  return hash(a.v, u)
+  return hash(coordinates(a), u)
 end

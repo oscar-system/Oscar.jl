@@ -16,9 +16,7 @@ julia> l = toric_line_bundle(v, [ZZRingElem(2)])
 Toric line bundle on a normal toric variety
 
 julia> picard_class(l)
-Element of
-GrpAb: Z
-with components [2]
+Abelian group element [2]
 ```
 """
 picard_class(l::ToricLineBundle) = l.picard_class
@@ -230,9 +228,9 @@ julia> parent(s) == cox_ring(toric_variety(l))
 true
 ```
 """
-@attr MPolyDecRingElem{QQFieldElem, QQMPolyRingElem} function generic_section(l::ToricLineBundle)
+function generic_section(l::ToricLineBundle)
   if length(basis_of_global_sections(l)) == 0
     return zero(cox_ring(toric_variety(l)))
   end
-  return sum([rand(Int) * b for b in basis_of_global_sections(l)]);
+  return sum([rand(Int) * b for b in basis_of_global_sections(l)])
 end

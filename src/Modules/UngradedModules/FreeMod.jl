@@ -37,7 +37,7 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> x*FR[1]
 x*e[1]
@@ -49,7 +49,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal(x, y, z)
+Free module of rank 2 over Localization of R at complement of prime ideal (x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -65,7 +65,7 @@ x*g[1]
 julia> RQL, _ = localization(RQ, U);
 
 julia> FRQL =  free_module(RQL, 2, "h")
-Free module of rank 2 over Localization of quotient of multivariate polynomial ring at complement of prime ideal
+Free module of rank 2 over Localization of RQ at complement of prime ideal
 
 julia> RQL(x)*FRQL[1]
 x*h[1]
@@ -89,19 +89,18 @@ function (F::FreeMod)()
   return FreeModElem(sparse_row(base_ring(F)), F)
 end
 
-#by the magic of @show_name, this function will ensure that a 
+# by the magic of @show_name, this function will ensure that a 
 # un-named free module over a named ring X will acquire the name 
 # X^r
 function AbstractAlgebra.extra_name(F::FreeMod)
-  AbstractAlgebra.set_name!(F)
-  s = get_attribute(F, :name)
-  s !== nothing && return
-  AbstractAlgebra.set_name!(base_ring(F))
-  s = get_attribute(base_ring(F), :name)
-  if s !== nothing
-    AbstractAlgebra.set_name!(F, "$s^$(rank(F))")
+  if rank(F) == 0
+    return "0"
   end
-  return get_attribute(F, :name)
+  s = AbstractAlgebra.get_name(base_ring(F))
+  if s !== nothing
+    return "$s^$(rank(F))"
+  end
+  return nothing
 end
 
 function show(io::IO, F::FreeMod)
@@ -150,14 +149,14 @@ end
 
 @doc raw"""
     rank(F::FreeMod)
-    ngens(F::AbstractFreeMod)
+    number_of_generators(F::AbstractFreeMod)
     dim(F::AbstractFreeMod)
 
 Return the rank of `F`.
 """
 dim(F::AbstractFreeMod) = rank(F)
 rank(F::FreeMod) = F.n
-ngens(F::AbstractFreeMod) = rank(F)
+number_of_generators(F::AbstractFreeMod) = rank(F)
 
 @doc raw"""
     ==(F::FreeMod, G::FreeMod)

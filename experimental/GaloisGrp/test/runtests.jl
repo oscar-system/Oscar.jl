@@ -27,11 +27,19 @@
   @test is_isomorphic(G, symmetric_group(3))
   G,_, k = galois_group(F; overC = true)
   @test is_isomorphic(G, cyclic_group(3))
-  @test k isa AnticNumberField && degree(k) == 2
+  @test k isa AbsSimpleNumField && degree(k) == 2
 
   K, a = cyclotomic_field(3, "a", cached = false)
   G, C = galois_group(K)
   k = fixed_field(C, G)
-  @test degree(k) == 1 && k isa AnticNumberField
+  @test degree(k) == 1 && k isa AbsSimpleNumField
 end
 
+@testset "SubfieldLattice" begin
+  Zx, x = ZZ["x"]
+  k, a = number_field(swinnerton_dyer(3, x))
+  s = subfield_lattice(k)
+  @test length(s) == 14
+  intersect(s[3], s[4])
+  s[3] * s[4]
+end

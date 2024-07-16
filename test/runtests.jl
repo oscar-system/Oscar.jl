@@ -79,7 +79,7 @@ end
 
 testlist = Oscar._gather_tests("test")
 
-for exp in [Oscar.exppkgs; Oscar.oldexppkgs]
+for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
   if isdir(path)
     append!(testlist, Oscar._gather_tests(path))
@@ -93,6 +93,7 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations
 test_large = [
+              "test/Aqua.jl",
               "experimental/FTheoryTools/test/weierstrass.jl",
               "test/PolyhedralGeometry/timing.jl",
               "experimental/GITFans/test/runtests.jl",
@@ -105,12 +106,18 @@ test_large = [
               "test/Modules/UngradedModules.jl",
               "test/GAP/oscarinterface.jl",
               "test/AlgebraicGeometry/Schemes/CoveredProjectiveSchemes.jl",
+              "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
+              "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
               "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
               "experimental/QuadFormAndIsom/test/runtests.jl",
               "experimental/GModule/test/runtests.jl",
+              "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
               "test/Modules/ModulesGraded.jl",
               "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
              ]
+test_book = [
+             "test/book/test.jl",
+            ]
 
 test_subset = get(ENV, "OSCAR_TEST_SUBSET", "")
 if haskey(ENV, "JULIA_PKGEVAL")
@@ -118,27 +125,37 @@ if haskey(ENV, "JULIA_PKGEVAL")
 end
 
 if test_subset == "short"
-  filter!(x-> !in(relpath(x, Oscar.oscardir), test_large), testlist)
+  filter!(x-> !in(relpath(x, Oscar.oscardir), [test_large; test_book]), testlist)
 elseif test_subset == "long"
-  testlist = joinpath.(Oscar.oscardir, test_large)
-  filter!(isfile, testlist)
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_large), testlist)
+elseif test_subset == "book"
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_book), testlist)
+elseif test_subset == "" && !(Sys.islinux() && v"1.10" <= VERSION < v"1.11.0-DEV")
+  # book tests only on 1.10 and linux
+  @info "Skipping Oscar book tests"
+  filter!(x-> !in(relpath(x, Oscar.oscardir), test_book), testlist)
 end
 
 
 @everywhere testlist = $testlist
 
-# if many workers, distribute tasks across them
-# otherwise, is essentially a serial loop
-stats = reduce(merge, pmap(testlist) do x
-                        println("Starting tests for $x")
-                        Oscar.test_module(x; new=false, timed=true)
-                      end)
+stats = Dict{String,NamedTuple}()
 
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
-if numprocs == 1 && test_subset != "short"
-   push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
+# try running it first for now
+if numprocs == 1 && (test_subset == "long" || test_subset == "")
+  println("Starting tests for Serialization/IPC.jl")
+  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
 end
+
+# if many workers, distribute tasks across them
+# otherwise, is essentially a serial loop
+merge!(stats, reduce(merge, pmap(testlist) do x
+                              println("Starting tests for $x")
+                              Oscar.test_module(x; new=false, timed=true, tempproject=false)
+                            end))
+
 
 if haskey(ENV, "GITHUB_STEP_SUMMARY")
   open(ENV["GITHUB_STEP_SUMMARY"], "a") do io

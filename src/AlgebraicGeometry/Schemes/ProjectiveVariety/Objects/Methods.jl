@@ -12,7 +12,7 @@ end
 
 # one line printing
 function Base.show(io::IO, X::AbsProjectiveVariety{<:Field,<:MPolyQuoRing})
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Projective variety")
   elseif get_attribute(X, :is_empty, false)
     print(io, "Empty projective variety")

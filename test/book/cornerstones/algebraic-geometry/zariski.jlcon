@@ -1,0 +1,28 @@
+julia> k = GF(31991);
+
+julia> S, (x, y, z, t) = polynomial_ring(k, ["x", "y", "z", "t"]);
+
+julia> a, b, c = 40, 30, 8
+(40, 30, 8)
+
+julia> ft=x^a+y^b+z^(3*c)+x^(c+2)*y^(c-1)+x^(c-1)*y^(c-1)*z^3+x^(c-2)*y^c*(y^2+t*x)^2;
+
+julia> R, (x, y, z) = polynomial_ring(k, ["x", "y", "z"]);
+
+julia> f0 = hom(S, R, [x, y, z, 0])(ft);
+
+julia> f1 = hom(S, R, [x, y, z, 1])(ft);
+
+julia> MI0 = jacobian_ideal(f0);    MI1 = jacobian_ideal(f1);
+
+julia> U = complement_of_point_ideal(R, [0 ,0, 0]);
+
+julia> Rloc, phi = localization(R, U);
+
+julia> A0, _ = quo(Rloc, phi(MI0));  A1, _ = quo(Rloc, phi(MI1));
+
+julia> vector_space_dimension(A0)
+10661
+
+julia> vector_space_dimension(A1)
+10655

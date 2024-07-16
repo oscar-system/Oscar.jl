@@ -255,8 +255,8 @@
             @test is_regular(M) == values[8]
             @test is_binary(M) == values[9]
             @test is_ternary(M) == values[10]
-            @test n_connected_components(M) == length(connected_components(M))
-            @test is_connected(M) == (n_connected_components(M)<2)
+            @test number_of_connected_components(M) == length(connected_components(M))
+            @test is_connected(M) == (number_of_connected_components(M) < 2)
             @test is_simple(M) == values[11]
         end      
     
@@ -347,6 +347,25 @@
         @test order(automorphism_group(M)) == 120
         @test automorphism_group(uniform_matroid(0, 2)) == symmetric_group(2)
         U = matroid_from_bases([[1,2],[2,3],[1,3]],5)
-        @test automorphism_group(U) == automorphism_group(dual_matroid(U)) 
+        @test automorphism_group(U) == automorphism_group(dual_matroid(U))
+
+        g = complete_graph(4)
+        rem_edge!(g,1,2)
+        M = cycle_matroid(g)
+        @test degree(automorphism_group(M)) == 5
     end
+
+    @testset "matroid quotient" begin
+	   Q1 = uniform_matroid(1, 3)
+	   Q2 = uniform_matroid(2, 3)
+	   @test is_quotient(Q1, Q2) == true
+	   Q1 = matroid_from_bases([[3]], 3)
+	   Q2 = matroid_from_bases([[1, 2]], 3)
+	   @test is_quotient(Q1, Q2) == false
+	   M1 = uniform_matroid(1, 4)
+           M2 = uniform_matroid(3, 4)
+	   @test is_quotient(M1,M2) == true
+	   @test_throws ArgumentError is_quotient(M2, M1)
+	   @test_throws ArgumentError is_quotient(Q2, M2)
+   end
 end

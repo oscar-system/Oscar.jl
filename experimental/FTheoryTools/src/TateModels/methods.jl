@@ -11,7 +11,7 @@ Determine the fiber of a (singular) global Tate model over a particular base loc
 function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integer}})
   
   # This method only works if the model is defined over a toric variety over toric scheme
-  @req typeof(base_space(model)) <: NormalToricVariety "Analysis of fibers currently only supported for toric scheme/variety as base space"
+  @req base_space(model) isa NormalToricVariety "Analysis of fibers currently only supported for toric variety as base space"
   
   # Ideal of the defining polynomial
   hypersurface_ideal = ideal([tate_polynomial(model)])
@@ -72,15 +72,19 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
 end
 
 
-
 #####################################################
-# 2: Resolve a Tate model via blowup
+# 2: Tune a Tate model
 #####################################################
 
 @doc raw"""
-    blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
+    tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
 
-Resolve a global Tate model by blowing up a locus in the ambient space.
+Tune a Tate model by fixing a special choice for the model sections.
+Note that it is in particular possible to set a section to zero. We anticipate
+that people might want to be able to come back from this by assigning a non-trivial
+value to a section that was previously tuned to zero. This is why we keep such
+trivial sections and do not delete them, say from `explicit_model_sections`
+or `classes_of_model_sections`.
 
 # Examples
 ```jldoctest
@@ -90,71 +94,152 @@ Normal toric variety
 julia> w = torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> blow_up(t, ["x", "y", "x1"]; coordinate_name = "e1")
-Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(t)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => x1^8
+  "a1" => x1^4
+
+julia> tuned_t = tune(t, my_choice)
+Global Tate model over a concrete base
+
+julia> tate_section_a1(tuned_t) == x1^4
+true
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice2 = Dict("a1" => x1^4, "a2" => zero(parent(x1)), "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => 0
+  "a1" => x1^4
+
+julia> tuned_t2 = tune(tuned_t, my_choice2)
+Global Tate model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_t2)["a2"])
+true
+
+julia> x1, x2, x3, x4 = gens(cox_ring(base_space(tuned_t2)))
+4-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
+ x1
+ x2
+ x3
+ x4
+
+julia> my_choice3 = Dict("a1" => x1^4, "a2" => x1^8, "w" => x2 - x3)
+Dict{String, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}} with 3 entries:
+  "w"  => x2 - x3
+  "a2" => x1^8
+  "a1" => x1^4
+
+julia> tuned_t3 = tune(tuned_t2, my_choice3)
+Global Tate model over a concrete base
+
+julia> is_zero(explicit_model_sections(tuned_t3)["a2"])
+false
 ```
 """
-function blow_up(t::GlobalTateModel, ideal_gens::Vector{String}; coordinate_name::String = "e")
-  R = cox_ring(ambient_space(t))
-  I = ideal([eval_poly(k, R) for k in ideal_gens])
-  return blow_up(t, I; coordinate_name = coordinate_name)
-end
+function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completeness_check::Bool = true)
+  # Consistency checks
+  @req base_space(t) isa NormalToricVariety "Currently, tuning is only supported for models over concrete toric bases"
+  isempty(input_sections) && return t
+  secs_names = collect(keys(explicit_model_sections(t)))
+  tuned_secs_names = collect(keys(input_sections))
+  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
 
-function blow_up(t::GlobalTateModel, I::MPolyIdeal; coordinate_name::String = "e")
-  
-  # This method only works if the model is defined over a toric variety over toric scheme
-  @req typeof(base_space(t)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric bases"
-  @req typeof(ambient_space(t)) <: NormalToricVariety "Blowups of Tate models are currently only supported for toric ambient spaces"
+  # 0. Prepare for computation by setting up some information
+  explicit_secs = deepcopy(explicit_model_sections(t))
+  def_secs_param = deepcopy(defining_section_parametrization(t))
+  tate_sections = ["a1", "a2", "a3", "a4", "a6"]
 
-  # Compute the new ambient_space
-  bd = blow_up(ambient_space(t), I; coordinate_name = coordinate_name)
-  new_ambient_space = domain(bd)
+  # 1. Tune model sections different from Tate sections
+  for x in setdiff(tuned_secs_names, tate_sections)
+    @req parent(input_sections[x]) == parent(explicit_model_sections(t)[x]) "Parent mismatch between given and existing model section"
+    if is_zero(input_sections[x]) == false
+      @req degree(input_sections[x]) == divisor_class(classes_of_model_sections(t)[x]) "Degree mismatch between given and existing model section"
+    end
+    explicit_secs[x] = input_sections[x]
+  end
 
-  # Compute the new base
-  # FIXME: THIS WILL IN GENERAL BE WRONG! IN PRINCIPLE, THE ABOVE ALLOWS TO BLOW UP THE BASE AND THE BASE ONLY.
-  # FIXME: We should save the projection \pi from the ambient space to the base space.
-  # FIXME: This is also ties in with the model sections to be saved, see below. Should the base change, so do these sections...
-  new_base = base_space(t)
-
-  # Prepare for the computation of the strict transform of the tate polynomial
-  # FIXME: This assume that I is generated by indeterminates! Very special!
-  S = cox_ring(new_ambient_space)
-  _e = eval_poly(coordinate_name, S)
-  images = MPolyRingElem[]
-  for v in gens(S)
-    v == _e && continue
-    if string(v) in [string(k) for k in gens(I)]
-      push!(images, v * _e)
-    else
-      push!(images, v)
+  # 2. Use model sections to reevaluate the Tate sections via their known parametrization
+  parametrization_keys = collect(keys(def_secs_param))
+  if !isempty(parametrization_keys) && !isempty(secs_names)
+    R = parent(def_secs_param[parametrization_keys[1]])
+    S = parent(explicit_secs[secs_names[1]])
+    vars = [string(k) for k in gens(R)]
+    images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
+    map = hom(R, S, images)
+    for section in tate_sections
+      haskey(def_secs_param, section) && (explicit_secs[section] = map(eval_poly(string(def_secs_param[section]), R)))
     end
   end
-  ring_map = hom(base_ring(I), S, images)
-  total_transform = ring_map(ideal([tate_polynomial(t)]))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  new_pt = gens(strict_transform)[1]
 
-  # Extract the old Tate sections, which do not change.
-  ais = [tate_section_a1(t), tate_section_a2(t), tate_section_a3(t), tate_section_a4(t), tate_section_a6(t)]
-
-  # Construct the new model
-  # This is not really a Tate model any more, as the hypersurface equation is merely a strict transform of a Tate polynomial.
-  # Change/Fix? We may want to provide not only output that remains true forever but also output, while the internals may change?
-  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], new_pt, base_space(t), new_ambient_space)
-
-  # Copy known attributes from old model and overwrite as appropriate
-  model_attributes = t.__attrs
-  for (key, value) in model_attributes
-    set_attribute!(model, key, value)
+  # 3. Does the user want to set some Tate sections? If so, overwrite existing choice with desired value.
+  for sec in tate_sections
+    if haskey(input_sections, sec)
+      @req parent(input_sections[sec]) == parent(explicit_model_sections(t)[sec]) "Parent mismatch between given and existing Tate section"
+      if is_zero(input_sections[sec]) == false
+        @req degree(input_sections[sec]) == divisor_class(classes_of_model_sections(t)[sec]) "Degree mismatch between given and existing Tate section"
+      end
+      explicit_secs[sec] = input_sections[sec]
+      delete!(def_secs_param, sec)
+    end
   end
-  set_attribute!(model, :partially_resolved, true)
 
-  # Return the model
-  return model
+  # 4. There could be unused model sections...
+  if !isempty(parametrization_keys)
+    polys = [eval_poly(string(def_secs_param[section]), R) for section in tate_sections if haskey(def_secs_param, section)]
+    all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
+    all_appearing_exponents = [collect(exponents(m))[1] for m in all_appearing_monomials]
+    potentially_redundant_sections = gens(R)
+    for k in 1:length(potentially_redundant_sections)
+      string(potentially_redundant_sections[k]) in tate_sections && continue
+      is_used = any(all_appearing_exponents[l][k] != 0 for l in 1:length(all_appearing_exponents))
+      is_used || delete!(explicit_secs, string(potentially_redundant_sections[k]))
+    end
+  end
+  
+  # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
+  if !isempty(def_secs_param)
+    naive_vars = string.(gens(parent(first(values(def_secs_param)))))
+    filtered_vars = filter(x -> x in keys(explicit_secs), naive_vars)
+    desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
+    for (key, value) in def_secs_param
+      def_secs_param[key] = eval_poly(string(value), desired_ring)
+    end
+  end
+  
+  # 6. Build the new model
+  resulting_model = global_tate_model(base_space(t), explicit_secs, def_secs_param; completeness_check)
+
+  # 7. Copy the classes of model sections, but only of those sections that are used!
+  new_classes_of_model_sections = Dict{String, ToricDivisorClass}()
+  for key in keys(explicit_model_sections(resulting_model))
+    m = divisor_class(classes_of_model_sections(t)[key]).coeff
+    @req nrows(m) == 1 "Encountered inconsistency"
+    new_classes_of_model_sections[key] = toric_divisor_class(base_space(resulting_model), m[1, :])
+  end
+  set_attribute!(resulting_model, :classes_of_model_sections => new_classes_of_model_sections)
+
+  # 8. Return the model
+  return resulting_model
+
 end

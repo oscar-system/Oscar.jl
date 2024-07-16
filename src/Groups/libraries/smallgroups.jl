@@ -3,20 +3,20 @@
 ###################################################################
 
 """
-    has_number_small_groups(n::IntegerUnion)
+    has_number_of_small_groups(n::IntegerUnion)
 
 Return `true` if the number of groups of order `n` is known, otherwise `false`.
 
 # Examples
 ```jldoctest
-julia> has_number_small_groups(1024)
+julia> has_number_of_small_groups(1024)
 true
 
-julia> has_number_small_groups(2048)
+julia> has_number_of_small_groups(2048)
 false
 ```
 """
-function has_number_small_groups(n::IntegerUnion)
+function has_number_of_small_groups(n::IntegerUnion)
     @req n >= 1 "group order must be positive, not $n"
     return GAP.Globals.NumberSmallGroupsAvailable(GAP.Obj(n))
 end
@@ -89,12 +89,11 @@ end
 
 function small_group(n::IntegerUnion, m::IntegerUnion)
   G = _small_group(n, m)
-  T = _get_type(G)
-  return T(G)
+  return _oscar_group(G)
 end
 
 function _small_group(n::IntegerUnion, m::IntegerUnion)
-  N = number_small_groups(n)
+  N = number_of_small_groups(n)
   @req m <= N "There are only $N groups of order $n, up to isomorphism."
   return GAP.Globals.SmallGroup(GAP.Obj(n), GAP.Obj(m))
 end
@@ -117,30 +116,30 @@ ERROR: ArgumentError: identification is not available for groups of order 243290
 function small_group_identification(G::GAPGroup)
    @req is_finite(G) "group is not finite"
    @req has_small_group_identification(order(G)) "identification is not available for groups of order $(order(G))"
-   res = GAP.Globals.IdGroup(G.X)
+   res = GAP.Globals.IdGroup(GapObj(G))
    return Tuple{ZZRingElem,ZZRingElem}(res)
 end
 
 
 """
-    number_small_groups(n::IntegerUnion)
+    number_of_small_groups(n::IntegerUnion)
 
 Return the number of groups of order `n`, up to isomorphism.
 
 # Examples
 ```jldoctest
-julia> number_small_groups(8)
+julia> number_of_small_groups(8)
 5
 
-julia> number_small_groups(4096)
+julia> number_of_small_groups(4096)
 ERROR: ArgumentError: the number of groups of order 4096 is not available
 
-julia> number_small_groups(next_prime(ZZRingElem(2)^64))
+julia> number_of_small_groups(next_prime(ZZRingElem(2)^64))
 1
 ```
 """
-function number_small_groups(n::IntegerUnion)
-  @req has_number_small_groups(n) "the number of groups of order $n is not available"
+function number_of_small_groups(n::IntegerUnion)
+  @req has_number_of_small_groups(n) "the number of groups of order $n is not available"
   return ZZRingElem(GAP.Globals.NumberSmallGroups(GAP.Obj(n))::GapInt)
 end
 
@@ -176,7 +175,7 @@ The following functions are currently supported as values for `func`:
 - `is_sporadic_simple`
 - `is_solvable`
 - `is_supersolvable`
-- `number_conjugacy_classes`
+- `number_of_conjugacy_classes`
 - `order`
 
 The type of the returned groups is `PcGroup` if the group is solvable, `PermGroup` otherwise.
@@ -210,7 +209,7 @@ function all_small_groups(L...)
 
    # TODO: perhaps add an option so that ids are returned instead of groups,
    # by calling GAP.Globals.IdsOfAllSmallGroups
-   return [_get_type(x)(x) for x in K]
+   return [_oscar_group(x) for x in K]
 end
 
 #T problem:

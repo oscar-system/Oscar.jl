@@ -7,7 +7,7 @@ Ky, y = K["y"]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2), "t")
+Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
 Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
@@ -19,7 +19,7 @@ FF, r = finite_field(s^2 + o * s + 1, "r")
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
   (R, x^2, x + 1, "Iterated Multivariate PolyRing"),
-  (residue_ring(ZZ, 6), 3, 5, "Integers Modulo 6"),
+  (residue_ring(ZZ, 6)[1], 3, 5, "Integers Modulo 6"),
   (L, e, f, "Non Simple Extension"),
   (K, a, a + 1, "Simple Extension"),
   (Tow, a^2 * b, a + b, "Tower Extension"),
@@ -29,6 +29,7 @@ cases = [
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
   (FF, FF(1), r, "Default Finite Field"),
+  (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
 
@@ -89,7 +90,7 @@ cases = [
 
         if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
           @testset "MPoly Ideals over $(case[4])" begin
-            q = w^2 + z
+            q = z
             i = Oscar.ideal(R, [p, q])
             test_save_load_roundtrip(path, i) do loaded_i
               S = parent(loaded_i[1])
@@ -101,12 +102,23 @@ cases = [
             test_save_load_roundtrip(path, i; params=S) do loaded_i
               @test i == loaded_i
             end
+
+            gb = groebner_basis(i)
+            test_save_load_roundtrip(path, gb;) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
+            end
+
+            test_save_load_roundtrip(path, gb; params=S) do loaded_gb
+              @test gens(gb) == gens(loaded_gb)
+              @test ordering(gb) == ordering(loaded_gb)
+            end
           end
         end
       end
 
       @testset "Universal Polynomial over $(case[4])" begin
-        R = UniversalPolynomialRing(case[1])
+        R = universal_polynomial_ring(case[1])
         z, w = gens(R, ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded

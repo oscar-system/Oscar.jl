@@ -9,10 +9,10 @@
         BigInt,
         ZZRingElem,
         QQFieldElem,
-        residue_ring(ZZ, ZZ(6)),
-        residue_ring(ZZ, 6),
-        Nemo.fpField(UInt(7)),
-        Nemo.FpField(ZZRingElem(7)),
+        residue_ring(ZZ, ZZ(6))[1],
+        residue_ring(ZZ, 6)[1],
+        fpField(UInt(7)),
+        FpField(ZZRingElem(7)),
         #PadicField(7, 30),
         #tropical_semiring()
       )
@@ -23,7 +23,7 @@
     end
 
     @testset "String" begin
-      original = "original"
+      original = "original \n \" "
       test_save_load_roundtrip(path, original) do loaded
         @test loaded == original
       end

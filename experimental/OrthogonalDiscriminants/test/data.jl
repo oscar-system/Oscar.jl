@@ -1,5 +1,15 @@
 @testset "all_od_infos" begin
+  iob = IOBuffer()
+  show_OD_info("G2(3)", iob)
+  str1 = String(take!(iob))
+
   all_entries = all_od_infos();
+  @test all_entries isa Vector
+
+  show_OD_info("G2(3)", iob)
+  str2 = String(take!(iob))
+  @test str1 == str2
+
   @test length(all_entries) == length(all_od_infos(is_simple)) +
                                length(all_od_infos(! is_simple))
   @test length(all_entries) == length(all_od_infos(is_sporadic_simple)) +
@@ -50,13 +60,22 @@ end
   end
 end
 
-using Documenter
+@testset "orthogonal_discriminants for central extensions" begin
+  name = "2.L3(4)"
+  t = character_table(name)
+  @test orthogonal_discriminants(t) ==
+  ["","21","","","","","","","","105","","","1","1","1","1","-1","-1"]
+end
 
-#
-# This module only exists to "host" a doctest used by the test suite.
-#
-module AuxDocTest_show_with_ODs
-@doc raw"""
+
+# Make sure that the tests start without cached character tables.
+# (Running the tests will store information that changes some test outputs,
+# thus running the tests twice needs these calls.)
+GAP.Globals.UnloadCharacterTableData()
+empty!(Oscar.character_tables_by_id)
+
+Oscar.@_AuxDocTest "show and print character tables", (fix = false),
+raw"""
 a table with irrational ODs
 
 ```jldoctest show_with_ODs.test
@@ -113,14 +132,3 @@ X_4 1     +  1  1 -1 -1  1
 X_5 1  ?  +  2 -2  .  .  .
 ```
 """
-function dummy_placeholder end
-
-end
-
-@testset "show and print character tables" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_show_with_ODs])
-  #doctest(nothing, [AuxDocTest_show_with_ODs]; fix=true)
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
-end

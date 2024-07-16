@@ -49,3 +49,17 @@ function load_object(s::DeserializerState, K::Type{SimplicialComplex})
   bigobject = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
   return K(bigobject)
 end
+
+###############################################################################
+## Phylogenetic Trees
+###############################################################################
+@register_serialization_type PhylogeneticTree 
+
+function save_object(s::SerializerState, PT::PhylogeneticTree)
+  save_object(s, pm_object(PT))
+end
+
+function load_object(s::DeserializerState, T::Type{PhylogeneticTree}, dict::Dict)
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+  return T(bigobject)
+end

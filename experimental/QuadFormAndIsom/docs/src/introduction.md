@@ -25,7 +25,7 @@ of finite order with at most two prime divisors. The methods we resort to
 for this purpose are developed in the paper [BH23](@cite).
 
 We also provide some algorithms computing isomorphism classes of primitive
-embeddings of even lattices following Nikulin's theory. More precisely, the
+embeddings of integral lattices following Nikulin's theory. More precisely, the
 function [`primitive_embeddings`](@ref) offers, under certain conditions,
 the possibility to compute representatives of primitive embeddings and classify
 them in different ways. Note nonetheless that these functions are not efficient
@@ -33,12 +33,13 @@ in the case were the discriminant groups have a large number of subgroups.
 
 ## Status
 
-This project has been slightly tested on simple and known examples. It is
-currently being tested on a larger scale to test its reliability. Moreover,
-there are still computational bottlenecks due to non-optimized algorithms.
+Currently, the project features the following:
 
-Among the possible improvements and extensions:
-* Implement extra methods for lattices with isometries of infinite order;
+- enumeration of conjugacy classes of isometries of finite order for even lattices (in the case of at most 2 prime divisors);
+- enumeration of conjugacy classes of isometries with irreducible and reciprocal minimal polynomial for integral lattices (with maximal equation order);
+- primitive embeddings/extensions for integral lattices;
+- equivariant primitive extensions for integral lattices;
+- miscellaneous operations on integral/rational quadratic form endowed with an isometry.
 
 ## Current applications of this project
 

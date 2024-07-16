@@ -10,8 +10,9 @@ function save_object(s::SerializerState, QS::QuadSpaceWithIsom)
   save_data_dict(s) do
     save_typed_object(s, space(QS), :quad_space)
     save_typed_object(s, isometry(QS), :isom)
+    n = order_of_isometry(QS)
 
-    save_object(s, order_of_isometry(QS), :order)
+    save_typed_object(s, n, :order)
   end
 end
 
@@ -19,27 +20,21 @@ function load_object(s::DeserializerState, ::Type{QuadSpaceWithIsom})
   quad_space = load_typed_object(s, :quad_space)
   isom = load_typed_object(s, :isom)
 
-  # not quite sure how to deal with IntExt/PosInf yet..
-  # we could add it to the basic type section
-  # then we could use
-  # load_object(s, IntExt, dict[:order]) 
-  n = load_object(s, Int, :order)
-  
+  n = load_typed_object(s, :order)
   return QuadSpaceWithIsom(quad_space, isom, n)
 end
 
 @register_serialization_type ZZLatWithIsom
 
-# This should be changed by saving only the basis matrix of `L`
 function save_object(s::SerializerState, L::ZZLatWithIsom)
   save_data_dict(s) do
     save_typed_object(s, ambient_space(L), :ambient_space)
-    save_typed_object(s, lattice(L), :lattice)
+    save_typed_object(s, basis_matrix(L), :basis)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{ZZLatWithIsom})
   quad_space = load_typed_object(s, :ambient_space)
-  lat = load_typed_object(s, :lattice)
-  return lattice(quad_space, basis_matrix(lat); check = false)
+  B = load_typed_object(s, :basis)
+  return lattice(quad_space, B; check=false)
 end

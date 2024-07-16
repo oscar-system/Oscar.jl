@@ -1,9 +1,9 @@
 @testset "Transitive groups" begin
-   @test number_transitive_groups(4)==5
-   @test number_transitive_groups(10)==45
+   @test number_of_transitive_groups(4)==5
+   @test number_of_transitive_groups(10)==45
 
    for i in 1:10
-       @test number_transitive_groups(i) == length(all_transitive_groups(degree => i))
+       @test number_of_transitive_groups(i) == length(all_transitive_groups(degree => i))
    end
 
    G = symmetric_group(4)
@@ -83,6 +83,13 @@ end
    @test is_regular(H,[1,2])
 
    @test_throws ArgumentError transitive_group(1, 2)
+
+   @test issetequal(all_transitive_groups(3:2:9), all_transitive_groups(degree => 3:2:9))
+   @test issetequal(all_transitive_groups(collect(3:2:9)), all_transitive_groups(3:2:9))
+   @test issetequal(reduce(vcat, (all_transitive_groups(i) for i in 3:2:9)), all_transitive_groups(3:2:9))
+
+   @test issetequal(all_transitive_groups(3:2:9, is_abelian), all_transitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_transitive_groups(9, is_abelian), all_transitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Perfect groups" begin
@@ -101,15 +108,30 @@ end
    @test_throws ArgumentError perfect_group(60, 2)
 
    @test is_isomorphic(perfect_group(60,1),G)
-   @test [number_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
+   @test [number_of_perfect_groups(i) for i in 2:59]==[0 for i in 1:58]
    x = perfect_group_identification(alternating_group(5))
    @test is_isomorphic(perfect_group(x[1],x[2]),alternating_group(5))
    @test_throws ArgumentError perfect_group_identification(symmetric_group(5))
 
-   @test sum(number_perfect_groups, 1:59) == 1
-   @test number_perfect_groups(ZZRingElem(60)^3) == 1
-   @test_throws ArgumentError number_perfect_groups(0) # invalid argument
-   @test_throws ArgumentError number_perfect_groups(ZZRingElem(60)^10)  # result not known
+   @test sum(number_of_perfect_groups, 1:59) == 1
+   @test number_of_perfect_groups(ZZRingElem(60)^3) == 1
+   @test_throws ArgumentError number_of_perfect_groups(0) # invalid argument
+   @test_throws ArgumentError number_of_perfect_groups(ZZRingElem(60)^10)  # result not known
+
+   Gs = all_perfect_groups(order => 1:200)
+   @test length(Gs) == sum(number_of_perfect_groups, 1:200)
+   @test Gs == all_perfect_groups(1:200)
+   @test length(all_perfect_groups(7200)) == number_of_perfect_groups(7200)
+
+   # all_perfect_groups with additional attributse
+   @test filter(G -> number_of_conjugacy_classes(G) in 5:8, Gs) == all_perfect_groups(1:200, number_of_conjugacy_classes => 5:8)
+   @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple)
+   @test filter(is_simple, Gs) == all_perfect_groups(1:200, is_simple => true)
+   @test filter(!is_simple, Gs) == all_perfect_groups(1:200, !is_simple)
+   @test filter(!is_simple, Gs) == all_perfect_groups(1:200, is_simple => false)
+
+   # all_perfect_groups with multiple order specifications
+   @test all_perfect_groups(order => 1:5:200, order => 25:50) == all_perfect_groups(order => intersect(1:5:200, 25:50))
 
    # lazy artifact loading (needs network access, see https://github.com/oscar-system/Oscar.jl/issues/2480)
    #@test perfect_group(1376256, 1) isa PermGroup
@@ -117,7 +139,10 @@ end
 
 @testset "Small groups" begin
    L = all_small_groups(8)
-   LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+#TODO: As soon as `abelian_group(PcGroup,[2,4])` is supported,
+#      add it as an example.
+#  LG = [abelian_group(PcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
+   LG = [abelian_group(SubPcGroup,[2,4]), abelian_group(PcGroup,[2,2,2]), cyclic_group(8), quaternion_group(8), dihedral_group(8)]
    @test length(L)==5
    @testset for G in LG
       arr = [i for i in 1:5 if is_isomorphic(L[i],G)]
@@ -131,8 +156,8 @@ end
    @test length(all_small_groups(16, exponent=>[2,4]))==8
    @test length(all_small_groups(16, exponent=>5))==0
    @test length(all_small_groups(order => 16, !is_abelian))==9
-   @test number_small_groups(16)==14
-   @test number_small_groups(17)==1
+   @test number_of_small_groups(16)==14
+   @test number_of_small_groups(17)==1
 
    @test_throws ArgumentError small_group(1, 2)
 end
@@ -140,7 +165,14 @@ end
 @testset "Primitive groups" begin
    @test has_primitive_groups(50)
    @test_throws ArgumentError primitive_group(1, 1)
-   @test number_primitive_groups(50) == 9
+   @test number_of_primitive_groups(50) == 9
+   
+   @test issetequal(all_primitive_groups(3:2:9), all_primitive_groups(degree => 3:2:9))
+   @test issetequal(all_primitive_groups(collect(3:2:9)), all_primitive_groups(3:2:9))
+   @test issetequal(reduce(vcat, (all_primitive_groups(i) for i in 3:2:9)), all_primitive_groups(3:2:9))
+
+   @test issetequal(all_primitive_groups(3:2:9, is_abelian), all_primitive_groups(degree => 3:2:9, is_abelian))
+   @test issetequal(all_primitive_groups(9, is_abelian), all_primitive_groups(degree => 9, is_abelian))
 end
 
 @testset "Atlas groups" begin

@@ -1,5 +1,3 @@
-import Oscar.AbstractAlgebra.GroupsCore
-
 @testset "The groups Sym(n) and Alt(n)" begin
 
   for n = 5:8
@@ -11,7 +9,7 @@ import Oscar.AbstractAlgebra.GroupsCore
     @test degree(A) == n
 
     @test length(moved_points(G)) == n
-    nmp = number_moved_points(G)
+    nmp = number_of_moved_points(G)
     @test nmp == n
     @test nmp isa Int
 
@@ -101,19 +99,20 @@ end
   g = cyclic_group(PosInf())
   @test is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
+  @test_throws InfiniteOrderError{PcGroup} order(g)
 
   g = dihedral_group(PosInf())
   @test !is_cyclic(g)
   @test !is_finite(g)
-  @test_throws GroupsCore.InfiniteOrder{PcGroup} order(g)
+  @test_throws InfiniteOrderError{PcGroup} order(g)
 
   G = abelian_group(PcGroup,[2, 3])
   @test isa(G, PcGroup)
   @test is_cyclic(G)
   G1 = abelian_group(PermGroup, [2, 3])
   @test is_isomorphic(G, G1)
-  G = abelian_group(PcGroup, [ZZ(2)^70])
+# G = abelian_group(PcGroup, [ZZ(2)^70])
+  G = abelian_group(SubPcGroup, [ZZ(2)^70])
 
 # FIXME: a function `free_abelian_group` is not defined in GAPGroups, since it is already defined in Hecke
 #=
@@ -130,35 +129,22 @@ end
   @test_throws ArgumentError mathieu_group(20)
   @test_throws ArgumentError mathieu_group(25)
 
+  @testset "free_group($args)" for args in [
+          ("x","y"), (:x,:y), ('x','y'),
+          (["x","y"],), ([:x,:y],), (['x','y'],),
+          (2, ), (2, "x"), (2, :x), (2, 'x'),
+      ]
+    F = free_group(args...)
+    @test F isa FPGroup
+    @test_throws InfiniteOrderError{FPGroup} order(F)
+    @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
+    @test_throws MethodError degree(F)
+    @test !is_finite(F)
+    @test !is_abelian(F)
+    @test ngens(F) == 2
+    @test length(gens(F)) == 2
+  end
 
-  F = free_group("x","y")
-  @test F isa FPGroup
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
-  @test_throws MethodError degree(F)
-  @test !is_finite(F)
-  @test !is_abelian(F)
-
-  F = free_group(:x,:y)
-  @test F isa FPGroup
-  @test_throws GroupsCore.InfiniteOrder{FPGroup} order(F)
-  @test_throws ArgumentError index(F, trivial_subgroup(F)[1])
-  @test_throws MethodError degree(F)
-  @test !is_finite(F)
-  @test !is_abelian(F)
-
-  F = free_group("x",:y)
-  @test F isa FPGroup
-  
-  F = free_group(2)
-  @test F isa FPGroup
-  
-  F = free_group(["x","y"])
-  @test F isa FPGroup
-  
-  F = free_group([:x,:y])
-  @test F isa FPGroup
-  
   F = free_group(3,"y")
   @test F isa FPGroup
   

@@ -12,9 +12,7 @@ julia> tdc = toric_divisor_class(P2, class_group(P2)([1]))
 Divisor class on a normal toric variety
 
 julia> divisor_class(tdc)
-Element of
-GrpAb: Z
-with components [1]
+Abelian group element [1]
 ```
 """
 divisor_class(tdc::ToricDivisorClass) = tdc.class

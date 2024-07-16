@@ -20,7 +20,7 @@ mutable struct PBWAlgElem{T, S} <: NCRingElem
   sdata::Singular.spluralg{S}
 end
 
-mutable struct PBWAlgIdeal{D, T, S}
+mutable struct PBWAlgIdeal{D, T, S} <: Ideal{PBWAlgElem{T, S}}
   basering::PBWAlgRing{T, S}
   sdata::Singular.sideal{Singular.spluralg{S}}    # the gens of this ideal, always defined
   sopdata::Singular.sideal{Singular.spluralg{S}}  # the gens mapped to the opposite
@@ -237,7 +237,7 @@ end
 
 
 
-function ngens(R::PBWAlgRing)
+function number_of_generators(R::PBWAlgRing)
   return Singular.nvars(R.sring)
 end
 
@@ -247,10 +247,6 @@ end
 
 function gen(R::PBWAlgRing, i::Int)
   return PBWAlgElem(R, gen(R.sring, i))
-end
-
-function Base.getindex(R::PBWAlgRing, i::Int)
-  return gen(R, i)
 end
 
 function var_index(a::PBWAlgElem)
@@ -436,7 +432,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = 
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
   S = elem_type(scr)
-  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord))
+  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord), cached = false)
   sr::Singular.PolyRing{S}
   s, gs, srel = _g_algebra_internal(sr, rel)
   if check && !is_zero(Singular.LibNctools.ndcond(s))
@@ -479,7 +475,7 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   n = length(xs)
   n > 0 || error("empty list of variables")
   n == length(dxs) || error("number of differentials should match number of variables")
-  r, v = polynomial_ring(K, vcat(xs, dxs))
+  r, v = polynomial_ring(K, vcat(xs, dxs); cached = false)
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
   R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
   set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
@@ -533,12 +529,12 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     n = length(revs)
     bsring = Singular.PluralRing{S}(ptr, a.sring.base_ring, revs)
     bspolyring, _ = Singular.polynomial_ring(a.sring.base_ring,
-                                revs, ordering = ordering(bsring))
+                                revs, ordering = Singular.ordering(bsring))
     bsrel = Singular.zero_matrix(bspolyring, n, n)
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
     end
-    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring, polynomial_ring(a.coeff_ring, revs)[1])
+    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring, polynomial_ring(a.coeff_ring, revs; cached = false)[1])
     a.opposite = b
     b.opposite = a
   end
@@ -603,8 +599,10 @@ function base_ring(a::PBWAlgIdeal)
   return a.basering
 end
 
-function ngens(a::PBWAlgIdeal)
-  return ngens(a.sdata)
+base_ring_type(::Type{PBWAlgIdeal{D, T, S}}) where {D, T, S} = PBWAlgRing{T, S}
+
+function number_of_generators(a::PBWAlgIdeal)
+  return number_of_generators(a.sdata)
 end
 
 function gens(a::PBWAlgIdeal{D, T, S}) where {D, T, S}
@@ -616,8 +614,6 @@ function gen(a::PBWAlgIdeal, i::Int)
   R = base_ring(a)
   return PBWAlgElem(R, a.sdata[i])
 end
-
-getindex(I::PBWAlgIdeal, i::Int) = gen(I, i)
 
 function expressify(a::PBWAlgIdeal{D}; context = nothing) where D
   dir = D < 0 ? :left_ideal : D > 0 ? :right_ideal : :two_sided_ideal
@@ -1200,7 +1196,7 @@ function _left_eliminate(R::PBWAlgRing, I::Singular.sideal, sigma, sigmaC, order
     end
   end
 
-  sr, _ = Singular.polynomial_ring(base_ring(R.sring), symbols(r); ordering = o)
+  sr, _ = Singular.polynomial_ring(base_ring(R.sring), symbols(r); ordering = o, cached = false)
   s, gs, _ = _g_algebra_internal(sr, R.relations)
   Io = _unsafe_coerse(s, I, false)
   Io = _left_eliminate_via_given_ordering(Io, sigmaC)

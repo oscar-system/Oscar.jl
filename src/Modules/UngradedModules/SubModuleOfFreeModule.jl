@@ -47,7 +47,7 @@ module is `F`. In particular, `rank(F) == ncols(A)` must hold.
 """
 function SubModuleOfFreeModule(F::FreeMod{L}, A::MatElem{L}) where {L} 
   subModule = SubModuleOfFreeModule{L}(F)
-  O = [FreeModElem(sparse_row(A[i,:]), F) for i in 1:nrows(A)]
+  O = [FreeModElem(sparse_row(A[i:i,:]), F) for i in 1:nrows(A)]
   subModule.gens = ModuleGens(O, F)
   subModule.matrix = A
   return subModule
@@ -125,6 +125,9 @@ function base_ring(M::SubModuleOfFreeModule)
   return base_ring(M.F)
 end
 
+base_ring_type(::Type{SubModuleOfFreeModule{T}}) where {T} = base_ring_type(FreeMod{T})
+
+
 @doc raw"""
     ambient_free_module(M::SubModuleOfFreeModule)
 
@@ -164,6 +167,7 @@ Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
 function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
+  @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, ordering) do
     return compute_standard_basis(submod, ordering)
   end::ModuleGens
@@ -323,12 +327,12 @@ function length(M::SubModuleOfFreeModule)
 end
 
 @doc raw"""
-    ngens(M::SubModuleOfFreeModule)
+    number_of_generators(M::SubModuleOfFreeModule)
 
 Return the number of generators of `M`.
 """
-function ngens(M::SubModuleOfFreeModule)
-  return ngens(M.gens)
+function number_of_generators(M::SubModuleOfFreeModule)
+  return number_of_generators(M.gens)
 end
 
 @doc raw"""

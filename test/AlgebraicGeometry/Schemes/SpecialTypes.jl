@@ -1,6 +1,6 @@
 @testset "tests for SpecialTypes.jl" begin
   R, (x,y,z) = QQ["x", "y", "z"]
-  X = Spec(R)
+  X = spec(R)
   h = x^2 - y^2 + z^2 - 1
   U = PrincipalOpenSubset(X, h)
   @test complement_equations(U)[1] == h
@@ -11,11 +11,11 @@
   @test inc isa Oscar.PrincipalOpenEmbedding
 
   f = OO(U)(x)/OO(U)(h^2)
-  @test OO(U)(generic_fraction(f, U)) == f
+  @test OO(U)(Oscar.generic_fraction(f, U)) == f
 
-  @test domain(underlying_morphism(inc)) === U
-  @test codomain(underlying_morphism(inc)) === X
-  @test pullback(underlying_morphism(inc)) == pullback(inc)
+  @test domain(Oscar.underlying_morphism(inc)) === U
+  @test codomain(Oscar.underlying_morphism(inc)) === X
+  @test pullback(Oscar.underlying_morphism(inc)) == pullback(inc)
   @test h in ideal(OO(X), complement_equations(inc))
 
   V = hypersurface_complement(X, x)

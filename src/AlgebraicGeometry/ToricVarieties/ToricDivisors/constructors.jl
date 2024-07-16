@@ -68,7 +68,7 @@ Torus-invariant, non-prime divisor on a normal toric variety
 ```
 """
 function divisor_of_character(v::NormalToricVarietyType, character::Vector{T}) where {T <: IntegerUnion}
-    r = rank(character_lattice(v))
+    r = torsion_free_rank(character_lattice(v))
     @req length(character) == r "Character must consist of $r integers"
     f = map_from_character_lattice_to_torusinvariant_weil_divisor_group(v)
     char = sum(character .* gens(domain(f)))
@@ -83,15 +83,15 @@ end
 
 function Base.:+(td1::ToricDivisor, td2::ToricDivisor)
     @req toric_variety(td1) === toric_variety(td2) "The toric divisors must be defined on the same toric variety"
-    new_coeffiicients = coefficients(td1) + coefficients(td2)
-    return toric_divisor(toric_variety(td1), new_coeffiicients)
+    new_coefficients = coefficients(td1) + coefficients(td2)
+    return toric_divisor(toric_variety(td1), new_coefficients)
 end
 
 
 function Base.:-(td1::ToricDivisor, td2::ToricDivisor)
     @req toric_variety(td1) === toric_variety(td2) "The toric divisors must be defined on the same toric variety"
-    new_coeffiicients = coefficients(td1) - coefficients(td2)
-    return toric_divisor(toric_variety(td1), new_coeffiicients)
+    new_coefficients = coefficients(td1) - coefficients(td2)
+    return toric_divisor(toric_variety(td1), new_coefficients)
 end
 
 Base.:-(td :: ToricDivisor) = toric_divisor(toric_variety(td), -coefficients(td))

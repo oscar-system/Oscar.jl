@@ -10,8 +10,8 @@ SetPackageInfo( rec(
 
 PackageName := "OscarInterface",
 Subtitle := "GAP interface to OSCAR",
-Version := "0.15.0-DEV",
-Date := "11/01/2024", # dd/mm/yyyy format
+Version := "1.2.0-DEV",
+Date := "18/06/2024", # dd/mm/yyyy format
 License := "GPL-2.0-or-later",
 
 Persons := [
@@ -75,7 +75,10 @@ PackageDoc := rec(
 
 Dependencies := rec(
   GAP := ">= 4.12",
-  NeededOtherPackages := [ ["JuliaInterface", ">=0.9"] ],
+  NeededOtherPackages := [
+    ["JuliaInterface", ">=0.9"],
+    ["Polycyclic", ">=2.16"],
+  ],
   SuggestedOtherPackages := [ ],
   ExternalConditions := [ ],
 ),

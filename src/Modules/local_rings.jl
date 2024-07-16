@@ -12,7 +12,7 @@ end
   R = base_ring(M)
   P = prime_ideal(inverted_set(R))
   F = FreeMod(R, 1)
-  N, _ = quo(F, (R(P)*F)[1])
+  N = quo_object(F, (R(P)*F)[1])
   k = 0
   MM = M
   p = identity_map(M)

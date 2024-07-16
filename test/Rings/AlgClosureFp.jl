@@ -54,7 +54,13 @@ end
 
   @testset "Printing for $F" for F in [GF(3, 1), Nemo.Native.GF(3, 1)]
     K = algebraic_closure(F)
-    @test sprint(show, "text/plain", K) == "Algebraic Closure of Finite field of degree 1 over GF(3)"
+    if F isa FqField
+      @test sprint(show, "text/plain", K) == "Algebraic closure of prime field of characteristic 3"
+    elseif F isa fqPolyRepField
+      @test sprint(show, "text/plain", K) == "Algebraic closure of finite field of degree 1 over GF(3)"
+    else
+      error("unreachable")
+    end
 
     for x in F
       @test sprint(show, "text/plain", K(x)) == sprint(show, "text/plain", x)
@@ -146,9 +152,9 @@ end
       @test K(x) == img
       @test preimage(emb, img) == x
     end
-    @test has_preimage(emb, K(one(F3)))[1]
+    @test has_preimage_with_preimage(emb, K(one(F3)))[1]
     @test preimage(emb, K(one(F3))) == one(F2)
-    @test !has_preimage(emb, K(gen(F3)))[1]
+    @test !has_preimage_with_preimage(emb, K(gen(F3)))[1]
   end
 
   @testset "Polynomial for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]

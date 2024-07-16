@@ -1,13 +1,11 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # GR-Algebras: Quotients of PBW-Algebras
 
-In analogy to the affine algebras section in the commutative algebra chapter, we describe OSCAR
+In analogy to the [affine algebras](@ref affine_algebras) section in the [commutative algebra](@ref commutative_algebra) chapter, we describe OSCAR
 functionality for dealing with quotients of PBW-algebras modulo two-sided ideals.
 
 !!! note
@@ -16,7 +14,7 @@ functionality for dealing with quotients of PBW-algebras modulo two-sided ideals
 
 ## Types
 
-GR-algebras are modelled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
+GR-algebras are modeled by objects of type `PBWAlgQuo{T, S} <: NCRing`, their elements are objects of type
 `PBWAlgQuoElem{T, S} <: NCRingElem`. Here,  `T` is the element type of the field over which the GR-algebra
 is defined (the type `S` is added for internal use).
 
@@ -38,7 +36,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-    exterior_algebra
+exterior_algebra
 ```
 
 ## Data Associated to Affine GR-Algebras
@@ -50,7 +48,7 @@ If `Q=A/I` is the quotient ring of a PBW-algebra `A` modulo a two-sided ideal `I
 - `base_ring(Q)` refers to `A`,
 - `modulus(Q)` to `I`,
 - `gens(Q)` to the generators of `Q`,
-- `ngens(Q)` to the number of these generators, and
+- `number_of_generators(Q)` / `ngens(Q)` to the number of these generators, and
 - `gen(Q, i)` as well as `Q[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -80,7 +78,7 @@ julia> gens(Q)
  y
  z
 
-julia> ngens(Q)
+julia> number_of_generators(Q)
 3
 
 julia> gen(Q, 2)

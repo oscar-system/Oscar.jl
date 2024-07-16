@@ -9,7 +9,7 @@ The singularities part of OSCAR provides functionality for handling
 - space germs
 - map germs
 
-For readers' convenience, the documentation is organised by typical settings, 
+For readers' convenience, the documentation is organized by typical settings, 
 This, on the other hand, implies that certain keywords may appear in several 
 settings. In particular, there are overlaps between hypersurface 
 singularities and curve singularities and between hypersurface singularities

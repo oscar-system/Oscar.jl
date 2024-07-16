@@ -33,11 +33,11 @@
   @test !is_conjugate_with_data(G,x,z)[1]
 
 
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(4))
-  @inferred ZZRingElem number_conjugacy_classes(symmetric_group(40))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(4))
+  @inferred ZZRingElem number_of_conjugacy_classes(symmetric_group(40))
 
 # something in smaller dimension
-  @test number_conjugacy_classes(symmetric_group(4)) == 5
+  @test number_of_conjugacy_classes(symmetric_group(4)) == 5
   G = symmetric_group(4)
   x = perm(G,[3,4,1,2])
   cc = conjugacy_class(G,x)
@@ -70,7 +70,9 @@
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
-  CC = @inferred conjugacy_classes_subgroups(G)
+  CC5 = @inferred subgroup_classes(G, order = 5)
+  @test length(CC5) == 0
+  CC = @inferred subgroup_classes(G)
   @test length(CC)==11
   @test all(cc -> acting_group(cc) === G, CC)
   @testset for C in CC
@@ -78,8 +80,8 @@
      @test length(C) == index(G, normalizer(G, representative(C))[1])
      @test degree(representative(C)) == degree(G)
   end
-  H=rand(subgroups(G))
-  @test sum([length(c) for c in CC]) == length(subgroups(G))
+  H = rand(rand(CC))
+  @test sum([length(c) for c in CC]) == length(collect(Iterators.flatten(CC)))
   @test count(c -> H in c, CC) == 1          # H belongs to a unique conjugacy class
   @testset for i in 1:length(CC)
      c = CC[i]
@@ -89,12 +91,16 @@
      @test is_conjugate_with_data(G,x,y)[1]
      z = is_conjugate_with_data(G,x,y)[2]
      @test x^z == y
+     @test is_conjugate_subgroup(G, x, y)
+     @test is_conjugate_subgroup_with_data(G, x, y)[1]
+     z = is_conjugate_subgroup_with_data(G,x,y)[2]
+     @test y^z == x
      y = rand(CC[(i % length(CC))+1])
      @test !is_conjugate(G,x,y)
      @test !is_conjugate_with_data(G,x,y)[1]
   end
 
-  CC = @inferred conjugacy_classes_maximal_subgroups(G)
+  CC = @inferred maximal_subgroup_classes(G)
   @test length(CC)==3
   @test Set([order(Int, representative(l)) for l in CC])==Set([6,8,12])
 
@@ -103,8 +109,10 @@
   @test normalizer(G,H)==normalizer(G,x)
 
   G = symmetric_group(5)
-  CC = @inferred conjugacy_classes_maximal_subgroups(G)
-  all(H -> degree(H) == degree(G), map(representative, CC))
+  CC = @inferred maximal_subgroup_classes(G)
+  @test all(H -> degree(H) == degree(G), map(representative, CC))
+  @test all(H -> is_maximal_subgroup(H, G), map(representative, CC))
+  @test !is_maximal_subgroup(trivial_subgroup(G)[1], G)
 
   G = symmetric_group(10)
   x = rand(G)
@@ -114,6 +122,20 @@
   @test Set([G(y) for y in K]) == Set([G(y^z) for y in H])
 #  @test Set(K) == Set([y^z for y in H])  may not work because the parent of the elements are different
 
+end
+
+@testset "Conjugacy classes as G-sets" begin
+  G = symmetric_group(4)
+  x = G(cperm([3, 4]))
+  y = G(cperm([1, 4, 2]))
+  C = conjugacy_class(G, x)
+  @test x in C
+  @test orbits(C) == [C]
+  @test C == orbit(G, x)
+  mp = action_homomorphism(C)
+  @test permutation(C, y) == mp(y)
+  @test length(C) == 6
+  @test order(image(mp)[1]) == 24
 end
 
 function TestConjCentr(G,x)
@@ -182,7 +204,7 @@ end
    @test x^z==y
    vero, z = is_conjugate_with_data(S, x, y)
    @test !vero
-   x.elm[7,8]=l^8
+   matrix(x)[7,8]=l^8
    vero, z = is_conjugate_with_data(S, x, y)
    @test z in S
    @test x^z==y

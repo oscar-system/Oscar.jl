@@ -3,6 +3,7 @@
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
   Omega = gset(G)
+  @test repr(Omega, context = :supercompact => true) == "G-set"
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
@@ -120,7 +121,7 @@
   Omega = gset(G, permuted, [[0,1,0,1,0,1], [1,2,3,4,5,6]])
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  @test haspreimage(acthom, pi)[1]
+  @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 720
   rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
   @test ! is_bijective(rest)
@@ -258,13 +259,13 @@ end
   Omega = gset(G)
   acthom = action_homomorphism(Omega)
   @test pi == g^acthom
-  @test haspreimage(acthom, pi)[1]
+  @test has_preimage_with_preimage(acthom, pi)[1]
   @test order(image(acthom)[1]) == 48
 
-  # isconjugate
+  # is_conjugate
   Omega = gset(G)
-  @test isconjugate(Omega, gen(V, 1), gen(V, 2))
-  @test ! isconjugate(Omega, zero(V), gen(V, 1))
+  @test is_conjugate(Omega, gen(V, 1), gen(V, 2))
+  @test ! is_conjugate(Omega, zero(V), gen(V, 1))
 
   # is_conjugate_with_data
   Omega = gset(G)
@@ -280,7 +281,7 @@ end
 
   @testset for F in [ GF(2), GF(3), GF(2,2) ], n in 2:4
     q = order(F)
-    V = VectorSpace(F, n)
+    V = vector_space(F, n)
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
@@ -314,4 +315,154 @@ end
   f = x^2 + y
   orb = orbit(G, f)
   @test length(orb) == 3
+end
+
+@testset "G-sets by right transversals" begin
+  G = symmetric_group(5)
+  H = sylow_subgroup(G, 2)[1]
+  Omega = right_cosets(G, H)
+  @test repr(Omega, context = :supercompact => true) == "Right cosets of groups"
+  @test isa(Omega, GSet)
+  @test acting_group(Omega) == G
+  @test length(Omega) == index(G, H)
+  @test Omega[end] == Omega[length(Omega)]
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+
+  @test eltype(Omega) == typeof(representative(Omega))
+
+  # iteration
+  for i in 1:length(Omega)
+    @test findfirst(is_equal(Omega[i]), Omega) == i
+  end
+  rep = representative(Omega)
+  for omega in Omega
+    @test one(G) in omega || omega != rep
+  end
+
+  # orbit
+  g = gen(G, 1)
+  pnt = right_coset(H, g)
+  @test pnt in Omega
+  @test length(orbit(Omega, pnt)) == length(Oscar.orbit_via_Julia(Omega, pnt))
+
+  # permutation
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+  fun = Oscar.action_function(Omega)
+  for i in 1:length(Omega)
+    @test Omega[i^pi] == fun(Omega[i], g)
+  end
+
+  # action homomorphism
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+  flag, pre = has_preimage_with_preimage(acthom, pi)
+  @test flag
+  @test pre == g
+  @test order(image(acthom)[1]) == order(G)
+  rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
+  @test ! is_bijective(rest)
+
+  # is_conjugate
+  x, y = [right_coset(H, g) for g in gens(G)]
+  @test is_conjugate(Omega, x, y)
+
+  # is_conjugate_with_data
+  rep = is_conjugate_with_data(Omega, x, y)
+  @test rep[1]
+  @test x * rep[2] == y
+  @test Oscar.action_function(Omega)(x, rep[2]) == y
+end
+
+@testset "G-sets by left transversals" begin
+  G = symmetric_group(5)
+  H = sylow_subgroup(G, 2)[1]
+  Omega = left_cosets(G, H)
+  @test repr(Omega, context = :supercompact => true) == "Left cosets of groups"
+  @test isa(Omega, GSet)
+  @test acting_group(Omega) == G
+  @test length(Omega) == index(G, H)
+  @test Omega[end] == Omega[length(Omega)]
+  @test length(orbits(Omega)) == 1
+  @test is_transitive(Omega)
+  @test ! is_regular(Omega)
+  @test ! is_semiregular(Omega)
+
+  @test eltype(Omega) == typeof(representative(Omega))
+
+  # iteration
+  for i in 1:length(Omega)
+    @test findfirst(is_equal(Omega[i]), Omega) == i
+  end
+  rep = representative(Omega)
+  for omega in Omega
+    @test one(G) in omega || omega != rep
+  end
+
+  # orbit
+  g = gen(G, 1)
+  pnt = left_coset(H, g)
+  @test pnt in Omega
+  @test length(orbit(Omega, pnt)) == length(Oscar.orbit_via_Julia(Omega, pnt))
+
+  # permutation
+  pi = permutation(Omega, g)
+  @test order(pi) == order(g)
+  @test degree(parent(pi)) == length(Omega)
+  fun = Oscar.action_function(Omega)
+  for i in 1:length(Omega)
+    @test Omega[i^pi] == fun(Omega[i], g)
+  end
+
+  # action homomorphism
+  acthom = action_homomorphism(Omega)
+  @test pi == g^acthom
+  flag, pre = has_preimage_with_preimage(acthom, pi)
+  @test flag
+  @test pre == g
+  @test order(image(acthom)[1]) == order(G)
+  rest = restrict_homomorphism(acthom, derived_subgroup(G)[1])
+  @test ! is_bijective(rest)
+
+  # is_conjugate
+  x, y = [left_coset(H, g) for g in gens(G)]
+  @test is_conjugate(Omega, x, y)
+
+  # is_conjugate_with_data
+  rep = is_conjugate_with_data(Omega, x, y)
+  @test rep[1]
+  @test inv(rep[2]) * x == y
+  @test Oscar.action_function(Omega)(x, rep[2]) == y
+end
+
+@testset "G-sets of FinGenAbGroups" begin
+  # Define an action on class functions.
+  function galois_conjugate(chi::Oscar.GAPGroupClassFunction,
+                            sigma::QQAbAutomorphism)
+    return Oscar.class_function(parent(chi), [x^sigma for x in values(chi)])
+  end
+
+  # Compute Galois orbits on irreducible characters.
+  t = character_table("L2(8)")
+  N = lcm(map(conductor, t))
+  u, mu = unit_group(quo(ZZ, N)[1])
+  @test u isa FinGenAbGroup
+  f = function(chi, g)
+    return galois_conjugate(chi, QQAbAutomorphism(Int(lift(mu(g)))))
+  end
+
+  orb = orbit(u, f, t[3])
+  @test length(collect(orb)) == 3
+
+  Omega = gset(u, f, t)
+  orbs = orbits(Omega)
+  @test length(orbs) == 5
+  @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
+  @test all(o -> conductor(sum(collect(o))) == 1, orbs)
+  o = orbs[findfirst(o -> length(o) == 3, orbs)]
+  @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
 end

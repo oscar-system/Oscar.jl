@@ -30,12 +30,11 @@ end
 function _gather_tests(path::AbstractString; ignore=[])
   # default ignore patterns
   ignorepatterns = Regex[
-                     # these two files seem obsolete
-                     r"Modules/GradedModules(\.jl)?$",
-                     r"Modules/FreeModules-graded(\.jl)?$",
                      # this can only run on the main process and not on distributed workers
                      # so it is included directly in runtests
                      r"Serialization/IPC(\.jl)?$",
+                     # ignore book example code (except for main file)
+                     r"(^|/)book/.*/.*\.jl$",
                    ]
   for i in ignore
     if i isa Regex
@@ -87,8 +86,95 @@ function _gather_tests(path::AbstractString; ignore=[])
   return tests
 end
 
+_setactiveproject(s::String) = @static if VERSION >= v"1.8"
+                                 Base.set_active_project(s)
+                               else
+                                 Base.ACTIVE_PROJECT[] = s
+                               end
 
+@doc raw"""
+    Oscar.@_AuxDocTest "Name of the test set", (fix = bool),
+    raw\"\"\"
+    docstring content here
+    \"\"\"
 
+This macro is used to define a doctest from within a testfile.
+The first argument is the name of the test set introduced for the doctest.
+`bool` may be any expression that evaluates to a boolean value (e.g. `true` or `false`),
+and is used to determine whether the doctest should be fixed automatically or not.
+
+This macro is dependent on the correct usage of commas and parentheses. Please refer to the
+example above.
+"""
+macro _AuxDocTest(data::Expr)
+  @assert data.head == :tuple
+  @assert length(data.args) == 3
+  testset = data.args[1]
+  @assert data.args[2].head == :(=)
+  @assert data.args[2].args[1] == :fix
+  fix = data.args[2].args[2]
+  docstring = data.args[3]
+  @assert docstring.head == :macrocall
+  @assert docstring.args[1] == Symbol("@raw_str")
+  module_name = Symbol("AuxDocTest_", lstrip(string(gensym()), '#'))
+  logging_flag_var = Symbol("logging_flag_", gensym())
+  result = Expr(
+    :toplevel,
+    :(import Documenter),
+    :(
+      module $(esc(module_name))
+      @doc $(docstring) function dummy_placeholder end
+      end # module
+    ),
+    # temporarily disable GC logging to avoid glitches in the doctests
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          $(logging_flag_var) = GC.logging_enabled()
+          GC.enable_logging(false)
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(false)))
+      end
+    )
+    else
+      nothing
+    end,
+    esc(
+      quote
+        Documenter.doctest(
+          nothing,
+          [$(module_name)];
+          fix=$(fix),
+          testset=$(testset),
+          doctestfilters=[
+            r"(?:^.*Warning: .* is deprecated, use .* instead.\n.*\n.*Core.*\n)?"m,  # removes deprecation warnings
+          ],
+        )
+      end,
+    ),
+    if VERSION >= v"1.8.0"
+      (
+      if isdefined(GC, :logging_enabled)
+        esc(
+        quote
+          GC.enable_logging($(logging_flag_var))
+        end,
+      )
+      else
+        esc(:(GC.enable_logging(true)))
+      end
+    )
+    else
+      nothing
+    end,
+  )
+  Meta.replace_sourceloc!(__source__, result)
+  return result
+end
 
 @doc raw"""
     test_module(path::AbstractString; new::Bool = true, timed::Bool=false, ignore=[])
@@ -116,49 +202,77 @@ This only works for `new=false`.
 
 For experimental modules, use [`test_experimental_module`](@ref) instead.
 """
-function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, ignore=[])
-  julia_exe = Base.julia_cmd()
-  project_path = Base.active_project()
-  if !isabspath(path)
-    if !startswith(path, "test")
-      path = joinpath("test", path)
+function test_module(path::AbstractString; new::Bool=true, timed::Bool=false, tempproject::Bool=true, ignore=[])
+  with_unicode(false) do
+    julia_exe = Base.julia_cmd()
+    project_path = Base.active_project()
+    if !isabspath(path)
+      if !startswith(path, "test")
+        path = joinpath("test", path)
+      end
+      rel_test_path = normpath(path)
+      path = joinpath(oscardir, rel_test_path)
     end
-    rel_test_path = normpath(path)
-    path = joinpath(oscardir, rel_test_path)
-  end
-  if new
-    @req isempty(ignore) && !timed "The `timed` and `ignore` options only work for `new=false`."
-    cmd = "using Test; using Oscar; Hecke.assertions(true); Oscar.test_module(\"$path\"; new=false);"
-    @info("spawning ", `$julia_exe --project=$project_path -e \"$cmd\"`)
-    run(`$julia_exe --project=$project_path -e $cmd`)
-  else
-    testlist = _gather_tests(path; ignore=ignore)
-    @req !isempty(testlist) "no such file or directory: $path[.jl]"
+    if new
+      @req isempty(ignore) && !timed "The `timed` and `ignore` options only work for `new=false`."
+      cmd = """
+            using Test;
+            using Oscar;
+            Hecke.assertions(true);
+            Oscar.test_module("$path"; new=false);
+            """
+      @info("spawning ", `$julia_exe --project=$project_path -e \"$cmd\"`)
+      run(`$julia_exe --project=$project_path -e $cmd`)
+    else
+      testlist = _gather_tests(path; ignore=ignore)
+      @req !isempty(testlist) "no such file or directory: $path[.jl]"
 
-    @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
+      use_ctime = timed && VERSION >= v"1.9.0-DEV"
+      if use_ctime
+        Base.cumulative_compile_timing(true)
+      end
+      stats = Dict{String,NamedTuple}()
 
-    use_ctime = timed && VERSION >= v"1.9.0-DEV"
-    if use_ctime
-      Base.cumulative_compile_timing(true)
-    end
-    stats = Dict{String,NamedTuple}()
-    for entry in testlist
-      dir = dirname(entry)
-      if isfile(joinpath(dir,"setup_tests.jl"))
-        Base.include(identity, Main, joinpath(dir,"setup_tests.jl"))
+      if tempproject
+        # we preserve the old load path
+        oldloadpath = copy(LOAD_PATH)
+        # make a copy of the test environment to make sure any existing manifest doesn't interfere
+        tmpproj = joinpath(mktempdir(), "Project.toml")
+        cp(joinpath(Oscar.oscardir, "test", "Project.toml"), tmpproj)
+        # activate the temporary project
+        _setactiveproject(tmpproj)
+        # and make sure the current project is still available to allow e.g. `using Oscar`
+        pushfirst!(LOAD_PATH, dirname(project_path))
+        Pkg.resolve()
+      else
+        @req isdefined(Base.Main, :Test) "You need to do \"using Test\""
+      end
+
+      try
+        for entry in testlist
+          dir = dirname(entry)
+          if isfile(joinpath(dir, "setup_tests.jl"))
+            Base.include(identity, Main, joinpath(dir, "setup_tests.jl"))
+          end
+          if timed
+            push!(stats, _timed_include(entry; use_ctime=use_ctime))
+          else
+            Base.include(identity, Main, entry)
+          end
+        end
+      finally
+        # restore load path and project
+        if tempproject
+          copy!(LOAD_PATH, oldloadpath)
+          _setactiveproject(project_path)
+        end
       end
       if timed
-        push!(stats, _timed_include(entry; use_ctime=use_ctime))
+        use_ctime && Base.cumulative_compile_timing(false)
+        return stats
       else
-        Base.include(identity, Main, entry)
+        return nothing
       end
-    end
-
-    if timed
-      use_ctime && Base.cumulative_compile_timing(false)
-      return stats
-    else
-      return nothing
     end
   end
 end

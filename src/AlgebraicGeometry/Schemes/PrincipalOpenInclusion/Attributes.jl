@@ -16,14 +16,20 @@ end
 
 function inverse_on_image(inc::PrincipalOpenEmbedding)
   if isdefined(inc, :inverse_on_image) 
-    return inc.inverse_on_image::SpecMor
+    return inc.inverse_on_image::AffineSchemeMor
   end
 
   X = domain(inc)
   Y = codomain(inc)
   U = image(inc)
 
-  res = SpecMor(X, U, pullback(inc).(gens(OO(Y))), check=false)
+  if ambient_coordinate_ring(X) === ambient_coordinate_ring(U)
+    result = morphism(U, X, gens(OO(X)); check=false)
+    inc.inverse_on_image = result
+    return result
+  end
+
+  res = morphism(X, U, pullback(inc).(gens(OO(Y))), check=false)
   result = inverse(res)
   inc.inverse_on_image = result
   return result

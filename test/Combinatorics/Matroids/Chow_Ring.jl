@@ -17,7 +17,7 @@
     end
 
     @test_throws ErrorException chow_ring(uniform_matroid(0,2))
-    @test_throws ErrorException chow_ring(uniform_matroid(1,1))
+    @test_throws ArgumentError chow_ring(uniform_matroid(1, 1))
 
     @test nvars(base_ring(chow_ring(uniform_matroid(3,3), extended=true))) == 13
     M = matroid_from_nonbases([[1,2]],4)

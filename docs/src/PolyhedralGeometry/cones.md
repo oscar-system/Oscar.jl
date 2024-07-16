@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Cones
@@ -49,8 +47,8 @@ is_pointed(C::Cone)
 is_fulldimensional(C::Cone)
 lineality_dim(C::Cone)
 lineality_space(C::Cone{T}) where T<:scalar_types
-nfacets(C::Cone)
-nrays(C::Cone)
+n_facets(C::Cone)
+n_rays(C::Cone)
 rays(C::Cone{T}) where T<:scalar_types
 rays_modulo_lineality(C::Cone{T}) where T<:scalar_types
 ray_degrees(C::Cone)

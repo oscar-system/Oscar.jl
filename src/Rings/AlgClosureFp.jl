@@ -5,7 +5,7 @@
 ###############################################################################
 
 # This is an implementation of the algebraic closure of finite fields,
-# which is modelled as the union of finite fields.
+# which is modeled as the union of finite fields.
 
 module AlgClosureFp
 
@@ -14,8 +14,10 @@ using ..Oscar
 import Base: +, -, *, //, ==, deepcopy_internal, hash, isone, iszero, one,
   parent, show, zero
 
-import ..Oscar: base_field, base_ring, characteristic, data, degree, divexact,
-  elem_type, embedding, has_preimage, IntegerUnion, is_unit, map_entries,
+import ..Oscar: pretty, Lowercase
+
+import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, characteristic, data, degree, divexact,
+  elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
 struct AlgClosure{T} <: AbstractAlgebra.Field
@@ -28,11 +30,13 @@ struct AlgClosure{T} <: AbstractAlgebra.Field
 end
 
 function show(io::IO, A::AlgClosure)
-  print(io, "Algebraic Closure of $(A.k)")
+  io = pretty(io)
+  print(io, "Algebraic closure of ", Lowercase(), A.k)
 end
 
 base_field(A::AlgClosure) = A.k
 base_ring(A::AlgClosure) = A.k
+base_ring_type(::Type{AlgClosure{T}}) where {T} = T
 characteristic(k::AlgClosure) = characteristic(base_field(k))
 
 struct AlgClosureElem{T} <: FieldElem
@@ -77,7 +81,7 @@ function check_parent(a::AlgClosureElem, b::AlgClosureElem)
 end
 
 #TODO: Guarantee to return a field of the same type as `base_ring(A)`?
-# (Then `Nemo.fpField` cannot be supported as `base_ring(A)`)
+# (Then `fpField` cannot be supported as `base_ring(A)`)
 @doc raw"""
     ext_of_degree(A::AlgClosure, d::Int)
 
@@ -103,7 +107,7 @@ function ext_of_degree(A::AlgClosure, d::Int)
   end
     
   k = base_ring(A)
-  if isa(k, Nemo.fpField) || isa(k, fqPolyRepField)
+  if isa(k, fpField) || isa(k, fqPolyRepField)
     K = Nemo.Native.GF(Int(characteristic(k)), d, cached = false)
   elseif isa(k, FqField)
     K = GF(characteristic(k), d, cached = false)
@@ -174,7 +178,7 @@ is_unit(a::AlgClosureElem) = !iszero(a)
 
 function roots(a::AlgClosureElem, b::Int)
   ad = data(a)
-  kx, x = polynomial_ring(parent(ad), cached = false)
+  kx, x = polynomial_ring(parent(ad); cached = false)
   f = x^b-ad
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -187,7 +191,7 @@ end
 function roots(a::Generic.Poly{AlgClosureElem{T}}) where T
   A = base_ring(a)
   b = minimize(FinField, collect(coefficients(a)))
-  kx, x = polynomial_ring(parent(b[1]), cached = false)
+  kx, x = polynomial_ring(parent(b[1]); cached = false)
   f = kx(b)
   lf = factor(f)
   d = mapreduce(degree, lcm, keys(lf.fac), init = 1)
@@ -205,12 +209,6 @@ end
 # c = K(a); fc = minpoly(c); fc(c)  # does not work
 function minpoly(a::AlgClosureElem)
   return minpoly(data(a))
-end
-
-#TODO: Move to Nemo.
-function minpoly(a::fpFieldElem)
-  kx, x = polynomial_ring(parent(a), cached = false)
-  return x-a
 end
 
 # Note: We want the degree of the smallest finite field that contains `a`.
@@ -321,7 +319,7 @@ function embedding(k::T, K::AlgClosure{T}) where T <: FinField
   return MapFromFunc(k, K, f, finv)
 end
 
-function has_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField
+function has_preimage_with_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField
   F = domain(mp)
   mod(degree(F), degree(elm)) != 0 && return false, zero(F)
   return true, preimage(mp, elm)
@@ -333,10 +331,8 @@ end # AlgClosureFp
 import .AlgClosureFp:
        AlgClosure,
        AlgClosureElem,
-       algebraic_closure,
        ext_of_degree
 
 export AlgClosure,
        AlgClosureElem,
-       algebraic_closure,
        ext_of_degree

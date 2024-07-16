@@ -27,7 +27,7 @@ function _total_degree(x::MPolyDecRingElem)
   max([Int(sum(d .* degrees(t))[1]) for t in terms(f)]...)
 end
 
-function Base.getindex(x::MPolyDecRingOrQuoElem, d::GrpAbFinGenElem)
+function Base.getindex(x::MPolyDecRingOrQuoElem, d::FinGenAbGroupElem)
   parent(x)(homogeneous_component(x, d))
 end
 
@@ -37,7 +37,7 @@ function Base.getindex(x::MPolyDecRingOrQuoElem, d::Int)
   getindex(x, D([d]))
 end
 
-function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{GrpAbFinGenElem})
+function Base.getindex(x::MPolyDecRingOrQuoElem, degs::Vector{FinGenAbGroupElem})
   R = parent(x)
   comps = homogeneous_components(x)
   ans = typeof(x)[]
@@ -55,42 +55,15 @@ end
 
 ###############################################################################
 #
-# Combinatoric functions
-# 
-
-# partitions of n with at most k numbers each ≤ m
-function partitions(n::Int, k::Int=n, m::Int=-1)
-  ans = Partition[]
-  (n > 0 && k == 0) && return ans
-  if m < 0 m = n end
-  n <= m && push!(ans, partition(n > 0 ? [n] : Int[]))
-  for v in Int(min(n-1,m)):-1:1
-    for p in partitions(n-v, k-1, v)
-      push!(ans, partition(pushfirst!(collect(p), v)))
-    end
-  end
-  ans
-end
-
-# make combinations work for arrays
-# function combinations(I::AbstractUnitRange, k::Int) combinations(collect(I), k) end
-# function combinations(l::Vector, k::Int)
-#   [[l[i] for i in c] for c in combinations(length(l), k)]
-# end
-
-###############################################################################
-#
 # pretty printing
 #
 
 # generate a list of symbols [x₁,…,xₙ] using LaTeX / unicode for IJulia / REPL
-import AbstractAlgebra.Generic: subscriptify
+
 function _parse_symbol(symbol::String, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$i}" for i in I]
-  [symbol*subscriptify(i) for i in I]
-end
-function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$n,$i}" for i in I]
-  [symbol*subscriptify(n)*","*subscriptify(i) for i in I]
+  return ["$symbol[$i]" for i in I]
 end
 
+function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
+  return [symbol*"[$n, $i]" for i in I]
+end

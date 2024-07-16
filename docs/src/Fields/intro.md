@@ -1,11 +1,9 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Introduction
+# [Introduction](@id fields)
 
 The fields part of OSCAR provides functionality for handling
 various kinds of fields:
@@ -14,6 +12,8 @@ various kinds of fields:
 - [Generic fraction fields](@ref)
 - local fields ([Padics](@ref) and [Qadics](@ref))
 - finite fields
+- [Algebraic numbers](@ref)
+- [Algebraic closure of finite prime fields](@ref)
 
 General textbooks offering details on theory and algorithms include:
 - [Coh93](@cite)
@@ -26,9 +26,9 @@ General textbooks offering details on theory and algorithms include:
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
-* [Claus Fieker](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-claus-fieker),
+* [Claus Fieker](https://math.rptu.de/en/wgs/agag/people/head/fieker),
 * [Tommy Hofmann](https://www.thofma.com/),
-* [Max Horn](https://www.mathematik.uni-kl.de/en/agag/people/head/prof-dr-max-horn).
+* [Max Horn](https://math.rptu.de/en/wgs/agag/people/head/prof-dr-max-horn).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 

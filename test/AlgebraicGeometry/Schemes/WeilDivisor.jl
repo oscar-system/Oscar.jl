@@ -4,7 +4,7 @@
   # Set up the base ℙ¹ with coordinates s and t
   S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
 
-  base_P1 = ProjectiveScheme(S)
+  base_P1 = proj(S)
 
   # split this into the standard covering
   bc = standard_covering(base_P1)
@@ -12,7 +12,7 @@
   A1s = patches(bc)[1]
   A1t = patches(bc)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -22,7 +22,7 @@
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 
@@ -33,10 +33,10 @@
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -49,7 +49,7 @@
   Oscar.maximal_associated_points(I)
   D = WeilDivisor(I)
   E = WeilDivisor(J)
-  
+
   @test D + 2*E == D + E + E
 
   KK = VarietyFunctionField(X)
@@ -76,25 +76,27 @@
   x, y, t = coordinates(Ut)
   ft = y^2 - (x^3 + 21*x + (28*t^7+18))
   I = IdealSheaf(X, Ut, [ft])
-  adeK3 = subscheme(I)
+  adeK3, inc_adeK3 = sub(I)
   @test dim(singular_locus(adeK3)[1]) == 0
 
-  x,y,t = coordinates(adeK3[1][6])
+  weier_chart = first([U for U in affine_charts(adeK3) if codomain(covering_morphism(inc_adeK3)[U]) === X[1][6]]) # Order of charts is random due to use of dictionaries in the constructor
+  x,y,t = coordinates(weier_chart)
   # ideal defining a section of the fibration
   P = [(5*t^8 + 20*t^7 + 2*t^6 + 23*t^5 + 20*t^3 + 11*t^2 + 3*t + 13) - x*(t^4 + 9*t^3 + 5*t^2 + 22*t + 16),
   (26*t^12 + 11*t^11 + 15*t^10 + 8*t^9 + 20*t^8 + 25*t^7 + 16*t^6 + 3*t^5 + 10*t^4 + 15*t^3 + 4*t^2 + 28*t + 28) - y*(t^6 + 28*t^5 + 27*t^4 + 23*t^3 + 8*t^2 + 13*t + 23)]
   # the following computation dies ... but it should not.
-  D = IdealSheaf(adeK3, adeK3[1][6], P)
-  Dscheme = subscheme(D)
+  D = IdealSheaf(adeK3, weier_chart, P)
+  Dscheme, inc_Dscheme = sub(D)
 
   # an interesting rational function
   K = function_field(adeK3)
-  x,y,t= ambient_coordinates(adeK3[1][6])
+  x,y,t= ambient_coordinates(weier_chart)
   phi = K(-8*t^8 + 4*t^7 + 6*t^5 + 4*x*t^3 + 3*t^4 - 13*x*t^2 - 7*y*t^2 - 12*t^3 - 12*x*t + 12*y*t - 14*t^2 - 14*x - y - 10*t + 10)//K(6*t^8 - 5*t^7 + 14*t^6 - 7*x*t^4 - 13*t^5 - 5*x*t^3 - 6*x*t^2 - 5*t^3 - 9*x*t - 10*t^2 + 4*x - 8*t + 4)
   @test Oscar.order_on_divisor(phi, D, check=false) == -1
 
-  (x,z,t) = coordinates(adeK3[1][2])
-  o = weil_divisor(ideal_sheaf(adeK3, adeK3[1][2], [z,x]), check=false)
+  other_chart = first([U for U in affine_charts(adeK3) if codomain(covering_morphism(inc_adeK3)[U]) === X[1][2]]) # Order of charts is random due to use of dictionaries in the constructor
+  (x,z,t) = coordinates(other_chart)
+  o = weil_divisor(ideal_sheaf(adeK3, other_chart, [z,x]), check=false)
   @test order_on_divisor(K(z), o, check=false) == 3
   @test order_on_divisor(K(x), o, check=false) == 1
 end
@@ -102,7 +104,7 @@ end
 @testset "orders on divisors" begin
   kk = QQ
   R, (s,t) = polynomial_ring(kk, ["s", "t"])
-  X = Spec(R)
+  X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)
   f = s^2 + t^2-1
@@ -157,7 +159,7 @@ end
   KK = function_field(X)
   U = X[1][2]
   u, v = gens(OO(U))
-  f = KK(u, v) 
+  f = KK(u, v)
   @test !in_linear_system(f, D)
 end
 
@@ -177,7 +179,7 @@ end
   @test intersect(D2, D3) == 1
 end
 
-@testset "decomposition" begin 
+@testset "decomposition" begin
   P3 = projective_space(QQ, 3)
   S = homogeneous_coordinate_ring(P3)
   (x, y, z, w) = gens(S)
@@ -186,9 +188,9 @@ end
   X = covered_scheme(P3)
   D = weil_divisor(II)
   E = Oscar.irreducible_decomposition(D)
-  @test length(keys(coefficient_dict(E))) == 2
-  @test 2*one(coefficient_ring(E)) in values(coefficient_dict(E))
-  @test 3*one(coefficient_ring(E)) in values(coefficient_dict(E))
+  @test length(keys(Oscar.coefficient_dict(E))) == 2
+  @test 2*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
+  @test 3*one(coefficient_ring(E)) in values(Oscar.coefficient_dict(E))
 end
 
 @testset "intersection numbers on surfaces" begin

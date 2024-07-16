@@ -11,7 +11,7 @@
   U = X[1][4]
   V = IP1[1][2]
   (x, y, z) = gens(ambient_coordinate_ring(U))
-  Phi = Oscar.MorphismFromRationalFunctions(X, IP1, U, V, [x//y])
+  Phi = morphism_from_rational_functions(X, IP1, U, V, [x//y])
 
   @test domain(Phi) === X 
   @test codomain(Phi) === IP1
@@ -32,7 +32,7 @@ end
   I2 = ideal(S, [x, z])
   I3 = ideal(S, [y, z])
   I = I1*I2*I3
-  II = simplify!(IdealSheaf(IP2_proj, I))
+  II = simplify(IdealSheaf(IP2_proj, I))
   bl = blow_up(II)
   X = domain(projection(bl))
   set_attribute!(X, :is_irreducible, true)
@@ -76,9 +76,9 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  Oscar.inherit_glueings!(dom_cov, default_covering(X))
-  Oscar.inherit_glueings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  Oscar.inherit_gluings!(dom_cov, default_covering(X))
+  Oscar.inherit_gluings!(cod_cov, default_covering(X))
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end
@@ -99,9 +99,9 @@ end
   dom_cov = Covering(new_patches)
   cod_cov = Covering(new_cod)
 
-  Oscar.inherit_glueings!(dom_cov, default_covering(X))
-  Oscar.inherit_glueings!(cod_cov, default_covering(X))
-  mor_dict = IdDict{AbsSpec, AbsSpecMor}()
+  Oscar.inherit_gluings!(dom_cov, default_covering(X))
+  Oscar.inherit_gluings!(cod_cov, default_covering(X))
+  mor_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for phi in realizations
     mor_dict[domain(phi)] = phi
   end

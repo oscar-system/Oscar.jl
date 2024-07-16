@@ -1,4 +1,6 @@
-function add_invariant!(C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}) where T
+function add_invariant!(
+  C::SecondaryInvarsCache{T}, f::T, isirred::Bool, exps::Vector{Int}
+) where {T}
   push!(C.invars, f)
   push!(C.is_irreducible, isirred)
   if isirred
@@ -17,27 +19,27 @@ end
 ################################################################################
 
 # DK15, Algorithm 3.7.5
-function secondary_invariants_modular(RG::InvRing)
+function secondary_invariants_modular(RG::FinGroupInvarRing)
   Rgraded = polynomial_ring(RG)
   # We have to compute a lot with these polynomials and the grading only
   # gets in the way (one cannot ask for total_degree and even if one could
-  # the answer would be a GrpAbFinGenElem where it could be an Int)
+  # the answer would be a FinGenAbGroupElem where it could be an Int)
   R = forget_grading(Rgraded)
   K = coefficient_ring(R)
 
-  p_invars = elem_type(R)[ forget_grading(f) for f in primary_invariants(RG) ]
+  p_invars = elem_type(R)[forget_grading(f) for f in primary_invariants(RG)]
 
-  s_invars = elem_type(R)[ one(R) ]
+  s_invars = elem_type(R)[one(R)]
   s_invars_cache = SecondaryInvarsCache{elem_type(Rgraded)}()
   add_invariant!(s_invars_cache, one(Rgraded), false, Int[])
 
   # The maximal degree in which we have to look for secondary invariants by [Sym11].
-  maxdeg = sum( total_degree(f) - 1 for f in p_invars )
+  maxdeg = sum(total_degree(f) - 1 for f in p_invars)
 
   # Store the secondary invariants sorted by their total degree.
   # We only store the indices in s_invars_cache.invars.
   s_invars_sorted = Vector{Vector{Int}}(undef, maxdeg)
-  for d = 1:maxdeg
+  for d in 1:maxdeg
     s_invars_sorted[d] = Int[]
   end
 
@@ -46,7 +48,7 @@ function secondary_invariants_modular(RG::InvRing)
   is_invars = Vector{Int}()
 
   C = PowerProductCache(R, p_invars)
-  for d = 1:maxdeg
+  for d in 1:maxdeg
     Md = generators_for_given_degree!(C, s_invars, d, false)[1]
 
     # We have to find invariants of degree d which are not in the linear span of Md.
@@ -57,7 +59,10 @@ function secondary_invariants_modular(RG::InvRing)
     # We need to reverse the columns of this matrix, see below.
     Bd = iterate_basis_linear_algebra(RG, d)
     ncB1 = length(Bd.monomials_collected) + 1
-    mons_to_cols = Dict{Vector{Int}, Int}(first(AbstractAlgebra.exponent_vectors(forget_grading(Bd.monomials_collected[i]))) => ncB1 - i for i = 1:length(Bd.monomials_collected))
+    mons_to_cols = Dict{Vector{Int},Int}(
+      first(AbstractAlgebra.exponent_vectors(forget_grading(Bd.monomials_collected[i]))) =>
+        ncB1 - i for i in 1:length(Bd.monomials_collected)
+    )
     B = BasisOfPolynomials(R, Md, mons_to_cols)
 
     # Do a slight detour and first try to build invariants as products of ones
@@ -69,14 +74,14 @@ function secondary_invariants_modular(RG::InvRing)
     # i is an irreducible secondary invariant of degree < d and s a secondary
     # invariant of degree d - deg(i).
     products = Set{elem_type(R)}()
-    for i = 1:length(is_invars)
+    for i in 1:length(is_invars)
       f = forget_grading(s_invars_cache.invars[is_invars[i]])
       @assert total_degree(f) < d
       dd = d - total_degree(f)
       for j in s_invars_sorted[dd]
         g = forget_grading(s_invars_cache.invars[j])
         lp = length(products)
-        fg = f*g
+        fg = f * g
         push!(products, fg)
         if lp == length(products)
           # We already constructed this product from other factors.
@@ -107,7 +112,7 @@ function secondary_invariants_modular(RG::InvRing)
 
     c = ncols(N)
     b = 1
-    for r = nrows(N):-1:1
+    for r in nrows(N):-1:1
       if c < 1
         break
       end
@@ -128,17 +133,19 @@ function secondary_invariants_modular(RG::InvRing)
       end
 
       f = R()
-      for j = 1:nrows(N)
+      for j in 1:nrows(N)
         if iszero(N[j, c])
           continue
         end
-        f += N[j, c]*forget_grading(Bd.monomials_collected[j])
+        f += N[j, c] * forget_grading(Bd.monomials_collected[j])
       end
       # Cancelling the leading coefficient is not mathematically necessary and
       # should be done with the ordering that is used for the printing
-      f = inv(AbstractAlgebra.leading_coefficient(f))*f
+      f = inv(AbstractAlgebra.leading_coefficient(f)) * f
       push!(s_invars, f)
-      add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
+      add_invariant!(
+        s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1)
+      )
       push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
       push!(is_invars, length(s_invars_cache.invars))
       c -= 1
@@ -154,16 +161,16 @@ end
 ################################################################################
 
 # DK15, Algorithm 3.7.2 and Kin07, Section 4 "Improved new algorithm"
-function secondary_invariants_nonmodular(RG::InvRing)
+function secondary_invariants_nonmodular(RG::FinGroupInvarRing)
   @assert !is_modular(RG)
   Rext = polynomial_ring(RG)
   Rgraded = _internal_polynomial_ring(RG)
   R = forget_grading(Rgraded)
 
-  p_invars = [ _cast_in_internal_poly_ring(RG, f) for f in primary_invariants(RG) ]
+  p_invars = [_cast_in_internal_poly_ring(RG, f) for f in primary_invariants(RG)]
   I = ideal_of_primary_invariants(RG)
-  LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
-  gensLI = [ _cast_in_internal_poly_ring(RG, f) for f in gens(LI) ]
+  LI = leading_ideal(I; ordering=default_ordering(base_ring(I)))
+  gensLI = [_cast_in_internal_poly_ring(RG, f) for f in gens(LI)]
 
   h = reduce_hilbert_series_by_primary_degrees(RG)
 
@@ -174,7 +181,7 @@ function secondary_invariants_nonmodular(RG::InvRing)
   # Store the secondary invariants sorted by their total degree.
   # We only store the indices in s_invars_cache.invars.
   s_invars_sorted = Vector{Vector{Int}}(undef, degree(h))
-  for d = 1:degree(h)
+  for d in 1:degree(h)
     s_invars_sorted[d] = Int[]
   end
 
@@ -183,9 +190,12 @@ function secondary_invariants_nonmodular(RG::InvRing)
   is_invars = Vector{Int}()
 
   # The Groebner basis should already be cached
-  gbI = [ forget_grading(_cast_in_internal_poly_ring(RG, f)) for f in groebner_basis(I, ordering = degrevlex(Rext)) ]
+  gbI = [
+    forget_grading(_cast_in_internal_poly_ring(RG, f)) for
+    f in groebner_basis(I; ordering=degrevlex(Rext))
+  ]
 
-  for d = 1:degree(h)
+  for d in 1:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
       continue
@@ -201,14 +211,14 @@ function secondary_invariants_nonmodular(RG::InvRing)
     # i is an irreducible secondary invariant of degree < d and s a secondary
     # invariant of degree d - deg(i).
     products = Set{elem_type(R)}()
-    for i = 1:length(is_invars)
+    for i in 1:length(is_invars)
       f = forget_grading(s_invars_cache.invars[is_invars[i]])
       @assert total_degree(f) < d
       dd = d - total_degree(f)
       for j in s_invars_sorted[dd]
         g = forget_grading(s_invars_cache.invars[j])
         lp = length(products)
-        fg = f*g
+        fg = f * g
         push!(products, fg)
         if lp == length(products)
           # We already constructed this product from other factors.
@@ -249,14 +259,20 @@ function secondary_invariants_nonmodular(RG::InvRing)
       end
       skip && continue
 
-      f = forget_grading(_cast_in_internal_poly_ring(RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, m))))
+      f = forget_grading(
+        _cast_in_internal_poly_ring(
+          RG, reynolds_operator(RG, _cast_in_external_poly_ring(RG, m))
+        ),
+      )
       if iszero(f)
         continue
       end
       _, r = divrem(f, gb)  # via degrevlex
       if !is_zero(r)
-        f = inv(AbstractAlgebra.leading_coefficient(f))*f
-        add_invariant!(s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1))
+        f = inv(AbstractAlgebra.leading_coefficient(f)) * f
+        add_invariant!(
+          s_invars_cache, Rgraded(f), true, push!(zeros(Int, length(is_invars)), 1)
+        )
         push!(s_invars_sorted[total_degree(f)], length(s_invars_cache.invars))
         push!(is_invars, length(s_invars_cache.invars))
         push!(gb, r)
@@ -268,10 +284,10 @@ function secondary_invariants_nonmodular(RG::InvRing)
 
   if Rext !== Rgraded
     ext_cache = SecondaryInvarsCache{elem_type(Rext)}()
-    ext = [ _cast_in_external_poly_ring(RG, f) for f in s_invars_cache.invars ]
+    ext = [_cast_in_external_poly_ring(RG, f) for f in s_invars_cache.invars]
     # Cancelling the leading coefficient is not mathematically necessary and
     # should be done with the ordering that is used for the printing
-    ext_cache.invars = [ inv(AbstractAlgebra.leading_coefficient(f))*f for f in ext ]
+    ext_cache.invars = [inv(AbstractAlgebra.leading_coefficient(f)) * f for f in ext]
     ext_cache.is_irreducible = s_invars_cache.is_irreducible
     ext_cache.sec_in_irred = s_invars_cache.sec_in_irred
     s_invars_cache = ext_cache
@@ -286,7 +302,7 @@ end
 #
 ################################################################################
 
-function _secondary_invariants(IR::InvRing)
+function _secondary_invariants(IR::FinGroupInvarRing)
   if isdefined(IR, :secondary)
     return nothing
   end
@@ -299,7 +315,7 @@ function _secondary_invariants(IR::InvRing)
 end
 
 @doc raw"""
-    secondary_invariants(IR::InvRing)
+    secondary_invariants(IR::FinGroupInvarRing)
 
 Return a system of secondary invariants for `IR` as a `Vector` sorted by
 increasing degree. The result is cached, so calling this function again 
@@ -327,18 +343,18 @@ julia> G = matrix_group(M1, M2);
 julia> IR = invariant_ring(G);
 
 julia> secondary_invariants(IR)
-2-element Vector{MPolyDecRingElem{nf_elem, AbstractAlgebra.Generic.MPoly{nf_elem}}}:
+2-element Vector{MPolyDecRingElem{AbsSimpleNumFieldElem, AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}}:
  1
  x[1]^3*x[2]^6 + x[1]^6*x[3]^3 + x[2]^3*x[3]^6
 ```
 """
-function secondary_invariants(IR::InvRing)
+function secondary_invariants(IR::FinGroupInvarRing)
   _secondary_invariants(IR)
   return copy(IR.secondary.invars)
 end
 
 @doc raw"""
-    irreducible_secondary_invariants(IR::InvRing)
+    irreducible_secondary_invariants(IR::FinGroupInvarRing)
 
 Return a system of irreducible secondary invariants for `IR` as a `Vector` sorted
 by increasing degree. The result is cached, so calling this function again will
@@ -387,10 +403,10 @@ julia> irreducible_secondary_invariants(IR)
  x[3]*x[4]^2 + x[3]^2*x[5] + x[4]*x[5]^2
 ```
 """
-function irreducible_secondary_invariants(IR::InvRing)
+function irreducible_secondary_invariants(IR::FinGroupInvarRing)
   _secondary_invariants(IR)
   is_invars = elem_type(polynomial_ring(IR))[]
-  for i = 1:length(IR.secondary.invars)
+  for i in 1:length(IR.secondary.invars)
     IR.secondary.is_irreducible[i] ? push!(is_invars, IR.secondary.invars[i]) : nothing
   end
   return is_invars
@@ -404,8 +420,8 @@ end
 
 # Gat96, Algorithm 3.16 and DK15, Algorithm 3.7.2
 @doc raw"""
-    semi_invariants(IR::InvRing, chi::GAPGroupClassFunction)
-    relative_invariants(IR::InvRing, chi::GAPGroupClassFunction)
+    semi_invariants(IR::FinGroupInvarRing, chi::GAPGroupClassFunction)
+    relative_invariants(IR::FinGroupInvarRing, chi::GAPGroupClassFunction)
 
 Given an irreducible character `chi` of the underlying group, return a system of
 semi-invariants (or relative invariants) with respect to `chi`.
@@ -428,7 +444,7 @@ julia> RS2 = invariant_ring(S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of permutation group, QQAbElem{nf_elem}[1, -1])
+class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
 
 julia> semi_invariants(RS2, chi)
 1-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -436,13 +452,13 @@ julia> semi_invariants(RS2, chi)
 
 ```
 """
-function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
+function semi_invariants(RG::FinGroupInvarRing, chi::GAPGroupClassFunction)
   @assert is_zero(characteristic(coefficient_ring(RG)))
   @assert is_irreducible(chi)
 
   p_invars = primary_invariants(RG)
   I = ideal_of_primary_invariants(RG)
-  LI = leading_ideal(I, ordering = default_ordering(base_ring(I)))
+  LI = leading_ideal(I; ordering=default_ordering(base_ring(I)))
 
   h = reduce_hilbert_series_by_primary_degrees(RG, chi)
 
@@ -455,7 +471,7 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
 
   rey_op = reynolds_operator(RG, chi)
 
-  for d = 0:degree(h)
+  for d in 0:degree(h)
     k = coeff(h, d) # number of invariants we need in degree d
     if iszero(k)
       continue
@@ -483,7 +499,7 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
       if add_to_basis!(B, nf)
         # Cancelling the leading coefficient is not mathematically necessary and
         # should be done with the ordering that is used for the printing
-        f = inv(AbstractAlgebra.leading_coefficient(f))*f
+        f = inv(AbstractAlgebra.leading_coefficient(f)) * f
         push!(semi_invars, Rgraded(f))
         invars_found += 1
         invars_found == k && break
@@ -494,4 +510,5 @@ function semi_invariants(RG::InvRing, chi::GAPGroupClassFunction)
   return semi_invars
 end
 
-relative_invariants(RG::InvRing, chi::GAPGroupClassFunction) = semi_invariants(RG, chi)
+relative_invariants(RG::FinGroupInvarRing, chi::GAPGroupClassFunction) =
+  semi_invariants(RG, chi)

@@ -1,0 +1,2 @@
+julia> normal_form(x^2+y^2+z^2, I, ordering = lex(R))
+-z^2 + 8

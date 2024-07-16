@@ -5,6 +5,7 @@ const jll_deps = String["Antic_jll", "Arb_jll", "Calcium_jll", "FLINT_jll", "GAP
 const aadir = Base.pkgdir(AbstractAlgebra)
 const nemodir = Base.pkgdir(Nemo)
 const heckedir = Base.pkgdir(Hecke)
+const singulardir = Base.pkgdir(Singular)
 
 include("versioninfo.jl")
 include("docs.jl")

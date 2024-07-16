@@ -19,7 +19,7 @@
     x = GAP.Globals.ZmodnZObj(1, GAP.Obj(n2))
     @test_throws ErrorException iso(x)
     @test_throws ErrorException image(iso, x)
-    @test_throws ErrorException preimage(iso, one(residue_ring(ZZ, n2)))
+    @test_throws ErrorException preimage(iso, one(residue_ring(ZZ, n2)[1]))
   end
 end
 
@@ -92,7 +92,7 @@ end
 end
 
 @testset "field of rationals, ring of integers" begin
-  for (R, x, y) in [(GAP.Globals.Rationals, GAP.GapObj(2//3), 1),
+  for (R, x, y) in [(GAP.Globals.Rationals, GapObj(2//3), 1),
                     (GAP.Globals.Integers, 2, 3),
                    ]
     iso = Oscar.iso_gap_oscar(R)

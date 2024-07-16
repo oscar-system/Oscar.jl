@@ -1,19 +1,19 @@
 """
-    has_number_transitive_groups(deg::Int)
+    has_number_of_transitive_groups(deg::Int)
 
 Return whether the number transitive groups groups of degree `deg` are available for
-use via `number_transitive_groups`.
+use via `number_of_transitive_groups`.
 
 # Examples
 ```jldoctest
-julia> has_number_transitive_groups(30)
+julia> has_number_of_transitive_groups(30)
 true
 
-julia> has_number_transitive_groups(64)
+julia> has_number_of_transitive_groups(64)
 false
 ```
 """
-has_number_transitive_groups(deg::Int) = has_transitive_groups(deg)
+has_number_of_transitive_groups(deg::Int) = has_transitive_groups(deg)
 
 """
     has_transitive_group_identification(deg::Int)
@@ -55,22 +55,22 @@ end
 
 
 """
-    number_transitive_groups(deg::Int)
+    number_of_transitive_groups(deg::Int)
 
 Return the number of transitive groups of degree `deg`,
 up to permutation isomorphism.
 
 # Examples
 ```jldoctest
-julia> number_transitive_groups(30)
+julia> number_of_transitive_groups(30)
 5712
 
-julia> number_transitive_groups(64)
+julia> number_of_transitive_groups(64)
 ERROR: ArgumentError: the number of transitive groups of degree 64 is not available
 ```
 """
-function number_transitive_groups(deg::Int)
-  @req has_number_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
+function number_of_transitive_groups(deg::Int)
+  @req has_number_of_transitive_groups(deg) "the number of transitive groups of degree $(deg) is not available"
   return GAP.Globals.NrTransitiveGroups(deg)::Int
 end
 
@@ -84,7 +84,7 @@ The output is a group of type `PermGroup`.
 # Examples
 ```jldoctest
 julia> transitive_group(5,4)
-Permutation group of degree 5 and order 60
+Alt(5)
 
 julia> transitive_group(5,6)
 ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
@@ -92,7 +92,7 @@ ERROR: ArgumentError: there are only 5 transitive groups of degree 5, not 6
 """
 function transitive_group(deg::Int, i::Int)
   @req has_transitive_groups(deg) "transitive groups of degree $deg are not available"
-  N = number_transitive_groups(deg)
+  N = number_of_transitive_groups(deg)
   @req i <= N "there are only $N transitive groups of degree $deg, not $i"
   return PermGroup(GAP.Globals.TransitiveGroup(deg,i), deg)
 end
@@ -143,7 +143,7 @@ function transitive_group_identification(G::PermGroup)
   @req is_transitive(G, moved) "group is not transitive on its moved points"
   deg = length(moved)
   @req has_transitive_groups(deg) "identification of transitive groups of degree $(deg) are not available"
-  res = GAP.Globals.TransitiveIdentification(G.X)::Int
+  res = GAP.Globals.TransitiveIdentification(GapObj(G))::Int
   return deg, res
 end
 
@@ -159,6 +159,10 @@ may be of one of the following forms:
 - `func` selects groups for which the function `func` returns `true`
 - `!func` selects groups for which the function `func` returns `false`
 
+As a special case, the first argument may also be one of the following:
+- `intval` selects groups whose degree equals `intval`; this is equivalent to `degree => intval`
+- `intlist` selects groups whose degree is in `intlist`; this is equivalent to `degree => intlist`
+
 The following functions are currently supported as values for `func`:
 - `degree`
 - `is_abelian`
@@ -173,8 +177,8 @@ The following functions are currently supported as values for `func`:
 - `is_solvable`
 - `is_supersolvable`
 - `is_transitive`
-- `number_conjugacy_classes`
-- `number_moved_points`
+- `number_of_conjugacy_classes`
+- `number_of_moved_points`
 - `order`
 - `transitivity`
 
@@ -182,16 +186,27 @@ The type of the returned groups is `PermGroup`.
 
 # Examples
 ```jldoctest
+julia> all_transitive_groups(4)
+5-element Vector{PermGroup}:
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Permutation group of degree 4
+ Alt(4)
+ Sym(4)
+
 julia> all_transitive_groups(degree => 3:5, is_abelian)
 4-element Vector{PermGroup}:
- Permutation group of degree 3 and order 3
+ Alt(3)
  Permutation group of degree 4
  Permutation group of degree 4
  Permutation group of degree 5
 ```
-returns the list of all abelian transitive groups acting on 3, 4 or 5 points.
 """
 function all_transitive_groups(L...)
+   @req !isempty(L) "must specify at least one filter"
+   if L[1] isa IntegerUnion || L[1] isa AbstractVector{<:IntegerUnion}
+      L = (degree => L[1], L[2:end]...)
+   end
    gapargs = translate_group_library_args(L; filter_attrs = _permgroup_filter_attrs)
    K = GAP.Globals.AllTransitiveGroups(gapargs...)
    return [PermGroup(x) for x in K]

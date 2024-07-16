@@ -368,14 +368,14 @@ function _lift(q::T, f::T, a) where T <: Union{ZZModMatrix, zzModMatrix}
   if mod(lift(q[end-1,end-1] + q[end,end]), 4) == 2
     g[end, end-1] = a
     g[1:end-2,end-1] = diagonal(divexact(G - f*G*transpose(f),2))
-    g[end,1:end-2] = transpose(fGinv * g[1:end-2,end-1])
+    g[end:end,1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
   else
     if a == 0
       a = zeros(R, ncols(q)-2)
     end
     g[1:end-2,end-1] = a
-    g[end,1:end-2] = transpose(fGinv * g[1:end-2,end-1])
-    t = (g[end,1:end-2]*G*transpose(g[end,1:end-2]))[1,1]
+    g[[end],1:end-2] = transpose(fGinv * g[1:end-2,end-1:end-1])
+    t = (g[end:end,1:end-2]*G*transpose(g[end:end,1:end-2]))[1,1]
     g[end,end-1] = divexact(t-mod(lift(t), 2), 2)
   end
   err = g*qb*transpose(g)-qb
@@ -642,9 +642,9 @@ function _ker_gens(G::Union{ZZModMatrix, zzModMatrix}, i1, i2, parity)
       end
       if parity[1]==1 && parity[3]==1
         # compensate
-        g[e+1, i1] = divexact((g[e+1,i1+1:i2]*G[i1+1:i2,i1+1:i2]*transpose(g[e+1,i1+1:i2]))[1,1],4)
+        g[e+1, i1] = divexact((g[e+1:e+1,i1+1:i2]*G[i1+1:i2,i1+1:i2]*transpose(g[e+1:e+1,i1+1:i2]))[1,1],4)
         # the second row depends on the third
-        g[i1+1:i2,i1] = - divexact((G[i1+1:i2,i1+1:i2]* transpose(g[i2+1:end,i1+1:i2]) * inv(G[i2+1:end,i2+1:end]))[:,end], 2)
+        g[i1+1:i2,i1:i1] = - divexact((G[i1+1:i2,i1+1:i2]* transpose(g[i2+1:end,i1+1:i2]) * inv(G[i2+1:end,i2+1:end]))[:,end:end], 2)
       end
       if g[i,j] == 1   # no need to append the identity
         push!(gens, g)
@@ -774,9 +774,8 @@ function _compute_gens(T::TorQuadModule)
       q_p = block_diagonal_matrix([QQ[1;],q_p])
     end
     b = valuation(invs[end], p)
-    R = residue_ring(ZZ,ZZRingElem(p)^(b+5))
-    G_p = change_base_ring(ZZ, q_p*p^b)
-    G_p = change_base_ring(R, G_p)
+    R = residue_ring(ZZ, ZZRingElem(p)^(b+5))[1]
+    G_p = change_base_ring(R, change_base_ring(ZZ, q_p*p^b))
     if p != 2
       # make sure each homogeneous block of G_p stays in normal form
       r = divexact(G_p, R(2))
@@ -826,7 +825,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
   # TorQuadModule isometric to T: we get then an isometry between those two modules.
   gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMap[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -856,7 +855,7 @@ function _compute_gens_split_degenerate(T::TorQuadModule)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
@@ -870,7 +869,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
@@ -895,7 +894,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
   NN, NtoNN = normal_form(N)
   @assert is_bijective(NtoNN)
   NNtoN = inv(NtoNN)
-  gensONN = TorQuadModuleMor[hom(NN, NN, m) for m in _compute_gens(NN)]
+  gensONN = TorQuadModuleMap[hom(NN, NN, m) for m in _compute_gens(NN)]
   gensON = ZZMatrix[compose(compose(NtoNN, g), NNtoN).map_ab.map for g in gensONN]
   n1 = nrows(gensON[1])
 
@@ -936,7 +935,7 @@ function _compute_gens_split_degenerate_primary(T::TorQuadModule)
     M[(n2+1):end, 1:n2] = m
     push!(gensOTorth, M)
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, m) for m in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, m) for m in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   return gensOT
@@ -956,7 +955,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
 
   gensOT = ZZMatrix[]
   pd = sort(prime_divisors(order(T)))
-  blocks = TorQuadModuleMor[primary_part(T, pd[1])[2]]
+  blocks = TorQuadModuleMap[primary_part(T, pd[1])[2]]
   ni = Int[ngens(domain(blocks[1]))]
   popfirst!(pd)
   while !isempty(pd)
@@ -983,7 +982,7 @@ function _compute_gens_non_split_degenerate(T::TorQuadModule)
     Ina = identity_matrix(ZZ, na)
     append!(gensOTorth, [block_diagonal_matrix([Inb, f, Ina]) for f in orth_blocks[i]])
   end
-  gensOTorth = TorQuadModuleMor[hom(Torth, Torth, g) for g in gensOTorth]
+  gensOTorth = TorQuadModuleMap[hom(Torth, Torth, g) for g in gensOTorth]
   gensOT = ZZMatrix[compose(compose(inv(phi), g), phi).map_ab.map for g in gensOTorth]
   unique!(gensOT)
   length(gensOT) > 1 ? filter!(m -> !isone(m), gensOT) : nothing
@@ -995,7 +994,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     N, i = normal_form(T)
     j = inv(i)
     gensOT = _compute_gens(N)
-    gensOT = TorQuadModuleMor[hom(N, N, g) for g in gensOT]
+    gensOT = TorQuadModuleMap[hom(N, N, g) for g in gensOT]
     gensOT = ZZMatrix[compose(compose(i, g), j).map_ab.map for g in gensOT]
     unique!(gensOT)
     return gensOT
@@ -1025,7 +1024,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     if i == n
       # f is a full isometry
       g = G(hom(S, S, f), check = false)
-      if !(g in G.X)
+      if !(g in GapObj(G))
         G = Oscar._orthogonal_group(S, [matrix(s) for s in union(Hecke.gens(G), [g])], check=false)
         if !isempty(waiting)
           waiting = [g[1] for g in orbits(gset(G, on_tuples, waiting))]
@@ -1047,7 +1046,7 @@ function _compute_gens_non_split_degenerate_primary(T::TorQuadModule)
     end
   end
   gene = small_generating_set(G)
-  gene = TorQuadModuleMor[hom(S, S, matrix(g)) for g in gene]
+  gene = TorQuadModuleMap[hom(S, S, matrix(g)) for g in gene]
   gene = ZZMatrix[compose(inv(StoT), compose(g, StoT)).map_ab.map for g in gene]
   unique!(gene)
   return gene

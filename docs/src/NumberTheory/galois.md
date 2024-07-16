@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Galois Theory
@@ -28,27 +26,27 @@ Galois group do not immediately give automorphisms at all.
 
 Currently, the computation of Galois groups is possible for
  
-  - `K` a simple extension of the rationals (`AnticNumberField`)
-  - `K` a simple extension of an `AnticNumberField` 
+  - `K` a simple extension of the rationals (`AbsSimpleNumField`)
+  - `K` a simple extension of an `AbsSimpleNumField` 
   - `K` a finite extension of the rational function field over the
      rationals. In this case the
      monodromy group can be computed as well, ie. the automorphism group over the
      complex numbers.
-  - `f` a polynomial over the rationals, or an `AnticNumberField`
+  - `f` a polynomial over the rationals, or an `AbsSimpleNumField`
 
 Independently of the Galois group, subfields, that is intermediate fields
 between `K` and `k` can be computed as well.
 
 ## Automorphism Group
 
-The automorphisms are computed using various specialised factoring
+The automorphisms are computed using various specialized factoring
 algorithms: lifting the roots of the defining polynomial in the
 given field modulo suitable prime ideal powers and
 recovering the true roots from this information.
 
 The main information is included in the number field chapter, see for example
 
-  - [`automorphism_list(::Hecke.NumFieldMor)`](@ref)
+  - [`automorphism_list(::Hecke.NumFieldHom)`](@ref)
   - [`automorphism_group(::NumField)`](@ref)
   - [`automorphism_group(::NumField, ::NumField)`](@ref)
 
@@ -60,7 +58,7 @@ The main information is included in the number field chapter, see
   - [`Hecke.principal_subfields(K::SimpleNumField)`](@ref)
   - [`subfields(FF::Generic.FunctionField{QQFieldElem})`](@ref)
 
-By setting `set_verbose_level(:Subfields, n::Int)` to 1 or 2
+By setting `set_verbosity_level(:Subfields, n::Int)` to 1 or 2
 information about the progress can be obtained.
 
 ## Galois Group
@@ -75,11 +73,11 @@ find explicit subfields of the splitting field as well.
 
 Information about the progress is available via
  
- - `set_verbose_level(:GaloisGroup, n::Int)`
- - `set_verbose_level(:GaloisInvariants, n::Int)`
+ - `set_verbosity_level(:GaloisGroup, n::Int)`
+ - `set_verbosity_level(:GaloisInvariants, n::Int)`
 
 ```@docs
-galois_group(K::AnticNumberField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
+galois_group(K::AbsSimpleNumField, extra::Int = 5; useSubfields::Bool = true, pStart::Int = 2*degree(K), prime::Int = 0)
 galois_group(f::PolyRingElem{<:FieldElem})
 ```
 
@@ -96,10 +94,10 @@ julia> F, a = function_field(x^6 + 108*t^2 + 108*t + 27);
 
 julia> subfields(F)
 4-element Vector{Any}:
- (Function Field over Rational field with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
- (Function Field over Rational field with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
- (Function Field over Rational field with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
- (Function Field over Rational field with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over QQ with defining polynomial a^3 + 54*t + 27, (1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
+ (Function Field over QQ with defining polynomial a^2 + 108*t^2 + 108*t + 27, _a^3)
+ (Function Field over QQ with defining polynomial a^3 - 108*t^2 - 108*t - 27, -_a^2)
+ (Function Field over QQ with defining polynomial a^3 - 54*t - 27, (-1//12*_a^4 + (3//2*t + 3//4)*_a)//(t + 1//2))
 
 julia> galois_group(F)
 (Permutation group of degree 6 and order 6, Galois context for s^6 + 108*t^2 + 540*t + 675)
@@ -142,7 +140,7 @@ julia> G, C = galois_group(f)
 (Permutation group of degree 4 and order 4, Galois context for x^4 - 5*x^2 + 6 and prime 11)
 
 julia> r = roots(C, 5)
-4-element Vector{qadic}:
+4-element Vector{QadicFieldElem}:
  5*11^0 + 2*11^1 + 6*11^2 + 8*11^3 + 11^4 + O(11^5)
  6*11^0 + 8*11^1 + 4*11^2 + 2*11^3 + 9*11^4 + O(11^5)
  (10*11^0 + 4*11^1 + 4*11^2 + 10*11^3 + 8*11^4 + O(11^5))*a + 2*11^0 + 6*11^1 + 4*11^2 + 3*11^3 + 9*11^4 + O(11^5)

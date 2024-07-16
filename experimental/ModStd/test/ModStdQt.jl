@@ -21,3 +21,10 @@ end
   f = factor_absolute(u^2+v^2*a)
   @test length(f) == 2
 end
+
+@testset "Examples.ref_ff_rc!" begin
+  S, (a, b) = polynomial_ring(QQ, ["a", "b"]);
+  A = matrix(S, [a b; b a])
+  Oscar.ModStdQt.ref_ff_rc!(A)
+  @test A == matrix(S, [a b ; 0 1])
+end

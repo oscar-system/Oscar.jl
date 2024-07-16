@@ -1,15 +1,15 @@
 ########################################################################
 #
-# (1) AbsSpec interface
+# (1) AbsAffineScheme interface
 #
 ########################################################################
 
 @doc raw"""
-    underlying_scheme(X::AffineAlgebraicSet) -> AbsSpec
+    underlying_scheme(X::AffineAlgebraicSet) -> AbsAffineScheme
 
 Return the underlying reduced scheme defining ``X``.
 
-This is used to forward the `AbsSpec` functionality to ``X``, but may
+This is used to forward the `AbsAffineScheme` functionality to ``X``, but may
 trigger the computation of a radical ideal. Hence this can be expensive.
 """
 function underlying_scheme(X::AffineAlgebraicSet)
@@ -26,13 +26,13 @@ function underlying_scheme(X::AffineAlgebraicSet{<:Field,<:MPolyQuoRing})
   end
   # avoid constructing a morphism
   F = fat_scheme(X)
-  I = ambient_closure_ideal(F)
+  I = saturated_ideal(defining_ideal(F))
   if has_attribute(F, :is_reduced) && is_reduced(F)
       Irad = I
   else
     Irad = radical(I)
   end
-  X.Xred = Spec(base_ring(Irad), Irad)
+  X.Xred = spec(base_ring(Irad), Irad)
   return X.Xred
 end
 
@@ -42,7 +42,7 @@ end
 #
 ########################################################################
 @doc raw"""
-    fat_scheme(X::AffineAlgebraicSet) -> AbsSpec
+    fat_scheme(X::AffineAlgebraicSet) -> AbsAffineScheme
 
 Return a scheme whose reduced subscheme is ``X``.
 
@@ -68,7 +68,8 @@ By Hilbert's Nullstellensatz this is a radical ideal.
 !!! note
     This triggers the computation of a radical, which is expensive.
 """
-vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X)
+vanishing_ideal(X::AbsAffineAlgebraicSet) = saturated_ideal(defining_ideal(X))
+#vanishing_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(X) # TODO: What about this here? Should it also be removed?
 
 @doc raw"""
     fat_ideal(X::AbsAffineAlgebraicSet) -> Ideal
@@ -90,13 +91,13 @@ julia> I = ideal([x^2, y]);
 julia> X = algebraic_set(I)
 Affine algebraic set
   in affine 2-space over QQ with coordinates [x, y]
-defined by ideal(x^2, y)
+defined by ideal (x^2, y)
 
 julia> fat_ideal(X) === I
 true
 ```
 """
-fat_ideal(X::AbsAffineAlgebraicSet) = ambient_closure_ideal(fat_scheme(X))
+fat_ideal(X::AbsAffineAlgebraicSet) = saturated_ideal(defining_ideal(fat_scheme(X)))
 
 # avoid computing the underlying scheme
 ambient_space(X::AbsAffineAlgebraicSet) = ambient_space(fat_scheme(X))

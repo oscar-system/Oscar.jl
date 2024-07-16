@@ -33,9 +33,10 @@ allow for easier integration elsewhere.
 
 ```@docs
 Graph{T}(nverts::Int64) where {T <: Union{Directed, Undirected}}
-dualgraph(p::Polyhedron)
-edgegraph(p::Polyhedron)
+dual_graph(p::Polyhedron)
+vertex_edge_graph(p::Polyhedron; modulo_lineality=false)
 graph_from_adjacency_matrix
+graph_from_edges
 ```
 
 ### Modifying graphs
@@ -45,21 +46,25 @@ add_vertices!(g::Graph{T}, n::Int64) where {T <: Union{Directed, Undirected}}
 add_vertex!(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 rem_edge!(g::Graph{T}, s::Int64, t::Int64) where {T <: Union{Directed, Undirected}}
 rem_vertex!(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed, Undirected}}
 ```
 
 ## Auxiliary functions
 ```@docs
+adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
+degree(g::Graph, v::Int)
 edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 has_edge(g::Graph{T}, source::Int64, target::Int64) where {T <: Union{Directed, Undirected}}
 has_vertex(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
+laplacian_matrix(g::Graph)
+n_edges(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+n_vertices(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-ne(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
-nv(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 shortest_path_dijkstra
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}

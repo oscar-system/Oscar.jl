@@ -17,17 +17,17 @@ via the following input:
 ```jldoctest
 julia> F = faces(cube(3), 2)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 ```
 """
 function faces(P::Polyhedron{T}, face_dim::Int) where {T<:scalar_types}
   face_dim == dim(P) - 1 &&
-    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, nfacets(P))
+    return SubObjectIterator{Polyhedron{T}}(P, _face_polyhedron_facet, n_facets(P))
   n = face_dim - length(lineality_space(P))
   n < 0 && return nothing
   pfaces = Polymake.to_one_based_indexing(Polymake.polytope.faces_of_dim(pm_object(P), n))
@@ -177,6 +177,8 @@ where `p` is only unique modulo `L`. The return type is a dict, the key
 `:base_points` gives an iterator over such `p`, and the key `:lineality_basis`
 lets one access a basis for the lineality space `L` of `P`.
 
+See also [`vertices`](@ref) and [`lineality_space`](@ref).
+
 # Examples
 The polyhedron `P` is just a line through the origin:
 ```jldoctest
@@ -221,6 +223,8 @@ with two iterators. If `P` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `P/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
+See also [`rays`](@ref) and [`lineality_space`](@ref).
+
 # Examples
 ```jldoctest
 julia> P = convex_hull([0 0 1], [0 1 0], [1 0 0])
@@ -259,11 +263,13 @@ end
 rays_modulo_lineality(::Type{<:RayVector}, P::Polyhedron) = _rays(P)
 
 @doc raw"""
-    vertices(as, P)
+    vertices([as::Type{T} = PointVector,] P::Polyhedron)
 
 Return an iterator over the vertices of `P` in the format defined by `as`. The
 vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
-there are no vertices.
+there are no vertices, only minimal faces.
+
+See also [`minimal_faces`](@ref) and [`rays`](@ref).
 
 Optional arguments for `as` include
 * `PointVector`.
@@ -281,6 +287,21 @@ julia> vertices(PointVector, P)
  [2, 1]
  [-1, 2]
  [1, 2]
+
+julia> point_matrix(vertices(P))
+[-1   -1]
+[ 2   -1]
+[ 2    1]
+[-1    2]
+[ 1    2]
+```
+A half-space (here in $3$-space) has no vertices:
+```jldoctest
+julia> UH = polyhedron([-1 0 0], [0])
+Polyhedron in ambient dimension 3
+
+julia> vertices(UH)
+0-element SubObjectIterator{PointVector{QQFieldElem}}
 ```
 """
 vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
@@ -326,31 +347,11 @@ function _facet_indices(P::Polymake.BigObject)
   return vi
 end
 
-@doc raw"""
-    vertices(P::Polyhedron)
-
-Return an iterator over the vertices of a polyhedron `P` as points.
-
-# Examples
-The following code computes the vertices of the Minkowski sum of a triangle and
-a square:
-```jldoctest
-julia> P = simplex(2) + cube(2);
-
-julia> vertices(P)
-5-element SubObjectIterator{PointVector{QQFieldElem}}:
- [-1, -1]
- [2, -1]
- [2, 1]
- [-1, 2]
- [1, 2]
-```
-"""
 vertices(P::Polyhedron) = vertices(PointVector, P)
 _vertices(P::Polyhedron) = _vertices(PointVector, P)
 
 @doc raw"""
-    nrays(P::Polyhedron)
+    n_rays(P::Polyhedron)
 
 Return the number of rays of `P`, i.e. the number of rays of the recession cone
 of `P`.
@@ -361,22 +362,22 @@ The two-dimensional positive orthant has two rays.
 julia> PO = convex_hull([0 0],[1 0; 0 1])
 Polyhedron in ambient dimension 2
 
-julia> nrays(PO)
+julia> n_rays(PO)
 2
 ```
 The upper half-plane has no ray, since it has lineality.
 ```jldoctest
 julia> UH = convex_hull([0 0],[0 1],[1 0]);
 
-julia> nrays(UH)
+julia> n_rays(UH)
 0
 ```
 """
-nrays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nrays(P) : 0
-_nrays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
+n_rays(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_rays(P) : 0
+_n_rays(P::Polyhedron) = length(pm_object(P).FAR_FACE)
 
 @doc raw"""
-    nvertices(P::Polyhedron)
+    n_vertices(P::Polyhedron)
 
 Return the number of vertices of `P`.
 
@@ -385,18 +386,22 @@ The 3-cube's number of vertices can be obtained with this input:
 ```jldoctest
 julia> C = cube(3);
 
-julia> nvertices(C)
+julia> n_vertices(C)
 8
 ```
 """
-nvertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _nvertices(P) : 0
-_nvertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _nrays(P)
+n_vertices(P::Polyhedron)::Int = lineality_dim(P) == 0 ? _n_vertices(P) : 0
+_n_vertices(P::Polyhedron) = size(pm_object(P).VERTICES, 1)::Int - _n_rays(P)
 
 @doc raw"""
-    rays(as::Type{T} = RayVector, P::Polyhedron)
+    rays([as::Type{T} = RayVector,] P::Polyhedron)
 
 Return a minimal set of generators of the cone of unbounded directions of `P`
-(i.e. its rays) in the format defined by `as`.
+(i.e. its rays) in the format defined by `as`. The rays are defined to be the
+one-dimensional faces of the recession cone, so if `P` has lineality, there
+are no rays.
+
+See also [`rays_modulo_lineality`](@ref), [`recession_cone`](@ref) and [`vertices`](@ref).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -411,6 +416,27 @@ julia> rays(RayVector, PO)
 2-element SubObjectIterator{RayVector{QQFieldElem}}:
  [1, 0]
  [0, 1]
+
+julia> rays(PO)
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [1, 0]
+ [0, 1]
+
+julia> matrix(QQ, rays(PO))
+[1   0]
+[0   1]
+
+julia> matrix(ZZ, rays(PO))
+[1   0]
+[0   1]
+```
+A half-space has no rays:
+```
+julia> UH = polyhedron([-1 0 0], [0])
+Polyhedron in ambient dimension 3
+
+julia> rays(UH)
+0-element SubObjectIterator{RayVector{QQFieldElem}}
 ```
 """
 rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types} =
@@ -438,37 +464,11 @@ rays(::Type{<:RayVector}, P::Polyhedron{T}) where {T<:scalar_types} = rays(RayVe
 _rays(::Type{<:RayVector}, P::Polyhedron{T}) where {T<:scalar_types} =
   _rays(RayVector{T}, P)
 
-@doc raw"""
-    rays(P::Polyhedron)
-
-Return minimal set of generators of the cone of unbounded directions of `P`
-(i.e. its rays) as points.
-
-# Examples
-We can verify that the positive orthant of the plane is generated by the two
-rays in positive unit direction:
-```jldoctest
-julia> PO = convex_hull([0 0], [1 0; 0 1]);
-
-julia> rays(PO)
-2-element SubObjectIterator{RayVector{QQFieldElem}}:
- [1, 0]
- [0, 1]
-
-julia> matrix(QQ, rays(PO))
-[1   0]
-[0   1]
-
-julia> matrix(ZZ, rays(PO))
-[1   0]
-[0   1]
-```
-"""
 rays(P::Polyhedron) = rays(RayVector, P)
 _rays(P::Polyhedron) = _rays(RayVector, P)
 
 @doc raw"""
-    nfacets(P::Polyhedron)
+    n_facets(P::Polyhedron)
 
 Return the number of facets of `P`.
 
@@ -476,11 +476,11 @@ Return the number of facets of `P`.
 The number of facets of the 5-dimensional cross polytope can be retrieved via
 the following line:
 ```jldoctest
-julia> nfacets(cross_polytope(5))
+julia> n_facets(cross_polytope(5))
 32
 ```
 """
-function nfacets(P::Polyhedron)
+function n_facets(P::Polyhedron)
   n = size(pm_object(P).FACETS, 1)::Int
   return n - (_facet_at_infinity(pm_object(P)) != n + 1)
 end
@@ -502,12 +502,12 @@ julia> C = cube(3);
 
 julia> facets(Polyhedron, C)
 6-element SubObjectIterator{Polyhedron{QQFieldElem}}:
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
- Polyhedron in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
 6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
@@ -522,7 +522,7 @@ x_3 <= 1
 facets(
   as::Type{T}, P::Polyhedron{S}
 ) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
-  SubObjectIterator{as}(P, _facet_polyhedron, nfacets(P))
+  SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
   U::Type{AffineHalfspace{S}}, P::Polyhedron{S}, i::Base.Integer
@@ -782,7 +782,7 @@ Return the integer points contained in the interior of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> interior_lattice_points(c)
 1-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -821,7 +821,7 @@ Return the integer points contained in the boundary of the bounded polyhedron
 # Examples
 ```jldoctest
 julia> c = polarize(cube(3))
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> boundary_lattice_points(c)
 6-element SubObjectIterator{PointVector{ZZRingElem}}:
@@ -903,7 +903,7 @@ Number of vertices in each facet.
 # Example
 ```jldoctest
 julia> p = johnson_solid(4) 
-Polyhedron in ambient dimension 3 with EmbeddedElem{nf_elem} type coefficients
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
 julia> facet_sizes(p)
 10-element Vector{Int64}:
@@ -1052,14 +1052,14 @@ Compute the Ehrhart polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(c)
 8*x^3 + 12*x^2 + 6*x + 1
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1074,7 +1074,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> ehrhart_polynomial(R, c)
 8*x^3 + 12*x^2 + 6*x + 1
@@ -1094,14 +1094,14 @@ Compute the $h^*$ polynomial of `P`.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(c)
 x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1116,7 +1116,7 @@ julia> R, x = polynomial_ring(QQ, "x")
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> h_star_polynomial(R, c)
 x^3 + 23*x^2 + 23*x + 1
@@ -1138,13 +1138,13 @@ Check whether `P` is a lattice polytope, i.e. it is bounded and has integral ver
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 true
 
 julia> c = cube(3, 0, 4//3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_lattice_polytope(c)
 false
@@ -1165,7 +1165,7 @@ Check whether `P` is very ample.
 # Examples
 ```jldoctest
 julia> c = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_very_ample(c)
 true
@@ -1203,10 +1203,10 @@ Check whether `P` is a subset of the polyhedron `Q`.
 # Examples
 ```jldoctest
 julia> P = cube(3,0,1)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> Q = cube(3,-1,2)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> issubset(P, Q)
 true
@@ -1263,7 +1263,7 @@ Check whether `P` is normal.
 The 3-cube is normal.
 ```jldoctest
 julia> C = cube(3)
-Polyhedron in ambient dimension 3
+Polytope in ambient dimension 3
 
 julia> is_normal(C)
 true
@@ -1301,7 +1301,7 @@ Check whether `P` is simple.
 # Examples
 ```jldoctest
 julia> c = cube(2,0,1)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> is_simple(c)
 true
@@ -1330,6 +1330,173 @@ false
 ```
 """
 is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
+
+@doc raw"""
+    is_johnson_solid(P::Polyhedron)
+
+Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
+
+See also [`johnson_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```
+julia> J = johnson_solid(37)
+Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
+
+julia> is_johnson_solid(J) 
+true
+```
+"""
+is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !is_vertex_transitive(P)
+
+@doc raw"""
+    is_archimedean_solid(P::Polyhedron)
+
+Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex
+transitive polytope with regular facets, but not a prism or antiprism.
+
+See also [`archimedean_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```jldoctest
+julia> TO = archimedean_solid("truncated_octahedron")
+Polytope in ambient dimension 3
+
+julia> is_archimedean_solid(TO)
+true
+
+julia> T = tetrahedron()
+Polytope in ambient dimension 3
+
+julia> is_archimedean_solid(T)
+false
+```
+"""
+is_archimedean_solid(P::Polyhedron) =
+  _is_3d_pol_reg_facets(P) && !_has_equal_facets(P) && is_vertex_transitive(P) &&
+  !_is_prismic_or_antiprismic(P)
+
+@doc raw"""
+    is_platonic_solid(P::Polyhedron)
+
+Check whether `P` is a Platonic solid.
+
+See also [`platonic_solid`](@ref).
+
+!!! note
+    This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
+
+# Examples
+```jldoctest
+julia> is_platonic_solid(cube(3))
+true
+```
+"""
+is_platonic_solid(P::Polyhedron) =
+  _is_3d_pol_reg_facets(P) && _has_equal_facets(P) && is_vertex_transitive(P)
+
+function _is_3d_pol_reg_facets(P::Polyhedron)
+  # dimension
+  dim(P) == 3 || return false
+
+  # constant edge length
+  pedges = faces(P, 1)
+
+  edgelength = let v = vertices(pedges[1])
+    _squared_distance(v[1], v[2])
+  end
+
+  for edge in pedges[2:end]
+    v = vertices(edge)
+    _squared_distance(v[1], v[2]) == edgelength || return false
+  end
+
+  pfacets = facets(Polyhedron, P)
+
+  # facet vertices on circle
+  for facet in pfacets
+    n = n_vertices(facet)
+    if n >= 4
+      fverts = vertices(facet)
+      m = sum(fverts)//n
+      dist = _squared_distance(fverts[1], m)
+
+      for v in fverts[2:end]
+        _squared_distance(v, m) == dist || return false
+      end
+    end
+  end
+  return true
+end
+
+function _squared_distance(p::PointVector, q::PointVector)
+  d = p - q
+  return dot(d, d)
+end
+
+function _has_equal_facets(P::Polyhedron)
+  nv = facet_sizes(P)
+  return @static VERSION >= v"1.8" ? allequal(nv) : length(unique(nv)) == 1
+end
+
+@doc raw"""
+    is_vertex_transitive(P::Polyhedron)
+
+Check whether `P` is vertex transitive.
+
+# Examples
+```jldoctest
+julia> is_vertex_transitive(cube(3))
+true
+
+julia> is_vertex_transitive(pyramid(cube(2)))
+false
+```
+"""
+is_vertex_transitive(P::Polyhedron) =
+  is_transitive(automorphism_group(P; action=:on_vertices))
+
+function _is_prismic_or_antiprismic(P::Polyhedron)
+  nvf = facet_sizes(P)
+  # nvfs contains vector entries [i, j] where j is the amount of i-gonal facets of P
+  nvfs = [[i, sum(nvf .== i)] for i in unique(nvf)]
+  # an (anti-)prism can only have 2 different types of facets
+  # n-gons and either squares/triangles (for prisms/antiprisms respectively)
+  # if n == 1 this function will not be called either way
+  length(nvfs) == 2 || return false
+  # there are exactly 2 n-gons, and only n-gons can occur exactly twice
+  a = findfirst(x -> x[2] == 2, nvfs)
+  isnothing(a) && return false
+  # with length(nvfs) == 2, b is the other index than a
+  b = 3 - a
+  m = nvfs[b][1]
+  # the facets that are not n-gons have to be squares or triangles
+  m == 3 || m == 4 || return false
+  n = nvfs[a][1]
+  # P has to have exactly n vertices and
+  # the amount of squares needs to be n or the amount of triangles needs to be 2n
+  2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
+  dg = dual_graph(P)
+  ngon_is = findall(x -> x == n, nvf)
+  has_edge(dg, ngon_is...) && return false
+  rem_vertex!(dg, ngon_is[2])
+  rem_vertex!(dg, ngon_is[1])
+  degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
+  degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
+  dg = dual_graph(P)
+  if m == 3
+    bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
+    return bigdg.BIPARTITE
+  else
+    return true
+  end
+end
 
 @doc raw"""
     f_vector(P::Polyhedron)
@@ -1383,7 +1550,7 @@ end
     g_vector(P::Polyhedron)
 
 Return the (toric) $g$-vector of a polytope.
-Defined by $g_0 = 1 $ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
+Defined by $g_0 = 1$ and $g_k = h_k - h_{k-1}$, for $1 \leq k \leq \lceil (d+1)/2\rceil$ where $h$ is the $h$-vector and $d=\dim(P)$.
 Undefined for unbounded polyhedra.
 
 # Examples
@@ -1409,7 +1576,7 @@ contained in any facet.
 The square $[-1,1]^3$ has the origin as a relative interior point.
 ```jldoctest
 julia> square = cube(2)
-Polyhedron in ambient dimension 2
+Polytope in ambient dimension 2
 
 julia> relative_interior_point(square)
 2-element PointVector{QQFieldElem}:
@@ -1518,36 +1685,36 @@ function print_constraints(
         if isone(A[i, j]) || isone(-A[i, j])
           terms[j] = if first
             string(
-            isone(A[i, j]) ? "x" : "-x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              isone(A[i, j]) ? "x" : "-x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           else
             string(
-            isone(A[i, j]) ? " + x" : " - x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              isone(A[i, j]) ? " + x" : " - x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           end
         else
           terms[j] = if first
             string(
-            _constraint_string(A[i, j]),
-            "*x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              _constraint_string(A[i, j]),
+              "*x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           else
             string(
-            if A[i, j] < zero(A[i, j])
-              string(" - ", _constraint_string(-A[i, j]))
-            else
-              string(" + ", _constraint_string(A[i, j]))
-            end,
-            "*x",
-            us_ascii,
-            reverse([zero_char + d for d in digits(j)])...,
-          )
+              if A[i, j] < zero(A[i, j])
+                string(" - ", _constraint_string(-A[i, j]))
+              else
+                string(" + ", _constraint_string(A[i, j]))
+              end,
+              "*x",
+              us_ascii,
+              reverse([zero_char + d for d in digits(j)])...,
+            )
           end
         end
         first = false

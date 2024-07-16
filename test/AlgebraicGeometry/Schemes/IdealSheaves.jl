@@ -4,7 +4,7 @@
   # Set up the base ℙ¹ with coordinates s and t
   S, _ = graded_polynomial_ring(kk, ["s", "t"])
 
-  base_P1 = ProjectiveScheme(S)
+  base_P1 = proj(S)
 
   # split this into the standard covering
   base_covering = standard_covering(base_P1)
@@ -12,7 +12,7 @@
   A1s = patches(base_covering)[1]
   A1t = patches(base_covering)[2]
 
-  # Set up relative projective space of relative dimension 2 
+  # Set up relative projective space of relative dimension 2
   # over both base patches
   P2_s = projective_space(OO(A1s), ["xs", "ys", "zs"])
 
@@ -22,7 +22,7 @@
 
   Ct = standard_covering(P2_t)
 
-  # Join the resulting schemes in a disjoint union with two 
+  # Join the resulting schemes in a disjoint union with two
   # components
   C = disjoint_union(Cs, Ct)
 
@@ -33,10 +33,10 @@
   y = gens(OO(Y))
   f = maximal_extension(X, Y, [x[1]//(x[3])^4, x[2]//(x[3])^6, 1//x[3]])
   g = maximal_extension(Y, X, [y[1]//(y[3])^4, y[2]//(y[3])^6, 1//y[3]])
-  add_glueing!(C, Glueing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
+  add_gluing!(C, Gluing(X, Y, restrict(f, domain(f), domain(g)), restrict(g, domain(g), domain(f))))
 
-  # Extend the glueing to the whole covered scheme
-  fill_transitions!(C)
+  # Extend the gluing to the whole covered scheme
+  Oscar.fill_transitions!(C)
 
   X = CoveredScheme(C)
 
@@ -45,7 +45,7 @@
   I = IdealSheaf(X, U, OO(U).([x[1]-1, x[2]-2, x[3]-3]))
   J = IdealSheaf(X, U, OO(U).([x[1]-5, x[2]-1, x[3]]))
 
-  @test I+J == IdealSheaf(X, U, [one(OO(U))])
+  @test I+J == Oscar.unit_ideal_sheaf(X)
   K = I*J
 end
 
@@ -61,9 +61,9 @@ end
   I3 = IdealSheaf(IP2, gen(Ihom, 1))
   @test I == I2 == I3
   U = patches(default_covering(X))
-  @test I(U[1]) isa Oscar.Ideal 
-  @test I(U[2]) isa Oscar.Ideal 
-  @test I(U[3]) isa Oscar.Ideal 
+  @test I(U[1]) isa Oscar.Ideal
+  @test I(U[2]) isa Oscar.Ideal
+  @test I(U[3]) isa Oscar.Ideal
   V = PrincipalOpenSubset(U[1], gens(OO(U[1]))[1])
   rho = I(U[1], V)
   @test I(V) == ideal(OO(V), rho.(gens(I(U[1]))))
@@ -71,7 +71,7 @@ end
   simplify!(I)
 
   # run the check block in extend!
-  ID = IdDict{AbsSpec, Oscar.Ideal}()
+  ID = IdDict{AbsAffineScheme, Oscar.Ideal}()
   ID[X[1][1]] = I(X[1][1])
   J = IdealSheaf(X, extend!(default_covering(X), ID), check=true)
   ID[X[1][1]] = I(X[1][1])
@@ -106,9 +106,9 @@ end
   X = covered_scheme(P)
   U = affine_charts(X)
   @test pbII(U[1]) isa Ideal
-  @test !haskey(pbII.I.obj_cache, U[2])
+  @test !haskey(Oscar.object_cache(pbII), U[2])
   @test pbII(U[2]) isa Ideal
-  @test haskey(pbII.I.obj_cache, U[2])
+  @test haskey(Oscar.object_cache(pbII), U[2])
 end
 
 @testset "colength of ideal sheaves" begin
@@ -163,6 +163,7 @@ end
   J = J*ideal(S, [-9*x + 3*y - 5*z + w, x+8*y+15*z+w])
   #J = ideal(S, [x^2 - 3*y^2 + 4*y*z - 5*w^2 + 3*x*w, 25*x^2*y + y^2*z + z^2*w + w^2*x])
   JJ = Oscar.maximal_associated_points(ideal_sheaf(X, J))
+
   X = covered_scheme(X)
   C = Oscar._separate_disjoint_components(JJ, covering=Oscar.simplified_covering(X))
   for U in patches(C)
@@ -196,3 +197,65 @@ end
   JJ = pushforward(bl, E)
   @test JJ == II
 end
+
+@testset "subschemes of ideal sheaves" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+
+  X = covered_scheme(IP2)
+  S = homogeneous_coordinate_ring(IP2)
+  x, y, z = gens(S)
+  I = ideal(S, [x*y, x*z, y*z])
+  II = IdealSheaf(IP2, I)
+  H = IdealSheaf(IP2, ideal(S, z))
+  Y = subscheme(II + H)
+  U = affine_charts(Y)
+  @test length(U) == 2
+  f, g = gluing_morphisms(Y[1][U[1], U[2]])
+  A = domain(f)
+  B = domain(g)
+  @test isempty(A)
+  @test isempty(B)
+end
+
+@testset "maximal associated points" begin
+  IA3 = affine_space(QQ, [:x, :y, :z])
+  R = OO(IA3)
+  (x, y, z) = gens(R)
+
+  I = ideal(R, z*(z-1))
+  X, inc_X = sub(IA3, I)
+
+  A = OO(X)
+  J = ideal(A, [x, y])*ideal(A, [y-1, z-1])
+
+  JJ = IdealSheaf(X, J)
+
+  @test dim(JJ) == 1
+  comp = Oscar.maximal_associated_points(JJ)
+  @test length(comp) == 3
+  @test 1 in dim.(comp)
+  @test 0 in dim.(comp)
+
+  Z = ideal(R, [x, y, z])
+
+  bl = blow_up(IA3, Z)
+
+  str_JJ = strict_transform(bl, IdealSheaf(IA3, pushforward(inc_X, J), covered_scheme=codomain(bl)))
+
+  comp2 = Oscar.maximal_associated_points(str_JJ)
+  @assert length(comp2) == 2
+  @test 1 in dim.(comp2)
+  @test 0 in dim.(comp2)
+end
+
+@testset "production of ideals" begin
+  IP2 = projective_space(QQ, [:x, :y, :z])
+  P2 = covered_scheme(IP2)
+  U = first(affine_charts(P2))
+  y, z = gens(OO(U))
+  I = ideal(OO(U), y-z)
+  II = IdealSheaf(P2, U, I)
+  Oscar.produce_object(II, affine_charts(P2)[2]; algorithm=:pullback)
+  Oscar.produce_object(II, affine_charts(P2)[3]; algorithm=:pushforward)
+end
+

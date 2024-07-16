@@ -1,14 +1,13 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating Multivariate Rings
 
-In this section, for the convenience of the reader, we recall from the chapters on rings and fields
-how to create multivariate polynomial rings and their elements, adding illustrating examples.
+In this section, for the convenience of the reader, we recall from the chapters on
+[rings](@ref rings) and [fields](@ref fields) how to create multivariate polynomial
+rings and their elements, adding illustrating examples.
 At the same time, we introduce and illustrate a ring type for modelling multivariate polynomial
 rings with gradings.
 
@@ -25,15 +24,15 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; ordering=:lex, cached::Bool = true)
+polynomial_ring(C::Ring, xs::AbstractVector{<:VarName}; cached::Bool = true)
 ```
 
-Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
-The input `ordering=:lex` refers to the lexicograpical monomial ordering which specifies the default way of storing and displaying polynomials in OSCAR  (terms are sorted in descending
-order). The other possible choices are `:deglex` and `:degrevlex`. Gröbner bases, however, can be computed with respect to any monomial ordering. See the section on Gröbner bases.
+Given a ring `C` and a vector `xs` of  Strings, Symbols, or Characters, return 
+a tuple `R, vars`, say, which consists of a polynomial ring `R` with coefficient ring `C`
+and a vector `vars` of generators (variables) which print according to the entries of `xs`.
 
 !!! note
-    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z, and  with `ordering=:lex`.
+    Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z.
 
 ###### Examples
 
@@ -55,6 +54,19 @@ julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
 
 julia> R === S === T
 true
+
+```
+
+```jldoctest
+julia> R1, _ = polynomial_ring(ZZ, [:x, :y, :z]);
+
+julia> R2, _ = polynomial_ring(ZZ, ["x", "y", "z"]);
+
+julia> R3, _ = polynomial_ring(ZZ, ['x', 'y', 'z']);
+
+julia> R1 === R2 === R3
+true
+
 ```
 
 ```jldoctest
@@ -126,10 +138,10 @@ Rational field
 
 ```jldoctest
 julia> GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> GF(ZZ(2)^127 - 1)
-Finite field of degree 1 over GF(170141183460469231731687303715884105727)
+Prime field of characteristic 170141183460469231731687303715884105727
 
 ```
 
@@ -137,7 +149,7 @@ Finite field of degree 1 over GF(170141183460469231731687303715884105727)
 
 ```jldoctest
 julia> finite_field(2, 70, "a")
-(Finite field of degree 70 over GF(2), a)
+(Finite field of degree 70 and characteristic 2, a)
 
 ```
 
@@ -151,13 +163,13 @@ julia> K, a = number_field(t^2 + 1, "a")
 (Number field of degree 2 over QQ, a)
 
 julia> F = GF(3)
-Finite field of degree 1 over GF(3)
+Prime field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
-(Univariate polynomial ring in t over GF(3), t)
+(Univariate polynomial ring in t over F, t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
-(Finite field of degree 2 over GF(3), a)
+(Finite field of degree 2 and characteristic 3, a)
 
 ```
 
@@ -222,15 +234,15 @@ we follow the former book.
     asking that $G$ is free and that the degree zero part consists of the constants only (see Theorem 8.6 in [MS05](@cite)).
 
 !!! note
-    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && ngens(G) == rank(G) == m`
+    Given a  `G`-grading on `R` in OSCAR, we say that `R` is *$\mathbb Z^m$-graded* if `is_free(G) && number_of_generators(G) == rank(G) == m`
     evaluates to `true`. In this case, conversion routines allow one to switch back and forth between elements
     of `G` and integer vectors of length `m`. Specifically, if `R` is *$\mathbb Z$-graded*, that is,
-    `is_free(G) && ngens(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
+    `is_free(G) && number_of_generators(G) == rank(G) == 1` evaluates to `true`,  elements of `G` may be converted
     to integers and vice versa.
 
 ### Types
 
-Multivariate rings with gradings are modelled by objects of type
+Multivariate rings with gradings are modeled by objects of type
 `MPolyDecRing{T, S}  :< MPolyRing{T}`, with elements of type
 `MPolyRingElem_dec{T, S}  :< MPolyRingElem{T}`. Here, `S` is the element type of the
 multivariate ring, and  `T` is the element type of its coefficient ring as above.
@@ -253,7 +265,7 @@ While the `grade` function allows one to create a graded ring by assigning a gra
 the `graded_polynomial_ring` function is meant to create a graded polynomial ring all at once.
 
 ```@docs
-grade(R::MPolyRing, W::Vector{GrpAbFinGenElem})
+grade(R::MPolyRing, W::Vector{FinGenAbGroupElem})
 ```
 
 ```@docs
@@ -264,7 +276,7 @@ grade(R::MPolyRing, W::Vector{<:Vector{<:IntegerUnion}})
 grade(R::MPolyRing, W::Vector{<:IntegerUnion})
 ```
 ```@docs
-graded_polynomial_ring(C::Ring, V::Vector{String}, W; ordering=:lex)
+graded_polynomial_ring(C::Ring, V::Vector{String}, W)
 ```
 
 ## Tests on Graded Rings
@@ -292,7 +304,7 @@ Given a multivariate polynomial ring `R` with coefficient ring `C`,
 
 - `coefficient_ring(R)` refers to `C`,
 - `gens(R)` to the generators (variables) of `R`,
-- `ngens(R)` to the number of these generators, and
+- `number_of_generators(R)` / `ngens(R)` to the number of these generators, and
 - `gen(R, i)` as well as `R[i]` to the `i`-th such generator.
 
 ###### Examples
@@ -316,7 +328,7 @@ y
 julia> R[3]
 z
 
-julia> ngens(R)
+julia> number_of_generators(R)
 3
 
 ```
@@ -328,11 +340,11 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
-monomial_basis(R::MPolyDecRing, g::GrpAbFinGenElem)
+monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
-homogeneous_component(R::MPolyDecRing, g::GrpAbFinGenElem)
+homogeneous_component(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -406,7 +418,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of Multivariate polynomial ring in 2 variables over QQ
+Builder for an element of R
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 
@@ -434,7 +446,7 @@ Given an element `f` of a multivariate polynomial ring `R` or a graded version o
     the notion of total degree ignores the weights given to the variables in the graded case.
 
 For iterators which allow one to recover the monomials  (terms, $\dots$) of `f` we refer to the
-subsection *Monomials, Terms, and More* of the section on *Gröbner/Standard Bases*.
+subsection [Monomials, Terms, and More](@ref monomials_terms_more) of the section on [Gröbner/Standard Bases](@ref gb_fields).
 
 ###### Examples
 
@@ -459,7 +471,7 @@ x^3*y^2 + 2*x + 3*y
 
 julia> parent(f)
 Multivariate polynomial ring in 2 variables x, y
-  over finite field of degree 1 over GF(5)
+  over prime field of characteristic 5
 
 julia> total_degree(f)
 5
@@ -472,7 +484,7 @@ homogeneous_components(f::MPolyDecRingElem{T, S}) where {T, S}
 ```
 
 ```@docs
-homogeneous_component(f::MPolyDecRingElem, g::GrpAbFinGenElem)
+homogeneous_component(f::MPolyDecRingElem, g::FinGenAbGroupElem)
 ```
 
 ```@docs
@@ -504,5 +516,5 @@ refer to `R` and `S`, respectively.
 !!! note
     The OSCAR homomorphism type `AffAlgHom` models ring homomorphisms `R` $\to$ `S` such that
     the type of both `R` and `S`  is a subtype of `Union{MPolyRing{T}, MPolyQuoRing{U}}`, where `T <: FieldElem` and
-    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on affine algebras.
+    `U <: MPolyRingElem{T}`. Functionality for these homomorphism is discussed in the section on [affine algebras](@ref affine_algebras).
 

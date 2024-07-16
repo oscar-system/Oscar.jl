@@ -43,12 +43,27 @@ Global Tate model over a concrete base
 ```
 """
 function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completeness_check::Bool = true) where {T<:MPolyRingElem}
-  @req length(ais) == 5 "We require exactly 5 Tate sections"
-  @req all(k -> parent(k) == cox_ring(base), ais) "All Tate sections must reside in the Cox ring of the base toric variety"
+  @req length(ais) == 5 "All the Tate sections a1, a2, a3, a4, a6 must be provided"
+  return global_tate_model(base, Dict("a1" => ais[1], "a2" => ais[2], "a3" => ais[3], "a4" => ais[4], "a6" => ais[5]), Dict{String, MPolyRingElem}(); completeness_check = completeness_check)
+end
+
+function global_tate_model(base::NormalToricVariety,
+                           explicit_model_sections::Dict{String, <: Union{MPolyRingElem, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}},
+                           defining_section_parametrization::Dict{String, MPolyRingElem};
+                           completeness_check::Bool = true)
+  vs = collect(values(explicit_model_sections))
+  @req all(k -> parent(k) == cox_ring(base), vs) "All Tate sections must reside in the Cox ring of the base toric variety"
+  @req haskey(explicit_model_sections, "a1") "Tate section a1 must be specified"
+  @req haskey(explicit_model_sections, "a2") "Tate section a2 must be specified"
+  @req haskey(explicit_model_sections, "a3") "Tate section a3 must be specified"
+  @req haskey(explicit_model_sections, "a4") "Tate section a4 must be specified"
+  @req haskey(explicit_model_sections, "a6") "Tate section a6 must be specified"
+  vs2 = collect(keys(defining_section_parametrization))
+  @req all(x -> x in ["a1", "a2", "a3", "a4", "a6"], vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   if completeness_check
@@ -60,12 +75,13 @@ function global_tate_model(base::NormalToricVariety, ais::Vector{T}; completenes
   set_coordinate_names(fiber_ambient_space, ["x", "y", "z"])
   D1 = 2 * anticanonical_divisor_class(base)
   D2 = 3 * anticanonical_divisor_class(base)
-  ambient_space = _ambient_space(base, fiber_ambient_space, D1, D2)
+  D3 = trivial_divisor_class(base)
+  ambient_space = _ambient_space(base, fiber_ambient_space, [D1, D2, D3])
   
   # construct the model
+  ais = [explicit_model_sections["a1"], explicit_model_sections["a2"], explicit_model_sections["a3"], explicit_model_sections["a4"], explicit_model_sections["a6"]]
   pt = _tate_polynomial(ais, cox_ring(ambient_space))
-  model = GlobalTateModel(ais[1], ais[2], ais[3], ais[4], ais[5], pt, base, ambient_space)
-  set_attribute!(model, :base_fully_specified, true)
+  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base, ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -127,49 +143,52 @@ Global Tate model over a not fully specified base
 """
 function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   
-  # Is there a grading [1, 0, ..., 0]?
-  Kbar_grading_present = false
-  for i in 1:ncols(auxiliary_base_grading)
-    col = auxiliary_base_grading[:,i]
-    if length(col) == 1 && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-    if Set(col[2:length(col)]) == Set([0]) && col[1] == 1
-      Kbar_grading_present = true
-      break;
-    end
-  end
-  
-  # If Kbar is not present, extend the auxiliary_base_vars accordingly as well as the grading
-  auxiliary_base_vars = gens(auxiliary_base_ring)
-  gens_base_names = [string(g) for g in auxiliary_base_vars]
-  if Kbar_grading_present == false
-    @req ("Kbar" in gens_base_names) == false "Variable Kbar used as base variable, but grading of Kbar not introduced."
-    Kbar_grading = [0 for i in 1:nrows(auxiliary_base_grading)]
-    Kbar_grading[1] = 1
-    auxiliary_base_grading = hcat(auxiliary_base_grading, Kbar_grading)
-    push!(gens_base_names, "Kbar")
-  end
-  
   # Execute consistency checks
+  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
-    @vprint :GlobalTateModel 0 "Variable names duplicated between base and fiber coordinates.\n"
+    @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
   # inform about the assume Kbar grading
-  @vprint :FTheoryConstructorInformation 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
+  @vprint :FTheoryModelPrinter 0 "Assuming that the first row of the given grading is the grading under Kbar\n\n"
   
-  # Construct the model
+  # Compute the Tate polynomial
   (S, auxiliary_base_space, auxiliary_ambient_space) = _construct_generic_sample(auxiliary_base_grading, gens_base_names, d)
   ring_map = hom(parent(ais[1]), S, gens(S)[1:ngens(parent(ais[1]))])
   (a1, a2, a3, a4, a6) = [ring_map(k) for k in ais]
   pt = _tate_polynomial([a1, a2, a3, a4, a6], coordinate_ring(auxiliary_ambient_space))
-  model = GlobalTateModel(a1, a2, a3, a4, a6, pt, auxiliary_base_space, auxiliary_ambient_space)
-  set_attribute!(model, :base_fully_specified, false)
+
+  # Compute explicit model sections
+  explicit_model_sections = Dict("a1" => a1, "a2" => a2, "a3" => a3, "a4" => a4, "a6" => a6)
+  section_candidates = gens(S)
+  for k in section_candidates
+    haskey(explicit_model_sections, string(k)) || (explicit_model_sections[string(k)] = k)
+  end
+
+  # Compute defining_section_parametrization
+  defining_section_parametrization = Dict{String, MPolyRingElem}()
+  vars_S = [string(k) for k in gens(S)]
+  if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
+    defining_section_parametrization["a1"] = a1
+  end
+  if !("a2" in vars_S) || (a2 != eval_poly("a2", parent(a2)))
+    defining_section_parametrization["a2"] = a2
+  end
+  if !("a3" in vars_S) || (a3 != eval_poly("a3", parent(a3)))
+    defining_section_parametrization["a3"] = a3
+  end
+  if !("a4" in vars_S) || (a4 != eval_poly("a4", parent(a4)))
+    defining_section_parametrization["a4"] = a4
+  end
+  if !("a6" in vars_S) || (a6 != eval_poly("a6", parent(a6)))
+    defining_section_parametrization["a6"] = a6
+  end
+
+  # Compute model and return it
+  model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, auxiliary_base_space, auxiliary_ambient_space)
   set_attribute!(model, :partially_resolved, false)
   return model
 end
@@ -187,7 +206,7 @@ function Base.show(io::IO, t::GlobalTateModel)
   else
     push!(properties_string, "Global Tate model over a")
   end
-  if base_fully_specified(t)
+  if is_base_space_fully_specified(t)
     push!(properties_string, "concrete base")
   else
     push!(properties_string, "not fully specified base")

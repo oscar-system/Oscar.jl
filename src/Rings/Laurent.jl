@@ -13,7 +13,7 @@ import AbstractAlgebra: LaurentMPolyRing, LaurentMPolyRingElem
   end
 end
 
-mutable struct LaurentMPolyIdeal{T}
+mutable struct LaurentMPolyIdeal{T} <: Ideal{T}
   R
   gens::Vector{T}
   data # ideal of of _polyringquo(R)
@@ -61,7 +61,7 @@ function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
     C = base_ring(R)
-    Cx, x = polynomial_ring(C, append!(["x$i" for i in 1:n], ["x$i^-1" for i in 1:n]))
+    Cx, x = polynomial_ring(C, append!(["x$i" for i in 1:n], ["x$i^-1" for i in 1:n]); cached = false)
     I = ideal(Cx, [x[i]*x[i + n] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
@@ -176,7 +176,7 @@ end
 (f::LaurentMPolyAnyMap)(g::LaurentMPolyRingElem) = image(f, g)
 
 # preimage for ideals
-function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyIdeal) where {X, Y, Z}
+function preimage(f::MPolyAnyMap{X, <: LaurentMPolyRing, Y, Z}, I::LaurentMPolyIdeal) where {X<:Union{MPolyRing, MPolyQuoRing}, Y, Z}
   R = domain(f)
   S = codomain(f)
   if coefficient_ring(R) === base_ring(S) && f.(gens(R)) == gens(S)
@@ -207,6 +207,8 @@ end
 ################################################################################
 
 base_ring(I::LaurentMPolyIdeal{T}) where {T} = I.R::parent_type(T)
+
+base_ring_type(::Type{LaurentMPolyIdeal{T}}) where {T} = parent_type(T)
 
 gens(I::LaurentMPolyIdeal) = I.gens
 

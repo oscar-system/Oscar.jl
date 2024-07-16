@@ -567,7 +567,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
 
     local ff
     try
-      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
+      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F; cached=false)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
     catch e
       @show e
       return nothing
@@ -626,7 +626,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
   return ps, emb
 end
 
-function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, r::Generic.RelSeries{qadic})
+function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQFieldElem}}, r::Generic.RelSeries{QadicFieldElem})
 #  @show "testing", r, "against", B
   p = bound_to_precision(G, B)
   p2 = min(p[2], precision(r))
@@ -706,11 +706,11 @@ function valuation_of_roots(f::QQPolyRingElem, p)
   return valuation_of_roots(numerator(f), p)
 end
 
-function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   dev = collect(coefficients(f))
   d = degree(base_ring(f))
   a = Tuple{Int, Int}[]
-  #careful: valuation is q-valued, normalised for val(p) == 1
+  #careful: valuation is q-valued, normalized for val(p) == 1
   #         lines have Int corredinated, so we scale by the degree of the field
   # => the slopes are also multiplied by this!!!
   for i = 0:length(dev) -1
@@ -723,7 +723,7 @@ function Hecke.newton_polygon(f::T) where T <: Generic.Poly{S} where S <: Union{
   return NewtonPolygon(P, f, gen(parent(f)), p, [parent(f)(x) for x = dev])
 end
 
-function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{qadic, padic, Hecke.LocalFieldElem}
+function valuation_of_roots(f::T) where T <: Generic.Poly{S} where S <: Union{QadicFieldElem, PadicFieldElem, Hecke.LocalFieldElem}
   d = degree(base_ring(f))
   return [(QQFieldElem(slope(l)//d), length(l)) for l = Hecke.lines(Hecke.newton_polygon(f))]
 end

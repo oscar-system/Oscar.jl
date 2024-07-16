@@ -7,4 +7,5 @@ CurrentModule = Oscar
 ```@docs
 ProjectiveCurve
 invert_birational_map
+geometric_genus
 ```

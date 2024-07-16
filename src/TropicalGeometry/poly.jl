@@ -97,13 +97,13 @@ Translate the expression in the tropical world.
 
 # Examples
 
-```jlexample
+```jldoctest
 julia> T = tropical_semiring(min);
 
-julia> Tx, x = Tropical.polynomial_ring(T, "x" => 1:3);
+julia> Tx, x = polynomial_ring(T, "x" => 1:3);
 
 julia> @tropical min(1, x[1], x[2], 2*x[3])
-x[1] + x[2] + x[3]^2 + (1)
+x[3]^2 + x[1] + x[2] + (1)
 ```
 """
 macro tropical(expr)
@@ -123,7 +123,7 @@ function _tropicalize(x::Expr)
             x.args[1] = :(+)
         elseif x.args[1] == :(*)
             length(x.args) <= 3 || error("Cannot convert")
-            x.args[1] = :(Tropical._tropical_mul)
+            x.args[1] = :(Oscar._tropical_mul)
         elseif x.args[1] == :(+)
             x.args[1] = :*
                 else
@@ -167,7 +167,7 @@ end
 ################################################################################
 
 @doc raw"""
-    tropical_polynomial(f::MPolyRingElem,nu::TropicalSemiringMap)
+    tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem},nu::TropicalSemiringMap)
 
 Given a polynomial `f` and a tropical semiring map `nu`,
 return the tropicalization of `f` as a polynomial over the tropical semiring.
@@ -187,10 +187,10 @@ julia> tropical_polynomial(f,nu)
 (1)*x + y + (2)
 ```
 """
-function tropical_polynomial(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+function tropical_polynomial(f::Union{<:MPolyRingElem,<:PolyRingElem}, nu::Union{Nothing,TropicalSemiringMap}=nothing)
 
     # if unspecified, set nu to be the trivial valuation + min convention
-    isnothing(nu) && (nu = tropical_semiring_map(parent(f)))
+    isnothing(nu) && (nu = tropical_semiring_map(coefficient_ring(f)))
 
     T = tropical_semiring(nu)
     Tx,x = polynomial_ring(T,[repr(x) for x in gens(parent(f))])
@@ -204,6 +204,86 @@ function tropical_polynomial(f::MPolyRingElem, nu::Union{Nothing,TropicalSemirin
 end
 
 
+
+################################################################################
+#
+#  Basic functions
+#
+################################################################################
+
+@doc raw"""
+    newton_subdivision(f::Generic.MPoly{TropicalSemiringElem{minOrMax}}) where minOrMax<:Union{typeof(min),typeof(max)}
+
+Return the dual subdivision on `exponents(f)` with weights `coefficients(f)` (min-convention) or `-coefficients(f)` (max-convention).  It is dual to `tropical_hypersurface(f)`.
+
+# Examples
+```jldoctest
+julia> _, (x,y) = polynomial_ring(tropical_semiring(),["x", "y"]);
+
+julia> f = 1+x+y+x^2;
+
+julia> Deltaf = newton_subdivision(f)
+Subdivision of points in ambient dimension 2
+
+julia> points(Deltaf)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [2, 0]
+ [1, 0]
+ [0, 1]
+ [0, 0]
+
+julia> maximal_cells(Deltaf)
+2-element SubObjectIterator{Vector{Int64}}:
+ [2, 3, 4]
+ [1, 2, 3]
+
+```
+"""
+function newton_subdivision(f::Generic.MPoly{TropicalSemiringElem{minOrMax}}) where minOrMax<:Union{typeof(min),typeof(max)}
+    # preserve_ordering=true, since weights of regular subdivisions have to be in min-convention,
+    # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
+    # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
+    weights = QQ.(coefficients(f); preserve_ordering=true)
+    points = matrix(QQ,collect(exponents(f)))
+    return subdivision_of_points(points,weights)
+end
+
+
+@doc raw"""
+    newton_subdivision(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+
+Return the dual subdivision on `exponents(f)` with weights `nu.(coefficients(f))` (min-convention) or `-nu.(coefficients(f))` (max-convention).  It is dual to `tropical_hypersurface(f,nu)`.
+
+# Examples
+```jldoctest
+julia> _, (x,y) = QQ["x", "y"];
+
+julia> nu = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
+
+julia> f = 2+x+y+x^2;
+
+julia> Deltaf = newton_subdivision(f,nu)
+Subdivision of points in ambient dimension 2
+
+julia> points(Deltaf)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [2, 0]
+ [1, 0]
+ [0, 1]
+ [0, 0]
+
+julia> maximal_cells(Deltaf)
+2-element SubObjectIterator{Vector{Int64}}:
+ [2, 3, 4]
+ [1, 2, 3]
+
+```
+"""
+function newton_subdivision(f::MPolyRingElem, nu::Union{Nothing,TropicalSemiringMap}=nothing)
+    tropf = tropical_polynomial(f,nu)
+    return newton_subdivision(tropf)
+end
 
 ################################################################################
 #
@@ -227,7 +307,7 @@ end
 # Field of 7-adic numbers
 
 # julia> Kxy, (x,y) = K["x", "y"]
-# (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{padic}[x, y])
+# (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{PadicFieldElem}[x, y])
 
 # julia> f = 7*x+y+49
 # (7^1 + O(7^3))*x + y + 7^2 + O(7^4)

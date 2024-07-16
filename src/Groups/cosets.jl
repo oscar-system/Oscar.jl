@@ -1,19 +1,20 @@
 # T=type of the group, S=type of the element
-"""
+@doc raw"""
     GroupCoset{T<: Group, S <: GAPGroupElem}
 
-Type of group cosets. It is displayed as `H * x` (right cosets) or `x * H`
-(left cosets), where `H` is a subgroup of a group `G` and `x` is an element of
-`G`. Two cosets are equal if, and only if, they are both left (resp. right)
+Type of group cosets.
+Two cosets are equal if, and only if, they are both left (resp. right)
 and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
-   H::T                    # subgroup
+   H::GAPGroup             # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
    X::GapObj               # GapObj(H*repr)
 end
+
+GAP.julia_to_gap(obj::GroupCoset) = obj.X
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
@@ -26,6 +27,27 @@ function ==(x::GroupCoset, y::GroupCoset)
    return x.X == y.X && x.side == y.side
 end
 
+function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
+  side = x.side === :left ? "Left" : "Right"
+  io = pretty(io)
+  println(io, "$side coset of ", Lowercase(), x.H)
+  print(io, Indent())
+  println(io, "with representative ", x.repr)
+  print(io, "in ", Lowercase(), x.G)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, x::GroupCoset)
+  side = x.side === :left ? "Left" : "Right"
+  if is_terse(io)
+    print(io, "$side coset of a group")
+  else
+    print(io, "$side coset of ")
+    io = pretty(io)
+    print(terse(io), Lowercase(), x.H, " with representative ", x.repr)
+  end
+end
+
 
 """
     right_coset(H::Group, g::GAPGroupElem)
@@ -36,17 +58,21 @@ Return the coset `Hg`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
+
+julia> right_coset(H, g)
+Right coset of Sym(3)
+  with representative (1,3)(2,4,5)
+  in Sym(5)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
 end
@@ -66,28 +92,19 @@ julia> g = perm([3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
-julia> gH = left_coset(H,g)
-Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+julia> gH = left_coset(H, g)
+Left coset of Sym(3)
+  with representative (1,3)(2,4,5)
+  in Sym(5)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
    @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
    return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
 end
 
-function show(io::IO, x::GroupCoset)
-   a = String(GAPWrap.StringViewObj(x.H.X))
-   b = String(GAPWrap.StringViewObj(x.repr.X))
-   if x.side == :right
-      print(io, "Right coset   $a * $b")
-   else
-      print(io, "Left coset   $b * $a")
-   end
-   return nothing
-end
 
 """
     is_left(c::GroupCoset)
@@ -137,19 +154,21 @@ If `C` = `Hx` or `xH`, return `H`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> gH = left_coset(H,g)
-Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+Left coset of Sym(3)
+  with representative (1,3)(2,4,5)
+  in Sym(5)
 
 julia> acting_domain(gH)
-Permutation group of degree 3 and order 6
+Sym(3)
 ```
 """
 acting_domain(C::GroupCoset) = C.H
@@ -162,16 +181,18 @@ If `C` = `Hx` or `xH`, return `x`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
-julia> gH = left_coset(H,g)
-Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 3 ] )
+julia> gH = left_coset(H, g)
+Left coset of Sym(3)
+  with representative (1,3)(2,4,5)
+  in Sym(5)
 
 julia> representative(gH)
 (1,3)(2,4,5)
@@ -189,16 +210,18 @@ is the case if and only if the coset representative normalizes the acting domain
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> H = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> g = perm(G,[3,4,1,5,2])
 (1,3)(2,4,5)
 
-julia> gH = left_coset(H,g)
-Left coset   (1,3)(2,4,5) * Sym( [ 1 .. 4 ] )
+julia> gH = left_coset(H, g)
+Left coset of Sym(4)
+  with representative (1,3)(2,4,5)
+  in Sym(5)
 
 julia> is_bicoset(gH)
 false
@@ -206,8 +229,10 @@ false
 julia> f = perm(G,[2,1,4,3,5])
 (1,2)(3,4)
 
-julia> fH = left_coset(H,f)
-Left coset   (1,2)(3,4) * Sym( [ 1 .. 4 ] )
+julia> fH = left_coset(H, f)
+Left coset of Sym(4)
+  with representative (1,2)(3,4)
+  in Sym(5)
 
 julia> is_bicoset(fH)
 true
@@ -216,78 +241,149 @@ true
 is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
 
 """
-    right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
-Return the vector of the right cosets of `H` in `G`.
-
-If `check == false`, do not check whether `H` is a subgroup of `G`.
-
-# Examples
-```jldoctest
-julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
-
-julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
-
-julia> right_cosets(G,H)
-4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Right coset   Sym( [ 1 .. 3 ] ) * ()
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,2)
- Right coset   Sym( [ 1 .. 3 ] ) * (1,4,3)
-```
-"""
-function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-  t = right_transversal(G, H, check = check)
-  return [right_coset(H, x) for x in t]
-end
-
-"""
-    left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-
-Return the vector of the left cosets of `H` in `G`.
+Return the G-set that describes the right cosets of `H` in `G`.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
-julia> left_cosets(G,H)
+julia> rc = right_cosets(G, H)
+Right cosets of
+  Sym(3) in
+  Sym(4)
+
+julia> collect(rc)
 4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
- Left coset   () * Sym( [ 1 .. 3 ] )
- Left coset   (1,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,2,4) * Sym( [ 1 .. 3 ] )
- Left coset   (1,3,4) * Sym( [ 1 .. 3 ] )
+ Right coset of H with representative ()
+ Right coset of H with representative (1,4)
+ Right coset of H with representative (1,4,2)
+ Right coset of H with representative (1,4,3)
 ```
 """
-function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
-  t = left_transversal(G, H, check = check)
-  return [left_coset(H, x) for x in t]
+function right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
+  return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
 """
-    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+
+Return the G-set that describes the left cosets of `H` in `G`.
+
+If `check == false`, do not check whether `H` is a subgroup of `G`.
+
+# Examples
+```jldoctest
+julia> G = symmetric_group(4)
+Sym(4)
+
+julia> H = symmetric_group(3)
+Sym(3)
+
+julia> left_cosets(G, H)
+Left cosets of
+  Sym(3) in
+  Sym(4)
+```
+"""
+function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
+  return GSetBySubgroupTransversal(G, H, :left, check = check)
+end
+
+
+@doc raw"""
+    SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
+
+Type of left/right transversals of subgroups in groups.
+The elements are encoded via a right transversal object in GAP.
+(Note that GAP does not support left transversals.)
+
+Objects of this type are created by [`right_transversal`](@ref) and
+[`left_transversal`](@ref).
+"""
+struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
+   G::T                    # big group containing the subgroup
+   H::S                    # subgroup
+   side::Symbol            # says if the transversal is left or right
+   X::GapObj               # underlying *right* transversal in GAP
+end
+
+function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
+  side = x.side === :left ? "Left" : "Right"
+  println(io, "$side transversal of length $(length(x)) of")
+  io = pretty(io)
+  print(io, Indent())
+  println(io, Lowercase(), x.H, " in")
+  print(io, Lowercase(), x.G)
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, x::SubgroupTransversal)
+  side = x.side === :left ? "Left" : "Right"
+  if is_terse(io)
+    print(io, "$side transversal of groups")
+  else
+    print(io, "$side transversal of ")
+    io = pretty(io)
+    print(terse(io), Lowercase(), x.H, " in ", Lowercase(), x.G)
+  end
+end
+
+Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
+
+Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
+
+function Base.getindex(T::SubgroupTransversal, i::Int)
+  res = group_element(T.G, T.X[i])
+  if T.side === :left
+    res = inv(res)
+  end
+  return res
+end
+
+# in order to make `T[end]` work
+Base.size(T::SubgroupTransversal) = (index(Int, T.G, T.H),)
+Base.lastindex(T::SubgroupTransversal) = length(T)
+
+# in order to make `findfirst` and `findall` work
+function Base.keys(T::SubgroupTransversal)
+    return keys(1:length(T))
+end
+
+
+"""
+    right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
+This vector is not mutable, and it does not store its entries explicitly,
+they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
-julia> right_transversal(G,H)
+julia> T = right_transversal(G, H)
+Right transversal of length 4 of
+  Sym(3) in
+  Sym(4)
+
+julia> collect(T)
 4-element Vector{PermGroupElem}:
  ()
  (1,4)
@@ -295,36 +391,39 @@ julia> right_transversal(G,H)
  (1,4,3)
 ```
 """
-function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   L = GAP.Globals.RightTransversal(G.X,H.X)
-#TODO: The object returned by GAP tries to avoid the overhead of explicitly
-#      listing all elements.
-#      Eventually, we should use similar iterable objects in Oscar.
-   l = Vector{elem_type(G)}(undef, length(L))
-   for i in 1:length(l)
-      l[i] = group_element(G,L[i])
+function right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
    end
-   return l
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :right,
+              GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 """
-    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
+    left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
+This vector is not mutable, and it does not store its entries explicitly,
+they are created anew with each access to the transversal.
 
 If `check == false`, do not check whether `H` is a subgroup of `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
-julia> left_transversal(G,H)
+julia> T = left_transversal(G, H)
+Left transversal of length 4 of
+  Sym(3) in
+  Sym(4)
+
+julia> collect(T)
 4-element Vector{PermGroupElem}:
  ()
  (1,4)
@@ -332,38 +431,42 @@ julia> left_transversal(G,H)
  (1,3,4)
 ```
 """
-function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   return [x^-1 for x in right_transversal(G, H, check = check)]
+function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :left,
+              GAP.Globals.RightTransversal(G.X, H.X))
 end
 
 Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
 
 
 
-"""
+@doc raw"""
     GroupDoubleCoset{T<: Group, S <: GAPGroupElem}
 
-Group double coset. It is displayed as `H * x * K`, where `H` and `K` are
-subgroups of a group `G` and `x` is an element of `G`. Two double cosets are
-equal if, and only if, they contain the same elements.
+Group double coset.
+Two double cosets are equal if, and only if, they contain the same elements.
 """
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
    G::T
-   H::T
-   K::T
+   H::GAPGroup
+   K::GAPGroup
    repr::S
    X::GapObj
 end
+
+GAP.julia_to_gap(obj::GroupDoubleCoset) = obj.X
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
@@ -372,12 +475,25 @@ function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
    return x.X == y.X
 end
 
+function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
+  io = pretty(io)
+  println(io, "Double coset of ", Lowercase(), x.H)
+  print(io, Indent())
+  println(io, "and ", Lowercase(), x.K)
+  println(io, "with representative ", x.repr)
+  print(io, "in ", Lowercase(), x.G)
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, x::GroupDoubleCoset)
-  print(io, String(GAPWrap.StringViewObj(x.H.X)),
-            " * ",
-            String(GAPWrap.StringViewObj(x.repr.X)),
-            " * ",
-            String(GAPWrap.StringViewObj(x.K.X)))
+  if is_terse(io)
+    print(io, "Double coset of a group")
+  else
+    print(io, "Double coset of ")
+    io = pretty(io)
+    print(terse(io), Lowercase(), x.H,
+      " and ", Lowercase(), x.K, " with representative ", x.repr)
+  end
 end
 
 
@@ -390,22 +506,26 @@ Return the double coset `HxK`.
 # Examples
 ```jldoctest
 julia> G = symmetric_group(5)
-Permutation group of degree 5 and order 120
+Sym(5)
 
 julia> g = perm(G,[3,4,5,1,2])
 (1,3,5,2,4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> K = symmetric_group(2)
-Permutation group of degree 2 and order 2
+Sym(2)
 
 julia> double_coset(H,g,K)
-Sym( [ 1 .. 3 ] ) * (1,3,5,2,4) * Sym( [ 1 .. 2 ] )
+Double coset of Sym(3)
+  and Sym(2)
+  with representative (1,3,5,2,4)
+  in Sym(5)
 ```
 """
-function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
+function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+#T what if g is in some subgroup of a group of which G, H are also a subgroup?
    @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
    @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
    return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
@@ -414,30 +534,30 @@ end
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
-    double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+    double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
 
-Return the vector of all the double cosets `HxK` for `x` in `G`.
+Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
 
 # Examples
 ```jldoctest
 julia> G = symmetric_group(4)
-Permutation group of degree 4 and order 24
+Sym(4)
 
 julia> H = symmetric_group(3)
-Permutation group of degree 3 and order 6
+Sym(3)
 
 julia> K = symmetric_group(2)
-Permutation group of degree 2 and order 2
+Sym(2)
 
 julia> double_cosets(G,H,K)
 3-element Vector{GroupDoubleCoset{PermGroup, PermGroupElem}}:
- Sym( [ 1 .. 3 ] ) * () * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4) * Sym( [ 1 .. 2 ] )
- Sym( [ 1 .. 3 ] ) * (1,4,3) * Sym( [ 1 .. 2 ] )
+ Double coset of H and K with representative ()
+ Double coset of H and K with representative (1,4)
+ Double coset of H and K with representative (1,4,3)
 ```
 """
-function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
    if !check
       dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
    else
@@ -503,9 +623,7 @@ Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
 
 function Base.iterate(G::GroupDoubleCoset, state)
-  if GAPWrap.IsDoneIterator(state)
-    return nothing
-  end
+  GAPWrap.IsDoneIterator(state) && return nothing
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end

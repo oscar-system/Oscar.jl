@@ -1,11 +1,17 @@
 ```@meta
 CurrentModule = Oscar.OrthogonalDiscriminants
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Miscellaneous functions
+
+## Utilities
+
+```@docs
+is_orthogonally_stable
+show_with_ODs
+show_OD_info
+```
 
 ## Functions related to Specht modules
 

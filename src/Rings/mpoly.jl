@@ -15,104 +15,11 @@
 # (:x), (:x, :y), (:x, :y, :z)
 # (:x1, :x2, ...)
 function _variables_for_singular(n::Int)
-  n > 3 && return _make_strings("x#" => 1:n)
+  n > 3 && return [Symbol("x[$i]") for i in 1:n]
   return [ :x, :y, :z ][1:n]
 end
 _variables_for_singular(S::Vector{Symbol}) = _variables_for_singular(length(S))
 
-# To turn "x", 'x' or :x, (1, 2, 3) into x[1, 2, 3]
-_make_variable(a, i) = _make_variable(String(a), i)
-
-function _make_variable(a::String, i)
-  ii = join(i, ", ")
-  if occursin('#', a)
-    aa = replace(a, '#' => "$ii")
-  else
-    if Hecke.inNotebook()
-      aa = "$(a)_{$ii}"
-    else
-      aa = "$a[$ii]"
-    end
-  end
-  return Symbol(aa)
-end
-
-# Type stable recursive function to create strings from "a" => 1:2 or
-# "a" => (1:3, 1:3)
-function _make_strings(v::Pair{<:VarName, <:Any})
-  lv = last(v)
-  if lv isa Tuple
-    p = Iterators.product(lv...)
-  else
-    p = lv
-  end
-  res = Symbol[]
-  a = first(v)
-  for i in p
-    push!(res, _make_variable(a, i))
-  end
-  return res
-end
-
-function _make_strings(v)
-  s = _make_strings(first(v))
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _make_strings(Base.tail(v))...)
-end
-
-# Type stable recursive function that given a vector of
-# variables (or any polynomials) and v = "a" => 1:2 or "a" =>
-# (1:2, 1:3) extracts the first variables into an
-# n-dimensional array with the given dimensions.
-# For example, _collect_variables([x1, x2, x3, x4, x5], "a" => (1:2, 1:2))
-# returns [x1 x3; x2 x4], 5
-function _collect_variables(c::Vector, v::Pair, start = 1)
-  lv = last(v)
-  if lv isa Tuple
-    res = Array{eltype(c)}(undef, map(length, lv))
-  else
-    res = Vector{eltype(c)}(undef, length(lv))
-  end
-  for i in eachindex(res)
-    res[i] = c[start]
-    start += 1
-  end
-  return res, start
-end
-
-function _collect_variables(c, v, start = 1)
-  s, next = _collect_variables(c, first(v), start)
-  if length(v) == 1
-    return (s, )
-  end
-  return tuple(s, _collect_variables(c, Base.tail(v), next)...)
-end
-
-function Base.getindex(R::MPolyRing, i::Int)
-  i == 0 && return zero(R)
-  return gen(R, i)
-end
-
-ngens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: MPolyRingElem} = ngens(base_ring(F))
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}) where {T <: PolyRingElem}
-  return F(gen(base_ring(F)))
-end
-
-function gen(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  return F(gen(base_ring(F), i))
-end
-
-function gens(F::AbstractAlgebra.Generic.FracField{T}) where {T <: Union{PolyRingElem, MPolyRingElem}}
-  return map(F, gens(base_ring(F)))
-end
-
-function Base.getindex(F::AbstractAlgebra.Generic.FracField{T}, i::Int) where {T <: MPolyRingElem}
-  i == 0 && return zero(F)
-  return gen(F, i)
-end
 
 ######################################################################
 # pretty printing for iJulia notebooks..
@@ -156,12 +63,70 @@ using .Orderings
 #type for orderings, use this...
 #in general: all algos here needs revision: do they benefit from gb or not?
 
-function default_ordering(R::MPolyRing)
-  return get_attribute!(R, :default_ordering) do
-    degrevlex(R)
-  end
+@doc raw"""
+    default_ordering(R::MPolyRing)
+
+Return the monomial ordering that is used for computations with ideals in `R`
+if no other ordering is specified -- either directly by the user or by
+requirements of a specific algorithm.
+"""
+@attr MonomialOrdering{T} function default_ordering(R::T) where {T<:MPolyRing}
+  return degrevlex(R)
 end
 
+# Only for internal use
+function set_default_ordering!(R::MPolyRing, o::MonomialOrdering)
+  @assert R === base_ring(o)
+  set_attribute!(R, :default_ordering, o)
+  return nothing
+end
+
+@doc raw"""
+    with_ordering(f, R::MPolyRing, o::MonomialOrdering)
+
+Use the monomial ordering `o` for computations in `R` during the execution of
+`f`.
+This may be used with `do` block syntax, see the example.
+
+This functionality is meant for advanced users. In general it should not be
+necessary to explicitly set a monomial ordering.
+Further, there is no guarantee that `o` is actually used. For example, if an
+algorithm requires an elimination ordering, `o` might be ignored.
+
+# Example
+```jldoctest withordering
+julia> R, (x, y, z) = QQ["x", "y", "z"];
+
+julia> f = x + y^2;
+
+julia> I = ideal(R, [y^2 - z, x - z^2]);
+
+julia> normal_form(f, I) # this uses degrevlex
+x + z
+
+julia> with_ordering(R, lex(R)) do
+           # this uses lex
+           normal_form(f, I)
+       end
+z^2 + z
+```
+Notice that in this small example we could have achieved the same by using the
+keyword argument `ordering`:
+```jldoctest withordering
+julia> normal_form(f, I, ordering = lex(R))
+z^2 + z
+```
+"""
+function with_ordering(f, R::MPolyRing, o::MonomialOrdering)
+  old = default_ordering(R)
+  set_default_ordering!(R, o)
+  x = try
+    f()
+  finally
+    set_default_ordering!(R, old)
+  end
+  return x
+end
 
 mutable struct BiPolyArray{S}
   Ox::NCRing #Oscar Poly Ring or Algebra
@@ -235,8 +200,8 @@ mutable struct IdealGens{S}
       r.gens = BiPolyArray(Ox, S)
       r.isGB = S.isGB
       r.isReduced = isReduced
-      if T <: Union{MPolyRing, MPolyRingLoc}
-          r.ord = monomial_ordering(Ox, ordering(base_ring(S)))
+      if T <: MPolyRing
+          r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true
       return r
@@ -278,27 +243,53 @@ function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   end
 end
 
+function show(io::IO, ::MIME"text/plain", I::IdealGens)
+  io = pretty(io)
+  if I.isGB
+    if is_global(I.ord)
+      print(io, LowercaseOff(), "Gröbner basis")
+    else
+      print(io, "Standard basis")
+    end
+    print(io, " with elements", Indent())
+    for (i, g) in enumerate(gens(I))
+        print(io, "\n", i, " -> ", OscarPair(g, I.ord))
+    end
+    print(io, Dedent())
+    print(io, "\nwith respect to the ordering")
+    print(io, Indent(), "\n", I.ord, Dedent())
+  else
+    print(io, "Ideal generating system with elements")
+    print(io, Indent())
+    for (i,g) in enumerate(gens(I))
+      print(io, "\n", i, " -> ", g)
+    end
+    print(io, Dedent())
+    if isdefined(I, :ord)
+      print(io, "\nwith associated ordering")
+      print(io, Indent(), "\n", I.ord, Dedent())
+    end
+  end
+end
+
 function show(io::IO, I::IdealGens)
   if I.isGB
-      if is_global(I.ord)
-          print(io, "Gröbner basis with elements")
-      else
-          print(io, "Standard basis with elements")
-      end
-      for (i,g) in enumerate(gens(I))
-          print(io, "\n", i, " -> ", OscarPair(g, I.ord))
-      end
-      print(io, "\nwith respect to the ordering")
-      print(io, "\n", I.ord)
+    io = pretty(io)
+    if is_global(I.ord)
+      print(io, LowercaseOff(), "Gröbner basis")
+    else
+      print(io, "Standard basis")
+    end
+    if !is_terse(io)
+      print(io, " with $(ItemQuantity(length(I), "element"))")
+      print(io, " w.r.t. ", I.ord)
+    end
   else
-      print(io, "Ideal generating system with elements")
-      for (i,g) in enumerate(gens(I))
-          print(io, "\n", i, " -> ", g)
-      end
-      if isdefined(I, :ord)
-          print(io, "\nwith associated ordering")
-          print(io, "\n", I.ord)
-      end
+    print(io, "Ideal generating system")
+    if !is_terse(io)
+      print(io, " with $(ItemQuantity(length(I), "element"))")
+      print(io, " with associated ordering ", I.ord)
+    end
   end
 end
 
@@ -389,14 +380,14 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   singular_assure(B)
   # in case of quotient rings, monomial ordering is ignored so far in singular_poly_ring
   isa(B.gens.Ox, MPolyQuoRing) && return B.gens.S
-  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, ordering(base_ring(B.S))) == B.ord && return B.gens.S
+  isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
   return Singular.map_ideal(f, B.gens.S)
 end
 
 @doc raw"""
-set_ordering(I::IdealGens, monord::MonomialOrdering)
+    set_ordering(I::IdealGens, monord::MonomialOrdering)
 
 Return an ideal generating system with an associated monomial ordering.
 
@@ -410,10 +401,10 @@ julia> g = generating_system(I);
 
 julia> set_ordering(g, degrevlex(gens(R)))
 Ideal generating system with elements
-1 -> x0*x1
-2 -> x2
+  1 -> x0*x1
+  2 -> x2
 with associated ordering
-degrevlex([x0, x1, x2])
+  degrevlex([x0, x1, x2])
 ```
 """
 function set_ordering(G::IdealGens, monord::MonomialOrdering)
@@ -488,14 +479,14 @@ end
 
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
-singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
+singular_coeff_ring(::ZZRing) = Singular.Integers()
+singular_coeff_ring(::QQField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::fpField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
-  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))
+function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
+  return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
 end
 
 singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
@@ -503,7 +494,7 @@ singular_poly_ring(R::Singular.PolyRing; keep_ordering::Bool = true) = R
 # Note: Several Singular functions crash if they get the catch-all
 # Singular.CoefficientRing(F) instead of the native Singular equivalent as
 # conversions to/from factory are not implemented.
-function singular_coeff_ring(K::AnticNumberField)
+function singular_coeff_ring(K::AbsSimpleNumField)
   minpoly = defining_polynomial(K)
   Qa = parent(minpoly)
   a = gen(Qa)
@@ -531,7 +522,7 @@ function singular_coeff_ring(F::fqPolyRepField)
 end
 
 # Nonsense for FqField (aka fq_default from flint)
-function singular_coeff_ring(F::Nemo.FqField)
+function singular_coeff_ring(F::FqField)
   # we are way beyond type stability, so just do what you want
   @assert is_absolute(F)
   ctx = Nemo._fq_default_ctx_type(F)
@@ -622,7 +613,7 @@ function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = ordering(Rx),
+              ordering = internal_ordering(Rx),
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
@@ -638,7 +629,7 @@ function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
               cached = false)[1]
 end
 
-function singular_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
+function singular_poly_ring(Rx::MPolyRing{T}, ord::Singular.sordering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
               ordering = ord,
@@ -691,7 +682,7 @@ Fields:
   function MPolyIdeal(Ox::T, s::Singular.sideal) where {T <: MPolyRing}
     r = MPolyIdeal(IdealGens(Ox, s))
     #=if s.isGB
-      ord = monomial_ordering(Ox, ordering(base_ring(s)))
+      ord = monomial_ordering(Ox, Singular.ordering(base_ring(s)))
       r.ord = ord
       r.isGB = true
       r.gb[ord] = r.gens
@@ -716,12 +707,6 @@ Fields:
     end
     return r
   end
-end
-
-@enable_all_show_via_expressify MPolyIdeal
-
-function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
 end
 
 function ideal(g::Vector{Any})
@@ -813,15 +798,6 @@ function oscar_assure(B::IdealGens)
   oscar_assure(B.gens)
 end
 
-function Base.copy(f::MPolyRingElem)
-    Ox = parent(f)
-    g = MPolyBuildCtx(Ox)
-    for (c,e) = Base.Iterators.zip(MPolyCoeffs(f), MPolyExponentVectors(f))
-        push_term!(g, c, e)
-    end
-    return finish(g)
-end
-
 function map_entries(R, M::Singular.smatrix)
   s = nrows(M), ncols(M)
   S = parent(R(zero(base_ring(M))))
@@ -841,8 +817,8 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
 julia> generating_system(I)
 Ideal generating system with elements
-1 -> x^2 + x
-2 -> x^2 + x*y - y^2 - 2*y
+  1 -> x^2 + x
+  2 -> x^2 + x*y - y^2 - 2*y
 ```
 """
 function generating_system(I::MPolyIdeal)
@@ -1266,21 +1242,6 @@ end
 #
 ##############################################################################
 
-#=
-function factor(f::MPolyRingElem)
-  I = ideal(parent(f), [f])
-  fS = Singular.factor(I.gens[Val(:S), 1])
-  R = parent(f)
-  return Nemo.Fac(R(fS.unit), Dict(R(k) =>v for (k,v) = fS.fac))
-end
-=#
-
-# generic fallback since this is not implemented specifically anywhere yet
-function is_irreducible(a::MPolyRingElem)
-  af = factor(a)
-  return !(length(af.fac) > 1 || any(x->x>1, values(af.fac)))
-end
-
 ################################################################################
 
 @doc raw"""
@@ -1341,7 +1302,3 @@ function hessian_matrix(f::MPolyRingElem)
 end
 
 hessian(f::MPolyRingElem) = det(hessian_matrix(f))
-
-function set_default_ordering!(S::MPolyRing, ord::MonomialOrdering)
-  set_attribute!(S, :default_ordering, ord)
-end

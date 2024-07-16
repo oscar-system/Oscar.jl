@@ -60,7 +60,7 @@ function gen(I::LieAlgebraIdeal, i::Int)
   return I.gens[i]
 end
 
-function ngens(I::LieAlgebraIdeal)
+function number_of_generators(I::LieAlgebraIdeal)
   return length(gens(I))
 end
 
@@ -101,7 +101,9 @@ dim(I::LieAlgebraIdeal) = length(basis(I))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
+function Base.show(io::IO, mime::MIME"text/plain", I::LieAlgebraIdeal)
+  @show_name(io, I)
+  @show_special(io, mime, I)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie algebra ideal")
   println(io, Indent(), "of dimension $(dim(I))", Dedent())
@@ -113,12 +115,14 @@ function Base.show(io::IO, ::MIME"text/plain", I::LieAlgebraIdeal)
 end
 
 function Base.show(io::IO, I::LieAlgebraIdeal)
+  @show_name(io, I)
+  @show_special(io, I)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra ideal")
   else
     print(io, LowercaseOff(), "Lie algebra ideal of dimension $(dim(I)) over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(I))
+    print(terse(io), base_lie_algebra(I))
   end
 end
 

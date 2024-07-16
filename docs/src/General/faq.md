@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Frequently Asked Questions
@@ -78,7 +76,7 @@ our context due to two independent problems:
 At least two reasons:
   - The type depends on data that is not a bit-type.
   - Even if it could, it is not desirable. Typical example: computations in
-    ``Z/nZ``, so modular arithmetic. If ``n`` is small, then it is tempting to
+    ``\mathbb Z/n\mathbb Z``, so modular arithmetic. If ``n`` is small, then it is tempting to
     define a type `T` depending on ``n``. We actually did this, and tried to
     use this. It did not work well, for various reasons. E.g.:
 
@@ -102,7 +100,7 @@ In OSCAR, the role of the type is split between the actual Julia type and the
 
 Almost all element-like objects in OSCAR have a parent, i.e., they belong to
 some larger structure. For example algebraic numbers belong to a number field,
-modular integers belong to a ring ``Z/nZ``, permutations are elements of
+modular integers belong to a ring ``\mathbb Z/n\mathbb Z``, permutations are elements of
 permutation groups and so on. The data common to all such elements is
 out-sourced to the parent. For a number field for example, the parent contains
 the polynomial used to define the field (plus other information).
@@ -114,9 +112,20 @@ even if `zero(typeof(elm))` may not.
 
 ---
 
-**Q: How can I install or access custom GAP packages (e.g. unpublished ones)?**
+**Q: How can I access or install custom GAP packages (e.g. unpublished ones)?**
 
-TODO
+An already locally installed GAP package can be loaded into the OSCAR session
+via `GAP.Packages.load`, where the first argument is the local path to the
+package directory (the one that contains the `PackageInfo.g` file).
+This works only if no other version of this package has been loaded already.
+
+If Oscar loads the package in question already on startup
+but you want a different version of this package to be loaded,
+you can force this by storing the desired version in the `pkg` subdirectory
+of the user's root directory (`GAPInfo.UserGapRoot` in GAP).
+
+Installing a new GAP package for which you know the URL of a package archive
+can be done via `GAP.Packages.install`, where the first argument is this URL.
 
 ---
 
@@ -124,7 +133,13 @@ TODO
 
 Many of the algorithms implemented in OSCAR have a very high complexity. Even
 if not calling one of these algorithms directly, you may be using it in the
-background. Please read our page on [Complex Algorithms in OSCAR].
+background. Please read our page on [Complex Algorithms in OSCAR](@ref).
+
+---
+
+**Q: How do I cite OSCAR?**
+
+Please see [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
 
 ---
 ## Windows specific

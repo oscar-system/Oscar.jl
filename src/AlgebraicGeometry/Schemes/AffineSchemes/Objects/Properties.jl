@@ -3,7 +3,7 @@
 ####################################################################################
 
 @doc raw"""
-    is_empty(X::AbsSpec)
+    is_empty(X::AbsAffineScheme)
 
 Check whether the affine scheme ``X`` is empty.
 
@@ -24,24 +24,24 @@ julia> isempty(EmptyScheme(QQ))
 true
 ```
 """
-Base.isempty(X::AbsSpec) = iszero(one(OO(X)))
+Base.isempty(X::AbsAffineScheme) = iszero(one(OO(X)))
 is_empty(X::EmptyScheme) = true
 
 
 
 ####################################################################################
-# (2) IsSubset for all other schemes
+# (2) is_subscheme for all other schemes
 ####################################################################################
 
 
-# (2.0) For empty schemes and whenever issubset cannot be implemented
+# (2.0) For empty schemes and whenever is_subscheme cannot be implemented
 
 
 @doc raw"""
-    is_subset(X::AbsSpec, Y::AbsSpec)
+    is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 Check whether ``X`` is a subset of ``Y`` based on the comparison of their coordinate rings.
-See [`inclusion_morphism(::AbsSpec, ::AbsSpec)`](@ref) for the corresponding morphism.
+See [`inclusion_morphism(::AbsAffineScheme, ::AbsAffineScheme)`](@ref) for the corresponding morphism.
 
 # Examples
 ```jldoctest
@@ -65,39 +65,39 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
-julia> is_subset(X, Y)
+julia> is_subscheme(X, Y)
 false
 
-julia> is_subset(Y, X)
+julia> is_subscheme(Y, X)
 true
 ```
 """
-function issubset(X::AbsSpec, Y::AbsSpec)
-  error("method `issubset(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
+function is_subscheme(X::AbsAffineScheme, Y::AbsAffineScheme)
+  error("method `is_subscheme(X, Y)` not implemented for `X` of type $(typeof(X)) and `Y` of type $(typeof(Y))")
 end
 
-issubset(X::EmptyScheme{BRT}, Y::Scheme{BRT}) where {BRT} = true
+is_subscheme(X::EmptyScheme{BRT}, Y::Scheme{BRT}) where {BRT} = true
 
-function issubset(Y::AbsSpec{BRT, <:Any}, X::EmptyScheme{BRT}) where {BRT}
+function is_subscheme(Y::AbsAffineScheme{BRT, <:Any}, X::EmptyScheme{BRT}) where {BRT}
   return iszero(one(OO(Y)))
 end
 
 
 # (2.1) MPolyRing in first argument
 
-function issubset(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
+  ) where {BRT}
   return OO(X) === OO(Y)
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyRing}, 
-    Y::AbsSpec{BRT, <:MPolyQuoRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -105,9 +105,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -115,21 +115,21 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
   R = OO(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(ambient_closure_ideal(Y))
+  return issubset(inverted_set(OO(Y)), units_of(R)) && iszero(saturated_ideal(defining_ideal(Y)))
 end
 
 
 # (2.2) MPolyQuoRing in first argument
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
   R === ambient_coordinate_ring(X) || return false
@@ -137,19 +137,19 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  return issubset(ambient_closure_ideal(Y), ambient_closure_ideal(X))
+  return issubset(saturated_ideal(defining_ideal(Y)), saturated_ideal(defining_ideal(X)))
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -158,9 +158,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -171,9 +171,9 @@ end
 
 # (2.3) MPolyLocRing in first argument
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -181,9 +181,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -191,10 +191,10 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyLocRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -203,9 +203,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -217,9 +217,9 @@ end
 
 # (2.4) MPolyQuoLocRing in first argument
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyRing}
   ) where {BRT}
   R = OO(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -227,9 +227,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoRing}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoRing}
   ) where {BRT}
   R = ambient_coordinate_ring(Y)
   R == ambient_coordinate_ring(X) || return false
@@ -238,9 +238,9 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
   ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -256,10 +256,10 @@ function issubset(
 end
 
 
-function issubset(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT}
-  ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOfElement}}
+  ) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -274,9 +274,9 @@ function issubset(
   return issubset(J, modulus(OO(X)))
 end
 
-function issubset(
-    X::AbsSpec{BRT, <:MPolyQuoLocRing},
-    Y::AbsSpec{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
+function is_subscheme(
+    X::AbsAffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AbsAffineScheme{BRT, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}}) where {BRT}
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
   UX = inverted_set(OO(X))
@@ -294,7 +294,7 @@ end
 #TODO: Add more cross-type methods as needed.
 
 @doc raw"""
-    is_open_embedding(X::AbsSpec, Y::AbsSpec)
+    is_open_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 Checks whether ``X`` is openly embedded in ``Y``.
 
@@ -320,7 +320,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
 julia> is_open_embedding(Y, X)
 false
@@ -336,14 +336,14 @@ julia> is_open_embedding(Z, X)
 true
 ```
 """
-function is_open_embedding(X::AbsSpec, Y::AbsSpec)
+function is_open_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
   return is_open_embedding(standard_spec(X), standard_spec(Y))
 end
 
 
 function is_open_embedding(
-    X::Spec{BRT, RT},
-    Y::Spec{BRT, RT}
+    X::AffineScheme{BRT, RT},
+    Y::AffineScheme{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
@@ -352,13 +352,13 @@ function is_open_embedding(
   UY = inverted_set(OO(Y))
   issubset(UY, UX) || return false
   J = localized_ring(OO(X))(modulus(underlying_quotient(OO(Y))))
-  return modulus(OO(X)) == J 
+  return modulus(OO(X)) == J
 end
 
 
 function is_open_embedding(
-    X::Spec{BRT, <:MPolyQuoLocRing},
-    Y::Spec{BRT, <:MPolyRing}
+    X::AffineScheme{BRT, <:MPolyQuoLocRing},
+    Y::AffineScheme{BRT, <:MPolyRing}
   ) where {BRT}
   return OO(Y) == ambient_coordinate_ring(X) && all(iszero, gens(modulus(OO(X))))
 end
@@ -370,7 +370,7 @@ end
 ####################################################################################
 
 @doc raw"""
-    is_closed_embedding(X::AbsSpec, Y::AbsSpec)
+    is_closed_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
 
 Checks whether ``X`` is closed embedded in ``Y``.
 
@@ -396,7 +396,7 @@ Spectrum
   of quotient
     of multivariate polynomial ring in 3 variables x1, x2, x3
       over rational field
-    by ideal(x1*x2)
+    by ideal (x1*x2)
 
 julia> is_closed_embedding(Y, X)
 true
@@ -412,22 +412,22 @@ julia> is_closed_embedding(Z, X)
 false
 ```
 """
-function is_closed_embedding(X::AbsSpec, Y::AbsSpec)
+function is_closed_embedding(X::AbsAffineScheme, Y::AbsAffineScheme)
   error("`is_closed_embedding(X, Y)` not implemented for X of type $(typeof(X)) and Y of type $(typeof(Y))")
 end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing},
-    Y::AbsSpec{<:Ring, <:MPolyRing}
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoRing},
+    Y::AbsAffineScheme{<:Ring, <:MPolyRing}
   )
   return ambient_coordinate_ring(X) === ambient_coordinate_ring(Y)
 end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyRing},
-    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
+    X::AbsAffineScheme{<:Ring, <:MPolyRing},
+    Y::AbsAffineScheme{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -436,8 +436,8 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuoRing},
-    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoRing},
+    Y::AbsAffineScheme{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -446,8 +446,8 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyRing},
-    Y::AbsSpec{<:Ring, <:MPolyRing}
+    X::AbsAffineScheme{<:Ring, <:MPolyRing},
+    Y::AbsAffineScheme{<:Ring, <:MPolyRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -456,10 +456,10 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any, <:Any, <:Any, <:Any,
                                             <:MPolyPowersOfElement}},
 
-    Y::AbsSpec{<:Ring, <:MPolyRing}
+    Y::AbsAffineScheme{<:Ring, <:MPolyRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
@@ -471,14 +471,14 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, 
+    X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                               <:MPolyPowersOfElement}},
 
-    Y::AbsSpec{<:Ring, <:MPolyQuoRing}
+    Y::AbsAffineScheme{<:Ring, <:MPolyQuoRing}
   )
   R = ambient_coordinate_ring(X)
   R === ambient_coordinate_ring(Y) || return false
-  for x in inverted_set(OO(X)) 
+  for x in inverted_set(OO(X))
     is_unit(OO(Y)(x)) || return false
   end
   for g in gens(modulus(OO(Y)))
@@ -489,8 +489,8 @@ end
 
 
 function is_closed_embedding(
-    X::AbsSpec{BRT, RT},
-    Y::AbsSpec{BRT, RT}
+    X::AbsAffineScheme{BRT, RT},
+    Y::AbsAffineScheme{BRT, RT}
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
@@ -502,8 +502,8 @@ end
 
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuoRing},
-    Y::Spec{BRT, <:MPolyRing}
+    X::AffineScheme{BRT, <:MPolyQuoRing},
+    Y::AffineScheme{BRT, <:MPolyRing}
   ) where {BRT}
   OO(Y) === ambient_coordinate_ring(X) || return false
   return true
@@ -511,8 +511,8 @@ end
 
 
 function is_closed_embedding(
-    X::Spec{BRT, <:MPolyQuoRing},
-    Y::Spec{BRT, <:RT}
+    X::AffineScheme{BRT, <:MPolyQuoRing},
+    Y::AffineScheme{BRT, <:RT}
   ) where {BRT, RT<:MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any,
                                           <:MPolyPowersOfElement}}
   R = ambient_coordinate_ring(X)
@@ -522,12 +522,12 @@ function is_closed_embedding(
 end
 
 #############################################################################
-# (5) Check, if a Spec is equidimensional
+# (5) Check, if an AffineScheme is equidimensional
 #############################################################################
 # TODO: projective schemes, covered schemes
 
 @doc raw"""
-   is_equidimensional(X::AbsSpec{<:Field, <:MPolyAnyRing}) 
+    is_equidimensional(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Check whether the scheme `X` is equidimensional.
 
@@ -541,24 +541,27 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[(x-y)])
-ideal(x - y)
+Ideal generated by
+  x - y
 
 julia> J = ideal(R,[x-1,y-2])
-ideal(x - 1, y - 2)
+Ideal generated by
+  x - 1
+  y - 2
 
-julia> X = Spec(R,I)
+julia> X = spec(R,I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x - y)
+    by ideal (x - y)
 
-julia> Y = Spec(R,I*J)
+julia> Y = spec(R,I*J)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
+    by ideal (x^2 - x*y - x + y, x*y - 2*x - y^2 + 2*y)
 
 julia> is_equidimensional(X)
 true
@@ -567,16 +570,20 @@ julia> is_equidimensional(Y)
 false
 ```
 """
-@attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+## equidimensional decomposition only available for schemes over a field
+@attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = modulus(OO(X))
-# equidimensional decomposition only available for schemes over a field
+  if has_attribute(I, :is_equidimensional)
+    return is_equidimensional(I)
+  end
+
   P = equidimensional_decomposition_radical(saturated_ideal(I))
   length(P) < 2 && return true
   return false
 end
 
 # make is_equidimensional agnostic to quotient
-@attr Bool function is_equidimensional(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+@attr Bool function is_equidimensional(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   return true
 end
 
@@ -586,25 +593,25 @@ end
 # TODO: projective schemes
 
 @doc raw"""
-   is_reduced(X::AbsSpec{<:Field, <:MPolyAnyRing})
+    is_reduced(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Check whether the affine scheme `X` is reduced.
 """
-@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+@attr Bool function is_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   I = saturated_ideal(modulus(OO(X)))
-  return is_reduced(quo(base_ring(I), I)[1])
+  return is_radical(I)
 end
 
 ## make is_reduced agnostic to quotient ring
-@attr Bool function is_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+@attr Bool function is_reduced(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   return true
 end
 
-@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyNonQuoRing})
+@attr Bool function is_geometrically_reduced(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   return true
 end
 
-@attr Bool function is_geometrically_reduced(X::AbsSpec{<:Field, <:MPAnyQuoRing})
+@attr Bool function is_geometrically_reduced(X::AbsAffineScheme{<:Field, <:MPAnyQuoRing})
   F = base_ring(X)
   # is_perfect(F) # needs new AbstractAlgebra version
   if characteristic(F) == 0 || F isa FinField  # F is perfect
@@ -616,16 +623,16 @@ end
 ########################################################################
 # (7) Smoothness test based on projective modules.
 # The routine checks whether the module for the cotangent sheaf Ω¹(X)
-# is locally free over 𝒪(X) and returns `true` if this is the case. 
+# is locally free over 𝒪(X) and returns `true` if this is the case.
 ########################################################################
 # TODO: is_regular using Hironaka's criterion
 
 @doc raw"""
-    is_smooth(X::AbsSpec{<:Field, <:MPolyAnyRing})
+    is_smooth(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
 
 Check whether the scheme `X` is smooth.
 
-Note that smoothness and regularity do not coincide over non-perfect fields. 
+Note that smoothness and regularity do not coincide over non-perfect fields.
 Smoothness implies regularity, but regular non-smooth schemes exist.
 
 See also [`singular_locus`](@ref), [`singular_locus_reduced`](@ref).
@@ -641,27 +648,29 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R,[x-y^2])
-ideal(x - y^2)
+Ideal generated by
+  x - y^2
 
 julia> J = ideal(R,[x^2-y^2])
-ideal(x^2 - y^2)
+Ideal generated by
+  x^2 - y^2
 
-julia> X = Spec(R, I)
+julia> X = spec(R, I)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x - y^2)
+    by ideal (x - y^2)
 
 julia> is_smooth(X)
 true
 
-julia> Y = Spec(R, J)
+julia> Y = spec(R, J)
 Spectrum
   of quotient
     of multivariate polynomial ring in 2 variables x, y
       over rational field
-    by ideal(x^2 - y^2)
+    by ideal (x^2 - y^2)
 
 julia> is_smooth(Y)
 false
@@ -671,13 +680,13 @@ Complement
   of maximal ideal corresponding to rational point with coordinates (1, 1)
   in multivariate polynomial ring in 2 variables over QQ
 
-julia> Z = Spec(R, J, U)
+julia> Z = spec(R, J, U)
 Spectrum
   of localization
     of quotient
       of multivariate polynomial ring in 2 variables x, y
         over rational field
-      by ideal(x^2 - y^2)
+      by ideal (x^2 - y^2)
     at complement of maximal ideal of point (1, 1)
 
 julia> is_smooth(Z)
@@ -685,7 +694,7 @@ true
 
 ```
 """
-@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoLocRing})
+@attr Bool function is_smooth(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   R = base_ring(OO(X))
   L = localized_ring(OO(X))
   I = modulus(OO(X))
@@ -696,7 +705,7 @@ true
   return success
 end
 
-@attr Bool function is_smooth(X::AbsSpec{<:Field, <:MPolyQuoRing})
+@attr Bool function is_smooth(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   R = base_ring(OO(X))
   I = modulus(OO(X))
   f = gens(I)
@@ -707,8 +716,8 @@ end
 end
 
 ## make is_smooth agnostic to quotient ring
-is_smooth(X::AbsSpec{<:Field, <:MPolyRing}) = true
-is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
+is_smooth(X::AbsAffineScheme{<:Field, <:MPolyRing}) = true
+is_smooth(X::AbsAffineScheme{<:Field, <:MPolyLocRing}) = true
 
 ###################################################################
 # Irreducibility and Integrality                                  #
@@ -717,7 +726,7 @@ is_smooth(X::AbsSpec{<:Field, <:MPolyLocRing}) = true
 #    irreducible = nilradical of OO(X) is prime                   #
 ###################################################################
 @doc raw"""
-   is_irreducible(X::AbsSpec)
+    is_irreducible(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is irreducible.
 
@@ -725,22 +734,23 @@ Check whether the affine scheme `X` is irreducible.
     Irreducibility is checked over the (computable) base field of the affine scheme as specified upon creation of the ring, not over the algebraic closure thereof.
 
 """
-@attr Bool function is_irreducible(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_irreducible(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
-  !get_attribute(X, :is_integral, false) || return true 
+  !get_attribute(X, :is_integral, false) || return true
                                            ## integral = irreducible + reduced
-  return (length(minimal_primes(saturated_ideal(modulus(OO(X))))) == 1)
+  I = saturated_ideal(modulus(OO(X)))
+  return is_primary(I)
 end
 
-is_irreducible(X::AbsSpec{<:Field,<:MPolyRing}) = true
-is_irreducible(X::AbsSpec{<:Field,<:MPolyLocRing}) = true
+is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyRing}) = true
+is_irreducible(X::AbsAffineScheme{<:Field,<:MPolyLocRing}) = true
 
 @doc raw"""
-   is_integral(X::AbsSpec)
+    is_integral(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is integral, i.e. irreducible and reduced.
 """
-@attr Bool function is_integral(X::AbsSpec{<:Field, <:MPolyAnyRing})
+@attr Bool function is_integral(X::AbsAffineScheme{<:Field, <:MPolyAnyRing})
   !is_empty(X) || return false
   if has_attribute(X,:is_reduced) && has_attribute(X,:is_irreducible)
      return get_attribute(X,:is_reduced) && get_attribute(X,:is_irreducible)
@@ -749,20 +759,20 @@ Check whether the affine scheme `X` is integral, i.e. irreducible and reduced.
 end
 
 @doc raw"""
-    is_geometrically_integral(X::AbsSpec)
+    is_geometrically_integral(X::AbsAffineScheme)
 
 Test if ``X/k`` is geometrically integral.
 
 That is if ``X`` is integral when base changed to any field extension of ``k``.
 """
-@attr Bool function is_geometrically_integral(X::AbsSpec{<:Field,<:MPolyAnyRing})
+@attr Bool function is_geometrically_integral(X::AbsAffineScheme{<:Field,<:MPolyAnyRing})
   is_integral(X) || return false
   throw(NotImplementedError(:is_geometrically_integral, "absolute primary decomposition is currently only available over the rationals"))
 end
 
-@attr Bool function is_geometrically_integral(X::AbsSpec{<:QQField, <:MPolyAnyRing})
+@attr Bool function is_geometrically_integral(X::AbsAffineScheme{<:QQField, <:MPolyAnyRing})
   is_integral(X) || return false
-  I = ambient_closure_ideal(X)
+  I = saturated_ideal(defining_ideal(X))
   AI = absolute_primary_decomposition(I)
   @assert length(AI)==1 # it is prime since X is integral
   return AI[1][4]==1
@@ -772,11 +782,11 @@ end
 # Connectedness                                                   #
 ###################################################################
 @doc raw"""
-   is_connected(X::AbsSpec)
+    is_connected(X::AbsAffineScheme)
 
 Check whether the affine scheme `X` is connected.
 """
-@attr Bool function is_connected(X::AbsSpec)
+@attr Bool function is_connected(X::AbsAffineScheme)
   error("not implemented yet")
 ## note for future implementation: expensive property
 ## 1) do primary decomposition

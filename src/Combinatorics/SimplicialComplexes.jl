@@ -13,26 +13,33 @@ pm_object(K::SimplicialComplex) = K.pm_simplicialcomplex
 
 
 @doc raw"""
-    SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
+    simplical_complex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
 
 Construct an abstract simplicial complex from a set of faces.
 While arbitrary non-negative integers are allowed as vertices, they will be relabeled to consecutive integers starting at 1.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]])
+julia> K = simplicial_complex([[1,2,3],[2,3,4]])
 Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> G = complete_bipartite_graph(2,3)
+Undirected graph with 5 nodes and the following edges:
+(3, 1)(3, 2)(4, 1)(4, 2)(5, 1)(5, 2)
+
+julia> K = simplicial_complex(G)
+Abstract simplicial complex of dimension 1 on 5 vertices
 ```
 
 Simplicial complex comprising the empty set only:
 ```jldoctest
-julia> empty = SimplicialComplex(Vector{Set{Int}}([]))
+julia> empty = simplicial_complex(Vector{Set{Int}}([]))
 Abstract simplicial complex of dimension -1 on 0 vertices
 ```
 
 The original vertices can be recovered:
 ```jldoctest
-julia> L = SimplicialComplex([[0,2,17],[2,17,90]]);
+julia> L = simplicial_complex([[0,2,17],[2,17,90]]);
 
 julia> facets(L)
 2-element Vector{Set{Int64}}:
@@ -47,21 +54,27 @@ julia> vertexindices(L)
  90
 ```
 """
-function SimplicialComplex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}})
-    K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
-    SimplicialComplex(K)
+function simplicial_complex(generators::Union{AbstractVector{<:AbstractVector{<:Base.Integer}}, AbstractVector{<:AbstractSet{<:Base.Integer}}})
+  K = Polymake.topaz.SimplicialComplex(INPUT_FACES=generators)
+  SimplicialComplex(K)
 end
 
-function SimplicialComplex(generators::IncidenceMatrix)
-    K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
-    SimplicialComplex(K)
+function simplicial_complex(generators::IncidenceMatrix)
+  K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
+  simplicial_complex(K)
+end
+
+function simplicial_complex(G::Graph)
+  IM = incidence_matrix(G)
+  edges_as_rows = IncidenceMatrix(transpose(IM))
+  simplicial_complex(edges_as_rows)
 end
 
 # more efficient UNEXPORTED+UNDOCUMENTED version, which requires consecutive vertices, and facets as generators;
 # will produce errors / segfaults or worse if used improperly
 function _SimplicialComplex(generators::Union{Vector{Vector{Int}}, Vector{Set{Int}}})
-    K = Polymake.topaz.SimplicialComplex(FACETS=generators)
-    SimplicialComplex(K)
+  K = Polymake.topaz.SimplicialComplex(FACETS=generators)
+  SimplicialComplex(K)
 end
     
 ################################################################################
@@ -77,13 +90,17 @@ function vertexindices(K::SimplicialComplex)
     end
 end
 
-function _convert_finitely_generated_abelian_group(A::Polymake.HomologyGroupAllocated{Polymake.Integer})
-    vec = zeros(Int, Polymake.betti_number(A))
-    torsion_i = Polymake.torsion(A)
-    for (p,k) in torsion_i
-        append!(vec, fill(p,k))
-    end
-    return abelian_group(vec)
+function _convert_finitely_generated_abelian_group(A::Polymake.Array{Polymake.HomologyGroup{Polymake.Integer}},
+                                                   h_index::Int)
+  # we return non-reduced homology and cohomology
+  B = A[h_index + 1] # index shift
+  betti_number = is_zero(h_index) ? Polymake.betti_number(B) + 1 : Polymake.betti_number(B)
+  vec = zeros(Int, betti_number)
+  torsion_i = Polymake.torsion(B)
+  for (p,k) in torsion_i
+    append!(vec, fill(p,k))
+  end
+  return abelian_group(vec)
 end
 
 ################################################################################
@@ -91,17 +108,24 @@ end
 ################################################################################
 
 @doc raw"""
-    nvertices(K::SimplicialComplex)
+    n_vertices(K::SimplicialComplex)
 
 Return the number of vertices of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> nvertices(torus())
+julia> n_vertices(torus())
 7
 ```
 """
-nvertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
+n_vertices(K::SimplicialComplex) = pm_object(K).N_VERTICES::Int
+
+@doc raw"""
+    n_facets(K::SimplicialComplex)
+
+Return the number of facets of the abstract simplicial complex `K`.
+"""
+n_facets(K::SimplicialComplex) = pm_object(K).N_FACETS::Int
 
 @doc raw"""
     facets(K::SimplicialComplex)
@@ -186,34 +210,33 @@ euler_characteristic(K::SimplicialComplex) = pm_object(K).EULER_CHARACTERISTIC::
 @doc raw"""
     homology(K::SimplicialComplex, i::Int)
 
-Return `i`-th reduced integral homology group of `K`.
-Recall that the 0-th homology group is trivial if and only if `K` is connected.
+Return `i`-th integral homology group of `K`.
 
 # Examples
 ```jldoctest
 julia> [ homology(real_projective_plane(), i) for i in [0,1,2] ]
-3-element Vector{GrpAbFinGen}:
- GrpAb: Z/1
- GrpAb: Z/2
- GrpAb: Z/1
+3-element Vector{FinGenAbGroup}:
+ Z
+ Z/2
+ Z/1
 ```
 """
-homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY[i+1]) # index shift
+homology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).HOMOLOGY, i)
 
 @doc raw"""
     cohomology(K::SimplicialComplex, i::Int)
 
-Return `i`-th reduced integral cohomology group of `K`.
+Return `i`-th integral cohomology group of `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[0,1],[1,2],[0,2]]);
+julia> K = simplicial_complex([[0,1],[1,2],[0,2]]);
 
 julia> cohomology(K,1)
-GrpAb: Z
+Z
 ```
 """
-cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY[i+1]) # index shift
+cohomology(K::SimplicialComplex, i::Int) = _convert_finitely_generated_abelian_group(pm_object(K).COHOMOLOGY, i)
 
 @doc raw"""
     minimal_nonfaces(K::SimplicialComplex)
@@ -222,7 +245,7 @@ Return the minimal non-faces of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> minimal_nonfaces(K)
 1-element Vector{Set{Int64}}:
@@ -236,7 +259,7 @@ function minimal_nonfaces(::Type{Vector{Set{Int}}}, K::SimplicialComplex)
 end
 function minimal_nonfaces(::Type{IncidenceMatrix}, K::SimplicialComplex)
     # the following line must stay to ensure polymake uses the correct algorithm for the non-faces
-    nv = nvertices(K)
+    nv = n_vertices(K)
     m = pm_object(K).MINIMAL_NON_FACES
     # fix column number (see #1440) until this is fixed in polymake
     if size(m, 2) < nv
@@ -252,7 +275,7 @@ Return the Alexander dual of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> alexander_dual(K)
 Abstract simplicial complex of dimension 1 on 2 vertices
@@ -268,11 +291,21 @@ Return the Stanley-Reisner ideal of the abstract simplicial complex `K`.
 # Examples
 ```jldoctest
 julia> stanley_reisner_ideal(real_projective_plane())
-ideal(x1*x2*x3, x1*x2*x4, x1*x5*x6, x2*x5*x6, x1*x3*x6, x1*x4*x5, x3*x4*x5, x3*x4*x6, x2*x3*x5, x2*x4*x6)
+Ideal generated by
+  x1*x2*x3
+  x1*x2*x4
+  x1*x5*x6
+  x2*x5*x6
+  x1*x3*x6
+  x1*x4*x5
+  x3*x4*x5
+  x3*x4*x6
+  x2*x3*x5
+  x2*x4*x6
 ```
 """
 function stanley_reisner_ideal(K::SimplicialComplex)
-    n = nvertices(K)
+    n = n_vertices(K)
     R, _ = polynomial_ring(QQ, n, cached=false)
     return stanley_reisner_ideal(R, K)
 end
@@ -287,12 +320,25 @@ Return the Stanley-Reisner ideal of the abstract simplicial complex `K`, in the 
 julia> R, _ = QQ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ideal(R, real_projective_plane())
-ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f)
+Ideal generated by
+  a*b*c
+  a*b*d
+  a*e*f
+  b*e*f
+  a*c*f
+  a*d*e
+  c*d*e
+  c*d*f
+  b*c*e
+  b*d*f
 ```
 """
 function stanley_reisner_ideal(R::MPolyRing, K::SimplicialComplex)
-    mnf = minimal_nonfaces(IncidenceMatrix, K)
-    return ideal([ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ])
+  mnf = minimal_nonfaces(IncidenceMatrix, K)
+  gens = [ R([1], [Vector{Int}(mnf[i,:])]) for i in 1:Polymake.nrows(mnf) ]
+  # currently no way to set as a universal groebner basis
+  I = IdealGens(R, gens, default_ordering(R); isGB=true, isReduced=true)
+  return ideal(I)
 end
 
 @doc raw"""
@@ -302,14 +348,14 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> stanley_reisner_ring(K)
-(Quotient of multivariate polynomial ring by ideal(x1*x4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (x1*x4), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
 ```
 """
 function stanley_reisner_ring(K::SimplicialComplex)
-    n = nvertices(K)
+    n = n_vertices(K)
     R, _ = polynomial_ring(QQ, n, cached=false)
     return stanley_reisner_ring(R, K)
 end
@@ -324,7 +370,7 @@ Return the Stanley-Reisner ring of the abstract simplicial complex `K`, as a quo
 julia>  R, _ = ZZ["a","b","c","d","e","f"];
 
 julia> stanley_reisner_ring(R, real_projective_plane())
-(Quotient of multivariate polynomial ring by ideal(a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: multivariate polynomial ring -> quotient of multivariate polynomial ring)
+(Quotient of multivariate polynomial ring by ideal (a*b*c, a*b*d, a*e*f, b*e*f, a*c*f, a*d*e, c*d*e, c*d*f, b*c*e, b*d*f), Map: R -> quotient of multivariate polynomial ring)
 ```
 """
 stanley_reisner_ring(R::MPolyRing, K::SimplicialComplex) = quo(R, stanley_reisner_ideal(R, K))
@@ -365,6 +411,71 @@ function fundamental_group(K::SimplicialComplex)
         return pi_1
     end
 end
+
+################################################################################
+###  Sphere recognition heuristics
+################################################################################
+
+"""
+    is_sphere(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial sphere; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a sphere.
+Returns false if not a sphere.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> is_sphere(K)
+false
+```
+"""
+is_sphere(K::SimplicialComplex) = pm_object(K).SPHERE::Union{Bool,Nothing}
+
+"""
+    is_ball(K::SimplicialComplex)
+
+Heuristically check if the abstract simplicial complex `K` is a combinatorial ball; see [JLLT22](@cite).
+Note that this is undecidable in general.
+Returns true if recognized as a ball.
+Returns false if not a ball.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> is_ball(K)
+true
+```
+"""
+is_ball(K::SimplicialComplex) = pm_object(K).BALL::Union{Bool,Nothing}
+
+"""
+    is_manifold(K::SimplicialComplex)
+
+Check if the abstract simplicial complex `K` is a combinatorial manifold, possibly with boundary.
+Note that this is undecidable in general.
+Returns true if recognized as a manifold.
+Returns false if not a manifold.
+Returns nothing if heuristics unsuccessful.
+
+# Examples
+```jldoctest
+julia> is_manifold(torus())
+true
+
+julia> is_manifold(simplicial_complex([[1,2],[2,3]]))
+true
+
+julia> is_manifold(simplicial_complex([[1,2],[2,3],[2,4]]))
+false
+```
+"""
+is_manifold(K::SimplicialComplex) = pm_object(K).MANIFOLD::Union{Bool,Nothing}
 
 ################################################################################
 ###  Surface examples
@@ -413,7 +524,7 @@ Return the star of the face `sigma` in the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> star_subcomplex(K,[1])
 Abstract simplicial complex of dimension 2 on 3 vertices
@@ -428,7 +539,7 @@ Return the link of the face `sigma` in the abstract simplicial complex `K`.
 
 # Examples
 ```jldoctest
-julia> K = SimplicialComplex([[1,2,3],[2,3,4]]);
+julia> K = simplicial_complex([[1,2,3],[2,3,4]]);
 
 julia> link_subcomplex(K,[2,3])
 Abstract simplicial complex of dimension 0 on 2 vertices
@@ -442,7 +553,143 @@ link_subcomplex(K::SimplicialComplex, sigma::Union{Vector{Int}, Set{Int}}) = Sim
 
 function Base.show(io::IO, K::SimplicialComplex)
     d = dim(K)
-    n = nvertices(K)
+    n = n_vertices(K)
     print(io, "Abstract simplicial complex of dimension $(d) on $(n) vertices")
 end
 
+###############################################################################
+### Isomorphism
+###############################################################################
+
+@doc raw"""
+    is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+
+Checks if the given simplicial complexes are isomorphic.
+
+# Examples
+```jldoctest
+julia> K1 = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> K2 = simplicial_complex([[1,2,3],[2,3,4]]);
+
+julia> is_isomorphic(K1, K2)
+true
+```
+"""
+function is_isomorphic(K1::SimplicialComplex, K2::SimplicialComplex)
+  return Polymake.topaz.isomorphic(pm_object(K1), pm_object(K2))::Bool
+end
+
+###############################################################################
+### helpful functions
+###############################################################################
+
+@doc raw"""
+    connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+
+Compute the connected sum of two abstract simplicial complexes. Parameters `f1` and `f2` specify which facet
+ of the first and second complex correspondingly are glued together. Default is the
+0-th facet of both. The vertices in the selected facets are identified with each
+other according to their order in the facet (that is, in increasing index order).
+
+# Examples
+```jldoctest
+julia> K = torus();
+
+julia> surface_genus_2 = connected_sum(K, K)
+Abstract simplicial complex of dimension 2 on 11 vertices
+
+julia> homology(surface_genus_2, 1)
+Z^4
+
+julia> is_manifold(surface_genus_2)
+true
+```
+"""
+function connected_sum(K1::SimplicialComplex, K2::SimplicialComplex, f1::Int=0, f2::Int=0)
+  return SimplicialComplex(Polymake.topaz.connected_sum(pm_object(K1), pm_object(K2), f1, f2))
+end
+
+@doc raw"""
+    deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+
+Remove the given face and all the faces containing it from an abstract simplicial complex `K`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]]);
+
+julia> K_with_deletion = deletion(K, Set([1, 2]));
+
+julia> facets(K_with_deletion)
+2-element Vector{Set{Int64}}:
+ Set([3, 1])
+ Set([4, 2, 3])
+```
+"""
+function deletion(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+  zero_based = Polymake.to_zero_based_indexing(face)
+  return SimplicialComplex(Polymake.topaz.deletion(pm_object(K), zero_based))
+end
+
+@doc raw"""
+    automorphism_group(K::SimplicialComplex; action=:on_vertices)
+
+Given a simplicial complex `K` return its automorphism group as a `PermGroup`.
+The group can be returned as a subgroup of the permutation group of the vertices
+by passing `:on_vertices` to the `action` keyword argument or on the facets
+ by passing `:on_facets`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> automorphism_group(K)
+Permutation group of degree 4
+```
+"""
+function automorphism_group(K::SimplicialComplex; action=:on_vertices)
+  pm_K = Oscar.pm_object(K)
+  Polymake.topaz.combinatorial_symmetries(pm_K)
+  if action == :on_vertices
+    gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.RAYS_ACTION.GENERATORS)
+    n = n_vertices(K)
+    return permutation_group(n, perm.(gens_G))
+  elseif action == :on_facets
+    gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.FACETS_ACTION.GENERATORS)
+    n = n_facets(K)
+    return permutation_group(n, perm.(gens_G))
+  else
+    error("unsupported keyword passed to action")
+  end
+end
+
+@doc raw"""
+    on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+
+Given a simplicial complex `K` return the simplicial complex corresponding
+to a permutation on it's vertices given by `g`.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3], [2, 3, 4]])
+Abstract simplicial complex of dimension 2 on 4 vertices
+
+julia> G = automorphism_group(K)
+Permutation group of degree 4
+
+julia> g = collect(G)[2]
+(1,4)
+
+julia> facets(on_simplicial_complex(K, g))
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
+```
+"""
+function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+  @req degree(parent(g)) == n_vertices(K) "g needs to be an element of the permutation group on the vertices"
+  new_facets = on_sets_sets(Set(facets(K)), g)
+  simplicial_complex(collect(new_facets))
+end

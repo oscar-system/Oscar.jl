@@ -1,16 +1,11 @@
-using Documenter
-
 # Make sure that the tests start without cached character tables.
 # (Running the tests will store information that changes some test outputs,
 # thus running the tests twice needs these calls.)
 GAP.Globals.UnloadCharacterTableData()
 empty!(Oscar.character_tables_by_id)
 
-#
-# This module only exists to "host" a doctest used by the test suite.
-#
-module AuxDocTest_GroupCharacters
-@doc raw"""
+Oscar.@_AuxDocTest "show and print character tables", (fix = false),
+raw"""
 ```jldoctest group_characters.test
 julia> using Oscar
 
@@ -27,13 +22,13 @@ julia> t_a5_2 = mod(t_a5, 2);
 
 ```jldoctest group_characters.test
 julia> print(t_a4)
-character table of permutation group
+character table of Alt(4)
 
 julia> print(t_a5)
 character table of A5
 
 julia> print(t_a4_2)
-2-modular Brauer table of permutation group
+2-modular Brauer table of Alt(4)
 
 julia> print(t_a5_2)
 2-modular Brauer table of A5
@@ -43,30 +38,30 @@ julia> print(t_a5_2)
 
 ```jldoctest group_characters.test
 julia> show([t_a4])
-Oscar.GAPGroupCharacterTable[character table of permutation group]
+Oscar.GAPGroupCharacterTable[character table of Alt(4)]
 
 julia> show([t_a5])
 Oscar.GAPGroupCharacterTable[character table of A5]
 
 julia> show([t_a4_2])
-Oscar.GAPGroupCharacterTable[2-modular Brauer table of permutation group]
+Oscar.GAPGroupCharacterTable[2-modular Brauer table of Alt(4)]
 
 julia> show([t_a5_2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
-supercompact printing
+terse printing
 ```jldoctest group_characters.test
-julia> print(IOContext(stdout, :supercompact => true), t_a4)
+julia> print(AbstractAlgebra.terse(stdout), t_a4)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5)
+julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
 2-modular Brauer table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
 2-modular Brauer table of a group
 ```
 
@@ -76,7 +71,7 @@ default `show` with unicode
 julia> Oscar.with_unicode() do
          show(stdout, MIME("text/plain"), t_a4)
        end
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
  2  2  2       .       .
  3  1  .       1       1
@@ -95,7 +90,7 @@ default `show` without unicode
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/plain"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
   2  2  2        .        .
   3  1  .        1        1
@@ -114,7 +109,7 @@ LaTeX format
 
 ```jldoctest group_characters.test
 julia> show(stdout, MIME("text/latex"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -140,7 +135,7 @@ in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
        end
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
  2  2  2  .  .
  3  1  .  1  1
@@ -160,7 +155,7 @@ A̅ = ζ₃
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/plain"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
   2  2  2  .  .
   3  1  .  1  1
@@ -181,7 +176,7 @@ A = -z_3 - 1
 ... and in LaTeX format
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :with_legend => true), MIME("text/latex"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
 $\begin{array}{rrrrr}
 2 & 2 & 2 & . & . \\
@@ -605,7 +600,7 @@ show indicators in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :indicator => [2]), MIME("text/plain"), t_a4)
        end
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
     2  2  2       .       .
     3  1  .       1       1
@@ -624,7 +619,7 @@ Character table of permutation group of degree 4 and order 12
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :indicator => [2]), MIME("text/latex"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -649,7 +644,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), t_a4)
        end
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
     2  2  2       .       .
     3  1  .       1       1
@@ -668,7 +663,7 @@ Character table of permutation group of degree 4 and order 12
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), t_a4)
-Character table of permutation group of degree 4 and order 12
+Character table of Alt(4)
 
 $\begin{array}{rrrrrr}
  & 2 & 2 & 2 & . & . \\
@@ -693,7 +688,7 @@ show character field degrees in the screen format ...
 julia> Oscar.with_unicode() do
          show(IOContext(stdout, :character_field => true), MIME("text/plain"), mod(t_a4, 2))
        end
-2-modular Brauer table of permutation group of degree 4 and order 12
+2-modular Brauer table of Alt(4)
 
     2  2       .       .
     3  1       1       1
@@ -711,7 +706,7 @@ julia> Oscar.with_unicode() do
 
 ```jldoctest group_characters.test
 julia> show(IOContext(stdout, :character_field => true), MIME("text/latex"), mod(t_a4, 2))
-2-modular Brauer table of permutation group of degree 4 and order 12
+2-modular Brauer table of Alt(4)
 
 $\begin{array}{rrrrr}
  & 2 & 2 & . & . \\
@@ -727,19 +722,24 @@ $\begin{array}{rrrrr}
 \end{array}
 $
 ```
+
+Test the case where a group has a custom name where the first character
+should not be turned into lowercase
+```jldoctest group_characters.test
+julia> character_table(SL(2,2))
+Character table of SL(2,2)
+
+  2  1  1  .
+  3  1  .  1
+
+    1a 2a 3a
+
+X_1  1 -1  1
+X_2  2  . -1
+X_3  1  1  1
+```
 """
-function dummy_placeholder end
 
-end
-
-
-@testset "show and print character tables" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_GroupCharacters])
-  #doctest(nothing, [AuxDocTest_GroupCharacters]; fix=true)
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
-end
 
 @testset "create character tables" begin
   @testset "library of character tables" begin
@@ -753,7 +753,7 @@ end
 @testset "access fields in character tables" begin
   # table without group
   t = character_table("A5")
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test_throws UndefRefError t.group
   @test_throws UndefRefError t.isomorphism
@@ -761,15 +761,15 @@ end
   # table with `GAPGroup` group
   g = symmetric_group(4)
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
 
-  # table with `GrpAbFinGen` group
+  # table with `FinGenAbGroup` group
   g = abelian_group([2, 4])
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
@@ -782,6 +782,9 @@ end
   @test modtbl === rem(ordtbl, 2)
   @test modtbl === ordtbl % 2
 
+  @test block_distribution(ordtbl, 2) == Dict(:block => [1, 1, 1, 2, 1], :defect => [2, 0])
+  @test block_distribution(ordtbl, 2) == block_distribution(ordtbl, ZZ(2))
+  @test_throws ArgumentError block_distribution(modtbl, 2)
   @test characteristic(ordtbl) == 0
   @test characteristic(modtbl) == 2
   @test character_parameters(ordtbl) == [[1, 1, 1, 1, 1], [[3, 1, 1], '+'], [[3, 1, 1], '-'], [2, 1, 1, 1], [2, 2, 1]]
@@ -825,10 +828,19 @@ end
   @test tr == t[end]
   @test tr == trivial_character(g)
   @test !is_faithful(tr)
+  re = regular_character(g)
+  @test coordinates(re) == degree.(t)
+  re = regular_character(t)
+  @test coordinates(re) == degree.(t)
+  lin = @inferred linear_characters(g)
+  @test length(lin) == 2
+  lin = @inferred linear_characters(t)
+  @test length(lin) == 2
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
   @test [chi[i] for i in 1:5] == values(chi)
+  @test [chi[nam] for nam in class_names(t)] == values(chi)
   @test [2*chi[i] for i in 1:5] == values(chi + chi)
   @test [chi[i]^2 for i in 1:5] == values(chi * chi)
   @test [chi[i]^2 for i in 1:5] == values(chi^2)
@@ -918,6 +930,23 @@ end
   t = character_table(g)
   @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
   @test all(x -> x == QQAbAutomorphism(4)(x), t)
+
+  t = character_table("A5")
+  sums = [galois_orbit_sum(x) for x in t]
+  degrees = [degree(character_field(x)[1]) for x in t]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  m = mod(t, 2)
+  sums = [galois_orbit_sum(x) for x in m]
+  degrees = [degree(character_field(x)[1]) for x in m]
+  @test degrees == [1, 2, 2, 1]
+  @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+
+  # irreducibles not all rational but all are defined over the prime field
+  m = character_table("L3(2)", 2)
+  @test all(x -> x == galois_orbit_sum(x), m)
 end
 
 @testset "induction and restriction of characters" begin
@@ -926,9 +955,10 @@ end
   t = character_table(g)
 
   # `induced_cyclic`: no group is needed
-  indcyc = induced_cyclic(t)
+  indcyc = @inferred induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
+  @test indcyc == @inferred induced_cyclic(t, 1:nrows(t))
 
   # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
@@ -1028,6 +1058,8 @@ end
       F3, _ = QQ[chi]
       @test degree(F1) == degree(F2)
       @test degree(F1) == degree(F3)
+      @test conductor(chi) == conductor(phi)
+      @test conductor(Int, chi) isa Int
       for i in 1:length(chi)
         x = chi[i]
         xF = preimage(phi, x)
@@ -1046,9 +1078,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 
@@ -1060,9 +1092,9 @@ end
   for elm in [gen(F), one(F)]
     img = emb(elm)
     @test preimage(emb, img) == elm
-    @test has_preimage(emb, img) == (true, elm)
+    @test has_preimage_with_preimage(emb, img) == (true, elm)
     z5 = gen(parent(img))(5)
-    @test has_preimage(emb, z5)[1] == false
+    @test has_preimage_with_preimage(emb, z5)[1] == false
     @test_throws ErrorException preimage(emb, z5)
   end
 end
@@ -1164,9 +1196,9 @@ end
     @test symplectic_components(empty, 2) == empty
 end
 
-@testset "character functions for GrpAbFinGen" begin
+@testset "character functions for FinGenAbGroup" begin
   @testset for para in [ Int[], [2, 3, 4], [2, 4] ]
-    G1 = abelian_group(GrpAbFinGen, para)
+    G1 = abelian_group(FinGenAbGroup, para)
     iso = isomorphism(PcGroup, G1)
     G2 = codomain(iso)
     n = Int(order(G1))
@@ -1195,6 +1227,7 @@ end
     @test length(chi) == n
     @test 1 in chi
     @test [chi(representative(c)) for c in conjugacy_classes(tbl1)] == values(chi)
+    @test all(x -> degree(x) == 1, linear_characters(G1))
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
@@ -1218,10 +1251,12 @@ end
     subtbl = character_table(H)
     ind = [chi^tbl1 for chi in subtbl]
     @test all(chi -> degree(chi) == index(G1, H), ind)
+    @test ind == [chi^G1 for chi in subtbl]
 
     # restricted characters
     rest = [restrict(psi, subtbl) for psi in ind]
     @test all(chi -> degree(chi) == index(G1, H), rest)
+    @test rest == [restrict(psi, H) for psi in ind]
 
     # conjugate characters
     H, _ = pcore(G1, 2)
@@ -1257,4 +1292,19 @@ end
       end
     end
   end
+end
+
+@testset "read off group properties from character tables" begin
+  t = character_table("A5")
+  @test ! is_abelian(t)
+  @test is_almost_simple(t)
+  @test ! is_cyclic(t)
+  @test ! is_elementary_abelian(t)
+  @test ! is_nilpotent(t)
+  @test is_perfect(t)
+  @test is_quasisimple(t)
+  @test is_simple(t)
+  @test ! is_solvable(t)
+  @test ! is_sporadic_simple(t)
+  @test ! is_supersolvable(t)
 end
