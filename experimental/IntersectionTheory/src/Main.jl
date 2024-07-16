@@ -266,14 +266,14 @@ tangent_bundle(f::AbstractVarietyMap) = f.T
 @doc raw"""
     cotangent_bundle(f::AbstractVarietyMap)
 
-Return the relative cotangent bundle.
+Return the relative cotangent bundle of `f`.
 """
 cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
 
 @doc raw"""
     todd_class(f::AbstractVarietyMap)
 
-Compute the Todd class of the relative tangent bundle.
+Return the Todd class of the relative tangent bundle of `f`.
 """
 todd_class(f::AbstractVarietyMap) = todd_class(f.T)
 
@@ -352,11 +352,11 @@ function identity_hom(X::V) where V <: AbstractVarietyT
 end
 
 @doc raw"""
-    *(f::AbstractVarietyMap, g::AbstractVarietyMap)
+    compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
 
-Construct the composition morphism $g\circ f: X\to Z$ for $f: X\to Y$ and $g:Y\to Z$.
+Given abstract variety maps `f` : `X` $\to$ `Y` and `g` : `Y` $\to$ `Z`, say, return their composition.
 """
-function *(f::AbstractVarietyMap, g::AbstractVarietyMap)
+function compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
   X, Y = f.domain, f.codomain
   @assert g.domain == Y
   Z = g.codomain
@@ -367,6 +367,8 @@ function *(f::AbstractVarietyMap, g::AbstractVarietyMap)
   gof = AbstractVarietyMap(X, Z, g.pullback * f.pullback, gofₓ)
   return gof
 end
+
+*(f::AbstractVarietyMap, g::AbstractVarietyMap) = compose(f, g) # TODO mention in docu, skip?
 
 ###############################################################################
 #

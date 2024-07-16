@@ -6,7 +6,7 @@ import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_pow
 import ..Oscar: basis, betti, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
-import..Oscar: pullback, pushforward, base, OO, product
+import..Oscar: pullback, pushforward, base, OO, product, compose
 
 export a_hat_genus
 export abstract_bundle
@@ -30,6 +30,7 @@ export chern_number
 export chern_numbers
 export chow_ring
 export complete_intersection
+export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
@@ -105,6 +106,7 @@ export chern_number
 export chern_numbers
 export chow_ring
 export complete_intersection
+export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis

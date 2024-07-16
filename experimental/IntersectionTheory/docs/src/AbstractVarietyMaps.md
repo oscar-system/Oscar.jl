@@ -40,5 +40,17 @@ tangent_bundle(f::AbstractVarietyMap)
 
 ## Further Data Associated to an Abstract Variety Map
 
+```@docs
+cotangent_bundle(f::AbstractVarietyMap)
+```
+
+```@docs
+todd_class(f::AbstractVarietyMap)
+```
 
 ## Operations on Abstract Variety Maps
+
+```@docs
+compose(f::AbstractVarietyMap, g::AbstractVarietyMap)
+```
+
