@@ -367,7 +367,7 @@ end
 @doc raw"""
     birational_literature_models(m::AbstractFTheoryModel)
 
-Return a list of the unique identifiers any `birational_literature_models` of
+Return a list of the unique identifiers of `birational_literature_models` of
 the given model. These are either other presentations (Weierstrass, Tate, ...)
 of the given model, or other version of the same model from a different paper
 in the literature. If no `birational_literature_models` are known,
