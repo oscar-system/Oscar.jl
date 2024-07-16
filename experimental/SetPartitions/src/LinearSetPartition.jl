@@ -1,19 +1,7 @@
 """
-Fragen an Nicolas:
-- alles was mit NICOLAS im dokument markiert ist
-- wir haben uns ja hier jetzt auf `get_coefficients` geeinigt, jedoch haben wir bei den Partitions zb
-    anstatt get upper points nur upper_points als getter. sollen wir dann hier doch nur coefficients?
-
-- @req ?
-"""
-
-"""
     LinearSetPartition
 
-LinearSetPartition represents linear combinations of
-of partitions of sets of upper and lower points 
-into disjoint subsets. See Section 4.1.1 in [Gro20](@cite).
-# NICOLAS paper LinearSetPartitions (find da aber vllt selber was muss ja nur bei Moritz gucken)
+LinearSetPartition represents a linear combination of set-partitions. See Chapter 5 in [Gro20](@cite).
 """
 struct LinearSetPartition{S <: AbstractPartition, T <: RingElement}
     coefficients :: Dict{S, T}
@@ -40,29 +28,29 @@ function linear_partition(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <
 end
 
 """
-    get_coefficients(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
+    coefficients(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
 
 Get the constructor field `coefficients`, the partition term, in form of a `Dict` from
 `SetPartition` to coefficient.
 """ 
-function get_coefficients(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
+function coefficients(p::LinearSetPartition{S, T}) where { S <: AbstractPartition, T <: RingElement }
     return p.coefficients
 end
 
 function hash(p::LinearSetPartition, h::UInt)
-    return hash(get_coefficients(p), h) 
+    return hash(coefficients(p), h) 
 end
 
 function ==(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-        return get_coefficients(p) == get_coefficients(q)
+        return coefficients(p) == coefficients(q)
 end
 
 function deepcopy_internal(p::LinearSetPartition, stackdict::IdDict)
     if haskey(stackdict, p)
         return stackdict[p]
     end
-    q = linear_partition(deepcopy_internal(get_coefficients(p), stackdict))
+    q = linear_partition(deepcopy_internal(coefficients(p), stackdict))
     stackdict[p] = q
     return q
 end
@@ -72,8 +60,7 @@ end
 
 LinearSetPartition represents linear combinations of
 of partitions of sets of upper and lower points 
-into disjoint subsets. See Section 4.1.1 in [Gro20](@cite).
-# NICOLAS paper LinearSetPartitions (find da aber vllt selber was muss ja nur bei Moritz gucken)
+into disjoint subsets. See Section 4.1.1 in [Gro20](@cite). TODO
 """
 function LinearSetPartition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
     return linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
@@ -121,11 +108,11 @@ function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
 
     result = deepcopy(p)
 
-    for i in pairs(get_coefficients(q))
-        get_coefficients(result)[i[1]] = get(get_coefficients(result), i[1], 0) + i[2]
+    for i in pairs(coefficients(q))
+        coefficients(result)[i[1]] = get(coefficients(result), i[1], 0) + i[2]
     end
     
-    return linear_partition(get_coefficients(result))
+    return linear_partition(coefficients(result))
 end
 
 function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -154,7 +141,7 @@ function scale(a::RingElement, p::LinearSetPartition{S, T}) where
         { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
 
-    for (i, n) in pairs(get_coefficients(p))
+    for (i, n) in pairs(coefficients(p))
         result[i] = a * n
     end
     return linear_partition(result)
@@ -188,8 +175,8 @@ function compose(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T)
         { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
     
-    for i in pairs(get_coefficients(p))
-        for ii in pairs(get_coefficients(q))
+    for i in pairs(coefficients(p))
+        for ii in pairs(coefficients(q))
             (composition, loop) = compose_count_loops(i[1], ii[1])
             new_coefficient = i[2] * ii[2] * (d^loop)
             result[composition] = get(result, composition, 0) + new_coefficient
@@ -222,8 +209,8 @@ function tensor_product(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}
 
     result = Dict{S, T}()
     
-    for i in pairs(get_coefficients(p))
-        for ii in pairs(get_coefficients(q))
+    for i in pairs(coefficients(p))
+        for ii in pairs(coefficients(q))
             composition = tensor_product(i[1], ii[1])
             new_coefficient = i[2] * ii[2]
             result[composition] = get(result, composition, 0) + new_coefficient

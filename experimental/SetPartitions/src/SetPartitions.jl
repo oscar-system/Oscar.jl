@@ -59,7 +59,7 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export get_coefficients
+export coefficients
 export add
 export scale
 export subtract
@@ -112,7 +112,7 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export get_coefficients
+export coefficients
 export add
 export scale
 export subtract
