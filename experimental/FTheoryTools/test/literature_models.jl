@@ -112,7 +112,7 @@ end
   @test arxiv_model_page(w1) == "34"
   @test arxiv_model_section(w1) == "B"
   @test arxiv_version(w1) == "2"
-  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test birational_literature_models(w1) == ["1208_2695-1"]
   @test length(generating_sections(w1)) == 1
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -274,7 +274,7 @@ end
   @test arxiv_model_page(w2) == "34"
   @test arxiv_model_section(w2) == "B"
   @test arxiv_version(w2) == "2"
-  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test birational_literature_models(w2) == ["1208_2695-1"]
   @test length(generating_sections(w2)) == 1
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
