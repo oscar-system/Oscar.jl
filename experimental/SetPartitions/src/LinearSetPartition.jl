@@ -56,23 +56,12 @@ function deepcopy_internal(p::LinearSetPartition, stackdict::IdDict)
 end
 
 """
-    LinearSetPartition
-
-LinearSetPartition represents linear combinations of
-of partitions of sets of upper and lower points 
-into disjoint subsets. See Section 4.1.1 in [Gro20](@cite). TODO
-"""
-function LinearSetPartition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
-    return linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
-end
-
-"""
     linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
 
-Return LinearSetPartition object generated from the Vector `term` of 2-tuples,
-where the first element in the tuple is a RingElement and the second
-a SetPartition. Furthermore simplify the term before initializing
-the LinearSetPartition object with the corresponding dict.
+Return a `LinearSetPartition` generated from the Vector `term` of 2-tuples,
+where the first element in the tuple is a `RingElement` and the second
+a `SetPartition`. Furthermore simplify the term before initializing
+the `LinearSetPartition` object with the corresponding dict.
 
 # Examples
 ```jldoctest
@@ -83,7 +72,7 @@ LinearSetPartition(Dict(set_partition([1, 1], [1, 1]) => 4 + 4*d))
 ```
 """
 function linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
-    return LinearSetPartition(term)
+    return linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
 end
 
 """
@@ -152,7 +141,7 @@ function *(a::RingElement, p::LinearSetPartition{S, T}) where
     return scale(a, p)
 end
 
-""" nur composition TODO
+"""
     compose(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T) where 
         { S <: AbstractPartition, T <: RingElement }
 
@@ -189,7 +178,7 @@ end
     tensor_product(p::LinearSetPartition{P, R}, q::LinearSetPartition{P, R}) where 
         { P <: AbstractPartition, R <: RingElement }
 
-Perform a tensor product similar
+Return the tensor product of `p` and `q`.
 
 # Examples
 ```jldoctest
