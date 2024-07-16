@@ -62,16 +62,22 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
     if ncols(A) == nrows(A)
         return Polymake.tropical.tsgn(A) != 0
     elseif ncols(A)>nrows(A)
+	i = 0
         for b in subsets(ncols(A), nrows(A))
             if Polymake.tropical.tsgn(A[:,b]) == 0
                 return false
-            end
+		break
+	    end
         end
+	return i == 0
     else
+	i = 0
         for b in subsets(nrows(A),ncols(A))
             if Polymake.tropical.tsgn(A[b,:]) == 0
                 return false
+		break
             end
         end
+	return i == 0
     end
 end
