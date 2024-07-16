@@ -134,7 +134,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError birational_literature_models(w1)
+  @test_throws ArgumentError associated_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -296,7 +296,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError birational_literature_models(w2)
+  @test_throws ArgumentError associated_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
