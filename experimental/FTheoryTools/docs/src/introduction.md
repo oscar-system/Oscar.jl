@@ -60,7 +60,7 @@ We are also actively expanding our database of supported literature models. At t
 - Quadrillion F-Theory Compactifications with the Exact Chiral Spectrum of the Standard Model [CHLLT19](@cite).
 
 Consequently, we are already covering infinite families of models (e.g., with $SU(k)$ gauge group, where $k \geq 1$).
-Still, the total number of papers in our database is at this point limited to about $45$. This is to be extended a lot.
+Still, the total number of papers in our database is at this point limited to about $6$. This is to be extended a lot.
 
 
 ## Tutorial
