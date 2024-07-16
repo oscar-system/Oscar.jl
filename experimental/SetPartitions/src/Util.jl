@@ -124,14 +124,18 @@ function _add_partition_top_bottom(vector::Vector{Dict{Int, Set{T}}}, p::T) wher
     return vector
 end
 
-"""TODO sebvz comment"""
-function simplify_operation(partition_sum::Vector) # TODO type
+"""
+    simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
 
-    partitions = Dict()
+Simplify the vector representation of a `LinearSetPartition` in terms of associativity.
+"""
+function simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
+
+    partitions = Dict{S, T}()
 
     for (i1, i2) in partition_sum
         
-        if i2 == 0 # TODO RingElem
+        if iszero(i2)
             deleteat!(partition_sum, findall(x -> x == (i1, i2), partition_sum))
             continue
         end
@@ -145,15 +149,20 @@ function simplify_operation(partition_sum::Vector) # TODO type
             partitions[i1] = get(partitions, i1, -1) + i2
         end
     end
-    partition_sum
+    return partition_sum
 end
 
-function simplify_operation_zero(p::Dict)
-    result = Dict()
+"""
+    simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
+
+Simplify the dict representation of a `LinearSetPartition` in terms of zero coefficients.
+"""
+function simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
+    result = Dict{S, T}()
     for (i1, i2) in pairs(p)
-        if i2 != 0 # TODO RingElem
+        if !iszero(i2)
             result[i1] = i2
         end
     end
-    result
+    return result
 end

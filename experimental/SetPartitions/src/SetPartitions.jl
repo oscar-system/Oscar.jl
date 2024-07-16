@@ -24,7 +24,8 @@ import Oscar:
     @req,
     RingElement,
     scale,
-    coefficients
+    coefficients,
+    iszero
 
 export ColoredPartition
 export SetPartition
