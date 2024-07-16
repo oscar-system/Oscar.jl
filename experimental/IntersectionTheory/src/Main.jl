@@ -187,19 +187,20 @@ end
 # AbstractVarietyMap
 #
 @doc raw"""
-    hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector)
-    hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ)
+    hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
-Construct a abstract_variety morphism from `X` to `Y`, by specifying the pullbacks of
-the generators of the Chow ring of `Y`. The pushforward can be automatically
-computed in certain cases.
+Return an abstract variety morphism from `X` to `Y` by specifying the pullbacks of
+the generators of the Chow ring of `Y`. 
+
+!!! note
+    The corresponding pushforward can be automatically computed in certain cases.
 
 In case of an inclusion $i:X\hookrightarrow Y$ where the class of `X` is not
-present in the Chow ring of `Y`, use the argument `inclusion=true`.
-A copy of `Y` will be created, with extra classes added so that one can
-pushforward classes on `X`.
+present in the Chow ring of `Y`, use the argument `inclusion = true`. Then,
+a copy of `Y` will be created, with extra classes added so that one can
+pushforward all classes on `X`.
 """
-function hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ=nothing; inclusion::Bool=false, symbol::String="x")
+function hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
   AbstractVarietyMap(X, Y, fˣ, fₓ)
   # !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
   # _inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
@@ -208,7 +209,7 @@ end
 @doc raw"""
     dim(f::AbstractVarietyMap)
 
-Return the relative dimension.
+Return the relative dimension of `f`.
 """
 dim(f::AbstractVarietyMap) = f.dim
 
@@ -968,7 +969,7 @@ end
     +(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
     
-Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of F` and `G`, respectively.
+Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
 
 # Examples
 ```jldoctest
@@ -1451,7 +1452,7 @@ complete_intersection(X::AbstractVariety, degs::Vector{Int}) = (
   Y)
 
 @doc raw"""
-    degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
+    degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
 
 Return the `k`-th degeneracy locus of a general map from `F` to `G`.
 
@@ -1468,7 +1469,7 @@ AbstractBundle of rank 2 on AbstractVariety of dim 4
 julia> G = OO(P4)+2*OO(P4, 1)
 AbstractBundle of rank 3 on AbstractVariety of dim 4
 
-julia> CZ = degeneracy_locus(1,F, G, class = true)
+julia> CZ = degeneracy_locus(F, G, 1, class = true) # only class of degeneracy locus
 8*H^2
 
 julia> CZ == chern_class(G-F, 2) # Porteous' formula
@@ -1476,7 +1477,7 @@ true
 
 ```
 """
-function degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::Bool=false)
+function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false)
   F, G = _coerce(F, G)
   m, n = rank(F), rank(G)
   @assert k < min(m,n)
@@ -1488,7 +1489,7 @@ function degeneracy_locus(k::Int, F::AbstractBundle, G::AbstractBundle; class::B
       return F.parent.ring(0)
     end
   end
-  Gr = (m-k == 1) ? abstract_projective_bundle(F) : abstract_flag_variety(m-k, F)
+  Gr = (m-k == 1) ? abstract_projective_bundle(F) : abstract_flag_variety(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = hom(D, F.parent) # skip the flag abstract_variety
@@ -1599,6 +1600,30 @@ end
 Return the projective bundle of 1-dimensional subspaces in the fibers of `F`.
 
 # Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> T = tangent_bundle(P2)
+AbstractBundle of rank 2 on AbstractVariety of dim 2
+
+julia> E = abstract_projective_bundle(T, symbol = "H")
+AbstractVariety of dim 3
+
+julia> chow_ring(E)
+Quotient
+  of multivariate polynomial ring in 2 variables over QQ graded by
+    H -> [1]
+    h -> [1]
+  by ideal (h^3, H^2 + 3*H*h + 3*h^2)
+
+julia> [chern_class(T, i) for i = 1:2]
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ 3*h
+ 3*h^2
+
+```
+
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
 AbstractVariety of dim 6
@@ -1768,14 +1793,17 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
 end
 
 @doc raw"""
-    abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c")
-    abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
+    abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
+    abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String = "c")
 
 Given integers, say, $d_1, \dots, d_{k}$ or a vector of such integers, and given an
 abstract bundle $F$, return the abstract flag variety (flag bundle) of nested sequences 
 of subspaces of dimensions $d_1; \dots, d_{k}$ in the fibers of $F$.
 """
-function abstract_flag_variety(F::AbstractBundle, d::Int; symbol::String="c") abstract_flag_variety(F, [d], symbol=symbol) end
+function abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
+  abstract_flag_variety(F, collect(dims), symbol=symbol)
+end
+
 function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::String="c")
   X, n = F.parent, F.rank
   !(n isa Int) && error("expect rank to be an integer")
