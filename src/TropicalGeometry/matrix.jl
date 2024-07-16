@@ -45,7 +45,7 @@ end
 @doc raw"""
     is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
 
-Check if a collection of vectors in the tropical torus (given as columns of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
+Check if a collection of vectors in the tropical torus (given as rows of a matrix `A`) are in tropical general position with respect to the `minOrMax` convention.
 
 # Examples
 ```jldoctest
@@ -58,26 +58,20 @@ true
 ```
 """
 function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem}, minOrMax)
-    @req convention(A) == minOrMax "Semiring convention not as declared"
-    if ncols(A) == nrows(A)
-        return Polymake.tropical.tsgn(A) != 0
-    elseif ncols(A)>nrows(A)
-	i = 0
-        for b in subsets(ncols(A), nrows(A))
-            if Polymake.tropical.tsgn(A[:,b]) == 0
-                return false
-		break
-	    end
-        end
-	return i == 0
-    else
-	i = 0
-        for b in subsets(nrows(A),ncols(A))
-            if Polymake.tropical.tsgn(A[b,:]) == 0
-                return false
-		break
-            end
-        end
-	return i == 0
-    end
+	@req convention(A) == minOrMax "Semiring convention not as declared"
+	function helper(C,B)
+		for b in subsets(C,B)
+			Polymake.tropical.tsgn(A[b,:]) == 0 && return false
+		end
+		return true
+	end
+	nca = ncols(A)
+	nra = nrows(A)
+	if nca == nra
+		return Polymake.tropical.tsgn(A) != 0
+	elseif nca>nra
+		return helper(nca,nra)
+	else 
+		return helper(nra,nca)
+	end
 end
