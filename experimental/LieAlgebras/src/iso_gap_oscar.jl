@@ -22,9 +22,8 @@ function _iso_gap_oscar_abstract_lie_algebra(
   LG::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
   coeffs_iso::Map{GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
-  cached::Bool=true,
 )
-  LO = _abstract_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
+  LO = _abstract_lie_algebra_from_GAP(LG, coeffs_iso, s)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
   iso = MapFromFunc(LG, LO, f, finv)
@@ -36,9 +35,8 @@ function _iso_gap_oscar_linear_lie_algebra(
   LG::GapObj,
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:GAPWrap.Dimension(LG)];
   coeffs_iso::Map{GapObj}=Oscar.iso_gap_oscar(GAPWrap.LeftActingDomain(LG)),
-  cached::Bool=true,
 )
-  LO = _linear_lie_algebra_from_GAP(LG, coeffs_iso, s; cached)
+  LO = _linear_lie_algebra_from_GAP(LG, coeffs_iso, s)
   finv, f = _iso_oscar_gap_lie_algebra_functions(LO, LG, inv(coeffs_iso))
 
   iso = MapFromFunc(LG, LO, f, finv)
@@ -47,7 +45,7 @@ function _iso_gap_oscar_linear_lie_algebra(
 end
 
 function _abstract_lie_algebra_from_GAP(
-  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}; cached::Bool=true
+  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}
 )
   RO = codomain(coeffs_iso)
   dimL = GAPWrap.Dimension(LG)
@@ -67,12 +65,12 @@ function _abstract_lie_algebra_from_GAP(
     )
   end
 
-  LO = AbstractLieAlgebra{elem_type(RO)}(RO, struct_consts, Symbol.(s); cached, check=false)
+  LO = AbstractLieAlgebra{elem_type(RO)}(RO, struct_consts, Symbol.(s); check=false)
   return LO
 end
 
 function _linear_lie_algebra_from_GAP(
-  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}; cached::Bool=true
+  LG::GapObj, coeffs_iso::Map{GapObj}, s::Vector{<:VarName}
 )
   @req GAPWrap.IsLieObjectCollection(LG) "Input is not a linear Lie algebra."
 
@@ -81,6 +79,6 @@ function _linear_lie_algebra_from_GAP(
     map_entries(coeffs_iso, GAPWrap.UnderlyingRingElement(b)) for b in GAPWrap.Basis(LG)
   ]
   n = size(basis[1])[1]
-  LO = LinearLieAlgebra{elem_type(RO)}(RO, n, basis, Symbol.(s); cached)
+  LO = LinearLieAlgebra{elem_type(RO)}(RO, n, basis, Symbol.(s); check=false)
   return LO
 end

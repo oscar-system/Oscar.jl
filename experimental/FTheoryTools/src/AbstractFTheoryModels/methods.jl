@@ -582,6 +582,12 @@ function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Stri
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
+function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+end
+
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
   set_attribute!(m, :resolutions => desired_value)
 end
@@ -624,6 +630,34 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
+  C = algebraic_closure(QQ)
+  function _construct(g::String)
+    if g == "0"
+      return abelian_lie_algebra(C, 0)
+    elseif g == "u(1)"
+      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
+    elseif g[1:2] == "su"
+      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "so"
+      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "sp"
+      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:1] == "e"
+      return lie_algebra(C, :E, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "f"
+      return lie_algebra(C, :F, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "g"
+      return lie_algebra(C, :G, parse(Int, g[3:end-1]))
+    end
+    error("Unknown algebra description")
+  end
+  set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
+end
+
+function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+ set_attribute!(m, :global_gauge_quotients => quotients)
+end
 
 
 ##########################################

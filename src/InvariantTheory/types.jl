@@ -224,7 +224,7 @@ mutable struct VectorSpaceIteratorFiniteField{FieldT,IteratorT,ElemT} <:
   function VectorSpaceIteratorFiniteField(
     K::FieldT, basis_iterator::IteratorT
   ) where {
-    FieldT<:Union{Nemo.fpField,Nemo.FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
+    FieldT<:Union{fpField,FpField,fqPolyRepField,FqPolyRepField,FqField},IteratorT
   }
     VSI = new{FieldT,IteratorT,eltype(basis_iterator)}()
     VSI.field = K

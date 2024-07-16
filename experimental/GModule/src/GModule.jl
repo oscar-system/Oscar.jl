@@ -754,7 +754,7 @@ function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbElem})
   return matrix_group(map_entries(CyclotomicField, map(matrix, gens(G))))
 end
 
-function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
+function gmodule(k::Union{fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
   @assert absolute_degree(k) == 1
   q, mq = quo(C.M, characteristic(k))
   s, ms = snf(q)
@@ -765,7 +765,7 @@ function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, F
   return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = mp])
 end
 
-function gmodule(k::Nemo.fpField, mC::Hecke.MapClassGrp)
+function gmodule(k::fpField, mC::Hecke.MapClassGrp)
   return gmodule(k, gmodule(ray_class_field(mC)))
 end
 
@@ -788,7 +788,7 @@ function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimp
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
 
-gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
+gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
 @attr function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
@@ -1360,7 +1360,7 @@ function hilbert90_cyclic(A::MatElem{<:FieldElem}, s, os::Int)
   end
 end
 
-function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+function gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   F = free_module(k, dim(C))
   return GModule(group(C), [hom(F, F, map_entries(k, matrix(x))) for x=C.ac])
 end

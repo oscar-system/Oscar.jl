@@ -340,9 +340,29 @@ julia> println(character_table("A5", 2))
 julia> println(character_table("J5"))
 nothing
 ```
+
+Several names can be admissible for the same character table from the library.
+For example, the alternating group on five points is isomorphic to the
+projective special linear groups in dimension 2 over the fields with
+four or five elements, and each of the strings `"A5"`, `"L2(4)"`, `"L2(5)"`
+is an admissible name for its library character table.
+The names are not case sensitive, thus also `"a5"` is admissible.
+
+Use [`all_character_table_names`](@ref) for creating a vector that contains
+one admissible name for each available character table,
+perhaps filtered by some conditions.
 """
 function character_table(id::String, p::Int = 0)
-    p != 0 && return mod(character_table(id, 0), p)
+    if p != 0
+      tbl = character_table(id, 0)
+      tbl === nothing && return nothing
+      return mod(tbl, p)
+    end
+    # normalize `id`
+    info = GAPWrap.LibInfoCharacterTable(GapObj(id))
+    if info !== GAP.Globals.fail
+      id = string(info.firstName)
+    end
     return get!(character_tables_by_id, id) do
       tbl = GAPWrap.CharacterTable(GapObj(id))
       tbl === GAP.Globals.fail && return nothing
@@ -452,8 +472,9 @@ true
 """
     all_character_table_names(L...; ordered_by = nothing)
 
-Return an vector of strings that contains all those names of character tables
-in the character table library that satisfy the conditions in the vector `L`.
+Return a vector of strings that contains an admissible name of each
+character table in the character table library that satisfies the conditions
+in the vector `L`.
 
 # Examples
 ```
@@ -484,6 +505,24 @@ function all_character_table_names(L...; ordered_by = nothing)
     end
     return Vector{String}(K)
 end
+
+
+"""
+    is_character_table_name(name::String)
+
+Return `true` if `character_table(name)` returns a character table,
+and `false` otherwise
+
+# Examples
+```jldoctest
+julia> is_character_table_name("J1")
+true
+
+julia> is_character_table_name("J5")
+false
+```
+"""
+is_character_table_name(name::String) = GAPWrap.LibInfoCharacterTable(GapObj(name)) !== GAP.Globals.fail
 
 
 ##############################################################################
@@ -1445,7 +1484,7 @@ Dict{Symbol, Vector{Int64}} with 2 entries:
 """
 function block_distribution(tbl::GAPGroupCharacterTable, p::IntegerUnion)
   @req characteristic(tbl) == 0 "character table must be ordinary"
-  blocks = GAP.Globals.PrimeBlocks(GapObj(tbl), GAP.Obj(p))
+  blocks = GAPWrap.PrimeBlocks(GapObj(tbl), GAP.Obj(p))
   return Dict(:defect => Vector{Int}(blocks.defect),
               :block => Vector{Int}(blocks.block))
 end
@@ -2047,7 +2086,7 @@ function natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where 
     p = characteristic(base_ring(G))
     tbl = character_table(G, p)
     ccl = conjugacy_classes(tbl)
-    vals = [GAP.Globals.BrauerCharacterValue(representative(x).X) for x in ccl]
+    vals = [GAPWrap.BrauerCharacterValue(representative(x).X) for x in ccl]
     vals = GAPWrap.ClassFunction(GapObj(tbl), GapObj(vals))
 
     return class_function(G, vals)
@@ -2094,7 +2133,7 @@ function natural_character(rho::GAPGroupHomomorphism)
         # Brauer character
         modtbl = mod(tbl, p)
         ccl = conjugacy_classes(modtbl)  # p-regular classes
-        vals = [GAP.Globals.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
+        vals = [GAPWrap.BrauerCharacterValue(rho(representative(x)).X) for x in ccl]
         vals = GAPWrap.ClassFunction(GapObj(modtbl), GapObj(vals))
       end
     else
@@ -2832,7 +2871,7 @@ function character_field(chi::GAPGroupClassFunction)
       gappol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
       gapcoeffs = GAPWrap.CoefficientsOfUnivariatePolynomial(gappol)
       v = Vector{QQFieldElem}(gapcoeffs)
-      R, = polynomial_ring(QQ, "x")
+      R, = polynomial_ring(QQ, "x"; cached=false)
       f = R(v)
       F, _ = number_field(f, "z"; cached = true, check = false)
       nfelm = QQAbElem(gapgens[1])

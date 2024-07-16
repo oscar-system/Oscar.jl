@@ -147,6 +147,10 @@ rays_modulo_lineality(::Type{<:RayVector}, F::_FanLikeType) = _rays(F)
 
 Return the maximal cones of `PF`.
 
+Optionally `IncidenceMatrix` can be passed as a first argument to return the
+incidence matrix specifying the maximal cones of `PF`. In that case, the
+indices refer to the output of [`rays_modulo_lineality(Cone)`](@ref).
+
 # Examples
 Here we ask for the the number of rays for each maximal cone of the face fan of
 the 3-cube and use that `maximal_cones` returns an iterator.
@@ -162,6 +166,15 @@ julia> for c in maximal_cones(PF)
 4
 4
 4
+
+julia> maximal_cones(IncidenceMatrix, PF)
+6×8 IncidenceMatrix
+[1, 3, 5, 7]
+[2, 4, 6, 8]
+[1, 2, 5, 6]
+[3, 4, 7, 8]
+[1, 2, 3, 4]
+[5, 6, 7, 8]
 ```
 """
 maximal_cones(PF::_FanLikeType) =

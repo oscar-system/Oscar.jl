@@ -149,7 +149,7 @@ quadratic_form(f::MPolyRingElem{T}) where T <: FieldElem = SesquilinearForm(f, :
 # just to allow quadratic forms over vector fields of dimension 1, so defined over polynomials in 1 variable
 function quadratic_form(f::PolyRingElem{T}) where T <: FieldElem
    @assert degree(f)==2 && coefficients(f)[0]==0 && coefficients(f)[1]==0 "The polynomials is not homogeneous of degree 2"
-   R1 = polynomial_ring(base_ring(f), [string(parent(f).S)])[1]
+   R1 = polynomial_ring(base_ring(f), [string(parent(f).S)]; cached=false)[1]
 
    return SesquilinearForm(R1[1]^2*coefficients(f)[2], :quadratic)
 end
@@ -274,7 +274,7 @@ function defining_polynomial(f::SesquilinearForm)
    isdefined(f,:pol) && return f.pol
 
    @req f.descr == :quadratic "Polynomial defined only for quadratic forms"
-   R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix) )[1]
+   R = polynomial_ring(base_ring(f.matrix), nrows(f.matrix); cached=false)[1]
    p = zero(R)
    for i in 1:nrows(f.matrix), j in i:nrows(f.matrix)
       p += f.matrix[i,j] * R[i]*R[j]

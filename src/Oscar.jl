@@ -50,7 +50,7 @@ function _print_banner(;is_dev = Oscar.is_dev)
   else
     version_string = "Version " * version_string
   end
-  
+
   if displaysize(stdout)[2] >= 80 
     println(
       raw"""  ___   ____   ____    _    ____
@@ -83,23 +83,30 @@ function __init__()
         (GAP.Globals.IsSubgroupFpGroup, FPGroup),
         (GAP.Globals.IsGroupOfAutomorphisms, AutomorphismGroup),
     ])
-  __GAP_info_messages_off()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
-  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
-  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
-  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
-    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
-  end
+
+  # Up to now, hopefully the GAP packages listed below have not been loaded.
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
   for (pkg, version) in [
+     ("recog", "1.4.2"),
      ("repsn", "3.1.1"),
      ]
-    GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+    # Avoid downloading something if the requested version is already loaded.
+#TODO: Remove this check as soon as GAP.jl contains it,
+#      see https://github.com/oscar-system/GAP.jl/pull/1019.
+    info = GAP.Globals.GAPInfo.PackagesLoaded
+    if !(hasproperty(info, pkg) && version == string(getproperty(info, pkg)[2]))
+      GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+    end
   end
-  # We need some GAP packages.
+
+  withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do
+    GAP.Packages.load("browse"; install=true) # needed for all_character_table_names doctest
+  end
+  # We need some GAP packages (currently with unspecified versions).
   for pkg in [
      "atlasrep",
      "ctbllib",  # character tables
@@ -109,6 +116,7 @@ function __init__()
      "packagemanager", # has been loaded already by GAP.jl
      "polycyclic", # needed for Oscar's pc groups
      "primgrp",  # primitive groups library
+     "recog",    # group recognition
      "repsn",    # constructing representations of finite groups
      "smallgrp", # small groups library
      "transgrp", # transitive groups library
@@ -122,6 +130,14 @@ function __init__()
      ]
     GAP.Packages.load(pkg)
   end
+  # Load the OscarInterface package in the end.
+  # It needs some other GAP packages,
+  # and is not needed by packages that can be loaded before Oscar.
+  GAP.Globals.SetPackagePath(GAP.Obj("OscarInterface"), GAP.Obj(joinpath(@__DIR__, "..", "gap", "OscarInterface")))
+  GAP.Globals.LoadPackage(GAP.Obj("OscarInterface"), false)
+  # Switch off GAP's info messages,
+  # also those that are triggered from GAP packages.
+  __GAP_info_messages_off()
   __init_group_libraries()
 
   add_verbosity_scope(:K3Auto)

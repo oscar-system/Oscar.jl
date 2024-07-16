@@ -227,10 +227,9 @@ function Base.iterate(P::Partitions{T}) where T
     return partition(T[1], check=false), (T[1], 1, 0)
   end
 
-  d = fill( T(1), n )
+  d = fill(T(1), Int(n))
   d[1] = n
   return partition(d[1:1], check=false), (d, 1, 1)
-
 end
 
 @inline function Base.iterate(P::Partitions{T}, state::Tuple{Vector{T}, Int, Int}) where T
@@ -381,7 +380,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   only_distinct_parts = P.distinct_parts
 
   if n == 0 && k == 0
-    return partition(T[], check=false), (T[], T[], 0, 0, 1, false)
+    return partition(T[], check=false), (T[], T[], T(0), T(0), 1, false)
   end
 
   # This iterator should be empty
@@ -391,17 +390,17 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
 
   if n == k && lb == 1
     only_distinct_parts && k > 1 && return nothing
-    return partition(T[1 for i in 1:n], check=false), (T[], T[], 0, 0, 1, false)
+    return partition(T[1 for i in 1:n], check=false), (T[], T[], T(0), T(0), 1, false)
   end
 
   if k == 1 && lb <= n <= ub
-    return partition(T[n], check=false), (T[], T[], 0, 0, 1, false)
+    return partition(T[n], check=false), (T[], T[], T(0), T(0), 1, false)
   end
 
   x = zeros(T,k)
   y = zeros(T,k)
   jj = only_distinct_parts*k*(k-1)
-  N = n - k*lb - div(jj,2)
+  N = T(n - k*lb - div(jj,2))
   L2 = ub-lb
   0 <= N <= k*L2 - jj || return nothing
 
@@ -410,7 +409,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   end
 
   i = 1
-  L2 = L2 - only_distinct_parts*(k-1)
+  L2 = L2 - only_distinct_parts*T(k-1)
 
   while N > L2
     N -= L2
@@ -421,7 +420,7 @@ function Base.iterate(P::PartitionsFixedNumParts{T}) where T
   return partition(x[1:k], check = false), (x, y, N, L2, i, true)
 end
 
-@inline function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, IntegerUnion, Int, Bool}) where T
+@inline function Base.iterate(P::PartitionsFixedNumParts{T}, state::Tuple{Vector{T}, Vector{T}, T, T, Int, Bool}) where T
   k = P.k
   x, y, N, L2, i, flag = state
 
@@ -429,7 +428,7 @@ end
 
   if flag
     if i < k && N > 1
-      N = 1
+      N = T(1)
       x[i] = x[i] - 1
       i += 1
       x[i] = y[i] + 1
@@ -442,12 +441,11 @@ end
       flag = false
     end
   end
-
   if !flag
     lcycle = false
     for j in i - 1:-1:1
-      L2 = x[j] - y[j] - 1
-      N = N + 1
+      L2 = x[j] - y[j] - T(1)
+      N = N + T(1)
       if N <= (k-j)*L2
         x[j] = y[j] + L2
         lcycle = true
@@ -457,7 +455,6 @@ end
       x[i] = y[i]
       i = j
     end
-
     lcycle || return nothing
     while N > L2
       N -= L2
@@ -769,7 +766,7 @@ end
       x[i] = m
       i -= 1
       i == 0 && break # inner while loop
-      r = ii[i]
+      r = Int(ii[i])
       N = N + x[i] - m
       m = y[i]
     end

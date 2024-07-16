@@ -148,6 +148,7 @@ function load_ref(s::DeserializerState)
     s.obj = s.refs[Symbol(id)]
     loaded_ref = load_typed_object(s)
     global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
   end
   return loaded_ref
 end

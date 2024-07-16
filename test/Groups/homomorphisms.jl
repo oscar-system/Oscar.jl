@@ -145,27 +145,41 @@ end
      rels = [F1^2, F2^2, comm(F1, F2)]
      FP = quo(F, rels)[1]
 
-     # map an element of a free group or a f.p. group ...
+     # map an element of a (subgroup of a) free group or a f.p. group ...
      for f in [F, FP]
        f1, f2 = gens(f)
        of = one(f)
+       s1 = gen(sub(f, [f1])[1], 1)
 
-       # ... to an element of a permutation group or to a rational number
-       for imgs in [gens(symmetric_group(4)), QQFieldElem[2, 3]]
+       # ... to an element of a permutation group or to a rational number ...
+       for imgs in [gens(symmetric_group(4)),
+                    QQFieldElem[2, 3]]
          g1 = imgs[1]
          g2 = imgs[2]
-         for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3)]
+         for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, g2^2*g1^-3),
+                        (s1^2, g1^2)]
            @test map_word(x, imgs) == w
+           @test map_word(x, imgs, init = g1) == g1*w  # `init` is used
          end
-         @test map_word(of, imgs, init = 0) == one(g1)  # `init` is ignored
+         @test map_word(of, imgs, init = 0) == 0  # `init` is returned
        end
+
+       # ... or to an element in an (additive) abelian group
+       imgs = gens(abelian_group(3, 5))
+       g1 = imgs[1]
+       g2 = imgs[2]
+       for (x, w) in [(f1, g1), (f2, g2), (f2^2*f1^-3, 2*g2-3*g1)]
+         @test map_word(x, imgs) == w
+         @test map_word(x, imgs, init = g1) == g1+w  # `init` is used
+       end
+       @test map_word(of, imgs, init = 0) == 0  # `init` is returned
      end
 
      # empty list of generators
      T = free_group(0)
-     @test_throws ArgumentError map_word(one(T), Int[])   # no `init`
-     @test map_word(one(T), [], init = 1) == 1            # `init` is returned
-     @test map_word(one(F), gens(F), init = 1) == one(F)  # `init` is ignored
+     @test_throws ArgumentError map_word(one(T), Int[])  # no `init`
+     @test map_word(one(T), [], init = 1) == 1           # `init` is returned
+     @test map_word(one(F), gens(F)) == one(F)           # works without `init`
 
      # wrong number of images
      @test_throws AssertionError map_word(one(F), [])
@@ -196,7 +210,10 @@ end
 
    # empty list of generators
    @test map_word([], [], init = 0) == 0        # `init` is returned
-   @test map_word([], [2, 3], init = 0) == 1    # `init` is ignored
+   @test map_word([], [2, 3], init = 0) == 0    # `init` is returned
+   @test map_word([], [2, 3]) == 1              # no `init` given, try `one`
+   G = abelian_group(2)
+   @test map_word([], gens(G)) == zero(G)
 
    # wrong number of images
    @test_throws AssertionError map_word([3], [])
@@ -204,18 +221,21 @@ end
    @test_throws AssertionError map_word([3 => 1], [2, 3])
 end
 
-@testset "map_word for pc groups" begin
+@testset "map_word for (sub) pc groups" begin
    for G in [ PcGroup(symmetric_group(4)),         # GAP Pc Group
             # abelian_group(PcGroup, [2, 3, 4]),   # problem with gens vs. pcgs
               abelian_group(PcGroup, [0, 3, 4]) ]  # GAP Pcp group
      n = number_of_generators(G)
      F = free_group(n)
-     for x in [one(G), rand(G)]
-       img = map_word(x, gens(F))
-       @test x == map_word(img, gens(G))
-       invs = Vector(undef, n)
-       img = map_word(x, gens(F), genimgs_inv = invs)
-       @test x == map_word(img, gens(G))
+     S = sub(G, gens(G))[1]
+     for g in [G, S]
+       for x in [one(g), rand(g)]
+         img = map_word(x, gens(F))
+         @test x == map_word(img, gens(g))
+         invs = Vector(undef, n)
+         img = map_word(x, gens(F), genimgs_inv = invs)
+         @test x == map_word(img, gens(g))
+       end
      end
    end
 end
