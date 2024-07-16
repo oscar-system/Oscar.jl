@@ -19,7 +19,7 @@ Initialize LinearSetPartition object, while simplifying the term.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d") 
-(Univariate polynomial ring in x over QQ, d)
+(Univariate polynomial ring in d over QQ, d)
 julia> linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(4), set_partition([1, 1], [1, 1]) => 4*d))
 LinearSetPartition(Dict(set_partition([1, 2], [1, 1]) => S(4), set_partition([1, 1], [1, 1]) => 4*d))
 """
@@ -66,7 +66,7 @@ the `LinearSetPartition` object with the corresponding dict.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
+(Univariate polynomial ring in d over QQ, d)
 julia> linear_partition([(set_partition([1, 1], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
 LinearSetPartition(Dict(set_partition([1, 1], [1, 1]) => 4 + 4*d))
 ```
@@ -84,12 +84,10 @@ Return the addition between `p` and `q`.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
-(set_partition([1, 1], [1, 1]), 4*d)])
+(Univariate polynomial ring in d over QQ, d)
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
 julia> add(a, a)
-LinearSetPartition(Dict(set_partition([1, 2], [1, 1]) => S(8), 
-SetPartition([1, 1], [1, 1]) => 8*d))
+LinearSetPartition(Dict(set_partition([1, 2], [1, 1]) => S(8), SetPartition([1, 1], [1, 1]) => 8*d))
 ```
 """
 function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -119,11 +117,9 @@ the result.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
-julia> scale(S(1) / S(2), linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(8), 
-set_partition([1, 1], [1, 1]) => 8*d)))
-LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => S(4), 
-SetPartition([1, 1], [1, 1]) => 4*d))
+(Univariate polynomial ring in d over QQ, d)
+julia> scale(S(1) / S(2), linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(8), set_partition([1, 1], [1, 1]) => 8*d)))
+LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => S(4), SetPartition([1, 1], [1, 1]) => 4*d))
 ```
 """
 function scale(a::RingElement, p::LinearSetPartition{S, T}) where
@@ -152,12 +148,10 @@ in `p` and `q` and return the result.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
-(SetPartition([1, 1], [1, 1]), 4*d)])
+(Univariate polynomial ring in d over QQ, d)
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (SetPartition([1, 1], [1, 1]), 4*d)])
 julia> compose(a, a, d)
-LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => 16*d + 16, 
-SetPartition([1, 1], [1, 1]) => 16*d^2 + 16*d))
+LinearSetPartition(Dict(SetPartition([1, 2], [1, 1]) => 16*d + 16, SetPartition([1, 1], [1, 1]) => 16*d^2 + 16*d))
 ```
 """
 function compose(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T) where 
@@ -183,9 +177,8 @@ Return the tensor product of `p` and `q`.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
-(set_partition([1, 1], [1, 1]), 4*d)])
+(Univariate polynomial ring in d over QQ, d)
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
 julia> tensor_product(a, a)
 LinearSetPartition(Dict(SetPartition([1, 1, 2, 2], [1, 1, 2, 2]) => 16*d^2, 
 SetPartition([1, 2, 3, 3], [1, 1, 3, 3]) => 16*d, 
@@ -223,9 +216,8 @@ Perform a subtraction between `p` and `q` and return the result.
 # Examples
 ```jldoctest
 julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in x over QQ, d)
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), 
-(SetPartition([1, 1], [1, 1]), 4*d)])
+(Univariate polynomial ring in d over QQ, d)
+julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (SetPartition([1, 1], [1, 1]), 4*d)])
 julia> subtract(a, a)
 LinearSetPartition(Dict(SetPartition([1, 1], [1, 1]) => S(0)))
 ```
