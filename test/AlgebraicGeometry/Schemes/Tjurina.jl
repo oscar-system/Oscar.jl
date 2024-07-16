@@ -252,3 +252,17 @@ end
   @test !is_contact_equivalent(L(x^9+y^2+z^2), L(x^3+y^5))
 end
 
+
+
+@testset "Tjurina number complete intersection germ" begin  
+  A = affine_space(QQ, 3)
+  R = coordinate_ring(A);
+  (x,y,z) = gens(R);
+  X = CompleteIntersectionGerm(spec(quo(R,ideal(R,[x^2+y^2+z^2, x^2+2*y^2+3*z^2]))[1]), [0,0,0])
+  @test tjurina_number(X) == 5
+  S = spec(quo(R,ideal(R,[x^5+y^6+z^7+x*y*z]))[1])
+  @test tjurina_number(HypersurfaceGerm(S, [0,0,0])) == tjurina_number(CompleteIntersectionGerm(S, [0,0,0]))
+  Y = CompleteIntersectionGerm(spec(quo(R,ideal(R,[x^2+y^2, x^2+2*y^2]))[1]), [0,0,0])
+  @test tjurina_number(Y) == PosInf()  
+end
+
