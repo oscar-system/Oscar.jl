@@ -1,7 +1,11 @@
 # Add your new types, functions, and methods here.
 
-mutable struct TransitiveSimplicialComplex
-  i::Int
+struct TransitiveSimplicialComplex
+  K::SimplicialComplex
+end
+
+function transitive_simplicial_complex()
+
 end
 
 #@doc raw"""
