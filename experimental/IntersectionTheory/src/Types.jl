@@ -68,7 +68,19 @@ julia> dim(P2*P3)
 dim(X::Variety) = X.dim
 
 abstract type VarietyHom end
+
+@doc raw"""
+     domain(f::AbstractVarietyMap)
+
+Return the domain of `f`.
+"""
 domain(X::VarietyHom) = X.domain
+
+@doc raw"""
+     codomain(f::AbstractVarietyMap)
+
+Return the codomain of `f`.
+"""
 codomain(X::VarietyHom) = X.codomain
 
 Base.show(io::IO, F::Bundle) = print(io, "$(typeof(F).name.name) of rank $(F.rank) on $(F.parent)")
