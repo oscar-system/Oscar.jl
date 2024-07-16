@@ -230,8 +230,7 @@
     ],
     "specialized/brandhorst-zach-fibration-hopping": [
       "vinberg_1.jlcon",
-      "vinberg_2.jlcon",
-      "vinberg_3.jlcon"
+      "vinberg_2.jlcon"
     ],
     "specialized/breuer-nebe-parker-orthogonal-discriminants": [
       "expl_order.jlcon",
