@@ -982,12 +982,14 @@ export mathieu_group
 export matrix_group
 export matrix_kernel
 export matrix_ordering
+export matroid_hex
 export matroid_base_polytope
 export matroid_from_bases
 export matroid_from_circuits
 export matroid_from_hyperplanes
 export matroid_from_matrix_columns
 export matroid_from_matrix_rows
+export matroid_from_matroid_hex
 export matroid_from_nonbases
 export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
