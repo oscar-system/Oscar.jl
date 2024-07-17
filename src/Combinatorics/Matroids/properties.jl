@@ -1043,7 +1043,7 @@ julia> matroid_hex(fano_matroid())
 
 ```
 """
-function matroid_hex(M::Matroid)::String
+function matroid_hex(M::Matroid)
   rvlx = min_revlex_basis_encoding(M)
   r,n = rank(M), length(M) 
 
@@ -1071,7 +1071,7 @@ Matroid of rank 3 on 7 elements
 
 ```
 """
-function matroid_from_matroid_hex(str::AbstractString)::Matroid
+function matroid_from_matroid_hex(str::AbstractString)
   @req occursin(r"^r\d+n\d+_[0-9a-f]+$", str) "Invalid hex encoding"
 
   sep = split(str, "_")
