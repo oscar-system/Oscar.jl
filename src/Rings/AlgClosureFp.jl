@@ -305,11 +305,9 @@ julia> degree(x)
 6
 ```
 """
-function algebraic_closure(F::T) where T <: FinField
+@attr AlgClosure{T} function algebraic_closure(F::T) where T <: FinField
   @req is_prime(order(F)) "only for finite prime fields"
-  return get_attribute!(F, :algebraic_closure) do
-    return AlgClosure(F)
-  end::AlgClosure{T}
+  return AlgClosure(F)
 end
 
 function embedding(k::T, K::AlgClosure{T}) where T <: FinField

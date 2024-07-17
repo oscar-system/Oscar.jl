@@ -1015,7 +1015,7 @@ end
 #
 function adams(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Int
   comps = x[0:n]
   sum([ZZ(k)^i*comps[i+1] for i in 0:n])
 end
@@ -1201,20 +1201,18 @@ end
 Return an additive basis of the Chow ring of `X`, grouped by increasing
 degree (i.e., increasing codimension).
 """
-function basis(X::AbstractVariety)
+@attr Vector{Vector{MPolyQuoRingElem}} function basis(X::AbstractVariety)
   # it is important for this to be cached!
-  return get_attribute!(X, :basis) do
-    R = X.ring
-    try_trim = "Try use `trim!`."
-    !(R isa MPolyQuoRing) && error("the ring has no ideal. "*try_trim)
-    dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
-    b = Oscar._kbase(R)
-    ans = [MPolyQuoRingElem[] for i in 0:X.dim]
-    for bi in b
-      push!(ans[_total_degree(bi)+1], R(bi))
-    end
-    return ans
+  R = X.ring
+  try_trim = "Try use `trim!`."
+  !(R isa MPolyQuoRing) && error("the ring has no ideal. "*try_trim)
+  dim(R.I) > 0 && error("the ideal is not 0-dimensional. "*try_trim)
+  b = Oscar._kbase(R)
+  ans = [MPolyQuoRingElem[] for i in 0:X.dim]
+  for bi in b
+    push!(ans[_total_degree(bi)+1], R(bi))
   end
+  return ans
 end
 
 @doc raw"""
@@ -1274,10 +1272,10 @@ Compute the dual basis of the additive basis in codimension `k` given by
 $\dim X-k$).
 """
 function dual_basis(X::AbstractVariety, k::Int)
+  T = Dict{Int, Vector{elem_type(X.ring)}}
   d = get_attribute!(X, :dual_basis) do
-    d = Dict{Int, Vector{elem_type(X.ring)}}()
-    return d
-  end
+    T()
+  end::T
   if !(k in keys(d))
     B = basis(X)
     b_k = B[k+1]
@@ -1302,7 +1300,7 @@ dual_basis(X::AbstractVariety) = [dual_basis(X, k) for k in 0:X.dim]
 # computing the total Chern class)
 function _expp(x::MPolyDecRingOrQuoElem; truncate::Int=-1)
   R = parent(x)
-  n = truncate < 0 ? get_attribute(R, :abstract_variety_dim) : truncate
+  n = truncate < 0 ? get_attribute(R, :abstract_variety_dim)::Int : truncate
   comps = x[0:n]
   p = [(-1)^i * factorial(ZZ(i)) * comps[i+1] for i in 0:n]
   e = repeat([R(0)], n+1)
@@ -1315,7 +1313,7 @@ end
 
 function _logg(x::MPolyDecRingOrQuoElem)
   R = parent(x)
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Int
   n == 0 && return R()
   e = x[1:n]
   p = pushfirst!(repeat([R()], n-1), -e[1])
@@ -1329,7 +1327,7 @@ end
 function _wedge(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
   k == 0 && return [R(1)]
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Int
   wedge = repeat([R(0)], k+1)
   wedge[1] = R(1)
   wedge[2] = x
@@ -1343,7 +1341,7 @@ end
 function _sym(k::Int, x::MPolyDecRingOrQuoElem)
   R = parent(x)
   k == 0 && return [R(1)]
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Int
   r = min(k, Int(ZZ(QQ(constant_coefficient(x.f)))))
   wedge = _wedge(r, x)
   sym = repeat([R(0)], k+1)
@@ -1369,21 +1367,21 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
 end
 
 function _todd_class(x::MPolyDecRingOrQuoElem)
-  n = get_attribute(parent(x), :abstract_variety_dim)
+  n = get_attribute(parent(x), :abstract_variety_dim)::Int
   # the Taylor series of t/(1-exp(-t))
   taylor = [(-1)^i//factorial(ZZ(i))*bernoulli(i) for i in 0:n]
   _genus(x, taylor)
 end
 
 function _l_genus(x::MPolyDecRingOrQuoElem)
-  n = get_attribute(parent(x), :abstract_variety_dim)
+  n = get_attribute(parent(x), :abstract_variety_dim)::Int
   # the Taylor series of sqrt(t)/tanh(sqrt(t))
   taylor = [ZZ(2)^2i//factorial(ZZ(2i))*bernoulli(2i) for i in 0:n]
   _genus(x, taylor)
 end
 
 function _a_hat_genus(x::MPolyDecRingOrQuoElem)
-  n = get_attribute(parent(x), :abstract_variety_dim)
+  n = get_attribute(parent(x), :abstract_variety_dim)::Int
   # the Taylor series of (sqrt(t)/2)/sinh(sqrt(t)/2)
   R, t = power_series_ring(QQ, 2n+1, "t")
   s = divexact(t, exp(QQ(1//2)*t)-exp(-QQ(1//2)*t))
