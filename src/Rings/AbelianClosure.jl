@@ -47,6 +47,12 @@ import Hecke: conductor, data
 #
 ################################################################################
 
+@doc raw"""
+    QQAbField
+
+The type of the abelian closure of the rationals. An object of this type can
+be constructed using [`abelian_closure(::QQField)`](@ref).
+"""
 @attributes mutable struct QQAbField{T} <: Nemo.Field # union of cyclotomic fields
   fields::Dict{Int, T} # Cache for the cyclotomic fields
   s::String
@@ -59,7 +65,13 @@ end
 const _QQAb = QQAbField{AbsSimpleNumField}(Dict{Int, AbsSimpleNumField}())
 const _QQAb_sparse = QQAbField{AbsNonSimpleNumField}(Dict{Int, AbsNonSimpleNumField}())
 
-mutable struct QQAbElem{T} <: Nemo.FieldElem
+@doc raw"""
+    QQAbFieldElem
+
+Element type for the abelian closure of the rationals.
+For more details see [`abelian_closure(::QQField)`](@ref).
+"""
+mutable struct QQAbFieldElem{T} <: Nemo.FieldElem
   data::T                             # Element in cyclotomic field
   c::Int                              # Conductor of field
 end
@@ -143,13 +155,13 @@ end
 #
 ################################################################################
 
-elem_type(::Type{QQAbField{AbsSimpleNumField}}) = QQAbElem{AbsSimpleNumFieldElem}
-parent_type(::Type{QQAbElem{AbsSimpleNumFieldElem}}) = QQAbField{AbsSimpleNumField}
-parent(::QQAbElem{AbsSimpleNumFieldElem}) = _QQAb
+elem_type(::Type{QQAbField{AbsSimpleNumField}}) = QQAbFieldElem{AbsSimpleNumFieldElem}
+parent_type(::Type{QQAbFieldElem{AbsSimpleNumFieldElem}}) = QQAbField{AbsSimpleNumField}
+parent(::QQAbFieldElem{AbsSimpleNumFieldElem}) = _QQAb
 
-elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbElem{AbsNonSimpleNumFieldElem}
-parent_type(::Type{QQAbElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
-parent(::QQAbElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
+elem_type(::Type{QQAbField{AbsNonSimpleNumField}}) = QQAbFieldElem{AbsNonSimpleNumFieldElem}
+parent_type(::Type{QQAbFieldElem{AbsNonSimpleNumFieldElem}}) = QQAbField{AbsNonSimpleNumField}
+parent(::QQAbFieldElem{AbsNonSimpleNumFieldElem}) = _QQAb_sparse
 
 base_ring(::QQAbField) = Union{}
 base_ring_type(::Type{<:QQAbField}) = typeof(Union{})
@@ -170,9 +182,9 @@ function _variable(K::QQAbField)
   end
 end
 
-_variable(b::QQAbElem{AbsSimpleNumFieldElem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
+_variable(b::QQAbFieldElem{AbsSimpleNumFieldElem}) = Expr(:call, Symbol(_variable(_QQAb)), b.c)
 
-function _variable(b::QQAbElem{AbsNonSimpleNumFieldElem}) 
+function _variable(b::QQAbFieldElem{AbsNonSimpleNumFieldElem}) 
   k = parent(b.data)
   lc = get_attribute(k, :decom)
   n = get_attribute(k, :cyclo)
@@ -211,7 +223,7 @@ function Hecke.cyclotomic_field(K::QQAbField{AbsNonSimpleNumField}, c::Int)
   end
 end
 
-Hecke.data(a::QQAbElem) = a.data
+Hecke.data(a::QQAbFieldElem) = a.data
 
 ################################################################################
 #
@@ -230,9 +242,9 @@ function root_of_unity(K::QQAbField{AbsSimpleNumField}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QQAbElem{AbsSimpleNumFieldElem}(z, c)
+    return QQAbFieldElem{AbsSimpleNumFieldElem}(z, c)
   else
-    return QQAbElem{AbsSimpleNumFieldElem}(-z, c)
+    return QQAbFieldElem{AbsSimpleNumFieldElem}(-z, c)
   end
 end
 
@@ -244,9 +256,9 @@ function root_of_unity(K::QQAbField{AbsNonSimpleNumField}, n::Int)
   end
   K, z = cyclotomic_field(K, c)
   if c == n
-    return QQAbElem{AbsNonSimpleNumFieldElem}(z, c)
+    return QQAbFieldElem{AbsNonSimpleNumFieldElem}(z, c)
   else
-    return QQAbElem{AbsNonSimpleNumFieldElem}(-z, c)
+    return QQAbFieldElem{AbsNonSimpleNumFieldElem}(-z, c)
   end
 end
 
@@ -254,7 +266,7 @@ end
 function root_of_unity2(K::QQAbField, c::Int)
   # This function returns the primitive root of unity e^(2*pi*i/n)
   K, z = cyclotomic_field(K, c)
-  return QQAbElem(z, c)
+  return QQAbFieldElem(z, c)
 end
 
 (z::QQAbFieldGen)(n::Int) = root_of_unity(z.K, n)
@@ -262,25 +274,25 @@ end
 
 one(K::QQAbField) = K(1)
 
-one(a::QQAbElem) = one(parent(a))
+one(a::QQAbFieldElem) = one(parent(a))
 
-function isone(a::QQAbElem)
+function isone(a::QQAbFieldElem)
   return isone(data(a))
 end
 
-function iszero(a::QQAbElem)
+function iszero(a::QQAbFieldElem)
   return iszero(data(a))
 end
 
 zero(K::QQAbField) = K(0)
 
-zero(a::QQAbElem) = zero(parent(a))
+zero(a::QQAbFieldElem) = zero(parent(a))
 
 function (K::QQAbField)(a::Union{ZZRingElem, QQFieldElem, Integer, Rational})
   return a*root_of_unity(K, 1)
 end
 
-function (K::QQAbField)(a::QQAbElem)
+function (K::QQAbField)(a::QQAbFieldElem)
   return a
 end
 
@@ -291,7 +303,7 @@ function (K::QQAbField)(a::AbsSimpleNumFieldElem)
 
   # Cyclotomic fields are naturally embedded into `K`.
   fl, f = Hecke.is_cyclotomic_type(F)
-  fl && return QQAbElem(a, f)
+  fl && return QQAbFieldElem(a, f)
 
   # Quadratic fields are naturally embedded into `K`.
   if degree(F) == 2
@@ -306,7 +318,7 @@ function (K::QQAbField)(a::AbsSimpleNumFieldElem)
 
     x = coeff(a, 0)
     y = coeff(a, 1)
-    iszero(y) && return QQAbElem(parent(a)(x), 1)
+    iszero(y) && return QQAbFieldElem(parent(a)(x), 1)
     d = sign(f)
     c = 1
     for (p, e) in factor(f)
@@ -373,17 +385,17 @@ of the rationals.
 """
 get_variable(K::QQAbField) = _variable(K)
 
-function AbstractAlgebra.expressify(b::QQAbElem{AbsSimpleNumFieldElem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbFieldElem{AbsSimpleNumFieldElem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(parent(parent(a).pol)(a), _variable(b), context = context)
 end
 
-function AbstractAlgebra.expressify(b::QQAbElem{AbsNonSimpleNumFieldElem}; context = nothing)
+function AbstractAlgebra.expressify(b::QQAbFieldElem{AbsNonSimpleNumFieldElem}; context = nothing)
   a = data(b)
   return AbstractAlgebra.expressify(a.data, _variable(b), context = context)
 end
 
-Oscar.@enable_all_show_via_expressify QQAbElem
+Oscar.@enable_all_show_via_expressify QQAbFieldElem
 
 ################################################################################
 #
@@ -408,30 +420,30 @@ function is_conductor(n::Int)
   return n % 4 == 0
 end
 
-function coerce_up(K::AbsSimpleNumField, n::Int, a::QQAbElem{AbsSimpleNumFieldElem})
+function coerce_up(K::AbsSimpleNumField, n::Int, a::QQAbFieldElem{AbsSimpleNumFieldElem})
   d = div(n, a.c)
   @assert n % a.c == 0
   #z_n^(d) = z_a
   R = parent(parent(data(a)).pol)
-  return QQAbElem{AbsSimpleNumFieldElem}(evaluate(R(data(a)), gen(K)^d), n)
+  return QQAbFieldElem{AbsSimpleNumFieldElem}(evaluate(R(data(a)), gen(K)^d), n)
 end
 
-function coerce_up(K::AbsNonSimpleNumField, n::Int, a::QQAbElem{AbsNonSimpleNumFieldElem})
+function coerce_up(K::AbsNonSimpleNumField, n::Int, a::QQAbFieldElem{AbsNonSimpleNumFieldElem})
   d = div(n, a.c)
   @assert n % a.c == 0
   lk = get_attribute(parent(a.data), :decom)
   #gen(k, i) = gen(K, j)^n for the unique j s.th. gcd(lk[i], lK[j])
   # and n = lK[j]/lk[i]
   #z_n^(d) = z_a
-  return QQAbElem{AbsNonSimpleNumFieldElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
+  return QQAbFieldElem{AbsNonSimpleNumFieldElem}(evaluate(data(a).data, [ns_gen(K)^divexact(n, i) for i=lk]), n)
 end
 
 
-function coerce_down(K::AbsSimpleNumField, n::Int, a::QQAbElem)
+function coerce_down(K::AbsSimpleNumField, n::Int, a::QQAbFieldElem)
   throw(Hecke.NotImplemented())
 end
 
-function make_compatible(a::QQAbElem{T}, b::QQAbElem{T}) where {T}
+function make_compatible(a::QQAbFieldElem{T}, b::QQAbFieldElem{T}) where {T}
   if a.c == b.c
     return a,b
   end
@@ -494,7 +506,7 @@ function conductor(k::AbsSimpleNumField)
   return c
 end
 
-conductor(a::QQAbElem) = conductor(data(a))
+conductor(a::QQAbFieldElem) = conductor(data(a))
 
 # What we want is the conductor of the domain of the map, but we need the map.
 function conductor(phi::MapFromFunc{T, QQAbField{T}}) where T
@@ -507,8 +519,8 @@ end
 #
 ################################################################################
 
-(R::QQField)(a::QQAbElem) = R(a.data)
-(R::ZZRing)(a::QQAbElem) = R(a.data)
+(R::QQField)(a::QQAbFieldElem) = R(a.data)
+(R::ZZRing)(a::QQAbFieldElem) = R(a.data)
 
 
 ################################################################################
@@ -517,9 +529,9 @@ end
 #
 ################################################################################
 
-is_unit(a::QQAbElem) = !iszero(a)
+is_unit(a::QQAbFieldElem) = !iszero(a)
 
-canonical_unit(a::QQAbElem) = a
+canonical_unit(a::QQAbFieldElem) = a
 
 ################################################################################
 #
@@ -527,7 +539,7 @@ canonical_unit(a::QQAbElem) = a
 #
 ################################################################################
 
-Hecke.minpoly(a::QQAbElem) = minpoly(data(a))
+Hecke.minpoly(a::QQAbFieldElem) = minpoly(data(a))
 
 ################################################################################
 #
@@ -535,13 +547,13 @@ Hecke.minpoly(a::QQAbElem) = minpoly(data(a))
 #
 ################################################################################
 
-function Hecke.number_field(::QQField, a::QQAbElem; cached::Bool = false)
+function Hecke.number_field(::QQField, a::QQAbFieldElem; cached::Bool = false)
   f = minpoly(a)
   k, b = number_field(f, check = false, cached = cached)
   return k, b
 end
 
-function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbElem}; cached::Bool = false)
+function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbFieldElem}; cached::Bool = false)
   if length(a) == 0
     return Hecke.rationals_as_number_field()[1]
   end
@@ -551,9 +563,9 @@ function Hecke.number_field(::QQField, a::AbstractVector{<: QQAbElem}; cached::B
   return k, gen(k)
 end
 
-Base.getindex(::QQField, a::QQAbElem) = number_field(QQ, a)
-Base.getindex(::QQField, a::Vector{QQAbElem{T}}) where T = number_field(QQ, a)
-Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x in a])
+Base.getindex(::QQField, a::QQAbFieldElem) = number_field(QQ, a)
+Base.getindex(::QQField, a::Vector{QQAbFieldElem{T}}) where T = number_field(QQ, a)
+Base.getindex(::QQField, a::QQAbFieldElem...) = number_field(QQ, [x for x in a])
 
 ################################################################################
 #
@@ -561,50 +573,50 @@ Base.getindex(::QQField, a::QQAbElem...) = number_field(QQ, [x for x in a])
 #
 ################################################################################
 
-function +(a::QQAbElem, b::QQAbElem)
+function +(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  return QQAbElem(data(a) + data(b), a.c)
+  return QQAbFieldElem(data(a) + data(b), a.c)
 end
 
-function *(a::QQAbElem, b::QQAbElem)
+function *(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  return QQAbElem(data(a) * data(b), a.c)
+  return QQAbFieldElem(data(a) * data(b), a.c)
 end
 
-function -(a::QQAbElem)
-  return QQAbElem(-data(a), a.c)
+function -(a::QQAbFieldElem)
+  return QQAbFieldElem(-data(a), a.c)
 end
 
-function ^(a::QQAbElem, n::Integer)
-  return QQAbElem(data(a)^n, a.c)
+function ^(a::QQAbFieldElem, n::Integer)
+  return QQAbFieldElem(data(a)^n, a.c)
 end
 
-function ^(a::QQAbElem, n::ZZRingElem)
+function ^(a::QQAbFieldElem, n::ZZRingElem)
   return a^Int(n)
 end
 
-function -(a::QQAbElem, b::QQAbElem)
+function -(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  return QQAbElem(a.data-b.data, a.c)
+  return QQAbFieldElem(a.data-b.data, a.c)
 end
 
-function //(a::QQAbElem, b::QQAbElem)
+function //(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  return QQAbElem(a.data//b.data, a.c)
+  return QQAbFieldElem(a.data//b.data, a.c)
 end
 
-function div(a::QQAbElem, b::QQAbElem)
+function div(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
-  return QQAbElem(a.data//b.data, a.c)
+  return QQAbFieldElem(a.data//b.data, a.c)
 end
 
-function divexact(a::QQAbElem, b::QQAbElem; check::Bool = true)
+function divexact(a::QQAbFieldElem, b::QQAbFieldElem; check::Bool = true)
   a, b = make_compatible(a, b)
-  return QQAbElem(divexact(a.data, b.data), a.c)
+  return QQAbFieldElem(divexact(a.data, b.data), a.c)
 end
 
-function inv(a::QQAbElem)
-  return QQAbElem(inv(data(a)), a.c)
+function inv(a::QQAbFieldElem)
+  return QQAbFieldElem(inv(data(a)), a.c)
 end
 
 ################################################################################
@@ -613,18 +625,18 @@ end
 #
 ################################################################################
 
-function addeq!(c::QQAbElem, a::QQAbElem)
+function addeq!(c::QQAbFieldElem, a::QQAbFieldElem)
   _c, _a = make_compatible(c, a)
   addeq!(_c.data, _a.data)
   return _c
 end
 
-function neg!(a::QQAbElem)
+function neg!(a::QQAbFieldElem)
   mul!(a.data,a.data,-1)
   return a
 end
 
-function mul!(c::QQAbElem, a::QQAbElem, b::QQAbElem)
+function mul!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   b, c = make_compatible(b, c)
   a, b = make_compatible(a, b)
@@ -638,61 +650,61 @@ end
 #
 ################################################################################
 
-*(a::ZZRingElem, b::QQAbElem) = QQAbElem(b.data*a, b.c)
+*(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
 
-*(a::QQFieldElem, b::QQAbElem) = QQAbElem(b.data*a, b.c)
+*(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data*a, b.c)
 
-*(a::Integer, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
+*(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
 
-*(a::Rational, b::QQAbElem) = QQAbElem(data(b) * a, b.c)
+*(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) * a, b.c)
 
-*(a::QQAbElem, b::ZZRingElem) = b*a
+*(a::QQAbFieldElem, b::ZZRingElem) = b*a
 
-*(a::QQAbElem, b::QQFieldElem) = b*a
+*(a::QQAbFieldElem, b::QQFieldElem) = b*a
 
-*(a::QQAbElem, b::Integer) = b*a
+*(a::QQAbFieldElem, b::Integer) = b*a
 
-*(a::QQAbElem, b::Rational) = b*a
+*(a::QQAbFieldElem, b::Rational) = b*a
 
-+(a::ZZRingElem, b::QQAbElem) = QQAbElem(b.data + a, b.c)
++(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
 
-+(a::QQFieldElem, b::QQAbElem) = QQAbElem(b.data + a, b.c)
++(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(b.data + a, b.c)
 
-+(a::Integer, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
++(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
 
-+(a::Rational, b::QQAbElem) = QQAbElem(data(b) + a, b.c)
++(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(data(b) + a, b.c)
 
-+(a::QQAbElem, b::ZZRingElem) = b + a
++(a::QQAbFieldElem, b::ZZRingElem) = b + a
 
-+(a::QQAbElem, b::QQFieldElem) = b + a
++(a::QQAbFieldElem, b::QQFieldElem) = b + a
 
-+(a::QQAbElem, b::Integer) = b + a
++(a::QQAbFieldElem, b::Integer) = b + a
 
-+(a::QQAbElem, b::Rational) = b + a
++(a::QQAbFieldElem, b::Rational) = b + a
 
--(a::ZZRingElem, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::ZZRingElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
 
--(a::QQFieldElem, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::QQFieldElem, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
 
--(a::Integer, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::Integer, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
 
--(a::Rational, b::QQAbElem) = QQAbElem(-(a, data(b)), b.c)
+-(a::Rational, b::QQAbFieldElem) = QQAbFieldElem(-(a, data(b)), b.c)
 
--(a::QQAbElem, b::ZZRingElem) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(-(data(a), b), a.c)
 
--(a::QQAbElem, b::QQFieldElem) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(-(data(a), b), a.c)
 
--(a::QQAbElem, b::Integer) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(-(data(a), b), a.c)
 
--(a::QQAbElem, b::Rational) = QQAbElem(-(data(a), b), a.c)
+-(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(-(data(a), b), a.c)
 
-//(a::QQAbElem, b::ZZRingElem) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbFieldElem, b::ZZRingElem) = QQAbFieldElem(data(a)//b, a.c)
 
-//(a::QQAbElem, b::QQFieldElem) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbFieldElem, b::QQFieldElem) = QQAbFieldElem(data(a)//b, a.c)
 
-//(a::QQAbElem, b::Integer) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbFieldElem, b::Integer) = QQAbFieldElem(data(a)//b, a.c)
 
-//(a::QQAbElem, b::Rational) = QQAbElem(data(a)//b, a.c)
+//(a::QQAbFieldElem, b::Rational) = QQAbFieldElem(data(a)//b, a.c)
 
 ################################################################################
 #
@@ -700,20 +712,20 @@ end
 #
 ################################################################################
 
-function ==(a::QQAbElem, b::QQAbElem)
+function ==(a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   return a.data == b.data
 end
 
-function ==(a::QQAbElem, b::Union{ZZRingElem, QQFieldElem, Integer, Rational})
+function ==(a::QQAbFieldElem, b::Union{ZZRingElem, QQFieldElem, Integer, Rational})
   return data(a) == b
 end
 
-function ==(a::Union{ZZRingElem, QQFieldElem, Integer, Rational}, b::QQAbElem)
+function ==(a::Union{ZZRingElem, QQFieldElem, Integer, Rational}, b::QQAbFieldElem)
   return b == a
 end
 
-hash(a::QQAbElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
+hash(a::QQAbFieldElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
 
 ################################################################################
 #
@@ -721,12 +733,12 @@ hash(a::QQAbElem, h::UInt) = hash(minimize(CyclotomicField, a.data), h)
 #
 ################################################################################
 
-function Base.copy(a::QQAbElem)
-  return QQAbElem(data(a), a.c)
+function Base.copy(a::QQAbFieldElem)
+  return QQAbFieldElem(data(a), a.c)
 end
 
-function Base.deepcopy_internal(a::QQAbElem, dict::IdDict)
-  return QQAbElem(deepcopy_internal(data(a), dict), a.c)
+function Base.deepcopy_internal(a::QQAbFieldElem, dict::IdDict)
+  return QQAbFieldElem(deepcopy_internal(data(a), dict), a.c)
 end
 
 ################################################################################
@@ -735,11 +747,11 @@ end
 #
 ################################################################################
 
-AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{Int}) = QQAbElem
+AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{Int}) = QQAbFieldElem
 
-AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{ZZRingElem}) = QQAbElem
+AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{ZZRingElem}) = QQAbFieldElem
 
-AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{QQFieldElem}) = QQAbElem
+AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbFieldElem
 
 ###############################################################################
 #
@@ -747,7 +759,7 @@ AbstractAlgebra.promote_rule(::Type{QQAbElem}, ::Type{QQFieldElem}) = QQAbElem
 #
 ###############################################################################
 
-function Oscar.root(a::QQAbElem, n::Int)
+function Oscar.root(a::QQAbFieldElem, n::Int)
   Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
@@ -755,7 +767,7 @@ function Oscar.root(a::QQAbElem, n::Int)
   return mu
 end
 
-function Oscar.roots(f::PolyRingElem{QQAbElem{T}}) where T
+function Oscar.roots(f::PolyRingElem{QQAbFieldElem{T}}) where T
   QQAb = base_ring(f)
   c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(f)), init = Int(1))
   k, z = cyclotomic_field(QQAb, c)
@@ -768,7 +780,7 @@ function Oscar.roots(f::PolyRingElem{QQAbElem{T}}) where T
 
   C = cyclotomic_field(ClassField, c)
 
-  rts = QQAbElem{T}[]
+  rts = QQAbFieldElem{T}[]
 
   for g = keys(lf)
     c = reduce(lcm, map(conductor, AbstractAlgebra.coefficients(g)), init = Int(1))
@@ -811,10 +823,10 @@ function Oscar.roots(f::PolyRingElem{QQAbElem{T}}) where T
     rt = roots(map_coefficients(k, g))
     append!(rts, map(QQAb, rt))
   end
-  return rts::Vector{QQAbElem{T}}
+  return rts::Vector{QQAbFieldElem{T}}
 end
 
-function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
+function Oscar.roots(a::QQAbFieldElem{T}, n::Int) where {T}
   #strategy:
   # - if a is a root-of-1: trivial, as the answer is also roots-of-1
   # - if a can "easily" be made into a root-of-one: doit
@@ -828,20 +840,20 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
     zk = maximal_order(parent(a.data)) #should be for free
     fl, i = is_power(a.data*zk, n)
     _, x = polynomial_ring(parent(a); cached = false)
-    fl || return roots(x^n-a)::Vector{QQAbElem{T}}
+    fl || return roots(x^n-a)::Vector{QQAbFieldElem{T}}
     b = gens(Hecke.inv(i))[end]
     c = deepcopy(a)
     c.data = b
     corr = Hecke.inv(c)
     a *= c^n
     fl = is_root_of_unity(a)
-    fl || return (corr .* roots(x^n-a))::Vector{QQAbElem{T}}
+    fl || return (corr .* roots(x^n-a))::Vector{QQAbFieldElem{T}}
   end
   
   o = order(a)
   l = o*n
   mu = root_of_unity(parent(a), Int(l))
-  A = QQAbElem[]
+  A = QQAbFieldElem[]
   if l==1 && mu==a
     push!(A, mu)
   end
@@ -851,10 +863,10 @@ function Oscar.roots(a::QQAbElem{T}, n::Int) where {T}
       push!(A, el)
     end
   end
-  return [x*corr for x = A]::Vector{QQAbElem{T}}
+  return [x*corr for x = A]::Vector{QQAbFieldElem{T}}
 end
 
-function is_root_of_unity(a::QQAbElem)
+function is_root_of_unity(a::QQAbFieldElem)
   return is_torsion_unit(a.data, true)
   #=
   b = a^a.c
@@ -862,7 +874,7 @@ function is_root_of_unity(a::QQAbElem)
   =#
 end
 
-function Oscar.order(a::QQAbElem)
+function Oscar.order(a::QQAbFieldElem)
   f = Nemo.factor(ZZRingElem(2*a.c))
   o = 1
   for (p, e) = f.fac
@@ -879,9 +891,9 @@ function Oscar.order(a::QQAbElem)
 end
 
 # Convenient sqrt and cbrt functions as simple wrappers around the roots function,
-# which is already implemented for QQAbElem directly
+# which is already implemented for QQAbFieldElem directly
 
-function Oscar.sqrt(a::QQAbElem)
+function Oscar.sqrt(a::QQAbFieldElem)
   sqrt = Oscar.roots(a, 2)
   if is_empty(sqrt)
     error("Element $a does not have a square root")
@@ -889,7 +901,7 @@ function Oscar.sqrt(a::QQAbElem)
   return sqrt[1]
 end
 
-function Oscar.cbrt(a::QQAbElem)
+function Oscar.cbrt(a::QQAbFieldElem)
   cbrt = Oscar.roots(a,3)
   if is_empty(cbrt)
     error("Element $a does not have a cube root")
@@ -908,17 +920,17 @@ end
 # Construct the map from `F` to an abelian closure `K` such that `gen(F)`
 # is mapped to `x`.
 # If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
-# is mapped to `QQAbElem(gen(F), N)`.
+# is mapped to `QQAbFieldElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
 function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
-                    x::QQAbElem{AbsSimpleNumFieldElem})
+                    x::QQAbFieldElem{AbsSimpleNumFieldElem})
   C1, z = cyclotomic_field(1)
 
   f = function(x::QQFieldElem)
-    return QQAbElem(C1(x), 1)
+    return QQAbFieldElem(C1(x), 1)
   end
 
-  finv = function(x::QQAbElem; check::Bool = false)
+  finv = function(x::QQAbFieldElem; check::Bool = false)
     if conductor(x) == 1
       return Hecke.force_coerce_cyclo(C1, data(x))
     elseif check
@@ -932,15 +944,15 @@ function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
 end
 
 function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
-                    x::QQAbElem{AbsSimpleNumFieldElem})
+                    x::QQAbFieldElem{AbsSimpleNumFieldElem})
   fl, n = Hecke.is_cyclotomic_type(F)
   if fl
     # This is cheaper.
     f = function(x::AbsSimpleNumFieldElem)
-      return QQAbElem(x, n)
+      return QQAbFieldElem(x, n)
     end
 
-    finv = function(x::QQAbElem; check::Bool = false)
+    finv = function(x::QQAbFieldElem; check::Bool = false)
       if n % conductor(x) == 0
         return Hecke.force_coerce_cyclo(F, data(x))
       elseif check
@@ -960,10 +972,10 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
     R = parent(F.pol)
 
     f = function(z::AbsSimpleNumFieldElem)
-      return QQAbElem(evaluate(R(z), x), n)
+      return QQAbFieldElem(evaluate(R(z), x), n)
     end
 
-    finv = function(x::QQAbElem; check::Bool = false)
+    finv = function(x::QQAbFieldElem; check::Bool = false)
       n % conductor(x) == 0 || return false, zero(F)
       # Write `x` w.r.t. the n-th cyclotomic field ...
       g = gcd(x.c, n)
@@ -989,7 +1001,7 @@ end
 
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
-function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbElem{AbsSimpleNumFieldElem})
+function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbFieldElem{AbsSimpleNumFieldElem})
   pre = mp.g(x, check = true)
   if isnothing(pre)
     return false, zero(domain(mp))
@@ -1024,9 +1036,9 @@ end
 
 Oscar.hom(K::QQAbField, L::QQAbField, k::Int) = QQAbAutomorphism(k)
 
-(f::QQAbAutomorphism)(a::QQAbElem) = a^f
+(f::QQAbAutomorphism)(a::QQAbFieldElem) = a^f
 
-function ^(val::QQAbElem, sigma::QQAbAutomorphism)
+function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
   k = sigma.exp
   n = val.c
   g = gcd(k, n)
@@ -1053,10 +1065,10 @@ function ^(val::QQAbElem, sigma::QQAbAutomorphism)
   end
   F = parent(data) # cycl. field
   R = parent(F.pol)
-  return QQAbElem(F(R(res)), n)
+  return QQAbFieldElem(F(R(res)), n)
 end
 
-Base.conj(elm::QQAbElem) = elm^QQAbAutomorphism(-1)
+Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
 
 ###############################################################################
 #
@@ -1152,11 +1164,11 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
   R = parent(pol)
   elm = mod(R(cfs), pol)
 
-  return cf * QQAbElem(FF(elm), N)
+  return cf * QQAbFieldElem(FF(elm), N)
 end
 
 """
-    quadratic_irrationality_info(a::QQAbElem)
+    quadratic_irrationality_info(a::QQAbFieldElem)
 
 Return `(x, y, n)`, where `x`, `y` are of type `QQFieldElem` and `n` is
 a squarefree integer, such that `a == x + y sqrt(n)` holds.
@@ -1165,7 +1177,7 @@ a squarefree integer, such that `a == x + y sqrt(n)` holds.
 is used to define `a` is identified with the complex number `exp(2*Pi*i/N)`,
 where `i` is the imaginary unit.)
 """
-function quadratic_irrationality_info(a::QQAbElem)
+function quadratic_irrationality_info(a::QQAbFieldElem)
     n = a.c
 
     # Compute the Galois group generators of the `n`-th cyclotomic field.
@@ -1227,7 +1239,7 @@ function quadratic_irrationality_info(a::QQAbElem)
 end
 
 @doc raw"""
-    reduce(val::QQAbElem, F::FinField)
+    reduce(val::QQAbFieldElem, F::FinField)
 
 Return the element of `F` that is the $p$-modular reduction of `val`,
 where $p$ is the characteristic of `F`.
@@ -1244,7 +1256,7 @@ julia> reduce(z(7), F)
 o
 ```
 """
-function reduce(val::QQAbElem, F::FinField)
+function reduce(val::QQAbFieldElem, F::FinField)
   p = characteristic(F)
   iso_0 = Oscar.iso_oscar_gap(parent(val))
   iso_p = Oscar.iso_oscar_gap(F)
@@ -1260,13 +1272,13 @@ import .AbelianClosure:
        abelian_closure,
        QQAbAutomorphism,
        QQAbField,
-       QQAbElem,
+       QQAbFieldElem,
        set_variable!,
        get_variable
 
 export abelian_closure
 export get_variable
 export QQAbAutomorphism
-export QQAbElem
+export QQAbFieldElem
 export QQAbField
 export set_variable!
