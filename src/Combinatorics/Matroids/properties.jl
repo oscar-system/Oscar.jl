@@ -1256,7 +1256,7 @@ end
 
     quantum_automorphism_group(M::Matroid, structure::Symbol=:bases)
 
-Get the relations that define the quantum automorphism group of a matroid for a given structure. If interreduce is true, it uses the interreduce function from Oscar to reduce the number of generators.
+Get the relations that define the quantum automorphism group of a matroid for a given structure.
 
 # Examples
 
@@ -1289,6 +1289,3 @@ function quantum_automorphism_group(
     return relation_transformed,  rels_sorted, u, A
 
 end
-
-
-
