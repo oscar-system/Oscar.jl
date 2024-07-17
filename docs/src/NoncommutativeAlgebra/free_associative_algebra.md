@@ -24,3 +24,8 @@ ideal(g::Vector{T}) where T <: FreeAssAlgElem
 ideal_membership(a::FreeAssAlgElem, I::FreeAssAlgIdeal, deg_bound::Int)
 ```
 
+The groebner basis computation used for `ideal_membership` is implemented in the function `groebner_basis`.
+
+```@docs
+groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)
+```
