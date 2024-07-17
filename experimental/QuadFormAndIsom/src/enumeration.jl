@@ -417,13 +417,24 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
   return ids
 end
 
+# K is the maximal real subfield of a cyclotomic field. Return the
+# permutations defining the representation of Gal(K/QQ) on the
+# finite set of (real) infinite places of K.
+#
+# The returned permutations correspond to "changes of fixed root of unity"
+# (up to complex conjugation).
+function _permutations_of_places(K::Field)
+  G = automorphism_list(K)
+  P = real_places(K)
+  lis_vec = Vector{Int}[ findfirst.([ isequal(Hecke.induce_image(g, pp)) for pp in P], Ref(P)) for g in G]
+  return lis_vec
+end
+
 # Given a degree 2 extension of number fields E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, and whose trace lattice has negative signature s2.
-# In the cyclotomic case, if `fix_root = true`, we do not consider
-# permutations of a set of signatures since any permutation correspond
-# to a change of a choice of a primitive root of unity.
-
+# In the cyclotomic case, if `fix_root = true`, we consider such signatures
+# up to permutations corresponding to changing a fixed root of unity.
 function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
   lb = iseven(s2) ? 0 : 1
   K = base_field(E)
@@ -431,9 +442,8 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
   r = length(real_places(K)) - length(inf)
   s = length(inf)
   signs = Dict{Hecke.place_type(K), Int}[]
-  if !fix_root
-    perm = AllPerms(s)
-  end
+  perm = AllPerms(s)
+  GS = fix_root ? _permutations_of_places(K) : Vector{Int}[]
   for l in lb:2:min(s2, rk*r)
     parts = Vector{Int}[]
     l = divexact(s2-l, 2)
@@ -448,13 +458,12 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
         push!(v, 0)
       end
       push!(parts, copy(v))
-      if !fix_root
-        for vv in perm
-          v2 = v[vv.d]
-          v2 in parts ? continue : push!(parts, v2)
-        end
+      for vv in perm
+        v2 = v[vv.d]
+        any(vvv -> view(v2, vvv) in parts, GS) ? continue : push!(parts, v2)
       end
     end
+    unique!(parts)
     for v in parts
       push!(signs, Dict(a => b for (a,b) in zip(inf, v)))
     end

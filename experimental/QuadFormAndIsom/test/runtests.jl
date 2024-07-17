@@ -283,6 +283,11 @@ end
   rht = @inferred representatives_of_hermitian_type(G, chi)
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
+
+  # Fix signatures filtration
+  E, _ = cyclotomic_field_as_cm_extension(7; cached=false)
+  signs = Oscar._possible_signatures(12, E, 3, true)
+  @test length(signs) == 4
 end
 
 @testset "Primitive extensions and embeddings" begin
