@@ -36,7 +36,3 @@ function det(A::Generic.MatSpaceElem{R}) where {R<:Union{TropicalSemiringElem,MP
     nrows(A)!=ncols(A) && return zero(T) # return tropical zero if matrix not square
     return T(Polymake.tropical.tdet(A))
 end
-
-function det(A::Matrix{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
-    return det(matrix(parent(first(A)),A))
-end
