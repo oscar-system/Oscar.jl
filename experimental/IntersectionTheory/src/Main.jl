@@ -1574,7 +1574,8 @@ julia> CZ = degeneracy_locus(F, G, 2, class = true) # only class of degeneracy l
 julia> CZ == chern_class(G-F, 2) # Porteous' formula
 true
 
-Z = degeneracy_locus(F, G, 2) # Veronese surface in P4
+julia> Z = degeneracy_locus(F, G, 2) # Veronese surface in P4
+AbstractVariety of dim 2
 
 julia> degree(Z)
 4
@@ -1598,7 +1599,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   D = zero_locus_section(dual(S) * G)
   D.struct_map = hom(D, F.parent) # skip the flag abstract_variety
   if isdefined(F.parent, :O1)
-    D.O1 = pullback(D.struct_map, F.parent.O1)
+    D.O1 = pullback(D.struct_map, F.parent.O1) #TOCHECK other fields of D
   end
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
