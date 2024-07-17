@@ -31,7 +31,7 @@ julia> det(A)
 (5)
 ```
 """
-function det(A::Generic.MatSpaceElem{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
+function det(A::Generic.MatSpaceElem{TropicalSemiringElem{minOrMax}}) where {minOrMax<:Union{typeof(max), typeof(min)}}
     nrows(A)!=ncols(A) && error("Non-square matrix")
     T = base_ring(A)
     return T(Polymake.tropical.tdet(A))
