@@ -466,7 +466,11 @@ end
 function ==(I::AbsIdealSheaf, J::AbsIdealSheaf)
   I === J && return true
   X = space(I)
-  X == space(J) || return false
+  if X isa NormalToricVariety
+    X === space(J) || return false
+  else
+    X == space(J) || return false
+  end
   for U in basic_patches(default_covering(X))
     is_subset(I(U), J(U)) && is_subset(J(U), I(U)) || return false
   end

@@ -42,7 +42,7 @@ function _projectivization_and_total_space(is_proj::Bool, E::Vector{T}) where T 
 
   is_proj && length(E) == 1 && return v
 
-  @req all(i -> toric_variety(E[i]) == v, eachindex(E)) "The divisors are defined on different toric varieties."
+  @req all(i -> toric_variety(E[i]) === v, eachindex(E)) "The divisors are defined on different toric varieties."
 
   if is_proj
     PF_fiber = normal_fan(simplex(length(E) - 1))
