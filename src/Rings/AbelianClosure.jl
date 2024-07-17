@@ -93,7 +93,7 @@ const _QQAbGen_sparse = QQAbFieldGen(_QQAb_sparse)
 ################################################################################
 
 @doc raw"""
-    abelian_closure(QQ::RationalField)
+    abelian_closure(QQ::QQField; sparse::Bool = false)
 
 Return a pair `(K, z)` consisting of the abelian closure `K` of the rationals
 and a generator `z` that can be used to construct primitive roots of unity in

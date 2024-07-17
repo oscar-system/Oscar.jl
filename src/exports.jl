@@ -154,9 +154,9 @@ export SimpleGluing
 export SimplicialComplex
 export Singular
 export Sp
-export SubObjectIterator
 export SubFPGroup
 export SubFPGroupElem
+export SubObjectIterator
 export SubPcGroup
 export SubPcGroupElem
 export SubQuoHom
@@ -193,8 +193,8 @@ export add_edge!
 export add_gluing!
 export add_vertex!
 export add_vertices!
-export adjacency_tree
 export adjacency_matrix
+export adjacency_tree
 export adjacent_chamber
 export adjoint_ideal
 export adjunction_process
@@ -253,8 +253,8 @@ export anticanonical_divisor
 export anticanonical_divisor_class
 export approximate_class_fusion
 export archimedean_solid
-export arrangement_polynomial
 export arithmetic_genus
+export arrangement_polynomial
 export as_dictionary
 export as_gset
 export ascending_compositions
@@ -356,8 +356,6 @@ export collector
 export coloops
 export column
 export combinatorial_symmetries
-export composition
-export compositions
 export comm
 export comm!
 export common_components
@@ -377,7 +375,9 @@ export complete_graph
 export complex_projective_plane
 export components
 export compose
+export composition
 export composition_series, has_composition_series, set_composition_series
+export compositions
 export cone
 export cone_from_equations
 export cone_from_inequalities
@@ -513,6 +513,7 @@ export explicit_zonotope
 export exponent, has_exponent, set_exponent
 export exponents
 export ext
+export ext_of_degree
 export extension_field
 export exterior_derivative
 export exterior_power
@@ -569,8 +570,8 @@ export fundamental_invariants
 export g_vector
 export galois_group
 export galois_ideal
-export galois_quotient
 export galois_orbit_sum
+export galois_quotient
 export gelfand_tsetlin_polytope
 export gen
 export general_linear_group
@@ -778,8 +779,8 @@ export is_feasible
 export is_finalized
 export is_finite, has_is_finite, set_is_finite
 export is_finite_dimensional_vector_space
-export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_finite_order
+export is_finitely_generated, has_is_finitely_generated, set_is_finitely_generated
 export is_flat
 export is_full_direct_product
 export is_full_semidirect_product
@@ -885,9 +886,9 @@ export is_two_sided
 export is_unipotent
 export is_unit
 export is_unital
+export is_vertex_transitive
 export is_vertical_k_separation
 export is_very_ample
-export is_vertex_transitive
 export is_weakly_connected
 export is_welldefined
 export is_z_graded
