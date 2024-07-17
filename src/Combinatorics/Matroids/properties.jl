@@ -1125,3 +1125,170 @@ end
 function indicator_vector(S::Vector{Int}, n::Int)
     return map(x -> x in S ? 1 : 0 , 1:n)
 end
+
+@doc raw"""
+    quantum_permutation_group(n::Int)
+
+Get the relations that define the quantum permutation group on `n` elements.
+
+# Examples
+```jldoctest
+rels,_, u, A = quantum_permutation_group(2)
+length(rels)
+# output
+
+16
+```
+"""
+function quantum_permutation_group(n::Int)
+    generator_strings = String[]
+    for i in 1:n, j in 1:n
+            push!(generator_strings, "u[$i,$j]")
+    end
+    A, g = free_associative_algebra(Oscar.QQ, generator_strings)
+    u = Matrix{elem_type(A)}(undef, n, n)
+    for i in 1:n, j in 1:n
+            u[i, j] = g[(i-1)*n + j]
+    end
+    rels_by_type = Dict{Symbol, Vector{elem_type(A)}}()
+    rels_by_type[:idempotent] = elem_type(A)[]
+    rels_by_type[:row_sum] = elem_type(A)[]
+    rels_by_type[:col_sum] = elem_type(A)[]
+    rels_by_type[:zero_divisor] = elem_type(A)[]
+    #Idempotent relations
+    for i in 1:n, j in 1:n
+        new_relation = u[i, j] * u[i, j] - u[i, j]
+        push!(rels_by_type[:idempotent], new_relation)
+            for k in 1:n
+                    if k != j
+                        new_relation = u[i,j] * u[i, k]
+                        push!(rels_by_type[:zero_divisor], new_relation)
+                        new_relation = u[j, i]*u[k, i]
+                        push!(rels_by_type[:zero_divisor], new_relation)
+                    end
+            end
+    end
+
+    #row and column sum relations
+    for i in 1:n
+        new_relation_row = -1
+        new_relation_col = -1
+        for k in 1:n
+            new_relation_row += u[i,k]
+            new_relation_col += u[k,i]
+        end
+        push!(rels_by_type[:row_sum], new_relation_row)
+        push!(rels_by_type[:col_sum], new_relation_col)
+
+    end
+    relations = elem_type(A)[]
+    for rel_type in keys(rels_by_type)
+        relations = vcat(relations, rels_by_type[rel_type])
+    end
+    return Vector{elem_type(A)}(relations),rels_by_type, u, A
+end
+
+@doc raw"""
+    _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:bases)
+
+Get the indices of the relations that define the quantum automorphism group of a matroid for a given structure.
+
+# Examples
+```jldoctest
+M = uniform_matroid(3,4)
+idx = Oscar._quantum_automorphism_group_indices(M,:bases)
+length(idx)
+
+# output
+
+1920
+```
+"""
+function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:bases)
+    @req structure in [:bases, :circuits, :flats] "structure must be one of :bases, :circuits, :flats"
+
+
+    n = length(M)
+    grdSet = matroid_groundset(M)
+    
+    b    = [[] for _ in 1:n]
+    nb   = [[] for _ in 1:n]
+    rels = [[] for _ in 1:n]
+
+    sets  = eval(structure)(M)
+    sizes = unique(map(x -> length(x), sets))
+    tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
+
+    for size in sizes 
+        size == 0 && continue
+        powerSet = unique(sort.(Oscar.subsets(tempGrdSet,size)))
+
+        setsOfSize = filter(x->length(x)==size,sets)
+        nonSets = setdiff(powerSet,setsOfSize) 
+
+        for set in setsOfSize
+            append!(b[size],collect(Oscar.permutations(set)))
+        end
+        for nonset in nonSets
+            append!(nb[size],collect(Oscar.permutations(nonset)))
+        end
+        for set in b[size]
+            for nonset in nb[size]
+                rel = []
+                for i in 1:size
+                    push!(rel,(set[i],nonset[i]))
+                end
+                push!(rels[size],rel)
+                rel = []
+                for i in 1:size
+                    push!(rel,(nonset[i],set[i]))
+                end
+                push!(rels[size],rel)
+            end
+        end
+
+    end
+    rels = unique.(rels)
+    return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
+end
+
+@doc raw"""
+
+    quantum_automorphism_group(M::Matroid, structure::Symbol=:bases)
+
+Get the relations that define the quantum automorphism group of a matroid for a given structure. If interreduce is true, it uses the interreduce function from Oscar to reduce the number of generators.
+
+# Examples
+
+```jldoctest
+M = uniform_matroid(3,4)
+rels, _, _ = quantum_automorphism_group(M,:bases)
+typeof(rels)
+# output
+
+Vector{FreeAssAlgElem{QQFieldElem}}
+```
+"""
+function quantum_automorphism_group(
+    M::Matroid,
+    structure::Symbol=:bases)
+    
+    relation_indices = _quantum_automorphism_group_indices(M,structure)
+    relation_transformed, rels_sorted, u, A = quantum_permutation_group(length(M))
+    rels_sorted[:matroid] = typeof(rels_sorted[:zero_divisor])[]
+
+    for relation in relation_indices
+        temp = one(A)
+        for gen in relation
+            temp = temp * u[gen[1], gen[2]]
+        end
+        push!(relation_transformed,temp)
+        push!(rels_sorted[:matroid],temp)
+    end
+  
+    return relation_transformed,  rels_sorted, u, A
+
+end
+
+
+
