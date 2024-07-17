@@ -32,7 +32,7 @@ julia> det(A)
 ```
 """
 function det(A::Generic.MatSpaceElem{R}) where {R<:Union{TropicalSemiringElem,MPolyRingElem{<:TropicalSemiringElem},PolyRingElem{<:TropicalSemiringElem}}}
+    nrows(A)!=ncols(A) && error("Non-square matrix")
     T = base_ring(A)
-    nrows(A)!=ncols(A) && return zero(T) # return tropical zero if matrix not square
     return T(Polymake.tropical.tdet(A))
 end
