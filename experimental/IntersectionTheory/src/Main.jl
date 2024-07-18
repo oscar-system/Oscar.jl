@@ -1559,20 +1559,26 @@ Use the argument `class = true` to only compute the class of the degeneracy locu
 
 # Examples
 ```jldoctest
-julia> P4 = abstract_projective_space(4, symbol = "H")
+julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
-julia> F = 2*OO(P4, -1)
-AbstractBundle of rank 2 on AbstractVariety of dim 4
-
-julia> G = OO(P4)+2*OO(P4, 1)
+julia> F = 3*OO(P4, -1)
 AbstractBundle of rank 3 on AbstractVariety of dim 4
 
-julia> CZ = degeneracy_locus(F, G, 1, class = true) # only class of degeneracy locus
-8*H^2
+julia> G = cotangent_bundle(P4)*OO(P4,1)
+AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> CZ = degeneracy_locus(F, G, 2, class = true) # only class of degeneracy locus
+4*h^2
 
 julia> CZ == chern_class(G-F, 2) # Porteous' formula
 true
+
+julia> Z = degeneracy_locus(F, G, 2) # Veronese surface in P4
+AbstractVariety of dim 2
+
+julia> degree(Z)
+4
 
 ```
 """
@@ -1592,6 +1598,9 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
   D.struct_map = hom(D, F.parent) # skip the flag abstract_variety
+  if isdefined(F.parent, :O1)
+    D.O1 = pullback(D.struct_map, F.parent.O1) #TOCHECK other fields of D
+  end
   set_attribute!(D, :description, "Degeneracy locus of rank $k from $F to $G")
   return D
 end
