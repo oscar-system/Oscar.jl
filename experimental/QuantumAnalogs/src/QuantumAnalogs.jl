@@ -84,34 +84,34 @@ i
 function quantum_integer(n::IntegerUnion, q::RingElem)
 
   R = parent(q)
-	if isone(q)
-		return R(n)
-	else
-		z = zero(R)
-		if n >= 0
-			for i = 0:n-1
-				z += q^i
-			end
-		else
-			for i = 0:-n-1
-				z -= q^(n+i)
-			end
-		end
-		return z
-	end
+  if isone(q)
+    return R(n)
+  else
+    z = zero(R)
+    if n >= 0
+      for i = 0:n-1
+        z += q^i
+      end
+    else
+      for i = 0:-n-1
+        z -= q^(n+i)
+      end
+    end
+    return z
+  end
 end
 
 function quantum_integer(n::IntegerUnion, q::Integer)
-	if n >= 0 || q == 1 || q == -1
-		return quantum_integer(n,ZZ(q))
-	else
-		return quantum_integer(n,QQ(q))
-	end
+  if n >= 0 || q == 1 || q == -1
+    return quantum_integer(n,ZZ(q))
+  else
+    return quantum_integer(n,QQ(q))
+  end
 end
 
 function quantum_integer(n::IntegerUnion)
-	R,q = laurent_polynomial_ring(ZZ, "q")
-	return quantum_integer(n,q)
+  R,q = laurent_polynomial_ring(ZZ, "q")
+  return quantum_integer(n,q)
 end
 
 
@@ -154,27 +154,27 @@ i - 1
 """
 function quantum_factorial(n::IntegerUnion, q::RingElem)
 
-	@req n >= 0 "n >= 0 required"
+  @req n >= 0 "n >= 0 required"
 
-	R = parent(q)
-	if isone(q)
-		return R(factorial(n))
-	else
-		z = one(R)
-		for i = 1:n
-			z *= quantum_integer(i,q)
-		end
-		return z
-	end
+  R = parent(q)
+  if isone(q)
+    return R(factorial(n))
+  else
+    z = one(R)
+    for i = 1:n
+      z *= quantum_integer(i,q)
+    end
+    return z
+  end
 end
 
 function quantum_factorial(n::IntegerUnion, q::Integer)
-	return quantum_factorial(n,ZZ(q))
+  return quantum_factorial(n,ZZ(q))
 end
 
 function quantum_factorial(n::IntegerUnion)
-	R,q = laurent_polynomial_ring(ZZ, "q")
-	return quantum_factorial(n,q)
+  R,q = laurent_polynomial_ring(ZZ, "q")
+  return quantum_factorial(n,q)
 end
 
 
@@ -256,40 +256,40 @@ julia> quantum_binomial(17,10,i)
 """
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
 
-	@req k >= 0 "k >= 0 required"
+  @req k >= 0 "k >= 0 required"
 
-	R = parent(q)
-	if isone(q)
-		return R(binomial(n,k))
-	elseif k == 0
-		return one(R)
-	elseif k == 1
-		return quantum_integer(n,q)
-	elseif n >= 0
-		if n < k
-			return zero(R)
-		else
-			z = zero(R)
-			for i = 0:n-k
-				z += q^i * quantum_binomial(i+k-1,k-1,q)
-			end
-			return z
-		end
-	elseif n<0
-		return (-1)^k * q^(div(-k*(k-1),2) + k*n) * quantum_binomial(k-n-1,k,q)
-	end
+  R = parent(q)
+  if isone(q)
+    return R(binomial(n,k))
+  elseif k == 0
+    return one(R)
+  elseif k == 1
+    return quantum_integer(n,q)
+  elseif n >= 0
+    if n < k
+      return zero(R)
+    else
+      z = zero(R)
+      for i = 0:n-k
+        z += q^i * quantum_binomial(i+k-1,k-1,q)
+      end
+      return z
+    end
+  elseif n<0
+    return (-1)^k * q^(div(-k*(k-1),2) + k*n) * quantum_binomial(k-n-1,k,q)
+  end
 
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
-	if n > 0
-		return quantum_binomial(n,k,ZZ(q))
-	else
-		return quantum_binomial(n,k,QQ(q))
-	end
+  if n > 0
+    return quantum_binomial(n,k,ZZ(q))
+  else
+    return quantum_binomial(n,k,QQ(q))
+  end
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion)
-	R,q = laurent_polynomial_ring(ZZ, "q")
-	return quantum_binomial(n,k,q)
+  R,q = laurent_polynomial_ring(ZZ, "q")
+  return quantum_binomial(n,k,q)
 end
