@@ -51,15 +51,15 @@ function hasse_derivatives(f::MPolyRingElem)
 end
 
 function hasse_derivatives(f::MPolyQuoRingElem)
-  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type MPolyQuoRingElem")
+  error("Not implemented. For experts, however, there is an internal function called Oscar._hasse_derivatives, which works for elements of type MPolyQuoRingElem")
 end
 
 function hasse_derivatives(f::Oscar.MPolyLocRingElem)
-  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyLocRingElem")
+  error("Not implemented. For experts, however, there is an internal function called Oscar._hasse_derivatives, which works for elements of type Oscar.MPolyLocRingElem")
 end
 
 function hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
-  error("Not implemented. For experts, however, there is an internal function called _hasse_derivatives, which works for elements of type Oscar.MPolyQuoLocRingElem")
+  error("Not implemented. For experts, however, there is an internal function called Oscar._hasse_derivatives, which works for elements of type Oscar.MPolyQuoLocRingElem")
 end
 
 
@@ -70,7 +70,7 @@ end
 
 # MPolyQuoRingElem (internal, expert use only)
 @doc raw"""
-    _hasse_derivatives(f::MPolyQuoRingElem)
+    Oscar._hasse_derivatives(f::MPolyQuoRingElem)
 
 Return a list of Hasse-Schmidt derivatives of lift of `f`, each with a multiindex `[a_1, ..., a_n]`, where `a_i` describes the number of times `f` was derived w.r.t. the `i`-th variable.
 
@@ -84,7 +84,7 @@ julia> RQ, _ = quo(R, I);
 
 julia> f = RQ(2*y^4);
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 5-element Vector{Vector{Any}}:
  [[0, 0], 2*y^4]
  [[0, 1], 8*y^3]
@@ -93,13 +93,13 @@ julia> _hasse_derivatives(f)
  [[0, 4], 2]
 ```
 """
-function _hasse_derivatives(f::MPolyQuoRingElem)
+function Oscar._hasse_derivatives(f::MPolyQuoRingElem)
   return hasse_derivatives(lift(f)) 
 end
 
 # Oscar.MPolyLocRingElem (internal, expert use only)
 @doc raw"""
-    _hasse_derivatives(f::Oscar.MPolyLocRingElem)
+    Oscar._hasse_derivatives(f::Oscar.MPolyLocRingElem)
 
 Return a list of Hasse-Schmidt derivatives of numerator of `f`, each with a multiindex `[a_1, ..., a_n]`, where `a_i` describes the number of times `f` was derived w.r.t. the `i`-th variable.
 
@@ -115,7 +115,7 @@ julia> Rloc, _ = localization(R, U);
 
 julia> f = Rloc(2*z^5);
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 6-element Vector{Vector{Any}}:
  [[0, 0, 0], 2*z^5]
  [[0, 0, 1], 10*z^4]
@@ -125,13 +125,13 @@ julia> _hasse_derivatives(f)
  [[0, 0, 5], 2]
 ```
 """
-function _hasse_derivatives(f::Oscar.MPolyLocRingElem)
+function Oscar._hasse_derivatives(f::Oscar.MPolyLocRingElem)
   return hasse_derivatives(numerator(f)) 
 end
 
 # Oscar.MPolyQuoLocRingElem (internal, expert use only)
 @doc raw"""
-    _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
+    Oscar._hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
 
 Return a list of Hasse-Schmidt derivatives of lifted numerator of `f`, each with a multiindex `[a_1, ..., a_n]`, where `a_i` describes the number of times `f` was derived w.r.t. the `i`-th variable.
 
@@ -151,7 +151,7 @@ julia> RQL, _ = localization(RQ, U);
 
 julia> f = RQL(4*y^3);
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 4-element Vector{Vector{Any}}:
  [[0, 0, 0], 4*y^3]
  [[0, 1, 0], 12*y^2]
@@ -159,6 +159,6 @@ julia> _hasse_derivatives(f)
  [[0, 3, 0], 4]
 ```
 """
-function _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
+function Oscar._hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
   return hasse_derivatives(lifted_numerator(f))
 end

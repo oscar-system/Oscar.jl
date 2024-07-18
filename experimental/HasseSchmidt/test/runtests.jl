@@ -74,7 +74,7 @@ end
   @test result_b2 == hasse_derivatives(x^2*y + z^6)
 end
 
-@testset "_hasse_derivatives MPolyQuoRingElem" begin
+@testset "Oscar._hasse_derivatives MPolyQuoRingElem" begin
   R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"]);
   I = ideal(R, [x^2 - 1]);
   RQ, _ = quo(R, I);
@@ -84,10 +84,10 @@ end
                 [[0, 2, 0], 18*y^2],
                 [[0, 3, 0], 12*y],
                 [[0, 4, 0], 3]]
-  @test result_c1 == _hasse_derivatives(RQ(3y^4))
+  @test result_c1 == Oscar._hasse_derivatives(RQ(3y^4))
 end
 
-@testset "_hasse_derivatives Oscar.MPolyLocRingElem" begin
+@testset "Oscar._hasse_derivatives Oscar.MPolyLocRingElem" begin
   R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"]); 
   m = ideal(R, [x, y, z]); # max ideal
   U = complement_of_prime_ideal(m);
@@ -97,10 +97,10 @@ end
                 [[1, 0, 0], 15*x^2],
                 [[2, 0, 0], 15*x],
                 [[3, 0, 0], 5]]
-  @test result_d1 == _hasse_derivatives(RL(5x^3))
+  @test result_d1 == Oscar._hasse_derivatives(RL(5x^3))
 end
 
-@testset "_hasse_derivatives Oscar.MPolyQuoLocRingElem" begin
+@testset "Oscar._hasse_derivatives Oscar.MPolyQuoLocRingElem" begin
   R, (x, y, z) = polynomial_ring(ZZ, ["x", "y", "z"]); 
   I = ideal(R, [x^2 - 1]);
   RQ, _ = quo(R, I);
@@ -114,6 +114,6 @@ end
                 [[0, 0, 3], 20*z^2],
                 [[0, 0, 4], 10*z],
                 [[0, 0, 5], 2]]
-  @test result_e1 == _hasse_derivatives(RQL(2z^5))
+  @test result_e1 == Oscar._hasse_derivatives(RQL(2z^5))
 end
 
