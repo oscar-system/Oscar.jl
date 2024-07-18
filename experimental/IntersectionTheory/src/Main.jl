@@ -147,6 +147,9 @@ Return the top Chern class of `F`.
 julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
+julia> h = gens(P4)[1]
+h
+
 julia> F = abstract_bundle(P4, 2, 10*h^2 + 5*h + 1)
 AbstractBundle of rank 2 on AbstractVariety of dim 4
 
