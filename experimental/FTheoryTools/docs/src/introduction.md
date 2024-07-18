@@ -81,9 +81,8 @@ Future extensions include, but are not necessarily limited to, the following:
 
 Please direct questions about this part of OSCAR to the following people:
 * [Martin Bies](https://martinbies.github.io/),
-* [Andrew Turner](https://apturner.net/),
-* [Mikelis Emils Mikelsons](https://github.com/emikelsons).
-
+* [Mikelis Emils Mikelsons](https://github.com/emikelsons),
+* [Andrew Turner](https://apturner.net/).
 
 You can ask questions in the [OSCAR Slack](https://www.oscar-system.org/community/#slack).
 Alternatively, you can [raise an issue on github](https://www.oscar-system.org/community/#how-to-report-issues).
