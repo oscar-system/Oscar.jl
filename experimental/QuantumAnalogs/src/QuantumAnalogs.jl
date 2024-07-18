@@ -110,7 +110,7 @@ function quantum_integer(n::IntegerUnion, q::Integer)
 end
 
 function quantum_integer(n::IntegerUnion)
-	R,q = LaurentPolynomialRing(ZZ, "q")
+	R,q = laurent_polynomial_ring(ZZ, "q")
 	return quantum_integer(n,q)
 end
 
@@ -173,7 +173,7 @@ function quantum_factorial(n::IntegerUnion, q::Integer)
 end
 
 function quantum_factorial(n::IntegerUnion)
-	R,q = LaurentPolynomialRing(ZZ, "q")
+	R,q = laurent_polynomial_ring(ZZ, "q")
 	return quantum_factorial(n,q)
 end
 
@@ -245,7 +245,7 @@ q^4 + q^3 + 2*q^2 + q + 1
 julia> quantum_binomial(19,5,-1)
 36
 
-julia> K,i = CyclotomicField(4);
+julia> K,i = cyclotomic_field(4);
 
 julia> quantum_binomial(17,10,i)
 0
@@ -290,6 +290,6 @@ function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::Integer)
 end
 
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion)
-	R,q = LaurentPolynomialRing(ZZ, "q")
+	R,q = laurent_polynomial_ring(ZZ, "q")
 	return quantum_binomial(n,k,q)
 end

@@ -1,5 +1,5 @@
 @testset "combinatorics/quantum_analogs.jl" begin
-  R,q = LaurentPolynomialRing(ZZ, "q")
+  R,q = laurent_polynomial_ring(ZZ, "q")
 
 	# Test if everything specializes to usual stuff at q=1
 	@test quantum_integer(0,1) == 0
@@ -50,7 +50,7 @@
 
 	@test quantum_binomial(4,2) == (1+q^2)*(1+q+q^2)
 
-	K,i = CyclotomicField(4);
+	K,i = cyclotomic_field(4);
 	@test quantum_binomial(4,2,i) == 0
 
 	@test quantum_binomial(19,5,-1) == 36
