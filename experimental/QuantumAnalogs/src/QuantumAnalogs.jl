@@ -154,7 +154,7 @@ i - 1
 """
 function quantum_factorial(n::IntegerUnion, q::RingElem)
 
-	n >= 0 || throw(ArgumentError("n ≥ 0 required"))
+	@req n >= 0 "n >= 0 required"
 
 	R = parent(q)
 	if isone(q)
@@ -256,7 +256,7 @@ julia> quantum_binomial(17,10,i)
 """
 function quantum_binomial(n::IntegerUnion, k::IntegerUnion, q::RingElem)
 
-	k >= 0 || throw(ArgumentError("k ≥ 0 required"))
+	@req k >= 0 "k >= 0 required"
 
 	R = parent(q)
 	if isone(q)
