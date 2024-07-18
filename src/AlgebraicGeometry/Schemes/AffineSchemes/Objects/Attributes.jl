@@ -485,7 +485,7 @@ function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, R
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
   get_attribute!(X, :degree) do
     return vector_space_dimension(OO(X))
-  end
+  end::Int
 end
 
 @doc raw"""

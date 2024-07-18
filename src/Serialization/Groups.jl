@@ -88,7 +88,7 @@
 
 ##############################################################################
 # `GAPGroupElem` objects get serialized together with their parents.
-GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
+const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
 function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
   # this has just been more or less copied from the Rings section

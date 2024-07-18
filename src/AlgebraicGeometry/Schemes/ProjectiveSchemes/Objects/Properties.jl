@@ -119,7 +119,7 @@ function is_smooth(P::AbsProjectiveScheme{<:Any, <:MPolyQuoRing}; algorithm::Sym
     elseif algorithm == :projective_jacobian
       return _projective_jacobian_criterion(P)
     end
-  end
+  end::Bool
 end
 
 is_smooth(P::AbsProjectiveScheme{<:Ring, <:MPolyRing}; algorithm::Symbol=:default) = true

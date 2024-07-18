@@ -676,7 +676,7 @@ julia> chi = tom[5]
 marks_vector(table of marks of A5, ZZRingElem[12, 0, 0, 0, 2])
 
 julia> println(values(restrict(chi, tbl)))
-QQAbElem{AbsSimpleNumFieldElem}[12, 0, 0, 2, 2]
+QQAbFieldElem{AbsSimpleNumFieldElem}[12, 0, 0, 2, 2]
 ```
 """
 function restrict(chi::GAPGroupMarksVector, tbl::GAPGroupCharacterTable)

@@ -368,4 +368,14 @@
 	   @test_throws ArgumentError is_quotient(M2, M1)
 	   @test_throws ArgumentError is_quotient(Q2, M2)
    end
+    
+  @testset "matroid_hex" begin
+    M = fano_matroid() 
+    N = uniform_matroid(2, 4)
+
+    M1 = matroid_from_matroid_hex(matroid_hex(M)) 
+    N1 = matroid_from_matroid_hex(matroid_hex(N))
+    @test is_isomorphic(M, M1)
+    @test is_isomorphic(N, N1)
+  end
 end

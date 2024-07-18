@@ -393,7 +393,7 @@ end
 
 # Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
 function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GapObj)
-   return (GAP.julia_to_gap, QQAbElem)
+   return (GAP.julia_to_gap, QQAbFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQAbField)
