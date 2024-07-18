@@ -45,7 +45,7 @@ Now, for an element ``q`` of a ring ``R`` we define ``[n]_q ∈ R`` as the speci
 ``[n]_𝐪`` in ``q`` using the two equations above—assuming that ``q`` is invertible in ``R``
 if ``n<0``. Note that for ``q=1`` we obtain
 ```math
-[n]_1 = n \quad \text{for for any } n ∈ ℤ \;,
+[n]_1 = n \quad \text{for any } n ∈ ℤ \;,
 ```
 so the quantum integers are "deformations" of the usual integers.
 
