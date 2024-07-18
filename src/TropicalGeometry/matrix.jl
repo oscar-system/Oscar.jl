@@ -32,7 +32,12 @@ julia> det(A)
 ```
 """
 function det(A::Generic.MatSpaceElem{<:TropicalSemiringElem})
-    nrows(A)!=ncols(A) && error("Non-square matrix")
-    T = base_ring(A)
-    return T(Polymake.tropical.tdet(A))
+  @req nrows(A) == ncols(A) "Non-square matrix"
+  T = base_ring(A)
+  return T(Polymake.tropical.tdet(A))
+end
+
+function det(A::Matrix{<:TropicalSemiringElem})
+  @req 0 < nrows(A) == ncols(A) "Non-square or empty matrix"
+  return det(matrix(parent(first(A)),A))
 end
