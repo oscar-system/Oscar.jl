@@ -81,5 +81,5 @@
         "model1408_4808-15.json",
         "model1408_4808-16.json"
     ],
-    "related_models": ["model1408_4808-10-WSF.json"]
+    "birational_models": ["model1408_4808-10-WSF.json"]
 }
