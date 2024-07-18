@@ -31,7 +31,7 @@ julia> det(A)
 (5)
 ```
 """
-function det(A::Generic.MatSpaceElem{<:TropicalSemiringElem})
+function det(A::MatrixElem{<:TropicalSemiringElem})
   @req nrows(A) == ncols(A) "Non-square matrix"
   T = base_ring(A)
   return T(Polymake.tropical.tdet(A))
