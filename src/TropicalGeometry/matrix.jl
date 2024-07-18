@@ -12,7 +12,7 @@
 ################################################################################
 
 @doc raw"""
-    det(A::Generic.MatSpaceElem{<: TropicalSemiringElem})
+    det(A::MatrixElem{<: TropicalSemiringElem})
 
 Return the tropical determinant of `A`.  That is, this function evaluates the tropicalization of the ordinary determinant considered as a multivariate polynomial at `A`.
 
