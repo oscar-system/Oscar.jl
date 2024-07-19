@@ -1,9 +1,10 @@
 @doc raw"""
     quantum_symmetric_group(n::Int)
 
-Get the Ideal that defines the quantum symmetric group on `n` elements. It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
+Return the ideal that defines the quantum symmetric group on `n` elements.
+It is comprised of `2*n + n^2 + 2*n*n*(n-1)` many generators.
 
-# The relations are:
+The relations are:
 
   - row and column sum relations: `2*n` relations
   - idempotent relations: `n^2` relations
@@ -15,27 +16,16 @@ Get the Ideal that defines the quantum symmetric group on `n` elements. It is co
 # Example
 
 ```jldoctest
-S4 = quantum_symmetric_group(4)
-length(gens(S4))
-# output
+julia> S4 = quantum_symmetric_group(4);
 
+julia> length(gens(S4))
 120
 ```
 
 
 """
 function quantum_symmetric_group(n::Int)
-  generator_strings = String[]
-
-  for i in 1:n, j in 1:n
-    push!(generator_strings, "u[$i,$j]")
-  end
-
-  A, g = free_associative_algebra(Oscar.QQ, generator_strings)
-  u = Matrix{elem_type(A)}(undef, n, n)
-  for i in 1:n, j in 1:n
-    u[i, j] = g[(i-1)*n + j]
-  end
+  A, u = free_associative_algebra(QQ, :u => (1:n, 1:n))
 
   relations = elem_type(A)[]
 
@@ -55,14 +45,8 @@ function quantum_symmetric_group(n::Int)
 
   #row and column sum relations
   for i in 1:n
-    new_relation_row = -1
-    new_relation_col = -1
-    for k in 1:n
-      new_relation_row += u[i,k]
-      new_relation_col += u[k,i]
-    end
-    push!(relations, new_relation_row)
-    push!(relations, new_relation_col)
+    push!(relations, sum(u[i,:]) - 1)
+    push!(relations, sum(u[:,i]) - 1)
 
   end
   return ideal(relations)
