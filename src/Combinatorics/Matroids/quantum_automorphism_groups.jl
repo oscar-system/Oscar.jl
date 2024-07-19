@@ -10,9 +10,6 @@ The relations are:
   - idempotent relations: `n^2` relations
   - relations of type `u[i,j]*u[i,k]` and `u[j,i]*u[k,i]` for `k != j`: `2*n*n*(n-1)` relations
 
-# Output
-
-
 # Example
 
 ```jldoctest
@@ -31,13 +28,13 @@ function quantum_symmetric_group(n::Int)
 
   #Idempotent relations
   for i in 1:n, j in 1:n
-    new_relation = u[i, j] * u[i, j] - u[i, j]
+    new_relation = u[i,j] * u[i,j] - u[i,j]
     push!(relations, new_relation)
     for k in 1:n
       if k != j
-        new_relation = u[i,j] * u[i, k]
+        new_relation = u[i,j] * u[i,k]
         push!(relations, new_relation)
-        new_relation = u[j, i]*u[k, i]
+        new_relation = u[j,i]*u[k,i]
         push!(relations, new_relation)
       end
     end
@@ -58,15 +55,15 @@ end
 Get the indices of the relations that define the quantum automorphism group of a matroid for a given structure.
 
 # Examples
+
 ```jldoctest
-M = uniform_matroid(3,4)
-bases(M)
-idx = Oscar._quantum_automorphism_group_indices(M,:bases)
-length(idx)
+julia> M = uniform_matroid(3,4);
 
-# output
+julia> idx = Oscar._quantum_automorphism_group_indices(M,:bases);
 
+julia> length(idx)
 1920
+```
 """
 function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:bases)
   @req structure in [:bases, :circuits, :flats] "structure must be one of :bases, :circuits, :flats"
@@ -78,7 +75,7 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   nb   = [[] for _ in 1:n]
   rels = [[] for _ in 1:n]
 
-  sets  = eval(structure)(M)
+  sets  = getproperty(Oscar, structure)(M)
   sizes = unique(map(x -> length(x), sets))
   tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
 
@@ -123,11 +120,11 @@ Get the Ideal that defines the quantum automorphism group of a matroid for a giv
 # Examples
 
 ```jldoctest
-M = uniform_matroid(3,4);
-qAut = quantum_automorphism_group(M,:bases);
-length(gens(qAut))
-# output
+julia> M = uniform_matroid(3,4);
 
+julia> qAut = quantum_automorphism_group(M,:bases);
+
+julia> length(gens(qAut));
 2040
 ```
 """
@@ -164,12 +161,11 @@ Get the Ideal that defines the quantum automorphism group of a graph.
 
 # Examples
 ```jldoctest
-G = graph_from_edges([[1,2],[2,4]])
-qAut = quantum_automorphism_group(G)
-gens(qAut)
+julia> G = graph_from_edges([[1,2],[2,4]]);
 
-# output
+julia> qAut = quantum_automorphism_group(G);
 
+julia> length(gens(qAut));
 168
 ```
 """
