@@ -97,7 +97,6 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
       end
     end
   end
-  println(typeof(rels))
   rels = unique!.(rels)
   return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
 end
