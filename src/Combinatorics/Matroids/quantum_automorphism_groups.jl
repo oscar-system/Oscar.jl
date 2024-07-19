@@ -92,16 +92,8 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
     end
     for set in b[size]
       for nonset in nb[size]
-        rel = []
-        for i in 1:size
-          push!(rel,(set[i],nonset[i]))
-        end
-        push!(rels[size],rel)
-        rel = []
-        for i in 1:size
-          push!(rel,(nonset[i],set[i]))
-        end
-        push!(rels[size],rel)
+        push!(rels[size], [(set[i],nonset[i]) for i in 1:size])
+        push!(rels[size], [(nonset[i],set[i]) for i in 1:size])
       end
     end
   end
