@@ -505,7 +505,6 @@ export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
 export equidimensional_hull
 export equidimensional_hull_radical
-export equidistant
 export euler_characteristic
 export euler_phi
 export expand
@@ -773,6 +772,7 @@ export is_embedded
 export is_empty
 export is_equal_with_morphism
 export is_equidimensional
+export is_equidistant
 export is_faithful
 export is_fano
 export is_feasible

@@ -1028,6 +1028,24 @@ function dual_graph(p::Polyhedron)
   return og
 end
 
+@doc raw"""
+    dual_graph(SOP::SubdivisionOfPoints)
+
+Return the dual graph of a `SubdivisionOfPoints`, nodes correspond to the maximal cells,
+and there is an edge if two maximal cells share a common face of codimension one.
+
+# Examples
+Construct the dual graph of a triangulation of the square; it has a single edge.
+```jldoctest
+julia> S = subdivision_of_points(vertices(cube(2)), [0,0,0,1])
+Subdivision of points in ambient dimension 2
+
+julia> dual_graph(S)
+Undirected graph with 2 nodes and the following edges:
+(2, 1)
+```
+"""
+dual_graph(SOP::SubdivisionOfPoints) = Graph{Undirected}(pm_object(SOP).POLYHEDRAL_COMPLEX.DUAL_GRAPH.ADJACENCY)
 
 
 @doc raw"""
