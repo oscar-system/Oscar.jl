@@ -113,7 +113,7 @@ julia> M = uniform_matroid(3,4);
 
 julia> qAut = quantum_automorphism_group(M,:bases);
 
-julia> length(gens(qAut));
+julia> length(gens(qAut))
 2040
 ```
 """
@@ -146,7 +146,7 @@ julia> G = graph_from_edges([[1,2],[2,4]]);
 
 julia> qAut = quantum_automorphism_group(G);
 
-julia> length(gens(qAut));
+julia> length(gens(qAut))
 168
 ```
 """
