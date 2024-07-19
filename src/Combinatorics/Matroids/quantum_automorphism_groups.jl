@@ -18,8 +18,6 @@ julia> S4 = quantum_symmetric_group(4);
 julia> length(gens(S4))
 120
 ```
-
-
 """
 function quantum_symmetric_group(n::Int)
   A, u = free_associative_algebra(QQ, :u => (1:n, 1:n))
@@ -34,7 +32,7 @@ function quantum_symmetric_group(n::Int)
       if k != j
         new_relation = u[i,j] * u[i,k]
         push!(relations, new_relation)
-        new_relation = u[j,i]*u[k,i]
+        new_relation = u[j,i] * u[k,i]
         push!(relations, new_relation)
       end
     end
