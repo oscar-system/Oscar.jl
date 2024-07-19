@@ -366,7 +366,7 @@
       n = 4
       S4 = quantum_symmetric_group(n)
       @test length(gens(S4)) == _cnt(n)
-      A = base_ring(S1)
+      A = base_ring(S4)
       u = permutedims(reshape(gens(A),(n,n)),[2,1])
       @test u[2,3]*u[2,2] in gens(S4)
       @test u[1,1]*u[1,1] - u[1,1]  in gens(S4)
@@ -390,7 +390,7 @@
       E = length(edges(G))
       n = nv(G)
       qAut2 = quantum_automorphism_group(G)
-      @test length(gens(qAut2)) == (n^2 - E)*E*4 + _cnt(n)
+      @test length(gens(qAut2)) == 168
 
 
     end

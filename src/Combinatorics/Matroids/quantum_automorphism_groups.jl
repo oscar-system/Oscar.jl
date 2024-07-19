@@ -151,6 +151,8 @@ function quantum_automorphism_group(
   M::Matroid,
   structure::Symbol=:bases)
 
+  @req matroid_groundset(M) isa Vector{Int} "Matroid must have integer groundset"
+
   relation_indices = _quantum_automorphism_group_indices(M,structure)
   n = length(M)
 
@@ -189,7 +191,6 @@ gens(qAut)
 """
 function quantum_automorphism_group(G::Graph)
   @req typeof(G) == Graph{Undirected} "Graph must be undirected"
-  @req typeof(vertices(G)) == Vector{Int} "Graph must have integer vertices"
 
   n = nv(G)
 
@@ -225,5 +226,3 @@ function quantum_automorphism_group(G::Graph)
   end
   return ideal([gens(SN)..., unique(new_relations)...])
 end
-
-
