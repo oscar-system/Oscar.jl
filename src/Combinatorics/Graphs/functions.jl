@@ -1036,7 +1036,7 @@ and there is an edge if two maximal cells share a common face of codimension one
 
 # Examples
 Construct the dual graph of a triangulation of the square; it has a single edge.
-
+```jldoctest
 julia> S = subdivision_of_points(vertices(cube(2)), [0,0,0,1])
 Subdivision of points in ambient dimension 2
 
