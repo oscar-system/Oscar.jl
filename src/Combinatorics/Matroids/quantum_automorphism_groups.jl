@@ -50,7 +50,7 @@ end
 @doc raw"""
     _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:bases)
 
-Get the indices of the relations that define the quantum automorphism group of a matroid for a given structure.
+Return the indices of the relations that define the quantum automorphism group of a matroid for a given structure.
 
 # Examples
 
@@ -69,26 +69,26 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   n = length(M)
   grdSet = matroid_groundset(M)
 
-  b    = [[] for _ in 1:n]
-  nb   = [[] for _ in 1:n]
-  rels = [[] for _ in 1:n]
+  b    = [Vector{Int}[] for _ in 1:n]
+  nb   = [Vector{Int}[] for _ in 1:n]
+  rels = [Vector{Tuple{Int,Int}}[] for _ in 1:n]
 
   sets  = getproperty(Oscar, structure)(M)
-  sizes = unique(map(x -> length(x), sets))
+  sizes = unique!(map(length, sets))
   tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
 
   for size in sizes 
     size == 0 && continue
-    powerSet = unique(sort.(Oscar.subsets(tempGrdSet,size)))
+    powerSet = unique(sort.(subsets(tempGrdSet,size)))
 
     setsOfSize = filter(x->length(x)==size,sets)
     nonSets = setdiff(powerSet,setsOfSize) 
 
     for set in setsOfSize
-      append!(b[size],collect(Oscar.permutations(set)))
+      append!(b[size],collect(permutations(set)))
     end
     for nonset in nonSets
-      append!(nb[size],collect(Oscar.permutations(nonset)))
+      append!(nb[size],collect(permutations(nonset)))
     end
     for set in b[size]
       for nonset in nb[size]
@@ -105,15 +105,15 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
       end
     end
   end
-
-  rels = unique.(rels)
+  println(typeof(rels))
+  rels = unique!.(rels)
   return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
 end
 
 @doc raw"""
     quantum_automorphism_group(M::Matroid, structure::Symbol=:bases)
 
-Get the Ideal that defines the quantum automorphism group of a matroid for a given structure.
+Return the Ideal that defines the quantum automorphism group of a matroid for a given structure.
 
 # Examples
 
@@ -139,15 +139,7 @@ function quantum_automorphism_group(
   A = base_ring(SN)
   u = permutedims(reshape(gens(A),(n,n)),[2,1])
 
-  new_relations = []
-
-  for relation in relation_indices
-    temp = one(A)
-    for gen in relation
-      temp = temp * u[gen[1], gen[2]]
-    end
-    push!(new_relations,temp)
-  end
+  new_relations = elem_type(A)[prod(gen -> u[gen[1], gen[2]], relation; init=one(A)) for relation in relation_indices]
   return ideal([gens(SN)..., new_relations...])
 
 end
@@ -155,7 +147,7 @@ end
 @doc raw"""
     quantum_automorphism_group(G::Graph)
 
-Get the Ideal that defines the quantum automorphism group of a graph.
+Return the Ideal that defines the quantum automorphism group of a graph.
 
 # Examples
 ```jldoctest
@@ -168,7 +160,7 @@ julia> length(gens(qAut));
 ```
 """
 function quantum_automorphism_group(G::Graph)
-  @req typeof(G) == Graph{Undirected} "Graph must be undirected"
+  @req G isa Graph{Undirected} "Graph must be undirected"
 
   n = nv(G)
 
@@ -176,31 +168,17 @@ function quantum_automorphism_group(G::Graph)
   A = base_ring(SN)
   u = permutedims(reshape(gens(A),(n,n)),[2,1])
 
-  nonedges = Tuple{Int,Int}[] # This should be n^2 - |E| many nonedges
-  for i in 1:n 
-    for j in i:n
-      if !has_edge(G,i,j)
-        push!(nonedges,(i,j))
-      end
-    end
-  end
+  nonedges = Tuple{Int,Int}[(i, j) for i in 1:n for j in i:n if !has_edge(G,i,j)] # This should be n^2 - |E| many nonedges
 
+  edgs = map(edg -> (src(edg), dst(edg)), edges(G)) # This should be |E| many edges
 
-  edgs = map(edg -> (src(edg), dst(edg)), collect(edges(G))) # This should be |E| many edges
-
-  new_relations = []
   function _addrelations(edge,nonedg)
     r1 = u[edge[1],nonedg[1]] * u[edge[2],nonedg[2]]
     r2 = u[edge[2],nonedg[1]] * u[edge[1],nonedg[2]]
     r3 = u[edge[1],nonedg[2]] * u[edge[2],nonedg[1]] 
     r4 = u[edge[2],nonedg[2]] * u[edge[1],nonedg[1]]
-    append!(new_relations,[r1,r2,r3,r4])
-    return;
+    return [r1,r2,r3,r4]
   end
-  for edg in edgs
-    for nonedg in nonedges
-      _addrelations(edg,nonedg)
-    end
-  end
+  new_relations = reduce(vcat,[_addrelations(edg, nonedg) for edg in edgs for nonedg in nonedges])
   return ideal([gens(SN)..., unique(new_relations)...])
 end
