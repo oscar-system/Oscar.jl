@@ -54,3 +54,4 @@ function number_of_weak_compositions end
 # for backwards compatibility
 @alias dualgraph dual_graph
 @alias edgegraph vertex_edge_graph
+@alias equidistant is_equidistant
