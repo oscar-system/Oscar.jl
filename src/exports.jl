@@ -1239,8 +1239,8 @@ export pseudo_del_pezzo_polytope
 export pullback
 export pyramid
 export quadratic_form
-export quantum_permutation_group
 export quantum_automorphism_group
+export quantum_symmetric_group
 export quaternion_group
 export quo
 export quo_object
