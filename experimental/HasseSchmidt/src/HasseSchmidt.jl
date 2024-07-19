@@ -80,9 +80,9 @@ julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
 
 julia> I = ideal(R, [x - 1]);
 
-julia> RQ, _ = quo(R, I);
+julia> RQ, phi = quo(R, I);
 
-julia> f = RQ(2*y^4);
+julia> f = phi(2*y^4);
 
 julia> _hasse_derivatives(f)
 5-element Vector{Vector{Any}}:
@@ -111,9 +111,9 @@ julia> m = ideal(R, [x - 3, y - 2, z + 1]);
 
 julia> U = complement_of_prime_ideal(m);
 
-julia> Rloc, _ = localization(R, U);
+julia> Rloc, phi = localization(R, U);
 
-julia> f = Rloc(2*z^5);
+julia> f = phi(2*z^5);
 
 julia> _hasse_derivatives(f)
 6-element Vector{Vector{Any}}:
@@ -141,15 +141,15 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> I = ideal(R, [x^3 - 1]);
 
-julia> RQ, _ = quo(R, I);
+julia> RQ, phi = quo(R, I);
 
 julia> p = ideal(R, [z]);
 
 julia> U = complement_of_prime_ideal(p);
 
-julia> RQL, _ = localization(RQ, U);
+julia> RQL, iota = localization(RQ, U);
 
-julia> f = RQL(4*y^3);
+julia> f = iota(phi(4*y^3));
 
 julia> _hasse_derivatives(f)
 4-element Vector{Vector{Any}}:
