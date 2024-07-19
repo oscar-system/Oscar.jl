@@ -123,7 +123,7 @@ end
 
 function multi_hilbert_series(
     F::FreeMod{T};
-    parent::Union{Nothing,Ring} = multi_hilbert_series_parent(base_ring(F)),
+    parent::Ring = multi_hilbert_series_parent(base_ring(F)),
     backend::Symbol = :Abbott
   )  where T <: MPolyRingElem
   @req is_positively_graded(base_ring(F)) "ring must be positively graded"
