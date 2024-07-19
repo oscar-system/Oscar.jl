@@ -1,7 +1,7 @@
 @attributes mutable struct AbstractLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
   R::Field
   dim::Int
-  struct_consts::Matrix{SRow{C}}
+  struct_consts::Matrix{<:SRow{C}}
   s::Vector{Symbol}
 
   # only set if known
@@ -9,10 +9,11 @@
 
   function AbstractLieAlgebra{C}(
     R::Field,
-    struct_consts::Matrix{SRow{C}},
+    struct_consts::Matrix{<:SRow{C}},
     s::Vector{Symbol};
     check::Bool=true,
   ) where {C<:FieldElem}
+    @assert struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
     (n1, n2) = size(struct_consts)
     @req n1 == n2 "Invalid structure constants dimensions."
     dimL = n1
@@ -30,7 +31,7 @@
         sum(
           struct_consts[i, j][k] * struct_consts[k, l] +
           struct_consts[j, l][k] * struct_consts[k, i] +
-          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL
+          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL; init=sparse_row(R)
         ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
@@ -58,6 +59,9 @@ parent(x::AbstractLieAlgebraElem) = x.parent
 coefficient_ring(L::AbstractLieAlgebra{C}) where {C<:FieldElem} = L.R::parent_type(C)
 
 dim(L::AbstractLieAlgebra) = L.dim
+
+_struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
+  L.struct_consts::Matrix{sparse_row_type(C)}
 
 ###############################################################################
 #
@@ -145,7 +149,7 @@ function bracket(
   check_parent(x, y)
   L = parent(x)
   mat = sum(
-    cxi * cyj * L.struct_consts[i, j] for (i, cxi) in enumerate(coefficients(x)),
+    cxi * cyj * _struct_consts(L)[i, j] for (i, cxi) in enumerate(coefficients(x)),
     (j, cyj) in enumerate(coefficients(y));
     init=sparse_row(coefficient_ring(L)),
   )
@@ -159,7 +163,7 @@ end
 ###############################################################################
 
 function is_abelian(L::AbstractLieAlgebra)
-  return all(e -> iszero(length(e)), L.struct_consts)
+  return all(e -> iszero(length(e)), _struct_consts(L))
 end
 
 ###############################################################################
@@ -169,7 +173,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(R::Field, struct_consts::Matrix{SRow{elem_type(R)}}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
+    lie_algebra(R::Field, struct_consts::Matrix{sparse_row_type(R)}, s::Vector{<:VarName}; check::Bool) -> AbstractLieAlgebra{elem_type(R)}
 
 Construct the Lie algebra over the field `R` with structure constants `struct_consts`
 and with basis element names `s`.
@@ -186,7 +190,7 @@ such that $[x_i, x_j] = \sum_k a_{i,j,k} x_k$.
 """
 function lie_algebra(
   R::Field,
-  struct_consts::Matrix{SRow{C}},
+  struct_consts::Matrix{<:SRow{C}},
   s::Vector{<:VarName}=[Symbol("x_$i") for i in 1:size(struct_consts, 1)];
   check::Bool=true,
 ) where {C<:FieldElem}
@@ -254,7 +258,7 @@ function lie_algebra(
   check::Bool=true,
 ) where {C<:FieldElem}
   @req C == elem_type(R) "Invalid coefficient type."
-  struct_consts2 = Matrix{SRow{elem_type(R)}}(
+  struct_consts2 = Matrix{sparse_row_type(R)}(
     undef, size(struct_consts, 1), size(struct_consts, 2)
   )
   for i in axes(struct_consts, 1), j in axes(struct_consts, 2)
@@ -277,7 +281,7 @@ function lie_algebra(
   else
     matrix(R, [coefficients(b) for b in basis])
   end
-  struct_consts = Matrix{SRow{elem_type(R)}}(undef, length(basis), length(basis))
+  struct_consts = Matrix{sparse_row_type(R)}(undef, length(basis), length(basis))
   for (i, bi) in enumerate(basis), (j, bj) in enumerate(basis)
     fl, row = can_solve_with_solution(basis_matrix, _matrix(bi * bj); side=:left)
     @req fl "Not closed under the bracket."
@@ -329,7 +333,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
 
   N = _N_matrix(rs, extraspecial_pair_signs)
 
-  struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, n, n)
   for i in 1:nroots, j in i:nroots
     if i == j
       # [e_βi, e_βi] = 0
@@ -365,7 +369,7 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
     struct_consts[nroots + i, j] = sparse_row(
       R,
       [j],
-      [dot(coefficients(root(rs, j)), cm[i, :])],
+      [dot(coefficients(root(rs, j)), view(cm, i, :))],
     )
     # [e_βj, h_i] = -[h_i, e_βj]
     struct_consts[j, nroots + i] = -struct_consts[nroots + i, j]
@@ -393,11 +397,11 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       fl, k = is_positive_root_with_index(alpha_i + beta_l)
       fl || continue
       all(
-        j -> !is_positive_root_with_index(alpha_i + beta_l - simple_root(rs, j))[1],
+        j -> !is_positive_root(alpha_i + beta_l - simple_root(rs, j)),
         1:(i - 1),
       ) || continue
       p = 0
-      while is_root_with_index(beta_l - p * alpha_i)[1]
+      while is_root(beta_l - p * alpha_i)
         p += 1
       end
       N[i, l] = (extraspecial_pair_signs[k - nsimp] ? 1 : -1) * p
@@ -409,11 +413,10 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
   for (i, alpha_i) in enumerate(positive_roots(rs))
     for (j, beta_j) in enumerate(positive_roots(rs))
       i < j || continue
-      fl = is_positive_root_with_index(alpha_i + beta_j)[1]
-      fl || continue
+      is_positive_root(alpha_i + beta_j) || continue
       l = findfirst(
-        l -> is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))[1], 1:nsimp
-      )
+        l -> is_positive_root(alpha_i + beta_j - simple_root(rs, l)), 1:nsimp
+      )::Int
       l == i && continue # already extraspecial
       fl, l_comp = is_positive_root_with_index(alpha_i + beta_j - simple_root(rs, l))
       @assert fl
@@ -429,7 +432,7 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       end
       @assert t1 - t2 != 0
       p = 0
-      while is_root_with_index(beta_j - p * alpha_i)[1]
+      while is_root(beta_j - p * alpha_i)
         p += 1
       end
       N[i, j] = Int(sign(t1 - t2) * sign(N[l, l_comp]) * p) # typo in CMT04
@@ -474,7 +477,7 @@ function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:AbstractLieA
   s = ["x_$(i)" for i in 1:n]
   L = lie_algebra(R, n, basis, s; check=false)
 
-  struct_consts = Matrix{SRow{elem_type(R)}}(undef, n, n)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, n, n)
   for i in axes(struct_consts, 1), j in axes(struct_consts, 2)
     struct_consts[i, j] = sparse_row(R)
   end

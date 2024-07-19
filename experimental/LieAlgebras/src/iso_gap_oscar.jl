@@ -58,7 +58,7 @@ function _abstract_lie_algebra_from_GAP(
       )
     )
 
-  struct_consts = Matrix{SRow{elem_type(RO)}}(undef, dimL, dimL)
+  struct_consts = Matrix{sparse_row_type(RO)}(undef, dimL, dimL)
   for i in 1:dimL, j in 1:dimL
     struct_consts[i, j] = sparse_row(
       RO, Tuple{Int,elem_type(RO)}[(k, RO(c)) for (k, c) in zip(sc_table_G[i, j]...)]
