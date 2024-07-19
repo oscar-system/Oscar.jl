@@ -10,10 +10,12 @@ Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical lin
 
 ## Constructors
 In addition to converting from `TropicalVariety`, objects of type `TropicalLinearSpace` can be constructed from:
-- Pluecker vectors over a tropical semiring,
-- Pluecker vectors over a field and a tropical semiring map,
-- matrices over a tropical semiring,
-- matrices over a field and a tropical semiring map.
+1. Pluecker vectors over a tropical semiring: uses a low-level implementation in `polymake`
+2. Pluecker vectors over a field and a tropical semiring map: computes coordinatewise valuation and uses constructor (1.)
+3. matrices over a tropical semiring: computes tropical minors and uses constructor (1.)
+4. matrices over a field and a tropical semiring map.
+    - if matrix over `QQ` and tropical semiring map is trivial, uses an implementation of Rincon's algorithm [Rin13](@cite) in `polymake`
+    - for general input, computes minors and uses constructor (2.)
 ```@docs
 tropical_linear_space
 ```

@@ -65,7 +65,7 @@ function _polyringquo(R::LaurentMPolyWrapRing)
     I = ideal(Cx, [x[i]*x[i + n] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
-  end
+  end::_LaurentMPolyBackend  # TODO: make the type fully concrete
 end
 
 function _evaluate_gens_cache(f::_LaurentMPolyBackend{D, C}) where {D, C}

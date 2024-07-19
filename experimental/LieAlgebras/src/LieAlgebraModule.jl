@@ -655,7 +655,7 @@ function abstract_module(
 end
 
 @doc raw"""
-    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
+    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{sparse_row_type{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
 
 Construct the the Lie algebra module over `L` of dimension `dimV` given by
 structure constants `struct_consts` and with basis element names `s`.
@@ -674,7 +674,7 @@ such that $x_i * v_j = \sum_k a_{i,j,k} v_k$.
 function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
-  struct_consts::Matrix{SRow{C}},
+  struct_consts::Matrix{<:SRow{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
 ) where {C<:FieldElem}
@@ -684,7 +684,9 @@ function abstract_module(
 
   transformation_matrices = [zero_matrix(coefficient_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV
-    transformation_matrices[i][j, :] = dense_row(struct_consts[i, j], dimV)
+    transformation_matrices[i][j, :] = dense_row(
+      struct_consts[i, j]::sparse_row_type(C), dimV
+    )
   end
 
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)

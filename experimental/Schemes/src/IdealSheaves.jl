@@ -642,8 +642,8 @@ end
 is_locally_prime(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
-  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)
-  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)
+  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)::Bool
+  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)::Bool
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
@@ -869,7 +869,8 @@ function maximal_associated_points(
     I::AbsIdealSheaf; 
     covering=default_covering(scheme(I)), 
     use_decomposition_info::Bool=true,
-    algorithm::Symbol=:GTZ
+    algorithm::Symbol=:GTZ,
+    mode::Symbol=:save_gluings
   )
   X = scheme(I)
   comps = AbsIdealSheaf[]
@@ -899,8 +900,27 @@ function maximal_associated_points(
     end
   end
 
+  if mode==:save_gluings && length(comps)==1
+    R = radical(I)
+    set_attribute!(R, :is_prime=>true)
+    P = comps[1]
+    U = original_chart(P)
+    object_cache(R)[U] = P(U)
+    comps = AbsIdealSheaf[R]
+  end
   # Manually fill up the cache
-  if !use_decomposition_info # We can only do this if all we treated all components on all charts.
+  if use_decomposition_info 
+    # we can at least remember some partial information 
+    for U in patches(covering)
+      if isone(I(U))
+        I_one = ideal(OO(U), one(OO(U)))
+        for P in comps
+          object_cache(P)[U] = I_one
+        end
+      end
+    end
+  else 
+    # We can only do this if all we treated all components on all charts.
     for U in patches(covering)
       I_one = ideal(OO(U), one(OO(U)))
       for P in comps
@@ -1130,13 +1150,13 @@ function Base.show(io::IO, I::AbsIdealSheaf)
     else
       z = false
     end
-    prim = get_attribute(I, :is_prime, false)
+    prim = get_attribute(I, :is_prime, false)::Bool
     if has_attribute(I, :name)
       print(io, get_attribute(I, :name))
     elseif is_terse(io)
       print(io, "Sheaf of ideals")
     else
-      if get_attribute(I, :is_one, false)
+      if get_attribute(I, :is_one, false)::Bool
         print(io, "Sheaf of unit ideals")
       elseif z
         print(io, "Sheaf of zero ideals")
@@ -1232,9 +1252,9 @@ function _show_semi_compact(io::IO, I::AbsIdealSheaf, cov::Covering, n::String)
   else
     z = false
   end
-  prim = get_attribute(I, :is_prime, false)
+  prim = get_attribute(I, :is_prime, false)::Bool
 
-  if get_attribute(I, :is_one, false)
+  if get_attribute(I, :is_one, false)::Bool
     print(io, "Sheaf of unit ideals")
   elseif z
     print(io, "Sheaf of zero ideals")
@@ -1390,6 +1410,7 @@ function saturation(I::AbsIdealSheaf, J::AbsIdealSheaf)
 end
 
 function pushforward(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
+  @req domain(f)===space(II) "ideal sheaf not defined on domain of morphism"
   f_cov = covering_morphism(f)
   dom_cov = domain(f_cov)
   cod_cov = codomain(f_cov)
@@ -1401,6 +1422,7 @@ function pushforward(f::AbsCoveredSchemeMorphism, II::AbsIdealSheaf)
   end
   return IdealSheaf(codomain(f), ideal_dict, check=true) #TODO: Set to false
 end
+  
 
 function Base.:^(II::AbsIdealSheaf, k::IntegerUnion)
   k < 0 && error("negative powers of ideal sheaves are not allowed")
@@ -1542,7 +1564,11 @@ function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
 end
 
 ### PrimeIdealSheafFromChart
-function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
+function produce_object(
+    F::PrimeIdealSheafFromChart, U2::AbsAffineScheme; 
+    algorithm::Symbol=:pushforward # Either :pushforward or :pullback
+                                   # This determines how to extend through the gluings.
+  )
   # Initialize some local variables
   X = scheme(F)
   OOX = OO(X)
@@ -1583,7 +1609,7 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
 
   function complexity(X1::AbsAffineScheme)
     init = maximum(total_degree.(lifted_numerator.(gens(F(X1)))); init=0)
-    glue = default_covering(X)[V, X1]
+    glue = default_covering(X)[X1, V2]
     if glue isa SimpleGluing || (glue isa LazyGluing && is_computed(glue))
       return init
     end
@@ -1598,14 +1624,29 @@ function produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     glue = default_covering(X)[W, V2]
     f, g = gluing_morphisms(glue)
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
-      complement_equation(codomain(g)) in F(W) && continue # We know the ideal is prime. No need to saturate!
-      I2 = F(codomain(g))
-      I = pullback(g)(I2)
-      I = ideal(OO(V2), lifted_numerator.(gens(I)))
-      I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
-      result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
-      @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
-      return result
+      if algorithm == :pushforward
+        complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
+        pb_f = pullback(f)::AbsLocalizedRingHom
+        pb_f_res = restricted_map(pb_f)
+        @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
+        Q = preimage(pb_f_res, F(domain(f)))
+        rest = OOX(V2, U2)
+        result = ideal(OO(U2), rest.(gens(Q)))
+        @hassert :IdealSheaves 1 !isone(Q)
+        @hassert :IdealSheaves 1 is_prime(result)
+        set_attribute!(result, :is_prime=>true)
+        return result
+      elseif algorithm == :pullback
+        I2 = F(codomain(g))
+        I = pullback(g)(I2)
+        I = ideal(OO(V2), lifted_numerator.(gens(I)))
+        I = _iterative_saturation(I, lifted_numerator(complement_equation(domain(g))))
+        result = OOX(V2, U2)(ideal(OO(V2), lifted_numerator.(gens(I))))
+        @hassert :IdealSheaves 1 is_one(result) || is_prime(result)
+        return result
+      else
+        error("algorithm not recognized")
+      end
     else
       Z = subscheme(W, F(W))
       pZ = preimage(g, Z, check=false)
@@ -1662,7 +1703,9 @@ function produce_object(I::PullbackIdealSheaf, U::AbsAffineScheme)
   if any(x->x===U, patches(dom))
     f_loc = f_cov[U]
     V = codomain(f_loc)
-    return pullback(f_loc)(original_ideal_sheaf(I)(V))
+    KK = original_ideal_sheaf(I)(V)
+    @assert base_ring(KK) === OO(V)
+    return pullback(f_loc)(KK)
   end
 
   # We are in a chart below a patch in the domain covering
@@ -1763,6 +1806,7 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
   if has_ancestor(x->(x===U2), U)
     iso = _flatten_open_subscheme(U, U2)  # an embedding U -> V \subseteq U2
     iso_inv = inverse(iso)
+    P = II(U)
     pb_P = pullback(iso_inv)(P)
     # avoids a saturation by discarding denominators but only produces a subideal
     result = ideal(OO(U2), [g for g in OO(U2).(lifted_numerator.(gens(pb_P))) if !iszero(g)])
@@ -1933,7 +1977,7 @@ function is_subset(I::PrimeIdealSheafFromChart, rad::RadicalOfIdealSheaf)
   U = original_chart(I)
   return all(g->radical_membership(g, rad(U)), gens(I(U)))
 end
-
+ 
 function radical(I::AbsIdealSheaf)
   result = RadicalOfIdealSheaf(I)
   return result
@@ -1944,6 +1988,13 @@ is_radical(rad::RadicalOfIdealSheaf) = true
 ########################################################################
 # custom functionality for prime ideal sheaves from chart
 ########################################################################
+function is_subset(I::AbsIdealSheaf, P::PrimeIdealSheafFromChart)
+  X = scheme(I)
+  @assert X === scheme(P)
+  U = original_chart(P)
+  return is_subset(I(U), P(U))
+end
+
 
 function is_subset(P::PrimeIdealSheafFromChart, I::AbsIdealSheaf)
   X = scheme(P)

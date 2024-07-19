@@ -75,7 +75,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}
@@ -143,7 +143,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         if: runner.environment != 'self-hosted'
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=${{ matrix.julia-version }};arch=${{ runner.arch }}

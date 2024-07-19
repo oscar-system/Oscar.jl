@@ -107,10 +107,8 @@ action_function(Omega::GSetByElements) = Omega.action_function
 
 # The following works for all G-set types that support attributes
 # and for which the number of elements is an `Int`.
-function action_range(Omega::GSet)
-  return get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Int, Omega))
-  end
+@attr PermGroup function action_range(Omega::GSet)
+  return symmetric_group(length(Int, Omega))
 end
 
 

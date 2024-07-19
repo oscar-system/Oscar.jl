@@ -101,6 +101,7 @@ characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
+is_character_table_name
 ```
 
 ## Attributes of group characters
@@ -130,14 +131,14 @@ class_names(tbl::GAPGroupCharacterTable)
 class_parameters
 conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
-identifier
+identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
 is_duplicate_table
 maxes
 names_of_fusion_sources
-class_lengths
+class_lengths(tbl::GAPGroupCharacterTable)
 orders_centralizers
-orders_class_representatives
+orders_class_representatives(tbl::GAPGroupCharacterTable)
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 regular_character(tbl::GAPGroupCharacterTable)

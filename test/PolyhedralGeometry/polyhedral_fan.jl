@@ -163,3 +163,28 @@ end
   @test number_of_maximal_cones(sff0) == 2
   @test number_of_maximal_cones(sff1) == 3
 end
+
+@testset "Defining polynomial of hyperplane arrangement from matrix" begin
+  A = identity_matrix(QQ,3)
+  L = arrangement_polynomial(A)
+  x = gens(parent(L))
+  @test L  == x[1]*x[2]*x[3]
+  R,y = polynomial_ring(QQ,["x", "y", "z"])
+  LL = arrangement_polynomial(R, A)
+  @test  LL == y[1]*y[2]*y[3]
+  A = identity_matrix(QQ, 2)
+  AA = identity_matrix(GF(3), 3)
+  @test_throws ArgumentError arrangement_polynomial(R, A)
+  @test_throws ArgumentError arrangement_polynomial(R, AA)
+  A = matrix(QQ, [1 1 0])
+  Avv = [A[i,:] for i in 1:1]
+  AM = Matrix(A)
+  apAvv = arrangement_polynomial(Avv)
+  RAvv = parent(apAvv)
+  apAM = arrangement_polynomial(RAvv, AM)
+  @test nvars(RAvv) == 3
+  @test apAvv == apAM
+  @test nvars(parent(arrangement_polynomial(AM))) == 3
+  @test nvars(parent(arrangement_polynomial(RAvv, Avv))) == 3
+  @test arrangement_polynomial(RAvv, Avv) == apAvv
+end
