@@ -41,6 +41,7 @@ using Oscar: _integer_variables
       n2 = (QQBarField()(5))^(QQ(4//5))
       c = cube(QQBarField(), 3, -1, n2)
       f_vector(c)
+      lattice_points(c)
       test_save_load_roundtrip(path, c) do loaded
         @test n_vertices(c) == n_vertices(loaded)
         @test dim(c) == dim(loaded)
@@ -51,6 +52,8 @@ using Oscar: _integer_variables
       d_hedron = dodecahedron()
       facets(d_hedron)
       vertices(d_hedron)
+      f_vector(d_hedron)
+      lattice_points(d_hedron)
 
       dict_ps = Dict{String, Any}(
         "unprecise" => polyhedron(

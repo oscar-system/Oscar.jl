@@ -109,6 +109,8 @@ _pmdata_for_oscar(s::Polymake.TropicalNumber{A}, coeff::Field) where A = tropica
 _pmdata_for_oscar(s::Polymake.CxxWrap.StdString, coeff::Field) = String(s)
 
 _pmdata_for_oscar(a::Polymake.Array, coeff::Field) = [_pmdata_for_oscar(e, coeff) for e in a]
+_pmdata_for_oscar(a::Polymake.Array{T}, coeff::Field) where T <: Union{Polymake.Matrix, Polymake.Vector} = Tuple(_pmdata_for_oscar.(a, Ref(coeff)))
+
 _pmdata_for_oscar(s::Polymake.Set, coeff::Field) = Set(_pmdata_for_oscar(e, coeff) for e in s)
 
 
