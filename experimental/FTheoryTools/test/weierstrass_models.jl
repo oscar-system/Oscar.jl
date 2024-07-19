@@ -34,7 +34,7 @@ B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
 w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 
-@testset "Saving and loading Weierstrass models over concrete base space" begin
+@testset "Saving and loading Weierstrass model over concrete base space" begin
   mktempdir() do path
     test_save_load_roundtrip(path, w3) do loaded
       @test weierstrass_polynomial(w3) == weierstrass_polynomial(loaded)
@@ -44,6 +44,28 @@ w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
       @test ambient_space(w3) == ambient_space(loaded)
       @test is_base_space_fully_specified(w3) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(w3) == is_partially_resolved(loaded)
+      @test explicit_model_sections(w3) == explicit_model_sections(loaded)
+      @test defining_section_parametrization(w3) == defining_section_parametrization(loaded)
+      @test defining_classes(w3) == defining_classes(loaded)
+    end
+  end
+end
+
+w3_copy = weierstrass_model(sample_toric_variety(); completeness_check = false)
+
+@testset "Saving and loading another Weierstrass model over concrete base space" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, w3_copy) do loaded
+      @test weierstrass_polynomial(w3_copy) == weierstrass_polynomial(loaded)
+      @test weierstrass_section_f(w3_copy) == weierstrass_section_f(loaded)
+      @test weierstrass_section_g(w3_copy) == weierstrass_section_g(loaded)
+      @test base_space(w3_copy) == base_space(loaded)
+      @test ambient_space(w3_copy) == ambient_space(loaded)
+      @test is_base_space_fully_specified(w3_copy) == is_base_space_fully_specified(loaded)
+      @test is_partially_resolved(w3_copy) == is_partially_resolved(loaded)
+      @test explicit_model_sections(w3_copy) == explicit_model_sections(loaded)
+      @test defining_section_parametrization(w3_copy) == defining_section_parametrization(loaded)
+      @test defining_classes(w3_copy) == defining_classes(loaded)
     end
   end
 end
