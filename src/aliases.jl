@@ -15,6 +15,7 @@ function n_polyhedra end
 function n_rays end
 function n_vertices end
 function dual_graph end
+function is_equidistant end
 function vertex_edge_graph end
 
 function number_of_compositions end
