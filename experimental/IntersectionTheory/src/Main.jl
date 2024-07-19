@@ -21,14 +21,7 @@ $0 \rightarrow \mathcal O_{\mathbb P^4} ^5(2)\rightarrow \Lambda^2 T^*_{\mathbb 
 Then, we show the constructor above at work.
 
 ```jldoctest
-julia> T, (d,) = polynomial_ring(QQ, ["d"])
-(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[d])
-
-julia> QT = fraction_field(T)
-Fraction field
-  of multivariate polynomial ring in 1 variable over QQ
-
-julia> P4 = abstract_projective_space(4, base = QT)
+julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
 julia> A = 5*line_bundle(P4, 2)
@@ -42,15 +35,6 @@ AbstractBundle of rank 5 on AbstractVariety of dim 4
 
 julia> F = B-A-C
 AbstractBundle of rank 2 on AbstractVariety of dim 4
-
-julia> chern_class(F, 1)
-5*h
-
-julia> chern_class(F, 2)
-10*h^2
-
-julia> rank(F)
-2
 
 julia> total_chern_class(F)
 10*h^2 + 5*h + 1
@@ -116,6 +100,38 @@ total_chern_class(F::AbstractBundle) = (
     chern_class(F::AbstractBundle, k::Int)
 
 Return the `k`-th Chern class of `F`.
+
+# Examples
+```jldoctest
+julia> T, (d,) = polynomial_ring(QQ, ["d"])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[d])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P4 = abstract_projective_space(4, base = QT)
+AbstractVariety of dim 4
+
+julia> h = gens(P4)[1]
+h
+
+julia> F = abstract_bundle(P4, 2, 10*h^2 + 5*h + 1) # Horrocks-Mumford bundle
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> chern_class(F*OO(P4, d), 1)
+(2*d + 5)*h
+
+julia> chern_class(F*OO(P4, d), 2)
+(d^2 + 5*d + 10)*h^2
+
+julia> chern_class(F*OO(P4, -3), 1)
+-h
+
+julia> chern_class(F*OO(P4, -3), 2)
+4*h^2
+
+```
 """
 chern_class(F::AbstractBundle, k::Int) = (
   isdefined(F, :chern) && return total_chern_class(F)[k];
@@ -124,7 +140,23 @@ chern_class(F::AbstractBundle, k::Int) = (
 @doc raw"""
     top_chern_class(F::AbstractBundle)
 
-Compute Return the top Chern class of `F`.
+Return the top Chern class of `F`.
+
+# Examples
+```jldoctest
+julia> P4 = abstract_projective_space(4)
+AbstractVariety of dim 4
+
+julia> h = gens(P4)[1]
+h
+
+julia> F = abstract_bundle(P4, 2, 10*h^2 + 5*h + 1)
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> top_chern_class(F)
+10*h^2
+
+```
 """
 top_chern_class(F::AbstractBundle) = chern_class(F, F.rank)
 
@@ -528,8 +560,14 @@ AbstractVariety of dim 2
 julia> P3 = abstract_projective_space(3, symbol = "H")
 AbstractVariety of dim 3
 
-julia> point_class(P2*P3)
+julia> p = point_class(P2*P3)
 h^2*H^3
+
+julia> degree(p)
+[5]
+
+julia> integral(p)
+1
 
 ```
 """
@@ -1198,8 +1236,32 @@ end
 @doc raw"""
     basis(X::AbstractVariety)
 
-Return an additive basis of the Chow ring of `X`, grouped by increasing
-degree (i.e., increasing codimension).
+If `K = base(X)`, return a `K`-basis of the Chow ring of `X`.
+
+!!! note
+    The basis elements are ordered by increasing degree (geometrically, by increasing codimension).
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(2,4)
+AbstractVariety of dim 4
+
+julia> chow_ring(G)
+Quotient
+  of multivariate polynomial ring in 2 variables over QQ graded by
+    c[1] -> [1]
+    c[2] -> [2]
+  by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
+
+julia> basis(G)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [c[1]]
+ [c[2], c[1]^2]
+ [c[1]*c[2]]
+ [c[2]^2]
+
+```
 """
 @attr Vector{Vector{MPolyQuoRingElem}} function basis(X::AbstractVariety)
   # it is important for this to be cached!
@@ -1216,7 +1278,7 @@ degree (i.e., increasing codimension).
 end
 
 @doc raw"""
-    basis(k::Int, X::AbstractVariety)
+    basis(X::AbstractVariety, k::Int)
 
 Return an additive basis of the Chow ring of `X` in codimension `k`.
 """
@@ -1234,11 +1296,28 @@ betti(X::AbstractVariety) = length.(basis(X))
 @doc raw"""
     integral(x::MPolyDecRingElem)
 
-Compute the integral of a Chow ring element.
+Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
 
-If the abstract_variety `X` has a (unique) point class `X.point`, the integral will be a
-number (an `QQFieldElem` or a function field element). Otherwise the 0-dimensional
-part of $x$ is returned.
+!!! note
+    If `X` has a (unique) point class, the integral will be a
+number (that is, a `QQFieldElem` or a function field element). Otherwise, the highests degree part of $x$ is returned
+(geometrically, this is the 0-dimensional part of $x$).
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(2, 4)
+AbstractVariety of dim 4
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> E = symmetric_power(Q, 3)
+AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> integral(top_chern_class(E))
+27
+
+```
 """
 function integral(x::MPolyDecRingOrQuoElem)
   X = get_attribute(parent(x), :abstract_variety)
@@ -1250,13 +1329,43 @@ function integral(x::MPolyDecRingOrQuoElem)
 end
 
 @doc raw"""
-    intersection_matrix(a::Vector)
-    intersection_matrix(a::Vector, b::Vector)
     intersection_matrix(X::AbstractVariety)
 
-Compute the intersection matrix among entries of a vector $a$ of Chow ring
-elements, or between two vectors $a$ and $b$. For a abstract_variety `X`, this computes
-the intersection matrix of the additive basis given by `basis(X)`.
+If `b = basis(X)`, return `matrix([integral(bi*bj) for bi in b, bj in b])`.
+    
+    intersection_matrix(a::Vector, b::Vector)
+
+Return `matrix([integral(ai*bj) for ai in a, bj in b])`.
+
+    intersection_matrix(a::Vector)
+
+As above, with `b = a`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(2,4)
+AbstractVariety of dim 4
+
+julia> b = basis(G)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [c[1]]
+ [c[2], c[1]^2]
+ [c[1]*c[2]]
+ [c[2]^2]
+
+julia> intersection_matrix(G)
+[0   0   0   0   0   1]
+[0   0   0   0   1   0]
+[0   0   1   1   0   0]
+[0   0   1   2   0   0]
+[0   1   0   0   0   0]
+[1   0   0   0   0   0]
+
+julia> integral(b[3][2]*b[3][2])
+2
+
+```
 """
 function intersection_matrix(X::AbstractVariety) intersection_matrix(vcat(basis(X)...)) end
 function intersection_matrix(a::Vector{}, b=nothing)
@@ -1265,7 +1374,7 @@ function intersection_matrix(a::Vector{}, b=nothing)
 end
 
 @doc raw"""
-    dual_basis(k::Int, X::AbstractVariety)
+     dual_basis(X::AbstractVariety, k::Int)
 
 Compute the dual basis of the additive basis in codimension `k` given by
 `basis(X, k)` (the returned elements are therefore in codimension
@@ -1290,8 +1399,47 @@ end
 @doc raw"""
     dual_basis(X::AbstractVariety)
 
-Compute the dual basis with respect to the additive basis given by `basis(X)`,
-grouped by decreasing degree (i.e., decreasing codimension).
+If `K = base(X)`, return a `K`-basis for the Chow ring of `X` which is dual to `basis(X)` with respect to the bilinear form defined by `intersection_matrix(X)`.
+
+!!! note
+    The basis elements are ordered by decreasing degree (geometrically, by decreasing codimension).
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(2,4)
+AbstractVariety of dim 4
+
+julia> b = basis(G)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [c[1]]
+ [c[2], c[1]^2]
+ [c[1]*c[2]]
+ [c[2]^2]
+
+julia> intersection_matrix(G)
+[0   0   0   0   0   1]
+[0   0   0   0   1   0]
+[0   0   1   1   0   0]
+[0   0   1   2   0   0]
+[0   1   0   0   0   0]
+[1   0   0   0   0   0]
+
+julia> bd = dual_basis(G)
+5-element Vector{Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
+ [c[2]^2]
+ [c[1]*c[2]]
+ [-c[1]^2 + 2*c[2], c[1]^2 - c[2]]
+ [c[1]]
+ [1]
+
+julia> integral(b[3][2]*b[3][2])
+2
+
+julia> integral(b[3][2]*bd[3][2])
+1
+
+```
 """
 dual_basis(X::AbstractVariety) = [dual_basis(X, k) for k in 0:X.dim]
 
@@ -1831,12 +1979,15 @@ Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspace
 julia> G = abstract_grassmannian(2,4)
 AbstractVariety of dim 4
 
-julia> chow_ring(G)
+julia> CR = chow_ring(G)
 Quotient
   of multivariate polynomial ring in 2 variables over QQ graded by
     c[1] -> [1]
     c[2] -> [2]
   by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
+
+julia> is_regular_sequence(gens(modulus(CR)))
+true
 
 ```
 """
@@ -1885,6 +2036,13 @@ Quotient
     c[2, 2] -> [2]
     c[3, 1] -> [1]
   by ideal with 4 generators
+
+julia> modulus(chow_ring(F))
+Ideal generated by
+  -c[1, 1]*c[2, 2]*c[3, 1]
+  -c[1, 1]*c[2, 1]*c[3, 1] - c[1, 1]*c[2, 2] - c[2, 2]*c[3, 1]
+  -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2]
+  -c[1, 1] - c[2, 1] - c[3, 1]
 
 ```
 """
