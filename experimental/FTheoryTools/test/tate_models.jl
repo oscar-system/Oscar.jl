@@ -48,7 +48,11 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test base_space(t2) == base_space(loaded)
       @test ambient_space(t2) == ambient_space(loaded)
       @test is_base_space_fully_specified(t2) == is_base_space_fully_specified(loaded)
-      @test is_partially_resolved(t2) == is_partially_resolved(loaded)
+      for (key, value) in t2.__attrs
+        if value isa String || value isa Vector{String} || value isa Bool
+          @test t2.__attrs[key] == loaded.__attrs[key]
+        end
+      end
     end
   end
 end

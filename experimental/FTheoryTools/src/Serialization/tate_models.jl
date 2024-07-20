@@ -52,9 +52,13 @@ function save_object(s::SerializerState, gtm::GlobalTateModel)
       !isempty(data) && save_typed_object(s, data, key)
     end
     save_object(s, tate_polynomial(gtm), :tate_polynomial)
-    save_data_array(s, :boolean_data) do
-      save_object(s, is_partially_resolved(gtm))
+    attrs_dict = Dict{Symbol, Any}()
+    for (key, value) in gtm.__attrs
+      if value isa String || value isa Vector{String} || value isa Bool
+        attrs_dict[key] = value
+      end
     end
+    !isempty(attrs_dict) && save_typed_object(s, attrs_dict, :__attrs)
   end
 end
 
@@ -71,6 +75,9 @@ function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::T
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
   model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base_space, ambient_space)
   model.defining_classes = defining_classes
-  set_attribute!(model, :partially_resolved, load_object(s, Vector{Bool}, :boolean_data)[1])
+  attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
+  for (key, value) in attrs_data
+    set_attribute!(model, Symbol(key), value)
+  end
   return model
 end

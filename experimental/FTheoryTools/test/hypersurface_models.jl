@@ -46,17 +46,21 @@ end
 Kbar = anticanonical_divisor(B3)
 foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
-@testset "Saving and loading hypersurface literature model" begin
+@testset "Saving and loading hypersurface literature model and some of their attributes" begin
   mktempdir() do path
     test_save_load_roundtrip(path, foah1_B3) do loaded
       @test hypersurface_equation(foah1_B3) == hypersurface_equation(loaded)
       @test base_space(foah1_B3) == base_space(loaded)
+      @test is_base_space_fully_specified(foah1_B3) == is_base_space_fully_specified(loaded)
       @test ambient_space(foah1_B3) == ambient_space(loaded)
       @test fiber_ambient_space(foah1_B3) == fiber_ambient_space(loaded)
-      @test is_base_space_fully_specified(foah1_B3) == is_base_space_fully_specified(loaded)
-      @test is_partially_resolved(foah1_B3) == is_partially_resolved(loaded)
       @test explicit_model_sections(foah1_B3) == explicit_model_sections(loaded)
       @test defining_classes(foah1_B3) == defining_classes(loaded)
+      for (key, value) in foah1_B3.__attrs
+        if value isa String || value isa Vector{String} || value isa Bool
+          @test foah1_B3.__attrs[key] == loaded.__attrs[key]
+        end
+      end
     end
   end
 end
