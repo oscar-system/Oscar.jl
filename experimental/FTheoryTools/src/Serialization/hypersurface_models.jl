@@ -22,7 +22,7 @@ end
 # This function loads the types of the data that define a hypersurface model
 ############################################################################
 
-function load_type_params(s::DeserializerState, ::Type{<: HypersurfaceModel})
+function load_type_params(s::DeserializerState, ::Type{<:HypersurfaceModel})
   return (
     load_typed_object(s, :base_space),
     load_typed_object(s, :ambient_space),
@@ -50,9 +50,13 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
     end
     save_object(s, hypersurface_equation(h), :hypersurface_equation)
     save_object(s, hypersurface_equation_parametrization(h), :hypersurface_equation_parametrization)
-    save_data_array(s, :boolean_data) do
-      save_object(s, is_partially_resolved(h))
+    attrs_dict = Dict{Symbol, Any}()
+    for (key, value) in h.__attrs
+      if value isa String || value isa Vector{String} || value isa Bool
+        attrs_dict[key] = value
+      end
     end
+    !isempty(attrs_dict) && save_typed_object(s, attrs_dict, :__attrs)
   end
 end
 
@@ -61,7 +65,7 @@ end
 # This function loads a hypersurface model
 ##########################################
 
-function load_object(s::DeserializerState, ::Type{<: HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
+function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
   base_space, ambient_space, fiber_ambient_space, R1, R2 = params
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
@@ -69,6 +73,9 @@ function load_object(s::DeserializerState, ::Type{<: HypersurfaceModel}, params:
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, ambient_space, fiber_ambient_space)
   model.defining_classes = defining_classes
-  set_attribute!(model, :partially_resolved, load_object(s, Vector{Bool}, :boolean_data)[1])
+  attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
+  for (key, value) in attrs_data
+    set_attribute!(model, Symbol(key), value)
+  end
   return model
 end

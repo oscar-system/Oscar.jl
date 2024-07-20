@@ -43,10 +43,14 @@ w3 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2
       @test base_space(w3) == base_space(loaded)
       @test ambient_space(w3) == ambient_space(loaded)
       @test is_base_space_fully_specified(w3) == is_base_space_fully_specified(loaded)
-      @test is_partially_resolved(w3) == is_partially_resolved(loaded)
       @test explicit_model_sections(w3) == explicit_model_sections(loaded)
       @test defining_section_parametrization(w3) == defining_section_parametrization(loaded)
       @test defining_classes(w3) == defining_classes(loaded)
+      for (key, value) in w3.__attrs
+        if value isa String || value isa Vector{String} || value isa Bool
+          @test w3.__attrs[key] == loaded.__attrs[key]
+        end
+      end
     end
   end
 end
