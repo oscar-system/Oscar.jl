@@ -36,7 +36,7 @@ B3 = projective_space(NormalToricVariety, 3)
 w = torusinvariant_prime_divisors(B3)[1]
 t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 
-@testset "Saving and loading global Tate models over concrete base space" begin
+@testset "Saving and loading global Tate model over concrete base space" begin
   mktempdir() do path
     test_save_load_roundtrip(path, t2) do loaded
       @test tate_polynomial(t2) == tate_polynomial(loaded)
@@ -49,6 +49,28 @@ t2 = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3,
       @test ambient_space(t2) == ambient_space(loaded)
       @test is_base_space_fully_specified(t2) == is_base_space_fully_specified(loaded)
       @test is_partially_resolved(t2) == is_partially_resolved(loaded)
+    end
+  end
+end
+
+t2_copy = global_tate_model(sample_toric_variety(); completeness_check = false)
+
+@testset "Saving and loading another global Tate model over concrete base space" begin
+  mktempdir() do path
+    test_save_load_roundtrip(path, t2_copy) do loaded
+      @test tate_polynomial(t2_copy) == tate_polynomial(loaded)
+      @test tate_section_a1(t2_copy) == tate_section_a1(loaded)
+      @test tate_section_a2(t2_copy) == tate_section_a2(loaded)
+      @test tate_section_a3(t2_copy) == tate_section_a3(loaded)
+      @test tate_section_a4(t2_copy) == tate_section_a4(loaded)
+      @test tate_section_a6(t2_copy) == tate_section_a6(loaded)
+      @test base_space(t2_copy) == base_space(loaded)
+      @test ambient_space(t2_copy) == ambient_space(loaded)
+      @test is_base_space_fully_specified(t2_copy) == is_base_space_fully_specified(loaded)
+      @test is_partially_resolved(t2_copy) == is_partially_resolved(loaded)
+      @test explicit_model_sections(t2_copy) == explicit_model_sections(loaded)
+      @test defining_section_parametrization(t2_copy) == defining_section_parametrization(loaded)
+      @test defining_classes(t2_copy) == defining_classes(loaded)
     end
   end
 end
