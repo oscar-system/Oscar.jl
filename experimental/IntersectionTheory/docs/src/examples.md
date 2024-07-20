@@ -5,8 +5,20 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Illustrating Examples From Enumerative Geometry
 
+#### How Many Lines in $\mathbb P^3$ Meet Four General Lines in $\mathbb P^3$?
 
-#### How Many Conics in $\mathbb P^3$ Meet Eight General Lines
+```jldoctest
+julia> G = abstract_grassmannian(2,4)
+AbstractVariety of dim 4
+
+julia> s1 = schubert_class(G, 1)
+-c[1]
+
+julia> integral(s1^4)
+2
+
+```
+#### How Many Conics in $\mathbb P^3$ Meet Eight General Lines in $\mathbb P^3$?
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 4)
@@ -69,7 +81,7 @@ julia> integral((6*HBl-2*e)^5)
 
 ```
 
-#### Number of Twisted Cubics on the General Quintic Hypersurface
+#### How Many Twisted Cubics lie on the General Quintic Hypersurface
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)

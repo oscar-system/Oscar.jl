@@ -1971,7 +1971,7 @@ end
 @doc raw"""
     abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
 
-Return the abstract Grassmannian $\mathrm{Gr}(k, n)$ of `k`-dimensional subspaces of an 
+Return the abstract Grassmannian $\mathrm{G}(k, n)$ of `k`-dimensional subspaces of an 
 `n`-dimensional vector space.
 
 # Examples
@@ -1986,7 +1986,21 @@ Quotient
     c[2] -> [2]
   by ideal (-c[1]^3 + 2*c[1]*c[2], c[1]^4 - 3*c[1]^2*c[2] + c[2]^2)
 
+julia> S = tautological_bundles(G)[1]
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> V = [chern_class(S, i) for i = 1:2]
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ c[1]
+ c[2]
+
 julia> is_regular_sequence(gens(modulus(CR)))
+true
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 4
+
+julia> tangent_bundle(G) == dual(S)*Q
 true
 
 ```
@@ -2164,34 +2178,3 @@ function abstract_flag_variety(F::AbstractBundle, dims::Vector{Int}; symbol::Str
   if l == 2 set_attribute!(Fl, :grassmannian => :relative) end
   return Fl
 end
-
-@doc raw"""
-    schubert_class(G::AbstractVariety, λ::Int...)
-    schubert_class(G::AbstractVariety, λ::Vector{Int})
-    schubert_class(G::AbstractVariety, λ::Partition)
-
-Return the Schubert class $\sigma_\lambda$ on a (relative) Grassmannian $G$.
-"""
-function schubert_class(G::AbstractVariety, λ::Int...) schubert_class(G, collect(λ)) end
-function schubert_class(G::AbstractVariety, λ::Partition) schubert_class(G, Vector(λ)) end
-function schubert_class(G::AbstractVariety, λ::Vector{Int})
-  get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
-  (length(λ) > rank(G.bundles[1]) || sort(λ, rev=true) != λ) && error("the Schubert input is not well-formed")
-  giambelli(G.bundles[2], λ)
-end
-
-@doc raw"""
-    schubert_classes(m::Int, G::AbstractVariety)
-
-Return all the Schubert classes in codimension $m$ on a (relative) Grassmannian $G$.
-"""
-function schubert_classes(G::AbstractVariety, m::Int)
-  get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
-  S, Q = G.bundles
-  res = elem_type(G.ring)[]
-  for i in 0:rank(S)
-    append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
-  end
-  return res
-end
-
