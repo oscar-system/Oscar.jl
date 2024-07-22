@@ -5,7 +5,7 @@ CurrentModule = Oscar
 # Schubert Calculus
 
 To recall the definition of Schubert cycles on a Grassmannian $\mathrm{G}(k,n)$, we think of $\mathrm{G}(k, n)$ as the
-Grassmannian $\mathrm{G}(k, W)$ of $k$-dimensional subspaces of an $n$-dimensional vector space $W$.
+Grassmannian $\mathrm{G}(k, W)$ of $k$-dimensional subspaces of an $n$-dimensional $K$-vector space $W$.
 
 A *flag* in $W$ is a strictly increasing sequence of linear subspaces
 
@@ -31,7 +31,9 @@ Instead of $\sigma_a$, we write $\sigma_{a_1,\ldots,a_s}$  whenever
 $a = (a_1, \ldots, a_s, 0, \ldots, 0)$, and $\sigma_{p^i}$ whenever
 $a = (p, \ldots, p, 0, \ldots, 0) \in \mathbb Z^i \times \{0\}^{k-i}$.
 
-We discuss how the cycle classes $\sigma_{1^i}$, $i = 1, \ldots, k$, and  $\sigma_i$, $i = 1, \ldots, n-k$, are related to the Chern classes of the tautological vector bundles on $\mathrm{G}(k, W)$. Recall:
+The classes  $\sigma_{1^i}$, $i = 1, \ldots, k$, and $\sigma_i$, $i = 1, \ldots, n-k$, are
+called *special Schubert classes*. They are closely related to the Chern classes of the tautological
+vector bundles on $\mathrm{G}(k, W)$. Recall:
 
 - The *tautological subbundle* on $\mathrm{G}(k, W)$ is the vector bundle of rank $k$ whose fiber at $V \in \mathrm{G}(k, W)$ is the subspace $V \subset W$.
 - The *tautological quotient bundle* on $\mathrm{G}(k, W)$ is the vector bundle of rank $(n-k)$ whose fiber at $V \in \mathrm{G}(k, W)$ is the quotient vector space $W/V$.
@@ -48,6 +50,11 @@ $c_i(Q) = \sigma_i \; \text{ for }\; i = 1, \ldots, n-k,$
 
 respectively.
 
+All Schubert classes form a $K$-vector space basis of the Chow ring of $\mathrm{G}(k,n)$.
+The  Chern classes of $S$ (the special Schubert classes $\sigma_{1^i}$, $i=1, \ldots, k$)
+form a minimal set of generators for the Chow ring of $\mathrm{G}(k,n)$ as a $K$-algebra.
+See [EH16](@cite) for the relations on these generators.
+
 ```@docs
 schubert_class(G::AbstractVariety, λ::Int...)
 ```
@@ -55,4 +62,11 @@ schubert_class(G::AbstractVariety, λ::Int...)
 ```@docs
 schubert_classes(G::AbstractVariety, m::Int)
 ```
+
+```@docs
+schubert_classes(G::AbstractVariety)
+```
+
+
+
 

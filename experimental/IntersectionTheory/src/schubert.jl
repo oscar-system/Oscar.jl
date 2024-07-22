@@ -84,7 +84,7 @@ end
 @doc raw"""
     schubert_classes(G::AbstractVariety, m::Int)
 
-Return all the Schubert classes in codimension `m` on a (relative) Grassmannian `G`.
+Return all Schubert classes in codimension `m` on a (relative) Grassmannian `G`.
 """
 function schubert_classes(G::AbstractVariety, m::Int)
   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
@@ -94,4 +94,39 @@ function schubert_classes(G::AbstractVariety, m::Int)
     append!(res, [schubert_class(G, l) for l in partitions(m, i, 1, rank(Q))])
   end
   return res
+end
+
+@doc raw"""
+    schubert_classes(G::AbstractVariety)
+
+Return all Schubert classes on a (relative) Grassmannian `G`.
+
+# Examples
+
+```jldoctest
+julia> G = abstract_grassmannian(2,4)
+AbstractVariety of dim 4
+
+julia> schubert_classes(G)
+5-element Vector{Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}}:
+ [1]
+ [-c[1]]
+ [c[1]^2 - c[2], c[2]]
+ [-c[1]*c[2]]
+ [c[2]^2]
+
+julia> basis(G)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [c[1]]
+ [c[2], c[1]^2]
+ [c[1]*c[2]]
+ [c[2]^2]
+ 
+```
+"""
+function schubert_classes(G::AbstractVariety)
+   get_attribute(G, :grassmannian) === nothing && error("the abstract_variety is not a Grassmannian")
+   S, Q = G.bundles
+   return [schubert_classes(G, i) for i = 0:rank(S)*rank(Q)]
 end

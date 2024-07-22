@@ -408,7 +408,7 @@ end
 #
 # generic abstract_variety with some classes in given degrees
 @doc raw"""
-    abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int})
+    abstract_variety(n::Int, symbols::Vector{String}, degs::Vector{Int}; base::Ring=QQ)
 
 Construct a generic abstract variety of dimension $n$ with some classes in given degrees.
 
@@ -499,7 +499,7 @@ end
 @doc raw"""
     chow_ring(X::AbstractVariety)
 
-Return the Chow ring of `X`.
+Return the Chow ring of the abstract variety `X`.
 
 # Examples
 ```jldoctest
@@ -2006,8 +2006,7 @@ true
 ```
 """
 function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
-  @assert k < n
- 
+  @assert k < n 
   d = k*(n-k)
   R, c = graded_polynomial_ring(base, _parse_symbol(symbol, 1:k), collect(1:k))
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
