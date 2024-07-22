@@ -75,8 +75,9 @@ include("Types.jl")
 include("Misc.jl")
 
 include("Bott.jl")   # integration using Bott's formula
-include("Main.jl")   # basic constructions for Schubert calculus
+include("Main.jl")   # basic constructors and functionality
 include("blowup.jl") # blowup
+include("schubert.jl") # Schubert calculus
 # include("Moduli.jl") # moduli of matrices, twisted cubics
 # include("Weyl.jl")   # weyl groups
 
