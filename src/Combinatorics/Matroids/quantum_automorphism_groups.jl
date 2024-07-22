@@ -84,11 +84,13 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
     setsOfSize = filter(x->length(x)==size,sets)
     nonSets = setdiff(powerSet,setsOfSize) 
 
+    S = symmetric_group(size)
+
     for set in setsOfSize
-      append!(b[size],collect(permutations(set)))
+      append!(b[size],[[set[g(i)] for i in 1:size] for g in S])
     end
     for nonset in nonSets
-      append!(nb[size],collect(permutations(nonset)))
+      append!(nb[size],[[nonset[g(i)] for i in 1:size] for g in S])
     end
     for set in b[size]
       for nonset in nb[size]
