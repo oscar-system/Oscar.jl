@@ -342,7 +342,7 @@ function reverse(e::Edge)
 end
 
 
-struct EdgeIterator
+mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
     l::Int64
 end
@@ -350,7 +350,7 @@ Base.length(eitr::EdgeIterator) = eitr.l
 Base.eltype(::Type{EdgeIterator}) = Edge
 
 function Base.iterate(eitr::EdgeIterator, index = 1)
-    if index > eitr.l
+    if eitr.l == 0 || Polymake.isdone(eitr.pm_itr)
         return nothing
     else
         e = Polymake.get_element(eitr.pm_itr)
@@ -358,6 +358,7 @@ function Base.iterate(eitr::EdgeIterator, index = 1)
         t = Polymake.last(e)
         edge = Edge(s+1, t+1)
         Polymake.increment(eitr.pm_itr)
+        eitr.l -= 1
         return (edge, index+1)
     end
 end
