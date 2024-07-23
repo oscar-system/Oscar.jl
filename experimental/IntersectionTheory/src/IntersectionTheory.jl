@@ -7,6 +7,7 @@ import ..Oscar: basis, betti, chow_ring, codomain, degree, det, dim, domain, dua
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import..Oscar: pullback, pushforward, base, OO, product, compose
+import ..Oscar: trivial_line_bundle
 
 export a_hat_genus
 export abstract_bundle

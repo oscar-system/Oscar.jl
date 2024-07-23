@@ -1478,6 +1478,7 @@ export transportation_polytope
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
+export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_matrix
