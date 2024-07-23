@@ -54,3 +54,23 @@ Toric line bundle on a normal toric variety
 ```
 """
 @attr ToricLineBundle canonical_bundle(v::NormalToricVarietyType) = inv(anticanonical_bundle(v))
+
+
+@doc raw"""
+    trivial_line_bundle(v::NormalToricVarietyType)
+
+Construct the trivial line bundle on a normal toric variety.
+
+# Examples
+```jldoctest
+julia> v = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> l = trivial_line_bundle(v)
+Toric line bundle on a normal toric variety
+
+julia> is_trivial(l)
+true
+```
+"""
+@attr ToricLineBundle trivial_line_bundle(v::NormalToricVarietyType) = toric_line_bundle(v, trivial_divisor(v))
