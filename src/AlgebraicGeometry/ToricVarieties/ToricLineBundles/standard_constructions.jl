@@ -6,7 +6,6 @@
     structure_sheaf(v::NormalToricVarietyType)
 
 Construct the structure sheaf of a normal toric variety.
-For convenience, we also support `structure_sheaf(variety)`.
 
 # Examples
 ```jldoctest
@@ -24,7 +23,6 @@ Toric line bundle on a normal toric variety
     anticanonical_bundle(v::NormalToricVarietyType)
 
 Construct the anticanonical bundle of a normal toric variety.
-For convenience, we also support `anticanonical_bundle(variety)`.
 
 # Examples
 ```jldoctest
@@ -42,7 +40,6 @@ Toric line bundle on a normal toric variety
     canonical_bundle(v::NormalToricVarietyType)
 
 Construct the canonical bundle of a normal toric variety.
-For convenience, we also support `canonical_bundle(variety)`.
 
 # Examples
 ```jldoctest
