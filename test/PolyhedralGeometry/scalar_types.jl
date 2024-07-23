@@ -43,6 +43,9 @@
   @test _edge_length_for_test.(faces(sd, 1)) == repeat([4], 18)
   # scaling the Polyhedron by 3 yields edge lengths of 6
   @test _edge_length_for_test.(faces(3 * sd, 1)) == repeat([36], 18)
+  # there are 11 lattice points
+  @test length(lattice_points(sd)) == 11
+
   let pc = polyhedral_complex(
       E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant=true
     )
@@ -61,6 +64,8 @@
 
   @test number_of_vertices(qp) == 3
   @test number_of_facets(qp) == 3
+
+  @test length(lattice_points(qp)) == 1
 
   @testset "Scalar detection" begin
     let j = johnson_solid(12)

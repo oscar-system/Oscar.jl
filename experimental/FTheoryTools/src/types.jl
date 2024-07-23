@@ -62,7 +62,9 @@ end
                              base_space::FTheorySpace,
                              ambient_space::FTheorySpace,
                              fiber_ambient_space::AbsCoveredScheme)
-    return new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+    result = new(explicit_model_sections, hypersurface_equation_parametrization, hypersurface_equation, base_space, ambient_space, fiber_ambient_space)
+    result.defining_classes = Dict{String, ToricDivisorClass}()
+    return result
   end
 end
 
@@ -87,6 +89,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -100,6 +103,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -126,6 +130,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
@@ -139,6 +144,7 @@ end
     result.base_space = base_space
     result.ambient_space = ambient_space
     result.fiber_ambient_space = weighted_projective_space(NormalToricVariety, [2,3,1])
+    result.defining_classes = Dict{String, ToricDivisorClass}()
     return result
   end
 
