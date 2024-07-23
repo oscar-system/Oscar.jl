@@ -100,15 +100,6 @@ function groebner_walk(
   return Oscar.IdealGens(Gb, target; isGB=true)
 end
 
-#TODO docstring
-function weight_ordering(w::Vector{ZZRingElem}, o::MonomialOrdering)
-    # Instead of using OSCAR's weight_ordering which requires w to be "Vector{Int64}"
-    # we use the following construction which also accepts ZZRingElem.
-    i = _support_indices(o.o)
-    m = ZZMatrix(1, length(w), w)
-    return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
-end
-
 @doc raw"""
     same_cone(G::Oscar.IdealGens, T::MonomialOrdering)
 
