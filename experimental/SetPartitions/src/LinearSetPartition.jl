@@ -79,7 +79,7 @@ function linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartit
 end
 
 """
-    add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
+    +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
 
 Return the addition between `p` and `q`.
@@ -93,12 +93,12 @@ julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partiti
 LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
     SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
-julia> add(a, a)
+julia> a + a
 LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
     SetPartition([1, 2], [1, 1]) => 8, SetPartition([1, 1], [1, 1]) => 8*d))
 ```
 """
-function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
+function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement } 
 
     result = deepcopy(p)
@@ -108,11 +108,6 @@ function add(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
     end
     
     return linear_partition(coefficients(result))
-end
-
-function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
-    return add(p, q)
 end
 
 """
@@ -226,7 +221,7 @@ function ⊗(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
 end
 
 """
-    subtract(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
+    -(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
 
 Perform a subtraction between `p` and `q` and return the result.
@@ -240,16 +235,11 @@ julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partiti
 LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
     SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
-julia> subtract(a, a)
+julia> a - a
 LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}())
 ```
 """
-function subtract(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
-    return add(p, scale(-1, q))
-end 
-
 function -(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
-    { S <: AbstractPartition, T <: RingElement }
-    return subtract(p, q)
-end 
+        { S <: AbstractPartition, T <: RingElement }
+    return p + scale(-1, q)
+end

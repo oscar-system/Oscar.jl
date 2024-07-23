@@ -61,9 +61,7 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export add
 export scale
-export subtract
 
 
 
@@ -113,6 +111,4 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export add
 export scale
-export subtract
