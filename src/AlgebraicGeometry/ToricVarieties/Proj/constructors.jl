@@ -106,7 +106,7 @@ This function computes the total space of a direct sum of line bundles or diviso
 Please see [OM78](@cite) for more background information.
 
 # Examples
-Let us construct the toric Calabi-Yau varieties given by the total space of ``\mathcal{O}_{\mathbb{P}^1}(2)\oplus\mathcal{O}_{\mathbb{P}^1}(-4))`` and ``\omega_{\mathbb{P}^2}``.
+Let us construct the toric Calabi-Yau varieties given by the total space of ``\mathcal{O}_{\mathbb{P}^1}(2)\oplus\mathcal{O}_{\mathbb{P}^1}(-4)`` and ``\omega_{\mathbb{P}^2}``.
 ```jldoctest
 julia> P1 = projective_space(NormalToricVariety, 1);
 
