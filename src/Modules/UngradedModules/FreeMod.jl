@@ -77,7 +77,7 @@ free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) =
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
-  - FreeModule(R, n)
+  - free_module(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
 thus the "category" needs to be set explicitly
