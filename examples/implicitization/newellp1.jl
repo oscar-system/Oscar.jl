@@ -20,3 +20,4 @@ o2 = matrix_ordering(R, [0 0 0 1 1; 1 1 1 0 0; 1 1 0 0 0; 1 0 0 0 0; 0 0 0 1 0])
 
 set_verbosity_level(:groebner_walk, 1)
 G = groebner_walk(I, o2, o1; algorithm=:standard)
+

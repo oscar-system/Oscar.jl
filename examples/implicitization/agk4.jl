@@ -17,3 +17,4 @@ I = ideal([
 set_verbosity_level(:groebner_walk, 1)
 
 G = groebner_walk(I, o2, o1; algorithm=:standard)
+

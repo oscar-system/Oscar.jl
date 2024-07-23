@@ -27,3 +27,4 @@ set_verbosity_level(:groebner_walk, 1)
 
 Gs = groebner_walk(I, lex(R), algorithm =:standard) 
 Gg = groebner_walk(I, lex(R), algorithm =:generic) 
+

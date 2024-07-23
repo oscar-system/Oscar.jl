@@ -29,3 +29,4 @@ t_s = @elapsed Gs = groebner_walk(I, lex(R), algorithm =:standard) #11.3, one co
 t_g = @elapsed Gg = groebner_walk(I, lex(R), algorithm =:generic) #14.4
 
 t_p = @elapsed Gp = groebner_walk(I, lex(R), algorithm =:perturbed) #11.49
+

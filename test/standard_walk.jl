@@ -21,3 +21,4 @@
     #@test bounding_vectors(G3) == ZZ.([[6,0,0]])
     #@test next_weight(G3, ZZ.([1,1,1]), ZZ.([1,0,0])) == ZZ.([1,0,0])
 end 
+

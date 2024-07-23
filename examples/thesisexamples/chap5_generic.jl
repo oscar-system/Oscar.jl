@@ -36,3 +36,4 @@ I2 = ideal([x^2-y^3, x^3 -y^2 - x])
 
 G2 = groebner_basis(I2)
 #= Fukuda Jensen example 
+

@@ -43,3 +43,4 @@ o_s = matrix_ordering(R, [
 1 1 1 1 1 1 1 1 1 1 0])
 
 groebner_walk(I, o_t, o_s, algorithm =:generic) #>1hr
+

@@ -21,3 +21,4 @@ Glex = groebner_basis(I; ordering = ot, complete_reduction = true)
 G1 = groebner_walk(I, ot, os, algorithm = :generic)
 
 G2 = groebner_walk(I, ot, os, algorithm = :standard)
+

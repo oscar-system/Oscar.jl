@@ -8,3 +8,4 @@ set_verbosity_level(:groebner_walk, 1)
 
 groebner_walk(I)
 groebner_walk(I; algorithm=:generic)
+

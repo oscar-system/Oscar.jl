@@ -21,3 +21,4 @@ set_verbosity_level(:groebner_walk, 0)
 t_s = @elapsed Gs = groebner_walk(I, lex(R), algorithm=:standard)
 t_g = @elapsed Gg = groebner_walk(I, lex(R), algorithm=:generic)
 t_b = @elapsed Gb = groebner_basis(I, ordering=lex(R))
+

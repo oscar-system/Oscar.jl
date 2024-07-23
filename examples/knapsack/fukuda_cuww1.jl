@@ -21,3 +21,4 @@ o_t = weight_ordering([1, 0, 0, 0, 0, 0], degrevlex(R))
 o_s = weight_ordering([0, 1, 1, 1, 1, 1], degrevlex(R))
 
 ts = @elapsed Gs = groebner_walk(I, o_t, o_s, algorithm=:standard)
+

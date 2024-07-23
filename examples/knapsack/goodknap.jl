@@ -33,3 +33,4 @@ tb = @elapsed Gb = groebner_basis(I, ordering = o_t, complete_reduction = true) 
 tf = @elapsed Gf = groebner_basis(I, ordering = o_t, complete_reduction = true, algorithm =:fglm) #error: dimension of ideal must be zero! 
 
 th = @elapsed Gh = groebner_basis(I, ordering = o_t, complete_reduction = true, algorithm =:hilbert)  #throws another error
+
