@@ -116,22 +116,7 @@ julia> b, I = Oscar._is_equal_up_to_permutation_with_permutation(gram_matrix(NS)
 
 julia> @assert gram_matrix(NSY1) == gram_matrix(NS)[I,I]
 
-julia> Oscar.horizontal_decomposition(Y1, fibers[2][I])[2]
-Effective weil divisor
-  on elliptic surface with generic fiber -x^3 + y^2 - t^7 + 2*t^6 - t^5
-with coefficients in integer ring
-given as the formal sum of
-  2 * component E8_3 of fiber over (0, 1)
-  2 * component E8_4 of fiber over (0, 1)
-  2 * component E8_6 of fiber over (0, 1)
-  1 * component E8_0 of fiber over (1, 0)
-  2 * component E8_7 of fiber over (0, 1)
-  1 * component E8_8 of fiber over (0, 1)
-  2 * section: (0 : 1 : 0)
-  1 * component A2_0 of fiber over (1, 1)
-  1 * component E8_2 of fiber over (0, 1)
-  2 * component E8_5 of fiber over (0, 1)
-  2 * component E8_0 of fiber over (0, 1)
+julia> Oscar.horizontal_decomposition(Y1, fibers[2][I])[2];
 
 julia> representative(elliptic_parameter(Y1, fibers[2][I]))
 (x//z)//(t^3 - t^2)
@@ -165,28 +150,7 @@ julia> set_attribute!(phi_rat, :is_isomorphism=>true);
 
 julia> pullbackDivY1 = [pullback(phi_rat, D) for D in basisNSY1];
 
-julia> B = [basis_representation(Y2, D) for D in pullbackDivY1]
-20-element Vector{Vector{QQFieldElem}}:
- [4, 2, 0, 0, 0, 0, 0, 0, 0, -4, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
- [4, 2, -1, -2, -3, -5//2, -2, -3//2, -3//2, -5//2, -3, -5, -9//2, -4, -7//2, -3, -5//2, -2, -3//2, -1]
- [0, 0, 1, 2, 3, 5//2, 2, 3//2, 3//2, -3//2, -2, -3, -5//2, -2, -3//2, -1, -1//2, 0, 1//2, 1]
- [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [1, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
- [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [2, 1, -1, -2, -3, -5//2, -2, -3//2, -3//2, -5//2, -2, -4, -7//2, -3, -5//2, -2, -3//2, -1, -1//2, 0]
- [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+julia> B = [basis_representation(Y2, D) for D in pullbackDivY1];
 
 julia> B = matrix(QQ, 20, 20, reduce(vcat, B)); NSY2 = algebraic_lattice(Y2)[3];
 
@@ -194,14 +158,7 @@ julia> NSY1inY2 = lattice(ambient_space(NSY2),B);
 
 julia> @assert NSY1inY2 == NSY2 && gram_matrix(NSY1inY2) == gram_matrix(NSY1)
 
-julia> fibers_in_Y2 = [f[I]*B for f in fibers]
-6-element Vector{Vector{QQFieldElem}}:
- [4, 2, 0, 0, 0, 0, 0, 0, 0, -4, -4, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
- [5, 2, -2, -3, -4, -3, -2, -1, -2, -4, -5, -8, -7, -6, -5, -4, -3, -2, -1, 0]
- [4, 2, -2, -4, -6, -9//2, -3, -3//2, -7//2, -5//2, -3, -5, -9//2, -4, -7//2, -3, -5//2, -2, -3//2, 0]
- [2, 1, -1, -2, -3, -2, -1, 0, -2, -1, -1, -2, -2, -2, -2, -2, -2, -1, 0, 1]
- [2, 1, 0, 0, 0, 0, 0, 0, 0, -2, -2, -4, -4, -4, -4, -3, -2, -1, 0, 1]
+julia> fibers_in_Y2 = [f[I]*B for f in fibers];
 
 julia> f3 = fibers[3][I]; representative(elliptic_parameter(Y1, f3))
 (x//z)//t^2
