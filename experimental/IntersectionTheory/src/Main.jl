@@ -604,7 +604,7 @@ AbstractVariety of dim 1
 julia> P1t = abstract_projective_space(1, symbol = "t")
 AbstractVariety of dim 1
 
-julia> P = P1s*P2t
+julia> P = P1s*P1t
 AbstractVariety of dim 2
 
 julia> H = hyperplane_class(P)
