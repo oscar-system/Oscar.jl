@@ -16,6 +16,46 @@ the affine and non-affine case:
     Transformations for non-standard lattices will have to be done by the user.
 
 
+## Equality of Normal Toric Varieties
+
+!!! warning
+    Equality of normal toric varieties is computationally very demanding.
+    We have therefore made special design decisions for the `==` method.
+
+In OSCAR, the `==` operator is reserved to check if two normal toric varieties are identical,
+meaning their underlying polyhedral fans are the same. However, this check is computationally
+challenging due to several reasons:
+
+- The ray generators might be scaled.
+- The ray generators might be stored in different orders.
+- The maximal (polyhedral) cones of the polyhedral fan might be stored in different orders.
+- If we fall back on polyhedral fan equality, lineality of the cones must also be considered.
+
+To avoid this computational bottleneck, we have specially designed the `==` method.
+It checks if the memory locations of the two objects in question are identical. If 
+so, our `==` method returns `true`. Otherwise, it raise an error.
+
+Note that triple equality `===` (i.e. the check of equal the memory locations) is always
+supported for normal toric varieties. We recommend using it.
+
+However, if you truly need to check for two normal toric varieties to be mathematically
+identical, then you will need to add a custom method. This method could look as follows:
+
+```julia
+function slow_equal(tv1::NormalToricVariety, tv2::NormalToricVariety)
+  tv1 === tv2 && return true
+  ambient_dim(tv1) == ambient_dim(tv2) || return false
+  f_vector(tv1) == f_vector(tv2) || return false
+  return Set(maximal_cones(tv1)) == Set(maximal_cones(tv2))
+end
+```
+
+Please note that this method `slow_equal` is not performant, that we currently (summer 2024)
+have no intentions in adding this function to OSCAR nor to make improvements to its performance.
+Rather, expect this method to be slow, potentially painfully so.
+
+
+
 ## Constructors
 
 ### Affine Toric Varieties

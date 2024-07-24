@@ -16,7 +16,7 @@
       test_save_load_roundtrip(path, vtd) do loaded
         @test coefficients(td0) == coefficients(loaded[1])
         @test coefficients(td1) == coefficients(loaded[2])
-        @test toric_variety(loaded[1]) == toric_variety(loaded[2])
+        @test toric_variety(loaded[1]) === toric_variety(loaded[2])
       end
     end
 
@@ -28,7 +28,7 @@
       test_save_load_roundtrip(path, vtd) do loaded
         @test divisor_class(tdc0) == divisor_class(loaded[1])
         @test divisor_class(tdc1) == divisor_class(loaded[2])
-        @test toric_variety(loaded[1]) == toric_variety(loaded[2])
+        @test toric_variety(loaded[1]) === toric_variety(loaded[2])
       end
     end
 
