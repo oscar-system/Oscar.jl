@@ -882,6 +882,7 @@ export is_total
 export is_transitive
 export is_transverse_intersection
 export is_trivial
+export is_tropically_generic
 export is_two_sided
 export is_unipotent
 export is_unit
@@ -1478,6 +1479,7 @@ export transportation_polytope
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
+export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
 export tropical_matrix
