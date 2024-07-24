@@ -90,12 +90,10 @@ julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
 julia> a + a
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 8, SetPartition([1, 1], [1, 1]) => 8*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 8, SetPartition([1, 1], [1, 1]) => 8*d))
 ```
 """
 function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -123,8 +121,7 @@ julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
 julia> scale(S(1) / S(2), linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(8), set_partition([1, 1], [1, 1]) => 8*d)))
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 ```
 """
 function scale(a::RingElement, p::LinearSetPartition{S, T}) where
@@ -155,13 +152,10 @@ julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 4, 
-    SetPartition([1, 1], [1, 1]) => 4*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
 julia> compose(a, a, d)
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 16*d + 16, SetPartition([1, 1], [1, 1]) => 16*d^2 + 16*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 16*d + 16, SetPartition([1, 1], [1, 1]) => 16*d^2 + 16*d))
 ```
 """
 function compose(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}, d::T) where 
@@ -190,13 +184,10 @@ julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
 julia> tensor_product(a, a)
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 1, 2, 2], [1, 1, 2, 2]) => 16*d^2, 
-    SetPartition([1, 2, 3, 3], [1, 1, 3, 3]) => 16*d, 
-    SetPartition([1, 2, 3, 4], [1, 1, 3, 3]) => 16, 
-    SetPartition([1, 1, 2, 3], [1, 1, 2, 2]) => 16*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 1, 2, 2], [1, 1, 2, 2]) => 16*d^2, SetPartition([1, 2, 3, 3], [1, 1, 3, 3]) => 16*d, SetPartition([1, 2, 3, 4], [1, 1, 3, 3]) => 16, SetPartition([1, 1, 2, 3], [1, 1, 2, 2]) => 16*d))
 ```
 """
 function tensor_product(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
@@ -232,8 +223,7 @@ julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
 julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(
-    SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
+LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
 
 julia> a - a
 LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}())
