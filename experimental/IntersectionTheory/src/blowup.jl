@@ -169,7 +169,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
 	       y -= q * gensB_lift[i]
 	     end; ans)
 
-  FM = FreeModule(R, g)
+  FM = free_module(R, g)
   gB = elem_type(FM)[FM(push!([j == i ? R(1) : R() for j in 1:g-1], -gensB_lift[i])) for i in 1:g-1]
   gJ = elem_type(FM)[FM([j==i ? x : R() for j in 1:g]) for x in gens(J) for i in 1:g]
   U  = vcat(gB, gJ)
