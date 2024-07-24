@@ -226,3 +226,14 @@ struct QSMModel
   genus_of_components_of_simplified_dual_graph::Dict{String, Int64}
   
 end
+
+
+################################################
+# 4: The julia type for G4-fluxes
+################################################
+
+@attributes mutable struct G4Flux
+  model::AbstractFTheoryModel
+  class::CohomologyClass
+  G4Flux(model::AbstractFTheoryModel, class::CohomologyClass) = new(model, class)
+end
