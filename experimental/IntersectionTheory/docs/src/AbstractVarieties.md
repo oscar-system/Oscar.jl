@@ -86,6 +86,10 @@ tangent_bundle(X::AbstractVariety)
 ```
 
 ```@docs
+hyperplane_class(X::AbstractVariety)
+```
+
+```@docs
 tautological_bundles(X::AbstractVariety)
 ```
 
@@ -118,6 +122,10 @@ canonical_bundle(X::AbstractVariety)
 
 ```@docs
 degree(X::AbstractVariety)
+```
+
+```@docs
+hilbert_polynomial(X::AbstractVariety)
 ```
 
 ```@docs
