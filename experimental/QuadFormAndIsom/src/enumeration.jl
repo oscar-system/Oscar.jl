@@ -417,25 +417,10 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
   return ids
 end
 
-# K is the maximal real subfield of a cyclotomic field. Return the
-# permutations defining the representation of Gal(K/QQ) on the
-# finite set of (real) infinite places of K.
-#
-# The returned permutations correspond to "changes of fixed root of unity"
-# (up to complex conjugation).
-function _permutations_of_places(K::Field)
-  G = automorphism_list(K)
-  P = real_places(K)
-  lis_vec = Vector{Int}[ findfirst.([ isequal(Hecke.induce_image(g, pp)) for pp in P], Ref(P)) for g in G]
-  return lis_vec
-end
-
 # Given a degree 2 extension of number fields E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, and whose trace lattice has negative signature s2.
-# In the cyclotomic case, if `fix_root = true`, we consider such signatures
-# up to permutations corresponding to changing a fixed root of unity.
-function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
+function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion)
   lb = iseven(s2) ? 0 : 1
   K = base_field(E)
   inf = Hecke.place_type(K)[p for p in real_places(K) if length(extend(p, E)) == 1]
@@ -443,7 +428,6 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
   s = length(inf)
   signs = Dict{Hecke.place_type(K), Int}[]
   perm = AllPerms(s)
-  GS = fix_root ? _permutations_of_places(K) : Vector{Int}[]
   for l in lb:2:min(s2, rk*r)
     parts = Vector{Int}[]
     l = divexact(s2-l, 2)
@@ -460,7 +444,7 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
       push!(parts, copy(v))
       for vv in perm
         v2 = v[vv.d]
-        any(vvv -> view(v2, vvv) in parts, GS) ? continue : push!(parts, v2)
+        push!(parts, v2)
       end
     end
     unique!(parts)
@@ -469,6 +453,25 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
     end
   end
   return signs
+end
+
+function _action_on_genus(G::HermGenus, s::NumFieldHom)
+  E = base_field(G)
+  t = inv(s)
+  lgs = local_symbols(G)
+  si = signatures(G)
+  si_new = empty(si)
+  for (p, v) in si
+    si_new[Hecke.induce_image(t, p)] = v
+  end
+
+  lgs_new = empty(lgs)
+  for sym in lgs
+    push!(lgs_new, genus(HermLat, E, t(sym.p), sym.data))
+  end
+  @hassert :ZZLatWithIsom 1 Hecke._check_global_genus(lgs_new, si_new)
+  G_new = HermGenus(E, rank(G), lgs_new, si_new)
+  return G_new
 end
 
 @doc raw"""
@@ -605,7 +608,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
   isempty(detE) && return reps
   @vprintln :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
-  signatures = _possible_signatures(s2, E, rk, fix_root)
+  signatures = _possible_signatures(s2, E, rk)
   isempty(signatures) && return reps
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
 
@@ -613,6 +616,22 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     append!(gene, hermitian_genera(E, rk, sign, dd; min_scale=inv(DE), max_scale=numerator(dd)*DE))
   end
   unique!(gene)
+
+  # In the cyclotomic case, the Galois group of the fixed field K acts on the
+  # set of genera by "change of fixed primitive root of unity".
+  # On the bilinear level, this action corresponds to taking certain powers
+  # of the isometry arising from the trace construction (given as multiplication
+  # by a primitive root of unity).
+  # If `fix_root == true`, then we consider the previous set of genera up to
+  # this Galois action.
+  if fix_root
+    @req !isnothing(j) "fix_root argument available only for cyclotomic polynomials"
+    K = base_field(E) # Totally real and Galois over QQ
+    GKQ, j = automorphism_group(K)
+    phi = inv(isomorphism(PermGroup, GKQ)) # Want a GAPGroup to create a gset
+    omega = gset(domain(phi), (G, g) -> _action_on_genus(G, j(phi(inv(g)))), gene) # We have a mathematical left action to put into a right action -> double inverse
+    gene = representative.(orbits(omega))
+  end
 
   @vprintln :ZZLatWithIsom 1 "All possible genera: $(length(gene))"
   for g in gene

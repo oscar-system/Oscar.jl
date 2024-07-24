@@ -284,10 +284,11 @@ end
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
 
-  # Fix signatures filtration
-  E, _ = cyclotomic_field_as_cm_extension(7; cached=false)
-  signs = Oscar._possible_signatures(12, E, 3, true)
-  @test length(signs) == 4
+  # Galois orbits
+  U = hyperbolic_plane_lattice()
+  L = direct_sum(U, U, U, U)[1]
+  @test length(representatives_of_hermitian_type(L, 5, false)) == 3
+  @test length(representatives_of_hermitian_type(L, 5, true)) == 2
 end
 
 @testset "Primitive extensions and embeddings" begin
