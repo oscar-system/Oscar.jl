@@ -1350,6 +1350,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   E = generic_fiber(X)
   basisNS, tors, NS = algebraic_lattice(X)
   V = ambient_space(NS)
+  @req F in algebraic_lattice(X)[3] "not in the algebraic lattice"
   @req inner_product(V, F, F)==0 "not an isotropic divisor"
   @req euler_characteristic(X) == 2 "not a K3 surface"
   # how to give an ample divisor automagically in general?
