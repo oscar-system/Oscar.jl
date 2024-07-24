@@ -35,6 +35,8 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export chern_class_c1
+export chern_class_c2
 export classes_of_model_sections
 export components_of_dual_graph
 export components_of_simplified_dual_graph
