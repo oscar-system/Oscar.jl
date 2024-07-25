@@ -12,7 +12,7 @@
 
   @testset "conformance tests" begin
     @testset "0-dim Lie algebra /QQ" begin
-      L = lie_algebra(QQ, Matrix{SRow{QQFieldElem}}(undef, 0, 0), Symbol[])
+      L = lie_algebra(QQ, Matrix{sparse_row_type(QQFieldElem)}(undef, 0, 0), Symbol[])
       lie_algebra_conformance_test(
         L, AbstractLieAlgebra{QQFieldElem}, AbstractLieAlgebraElem{QQFieldElem}
       )

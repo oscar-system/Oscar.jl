@@ -152,7 +152,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     
     for (key, val) in model_parameters
       map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
-      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_descriptors"]))
+      map!(x -> nested_string_map(s -> replace(s, string("#", key) => string(val)), x), values(model_dict["model_descriptors"]))
       map!(x -> nested_string_map(s -> replace(s, r"\(([^(),]+)\)" => dim -> string("(", Oscar.eval_poly(string.(match(r"\(([^(),]+)\)", dim).captures[1]), ZZ),")")), x), values(model_dict["model_descriptors"]))
     end
   end
@@ -541,8 +541,8 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   set_journal_model_page(model, model_dict["journal_data"]["model_location"]["page"])
   set_journal_model_section(model, model_dict["journal_data"]["model_location"]["section"])
   
-  if haskey(model_dict, "related_models")
-    set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
+  if haskey(model_dict, "birational_models")
+    set_attribute!(model, :birational_literature_models => [str[6:end - 5] for str in model_dict["birational_models"]])
   end
   
   if haskey(model_dict, "associated_models")
@@ -598,6 +598,16 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
     set_global_gauge_quotients(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
   end
+  
+  if haskey(model_dict, "birational_models")
+    for m in model_dict["birational_models"]
+      model_directory = joinpath(@__DIR__, "Models/")
+      model_data = JSON.parsefile(model_directory * m)
+      if model_data["model_descriptors"]["type"] == "weierstrass"
+        set_attribute!(model, :weierstrass_model => m)
+      end
+    end
+  end  
 end
 
 

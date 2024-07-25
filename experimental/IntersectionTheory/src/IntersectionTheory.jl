@@ -6,12 +6,14 @@ import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_pow
 import ..Oscar: basis, betti, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
-import..Oscar: pullback, pushforward, base, OO, product
+import..Oscar: pullback, pushforward, base, OO, product, compose
+import ..Oscar: trivial_line_bundle
 
 export a_hat_genus
 export abstract_bundle
 export abstract_flag_variety
 export abstract_grassmannian
+export abstract_hirzebruch_surface
 export abstract_point
 export abstract_projective_bundle
 export abstract_projective_space
@@ -29,6 +31,7 @@ export chern_number
 export chern_numbers
 export chow_ring
 export complete_intersection
+export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
@@ -73,8 +76,9 @@ include("Types.jl")
 include("Misc.jl")
 
 include("Bott.jl")   # integration using Bott's formula
-include("Main.jl")   # basic constructions for Schubert calculus
+include("Main.jl")   # basic constructors and functionality
 include("blowup.jl") # blowup
+include("schubert.jl") # Schubert calculus
 # include("Moduli.jl") # moduli of matrices, twisted cubics
 # include("Weyl.jl")   # weyl groups
 
@@ -86,6 +90,7 @@ export a_hat_genus
 export abstract_bundle
 export abstract_flag_variety
 export abstract_grassmannian
+export abstract_hirzebruch_surface
 export abstract_point
 export abstract_projective_bundle
 export abstract_projective_space
@@ -103,6 +108,7 @@ export chern_number
 export chern_numbers
 export chow_ring
 export complete_intersection
+export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis

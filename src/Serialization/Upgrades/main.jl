@@ -53,7 +53,7 @@ end
                      dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
-upgrade_scripts_set = Set{UpgradeScript}()
+const upgrade_scripts_set = Set{UpgradeScript}()
 
 """
     upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
@@ -94,7 +94,7 @@ include("0.13.0.jl")
 include("0.15.0.jl")
 include("1.1.0.jl")
 
-upgrade_scripts = collect(upgrade_scripts_set)
+const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
 
 ################################################################################

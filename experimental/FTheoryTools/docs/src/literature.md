@@ -45,7 +45,7 @@ paper_authors(m::AbstractFTheoryModel)
 paper_buzzwords(m::AbstractFTheoryModel)
 paper_description(m::AbstractFTheoryModel)
 paper_title(m::AbstractFTheoryModel)
-related_literature_models(m::AbstractFTheoryModel)
+birational_literature_models(m::AbstractFTheoryModel)
 ```
 Such meta data can be modified with setters. For instance, there is a function
 `set_description(m::AbstractFTheoryModel, description::String)`, which takes the
@@ -91,7 +91,7 @@ following methods:
 * `has_paper_buzzwords(m::AbstractFTheoryModel)`,
 * `has_paper_description(m::AbstractFTheoryModel)`,
 * `has_paper_title(m::AbstractFTheoryModel)`,
-* `has_related_literature_models(m::AbstractFTheoryModel)`,
+* `has_birational_literature_models(m::AbstractFTheoryModel)`,
 * `has_resolutions(m::AbstractFTheoryModel)`,
 * `has_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_resolution_zero_sections(m::AbstractFTheoryModel)`,

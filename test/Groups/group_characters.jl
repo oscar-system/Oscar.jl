@@ -861,7 +861,7 @@ end
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
-  for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+  for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
@@ -1018,7 +1018,7 @@ end
   z = zero(K)
   G = general_linear_group(2, 3)
   @test values(natural_character(hom(G, G, gens(G)))) ==
-        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+        [QQAbFieldElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
 
   G = small_group(4, 1)  # pc group
   @test_throws MethodError natural_character(G)
@@ -1235,7 +1235,7 @@ end
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1
     @test scp isa QQFieldElem
-    for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+    for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
       scpT = scalar_product(T, tbl1[1],tbl1[1])
       @test scpT == scp
       @test scpT isa T

@@ -14,7 +14,7 @@
     end
 
     @testset "V of sl_2(QQ) using structure constants" begin
-      sc = Matrix{SRow{elem_type(QQ)}}(undef, 3, 2)
+      sc = Matrix{sparse_row_type(elem_type(QQ))}(undef, 3, 2)
       sc[1, 1] = sparse_row(QQ, [1, 2], [0, 0])
       sc[1, 2] = sparse_row(QQ, [1, 2], [1, 0])
       sc[2, 1] = sparse_row(QQ, [1, 2], [0, 1])

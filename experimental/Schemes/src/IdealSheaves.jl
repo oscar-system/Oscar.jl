@@ -466,7 +466,11 @@ end
 function ==(I::AbsIdealSheaf, J::AbsIdealSheaf)
   I === J && return true
   X = space(I)
-  X == space(J) || return false
+  if X isa NormalToricVariety
+    X === space(J) || return false
+  else
+    X == space(J) || return false
+  end
   for U in basic_patches(default_covering(X))
     is_subset(I(U), J(U)) && is_subset(J(U), I(U)) || return false
   end
@@ -642,8 +646,8 @@ end
 is_locally_prime(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
-  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)
-  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)
+  has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)::Bool
+  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)::Bool
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
@@ -1150,13 +1154,13 @@ function Base.show(io::IO, I::AbsIdealSheaf)
     else
       z = false
     end
-    prim = get_attribute(I, :is_prime, false)
+    prim = get_attribute(I, :is_prime, false)::Bool
     if has_attribute(I, :name)
       print(io, get_attribute(I, :name))
     elseif is_terse(io)
       print(io, "Sheaf of ideals")
     else
-      if get_attribute(I, :is_one, false)
+      if get_attribute(I, :is_one, false)::Bool
         print(io, "Sheaf of unit ideals")
       elseif z
         print(io, "Sheaf of zero ideals")
@@ -1252,9 +1256,9 @@ function _show_semi_compact(io::IO, I::AbsIdealSheaf, cov::Covering, n::String)
   else
     z = false
   end
-  prim = get_attribute(I, :is_prime, false)
+  prim = get_attribute(I, :is_prime, false)::Bool
 
-  if get_attribute(I, :is_one, false)
+  if get_attribute(I, :is_one, false)::Bool
     print(io, "Sheaf of unit ideals")
   elseif z
     print(io, "Sheaf of zero ideals")
