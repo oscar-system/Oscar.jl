@@ -1064,7 +1064,7 @@ end
 Return the product $X\times Y$. Alternatively, use `*`.
 
 !!!note 
-   If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class correspondnng to the Segre embedding.
+   If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
