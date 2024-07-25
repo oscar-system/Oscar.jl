@@ -623,7 +623,7 @@ end
 @doc raw"""
     trivial_line_bundle(X::AbstractVariety)
 
-Return the trivial line bundle $\mathcal O_X$ on `X`. Alternatively, use `OO` Alternatively, use `OO` instead of `trivial_line_bundle`.
+Return the trivial line bundle $\mathcal O_X$ on `X`. Alternatively, use `OO` instead of `trivial_line_bundle`.
 
 # Examples
 ```jldoctest
@@ -1064,7 +1064,7 @@ end
 Return the product $X\times Y$. Alternatively, use `*`.
 
 !!!note 
-   If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the a hyperplane class correspondnng to the Segre embedding. Alternatively, use `*`.
+   If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class correspondnng to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
