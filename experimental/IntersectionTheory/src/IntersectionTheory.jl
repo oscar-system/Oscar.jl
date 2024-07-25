@@ -38,6 +38,7 @@ export dual_basis
 export euler
 export euler_pairing
 export graph
+export hyperplane_class
 export intersection_matrix
 export l_genus
 export linear_subspaces_on_hypersurface
@@ -115,6 +116,7 @@ export dual_basis
 export euler
 export euler_pairing
 export graph
+export hyperplane_class
 export intersection_matrix
 export l_genus
 export linear_subspaces_on_hypersurface

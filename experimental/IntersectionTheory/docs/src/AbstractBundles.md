@@ -62,6 +62,11 @@ pontryagin_class(F::AbstractBundle, k::Int)
 euler_characteristic(F::AbstractBundle)
 ```
 
+```@docs
+hilbert_polynomial(F::AbstractBundle)
+```
+
+
 ## Operations on Abstract Bundles
 
 ```@docs
