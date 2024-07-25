@@ -1176,8 +1176,7 @@ off by setting the optional argument `check` to the value `falue`, as in the exa
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> h = chern_class_c2(qsm_model; check = false)
-Cohomology class on a normal toric variety given by x5*x32 + 2*x5*x33 + 3*x5*x34 + 2*x5*x35 + x5*x36 + x6*x32 + 2*x6*x33 + 3*x6*x34 + 2*x6*x35 + x6*x36 + x7*x32 + 2*x7*x33 + 3*x7*x34 + 2*x7*x35 + x7*x36 + 13*x8*x23 + 11//2*x10*x23 - 6*x15*x26 + x15*x32 + 2*x15*x33 + 3*x15*x34 + 2*x15*x35 + x15*x36 - 4*x16^2 + x16*x32 + 2*x16*x33 + 3*x16*x34 + 2*x16*x35 + x16*x36 - 52*x17*x24 + 2*x17*x32 + 4*x17*x33 + 6*x17*x34 + 4*x17*x35 + 2*x17*x36 - 24*x18^2 + 7*x18*x25 + 2*x18*x32 + 4*x18*x33 + 6*x18*x34 + 4*x18*x35 + 2*x18*x36 + 3*x19*x32 + 6*x19*x33 + 9*x19*x34 + 6*x19*x35 + 3*x19*x36 + 20*x20^2 + 200//3*x20*x21 - 14*x20*x25 + 2*x20*x32 + 4*x20*x33 + 6*x20*x34 + 4*x20*x35 + 2*x20*x36 + 28//3*x21^2 - 163//3*x21*x24 + 2*x21*x32 + 4*x21*x33 + 6*x21*x34 + 4*x21*x35 + 2*x21*x36 + 21*x22^2 + 11//2*x22*x23 + 32*x22*x25 + 15//2*x23^2 - 17*x24^2 - 10*x24*x27 + x24*x32 + 2*x24*x33 + 3*x24*x34 + 2*x24*x35 + x24*x36 + 7*x25^2 + x25*x32 + 2*x25*x33 + 3*x25*x34 + 2*x25*x35 + x25*x36 + 2*x26^2 + 4*x26*x27 - 4*x26*x28 + 5*x27^2 + x27*x32 + 2*x27*x33 + 3*x27*x34 + 2*x27*x35 + x27*x36 - 3*x28^2 - 6*x29^2 + 7*x35*x36
+julia> h = chern_class_c2(qsm_model; check = false);
 
 julia> is_trivial(h)
 false
