@@ -7,8 +7,7 @@ struct LinearSetPartition{S <: AbstractPartition, T <: RingElement}
     coefficients :: Dict{S, T}
 
     function LinearSetPartition{S, T}(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElement}
-        key_types = Set(typeof(k) for k in keys(coeffs))
-        @req length(key_types) <= 1 "keys in the coefficients dictionary must be of the same subtype of AbstractPartition"
+        @req isconcretetype(S) "Linear combinations are only defined for concrete subtypes of AbstractPartition"
         
         return new(simplify_operation_zero(coeffs))
     end
