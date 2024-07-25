@@ -23,7 +23,7 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/abelian/introduction.md",
+     "Hecke/manual/abelian/introduction.md",
      "Groups/group_characters.md",
      "Groups/recog.md",
      "Groups/tom.md",
@@ -51,8 +51,8 @@
      "Fields/intro.md",
      "AbstractAlgebra/field.md",
      "Rings/rational.md",
-     "Hecke/FacElem.md",
-     "Hecke/class_fields/intro.md",
+     "Hecke/manual/misc/FacElem.md",
+     "Hecke/manual/number_fields/class_fields.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
         "Nemo/padic.md",
@@ -65,7 +65,7 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/sparse/intro.md",
+     "Hecke/manual/misc/sparse.md",
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Modules" => [
@@ -77,23 +77,23 @@
         "AbstractAlgebra/module_homomorphism.md",
      ],
      "Quadratic and Hermitian forms" => [
-        "Hecke/quad_forms/introduction.md",
-        "Hecke/quad_forms/basics.md",
-        "Hecke/quad_forms/lattices.md",
-        "Hecke/quad_forms/genusherm.md",
-        "Hecke/quad_forms/integer_lattices.md",
-        "Hecke/quad_forms/Zgenera.md",
-        "Hecke/quad_forms/discriminant_group.md"
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md"
      ],
   ],
 
   "Number Theory" => [
      "NumberTheory/intro.md",
      "Number Fields" => [
-        "Hecke/number_fields/intro.md",
-        "Hecke/number_fields/fields.md",
-        "Hecke/number_fields/elements.md",
-        "Hecke/number_fields/internal.md",
+        "Hecke/manual/number_fields/intro.md",
+        "Hecke/manual/number_fields/fields.md",
+        "Hecke/manual/number_fields/elements.md",
+        "Hecke/manual/number_fields/internal.md",
      ],
      "Orders" => [
         "Hecke/orders/introduction.md",
