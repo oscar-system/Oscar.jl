@@ -23,7 +23,6 @@ import Oscar:
     tensor_product,
     @req,
     RingElement,
-    scale,
     coefficients,
     iszero
 
@@ -61,7 +60,6 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export scale
 
 
 
@@ -111,4 +109,3 @@ export upper_points
 export simplify_operation_zero
 export simplify_operation
 export linear_partition
-export scale

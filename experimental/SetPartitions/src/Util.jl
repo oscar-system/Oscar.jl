@@ -127,29 +127,30 @@ end
 """
     simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
 
-Simplify the vector representation of a `LinearSetPartition` in terms of associativity.
+Simplify the vector representation of a `LinearSetPartition` in terms of distributivity.
+
+# Examples
+```jldoctest
+julia> S, d = polynomial_ring(QQ, "d")
+(Univariate polynomial ring in d over QQ, d)
+
+julia> simplify_operation([(set_partition([1, 1], [1, 1]), S(10)), (set_partition([1, 1], [1, 1]), 4*d)])
+Dict{SetPartition, QQPolyRingElem} with 1 entry:
+  SetPartition([1, 1], [1, 1]) => 4*d + 10
+```
 """
 function simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
 
     partitions = Dict{S, T}()
 
     for (i1, i2) in partition_sum
-        
         if iszero(i2)
-            deleteat!(partition_sum, findall(x -> x == (i1, i2), partition_sum))
             continue
         end
-        
-        if !(i1 in keys(partitions))
-            partitions[i1] = i2
-        else
-            deleteat!(partition_sum, findall(x -> x == (i1, i2), partition_sum))
-            deleteat!(partition_sum, findall(x -> x == (i1, get(partitions, i1, -1)), partition_sum))
-            push!(partition_sum, (i1, get(partitions, i1, -1) + i2))
-            partitions[i1] = get(partitions, i1, -1) + i2
-        end
+        partitions[i1] = get(partitions, i1, 0) + i2
     end
-    return partition_sum
+    
+    return [(s, t) for (s, t) in partitions]
 end
 
 """

@@ -7,6 +7,9 @@ struct LinearSetPartition{S <: AbstractPartition, T <: RingElement}
     coefficients :: Dict{S, T}
 
     function LinearSetPartition{S, T}(coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElement}
+        key_types = Set(typeof(k) for k in keys(coeffs))
+        @req length(key_types) <= 1 "keys in the coefficients dictionary must be of the same subtype of AbstractPartition"
+        
         return new(simplify_operation_zero(coeffs))
     end
 end 
@@ -78,53 +81,19 @@ function linear_partition(term::Vector{Tuple{S, T}}) where { S <: AbstractPartit
     return linear_partition(Dict{S, T}(x[1] => x[2] for x in simplify_operation(term)))
 end
 
-"""
-    +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
-
-Return the addition between `p` and `q`.
-
-# Examples
-```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in d over QQ, d)
-
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
-
-julia> a + a
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 8, SetPartition([1, 1], [1, 1]) => 8*d))
-```
-"""
 function +(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement } 
 
-    result = deepcopy(p)
+    result = deepcopy(coefficients(p))
 
     for i in pairs(coefficients(q))
-        coefficients(result)[i[1]] = get(coefficients(result), i[1], 0) + i[2]
+        result[i[1]] = get(result, i[1], 0) + i[2]
     end
     
-    return linear_partition(coefficients(result))
+    return linear_partition(result)
 end
 
-"""
-    scale(a::RingElement, p::LinearSetPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
-
-Multiply each coefficient in `p` with `a` and return
-the result.
-
-# Examples
-```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in d over QQ, d)
-
-julia> scale(S(1) / S(2), linear_partition(Dict(set_partition([1, 2], [1, 1]) => S(8), set_partition([1, 1], [1, 1]) => 8*d)))
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
-```
-"""
-function scale(a::RingElement, p::LinearSetPartition{S, T}) where
+function *(a::RingElement, p::LinearSetPartition{S, T}) where
         { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
 
@@ -132,10 +101,6 @@ function scale(a::RingElement, p::LinearSetPartition{S, T}) where
         result[i] = a * n
     end
     return linear_partition(result)
-end 
-
-function *(a::RingElement, p::LinearSetPartition)
-    return scale(a, p)
 end
 
 """
@@ -211,25 +176,11 @@ function ⊗(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where
     return tensor_product(p, q)
 end
 
-"""
-    -(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
+function -(p::LinearSetPartition)
+    return (-1 * p)
+end
 
-Perform a subtraction between `p` and `q` and return the result.
-
-# Examples
-```jldoctest
-julia> S, d = polynomial_ring(QQ, "d")
-(Univariate polynomial ring in d over QQ, d)
-
-julia> a = linear_partition([(set_partition([1, 2], [1, 1]), S(4)), (set_partition([1, 1], [1, 1]), 4*d)])
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 2], [1, 1]) => 4, SetPartition([1, 1], [1, 1]) => 4*d))
-
-julia> a - a
-LinearSetPartition{SetPartition, QQPolyRingElem}(Dict{SetPartition, QQPolyRingElem}())
-```
-"""
 function -(p::LinearSetPartition{S, T}, q::LinearSetPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElement }
-    return p + scale(-1, q)
+    return p + (-q)
 end
