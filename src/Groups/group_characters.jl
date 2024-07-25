@@ -1902,7 +1902,7 @@ GAP.julia_to_gap(chi::GAPGroupClassFunction) = chi.values
 parent(chi::GAPGroupClassFunction) = chi.table
 
 function Base.show(io::IO, chi::GAPGroupClassFunction)
-    print(io, "class_function($(parent(chi)), $(values(chi)))")
+    print(io, "class_function($(parent(chi)), [", join(values(chi), ", "), "])")
 end
 
 function values(chi::GAPGroupClassFunction)

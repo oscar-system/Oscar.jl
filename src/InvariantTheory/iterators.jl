@@ -279,7 +279,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbFieldElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> B = iterate_basis(R, 3, chi)
 Iterator over a basis of the component of degree 3
