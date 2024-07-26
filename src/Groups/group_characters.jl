@@ -2405,6 +2405,17 @@ function Base.:*(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
     return GAPGroupClassFunction(parent(chi), GapObj(chi) * GapObj(psi))
 end
 
+"""
+    tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+
+Return the pointwise product of `chi` and `psi`.
+The resulting character is afforded by the tensor product of representations
+corresponding to `chi` and `psi`, hence the name.
+
+Alias for `chi * psi`.
+"""
+tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction) = chi * psi
+
 function Base.zero(chi::GAPGroupClassFunction)
     val = QQAbFieldElem(0)
     return class_function(parent(chi), [val for i in 1:length(chi)])

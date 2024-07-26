@@ -858,6 +858,8 @@ end
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
+  @test all(chi -> chi * chi == tensor_product(chi, chi), t)
+
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
@@ -1231,6 +1233,8 @@ end
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
+
+    @test all(chi -> chi * chi == tensor_product(chi, chi), tbl1)
 
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1

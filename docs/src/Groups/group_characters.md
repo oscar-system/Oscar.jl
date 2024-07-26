@@ -209,7 +209,8 @@ arithmetic operations:
   where the group of `chi` is a subgroup of the group of `tbl`.
 
 ```@docs
-scalar_product
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 coordinates(chi::GAPGroupClassFunction)
 multiplicities_eigenvalues
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
