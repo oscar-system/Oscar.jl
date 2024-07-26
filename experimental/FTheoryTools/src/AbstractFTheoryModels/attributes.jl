@@ -1111,7 +1111,7 @@ setting, this is equivalent to $h$ being trivial.
 
 The computation of the cohomology ring verifies if the toric variety is simplicial and
 complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `falue`, as in the example below.
+off by setting the optional argument `check` to the value `false`, as in the example below.
 
 ```jldoctest
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -1127,7 +1127,7 @@ true
 function chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "First Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Firfalsest Chern class of F-theory model currently supported only for toric ambient space"
+  @req ambient_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric ambient space"
 
   # Check if the answer is known
   if has_attribute(m, :chern_class_c1)
@@ -1170,7 +1170,7 @@ such as in the example below. Therefore, think carefully if you truly want to co
 
 The computation of the cohomology ring verifies if the toric variety is simplicial and
 complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `falue`, as in the example below.
+off by setting the optional argument `check` to the value `false`, as in the example below.
 
 ```jldoctest
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
@@ -1183,9 +1183,9 @@ false
 ```
 """
 function chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "First Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
-  @req base_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric ambient space"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Second Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric ambient space"
 
   # Check if the answer is known
   if has_attribute(m, :chern_class_c2)
