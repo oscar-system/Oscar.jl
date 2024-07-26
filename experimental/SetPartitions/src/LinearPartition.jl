@@ -53,7 +53,7 @@ the `LinearPartition` object with the corresponding dict.
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
-linear_partition(S, [(set_partition([1, 1], [1, 1]), 4), (set_partition([1, 1], [1, 1]), 4*d)])
+julia> linear_partition(S, [(set_partition([1, 1], [1, 1]), 4), (set_partition([1, 1], [1, 1]), 4*d)])
 LinearPartition{SetPartition, QQPolyRingElem}(Univariate polynomial ring in d over QQ, Dict{SetPartition, QQPolyRingElem}(SetPartition([1, 1], [1, 1]) => 4*d + 4))
 ```
 """
