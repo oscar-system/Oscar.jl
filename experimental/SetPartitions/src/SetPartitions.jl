@@ -1,35 +1,40 @@
 module SetPartitions
 
 import Base: 
+    +,  
+    -,
+    *,  
     ==, 
-    *,
     adjoint,
     deepcopy,
     deepcopy_internal,
     hash,
-    size,
-    -,
-    +
+    size
     
 import Oscar:
+    PermGroupElem,
+    Ring,
+    RingElem,
+    RingElement,
     ⊗,
+    @req,
+    base_ring,
+    coefficients,
     compose,
     cycles,
-    involution,
-    join,
-    PermGroupElem,
-    parent,
     degree,
-    tensor_product,
-    @req,
-    RingElement,
-    coefficients,
-    iszero
+    elem_type,
+    involution,
+    iszero,
+    join,
+    parent,
+    parent_type,
+    tensor_product
 
 export ColoredPartition
 export SetPartition
 export SpatialPartition
-export LinearSetPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops
@@ -70,7 +75,7 @@ include("ColoredPartition.jl")
 include("SpatialPartition.jl")
 include("PartitionProperties.jl")
 include("GenerateCategory.jl")
-include("LinearSetPartition.jl")
+include("LinearPartition.jl")
 end
 
 using .SetPartitions
@@ -78,7 +83,7 @@ using .SetPartitions
 export ColoredPartition
 export SetPartition
 export SpatialPartition
-export LinearSetPartition
+export LinearPartition
 
 export colored_partition
 export compose_count_loops

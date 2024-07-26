@@ -127,7 +127,7 @@ end
 """
     simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: AbstractPartition, T <: RingElement }
 
-Simplify the vector representation of a `LinearSetPartition` in terms of distributivity.
+Simplify the vector representation of a `LinearPartition` in terms of distributivity.
 
 # Examples
 ```jldoctest
@@ -156,7 +156,7 @@ end
 """
     simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
 
-Simplify the dict representation of a `LinearSetPartition` in terms of zero coefficients.
+Simplify the dict representation of a `LinearPartition` in terms of zero coefficients.
 """
 function simplify_operation_zero(p::Dict{S, T}) where { S <: AbstractPartition, T <: RingElement }
     result = Dict{S, T}()
