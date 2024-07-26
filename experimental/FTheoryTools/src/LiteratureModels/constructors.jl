@@ -1,3 +1,35 @@
+########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
+# The definitions here SHOULD apply throughout FTheoryTools!
+#                                                defining_classes: This should be a dictionary that includes specifies the divisor classes
+#                                                                  of any parameters used to tune the model beyond the fully generic
+#                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
+#                                                                  may be tuned by setting
+#                                                                      a1 = a10
+#                                                                      a2 = a21 * w
+#                                                                      a3 = a32 * w^2
+#                                                                      a4 = a43 * w^3
+#                                                                      a6 = a65 * w^5
+#                                                                  in which case defining_classes would be Dict("w" => w) with w being a
+#                                                                  divisor class
+#                                                  model_sections: This is a list of the names of all parameters appearing in the model, each
+#                                                                  of which is a section of a line bundle. This should include the sections
+#                                                                  whose classes are a part of defining_classes (usually using the same
+#                                                                  symbol, by abuse of notation). In the case of the example above,
+#                                                                  model_sections would be ["w", "a1", "a21", "a32", "a43", "a65"].
+# classes_of_model_sections_in_basis_of_Kbar_and_defining_classes: This should be a matrix giving the classes of all parameters (model sections)
+#                                                                  in terms of Kbar and the defining classes. Each column should give the divisor
+#                                                                  class of the corresponding model section in this basis. In the case of the
+#                                                                  example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
+#                                defining_section_parametrization: This should be a dictionary that defines how the "default" parameters of
+#                                                                  the given model type are defined in terms of the sections of the defining
+#                                                                  classes. In the case of the example above, defining_section_parametrization
+#                                                                  would be Dict("a1" => a10, "a2" => a21 * w, "a3" => a32 * w^2,
+#                                                                      "a4" => a43 * w^3, "a6" => a65 * w^5)
+#                                         explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
+#                                                                  in the model. In the case of the example above, this would include keys "a1",
+#                                                                  "a2", "a3", "a4", "a6", "w", "a10", "a21", "a32", "a43", and "a65".
+#################################################################################################################################################
+
 #######################################################
 # 1. User interface for literature models
 #######################################################
@@ -130,37 +162,6 @@ julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
 """
-########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
-# The definitions here SHOULD apply throughout FTheoryTools!
-#                                                defining_classes: This should be a dictionary that includes specifies the divisor classes
-#                                                                  of any parameters used to tune the model beyond the fully generic
-#                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
-#                                                                  may be tuned by setting
-#                                                                      a1 = a10
-#                                                                      a2 = a21 * w
-#                                                                      a3 = a32 * w^2
-#                                                                      a4 = a43 * w^3
-#                                                                      a6 = a65 * w^5
-#                                                                  in which case defining_classes would be Dict("w" => w) with w being a
-#                                                                  divisor class
-#                                                  model_sections: This is a list of the names of all parameters appearing in the model, each
-#                                                                  of which is a section of a line bundle. This should include the sections
-#                                                                  whose classes are a part of defining_classes (usually using the same
-#                                                                  symbol, by abuse of notation). In the case of the example above,
-#                                                                  model_sections would be ["w", "a1", "a21", "a32", "a43", "a65"].
-# classes_of_model_sections_in_basis_of_Kbar_and_defining_classes: This should be a matrix giving the classes of all parameters (model sections)
-#                                                                  in terms of Kbar and the defining classes. Each column should give the divisor
-#                                                                  class of the corresponding model section in this basis. In the case of the
-#                                                                  example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
-#                                defining_section_parametrization: This should be a dictionary that defines how the "default" parameters of
-#                                                                  the given model type are defined in terms of the sections of the defining
-#                                                                  classes. In the case of the example above, defining_section_parametrization
-#                                                                  would be Dict("a1" => a10, "a2" => a21 * w, "a3" => a32 * w^2,
-#                                                                      "a4" => a43 * w^3, "a6" => a65 * w^5)
-#                                         explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
-#                                                                  in the model. In the case of the example above, this would include keys "a1",
-#                                                                  "a2", "a3", "a4", "a6", "w", "a10", "a21", "a32", "a43", and "a65".
-#################################################################################################################################################
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
   return literature_model(model_dict; model_parameters = model_parameters, base_space = base_space, model_sections = model_sections, defining_classes = defining_classes, completeness_check = completeness_check)
