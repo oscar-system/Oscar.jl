@@ -1152,7 +1152,7 @@ function chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
   # Compute and set h
   c1_t_ambient = cohomology_class(anticanonical_divisor(ambient_space(m)))
   set_attribute!(m, :chern_class_c1, c1_t_ambient - cy)
-  return c1_t_ambient - cy
+  return get_attribute(m, :chern_class_c1)
 end
 
 
@@ -1209,12 +1209,7 @@ function chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
 
   # Compute sum of products of cohomolgy classes of torus invariant prime divisors
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
-  c2_t_ambient = zero(cohomology_ring(ambient_space(m)))
-  for i in 1:length(c_ds)
-    for j in i+1:length(c_ds)
-      c2_t_ambient = c2_t_ambient + c_ds[i]*c_ds[j]
-    end
-  end
+  c2_t_ambient = sum(c_ds[i]*c_ds[j] for i in 1:length(c_ds)-1 for j in i+1:length(c_ds))
   c2_t_ambient = cohomology_class(ambient_space(m), c2_t_ambient)
 
   # Compute and set h
