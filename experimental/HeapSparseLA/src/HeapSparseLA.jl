@@ -27,20 +27,26 @@ function ==(a::HeapNode, b::HeapNode)
   return index(a) == index(b) && content(a) == content(b)
 end
 
-### to be overwritten for specified types with a function 
-function leq(a::HeapNode, b::HeapNode)
-  return index(a) <= index(b)
+function _heap_leq(a::HeapNode, b::HeapNode)
+  index(a) < index(b) && return true
+  index(a) > index(b) && return false
+  return _heap_leq(content(a), content(b))
 end
 
-function leq(a::HeapNode, b::Nothing)
+### to be overwritten for specified `elem_type`s
+function _heap_leq(a::Any, b::Any)
   return true
 end
 
-function leq(a::Nothing, b::HeapNode)
+function _heap_leq(a::HeapNode, b::Nothing)
+  return true
+end
+
+function _heap_leq(a::Nothing, b::HeapNode)
   return false
 end
 
-function leq(a::Nothing, b::Nothing)
+function _heap_leq(a::Nothing, b::Nothing)
   return true
 end
 
@@ -71,24 +77,25 @@ end
 
 function HeapSRow(v::SRow{T}) where {T}
   result = HeapSRow(base_ring(v))
+  result.top_is_consolidated = false
   open = HeapNode{T}[]
+  
+  side = false
   for (i, c) in v
     n = HeapNode(i, c)
-    k = findfirst(leq(a, n) for a in open)
-    if k === nothing 
+    if result.top === nothing 
       result.top = n
       push!(open, n)
       continue
     end
-    l = open[k]
-    if l.left !== nothing 
-      l.left = n
-      l.right === nothing || deleteat!(open, k)
+    if !side
+      first(open).left = n
       push!(open, n)
+      side = true
     else
-      l.right = n
-      deleteat!(open, k)
+      popfirst!(open).right = n
       push!(open, n)
+      side = false
     end
   end
   return result
@@ -111,13 +118,25 @@ end
 
 function pivot(v::HeapSRow)
   consolidate_top!(v)
+  isempty(v) && return 1, zero(base_ring(v))
   return index(top_node(v)), content(top_node(v))
 end
 
 +(v::HeapSRow, w::HeapSRow) = add!(copy(v), copy(w))
-add!(v::HeapSRow, w::HeapSRow) = addmul!(v, w, one(base_ring(w)))
+
+function add!(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
+  @assert base_ring(v) === base_ring(w)
+  R = base_ring(v)
+  isempty(v) && return w
+  isempty(w) && return v
+  nt = merge!(top_node(v), top_node(w))
+  return HeapSRow(R, nt)
+end
+  
+
 
 function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
+  return add!(v, mul!(a, w))
   @assert base_ring(v) === base_ring(w)
   R = base_ring(v)
   isempty(v) && return w
@@ -150,7 +169,7 @@ function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
       return HeapSRow(base_ring(v), res_tree)
     else
       n = HeapNode(i1, c)
-      if leq(n, left_tree) && leq(n, right_tree)
+      if _heap_leq(n, left_tree) && _heap_leq(n, right_tree)
         n.left = left_tree
         n.right = right_tree
         v.top = nothing
@@ -167,12 +186,12 @@ function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
 
   # build a consolidated head node for the second summand
   m = HeapNode(i2, a*c2)
-  if leq(n1, m) && haskey(index_cache(w), i1) && iszero(a*index_cache(w)[i1])
+  if _heap_leq(n1, m) && haskey(index_cache(w), i1) && iszero(a*index_cache(w)[i1])
     res_top = HeapNode(i1, c1)
     res_top.left = left_tree
     res_top.right = merge!(right_tree, HeapNode(i2, a*c2))
     return HeapSRow(base_ring(v), res_top, top_is_consolidated=true)
-  elseif leq(m, n1) && haskey(index_cache(v), i2) && iszero(index_cache(v)[i2])
+  elseif _heap_leq(m, n1) && haskey(index_cache(v), i2) && iszero(index_cache(v)[i2])
     res_top = m
     res_top.left = merge!(left_tree, HeapNode(i1, c1))
     res_top.right = right_tree
@@ -244,11 +263,14 @@ end
 function pop_index!(v::HeapSRow, i::Int)
   R = base_ring(v)
   isempty(v) && return zero(R), v
-  c, n = pop_index!(top(v), i)
+  c, n = pop_index!(top_node(v), i)
   return c, HeapSRow(R, n)
 end
 
 function pop_index!(n::HeapNode{T}, i::Int) where {T}
+  # early abort: if the index of the node is bigger than i
+  # then everything that follows will also have greater index
+  index(n) > i && return zero(content(n)), n
   if index(n) == i
     result = content(n)
     a, left = pop_index!(n.left, i)
@@ -348,7 +370,7 @@ function getindex(v::HeapSRow{T}, i::Int) where {T}
 end
 
 function merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
-  if leq(a, b)
+  if _heap_leq(a, b)
     # a is the new top
     a.left = merge!(a.left, a.right)
     scale_cofactor!(a.left, a.cofactor)
@@ -448,14 +470,20 @@ function iszero(v::HeapSRow)
 end
 
 function ==(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
-  consolidate_top!(v)
-  consolidate_top!(w)
   isempty(v) && return iszero(w)
   isempty(w) && return iszero(v)
-  top_node(v) == top_node(w) || return false # the easy case
+  pivot(v) == pivot(w) || return false
 
   d1 = as_dictionary(v)
   d2 = as_dictionary(w)
-  return d1 == d2
+  for (k, c) in d1
+    if !(k in keys(d2))
+      iszero(c) || return false
+      continue
+    end
+    c == d2[k] || return false
+    delete!(d2, k)
+  end
+  return all(iszero(c) for c in values(d2))
 end
 
