@@ -115,7 +115,6 @@ function pivot(v::HeapSRow)
 end
 
 +(v::HeapSRow, w::HeapSRow) = add!(copy(v), copy(w))
--(v::HeapSRow, w::HeapSRow) = addmul!(copy(v), copy(w), -one(base_ring(w)))
 add!(v::HeapSRow, w::HeapSRow) = addmul!(v, w, one(base_ring(w)))
 
 function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
@@ -124,19 +123,22 @@ function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
   isempty(v) && return w
   isempty(w) && return v
 
-  res_tree = merge!(v.top, scale_cofactor!(w.top, a))
-  return HeapSRow(base_ring(v), res_tree)
-  # the top needs to be consolidated
-  consolidate_top!(v)
-  consolidate_top!(w)
+  if !v.top_is_consolidated || !w.top_is_consolidated
+    res_tree = merge!(v.top, scale_cofactor!(w.top, a))
+    return HeapSRow(base_ring(v), res_tree)
+  end
 
+  # the top can be assumed to be consolidated
+  # we aim to preserve this property
   i1, c1 = pivot(v)
   i2, c2 = pivot(w)
   n1 = top_node(v)
   n2 = top_node(w)
 
-  left_tree = merge!(n1.left, n1.right, n1.cofactor)
-  right_tree = merge!(n2.left, n2.right, n2.cofactor)
+  left_tree = merge!(n1.left, n1.right)
+  #scale_cofactor!(left_tree, n1.cofactor) # superfluous after consolidation
+  right_tree = merge!(n2.left, n2.right)
+  #scale_cofactor!(right_tree, n2.cofactor)
   scale_cofactor!(right_tree, a)
 
   if i1 == i2
@@ -161,21 +163,26 @@ function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
         return HeapSRow(base_ring(v), res_tree)
       end
     end
-  else
-    v_i2, rem1 = pop_index!(left_tree, i2)
-    w_i1, rem2 = pop_index!(right_tree, i1)
-
-    cc1 = c1 + w_i1 # the new entry in i1
-    cc2 = c2 + v_i2 # the new entry in i2
-    nn1 = (iszero(cc1) ? nothing : HeapNode(i1, cc1))
-    nn2 = (iszero(cc2) ? nothing : HeapNode(i2, cc2))
-    left_tree = merge!(rem1, nn1, nothing)
-    right_tree = merge!(rem2, nn2)
-    result = merge!(left_tree, right_tree)
-    v.top = nothing
-    w.top = nothing
-    return HeapSRow(R, result; top_is_consolidated = (result === nn1 || result === nn2))
   end
+
+  # build a consolidated head node for the second summand
+  m = HeapNode(i2, a*c2)
+  if leq(n1, m) && haskey(index_cache(w), i1) && iszero(a*index_cache(w)[i1])
+    res_top = HeapNode(i1, c1)
+    res_top.left = left_tree
+    res_top.right = merge!(right_tree, HeapNode(i2, a*c2))
+    return HeapSRow(base_ring(v), res_top, top_is_consolidated=true)
+  elseif leq(m, n1) && haskey(index_cache(v), i2) && iszero(index_cache(v)[i2])
+    res_top = m
+    res_top.left = merge!(left_tree, HeapNode(i1, c1))
+    res_top.right = right_tree
+    return HeapSRow(base_ring(v), res_top, top_is_consolidated=true)
+  end
+
+  # in all cases which have not yet been caught there is little
+  # we can say about consolidation
+  res_top = merge!(merge!(left_tree, n1), merge!(right_tree, m))
+  return HeapSRow(base_ring(v), res_top)
 end
 
 function copy(v::HeapSRow)
@@ -202,10 +209,13 @@ function mul!(a::T, v::HeapSRow{T}) where {T}
   isempty(v) && return v
   iszero(a) && return HeapSRow(base_ring(v))
   isone(a) && return v
-  if v.top.cofactor === nothing
-    v.top.cofactor = a
+  # try to preserve consolidation
+  if v.top_is_consolidated
+    v.top.content *= a
+    scale_cofactor!(v.top.left, a)
+    scale_cofactor!(v.top.right, a)
   else
-    v.top.cofactor *= a
+    scale_cofactor!(v.top, a)
   end
   # clear the cache
   v.index_cache = Dict{Int, T}()
