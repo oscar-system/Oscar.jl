@@ -166,9 +166,9 @@ julia> rho = smaller_degree_permutation_representation(s)
 ```
 """
 function smaller_degree_permutation_representation(G::PermGroup)
-     mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
-     img = PermGroup(GAP.Globals.Image(mp))
-     return img, GAPGroupHomomorphism(G, img, mp)
+  mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
+  img = PermGroup(GAP.Globals.Image(mp))
+  return img, GAPGroupHomomorphism(G, img, mp)
 end
 
 

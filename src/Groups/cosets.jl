@@ -602,9 +602,9 @@ end
 
 function order(::Type{T}, C::GroupDoubleCoset) where T <: IntegerUnion
   if !isassigned(C.size)
-    C.size[] = T(GAPWrap.Size(GapObj(C)))
+    C.size[] = ZZRingElem(GAPWrap.Size(GapObj(C)))
   end
-  return C.size[]
+  return T(C.size[])
 end 
 
 Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = order(C)
