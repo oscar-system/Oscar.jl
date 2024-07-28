@@ -1200,6 +1200,45 @@ function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 end
 
 
+@doc raw"""
+    euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute the Euler characteristic. If this
+assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
+error.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = euler_characteristic(qsm_model; check = false)
+378
+```
+"""
+function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
+
+  # Check if the answer is known
+  if has_attribute(m, :euler_characteristic)
+    return get_attribute(m, :euler_characteristic)::CohomologyClass
+  end
+
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
+
+  # Compute the cohomology class corresponding to the hypersurface equation
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+
+  # Compute the Euler characteristic
+  h = integrate(chern_class(m, 4; check) * cy; check)
+  set_attribute!(m, :euler_characteristic, h)
+  return h
+end
+
+
 
 ##########################################
 ### (4) Attributes specially for the QSMs
