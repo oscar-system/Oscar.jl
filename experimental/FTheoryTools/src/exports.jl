@@ -50,6 +50,7 @@ export discriminant
 export display_all_literature_models
 export dual_graph
 export estimated_number_of_triangulations
+export euler_characteristic
 export explicit_model_sections
 export family_of_spaces
 export fiber_ambient_space
