@@ -194,6 +194,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export tune
+export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface

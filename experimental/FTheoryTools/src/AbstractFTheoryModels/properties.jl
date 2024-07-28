@@ -98,3 +98,54 @@ has_weighted_resolution_zero_sections(m::AbstractFTheoryModel) = has_attribute(m
 has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
 has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
 has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
+
+
+
+##########################################
+### (4) Consistency checks
+##########################################
+
+@doc raw"""
+    verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+
+Verify if the Euler characteristic, as computed from integrating the 4-th Chern class,
+agrees with the results obtained from using the alternating sum of the Hodge numbers.
+If so, this method returns `true`. However, should information be missing, (e.g. some
+Hodge numbers), or the dimension of the F-theory model differ form 4, then this method
+raises an error.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> verify_euler_characteristic_from_hodge_numbers(qsm_model, check = false)
+true
+```
+"""
+function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verification of Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
+  @req dim(base_space(m)) == 3 "Verification of Euler characteristic of F-theory model currently supported only for toric base spaces of dimension 3"
+  @req dim(ambient_space(m)) == 5 "Verification of Euler characteristic of F-theory model currently supported only for toric ambient spaces of dimension 5"
+  @req has_attribute(m, :h11) "Verification of Euler characteristic of F-theory model requires h11"
+  @req has_attribute(m, :h12) "Verification of Euler characteristic of F-theory model requires h12"
+  @req has_attribute(m, :h13) "Verification of Euler characteristic of F-theory model requires h13"
+  @req has_attribute(m, :h22) "Verification of Euler characteristic of F-theory model requires h22"
+
+  # Check if the answer is known
+  if has_attribute(m, :verify_euler_characteristic_from_hodge_numbers)
+    return get_attribute(m, :verify_euler_characteristic_from_hodge_numbers)::Bool
+  end
+
+  # Computer Euler characteristic from integrating c4
+  ec = euler_characteristic(m, check = check)
+
+  # Compute Euler characteristic from adding Hodge numbers
+  ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
+
+  # Compute result of verification
+  h = (ec == ec2)
+  set_attribute!(m, :verify_euler_characteristic_from_hodge_numbers, h)
+  return h
+end
