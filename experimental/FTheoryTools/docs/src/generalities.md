@@ -70,6 +70,7 @@ euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 ```@docs
 is_base_space_fully_specified(m::AbstractFTheoryModel)
 is_partially_resolved(m::AbstractFTheoryModel)
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 
