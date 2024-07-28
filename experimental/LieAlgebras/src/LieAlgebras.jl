@@ -20,6 +20,7 @@ import ..Oscar:
   _is_tensor_product,
   _iso_oscar_gap,
   _vec,
+  AbstractSerializer,
   action,
   basis_matrix,
   basis,
@@ -71,8 +72,13 @@ import ..Oscar:
   order,
   parent_type,
   rank,
+  register_serialization_type,
   root,
   roots,
+  save_data_dict,
+  save_object,
+  save_typed_object,
+  SerializerState,
   sub,
   symbols,
   symmetric_power,
@@ -227,6 +233,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("serialization.jl")
 
 end # module LieAlgebras
 
