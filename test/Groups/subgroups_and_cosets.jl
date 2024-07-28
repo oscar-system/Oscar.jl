@@ -157,11 +157,13 @@ end
    C = right_coset(H, G[1])
    @test is_right(C)
    @test order(C) == length(collect(C))
-   @test repr(C, context = :supercompact => true) == "Right coset of a group"
+   @test order(C) isa ZZRingElem
+   @test order(Int, C) isa Int
+   @test AbstractAlgebra.PrettyPrinting.repr_terse(C) == "Right coset of a group"
   
    T = right_transversal(G, H)
    @test length(T) == index(G, H)
-   @test repr(T, context = :supercompact => true) == "Right transversal of groups"
+   @test AbstractAlgebra.PrettyPrinting.repr_terse(T) == "Right transversal of groups"
    @test_throws ArgumentError right_transversal(H, G)
    @test_throws ArgumentError left_transversal(H, G)
 
@@ -217,7 +219,7 @@ end
 
    H = sub(G, [cperm(G,[1,2,3]), cperm(G,[2,3,4])])[1]
    L = right_cosets(G,H)
-   @test repr(L, context = :supercompact => true) == "Right cosets of groups"
+   @test AbstractAlgebra.PrettyPrinting.repr_terse(L) == "Right cosets of groups"
    @test_throws ArgumentError right_cosets(H, G)
    T = right_transversal(G,H)
    @test length(L)==10
@@ -267,6 +269,24 @@ end
    @test Set(intersect(lc,H))==Set(H)
    lc = left_coset(H,x)
    @test intersect(lc,H)==[]
+end
+
+@testset "Double cosets" begin
+   G = symmetric_group(5)
+   x = G(cperm([1, 2, 3]))
+   y = G(cperm([1, 4, 5]))
+   z = G(cperm([1, 2], [3, 4]))
+   H = sub(G, [y])[1]
+   K = sub(G, [z])[1]
+
+   dc = double_coset(H, x, K)
+   @test !isassigned(dc.X)
+   @test !isassigned(dc.size)
+   GapObj(dc)
+   @test isassigned(dc.X)
+   order(dc)
+   @test isassigned(dc.size)
+   @test GapObj([dc]; recursive = true) isa GapObj
 end
 
 @testset "Predicates for groups" begin

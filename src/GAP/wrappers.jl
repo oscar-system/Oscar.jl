@@ -78,6 +78,8 @@ GAP.@wrap DescriptionOfRootOfUnity(x::Any)::GapObj
 GAP.@wrap DeterminantOfCharacter(x::GapObj)::GapObj
 GAP.@wrap Dimension(x::GapObj)::Int
 GAP.@wrap DimensionOfHighestWeightModule(x::GapObj, y::GapObj)::GapInt
+GAP.@wrap DoubleCoset(x::GapObj, y::GapObj, z::GapObj)::GapObj
+GAP.@wrap DoubleCosetRepsAndSizes(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap DominantCharacter(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap E(x::Any)::GapInt
 GAP.@wrap EigenvaluesChar(x::GapObj, y::GAP.Obj)::GapObj
@@ -138,9 +140,10 @@ GAP.@wrap Indicator(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap InducedClassFunction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InducedClassFunctionsByFusionMap(x::GapObj, y::GapObj, z::GapObj, t::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj)::GapObj
-GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap InducedCyclic(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap InitFusion(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap INT_FFE_DEFAULT(x::Any)::GapInt
+GAP.@wrap Intersection(x::GapObj)::GapObj
 GAP.@wrap IntFFE(x::Any)::GapInt
 GAP.@wrap Inverse(x::GapObj)::GapObj
 GAP.@wrap Irr(x::GapObj)::GapObj
@@ -312,6 +315,7 @@ GAP.@wrap PrimePGroup(x::GapObj)::GapInt
 GAP.@wrap PrimitiveElement(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj)::GapObj
 GAP.@wrap Projection(x::GapObj, i::Int)::GapObj
+GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap RecognizeGroup(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
@@ -320,6 +324,8 @@ GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RepresentativeTom(x::GapObj, y::Int)::GapObj
 GAP.@wrap RepresentativeAction(x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap RestrictedMapping(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap RightCoset(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap RightTransversal(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RootSystem(x::GapObj)::GapObj
 GAP.@wrap SLPforElement(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj

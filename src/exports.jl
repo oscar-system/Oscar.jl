@@ -1395,6 +1395,7 @@ export slpoly_ring
 export small_generating_set, has_small_generating_set, set_small_generating_set
 export small_group
 export small_group_identification, has_small_group_identification
+export smaller_degree_permutation_representation
 export snub_cube
 export snub_dodecahedron
 export socle, has_socle, set_socle

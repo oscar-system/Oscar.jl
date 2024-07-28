@@ -190,3 +190,10 @@ end
     @test cc == [[1, 2, 3], [4, 5], [6, 7], [8, 9, 10], [11, 12, 13, 14, 15]]
   end
 end
+
+@testset "smaller_degree_permuation_group" begin
+  c = cperm(1:3,4:6,7:9)
+  G,_ = sub(symmetric_group(9), [c])
+  H,iso = smaller_degree_permutation_representation(G)
+  @test degree(H)<degree(G)
+end
