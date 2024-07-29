@@ -48,3 +48,36 @@ end
   @test Oscar.HeapSMat(S1) == S0
 end
 
+@testset "Gauss algorithm on different matrix types over univariate polynomial rings" begin
+  s = 1
+  m = 10*s
+  n = 20*s
+
+  P, (x,) = polynomial_ring(QQ, [:x])
+  QQt, t = QQ[:t]
+  A = Oscar.HeapSMat(QQt, 0, n)
+  for i in 1:m
+    l = [(rand(1:20*s), evaluate(rand(P, 1:10, 1:10, 1:10), [t])) for i in 1:s];
+    v = Oscar.HeapSRow(QQt, l)
+    push!(A, v)
+  end
+  AA = Oscar.sparse_matrix(A)
+
+  B0, S0, T0 = Oscar.upper_triangular_form!(copy(A))
+  B1, S1, T1 = Oscar.upper_triangular_form!(copy(AA))
+
+  @test S0*A == B0
+  @test T0*B0 == A
+
+  S1 = Oscar.dense_matrix(Oscar.HeapSMat(S1))
+  B1 = Oscar.dense_matrix(Oscar.HeapSMat(B1))
+  T1 = Oscar.dense_matrix(Oscar.HeapSMat(T1))
+  A1 = Oscar.dense_matrix(A)
+  @test S1*A1 == B1
+  @test T1*B1 == A1
+
+  @test Oscar.HeapSMat(B1) == B0
+  @test Oscar.HeapSMat(T1) == T0
+  @test Oscar.HeapSMat(S1) == S0
+end
+

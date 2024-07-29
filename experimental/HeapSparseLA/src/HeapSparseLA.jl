@@ -210,6 +210,9 @@ function getindex(v::HeapSRow{T}, i::Int) where {T}
   return c
 end
 
+function show(io::IO, v::HeapSRow)
+  print(io, "sparse vector over $(base_ring(v)) with pivot $(pivot(v))")
+end
 
 function index_cache(v::HeapSRow{T}) where {T}
   if !isdefined(v, :index_cache)
@@ -537,7 +540,7 @@ function setindex!(A::HeapSMat, v::HeapSRow, i::Int)
   A.rows[i] = v
 end
 
-function push!(A::HeapSMat, v::HeapSRow)
+function push!(A::HeapSMat{T}, v::HeapSRow{T}) where T
   if A.transpose !== nothing 
     A.transpose.transpose = nothing
     A.transpose = nothing
@@ -752,11 +755,12 @@ function upper_triangular_form!(A::MatElem)
   error("not implemented")
 end
 
-function upper_triangular_form!(A::HeapSMat{ZZRingElem})
+function upper_triangular_form!(A::HeapSMat)
   consolidate!(A)
+  R = base_ring(A)
   # we iterate through the columns of A
-  S = unit_matrix(HeapSMat, ZZ, nrows(A))
-  T_trans = unit_matrix(HeapSMat, ZZ, nrows(A))
+  S = unit_matrix(HeapSMat, R, nrows(A))
+  T_trans = unit_matrix(HeapSMat, R, nrows(A))
   m0 = nrows(A)
   for j in 1:ncols(A)
     # find the rows whose pivot is in this column
@@ -766,14 +770,14 @@ function upper_triangular_form!(A::HeapSMat{ZZRingElem})
     g = [c for (_, c) in Oscar.pivot.(A.rows[cand])]
     # find the principal generator for the ideal and the Bezout coeffs
     res, coeff = Oscar._gcdx(g)
-    coeff_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, coeff)))
+    coeff_vec = Oscar.HeapSRow(R, collect(zip(cand, coeff)))
     # compile the new line which will be added to A
     new_line = consolidate!(coeff_vec*A)
     push!(A, new_line)
     # update the base change matrix
     push!(S, coeff_vec*S)
 
-    push!(T_trans, HeapSRow(ZZ))
+    push!(T_trans, HeapSRow(R))
     # determine the elimination of the pivots in the original A
     c = [divexact(g, res) for g in g]
 
@@ -791,10 +795,11 @@ function upper_triangular_form!(A::HeapSMat{ZZRingElem})
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
 end
 
-function upper_triangular_form!(A::SMat{ZZRingElem})
+function upper_triangular_form!(A::SMat)
+  R = base_ring(A)
   # we iterate through the columns of A
-  S = unit_matrix(SMat, ZZ, nrows(A))
-  T_trans = unit_matrix(SMat, ZZ, nrows(A))
+  S = unit_matrix(SMat, R, nrows(A))
+  T_trans = unit_matrix(SMat, R, nrows(A))
   m0 = nrows(A)
   for j in 1:ncols(A)
     # find the rows whose pivot is in this column
@@ -804,13 +809,13 @@ function upper_triangular_form!(A::SMat{ZZRingElem})
     g = [c for (_, c) in pivot.(A.rows[cand])]
     # find the principal generator for the ideal and the Bezout coeffs
     res, coeff = Oscar._gcdx(g)
-    coeff_vec = sparse_row(ZZ, collect(zip(cand, coeff)))
+    coeff_vec = sparse_row(R, collect(zip(cand, coeff)))
     # compile the new line which will be added to A
     new_line = coeff_vec*A
     push!(A, new_line)
     push!(S, coeff_vec*S)
 
-    push!(T_trans, sparse_row(ZZ))
+    push!(T_trans, sparse_row(R))
     c = [divexact(g, res) for g in g]
 
     w = S[nrows(S)]
@@ -830,7 +835,8 @@ end
 # An extension of `gcdx` to multiple arguments.
 function _gcdx(v::Vector)
   @assert all(!iszero(x) for x in v)
-  w = sort(v; by=abs) # If we sort, we have to translate the result back
+  R = parent(first(v))
+  w = _sort(v)
   res, bez = _gcdx_rec(w)
   n = length(v)
   trans = Int[]
@@ -838,10 +844,13 @@ function _gcdx(v::Vector)
     k = findfirst(w[k] == v[i] for k in 1:n)
     k === nothing && error("permutation could not be determined")
     push!(trans, k)
-    w[k] = 0
+    w[k] = zero(R)
   end
   return res, bez[trans]
 end
+
+_sort(a::Vector{ZZRingElem}) = sort(a; by=abs)
+_sort(a::Vector{<:PolyRingElem{<:FieldElem}}) = sort(a; by=degree)
 
 function _gcdx_rec(v::Vector)
   @assert !isempty(v)
@@ -858,7 +867,7 @@ function _gcdx_rec(v::Vector)
   res1, coeff1 = _gcdx_rec(u)
   res2, coeff2 = _gcdx_rec(w)
   res, a, b = gcdx(res1, res2)
-  return res, vcat(a*coeff1, b*coeff2)
+  return res, vcat(a.*coeff1, b.*coeff2)
 end
 
 
