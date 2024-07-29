@@ -547,6 +547,38 @@ function push!(A::HeapSMat, v::HeapSRow)
   return A
 end
 
+function unit_matrix(::Type{HeapSMat}, R::NCRing, n::Int)
+  iszero(n) && return HeapSMat(R, 0, 0)
+  res_list = [HeapSRow(R, [(i, one(R))]) for i in 1:n]
+  return HeapSMat(R, n, n, res_list)
+end
+
+function zero_matrix(::Type{HeapSMat}, R::NCRing, m::Int, n::Int)
+  return HeapSMat(R, m, n)
+end
+
+function HeapSMat(AA::MatElem{T}) where {T}
+  R = base_ring(AA)
+  m = nrows(AA)
+  n = ncols(AA)
+  result = HeapSMat(R, 0, n)
+  for i in 1:m
+    push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
+  end
+  return result
+end
+
+function HeapSMat(AA::SMat{T}) where {T}
+  R = base_ring(AA)
+  m = nrows(AA)
+  n = ncols(AA)
+  result = HeapSMat(R, 0, n)
+  for i in 1:m
+    push!(result, HeapSRow(AA[i]))
+  end
+  return result
+end
+
 function dense_row(v::HeapSRow, n::Int)
   return [v[i] for i in 1:n]
 end
@@ -691,89 +723,6 @@ function transpose!(A::HeapSMat{T}) where {T}
     push!(res_list, HeapSRow(base_ring(A), next))
   end
   return HeapSMat(base_ring(A), n, m, res_list)
-end
-
-function _upper_triangular_form!(A::HeapSMat{ZZRingElem})
-  # we iterate through the columns of A
-  S = HeapSMat(ZZ, 0, nrows(A))
-  H = HeapSMat(ZZ, 0, ncols(A))
-  T_list = HeapSRow{ZZRingElem}[]
-  for j in 1:ncols(A)
-    @show dense_matrix(A)
-    @show j
-    # find the rows whose pivot is in this column
-    cand = [i for i in 1:nrows(A) if Oscar.pivot(A[i])[1] == j]
-    isempty(cand) && continue # nothing to do here
-    @show cand
-    B = A[cand]
-    # collect the generators
-    g = [c for (_, c) in Oscar.pivot.(A.rows[cand])]
-    @show g
-    # find the principal generator for the ideal and the Bezout coeffs
-    res, coeff = Oscar._gcdx(g)
-    @show res
-    @show coeff
-    coeff_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, coeff)))
-    # store the transition coefficients in a base change matrix
-    push!(S, coeff_vec)
-    # compile the new line which will be in place of the previous ones
-    new_line = coeff_vec*A
-    # store it in the output matrix
-    push!(H, new_line)
-    # determine the inverse base change and store it
-    c = [divexact(g, res) for g in g]
-    @show c
-    t_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, c)))
-    @show t_vec
-    op = tensor_product(t_vec, coeff_vec, nrows(A), nrows(A))
-    @show dense_matrix(op)
-    @show dense_matrix(unit_matrix(HeapSMat, ZZ, nrows(A)))
-    op = unit_matrix(HeapSMat, ZZ, nrows(A)) - op
-    @show dense_matrix(op)
-    push!(T_list, t_vec)
-    # perform the reduction in place on A
-    # this will create additional lines for the next step
-    AA = copy(A)
-    for (k, c) in zip(cand, c)
-      A[k] = add!(A[k], -c*new_line)
-      @assert iszero(pivot(A[k])[1]) || pivot(A[k])[1] > j
-    end
-    @assert op*AA == A
-    @show dense_matrix(A)
-  end
-  return H, S, transpose!(HeapSMat(ZZ, nrows(H), nrows(A), T_list))
-end
-
-function unit_matrix(::Type{HeapSMat}, R::NCRing, n::Int)
-  iszero(n) && return HeapSMat(R, 0, 0)
-  res_list = [HeapSRow(R, [(i, one(R))]) for i in 1:n]
-  return HeapSMat(R, n, n, res_list)
-end
-
-function zero_matrix(::Type{HeapSMat}, R::NCRing, m::Int, n::Int)
-  return HeapSMat(R, m, n)
-end
-
-function HeapSMat(AA::MatElem{T}) where {T}
-  R = base_ring(AA)
-  m = nrows(AA)
-  n = ncols(AA)
-  result = HeapSMat(R, 0, n)
-  for i in 1:m
-    push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
-  end
-  return result
-end
-
-function HeapSMat(AA::SMat{T}) where {T}
-  R = base_ring(AA)
-  m = nrows(AA)
-  n = ncols(AA)
-  result = HeapSMat(R, 0, n)
-  for i in 1:m
-    push!(result, HeapSRow(AA[i]))
-  end
-  return result
 end
 
 function sparse_matrix(A::HeapSMat)
