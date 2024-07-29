@@ -47,17 +47,6 @@ function quantum_symmetric_group(n::Int)
   return ideal(relations)
 end
 
-#=
-G = complete_graph(4)
-M = cycle_matroid(G)
-length(gens(quantum_automorphism_group(M)))
-
-iterator([1,2,3])
-
-Oscar.create_gs2num(matroid_groundset(M))
-2>1 ? x=1 : M=M
-
-=#
 @doc raw"""
     _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:bases)
 
