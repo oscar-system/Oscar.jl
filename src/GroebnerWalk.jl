@@ -29,3 +29,6 @@ end
 
 end
 
+using .GroebnerWalk
+export groebner_walk
+
