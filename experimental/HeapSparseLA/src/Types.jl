@@ -37,3 +37,27 @@ mutable struct HeapSRow{T}
   end
 end
 
+mutable struct HeapSMat{T}
+  base_ring::NCRing
+  nrows::Int
+  ncols::Int
+  rows::Vector{HeapSRow{T}}
+  transpose::Union{HeapSMat{T}, Nothing}
+
+  function HeapSMat(R::NCRing, nrows::Int, ncols::Int, rows::Vector{HeapSRow{T}}) where {T}
+    @assert all(base_ring(v) === R for v in rows)
+    @assert nrows >= length(rows)
+    crows = copy(rows)
+    for i in length(rows)+1:nrows
+      push!(crows, HeapSRow(R))
+    end
+    return new{T}(R, nrows, ncols, crows, nothing)
+  end
+
+  function HeapSMat(R::Ring, nrows::Int, ncols::Int)
+    rows = HeapSRow{elem_type(R)}[HeapSRow(R) for i in 1:nrows]
+    return new{elem_type(R)}(R, nrows, ncols, rows, nothing)
+  end
+end
+
+

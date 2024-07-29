@@ -71,6 +71,10 @@ function index_cache(v::HeapSRow{T}) where {T}
   return v.index_cache
 end
 
+function HeapSRow(R::NCRing, n::Nothing)
+  return HeapSRow(R)
+end
+
 function HeapSRow(R::NCRing, list::Vector{Pair{Int, T}}) where {T}
   return HeapSRow(R, [(a, b) for (a, b) in list])
 end
@@ -118,8 +122,30 @@ end
 
 function pivot(v::HeapSRow)
   consolidate_top!(v)
-  isempty(v) && return 1, zero(base_ring(v))
+  isempty(v) && return 0, zero(base_ring(v))
   return index(top_node(v)), content(top_node(v))
+end
+
+function pop_top_node!(v::HeapSRow)
+  isempty(v) && return nothing
+  n = top_node(v)
+  i = index(n)
+  a, left = pop_index!(n.left, i)
+  b, right = pop_index!(n.right, i)
+  n.content += a
+  n.content += b
+  n.cofactor !== nothing && (n.content *= n.cofactor)
+  v.top = merge!(left, right)
+  scale_cofactor!(v.top, n.cofactor)
+  n.cofactor = nothing
+  n.left = nothing
+  n.right = nothing
+  return n
+end
+
+function pop_top!(v::HeapSRow)
+  n = pop_top_node!(v)
+  return index(n), content(n)
 end
 
 +(v::HeapSRow, w::HeapSRow) = add!(copy(v), copy(w))
@@ -369,7 +395,7 @@ function getindex(v::HeapSRow{T}, i::Int) where {T}
   return c
 end
 
-function merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
+function Base.merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
   if _heap_leq(a, b)
     # a is the new top
     a.left = merge!(a.left, a.right)
@@ -392,15 +418,15 @@ function merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
   end
 end
 
-function merge!(a::HeapNode, b::Nothing)
+function Base.merge!(a::HeapNode, b::Nothing)
   return a
 end
 
-function merge!(a::Nothing, b::HeapNode)
+function Base.merge!(a::Nothing, b::HeapNode)
   return b
 end
 
-function merge!(a::Nothing, b::Nothing)
+function Base.merge!(a::Nothing, b::Nothing)
   return nothing
 end
 
@@ -455,7 +481,7 @@ function as_dictionary(n::HeapNode{T}, result::Dict{Int, T}, cofactor::T) where 
   new_cof = n.cofactor === nothing ? cofactor : n.cofactor*cofactor
   i = index(n)
   if i in keys(result)
-    result[i] = result[i] + new_cof * content(n)
+    result[i] += new_cof * content(n)
   else
     result[i] = new_cof * content(n)
   end
@@ -486,4 +512,572 @@ function ==(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
   end
   return all(iszero(c) for c in values(d2))
 end
+
+base_ring(A::HeapSMat) = A.base_ring
+nrows(A::HeapSMat) = A.nrows
+ncols(A::HeapSMat) = A.ncols
+
+function getindex(A::HeapSMat, i::Int, j::Int)
+  @assert j <= ncols(A)
+  return A.rows[i][j]
+end
+
+getindex(A::HeapSMat, i::Int) = A.rows[i]
+
+function setindex!(A::HeapSMat, v::HeapSRow, i::Int)
+  if A.transpose !== nothing 
+    A.transpose.transpose = nothing
+    A.transpose = nothing
+  end
+  A.rows[i] = v
+end
+
+function push!(A::HeapSMat, v::HeapSRow)
+  if A.transpose !== nothing 
+    A.transpose.transpose = nothing
+    A.transpose = nothing
+  end
+  push!(A.rows, v)
+  A.nrows += 1
+  return A
+end
+
+function dense_row(v::HeapSRow, n::Int)
+  return [v[i] for i in 1:n]
+end
+
+function sparse_row(v::HeapSRow)
+  return sparse_row(base_ring(v), collect((i, c) for (i, c) in as_dictionary(v) if !iszero(c)))
+end
+
+function consolidate!(v::HeapSRow{T}) where T
+  v.is_consolidated && return v
+  result = HeapSRow(base_ring(v), pop_top_node!(v))
+  side = false
+  open = [result.top]
+  while !isempty(v)
+    n = pop_top_node!(v)
+    if !side
+      first(open).left = n
+      push!(open, n)
+      side = true
+    else
+      popfirst!(open).right = n
+      push!(open, n)
+      side = false
+    end
+  end
+  #=
+  dd = as_dictionary(v)
+  cont = sort!(collect((i, c) for (i, c) in dd if !iszero(c)); by=x->x[1])
+  
+  result = HeapSRow(base_ring(v))
+  result.top_is_consolidated = false
+  open = HeapNode{T}[]
+  
+  side = false
+  for (i, c) in cont
+    n = HeapNode(i, c)
+    if result.top === nothing 
+      result.top = n
+      push!(open, n)
+      continue
+    end
+    if !side
+      first(open).left = n
+      push!(open, n)
+      side = true
+    else
+      popfirst!(open).right = n
+      push!(open, n)
+      side = false
+    end
+  end
+  =#
+  result.is_consolidated = true
+  return result
+end
+
+function old_consolidate!(v::HeapSRow{T}) where T
+  v.is_consolidated && return v
+  dd = as_dictionary(v)
+  cont = sort!(collect((i, c) for (i, c) in dd if !iszero(c)); by=x->x[1])
+  
+  result = HeapSRow(base_ring(v))
+  result.top_is_consolidated = false
+  open = HeapNode{T}[]
+  
+  side = false
+  for (i, c) in cont
+    n = HeapNode(i, c)
+    if result.top === nothing 
+      result.top = n
+      push!(open, n)
+      continue
+    end
+    if !side
+      first(open).left = n
+      push!(open, n)
+      side = true
+    else
+      popfirst!(open).right = n
+      push!(open, n)
+      side = false
+    end
+  end
+  result.is_consolidated = true
+  return result
+end
+
+function consolidate!(A::HeapSMat{T}) where T
+  for (i, v) in enumerate(A.rows)
+    A[i] = consolidate!(v)
+  end
+  return A
+end
+
+function dense_matrix(A::HeapSMat)
+  result = zero(matrix_space(base_ring(A), nrows(A), ncols(A)))
+  for i in 1:nrows(A)
+    for (j, c) in as_dictionary(A[i])
+      result[i, j] = c
+    end
+  end
+  return result
+end
+
+function ==(A::HeapSMat, B::HeapSMat)
+  base_ring(A) === base_ring(B) || return false
+  nrows(A) == nrows(B) || return false
+  ncols(A) == ncols(B) || return false
+  return all(A[i] == B[i] for i in 1:nrows(A))
+end
+
+function *(A::HeapSMat{T}, B::HeapSMat{T}) where {T}
+  return mul!(consolidate!(copy(A)), B)
+end
+
+function mul!(A::HeapSMat{T}, B::HeapSMat{T}) where {T}
+  R = base_ring(A)
+  @assert R === base_ring(B)
+  #result = HeapSMat(R, 0, ncols(B))
+  for (i, v) in enumerate(A.rows)
+    A[i] = v*B
+    #push!(result, v*B)
+  end
+  A.ncols = ncols(B)
+  return A
+end
+
+function *(v::HeapSRow, A::HeapSMat)
+  return mul!(v, copy(A))
+end
+
+function mul!(v::HeapSRow, A::HeapSMat)
+  R = base_ring(A)
+  @assert R === base_ring(v)
+  isempty(v) && return HeapSRow(R)
+  #=
+  # going via the dictionary uses significantly less resources.
+  # TODO: Why?
+  n = top_node(v)
+  result = mul_rec(n, A)
+  return result
+  =#
+  line = HeapSRow(R)
+  for (j, c) in as_dictionary(v)
+    line = add!(line, mul!(c, A[j]))
+  end
+  return line
+end
+
+function mul_rec(n::HeapNode, A::HeapSMat)
+  result = add!(content(n) * A[index(n)], mul_rec(n.left, A))
+  result = add!(result, mul_rec(n.right, A))
+  n.cofactor !== nothing && (result = mul!(n.cofactor, result))
+  return result
+end
+
+function mul_rec(n::Nothing, A::HeapSMat)
+  return HeapSRow(base_ring(A))
+end
+
+#=
+function mul_rec!(n::HeapNode, A::HeapSMat)
+  result = add!(mul!(content(n), A[index(n)]), mul_rec!(n.left, A))
+  result = add!(result, mul_rec!(n.right, A))
+  n.cofactor !== nothing && (result = mul!(n.cofactor, result))
+  return result
+end
+
+function mul_rec!(n::Nothing, A::HeapSMat)
+  return HeapSRow(base_ring(A))
+end
+=#
+
+function mul!(a, A::HeapSMat{T}) where T
+  return mul!(base_ring(A)(a), A)
+end
+
+function mul!(a::T, A::HeapSMat{T}) where T
+  if A.transpose !== nothing 
+    A.transpose.transpose = nothing
+    A.transpose = nothing
+  end
+  for v in A.rows
+    mul!(a, v)
+  end
+  return A
+end
+
+function copy(A::HeapSMat)
+  R = base_ring(A)
+  result = HeapSMat(R, 0, ncols(A))
+  for v in A.rows
+    push!(result, copy(v))
+  end
+  return result
+end
+
+function *(a, A::HeapSMat)
+  return mul!(a, copy(A))
+end
+
+function show(io::IO, A::HeapSMat)
+  println(io, "sparse ($(nrows(A)) x $(ncols(A)))-matrix over $(base_ring(A))")
+end
+
+function add!(A::HeapSMat, B::HeapSMat)
+  if A.transpose !== nothing 
+    A.transpose.transpose = nothing
+    A.transpose = nothing
+  end
+  base_ring(A) === base_ring(B) || return false
+  nrows(A) == nrows(B) || return false
+  ncols(A) == ncols(B) || return false
+  for (i, v) in enumerate(B.rows)
+    A[i] = add!(A[i], v)
+  end
+  return A
+end
+
++(A::HeapSMat, B::HeapSMat) = add!(copy(A), B)
+-(A::HeapSMat, B::HeapSMat) = add!(-B, A)
+-(A::HeapSMat) = -one(base_ring(A))*A
+
+function getindex(A::HeapSMat, ind::Vector{Int})
+  return HeapSMat(base_ring(A), length(ind), ncols(A), A.rows[ind])
+end
+
+function getindex(A::HeapSMat, r::UnitRange)
+  return HeapSMat(base_ring(A), length(r), ncols(A), A.rows[r])
+end
+
+function _gcdx(v::Vector)
+  @assert all(!iszero(x) for x in v)
+  w = sort(v; by=abs) # If we sort, we have to translate the result back
+  res, bez = _gcdx_rec(w)
+  n = length(v)
+  trans = Int[]
+  for i in 1:n
+    k = findfirst(w[k] == v[i] for k in 1:n)
+    k === nothing && error("permutation could not be determined")
+    push!(trans, k)
+    w[k] = 0
+  end
+  return res, bez[trans]
+end
+
+function _gcdx_rec(v::Vector)
+  @assert !isempty(v)
+  if isone(length(v))
+    return first(v), [one(first(v))]
+  elseif length(v) == 2 
+    res, a, b = gcdx(v[1], v[2])
+    return res, [a, b]
+  end
+
+  k = div(length(v), 2)
+  u = v[1:k]
+  w = v[k+1:end]
+  res1, coeff1 = _gcdx_rec(u)
+  res2, coeff2 = _gcdx_rec(w)
+  res, a, b = gcdx(res1, res2)
+  return res, vcat(a*coeff1, b*coeff2)
+end
+
+function transpose(A::HeapSMat{T}) where {T}
+  A.transpose !== nothing && return A.transpose::HeapSMat{T}
+  result = transpose!(copy(A))
+  A.transpose = result
+  result.transpose = A
+  return result
+end
+
+function transpose!(A::HeapSMat{T}) where {T}
+  res_list = HeapSRow{T}[]
+  m = nrows(A)
+  n = ncols(A)
+  pivots = Tuple{Int, T}[pivot(v) for v in A.rows]
+  for j in 1:n
+    next = Tuple{Int, T}[]
+    for (i, (k, c)) in enumerate(pivots)
+      k == j || continue
+      push!(next, (i, c))
+      A[i] = pop_index!(A[i], k)[2]
+      A[i] = pop_index!(A[i], k)[2]
+      pivots[i] = pivot(A[i])
+    end
+    push!(res_list, HeapSRow(base_ring(A), next))
+  end
+  return HeapSMat(base_ring(A), n, m, res_list)
+end
+
+function _upper_triangular_form!(A::HeapSMat{ZZRingElem})
+  # we iterate through the columns of A
+  S = HeapSMat(ZZ, 0, nrows(A))
+  H = HeapSMat(ZZ, 0, ncols(A))
+  T_list = HeapSRow{ZZRingElem}[]
+  for j in 1:ncols(A)
+    @show dense_matrix(A)
+    @show j
+    # find the rows whose pivot is in this column
+    cand = [i for i in 1:nrows(A) if Oscar.pivot(A[i])[1] == j]
+    isempty(cand) && continue # nothing to do here
+    @show cand
+    B = A[cand]
+    # collect the generators
+    g = [c for (_, c) in Oscar.pivot.(A.rows[cand])]
+    @show g
+    # find the principal generator for the ideal and the Bezout coeffs
+    res, coeff = Oscar._gcdx(g)
+    @show res
+    @show coeff
+    coeff_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, coeff)))
+    # store the transition coefficients in a base change matrix
+    push!(S, coeff_vec)
+    # compile the new line which will be in place of the previous ones
+    new_line = coeff_vec*A
+    # store it in the output matrix
+    push!(H, new_line)
+    # determine the inverse base change and store it
+    c = [divexact(g, res) for g in g]
+    @show c
+    t_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, c)))
+    @show t_vec
+    op = tensor_product(t_vec, coeff_vec, nrows(A), nrows(A))
+    @show dense_matrix(op)
+    @show dense_matrix(unit_matrix(HeapSMat, ZZ, nrows(A)))
+    op = unit_matrix(HeapSMat, ZZ, nrows(A)) - op
+    @show dense_matrix(op)
+    push!(T_list, t_vec)
+    # perform the reduction in place on A
+    # this will create additional lines for the next step
+    AA = copy(A)
+    for (k, c) in zip(cand, c)
+      A[k] = add!(A[k], -c*new_line)
+      @assert iszero(pivot(A[k])[1]) || pivot(A[k])[1] > j
+    end
+    @assert op*AA == A
+    @show dense_matrix(A)
+  end
+  return H, S, transpose!(HeapSMat(ZZ, nrows(H), nrows(A), T_list))
+end
+
+function unit_matrix(::Type{HeapSMat}, R::NCRing, n::Int)
+  iszero(n) && return HeapSMat(R, 0, 0)
+  res_list = [HeapSRow(R, [(i, one(R))]) for i in 1:n]
+  return HeapSMat(R, n, n, res_list)
+end
+
+function zero_matrix(::Type{HeapSMat}, R::NCRing, m::Int, n::Int)
+  return HeapSMat(R, m, n)
+end
+
+function tensor_product(
+    a::HeapSRow{T}, b::HeapSRow{T},
+    nrows::Int, ncols::Int
+  ) where {T}
+  R = base_ring(a)
+  @assert R === base_ring(b)
+  result = HeapSMat(R, nrows, ncols)
+  for (i, c) in as_dictionary(a)
+    result[i] = c*b
+  end
+  return result
+end
+  
+function upper_triangular_form!(A::HeapSMat{ZZRingElem})
+  consolidate!(A)
+  # we iterate through the columns of A
+  S = unit_matrix(HeapSMat, ZZ, nrows(A))
+  T_trans = unit_matrix(HeapSMat, ZZ, nrows(A))
+  m0 = nrows(A)
+  for j in 1:ncols(A)
+    # find the rows whose pivot is in this column
+    cand = [i for i in 1:m0 if Oscar.pivot(A[i])[1] == j]
+    isempty(cand) && continue # nothing to do here
+    # collect the generators
+    g = [c for (_, c) in Oscar.pivot.(A.rows[cand])]
+    # find the principal generator for the ideal and the Bezout coeffs
+    res, coeff = Oscar._gcdx(g)
+    coeff_vec = Oscar.HeapSRow(ZZ, collect(zip(cand, coeff)))
+    # compile the new line which will be added to A
+    new_line = consolidate!(coeff_vec*A)
+    push!(A, new_line)
+    # update the base change matrix
+    #=
+    # turns out to be too slow
+    C = unit_matrix(HeapSMat, ZZ, nrows(S))
+    push!(C, coeff_vec)
+    S = C*S
+    =#
+    push!(S, coeff_vec*S)
+
+    # C = unit_matrix(HeapSMat, ZZ, nrows(S0))
+    # push!(C, coeff_vec)
+    #@assert C*S0 == S
+
+    #@assert S*old_A == A 
+    push!(T_trans, HeapSRow(ZZ))
+    #@assert transpose(T_trans)*A == old_A
+    # determine the elimination of the pivots in the original A
+    c = [divexact(g, res) for g in g]
+
+    w = consolidate!(copy(S[nrows(S)]))
+    #w = S[nrows(S)]
+    for (k, mu) in zip(cand, c)
+      A[k] = add!(A[k], -mu*new_line)
+      S[k] = add!(S[k], -mu*w)
+    end
+    # proved to be too slow:
+    # C = unit_matrix(HeapSMat, ZZ, nrows(S))
+    # for (k, mu) in zip(cand, c)
+    #   C[k] = add!(C[k], HeapSRow(ZZ, [(nrows(A), -mu)]))
+    # end
+    # A0 = mul!(copy(C), A0)
+    # S0 = C*S0
+    #@assert S0*old_A == A0
+
+    #@assert S*old_A == A
+    #=
+    # turned out to be too slow
+    C_inv_transp = unit_matrix(HeapSMat, ZZ, nrows(S))
+    C_inv_transp[nrows(C_inv_transp)] = add!(C_inv_transp[nrows(C_inv_transp)], 
+                                             HeapSRow(ZZ, collect(zip(cand, c))))
+    T_trans = mul!(C_inv_transp, T_trans)
+    =#
+    w = T_trans[nrows(T_trans)]
+    for (k, c) in zip(cand, c)
+      w = add!(w, c*T_trans[k])
+    end
+    T_trans[nrows(T_trans)] = w
+    #@assert transpose(T_trans)*A == old_A
+  end
+  return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
+end
+
+function unit_matrix(::Type{SMat}, R::Ring, n::Int)
+  result = sparse_matrix(R, 0, n)
+  for i in 1:n
+    push!(result, sparse_row(R, [(i, one(R))]))
+  end
+  return result
+end
+
+function pivot(v::SRow)
+  isempty(v) && return 0, zero(base_ring(v))
+  return first(v.pos), first(v.values)
+end
+
+function upper_triangular_form!(A::SMat{ZZRingElem})
+  # we iterate through the columns of A
+  S = unit_matrix(SMat, ZZ, nrows(A))
+  T_trans = unit_matrix(SMat, ZZ, nrows(A))
+  m0 = nrows(A)
+  for j in 1:ncols(A)
+    # find the rows whose pivot is in this column
+    cand = [i for i in 1:m0 if Oscar.pivot(A[i])[1] == j]
+    isempty(cand) && continue # nothing to do here
+    # collect the generators
+    g = [c for (_, c) in pivot.(A.rows[cand])]
+    # find the principal generator for the ideal and the Bezout coeffs
+    res, coeff = Oscar._gcdx(g)
+    coeff_vec = sparse_row(ZZ, collect(zip(cand, coeff)))
+    # compile the new line which will be added to A
+    new_line = coeff_vec*A
+    push!(A, new_line)
+    # update the base change matrix
+    #=
+    # turns out to be too slow
+    C = unit_matrix(HeapSMat, ZZ, nrows(S))
+    push!(C, coeff_vec)
+    S = C*S
+    =#
+    push!(S, coeff_vec*S)
+
+    # C = unit_matrix(HeapSMat, ZZ, nrows(S0))
+    # push!(C, coeff_vec)
+    #@assert C*S0 == S
+
+    #@assert S*old_A == A 
+    push!(T_trans, sparse_row(ZZ))
+    #@assert transpose(T_trans)*A == old_A
+    # determine the elimination of the pivots in the original A
+    c = [divexact(g, res) for g in g]
+
+    w = S[nrows(S)]
+    #w = S[nrows(S)]
+    for (k, mu) in zip(cand, c)
+      A[k] = A[k] - mu*new_line
+      S[k] = S[k] - mu*w
+    end
+    # proved to be too slow:
+    # C = unit_matrix(HeapSMat, ZZ, nrows(S))
+    # for (k, mu) in zip(cand, c)
+    #   C[k] = add!(C[k], HeapSRow(ZZ, [(nrows(A), -mu)]))
+    # end
+    # A0 = mul!(copy(C), A0)
+    # S0 = C*S0
+    #@assert S0*old_A == A0
+
+    #@assert S*old_A == A
+    #=
+    # turned out to be too slow
+    C_inv_transp = unit_matrix(HeapSMat, ZZ, nrows(S))
+    C_inv_transp[nrows(C_inv_transp)] = add!(C_inv_transp[nrows(C_inv_transp)], 
+                                             HeapSRow(ZZ, collect(zip(cand, c))))
+    T_trans = mul!(C_inv_transp, T_trans)
+    =#
+    w = T_trans[nrows(T_trans)]
+    for (k, c) in zip(cand, c)
+      w = w + c*T_trans[k]
+    end
+    T_trans[nrows(T_trans)] = w
+    #@assert transpose(T_trans)*A == old_A
+  end
+  return A, S, transpose(T_trans)
+  return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
+end
+
+function HeapSMat(AA::MatElem{T}) where {T}
+  R = base_ring(AA)
+  m = nrows(AA)
+  n = ncols(AA)
+  result = HeapSMat(R, 0, n)
+  for i in 1:m
+    push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
+  end
+  return result
+end
+
+function sparse_matrix(A::HeapSMat)
+  R = base_ring(A)
+  result = sparse_matrix(R, 0, ncols(A))
+  for v in A.rows
+    push!(result, sparse_row(v))
+  end
+  return result
+end
+
 
