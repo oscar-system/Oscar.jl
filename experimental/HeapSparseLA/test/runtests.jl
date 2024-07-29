@@ -17,3 +17,34 @@
   @test u == 2*v
 end
 
+@testset "Gauss algorithm on different matrix types" begin
+  s = 4
+  m = 10*s
+  n = 20*s
+
+  A = Oscar.HeapSMat(ZZ, 0, n)
+  for i in 1:m
+    l = [(rand(1:20*s), ZZ(rand(-10:10))) for i in 1:s];
+    v = Oscar.HeapSRow(ZZ, l)
+    push!(A, v)
+  end
+  AA = Oscar.sparse_matrix(A)
+
+  B0, S0, T0 = Oscar.upper_triangular_form!(copy(A))
+  B1, S1, T1 = Oscar.upper_triangular_form!(copy(AA))
+
+  @test S0*A == B0
+  @test T0*B0 == A
+
+  S1 = Oscar.dense_matrix(Oscar.HeapSMat(S1))
+  B1 = Oscar.dense_matrix(Oscar.HeapSMat(B1))
+  T1 = Oscar.dense_matrix(Oscar.HeapSMat(T1))
+  A1 = Oscar.dense_matrix(A)
+  @test S1*A1 == B1
+  @test T1*B1 == A1
+
+  @test Oscar.HeapSMat(B1) == B0
+  @test Oscar.HeapSMat(T1) == T0
+  @test Oscar.HeapSMat(S1) == S0
+end
+

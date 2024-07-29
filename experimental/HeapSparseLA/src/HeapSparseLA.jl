@@ -3,7 +3,25 @@
 # for sorting is expensive.
 include("Types.jl")
 
+### `HeapNode`
+# A minimal data structure for nodes in binary trees holding the data
+# for a sparse vector. 
+#
+# The nodes in the tree must be partially ordered according to `_heap_leq` 
+# below. Every node contains an `index` and a non-zero `content`, i.e. 
+# the value of the vector at this index. 
+#
+# There is an additional field 
+# `cofactor`. If it is not `nothing`, then it indicates that the whole 
+# subsequent tree, including this node, must be multiplied with the value 
+# in `cofactor` to obtain the actual values.
+#
+# Note: Any index may occur multiple times among the nodes in a tree!
+# In general the design is made to allow for lazy evaluation.
+
+### user facing getters for `HeapNode`s
 content(n::HeapNode) = n.content
+cofactor(n::HeapNode{T}) where T = n.cofactor === nothing ? one(content(n)) : n.cofactor::T
 index(n::HeapNode) = n.index
 has_left_child(n::HeapNode) = (n.left !== nothing)
 has_right_child(n::HeapNode) = (n.right !== nothing)
@@ -11,6 +29,7 @@ is_leaf(n::HeapNode) = !has_left_child(n) && !has_right_child(n)
 left_child(n::HeapNode{T}) where {T} = n.left::HeapNode{T}
 right_child(n::HeapNode{T}) where {T} = n.right::HeapNode{T}
 
+### basic functionality for `HeapNode`s
 tree_size(n::HeapNode) = (is_leaf(n) ? 1 : 1 + tree_size(n.left) + tree_size(n.right))
 tree_size(n::Nothing) = 0
 
@@ -27,13 +46,41 @@ function ==(a::HeapNode, b::HeapNode)
   return index(a) == index(b) && content(a) == content(b)
 end
 
+function show(io::IO, n::HeapNode; cofactor=1)
+  show_recursive(io, n)
+end
+
+function show_recursive(io::IO, n::HeapNode; indent::Int=0, cofactor=1)
+  new_cof = n.cofactor === nothing ? cofactor : cofactor*n.cofactor
+  offset = prod(" " for i in 1:indent; init = "")
+  println(offset*"$(index(n)) -> $(new_cof*content(n))")
+  has_left_child(n) && show_recursive(io, left_child(n), indent=indent+1, cofactor=new_cof)
+  has_right_child(n) && show_recursive(io, right_child(n), indent=indent+1, cofactor=new_cof)
+end
+
+function copy_tree(n::HeapNode)
+  result = HeapNode(index(n), content(n), cofactor=n.cofactor)
+  result.left = copy_tree(n.left)
+  result.right = copy_tree(n.right)
+  return result
+end
+
+copy_tree(n::Nothing) = nothing
+
+###
+# Comparison of nodes.
+#
+# We put an ordering on the nodes which first compares 
+# the indices. This can be refined by an arbitrary 
+# ordering on the elements of the ring by overwriting 
+# the method `_heap_leq` for this type. For instance, 
+# one could sort polynomials by degree.
 function _heap_leq(a::HeapNode, b::HeapNode)
   index(a) < index(b) && return true
   index(a) > index(b) && return false
   return _heap_leq(content(a), content(b))
 end
 
-### to be overwritten for specified `elem_type`s
 function _heap_leq(a::Any, b::Any)
   return true
 end
@@ -50,19 +97,119 @@ function _heap_leq(a::Nothing, b::Nothing)
   return true
 end
 
-function show(io::IO, n::HeapNode; cofactor=1)
-  show_recursive(io, n)
+### Merging trees (identified by the root nodes) and preserving 
+# the partial ordering by `_heap_leq`.
+function Base.merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
+  if _heap_leq(a, b)
+    # a is the new top
+    a.left = merge!(a.left, a.right)
+    scale_cofactor!(a.left, a.cofactor)
+    if a.cofactor!==nothing
+      a.content *= a.cofactor
+      a.cofactor = nothing
+    end
+    a.right = b
+    return a
+  else
+    b.left = merge!(b.left, b.right)
+    scale_cofactor!(b.left, b.cofactor)
+    if b.cofactor!==nothing
+      b.content *= b.cofactor
+      b.cofactor = nothing
+    end
+    b.right = a
+    return b
+  end
 end
 
-function show_recursive(io::IO, n::HeapNode; indent::Int=0, cofactor=1)
-  new_cof = n.cofactor === nothing ? cofactor : cofactor*n.cofactor
-  offset = prod(" " for i in 1:indent; init = "")
-  println(offset*"$(index(n)) -> $(new_cof*content(n))")
-  has_left_child(n) && show_recursive(io, left_child(n), indent=indent+1, cofactor=new_cof)
-  has_right_child(n) && show_recursive(io, right_child(n), indent=indent+1, cofactor=new_cof)
+function Base.merge!(a::HeapNode, b::Nothing)
+  return a
 end
 
+function Base.merge!(a::Nothing, b::HeapNode)
+  return b
+end
+
+function Base.merge!(a::Nothing, b::Nothing)
+  return nothing
+end
+
+function all_indices(n::HeapNode)
+  is_leaf(n) && return [index(n)]
+  return vcat([index(n)], all_indices(n.left), all_indices(n.right))
+end
+
+all_indices(n::Nothing) = Int[]
+
+### Write out the full vector to a dictionary without duplicate entries.
+as_dictionary(n::Nothing, result::Dict{Int, T}, c::Any=nothing) where {T} = result
+
+function as_dictionary(n::HeapNode{T}, result::Dict{Int, T}, cofactor::Nothing=nothing) where {T}
+  new_cof = n.cofactor === nothing ? one(content(n)) : n.cofactor
+  i = index(n)
+  if i in keys(result)
+    result[i] = result[i] + new_cof * content(n)
+  else
+    result[i] = new_cof * content(n)
+  end
+  as_dictionary(n.left, result, n.cofactor)
+  as_dictionary(n.right, result, n.cofactor)
+  return result
+end
+
+function as_dictionary(n::HeapNode{T}, result::Dict{Int, T}, cofactor::T) where {T}
+  new_cof = n.cofactor === nothing ? cofactor : n.cofactor*cofactor
+  i = index(n)
+  if i in keys(result)
+    result[i] += new_cof * content(n)
+  else
+    result[i] = new_cof * content(n)
+  end
+  as_dictionary(n.left, result, new_cof)
+  as_dictionary(n.right, result, new_cof)
+  return result
+end
+
+### `HeapSRow`
+# A data structure to realize sparse vectors with entries in a ring 
+# based on binary trees (using `HeapNode` above) and supporting lazy 
+# evaluation.
+
+### basic getters for `HeapSRow`
 base_ring(v::HeapSRow) = v.entry_parent
+top_node(v::HeapSRow{T}) where {T} = v.top::HeapNode{T}
+
+function is_consolidated(v::HeapSRow) 
+  v.is_consolidated && return true
+  if is_empty(v)
+    v.is_consolidated = true
+    return true
+  end
+
+  n = top_node(v)
+  result, _ = _has_duplicate(n, Int[])
+  if !result
+    v.result = true
+    return true
+  end
+  return false
+end
+
+function getindex(v::HeapSRow{T}, i::Int) where {T}
+  is_empty(v) && return zero(base_ring(v))
+  haskey(index_cache(v), i) && return index_cache(v)[i]
+  n = top_node(v)
+  v.top_is_consolidated && index(n) == i && return content(n)
+  c, rem = pop_index!(n, i)
+  index_cache(v)[i] = c
+  if iszero(c)
+    v.top = rem
+  else
+    v.top = merge!(rem, HeapNode(i, c))
+  end
+  return c
+end
+
 
 function index_cache(v::HeapSRow{T}) where {T}
   if !isdefined(v, :index_cache)
@@ -71,6 +218,13 @@ function index_cache(v::HeapSRow{T}) where {T}
   return v.index_cache
 end
 
+function pivot(v::HeapSRow)
+  consolidate_top!(v)
+  isempty(v) && return 0, zero(base_ring(v))
+  return index(top_node(v)), content(top_node(v))
+end
+
+### Constructors for `HeapSRow`
 function HeapSRow(R::NCRing, n::Nothing)
   return HeapSRow(R)
 end
@@ -120,12 +274,11 @@ function HeapSRow(R::NCRing, list::Vector{Tuple{Int, T}}) where {T}
   return result
 end
 
-function pivot(v::HeapSRow)
-  consolidate_top!(v)
-  isempty(v) && return 0, zero(base_ring(v))
-  return index(top_node(v)), content(top_node(v))
-end
+### functionality for `HeapSRow`s
 
+# Find the first index `i` for which `v` has a non-zero entry, 
+# compute the value `c` for this entry, remove that entry 
+# from `v` and return a node holding the information `(i, c)`.
 function pop_top_node!(v::HeapSRow)
   isempty(v) && return nothing
   n = top_node(v)
@@ -148,6 +301,31 @@ function pop_top!(v::HeapSRow)
   return index(n), content(n)
 end
 
+# For every index `i` gather all occurences of `i` in the tree, 
+# compute the actual value `c` of `v` for this index and, if it 
+# is not zero, store it in a single node. Compile all these 
+# polished nodes in a balanced tree.
+function consolidate!(v::HeapSRow{T}) where T
+  v.is_consolidated && return v
+  result = HeapSRow(base_ring(v), pop_top_node!(v))
+  side = false
+  open = [result.top]
+  while !isempty(v)
+    n = pop_top_node!(v)
+    if !side
+      first(open).left = n
+      push!(open, n)
+      side = true
+    else
+      popfirst!(open).right = n
+      push!(open, n)
+      side = false
+    end
+  end
+  result.is_consolidated = true
+  return result
+end
+
 +(v::HeapSRow, w::HeapSRow) = add!(copy(v), copy(w))
 
 function add!(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
@@ -159,75 +337,8 @@ function add!(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
   return HeapSRow(R, nt)
 end
   
-
-
 function addmul!(v::HeapSRow{T}, w::HeapSRow{T}, a::T) where {T}
   return add!(v, mul!(a, w))
-  @assert base_ring(v) === base_ring(w)
-  R = base_ring(v)
-  isempty(v) && return w
-  isempty(w) && return v
-
-  if !v.top_is_consolidated || !w.top_is_consolidated
-    res_tree = merge!(v.top, scale_cofactor!(w.top, a))
-    return HeapSRow(base_ring(v), res_tree)
-  end
-
-  # the top can be assumed to be consolidated
-  # we aim to preserve this property
-  i1, c1 = pivot(v)
-  i2, c2 = pivot(w)
-  n1 = top_node(v)
-  n2 = top_node(w)
-
-  left_tree = merge!(n1.left, n1.right)
-  #scale_cofactor!(left_tree, n1.cofactor) # superfluous after consolidation
-  right_tree = merge!(n2.left, n2.right)
-  #scale_cofactor!(right_tree, n2.cofactor)
-  scale_cofactor!(right_tree, a)
-
-  if i1 == i2
-    c = c1 + a*c2
-    if iszero(c)
-      res_tree = merge!(left_tree, right_tree)
-      v.top = nothing
-      w.top = nothing
-      return HeapSRow(base_ring(v), res_tree)
-    else
-      n = HeapNode(i1, c)
-      if _heap_leq(n, left_tree) && _heap_leq(n, right_tree)
-        n.left = left_tree
-        n.right = right_tree
-        v.top = nothing
-        w.top = nothing
-        return HeapSRow(base_ring(v), n; top_is_consolidated = true)
-      else
-        res_tree = merge!(merge!(left_tree, right_tree), n)
-        v.top = nothing
-        w.top = nothing
-        return HeapSRow(base_ring(v), res_tree)
-      end
-    end
-  end
-
-  # build a consolidated head node for the second summand
-  m = HeapNode(i2, a*c2)
-  if _heap_leq(n1, m) && haskey(index_cache(w), i1) && iszero(a*index_cache(w)[i1])
-    res_top = HeapNode(i1, c1)
-    res_top.left = left_tree
-    res_top.right = merge!(right_tree, HeapNode(i2, a*c2))
-    return HeapSRow(base_ring(v), res_top, top_is_consolidated=true)
-  elseif _heap_leq(m, n1) && haskey(index_cache(v), i2) && iszero(index_cache(v)[i2])
-    res_top = m
-    res_top.left = merge!(left_tree, HeapNode(i1, c1))
-    res_top.right = right_tree
-    return HeapSRow(base_ring(v), res_top, top_is_consolidated=true)
-  end
-
-  # in all cases which have not yet been caught there is little
-  # we can say about consolidation
-  res_top = merge!(merge!(left_tree, n1), merge!(right_tree, m))
-  return HeapSRow(base_ring(v), res_top)
 end
 
 function copy(v::HeapSRow)
@@ -236,15 +347,6 @@ function copy(v::HeapSRow)
   nn = copy_tree(n)
   return HeapSRow(base_ring(v), nn)
 end
-
-function copy_tree(n::HeapNode)
-  result = HeapNode(index(n), content(n), cofactor=n.cofactor)
-  result.left = copy_tree(n.left)
-  result.right = copy_tree(n.right)
-  return result
-end
-
-copy_tree(n::Nothing) = nothing
 
 function *(a::T, v::HeapSRow{T}) where {T}
   return mul!(a, copy(v))
@@ -270,6 +372,7 @@ end
 *(a, v::HeapSRow) = base_ring(v)(a)*v
 mul!(a, v::HeapSRow) = mul!(base_ring(v)(a), v)
 
+# TODO: deprecated?
 mult_content_rec_left!(a, n::Nothing) = nothing
 
 function mult_content_rec_left!(a::T, n::HeapNode{T}) where {T}
@@ -285,7 +388,9 @@ end
 -(v::HeapSRow, w::HeapSRow) = addmul!(copy(v), copy(w), -one(base_ring(w)))
 -(w::HeapSRow) = -one(base_ring(w))*w
 
-# Remove all entries `i` from `v`, sum them up and return a pair `(c, w)` consisting of the sum `c` and the remainder `w`.
+# Remove all nodes with `index` `i` from `v`, 
+# sum them up and return a pair `(c, w)` consisting of 
+# the value `c` of `v` at `i` and the remainder vector `w`.
 function pop_index!(v::HeapSRow, i::Int)
   R = base_ring(v)
   isempty(v) && return zero(R), v
@@ -360,75 +465,7 @@ function consolidate_top!(v::HeapSRow)
   return v
 end
 
-
-top_node(v::HeapSRow{T}) where {T} = v.top::HeapNode{T}
 isempty(v::HeapSRow) = v.top === nothing
-
-function is_consolidated(v::HeapSRow) 
-  v.is_consolidated && return true
-  if is_empty(v)
-    v.is_consolidated = true
-    return true
-  end
-
-  n = top_node(v)
-  result, _ = _has_duplicate(n, Int[])
-  if !result
-    v.result = true
-    return true
-  end
-  return false
-end
-
-function getindex(v::HeapSRow{T}, i::Int) where {T}
-  is_empty(v) && return zero(base_ring(v))
-  haskey(index_cache(v), i) && return index_cache(v)[i]
-  n = top_node(v)
-  v.top_is_consolidated && index(n) == i && return content(n)
-  c, rem = pop_index!(n, i)
-  index_cache(v)[i] = c
-  if iszero(c)
-    v.top = rem
-  else
-    v.top = merge!(rem, HeapNode(i, c))
-  end
-  return c
-end
-
-function Base.merge!(a::HeapNode{T}, b::HeapNode{T}) where {T}
-  if _heap_leq(a, b)
-    # a is the new top
-    a.left = merge!(a.left, a.right)
-    scale_cofactor!(a.left, a.cofactor)
-    if a.cofactor!==nothing
-      a.content *= a.cofactor
-      a.cofactor = nothing
-    end
-    a.right = b
-    return a
-  else
-    b.left = merge!(b.left, b.right)
-    scale_cofactor!(b.left, b.cofactor)
-    if b.cofactor!==nothing
-      b.content *= b.cofactor
-      b.cofactor = nothing
-    end
-    b.right = a
-    return b
-  end
-end
-
-function Base.merge!(a::HeapNode, b::Nothing)
-  return a
-end
-
-function Base.merge!(a::Nothing, b::HeapNode)
-  return b
-end
-
-function Base.merge!(a::Nothing, b::Nothing)
-  return nothing
-end
 
 function has_index(v::HeapSRow{T}, i::Int) where {T}
   isempty(v) && return false
@@ -447,46 +484,11 @@ function all_indices(v::HeapSRow)
   return all_indices(top_node(v))
 end
 
-function all_indices(n::HeapNode)
-  is_leaf(n) && return [index(n)]
-  return vcat([index(n)], all_indices(n.left), all_indices(n.right))
-end
-
-all_indices(n::Nothing) = Int[]
-
 function as_dictionary(v::HeapSRow)
   result = Dict{Int, elem_type(base_ring(v))}()
   isempty(v) && return result
   result = as_dictionary(top_node(v), result)
   v.index_cache = result
-  return result
-end
-
-as_dictionary(n::Nothing, result::Dict{Int, T}, c::Any=nothing) where {T} = result
-
-function as_dictionary(n::HeapNode{T}, result::Dict{Int, T}, cofactor::Nothing=nothing) where {T}
-  new_cof = n.cofactor === nothing ? one(content(n)) : n.cofactor
-  i = index(n)
-  if i in keys(result)
-    result[i] = result[i] + new_cof * content(n)
-  else
-    result[i] = new_cof * content(n)
-  end
-  as_dictionary(n.left, result, n.cofactor)
-  as_dictionary(n.right, result, n.cofactor)
-  return result
-end
-
-function as_dictionary(n::HeapNode{T}, result::Dict{Int, T}, cofactor::T) where {T}
-  new_cof = n.cofactor === nothing ? cofactor : n.cofactor*cofactor
-  i = index(n)
-  if i in keys(result)
-    result[i] += new_cof * content(n)
-  else
-    result[i] = new_cof * content(n)
-  end
-  as_dictionary(n.left, result, new_cof)
-  as_dictionary(n.right, result, new_cof)
   return result
 end
 
@@ -513,6 +515,9 @@ function ==(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
   return all(iszero(c) for c in values(d2))
 end
 
+### Sparse matrices based on `HeapSRow`
+
+### basic getters for `HeapSMat`
 base_ring(A::HeapSMat) = A.base_ring
 nrows(A::HeapSMat) = A.nrows
 ncols(A::HeapSMat) = A.ncols
@@ -550,85 +555,6 @@ function sparse_row(v::HeapSRow)
   return sparse_row(base_ring(v), collect((i, c) for (i, c) in as_dictionary(v) if !iszero(c)))
 end
 
-function consolidate!(v::HeapSRow{T}) where T
-  v.is_consolidated && return v
-  result = HeapSRow(base_ring(v), pop_top_node!(v))
-  side = false
-  open = [result.top]
-  while !isempty(v)
-    n = pop_top_node!(v)
-    if !side
-      first(open).left = n
-      push!(open, n)
-      side = true
-    else
-      popfirst!(open).right = n
-      push!(open, n)
-      side = false
-    end
-  end
-  #=
-  dd = as_dictionary(v)
-  cont = sort!(collect((i, c) for (i, c) in dd if !iszero(c)); by=x->x[1])
-  
-  result = HeapSRow(base_ring(v))
-  result.top_is_consolidated = false
-  open = HeapNode{T}[]
-  
-  side = false
-  for (i, c) in cont
-    n = HeapNode(i, c)
-    if result.top === nothing 
-      result.top = n
-      push!(open, n)
-      continue
-    end
-    if !side
-      first(open).left = n
-      push!(open, n)
-      side = true
-    else
-      popfirst!(open).right = n
-      push!(open, n)
-      side = false
-    end
-  end
-  =#
-  result.is_consolidated = true
-  return result
-end
-
-function old_consolidate!(v::HeapSRow{T}) where T
-  v.is_consolidated && return v
-  dd = as_dictionary(v)
-  cont = sort!(collect((i, c) for (i, c) in dd if !iszero(c)); by=x->x[1])
-  
-  result = HeapSRow(base_ring(v))
-  result.top_is_consolidated = false
-  open = HeapNode{T}[]
-  
-  side = false
-  for (i, c) in cont
-    n = HeapNode(i, c)
-    if result.top === nothing 
-      result.top = n
-      push!(open, n)
-      continue
-    end
-    if !side
-      first(open).left = n
-      push!(open, n)
-      side = true
-    else
-      popfirst!(open).right = n
-      push!(open, n)
-      side = false
-    end
-  end
-  result.is_consolidated = true
-  return result
-end
-
 function consolidate!(A::HeapSMat{T}) where T
   for (i, v) in enumerate(A.rows)
     A[i] = consolidate!(v)
@@ -660,60 +586,27 @@ end
 function mul!(A::HeapSMat{T}, B::HeapSMat{T}) where {T}
   R = base_ring(A)
   @assert R === base_ring(B)
-  #result = HeapSMat(R, 0, ncols(B))
   for (i, v) in enumerate(A.rows)
-    A[i] = v*B
-    #push!(result, v*B)
+    A[i] = mul!(v, B)
   end
   A.ncols = ncols(B)
   return A
 end
 
 function *(v::HeapSRow, A::HeapSMat)
-  return mul!(v, copy(A))
+  return mul!(copy(v), A)
 end
 
 function mul!(v::HeapSRow, A::HeapSMat)
   R = base_ring(A)
   @assert R === base_ring(v)
-  isempty(v) && return HeapSRow(R)
-  #=
-  # going via the dictionary uses significantly less resources.
-  # TODO: Why?
-  n = top_node(v)
-  result = mul_rec(n, A)
-  return result
-  =#
-  line = HeapSRow(R)
-  for (j, c) in as_dictionary(v)
-    line = add!(line, mul!(c, A[j]))
+  result = HeapSRow(R)
+  while !isempty(v)
+    i, c = pop_top!(v)
+    result = add!(result, c*A[i])
   end
-  return line
-end
-
-function mul_rec(n::HeapNode, A::HeapSMat)
-  result = add!(content(n) * A[index(n)], mul_rec(n.left, A))
-  result = add!(result, mul_rec(n.right, A))
-  n.cofactor !== nothing && (result = mul!(n.cofactor, result))
   return result
 end
-
-function mul_rec(n::Nothing, A::HeapSMat)
-  return HeapSRow(base_ring(A))
-end
-
-#=
-function mul_rec!(n::HeapNode, A::HeapSMat)
-  result = add!(mul!(content(n), A[index(n)]), mul_rec!(n.left, A))
-  result = add!(result, mul_rec!(n.right, A))
-  n.cofactor !== nothing && (result = mul!(n.cofactor, result))
-  return result
-end
-
-function mul_rec!(n::Nothing, A::HeapSMat)
-  return HeapSRow(base_ring(A))
-end
-=#
 
 function mul!(a, A::HeapSMat{T}) where T
   return mul!(base_ring(A)(a), A)
@@ -771,39 +664,6 @@ end
 
 function getindex(A::HeapSMat, r::UnitRange)
   return HeapSMat(base_ring(A), length(r), ncols(A), A.rows[r])
-end
-
-function _gcdx(v::Vector)
-  @assert all(!iszero(x) for x in v)
-  w = sort(v; by=abs) # If we sort, we have to translate the result back
-  res, bez = _gcdx_rec(w)
-  n = length(v)
-  trans = Int[]
-  for i in 1:n
-    k = findfirst(w[k] == v[i] for k in 1:n)
-    k === nothing && error("permutation could not be determined")
-    push!(trans, k)
-    w[k] = 0
-  end
-  return res, bez[trans]
-end
-
-function _gcdx_rec(v::Vector)
-  @assert !isempty(v)
-  if isone(length(v))
-    return first(v), [one(first(v))]
-  elseif length(v) == 2 
-    res, a, b = gcdx(v[1], v[2])
-    return res, [a, b]
-  end
-
-  k = div(length(v), 2)
-  u = v[1:k]
-  w = v[k+1:end]
-  res1, coeff1 = _gcdx_rec(u)
-  res2, coeff2 = _gcdx_rec(w)
-  res, a, b = gcdx(res1, res2)
-  return res, vcat(a*coeff1, b*coeff2)
 end
 
 function transpose(A::HeapSMat{T}) where {T}
@@ -894,19 +754,55 @@ function zero_matrix(::Type{HeapSMat}, R::NCRing, m::Int, n::Int)
   return HeapSMat(R, m, n)
 end
 
-function tensor_product(
-    a::HeapSRow{T}, b::HeapSRow{T},
-    nrows::Int, ncols::Int
-  ) where {T}
-  R = base_ring(a)
-  @assert R === base_ring(b)
-  result = HeapSMat(R, nrows, ncols)
-  for (i, c) in as_dictionary(a)
-    result[i] = c*b
+function HeapSMat(AA::MatElem{T}) where {T}
+  R = base_ring(AA)
+  m = nrows(AA)
+  n = ncols(AA)
+  result = HeapSMat(R, 0, n)
+  for i in 1:m
+    push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
   end
   return result
 end
-  
+
+function HeapSMat(AA::SMat{T}) where {T}
+  R = base_ring(AA)
+  m = nrows(AA)
+  n = ncols(AA)
+  result = HeapSMat(R, 0, n)
+  for i in 1:m
+    push!(result, HeapSRow(AA[i]))
+  end
+  return result
+end
+
+function sparse_matrix(A::HeapSMat)
+  R = base_ring(A)
+  result = sparse_matrix(R, 0, ncols(A))
+  for v in A.rows
+    push!(result, sparse_row(v))
+  end
+  return result
+end
+
+@doc raw"""
+    upper_triangular_form!(A::MatElem)
+
+Given a matrix ``A ∈ Rᵐˣⁿ`` over a Euclidean domain ``R``, 
+return a triple `(B, S, T)` consisting of 
+
+  * an upper-triangular matrix ``B ∈ Rᵖˣⁿ``
+  * a matrix ``S ∈ Rᵖˣᵐ`` such that ``B = S⋅A``
+  * a matrix ``T ∈ Rᵐˣᵖ`` such that ``A = T⋅B``
+
+In other words: We determine an upper-triangular generating 
+set for the submodule of ``Rⁿ`` generated by the rows of ``A``,
+together with the base change matrices.
+"""
+function upper_triangular_form!(A::MatElem)
+  error("not implemented")
+end
+
 function upper_triangular_form!(A::HeapSMat{ZZRingElem})
   consolidate!(A)
   # we iterate through the columns of A
@@ -926,68 +822,24 @@ function upper_triangular_form!(A::HeapSMat{ZZRingElem})
     new_line = consolidate!(coeff_vec*A)
     push!(A, new_line)
     # update the base change matrix
-    #=
-    # turns out to be too slow
-    C = unit_matrix(HeapSMat, ZZ, nrows(S))
-    push!(C, coeff_vec)
-    S = C*S
-    =#
     push!(S, coeff_vec*S)
 
-    # C = unit_matrix(HeapSMat, ZZ, nrows(S0))
-    # push!(C, coeff_vec)
-    #@assert C*S0 == S
-
-    #@assert S*old_A == A 
     push!(T_trans, HeapSRow(ZZ))
-    #@assert transpose(T_trans)*A == old_A
     # determine the elimination of the pivots in the original A
     c = [divexact(g, res) for g in g]
 
     w = consolidate!(copy(S[nrows(S)]))
-    #w = S[nrows(S)]
     for (k, mu) in zip(cand, c)
       A[k] = add!(A[k], -mu*new_line)
       S[k] = add!(S[k], -mu*w)
     end
-    # proved to be too slow:
-    # C = unit_matrix(HeapSMat, ZZ, nrows(S))
-    # for (k, mu) in zip(cand, c)
-    #   C[k] = add!(C[k], HeapSRow(ZZ, [(nrows(A), -mu)]))
-    # end
-    # A0 = mul!(copy(C), A0)
-    # S0 = C*S0
-    #@assert S0*old_A == A0
-
-    #@assert S*old_A == A
-    #=
-    # turned out to be too slow
-    C_inv_transp = unit_matrix(HeapSMat, ZZ, nrows(S))
-    C_inv_transp[nrows(C_inv_transp)] = add!(C_inv_transp[nrows(C_inv_transp)], 
-                                             HeapSRow(ZZ, collect(zip(cand, c))))
-    T_trans = mul!(C_inv_transp, T_trans)
-    =#
     w = T_trans[nrows(T_trans)]
     for (k, c) in zip(cand, c)
       w = add!(w, c*T_trans[k])
     end
     T_trans[nrows(T_trans)] = w
-    #@assert transpose(T_trans)*A == old_A
   end
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
-end
-
-function unit_matrix(::Type{SMat}, R::Ring, n::Int)
-  result = sparse_matrix(R, 0, n)
-  for i in 1:n
-    push!(result, sparse_row(R, [(i, one(R))]))
-  end
-  return result
-end
-
-function pivot(v::SRow)
-  isempty(v) && return 0, zero(base_ring(v))
-  return first(v.pos), first(v.values)
 end
 
 function upper_triangular_form!(A::SMat{ZZRingElem})
@@ -1007,77 +859,82 @@ function upper_triangular_form!(A::SMat{ZZRingElem})
     # compile the new line which will be added to A
     new_line = coeff_vec*A
     push!(A, new_line)
-    # update the base change matrix
-    #=
-    # turns out to be too slow
-    C = unit_matrix(HeapSMat, ZZ, nrows(S))
-    push!(C, coeff_vec)
-    S = C*S
-    =#
     push!(S, coeff_vec*S)
 
-    # C = unit_matrix(HeapSMat, ZZ, nrows(S0))
-    # push!(C, coeff_vec)
-    #@assert C*S0 == S
-
-    #@assert S*old_A == A 
     push!(T_trans, sparse_row(ZZ))
-    #@assert transpose(T_trans)*A == old_A
-    # determine the elimination of the pivots in the original A
     c = [divexact(g, res) for g in g]
 
     w = S[nrows(S)]
-    #w = S[nrows(S)]
     for (k, mu) in zip(cand, c)
       A[k] = A[k] - mu*new_line
       S[k] = S[k] - mu*w
     end
-    # proved to be too slow:
-    # C = unit_matrix(HeapSMat, ZZ, nrows(S))
-    # for (k, mu) in zip(cand, c)
-    #   C[k] = add!(C[k], HeapSRow(ZZ, [(nrows(A), -mu)]))
-    # end
-    # A0 = mul!(copy(C), A0)
-    # S0 = C*S0
-    #@assert S0*old_A == A0
-
-    #@assert S*old_A == A
-    #=
-    # turned out to be too slow
-    C_inv_transp = unit_matrix(HeapSMat, ZZ, nrows(S))
-    C_inv_transp[nrows(C_inv_transp)] = add!(C_inv_transp[nrows(C_inv_transp)], 
-                                             HeapSRow(ZZ, collect(zip(cand, c))))
-    T_trans = mul!(C_inv_transp, T_trans)
-    =#
     w = T_trans[nrows(T_trans)]
     for (k, c) in zip(cand, c)
       w = w + c*T_trans[k]
     end
     T_trans[nrows(T_trans)] = w
-    #@assert transpose(T_trans)*A == old_A
   end
-  return A, S, transpose(T_trans)
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
 end
 
-function HeapSMat(AA::MatElem{T}) where {T}
-  R = base_ring(AA)
-  m = nrows(AA)
-  n = ncols(AA)
-  result = HeapSMat(R, 0, n)
-  for i in 1:m
-    push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
+# An extension of `gcdx` to multiple arguments.
+function _gcdx(v::Vector)
+  @assert all(!iszero(x) for x in v)
+  w = sort(v; by=abs) # If we sort, we have to translate the result back
+  res, bez = _gcdx_rec(w)
+  n = length(v)
+  trans = Int[]
+  for i in 1:n
+    k = findfirst(w[k] == v[i] for k in 1:n)
+    k === nothing && error("permutation could not be determined")
+    push!(trans, k)
+    w[k] = 0
+  end
+  return res, bez[trans]
+end
+
+function _gcdx_rec(v::Vector)
+  @assert !isempty(v)
+  if isone(length(v))
+    return first(v), [one(first(v))]
+  elseif length(v) == 2 
+    res, a, b = gcdx(v[1], v[2])
+    return res, [a, b]
+  end
+
+  k = div(length(v), 2)
+  u = v[1:k]
+  w = v[k+1:end]
+  res1, coeff1 = _gcdx_rec(u)
+  res2, coeff2 = _gcdx_rec(w)
+  res, a, b = gcdx(res1, res2)
+  return res, vcat(a*coeff1, b*coeff2)
+end
+
+
+### Some auxiliary additional functionality for `SMat` to make 
+# the above code work.
+function getindex(A::SMat, r::UnitRange)
+  R = base_ring(A)
+  result = sparse_matrix(R, 0, ncols(A))
+  for i in r
+    push!(result, A[i])
   end
   return result
 end
 
-function sparse_matrix(A::HeapSMat)
-  R = base_ring(A)
-  result = sparse_matrix(R, 0, ncols(A))
-  for v in A.rows
-    push!(result, sparse_row(v))
+function unit_matrix(::Type{SMat}, R::Ring, n::Int)
+  result = sparse_matrix(R, 0, n)
+  for i in 1:n
+    push!(result, sparse_row(R, [(i, one(R))]))
   end
   return result
+end
+
+function pivot(v::SRow)
+  isempty(v) && return 0, zero(base_ring(v))
+  return first(v.pos), first(v.values)
 end
 
 
