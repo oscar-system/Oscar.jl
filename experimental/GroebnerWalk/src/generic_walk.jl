@@ -163,9 +163,8 @@ Checks whether  $Mv <_{\mathrm{lex}} 0$.
 function less_than_zero(M::ZZMatrix, v::Vector{ZZRingElem})
   if is_zero(v)
     return false
-  else
-    i = 1
   end
+  i = 1
   while dot(M[i, :], v) == 0
     i += 1
   end
