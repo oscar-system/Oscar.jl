@@ -1,3 +1,5 @@
+include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
+
 if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
 end

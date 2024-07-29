@@ -16,6 +16,7 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
+  @register_serialization_type,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
@@ -37,6 +38,7 @@ import ..Oscar:
   coefficients,
   compose,
   derived_series,
+  DeserializerState,
   dim,
   direct_sum,
   dot,
@@ -64,6 +66,8 @@ import ..Oscar:
   is_solvable,
   is_welldefined,
   kernel,
+  load_object,
+  load_typed_object,
   lower_central_series,
   matrix,
   normalizer,
@@ -72,7 +76,6 @@ import ..Oscar:
   order,
   parent_type,
   rank,
-  register_serialization_type,
   root,
   roots,
   save_data_dict,
