@@ -137,7 +137,7 @@ lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting in
 """
 function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
   return map(1:length(H.gens)) do i
-      H[i] - normal_form(H[i], MG)
+    H[i] - normal_form(H[i], MG)
   end
 end
 
