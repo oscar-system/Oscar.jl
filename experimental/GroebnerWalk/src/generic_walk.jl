@@ -110,7 +110,7 @@ of `MG` by truncating to all bounding vectors parallel to `v`.
 """
 function facet_initials(MG::MarkedGroebnerBasis, v::Vector{ZZRingElem})
   R = base_ring(MG)
-  inwG = Vector{MPolyRingElem}()
+  inwG = elem_type(R)[]
 
   ctx = MPolyBuildCtx(R)
   for (g, m) in gens_and_markings(MG)
