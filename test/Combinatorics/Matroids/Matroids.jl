@@ -364,6 +364,7 @@
         return 2 * factorial(k) * b * (n^k - b* factorial(k))
       end
       n = 4
+      # Test of quantum_symmetric_group
       S4 = quantum_symmetric_group(n)
       @test length(gens(S4)) == _cnt(n)
       A = base_ring(S4)
@@ -372,6 +373,7 @@
       @test u[1,1]*u[1,1] - u[1,1]  in gens(S4)
       @test sum(u[2,n] for n in 1:4)-1 in gens(S4) 
 
+      #Test of quantum_automorphism_group for bases of uniform_matroid
       M = uniform_matroid(3,4)
       qAut = quantum_automorphism_group(M,:bases)
       n = length(uniform_matroid(3,4))
@@ -386,11 +388,20 @@
 
       @test u[2,4]*u[2,3]*u[1,2] in gens(qAut)
 
-      G = graph_from_edges([[1,2],[2,4]])
+      #Test of quantum_automorphism_group for circuits of uniform_matroid
+      qAut1 = quantum_automorphism_group(M,:circuits)
+      A = base_ring(qAut1)
+      u = permutedims(reshape(gens(A),(n,n)),[2,1])
+
+      @test length(gens(qAut1)) == 11256
+      @test u[2,3]*u[2,2] in gens(qAut1)
+    
+      #Test of quantum_automorphism_group for Graphs
+      G = complete_graph(5)
       E = length(edges(G))
       n = nv(G)
       qAut2 = quantum_automorphism_group(G)
-      @test length(gens(qAut2)) == 168
+      @test length(gens(qAut2)) == 435
 
 
     end
