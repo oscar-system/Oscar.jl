@@ -78,6 +78,7 @@ import ..Oscar:
   rank,
   root,
   roots,
+  save_data_array,
   save_data_dict,
   save_object,
   save_typed_object,
