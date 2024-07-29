@@ -24,7 +24,8 @@ struct MarkedGroebnerBasis
 end
 
 base_ring(G::MarkedGroebnerBasis) = parent(first(G.gens))
-length(G::MarkedGroebnerBasis) = length(gens(G))
+length(G::MarkedGroebnerBasis) = ngens(G)
+ngens(G::MarkedGroebnerBasis) = length(gens(G))
 
 gens(G::MarkedGroebnerBasis) = G.gens
 markings(G::MarkedGroebnerBasis) = G.markings
