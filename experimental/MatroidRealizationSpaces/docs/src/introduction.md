@@ -36,7 +36,7 @@ Every `MatroidRealizationSpace` is an instance of an affine scheme.
 For those cases where implementations exist, the
 entire functionality provided for `AbsAffineScheme`s applies 
 to matroid realization spaces. For example:
-```julia
+```jldoctest
 julia> RM = realization_space(pappus_matroid(), ground_ring=QQ)
 The realization space is
   [1   0   1   0   x2   x2                 x2^2    1    0]
