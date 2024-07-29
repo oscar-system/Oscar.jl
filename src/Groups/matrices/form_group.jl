@@ -683,8 +683,8 @@ function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int
   get_attribute!(L, :isometry_group) do
     gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
     G = matrix_group(gens)
-    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
-  end
+    return G
+  end::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
 end
 
 @doc raw"""
@@ -725,8 +725,8 @@ function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_d
     else
       error("Unknown algorithm: for the moment, we support :direct or :decomposition")
     end
-    return G::MatrixGroup{QQFieldElem, QQMatrix}
-  end
+    return G
+  end::MatrixGroup{QQFieldElem, QQMatrix}
 end
 
 """

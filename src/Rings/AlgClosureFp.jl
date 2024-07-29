@@ -20,6 +20,13 @@ import ..Oscar: algebraic_closure, base_field, base_ring, base_ring_type, charac
   elem_type, embedding, has_preimage_with_preimage, IntegerUnion, is_unit, map_entries,
   minpoly, parent_type, promote_rule, roots
 
+"""
+    AlgClosure{T} <: AbstractAlgebra.Field
+
+Type for the algebraic closure of a finite field.
+
+See [`algebraic_closure`](@ref).
+"""
 struct AlgClosure{T} <: AbstractAlgebra.Field
   # T <: FinField
   k::T
@@ -305,11 +312,9 @@ julia> degree(x)
 6
 ```
 """
-function algebraic_closure(F::T) where T <: FinField
+@attr AlgClosure{T} function algebraic_closure(F::T) where T <: FinField
   @req is_prime(order(F)) "only for finite prime fields"
-  return get_attribute!(F, :algebraic_closure) do
-    return AlgClosure(F)
-  end::AlgClosure{T}
+  return AlgClosure(F)
 end
 
 function embedding(k::T, K::AlgClosure{T}) where T <: FinField

@@ -1062,7 +1062,7 @@ function _has_pfr(G::Oscar.GAPGroup, dim::Int)
   G_gap = G.X
   f_gap = GG.EpimorphismSchurCover(G_gap)::GapObj
   H_gap = GG.Source(f_gap)::GapObj
-  n, p = is_power(GG.Size(H_gap))::Tuple{Int, Int}
+  n, p = is_perfect_power_with_data(GG.Size(H_gap))::Tuple{Int, Int}
   if is_prime(p)
     fff_gap = GG.EpimorphismPGroup(H_gap, p)::GapObj
     E_gap = fff_gap(H_gap)::GapObj

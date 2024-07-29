@@ -15,25 +15,25 @@ end
     @inferred abelian_closure(QQ)
     @test K === abelian_closure(QQ)[1]
     @test K isa QQAbField
-    @test elem_type(K) === QQAbElem{AbsSimpleNumFieldElem}
-    @test elem_type(typeof(K)) === QQAbElem{AbsSimpleNumFieldElem}
-    @test parent_type(QQAbElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
+    @test elem_type(K) === QQAbFieldElem{AbsSimpleNumFieldElem}
+    @test elem_type(typeof(K)) === QQAbFieldElem{AbsSimpleNumFieldElem}
+    @test parent_type(QQAbFieldElem{AbsSimpleNumFieldElem}) === QQAbField{AbsSimpleNumField}
     @test parent_type(one(K)) === QQAbField{AbsSimpleNumField}
 
     a = @inferred K()
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test parent(a) === K
 
     a = @inferred K(1)
     @test parent(a) === K
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test isone(a)
     @test isone(one(a))
     @test !iszero(a)
 
     a = @inferred K(0)
     @test parent(a) === K
-    @test a isa QQAbElem
+    @test a isa QQAbFieldElem
     @test iszero(a)
     @test iszero(zero(a))
     @test !isone(a)
@@ -127,9 +127,9 @@ end
   end
 
   @testset "Promote rule" begin
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, Int) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, ZZRingElem) == QQAbElem
-    @test Oscar.AbstractAlgebra.promote_rule(QQAbElem, QQFieldElem) == QQAbElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, Int) == QQAbFieldElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, ZZRingElem) == QQAbFieldElem
+    @test Oscar.AbstractAlgebra.promote_rule(QQAbFieldElem, QQFieldElem) == QQAbFieldElem
   end
 
   @testset "Arithmetic" begin

@@ -232,5 +232,5 @@ function generic_section(l::ToricLineBundle)
   if length(basis_of_global_sections(l)) == 0
     return zero(cox_ring(toric_variety(l)))
   end
-  return sum([rand(Int) * b for b in basis_of_global_sections(l)])
+  return sum([rand(-10000:10000) * b for b in basis_of_global_sections(l)])
 end

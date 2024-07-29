@@ -1,3 +1,35 @@
+########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
+# The definitions here SHOULD apply throughout FTheoryTools!
+#                                                defining_classes: This should be a dictionary that includes specifies the divisor classes
+#                                                                  of any parameters used to tune the model beyond the fully generic
+#                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
+#                                                                  may be tuned by setting
+#                                                                      a1 = a10
+#                                                                      a2 = a21 * w
+#                                                                      a3 = a32 * w^2
+#                                                                      a4 = a43 * w^3
+#                                                                      a6 = a65 * w^5
+#                                                                  in which case defining_classes would be Dict("w" => w) with w being a
+#                                                                  divisor class
+#                                                  model_sections: This is a list of the names of all parameters appearing in the model, each
+#                                                                  of which is a section of a line bundle. This should include the sections
+#                                                                  whose classes are a part of defining_classes (usually using the same
+#                                                                  symbol, by abuse of notation). In the case of the example above,
+#                                                                  model_sections would be ["w", "a1", "a21", "a32", "a43", "a65"].
+# classes_of_model_sections_in_basis_of_Kbar_and_defining_classes: This should be a matrix giving the classes of all parameters (model sections)
+#                                                                  in terms of Kbar and the defining classes. Each column should give the divisor
+#                                                                  class of the corresponding model section in this basis. In the case of the
+#                                                                  example above, this should be [0 1 2 3 4 6; 1 0 -1 -2 -3 -5].
+#                                defining_section_parametrization: This should be a dictionary that defines how the "default" parameters of
+#                                                                  the given model type are defined in terms of the sections of the defining
+#                                                                  classes. In the case of the example above, defining_section_parametrization
+#                                                                  would be Dict("a1" => a10, "a2" => a21 * w, "a3" => a32 * w^2,
+#                                                                      "a4" => a43 * w^3, "a6" => a65 * w^5)
+#                                         explicit_model_sections: This should be a dictionary that gives the explicit forms of every section
+#                                                                  in the model. In the case of the example above, this would include keys "a1",
+#                                                                  "a2", "a3", "a4", "a6", "w", "a10", "a21", "a32", "a43", and "a65".
+#################################################################################################################################################
+
 #######################################################
 # 1. User interface for literature models
 #######################################################
@@ -29,8 +61,13 @@ model can be found, or multiple models exist with information matching the
 provided information, then an error is raised.
 
 Some literature models require additional parameters to specified to single out
-a model from a family of models. Such models can be provided using the optional
+a model from a family of models. Such parameters can be provided using the optional
 argument `model_parameters`, which should be a dictionary such as `Dict("k" => 5)`.
+
+Further, some literature models require the specification of one or more divisor
+classes that define the model. This information can be provided using the optional
+argument `defining_classes`, which should be a dictionary such as `Dict("w" => w)`,
+where `w` is a divisor, such as that provided by `torusinvariant_prime_divisors`.
 
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -152,7 +189,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
     
     for (key, val) in model_parameters
       map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_data"]))
-      map!(x -> nested_string_map(s -> replace(s, key => string(val)), x), values(model_dict["model_descriptors"]))
+      map!(x -> nested_string_map(s -> replace(s, string("#", key) => string(val)), x), values(model_dict["model_descriptors"]))
       map!(x -> nested_string_map(s -> replace(s, r"\(([^(),]+)\)" => dim -> string("(", Oscar.eval_poly(string.(match(r"\(([^(),]+)\)", dim).captures[1]), ZZ),")")), x), values(model_dict["model_descriptors"]))
     end
   end
@@ -541,8 +578,8 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   set_journal_model_page(model, model_dict["journal_data"]["model_location"]["page"])
   set_journal_model_section(model, model_dict["journal_data"]["model_location"]["section"])
   
-  if haskey(model_dict, "related_models")
-    set_attribute!(model, :related_literature_models => [str[6:end - 5] for str in model_dict["related_models"]])
+  if haskey(model_dict, "birational_models")
+    set_attribute!(model, :birational_literature_models => [str[6:end - 5] for str in model_dict["birational_models"]])
   end
   
   if haskey(model_dict, "associated_models")
@@ -598,6 +635,16 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if haskey(model_dict["model_descriptors"], "global_gauge_quotients")
     set_global_gauge_quotients(model, map(k -> string.(k), model_dict["model_descriptors"]["global_gauge_quotients"]))
   end
+  
+  if haskey(model_dict, "birational_models")
+    for m in model_dict["birational_models"]
+      model_directory = joinpath(@__DIR__, "Models/")
+      model_data = JSON.parsefile(model_directory * m)
+      if model_data["model_descriptors"]["type"] == "weierstrass"
+        set_attribute!(model, :weierstrass_model => m)
+      end
+    end
+  end  
 end
 
 
@@ -606,8 +653,54 @@ end
 # 6. Function to display all known literature models
 #######################################################
 
-function display_all_literature_models()
+@doc raw"""
+    display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
+
+Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occuring in index.json.
+
+```jldoctest
+julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))
+Model 33:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "33", "type" => "weierstrass")
+
+Model 34:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "67", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.141", "journal_page" => "67", "arxiv_equation" => "3.142", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-11.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "34", "type" => "hypersurface")
+
+Model 39:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14-WSF.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "39", "type" => "weierstrass")
+
+Model 40:
+Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "40", "type" => "hypersurface")
+
+Model 45:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "2", "arxiv_id" => "1903.00009", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_equation" => "2", "journal_page" => "2", "arxiv_equation" => "2", "journal_doi" => "10.1103/PhysRevLett.123.101601", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903.00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
+
+julia> display_all_literature_models(Dict("gauge_algebra" => "e"))
+Model 8:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(6)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.1", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-5.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "8", "type" => "tate")
+
+Model 9:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(7)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.7", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-6.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "9", "type" => "tate")
+
+Model 10:
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(8)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.13", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-7.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "10", "type" => "tate")
+```
+"""
+function display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
+  @req issubset(keys(model_fields), keys(file_index[1])) "The inputted criteria aren't supported"
+  for field in keys(model_fields)
+    if field == "gauge_algebra"
+      for s in model_fields["gauge_algebra"]
+        filter!(x -> occursin(s, join(x["gauge_algebra"])), file_index)
+      end
+    else
+      filter!(x -> x[field] == model_fields[field], file_index)
+    end
+  end
+  if length(file_index) == 0
+    println("No such models found in database")
+  end
   sorted_dicts = sort(file_index, by = x -> parse(Int, x["model_index"]))
   for dict in sorted_dicts
     print("Model $(dict["model_index"]):\n")

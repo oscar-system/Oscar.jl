@@ -58,7 +58,7 @@ end
   @test_throws ArgumentError associated_literature_models(t1)
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
-  @test_throws ArgumentError related_literature_models(t1)
+  @test_throws ArgumentError birational_literature_models(t1)
 end
 
 set_model_description(t1, "Testing...")
@@ -112,7 +112,7 @@ end
   @test arxiv_model_page(w1) == "34"
   @test arxiv_model_section(w1) == "B"
   @test arxiv_version(w1) == "2"
-  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test birational_literature_models(w1) == ["1208_2695-1"]
   @test length(generating_sections(w1)) == 1
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -134,7 +134,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError associated_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -201,7 +201,7 @@ end
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
-  @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError birational_literature_models(t3)
   @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
 end
 
@@ -274,7 +274,7 @@ end
   @test arxiv_model_page(w2) == "34"
   @test arxiv_model_section(w2) == "B"
   @test arxiv_version(w2) == "2"
-  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test birational_literature_models(w2) == ["1208_2695-1"]
   @test length(generating_sections(w2)) == 1
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -296,7 +296,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError associated_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
@@ -457,15 +457,24 @@ foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hy
   @test model_description(foah15) == "F-theory hypersurface model with fiber ambient space F_15"
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
   @test haskey(explicit_model_sections(foah6), "s9") == false
-  @test length(global_gauge_quotients(foah6)) == length(gauge_algebra(foah6))
-  @test length(global_gauge_quotients(foah8)) == length(gauge_algebra(foah8))
-  @test length(global_gauge_quotients(foah9)) == length(gauge_algebra(foah9))
-  @test length(global_gauge_quotients(foah11)) == length(gauge_algebra(foah11))
-  @test length(global_gauge_quotients(foah12)) == length(gauge_algebra(foah12))
-  @test length(global_gauge_quotients(foah13)) == length(gauge_algebra(foah13))
-  @test length(global_gauge_quotients(foah14)) == length(gauge_algebra(foah14))
-  @test length(global_gauge_quotients(foah15)) == length(gauge_algebra(foah15))
-  @test length(global_gauge_quotients(foah16)) == length(gauge_algebra(foah16))
+  @test dim(gauge_algebra(foah6)) == 4
+  @test length(global_gauge_quotients(foah6)) == 2
+  @test dim(gauge_algebra(foah8)) == 7
+  @test length(global_gauge_quotients(foah8)) == 3
+  @test dim(gauge_algebra(foah9)) == 5
+  @test length(global_gauge_quotients(foah9)) == 3
+  @test dim(gauge_algebra(foah11)) == 12
+  @test length(global_gauge_quotients(foah11)) == 3
+  @test dim(gauge_algebra(foah12)) == 8
+  @test length(global_gauge_quotients(foah12)) == 4
+  @test dim(gauge_algebra(foah13)) == 21
+  @test length(global_gauge_quotients(foah13)) == 3
+  @test dim(gauge_algebra(foah14)) == 15
+  @test length(global_gauge_quotients(foah14)) == 4
+  @test dim(gauge_algebra(foah15)) == 13
+  @test length(global_gauge_quotients(foah15)) == 5
+  @test dim(gauge_algebra(foah16)) == 24
+  @test length(global_gauge_quotients(foah16)) == 3
 end
 
 
@@ -598,7 +607,7 @@ foah12_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type
 foah13_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass")
 foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass")
 foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
-foah16_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass")
+foah16_weier = weierstrass_model(foah16)
 
 @testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
@@ -675,7 +684,7 @@ end
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3_weier = weierstrass_model(foah1_B3)
 foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
 foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)

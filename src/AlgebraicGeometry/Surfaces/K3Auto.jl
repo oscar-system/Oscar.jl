@@ -1931,7 +1931,7 @@ function ample_class(S::ZZLat)
     else
       rv = (r*gram_matrix(S)*transpose(v))[1,1]
       p = x^2*vsq + 2*x*rv + rsq
-      rp = roots(CalciumQQBar, p)
+      rp = roots(algebraic_closure(QQ), p)
       a = rp[1]
       b = rp[2]
       if a > b

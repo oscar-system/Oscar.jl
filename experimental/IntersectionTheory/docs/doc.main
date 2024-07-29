@@ -1,0 +1,12 @@
+[
+   "Intersection Theory" => [
+      "intro.md",
+      "AbstractVarieties.md",
+      "AbstractBundles.md",
+      "AbstractVarietyMaps.md",
+      "BlowUps.md",
+      "schubert.md",
+      "BottFormulas.md",
+      "examples.md"
+   ],
+]

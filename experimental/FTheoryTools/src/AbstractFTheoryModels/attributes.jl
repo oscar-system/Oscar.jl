@@ -365,12 +365,12 @@ end
 
 
 @doc raw"""
-    associated_literature_models(m::AbstractFTheoryModel)
+    birational_literature_models(m::AbstractFTheoryModel)
 
-Return a list of the unique identifiers any `associated_literature_models` of
+Return a list of the unique identifiers of `birational_literature_models` of
 the given model. These are either other presentations (Weierstrass, Tate, ...)
 of the given model, or other version of the same model from a different paper
-in the literature. If no `associated_literature_models` are known,
+in the literature. If no `birational_literature_models` are known,
 an error is raised.
 
 ```jldoctest
@@ -379,14 +379,14 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
 
-julia> associated_literature_models(m)
+julia> birational_literature_models(m)
 1-element Vector{String}:
  "1507_05954-1"
 ```
 """
-function associated_literature_models(m::AbstractFTheoryModel)
-  @req has_associated_literature_models(m) "No associated models known for this model"
-  return get_attribute(m, :associated_literature_models)
+function birational_literature_models(m::AbstractFTheoryModel)
+  @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
+  return get_attribute(m, :birational_literature_models)
 end
 
 
@@ -782,12 +782,12 @@ end
 
 
 @doc raw"""
-    related_literature_models(m::AbstractFTheoryModel)
+    associated_literature_models(m::AbstractFTheoryModel)
 
-Return a list of the unique identifiers of any `related_literature_models` of
+Return a list of the unique identifiers of any `associated_literature_models` of
 the given model. These are models that are introduced in the same paper as
 the given model, but that are distinct from the given model. If no
-`related_literature_models` are known, an error is raised.
+`associated_literature_models` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
@@ -795,7 +795,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
 
-julia> related_literature_models(m)
+julia> associated_literature_models(m)
 6-element Vector{String}:
  "1212_2949-2"
  "1212_2949-3"
@@ -805,9 +805,30 @@ julia> related_literature_models(m)
  "1212_2949-7"
 ```
 """
-function related_literature_models(m::AbstractFTheoryModel)
-  @req has_related_literature_models(m) "No related models known for this model"
-  return get_attribute(m, :related_literature_models)
+function associated_literature_models(m::AbstractFTheoryModel)
+  @req has_associated_literature_models(m) "No associated models known for this model"
+  return get_attribute(m, :associated_literature_models)
+end
+
+
+@doc raw"""
+    model_index(m::AbstractFTheoryModel)
+Return database index of a literature model. This index is a unique identifier that can be used to more conveniently construct the model. 
+All models have a model_index and these will not change in the future.
+```jldoctest
+julia> t = literature_model(31)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10 based on arXiv paper 1408.4808 Eq. (3.130)
+
+julia> model_index(t)
+31
+```
+"""
+function model_index(m::AbstractFTheoryModel)
+  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  model_indices = JSON.parsefile(directory * "model_indices.json")
+  return parse(Int, model_indices["model" * literature_identifier(m) * ".json"])
 end
 
 
@@ -1031,12 +1052,15 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> gauge_algebra(t)
-5-element Vector{LinearLieAlgebra{QQBarFieldElem}}:
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Linear Lie algebra with 1x1 matrices over QQBar
+Direct sum Lie algebra
+  of dimension 13
+with summands
+  sl_2
+  sl_2
+  sl_2
+  sl_2
+  linear Lie algebra
+over field of algebraic numbers
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
@@ -1071,6 +1095,128 @@ function global_gauge_quotients(m::AbstractFTheoryModel)
   return get_attribute(m, :global_gauge_quotients)
 end
 
+
+@doc raw"""
+    chern_class_c1(m::AbstractFTheoryModel)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the first Chern class
+$c_1$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+this very cohomology class $h$, otherwise it raises and error.
+
+Note that $Y_n$ is a Calabi-Yau variety precisely if $c_1$ is trivial. Thus, the restriction
+of $h$ to the hypersurface $Y_n$ must be trivial. Upon closer inspection, in the given toric
+setting, this is equivalent to $h$ being trivial.
+
+The computation of the cohomology ring verifies if the toric variety is simplicial and
+complete. The check for it to be complete can be very time consuming. This can be switched
+off by setting the optional argument `check` to the value `false`, as in the example below.
+
+```jldoctest
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_class_c1(qsm_model; check = false)
+Cohomology class on a normal toric variety given by 0
+
+julia> is_trivial(h)
+true
+```
+"""
+function chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "First Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric ambient space"
+
+  # Check if the answer is known
+  if has_attribute(m, :chern_class_c1)
+    return get_attribute(m, :chern_class_c1)
+  end
+
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
+
+  # Compute the cohomology class corresponding to the hypersurface equation
+  if m isa WeierstrassModel
+    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
+  end
+  if m isa GlobalTateModel
+    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
+  end
+  if m isa HypersurfaceModel
+    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+  end
+  cy = cohomology_class(cl)
+
+  # Compute and set h
+  c1_t_ambient = cohomology_class(anticanonical_divisor(ambient_space(m)))
+  set_attribute!(m, :chern_class_c1, c1_t_ambient - cy)
+  return get_attribute(m, :chern_class_c1)
+end
+
+
+@doc raw"""
+    chern_class_c2(m::AbstractFTheoryModel)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the 2nd Chern class
+$c_2$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+this very cohomology class $h$, otherwise it raises and error.
+
+As of right now, this method is computationally quite expensive for involved toric varieties,
+such as in the example below. Therefore, think carefully if you truly want to compute this quantity.
+
+The computation of the cohomology ring verifies if the toric variety is simplicial and
+complete. The check for it to be complete can be very time consuming. This can be switched
+off by setting the optional argument `check` to the value `false`, as in the example below.
+
+```jldoctest
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_class_c2(qsm_model; check = false);
+
+julia> is_trivial(h)
+false
+```
+"""
+function chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Second Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric ambient space"
+
+  # Check if the answer is known
+  if has_attribute(m, :chern_class_c2)
+    return get_attribute(m, :chern_class_c2)
+  end
+
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
+
+  # Compute the cohomology class corresponding to the hypersurface equation
+  if m isa WeierstrassModel
+    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
+  end
+  if m isa GlobalTateModel
+    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
+  end
+  if m isa HypersurfaceModel
+    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
+  end
+  cy = cohomology_class(cl)
+
+  # Compute sum of products of cohomolgy classes of torus invariant prime divisors
+  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  c2_t_ambient = sum(c_ds[i]*c_ds[j] for i in 1:length(c_ds)-1 for j in i+1:length(c_ds))
+  c2_t_ambient = cohomology_class(ambient_space(m), c2_t_ambient)
+
+  # Compute and set h
+  h = c2_t_ambient - cy * chern_class_c1(m; check = check)
+  set_attribute!(m, :chern_class_c2, h)
+  return h
+end
 
 
 ##########################################
