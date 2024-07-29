@@ -153,7 +153,7 @@ julia> G = graph_from_edges([[1, 2], [2, 4]]);
 julia> qAut = quantum_automorphism_group(G);
 
 julia> length(gens(qAut))
-168
+216
 ```
 """
 function quantum_automorphism_group(G::Graph{Undirected})
