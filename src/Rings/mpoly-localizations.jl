@@ -1162,12 +1162,7 @@ function Base.:(/)(a::ZZRingElem, b::T) where {T<:MPolyLocRingElem}
 end
 
 function Base.:(/)(a::T, b::T) where {T<:MPolyLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  g = gcd(numerator(a), numerator(b))
-  c = divexact(numerator(a), g)
-  d = divexact(numerator(b), g)
-  numerator(fraction(b)) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return (parent(a))(fraction(a) // fraction(b), check=false)
+  return divexact(a, b)
 end
 
 function ==(a::T, b::T) where {T<:MPolyLocRingElem}
