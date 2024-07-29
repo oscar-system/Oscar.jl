@@ -114,8 +114,8 @@ Return the Ideal that defines the quantum automorphism group of a matroid for a 
 
 ```jldoctest
 julia> G = complete_graph(4)
-Undirected graph with 3 nodes and the following edges:
-(2, 1)(3, 1)(3, 2)
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
 
 julia> M = cycle_matroid(G);
 
