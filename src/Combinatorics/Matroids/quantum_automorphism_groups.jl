@@ -71,38 +71,48 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   n = length(M)
   grdSet = matroid_groundset(M)
 
-  b    = [Vector{Int}[] for _ in 1:n]
-  nb   = [Vector{Int}[] for _ in 1:n]
-  rels = [Vector{Tuple{Int,Int}}[] for _ in 1:n]
+  rels = Vector{Tuple{Int,Int}}[]
 
   sets  = getproperty(Oscar, structure)(M)
   sizes = unique!(map(length, sets))
-  tempGrdSet = reduce(vcat,[grdSet for i in 1:n])
+
+  function _qAut_size()
+    setSizes = map(length, sets)
+
+    SetsCount = [0 for _ in 1:maximum(setSizes)]
+    foreach(size->SetsCount[size] += 1, setSizes)
+    for i in 1:length(SetsCount)
+      if SetsCount[i] == 0 || SetsCount[i] == n^i
+        SetsCount[i] = 0
+        continue
+      end
+      nonSetsCount = n^i - (SetsCount[i] * factorial(i))
+      SetsCount[i] = SetsCount[i] * factorial(i) * nonSetsCount * 2
+    end
+
+    return sum(SetsCount)
+  end
+  vector_size = _qAut_size()
+  sizehint!(rels, vector_size)
 
   for size in sizes 
     size == 0 && continue
-    powerSet = unique(sort.(subsets(tempGrdSet, size)))
-
-    setsOfSize = filter(x->length(x)==size, sets)
-    nonSets = setdiff(powerSet, setsOfSize) 
 
     S = symmetric_group(size)
+    permutedSets = [[set[g(i)] for i in 1:size] for g in S for set in sets if length(set) == size]
 
-    for set in setsOfSize
-      append!(b[size], [[set[g(i)] for i in 1:size] for g in S])
-    end
+    nonSets = MultiPartitionIterator{Int}(grdSet, size; toskip=permutedSets)
+
     for nonset in nonSets
-      append!(nb[size], [[nonset[g(i)] for i in 1:size] for g in S])
-    end
-    for set in b[size]
-      for nonset in nb[size]
-        push!(rels[size], [(set[i],nonset[i]) for i in 1:size])
-        push!(rels[size], [(nonset[i],set[i]) for i in 1:size])
+      for set in permutedSets
+        push!(rels, [(set[i],nonset[i]) for i in 1:size])
+        push!(rels, [(nonset[i],set[i]) for i in 1:size])
       end
     end
   end
-  rels = unique!.(rels)
-  return Vector{Vector{Tuple{Int,Int}}}(reduce(vcat,rels))
+  @assert length(rels) == vector_size "The number of relations is not correct $(length(rels)) != $(vector_size)"
+
+  return Vector{Vector{Tuple{Int,Int}}}(rels)
 end
 
 @doc raw"""
@@ -157,7 +167,6 @@ julia> length(gens(qAut))
 ```
 """
 function quantum_automorphism_group(G::Graph{Undirected})
-
   n = nv(G)
 
   SN = quantum_symmetric_group(n)
@@ -178,3 +187,36 @@ function quantum_automorphism_group(G::Graph{Undirected})
   new_relations = reduce(vcat,[vcat(_addrelations(edg, nonedg), _addrelations(nonedg, edg)) for edg in edgs for nonedg in nonedges])
   return ideal([gens(SN)..., unique(new_relations)...])
 end
+
+struct MultiPartitionIterator{T}
+  elements::Vector{T}
+  size::Int
+  toskip::Vector{Vector{T}}
+  function MultiPartitionIterator{T}(elements::Vector{T}, size::Int; toskip::Vector{Vector{T}}=Vector{Vector{T}}()) where T
+    @req map(length, toskip) == fill(size, length(toskip)) "The size of the subsets to skip must be the same as the size of the subsets"
+    @req all(x->x in elements, reduce(vcat, toskip)) "The elements to skip must be in the elements"
+    new(elements, size, toskip)
+  end
+end
+
+function Base.iterate(S::MultiPartitionIterator{T}, state=0) where T
+  n = length(S.elements)
+  while true
+    if state > n^S.size-1
+      return nothing
+    else
+      subset = [S.elements[div(state, n^(i-1)) % n + 1] for i in 1:S.size]
+      if subset in S.toskip
+        state += 1
+        continue
+      else
+        return (subset, state + 1)
+      end
+    end
+  end
+end
+
+Base.length(S::MultiPartitionIterator{T}) where T = length(S.elements)^S.size - length(S.toskip)
+Base.IteratorSize(::Type{MultiPartitionIterator{T}}) where T = Base.HasLength()
+Base.IteratorEltype(::Type{MultiPartitionIterator{T}}) where T = Base.HasEltype()
+Base.eltype(::Type{MultiPartitionIterator{T}}) where T = Vector{T}
