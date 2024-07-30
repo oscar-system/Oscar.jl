@@ -94,7 +94,7 @@ function deepcopy_internal(p::LinearPartition, stackdict::IdDict)
         return stackdict[p]
     end
     q = linear_partition(
-            deepcopy_internal(base_ring(p), stackdict),
+            base_ring(p),
             deepcopy_internal(coefficients(p), stackdict))
     stackdict[p] = q
     return q
