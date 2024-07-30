@@ -47,7 +47,7 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
     save_typed_object(s, coefficient_ring(L), :base_ring)
     save_data_array(s, :summands) do
       for summand in L.summands
-        ref = Oscar.save_as_ref(s, summand)
+        ref = save_as_ref(s, summand)
         save_object(s, ref)
       end
     end
@@ -58,8 +58,8 @@ end
 function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
   R = load_typed_object(s, :base_ring)
   summands = Vector{LieAlgebra{elem_type(R)}}(
-    Oscar.load_array_node(s, :summands) do _
-      Oscar.load_ref(s)
+    load_array_node(s, :summands) do _
+      load_ref(s)
     end,
   )
 
@@ -85,7 +85,7 @@ function save_attrs(s::SerializerState, L::LieAlgebra)
 end
 
 function load_attrs!(s::DeserializerState, L::LieAlgebra)
-  Oscar.load_node(s, :attrs) do _
+  load_node(s, :attrs) do _
     for bool_prop in (:is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable)
       if haskey(s, bool_prop)
         set_attribute!(L, bool_prop, load_object(s, Bool, bool_prop))
@@ -113,9 +113,9 @@ end
 
 function save_type_params(s::SerializerState, x::LieAlgebraElem)
   save_data_dict(s) do
-    save_object(s, Oscar.encode_type(typeof(x)), :name)
+    save_object(s, encode_type(typeof(x)), :name)
     parent_x = parent(x)
-    parent_ref = Oscar.save_as_ref(s, parent_x)
+    parent_ref = save_as_ref(s, parent_x)
     save_object(s, parent_ref, :params)
   end
 end

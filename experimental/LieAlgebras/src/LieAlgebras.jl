@@ -16,12 +16,10 @@ using AbstractAlgebra.PrettyPrinting
 
 # functions with new methods
 import ..Oscar:
-  @register_serialization_type,
   _is_exterior_power,
   _is_tensor_product,
   _iso_oscar_gap,
   _vec,
-  AbstractSerializer,
   action,
   basis_matrix,
   basis,
@@ -38,7 +36,6 @@ import ..Oscar:
   coefficients,
   compose,
   derived_series,
-  DeserializerState,
   dim,
   direct_sum,
   dot,
@@ -66,8 +63,6 @@ import ..Oscar:
   is_solvable,
   is_welldefined,
   kernel,
-  load_object,
-  load_typed_object,
   lower_central_series,
   matrix,
   normalizer,
@@ -78,11 +73,6 @@ import ..Oscar:
   rank,
   root,
   roots,
-  save_data_array,
-  save_data_dict,
-  save_object,
-  save_typed_object,
-  SerializerState,
   sub,
   symbols,
   symmetric_power,
@@ -90,10 +80,10 @@ import ..Oscar:
   weyl_vector,
   word,
   zero_map,
-  save_type_params,
-  load_type_params,
   ⊕,
   ⊗
+
+Oscar.@import_all_serialization_functions
 
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
