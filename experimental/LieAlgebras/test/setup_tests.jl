@@ -135,7 +135,7 @@ if !isdefined(Main, :lie_algebra_conformance_test)
           end
         end
 
-        if dim(L) >= 1 # TODO: remove this condition once deserializing empty vectors keeps the type
+        if dim(L) >= 1 # TODO: remove this condition once deserializing empty vectors keeps the type (https://github.com/oscar-system/Oscar.jl/issues/3983)
           test_save_load_roundtrip(path, basis(L)) do loaded
             @test length(loaded) == dim(L)
             @test all(
