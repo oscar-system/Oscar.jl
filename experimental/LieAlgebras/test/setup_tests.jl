@@ -120,6 +120,31 @@ if !isdefined(Main, :lie_algebra_conformance_test)
         @test dim(L) == sum(length, chev; init=0)
       end
     end
+
+    @testset "Serialization" begin
+      mktempdir() do path
+        test_save_load_roundtrip(path, L) do loaded
+          # nothing, cause `L === loaded` anyway
+        end
+
+        if dim(L) >= 1
+          x = basis(L, 1)
+          test_save_load_roundtrip(path, x) do loaded
+            @test parent(loaded) === L
+            @test coefficients(loaded) == coefficients(x)
+          end
+        end
+
+        if dim(L) >= 1 # TODO: remove this condition once deserializing empty vectors keeps the type
+          test_save_load_roundtrip(path, basis(L)) do loaded
+            @test length(loaded) == dim(L)
+            @test all(
+              coefficients(loaded[i]) == coefficients(basis(L, i)) for i in 1:dim(L)
+            )
+          end
+        end
+      end
+    end
   end
 end
 
