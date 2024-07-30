@@ -14,7 +14,7 @@ struct LinearPartition{S <: AbstractPartition, T <: RingElem}
     function LinearPartition{S, T}(ring::Ring, coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElem}
         @req isconcretetype(S) "Linear combinations are only defined for concrete subtypes of AbstractPartition"
         @req ring isa parent_type(T) "Ring type is not the parent of the coefficient type"
-        for (_, c) in coeffs
+        for c in values(coeff)
             @req (parent(c) == ring) "Coefficient does not belong to the base ring"
         end
         return new(ring, simplify_operation_zero(coeffs))
