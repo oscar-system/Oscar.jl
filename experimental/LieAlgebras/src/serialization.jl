@@ -54,6 +54,6 @@ function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
   summands = Oscar.load_array_node(s, :summands) do _
     Oscar.load_ref(s)
   end
-  
+
   return direct_sum(R, summands)
 end
