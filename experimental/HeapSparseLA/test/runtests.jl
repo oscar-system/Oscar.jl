@@ -22,7 +22,7 @@ end
   m = 10*s
   n = 20*s
 
-  A = Oscar.HeapSMat(ZZ, 0, n)
+  A = Oscar.HeapSMat{ZZRingElem, Oscar.HeapSRow{ZZRingElem}}(ZZ, 0, n)
   for i in 1:m
     l = [(rand(1:20*s), ZZ(rand(-10:10))) for i in 1:s];
     v = Oscar.HeapSRow(ZZ, l)
@@ -55,7 +55,7 @@ end
 
   P, (x,) = polynomial_ring(QQ, [:x])
   QQt, t = QQ[:t]
-  A = Oscar.HeapSMat(QQt, 0, n)
+  A = Oscar.HeapSMat{elem_type(QQt), Oscar.HeapSRow{elem_type(QQt)}}(QQt, 0, n)
   for i in 1:m
     l = [(rand(1:20*s), evaluate(rand(P, 1:10, 1:10, 1:10), [t])) for i in 1:s];
     v = Oscar.HeapSRow(QQt, l)
@@ -102,3 +102,44 @@ end
   aa += bb
   @test sparse_row(add!(a, b)) == aa
 end
+
+@testset "heap-dict sparse matrices over GF(7)[t]" begin
+  s = 3
+  m = 10*s
+  n = 20*s
+
+  P, (x,) = polynomial_ring(GF(7), [:x])
+  QQt, t = GF(7)[:t]
+  A = Oscar.HeapSMat{elem_type(QQt), Oscar.HeapDictSRow{Int, elem_type(QQt)}}(QQt, 0, n)
+  for i in 1:m
+    j = unique!([rand(1:20*s) for i in 1:s])
+    c = [evaluate(rand(P, 1:10, 1:10, 1:10), [t]) for i in 1:length(j)];
+    v = Oscar.HeapDictSRow(QQt, collect(zip(j, c)))
+    push!(A, v)
+  end
+
+  B0, S0, T0 = Oscar.upper_triangular_form!(copy(A))
+
+  @test S0*A == B0
+  @test T0*B0 == A
+end
+
+@testset "heap-dict sparse matrices over QQ" begin
+  s = 10
+  m = 10*s
+  n = 20*s
+
+  A = Oscar.HeapSMat{elem_type(QQ), Oscar.HeapDictSRow{Int, elem_type(QQ)}}(QQ, 0, n)
+  for i in 1:m
+    j = unique!([rand(1:20*s) for i in 1:s])
+    c = [rand(QQ, 1:10) for i in 1:length(j)];
+    v = Oscar.HeapDictSRow(QQ, collect(zip(j, c)))
+    push!(A, v)
+  end
+
+  B0, S0, T0 = Oscar.upper_triangular_form!(copy(A))
+
+  @test S0*A == B0
+  @test T0*B0 == A
+end
+
