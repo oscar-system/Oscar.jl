@@ -30,19 +30,20 @@ julia> I = ideal([y^4+ x^3-x^2+x,x^4]);
 
 julia> groebner_walk(I, lex(R))
 Gröbner basis with elements
-1 -> x + y^12 - y^8 + y^4 r
-2 -> y^16
+  1 -> x + y^12 - y^8 + y^4
+  2 -> y^16
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
-julia> groebner_walk(I, lex(R); algorithm=:perturbed)
+julia> groebner_walk(I, lex(R); algorithm=:generic)
 Gröbner basis with elements
-1 -> x + y^12 - y^8 + y^4
-2 -> y^16
+  1 -> y^16
+  2 -> x + y^12 - y^8 + y^4
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
 julia> set_verbosity_level(:groebner_walk, 1);
+
 julia> groebner_walk(I, lex(R))
 Results for standard_walk
 Crossed Cones in: 
@@ -52,25 +53,11 @@ ZZRingElem[12, 1]
 ZZRingElem[1, 0]
 Cones crossed: 4
 Gröbner basis with elements
-1 -> x + y^12 - y^8 + y^4
-2 -> y^16
+  1 -> x + y^12 - y^8 + y^4
+  2 -> y^16
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
-julia> groebner_walk(I, lex(R); algorithm=:perturbed)
-perturbed_walk results
-Crossed Cones in: 
-[4, 3]
-[4, 1]
-[5, 1]
-[12, 1]
-[1, 0]
-Cones crossed: 5
-Gröbner basis with elements
-1 -> y^16
-2 -> x + y^12 - y^8 + y^4
-with respect to the ordering
-matrix_ordering([x, y], [1 0; 0 1])
 ```
 """
 function groebner_walk(
@@ -127,7 +114,7 @@ Replaces every element of G by the normal form with respect to the remaining ele
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 
-  for i in 1:ngens(G)
+  for i in 1:length(G)
     generators[i] = reduce(
       generators[i], generators[1:end .!= i]; ordering=G.ord, complete_reduction=true
     )
