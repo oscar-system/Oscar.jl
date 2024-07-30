@@ -40,12 +40,20 @@ end
 function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   save_data_dict(s) do
     save_typed_object(s, coefficient_ring(L), :base_ring)
-    save_object(s, L.summands, :summands)
+    save_data_array(s, :summands) do
+      for summand in L.summands
+        ref = Oscar.save_as_ref(s, summand)
+        save_object(s, ref)
+      end
+    end
   end
 end
 
 function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
   R = load_typed_object(s, :base_ring)
-  summands = load_object(s, :summands)
+  summands = Oscar.load_array_node(s, :summands) do _
+    Oscar.load_ref(s)
+  end
+  
   return direct_sum(R, summands)
 end
