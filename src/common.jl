@@ -84,13 +84,13 @@ function groebner_walk(
 end
 
 @doc raw"""
-    same_cone(G::Oscar.IdealGens, T::MonomialOrdering)
+    is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering)
 
 Checks whether the leading terms of G with respect to the matrix ordering given by T agree 
 with the leading terms of G with respect to the current ordering.
 This means they are in the same cone of the Groebner fan. (cf. Lemma 2.2, Collart, Kalkbrener and Mall 1997)
 """
-same_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_term.(G; ordering=T) .== leading_term.(G; ordering=ordering(G)))
+is_same_groebner_cone(G::Oscar.IdealGens, T::MonomialOrdering) = all(leading_term.(G; ordering=T) .== leading_term.(G; ordering=ordering(G)))
 
 # converts a vector wtemp by dividing the entries with gcd(wtemp).
 @doc raw"""
