@@ -37,32 +37,36 @@ mutable struct HeapSRow{T}
   end
 end
 
-mutable struct HeapSMat{T}
+mutable struct HeapSMat{ElemType<:NCRingElem, RowType}
   base_ring::NCRing
   nrows::Int
   ncols::Int
-  rows::Vector{HeapSRow{T}}
-  transpose::Union{HeapSMat{T}, Nothing}
+  rows::Vector{RowType}
+  transpose::Union{HeapSMat{ElemType, RowType}, Nothing}
 
-  function HeapSMat(R::NCRing, nrows::Int, ncols::Int, rows::Vector{HeapSRow{T}}) where {T}
+  function HeapSMat(R::NCRing, nrows::Int, ncols::Int, rows::Vector{T}) where {T}
     @assert all(base_ring(v) === R for v in rows)
     @assert nrows >= length(rows)
     crows = copy(rows)
     for i in length(rows)+1:nrows
       push!(crows, HeapSRow(R))
     end
-    return new{T}(R, nrows, ncols, crows, nothing)
+    return new{elem_type(R), T}(R, nrows, ncols, crows, nothing)
   end
 
-  function HeapSMat(R::Ring, nrows::Int, ncols::Int)
-    rows = HeapSRow{elem_type(R)}[HeapSRow(R) for i in 1:nrows]
-    return new{elem_type(R)}(R, nrows, ncols, rows, nothing)
+  function HeapSMat{ET, RT}(R::Ring, nrows::Int, ncols::Int) where {ET, RT}
+    rows = RT[RT(R) for i in 1:nrows]
+    return new{ET, RT}(R, nrows, ncols, rows, nothing)
   end
 end
 
 mutable struct BinaryHeap{T}
   content::Vector{T}
   is_heapified::Bool
+
+  function BinaryHeap{T}() where {T}
+    return new{T}(T[], true)
+  end
 
   function BinaryHeap(a::Vector{T}; is_heapified::Bool=false) where T
     result = new{T}(copy(a), is_heapified)
@@ -73,6 +77,10 @@ mutable struct HeapDictSRow{IndexType, T}
   R::NCRing
   indices::BinaryHeap{IndexType}
   coeffs::Dict{IndexType, T}
+
+  function HeapDictSRow{I, T}(R::NCRing) where {I, T}
+    return new{I, T}(R, BinaryHeap{I}(), Dict{I, T}())
+  end
 
   function HeapDictSRow(
       R::NCRing, ind::Vector{IndexType}, vals::Vector{T}

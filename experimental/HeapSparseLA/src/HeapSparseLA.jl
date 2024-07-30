@@ -352,7 +352,7 @@ function copy(v::HeapSRow)
   return HeapSRow(base_ring(v), nn)
 end
 
-function *(a::T, v::HeapSRow{T}) where {T}
+function *(a::T, v::HeapSRow{T}) where {T <: NCRingElem}
   return mul!(a, copy(v))
 end
 
@@ -519,7 +519,7 @@ function ==(v::HeapSRow{T}, w::HeapSRow{T}) where {T}
   return all(iszero(c) for c in values(d2))
 end
 
-### Sparse matrices based on `HeapSRow`
+### Sparse matrices for arbitrary sparse rows
 
 ### basic getters for `HeapSMat`
 base_ring(A::HeapSMat) = A.base_ring
@@ -533,7 +533,7 @@ end
 
 getindex(A::HeapSMat, i::Int) = A.rows[i]
 
-function setindex!(A::HeapSMat, v::HeapSRow, i::Int)
+function setindex!(A::HeapSMat{RT, T}, v::T, i::Int) where {RT, T}
   if A.transpose !== nothing 
     A.transpose.transpose = nothing
     A.transpose = nothing
@@ -541,7 +541,7 @@ function setindex!(A::HeapSMat, v::HeapSRow, i::Int)
   A.rows[i] = v
 end
 
-function push!(A::HeapSMat{T}, v::HeapSRow{T}) where T
+function push!(A::HeapSMat{RT, T}, v::T) where {RT, T}
   if A.transpose !== nothing 
     A.transpose.transpose = nothing
     A.transpose = nothing
@@ -551,21 +551,24 @@ function push!(A::HeapSMat{T}, v::HeapSRow{T}) where T
   return A
 end
 
-function unit_matrix(::Type{HeapSMat}, R::NCRing, n::Int)
-  iszero(n) && return HeapSMat(R, 0, 0)
-  res_list = [HeapSRow(R, [(i, one(R))]) for i in 1:n]
+HeapSRow{T}(R::NCRing, a::Vector) where {T} = HeapSRow(R, a)
+HeapSRow{T}(R::NCRing) where {T} = HeapSRow(R)
+
+function unit_matrix(::Type{T}, R::NCRing, n::Int) where {RT, T <: HeapSMat{<:Any, RT}}
+  iszero(n) && return T(R, 0, 0)
+  res_list = [RT(R, [(i, one(R))]) for i in 1:n]
   return HeapSMat(R, n, n, res_list)
 end
 
-function zero_matrix(::Type{HeapSMat}, R::NCRing, m::Int, n::Int)
-  return HeapSMat(R, m, n)
+function zero_matrix(::Type{T}, R::NCRing, m::Int, n::Int) where {T <: HeapSMat}
+  return T(R, m, n)
 end
 
 function HeapSMat(AA::MatElem{T}) where {T}
   R = base_ring(AA)
   m = nrows(AA)
   n = ncols(AA)
-  result = HeapSMat(R, 0, n)
+  result = HeapSMat{T, HeapSRow{T}}(R, 0, n)
   for i in 1:m
     push!(result, HeapSRow(R, [(i, c) for (i, c) in enumerate(AA[i, :]) if !iszero(c)]))
   end
@@ -576,7 +579,7 @@ function HeapSMat(AA::SMat{T}) where {T}
   R = base_ring(AA)
   m = nrows(AA)
   n = ncols(AA)
-  result = HeapSMat(R, 0, n)
+  result = HeapSMat{T, HeapSRow{T}}(R, 0, n)
   for i in 1:m
     push!(result, HeapSRow(AA[i]))
   end
@@ -591,7 +594,11 @@ function sparse_row(v::HeapSRow)
   return sparse_row(base_ring(v), collect((i, c) for (i, c) in as_dictionary(v) if !iszero(c)))
 end
 
-function consolidate!(A::HeapSMat{T}) where T
+function consolidate!(A::HeapSMat)
+  return A
+end
+
+function consolidate!(A::HeapSMat{ET, T}) where {ET <: NCRingElem, T <: HeapSRow}
   for (i, v) in enumerate(A.rows)
     A[i] = consolidate!(v)
   end
@@ -615,11 +622,11 @@ function ==(A::HeapSMat, B::HeapSMat)
   return all(A[i] == B[i] for i in 1:nrows(A))
 end
 
-function *(A::HeapSMat{T}, B::HeapSMat{T}) where {T}
+function *(A::SMatType, B::SMatType) where {SMatType <: HeapSMat}
   return mul!(consolidate!(copy(A)), B)
 end
 
-function mul!(A::HeapSMat{T}, B::HeapSMat{T}) where {T}
+function mul!(A::HeapSMat{T}, B::HeapSMat{T}) where {T <: NCRingElem}
   R = base_ring(A)
   @assert R === base_ring(B)
   for (i, v) in enumerate(A.rows)
@@ -644,11 +651,11 @@ function mul!(v::HeapSRow, A::HeapSMat)
   return result
 end
 
-function mul!(a, A::HeapSMat{T}) where T
+function mul!(a, A::HeapSMat)
   return mul!(base_ring(A)(a), A)
 end
 
-function mul!(a::T, A::HeapSMat{T}) where T
+function mul!(a::T, A::HeapSMat{T}) where {T<:NCRingElem}
   if A.transpose !== nothing 
     A.transpose.transpose = nothing
     A.transpose = nothing
@@ -659,9 +666,9 @@ function mul!(a::T, A::HeapSMat{T}) where T
   return A
 end
 
-function copy(A::HeapSMat)
+function copy(A::SMatType) where {SMatType <: HeapSMat}
   R = base_ring(A)
-  result = HeapSMat(R, 0, ncols(A))
+  result = SMatType(R, 0, ncols(A))
   for v in A.rows
     push!(result, copy(v))
   end
@@ -702,21 +709,21 @@ function getindex(A::HeapSMat, r::UnitRange)
   return HeapSMat(base_ring(A), length(r), ncols(A), A.rows[r])
 end
 
-function transpose(A::HeapSMat{T}) where {T}
-  A.transpose !== nothing && return A.transpose::HeapSMat{T}
+function transpose(A::SMatType) where {SMatType <: HeapSMat}
+  A.transpose !== nothing && return A.transpose::SMatType
   result = transpose!(copy(A))
   A.transpose = result
   result.transpose = A
   return result
 end
 
-function transpose!(A::HeapSMat{T}) where {T}
-  res_list = HeapSRow{T}[]
+function transpose!(A::HeapSMat{ET, T}) where {ET, T<:HeapSRow}
+  res_list = HeapSRow{ET}[]
   m = nrows(A)
   n = ncols(A)
-  pivots = Tuple{Int, T}[pivot(v) for v in A.rows]
+  pivots = Tuple{Int, ET}[pivot(v) for v in A.rows]
   for j in 1:n
-    next = Tuple{Int, T}[]
+    next = Tuple{Int, ET}[]
     for (i, (k, c)) in enumerate(pivots)
       k == j || continue
       push!(next, (i, c))
@@ -756,29 +763,29 @@ function upper_triangular_form!(A::MatElem)
   error("not implemented")
 end
 
-function upper_triangular_form!(A::HeapSMat)
+function upper_triangular_form!(A::SMatType) where {ET, RT, SMatType <: HeapSMat{ET, RT}}
   consolidate!(A)
   R = base_ring(A)
   # we iterate through the columns of A
-  S = unit_matrix(HeapSMat, R, nrows(A))
-  T_trans = unit_matrix(HeapSMat, R, nrows(A))
+  S = unit_matrix(SMatType, R, nrows(A))
+  T_trans = unit_matrix(SMatType, R, nrows(A))
   m0 = nrows(A)
   for j in 1:ncols(A)
     # find the rows whose pivot is in this column
     cand = [i for i in 1:m0 if Oscar.pivot(A[i])[1] == j]
     isempty(cand) && continue # nothing to do here
     # collect the generators
-    g = [c for (_, c) in Oscar.pivot.(A.rows[cand])]
+    g = [c for (_, c) in pivot.(A.rows[cand])]
     # find the principal generator for the ideal and the Bezout coeffs
-    res, coeff = Oscar._gcdx(g)
-    coeff_vec = Oscar.HeapSRow(R, collect(zip(cand, coeff)))
+    res, coeff = _gcdx(g)
+    coeff_vec = RT(R, [(j, c) for (j, c) in zip(cand, coeff) if !iszero(c)])
     # compile the new line which will be added to A
     new_line = consolidate!(coeff_vec*A)
     push!(A, new_line)
     # update the base change matrix
     push!(S, coeff_vec*S)
 
-    push!(T_trans, HeapSRow(R))
+    push!(T_trans, RT(R))
     # determine the elimination of the pivots in the original A
     c = [divexact(g, res) for g in g]
 
@@ -787,11 +794,7 @@ function upper_triangular_form!(A::HeapSMat)
       A[k] = add!(A[k], -mu*new_line)
       S[k] = add!(S[k], -mu*w)
     end
-    w = T_trans[nrows(T_trans)]
-    for (k, c) in zip(cand, c)
-      w = add!(w, c*T_trans[k])
-    end
-    T_trans[nrows(T_trans)] = w
+    T_trans[nrows(T_trans)] += sum(c*T_trans[k] for (k, c) in zip(cand, c); init=RT(R))
   end
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
 end
@@ -824,11 +827,7 @@ function upper_triangular_form!(A::SMat)
       A[k] = A[k] - mu*new_line
       S[k] = S[k] - mu*w
     end
-    w = T_trans[nrows(T_trans)]
-    for (k, c) in zip(cand, c)
-      w = w + c*T_trans[k]
-    end
-    T_trans[nrows(T_trans)] = w
+    T_trans[nrows(T_trans)] += sum(c*T_trans[k] for (k, c) in zip(cand, c); init=sparse_row(R))
   end
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
 end
@@ -851,7 +850,15 @@ function _gcdx(v::Vector)
 end
 
 _sort(a::Vector{ZZRingElem}) = sort(a; by=abs)
+_sort(a::Vector{QQFieldElem}) = sort(a; by=abs)
 _sort(a::Vector{<:PolyRingElem{<:FieldElem}}) = sort(a; by=degree)
+
+function _gcdx_rec(v::Vector{QQFieldElem})
+  a = first(v)
+  coeff = [zero(a) for i in 1:length(v)]
+  coeff[1] = inv(a)
+  return one(a), coeff
+end
 
 function _gcdx_rec(v::Vector)
   @assert !isempty(v)
