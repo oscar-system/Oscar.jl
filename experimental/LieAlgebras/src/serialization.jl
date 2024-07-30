@@ -51,9 +51,11 @@ end
 
 function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
   R = load_typed_object(s, :base_ring)
-  summands = Oscar.load_array_node(s, :summands) do _
-    Oscar.load_ref(s)
-  end
+  summands = Vector{LieAlgebra{elem_type(R)}}(
+    Oscar.load_array_node(s, :summands) do _
+      Oscar.load_ref(s)
+    end,
+  )
 
   return direct_sum(R, summands)
 end
