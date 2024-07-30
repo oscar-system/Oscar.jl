@@ -2,7 +2,7 @@
     perturbed_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering, p::Int)
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using 
-the Groebner Walk with the algorithm proposed by TODO: reference.
+the Groebner Walk with the algorithm proposed by [Tra00](@cite).
 
 # Arguments
 - `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
@@ -56,7 +56,7 @@ perturbed_walk(
     perturbed_vector(G::Oscar.IdealGens, M::ZZMatrix, p::Int)
 
 Computes a perturbed vector using a matrix `M` representing some monomial order
-for one iteration of the Groebner walk according to Tran (2000), Thm. 3.1.
+for one iteration of the Groebner walk according to [Tra00](@cite), Thm. 3.1.
 
 # Arguments
 - `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
