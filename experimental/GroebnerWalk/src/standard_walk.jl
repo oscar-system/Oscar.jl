@@ -2,7 +2,7 @@
     standard_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk
-using the algorithm proposed by Collart, Kalkbrener & Mall (1997).
+using the algorithm proposed by [CKM97](@cite).
 
 # Arguments
 - `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
@@ -24,7 +24,7 @@ end
    standard_walk(G::Oscar.IdealGens, target::MonomialOrdering, current_weight::Vector{ZZRingElem}, target_weight::Vector{ZZRingElem})
 
 Compute a reduced Groebner basis w.r.t. to the monomial order `target` by converting it using the Groebner Walk
-using the algorithm proposed by Collart, Kalkbrener & Mall (1997).
+using the algorithm proposed by [CKM97](@cite).
 
 # Arguments
 - `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
@@ -163,7 +163,7 @@ end
 Returns a list of "bounding vectors" of a Gröbner basis of `I`, as pairs of 
 "exponent vector of leading monomial" and "exponent vector of tail monomial".
 The bounding vectors form an H-description of the Gröbner cone. 
-(cf. "Using algebraic geometry", pg. 437 (CLO, 2005)) TODO: consistent citations, compare with OSCAR
+(cf. p. 437 [CLO05](@cite)) 
 """
 function bounding_vectors(I::Oscar.IdealGens)
   # TODO: Marked Gröbner basis
@@ -185,7 +185,7 @@ end
     )
 
 Computes an inclusion minimal Gröbner basis with respect to `target` according to the
-lifting step from Proposition 3.2 of "The generic Gröbner walk" (Fukuda et al., 2005)
+lifting step from Proposition 3.2 of [FJLT07](@cite).
 
 # Arguments
 - `G::Oscar.IdealGens`: The reduced Gröbner basis of I

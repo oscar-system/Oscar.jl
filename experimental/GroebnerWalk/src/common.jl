@@ -8,7 +8,8 @@
       algorithm::Symbol = :standard
     )
 
-Compute a reduced Groebner basis w.r.t. to a monomial ordering by converting it using the Groebner Walk.
+Compute a reduced Groebner basis w.r.t. to the monomial ordering  `target` by converting it 
+from a Groebner basis with respect to the ordering `start` using the Groebner Walk.
 
 # Arguments
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
@@ -126,7 +127,7 @@ Replaces every element of G by the normal form with respect to the remaining ele
 function autoreduce(G::Oscar.IdealGens)
   generators = collect(gens(G))
 
-  for i in 1:length(gens(G))
+  for i in 1:ngens(G)
     generators[i] = reduce(
       generators[i], generators[1:end .!= i]; ordering=G.ord, complete_reduction=true
     )
