@@ -2,6 +2,7 @@
 # which are big in the sense that copying them around in memory 
 # for sorting is expensive.
 include("Types.jl")
+include("HeapDictSRow.jl")
 
 ### `HeapNode`
 # A minimal data structure for nodes in binary trees holding the data

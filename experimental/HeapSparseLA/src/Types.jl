@@ -60,4 +60,36 @@ mutable struct HeapSMat{T}
   end
 end
 
+mutable struct BinaryHeap{T}
+  content::Vector{T}
+  is_heapified::Bool
+
+  function BinaryHeap(a::Vector{T}; is_heapified::Bool=false) where T
+    result = new{T}(copy(a), is_heapified)
+  end
+end
+
+mutable struct HeapDictSRow{IndexType, T}
+  R::NCRing
+  indices::BinaryHeap{IndexType}
+  coeffs::Dict{IndexType, T}
+
+  function HeapDictSRow(
+      R::NCRing, ind::Vector{IndexType}, vals::Vector{T}
+    ) where {IndexType, T}
+    @assert length(ind) == length(vals)
+    @assert all(parent(x) === R for x in vals)
+    coeffs = Dict{IndexType, T}(i=>v for (i, v) in zip(ind, vals))
+    indices = BinaryHeap(ind)
+    return new{IndexType, T}(R, indices, coeffs)
+  end
+
+  function HeapDictSRow(v::HeapDictSRow{I, T}) where {I, T}
+    result = new{I, T}()
+    result.R = v.R
+    result.indices = copy(v.indices)
+    result.coeffs = copy(v.coeffs)
+    return result
+  end
+end
 

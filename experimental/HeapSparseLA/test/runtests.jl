@@ -81,3 +81,24 @@ end
   @test Oscar.HeapSMat(S1) == S0
 end
 
+@testset "heap-dict vectors" begin
+  k = 100000
+  i = unique!([rand(1:10*k) for i in 1:k])
+  v = [ZZ(rand(1:10))^10000 for i in 1:length(i)]
+  a = Oscar.HeapDictSRow(ZZ, i, v)
+  aa = sparse_row(a)
+  i = unique!([rand(1:10*k) for i in 1:k])
+  v = [ZZ(rand(1:10))^10000 for i in 1:length(i)]
+  b = Oscar.HeapDictSRow(ZZ, i, v)
+  bb = sparse_row(b)
+
+  # For comparison of timings do 
+  # julia> c = copy(a); @time w = add!(c, b);
+  #   0.042619 seconds (27.40 k allocations: 41.765 MiB, 17.17% gc time)
+  #
+  # julia> cc = copy(aa); @time cc += bb;
+  #   0.226098 seconds (192.12 k allocations: 510.190 MiB, 5.40% gc time)
+
+  aa += bb
+  @test sparse_row(add!(a, b)) == aa
+end
