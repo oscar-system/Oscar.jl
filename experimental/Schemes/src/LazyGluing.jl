@@ -132,4 +132,3 @@ end
 # Method for compatibility with internal methods of the gluings
   
 Gluing(g::LazyGluing) = Gluing(underlying_gluing(g))
-

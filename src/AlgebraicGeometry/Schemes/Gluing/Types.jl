@@ -118,4 +118,3 @@ Concrete instance of an `AbsGluing` for gluings of affine schemes
               }(X, Y, U, V, f, g)
   end
 end
-

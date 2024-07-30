@@ -96,6 +96,22 @@ function disjoint_union(C1::Covering, C2::Covering)
   for (X, Y) in keys(gluings(C2))
     add_gluing!(C, C2[X, Y])
   end
+  for X in patches(C1)
+    for Y in patches(C2)
+      add_gluing!(C, disjoint_gluing(X, Y))
+    end
+  end
   return C
 end
 
+# legacy for the test
+function _disjoint_union_raw(C1::Covering, C2::Covering)
+  C = Covering(vcat(patches(C1), patches(C2)))
+  for (X, Y) in keys(gluings(C1))
+    add_gluing!(C, C1[X, Y])
+  end
+  for (X, Y) in keys(gluings(C2))
+    add_gluing!(C, C2[X, Y])
+  end
+  return C
+end

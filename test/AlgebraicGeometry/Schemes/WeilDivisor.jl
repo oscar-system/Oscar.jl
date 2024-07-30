@@ -24,7 +24,7 @@
 
   # Join the resulting schemes in a disjoint union with two
   # components
-  C = disjoint_union(Cs, Ct)
+  C = Oscar._disjoint_union_raw(Cs, Ct)
 
   # Manually glue two (dense) patches of the two components
   X = Cs[3]
