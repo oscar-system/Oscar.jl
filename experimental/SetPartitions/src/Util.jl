@@ -150,7 +150,7 @@ function simplify_operation(partition_sum::Vector{Tuple{S, T}}) where { S <: Abs
         partitions[i1] = get(partitions, i1, 0) + i2
     end
     
-    return [(s, t) for (s, t) in partitions]
+    return [(s, t) for (s, t) in partitions if !iszero(t)]
 end
 
 """
