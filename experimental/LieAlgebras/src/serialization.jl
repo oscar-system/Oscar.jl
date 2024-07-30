@@ -59,3 +59,28 @@ function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
 
   return direct_sum(R, summands)
 end
+
+@register_serialization_type AbstractLieAlgebraElem uses_params
+@register_serialization_type LinearLieAlgebraElem uses_params
+@register_serialization_type DirectSumLieAlgebraElem uses_params
+
+function save_object(s::SerializerState, x::LieAlgebraElem)
+  save_object(s, coefficients(x))
+end
+
+function load_object(s::DeserializerState, ::Type{<:LieAlgebraElem}, L::LieAlgebra)
+  return L(load_object(s, Vector, coefficient_ring(L)))
+end
+
+function save_type_params(s::SerializerState, x::LieAlgebraElem)
+  save_data_dict(s) do
+    save_object(s, Oscar.encode_type(typeof(x)), :name)
+    parent_x = parent(x)
+    parent_ref = Oscar.save_as_ref(s, parent_x)
+    save_object(s, parent_ref, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraElem})
+  return load_typed_object(s)
+end

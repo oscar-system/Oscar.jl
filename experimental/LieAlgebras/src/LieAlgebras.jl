@@ -90,6 +90,8 @@ import ..Oscar:
   weyl_vector,
   word,
   zero_map,
+  save_type_params,
+  load_type_params,
   ⊕,
   ⊗
 
