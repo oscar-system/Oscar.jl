@@ -4,26 +4,21 @@
       I::MPolyIdeal, 
       target::MonomialOrdering = lex(base_ring(I)),
       start::MonomialOrdering = default_ordering(base_ring(I));
-      perturbation_degree = length(gens(base_ring(I))),
+      perturbation_degree = ngens(base_ring(I)),
       algorithm::Symbol = :standard
     )
 
 Compute a reduced Groebner basis w.r.t. to a monomial ordering by converting it using the Groebner Walk.
-The Groebner Walk is proposed by Collart, Kalkbrener & Mall (1997).
-One can choose a strategy of:
-- Standard Walk (:standard) computes the Walk like as presented in Cox, Little & O'Shea (2005).
-- Generic Walk (:generic) computes the Walk as presented in Fukuda, Jensen, Lauritzen & Thomas (2005).
-- Perturbed Walk (:perturbed, with p = degree of the perturbation) computes the Walk as presented in Amrhein, Gloor & Küchlin (1997).
 
 # Arguments
 - `I::MPolyIdeal`: ideal one wants to compute a Groebner basis for.
 - `target::MonomialOrdering=:lex`: monomial ordering one wants to compute a Groebner basis for.
 - `start::MonomialOrdering=:degrevlex`: monomial ordering to begin the conversion.
 - `perturbationDegree::Int=2`: the perturbation degree for the perturbed Walk.
-- `algorithm::Symbol=standard`: strategy of the Groebner Walk. One can choose between:
-    - `standard`: Standard Walk,
-    - `generic`: Generic Walk,
-    - `perturbed`: Perturbed Walk,
+- `algorithm::Symbol=:standard`: strategy of the Groebner Walk. One can choose between:
+    - `standard`: Standard Walk [CLO05](@cite),
+    - `generic`: Generic Walk [FJLT07](@cite),
+    - `perturbed`: Perturbed Walk [AGK96](@cite).
 
 # Examples
 
