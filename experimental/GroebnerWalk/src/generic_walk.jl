@@ -2,7 +2,7 @@
     generic_walk(G::Oscar.IdealGens, start::MonomialOrdering, target::MonomialOrdering)
 
 Compute a reduced Groebner basis w.r.t. to a monomial order by converting it using the Groebner Walk
-using the algorithm proposed by Collart, Kalkbrener & Mall (1997).
+using the algorithm proposed by [CKM97](@cite).
 
 # Arguments
 - `G::Oscar.IdealGens`: Groebner basis of an ideal with respect to a starting monomial order.
@@ -133,7 +133,7 @@ end
     lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
 
 Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked Gröbner basis `H` of initial forms,
-lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
+lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to [FJT07](@cite).
 """
 function lift_generic(MG::MarkedGroebnerBasis, H::MarkedGroebnerBasis)
   return map(1:length(H.gens)) do i
@@ -145,7 +145,7 @@ end
     lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
 
 Given a marked Gröbner basis `MG` generating an ideal $I$ and a reduced marked Gröbner basis `H` of initial forms,
-lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to Fukuda, 2007.
+lift H to a marked Gröbner basis of I (with unknown ordering) by subtracting initial forms according to [FJT07](@cite).
 This changes `H` in-place.
 """
 function lift_generic!(H::MarkedGroebnerBasis, MG::MarkedGroebnerBasis)
