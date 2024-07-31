@@ -256,6 +256,10 @@ function mul!(a::T, v::HeapDictSRow{I, T}) where {I, T}
   @hassert :SparseLA 3 is_sane(v)
   for (i, c) in v.coeffs
     v.coeffs[i] *= a
+    if iszero(v.coeffs[i])
+      delete!(v.coeffs, i)
+      delete!(v.indices, i)
+    end
   end
   @hassert :SparseLA 3 is_sane(v)
   return v
@@ -298,6 +302,12 @@ function mul!(v::HeapDictSRow{I, ET}, A::HeapSMat{ET, HeapDictSRow{I, ET}}) wher
   m = nrows(A)
   n = ncols(A)
   result = typeof(v)(R)
+  isempty(v) && return result
+  # shortcut to avoid one extra allocation
+  if isone(length(v))
+    i, c = pivot(v)
+    return c*A[i]
+  end
   return sum(c*A[i] for (i, c) in v.coeffs; init=result)
 end
 
@@ -340,5 +350,9 @@ function is_sane(v::HeapDictSRow)
   length(v.indices.content) == length(v.coeffs) || error("double indices")
   any(iszero(x) for x in values(v.coeffs)) && error("zero value found")
   return true
+end
+
+function density(A::HeapSMat)
+  return sum(length(v) for v in A.rows; init=0)/(ncols(A)*nrows(A))
 end
 

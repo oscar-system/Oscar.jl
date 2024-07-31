@@ -283,6 +283,8 @@ end
 # Find the first index `i` for which `v` has a non-zero entry, 
 # compute the value `c` for this entry, remove that entry 
 # from `v` and return a node holding the information `(i, c)`.
+Base.pop!(v::HeapSRow) = pop_top_node!(v)
+
 function pop_top_node!(v::HeapSRow)
   isempty(v) && return nothing
   n = top_node(v)
@@ -781,7 +783,7 @@ function upper_triangular_form!(A::SMatType) where {ET, RT, SMatType <: HeapSMat
     coeff_vec = RT(R, [(j, c) for (j, c) in zip(cand, coeff) if !iszero(c)])
     # compile the new line which will be added to A
     new_line = consolidate!(coeff_vec*A)
-    push!(A, new_line)
+    push!(A, copy(new_line))
     # update the base change matrix
     push!(S, coeff_vec*S)
 
@@ -790,6 +792,11 @@ function upper_triangular_form!(A::SMatType) where {ET, RT, SMatType <: HeapSMat
     c = [divexact(g, res) for g in g]
 
     w = consolidate!(copy(S[nrows(S)]))
+    # we can remove the pivots from A already, as we know they will cancel
+    for i in cand
+      pop!(A[i])
+    end
+    pop!(new_line)
     for (k, mu) in zip(cand, c)
       A[k] = add!(A[k], -mu*new_line)
       S[k] = add!(S[k], -mu*w)
@@ -817,12 +824,19 @@ function upper_triangular_form!(A::SMat)
     # compile the new line which will be added to A
     new_line = coeff_vec*A
     push!(A, new_line)
+    # push!(A, copy(new_line))
     push!(S, coeff_vec*S)
 
     push!(T_trans, sparse_row(R))
     c = [divexact(g, res) for g in g]
 
     w = S[nrows(S)]
+    # we can remove the pivots from A already, as we know they will cancel
+    # But for SRow this makes the number of allocations go up!
+    # for i in cand
+    #   pop!(A[i])
+    # end
+    # pop!(new_line)
     for (k, mu) in zip(cand, c)
       A[k] = A[k] - mu*new_line
       S[k] = S[k] - mu*w
@@ -830,6 +844,17 @@ function upper_triangular_form!(A::SMat)
     T_trans[nrows(T_trans)] += sum(c*T_trans[k] for (k, c) in zip(cand, c); init=sparse_row(R))
   end
   return A[m0+1:nrows(A)], S[m0+1:nrows(S)], transpose(T_trans[m0+1:nrows(T_trans)])
+end
+
+function Base.pop!(v::SRow)
+  isempty(v) && return nothing
+  i = popfirst!(v.pos)
+  c = popfirst!(v.values)
+  while first(v.pos) == i
+    c += popfirst!(v.values)
+    popfirst!(v.pos)
+  end
+  return i, c
 end
 
 # An extension of `gcdx` to multiple arguments.
