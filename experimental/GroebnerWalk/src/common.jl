@@ -47,10 +47,10 @@ julia> set_verbosity_level(:groebner_walk, 1);
 julia> groebner_walk(I, lex(R))
 Results for standard_walk
 Crossed Cones in: 
+ZZRingElem[1, 1]
 ZZRingElem[4, 3]
 ZZRingElem[4, 1]
 ZZRingElem[12, 1]
-ZZRingElem[1, 0]
 Cones crossed: 4
 Gröbner basis with elements
   1 -> x + y^12 - y^8 + y^4
