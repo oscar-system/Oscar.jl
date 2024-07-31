@@ -815,6 +815,7 @@ end
     model_index(m::AbstractFTheoryModel)
 Return database index of a literature model. This index is a unique identifier that can be used to more conveniently construct the model. 
 All models have a model_index and these will not change in the future.
+
 ```jldoctest
 julia> t = literature_model(31)
 Assuming that the first row of the given grading is the grading under Kbar
@@ -1071,10 +1072,12 @@ end
 
 @doc raw"""
     global_gauge_quotients(m::AbstractFTheoryModel)
-Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by gauge_algebra(m).
+
+Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
 These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
-This list combined with gauge_algebra(m) completely determines the gauge group of the model.
+This list combined with `gauge_algebra(m)` completely determines the gauge group of the model.
 If no gauge quotients are known, an error is raised.
+
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
 Assuming that the first row of the given grading is the grading under Kbar
