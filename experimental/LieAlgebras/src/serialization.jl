@@ -1,3 +1,9 @@
+###############################################################################
+#
+#   Lie algebras
+#
+###############################################################################
+
 @register_serialization_type AbstractLieAlgebra uses_id
 
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
@@ -9,7 +15,7 @@ function save_object(s::SerializerState, L::AbstractLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{AbstractLieAlgebra})
+function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra})
   R = load_typed_object(s, :base_ring)
   struct_consts = load_object(s, Matrix, (sparse_row_type(R), R), :struct_consts)
   symbs = load_object(s, Vector, Symbol, :symbols)
@@ -30,7 +36,7 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{LinearLieAlgebra})
+function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra})
   R = load_typed_object(s, :base_ring)
   n = load_object(s, Int, :n)
   basis = load_object(s, Vector, (dense_matrix_type(R), matrix_space(R, n, n)), :basis)
@@ -55,7 +61,7 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{DirectSumLieAlgebra})
+function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra})
   R = load_typed_object(s, :base_ring)
   summands = Vector{LieAlgebra{elem_type(R)}}(
     load_array_node(s, :summands) do _
