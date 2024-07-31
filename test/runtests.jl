@@ -79,7 +79,7 @@ end
 
 testlist = Oscar._gather_tests("test")
 
-for exp in [Oscar.exppkgs; Oscar.oldexppkgs]
+for exp in Oscar.exppkgs
   path = joinpath(Oscar.oscardir, "experimental", exp, "test")
   if isdir(path)
     append!(testlist, Oscar._gather_tests(path))
@@ -111,6 +111,7 @@ test_large = [
               "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
               "experimental/QuadFormAndIsom/test/runtests.jl",
               "experimental/GModule/test/runtests.jl",
+              "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
               "test/Modules/ModulesGraded.jl",
               "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
              ]

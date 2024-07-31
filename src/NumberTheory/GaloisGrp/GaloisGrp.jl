@@ -2172,7 +2172,7 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{ZZRingEle
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
-    lz = lift(l)
+    lz = lift(ZZ, l)
     lz = Hecke.mod_sym(lz, ZZRingElem(p)^precision(l))
     if abs(lz) < value(B)
       return true, lz

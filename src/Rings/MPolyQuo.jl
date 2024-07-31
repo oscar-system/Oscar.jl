@@ -208,7 +208,7 @@ HasNormalFormTrait(::Type{<:Field}) = HasSingularNormalForm()
 # For polynomial rings over the integers we can compute Gröbner bases but
 # in general can not compute normal forms.
 HasGroebnerAlgorithmTrait(::Type{ZZRing}) = HasSingularGroebnerAlgorithm()
-HasGroebnerAlgorithmTrait(::Type{Nemo.zzModRing}) = HasSingularGroebnerAlgorithm()
+HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
 # This list can (and should) be extended by eventual new types which 
 # are supposed to make use of the Singular backend; see above.
@@ -642,6 +642,7 @@ function ideal(A::MPolyQuoRing{T}, V::Vector{T}) where T <: MPolyRingElem
   end
   return MPolyQuoIdeal(A, V)
 end
+
 function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MPolyRingElem
   #@assert length(V) > 0
   if length(V) == 0
@@ -652,6 +653,9 @@ function ideal(A::MPolyQuoRing{T}, V::Vector{MPolyQuoRingElem{T}}) where T <: MP
   end
   return MPolyQuoIdeal(A, ideal(base_ring(A), map(p->p.f, V)))
 end
+
+ideal(R::MPolyQuoRing, V::Vector) = ideal(R, elem_type(R)[R(x) for x in V])
+
 
 function ideal(A::MPolyQuoRing{T}, x::T) where T <: MPolyRingElem
   return ideal(A,[x])
@@ -1885,36 +1889,50 @@ symbols(A::MPolyQuoRing) = symbols(base_ring(A))
 # Tensor products of rings
 ########################################################################
 
-function tensor_product(A::MPolyRing, B::MPolyRing)
+function tensor_product(A::MPolyRing, B::MPolyRing; use_product_ordering::Bool = false)
   kk = coefficient_ring(A)
   @assert kk === coefficient_ring(B) "coefficient rings do not coincide"
   res, a, b = polynomial_ring(kk, symbols(A), symbols(B); cached=false)
+  if use_product_ordering
+    o = induce(gens(res)[1:ngens(A)], default_ordering(A))*induce(gens(res)[ngens(A) + 1:end], default_ordering(B))
+    set_default_ordering!(res, o)
+  end
   return res, hom(A, res, a), hom(B, res, b)
 end
 
-function tensor_product(A::MPolyRing, B::MPolyQuoRing)
+function tensor_product(A::MPolyRing, B::MPolyQuoRing; use_product_ordering::Bool = false)
   R = base_ring(B)
   AR, inc_A, inc_R = tensor_product(A, R)
   I = ideal(AR, inc_R.(gens(modulus(B))))
-  res, pr = quo(R, I)
-  return res, compose(inc_A, pr), hom(B, res, pr.(inc_R.(gens(R))))
+  res, pr = quo(AR, I)
+  if use_product_ordering
+    o = induce(gens(AR)[1:ngens(A)], default_ordering(A))*induce(gens(AR)[ngens(A) + 1:end], default_ordering(B))
+    set_default_ordering!(AR, o)
+  end
+  return res, hom(A, res, pr.(inc_A.(gens(A))); check = false), hom(B, res, pr.(inc_R.(gens(R))); check = false)
 end
 
-function tensor_product(A::MPolyQuoRing, B::MPolyQuoRing)
+function tensor_product(A::MPolyQuoRing, B::MPolyQuoRing; use_product_ordering::Bool = false)
   RA = base_ring(A)
   RB = base_ring(B)
   P, inc_A, inc_B = tensor_product(RA, RB)
   I = ideal(P, inc_A.(gens(modulus(A)))) + ideal(P, inc_B.(gens(modulus(B))))
-  res, pr = quo(R, I)
+  res, pr = quo(P, I)
+  if use_product_ordering
+    o = induce(gens(P)[1:ngens(A)], default_ordering(A))*induce(gens(P)[ngens(A) + 1:end], default_ordering(B))
+    set_default_ordering!(P, o)
+  end
   return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(RB))); check=false)
 end
 
-function tensor_product(A::MPolyQuoRing, B::MPolyRing)
+function tensor_product(A::MPolyQuoRing, B::MPolyRing; use_product_ordering::Bool = false)
   RA = base_ring(A)
   P, inc_A, inc_B = tensor_product(RA, B)
   I = ideal(P, inc_A.(gens(modulus(A))))
-  res, pr = quo(R, I)
-  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), compose(inc_B, pr)
+  res, pr = quo(P, I)
+  if use_product_ordering
+    o = induce(gens(P)[1:ngens(A)], default_ordering(A))*induce(gens(P)[ngens(A) + 1:end], default_ordering(B))
+    set_default_ordering!(P, o)
+  end
+  return res, hom(A, res, pr.(inc_A.(gens(RA))); check=false), hom(B, res, pr.(inc_B.(gens(B))); check = false)
 end
-
-

@@ -78,7 +78,7 @@ represented by
 function function_field(X::AbsCoveredScheme; check::Bool=true)
   return get_attribute!(X, :function_field) do
     VarietyFunctionField(X, check=check)
-  end
+  end::VarietyFunctionField  # can't make this more concrete just using the type of X
 end
 
 ########################################################################

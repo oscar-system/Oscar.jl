@@ -45,5 +45,6 @@ polyhedra_of_dim
 rays(PC::PolyhedralComplex{T}) where T<:scalar_types
 rays_modulo_lineality(PC::PolyhedralComplex{T}) where T<:scalar_types
 vertices(PC::PolyhedralComplex)
+vertices_and_rays(PC::PolyhedralComplex{T}) where T<:scalar_types
 ```
 

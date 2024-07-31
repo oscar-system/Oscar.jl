@@ -1837,7 +1837,7 @@ function signatures(Lf::ZZLatWithIsom)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
   C = CalciumField()
-  eig = eigenvalues(QQBar, f)
+  eig = eigenvalues(algebraic_closure(QQ), f)
   lambda = C(eig[1])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()

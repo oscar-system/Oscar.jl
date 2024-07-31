@@ -1796,7 +1796,11 @@ end
 
 function _embedded_ring_ordering(o::ModProdOrdering)
   ea = _embedded_ring_ordering(o.a)
-  shift = maximum(ea.vars)
+  if ea isa ProdOrdering
+    shift = maximum([ea.a.vars;ea.b.vars])
+  else
+    shift = maximum(ea.vars)
+  end
   eb = _embedded_ring_ordering(o.b)
   eb.vars .+= shift 
   return ea*eb

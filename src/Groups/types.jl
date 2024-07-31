@@ -450,7 +450,6 @@ function _oscar_subgroup(obj::GapObj, G::GAPGroup)
   @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
-#T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
 function _oscar_subgroup(obj::GapObj, G::PermGroup)

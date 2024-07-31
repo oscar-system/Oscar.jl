@@ -4,7 +4,6 @@
 
 using Oscar
 
-import Oscar.Nemo.zzModRing
 import Oscar: base_ring, base_ring_type, inverted_set, ring, localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 

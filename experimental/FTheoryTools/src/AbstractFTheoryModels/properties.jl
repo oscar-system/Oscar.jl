@@ -80,7 +80,7 @@ has_paper_authors(m::AbstractFTheoryModel) = has_attribute(m, :paper_authors)
 has_paper_buzzwords(m::AbstractFTheoryModel) = has_attribute(m, :paper_buzzwords)
 has_paper_description(m::AbstractFTheoryModel) = has_attribute(m, :paper_description)
 has_paper_title(m::AbstractFTheoryModel) = has_attribute(m, :paper_title)
-has_related_literature_models(m::AbstractFTheoryModel) = has_attribute(m, :related_literature_models)
+has_birational_literature_models(m::AbstractFTheoryModel) = has_attribute(m, :birational_literature_models)
 
 
 
@@ -96,3 +96,5 @@ has_weighted_resolutions(m::AbstractFTheoryModel) = has_attribute(m, :weighted_r
 has_weighted_resolution_generating_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_generating_sections)
 has_weighted_resolution_zero_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_zero_sections)
 has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
+has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
+has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)

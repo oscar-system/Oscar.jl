@@ -43,3 +43,36 @@ function load_object(s::DeserializerState, ::Type{ToricDivisor}, tv::NormalToric
   pmdiv = Polymake._lookup_multi(pm_object(tv), "DIVISOR", index-1)
   return ToricDivisor(pmdiv, tv, coeffs)
 end
+
+################################################################################
+# Torus invariant divisor classes on toric varieties
+@register_serialization_type ToricDivisorClass uses_params
+
+function save_type_params(s::SerializerState, obj::ToricDivisorClass)
+  save_data_dict(s) do
+    save_object(s, encode_type(ToricDivisorClass), :name)
+    save_typed_object(s, obj.toric_variety, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:ToricDivisorClass})
+  return load_typed_object(s)
+end
+
+function save_object(s::SerializerState, tdc::ToricDivisorClass)
+  save_object(s, toric_divisor(tdc).coeffs)
+end
+
+function load_object(s::DeserializerState, ::Type{ToricDivisorClass}, tv::NormalToricVarietyType)
+  coeffs = load_object(s, Vector, ZZRingElem)
+  all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
+  index = 0
+  for i in 1:length(all)
+    if Vector{ZZRingElem}(all[i].COEFFICIENTS) == coeffs
+      index = i
+      break
+    end
+  end
+  pmdiv = Polymake._lookup_multi(pm_object(tv), "DIVISOR", index-1)
+  return toric_divisor_class(ToricDivisor(pmdiv, tv, coeffs))
+end

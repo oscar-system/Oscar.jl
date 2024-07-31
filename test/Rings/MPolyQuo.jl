@@ -336,3 +336,29 @@ end
   @test Oscar.HasGroebnerAlgorithmTrait(R1) isa Oscar.HasRingFlattening
   @test Oscar.HasGroebnerAlgorithmTrait(one(R1)) isa Oscar.HasRingFlattening
 end
+
+@testset "Tensor product" begin
+  R, x = polynomial_ring(QQ, 3, "x")
+  S, y = polynomial_ring(QQ, 4, "y")
+
+  @test_throws AssertionError tensor_product(R, GF(3)["x", "y"][1])
+
+  I = ideal(R, [x[1]])
+  J = ideal(S, [y[1]])
+  for A in [R, quo(R, I)[1]]
+    for B in [S, quo(S, J)[1]]
+      T, AtoT, BtoT = tensor_product(A, B)
+
+      @test ngens(T) == 7
+      @test is_zero(kernel(AtoT))
+      @test is_zero(kernel(BtoT))
+
+      v = append!(AtoT.(gens(A)), BtoT.(gens(B)))
+      @test v == gens(T)
+
+      T, _, _ = tensor_product(A, B, use_product_ordering = true)
+      @test default_ordering(T).o isa Oscar.Orderings.ProdOrdering
+      @test cmp(default_ordering(T), lift(gen(T, ngens(A))), lift(gen(T, ngens(A) + 1))) == 1
+    end
+  end
+end

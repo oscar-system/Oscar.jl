@@ -63,7 +63,7 @@ julia> pushfirst!(im, hom(FF, FF, matrix(C, [0 1; 1 0])));
 julia> phi = gmodule(G, im);
 
 julia> character(phi)
-class_function(character table of G, QQAbElem{AbsSimpleNumFieldElem}[2, 0, -1, 2, 0])
+class_function(character table of G, [2, 0, -1, 2, 0])
 
 julia> schur_index(ans)
 1
@@ -71,7 +71,7 @@ julia> schur_index(ans)
 julia> T = matrix(C, [C(1) -z; z+1 z]);
 
 julia> [matrix(x)^T for x in action(phi)]
-4-element Vector{AbstractAlgebra.Generic.MatSpaceElem{QQAbElem{AbsSimpleNumFieldElem}}}:
+4-element Vector{AbstractAlgebra.Generic.MatSpaceElem{QQAbFieldElem{AbsSimpleNumFieldElem}}}:
  [1 0; -1 -1]
  [0 1; -1 -1]
  [1 0; 0 1]

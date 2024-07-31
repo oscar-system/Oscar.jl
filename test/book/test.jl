@@ -24,7 +24,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
+             #"specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
              # very slow: 24000s
              "cornerstones/number-theory/cohenlenstra.jlcon",
              # ultra slow: time unknown
@@ -32,7 +32,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+             #"specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
             ]
 
   dispsize = (40, 130)

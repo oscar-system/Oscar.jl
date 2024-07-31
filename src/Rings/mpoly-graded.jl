@@ -4,6 +4,9 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
+  multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
+
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
@@ -1661,7 +1664,7 @@ struct Homogenizer
     WH = hcat(Matrix(W[:, 1:(pos-1)]),
               Matrix(identity_matrix(ZZ, grading_dimension)),
               Matrix(W[:, pos:n]))
-    P_homog,_ = graded_polynomial_ring(base_ring(P), vars; weights = [G(WH[:, i]) for i = 1:size(WH, 2)])
+    P_homog,_ = graded_polynomial_ring(base_ring(P), vars; weights = [G(WH[:, i]) for i = 1:size(WH, 2)], cached = false)
 
     VarMap = vcat(1:pos-1, pos+grading_dimension:n+grading_dimension)
     HVars = collect(pos:pos+grading_dimension-1)

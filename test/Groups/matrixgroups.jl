@@ -657,7 +657,7 @@ end
       @test parent(s)==G
       @test parent(u)==G
       @test is_coprime(order(s),3)
-      @test isone(u) || is_power(order(u))[2]==3
+      @test isone(u) || is_perfect_power_with_data(order(u))[2]==3
       @test is_semisimple(s)
       @test is_unipotent(u)
       @test s*u==G(x)

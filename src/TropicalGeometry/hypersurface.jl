@@ -189,7 +189,7 @@ Return the polynomial over a valued field used to construct `TropH`.  Raises an 
 """
 function algebraic_polynomial(TropH::TropicalHypersurface)
     @req has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
-    return get_attribute(TropH,:algebraic_polynomial)
+    return get_attribute(TropH, :algebraic_polynomial)::MPolyRingElem
 end
 
 
@@ -239,7 +239,7 @@ julia> maximal_cells(sop)
 """
 function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
     @req has_attribute(TropH,:dual_subdivision) "no dual subdivision cached"
-    return get_attribute(TropH,:dual_subdivision)
+    return get_attribute(TropH, :dual_subdivision)::SubdivisionOfPoints
 end
 
 
@@ -248,9 +248,9 @@ end
 
 Return the tropical polynomial used to construct `TropH`.  Raises an error if it is not cached.
 """
-function tropical_polynomial(TropH::TropicalHypersurface)
+function tropical_polynomial(TropH::TropicalHypersurface{minOrMax}) where minOrMax
     @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
-    return get_attribute(TropH,:tropical_polynomial)
+    return get_attribute(TropH,:tropical_polynomial)::mpoly_type(TropicalSemiringElem{minOrMax})
 end
 
 

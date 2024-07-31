@@ -1031,6 +1031,60 @@ function min_revlex_basis_encoding(M::Matroid)
 end
 
 @doc raw"""
+    matroid_hex(M::Matroid)
+
+Stores a matroid as a string of hex characters. The first part of the string is "r" followed by the rank of the matroid. This is followed by "n" and the number of elements. The rest of the string is the revlex basis encoding. The encoding is done by converting the basis encoding to a vector of bits and then to a string of characters. The bits are padded to a multiple of 4 and then converted to hex characters.
+
+# Examples
+To get the hex encoding of the fano matroid write:
+```jldoctest
+julia> matroid_hex(fano_matroid())
+"r3n7_3f7eefd6f"
+
+```
+"""
+function matroid_hex(M::Matroid)
+  rvlx = min_revlex_basis_encoding(M)
+  r,n = rank(M), length(M) 
+
+  v = _revlex_basis_to_vector(rvlx)
+  for _ in 1:(4-length(v)%4)
+    pushfirst!(v,0)
+  end
+  v = reshape(v,4,:)
+  v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
+
+  return "r$(r)n$(n)_" * join(v)
+end
+
+@doc raw"""
+    matroid_from_matroid_hex(str::AbstractString)
+
+Returns a matroid from a string of hex characters.
+
+# Examples
+To retrieve the fano matroid from its hex encoding write:
+
+```jldoctest
+julia> matroid_from_matroid_hex("r3n7_3f7eefd6f")
+Matroid of rank 3 on 7 elements
+
+```
+"""
+function matroid_from_matroid_hex(str::AbstractString)
+  @req occursin(r"^r\d+n\d+_[0-9a-f]+$", str) "Invalid hex encoding"
+
+  sep = split(str, "_")
+  (r,n) = parse.(Int,split(sep[1][2:end],"n"))
+
+  v = [digits(parse(Int, x, base=16), base=2, pad=4) |> reverse for x in sep[2]]
+  v = foldl(append!, v)
+  v = v[(length(v)-binomial(n, r)+1):end]
+
+  return matroid_from_revlex_basis_encoding(_revlex_basis_from_vector(v), r, n)
+end
+
+@doc raw"""
     is_isomorphic(M1::Matroid, M2::Matroid)
 
 Checks if the matroid `M1` is isomorphic to the matroid `M2` under the action of the symmetric group that acts on their groundsets.

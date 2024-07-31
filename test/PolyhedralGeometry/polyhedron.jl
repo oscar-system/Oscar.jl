@@ -46,7 +46,6 @@
     @test !([-1, -1] in Q0)
     @test n_vertices(Q0) == 3
     @test n_vertices.(faces(Q0, 1)) == [2, 2, 2]
-    if T == QQFieldElem
       @test lattice_points(Q0) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test point_matrix(lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
       @test matrix(ZZ, lattice_points(Q0)) == matrix(ZZ, [0 0; 0 1; 1 0])
@@ -63,6 +62,7 @@
       @test length(boundary_lattice_points(square)) == 8
       @test boundary_lattice_points(square) ==
         [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]
+    if T == QQFieldElem
       @test is_smooth(Q0)
       @test is_normal(Q0)
       @test is_lattice_polytope(Q0)

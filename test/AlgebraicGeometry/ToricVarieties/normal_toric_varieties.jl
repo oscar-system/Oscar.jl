@@ -34,4 +34,13 @@
     ntv5 = normal_toric_variety(polarize(polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))))
     @test ngens(stanley_reisner_ideal(ntv5)) == 1648
   end
+
+  p2 = projective_space(NormalToricVariety, 2)
+  f2 = hirzebruch_surface(NormalToricVariety, 2)
+
+  @testset "Equality of normal toric varieties" begin
+    @test (p2 === f2) == false
+    @test p2 === p2
+    @test_throws ErrorException("Equality of normal toric varieties is computationally very demanding. More details in the documentation.") p2 == f2
+  end
 end

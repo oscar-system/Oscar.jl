@@ -100,7 +100,7 @@ push!(upgrade_scripts_set, UpgradeScript(
     U = reverse_type_map[dict_type]
 
     # Upgrades basic types
-    if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, Nemo.zzModRing}
+    if U <: Union{Number, ZZRingElem, String, Symbol, Bool, QQFieldElem, zzModRing}
       if U === QQFieldElem
         num = dict[:data][:num][:data]
         den = dict[:data][:den][:data]

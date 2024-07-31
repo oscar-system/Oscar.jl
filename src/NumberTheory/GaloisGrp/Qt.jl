@@ -652,7 +652,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
-      l = Hecke.mod_sym(lift(cc), pr^precision(cc))
+      l = Hecke.mod_sym(lift(ZZ, cc), pr^precision(cc))
       if abs(l) > pr^p[1]
         return false, x
       end

@@ -184,7 +184,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # read out the result
         stdout = read(out, String)
-        result = [ZZRingElem(parse(Int, c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
+        result = [parse(ZZRingElem, c) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check
         if length(result) != dim(v)+1
@@ -193,7 +193,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # return result
         return result
-    end
+    end::Vector{ZZRingElem}
 end
 
 

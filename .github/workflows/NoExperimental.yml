@@ -38,7 +38,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: '1.10'
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
@@ -62,7 +62,7 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: '1.10'
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false

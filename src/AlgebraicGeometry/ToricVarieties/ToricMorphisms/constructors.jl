@@ -190,7 +190,7 @@ end
 ####################################################
 
 function Base.:(==)(tm1::ToricMorphism, tm2::ToricMorphism)
-    return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
+    return domain(tm1) === domain(tm2) && codomain(tm1) === codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
 end
 
 function Base.hash(tm::ToricMorphism, h::UInt)

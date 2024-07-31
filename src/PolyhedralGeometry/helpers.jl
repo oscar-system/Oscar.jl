@@ -676,6 +676,14 @@ end
 
 # oscarnumber helpers
 
+function Polymake._fieldelem_to_floor(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(floor(ZZRingElem, e))
+end
+
+function Polymake._fieldelem_to_ceil(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(ceil(ZZRingElem, e))
+end
+
 function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
   return Rational{BigInt}(QQ(e))
 end

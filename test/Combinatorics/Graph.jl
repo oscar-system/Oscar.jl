@@ -160,5 +160,26 @@
         @test n_vertices(G2) == 13
         @test n_edges(G2) == 5
 
+        ei = edges(G2)
+        @test length(ei) == 5
+
+        ee = collect(ei)
+        @test length(ei) == 0
+        @test collect(ei) == Edge[]
+
+        GG2 = graph_from_edges(Undirected, ee, 13)
+        @test is_isomorphic(G2, GG2)
+
+    end
+
+    @testset "adjacency_matrix laplacian_matrix" begin
+      G0 = Graph{Directed}(3)
+      add_edge!(G0,1,2)
+      add_edge!(G0,1,3)
+      @test matrix(ZZ, adjacency_matrix(G0)) == matrix(ZZ, [0 1 1; 0 0 0; 0 0 0])
+      @test laplacian_matrix(G0) == matrix(ZZ, [2 -1 -1; 0 0 0; 0 0 0])
+      G1 = vertex_edge_graph(cube(2))
+      @test matrix(ZZ, adjacency_matrix(G1)) == matrix(ZZ, [0 1 1 0; 1 0 0 1; 1 0 0 1; 0 1 1 0])
+      @test laplacian_matrix(G1) == matrix(ZZ, [2 -1 -1 0; -1 2 0 -1; -1 0 2 -1; 0 -1 -1 2])
     end
 end

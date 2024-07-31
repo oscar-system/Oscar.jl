@@ -19,7 +19,7 @@ phylogenetic_tree
 
 ```@docs
 adjacency_tree
-equidistant
+is_equidistant
 cophenetic_matrix
 taxa
 newick

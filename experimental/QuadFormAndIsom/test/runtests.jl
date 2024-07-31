@@ -283,6 +283,12 @@ end
   rht = @inferred representatives_of_hermitian_type(G, chi)
   @test !isempty(rht)
   @test all(N -> !is_finite(order_of_isometry(N)), rht)
+
+  # Galois orbits
+  U = hyperbolic_plane_lattice()
+  L = direct_sum(U, U, U, U)[1]
+  @test length(representatives_of_hermitian_type(L, 5, false)) == 3
+  @test length(representatives_of_hermitian_type(L, 5, true)) == 2
 end
 
 @testset "Primitive extensions and embeddings" begin

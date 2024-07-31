@@ -1,8 +1,13 @@
 @doc raw"""
-    integrate(c::CohomologyClass)
+    integrate(c::CohomologyClass; check::Bool = true)
 
 Integrate the cohomolgy class `c` over the normal
 toric variety `toric_variety(c)`.
+
+The theory underlying this method requires that the toric variety
+in question is simplicial and complete. The check of completeness
+may take a long time to complete. If desired, this can be switched
+off by setting the optional argument `check` to the value `false`.
 
 # Examples
 ```jldoctest
@@ -88,10 +93,12 @@ julia> integrate(cohomology_class(anticanonical_divisor_class(X))^3)
 62
 ```
 """
-function integrate(c::CohomologyClass)
+function integrate(c::CohomologyClass; check::Bool = true)
     # can only integrate if the variety is simplicial, complete
-    @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
-    
+    if check
+      @req is_simplicial(toric_variety(c)) && is_complete(toric_variety(c)) "Integration only supported over complete and simplicial toric varieties"
+    end
+
     # if the intersection form is known, we can use it
     if has_attribute(toric_variety(c), :_intersection_form_via_exponents)
         intersection_dict = _intersection_form_via_exponents(toric_variety(c))

@@ -731,7 +731,7 @@ julia> dim(P)
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 @doc raw"""
-    lattice_points(P::Polyhedron{QQFieldElem})
+    lattice_points(P::Polyhedron)
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -757,7 +757,7 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron{QQFieldElem})
+function lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
@@ -765,7 +765,7 @@ function lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
 _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -774,7 +774,7 @@ _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc raw"""
-    interior_lattice_points(P::Polyhedron{QQFieldElem})
+    interior_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -792,7 +792,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 [0   0   0]
 ```
 """
-function interior_lattice_points(P::Polyhedron{QQFieldElem})
+function interior_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
@@ -800,7 +800,7 @@ function interior_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _interior_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -813,7 +813,7 @@ _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc raw"""
-    boundary_lattice_points(P::Polyhedron{QQFieldElem})
+    boundary_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -841,7 +841,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 [ 1    0    0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron{QQFieldElem})
+function boundary_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
@@ -849,7 +849,7 @@ function boundary_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _boundary_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) =

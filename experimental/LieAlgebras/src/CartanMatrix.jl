@@ -198,7 +198,7 @@ function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
   while any(undone)
     if head == tail
       head += 1
-      plan[head] = findfirst(undone)
+      plan[head] = findfirst(undone)::Int
       undone[plan[head]] = false
     end
 

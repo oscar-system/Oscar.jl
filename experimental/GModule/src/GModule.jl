@@ -390,7 +390,7 @@ function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <
   return M
 end
 
-function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}})
+function Oscar.gmodule(::Type{AbsSimpleNumField}, M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{QQAbFieldElem{AbsSimpleNumFieldElem}}})
   return gmodule(AbsSimpleNumField, gmodule(CyclotomicField, M))
 end
 
@@ -705,7 +705,7 @@ function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
   return [gmodule(ZZ, m) for m in z]
 end
 
-function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:MatElem{<:QQAbElem}})
+function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:MatElem{<:QQAbFieldElem}})
   l = 1
   C = base_ring(V[1])
   for g = V
@@ -715,7 +715,7 @@ function Oscar.map_entries(::Type{CyclotomicField}, V::Vector{<:MatElem{<:QQAbEl
   return [map_entries(x->K(x.data), x) for x = V]
 end
 
-function Oscar.map_entries(::Type{CyclotomicField}, V::MatElem{<:QQAbElem})
+function Oscar.map_entries(::Type{CyclotomicField}, V::MatElem{<:QQAbFieldElem})
   return map_entries(CyclotomicField, [V])[1]
 end
 """
@@ -750,11 +750,11 @@ function gmodule(::Type{CyclotomicField}, C::GModule)
   return D
 end
 
-function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbElem})
+function Oscar.matrix_group(::Type{CyclotomicField}, G::MatrixGroup{<:QQAbFieldElem})
   return matrix_group(map_entries(CyclotomicField, map(matrix, gens(G))))
 end
 
-function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
+function gmodule(k::Union{fpField, FqField}, C::GModule{<:Oscar.GAPGroup, FinGenAbGroup})
   @assert absolute_degree(k) == 1
   q, mq = quo(C.M, characteristic(k))
   s, ms = snf(q)
@@ -765,7 +765,7 @@ function gmodule(k::Union{Nemo.fpField, FqField}, C::GModule{<:Oscar.GAPGroup, F
   return gmodule(F, group(C), [hom(F, F, map_entries(k, x.map)) for x = mp])
 end
 
-function gmodule(k::Nemo.fpField, mC::Hecke.MapClassGrp)
+function gmodule(k::fpField, mC::Hecke.MapClassGrp)
   return gmodule(k, gmodule(ray_class_field(mC)))
 end
 
@@ -778,7 +778,7 @@ function Base.:^(C::GModule{<:Any, T}, h::Map{S, S}) where T <: S where S
   return GModule(group(C), [inv(h)*x*h for x = C.ac])
 end
 
-function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem}}, phi::Map{QQAbField, QQAbField})
+function Base.:^(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbFieldElem}}, phi::Map{QQAbField, QQAbField})
   F = free_module(codomain(phi), dim(C))
   return GModule(F, group(C), [hom(F, F, map_entries(phi, matrix(x))) for x = C.ac])
 end
@@ -788,7 +788,7 @@ function gmodule(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimp
   return GModule(F, group(C), [hom(F, F, hvcat(dim(C), [representation_matrix(x) for x = transpose(matrix(y))]...)) for y = C.ac])
 end
 
-gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
+gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
 @attr function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
@@ -851,7 +851,7 @@ function Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
   return _character_field(C)[1]
 end
 
-function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}})
+function Oscar.character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbFieldElem{AbsSimpleNumFieldElem}}})
   return Oscar.class_function(group(C), [x[2] for x = _character(C)])
 end
 
@@ -1032,7 +1032,7 @@ function gmodule_over(em::Map{AbsSimpleNumField, AbsSimpleNumField}, C::GModule{
   return gmodule(F, group(C), [hom(F, F, map_entries(t->preimage(em, t), x)) for x = ac])
 end
 
-function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbElem{AbsSimpleNumFieldElem}}}; do_error::Bool = true)
+function gmodule_over(::QQField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQAbFieldElem{AbsSimpleNumFieldElem}}}; do_error::Bool = true)
   return gmodule_over(QQ, gmodule(CyclotomicField, C); do_error)
 end
 
@@ -1360,7 +1360,7 @@ function hilbert90_cyclic(A::MatElem{<:FieldElem}, s, os::Int)
   end
 end
 
-function gmodule(k::Nemo.fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
+function gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}})
   F = free_module(k, dim(C))
   return GModule(group(C), [hom(F, F, map_entries(k, matrix(x))) for x=C.ac])
 end
@@ -1400,11 +1400,11 @@ function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPM
   return GAP.Globals.MTX.IsAbsolutelyIrreducible(G)
 end
 
-function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbElem{AbsSimpleNumFieldElem}}}})
+function Oscar.is_absolutely_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbFieldElem{AbsSimpleNumFieldElem}}}})
   return length(hom_base(C, C)) == 1
 end
 
-function Oscar.is_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbElem{AbsSimpleNumFieldElem}}}})
+function Oscar.is_irreducible(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:Union{QQFieldElem, AbsSimpleNumFieldElem, QQAbFieldElem{AbsSimpleNumFieldElem}}}})
   return is_irreducible(character(C))
 end
 
@@ -1719,7 +1719,7 @@ function gmodule(K::AbsSimpleNumField, M::GModule{<:Any, <:AbstractAlgebra.FPMod
   return gmodule(F, group(M), [hom(F, F, map_entries(K, matrix(x))) for x = M.ac])
 end
 
-function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:QQAbElem}}
+function hom_base(C::_T, D::_T) where _T <: GModule{<:Any, <:AbstractAlgebra.FPModule{<:QQAbFieldElem}}
   C1 = gmodule(CyclotomicField, C)
   D1 = gmodule(CyclotomicField, D)
   fl, Cf = Hecke.is_cyclotomic_type(base_ring(C1))

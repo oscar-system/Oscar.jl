@@ -1861,7 +1861,7 @@ function fp_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem})
 end
 
 #########################################################
-function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbElem}, FreeMod{QQAbElem}})
+function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbFieldElem}, FreeMod{QQAbFieldElem}})
   return M.matrix
 end
 

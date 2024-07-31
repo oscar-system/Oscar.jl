@@ -56,7 +56,7 @@ end
 function underlying_divisor(td::ToricDivisor; check::Bool=false, algorithm::Symbol=:direct)
   return get_attribute!(td, :underlying_divisor) do
     X = scheme(td)
-    @assert !iszero(coefficients(td)) "divisor must be non-trivial"
+    iszero(coefficients(td)) && return WeilDivisor(X, ZZ)
     if algorithm == :direct
       a = coefficients(td)::Vector{ZZRingElem}
       pos = [(c > 0 ? c : zero(ZZ)) for c in a]

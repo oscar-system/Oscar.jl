@@ -54,5 +54,5 @@ julia> ζ(5) + ζ(3)
 ## Reduction to characteristic ``p``
 
 ```@docs
-reduce(val::QQAbElem, F::FinField)
+reduce(val::QQAbFieldElem, F::FinField)
 ```

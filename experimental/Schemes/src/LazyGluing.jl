@@ -36,13 +36,16 @@ patches(G::LazyGluing) = (G.X, G.Y)
 
 # The underlying_gluing triggers the computation of the gluing on request.
 function underlying_gluing(G::LazyGluing)
-  if !isdefined(G, :G) 
+  if !isdefined(G, :G)
+    @vprintln :Gluing 5 "computing gluing domains"
     G.G = G.compute_function(G.GD)
   end
   return G.G
 end
 
 function is_computed(G::LazyGluing)
+  U, V = patches(G)
+  U === V && return true
   return isdefined(G, :G)
 end
 

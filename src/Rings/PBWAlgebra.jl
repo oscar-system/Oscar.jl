@@ -432,7 +432,7 @@ function pbw_algebra(r::MPolyRing{T}, rel, ord::MonomialOrdering; check::Bool = 
   nrows(rel) == n && ncols(rel) == n || error("oops")
   scr = singular_coeff_ring(coefficient_ring(r))
   S = elem_type(scr)
-  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord))
+  sr, _ = Singular.polynomial_ring(scr, symbols(r); ordering = singular(ord), cached = false)
   sr::Singular.PolyRing{S}
   s, gs, srel = _g_algebra_internal(sr, rel)
   if check && !is_zero(Singular.LibNctools.ndcond(s))
@@ -475,7 +475,7 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   n = length(xs)
   n > 0 || error("empty list of variables")
   n == length(dxs) || error("number of differentials should match number of variables")
-  r, v = polynomial_ring(K, vcat(xs, dxs))
+  r, v = polynomial_ring(K, vcat(xs, dxs); cached = false)
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
   R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
   set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
@@ -534,7 +534,7 @@ function _opposite(a::PBWAlgRing{T, S}) where {T, S}
     for i in 1:n-1, j in i+1:n
       bsrel[i,j] = _unsafe_coerce(bspolyring, a.relations[n+1-j,n+1-i], true)
     end
-    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring, polynomial_ring(a.coeff_ring, revs)[1])
+    b = PBWAlgRing{T, S}(bsring, bsrel, a.coeff_ring, polynomial_ring(a.coeff_ring, revs; cached = false)[1])
     a.opposite = b
     b.opposite = a
   end
@@ -1196,7 +1196,7 @@ function _left_eliminate(R::PBWAlgRing, I::Singular.sideal, sigma, sigmaC, order
     end
   end
 
-  sr, _ = Singular.polynomial_ring(base_ring(R.sring), symbols(r); ordering = o)
+  sr, _ = Singular.polynomial_ring(base_ring(R.sring), symbols(r); ordering = o, cached = false)
   s, gs, _ = _g_algebra_internal(sr, R.relations)
   Io = _unsafe_coerse(s, I, false)
   Io = _left_eliminate_via_given_ordering(Io, sigmaC)

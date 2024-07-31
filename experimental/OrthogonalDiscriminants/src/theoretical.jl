@@ -284,7 +284,7 @@ function od_from_p_subgroup(chi::GAPGroupClassFunction, p::Int,
     # The value is a square in 'K'.
     od = KK(1)
   else
-    # Compute \delta_K, as a `QQAbElem`.
+    # Compute \delta_K, as a `QQAbFieldElem`.
     # We need the norm of `z(p) + z(p)^-1 -2` w.r.t. the field extension
     # given by the real subfield of `cyclotomic_field(pf)` over `K`.
     # We compute this in the extension of `cyclotomic_field(p)` over

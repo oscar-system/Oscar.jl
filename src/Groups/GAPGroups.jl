@@ -1930,7 +1930,7 @@ end
 
 
 @doc raw"""
-    map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$
@@ -1944,7 +1944,9 @@ and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
-of the underlying free group.
+of the underlying free group of `full_group(parent(g))`.
+In particular, `genimgs` are interpreted as the images of the generators
+of this free group, not of `gens(parent(g))`.
 
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
@@ -1957,9 +1959,13 @@ to be the inverses of the corresponding entries in `genimgs`,
 and the function will use (and set) these entries in order to avoid
 calling `inv` (more than once) for entries of `genimgs`.
 
+If `init` is different from `nothing` then the product gets initialized with
+`init`.
+
 If `v` has length zero then `init` is returned if also `genimgs` has length
 zero, otherwise `one(genimgs[1])` is returned.
-In all other cases, `init` is ignored.
+Thus the intended value for the empty word must be specified as `init`
+whenever it is possible that the elements in `genimgs` do not support `one`.
 
 # Examples
 ```jldoctest
@@ -1979,6 +1985,9 @@ julia> map_word(F2, imgs)
 julia> map_word(one(F), imgs)
 ()
 
+julia> map_word(one(F), imgs, init = imgs[1])
+(1,2,3,4)
+
 julia> invs = Vector(undef, 2);
 
 julia> map_word(F1^-2*F2, imgs, genimgs_inv = invs)
@@ -1988,7 +1997,6 @@ julia> invs
 2-element Vector{Any}:
     (1,4,3,2)
  #undef
-
 ```
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
@@ -2021,13 +2029,13 @@ end
 
 
 @doc raw"""
-    map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
 which is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
-of $G$ and the $e_i$ are nonzero integers,
+of `full_group(parent(g))` and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 # Examples
@@ -2042,7 +2050,7 @@ julia> map_word(g, gens(free_group(:x, :y)))
 x*y^4
 ```
 """
-function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
   Ggens = gens(G)
   if length(Ggens) == 0
@@ -2061,10 +2069,37 @@ function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
 end
 
 function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  length(genimgs) == 0 && (@assert length(v) == 0; return init)
-  length(v) == 0 && return one(genimgs[1])
-  return prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise try the `one` of one of the `genimgs`
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return one(genimgs[1])
+  end
+  res = prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init * res
+  end
+  return res
 end
+
+# Support mapping to `FinGenAbGroupElem`:
+# We use `+` instead of `*`, and scalar multiplication instead of powering.
+function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector{FinGenAbGroupElem}; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise use the `zero` of one of the `genimgs`.
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return zero(parent(genimgs[1]))
+  end
+  res = sum(i -> _map_word_syllable_additive(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init + res
+  end
+  return res
+end
+
 
 function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
   vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
@@ -2087,6 +2122,30 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
   genimgs_inv[x] = res
   e == -1 && return res
   return res^-e
+end
+
+
+function _map_word_syllable_additive(vi::Int, genimgs::Vector, genimgs_inv::Vector)
+  vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
+  vi = -vi
+  @assert vi <= length(genimgs)
+  isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
+  res = -genimgs[vi]
+  genimgs_inv[vi] = res
+  return res
+end
+
+function _map_word_syllable_additive(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
+  x = vi[1]
+  @assert (x > 0 && x <= length(genimgs))
+  e = vi[2]
+  e > 1 && return e * genimgs[x]
+  e == 1 && return genimgs[x]
+  isassigned(genimgs_inv, x) && return (-e) * genimgs_inv[x]
+  res = -genimgs[x]
+  genimgs_inv[x] = res
+  e == -1 && return res
+  return (-e) * res
 end
 
 

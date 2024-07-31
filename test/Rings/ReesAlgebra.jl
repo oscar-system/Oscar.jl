@@ -55,6 +55,6 @@
   Rg = Oscar.rees_algebra(g)
   @test !iszero(one(Rg))
   # Both algebras should be the same despite being created differently.
-  @test all(x->iszero(RM(x)), gens(modulus(Rg)))
-  @test all(x->iszero(Rg(x)), gens(modulus(RM)))
+  @test all(x->iszero(evaluate(x, gens(RM))), gens(modulus(Rg)))
+  @test all(x->iszero(evaluate(x, gens(Rg))), gens(modulus(RM)))
 end

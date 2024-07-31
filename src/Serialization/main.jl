@@ -315,8 +315,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       serialize_with_params(T::Type{<:$ex}) = $uses_params
 
       # only extend serialize on non std julia types
-      non_oscar_types = Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set}
-      if !($ex <: non_oscar_types)
+      if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
         function serialize(s::AbstractSerializer, obj::T) where T <: $ex
           serialize_type(s, T)
           save(s.io, obj; serializer_type=IPCSerializer)

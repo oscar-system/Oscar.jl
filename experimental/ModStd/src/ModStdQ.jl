@@ -27,7 +27,7 @@ function (R::FqMPolyRing)(f::QQMPolyRingElem)
   return finish(g)
 end
 
-function (S::Union{Nemo.zzModRing, Nemo.fpField})(a::QQFieldElem)
+function (S::Union{zzModRing, fpField})(a::QQFieldElem)
   return S(numerator(a))//S(denominator(a))
 end
 
@@ -230,7 +230,7 @@ end
    return groebner_basis_with_transform_inner(I, ord; complete_reduction=complete_reduction, use_hilbert=use_hilbert)
 end
 
-function Oscar.lift(R::Nemo.Ring, f::Union{fpMPolyRingElem, zzModMPolyRingElem})
+function Oscar.lift(R::Ring, f::Union{fpMPolyRingElem, zzModMPolyRingElem})
   g = MPolyBuildCtx(R)
   for (c, v) in zip(AbstractAlgebra.coefficients(f), AbstractAlgebra.exponent_vectors(f))
     push_term!(g, lift(c), v)

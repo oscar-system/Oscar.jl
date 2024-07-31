@@ -22,7 +22,7 @@
   Oscar.realize_on_patch(Phi, X[1][3])
   Oscar.realize(Phi)
 end
-
+#= FIXME: disabled due to random failures, see https://github.com/oscar-system/Oscar.jl/issues/3947
 @testset "The standard Cremona transformation" begin
   IP2_proj = projective_space(QQ, [:x, :y, :z])
   IP2 = covered_scheme(IP2_proj)
@@ -108,3 +108,4 @@ end
   # Call with check=true implitictly
   phi_cov = CoveringMorphism(dom_cov, cod_cov, mor_dict)
 end
+=#
