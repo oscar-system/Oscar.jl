@@ -401,7 +401,7 @@
       E = length(edges(G))
       n = nv(G)
       qAut2 = quantum_automorphism_group(G)
-      @test length(gens(qAut2)) == 435
+      @test length(gens(qAut2)) == 235
 
 
     end

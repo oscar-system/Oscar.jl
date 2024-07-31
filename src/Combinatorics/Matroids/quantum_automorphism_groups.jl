@@ -147,7 +147,7 @@ function quantum_automorphism_group(
   u = permutedims(reshape(gens(A),(n, n)),[2, 1])
 
   new_relations = elem_type(A)[prod(gen -> u[gen[1], gen[2]], relation; init=one(A)) for relation in relation_indices]
-  return ideal([gens(SN)..., new_relations...])
+  return ideal(vcat(gens(SN), new_relations))
 
 end
 
@@ -163,7 +163,7 @@ julia> G = graph_from_edges([[1, 2], [2, 4]]);
 julia> qAut = quantum_automorphism_group(G);
 
 julia> length(gens(qAut))
-216
+184
 ```
 """
 function quantum_automorphism_group(G::Graph{Undirected})
@@ -177,15 +177,22 @@ function quantum_automorphism_group(G::Graph{Undirected})
 
   edgs = map(edg -> (src(edg), dst(edg)), edges(G)) # This should be |E| many edges
 
+  new_relations = copy(gens(SN))
+  sizehint!(new_relations, ngens(SN) + length(edgs) * length(nonedges)*8)
+
   function _addrelations(edge,nonedg)
     r1 = u[edge[1], nonedg[1]] * u[edge[2], nonedg[2]]
     r2 = u[edge[2], nonedg[1]] * u[edge[1], nonedg[2]]
     r3 = u[edge[1], nonedg[2]] * u[edge[2], nonedg[1]] 
     r4 = u[edge[2], nonedg[2]] * u[edge[1], nonedg[1]]
-    return [r1,r2,r3,r4]
+    push!(new_relations, r1, r2, r3, r4)
   end
-  new_relations = reduce(vcat,[vcat(_addrelations(edg, nonedg), _addrelations(nonedg, edg)) for edg in edgs for nonedg in nonedges])
-  return ideal([gens(SN)..., unique(new_relations)...])
+  for edge in edgs, nonedg in nonedges
+    _addrelations(edge,nonedg)
+    _addrelations(nonedg,edge)
+  end
+  unique!(new_relations)
+  return ideal(new_relations)
 end
 
 struct MultiPartitionIterator{T}
