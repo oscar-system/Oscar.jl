@@ -93,10 +93,13 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
-      - name: "Use multiple processes for self-hosted runners"
+      - name: "Use multiple processes for self-hosted macOS runners"
         if: runner.os == 'macOS' && runner.environment == 'self-hosted'
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
+      - name: "Use multiple processes for self-hosted Linux runners"
+        if: runer.os == 'Linux' && runner.environment == 'self-hosted'
+        run: echo "NUMPROCS=6" >> $GITHUB_ENV
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
