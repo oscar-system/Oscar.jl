@@ -14,7 +14,7 @@ struct LinearPartition{S <: AbstractPartition, T <: RingElem}
     function LinearPartition{S, T}(ring::Ring, coeffs::Dict{S, T}) where {S <: AbstractPartition, T <: RingElem}
         @req isconcretetype(S) "Linear combinations are only defined for concrete subtypes of AbstractPartition"
         @req ring isa parent_type(T) "Ring type is not the parent of the coefficient type"
-        for c in values(coeff)
+        for c in values(coeffs)
             @req (parent(c) == ring) "Coefficient does not belong to the base ring"
         end
         return new(ring, simplify_operation_zero(coeffs))
@@ -67,8 +67,12 @@ end
 
 Return the underlying coefficient ring of `p`.
 """ 
-function base_ring(p::LinearPartition{S, T}) where {S <: AbstractPartition, T <: RingElement}
+function base_ring(p::LinearPartition{S, T}) where {S <: AbstractPartition, T <: RingElem}
     return p.base_ring::parent_type(T) 
+end
+
+function base_ring_type(::Type{LinearPartition{S, T}}) where {S <: AbstractPartition, T <: RingElem} 
+    return parent_type(T)
 end
 
 """
@@ -101,7 +105,7 @@ function deepcopy_internal(p::LinearPartition, stackdict::IdDict)
 end
 
 function +(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement } 
+        { S <: AbstractPartition, T <: RingElem } 
     @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
     result = deepcopy(coefficients(p))
     for i in pairs(coefficients(q))
@@ -122,11 +126,13 @@ end
 
 """
     compose(p::LinearPartition{S, T}, q::LinearPartition{S, T}, d::T) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
 
-Multiply each coefficient from `p` with each coefficient from `q`
-as well as perform a composition between each SetPartition part 
-in `p` and `q` and return the result.
+Return the composition between `p` and `q`.
+
+The composition is obtained by multiplying each coefficient
+of `p` with each coefficient of `q` and composing the corresponding
+partitions.
 
 # Examples
 ```jldoctest
@@ -141,7 +147,7 @@ LinearPartition{SetPartition, QQPolyRingElem}(Univariate polynomial ring in d ov
 ```
 """
 function compose(p::LinearPartition{S, T}, q::LinearPartition{S, T}, d::T) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
     @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
     result = Dict{S, T}()
     for i in pairs(coefficients(p))
@@ -156,7 +162,7 @@ end
 
 """
     tensor_product(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
 
 Return the tensor product of `p` and `q`.
 
@@ -173,7 +179,7 @@ LinearPartition{SetPartition, QQPolyRingElem}(Univariate polynomial ring in d ov
 ```
 """
 function tensor_product(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
     @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
     result = Dict{S, T}()
     for i in pairs(coefficients(p))
@@ -187,7 +193,7 @@ function tensor_product(p::LinearPartition{S, T}, q::LinearPartition{S, T}) wher
 end 
 
 function ⊗(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
     return tensor_product(p, q)
 end
 
@@ -196,6 +202,6 @@ function -(p::LinearPartition)
 end
 
 function -(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
-        { S <: AbstractPartition, T <: RingElement }
+        { S <: AbstractPartition, T <: RingElem }
     return p + (-q)
 end
