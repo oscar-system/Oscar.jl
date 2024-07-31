@@ -70,8 +70,8 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
-@attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
-  R::Ring
+@attributes mutable struct FreeMod{T <: NCRingElem} <: AbstractFreeMod{T}
+  R::NCRing
   n::Int
   S::Vector{Symbol}
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
@@ -91,7 +91,7 @@ option is set in suitable functions.
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
-  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
+  function FreeMod{T}(n::Int,R::NCRing,S::Vector{Symbol}) where T <: RingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
