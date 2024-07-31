@@ -86,7 +86,10 @@ function save_attrs(s::SerializerState, L::LieAlgebra)
         save_object(s, get_attribute(L, symbol_prop), symbol_prop)
       end
     end
-    # TODO: handle root_system
+    if has_root_system(L)
+      save_typed_object(s, root_system(L), :root_system)
+      save_object(s, chevalley_basis(L), :chevalley_basis)
+    end
   end
 end
 
@@ -101,6 +104,14 @@ function load_attrs!(s::DeserializerState, L::LieAlgebra)
       if haskey(s, symbol_prop)
         set_attribute!(L, symbol_prop, load_object(s, Symbol, symbol_prop))
       end
+    end
+    if haskey(s, :root_system)
+      @assert L isa AbstractLieAlgebra # TODO: adapt once we have a proper interface for this
+      L.root_system = load_typed_object(s, :root_system)
+      chevalley_basis = load_object(
+        s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
+      )
+      # chevalley basis will become an attribute in the near future
     end
   end
 end
