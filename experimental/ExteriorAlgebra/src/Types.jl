@@ -1,4 +1,4 @@
-mutable struct ExteriorAlgebra{T}
+mutable struct ExteriorAlgebra{T} <: NCRing
   base_ring::NCRing
   symbols::Vector{Symbol}
   rank::Int
@@ -11,7 +11,7 @@ mutable struct ExteriorAlgebra{T}
   end
 end
 
-mutable struct ExtAlgElem{T}
+mutable struct ExtAlgElem{T} <: NCRingElem
   parent::ExteriorAlgebra{T}
   components::Dict{Int, SRow{T}}
 
