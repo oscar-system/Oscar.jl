@@ -1113,7 +1113,7 @@ The computation of the cohomology ring verifies if the toric variety is simplici
 complete. The check for it to be complete can be very time consuming. This can be switched
 off by setting the optional argument `check` to the value `false`, as in the example below.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
@@ -1172,7 +1172,7 @@ The computation of the cohomology ring verifies if the toric variety is simplici
 complete. The check for it to be complete can be very time consuming. This can be switched
 off by setting the optional argument `check` to the value `false`, as in the example below.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
