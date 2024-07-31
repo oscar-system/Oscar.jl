@@ -15,19 +15,23 @@ using Oscar
 R, (x,y) = QQ[:x, :y]                  # define ring ...
 I = ideal([y^4+ x^3-x^2+x,x^4])        # ... and ideal
 ```
-
 Then, we can pass the ideal to `groebner_walk` to calculate the Gröbner basis.
-Here, we want a Gröbner basis with respect to the lexicographic ordering on `R`.
-```julia
-using GroebnerWalk
 
-groebner_walk(I, lex(R)) # compute the Groebner basis
+By default, `groebner_walk` starts with a Gröbner basis with respect to the default ordering on `R`
+and converts this into a Gröbner basis with respect to the lexicographic ordering on `R`.
+This is what the following code block accomplishes.
+```julia
+using Oscar
+
+groebner_walk(I) # compute the Groebner basis
+```
+If one wants to specify `target` and `start` orderings explicitly, above function call needs to be written as follows.
+```julia
+groebner_walk(I, lex(R), default_ordering(R)) # compute the Groebner basis
 ```
 
 ## Status
-This repository represents the status of the code as a submission for MEGA 2024. It is slated for inclusion into OSCAR as experimental package.
-
-At the moment, the standard walk by Collart, Kalkbrener and Mall (1997) and the generic walk by Fukuda et al. are implemented.
+At the moment, the standard walk by Collart, Kalkbrener and Mall (1997) and the generic walk by Fukuda et al. (2007) are implemented.
 
 ## Contacts
 The library is maintained by Kamillo Ferry (kafe (at) kafe (dot) dev) and Francesco Nowell (francesconowell (at) gmail (dot) com).
