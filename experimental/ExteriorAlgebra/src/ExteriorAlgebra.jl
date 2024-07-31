@@ -279,25 +279,37 @@ function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where T
   R = base_ring(E)
   n = rank(E)
   result = zero(E)
+  new_elem = Dict{Int, T}()
   for (q, b) in components(w)
     for (p, a) in components(v)
       r = p + q
       r > n && continue
-      new_elem = sizehint!(Tuple{Int, T}[], length(a)*length(b))
+      #new_elem = sizehint!(Tuple{Int, T}[], length(a)*length(b))
+      empty!(new_elem)
       ht = multiplication_hash_table(E, p, q)
       for (i, c) in a
         for (j, d) in b
           s, k = ht[i, j]
           is_zero(s) && continue
           res = s * c * d
-          !iszero(res) && push!(new_elem, (k, res))
+          if !iszero(res)
+            if haskey(new_elem, k)
+              new_elem[k] += res
+            else
+              new_elem[k] = res
+            end
+          end
+          #!iszero(res) && push!(new_elem, (k, res))
         end
+      end
+      for (i, v) in new_elem
+        iszero(v) && delete!(new_elem, i)
       end
       if  !isempty(new_elem)
         if haskey(components(result), r)
-          components(result)[r] += sparse_row(R, new_elem)
+          components(result)[r] += sparse_row(R, [(i, v) for (i, v) in new_elem])
         else
-          components(result)[r] = sparse_row(R, new_elem)
+          components(result)[r] = sparse_row(R, [(i, v) for (i, v) in new_elem])
         end
       end
     end
@@ -365,4 +377,6 @@ function multiplication_hash_table(E::ExteriorAlgebra, p::Int, q::Int)
   end
   return E.multiplication_hash_tables[(p, q)]
 end
+
+ExteriorAlgebra(R::NCRing, n::Int) = ExteriorAlgebra(R, [Symbol("e$i") for i in 1:n])
 
