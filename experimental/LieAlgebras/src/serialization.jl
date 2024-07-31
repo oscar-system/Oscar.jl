@@ -193,3 +193,45 @@ function load_type_params(
 )
   return load_typed_object(s)
 end
+
+###############################################################################
+#
+#   Weyl groups
+#
+###############################################################################
+
+@register_serialization_type WeylGroup uses_id
+
+function save_object(s::SerializerState, W::WeylGroup)
+  save_data_dict(s) do
+    save_typed_object(s, root_system(W), :root_system)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{WeylGroup})
+  R = load_typed_object(s, :root_system)
+  return weyl_group(R)
+end
+
+@register_serialization_type WeylGroupElem uses_params
+
+function save_object(s::SerializerState, x::WeylGroupElem)
+  save_object(s, word(x))
+end
+
+function load_object(s::DeserializerState, ::Type{WeylGroupElem}, W::WeylGroup)
+  return W(load_object(s, Vector, UInt8); normalize=false)
+end
+
+function save_type_params(s::SerializerState, x::WeylGroupElem)
+  save_data_dict(s) do
+    save_object(s, encode_type(typeof(x)), :name)
+    parent_x = parent(x)
+    parent_ref = save_as_ref(s, parent_x)
+    save_object(s, parent_ref, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{WeylGroupElem})
+  return load_typed_object(s)
+end
