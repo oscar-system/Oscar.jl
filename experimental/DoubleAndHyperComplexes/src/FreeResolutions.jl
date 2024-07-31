@@ -605,3 +605,300 @@ function free_resolution(Q::MPolyQuoRing;
   end
   return free_resolution(q, length = length, algorithm = algorithm)
 end
+
+###############################################################################
+# Graded free resolutions
+###############################################################################
+
+function is_graded(resolution::FreeResolution{T}) where T
+  C = resolution.C
+ return all(is_graded(C[i]) for i in reverse(Hecke.range(C))) && all(is_graded(map(C, i)) for i in reverse(Hecke.map_range(C)))
+end
+
+###############################################################################
+# Betti table
+###############################################################################
+
+@doc raw"""
+    betti_table(F::FreeResolution)
+
+Given a $\mathbb Z$-graded free resolution `F`, return the graded Betti numbers 
+of `F` in form of a Betti table.
+
+Alternatively, use `betti`.
+
+# Examples
+```julia
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [x*z, y*z, x*w^2, y*w^2])
+ideal(x*z, y*z, w^2*x, w^2*y)
+
+julia> A, _= quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 4 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> FA  = free_resolution(A)
+Free resolution of A
+R^1 <---- R^4 <---- R^4 <---- R^1 <---- 0
+0         1         2         3         4
+
+julia> betti_table(FA)
+       0  1  2  3
+------------------
+0    : 1  -  -  -
+1    : -  2  1  -
+2    : -  2  3  1
+------------------
+total: 1  4  4  1
+
+julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+
+julia> I = ideal(R, [x, y, x+y]);
+
+julia> M = quotient_ring_as_module(I);
+
+julia> FM = free_resolution(M, algorithm = :nres);
+
+julia> betti_table(FM)
+       0  1  2
+---------------
+-1   : -  -  1
+0    : 1  3  1
+---------------
+total: 1  3  2
+```
+"""
+function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
+  generator_count = Dict{Tuple{Int, Any}, Int}()
+  C = F.C
+  rng = Hecke.map_range(C)
+  n = first(rng)
+  for i in 0:n
+    module_degrees = F[i].d
+    module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
+    for degree in module_degrees
+      idx = (i, degree)
+      generator_count[idx] = get(generator_count, idx, 0) + 1
+    end
+  end
+  return BettiTable(generator_count, project = project, reverse_direction = reverse_direction)
+end
+
+function betti(b::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool = false)
+  return betti_table(b; project, reverse_direction)
+end
+
+########################################################################
+# Additional functionality
+########################################################################
+function hom_without_reversing_direction(F::FreeResolution, M::ModuleFP)
+  return hom_without_reversing_direction(F.C, M)
+end
+
+### This is overwritten for compatibility with the ComplexOfMorphisms
+function homology(C::FreeResolution)
+  return homology(C.C)
+end
+
+########################################################################
+# Flattenings of free resolutions
+########################################################################
+function free_resolution(
+    M::SubquoModule{T}
+  ) where {T <: FlattableRingElemType}
+  flat = flatten(base_ring(M))
+  M_flat, iso_M, iso_M_inv = flat(M)
+  comp = free_resolution(M_flat) # assuming that this is potentially cached
+  if !haskey(flat_counterparts(flat), comp)
+    res_obj = ModuleFP[]
+    isos = ModuleFPHom[]
+    push!(res_obj, M)
+    push!(isos, iso_M_inv)
+    res_maps = Map[]
+    for i in 0:first(chain_range(comp))
+      F_flat = comp[i]
+      @assert F_flat === domain(map(comp, i))
+      @assert domain(last(isos)) === codomain(map(comp, i))
+      F, iso_F_inv = _change_base_ring_and_preserve_gradings(inverse(flat), F_flat)
+      iso_F = hom(F, F_flat, gens(F_flat), flat; check=false)
+      push!(res_maps, hom(F, last(res_obj), last(isos).(map(comp, i).(iso_F.(gens(F)))); check=false))
+      push!(res_obj, F)
+      push!(isos, iso_F_inv)
+    end
+    comp_up = ComplexOfMorphisms(ModuleFP, reverse(res_maps), typ=:chain, seed=-1, check=false)
+    comp_up.complete = true
+    result = FreeResolution(comp_up)
+    flat_counterparts(flat)[comp] = result
+  end
+  return flat_counterparts(flat)[comp]::FreeResolution
+end
+
+########################################################################
+# Functionality for graded modules
+########################################################################
+@doc raw"""
+    minimal_betti_table(F::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
+
+Given a graded free resolution `F` over a standard $\mathbb Z$-graded 
+multivariate polynomial ring with coefficients in a field, return the
+Betti table of the minimal free resolution arising from `F`.
+
+!!! note
+    The algorithm proceeds without actually minimizing the resolution.
+
+# Examples
+```julia
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+
+julia> I = ideal(R, [w^2-x*z, w*x-y*z, x^2-w*y, x*y-z^2, y^2-w*z]);
+
+julia> A, _ = quo(R, I)
+(Quotient of multivariate polynomial ring by ideal with 5 generators, Map from
+R to A defined by a julia-function with inverse)
+
+julia> FA = free_resolution(A)
+Free resolution of A
+R^1 <---- R^5 <---- R^6 <---- R^2 <---- 0
+0         1         2         3         4
+
+julia> betti_table(FA)
+       0  1  2  3  
+------------------
+0    : 1  -  -  -  
+1    : -  5  5  1  
+2    : -  -  1  1  
+------------------
+total: 1  5  6  2  
+
+
+julia> minimal_betti_table(FA)
+       0  1  2  3  
+------------------
+0    : 1  -  -  -  
+1    : -  5  5  -  
+2    : -  -  -  1  
+------------------
+total: 1  5  5  1  
+```
+"""
+function minimal_betti_table(res::FreeResolution{T}; check::Bool=true) where {T<:ModuleFP}
+  @assert is_standard_graded(base_ring(res)) "resolution must be defined over a standard graded ring"
+  @assert is_graded(res) "resolution must be graded"
+  C = complex(res)
+  @assert is_complete(res) "resolution must be complete"
+  rng = range(C)
+  # The following needs the resolution to be complete to be true
+  res_length = first(rng)-1
+  offsets = Dict{FinGenAbGroupElem, Int}()
+  betti_hash_table = Dict{Tuple{Int, Any}, Int}()
+  for i in 1:res_length+1
+    phi = map(C, i)
+    F = domain(phi)
+    G = codomain(phi)
+    dom_degs = unique!([degree(g; check) for g in gens(F)])
+    cod_degs = unique!([degree(g; check) for g in gens(G)])
+    for d in cod_degs
+      d::FinGenAbGroupElem
+      if d in dom_degs
+        _, _, sub_mat = _constant_sub_matrix(phi, d; check)
+        r = rank(sub_mat)
+        c = ncols(sub_mat) - r - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+        offsets[d] = r
+      else
+        c = length(_indices_of_generators_of_degree(G, d; check)) - get(offsets, d, 0)
+        !iszero(c) && (betti_hash_table[(i-1, d)] = c)
+      end
+    end
+  end
+  return BettiTable(betti_hash_table)
+end
+
+function hash_table(B::BettiTable) 
+  return B.B
+end
+
+# TODO: Where is this called??? Adjust the use of `check` there!
+function generators_of_degree(
+    C::FreeResolution{T},
+    i::Int,
+    d::FinGenAbGroupElem;
+    check::Bool=true
+  ) where {T<:ModuleFP}
+  F = C[i]
+  return [g for g in gens(F) if degree(g) == d]
+end
+
+function _indices_of_generators_of_degree(
+    F::FreeMod{T}, d::FinGenAbGroupElem; check::Bool=true
+  ) where {T<:Union{MPolyDecRingElem{<:FieldElem}, 
+                    MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}}}
+  return Int[i for (i, g) in enumerate(gens(F)) if degree(g; check) == d]
+end
+
+function _constant_sub_matrix(
+    phi::FreeModuleHom{T, T},
+    d::FinGenAbGroupElem;
+    check::Bool=true
+  ) where {RET<:Union{MPolyDecRingElem{<:FieldElem}, 
+                      MPolyQuoRingElem{<:MPolyDecRingElem{<:FieldElem}}
+                     }, T<:FreeMod{RET}}
+  S = base_ring(domain(phi))::Union{MPolyDecRing, MPolyQuoRing{<:MPolyDecRingElem}}
+  kk = coefficient_ring(S)::Field
+  F = domain(phi)
+  G = codomain(phi)
+  ind_dom = _indices_of_generators_of_degree(F, d; check)
+  ind_cod = _indices_of_generators_of_degree(G, d; check)
+  m = length(ind_dom)
+  n = length(ind_cod)
+  result = zero_matrix(kk, m, n)
+  img_gens = images_of_generators(phi)
+  for (i, l) in enumerate(ind_dom)
+    v = coordinates(img_gens[l])
+    for (j, k) in enumerate(ind_cod)
+      success, c = _has_index(v, k)
+      !success && continue
+      result[i, j] = _constant_coeff(c)
+    end
+  end
+  return ind_dom, ind_cod, result
+end
+
+_constant_coeff(f::MPolyDecRingElem) = first(coefficients(f))
+_constant_coeff(f::MPolyQuoRingElem) = first(coefficients(lift(f)))
+
+# TODO: This will be provided soon from different sources.
+function complex(F::FreeResolution) 
+  return F.C
+end
+
+function base_ring(res::FreeResolution{T}) where {T<:ModuleFP}
+  return base_ring(res[-1])
+end
+
+### Additional code to make the tests run again
+#=
+function map_range(comp::AbsHyperComplex)
+  @assert isone(dim(comp))
+  @assert has_upper_bound(comp, 1)
+  @assert has_lower_bound(comp, 1)
+  if direction(comp, 1) == :chain
+    return upper_bound(comp, 1):-1:(lower_bound(comp, 1) + 1)
+  else
+    return lower_bound(comp, 1):(upper_bound(comp, 1) - 1)
+  end
+end
+=#
+
+function chain_range(comp::AbsHyperComplex)
+  @assert isone(dim(comp))
+  @assert has_upper_bound(comp, 1)
+  @assert has_lower_bound(comp, 1)
+  if direction(comp, 1) == :chain
+    return upper_bound(comp, 1):-1:(lower_bound(comp, 1))
+  else
+    return lower_bound(comp, 1):(upper_bound(comp, 1))
+  end
+end
+

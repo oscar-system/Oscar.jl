@@ -1,4 +1,7 @@
 include("Objects/Types.jl")
+### Modified FreeResolution
+include("FreeResolutionTypes.jl")
+
 include("Objects/Attributes.jl")
 include("Objects/tensor_products.jl")
 include("Objects/tor.jl")
@@ -22,3 +25,7 @@ include("Morphisms/linear_strands.jl")
 include("Morphisms/methods.jl")
 include("Objects/Methods.jl")
 include("Exports.jl")
+
+### Modified FreeResolution
+include("FreeResolutions.jl")
+

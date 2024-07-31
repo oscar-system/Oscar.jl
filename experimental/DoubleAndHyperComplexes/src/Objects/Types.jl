@@ -134,7 +134,7 @@ upper_bound(C::AbsHyperComplex) = (isone(dim(C)) ? upper_bound(C, 1) : error("co
 lower_bound(C::AbsSimpleComplex) = lower_bound(C, 1)
 lower_bound(C::AbsHyperComplex) = (isone(dim(C)) ? lower_bound(C, 1) : error("complex must be one-dimensional"))
 Base.range(C::AbsHyperComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)) : (lower_bound(C):upper_bound(C)))
-map_range(C::AbsHyperComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
+Hecke.map_range(C::AbsHyperComplex) = (direction(C) == :chain ? (upper_bound(C):-1:lower_bound(C)+1) : (lower_bound(C):upper_bound(C)-1))
 
 underlying_complex(C::AbsSimpleComplex) = error("underlying_complex not implemented for $C")
 
