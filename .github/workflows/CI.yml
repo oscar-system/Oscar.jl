@@ -98,7 +98,7 @@ jobs:
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
       - name: "Use multiple processes for self-hosted Linux runners"
-        if: runer.os == 'Linux' && runner.environment == 'self-hosted'
+        if: runner.os == 'Linux' && runner.environment == 'self-hosted'
         run: echo "NUMPROCS=6" >> $GITHUB_ENV
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
