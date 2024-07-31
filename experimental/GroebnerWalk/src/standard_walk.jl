@@ -81,12 +81,12 @@ function standard_step(G::Oscar.IdealGens, w::Vector{ZZRingElem}, target::Monomi
   @vprintln :groebner_walk 3 Gw
 
   H = groebner_basis(Gw; ordering=next, complete_reduction=true)
-  H = lift(G, current_ordering, H, next)
+  H = Oscar.groebner_lift(gens(H), next, gens(G), current_ordering)
 
   @vprint :groebner_walk 10 "Lifted GB of initial forms: "
   @vprintln :groebner_walk 10 H
 
-  return autoreduce(H)
+  return Oscar.IdealGens(H, next)
 end
 standard_step(G::Oscar.IdealGens, w::Vector{Int}, T::Matrix{Int}) = standard_step(G, ZZ.(w), create_ordering(base_ring(G), w, T))
 
@@ -174,39 +174,5 @@ function bounding_vectors(I::Oscar.IdealGens)
   end
 
   return unique!(reduce(vcat, v))
-end
-
-@doc raw"""
-    lift(
-      G::Oscar.IdealGens, # momentane GB
-      current::MonomialOrdering,
-      H::Oscar.IdealGens, # soll GB von initial forms sein
-      target::MonomialOrdering,
-    )
-
-Computes an inclusion minimal Gröbner basis with respect to `target` according to the
-lifting step from Proposition 3.2 of [FJLT07](@cite).
-
-# Arguments
-- `G::Oscar.IdealGens`: The reduced Gröbner basis of I
-- `current::MonomialOrdering`: The current monomial order (TODO: Do we need that)
-- `H::Oscar.IdealGens`: A Gröbner basis of initial forms of (TODO: what) with respect to (TODO: what)
-- `target::MonomialOrdering`: The ordering for which the output is a Gröbner basis.
-"""
-function lift(
-  G::Oscar.IdealGens, # momentane GB
-  current::MonomialOrdering,
-  H::Oscar.IdealGens, # soll GB von initial forms sein
-  target::MonomialOrdering,
-)
-  G = Oscar.IdealGens(
-    [
-      gen - reduce(gen, gens(G); ordering=current, complete_reduction=true) for gen in gens(H)
-    ],
-    target;
-    isGB=true,
-  )
-
-  return G
 end
 
