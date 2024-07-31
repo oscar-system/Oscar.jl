@@ -108,3 +108,176 @@ end
 # # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE
 # #      modulo the squares of the generators.
 # # (2)  Do we want/need a special printing function?  (show/display)
+
+
+### Manual realization of exterior algebras
+
+include("Types.jl")
+function ExtAlgElem(E::ExteriorAlgebra{T}, a::Vector{Tuple{Int, SRow{T}}}; check::Bool=true) where {T}
+  return ExtAlgElem(E, Dict{Int, SRow{T}}(i => v for (i, v) in a if !iszero(v)))
+end
+
+function ExtAlgElem(E::ExteriorAlgebra{T}, p::Int, v::SRow{T}; check::Bool=true) where {T}
+  return ExtAlgElem(E, Dict{Int, SRow{T}}(i => v for (i, v) in a if !iszero(v)))
+end
+
+function mul!(a::T, w::ExtAlgElem{T}) where {T}
+  @assert parent(a) === base_ring(parent(w))
+  for i in keys(components(w))
+    components(w)[i]*=a
+    iszero(components(w)[i]) && delete!(components(w), i)
+  end
+  return w
+end
+
+function *(a::T, w::ExtAlgElem{T}) where {T}
+  @assert parent(a) === base_ring(parent(w))
+  nc = [(i, a*v) for (i, v) in components(w)]
+  return ExtAlgElem(parent(w),
+                    Dict{Int, SRow{T}}(i => v for (i, v) in nc if !iszero(v));
+                    check=false
+                   )
+end
+
+function *(a, w::ExtAlgElem)
+  return base_ring(w)(a)*w
+end
+
+function add!(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
+  for (i, a) in components(w)
+    if i in keys(components(v))
+      components(v)[i] += components(w)[i]
+      iszero(components(v)[i]) && delete!(components(v), i)
+    else
+      components(v)[i] = components(w)[i]
+    end
+  end
+  return v
+end
+
+function copy(w::ExtAlgElem)
+  return ExtAlgElem(parent(w), copy(components(w)); check=false)
+end
+
+function -(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
+  return v + (-w)
+end
+
+function +(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
+  return add!(copy(v), w)
+end
+
+function -(w::ExtAlgElem)
+  return -one(base_ring(w))*w
+end
+
+base_ring(w::ExtAlgElem) = base_ring(parent(w))
+
+parent(w::ExtAlgElem) = w.parent
+
+rank(E::ExteriorAlgebra) = E.rank
+base_ring(E::ExteriorAlgebra) = E.base_ring
+
+zero(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E)
+zero(w::ExtAlgElem) = zero(parent(w))
+
+function components(w::ExtAlgElem{T}) where {T}
+  if !isdefined(w, :components)
+    w.components = Dict{Int, SRow{T}}()
+  end
+  return w.components
+end
+
+function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where T
+  E = parent(v)
+  @assert E === parent(w)
+  R = base_ring(E)
+  n = rank(E)
+  result = zero(E)
+  for (q, b) in components(w)
+    for (p, a) in components(v)
+      r = p + q
+      r > n && continue
+      new_elem = sizehint!(Tuple{Int, T}[], length(a)*length(b))
+      ht = multiplication_hash_table(E, p, q)
+      for (i, c) in a
+        for (j, d) in b
+          s, k = ht[i, j]
+          is_zero(s) && continue
+          res = s * c * d
+          !iszero(res) && push!(new_elem, (k, res))
+        end
+      end
+      if  !isempty(new_elem)
+        if haskey(components(result), r)
+          components(result)[r] += sparse_row(R, new_elem)
+        else
+          components(result)[r] = sparse_row(R, new_elem)
+        end
+      end
+    end
+  end
+  for (i, v) in components(result)
+    iszero(v) && delete!(components(result), i)
+  end
+  return result
+end
+          
+function print_symbols(E::ExteriorAlgebra, p::Int)
+  if !isdefined(E, :print_symbols)
+    E.print_symbols = Dict{Int, Vector{Symbol}}()
+  end
+  roof = is_unicode_allowed() ? "∧" : "^"
+  if !haskey(E.print_symbols, p)
+    E.print_symbols[p] = [Symbol(join([string(E.symbols[i]) for i in indices(I)], roof)) for I in OrderedMultiIndexSet(p, rank(E))]
+  end
+  return E.print_symbols[p]
+end
+
+function gens(E::ExteriorAlgebra{T}) where {T}
+  return [ExtAlgElem(E, Dict{Int, SRow{T}}(1 => sparse_row(base_ring(E), 
+                                                           [(i, one(base_ring(E)))]))) 
+          for i in 1:rank(E)]
+end
+
+one(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E, Dict{Int, SRow{T}}(0 => sparse_row(base_ring(E), [(1, one(base_ring(E)))])); check=false)
+
+function Base.show(io::IO, w::ExtAlgElem)
+  E = parent(w)
+  if is_empty(components(w))
+    println(io, "0 : 0")
+    return
+  end
+
+  for p in 0:rank(E)
+    !haskey(components(w), p) && continue
+    v = components(w)[p]
+    if iszero(p)
+      println(io, "0 : $(first(v.values))")
+      continue
+    end
+    print(io, "$p : ")
+    p_symb = print_symbols(E, p)
+    println(io, join(["$(c)*"*string(p_symb[i]) for (i, c) in v], " + "))
+  end
+end
+
+function ==(v::ExtAlgElem, w::ExtAlgElem)
+  E = parent(v)
+  @assert E === parent(w)
+  return components(v) == components(w)
+end
+
+function multiplication_hash_table(E::ExteriorAlgebra, p::Int, q::Int)
+  if !isdefined(E, :multiplication_hash_tables)
+    E.multiplication_hash_tables = Dict{Tuple{Int, Int}, Matrix{Tuple{Int, Int}}}()
+  end
+  n = rank(E)
+  if !haskey(E.multiplication_hash_tables, (p, q))
+    A = [_wedge(ordered_multi_index(i, p, n), ordered_multi_index(j, q, n)) for i in 1:binomial(n, p), j in 1:binomial(n, q)]
+    B = [(s, linear_index(k)) for (s, k) in A]
+    E.multiplication_hash_tables[(p, q)] = B
+  end
+  return E.multiplication_hash_tables[(p, q)]
+end
+
