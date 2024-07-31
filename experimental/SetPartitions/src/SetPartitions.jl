@@ -19,6 +19,7 @@ import Oscar:
     ⊗,
     @req,
     base_ring,
+    base_ring_type,
     coefficients,
     compose,
     cycles,
