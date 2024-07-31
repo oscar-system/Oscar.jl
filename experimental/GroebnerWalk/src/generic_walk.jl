@@ -67,7 +67,8 @@ function difference_lead_tail(MG::MarkedGroebnerBasis)
   (G,Lm) = gens(MG), markings(MG)
   lead_exp = leading_exponent_vector.(Lm)
   
-  v = map(zip(lead_exp, exponents.(G))) do (l,T)
+  l_T = zip(lead_exp, exponents.(G))
+  v = map(l_T) do (l,T)
     Ref(l) .- T
   end
   
