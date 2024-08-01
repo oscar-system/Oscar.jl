@@ -5,6 +5,8 @@ mutable struct ExteriorAlgebra{T} <: NCRing
 
   print_symbols::Dict{Int, Vector{Symbol}}
   multiplication_hash_tables::Dict{Tuple{Int, Int}, Matrix{Tuple{Int,Int}}}
+  grading_group::FinGenAbGroup
+  graded_parts::Dict{Int, FreeMod{T}}
 
   function ExteriorAlgebra(R::NCRing, a::Vector{Symbol})
     return new{elem_type(R)}(R, a, length(a))

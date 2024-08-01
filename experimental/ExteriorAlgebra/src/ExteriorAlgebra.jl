@@ -130,7 +130,7 @@ function mul!(a::T, w::ExtAlgElem{T}) where {T}
   return w
 end
 
-function *(a::T, w::ExtAlgElem{T}) where {T}
+function *(a::T, w::ExtAlgElem{T}) where {T <:NCRingElem}
   @assert parent(a) === base_ring(parent(w))
   nc = [(i, a*v) for (i, v) in components(w)]
   return ExtAlgElem(parent(w),
@@ -139,11 +139,15 @@ function *(a::T, w::ExtAlgElem{T}) where {T}
                    )
 end
 
-function *(a, w::ExtAlgElem)
+function *(a, w::ExtAlgElem{T}) where {T<:NCRingElem}
   return base_ring(w)(a)*w
 end
 
-function add!(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
+function *(a::NCRingElement, w::ExtAlgElem{T}) where {T<:NCRingElem}
+  return base_ring(w)(a)*w
+end
+
+function add!(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T <: NCRingElem}
   for (i, a) in components(w)
     if i in keys(components(v))
       components(v)[i] += components(w)[i]
@@ -155,8 +159,8 @@ function add!(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
   return v
 end
 
-function copy(w::ExtAlgElem)
-  return ExtAlgElem(parent(w), copy(components(w)); check=false)
+function Base.deepcopy_internal(w::ExtAlgElem, id::IdDict)
+  return ExtAlgElem(parent(w), deepcopy_internal(components(w), id); check=false)
 end
 
 function -(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
@@ -188,9 +192,8 @@ function components(w::ExtAlgElem{T}) where {T}
   return w.components
 end
 
-function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where T
+function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T<:NCRingElem}
   E = parent(v)
-  @assert E === parent(w)
   R = base_ring(E)
   n = rank(E)
   result = zero(E)
@@ -257,21 +260,26 @@ one(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E, Dict{Int, SRow{T}}(0 => spa
 function Base.show(io::IO, w::ExtAlgElem)
   E = parent(w)
   if is_empty(components(w))
-    println(io, "0 : 0")
+    println(io, "0")
+    #println(io, "0 : 0")
     return
   end
 
+  parts = String[]
   for p in 0:rank(E)
     !haskey(components(w), p) && continue
     v = components(w)[p]
     if iszero(p)
-      println(io, "0 : $(first(v.values))")
+      push!(parts, "$(first(v.values))")
+      #print(io, "0 : $(first(v.values))")
       continue
     end
-    print(io, "$p : ")
+    #print(io, "$p : ")
     p_symb = print_symbols(E, p)
-    println(io, join(["$(c)*"*string(p_symb[i]) for (i, c) in v], " + "))
+    push!(parts, join(["$(c)*"*string(p_symb[i]) for (i, c) in v], " + "))
+    #println(io, join(["$(c)*"*string(p_symb[i]) for (i, c) in v], " + "))
   end
+  print(io, join(parts, " + "))
 end
 
 function ==(v::ExtAlgElem, w::ExtAlgElem)
@@ -294,4 +302,151 @@ function multiplication_hash_table(E::ExteriorAlgebra, p::Int, q::Int)
 end
 
 ExteriorAlgebra(R::NCRing, n::Int) = ExteriorAlgebra(R, [Symbol("e$i") for i in 1:n])
+
+is_graded(E::ExteriorAlgebra) = true
+function grading_group(E::ExteriorAlgebra)
+  if !isdefined(E, :grading_group)
+    E.grading_group = free_abelian_group(1)
+  end
+  return E.grading_group
+end
+
+elem_type(::Type{ExteriorAlgebra{T}}) where {T} = ExtAlgElem{T}
+elem_type(E::ExteriorAlgebra) = elem_type(typeof(E))
+parent_type(::Type{ExtAlgElem{T}}) where {T} = ExteriorAlgebra{T}
+parent_type(w::ExtAlgElem) = parent_type(typeof(w))
+
+function Base.show(io::IO, E::ExteriorAlgebra)
+  print(io, "exterior algebra over $(base_ring(E)) in "*join(string.(E.symbols), ", "))
+end
+
+function degree(w::ExtAlgElem)
+  isempty(components(w)) && return nothing
+  return maximum(collect(keys(components(w))))*grading_group(parent(w))[1]
+end
+
+function is_homogeneous(w::ExtAlgElem)
+  return length(components(w)) < 2
+end
+
+function (E::ExteriorAlgebra)(a::NCRingElem)
+  return E(base_ring(E)(a))
+end
+
+function (E::ExteriorAlgebra{T})(a::ExtAlgElem{T}) where {T}
+  @assert parent(a) === E
+  return a
+end
+
+function (E::ExteriorAlgebra{T})(a::T) where {T}
+  return a*one(E)
+end
+
+function (E::ExteriorAlgebra)(a::Int)
+  return a*one(E)
+end
+
+function (E::ExteriorAlgebra)()
+  return zero(E)
+end
+
+function _degree_fast(w::ExtAlgElem)
+  return degree(w)
+end
+
+function getindex(E::ExteriorAlgebra, i::Int)
+  if !isdefined(E, :graded_parts)
+    E.graded_parts = Dict{Int, FreeMod}()
+  end
+  parts = E.graded_parts
+  R = base_ring(E)
+  n = rank(E)
+  if !haskey(parts, i)
+    if i == 1
+      F = FreeMod(R, E.symbols)
+      F.S = E.symbols
+      parts[i] = F
+    elseif (i >= 0 && i <= n)
+      parts[i] = exterior_power(E[1], i)[1]
+    else
+      parts[i] = FreeMod(R, 0)
+    end
+  end
+  return parts[i]::FreeMod{elem_type(R)}
+end
+
+@attr Dict{Int, FreeMod{T}} function _graded_parts(F::FreeMod{ExtAlgElem{T}}) where T
+  return Dict{Int, FreeMod{T}}()
+end
+
+function _graded_part(F::FreeMod{ExtAlgElem{T}}, p::Int) where T
+  graded_parts = _graded_parts(F)
+  if !haskey(graded_parts, p)
+    E = base_ring(F)
+    R = base_ring(E)
+    parts = [E[p - Int(degree(F[k])[1])] for k in 1:ngens(F)]
+    result = direct_sum(parts...)[1]
+    graded_parts[p] = result
+  end
+  return graded_parts[p]
+end
+
+
+@attr Dict{Int, FreeModuleHom} function _graded_parts(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}) where {ModuleType <: FreeMod{<:ExtAlgElem}}
+  return Dict{Int, FreeModuleHom}()
+end
+
+function getindex(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}, p::Int) where {ModuleType <: FreeMod{<:ExtAlgElem}}
+  @assert is_homogeneous(phi) && iszero(degree(phi)) "morphisms must be homogeneous of degree zero"
+  parts = _graded_parts(phi)
+  if !haskey(parts, p)
+    dom = domain(phi)
+    cod = codomain(phi)
+
+    dom_p = _graded_part(dom, p)
+    cod_p = _graded_part(cod, p)
+    #=
+    img_gens = gens(dom_p)
+    img_gens = [dom(g, p) for g in img_gens]
+    img_gens = phi.(img_gens)
+    =#
+    img_gens = elem_type(cod_p)[cod_p(phi(dom(g, p))) for g in gens(dom_p)]
+    phi_p = hom(dom_p, cod_p, img_gens)
+    parts[p] = phi_p
+  end
+  return parts[p]::FreeModuleHom
+end
+
+function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
+  E = base_ring(F)
+  F_p = parent(v)
+  R = base_ring(F_p)
+  @assert F_p === _graded_part(F, p)
+  g_E = gens(F)
+  d = degree.(gens(F))
+  prs = canonical_projections(F_p)
+  v_comps = [p(v) for p in prs]
+  d = [Int(a[1]) for a in degree.(gens(F))]
+  v_comp_coords = [iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)]
+  return sum(a*g for (a, g) in zip(v_comp_coords, g_E); init=zero(F))
+end
+
+function (F_p::FreeMod{T})(v::FreeModElem{ExtAlgElem{T}}; check::Bool=true) where {T}
+  @check is_homogeneous(v) "elements must be homogeneous for conversion"
+  iszero(v) && return zero(F_p)
+  p = Int(degree(v)[1])
+  F = parent(v)
+  @assert F_p === _graded_part(F, p)
+  c_v = coordinates(v)::SRow
+  inj = canonical_injections(F_p)
+  result = zero(F_p)
+  d = [Int(a[1]) for a in degree.(gens(F))]
+  G = grading_group(F)
+  for (i, c) in c_v
+    inc = inj[i]
+    v_i = domain(inc)(c.components[p - d[i]])
+    result += inc(v_i)
+  end
+  return result
+end
 
