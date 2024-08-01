@@ -2273,7 +2273,7 @@ nonzero then `pairs` is the vector of syllables of `x`, see [`syllables`](@ref).
 julia> G = free_group(2);  pairs = [1 => 3, 2 => -1];
 
 julia> x = G(pairs)
-x1^3*x2^-1
+f1^3*f2^-1
 
 julia> syllables(x) == pairs
 true
