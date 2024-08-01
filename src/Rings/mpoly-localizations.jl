@@ -1161,10 +1161,6 @@ function Base.:(/)(a::ZZRingElem, b::T) where {T<:MPolyLocRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(/)(a::T, b::T) where {T<:MPolyLocRingElem}
-  return divexact(a, b)
-end
-
 function ==(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return fraction(a) == fraction(b)
