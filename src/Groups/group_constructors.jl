@@ -477,8 +477,8 @@ projective_omega_group(n::Int, q::Int) = projective_omega_group(0, n, q)
 
 @doc raw"""
     free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter) -> FPGroup
-    free_group(L::VarName...) -> FPGroup
-    free_group(varnames_specifiers...) -> FPGroup
+    free_group(L::VarName... ; eltype::Symbol = :letter) -> FPGroup
+    free_group(varnames_specifiers... ; eltype::Symbol = :letter) -> FPGroup
 
 Return a free group.
 
@@ -493,7 +493,7 @@ more of the following:
 1. A vector `L` of variable names.
 2. A pair of the form `A => B`, where `A` is a `VarName` (so a string, symbol
    or character) and `B` is a range or more generally an `AbstractVector`.
-   Then `length(B)` generators are defined whose names derived from a combination
+   Then `length(B)` generators are defined whose names derive from a combination
    of `A` and the respective element of `B`.
    For example `:x => 1:3` defines three generators `x[1], x[2], x[3]`.
 3. A pair of the form `A => C`, where `A` is again a `VarName`, and `C` is
@@ -504,7 +504,7 @@ For the second and third type, optionally the `A` part can contain the
 placeholder `#` to modify where the indices are inserted. For example
 `"a#" => (1:2, 1:2)` defines four generators `a11, a21, a12, a22`.
 
-Also instead of a range, any vector can be used. For example `"#" => ([:x,:y], [:A, :B])`
+Also, instead of a range, any vector can be used. For example `"#" => ([:x,:y], [:A, :B])`
 defines four generators `xA, yA, xB, yB`.
 
 In all variants, if the optional keyword argument `eltype` is given and
