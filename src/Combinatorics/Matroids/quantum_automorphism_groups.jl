@@ -154,7 +154,7 @@ end
 @doc raw"""
     quantum_automorphism_group(G::Graph)
 
-Return the Ideal that defines the quantum automorphism group of a graph.
+Return the ideal that defines the quantum automorphism group of the graph `G`.
 
 # Examples
 ```jldoctest
