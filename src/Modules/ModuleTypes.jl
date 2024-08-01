@@ -91,7 +91,7 @@ option is set in suitable functions.
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
-  function FreeMod{T}(n::Int,R::NCRing,S::Vector{Symbol}) where T <: RingElem
+  function FreeMod{T}(n::Int,R::NCRing,S::Vector{Symbol}) where T <: NCRingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
