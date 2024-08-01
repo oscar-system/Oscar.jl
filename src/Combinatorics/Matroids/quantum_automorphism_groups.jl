@@ -173,7 +173,8 @@ function quantum_automorphism_group(G::Graph{Undirected})
   A = base_ring(SN)
   u = permutedims(reshape(gens(A),(n, n)),[2, 1])
 
-  nonedges = Tuple{Int,Int}[(i, j) for i in 1:n for j in i:n if !has_edge(G,i,j)] # This should be n^2 - |E| many nonedges
+  nonedges = Tuple{Int,Int}[(i, j) for i in 1:n for j in i:n if !has_edge(G,i,j)]
+  @assert length(nonedges) == n^2 - n_edges(G)
 
   edgs = map(edg -> (src(edg), dst(edg)), edges(G)) # This should be |E| many edges
 
