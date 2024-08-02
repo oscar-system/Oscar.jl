@@ -253,7 +253,7 @@ function -(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
 end
 
 function +(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T}
-  return add!(copy(v), w)
+  return add!(deepcopy(v), w)
 end
 
 function -(w::ExtAlgElem)
@@ -345,7 +345,7 @@ one(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E, Dict{Int, SRow{T}}(0 => spa
 function Base.show(io::IO, w::ExtAlgElem)
   E = parent(w)
   if is_empty(components(w))
-    println(io, "0")
+    print(io, "0")
     #println(io, "0 : 0")
     return
   end
@@ -405,7 +405,7 @@ function Base.show(io::IO, E::ExteriorAlgebra)
   print(io, "exterior algebra over $(base_ring(E)) in "*join(string.(E.symbols), ", "))
 end
 
-function degree(w::ExtAlgElem)
+function degree(w::ExtAlgElem; check::Bool=true)
   isempty(components(w)) && return nothing
   return maximum(collect(keys(components(w))))*grading_group(parent(w))[1]
 end
@@ -633,4 +633,71 @@ function coordinates(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{Ext
     push!(result_list, (j, a*w))
   end
   return sparse_row(E, result_list)
+end
+
+@attr Dict{Int, SubModuleOfFreeModule{ExtAlgElem{T}}} function _kernel_parts(
+    phi::FreeModuleHom{ModuleType, ModuleType, Nothing}
+  ) where {T, ModuleType <: FreeMod{ExtAlgElem{T}}}
+  return Dict{Int, SubModuleOfFreeModule{ExtAlgElem{T}}}()
+end
+
+function _kernel_part(
+    phi::FreeModuleHom{ModuleType, ModuleType, Nothing}, p::Int
+  ) where {T, ModuleType <: FreeMod{ExtAlgElem{T}}}
+  kernel_parts = _kernel_parts(phi)
+  if !haskey(kernel_parts, p)
+    F = domain(phi)
+    F_p = _graded_part(F, p)
+    iszero(F) && return SubModuleOfFreeModule(F, elem_type(F)[])
+    gens_deg = [Int(degree(g)[1]) for g in gens(F)]
+    d0 = minimum(gens_deg)
+    E = base_ring(F)
+    n = rank(E)
+    dmax = maximum(gens_deg) + n
+
+    if p < d0 || p > dmax
+      result = SubModuleOfFreeModule(F, elem_type(F)[])
+      kernel_parts[d0-1] = result
+      return result
+    elseif p == d0
+      phi_p = phi[p]
+      K_p, _ = kernel(phi_p)
+      gens_p = filter!(!iszero, ambient_representatives_generators(K_p))
+      g = elem_type(F)[F(v, p) for v in gens_p]
+      Z = SubModuleOfFreeModule(F, g)
+      kernel_parts[p] = Z
+      return Z
+    end
+
+    phi_p = phi[p]
+    K_p, _ = kernel(phi_p)
+    B = _kernel_part(phi, p-1)
+    B_p = _graded_part(B, p)
+    if all(g in B_p for g in ambient_representatives_generators(K_p))
+      kernel_parts[p] = B
+      return B
+    end
+    M = SubquoModule(K_p.sub, B_p)
+    M2, to_M = simplify_light(M)
+    new_gens_p = ambient_representative.(to_M.(gens(M2)))
+    new_gens = elem_type(F)[F(v, p) for v in new_gens_p]
+    Z = B + SubModuleOfFreeModule(F, new_gens)
+    kernel_parts[p] = Z
+  end
+  return kernel_parts[p]
+end
+
+
+
+
+function kernel(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}) where {ModuleType <: FreeMod{<:ExtAlgElem}}
+  F = domain(phi)
+  iszero(F) && return sub(F, elem_type(F)[])
+  d0 = minimum([Int(degree(g)[1]) for g in gens(F)])
+  E = base_ring(F)
+  n = rank(E)
+  dmax = maximum([Int(degree(g)[1]) for g in gens(F)]) + n
+
+  Z = _kernel_part(phi, dmax)
+  return sub(F, gens(Z))
 end
