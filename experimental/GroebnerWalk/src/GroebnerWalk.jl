@@ -17,11 +17,15 @@ import Oscar.Orderings:
 include("markedGB.jl")
 include("common.jl")
 
+include("special-ideals.jl")
+
 include("standard_walk.jl")
 include("generic_walk.jl")
 include("perturbed_walk.jl")
 
 export groebner_walk
+
+export newell_patch
 
 function __init__()
     add_verbosity_scope(:groebner_walk)
