@@ -1,7 +1,6 @@
 #cyclic7
 
 using Oscar
-using GroebnerWalk
 R, (z0, z1, z2, z3, z4, z5, z6) = polynomial_ring(QQ, ["z$index" for index in  0:6 ])
 
 I = ideal([

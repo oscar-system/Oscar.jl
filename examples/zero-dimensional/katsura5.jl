@@ -1,6 +1,5 @@
 
 using Oscar
-using GroebnerWalk
 
 R, (x,y,z,t,u,v) = QQ[:x,:y,:z,:t,:u,:v]
 

@@ -2,7 +2,6 @@
     Implicitization of Bezier surface. Example taken from Amrhein, Gloor, Küchlin. "On the walk" (2004)
 =#
 using Oscar
-using GroebnerWalk
 
 R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
 

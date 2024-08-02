@@ -1,6 +1,5 @@
 #ku
 using Oscar
-using GroebnerWalk 
 
 R, (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) = polynomial_ring(QQ, ["x$index" for index in 1:10])
 

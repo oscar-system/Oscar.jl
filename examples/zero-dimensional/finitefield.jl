@@ -2,7 +2,6 @@
   Example over finite field, from `Groebner.jl` docstring line 1232
 =#
 using Oscar
-using GroebnerWalk
 R, (x1, x2, x3, x4) = polynomial_ring(GF(32003), ["x1", "x2", "x3", "x4"])
 
 J = ideal(R, [

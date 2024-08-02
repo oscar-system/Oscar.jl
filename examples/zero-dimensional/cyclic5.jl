@@ -1,5 +1,4 @@
 using Oscar
-using GroebnerWalk
 
 R, (a, b, c, d, x) = polynomial_ring(QQ, ["a", "b", "c", "d", "x"])
 

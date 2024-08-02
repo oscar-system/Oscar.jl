@@ -1,6 +1,5 @@
 #random polynomial system in 4 variables over Q, computed in M2 
 using Oscar
-using GroebnerWalk
 R, (a, b, c, d)  = polynomial_ring(QQ, ["a", "b", "c", "d"])
 
 

@@ -3,7 +3,6 @@
 #Examples from chapter 3
 
 using Oscar 
-using GroebnerWalk
 
 
 #We perform computations on the same ideal throughout

@@ -1,5 +1,4 @@
 using Oscar 
-using GroebnerWalk
 
 R, (t, x1, x2, x3, x4, x5, x6) = polynomial_ring(QQ, ["t","x1", "x2", "x3", "x4", "x5", "x6"])
 
