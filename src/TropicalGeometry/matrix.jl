@@ -74,3 +74,30 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
     return helper(transpose(A),nca,nra)
   end
 end
+
+@doc raw"""
+    is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
+
+Check if a collection of vectors in the tropical torus (given as rows of a matrix `A`) are in tropical general position.
+
+# Examples
+```jldoctest
+julia> A = matrix(tropical_semiring(),[1 0;0 1])
+[(1)   (0)]
+[(0)   (1)]
+
+julia> is_tropically_generic(A)
+true
+```
+"""
+function is_polytrope(A, MorM)
+  tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
+  P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
+  pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
+  Polymake.Shell.CV = pPMCV
+  Polymake.shell_execute(raw"""
+      $tmp = $CV->size;
+  """)
+  l = Polymake.Shell.tmp
+  return l == 1
+end
