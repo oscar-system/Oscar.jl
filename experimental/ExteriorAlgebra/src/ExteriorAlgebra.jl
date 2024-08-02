@@ -423,7 +423,7 @@ function (E::ExteriorAlgebra{T})(a::ExtAlgElem{T}) where {T}
   return a
 end
 
-function (E::ExteriorAlgebra{T})(a::T) where {T}
+function (E::ExteriorAlgebra{T})(a::T) where {T <: NCRingElem}
   return a*one(E)
 end
 
@@ -575,14 +575,15 @@ function _graded_part(I::SubModuleOfFreeModule{ExtAlgElem{T}}, p::Int) where {T}
     mult_gens = elem_type(F)[]
     for f_q in gens(I_q)
       f, w = map_dict_q[f_q]
+      wf = w*f
       for (i, a) in enumerate(gens(E))
-        g = a*f
+        g = a*wf
         (iszero(g) || g in mult_gens || -g in mult_gens) && continue
         push!(mult_gens, g)
         aw = a*w
         g_p = F_p(g)
         push!(gens_p, g_p)
-        map_dict_p[g_p] = (g, aw)
+        map_dict_p[g_p] = (f, aw)
       end
     end
     gens_ext = [g for g in gens(I) if degree(g) == pp]
@@ -601,3 +602,35 @@ end
   error("this attribute needs to be set manually")
 end
 
+function in(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{ExtAlgElem{T}}) where {T}
+  @assert is_homogeneous(v)
+  iszero(v) && return true
+  p = Int(degree(v)[1])
+  I_p = _graded_part(I, p)
+  F = ambient_free_module(I)
+  F_p = _graded_part(F, p)
+  return F_p(v) in I_p
+end
+
+function coordinates(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{ExtAlgElem{T}}) where {T}
+  @assert is_homogeneous(v)
+  F = ambient_free_module(I)
+  @assert parent(v) === F
+  E = base_ring(F)
+  R = base_ring(E)
+  iszero(v) && return sparse_row(E)
+  p = Int(degree(v)[1])
+  I_p = _graded_part(I, p)
+  F_p = _graded_part(F, p)
+  c = coordinates(F_p(v), I_p)
+  map_dict = _mapping_dict(I_p)
+  result_list = Tuple{Int, elem_type(E)}[]
+  for (i, a) in c
+    g_p = I_p[i]
+    g, w = map_dict[g_p]
+    j = findfirst(j->g===I[j], 1:ngens(I))
+    j === nothing && error("generator not found")
+    push!(result_list, (j, a*w))
+  end
+  return sparse_row(E, result_list)
+end
