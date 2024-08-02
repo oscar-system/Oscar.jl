@@ -2,12 +2,12 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11065978.svg)](https://doi.org/10.5281/zenodo.11065978)
 
-GroebnerWalk.jl is a Julia package providing implementations of Gröbner walk algorithms
+`GroebnerWalk` provides implementations of Gröbner walk algorithms
 for computing Gröbner bases over fields on top of Oscar.jl.
 
 ## Usage
 
-GroebnerWalk.jl provides its entire functionality through the function `groebner_walk`.
+This module provides the function `groebner_walk` as interface to the algorithms.
 The following example demonstrates the usage. First, we define the ideal Oscar.jl.
 ```julia
 using Oscar
@@ -29,6 +29,9 @@ If one wants to specify `target` and `start` orderings explicitly, above functio
 ```julia
 groebner_walk(I, lex(R), default_ordering(R)) # compute the Groebner basis
 ```
+
+Additionally, there are certain special ideals provided that are used for benchmarking 
+of this module.
 
 ## Status
 At the moment, the standard walk by Collart, Kalkbrener and Mall (1997) and the generic walk by Fukuda et al. (2007) are implemented.
