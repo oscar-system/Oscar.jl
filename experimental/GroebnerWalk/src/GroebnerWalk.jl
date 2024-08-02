@@ -26,6 +26,7 @@ include("perturbed_walk.jl")
 export groebner_walk
 
 export newell_patch
+export newell_patch_with_orderings
 
 function __init__()
     add_verbosity_scope(:groebner_walk)
