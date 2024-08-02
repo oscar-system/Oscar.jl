@@ -511,6 +511,8 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   g = vcat(g, relations(M))
   R = base_ring(G)
   H = FreeMod(R, length(g))
+  # This code is also used by graded modules and we need to care for that.
+  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
   phi = hom(H, G, g)
   K, inc = kernel(phi)
   r = ngens(F)
