@@ -59,7 +59,7 @@
         w = [-1,-1]
         nu = tropical_semiring_map(QQ)
         groebner_basis(I,nu,w)
-        @test issetequal(groebner_basis(I,nu,w),[8*y^2+x,x^2])
+        @test issetequal(groebner_basis(I,nu,w),[y^2+1//8*x,x^2])
     end
 
 end
