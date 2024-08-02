@@ -19,16 +19,23 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   if all_graded
     G.d = vcat([f.d for f in F]...)
   end
-  G.S = Symbol[Symbol("("*join(vcat(["0" for j in 1:i-1], 
-                                    [string(F[i].S)], 
-                                    ["0" for j in i+1:length(F)]), ", ")
-                      *")") for i in 1:length(F)]
   set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
   projection_dictionary = IdDict{Int,ModuleFPHom}()
   injection_dictionary = IdDict{Int,ModuleFPHom}()
-  set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  ranges = sizehint!(Vector{UnitRange{Int}}(), length(F))
+  i=0
+  for x in F
+    j = i + ngens(x)
+    push!(ranges, i+1:j)
+    i = j
+  end
+  G.S = vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
+                                          [string(F[j].S[i])], 
+                                          ["0" for k in j+1:length(F)]), ", ")
+                            *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)
+  set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   i = 0
   for f = F
     if task in [:sum, :both]
@@ -74,7 +81,14 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
   projection_dictionary = IdDict{Int,ModuleFPHom}()
   injection_dictionary = IdDict{Int,ModuleFPHom}()
-  set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  ranges = sizehint!(Vector{UnitRange{Int}}(), length(M))
+  i=0
+  for x in M
+    j = i + ngens(x)
+    push!(ranges, i+1:j)
+    i = j
+  end
+  set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   if task == :none
     return s
   end
