@@ -7,4 +7,3 @@ function tran33(k::Field)
 
     return ideal(F), lex(R), default_ordering(R)
 end
-
