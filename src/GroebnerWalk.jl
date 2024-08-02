@@ -33,6 +33,9 @@ end
 
 end
 
-using .GroebnerWalk
+import .GroebnerWalk:
+  newell_patch,
+  groebner_walk
+
 export groebner_walk
 
