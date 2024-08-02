@@ -440,8 +440,14 @@ function (F::FreeMod{ExtAlgElem{T}})(v::Vector{FreeModElem{T}}, p::Int) where {T
   R = base_ring(F_p)
   @assert F_p === _graded_part(F, p)
   g_E = gens(F)
+  #=
+  # old code which is correct, but slow
   prs = canonical_projections(F_p)
   v_comp_list = [[p(w) for p in prs] for w in v]
+  =#
+  ranges = get_attribute(F_p, :ranges)::Vector{UnitRange{Int}}
+  F_p_parts = get_attribute(F_p, :direct_product)::NTuple
+  v_comp_list = [[G(coordinates(w)[r]) for (G, r) in zip(F_p_parts, ranges)] for w in v]
   #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
   d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
   v_comp_coords_list = [[iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)] for v_comps in v_comp_list]
@@ -454,8 +460,13 @@ function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
   R = base_ring(F_p)
   @assert F_p === _graded_part(F, p)
   g_E = gens(F)
+  #=
   prs = canonical_projections(F_p)
   v_comps = [p(v) for p in prs]
+  =#
+  ranges = get_attribute(F_p, :ranges)::Vector{UnitRange{Int}}
+  F_p_parts = get_attribute(F_p, :direct_product)::NTuple
+  v_comps = [G(coordinates(v)[r]) for (G, r) in zip(F_p_parts, ranges)]
   #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
   d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
   v_comp_coords = [iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)]
@@ -469,11 +480,22 @@ function (F_p::FreeMod{T})(v::FreeModElem{ExtAlgElem{T}}; check::Bool=true) wher
   F = parent(v)
   @assert F_p === _graded_part(F, p)
   c_v = coordinates(v)::SRow
-  inj = canonical_injections(F_p)
+  # Slow code:
   result = zero(F_p)
   #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
   d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
   G = grading_group(F)
+  ranges = get_attribute(F_p, :ranges)::Vector{UnitRange{Int}}
+  for (i, c) in c_v
+    w = deepcopy(c.components[p-d[i]])
+    offset = first(ranges[i])-1
+    w.pos.+=offset
+    result += F_p(w)
+  end
+  return result
+  # old code left here to show what the intention was.
+  # the above is a hack to speed stuff up, but it messes with unstable internals
+  inj = canonical_injections(F_p)
   for (i, c) in c_v
     inc = inj[i]
     v_i = domain(inc)(c.components[p - d[i]])
@@ -769,6 +791,7 @@ function strand(F::FreeMod{<:MPolyDecRingElem}, d::Int)
   end
   Fd_to_F = hom(Fd, F, img_gens, S)
   function my_map(v::FreeModElem)
+    iszero(v) && return zero(Fd)
     @assert Int(degree(v; check=false)[1]) == d "input must be homogeneous of degree $d"
     w = zero(Fd)
     for (i, b) in coordinates(v)
