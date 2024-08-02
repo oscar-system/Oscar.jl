@@ -423,7 +423,6 @@ function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
   R = base_ring(F_p)
   @assert F_p === _graded_part(F, p)
   g_E = gens(F)
-  d = degree.(gens(F))
   prs = canonical_projections(F_p)
   v_comps = [p(v) for p in prs]
   d = [Int(a[1]) for a in degree.(gens(F))]
@@ -448,5 +447,72 @@ function (F_p::FreeMod{T})(v::FreeModElem{ExtAlgElem{T}}; check::Bool=true) wher
     result += inc(v_i)
   end
   return result
+end
+
+@attr Dict{Int, SubModuleOfFreeModule{T}} function _graded_parts(I::SubModuleOfFreeModule{ExtAlgElem{T}}) where {T}
+  return Dict{Int, SubModuleOfFreeModule{T}}()
+end
+
+function _graded_part(I::SubModuleOfFreeModule{ExtAlgElem{T}}, p::Int) where {T}
+  graded_parts = _graded_parts(I)
+  if !haskey(graded_parts, p)
+    F = ambient_free_module(I)
+    pp = grading_group(F)([p])
+    E = base_ring(F)
+    R = base_ring(E)
+    iszero(F) && return SubModuleOfFreeModule(F, elem_type(F)[])
+    d = [Int(a[1]) for a in degree.(gens(F))]
+    d0 = minimum(d)
+    d_max = maximum(d)
+    F_p = _graded_part(F, p)
+    if p < d0 || p > d_max + rank(E)
+      result = SubModuleOfFreeModule(F_p, elem_type(F_p)[])
+      graded_parts[p] = result
+      return result
+    elseif p == d0
+      g_0 = [g for g in gens(I) if degree(g) == pp]
+      g_0_p = [F_p(g) for g in g_0]
+      result = SubModuleOfFreeModule(F_p, g_0)
+      set_attribute!(result, :_mapping_dict=>IdDict{elem_type(F_p), Tuple{elem_type(F), elem_type(E)}}(g_0_p[i] => (g_0[i], one(E)) for i in 1:length(g_0)))
+      graded_parts[p] = result
+      return result
+    end
+
+    # we can assume that d0 < p <= d_max + rank(E) and by induction 
+    # that I_{p-1} has already been computed
+    F_p = _graded_part(F, p)
+    gens_p = elem_type(F_p)[]
+    I_q = _graded_part(I, p-1)
+    f = gens(I_q)
+    # mapping the generators of F_p to ω ⋅ g for generators g of I and monomials ω ∈ E
+    map_dict_p = IdDict{elem_type(F_p), Tuple{elem_type(F), elem_type(E)}}()
+    map_dict_q = _mapping_dict(I_q)
+    mult_gens = elem_type(F)[]
+    for f_q in gens(I_q)
+      f, w = map_dict_q[f_q]
+      for (i, a) in enumerate(gens(E))
+        g = a*f
+        (iszero(g) || g in mult_gens || -g in mult_gens) && continue
+        push!(mult_gens, g)
+        aw = a*w
+        g_p = F_p(g)
+        push!(gens_p, g_p)
+        map_dict_p[g_p] = (g, aw)
+      end
+    end
+    gens_ext = [g for g in gens(I) if degree(g) == pp]
+    gens_p_ext = elem_type(F_p)[F_p(g) for g in gens_ext]
+    result = SubModuleOfFreeModule(F_p, vcat(gens_p, gens_p_ext))
+    for i in 1:length(gens_ext)
+      map_dict_p[gens_p_ext[i]] = (gens_ext[i], one(E))
+    end
+    set_attribute!(result, :_mapping_dict=>map_dict_p)
+    graded_parts[p] = result
+  end
+  return graded_parts[p]
+end
+
+@attr IdDict function _mapping_dict(I::SubModuleOfFreeModule)
+  error("this attribute needs to be set manually")
 end
 
