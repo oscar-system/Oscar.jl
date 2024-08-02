@@ -35,6 +35,7 @@ end
 
 import .GroebnerWalk:
   newell_patch,
+  newell_patch_with_orderings,
   groebner_walk
 
 export groebner_walk
