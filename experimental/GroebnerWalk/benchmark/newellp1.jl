@@ -32,4 +32,3 @@ function newellp1(k::Field)
     o2 = matrix_ordering(R, [0 0 0 1 1; 1 1 1 0 0; 1 1 0 0 0; 1 0 0 0 0; 0 0 0 1 0])
     return ideal(integral_F), o2, o1
 end
-
