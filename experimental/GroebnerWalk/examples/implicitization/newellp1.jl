@@ -3,7 +3,6 @@
     A 2-dimensional ideal from Tran. "Efficient Groebner walk conversion for implicitization of geometric objects" (2004)
 =#
 using Oscar
-using GroebnerWalk 
 
 R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
 

@@ -1,7 +1,6 @@
 #smallknap
 
 using Oscar 
-using GroebnerWalk
 R, (t, x1, x2, x3) = polynomial_ring(QQ, ["t","x1", "x2", "x3"])
 
 f1 = x1 - t^5
