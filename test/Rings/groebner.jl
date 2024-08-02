@@ -227,7 +227,7 @@ end
   A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException Oscar._fglm(A, lex(R))
   I = ideal(R, gens(A))
-  groebner_basis(I)
+  groebner_basis(I, algorithm=:buchberger)
   @test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
   groebner_basis(I, complete_reduction=true)
   G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
