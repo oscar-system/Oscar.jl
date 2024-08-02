@@ -290,7 +290,17 @@ end
 function ==(v::ExtAlgElem, w::ExtAlgElem)
   E = parent(v)
   @assert E === parent(w)
-  return components(v) == components(w)
+  (!isdefined(v, :components) && !isdefined(w, :components)) && (return !isdefined(v, :components) && !isdefined(w, :components))
+  #return components(v) == components(w)
+  for (p, c) in components(v)
+    p in keys(components(w)) || return false
+    c == components(w)[p] || return false
+  end
+  return all(q in keys(components(v)) for q in keys(components(w)))
+  for (q, cc) in components(w)
+    q in keys(components(v)) || return false
+  end
+  return true
 end
 
 function multiplication_hash_table(E::ExteriorAlgebra, p::Int, q::Int)
@@ -326,7 +336,7 @@ function Base.show(io::IO, E::ExteriorAlgebra)
 end
 
 function degree(w::ExtAlgElem; check::Bool=true)
-  isempty(components(w)) && return nothing
+  (!isdefined(w, :components) || isempty(components(w))) && return zero(grading_group(parent(w)))
   return maximum(collect(keys(components(w))))*grading_group(parent(w))[1]
 end
 
@@ -389,7 +399,7 @@ function _graded_part(F::FreeMod{ExtAlgElem{T}}, p::Int) where T
   if !haskey(graded_parts, p)
     E = base_ring(F)
     R = base_ring(E)
-    parts = [E[p - Int(degree(F[k])[1])] for k in 1:ngens(F)]
+    parts = [E[p - Int(degree(g)[1])] for g in gens(F)]
     result = direct_sum(parts...)[1]
     graded_parts[p] = result
   end
@@ -415,11 +425,27 @@ function getindex(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}, p::Int) w
     img_gens = [dom(g, p) for g in img_gens]
     img_gens = phi.(img_gens)
     =#
-    img_gens = elem_type(cod_p)[cod_p(phi(dom(g, p))) for g in gens(dom_p)]
+    #img_gens = elem_type(cod_p)[cod_p(phi(dom(g, p)); check=false) for g in gens(dom_p)]
+    img_gens = cod_p(phi.(dom(gens(dom_p), p)); check=false)
     phi_p = hom(dom_p, cod_p, img_gens)
     parts[p] = phi_p
   end
   return parts[p]::FreeModuleHom
+end
+
+function (F::FreeMod{ExtAlgElem{T}})(v::Vector{FreeModElem{T}}, p::Int) where {T}
+  E = base_ring(F)
+  isempty(v) && return elem_type(F)[]
+  F_p = parent(first(v))
+  R = base_ring(F_p)
+  @assert F_p === _graded_part(F, p)
+  g_E = gens(F)
+  prs = canonical_projections(F_p)
+  v_comp_list = [[p(w) for p in prs] for w in v]
+  #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
+  d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
+  v_comp_coords_list = [[iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)] for v_comps in v_comp_list]
+  return elem_type(F)[sum(a*g for (a, g) in zip(v_comp_coords, g_E); init=zero(F)) for v_comp_coords in v_comp_coords_list]
 end
 
 function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
@@ -430,7 +456,8 @@ function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
   g_E = gens(F)
   prs = canonical_projections(F_p)
   v_comps = [p(v) for p in prs]
-  d = [Int(a[1]) for a in degree.(gens(F))]
+  #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
+  d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
   v_comp_coords = [iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)]
   return sum(a*g for (a, g) in zip(v_comp_coords, g_E); init=zero(F))
 end
@@ -438,18 +465,45 @@ end
 function (F_p::FreeMod{T})(v::FreeModElem{ExtAlgElem{T}}; check::Bool=true) where {T}
   @check is_homogeneous(v) "elements must be homogeneous for conversion"
   iszero(v) && return zero(F_p)
-  p = Int(degree(v)[1])
+  p = Int(degree(v; check=false)[1])
   F = parent(v)
   @assert F_p === _graded_part(F, p)
   c_v = coordinates(v)::SRow
   inj = canonical_injections(F_p)
   result = zero(F_p)
-  d = [Int(a[1]) for a in degree.(gens(F))]
+  #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
+  d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
   G = grading_group(F)
   for (i, c) in c_v
     inc = inj[i]
     v_i = domain(inc)(c.components[p - d[i]])
     result += inc(v_i)
+  end
+  return result
+end
+
+function (F_p::FreeMod{T})(a::Vector{FreeModElem{ExtAlgElem{T}}}; check::Bool=true) where {T}
+  @check is_homogeneous(v) "elements must be homogeneous for conversion"
+  isempty(a) && return elem_type(F_p)[]
+  j = findfirst(!iszero(v) for v in a)
+  j === nothing && return [zero(F_p) for i in 1:length(a)]
+  p = Int(degree(a[j]; check=false)[1])
+  F = parent(first(a))
+  @assert F_p === _graded_part(F, p)
+  c_v_list = [coordinates(v)::SRow for v in a]
+  inj = canonical_injections(F_p)
+  result = elem_type(F_p)[]
+  #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
+  d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
+  G = grading_group(F)
+  for c_v in c_v_list
+    res = zero(F_p)
+    for (i, c) in c_v
+      inc = inj[i]
+      v_i = domain(inc)(c.components[p - d[i]])
+      res += inc(v_i)
+    end
+    push!(result, res)
   end
   return result
 end
@@ -466,7 +520,8 @@ function _graded_part(I::SubModuleOfFreeModule{ExtAlgElem{T}}, p::Int) where {T}
     E = base_ring(F)
     R = base_ring(E)
     iszero(F) && return SubModuleOfFreeModule(F, elem_type(F)[])
-    d = [Int(a[1]) for a in degree.(gens(F))]
+    #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
+    d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
     d0 = minimum(d)
     d_max = maximum(d)
     F_p = _graded_part(F, p)
@@ -475,9 +530,9 @@ function _graded_part(I::SubModuleOfFreeModule{ExtAlgElem{T}}, p::Int) where {T}
       graded_parts[p] = result
       return result
     elseif p == d0
-      g_0 = [g for g in gens(I) if degree(g) == pp]
-      g_0_p = [F_p(g) for g in g_0]
-      result = SubModuleOfFreeModule(F_p, g_0)
+      g_0 = elem_type(F)[g for g in gens(I) if degree(g; check=false) == pp]
+      g_0_p = elem_type(F_p)[F_p(g) for g in g_0]
+      result = SubModuleOfFreeModule(F_p, g_0_p)
       set_attribute!(result, :_mapping_dict=>IdDict{elem_type(F_p), Tuple{elem_type(F), elem_type(E)}}(g_0_p[i] => (g_0[i], one(E)) for i in 1:length(g_0)))
       graded_parts[p] = result
       return result
@@ -506,7 +561,7 @@ function _graded_part(I::SubModuleOfFreeModule{ExtAlgElem{T}}, p::Int) where {T}
         map_dict_p[g_p] = (f, aw)
       end
     end
-    gens_ext = [g for g in gens(I) if degree(g) == pp]
+    gens_ext = [g for g in gens(I) if degree(g; check=false) == pp]
     gens_p_ext = elem_type(F_p)[F_p(g) for g in gens_ext]
     result = SubModuleOfFreeModule(F_p, vcat(gens_p, gens_p_ext))
     for i in 1:length(gens_ext)
@@ -525,7 +580,7 @@ end
 function in(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{ExtAlgElem{T}}) where {T}
   @assert is_homogeneous(v)
   iszero(v) && return true
-  p = Int(degree(v)[1])
+  p = Int(degree(v; check=false)[1])
   I_p = _graded_part(I, p)
   F = ambient_free_module(I)
   F_p = _graded_part(F, p)
@@ -539,7 +594,7 @@ function coordinates(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{Ext
   E = base_ring(F)
   R = base_ring(E)
   iszero(v) && return sparse_row(E)
-  p = Int(degree(v)[1])
+  p = Int(degree(v; check=false)[1])
   I_p = _graded_part(I, p)
   F_p = _graded_part(F, p)
   c = coordinates(F_p(v), I_p)
@@ -565,11 +620,12 @@ function _kernel_part(
     phi::FreeModuleHom{ModuleType, ModuleType, Nothing}, p::Int
   ) where {T, ModuleType <: FreeMod{ExtAlgElem{T}}}
   kernel_parts = _kernel_parts(phi)
+  @vprint :ExteriorAlgebras 2 "computing kernel up to degree $p\n"
   if !haskey(kernel_parts, p)
     F = domain(phi)
     F_p = _graded_part(F, p)
     iszero(F) && return SubModuleOfFreeModule(F, elem_type(F)[])
-    gens_deg = [Int(degree(g)[1]) for g in gens(F)]
+    gens_deg = [Int(degree(g; check=false)[1]) for g in gens(F)]
     d0 = minimum(gens_deg)
     E = base_ring(F)
     n = rank(E)
@@ -578,47 +634,67 @@ function _kernel_part(
     if p < d0 || p > dmax
       result = SubModuleOfFreeModule(F, elem_type(F)[])
       kernel_parts[d0-1] = result
+      @vprint :ExteriorAlgebras 2 "done with kernel computation up to degree $p\n"
       return result
     elseif p == d0
+      @vprint :ExteriorAlgebras 3 "extracting the graded part of degree $p\n"
       phi_p = phi[p]
+      @vprint :ExteriorAlgebras 3 "restricted map has $(ngens(domain(phi_p))) generators in the domain and $(ngens(codomain(phi_p))) in the codomain\n"
       K_p, _ = kernel(phi_p)
       gens_p = filter!(!iszero, ambient_representatives_generators(K_p))
       g = elem_type(F)[F(v, p) for v in gens_p]
       Z = SubModuleOfFreeModule(F, g)
       kernel_parts[p] = Z
+      @vprint :ExteriorAlgebras 2 "done with kernel computation up to degree $p\n"
       return Z
     end
 
+    @vprint :ExteriorAlgebras 3 "extracting the graded part of degree $p\n"
     phi_p = phi[p]
     K_p, _ = kernel(phi_p)
+    @vprint :ExteriorAlgebras 3 "restricted map has $(ngens(domain(phi_p))) generators in the domain and $(ngens(codomain(phi_p))) in the codomain\n"
     B = _kernel_part(phi, p-1)
     B_p = _graded_part(B, p)
     if all(g in B_p for g in ambient_representatives_generators(K_p))
       kernel_parts[p] = B
+      @vprint :ExteriorAlgebras 3 "no new generators\n"
+      @vprint :ExteriorAlgebras 2 "done with kernel computation up to degree $p\n"
       return B
     end
     M = SubquoModule(K_p.sub, B_p)
-    M2, to_M = simplify_light(M)
+    #M2, to_M = simplify_light(M)
+    M2, to_M = prune_with_map(M)
     new_gens_p = ambient_representative.(to_M.(gens(M2)))
+    @vprint :ExteriorAlgebras 3 "$(length(new_gens_p)) new generators\n"
     new_gens = elem_type(F)[F(v, p) for v in new_gens_p]
     Z = B + SubModuleOfFreeModule(F, new_gens)
     kernel_parts[p] = Z
   end
+  @vprint :ExteriorAlgebras 2 "done with kernel computation up to degree $p\n"
   return kernel_parts[p]
 end
 
 
 
 
-function kernel(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}) where {ModuleType <: FreeMod{<:ExtAlgElem}}
+function kernel(
+    phi::FreeModuleHom{ModuleType, ModuleType, Nothing}; 
+    degree_bound::Union{Int, Nothing}=0
+  ) where {ModuleType <: FreeMod{<:ExtAlgElem}}
+  @vprint :ExteriorAlgebras 1 "computing kernel of map with degrees\n"
+  @vprint :ExteriorAlgebras 1 "$([degree(g; check=false) for g in gens(domain(phi))])\n"
+  @vprint :ExteriorAlgebras 1 "in the domain and degrees\n"
+  @vprint :ExteriorAlgebras 1 "$([degree(g; check=false) for g in gens(codomain(phi))])\n"
+  @vprint :ExteriorAlgebras 1 "in the codomain up to degree $(degree_bound)\n"
   F = domain(phi)
   iszero(F) && return sub(F, elem_type(F)[])
-  d0 = minimum([Int(degree(g)[1]) for g in gens(F)])
+  d0 = minimum([Int(degree(g; check=false)[1]) for g in gens(F)])
   E = base_ring(F)
   n = rank(E)
-  dmax = maximum([Int(degree(g)[1]) for g in gens(F)]) + n
-  dmax > 0 && (dmax = 0)
-
+  dmax = maximum([Int(degree(g; check=false)[1]) for g in gens(F)]) + n
+  if degree_bound !== nothing
+    dmax > degree_bound && (dmax = degree_bound)
+  end
   Z = _kernel_part(phi, dmax)
   return sub(F, gens(Z))
 end
@@ -632,13 +708,39 @@ function change_base_ring(R::Ring, F::FreeMod{ExtAlgElem{T}}) where {T<:RingElem
   E = base_ring(F)
   @assert R === base_ring(E) "the ring needs to be the base ring of the exterior algebra"
 
-  indices = [i for i in 1:ngens(F) if iszero(degree(F[i]))]
+  indices = [i for i in 1:ngens(F) if iszero(degree(F[i]; check=false))]
   FoR = FreeMod(R, length(indices))
   #set_attribute!(FoR, :degrees_of_generators=>degrees_of_generators(F))
   _, red0 = change_base_ring(R, E)
-  img_gens = [i in indices ? FoR[indices[i]] : zero(FoR) for i in 1:ngens(F)]
+  img_gens = elem_type(FoR)[]
+  j = 1
+  for (i, g) in enumerate(gens(F))
+    if !iszero(degree(g; check=false))
+      push!(img_gens, zero(FoR))
+    else
+      push!(img_gens, gen(FoR, j))
+      j += 1
+    end
+  end
+  #img_gens = [i in indices ? FoR[indices[i]] : zero(FoR) for i in 1:ngens(F)]
   red = hom(F, FoR, img_gens, red0)
   return FoR, red
+end
+
+function change_base_ring(R::Ring, f::ModuleFPHom{MT, MT, Nothing};
+    domain_base_change::Map = change_base_ring(R, domain(f))[2],
+    codomain_base_change::Map = change_base_ring(R, codomain(f))[2]
+  ) where {MT <: ModuleFP{<:ExtAlgElem}}
+  bc_dom = codomain(domain_base_change)
+  bc_cod = codomain(codomain_base_change)
+  @assert domain(f) === domain(domain_base_change)
+  @assert codomain(f) === domain(codomain_base_change)
+  indices = [i for i in 1:ngens(domain(f)) if iszero(degree(domain(f)[i]; check=false))]
+  img_gens = gens(domain(f))[indices]
+  img_gens = f.(img_gens)
+  img_gens = codomain_base_change.(img_gens)
+  img_gens = [codomain_base_change(f(domain(f)[i])) for i in indices]
+  return hom(bc_dom, bc_cod, img_gens)
 end
 
 function _strand(F::FreeMod{T}, d) where {T<:MPolyDecRingElem}
@@ -648,43 +750,108 @@ function _strand(F::FreeMod{T}, d) where {T<:MPolyDecRingElem}
   return C0[()], map_to_orig[()]
 end
 
-function _ext_module_map(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
-  Fd, Fd_to_F = _strand(F, d)
+### Partially copied from the StrandComplexes. TODO: Clean up to avoid duplication!
+function strand(F::FreeMod{<:MPolyDecRingElem}, d::Int)
+  @assert is_z_graded(F)
+  S = base_ring(F)
+  R = base_ring(S)
+  Fd = FreeMod(R, length(all_exponents(F, d)))
+  
+  # Use a dictionary for fast mapping of the monomials to the 
+  # generators of `Fd`.
+  inv_exp_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(Fd)}(m=>Fd[k] for (k, m) in enumerate(all_exponents(F, d)))
+  # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
+  img_gens = elem_type(F)[]
+  x = gens(S)
+  for (e, i) in all_exponents(F, d) # iterate through the generators of `F`
+    m = prod(x^k for (x, k) in zip(x, e); init=one(S))*F[i]
+    push!(img_gens, m)
+  end
+  Fd_to_F = hom(Fd, F, img_gens, S)
+  function my_map(v::FreeModElem)
+    @assert Int(degree(v; check=false)[1]) == d "input must be homogeneous of degree $d"
+    w = zero(Fd)
+    for (i, b) in coordinates(v)
+      w += sum(c*inv_exp_dict[(n, i)] for (c, n) in zip(coefficients(b), exponents(b)); init=zero(Fd))
+    end
+    return w
+  end
+  F_to_Fd = MapFromFunc(F, Fd, my_map)
+  return Fd, Fd_to_F, F_to_Fd
+end
+
+function _ext_module_map(
+    F::FreeMod{T}, d::Int;
+    domain_strand::Tuple{<:FreeMod, <:Map, <:Map}=strand(F, d),
+    codomain_strand::Tuple{<:FreeMod, <:Map, <:Map}=strand(F, d+1),
+  ) where {T<:MPolyDecRingElem}
+  @assert is_z_graded(F)
+  Fd, Fd_to_F, F_to_Fd = domain_strand
   e = d+1
-  Fe, Fe_to_F = _strand(F, e)
-  #F_to_Fe = 
+  Fe, Fe_to_F, F_to_Fe = codomain_strand
   S = base_ring(F)
   R = base_ring(S)
   E = _exterior_algebra(S)
   G = grading_group(E)
-  Fd_E = graded_free_module(E, [d*G[1] for i in 1:ngens(Fd)])
-  Fe_E = graded_free_module(E, [e*G[1] for i in 1:ngens(Fe)])
+  Fd_E = graded_free_module(E, [-d*G[1] for i in 1:ngens(Fd)])
+  Fe_E = graded_free_module(E, [-e*G[1] for i in 1:ngens(Fe)])
   Fe_map = hom(Fe, Fe_E, gens(Fe_E), E)
-  img_gens = elem_type(E)[]
+  Fd_map = hom(Fd, Fd_E, gens(Fd_E), E)
+  img_gens = elem_type(Fe_E)[]
   for (i, g) in enumerate(gens(Fd))
     img = zero(Fe_E)
     for j in 1:nvars(S)
       h = g
       h = Fd_to_F(h)
-      h = S[j]*g
+      h = gen(S, j)*h
       h = F_to_Fe(h)
       h = Fe_map(h)
-      h = E[j]*h
+      h = gen(E, j)*h
       img += h
     end
     push!(img_gens, img)
   end
-  return hom(Fd_E, Fe_E, img_gens)
+  return hom(Fd_E, Fe_E, img_gens), Fd_map, Fe_map
 end
 
+function _ext_module_map(M::SubquoModule{T}, d::Int) where {T<:MPolyDecRingElem}
+  pres = presentation(M)
+  F0 = pres[0]
+  F1 = pres[1]
+  b = map(pres, 1) # F1 -> F0
+  F0_d, to_F0, to_F0_d = strand(F0, d)
+  F1_d, to_F1, to_F1_d = strand(F1, d)
+  e = d + 1
+  F0_e, to_F0_2, to_F0_e = strand(F0, e)
+  F1_e, to_F1_2, to_F1_e = strand(F1, e)
 
+  dom_rels, inc_dom = sub(F0_d, to_F0_d.(b.(to_F1.(gens(F1_d)))))
+  cod_rels, inc_cod = sub(F0_e, to_F0_e.(b.(to_F1_2.(gens(F1_e)))))
+  phi, F0_d_map, F0_e_map = _ext_module_map(F0, d; domain_strand = (F0_d, to_F0, to_F0_d),
+                                            codomain_strand = (F0_e, to_F0_2, to_F0_e))
+  @assert domain(F0_d_map) === F0_d
+  @assert domain(F0_e_map) === F0_e
+  @assert domain(phi) === codomain(F0_d_map)
+  @assert codomain(phi) === codomain(F0_e_map)
+  
+  M_dom, pr_dom = quo(domain(phi), F0_d_map.(ambient_representatives_generators(dom_rels)))
+  M_cod, pr_cod = quo(codomain(phi), F0_e_map.(ambient_representatives_generators(cod_rels)))
+  @assert domain(pr_cod) === codomain(phi)
+  
+  psi = hom(M_dom, M_cod, pr_cod.(phi.(F0_d_map.(gens(F0_d)))))
+  return psi
+end
+
+function gen(E::ExteriorAlgebra{T}, i::Int) where {T}
+  return ExtAlgElem(E, Dict{Int, SRow{T}}(1 => sparse_row(base_ring(E), [(i, one(base_ring(E)))]))) 
+end
   
 
 
 @attr ExteriorAlgebra{T} function _exterior_algebra(S::MPolyDecRing{T}) where {T}
-  @assert is_z_graded
+  @assert is_z_graded(S)
   R = base_ring(S)
-  new_symb = symbol.([string(s)*" ̌" for s in symbols(S)])
+  new_symb = Symbol.([string(s)*" ̌" for s in symbols(S)])
   return ExteriorAlgebra(R, new_symb)
 end
 
