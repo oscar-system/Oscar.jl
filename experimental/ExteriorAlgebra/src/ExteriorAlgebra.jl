@@ -192,6 +192,11 @@ function components(w::ExtAlgElem{T}) where {T}
   return w.components
 end
 
+function getindex(w::ExtAlgElem, p::Int)
+  !haskey(w.components, p) && return sparse_row(base_ring(parent(w)))
+  return w.components[p]
+end
+
 function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T<:NCRingElem}
   E = parent(v)
   R = base_ring(E)
@@ -612,7 +617,74 @@ function kernel(phi::FreeModuleHom{ModuleType, ModuleType, Nothing}) where {Modu
   E = base_ring(F)
   n = rank(E)
   dmax = maximum([Int(degree(g)[1]) for g in gens(F)]) + n
+  dmax > 0 && (dmax = 0)
 
   Z = _kernel_part(phi, dmax)
   return sub(F, gens(Z))
 end
+
+function change_base_ring(R::NCRing, E::ExteriorAlgebra{T}) where {T<:NCRingElem}
+  @assert R === base_ring(E) "the ring needs to be the base ring of the exterior algebra"
+  return R, x->x[0][1]
+end
+
+function change_base_ring(R::Ring, F::FreeMod{ExtAlgElem{T}}) where {T<:RingElem}
+  E = base_ring(F)
+  @assert R === base_ring(E) "the ring needs to be the base ring of the exterior algebra"
+
+  indices = [i for i in 1:ngens(F) if iszero(degree(F[i]))]
+  FoR = FreeMod(R, length(indices))
+  #set_attribute!(FoR, :degrees_of_generators=>degrees_of_generators(F))
+  _, red0 = change_base_ring(R, E)
+  img_gens = [i in indices ? FoR[indices[i]] : zero(FoR) for i in 1:ngens(F)]
+  red = hom(F, FoR, img_gens, red0)
+  return FoR, red
+end
+
+function _strand(F::FreeMod{T}, d) where {T<:MPolyDecRingElem}
+  @assert is_z_graded(F)
+  C = ZeroDimensionalComplex(F)
+  C0, map_to_orig = strand(C, d)
+  return C0[()], map_to_orig[()]
+end
+
+function _ext_module_map(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
+  Fd, Fd_to_F = _strand(F, d)
+  e = d+1
+  Fe, Fe_to_F = _strand(F, e)
+  #F_to_Fe = 
+  S = base_ring(F)
+  R = base_ring(S)
+  E = _exterior_algebra(S)
+  G = grading_group(E)
+  Fd_E = graded_free_module(E, [d*G[1] for i in 1:ngens(Fd)])
+  Fe_E = graded_free_module(E, [e*G[1] for i in 1:ngens(Fe)])
+  Fe_map = hom(Fe, Fe_E, gens(Fe_E), E)
+  img_gens = elem_type(E)[]
+  for (i, g) in enumerate(gens(Fd))
+    img = zero(Fe_E)
+    for j in 1:nvars(S)
+      h = g
+      h = Fd_to_F(h)
+      h = S[j]*g
+      h = F_to_Fe(h)
+      h = Fe_map(h)
+      h = E[j]*h
+      img += h
+    end
+    push!(img_gens, img)
+  end
+  return hom(Fd_E, Fe_E, img_gens)
+end
+
+
+  
+
+
+@attr ExteriorAlgebra{T} function _exterior_algebra(S::MPolyDecRing{T}) where {T}
+  @assert is_z_graded
+  R = base_ring(S)
+  new_symb = symbol.([string(s)*" ̌" for s in symbols(S)])
+  return ExteriorAlgebra(R, new_symb)
+end
+
