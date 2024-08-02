@@ -1,12 +1,9 @@
 using Oscar
-using GroebnerWalk
-using BenchmarkTools
 
 include("cyclic.jl")
 include("katsura.jl")
 include("agk.jl")
 include("tran3.3.jl")
-include("newellp1.jl")
 
 function benchmark(
   io,
@@ -16,13 +13,13 @@ function benchmark(
   start::MonomialOrdering
 )
   print(io, name, ","); flush(io)
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:standard) seconds=20000 samples=10
+  t = @elapsed groebner_walk($I, $target, $start; algorithm=:standard) 
   print(io, t, ","); flush(io)
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:generic) seconds=20000 samples=10
+  t = @elapsed groebner_walk($I, $target, $start; algorithm=:generic)
   print(io, t, ","); flush(io)
-  t = @belapsed groebner_walk($I, $target, $start; algorithm=:perturbed) seconds=20000 samples=10
+  t = @elapsed groebner_walk($I, $target, $start; algorithm=:perturbed)
   print(io, t, ","); flush(io)
-  t = @belapsed groebner_basis($I; ordering=$target) seconds=20000 samples=10
+  t = @elapsed groebner_basis($I; ordering=$target)
   println(io, t); flush(io)
 end
 
@@ -62,7 +59,7 @@ open("results.csv", "a") do io
   benchmark(io, "tran3.3-QQ", tran33(QQ)...)
   benchmark(io, "tran3.3-Fp", tran33(Fp)...)
 
-  benchmark(io, "newellp1-QQ", newellp1(QQ)...)
-  benchmark(io, "newellp1-Fp", newellp1(Fp)...)
+  benchmark(io, "newellp1-QQ", Oscar.newell_patch_with_orderings(QQ)...)
+  benchmark(io, "newellp1-Fp", Oscar.newell_patch_with_orderings(Fp)...)
 end
 
