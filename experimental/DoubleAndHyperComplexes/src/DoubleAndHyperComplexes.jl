@@ -9,9 +9,9 @@ include("Objects/koszul_complexes.jl")
 include("Objects/degree_zero_complexes.jl")
 include("Objects/new_complex_template.jl")
 include("Objects/linear_strands.jl")
-include("Objects/cartan_eilenberg_resolutions.jl"
 
 include("Morphisms/Types.jl")
+include("Objects/cartan_eilenberg_resolution.jl")
 include("Morphisms/cartan_eilenberg_resolutions.jl")
 include("Morphisms/ext.jl")
 include("Morphisms/simplified_complexes.jl")
