@@ -12,14 +12,10 @@ struct MarkedGroebnerBasis
     markings::Vector{<:MPolyRingElem}
 
     function MarkedGroebnerBasis(gens::Vector{<:MPolyRingElem}, markings::Vector{<:MPolyRingElem})
-        if length(gens) != length(markings)
-            throw(ArgumentError("Inputs are of different length"))
-        else
-            if 0 in gens
-                throw(ArgumentError("Gröbner basis contains the zero polynomial"))
-            end
-            new(gens, markings) 
-        end
+        @req (length(gens) == length(markings)) "Inputs are of different length"
+        @req !(0 in gens) "Gröbner basis contains the zero polynomial"
+
+        new(gens, markings) 
     end
 end
 
