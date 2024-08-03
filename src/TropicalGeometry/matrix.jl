@@ -116,3 +116,14 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   l != 1 && return false
   return true
 end
+
+function is_polytrope_old(A::QQMatrix, MorM)
+  tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
+  P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
+  pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
+  Polymake.Shell.CV = pPMCV
+  Polymake.shell_execute(raw"""$tmp = $CV->size;""")
+  l = Polymake.Shell.tmp
+  l != 1 && return false
+  return true
+end
