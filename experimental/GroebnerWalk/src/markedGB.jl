@@ -7,11 +7,11 @@ import Base: length, getindex, setindex!
 #markings, a vector "Markings" of G, corresponding to leading terms w.r.t some monomial ordering
 #TODO: maybe initialize s.t. G is reduced/monic? 
 
-struct MarkedGroebnerBasis
-    gens::Vector{<:MPolyRingElem}
-    markings::Vector{<:MPolyRingElem}
+struct MarkedGroebnerBasis{S}
+    gens::Vector{S}
+    markings::Vector{S}
 
-    function MarkedGroebnerBasis(gens::Vector{<:MPolyRingElem}, markings::Vector{<:MPolyRingElem})
+    function MarkedGroebnerBasis(gens::Vector{T}, markings::Vector{T}) where {T<:MPolyRingElem}
         @req (length(gens) == length(markings)) "Inputs are of different length"
         @req !(0 in gens) "Gröbner basis contains the zero polynomial"
 
@@ -51,7 +51,7 @@ function _normal_form(p::MPolyRingElem, G::AbstractVector{<:MPolyRingElem}, mark
   MG = zip(G, mark)
 
   while !iszero(p)
-    m = first(terms(p))
+    m = first(AbstractAlgebra.terms(p))
 
     div = false
     for (g, lm) in MG
