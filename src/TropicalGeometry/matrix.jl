@@ -76,27 +76,43 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
 end
 
 @doc raw"""
-    is_polytrope(A::QQMatrix)
+    is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
 
 Check if a tropical polytope is ordinarily convex (ie a polytrope)
 
 # Examples
 ```jldoctest
-julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
-[0   0   1]
-[0   1   0]
-[0   3   3]
+julia> A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
+[(0)   (0)   (1)]
+[(0)   (1)   (0)]
+[(0)   (3)   (3)]
 
-julia> is_polytrope(A,min)
+julia> is_polytrope(A)
 true
 ```
 """
-function is_polytrope(A::QQMatrix, MorM)
-  tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
-  P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
-  pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
-  Polymake.Shell.CV = pPMCV
+function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+  #=Convert the matrix of tropical numbers into matrix of rational numbers in
+  to pass it into polymake's tropical convex hull function =#
+  ncA = ncols(A)
+  nrA = nrows(A)
+  QQA = zero_matrix(QQ,nrA,ncA)
+  for i in 1:nrA
+    for j in 1:ncA
+      @req A[i,j] != zero(tropical_semiring(convention(A))) "If infty is an entry then the tropical polytope is not bounded"
+      QQA[i,j] += QQ(A[i,j])
+    end
+  end
+  #Compute the tropical convex hull 
+  tempP = Polymake.tropical.Polytope{convention(A)}(POINTS=QQA)
+  #=Compute the tropical convex hull again, this time with 
+  the minimal generating set of vertices of tropical polytope=#
+  P = Polymake.tropical.Polytope{convention(A)}(POINTS=tempP.VERTICES)
+  PMCV = P.POLYTOPE_MAXIMAL_COVECTORS
+  Polymake.Shell.CV = PMCV
+  #Get the length out of the polymake shell
   Polymake.shell_execute(raw"""$tmp = $CV->size;""")
   l = Polymake.Shell.tmp
-  return l == 1
+  l != 1 && return false
+  return true
 end
