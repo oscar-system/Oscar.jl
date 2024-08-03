@@ -18,7 +18,6 @@ end
   @test is_tropically_generic(transpose(A)) == false
 end
 
-
 @testset "testing for polytropes" begin
   A = QQ[0 0 1; 0 1 0; 0 3 3]
   @test is_polytrope(A,min) == true
