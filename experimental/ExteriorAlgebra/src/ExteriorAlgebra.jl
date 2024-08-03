@@ -947,7 +947,8 @@ function _ext_module_map(M::SubquoModule{T}, d::Int) where {T<:MPolyDecRingElem}
   @assert domain(pr_cod) === codomain(phi)
   
   psi = hom(M_dom, M_cod, pr_cod.(phi.(F0_d_map.(gens(F0_d)))))
-  return psi
+
+  return psi, MapFromFunc(M_dom, M, v->map(pres, 0)(to_F0(repres(v)))), MapFromFunc(M_cod, M, v->map(pres, 0)(to_F0_2(repres(v))))
 end
 
 function gen(E::ExteriorAlgebra{T}, i::Int) where {T}
@@ -962,4 +963,15 @@ end
   new_symb = Symbol.([string(s)*" ̌" for s in symbols(S)])
   return ExteriorAlgebra(R, new_symb)
 end
+
+function _derived_pushforward_BGG(M::ModuleFP{T}; regularity::Int=_regularity_bound(M)) where {T <: MPolyDecRingElem{<:RingElem}}
+  phi, _, _ = _ext_module_map(M, regularity+1)
+  S = base_ring(M)
+  R = base_ring(S)
+  I, inc = kernel(phi)
+  res, aug = free_resolution(SimpleFreeResolution, I)
+  res0, red = change_base_ring(R, res)
+  return res0
+end
+
 
