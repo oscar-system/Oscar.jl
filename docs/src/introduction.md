@@ -2,12 +2,14 @@
 CurrentModule = Oscar
 ```
 
-# Gröbner walk
+# Usage
 
-This is a sample text to outline the structure of the packages in the `Experimental` folder.
-You can show docstrings like this:
+The Gröbner walk is an approach to reduce the computational complexity of Gröbner basis computations as proposed by [AGK97](@cite).
+These incarnations of the Gröbner walk refer to a family of algorithms that perform a reverse local search on the cones of the Gröbner fan.
+Then, a Gröbner basis is calculated for each encountered cone while reusing the generators obtained from the previous cone.
 
-The general idea of the Gröbner walk was proposed by [AGK97](@cite).
+The implemented algorithms may be accessed using the following function.
+
 ```@docs
     groebner_walk(
       I::MPolyIdeal, 
