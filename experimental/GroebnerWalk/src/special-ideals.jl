@@ -1,25 +1,21 @@
 
 @doc raw"""
     newell_patch(k::Union{QQField, QQBarFieldElem}, n::Int=1)
-
-Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
-the implicitization of the $n$-th bi-cubic patch describing
-the Newell's teapot as a parametric surface.
-"""
-function newell_patch(k::Union{QQField, QQBarFieldElem}, n::Int=1)
-  return get_newell_patch_generators(n) |> ideal
-end
-
-@doc raw"""
     newell_patch(k::Field, n::Int=1)
 
 Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
 the implicitization of the $n$-th bi-cubic patch describing
 the Newell's teapot as a parametric surface.
 
+The specific generators for each patch have been taken from [Tra04](@cite).
+
 For fields $k\neq\mathbb{Q},\bar{\mathbb{Q}}$, this gives a variant of the ideal with 
 integer coefficients.
 """
+function newell_patch(k::Union{QQField, QQBarFieldElem}, n::Int=1)
+  return get_newell_patch_generators(n) |> ideal
+end
+
 function newell_patch(k::Field, n::Int=1)
   F = get_newell_patch_generators(n)
 
@@ -35,6 +31,19 @@ function newell_patch(k::Field, n::Int=1)
   return ideal(integral_F)
 end
 
+@doc raw"""
+    newell_patch_with_orderings(k::Field, n::Int=1)
+
+Let $n$ be an integer between 1 and 32. Returns the ideal corresponding to 
+the implicitization of the $n$-th bi-cubic patch describing
+the Newell's teapot as a parametric surface.
+Additionally returns suitable start and target orderings, e.g. for use with the Gröbner walk.
+
+The specific generators for each patch have been taken from [Tra04](@cite).
+
+For fields $k\neq\mathbb{Q},\bar{\mathbb{Q}}$, this gives a variant of the ideal with 
+integer coefficients.
+"""
 function newell_patch_with_orderings(k::Field, n::Int=1)
   I = newell_patch(k, n)
   R = base_ring(I)
@@ -52,7 +61,7 @@ function get_newell_patch_generators(n::Int)
         -y + 63//125 * v^2 - 294//125 * v + 56//125 * v^3 - 819//1000 * u^2 * v + 42//125 * u^3 * v - 3//50 * u * v^3 + 351//2000 * u^2 * v^2 + 39//250 * u^2 * v^3 - 9//125 * u^3 * v^2 - 8//125 * u^3 * v^3,
         -z + 12//5 - 63//160 * u^2 + 63//160 * u
     ]
-  else
+  else # TODO: Add the other patches
     # TODO: Throw error
   end
 end
