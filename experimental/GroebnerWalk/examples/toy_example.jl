@@ -1,5 +1,4 @@
 using Oscar
-using Oscar.GroebnerWalk
 
 R,(x,y) = polynomial_ring(QQ, ["x","y"])
 I = ideal([y^4+ x^3-x^2+x,x^4])

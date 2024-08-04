@@ -76,3 +76,4 @@ function cyclic8(k::Field=QQ)
 
     return ideal(F), lex(R), default_ordering(R)
 end
+
