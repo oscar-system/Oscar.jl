@@ -133,8 +133,8 @@ true
 ```
 """
 function is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
-  tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
-  P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
+  tempP = Polymake.tropical.Polytope{minOrMax}(POINTS=A)
+  P = Polymake.tropical.Polytope{minOrMax}(POINTS=tempP.VERTICES)
   pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
   Polymake.Shell.CV = pPMCV
   Polymake.shell_execute(raw"""$tmp = $CV->size;""")
