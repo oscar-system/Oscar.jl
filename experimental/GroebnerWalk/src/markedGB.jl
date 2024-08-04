@@ -15,7 +15,7 @@ struct MarkedGroebnerBasis{S}
         @req (length(gens) == length(markings)) "Inputs are of different length"
         @req !(0 in gens) "Gröbner basis contains the zero polynomial"
 
-        new(gens, markings) 
+        new{T}(gens, markings) 
     end
 end
 
