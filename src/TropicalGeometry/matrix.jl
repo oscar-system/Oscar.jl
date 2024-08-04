@@ -99,7 +99,7 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   QQA = zero_matrix(QQ,nrA,ncA)
   for i in 1:nrA
     for j in 1:ncA
-      @req A[i,j] != zero(tropical_semiring(convention(A))) "If infty is an entry then the tropical polytope is not bounded"
+      iszero(A[i,j]) && return false
       QQA[i,j] += QQ(A[i,j])
     end
   end
@@ -113,17 +113,34 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   #Get the length out of the polymake shell
   Polymake.shell_execute(raw"""$tmp = $CV->size;""")
   l = Polymake.Shell.tmp
-  l != 1 && return false
-  return true
+  return l == 1
 end
 
-function is_polytrope_old(A::QQMatrix, MorM)
+
+@doc raw"""
+    is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+
+Check if a tropical polytope is ordinarily convex (ie a polytrope)
+
+# Examples
+```jldoctest
+julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
+[(0)   (0)   (1)]
+[(0)   (1)   (0)]
+[(0)   (3)   (3)]
+
+julia> is_polytrope(A,min)
+true
+```
+"""
+
+
+function is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
   tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
   P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
   pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
   Polymake.Shell.CV = pPMCV
   Polymake.shell_execute(raw"""$tmp = $CV->size;""")
   l = Polymake.Shell.tmp
-  l != 1 && return false
-  return true
+  return l == 1
 end
