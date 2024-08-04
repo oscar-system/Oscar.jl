@@ -116,7 +116,6 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   return l == 1
 end
 
-
 @doc raw"""
     is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
 
@@ -133,8 +132,6 @@ julia> is_polytrope(A,min)
 true
 ```
 """
-
-
 function is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
   tempP = Polymake.tropical.Polytope{MorM}(POINTS=A)
   P = Polymake.tropical.Polytope{MorM}(POINTS=tempP.VERTICES)
