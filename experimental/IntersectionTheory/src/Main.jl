@@ -1994,31 +1994,45 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
   syms = vcat([symbol], string.(gens(R)))
-  # FIXME add product ordering
-  # ord = ordering_dp(1) * R.R.ord
+ 
   # construct the ring
+  
   w = vcat([1], gradings(R))
-  R1, (h,) = graded_polynomial_ring(X.base, syms, w)
-  # TODO: why does this fail with check = true
-  pback = hom(R, R1, gens(R1)[2:end], check = false)
+  R1, (z,) = graded_polynomial_ring(X.base, syms, w)
+  if R isa MPolyQuoRing
+    PR = base_ring(R)
+  else
+    PR = R
+  end
+  pback = hom(PR, R1, gens(R1)[2:end])
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
+  
   # construct the ideal
-  rels = [sum(pback(chern_class(F, i)) * h^(r-i) for i in 0:r)]
-  if R isa MPolyQuoRing rels = vcat(pback.(R.(gens(R.I))), rels) end
+
+  rels = [sum(pback(chern_class(F, i).f) * z^(r-i) for i in 0:r)]
+  if R isa MPolyQuoRing
+    rels = vcat(pback.(gens(R.I)), rels)
+  end
   APF = quo(R1, ideal(rels))[1]
-  h = APF(h)
-  # construct the abstract_variety
+  z = APF(z)
+  
+  # construct the abstract variety
+  
   PF = AbstractVariety(X.dim+r-1, APF)
-  pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(h^(r-1))).f)))
+  pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
   pₓ = map_from_func(pₓ, PF.ring, X.ring)
   p = AbstractVarietyMap(PF, X, PF.(gens(R1)[2:end]), pₓ)
-  if isdefined(X, :point) PF.point = p.pullback(X.point) * h^(r-1) end
-  p.O1 = PF(h)
-  PF.O1 = PF(h)
-  S = AbstractBundle(PF, 1, 1-h)
+  if isdefined(X, :point)
+    PF.point = p.pullback(X.point) * z^(r-1)
+  end
+  p.O1 = PF(z)
+  PF.O1 = PF(z)
+  S = AbstractBundle(PF, 1, 1-z) 
   Q = pullback(p, F) - S
   p.T = dual(S)*Q
-  if isdefined(X, :T) PF.T = pullback(p, X.T) + p.T end
+  if isdefined(X, :T)
+    PF.T = pullback(p, X.T) + p.T
+  end
   PF.bundles = [S, Q]
   PF.struct_map = p
   set_attribute!(PF, :description => "Projectivization of $F")
