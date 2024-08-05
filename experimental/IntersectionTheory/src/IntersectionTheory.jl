@@ -8,6 +8,7 @@ import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import..Oscar: pullback, pushforward, base, OO, product, compose
 import ..Oscar: trivial_line_bundle
+import ..Oscar: chern_class
 
 export a_hat_genus
 export abstract_bundle
