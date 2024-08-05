@@ -309,7 +309,8 @@ function multiplication_hash_table(E::ExteriorAlgebra, p::Int, q::Int)
   end
   n = rank(E)
   if !haskey(E.multiplication_hash_tables, (p, q))
-    A = [_wedge(ordered_multi_index(i, p, n), ordered_multi_index(j, q, n)) for i in 1:binomial(n, p), j in 1:binomial(n, q)]
+    #A = [_wedge(ordered_multi_index(i, p, n), ordered_multi_index(j, q, n)) for i in 1:binomial(n, p), j in 1:binomial(n, q)]
+    A = [_wedge(I, J) for I in OrderedMultiIndexSet(p, n), J in OrderedMultiIndexSet(q, n)]
     B = [(s, linear_index(k)) for (s, k) in A]
     E.multiplication_hash_tables[(p, q)] = B
   end
@@ -701,21 +702,25 @@ end
 
 function kernel(
     phi::FreeModuleHom{ModuleType, ModuleType, Nothing}; 
-    degree_bound::Union{Int, Nothing}=0
+    upper_degree_bound::Union{Int, Nothing}=0,
+    lower_degree_bound::Union{Int, Nothing}=nothing
   ) where {ModuleType <: FreeMod{<:ExtAlgElem}}
   @vprint :ExteriorAlgebras 1 "computing kernel of map with degrees\n"
   @vprint :ExteriorAlgebras 1 "$([degree(g; check=false) for g in gens(domain(phi))])\n"
   @vprint :ExteriorAlgebras 1 "in the domain and degrees\n"
   @vprint :ExteriorAlgebras 1 "$([degree(g; check=false) for g in gens(codomain(phi))])\n"
-  @vprint :ExteriorAlgebras 1 "in the codomain up to degree $(degree_bound)\n"
+  @vprint :ExteriorAlgebras 1 "in the codomain up to degree $(upper_degree_bound)\n"
   F = domain(phi)
   iszero(F) && return sub(F, elem_type(F)[])
   d0 = minimum([Int(degree(g; check=false)[1]) for g in gens(F)])
   E = base_ring(F)
   n = rank(E)
   dmax = maximum([Int(degree(g; check=false)[1]) for g in gens(F)]) + n
-  if degree_bound !== nothing
-    dmax > degree_bound && (dmax = degree_bound)
+  if upper_degree_bound !== nothing
+    dmax > upper_degree_bound && (dmax = upper_degree_bound)
+  end
+  if lower_degree_bound !== nothing
+    d0 < lower_degree_bound && (d0 = lower_degree_bound)
   end
   Z = _kernel_part(phi, dmax)
   return sub(F, gens(Z))
@@ -889,4 +894,70 @@ function _derived_pushforward_BGG(M::ModuleFP{T}; regularity::Int=_regularity_bo
   return res0
 end
 
+include("BGG_complex.jl")
+
+function twist(
+    f::FreeModuleHom{MT, MT, Nothing}, d::Int;
+    domain_twist::FreeModuleHom{MT, MT, Nothing}=twist(domain(f), d)[2],
+    codomain_twist::FreeModuleHom{MT, MT, Nothing}=twist(codomain(f), d)[2]
+  ) where {MT <: FreeMod}
+  new_dom = codomain(domain_twist)
+  new_cod = codomain(codomain_twist)
+  img_gens = [new_cod(coordinates(v)) for v in images_of_generators(f)]
+  return hom(new_dom, new_cod, img_gens)
+end
+
+function twist(F::ModuleFP{T}, d::Int) where {T<:ExtAlgElem}
+  E = base_ring(F)
+  return twist(F, d*grading_group(E)[1])
+end
+
+function twist(
+    M::SubquoModule{T}, g::FinGenAbGroupElem;
+    ambient_twist::FreeModuleHom=twist(ambient_free_module(M), g)[2]
+  ) where {T<:ExtAlgElem}
+  F = codomain(ambient_twist)
+  result = SubquoModule(F, ambient_twist.(ambient_representatives_generators(M)), ambient_twist.(relations(M)))
+  return result, hom(M, result, gens(result); check=false)
+end
+
+function twist(F::FreeMod{T}, g::FinGenAbGroupElem) where {T<:ExtAlgElem}
+ E = base_ring(F)
+ @req parent(g) === grading_group(E) "Group element not contained in grading group of base ring"
+ W = [x-g for x in F.d]
+ G = graded_free_module(E, rank(F))
+ G.d = W
+ return G, hom(F, G, gens(G))
+end
+
+function direct_sum(f::Vector{<:ModuleFPHom};
+    domain_sum::ModuleFP=begin
+      domains = domain.(f)
+      result = direct_sum(domains...)
+      result[1]
+    end,
+    codomain_sum::ModuleFP=begin
+      codomains = codomain.(f)
+      result = direct_sum(codomains...)
+      result[1]
+    end
+  )
+  result = hom(domain_sum, codomain_sum, [zero(codomain_sum) for i in 1:ngens(domain_sum)])
+  for (i, g) in enumerate(f)
+    pr = canonical_projection(domain_sum, i)
+    inc = canonical_injection(codomain_sum, i)
+    img_gens = inc.(g.(images_of_generators(pr)))
+    result += hom(domain_sum, codomain_sum, img_gens)
+  end
+  return result
+end
+
+coefficient_ring(E::ExteriorAlgebra) = base_ring(E)
+
+# BUG: the following code in the modules does not run generically and must be overwritten manually!
+coordinates(v::FreeModElem{ExtAlgElem{T}}, I::SubModuleOfFreeModule{ExtAlgElem{T}}, task::Symbol) where {T} = coordinates(v, I)
+
+function Base.:*(a::T, f::FreeModuleHom{FreeMod{T}, <:Any, Nothing}) where {T<:NCRingElem}
+  return hom(domain(f), codomain(f), [a*g for g in images_of_generators(f)])
+end
 
