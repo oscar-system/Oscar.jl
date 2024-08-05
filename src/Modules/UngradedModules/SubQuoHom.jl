@@ -964,12 +964,12 @@ function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function *(a::NCRingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function *(a::NCRingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end
