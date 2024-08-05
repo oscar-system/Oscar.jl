@@ -81,7 +81,7 @@ julia> integral((6*HBl-2*e)^5)
 
 ```
 
-#### How Many Twisted Cubics lie on the General Quintic Hypersurface
+#### How Many Conics lie on the General Quintic Hypersurface in $\mathbb P^4$?
 
 ```jldoctest
 julia> G = abstract_grassmannian(3, 5)
@@ -93,7 +93,7 @@ AbstractBundle of rank 3 on AbstractVariety of dim 6
 julia> F = symmetric_power(USBd, 2)
 AbstractBundle of rank 6 on AbstractVariety of dim 6
 
-julia> PF = abstract_projective_bundle(F)
+julia> PF = abstract_projective_bundle(F) # the parameter space of conics in P3
 AbstractVariety of dim 11
 
 julia> A = symmetric_power(USBd, 5) - symmetric_power(USBd, 3)*OO(PF, -1)
