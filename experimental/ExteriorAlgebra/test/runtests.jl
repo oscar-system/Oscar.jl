@@ -137,3 +137,39 @@ end
 # @test is_zero(prod21*fac2);
 
 # end
+#
+@testset "BGGHelpers" begin 
+  R, (t,) = polynomial_ring(QQ, [:t])
+  S, (x, y, z) = graded_polynomial_ring(R, [:x, :y, :z])
+  E = Oscar._exterior_algebra(S)
+
+  h = Oscar.BGGHelper(E, S, 3)
+  morphism(h)
+
+  f = 2*x^3 + 7*x*y^2 - 5*x*y*z
+  v = h(f)
+  ff = h(v)
+  f == ff
+
+  g = x^3 
+  v = h(g)
+  phi = morphism(h)
+  w = phi(domain(phi)(map_entries(E, v)))
+  for (i, c) in coordinates(w)
+    if i == 1
+      @test h(sparse_row(R, [i], [one(R)]), :codomain) == x^4
+      @test c == gen(E, 1)
+    elseif i == 2
+      @test h(sparse_row(R, [i], [one(R)]), :codomain) == x^3*y
+      @test c == gen(E, 2)
+    elseif i == 3
+      @test h(sparse_row(R, [i], [one(R)]), :codomain) == x^3*z
+      @test c == gen(E, 3)
+    end
+  end
+
+  K = kernel(phi)
+  res = resolution(phi)
+  @test !iszero(res[2])
+end
+
