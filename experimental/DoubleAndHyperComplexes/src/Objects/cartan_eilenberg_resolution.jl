@@ -69,19 +69,16 @@ function induced_map(fac::CEChainFactory, i::Int)
   if !haskey(fac.induced_maps, i)
     Z, inc = kernel(fac.c, i)
     B, pr = boundary(fac.c, i)
-    @assert codomain(inc) === ambient_free_module(B)
-    img_gens = elem_type(Z)[preimage(inc, g) for g in ambient_representatives_generators(B)]
+    @assert ambient_free_module(Z) === ambient_free_module(B)
+    img_gens = elem_type(Z)[Z(g) for g in ambient_representatives_generators(B)]
     res_Z = kernel_resolution(fac, i)
     res_B = boundary_resolution(fac, i)
     aug_Z = augmentation_map(res_Z)
     aug_B = augmentation_map(res_B)
     img_gens = gens(res_B[0])
-    @show img_gens
     img_gens = aug_B[0].(img_gens)
-    @show img_gens
-    img_gens = elem_type(res_Z[0])[preimage(aug_Z[0], preimage(inc, repres(aug_B[0](g)))) for g in gens(res_B[0])]
+    img_gens = elem_type(res_Z[0])[preimage(aug_Z[0], Z(repres(aug_B[0](g)))) for g in gens(res_B[0])]
     psi = hom(res_B[0], res_Z[0], img_gens; check=true) # TODO: Set to false
-    @show i
     @assert domain(psi) === boundary_resolution(fac, i)[0]
     @assert codomain(psi) === kernel_resolution(fac, i)[0]
     fac.induced_maps[i] = lift_map(boundary_resolution(fac, i), kernel_resolution(fac, i), psi; start_index=0)
@@ -104,7 +101,6 @@ function (fac::CEChainFactory)(self::AbsHyperComplex, I::Tuple)
     end
   end
   # We may assume that the next map can not be computed and is, hence, zero.
-  @show i, j
   return res_Z[i]
 end
 
@@ -153,9 +149,6 @@ function (fac::CEMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
         phi = psi[i]
         inc = canonical_injection(cod, 2)
         pr = canonical_projection(dom, 1)
-        @show i, j
-        @show domain(phi)
-        @show codomain(pr)
         @assert codomain(phi) === domain(inc)
         @assert codomain(pr) === domain(phi)
         return compose(pr, compose(phi, inc))
@@ -171,10 +164,6 @@ function (fac::CEMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
         psi = induced_map(cfac, j-1)
         phi = psi[i]
         pr = canonical_projection(dom, 1)
-        @show i, j
-        @show dom
-        @show codomain(pr) 
-        @show domain(phi)
         return compose(pr, phi)
       else
         pr = canonical_projection(dom, 1)
@@ -279,7 +268,7 @@ end
     map_fac = CEMapFactory{MorphismType}() # TODO: Do proper type inference here!
 
     # Assuming d is the dimension of the new complex
-    internal_complex = HyperComplex(2, chain_fac, map_fac, [:chain, :chain])
+    internal_complex = HyperComplex(2, chain_fac, map_fac, [:chain, :chain]; lower_bounds = Union{Int, Nothing}[0, lower_bound(c, 1)])
     # Assuming that ChainType and MorphismType are provided by the input
     return new{ChainType, MorphismType}(internal_complex)
   end
