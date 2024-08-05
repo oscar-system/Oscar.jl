@@ -1608,6 +1608,7 @@ false
 ```
 """
 function radical_membership(f::T, I::MPolyIdeal{T}) where T
+  iszero(I) && return iszero(f)
   Sx = singular_polynomial_ring(I)
   return Singular.LibPolylib.rad_con(Sx(f), singular_generators(I)) == 1
 end
