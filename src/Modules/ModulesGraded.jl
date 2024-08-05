@@ -543,8 +543,7 @@ end
 
 const AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
                                 <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
-                                <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}, 
-                                <:NCRingElement
+                                <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
                                }
 
 @doc raw"""
