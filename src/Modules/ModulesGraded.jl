@@ -383,7 +383,7 @@ See the `grade` and `graded_free_module` functions.
 function set_grading!(M::FreeMod, W::Vector{FinGenAbGroupElem})
   @assert length(W) == ngens(M)
   @assert is_graded(base_ring(M))
-  R = base_ring(F)
+  R = base_ring(M)
   all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
   M.d = W
 end
