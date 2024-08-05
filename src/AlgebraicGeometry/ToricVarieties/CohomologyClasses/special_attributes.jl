@@ -30,6 +30,19 @@ function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
 end
 
 
+function _cohomology_ring_with_quotient_map(v::NormalToricVarietyType; check::Bool = true)
+  if check
+    @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
+  end
+  R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
+  linear_relations = ideal_of_linear_relations(R, v)
+  stanley_reisner = stanley_reisner_ideal(R, v)
+  q = quo(R, linear_relations + stanley_reisner)
+  set_attribute!(v, :cohomology_ring, q[1])
+  return q
+end
+
+
 @doc raw"""
     volume_form(v::NormalToricVariety)
 
@@ -104,4 +117,110 @@ function intersection_form(v::NormalToricVariety)
         intersection_dict_for_user[monom] = v
     end
     return intersection_dict_for_user
+end
+
+
+@doc raw"""
+    chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+
+Computes the `k`-th Chern class of the tangent bundle of a normal toric variety
+that is both smooth and complete. Since these checks can be computationally
+very demanding, we provide an optional argument `check`. Once set to `false`,
+this method skips those tests.
+
+The implemented algorithm uses proposition 13.1.2 in [CLS11](@cite).
+
+# Examples
+```jldoctest
+julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> chern_class(F3, 0)
+Cohomology class on a normal toric variety given by 1
+
+julia> chern_class(F3, 1, check = false)
+Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
+
+julia> integrate(chern_class(F3, 2), check = false)
+4
+```
+"""
+function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+  # Consistency checks
+  @req k >= 0 "Chern class index must be non-negative"
+  @req k <= dim(v) "Chern class index must not exceed dimension of the toric variety"
+
+  # Check if we can compute the Chern classes for this toric variety
+  if check
+    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  end
+
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  if !has_attribute(v, :chern_classes)
+    cs = Vector{Any}(nothing, dim(v) + 1)
+    cs[1] = cohomology_class(v, one(cohomology_ring(v, check = check)))
+    cs[2] = cohomology_class(v, sum(gens(cohomology_ring(v, check = check))))
+    set_attribute!(v, :chern_classes, cs)
+  end
+
+  # Check if the Chern class in question is known
+  cs = get_attribute(v, :chern_classes)
+  if cs[k+1] != nothing
+    return cs[k+1]
+  end
+
+  # Preparation to check if we can discard a set in the following iteration that computes the Chern class
+  mnf = _minimal_nonfaces(v)
+  indices = [Set(Vector{Int}(Polymake.row(mnf,i))) for i in 1:Polymake.nrows(mnf)]
+  function can_be_ignored(my_set, sr_sets)
+    for k in 1:length(sr_sets)
+      if is_subset(my_set, sr_sets[k])
+        return true
+      end
+    end
+    return false
+  end
+
+  # Compute, set and return the desired Chern class
+  q = _cohomology_ring_with_quotient_map(v; check = false)
+  c_ds = [g.f for g in gens(q[1])]
+  desired_class = zero(parent(c_ds[1]))
+  for t in subsets(Set([i for i in 1:length(c_ds)]), k)
+    can_be_ignored(t, indices) && continue
+    desired_class += prod(i -> c_ds[i], t)
+  end
+  cs[k+1] = cohomology_class(v, q[2](desired_class))
+  set_attribute!(v, :chern_classes, cs)
+  return get_attribute(v, :chern_classes)[k+1]
+end
+
+
+@doc raw"""
+    chern_classes(v::NormalToricVariety; check::Bool = true)
+
+Computes all Chern classes of the tangent bundle of a normal toric variety,
+which is smooth and complete. Since those checks can be computationally
+very demanding, the optional argument `check` can be set to `false` to skip
+those tests.
+
+# Examples
+```jldoctest
+julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> cs = chern_classes(F3)
+3-element Vector{Any}:
+ Cohomology class on a normal toric variety given by 1
+ Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
+ Cohomology class on a normal toric variety given by t1*x1 + t1*x2 + x1*t2 + t2*x2
+
+julia> integrate(cs[3])
+4
+```
+"""
+function chern_classes(v::NormalToricVariety; check::Bool = true)
+  if check
+    @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
+  end
+  return [chern_class(v, k; check = check) for k in 0:dim(v)]
 end
