@@ -76,23 +76,22 @@ function _quantum_automorphism_group_indices(M::Matroid, structure::Symbol=:base
   sets  = getproperty(Oscar, structure)(M)
   sizes = unique!(map(length, sets))
 
-  function _qAut_size()
-    setSizes = map(length, sets)
 
-    SetsCount = [0 for _ in 1:maximum(setSizes)]
-    foreach(size->SetsCount[size] += 1, setSizes)
-    for i in 1:length(SetsCount)
-      if SetsCount[i] == 0 || SetsCount[i] == n^i
-        SetsCount[i] = 0
-        continue
-      end
-      nonSetsCount = n^i - (SetsCount[i] * factorial(i))
-      SetsCount[i] = SetsCount[i] * factorial(i) * nonSetsCount * 2
+  #Computing the sizehint for the relations
+  setSizes = map(length, sets)
+
+  sets_count = [0 for _ in 1:maximum(setSizes)]
+  foreach(size->sets_count[size] += 1, setSizes)
+  for i in 1:length(sets_count)
+    if sets_count[i] == 0 || sets_count[i] == n^i
+      sets_count[i] = 0
+      continue
     end
-
-    return sum(SetsCount)
+    nonsets_count = n^i - (sets_count[i] * factorial(i))
+    sets_count[i] = sets_count[i] * factorial(i) * nonsets_count * 2
   end
-  vector_size = _qAut_size()
+
+  vector_size = sum(sets_count)
   sizehint!(rels, vector_size)
 
   for size in sizes 
@@ -118,7 +117,7 @@ end
 @doc raw"""
     quantum_automorphism_group(M::Matroid, structure::Symbol=:bases)
 
-Return the Ideal that defines the quantum automorphism group of a matroid for a given structure.
+Return the ideal that defines the quantum automorphism group of a matroid for a given structure.
 
 # Examples
 
