@@ -693,3 +693,7 @@ function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
   new_facets = on_sets_sets(Set(facets(K)), g)
   simplicial_complex(collect(new_facets))
 end
+
+function simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
+  return SimplicialComplex(Polymake.topaz.simplicial_product(pm_object(K1), pm_object(K2)))
+end

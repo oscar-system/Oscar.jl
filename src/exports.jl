@@ -1364,6 +1364,7 @@ export signed_incidence_matrix
 export signed_permutahedron
 export simplex
 export simplicial_complex
+export simplicial_product
 export simplified_fp_group
 export simplify
 export simplify!
