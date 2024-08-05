@@ -489,7 +489,6 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
   v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
-  #v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
   return sub(F, v)
 end
 
