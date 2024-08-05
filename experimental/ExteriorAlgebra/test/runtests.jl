@@ -168,8 +168,69 @@ end
     end
   end
 
-  K = kernel(phi)
-  res = resolution(phi)
+  K = kernel(h)
+  res = Oscar.resolution(h)
   @test !iszero(res[2])
+end
+
+@testset "cohomology computation via BGG" begin
+  A, (t,) = polynomial_ring(QQ, [:t])
+  P = projective_space(A, [:x, :y, :z])
+  S = homogeneous_coordinate_ring(P)
+  n = ngens(S)
+  f1 = sum(x^n for x in gens(S))
+  f0 = prod(gens(S))
+  #f0 = S[1]^n
+  # For t=0 this degenerates to three lines and we expect jumps in cohomology there
+  f = (1-t)*f0 + t*f1
+
+  # derived pushforward of the structure sheaf of the curve
+  IPX, inc_X = sub(P, f)
+  S1 = graded_free_module(S, [0])
+  I = ideal(S, f)
+  IS1, inc = I*S1
+  M = cokernel(inc)
+  # Nothing is expected here to jump: H^0 is always free of rank one and 
+  # so the remainder of this short complex must also be of constant rank.
+
+  phi, _, _ = Oscar._ext_module_map(M, 5)
+  K, _ = kernel(phi)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, K)
+  res0, _ = change_base_ring(A, res)
+  @test all(iszero(res0[i]) for i in 0:2)
+  @test all(rank(res0[i]) == 1 for i in 3:4)
+
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  E = Oscar._exterior_algebra(S)
+  bgg = Oscar.BGGComplex(E, S, res, 6)
+  bgg_res = Oscar.CartanEilenbergResolution(bgg)
+  tot = total_complex(bgg_res)
+  tot_A, _ = change_base_ring(A, tot)
+  simp = simplify(tot_A)
+  @test all(iszero(simp[i]) for i in 0:3)
+  @test all(rank(simp[i]) == 1 for i in 4:5)
+
+  # derived pushforward of the relative Ω¹
+  M1 = Oscar.relative_cotangent_module(IPX)
+  M, _ = pushforward(inc_X, M1)
+
+  phi, _, _ = Oscar._ext_module_map(M, 5)
+  K, _ = kernel(phi)
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, K)
+  res0, _ = change_base_ring(A, res)
+  simp = simplify(res0)
+  @test all(iszero(simp[i]) for i in 0:2)
+  @test all(rank(simp[i]) == 5 for i in 3:4)
+
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  E = Oscar._exterior_algebra(S)
+  bgg = Oscar.BGGComplex(E, S, res, 7)
+  bgg_res = Oscar.CartanEilenbergResolution(bgg)
+  tot = total_complex(bgg_res)
+  tot_A, _ = change_base_ring(A, tot)
+  simp = simplify(tot_A)
+  @test all(iszero(simp[i]) for i in 0:4)
+  @test all(rank(simp[i]) == 5 for i in 5:6)
+  @test all(iszero(simp[i]) for i in 7:8)
 end
 
