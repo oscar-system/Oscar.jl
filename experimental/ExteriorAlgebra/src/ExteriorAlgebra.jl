@@ -829,17 +829,17 @@ function _ext_module_map(
   for (i, g) in enumerate(gens(Fd))
     img = zero(Fe_E)
     for j in 1:nvars(S)
-      h = g
-      h = Fd_to_F(h)
-      h = gen(S, j)*h
-      h = F_to_Fe(h)
-      h = Fe_map(h)
-      h = gen(E, j)*h
-      img += h
+      h1 = g
+      h2 = Fd_to_F(h1)
+      h3 = gen(S, j)*h2
+      h4 = F_to_Fe(h3)
+      h5 = Fe_map(h4)
+      h6 = gen(E, j)*h5
+      img += h6
     end
     push!(img_gens, img)
   end
-  return hom(Fd_E, Fe_E, img_gens), Fd_map, Fe_map
+  return hom(Fd_E, Fe_E, img_gens; check=false), Fd_map, Fe_map
 end
 
 function _ext_module_map(M::SubquoModule{T}, d::Int) where {T<:MPolyDecRingElem}
@@ -862,11 +862,25 @@ function _ext_module_map(M::SubquoModule{T}, d::Int) where {T<:MPolyDecRingElem}
   @assert domain(phi) === codomain(F0_d_map)
   @assert codomain(phi) === codomain(F0_e_map)
   
-  M_dom, pr_dom = quo(domain(phi), F0_d_map.(ambient_representatives_generators(dom_rels)))
-  M_cod, pr_cod = quo(codomain(phi), F0_e_map.(ambient_representatives_generators(cod_rels)))
-  @assert domain(pr_cod) === codomain(phi)
+  # avoid the computations from set_grading!
+  # M_dom, pr_dom = quo(domain(phi), F0_d_map.(ambient_representatives_generators(dom_rels)))
+  # M_cod, pr_cod = quo(codomain(phi), F0_e_map.(ambient_representatives_generators(cod_rels)))
   
-  psi = hom(M_dom, M_cod, pr_cod.(phi.(F0_d_map.(gens(F0_d)))))
+  new_dom_rels = SubModuleOfFreeModule(domain(phi), F0_d_map.(ambient_representatives_generators(dom_rels)))
+  dom_indices = [i for (i, g) in enumerate(gens(domain(phi))) if !(g in new_dom_rels)]
+  dom_inv_dict = Dict{Int, Int}(i => k for (k, i) in enumerate(dom_indices))
+  new_dom_gens = [gen(domain(phi), i) for i in dom_indices]
+  M_dom = SubquoModule(SubModuleOfFreeModule(domain(phi), new_dom_gens), new_dom_rels)
+  new_cod_rels = SubModuleOfFreeModule(codomain(phi), F0_e_map.(ambient_representatives_generators(cod_rels)))
+  cod_indices = [i for (i, g) in enumerate(gens(codomain(phi))) if !(g in new_cod_rels)]
+  cod_inv_dict = Dict{Int, Int}(i => k for (k, i) in enumerate(cod_indices))
+  new_cod_gens = [gen(codomain(phi), i) for i in cod_indices]
+  new_cod_gens = [g for g in gens(codomain(phi)) if !(g in new_cod_rels)]
+  M_cod = SubquoModule(SubModuleOfFreeModule(codomain(phi), new_cod_gens), new_cod_rels)
+  
+  img_gens = phi.(F0_d_map.(gens(F0_d)[dom_indices]))
+  img_gens2 = [sum(c*gen(M_cod, cod_inv_dict[i]) for (i, c) in coordinates(v) if i in keys(cod_inv_dict); init = zero(M_cod)) for v in img_gens]
+  psi = hom(M_dom, M_cod, img_gens2; check=false)
 
   return psi, MapFromFunc(M_dom, M, v->map(pres, 0)(to_F0(repres(v)))), MapFromFunc(M_cod, M, v->map(pres, 0)(to_F0_2(repres(v))))
 end
