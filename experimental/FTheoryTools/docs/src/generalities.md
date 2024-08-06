@@ -59,8 +59,8 @@ classes_of_model_sections(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
 global_gauge_quotients(m::AbstractFTheoryModel)
-chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
-chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
+chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+chern_classes(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 

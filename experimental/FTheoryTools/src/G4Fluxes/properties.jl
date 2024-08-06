@@ -41,22 +41,13 @@ true
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks for G4-flux currently supported only for toric ambient space"
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
-  cy = polynomial(cohomology_class(cl))
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
 
   # Now check quantization condition G4 + 1/2 c2 is integral.
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
 
   # explicitly switched off an expensive test in the following line
-  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class_c2(m; check = false))
+  twist_g4 = polynomial(cohomology_class(g4) + 1//2 * chern_class(m, 2; check = false))
 
   # now execute elementary checks of the quantization condition
   for i in 1:length(c_ds)
