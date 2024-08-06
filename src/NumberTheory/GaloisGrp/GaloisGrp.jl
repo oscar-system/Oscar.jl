@@ -25,6 +25,7 @@ function __init__()
   GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
   Hecke.add_assertion_scope(:GaloisInvariant)
 end
@@ -2232,7 +2233,7 @@ function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.d
       cnt += 1
       cnt > 20 && error("no Tschirni found")
       ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-      if degree(ts) > 0
+      if degree(ts) > 0 
         break
       end
     end
@@ -2346,7 +2347,6 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ps = [val]
   d = copy(conj)
   while length(ps) < m
-#    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
     fl, val = isinteger(GC, B, sum(d))
     @assert fl
