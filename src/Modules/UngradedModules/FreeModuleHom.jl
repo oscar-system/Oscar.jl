@@ -513,10 +513,10 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   # This code is also used by graded modules and we need to care for that.
   is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
   phi = hom(H, G, g)
-  K, inc = kernel(phi)
+  K, _ = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
-  return sub(F, v)
+  v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]
+  return sub(F, filter!(!iszero, v))
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})
