@@ -11,6 +11,33 @@
   center::Union{ToricIdealSheafFromCoxRingIdeal, IdealSheaf}
   exceptional_divisor::ToricDivisor
 
+  # This constructor handles the case in which the new ray is already part of the rays of the toric variety.
+  ToricBlowdownMorphism(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}) = ToricBlowdownMorphism(v, new_ray, v)
+
+  # This constructor handles the case in which the new ray is already part of the rays of the toric variety.
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}, new_variety::NormalToricVariety)
+
+    # Compute position of new ray and verify that it is already among the rays of the given variety v
+    rs = matrix(ZZ, rays(v))
+    position_new_ray = findfirst(i->new_ray==rs[i, :], 1:nrows(rs))
+    @req position_new_ray !== nothing "Could not identify position of new ray"
+    @req position_new_ray <= n_rays(v) "The new ray appear to not be contained in the rays of the given variety"
+
+    # Compute the identity blowdown morphism
+    bl = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
+    center = ideal_sheaf(codomain(bl), ideal([gens(cox_ring(codomain(bl)))[position_new_ray]]))
+    exp = toric_divisor(domain(bl), fill(0, n_rays(domain(bl))))
+
+    # Compute position of new ray in new_variety
+    rs = matrix(ZZ, rays(new_variety))
+    position_new_ray = findfirst(i->new_ray==rs[i, :], 1:nrows(rs))
+    @req position_new_ray !== nothing "Could not identify position of new ray"
+    @req position_new_ray <= n_rays(v) "The new ray appear to not be contained in the rays of the given variety"
+
+    # Return the blowdown morphism
+    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, position_new_ray, center, exp)
+  end
+
   function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, center::ToricIdealSheafFromCoxRingIdeal, new_ray::AbstractVector{<:IntegerUnion})
     bl = ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray)
     bl.center = center
@@ -20,14 +47,8 @@
   function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion})
 
     # Compute position of new ray
-    new_rays = matrix(ZZ, rays(new_variety))
-    position_new_ray = nothing
-    for i in 1:nrows(new_rays)
-      if new_ray == new_rays[i, :]
-        position_new_ray = i
-        break
-      end
-    end
+    rs = matrix(ZZ, rays(new_variety))
+    position_new_ray = findfirst(i->new_ray==rs[i, :], 1:nrows(rs))
     @req position_new_ray !== nothing "Could not identify position of new ray"
 
     # Set variable names of the new variety
