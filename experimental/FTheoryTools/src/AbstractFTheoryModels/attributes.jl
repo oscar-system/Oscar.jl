@@ -1100,126 +1100,105 @@ end
 
 
 @doc raw"""
-    chern_class_c1(m::AbstractFTheoryModel)
+    chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
 
 If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
 as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the first Chern class
-$c_1$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises and error.
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+this very cohomology class $h$, otherwise it raises an error.
 
-Note that $Y_n$ is a Calabi-Yau variety precisely if $c_1$ is trivial. Thus, the restriction
-of $h$ to the hypersurface $Y_n$ must be trivial. Upon closer inspection, in the given toric
-setting, this is equivalent to $h$ being trivial.
-
-The computation of the cohomology ring verifies if the toric variety is simplicial and
-complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `false`, as in the example below.
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+smooth and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
-julia> h = chern_class_c1(qsm_model; check = false)
-Cohomology class on a normal toric variety given by 0
-
-julia> is_trivial(h)
-true
-```
-"""
-function chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "First Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
-  @req base_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "First Chern class of F-theory model currently supported only for toric ambient space"
-
-  # Check if the answer is known
-  if has_attribute(m, :chern_class_c1)
-    return get_attribute(m, :chern_class_c1)
-  end
-
-  # Trigger potential short-cut computation of cohomology ring
-  cohomology_ring(ambient_space(m); check)
-
-  # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
-  cy = cohomology_class(cl)
-
-  # Compute and set h
-  c1_t_ambient = cohomology_class(anticanonical_divisor(ambient_space(m)))
-  set_attribute!(m, :chern_class_c1, c1_t_ambient - cy)
-  return get_attribute(m, :chern_class_c1)
-end
-
-
-@doc raw"""
-    chern_class_c2(m::AbstractFTheoryModel)
-
-If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
-as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
-toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the 2nd Chern class
-$c_2$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
-this very cohomology class $h$, otherwise it raises and error.
-
-As of right now, this method is computationally quite expensive for involved toric varieties,
-such as in the example below. Therefore, think carefully if you truly want to compute this quantity.
-
-The computation of the cohomology ring verifies if the toric variety is simplicial and
-complete. The check for it to be complete can be very time consuming. This can be switched
-off by setting the optional argument `check` to the value `false`, as in the example below.
-
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
-Hypersurface model over a concrete base
-
-julia> h = chern_class_c2(qsm_model; check = false);
+julia> h = chern_class(qsm_model, 4; check = false);
 
 julia> is_trivial(h)
 false
 ```
 """
-function chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Second Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
-  @req base_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Second Chern class of F-theory model currently supported only for toric ambient space"
+function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
 
-  # Check if the answer is known
-  if has_attribute(m, :chern_class_c2)
-    return get_attribute(m, :chern_class_c2)
+  # Consistency checks
+  @req k >= 0 "Chern class index must be non-negative"
+  @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
+
+  # Check if we can compute the Chern classes for the toric ambient space
+  if check
+    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
   end
 
-  # Trigger potential short-cut computation of cohomology ring
-  cohomology_ring(ambient_space(m); check)
-
-  # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  if !has_attribute(m, :chern_classes)
+    cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
+    cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
+    set_attribute!(m, :chern_classes, cs)
   end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
-  cy = cohomology_class(cl)
 
-  # Compute sum of products of cohomolgy classes of torus invariant prime divisors
-  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
-  c2_t_ambient = sum(c_ds[i]*c_ds[j] for i in 1:length(c_ds)-1 for j in i+1:length(c_ds))
-  c2_t_ambient = cohomology_class(ambient_space(m), c2_t_ambient)
+  # Check if the Chern class in question is known
+  cs = get_attribute(m, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
+  if cs[k+1] !== nothing
+    return cs[k+1]::CohomologyClass
+  end
 
-  # Compute and set h
-  h = c2_t_ambient - cy * chern_class_c1(m; check = check)
-  set_attribute!(m, :chern_class_c2, h)
-  return h
+  # Chern class is not known, so compute and return it...
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  set_attribute!(m, :chern_classes, cs)
+  return cs[k+1]
 end
+
+
+@doc raw"""
+    chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+a vector with the cohomology classes corresponding to all non-trivial Chern classes $c_k$ of
+$Y_n$. Otherwise, this methods raises an error.
+
+As of right now, this method is computationally expensive for involved toric ambient spaces,
+such as in the example below.
+
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+simplicial and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_classes(qsm_model; check = false);
+
+julia> is_one(polynomial(h[1]))
+true
+
+julia> is_trivial(h[2])
+true
+
+julia> is_trivial(h[3])
+false
+```
+"""
+function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
+  return [chern_class(m, k, check = check) for k in 0:dim(ambient_space(m))-1]
+end
+
 
 
 ##########################################
