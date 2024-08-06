@@ -111,6 +111,7 @@ export hypersurface_model
 export indices_of_trivial_ci_curves
 export irrelevant_ideal
 export is_base_space_fully_specified
+export is_calabi_yau
 export is_partially_resolved
 export journal_doi
 export journal_link
