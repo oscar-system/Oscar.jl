@@ -89,3 +89,18 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
     @test small_group_identification(G) == (4, 2)
   end
 end
+
+@testset "Galois group issue" begin
+  # Contributed by "Lloyd" on slack
+  R, s = QQ["s"]
+  K, q = number_field(s^2 - 2, "q")
+  Kw, w = polynomial_ring(K, "w")
+  f = w^16 - 32*w^14 - 192*w^12 + 22720*w^10 + 23104*w^8 - 2580480*w^6 + 41287680*w^4 + 106168320*w^2 + 84934656
+  g, s = galois_group(f)
+  @test order(g) == 1536
+  ss = subgroup_reps(g)
+  #should be of order 16, so field of degree 96
+  H = ss[1000]
+  f = fixed_field(s, H)
+  @test degree(f) == order(g)//order(H)
+end
