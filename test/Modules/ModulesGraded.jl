@@ -1231,3 +1231,17 @@ end
   M, _ = forget_grading(Omega)
   prune_with_map(M)
 end
+
+@testset "kernels FreeMod -> Subquo with gradings" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  G = grading_group(S)
+  F0 = graded_free_module(S, [zero(G)])
+  F1 = graded_free_module(S, [-1])
+  M, _ = sub(F1, [F1[1]])
+  phi = hom(F0, M, [x*M[1]])
+  @test is_graded(phi)
+  K, inc = kernel(phi)
+end
+
+
+
