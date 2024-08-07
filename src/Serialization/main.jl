@@ -74,8 +74,11 @@ end
 const reverse_type_map = Dict{String, Type}()
 
 function encode_type(::Type{T}) where T
-  error("Unsupported type '$T' for encoding. to add support see
- https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/ \n")
+  error(
+    """Unsupported type '$T' for encoding. To add support see
+    https://docs.oscar-system.org/stable/DeveloperDocumentation/serialization/
+    """
+  )
 end
 
 function decode_type(s::DeserializerState)
@@ -295,8 +298,8 @@ serialize_with_params(::Type) = false
 function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
   return esc(
     quote
-      register_serialization_type($ex, $str)
-      encode_type(::Type{<:$ex}) = $str
+      Oscar.register_serialization_type($ex, $str)
+      Oscar.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
       # The ids are only necessary for parent types, checking for element type equality
@@ -310,18 +313,18 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
-      serialize_with_id(obj::T) where T <: $ex = $uses_id
-      serialize_with_id(T::Type{<:$ex}) = $uses_id
-      serialize_with_params(T::Type{<:$ex}) = $uses_params
+      Oscar.serialize_with_id(obj::T) where T <: $ex = $uses_id
+      Oscar.serialize_with_id(T::Type{<:$ex}) = $uses_id
+      Oscar.serialize_with_params(T::Type{<:$ex}) = $uses_params
 
       # only extend serialize on non std julia types
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
-        function serialize(s::AbstractSerializer, obj::T) where T <: $ex
-          serialize_type(s, T)
-          save(s.io, obj; serializer_type=IPCSerializer)
+        function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
+          Oscar.serialize_type(s, T)
+          Oscar.save(s.io, obj; serializer_type=Oscar.IPCSerializer)
         end
-        function deserialize(s::AbstractSerializer, ::Type{<:$ex})
-          load(s.io; serializer_type=IPCSerializer)
+        function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
+          Oscar.load(s.io; serializer_type=Oscar.IPCSerializer)
         end
       end
 
@@ -364,6 +367,49 @@ macro register_serialization_type(ex::Any, args...)
 
   return register_serialization_type(ex, str, uses_id, uses_params)
 end
+
+
+################################################################################
+# Utility macro
+"""
+    Oscar.@import_all_serialization_functions
+
+This macro imports all serialization related functions that one may need for implementing
+serialization for custom types from Oscar into the current module.
+One can instead import the functions individually if needed but this macro is provided
+for convenience.
+"""
+macro import_all_serialization_functions()
+  return quote
+    import Oscar:
+      load_object,
+      load_type_params,
+      save_object,
+      save_type_params
+
+    using Oscar:
+      @register_serialization_type,
+      DeserializerState,
+      SerializerState,
+      encode_type,
+      haskey,
+      load_array_node,
+      load_node,
+      load_params_node,
+      load_ref,
+      load_typed_object,
+      save_as_ref,
+      save_data_array,
+      save_data_basic,
+      save_data_dict,
+      save_data_json,
+      save_typed_object,
+      serialize_with_id,
+      serialize_with_params,
+      set_key
+  end
+end
+
 
 ################################################################################
 # Include serialization implementations for various types

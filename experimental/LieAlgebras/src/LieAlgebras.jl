@@ -83,6 +83,8 @@ import ..Oscar:
   ⊕,
   ⊗
 
+Oscar.@import_all_serialization_functions
+
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
@@ -227,6 +229,8 @@ include("LieAlgebraModuleHom.jl")
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("serialization.jl")
 
 end # module LieAlgebras
 

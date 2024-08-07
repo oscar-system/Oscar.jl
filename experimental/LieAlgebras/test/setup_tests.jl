@@ -1,3 +1,5 @@
+include(joinpath(Oscar.oscardir, "test", "Serialization", "setup_tests.jl"))
+
 if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
 end
@@ -104,6 +106,43 @@ if !isdefined(Main, :lie_algebra_conformance_test)
         @test x * y == -(y * x)
 
         @test (x * (y * z)) + (y * (z * x)) + (z * (x * y)) == zero(L)
+      end
+    end
+
+    @testset "Root systems" begin
+      if has_root_system(L)
+        rs = root_system(L)
+        @test rs isa RootSystem
+        @test dim(L) == n_roots(rs) + n_simple_roots(rs)
+        chev = @inferred chevalley_basis(L)
+        @test length(chev) == 3
+        @test length(chev[1]) == length(chev[2])
+        @test dim(L) == sum(length, chev; init=0)
+      end
+    end
+
+    @testset "Serialization" begin
+      mktempdir() do path
+        test_save_load_roundtrip(path, L) do loaded
+          # nothing, cause `L === loaded` anyway
+        end
+
+        if dim(L) >= 1
+          x = basis(L, 1)
+          test_save_load_roundtrip(path, x) do loaded
+            @test parent(loaded) === L
+            @test coefficients(loaded) == coefficients(x)
+          end
+        end
+
+        if dim(L) >= 1 # TODO: remove this condition once deserializing empty vectors keeps the type (https://github.com/oscar-system/Oscar.jl/issues/3983)
+          test_save_load_roundtrip(path, basis(L)) do loaded
+            @test length(loaded) == dim(L)
+            @test all(
+              coefficients(loaded[i]) == coefficients(basis(L, i)) for i in 1:dim(L)
+            )
+          end
+        end
       end
     end
   end
