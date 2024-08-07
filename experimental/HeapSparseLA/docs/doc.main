@@ -1,0 +1,6 @@
+# Gauss algorithm over Euclidean rings
+
+```@docs
+upper_triangular_form!(A::MatElem)
+```
+

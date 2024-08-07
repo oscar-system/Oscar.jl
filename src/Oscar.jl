@@ -177,6 +177,7 @@ function __init__()
   add_verbosity_scope(:ZZLatWithIsom)
   
   add_assertion_scope(:IdealSheaves)
+  add_assertion_scope(:SparseLA)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)
