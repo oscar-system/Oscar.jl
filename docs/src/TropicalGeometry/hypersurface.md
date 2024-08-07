@@ -23,3 +23,6 @@ algebraic_polynomial(TropH::TropicalHypersurface)
 tropical_polynomial(TropH::TropicalHypersurface)
 dual_subdivision(TropH::TropicalHypersurface)
 ```
+
+## Examples
+I am working on creating some examples.
