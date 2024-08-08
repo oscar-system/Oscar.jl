@@ -254,25 +254,19 @@ function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
 end
 
 # scalar multiplication with polynomials, integers
-function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  @req parent(a) === base_ring(parent(b)) "elements not compatible"
-  return parent(b)(a*coordinates(b))
-end
-
-function *(a::MPolyRingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
-end
-
-*(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
-*(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
-*(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+*(a::Any, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 
 function *(a::T, b::AbstractFreeModElem{T}) where {T <: NCRingElem}
   parent(a) === base_ring(parent(b)) && return parent(b)(a*coordinates(b))
   return parent(b)(base_ring(parent(b))(a)*coordinates(b))
+end
+
+function *(b::AbstractFreeModElem{T}, a::T) where {T <: NCRingElem}
+  error("all modules are left-modules by default")
+end
+
+function *(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem}
+  error("scalar multiplication from the right is not defined; use left-multiplication instead")
 end
 
 @doc raw"""
