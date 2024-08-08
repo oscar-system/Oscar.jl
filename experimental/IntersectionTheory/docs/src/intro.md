@@ -39,7 +39,7 @@ General textbooks offering details on theory and algorithms include:
 - [EH16](@cite)
 - [Ful98](@cite)
 
-For computations in the Chow ring of abstract flag bundles see 
+For computations in the Chow rings of abstract flag bundles see 
 - [GSS22](@cite).
 
 
