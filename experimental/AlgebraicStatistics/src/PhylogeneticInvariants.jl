@@ -60,7 +60,7 @@ function parameterization(pm::GroupBasedPhylogeneticModel; F::Field=QQ, coordina
 end
 
 function vanishing_ideal(pm::PhylogeneticModel; F::Field=QQ, algorithm::Symbol=:eliminate)
-  parametrization = parameterization(pm, F=F, coordinates=::probabilities)
+  parametrization = parameterization(pm, F=F, coordinates=:probabilities)
 
   if algorithm == :kernel
       invariants = kernel(parametrization)
