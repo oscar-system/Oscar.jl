@@ -74,3 +74,70 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
     return helper(transpose(A),nca,nra)
   end
 end
+
+@doc raw"""
+    is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+
+Check if a tropical polytope is ordinarily convex (ie a polytrope)
+
+# Examples
+```jldoctest
+julia> A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
+[(0)   (0)   (1)]
+[(0)   (1)   (0)]
+[(0)   (3)   (3)]
+
+julia> is_polytrope(A)
+true
+```
+"""
+function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+  #=Convert the matrix of tropical numbers into matrix of rational numbers in
+  to pass it into polymake's tropical convex hull function =#
+  ncA = ncols(A)
+  nrA = nrows(A)
+  QQA = zero_matrix(QQ,nrA,ncA)
+  for i in 1:nrA
+    for j in 1:ncA
+      iszero(A[i,j]) && return false
+      QQA[i,j] += QQ(A[i,j])
+    end
+  end
+  #Compute the tropical convex hull 
+  tempP = Polymake.tropical.Polytope{convention(A)}(POINTS=QQA)
+  #=Compute the tropical convex hull again, this time with 
+  the minimal generating set of vertices of tropical polytope=#
+  P = Polymake.tropical.Polytope{convention(A)}(POINTS=tempP.VERTICES)
+  PMCV = P.POLYTOPE_MAXIMAL_COVECTORS
+  Polymake.Shell.CV = PMCV
+  #Get the length out of the polymake shell
+  Polymake.shell_execute(raw"""$tmp = $CV->size;""")
+  l = Polymake.Shell.tmp
+  return l == 1
+end
+
+@doc raw"""
+    is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+
+Check if a tropical polytope is ordinarily convex (ie a polytrope)
+
+# Examples
+```jldoctest
+julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
+[(0)   (0)   (1)]
+[(0)   (1)   (0)]
+[(0)   (3)   (3)]
+
+julia> is_polytrope(A,min)
+true
+```
+"""
+function is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+  tempP = Polymake.tropical.Polytope{minOrMax}(POINTS=A)
+  P = Polymake.tropical.Polytope{minOrMax}(POINTS=tempP.VERTICES)
+  pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
+  Polymake.Shell.CV = pPMCV
+  Polymake.shell_execute(raw"""$tmp = $CV->size;""")
+  l = Polymake.Shell.tmp
+  return l == 1
+end

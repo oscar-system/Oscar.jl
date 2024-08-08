@@ -837,6 +837,7 @@ export is_pgroup, has_is_pgroup, set_is_pgroup
 export is_pgroup_with_prime
 export is_platonic_solid
 export is_pointed
+export is_polytrope
 export is_positively_graded
 export is_primary
 export is_prime
