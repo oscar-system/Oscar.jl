@@ -34,17 +34,17 @@ jobs:
           - 'nightly'
         group: [ 'short', 'long' ]
         os:
-          - ubuntu-latest
+          - [Linux, RPTU]
         depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
             group: 'short'
-            os: ubuntu-latest
+            os: [Linux, RPTU]
             depwarn: 'depwarn=error'
           - julia-version: '1.10'
             group: 'long'
-            os: ubuntu-latest
+            os: [Linux, RPTU]
             depwarn: 'depwarn=error'
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
@@ -55,7 +55,7 @@ jobs:
             os: [macOS, RPTU]  # runs on self-hosted runner
           - julia-version: '1.10'
             group: 'book'
-            os: ubuntu-latest
+            os: [Linux, RPTU]
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -86,10 +86,13 @@ jobs:
         if: runner.os == 'macOS'
         # restrict number of openMP threads on macOS due to oversubscription
         run: echo "OMP_NUM_THREADS=1" >> $GITHUB_ENV
-      - name: "Use multiple processes for self-hosted runners"
+      - name: "Use multiple processes for self-hosted macOS runners"
         if: runner.os == 'macOS' && runner.environment == 'self-hosted'
         # runner.environment is supposed to be a valid property: https://github.com/orgs/community/discussions/48359#discussioncomment-9059557
         run: echo "NUMPROCS=5" >> $GITHUB_ENV
+      - name: "Use multiple processes for self-hosted Linux runners"
+        if: runner.os == 'Linux' && runner.environment == 'self-hosted'
+        run: echo "NUMPROCS=6" >> $GITHUB_ENV
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
@@ -122,12 +125,12 @@ jobs:
           - '1.11-nightly'
           - 'nightly'
         os:
-          - ubuntu-latest
+          - [Linux, RPTU]
         depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
-            os: ubuntu-latest
+            os: [Linux, RPTU]
             depwarn: 'depwarn=error'
           # Add macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
