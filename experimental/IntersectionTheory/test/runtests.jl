@@ -205,7 +205,7 @@ let pushforward = IntersectionTheory.pushforward
     
     # flag bundle
     X, (F,) = abstract_variety(2, [4=>"c"])
-    FlF = abstract_flag_variety(F, 2)
+    FlF = abstract_flag_bundle(F, 2)
     @test dim(FlF) == 6
     @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = FlF.struct_map

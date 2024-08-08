@@ -47,7 +47,7 @@ abstract_hirzebruch_surface(n::Int)
 ```
 
 ```@docs
-abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
+abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ```
 
 ```@docs

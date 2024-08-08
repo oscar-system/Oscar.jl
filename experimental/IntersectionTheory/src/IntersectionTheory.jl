@@ -11,6 +11,7 @@ import ..Oscar: trivial_line_bundle
 
 export a_hat_genus
 export abstract_bundle
+export abstract_flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
@@ -89,6 +90,7 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
+export abstract_flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
