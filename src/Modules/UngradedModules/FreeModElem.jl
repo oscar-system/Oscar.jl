@@ -266,13 +266,6 @@ function *(a::MPolyRingElem, b::AbstractFreeModElem)
   return parent(b)(a*coordinates(b))
 end
 
-function *(a::RingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
-end
-
 *(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
 *(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 *(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
