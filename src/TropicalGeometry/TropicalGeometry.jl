@@ -18,3 +18,5 @@ include("linear_space.jl")
 include("variety.jl")
 include("intersection.jl")
 include("groebner_fan.jl")
+include("TropicalPolyhedron.jl")
+
