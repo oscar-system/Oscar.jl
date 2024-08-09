@@ -399,9 +399,11 @@ function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCox
   S = cox_ring(domain(bd))
   _e = eval_poly(coordinate_name, S)
   images = MPolyRingElem[]
-  for v in gens(S)
+  g_list = gens(S)
+  g_center = [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+  for v in g_list
     v == _e && continue
-    if string(v) in [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+    if string(v) in g_center
       push!(images, v * _e)
     else
       push!(images, v)
@@ -412,4 +414,21 @@ function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCox
   exceptional_ideal = total_transform + ideal([_e])
   strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
   return ideal_sheaf(domain(bd), strict_transform)
+end
+
+function _strict_transform(bd::ToricBlowdownMorphism, tate_poly::MPolyRingElem; coordinate_name = "e")
+  S = cox_ring(domain(bd))
+  _e = eval_poly(coordinate_name, S)
+  g_list = string.(gens(S))
+  g_center = [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+  position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
+  pos_of_e = findfirst(==(string(_e)), g_list)
+  C = MPolyBuildCtx(S)
+  for m in terms(tate_poly)
+    exps = collect(exponents(m))[1]
+    insert!(exps, pos_of_e, sum(exps[position_of_center_variables]))
+    push_term!(C, collect(coefficients(m))[1], exps)
+  end
+  f = finish(C)
+  return remove(f, _e)[2]
 end

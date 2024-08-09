@@ -673,7 +673,7 @@ Model 40:
 Dict{String, Any}("journal_section" => "3", "arxiv_page" => "75", "arxiv_id" => "1408.4808", "gauge_algebra" => Any["su(3)", "su(2)", "su(2)", "u(1)"], "arxiv_version" => "2", "journal_equation" => "3.167", "journal_page" => "75", "arxiv_equation" => "3.168", "journal_doi" => "10.1007/JHEP01(2015)142", "arxiv_section" => "3", "journal" => "JHEP", "file" => "model1408_4808-14.json", "arxiv_doi" => "10.48550/arXiv.1408.4808", "model_index" => "40", "type" => "hypersurface")
 
 Model 45:
-Dict{String, Any}("journal_section" => "", "arxiv_page" => "2", "arxiv_id" => "1903.00009", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_equation" => "2", "journal_page" => "2", "arxiv_equation" => "2", "journal_doi" => "10.1103/PhysRevLett.123.101601", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903.00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
+Dict{String, Any}("journal_section" => "", "arxiv_page" => "2", "arxiv_id" => "1903.00009", "gauge_algebra" => Any["su(3)", "su(2)", "u(1)"], "arxiv_version" => "3", "journal_equation" => "2", "journal_page" => "2", "arxiv_equation" => "2", "journal_doi" => "10.1103/PhysRevLett.123.101601", "arxiv_section" => "II", "journal" => "Physical Review Letters", "file" => "model1903_00009.json", "arxiv_doi" => "10.48550/arXiv.1903.00009", "model_index" => "45", "type" => "hypersurface")
 
 julia> display_all_literature_models(Dict("gauge_algebra" => "e"))
 Model 8:

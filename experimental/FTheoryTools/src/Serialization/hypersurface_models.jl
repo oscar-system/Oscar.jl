@@ -67,9 +67,12 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
   base_space, ambient_space, fiber_ambient_space, R1, R2 = params
+  set_attribute!(ambient_space, :cox_ring, R1)
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
+  # Uncommenting the following line leads to a weird error in line 47 of tests/hypersurface_models.jl, namely can then not compute generic section of Kbar of P3.
+  #!isempty(explicit_model_sections) && set_attribute!(base_space, :cox_ring, parent(first(values(explicit_model_sections))))
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
   model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, ambient_space, fiber_ambient_space)
   model.defining_classes = defining_classes
