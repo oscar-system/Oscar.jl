@@ -609,7 +609,7 @@ lineality_dim(PC::PolyhedralComplex) = pm_object(PC).LINEALITY_DIM::Int
 @doc raw"""
     f_vector(PC::PolyhedralComplex)
 
-Compute the vector $(f₀,f₁,f₂,...,f_{dim(PC))$` where $f_i$ is the number of
+Compute the vector $(f₀,f₁,f₂,...,f_{dim(PC)})$ where $f_i$ is the number of
 faces of $PC$ of dimension $i$.
 
 # Examples

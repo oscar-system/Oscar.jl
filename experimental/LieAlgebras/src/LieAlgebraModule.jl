@@ -883,7 +883,7 @@ end
     ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
-construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.
+construct their tensor product $V_1 \otimes \cdots \otimes V_n$.
 
 # Examples
 ```jldoctest

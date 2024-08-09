@@ -1167,7 +1167,7 @@ julia> derived_length(dihedral_group(8))
 
 If `V` is $[ G_1, G_2, \ldots, G_n ]$,
 return the intersection $K$ of the groups $G_1, G_2, \ldots, G_n$,
-together with the embeddings of $K into $G_i$.
+together with the embeddings of $K$ into $G_i$.
 """
 function intersect(G1::GAPGroup, V::GAPGroup...)
    return intersect([G1, V...])

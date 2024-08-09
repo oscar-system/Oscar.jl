@@ -604,7 +604,7 @@ graded by $G$. That is, $G$ is free and each graded piece $R_g$ has finite dimen
 Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
 well-defined *Hilbert function* of $A$,
 
-$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+$H(A, \underline{\phantom{d}}): G \to \mathbb{N}, \; g\mapsto \dim_K(A_g).$
 
 The *Hilbert series* of $A$ is the generating function
 
@@ -641,7 +641,7 @@ $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensi
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
 of type
 
-$H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),$
+$H(A, \underline{\phantom{d}}): \mathbb{N} \to \mathbb{N}, \;d \mapsto \dim_K(d),$
 
 and the *Hilbert series* of $A$ is the formal power series
 

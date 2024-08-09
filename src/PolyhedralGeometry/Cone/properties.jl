@@ -314,7 +314,7 @@ codim(C::Cone) = ambient_dim(C) - dim(C)
 @doc raw"""
     f_vector(C::Cone)
 
-Compute the vector $(f₁,f₂,...,f_{(dim(C)-1))$` where $f_i$ is the number of
+Compute the vector $(f₁,f₂,...,f_{dim(C) - 1})$ where $f_i$ is the number of
 faces of $C$ of dimension $i$.
 
 # Examples
