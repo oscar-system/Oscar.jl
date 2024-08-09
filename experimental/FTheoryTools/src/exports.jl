@@ -35,8 +35,8 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
-export chern_class_c1
-export chern_class_c2
+export chern_class
+export chern_classes
 export classes_of_model_sections
 export components_of_dual_graph
 export components_of_simplified_dual_graph
@@ -50,6 +50,7 @@ export discriminant
 export display_all_literature_models
 export dual_graph
 export estimated_number_of_triangulations
+export euler_characteristic
 export explicit_model_sections
 export family_of_spaces
 export fiber_ambient_space
@@ -110,6 +111,7 @@ export hypersurface_model
 export indices_of_trivial_ci_curves
 export irrelevant_ideal
 export is_base_space_fully_specified
+export is_calabi_yau
 export is_partially_resolved
 export journal_doi
 export journal_link
@@ -193,6 +195,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export tune
+export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface

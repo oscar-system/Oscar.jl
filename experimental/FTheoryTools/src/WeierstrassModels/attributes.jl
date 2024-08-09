@@ -55,6 +55,10 @@ weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 
 Return the Weierstrass polynomial of the Weierstrass model.
 
+For convenience and uniformity with (general) hypersurface
+models, we also support the method `hypersurface_equation`
+to access the Weierstrass polynomial.
+
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
 Assuming that the first row of the given grading is the grading under Kbar
@@ -62,6 +66,9 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
+
+julia> weierstrass_polynomial(w) == hypersurface_equation(w)
+true
 ```
 """
 function weierstrass_polynomial(w::WeierstrassModel)
@@ -77,6 +84,8 @@ function weierstrass_polynomial(w::WeierstrassModel)
   end
   return w.weierstrass_polynomial
 end
+
+hypersurface_equation(w::WeierstrassModel) = weierstrass_polynomial(w)
 
 
 @doc raw"""
