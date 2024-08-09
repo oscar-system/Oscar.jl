@@ -697,3 +697,8 @@ end
 function simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
   return SimplicialComplex(Polymake.topaz.simplicial_product(pm_object(K1), pm_object(K2)))
 end
+
+function link_subcomplex(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
+  zero_based_face = Polymake.to_zero_based_indexing(face)
+  return SimplicialComplex(Polymake.link_subcomplex(pm_object(K), zero_based_face))
+end
