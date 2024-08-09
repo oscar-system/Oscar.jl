@@ -11,12 +11,7 @@ pm_object(P::TropicalPolyhedron) = P.pm_tpolytope
 convention(P::TropicalPolyhedron{typeof(min)}) = min
 convention(P::TropicalPolyhedron{typeof(max)}) = max
 
-function tropical_convex_hull(V::AbstractVector{T}) where {T<:AbstractVector{<:TropicalSemiringElem}}
-  M = convention(V)
-  
-  p = Polymake.tropical.Polytope{M}(POINTS=matrix(V))
-  return TropicalPolyhedron{typeof{M}}(p)
-end
+tropical_convex_hull(V::AbstractVector{T}) where {T<:AbstractVector{<:TropicalSemiringElem}} = tropical_convex_hull(matrix(V))
 
 function tropical_convex_hull(V::MatElem{<:TropicalSemiringElem})
   M = convention(V)
