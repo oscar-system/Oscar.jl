@@ -1232,7 +1232,7 @@ function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T},
 end
 
 @doc raw"""
-    weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
+    weight_ordering(W::Vector{<:IntegerUnion}, ord::MonomialOrdering) -> MonomialOrdering
 
 Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
 `length(W)` variables, return the monomial ordering `ord_W` on this set of monomials
@@ -1280,7 +1280,7 @@ julia> canonical_matrix(o2)
 [0   0    1]
 ```
 """
-function weight_ordering(w::Vector{Int}, o::MonomialOrdering)
+function weight_ordering(w::Vector{<:IntegerUnion}, o::MonomialOrdering)
   i = _support_indices(o.o)
   m = ZZMatrix(1, length(w), w)
   return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
