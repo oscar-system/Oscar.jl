@@ -13,10 +13,7 @@ This includes:
 * basic set-partitions and operations on them (e.g. composition, tensor product, involution)
 * variations like colored partitions [TW18](@cite) and spatial partitions [CW16](@cite)
 * enumeration of partitions which can be constructed from a set of generators
-
-In the future, we plan to implement:
 * linear combinations of partitions
-* examples of tensor categories in the framework of [TensorCategories.jl](https://github.com/FabianMaeurer/TensorCategories.jl)
 
 ## Contact
 
