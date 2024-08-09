@@ -69,8 +69,10 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: GlobalTateModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing})
   base_space, ambient_space, tp_ring = params
+  set_attribute!(ambient_space, :cox_ring, tp_ring)
   pt = load_object(s, MPolyDecRingElem, tp_ring, :tate_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
+  !isempty(explicit_model_sections) && set_attribute!(base_space, :cox_ring, parent(first(values(explicit_model_sections))))
   defining_section_parametrization = haskey(s, :defining_section_parametrization) ? load_typed_object(s, :defining_section_parametrization) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
   model = GlobalTateModel(explicit_model_sections, defining_section_parametrization, pt, base_space, ambient_space)
