@@ -1501,7 +1501,7 @@ end
 @doc raw"""
     f_vector(P::Polyhedron)
 
-Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{dim(P) - 1})$ where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples
