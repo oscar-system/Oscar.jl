@@ -2168,7 +2168,7 @@ end
     rand_metric_int(n::Int, digits::Int; seed=nothing)
 
 Produce a `n`-point metric with random integral distances. 
-The values are uniformily distributed in $[1, 2]$. The distances are integers and lie in 
+The values are uniformily distributed in $[1, 2]$. The distances are integers and lie in
 $[10^digits, 10^(digits+1)[$.
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)
