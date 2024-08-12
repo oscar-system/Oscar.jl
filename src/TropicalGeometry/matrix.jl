@@ -119,7 +119,7 @@ end
 @doc raw"""
     is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
 
-Check if a tropical polytope is ordinarily convex (ie a polytrope)
+Check if the `minOrMax`-tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
 
 # Examples
 ```jldoctest
