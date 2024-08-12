@@ -78,7 +78,7 @@ end
 @doc raw"""
     is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
 
-Check if a tropical polytope is ordinarily convex (ie a polytrope)
+Check if the tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
 
 # Examples
 ```jldoctest
