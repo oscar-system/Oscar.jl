@@ -6,7 +6,7 @@ In OSCAR, a `TropicalSemiringMap` is a map $\nu: K\to\mathbb{T}$ from a field $K
 2. multiplicativity: $\nu(a\cdot b)=\nu(a)+\nu(b)$,
 3. superadditivity: $\nu(a\cdot b)\geq\min(\nu(a),\nu(b))$ (in the order defined in Section 2.7 of [Jos21](@cite)).
 
-Most commonly, $\nu(a)=-\mathrm{val}(a)$ if $\mathbb{T}$ is the min-plus semiring, and $\nu(a)=+\mathrm{val}(a)$ if $\mathbb{T}$ is the max-plus semiring, for some valuation $\mathrm{val}:K^\ast\rightarrow\RR$.  Essentially, $\nu$ captures a valuation on $K$ as well as a choice of min- or max-convention.  They are an optional input for most tropical functions over valued fields (the default being the trivial valuation and the min-convention).
+Most commonly, $\nu(a)=-\mathrm{val}(a)$ if $\mathbb{T}$ is the min-plus semiring, and $\nu(a)=+\mathrm{val}(a)$ if $\mathbb{T}$ is the max-plus semiring, for some valuation $\mathrm{val}:K^\ast\rightarrow\mathbb{R}$.  Essentially, $\nu$ captures a valuation on $K$ as well as a choice of min- or max-convention.  They are an optional input for most tropical functions over valued fields (the default being the trivial valuation and the min-convention).
 
 ## Constructor
 Tropical semiring maps can be constructed as follows:

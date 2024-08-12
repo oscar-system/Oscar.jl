@@ -2069,7 +2069,7 @@ end
     rand_box_polytope(d::Int, n::Int, b::Int; seed::Int=nothing)
 
 Computes the convex hull of `n` points sampled uniformly at random from the integer 
-points in the cube $\[0,\texttt{b}\]^{\textttt{d}}$.
+points in the cube $[0,\texttt{b}]^{\texttt{d}}$.
 
 # Optional Argument
 -`seed`: Seed for random number generation.
@@ -2142,7 +2142,7 @@ end
     rand_metric(n::Int; seed=nothing)
 
 Produce a rational n-point metric with random distances. 
-The values are uniformily distributed in $\[1,2\]$.
+The values are uniformily distributed in $[1, 2]$.
 
 # Examples
 ```jldoctest
@@ -2168,7 +2168,7 @@ end
     rand_metric_int(n::Int, digits::Int; seed=nothing)
 
 Produce a `n`-point metric with random integral distances. 
-The values are uniformily distributed in $\[1,2\]$. The distances are integers and lie in 
+The values are uniformily distributed in $[1, 2]$. The distances are integers and lie in
 $[10^digits, 10^(digits+1)[$.
 """
 function rand_metric_int(n::Int, digits::Int; seed=nothing)

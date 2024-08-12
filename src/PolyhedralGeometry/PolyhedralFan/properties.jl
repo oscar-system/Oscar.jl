@@ -366,7 +366,7 @@ _n_rays(PF::_FanLikeType) = pm_object(PF).N_RAYS::Int
 @doc raw"""
     f_vector(PF::PolyhedralFan)
 
-Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$` where $f_i$ is the number of
+Compute the vector $(f₁,f₂,...,f_{dim(PF)-1})$ where $f_i$ is the number of
 faces of $PF$ of dimension $i$.
 
 # Examples

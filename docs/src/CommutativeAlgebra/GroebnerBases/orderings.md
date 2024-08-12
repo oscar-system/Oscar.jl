@@ -7,10 +7,10 @@ DocTestSetup = Oscar.doctestsetup()
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
 be the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
-in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$,
+in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$,
 set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and
 
-$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \N^n\}.$
+$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \mathbb{N}^n\}.$
 
 A *monomial ordering* on $\text{Mon}_n(x)$ is a total  ordering $>$ on $\text{Mon}_n(x)$ such that
 
@@ -24,10 +24,10 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 
 !!! note
     - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
-    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
-       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \mathbb{N}^n$ such that
+       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \mathbb{N}^n.$
        Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
-       (global, local, mixed) monomial ordering on $\N^n$.
+       (global, local, mixed) monomial ordering on $\mathbb{N}^n$.
 
 !!! note
     By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.

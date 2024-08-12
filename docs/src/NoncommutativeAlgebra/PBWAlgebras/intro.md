@@ -78,7 +78,7 @@ Apply this automorphism to the relations of $A$ to obtain the "opposite relation
 ```math
 x_ix_j = c_{ij}x_jx_i+d_{ij}^{\text{\;\!op}}.
 ```
-Also, if $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$, then set $\alpha^{\text{op}} =(\alpha_n, \ldots, \alpha_1)\in \N^n$,
+Also, if $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$, then set $\alpha^{\text{op}} =(\alpha_n, \ldots, \alpha_1)\in \mathbb{N}^n$,
 and if $>$ is an admissible monomial ordering for $A$, then define the "opposite ordering" $ >^{\text{op}}$ by setting
 ```math
 \alpha >^{\text{op}}  \beta \;\Leftrightarrow\;  \alpha^{\text{op}} > \beta^{\text{op}}.
