@@ -124,9 +124,9 @@ Check if a tropical polytope is ordinarily convex (ie a polytrope)
 # Examples
 ```jldoctest
 julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
-[(0)   (0)   (1)]
-[(0)   (1)   (0)]
-[(0)   (3)   (3)]
+[0   0   1]
+[0   1   0]
+[0   3   3]
 
 julia> is_polytrope(A,min)
 true
