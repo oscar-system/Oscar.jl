@@ -72,11 +72,6 @@ julia> ℓ(v) == convert(QQFieldElem, m)
 true
 ```
 
-!!! note "Infinite solutions"
-    Note that the optimal value may be $\pm\infty$ which currently is
-    well-defined by `Polymake.jl`, but not with the `QQFieldElem` number type. Hence
-    manual conversion is necessary, until this issue has been resolved.
-
 The optimal value and an optimal vertex may be obtained individually as well.
 
 ```jldoctest
