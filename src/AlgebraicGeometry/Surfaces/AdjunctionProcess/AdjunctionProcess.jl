@@ -54,7 +54,6 @@ with a general linear subspace of $\mathbb P^n$ of dimension $c+1$.
 # Examples
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -95,7 +94,6 @@ Return `true` if `X` is linearly normal, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -181,7 +179,6 @@ julia> degrees_of_generators(Omega)
 
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -246,7 +243,6 @@ which are obtained by blowing down the exceptional $(-1)$-lines on $X^{(i)}$.
 # Examples
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -284,7 +280,6 @@ julia> degree(L[3][1])
 
 ```
 julia> X = rational_d9_pi7();
-[ Info: upgrading serialized data....
 
 julia> L = adjunction_process(X);
 

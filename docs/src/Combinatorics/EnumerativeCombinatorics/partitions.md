@@ -84,12 +84,12 @@ julia> collect(partitions(100, [1, 2, 5, 10, 20, 50], [2, 2, 2, 2, 2, 2]))
 ```
 and there are 4562 ways for the first question in the exercise:
 ```jldoctest
-julia> length(partitions(100, [1, 2, 5, 10, 20, 50]))
+julia> length(collect(partitions(100, [1, 2, 5, 10, 20, 50])))
 4562
 ```
 The original "Ways to change one dollar" problem has 292 solutions:
 ```jldoctest
-julia> length(partitions(100, [1, 5, 10, 25, 50]))
+julia> length(collect(partitions(100, [1, 5, 10, 25, 50])))
 292
 ```
 ```@docs

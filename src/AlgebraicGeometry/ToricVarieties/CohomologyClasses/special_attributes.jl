@@ -3,7 +3,7 @@
 ########################
 
 @doc raw"""
-    cohomology_ring(v::NormalToricVarietyType)
+    cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
 
 Return the cohomology ring of the simplicial and complete toric variety `v`.
 
@@ -15,12 +15,18 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-@attr MPolyQuoRing function cohomology_ring(v::NormalToricVarietyType)
+function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
+  if has_attribute(v, :cohomology_ring)
+    return get_attribute(v, :cohomology_ring)
+  end
+  if check
     @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
-    R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
-    linear_relations = ideal_of_linear_relations(R, v)
-    stanley_reisner = stanley_reisner_ideal(R, v)
-    return quo(R, linear_relations + stanley_reisner)[1]
+  end
+  R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
+  linear_relations = ideal_of_linear_relations(R, v)
+  stanley_reisner = stanley_reisner_ideal(R, v)
+  set_attribute!(v, :cohomology_ring, quo(R, linear_relations + stanley_reisner)[1])
+  return get_attribute(v, :cohomology_ring)
 end
 
 

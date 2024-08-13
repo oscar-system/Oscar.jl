@@ -24,7 +24,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
              # these are skipped because they slow down the tests too much:
 
              # sometimes very slow: 4000-30000s
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
+             #"specialized/brandhorst-zach-fibration-hopping/vinberg_2.jlcon",
              # very slow: 24000s
              "cornerstones/number-theory/cohenlenstra.jlcon",
              # ultra slow: time unknown
@@ -32,7 +32,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             "specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+             #"specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
             ]
 
   dispsize = (40, 130)
@@ -202,7 +202,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       if length(chapter) > 0
         ordered_examples = Dict("$chapter" => ordered_examples[chapter])
       end
-      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "") do
+      withenv("LINES" => dispsize[1], "COLUMNS" => dispsize[2], "DISPLAY" => "", "GKSwstype" => "nul") do
         for (chapter, example_list) in ordered_examples
           cd(curdir)
           @testset "$chapter" verbose=true begin
@@ -238,7 +238,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
               content = read(joinpath(Oscar.oscardir, "test/book", full_file), String)
               if filetype == :jlcon && !occursin("julia> ", content)
                 filetype = :jl
-                @warn "possibly wrong file type: $full_file"
+                @debug "possibly wrong file type: $full_file"
               end
               if full_file in skipped
                 @test run_repl_string(mockrepl, content) isa AbstractString skip=true

@@ -731,7 +731,7 @@ julia> dim(P)
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 @doc raw"""
-    lattice_points(P::Polyhedron{QQFieldElem})
+    lattice_points(P::Polyhedron)
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -757,7 +757,7 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron{QQFieldElem})
+function lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
@@ -765,7 +765,7 @@ function lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
 _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -774,7 +774,7 @@ _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc raw"""
-    interior_lattice_points(P::Polyhedron{QQFieldElem})
+    interior_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -792,7 +792,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 [0   0   0]
 ```
 """
-function interior_lattice_points(P::Polyhedron{QQFieldElem})
+function interior_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
@@ -800,7 +800,7 @@ function interior_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _interior_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -813,7 +813,7 @@ _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc raw"""
-    boundary_lattice_points(P::Polyhedron{QQFieldElem})
+    boundary_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -841,7 +841,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 [ 1    0    0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron{QQFieldElem})
+function boundary_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
@@ -849,7 +849,7 @@ function boundary_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _boundary_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -1059,7 +1059,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1101,7 +1101,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, "x"; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1482,14 +1482,14 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # P has to have exactly n vertices and
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   ngon_is = findall(x -> x == n, nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])
   degs = [length(neighbors(dg, i)) for i in 1:n_vertices(dg)]
   degs == fill(2, n_vertices(dg)) && is_connected(dg) || return false
-  dg = dualgraph(P)
+  dg = dual_graph(P)
   if m == 3
     bigdg = Polymake.graph.Graph(; ADJACENCY=dg.pm_graph)
     return bigdg.BIPARTITE
@@ -1501,7 +1501,7 @@ end
 @doc raw"""
     f_vector(P::Polyhedron)
 
-Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{dim(P) - 1})$ where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples

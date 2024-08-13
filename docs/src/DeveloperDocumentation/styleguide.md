@@ -82,6 +82,22 @@ Here is a summary of the naming convention followed in OSCAR:
 
 ## Code formatting
 
+Before making some suggestions for code formatting rules, a warning: we
+deliberately are lax about enforcing these rules, as often contributors (esp.
+new ones) already struggle enough without being forced to also adhere to
+specific formatting rules. As long as code is sufficiently readable, we may
+accept it.
+
+But in the same vein (i.e., to minimize frictions for *others* working on
+OSCAR), we ask everyone to generally refrain from reformatting large chunks of
+code (even if it is to make it adhere to the rules described below), unless
+this is carefully coordinated with *all* stakeholders of the affected code.
+
+Also, ideally don't mix code reformatting with other changes, as this makes
+it harder to understand what is going on. At the very least, use different
+commits for the reformatting changes and the actual changes. But in general
+you shouldn't reformat code unrelated to the changes you are making.
+
 ### Editor configuration
 
 Please check if your editor can be configured to honor our `.editorconfig`

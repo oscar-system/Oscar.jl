@@ -9,8 +9,8 @@ end
 @doc raw"""
     phylogenetic_tree(T::Type{<:Union{Float64, QQFieldElem}}, newick::String)
 
-Constructs a phylogenetic tree with Newick representation `newick`. `T` indicates
-the numerical type of the edge lengths.
+Constructs a rooted phylogenetic tree with Newick representation `newick`.
+`T` indicates the numerical type of the edge lengths.
 
 # Examples
 Make a phylogenetic tree with 4 leaves from its Newick representation and print
@@ -131,7 +131,7 @@ function Base.show(io::IO, ptree::PhylogeneticTree{T}) where T
 end
 
 @doc raw"""
-    equidistant(ptree::PhylogeneticTree)
+    is_equidistant(ptree::PhylogeneticTree)
 
 Checks if the phylogenetic tree `ptree` is equidistant.
 
@@ -141,11 +141,11 @@ Make a phylogenetic tree with given Newick format and check if it is equidistant
 ```jldoctest
 julia> ptree = phylogenetic_tree(Float64, "((H:3,(C:1,B:1):2):1,G:4);");
 
-julia> equidistant(ptree)
+julia> is_equidistant(ptree)
 true
 ```
 """
-function equidistant(ptree::PhylogeneticTree)
+function is_equidistant(ptree::PhylogeneticTree)
   return pm_object(ptree).EQUIDISTANT::Bool
 end
 

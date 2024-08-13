@@ -200,7 +200,7 @@ mutable struct IdealGens{S}
       r.gens = BiPolyArray(Ox, S)
       r.isGB = S.isGB
       r.isReduced = isReduced
-      if T <: Union{MPolyRing, MPolyRingLoc}
+      if T <: MPolyRing
           r.ord = monomial_ordering(Ox, Singular.ordering(base_ring(S)))
       end
       r.keep_ordering = true
@@ -243,27 +243,53 @@ function Base.setproperty!(idealgens::IdealGens, name::Symbol, x)
   end
 end
 
+function show(io::IO, ::MIME"text/plain", I::IdealGens)
+  io = pretty(io)
+  if I.isGB
+    if is_global(I.ord)
+      print(io, LowercaseOff(), "Gröbner basis")
+    else
+      print(io, "Standard basis")
+    end
+    print(io, " with elements", Indent())
+    for (i, g) in enumerate(gens(I))
+        print(io, "\n", i, " -> ", OscarPair(g, I.ord))
+    end
+    print(io, Dedent())
+    print(io, "\nwith respect to the ordering")
+    print(io, Indent(), "\n", I.ord, Dedent())
+  else
+    print(io, "Ideal generating system with elements")
+    print(io, Indent())
+    for (i,g) in enumerate(gens(I))
+      print(io, "\n", i, " -> ", g)
+    end
+    print(io, Dedent())
+    if isdefined(I, :ord)
+      print(io, "\nwith associated ordering")
+      print(io, Indent(), "\n", I.ord, Dedent())
+    end
+  end
+end
+
 function show(io::IO, I::IdealGens)
   if I.isGB
-      if is_global(I.ord)
-          print(io, "Gröbner basis with elements")
-      else
-          print(io, "Standard basis with elements")
-      end
-      for (i,g) in enumerate(gens(I))
-          print(io, "\n", i, " -> ", OscarPair(g, I.ord))
-      end
-      print(io, "\nwith respect to the ordering")
-      print(io, "\n", I.ord)
+    io = pretty(io)
+    if is_global(I.ord)
+      print(io, LowercaseOff(), "Gröbner basis")
+    else
+      print(io, "Standard basis")
+    end
+    if !is_terse(io)
+      print(io, " with $(ItemQuantity(length(I), "element"))")
+      print(io, " w.r.t. ", I.ord)
+    end
   else
-      print(io, "Ideal generating system with elements")
-      for (i,g) in enumerate(gens(I))
-          print(io, "\n", i, " -> ", g)
-      end
-      if isdefined(I, :ord)
-          print(io, "\nwith associated ordering")
-          print(io, "\n", I.ord)
-      end
+    print(io, "Ideal generating system")
+    if !is_terse(io)
+      print(io, " with $(ItemQuantity(length(I), "element"))")
+      print(io, " with associated ordering ", I.ord)
+    end
   end
 end
 
@@ -375,10 +401,10 @@ julia> g = generating_system(I);
 
 julia> set_ordering(g, degrevlex(gens(R)))
 Ideal generating system with elements
-1 -> x0*x1
-2 -> x2
+  1 -> x0*x1
+  2 -> x2
 with associated ordering
-degrevlex([x0, x1, x2])
+  degrevlex([x0, x1, x2])
 ```
 """
 function set_ordering(G::IdealGens, monord::MonomialOrdering)
@@ -453,13 +479,13 @@ end
 
 
 #Note: Singular crashes if it gets Nemo.ZZ instead of Singular.ZZ ((Coeffs(17)) instead of (ZZ))
-singular_coeff_ring(::Nemo.ZZRing) = Singular.Integers()
-singular_coeff_ring(::Nemo.QQField) = Singular.Rationals()
+singular_coeff_ring(::ZZRing) = Singular.Integers()
+singular_coeff_ring(::QQField) = Singular.Rationals()
 
 # if the characteristic overflows an Int, Singular doesn't support it anyways
-singular_coeff_ring(F::Nemo.fpField) = Singular.Fp(Int(characteristic(F)))
+singular_coeff_ring(F::fpField) = Singular.Fp(Int(characteristic(F)))
 
-function singular_coeff_ring(F::Union{Nemo.zzModRing, Nemo.ZZModRing})
+function singular_coeff_ring(F::Union{zzModRing, ZZModRing})
   return Singular.residue_ring(Singular.Integers(), BigInt(modulus(F)))[1]
 end
 
@@ -496,7 +522,7 @@ function singular_coeff_ring(F::fqPolyRepField)
 end
 
 # Nonsense for FqField (aka fq_default from flint)
-function singular_coeff_ring(F::Nemo.FqField)
+function singular_coeff_ring(F::FqField)
   # we are way beyond type stability, so just do what you want
   @assert is_absolute(F)
   ctx = Nemo._fq_default_ctx_type(F)
@@ -791,8 +817,8 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
 julia> generating_system(I)
 Ideal generating system with elements
-1 -> x^2 + x
-2 -> x^2 + x*y - y^2 - 2*y
+  1 -> x^2 + x
+  2 -> x^2 + x*y - y^2 - 2*y
 ```
 """
 function generating_system(I::MPolyIdeal)

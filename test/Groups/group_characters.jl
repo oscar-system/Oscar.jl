@@ -858,10 +858,12 @@ end
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
+  @test all(chi -> chi * chi == tensor_product(chi, chi), t)
+
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
-  for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+  for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
@@ -930,6 +932,23 @@ end
   t = character_table(g)
   @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
   @test all(x -> x == QQAbAutomorphism(4)(x), t)
+
+  t = character_table("A5")
+  sums = [galois_orbit_sum(x) for x in t]
+  degrees = [degree(character_field(x)[1]) for x in t]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  m = mod(t, 2)
+  sums = [galois_orbit_sum(x) for x in m]
+  degrees = [degree(character_field(x)[1]) for x in m]
+  @test degrees == [1, 2, 2, 1]
+  @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+
+  # irreducibles not all rational but all are defined over the prime field
+  m = character_table("L3(2)", 2)
+  @test all(x -> x == galois_orbit_sum(x), m)
 end
 
 @testset "induction and restriction of characters" begin
@@ -1001,7 +1020,7 @@ end
   z = zero(K)
   G = general_linear_group(2, 3)
   @test values(natural_character(hom(G, G, gens(G)))) ==
-        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+        [QQAbFieldElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
 
   G = small_group(4, 1)  # pc group
   @test_throws MethodError natural_character(G)
@@ -1215,10 +1234,12 @@ end
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
 
+    @test all(chi -> chi * chi == tensor_product(chi, chi), tbl1)
+
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1
     @test scp isa QQFieldElem
-    for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+    for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
       scpT = scalar_product(T, tbl1[1],tbl1[1])
       @test scpT == scp
       @test scpT isa T

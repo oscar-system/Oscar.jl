@@ -106,6 +106,7 @@ end
   for i in -10:10
     Oscar.can_compute_index(H_tot, i) || continue
     H0, _ = kernel(H_tot, i)
+    iszero(H0) && continue
     v = first(gens(H0))
     interp = Oscar.element_to_homomorphism_map(H_tot, i)
     phi = interp(v)
@@ -159,7 +160,7 @@ end
   H1, _ = kernel(tot, 1)
   @test iszero(H1)
   interp = Oscar.element_to_homomorphism_map(tot, 1)
-  v = first(gens(H1))
+  v = zero(H1)
   phi = interp(v)
   @test iszero(phi[0])
 
@@ -240,7 +241,7 @@ end
       interp = Oscar.element_to_homomorphism_map(H_tot, d)
 
       Hd, _ = kernel(H_tot, d)
-      v = first(gens(Hd))
+      v = iszero(ngens(Hd)) ? zero(Hd) : first(gens(Hd))
 
       phi_v = interp(v)
 

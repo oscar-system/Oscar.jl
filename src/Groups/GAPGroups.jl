@@ -216,27 +216,156 @@ function rand_pseudo(G::GAPGroup; radius::Int = 10)
   return group_element(G, GAP.Globals.PseudoRandom(GapObj(G); radius = radius)::GapObj)
 end
 
-function _common_parent_group(x::T, y::T) where T <: GAPGroup
-   # A typical situation should be that the two groups are identical,
-   # but GAP's `IsSubset` check is not as cheap as one wants;
-   # there is an `IsSubset` method that checks for identity,
-   # but it is not always the first choice.
-   if GapObj(x) === GapObj(y)
-     return x
-   elseif GAPWrap.IsSubset(GapObj(x), GapObj(y))
-     return x
-   elseif GAPWrap.IsSubset(GapObj(y), GapObj(x))
-     return y
-   else
-     error("Not yet implemented")
-   end
+
+# We allow arithmetic operations between two group elements with
+# *nonidentical parents*.
+# In this case, the parent of the resulting element is set according to
+# the following rules, depending on the types of the parents.
+#
+# - `PermGroup`, `PermGroup`:
+#   The operation is allowed whenever the parents have the same degree,
+#   then the parent of the result is the symmetric group of that degree.
+#
+# - `PcGroup`, `PcGroup` and
+#   `FPGroup`, `FPGroup`:
+#   The operation is allowed whenever the parents have the same `GapObj`
+#   (in the sense of `===`),
+#   then the first of the two groups is taken as the parent of the result.
+#
+# - `SubPcGroup`, `SubPcGroup` and
+#   `SubFPGroup`, `SubFPGroup`:
+#   The operation is allowed whenever the `full_group` fields of the parents
+#   have the same `GapObj`
+#   (in the sense of `===`),
+#   then the first of the two groups is taken as the parent of the result.
+#
+# - `SubPcGroup`, `PcGroup` and
+#   `PcGroup`, `SubPcGroup` and
+#   `SubFPGroup`, `FPGroup` and
+#   `FPGroup`, `SubFPGroup`:
+#   The operation is allowed whenever the `full_group` of the `SubPcGroup`
+#   (`SubFPGroup`) and the `PcGroup` (`FPGroup`) have the same `GapObj`
+#   (in the sense of `===`),
+#   then the `full_group` of the `SubPcGroup` (`SubFPGroup`) is taken
+#   as the parent of the result.
+#   Note that we take a group of type `SubPcGroup` (`SubFpGroup`) in order
+#   to achieve type stability:
+#   Multiplying two `SubPcGroupElem`s with identical parent yields an element
+#   with this parent, of type `SubPcGroup`, hence the product of two
+#   `SubPcGroupElem`s with different parents is also a `SubPcGroupElem`.
+#
+# - `MatrixGroup`, `MatrixGroup`:
+#   The operation is allowed whenever the two groups have the same `degree`
+#   and `base_ring`,
+#   then the general linear group of that degree over that ring
+#   is taken as the parent of the result.
+#
+# - `AutomorphismGroup`, `AutomorphismGroup`:
+#   The operation is allowed whenever the two groups have the same `.G` field,
+#   then the full automorphism group of that group
+#   is taken as the parent of the result.
+#
+# - `DirectProductGroup`, `DirectProductGroup` and
+#   `SemidirectProductGroup`, `SemidirectProductGroup` and
+#   `WreathProductGroup`, `WreathProductGroup`:
+#   The operation is allowed whenever the two groups have the same `.Xfull`
+#   field,
+#   then the direct/semidirect/wreath product of these groups
+#   is taken as the parent of the result.
+#
+# For other types of groups, we throw an exception if the parent groups are
+# not equal and their `GapObj`s are not equal.
+#
+# Note that we do not want to perform `==` checks that are more expensive
+# then `===` checks.
+# In general, we cannot guarantee that the Oscar groups objects in question
+# are *identical* because the same GAP group can be wrapped several times,
+# but we want to force that their `GapObj`s are identical.
+# (Permutation groups are an exception,
+# we want to force only that the degrees are equal.)
+# Thus we regard it as an error for example to ask for the product of two
+# `PcGroupElem`s whose parents are equal in the sense of `==`
+# but whose `GapObj`s are not identical.
+#
+function _common_parent_group(x::PermGroup, y::PermGroup)
+  x === y && return x
+  @req degree(x) == degree(y) "the groups have different degrees"
+  return symmetric_group(degree(x))
 end
 
-#We need a lattice of groups to implement this properly
-function _prod(x::T, y::T) where T <: GAPGroupElem
-#T not nec. same type,
-#T and for pc subgroups may need to go to the big group
-#T (write tests that model this situation)
+function _common_parent_group(x::PcGroup, y::PcGroup)
+  GapObj(x) === GapObj(y) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _common_parent_group(x::FPGroup, y::FPGroup)
+  GapObj(x) === GapObj(y) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _common_parent_group(x::SubPcGroup, y::SubPcGroup)
+  x === y && return x
+  @req GapObj(x.full_group) === GapObj(y.full_group) "the groups belong to different full groups"
+  return as_sub_pc_group(x.full_group)
+end
+
+function _common_parent_group(x::SubPcGroup, y::PcGroup)
+  @req GapObj(x.full_group) === GapObj(y) "the groups belong to different full groups"
+  return as_sub_pc_group(x.full_group)
+end
+
+function _common_parent_group(x::PcGroup, y::SubPcGroup)
+  @req GapObj(y.full_group) === GapObj(x) "the groups belong to different full groups"
+  return as_sub_pc_group(y.full_group)
+end
+
+function _common_parent_group(x::SubFPGroup, y::SubFPGroup)
+  x === y && return x
+  @req GapObj(x.full_group) === GapObj(y.full_group) "the groups belong to different full groups"
+  return as_sub_fp_group(x.full_group)
+end
+
+function _common_parent_group(x::SubFPGroup, y::FPGroup)
+  @req GapObj(x.full_group) === GapObj(y) "the groups belong to different full groups"
+  return as_sub_fp_group(x.full_group)
+end
+
+function _common_parent_group(x::FPGroup, y::SubFPGroup)
+  @req GapObj(y.full_group) === GapObj(x) "the groups belong to different full groups"
+  return as_sub_fp_group(y.full_group)
+end
+
+function _common_parent_group(x::AutomorphismGroup{T}, y::AutomorphismGroup{T}) where T <: GAPGroup
+  x === y && return x
+  @req x.G === y.G "the groups belong to different full groups"
+  return automorphism_group(x.G)
+end
+
+function _common_parent_group(x::DirectProductGroup, y::DirectProductGroup)
+  x === y && return x
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return DirectProductGroup(x.Xfull, x.L, x.Xfull, true)
+end
+
+function _common_parent_group(x::SemidirectProductGroup, y::SemidirectProductGroup)
+  x === y && return x
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return SemidirectProductGroup{typeof(x.N), typeof(x.H)}(x.Xfull, x.N, x.H, x.f, x.Xfull, true)
+end
+
+function _common_parent_group(x::WreathProductGroup, y::WreathProductGroup)
+  x === y && return x
+  @req x.Xfull === y.Xfull "the groups belong to different full groups"
+  return WreathProductGroup(x.Xfull, x.G, x.H, x.a, x.Xfull, true)
+end
+
+# generic method
+function _common_parent_group(x::T, y::T) where T <: GAPGroup
+  (x === y || GapObj(x) == GapObj(y)) && return x
+  throw(ArgumentError("the groups are not compatible"))
+end
+
+function _prod(x::GAPGroupElem, y::GAPGroupElem)
   G = _common_parent_group(parent(x), parent(y))
   return group_element(G, GapObj(x)*GapObj(y))
 end
@@ -360,7 +489,11 @@ Base.:^(x::GAPGroupElem, y::ZZRingElem) = Nemo._generic_power(x, y) # TODO: perh
 div_right(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(x) / GapObj(y))::GapObj)
 div_left(x::GAPGroupElem, y::GAPGroupElem) = group_element(parent(x), (GapObj(y) \ GapObj(x))::GapObj)
 
-Base.conj(x::T, y::T) where T <: GAPGroupElem = group_element(_common_parent_group(parent(x), parent(y)), (GapObj(x) ^ GapObj(y))::GapObj)
+Base.conj(x::GAPGroupElem, y::GAPGroupElem) = group_element(_common_parent_group(parent(x), parent(y)), (GapObj(x) ^ GapObj(y))::GapObj)
+
+# AbstractAlgebra defines `x^y` for group elements of the *same* type only.
+Base.:^(x::GAPGroupElem, y::GAPGroupElem) = Base.conj(x, y)
+
 
 """
     comm(x::GAPGroupElem, y::GAPGroupElem)
@@ -1797,7 +1930,7 @@ end
 
 
 @doc raw"""
-    map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$
@@ -1811,7 +1944,9 @@ and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
-of the underlying free group.
+of the underlying free group of `full_group(parent(g))`.
+In particular, `genimgs` are interpreted as the images of the generators
+of this free group, not of `gens(parent(g))`.
 
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
@@ -1824,9 +1959,13 @@ to be the inverses of the corresponding entries in `genimgs`,
 and the function will use (and set) these entries in order to avoid
 calling `inv` (more than once) for entries of `genimgs`.
 
+If `init` is different from `nothing` then the product gets initialized with
+`init`.
+
 If `v` has length zero then `init` is returned if also `genimgs` has length
 zero, otherwise `one(genimgs[1])` is returned.
-In all other cases, `init` is ignored.
+Thus the intended value for the empty word must be specified as `init`
+whenever it is possible that the elements in `genimgs` do not support `one`.
 
 # Examples
 ```jldoctest
@@ -1846,6 +1985,9 @@ julia> map_word(F2, imgs)
 julia> map_word(one(F), imgs)
 ()
 
+julia> map_word(one(F), imgs, init = imgs[1])
+(1,2,3,4)
+
 julia> invs = Vector(undef, 2);
 
 julia> map_word(F1^-2*F2, imgs, genimgs_inv = invs)
@@ -1855,7 +1997,6 @@ julia> invs
 2-element Vector{Any}:
     (1,4,3,2)
  #undef
-
 ```
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
@@ -1888,13 +2029,13 @@ end
 
 
 @doc raw"""
-    map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
 which is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
-of $G$ and the $e_i$ are nonzero integers,
+of `full_group(parent(g))` and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 # Examples
@@ -1909,7 +2050,7 @@ julia> map_word(g, gens(free_group(:x, :y)))
 x*y^4
 ```
 """
-function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
   Ggens = gens(G)
   if length(Ggens) == 0
@@ -1928,10 +2069,37 @@ function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
 end
 
 function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  length(genimgs) == 0 && (@assert length(v) == 0; return init)
-  length(v) == 0 && return one(genimgs[1])
-  return prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise try the `one` of one of the `genimgs`
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return one(genimgs[1])
+  end
+  res = prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init * res
+  end
+  return res
 end
+
+# Support mapping to `FinGenAbGroupElem`:
+# We use `+` instead of `*`, and scalar multiplication instead of powering.
+function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector{FinGenAbGroupElem}; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise use the `zero` of one of the `genimgs`.
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return zero(parent(genimgs[1]))
+  end
+  res = sum(i -> _map_word_syllable_additive(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init + res
+  end
+  return res
+end
+
 
 function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
   vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
@@ -1954,6 +2122,30 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
   genimgs_inv[x] = res
   e == -1 && return res
   return res^-e
+end
+
+
+function _map_word_syllable_additive(vi::Int, genimgs::Vector, genimgs_inv::Vector)
+  vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
+  vi = -vi
+  @assert vi <= length(genimgs)
+  isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
+  res = -genimgs[vi]
+  genimgs_inv[vi] = res
+  return res
+end
+
+function _map_word_syllable_additive(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
+  x = vi[1]
+  @assert (x > 0 && x <= length(genimgs))
+  e = vi[2]
+  e > 1 && return e * genimgs[x]
+  e == 1 && return genimgs[x]
+  isassigned(genimgs_inv, x) && return (-e) * genimgs_inv[x]
+  res = -genimgs[x]
+  genimgs_inv[x] = res
+  e == -1 && return res
+  return (-e) * res
 end
 
 
