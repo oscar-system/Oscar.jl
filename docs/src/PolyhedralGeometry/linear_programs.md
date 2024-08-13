@@ -37,7 +37,7 @@ julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min)
 Linear program
    min{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[3 -2 4]
+   c=QQFieldElem[3, -2, 4]
    k=2
 ```
 

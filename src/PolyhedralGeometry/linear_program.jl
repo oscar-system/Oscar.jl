@@ -60,8 +60,7 @@ pm_object(lp::LinearProgram) = lp.polymake_lp
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, LP::LinearProgram)
-  c = dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE)
-  k = LP.polymake_lp.LINEAR_OBJECTIVE[1]
+  (c, k) = objective_function(LP; as=:pair)
   print(io, "Linear program\n")
   if LP.convention == :max
     print(io, "   max")
@@ -75,7 +74,7 @@ function Base.show(io::IO, LP::LinearProgram)
   end
   print(io, "where P is a " * string(typeof(LP.feasible_region)))
   print(io, " and\n   c=")
-  print(io, string(c'))
+  print(io, string(c))
   print(io, "\n   k=")
   print(io, string(k))
 end
@@ -98,8 +97,9 @@ The allowed values for `as` are
 """
 function objective_function(lp::LinearProgram{T}; as::Symbol=:pair) where {T<:scalar_types}
   if as == :pair
-    return Vector{T}(dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)),
-    convert(T, lp.polymake_lp.LINEAR_OBJECTIVE[1])
+    cf = coefficient_field(lp)
+    return T[cf(x) for x in dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)],
+    cf.(lp.polymake_lp.LINEAR_OBJECTIVE[1])
   elseif as == :function
     (c, k) = objective_function(lp; as=:pair)
     return x -> sum(x .* c) + k
@@ -138,7 +138,7 @@ julia> LP=linear_program(C,[1,2,-3])
 Linear program
    max{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[1 2 -3]
+   c=QQFieldElem[1, 2, -3]
    k=0
 
 julia> optimal_vertex(LP)
