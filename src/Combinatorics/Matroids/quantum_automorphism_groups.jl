@@ -151,9 +151,9 @@ function quantum_automorphism_group(
 end
 
 @doc raw"""
-    quantum_automorphism_group(G::Graph)
+    quantum_automorphism_group(G::Graph{Undirected})
 
-Return the ideal that defines the quantum automorphism group of the graph `G`.
+Return the ideal that defines the quantum automorphism group of the undirected graph `G`.
 
 # Examples
 ```jldoctest
