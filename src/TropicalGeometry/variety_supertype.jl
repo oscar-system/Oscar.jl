@@ -164,7 +164,7 @@ end
 @doc raw"""
     multiplicities(TropV::TropicalVariety)
 
-Return the multiplicities of `TropV`.
+Return the multiplicities of `TropV`.  Order is the same as `maximal_polyhedra`.
 
 # Examples
 ```jldoctest
