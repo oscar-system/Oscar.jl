@@ -253,7 +253,7 @@ translation `p+L`, where `p` is only unique modulo `L`. The return type is a
 dict, the key `:base_points` gives an iterator over such `p`, and the key
 `:lineality_basis` lets one access a basis for the lineality space `L` of `PC`.
 
-See also [`vertices`](@ref) and [`lineality_space`](@ref).
+See also [`vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}`](@ref) and [`lineality_space`](@ref).
 
 # Examples
 ```jldoctest
@@ -310,7 +310,7 @@ Return the rays of `PC`. The rays are defined to be the far vertices, i.e. the
 one-dimensional faces of the recession cones of its polyhedra, so if `PC` has
 lineality, there are no rays.
 
-See also [`rays_modulo_lineality`](@ref) and [`vertices`](@ref).
+See also [`rays_modulo_lineality`](@ref) and [`vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}`](@ref).
 
 Optional arguments for `as` include
 * `RayVector`.
