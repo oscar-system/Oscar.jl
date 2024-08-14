@@ -126,5 +126,5 @@ augmented_chow_ring(M::Matroid)
 ### Quantum Automorphisms
 ```@docs
 quantum_symmetric_group(n::Int)
-function quantum_automorphism_group(M::Matroid, structure::Symbol)
+quantum_automorphism_group(M::Matroid, structure::Symbol)
 ```
