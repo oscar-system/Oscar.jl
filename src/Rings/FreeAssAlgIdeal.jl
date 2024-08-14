@@ -134,7 +134,7 @@ function (A::FreeAssAlgebra)(a::Singular.slpalg)
   return finish(B)
 end
 
-_to_lpring(a::FreeAssAlgebra, deg_bound::Int) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound)
+_to_lpring(a::FreeAssAlgebra, deg_bound::Int; ordering::Symbol=:degrevlex) = Singular.FreeAlgebra(base_ring(a), String.(symbols(a)), deg_bound; ordering=ordering)
 
 @doc raw"""
     groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)
@@ -157,16 +157,16 @@ Ideal generating system with elements
   4 -> y^2*x + y*z*y
 ```
 """
-function groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)
+function groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; ordering::Symbol=:degrevlex, protocol::Bool=false)
   isdefined(I, :gb) && return I.gb
-  I.gb = groebner_basis(IdealGens(gens(I)), deg_bound, protocol=protocol)
+  I.gb = groebner_basis(IdealGens(gens(I)), deg_bound; ordering=ordering, protocol=protocol)
   return I.gb
 end
-function groebner_basis(g::IdealGens{<:FreeAssAlgElem}, deg_bound::Int=-1; protocol::Bool=false)
-  gb = groebner_basis(collect(g), deg_bound, protocol=protocol)
+function groebner_basis(g::IdealGens{<:FreeAssAlgElem}, deg_bound::Int=-1; ordering::Symbol=:degrevlex, protocol::Bool=false)
+  gb = groebner_basis(collect(g), deg_bound; ordering=ordering, protocol=protocol)
   return IdealGens(gb)
 end
-function groebner_basis(g::Vector{<:FreeAssAlgElem}, deg_bound::Int=-1; protocol::Bool=false)
+function groebner_basis(g::Vector{<:FreeAssAlgElem}, deg_bound::Int=-1; ordering::Symbol=:degrevlex, protocol::Bool=false)
   R = parent(g[1])
   @assert all(x -> parent(x) == R, g) "parent mismatch"
   @assert deg_bound >= 0 || !protocol "computing with a protocol requires a degree bound"
@@ -175,7 +175,7 @@ function groebner_basis(g::Vector{<:FreeAssAlgElem}, deg_bound::Int=-1; protocol
       return AbstractAlgebra.groebner_basis(g)
   end
     
-  lpring, _ = _to_lpring(R, deg_bound)
+  lpring, _ = _to_lpring(R, deg_bound; ordering=ordering)
   lp_I_gens = lpring.(g)
 
   I = Singular.Ideal(lpring, lp_I_gens)
