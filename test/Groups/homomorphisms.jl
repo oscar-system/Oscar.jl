@@ -301,6 +301,20 @@ end
       iso = @inferred isomorphism(FinGenAbGroup, A)
    end
 
+   @testset "Vector space to FPGroup" begin
+      V = free_module(GF(2), 0)
+      iso = isomorphism(FPGroup, V)
+      x = zero(V)
+      @test preimage(iso, iso(x)) == x
+
+      V = free_module(GF(2), 3)
+      iso = isomorphism(FPGroup, V)
+      x = gen(V, 1)
+      @test preimage(iso, iso(x)) == x
+
+      @test_throws ArgumentError isomorphism(FPGroup, free_module(GF(4), 3))
+   end
+
    @testset "MultTableGroup to GAPGroups" begin
       for G in [Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB()),
                 Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())]
