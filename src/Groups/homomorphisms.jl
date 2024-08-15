@@ -879,6 +879,33 @@ function isomorphism(::Type{FPGroup}, A::FinGenAbGroup)
    end::MapFromFunc{FinGenAbGroup, FPGroup}
 end
 
+
+# We need not find independent generators in order to create
+# a presentation of a vector space.
+# (This method is needed in the construction of group extensions
+# from information computed by `cohomology_group`.)
+function isomorphism(::Type{FPGroup}, A::AbstractAlgebra.Generic.FreeModule{FqFieldElem})
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FPGroup, false)) do
+      R = base_ring(A)
+      p = order(R)
+      @req is_prime(p) "A must be a free module over a prime field"
+      G = free_group(ngens(A); eltype = :syllable)
+      s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
+           elem_type(G)[gen(G, i)^p for i=1:ngens(A)])
+      F, mF = quo(G, s)
+      set_is_abelian(F, true)
+      set_is_finite(F, true)
+      set_order(F, order(A))
+      return MapFromFunc(
+        A, F,
+        y->F([i => lift(ZZ, y[i]) for i=1:ngens(A)]),
+        x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)))
+   end::MapFromFunc{AbstractAlgebra.Generic.FreeModule{FqFieldElem}, FPGroup}
+end
+
+
 """
     FPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}
     fp_group(G::T) where T <: Union{GAPGroup, FinGenAbGroup}

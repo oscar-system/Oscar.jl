@@ -81,6 +81,20 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule extension for matrix group" begin
+  G = SL(2,3)
+  F = GF(3)
+  m = free_module(F, 2)
+  M = GModule(m, G, [hom(m, m, matrix(a)) for a in gens(G)])
+  H2 = Oscar.GrpCoh.cohomology_group(M, 2)
+  x = collect(H2[1])[1]
+  c = H2[2](x)
+  e = extension(c)
+  GG = e[1]
+  @test order(GG) == 216
+  @test GG isa FPGroup
+end
+
 @testset "Experimental.gmodule SL(2,5)" begin
   G = SL(2, 5)
   T = character_table(G)

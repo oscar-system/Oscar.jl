@@ -759,14 +759,14 @@ end
 Evaluate a 2-cochain, a 2-cochain is a map from pairs of group elements
 into the module
 """
-function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
+function (C::CoChain{2})(g::Oscar.GAPGroupElem, h::Oscar.GAPGroupElem)
   if haskey(C.d, (g,h))
     return C.d[(g,h)]
   end
   @assert isdefined(C, :D)
   return C.d[(g,h)] = C.D((g, h))
 end
-(C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
+(C::CoChain{2})(g::NTuple{2, <:Oscar.GAPGroupElem}) = C(g[1], g[2])
 
 #TODO: re-write to get the maps! To support Q/Z as well
 """
