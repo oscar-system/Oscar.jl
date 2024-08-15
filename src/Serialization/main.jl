@@ -68,6 +68,10 @@ function get_oscar_serialization_version()
 end
 
 ################################################################################
+# Type attribute map
+const type_attr_map = Dict{Type, Vector{Symbol}}()
+
+################################################################################
 # (De|En)coding types
 
 # parameters of type should not matter here
@@ -280,6 +284,13 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
   reverse_type_map[str] = T
 end
 
+function register_attr_list(@nospecialize(T::Type),
+                            attrs::Union{Vector{Symbol}, Nothing})
+  if !isnothing(attrs)
+    Oscar.type_attr_map[T] = attrs
+  end
+end
+
 import Serialization.serialize
 import Serialization.deserialize
 import Serialization.serialize_type
@@ -292,7 +303,8 @@ serialize_with_id(obj::Any) = false
 serialize_with_params(::Type) = false
 
 
-function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
+function register_serialization_type(ex::Any, str::String, uses_id::Bool,
+                                     uses_params::Bool, attrs::Any)
   return esc(
     quote
       register_serialization_type($ex, $str)
@@ -310,6 +322,9 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
+      # add list of possible attributes to save for a given type to a global dict
+      register_attr_list($ex, $attrs)
+      
       serialize_with_id(obj::T) where T <: $ex = $uses_id
       serialize_with_id(T::Type{<:$ex}) = $uses_id
       serialize_with_params(T::Type{<:$ex}) = $uses_params
@@ -324,7 +339,6 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
           load(s.io; serializer_type=IPCSerializer)
         end
       end
-
     end)
 end
 
@@ -349,6 +363,7 @@ macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
   str = nothing
+  attrs = nothing
   for el in args
     if el isa String
       str = el
@@ -356,13 +371,15 @@ macro register_serialization_type(ex::Any, args...)
       uses_id = true
     elseif el == :uses_params
       uses_params = true
+    else
+      attrs = el
     end
   end
   if str === nothing
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params)
+  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
 end
 
 ################################################################################
@@ -417,8 +434,11 @@ julia> load("/tmp/fourtitwo.mrdi")
 ```
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
+              with_attrs::Bool=false,
               serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
-  s = state(serializer_open(io, serializer_type))
+  
+  s = state(serializer_open(io, serializer_type,
+                            with_attrs ? type_attr_map : nothing))
   save_data_dict(s) do
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -456,12 +476,13 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
+function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing,
+              with_attrs::Bool=false)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   open(temp_file, "w") do file
-    save(file, obj; metadata=metadata)
+    save(file, obj; metadata=metadata, with_attrs=with_attrs)
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing

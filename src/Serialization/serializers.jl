@@ -31,6 +31,7 @@ mutable struct SerializerState
   refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
+  type_attr_map::Union{Dict{Type, Vector{Symbol}}, Nothing}
 end
 
 function begin_node(s::SerializerState)
@@ -207,9 +208,13 @@ end
 
 state(s::OscarSerializer) = s.state
 
-function serializer_open(io::IO, T::Type{<: OscarSerializer})
+function serializer_open(
+  io::IO,
+  T::Type{<: OscarSerializer},
+  type_attr_map::S) where S <: Union{Dict{Type, Vector{Symbol}}, Nothing}
+  
   # some level of handling should be done here at a later date
-  return T(SerializerState(true, UUID[], io, nothing))
+  return T(SerializerState(true, UUID[], io, nothing, type_attr_map))
 end
 
 function deserializer_open(io::IO, T::Type{JSONSerializer})

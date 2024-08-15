@@ -1,9 +1,12 @@
 ################################################################################
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
-@register_serialization_type NormalToricVariety uses_id
 
-function save_object(s::SerializerState, ntv::NormalToricVarietyType)
+@register_serialization_type NormalToricVariety uses_id [:cox_ring]
+
+
+function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
+  attrs = []
   save_object(s, ntv.polymakeNTV)
 end
 
