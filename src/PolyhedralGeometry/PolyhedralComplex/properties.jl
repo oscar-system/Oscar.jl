@@ -253,7 +253,7 @@ translation `p+L`, where `p` is only unique modulo `L`. The return type is a
 dict, the key `:base_points` gives an iterator over such `p`, and the key
 `:lineality_basis` lets one access a basis for the lineality space `L` of `PC`.
 
-See also [`vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}`](@ref) and [`lineality_space`](@ref).
+See also [`vertices`](@ref vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}) and [`lineality_space`](@ref).
 
 # Examples
 ```jldoctest
