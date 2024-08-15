@@ -250,7 +250,6 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   if model_dict["arxiv_data"]["id"] == "1511.03209"
     directory = joinpath(@__DIR__, "Models/1511_03209/1511-03209-base-space.mrdi")
     base_space = load(directory)
-    delete!(base_space.__attrs, :cox_ring)
     set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
     model = global_tate_model(base_space, completeness_check = false)
     _set_all_attributes(model, model_dict, model_parameters)
