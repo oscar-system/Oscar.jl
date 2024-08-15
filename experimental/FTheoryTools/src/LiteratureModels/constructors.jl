@@ -161,6 +161,11 @@ Hypersurface model over a concrete base
 julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
+In principle, we can even create the model with the largest number of F-theory vacua.
+This happens by executing the line `h = literature_model(arxiv_id = "1511.03209")`.
+However, this line will currently run for a long time on a normal personal computer
+(likely about half an hour or even more), due to the massive complexity of computing
+the Tate sections of this global Tate model.
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)
@@ -241,6 +246,16 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
 
   end
 
+  # (2b) The F-theory model with the largest number of flux vacua needs special attention
+  if model_dict["arxiv_data"]["id"] == "1511.03209"
+    directory = joinpath(@__DIR__, "Models/1511_03209/1511-03209-base-space.mrdi")
+    base_space = load(directory)
+    delete!(base_space.__attrs, :cox_ring)
+    set_attribute!(base_space, :coordinate_names, ["w$i" for i in 0:100])
+    model = global_tate_model(base_space, completeness_check = false)
+    _set_all_attributes(model, model_dict, model_parameters)
+    return model
+  end
 
   # (3) Construct the model over concrete or arbitrary base
   if dim(base_space) > 0
@@ -684,6 +699,9 @@ Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "
 
 Model 10:
 Dict{String, Any}("journal_section" => "", "arxiv_page" => "49", "arxiv_id" => "1212.2949", "gauge_algebra" => Any["e(8)"], "arxiv_version" => "2", "journal_equation" => "", "journal_page" => "", "arxiv_equation" => "5.13", "journal_doi" => "10.1007/JHEP04(2013)061", "arxiv_section" => "5.1", "journal" => "JHEP", "file" => "model1212_2949-7.json", "arxiv_doi" => "10.48550/arXiv.1212.2949", "model_index" => "10", "type" => "tate")
+
+Model 46:
+Dict{String, Any}("journal_section" => "2", "arxiv_page" => "3", "arxiv_id" => "1511.03209", "gauge_algebra" => Any["e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "e(8)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "f(4)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "g(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)", "su(2)"], "arxiv_version" => "3", "journal_equation" => "2.11", "journal_page" => "3", "arxiv_equation" => "2.11", "journal_doi" => "https://doi.org/10.1007/JHEP12(2015)164", "arxiv_section" => "2", "journal" => "JHEP", "file" => "model1511_03209.json", "arxiv_doi" => "10.48550/arXiv.1511.03209", "model_index" => "46", "type" => "tate")
 ```
 """
 function display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
