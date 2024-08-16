@@ -206,8 +206,7 @@ function optimal_value(lp::LinearProgram{T}) where {T<:scalar_types}
   conv = lp.convention
   mv = conv === :max ? lp.polymake_lp.MAXIMAL_VALUE : lp.polymake_lp.MINIMAL_VALUE
   is_feasible(feasible_region(lp)) || return nothing
-  # we currently need that != 0 because isinf might return an Int for some polymake types
-  isinf(mv) != 0 && return conv === :max ? PosInf() : NegInf()
+  isinf(mv) && return conv === :max ? PosInf() : NegInf()
   return cf(mv)
 end
 
