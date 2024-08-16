@@ -7,11 +7,11 @@ using JSONSchema, Oscar.JSON
 if !isdefined(Main, :test_save_load_roundtrip)
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
 
-  function test_save_load_roundtrip(func, path, original::T; params=nothing) where {T}
+  function test_save_load_roundtrip(func, path, original::T; params=nothing, with_attrs=false) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
     save(filename, original)
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, with_attrs=with_attrs)
     
     @test loaded isa T
     func(loaded)
@@ -20,7 +20,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     io = IOBuffer()
     save(io, original)
     seekstart(io)
-    loaded = load(io; params=params)
+    loaded = load(io; params=params, with_attrs=with_attrs)
 
     @test loaded isa T
     func(loaded)
@@ -29,7 +29,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     io = IOBuffer()
     save(io, original)
     seekstart(io)
-    loaded = load(io; type=T, params=params)
+    loaded = load(io; type=T, params=params, with_attrs=with_attrs)
 
     @test loaded isa T
     func(loaded)
@@ -37,7 +37,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     # test loading on a empty state
     save(filename, original)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, with_attrs=with_attrs)
 
     # test schema
     jsondict = JSON.parsefile(filename)

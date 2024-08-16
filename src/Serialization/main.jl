@@ -190,6 +190,12 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
+function save_attrs(s::SerializerState, obj::T) where T
+  for attr in attrs_list(s, T)
+    has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+  end
+end
+
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
@@ -237,6 +243,12 @@ end
 function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symbol, Int})
   load_node(s, key) do _
     load_object(s, T, params)
+  end
+end
+
+function load_attrs(s::DeserializerState, obj::T) where T
+  for attr in attrs_list(s, T)
+    haskey(s, attr) && set_attribute(obj, load_typed_object(s, attr))
   end
 end
 
@@ -438,7 +450,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
   
   s = state(serializer_open(io, serializer_type,
-                            with_attrs ? type_attr_map : nothing))
+                            with_attrs ? type_attr_map : Dict{Type, Vector{Symbol}}()))
   save_data_dict(s) do
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -543,8 +555,9 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer_type=JSONSerializer)
-  s = state(deserializer_open(io, serializer_type))
+              serializer_type=JSONSerializer, with_attrs::Bool=false)
+  s = state(deserializer_open(io, serializer_type,
+                              with_attrs ? type_attr_map : Dict{Type, Vector{Symbol}}()))
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
@@ -633,7 +646,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::Any = nothing, type::Any = nothing)
+function load(filename::String; params::Any = nothing,
+              type::Any = nothing, with_attrs::Bool=false)
   open(filename) do file
     return load(file; params=params, type=type)
   end

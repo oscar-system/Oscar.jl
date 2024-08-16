@@ -2,9 +2,11 @@
   mktempdir() do path
     @testset "NormalToricVariety" begin
       pp = projective_space(NormalToricVariety, 2)
-      test_save_load_roundtrip(path, pp) do loaded
+      R = cox_ring(pp)
+      test_save_load_roundtrip(path, pp; with_attrs=true) do loaded
         @test rays(pp) == rays(loaded)
         @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
+        @test R == get_attribute(loaded, :cox_ring)
       end
     end
 
