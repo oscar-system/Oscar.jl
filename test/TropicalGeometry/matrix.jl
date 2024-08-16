@@ -19,6 +19,7 @@ end
 end
 
 @testset "testing for polytropes" begin
+  do_rows_form_polytrope = Oscar.do_rows_form_polytrope
   A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
   @test do_rows_form_polytrope(A) == true
   B = tropical_semiring()[0 1 0; 0 0 1; 1 0 0]
