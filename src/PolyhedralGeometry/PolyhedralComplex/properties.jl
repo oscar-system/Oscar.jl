@@ -34,7 +34,7 @@ Return an iterator over the vertices of `PC` in the format defined by `as`. The
 vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
 there are no vertices, only minimal faces.
 
-See also [`minimal_faces`](@ref) and [`rays`](@ref).
+See also [`minimal_faces`](@ref minimal_faces(PC::PolyhedralComplex{T}) where {T<:scalar_types}) and [`rays`](@ref rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `PointVector`.
@@ -135,7 +135,7 @@ _vertices(
     vertices_and_rays(PC::PolyhedralComplex)
 
 Return the vertices and rays of `PC` as a combined set, up to lineality. This
-function is mainly a helper function for [`maximal_polyhedra`](@ref).
+function is mainly a helper function for [`maximal_polyhedra`](@ref maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 
 # Examples
 ```jldoctest
@@ -187,7 +187,7 @@ with two iterators. If `PC` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `PC/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
-See also [`rays`](@ref) and [`lineality_space`](@ref).
+See also [`rays`](@ref rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 
 # Examples
 ```jldoctest
@@ -310,7 +310,7 @@ Return the rays of `PC`. The rays are defined to be the far vertices, i.e. the
 one-dimensional faces of the recession cones of its polyhedra, so if `PC` has
 lineality, there are no rays.
 
-See also [`rays_modulo_lineality`](@ref) and [`vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}`](@ref).
+See also [`rays_modulo_lineality`](@ref rays_modulo_lineality(PC::PolyhedralComplex{T}) where {T<:scalar_types}) and [`vertices`](@ref vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -394,7 +394,7 @@ Return the maximal polyhedra of `PC`
 
 Optionally `IncidenceMatrix` can be passed as a first argument to return the
 incidence matrix specifying the maximal polyhedra of `PC`. The indices returned
-refer to the output of [`vertices_and_rays`](@ref).
+refer to the output of [`vertices_and_rays`](@ref vertices_and_rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 
 # Examples
 ```jldoctest

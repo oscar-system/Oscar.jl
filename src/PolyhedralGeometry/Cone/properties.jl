@@ -26,7 +26,7 @@ _rays(::Type{<:RayVector}, C::Cone{T}) where {T<:scalar_types} = _rays(RayVector
 Return the rays of `C` in the format defined by `as`. The rays are defined to be the
 one-dimensional faces, so if `C` has lineality, there are no rays.
 
-See also [`rays_modulo_lineality`](@ref).
+See also [`rays_modulo_lineality`](@ref rays_modulo_lineality(C::Cone{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -85,7 +85,7 @@ iterators. If `C` has lineality `L`, then the iterator `rays_modulo_lineality`
 iterates over representatives of the rays of `C/L`. The iterator
 `lineality_basis` gives a basis of the lineality space `L`.
 
-See also [`rays`](@ref) and [`lineality_space`](@ref).
+See also [`rays`](@ref rays(C::Cone{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(C::Cone{T}) where {T<:scalar_types}).
 
 # Examples
 For a pointed cone, with two generators, we get the usual rays:

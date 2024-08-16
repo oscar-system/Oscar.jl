@@ -259,7 +259,7 @@ A Johnson solid is a 3-polytope whose facets are regular polygons, of various go
 It is proper if it is not an Archimedean solid.  Up to scaling there are exactly 92 proper Johnson solids.
   See the [Polytope Wiki](https://polytope.miraheze.org/wiki/List_of_Johnson_solids)
 
-See also [`is_johnson_solid`](@ref).
+See also [`is_johnson_solid`](@ref is_johnson_solid(P::Polyhedron)).
 """
 function johnson_solid(index::Int)
   if index in _johnson_indexes_from_oscar
@@ -720,7 +720,7 @@ cross_polytope(d::Int64) = cross_polytope(QQFieldElem, d)
 Construct a Platonic solid with the name given by String `s` from the list
 below.
 
-See also [`is_platonic_solid`](@ref).
+See also [`is_platonic_solid`](@ref is_platonic_solid(P::Polyhedron)).
 
 # Arguments
 - `s::String`: The name of the desired Platonic solid.
@@ -755,7 +755,7 @@ const _archimedean_strings_from_oscar = Set{String}(["snub_cube", "snub_dodecahe
 Construct an Archimedean solid with the name given by String `s` from the list
 below.
 
-See also [`is_archimedean_solid`](@ref).
+See also [`is_archimedean_solid`](@ref is_archimedean_solid(P::Polyhedron)).
 
 # Arguments
 - `s::String`: The name of the desired Archimedean solid.
@@ -824,7 +824,7 @@ end
 Construct the snub cube, an Archimedean solid.
 See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_cube)
 
-See also [`archimedean_solid`](@ref).
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
 """
 function snub_cube()
   return archimedean_solid("snub_cube")
@@ -836,7 +836,7 @@ end
 Construct the snub dodecahedron, an Archimedean solid.
 See the [Polytope Wiki](https://polytope.miraheze.org/wiki/Snub_dodecahedron)
 
-See also [`archimedean_solid`](@ref).
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
 """
 function snub_dodecahedron()
   return archimedean_solid("snub_dodecahedron")
@@ -917,7 +917,7 @@ end
 Construct the pentagonal icositetrahedron, a Catalan solid.
 See the [Wikipedia entry](https://en.wikipedia.org/wiki/Pentagonal_icositetrahedron)
 
-See also [`catalan_solid`](@ref).
+See also [`catalan_solid`](@ref catalan_solid(s::String)).
 """
 function pentagonal_icositetrahedron()
   return catalan_solid("pentagonal_icositetrahedron")
@@ -929,7 +929,7 @@ end
 Construct the pentagonal hexecontahedron, a Catalan solid.
 See the [Visual Polyhedra entry](https://dmccooey.com/polyhedra/LpentagonalIcositetrahedron.html)
 
-See also [`catalan_solid`](@ref).
+See also [`catalan_solid`](@ref catalan_solid(s::String)).
 """
 function pentagonal_hexecontahedron()
   return catalan_solid("pentagonal_hexecontahedron")
