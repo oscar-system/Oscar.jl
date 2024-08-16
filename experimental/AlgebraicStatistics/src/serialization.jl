@@ -1,22 +1,22 @@
-@register_serialization_type PhylogeneticModel uses_params 
-@register_serialization_type GroupBasedPhylogeneticModel uses_params 
+@register_serialization_type PhylogeneticModel 
+@register_serialization_type GroupBasedPhylogeneticModel 
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
     save_data_dict(s) do 
-        save_object(s, pm.graph, :tree) # already implemented 
-        save_object(s, pm.n_states, :states) # already implemented 
-        save_object(s, pm.prob_ring, :probability_ring) # already implemented
-        save_object(s, pm.root_distr, :root_distribution) # needs to be implemented, or we change the entry type to QQFieldElem
-        save_object(s, pm.trans_matrices, :transition_matrices) # needs to be implemented
+        save_object(s, graph(pm), :tree) # already implemented 
+        save_object(s, number_states(pm), :states) # already implemented 
+        save_object(s, probability_ring(pm), :probability_ring) # already implemented
+        save_object(s, root_distribution(pm), :root_distribution) # needs to be implemented, or we change the entry type to QQFieldElem
+        save_object(s, transition_matrices(pm), :transition_matrices) # needs to be implemented
     end
 end
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
     save_data_dict(s) do
-        save_object(s,pm.phylo_model,:phylomodel) # details see above
-        save_object(s, pm.fourier_ring, :fourier_ring) # already implemented
-        save_object(s,pm.fourier_params,:fourier_params) # needs to be implemented
-        save_object(s,pm.group,:group) # already implemented
+        save_object(s, phylogenetic_model(pm), :phylomodel) # details see above
+        save_object(s, fourier_ring(pm), :fourier_ring) # already implemented
+        save_object(s, fourier_parameters(pm), :fourier_params) # needs to be implemented
+        save_object(s,group_of_model(pm), :group) # already implemented
     end
 end
 
@@ -39,20 +39,3 @@ function load_object(s::DeserializerState, ::Type{<: GroupBasedPhylogeneticModel
     
     return GroupBasedPhylogeneticModel(phylomodel, fourier_ring, fourier_params, group)
 end
-
-### Structure of both Types: ###
-
-#= struct PhylogeneticModel
-  graph::Graph{Directed}
-  n_states::Int
-  prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any}
-  trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
-end
-
-struct GroupBasedPhylogeneticModel
-  phylo_model::PhylogeneticModel
-  fourier_ring::MPolyRing{QQFieldElem}
-  fourier_params::Dict{Edge, Vector{QQMPolyRingElem}}
-  group::Vector{FinGenAbGroupElem}
-end =#
