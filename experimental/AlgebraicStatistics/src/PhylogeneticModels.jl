@@ -6,7 +6,7 @@ struct PhylogeneticModel
   graph::Graph{Directed}
   n_states::Int
   prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any}
+  root_distr::Vector
   trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
 end
 

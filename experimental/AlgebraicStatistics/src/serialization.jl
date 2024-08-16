@@ -21,17 +21,17 @@ function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
 end
 
 
-function load_object(s::DeserializerState, ::Type{<: PhylogeneticModel})
+function load_object(s::DeserializerState, g::Type{PhylogeneticModel})
   graph = load_object(s, Graph{Directed}, :tree)
   n_states = load_object(s, Int64, :states)
   prob_ring = load_object(s, QQMPolyRing, :probability_ring)
-  root_distr = load_object(s, Vector{Any}, :root_distribution)
-  trans_matrices = load_object(s, Dict{Edge, MatElem{QQMPolyRingElem}}, :trans_matrices)
+  root_distr = load_object(s, Vector, QQ, :root_distribution)
+  trans_matrices = load_object(s, Dict{Edge, MatElem{QQMPolyRingElem}}, :transition_matrices)
     
   return PhylogeneticModel(graph, n_states, prob_ring, root_distr, trans_matrices)
 end 
 
-function load_object(s::DeserializerState, ::Type{<: GroupBasedPhylogeneticModel})
+function load_object(s::DeserializerState, g::Type{GroupBasedPhylogeneticModel})
   phylomodel = load_object(s, PhylogeneticModel, :phylomodel)
   fourier_ring = load_object(s, QQMPolyRing, :fourier_ring)
   fourier_params = load_object(s, Dict{Edge, Vector{QQMPolyRingElem}} , :fourier_params)
