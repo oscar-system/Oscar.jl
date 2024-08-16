@@ -523,64 +523,21 @@ function phylogenetic_model_input_check(matrices::Dict{Edge, MatElem{T}}; root_d
   end
 end
 
-function group_based_phylogenetic_model_from_matrices(matrices::Dict{Edge, MatElem{T}}, fourier_param::Dict{Edge, Vector{T}}, group::Vector{FinGenAbGroupElem}; root_distr::Vector=[]) where T <: MPolyRingElem
-  group_based_phylogenetic_model_input_check(matrices, fourier_param, group; root_distr=root_distr)
+function group_based_phylogenetic_model_from_matrices(matrices::Dict{Edge, MatElem{T}}, G::FinGenAbGroup; root_distr::Vector=[], fourier_param_name::String = "x") where T <: MPolyRingElem
+  # phylogenetic_model_input_check(matrices; root_distr=root_distr)
+   is_group_based_model(matrices, G)
+ 
+   edgs = collect(keys(matrices))
+   ns = ncols(matrices[edgs[i]]) 
+ 
+   if length(root_distr) == 0
+       pm = phylogenetic_model_from_matrices(matrices; root_distr=repeat([1/ns],ns))
+   else
+       pm = phylogenetic_model_from_matrices(matrices; root_distr=root_distr)
+   end
 
-  edgs = collect(keys(matrices))
-  ns = unique([ncols(matrices[edgs[i]]) for i in 1:length(edgs)])
-
-  if length(root_distr) == 0
-      pm = phylogenetic_model_from_matrices(matrices; root_distr=repeat([1/ns],ns))
-  else
-      pm = phylogenetic_model_from_matrices(matrices; root_distr=root_distr)
-  end
-  
-  F = coefficient_ring(fourier_param[edgs[1]][1])
-  vars_four = vec([string(x) for x in hcat(hcat(collect(values(fourier_param))...)...)] )
-  S, = polynomial_ring(F, vars_four)
-  
-  GroupBasedPhylogeneticModel(pm, S, fourier_param, group)
+   (S, fourier_param) = fourier_params_from_matrices(matrices, G)
+   
+   GroupBasedPhylogeneticModel(pm, S, fourier_param, collect(G))
 end
 
-function group_based_phylogenetic_model_input_check(matrices::Dict{Edge, MatElem{T}}, fourier_param::Dict{Edge, Vector{T}}, group::Vector{FinGenAbGroupElem}; root_distr::Vector=[]) where T <: MPolyRingElem
-  
-  phylogenetic_model_from_matrices(matrices)
-
-  edgs = collect(keys(matrices))
-  ns = unique([length(fourier_param[edgs[i]]) for i in 1:length(edgs)])
-
-  if !issetequal(collect(keys(fourier_param)), edgs); error("Incompatible set of edges in transition matrices and Fourier parameters"); end
-  if length(ns) != 1; error("Different number of Fourier parameters in each edge"); end
-  if ncols(matrices[edgs[1]]) != ns[1]; error("Inconsistent number of states between transition matrices and Fourier parameters"); end
-  
-  if length(unique(typeof.(collect(values(fourier_param))))) > 1; error("Fourier parameters of different type"); end
-  if length(unique(base_ring.(vcat(collect(values(fourier_param))...)))) > 1; error("Fourier parameters defined in different polynomial rings"); end
-
-  is_group_based_model(matrices, fourier_param, group)
-
-end
-
-function is_group_based_model(matrices::Dict{Edge, MatElem{T}}, fourier_param::Dict{Edge, Vector{T}}, group::Vector{FinGenAbGroupElem}) where T <: MPolyRingElem
-
-  edgs = collect(keys(matrices))
-  ns = ncols(matrices[edgs[1]])
-
-  for e in edgs
-      M = matrices[e]
-      f = Dict{FinGenAbGroupElem, Vector{typeof(matrices[edgs[1]][1,1])}}(group[i] - group[j] => [M[i,j]])
-
-      for i in 1:ns
-          for j in 1:ns
-              if haskey(f, group[i] - group[j])
-              f[group[i] - group[j]] = unique(vcat(f[group[i] - group[j]], [M[i,j]]))
-              else
-                  f[group[i] - group[j]] = [M[i,j]]
-              end
-          end
-      end
-
-      group_structure = all([length(x) == 1 for x in collect(values(f))])
-      if !group_structure; error("Transition matrices don't have a group structure"); end
-  end
-  
-end
