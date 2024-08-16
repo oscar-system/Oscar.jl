@@ -5,6 +5,7 @@ using JSON
 ###############################################################################
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
+@register_serialization_type Edge "Edge"
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
   smallobject = pm_object(g)
@@ -17,6 +18,19 @@ end
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
   smallobj = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
   return g(smallobj)
+end
+
+function save_object(s::SerializerState, e::Edge)
+  save_data_dict(s) do 
+    save_object(s, src(e), :source)
+    save_object(s, dst(e), :target)
+  end
+end
+
+function load_object(s::DeserializerState, e::Type{Edge})
+  source = load_object(s, Int64, :source)
+  target = load_object(s, Int64, :target)
+  return Edge(source, target)
 end
 
 ###############################################################################
