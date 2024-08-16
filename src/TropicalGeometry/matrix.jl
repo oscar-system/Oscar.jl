@@ -123,7 +123,7 @@ julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
 [0   1   0]
 [0   3   3]
 
-julia> do_rows_form_polytrope(A,min)
+julia> Oscar.do_rows_form_polytrope(A, min)
 true
 ```
 """
