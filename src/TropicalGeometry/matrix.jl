@@ -76,7 +76,7 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
 end
 
 @doc raw"""
-    is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+    do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
 
 Check if the tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
 
@@ -87,11 +87,11 @@ julia> A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
 [(0)   (1)   (0)]
 [(0)   (3)   (3)]
 
-julia> is_polytrope(A)
+julia> do_rows_form_polytrope(A)
 true
 ```
 """
-function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+function do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   #=Convert the matrix of tropical numbers into matrix of rational numbers in
   to pass it into polymake's tropical convex hull function =#
   ncA = ncols(A)
@@ -112,7 +112,7 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
 end
 
 @doc raw"""
-    is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+    do_rows_form_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
 
 Check if the `minOrMax`-tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
 
@@ -123,16 +123,14 @@ julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
 [0   1   0]
 [0   3   3]
 
-julia> is_polytrope(A,min)
+julia> do_rows_form_polytrope(A,min)
 true
 ```
 """
-function is_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+function do_rows_form_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
   tempP = Polymake.tropical.Polytope{minOrMax}(POINTS=A)
+  #=Compute the tropical convex hull again, this time with 
+  the minimal generating set of vertices of tropical polytope=#
   P = Polymake.tropical.Polytope{minOrMax}(POINTS=tempP.VERTICES)
-  pPMCV = P.POLYTOPE_MAXIMAL_COVECTORS
-  Polymake.Shell.CV = pPMCV
-  Polymake.shell_execute(raw"""$tmp = $CV->size;""")
-  l = Polymake.Shell.tmp
-  return l == 1
+  return length(P.POLYTOPE_MAXIMAL_COVECTORS) == 1
 end

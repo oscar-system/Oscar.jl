@@ -20,19 +20,19 @@ end
 
 @testset "testing for polytropes" begin
   A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
-  @test is_polytrope(A) == true
+  @test do_rows_form_polytrope(A) == true
   B = tropical_semiring()[0 1 0; 0 0 1; 1 0 0]
-  @test is_polytrope(B) == false
+  @test do_rows_form_polytrope(B) == false
   C = tropical_semiring()[0 0 1; 0 1 0; 0 3 3; 0 2 3; 0 3 2; 0 0 0]
-  @test is_polytrope(C) == true
+  @test do_rows_form_polytrope(C) == true
   D = tropical_semiring()[0 1 0; 0 0 1; 2 1 0]
-  @test is_polytrope(D) == false
+  @test do_rows_form_polytrope(D) == false
   E = tropical_semiring()[0 1 0; 0 0 0; 0 -1 0]
-  @test is_polytrope(E) == true
+  @test do_rows_form_polytrope(E) == true
   F = tropical_semiring()[0 3 1 4 ;0 -1 -1 3; 0 1 -5 1 ; 0 2 -2 0]
-  @test is_polytrope(F) == true
+  @test do_rows_form_polytrope(F) == true
   G = tropical_semiring()[0 3 1 4; 0 -1 -1 3; 0 1 -5 1; 0 2 -2 0; 0 0 -3 2]
-  @test is_polytrope(G) == true
+  @test do_rows_form_polytrope(G) == true
   H = tropical_semiring()[0 0 0 0 0; 0 1 2 3 4; 0 2 4 6 8; 0 4 8 12 16; 0 5 10 15 20]
-  @test is_polytrope(H) == false
+  @test do_rows_form_polytrope(H) == false
   end
