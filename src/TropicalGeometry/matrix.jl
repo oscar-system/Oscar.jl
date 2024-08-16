@@ -108,12 +108,7 @@ function is_polytrope(A::MatrixElem{<:TropicalSemiringElem})
   #=Compute the tropical convex hull again, this time with 
   the minimal generating set of vertices of tropical polytope=#
   P = Polymake.tropical.Polytope{convention(A)}(POINTS=tempP.VERTICES)
-  PMCV = P.POLYTOPE_MAXIMAL_COVECTORS
-  Polymake.Shell.CV = PMCV
-  #Get the length out of the polymake shell
-  Polymake.shell_execute(raw"""$tmp = $CV->size;""")
-  l = Polymake.Shell.tmp
-  return l == 1
+  return length(P.POLYTOPE_MAXIMAL_COVECTORS) == 1
 end
 
 @doc raw"""
