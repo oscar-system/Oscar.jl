@@ -68,7 +68,9 @@ function vanishing_ideal(pm::PhylogeneticModel; F::Field=QQ, algorithm::Symbol=:
       S = domain(parametrization)
       R = codomain(parametrization)
 
-      elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat([string(x) for x in gens(R)], [string(x) for x in gens(S)]))
+      #elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat([string(x) for x in gens(R)], [string(x) for x in gens(S)]))
+      elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat(R.S, S.S))
+
       inject_R = hom(R, elim_ring, elim_gens[1:ngens(R)])
       inject_S = hom(S, elim_ring, elim_gens[ngens(R)+1:ngens(elim_ring)])
 
