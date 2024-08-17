@@ -116,6 +116,7 @@ export default defineConfig({
                 { text: 'Sparse linear algebra', link: 'manual/misc/sparse'},
                 { text: 'Conjugacy of integer matrices', link: 'manual/misc/conjugacy'},
                 { text: 'Multisets', link: 'manual/misc/mset'},
+                { text: 'Pseudo-matrices', link: 'manual/misc/pmat'},
               ]
             },
             {
