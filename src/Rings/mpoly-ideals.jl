@@ -2116,10 +2116,7 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
   end
   h = hom(base_ring(I), ring, coeffmap, gens(ring))
   converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
-  ideal(IdealGens(ring, converted_generators, o;
-                   keep_ordering=true,
-                   isReduced=true,
-                   isGB=true))
+  ideal(IdealGens(ring, converted_generators, o))
 end
 
 ################################################################################
