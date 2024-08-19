@@ -98,7 +98,7 @@ The allowed values for `as` are
 function objective_function(lp::LinearProgram{T}; as::Symbol=:pair) where {T<:scalar_types}
   if as == :pair
     cf = coefficient_field(lp)
-    return T[cf(x) for x in dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)],
+    return T[cf(x) for x in lp.polymake_lp.LINEAR_OBJECTIVE[2:end]],
     cf.(lp.polymake_lp.LINEAR_OBJECTIVE[1])
   elseif as == :function
     (c, k) = objective_function(lp; as=:pair)
