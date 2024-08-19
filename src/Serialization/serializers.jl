@@ -53,6 +53,11 @@ end
 
 function end_dict_node(s::SerializerState)
   write(s.io, "}")
+
+  if s.new_level_entry
+    # makes sure that entries after empty dicts add comma
+    s.new_level_entry = false
+  end
 end
 
 function begin_array_node(s::SerializerState)

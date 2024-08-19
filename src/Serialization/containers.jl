@@ -239,7 +239,7 @@ end
 function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
   load_node(s) do entries
     if isempty(entries)
-      return zero_matrix(parent_type(params)(), 0, 0)
+      return Matrix{params}(undef, 0, 0)
     end
     len = length(entries)
     m = reduce(vcat, [
@@ -252,7 +252,7 @@ end
 function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
   load_node(s) do entries
     if isempty(entries)
-      return params[1][]
+      return Matrix{params[1]}(undef, 0, 0)
     end
 
     len = length(entries)
