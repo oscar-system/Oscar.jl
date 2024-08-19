@@ -54,7 +54,7 @@ function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector{<:Union{QQ
     ###
     coeffs = collect(coefficients(f))
     expvs = collect(exponents(f))
-    tropTermsEvaluated = [nu(c)*dot(w,alpha) for (c,alpha) in zip(coeffs,expvs)]
+    tropTermsEvaluated = [nu(c)*tropical_semiring(nu)(dot(w,alpha)) for (c,alpha) in zip(coeffs,expvs)]
     tropPolyEvaluated = sum(tropTermsEvaluated)
     termsAttainingValue = findall(isequal(tropPolyEvaluated),tropTermsEvaluated)
     coeffs = coeffs[termsAttainingValue]
