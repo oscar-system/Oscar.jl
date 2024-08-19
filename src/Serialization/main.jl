@@ -368,6 +368,49 @@ macro register_serialization_type(ex::Any, args...)
   return register_serialization_type(ex, str, uses_id, uses_params)
 end
 
+
+################################################################################
+# Utility macro
+"""
+    Oscar.@import_all_serialization_functions
+
+This macro imports all serialization related functions that one may need for implementing
+serialization for custom types from Oscar into the current module.
+One can instead import the functions individually if needed but this macro is provided
+for convenience.
+"""
+macro import_all_serialization_functions()
+  return quote
+    import Oscar:
+      load_object,
+      load_type_params,
+      save_object,
+      save_type_params
+
+    using Oscar:
+      @register_serialization_type,
+      DeserializerState,
+      SerializerState,
+      encode_type,
+      haskey,
+      load_array_node,
+      load_node,
+      load_params_node,
+      load_ref,
+      load_typed_object,
+      save_as_ref,
+      save_data_array,
+      save_data_basic,
+      save_data_dict,
+      save_data_json,
+      save_typed_object,
+      serialize_with_id,
+      serialize_with_params,
+      set_key
+  end
+end
+
+
 ################################################################################
 # Include serialization implementations for various types
 
