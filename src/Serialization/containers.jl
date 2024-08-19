@@ -3,7 +3,7 @@
 
 @register_serialization_type Vector uses_params
 
-const MatVecType{T} = Union{Matrix{T}, Vector{T}}
+const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 
 function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
   save_data_dict(s) do
@@ -532,4 +532,32 @@ function load_object(s::DeserializerState, ::Type{<: Set}, params::Ring)
     end
   end
   return Set{T}(loaded_entries)
+end
+
+################################################################################
+# Sparse rows
+
+@register_serialization_type SRow uses_params
+
+function save_object(s::SerializerState, obj::SRow)
+  save_data_array(s) do
+    for (i, v) in collect(obj)
+      save_object(s, (i, v))
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:SRow}, params::Ring)
+  pos = Int[]
+  entry_type = elem_type(params)
+  values = entry_type[]
+  load_array_node(s) do _
+    push!(pos, load_object(s, Int, 1))
+    if serialize_with_params(entry_type)
+      push!(values, load_object(s, entry_type, params, 2))
+    else
+      push!(values, load_object(s, entry_type, 2))
+    end
+  end
+  return sparse_row(params, pos, values)
 end
