@@ -35,7 +35,7 @@ mutable struct SerializerState
 end
 
 function attrs_list(s::SerializerState, T::Type)
-  return get(s.type_attr_map, T, nothing)
+  return get(s.type_attr_map, T, Dict{Type, Vector{Symbol}}())
 end
 
 function begin_node(s::SerializerState)

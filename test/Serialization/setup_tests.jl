@@ -7,7 +7,7 @@ using JSONSchema, Oscar.JSON
 if !isdefined(Main, :test_save_load_roundtrip)
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
 
-  function test_save_load_roundtrip(func, path, original::T; params=nothing, with_attrs=false) where {T}
+  function test_save_load_roundtrip(func, path, original::T; params=nothing, with_attrs::Bool=false) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
     save(filename, original)
