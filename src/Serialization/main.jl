@@ -335,7 +335,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       # ambiguities in their encodings.
 
       # add list of possible attributes to save for a given type to a global dict
-      register_attr_list($ex, $attrs)
+      Oscar.register_attr_list($ex, $attrs)
       
       serialize_with_id(obj::T) where T <: $ex = $uses_id
       serialize_with_id(T::Type{<:$ex}) = $uses_id
