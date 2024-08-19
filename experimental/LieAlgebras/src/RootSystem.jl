@@ -51,7 +51,7 @@ function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Boo
   R = RootSystem(cartan_matrix)
   detect_type &&
     is_finite(weyl_group(R)) &&
-    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+    set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix)...)
   return R
 end
 
@@ -75,14 +75,14 @@ Root system defined by Cartan matrix
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, [(fam, rk)])
+  set_root_system_type!(R, [(fam, rk)])
   return R
 end
 
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, type)
+  set_root_system_type!(R, type)
   return R
 end
 
@@ -324,11 +324,11 @@ function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
 end
 
-function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
-  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type!(R, type, 1:sum(t[2] for t in type; init=0))
 end
 
-function set_root_system_type(
+function set_root_system_type!(
   R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
 )
   R.type = type
