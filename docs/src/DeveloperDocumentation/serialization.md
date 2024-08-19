@@ -283,6 +283,16 @@ of a `FieldElem` will use the `save_type_params` / `load_type_params` from
 `RingElem` since in both cases the only parameter needed for such types
 is their parent.
 
+### Import helper
+
+When implementing the serialization of a new type in a module that is not
+`Oscar` (e.g. in a submodule of `Oscar`) it is necessary to import the
+a lot of helper functions (see the examples above).
+To ease this process, the `@import_all_serialization_functions` macro can be used.
+```@docs
+Oscar.@import_all_serialization_functions
+```
+
 ### Serializers
 
 The code for the different types of serializers and their states is found in the

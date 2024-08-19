@@ -38,6 +38,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     save(filename, original)
     Oscar.reset_global_serializer_state()
     loaded = load(filename; params=params, with_attrs=with_attrs)
+    @test loaded isa T
 
     # test schema
     jsondict = JSON.parsefile(filename)
