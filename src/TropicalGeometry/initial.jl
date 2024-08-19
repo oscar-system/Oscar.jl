@@ -5,7 +5,7 @@
 ################################################################################
 
 @doc raw"""
-    initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector; perturbation::Vector=[])
+    initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector)
 
 Return the initial form of `f` with respect to the tropical semiring map `nu` and weight vector `w`.
 
@@ -46,8 +46,7 @@ x + y + 1
 
 ```
 """
-function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}; perturbation::Union{Nothing,AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}}=nothing)
-
+function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
     ###
     # Evaluate the tropicalization of f and all its terms at w,
     # mark the terms which attain the evaluated value
@@ -59,15 +58,6 @@ function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::AbstractVector{<:
     termsAttainingValue = findall(isequal(tropPolyEvaluated),tropTermsEvaluated)
     coeffs = coeffs[termsAttainingValue]
     expvs = expvs[termsAttainingValue]
-
-    # if perturbation passed, further filter the marked terms
-    if !isnothing(perturbation)
-        tropTermsEvaluated = [tropical_semiring(nu)(dot(w,alpha)) for (c,alpha) in zip(coeffs,expvs)]
-        tropPolyEvaluated = sum(tropTermsEvaluated)
-        termsAttainingValue = findall(isequal(tropPolyEvaluated),tropTermsEvaluated)
-        coeffs = coeffs[termsAttainingValue]
-        expvs = expvs[termsAttainingValue]
-    end
 
     ###
     # Construct the initial form
