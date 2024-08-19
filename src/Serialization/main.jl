@@ -248,7 +248,7 @@ end
 
 function load_attrs(s::DeserializerState, obj::T) where T
   for attr in attrs_list(s, T)
-    haskey(s, attr) && set_attribute(obj, load_typed_object(s, attr))
+    haskey(s, attr) && set_attribute!(obj, load_typed_object(s, attr))
   end
 end
 
@@ -355,7 +355,7 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
 end
 
 """
-    @register_serialization_type NewType "String Representation of type" uses_id uses_params
+    @register_serialization_type NewType "String Representation of type" uses_id uses_params [:attr1, :attr2]
 
 `@register_serialization_type` is a macro to ensure that the string we generate
 matches exactly the expression passed as first argument, and does not change
@@ -373,8 +373,7 @@ description which will make the serialization more efficient see the discussion 
 `save_type_params` / `load_type_params` below.
 
 Passing a vector of symbols that correspond to attributes of type
-indicates which attributes will be serialized when using save with `with_attrs=true`
-see [`save`](@ref).
+indicates which attributes will be serialized when using save with `with_attrs=true`.
 
 """
 macro register_serialization_type(ex::Any, args...)
@@ -431,7 +430,7 @@ Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
 save it's attributes along with all the attributes of the types used in the object's struct.
 The attributes that will be saved are defined during type registration see
-[`@register_serialization_type`]
+[`@register_serialization_type`](@ref)
 
 See [`load`](@ref).
 
