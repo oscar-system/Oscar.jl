@@ -361,15 +361,21 @@ end
 matches exactly the expression passed as first argument, and does not change
 in unexpected ways when import/export statements are adjusted.
 
-The last three arguments are optional and can arise in any order.
 Passing a string argument will override how the type is stored as a string.
-The last two are boolean flags. When setting `uses_id` the object will be
- stored as a reference and will be referred to throughout the serialization
-sessions using a `UUID`. This should typically only be used for types that
- do not have a fixed normal form for example `PolyRing` and `MPolyRing`.
+
+When setting `uses_id` the object will be stored as a reference and
+will be referred to throughout the serialization sessions using a `UUID`.
+This should typically only be used for types that do not have a fixed
+normal form for example `PolyRing` and `MPolyRing`.
+
 Using the `uses_params` flag will serialize the object with a more structured type
 description which will make the serialization more efficient see the discussion on
 `save_type_params` / `load_type_params` below.
+
+Passing a vector of symbols that correspond to attributes of type
+indicates which attributes will be serialized when using save with `with_attrs=true`
+see [`save`](@ref).
+
 """
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
@@ -418,11 +424,14 @@ include("Upgrades/main.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing)
-    save(filename::String, obj::Any, metadata::MetaData=nothing)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=false)
+    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=false)
 
 Save an object `obj` to the given io stream
-respectively to the file `filename`.
+respectively to the file `filename`. When used with `with_attrs=true` then the object will
+save it's attributes along with all the attributes of the types used in the object's struct.
+The attributes that will be saved are defined during type registration see
+[`@register_serialization_type`]
 
 See [`load`](@ref).
 
@@ -501,8 +510,8 @@ function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=not
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing)
-    load(filename::String; params::Any = nothing, type::Any = nothing)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=false)
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=false)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
@@ -515,6 +524,9 @@ results in setting its parent, or in the case of a container of ring types such 
 
 If a type `T` is given then attempt to load the root object of the data
 being loaded with this type; if this fails, an error is thrown.
+
+If `with_attrs=true` the object will be loaded with attributes available from
+the file (or serialized data).
 
 See [`save`](@ref).
 
