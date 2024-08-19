@@ -141,19 +141,12 @@ end
 has_root_system(L::AbstractLieAlgebra) = isdefined(L, :root_system)
 
 function root_system(L::AbstractLieAlgebra)
-  @req has_root_system(L) "No root system known."
+  @req has_root_system(L) "no root system known."
   return L.root_system
 end
 
-@doc raw"""
-    chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
-
-Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
-then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
-to the order of the roots in the root system.
-"""
 function chevalley_basis(L::AbstractLieAlgebra)
-  @req has_root_system(L) "No root system known."
+  @req has_root_system(L) "no root system known."
   # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
 
   npos = n_positive_roots(root_system(L))

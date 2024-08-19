@@ -158,9 +158,7 @@ end
 #
 ###############################################################################
 
-has_root_system(D::DirectSumLieAlgebra) = false
-
-# The following, real, implementation needs direct sums of root systems, which
+# The following implementation needs direct sums of root systems, which
 # is not yet implemented.
 # has_root_system(D::DirectSumLieAlgebra) = all(has_root_system, D.summands)
 

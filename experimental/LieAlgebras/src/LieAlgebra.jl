@@ -443,7 +443,38 @@ end
 #
 ###############################################################################
 
+@doc raw"""
+    has_root_system(L::LieAlgebra) -> Bool
+
+Return whether a root system for `L` is known.
+
+This function should be implemented by subtypes that support root systems.
+"""
 has_root_system(L::LieAlgebra) = false # to be implemented by subtypes
+
+@doc raw"""
+    root_system(L::LieAlgebra) -> RootSystem
+
+Return the root system of `L`.
+
+This function should be implemented by subtypes that support root systems.
+"""
+function root_system(L::LieAlgebra)
+  @req has_root_system(L) "root system of `L` not known."
+  throw(Hecke.NotImplemented())
+end
+
+@doc raw"""
+    chevalley_basis(L::LieAlgebra) -> NTuple{3,Vector{elem_type(L)}}
+
+Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
+then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
+to the order of the roots in [`root_system(::LieAlgebra)`](@ref).
+"""
+function chevalley_basis(L::LieAlgebra)
+  @req has_root_system(L) "root system of `L` not known."
+  throw(Hecke.NotImplemented())
+end
 
 ###############################################################################
 #
