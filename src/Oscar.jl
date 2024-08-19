@@ -177,7 +177,7 @@ function __init__()
   add_verbosity_scope(:ZZLatWithIsom)
   
   add_assertion_scope(:Vinberg)
-  add_verbose_scope(:Vinberg)
+  add_verbosity_scope(:Vinberg)
 
   add_assertion_scope(:IdealSheaves)
 

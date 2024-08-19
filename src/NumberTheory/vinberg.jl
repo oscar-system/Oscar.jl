@@ -1,4 +1,6 @@
-export vinberg_algorithm
+###################################################################
+# Vinberg's algorithm
+###################################################################
 
 @doc raw"""
     _check_v0(Q::ZZMatrix, v0::ZZMatrix) -> ZZMatrix
@@ -29,7 +31,7 @@ function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
 end
 
 @doc raw"""
-  _all_root_lengths(Q::ZZMatrix) -> Vector{ZZRingElem}
+    _all_root_lengths(Q::ZZMatrix) -> Vector{ZZRingElem}
 
 If the user does not want any specific root lengths, we take all of them.
 
@@ -47,7 +49,7 @@ function _all_root_lengths(Q::ZZMatrix)
 end
 
 @doc raw"""
-  _check_root_lengths(Q::ZZMatrix, root_lengths::Vector{ZZRingElem}) -> Vector{ZZRingElem}
+    _check_root_lengths(Q::ZZMatrix, root_lengths::Vector{ZZRingElem}) -> Vector{ZZRingElem}
 
 Check whether the given lengths are possible root lengths.
 Unnecessary roots are sorted out and reported if this is wanted.
@@ -249,7 +251,7 @@ function _check_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vector
 end
 
 @doc raw"""
-   vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
+    vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
 Return the roots r of a given hyperbolic reflection lattice Q with squared length contained in root_lengths and 
 by increasing order of the value ((r.v0)^2)//(r^2), stopping by upper_bound.

@@ -1524,6 +1524,7 @@ export vertexindices
 export vertical_connectivity
 export vertices
 export vertices_and_rays
+export vinberg_algorithm
 export visualize
 export volume
 export volume_form
