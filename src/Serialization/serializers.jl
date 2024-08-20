@@ -31,11 +31,11 @@ mutable struct SerializerState
   refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
-  type_attr_map::Function
+  type_attr_map::Dict{String, Vector{Symbol}}
 end
 
 function attrs_list(s::SerializerState, T::Type)
-  return get(s.type_attr_map, T, Dict{Type, Vector{Symbol}}())
+  return get(s.type_attr_map, T, Symbol[])
 end
 
 function begin_node(s::SerializerState)
@@ -147,7 +147,7 @@ mutable struct DeserializerState
   obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
-  type_attr_map::Function
+  type_attr_map::Dict{String, Vector{Symbol}}
 end
 
 # general loading of a reference
@@ -221,15 +221,7 @@ state(s::OscarSerializer) = s.state
 function serializer_open(
   io::IO,
   T::Type{<: OscarSerializer},
-  type_attr_dict::S) where S <: Union{Dict{Type, Vector{Symbol}}, Nothing}
-
-  function type_attr_mar(U::Type)
-    error("Attributes list for $U has not been set")
-  end
-
-  for (k, v) in type_attr_map
-    type_attr_map(::Type{<:k}) = v
-  end
+  type_attr_map::S) where S <: Union{Dict{Type, Vector{Symbol}}, Nothing}
   
   # some level of handling should be done here at a later date
   return T(SerializerState(true, UUID[], io, nothing, type_attr_map))
@@ -238,7 +230,7 @@ end
 function deserializer_open(
   io::IO,
   T::Type{JSONSerializer},
-  type_attr_dict::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
+  type_attr_map::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
 
   obj = JSON3.read(io)
   refs = nothing
@@ -246,14 +238,6 @@ function deserializer_open(
     refs = obj[refs_key]
   end
   
-  function type_attr_mar(U::Type)
-    error("Attributes list for $U has not been set")
-  end
-
-  for (k, v) in type_attr_dict
-    type_attr_map(::Type{<:k}) = v
-  end
-
   return T(DeserializerState(obj, nothing, refs, type_attr_map))
 end
 

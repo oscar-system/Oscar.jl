@@ -69,7 +69,7 @@ end
 
 ################################################################################
 # Type attribute map
-const type_attr_map = Dict{Type, Vector{Symbol}}()
+const type_attr_map = Dict{String, Vector{Symbol}}()
 
 ################################################################################
 # (De|En)coding types
@@ -302,7 +302,7 @@ end
 function register_attr_list(@nospecialize(T::Type),
                             attrs::Union{Vector{Symbol}, Nothing})
   if !isnothing(attrs)
-    Oscar.type_attr_map[T] = attrs
+    Oscar.type_attr_map[encode_type(T)] = attrs
   end
 end
 
@@ -506,7 +506,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
   
   s = state(serializer_open(io, serializer_type,
-                            with_attrs ? type_attr_map : Dict{Type, Vector{Symbol}}()))
+                            with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
   save_data_dict(s) do
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -616,7 +616,7 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer, with_attrs::Bool=false)
   s = state(deserializer_open(io, serializer_type,
-                              with_attrs ? type_attr_map : Dict{Type, Vector{Symbol}}()))
+                              with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))

@@ -43,6 +43,8 @@ if !isdefined(Main, :test_save_load_roundtrip)
     # test schema
     jsondict = JSON.parsefile(filename)
     @test validate(mrdi_schema, jsondict) == nothing
+
+    return loaded
   end
 
 end

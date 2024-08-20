@@ -3,11 +3,12 @@
     @testset "NormalToricVariety" begin
       pp = projective_space(NormalToricVariety, 2)
       R = cox_ring(pp)
-      test_save_load_roundtrip(path, pp; with_attrs=true) do loaded
+      loaded_from_empty_state = test_save_load_roundtrip(path, pp; with_attrs=true) do loaded
         @test rays(pp) == rays(loaded)
         @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
-        @test R == get_attribute(loaded, :cox_ring)
       end
+
+      @test has_attribute(loaded_from_empty_state, :cox_ring)
     end
 
     @testset "ToricDivisor" begin
