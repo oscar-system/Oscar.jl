@@ -719,9 +719,9 @@
       @test dim == 393513120
     end
 
-    let L = lie_algebra(QQ, :B, 7)
+    let R = root_system(:B, 7)
       dim = @inferred dim_of_simple_module(
-        ZZRingElem, L, [7, 2, 5, 1, 0, 2, 6]
+        ZZRingElem, R, [7, 2, 5, 1, 0, 2, 6]
       )
       @test dim isa ZZRingElem
       @test dim == 307689492858882008424585750

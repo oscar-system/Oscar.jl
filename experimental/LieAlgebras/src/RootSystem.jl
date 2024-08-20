@@ -883,6 +883,10 @@ function is_dominant(w::WeightLatticeElem)
   return all(>=(0), coefficients(w))
 end
 
+function is_integral(w::WeightLatticeElem)
+  return all(is_integer, coefficients(w))
+end
+
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
     
@@ -906,6 +910,9 @@ function root_system(w::WeightLatticeElem)
   return w.root_system
 end
 
+###############################################################################
+# more functions
+
 function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
 
@@ -918,6 +925,49 @@ end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
   return dot(r, w)
+end
+
+@doc raw"""
+    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem -> T
+    dim_of_simple_module([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> T
+
+Compute the dimension of the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw` using Weyl's dimension formula.
+The return value is of type `T`.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 2);
+
+julia> dim_of_simple_module(R, [1, 0])
+5
+```
+"""
+function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  @req is_integral(hw) "not an integral weight"
+  rho = weyl_vector(R)
+  hw_rho = hw + rho
+  num = one(ZZ)
+  den = one(ZZ)
+  for alpha in positive_roots(R)
+    num *= ZZ(dot(hw_rho, alpha))
+    den *= ZZ(dot(rho, alpha))
+  end
+  return T(div(num, den))
+end
+
+function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
+end
+
+function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, R, hw)
+end
+
+function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, R, hw)
 end
 
 ###############################################################################

@@ -1429,7 +1429,8 @@ end
 @doc raw"""
     dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
 
-Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
+Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
+ using Weyl's dimension formula.
 The return value is of type `T`.
 
 # Example
@@ -1441,19 +1442,11 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 ```
 """
 function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  @req is_dominant_weight(hw) "Not a dominant weight."
   if has_root_system(L)
     R = root_system(L)
-    rho = weyl_vector(R)
-    hw_rho = WeightLatticeElem(R, hw) + rho
-    num = one(ZZ)
-    den = one(ZZ)
-    for alpha in positive_roots(R)
-      num *= ZZ(dot(hw_rho, alpha))
-      den *= ZZ(dot(rho, alpha))
-    end
-    return T(div(num, den))
+    return dim_of_simple_module(T, R, hw)
   else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
     return T(
       GAPWrap.DimensionOfHighestWeightModule(
         codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
