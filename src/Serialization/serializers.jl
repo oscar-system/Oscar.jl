@@ -248,8 +248,9 @@ function deserializer_open(
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
   return T(DeserializerState(obj, nothing, nothing, type_attr_map))
 end
+state_types = Union{SerializerState, DeserializerState}
 
-function attrs_list(s::Union{SerializerState, DeserializerState}, T::Type)
+function attrs_list(s::U, T::Type) where U <: state_types
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
 
