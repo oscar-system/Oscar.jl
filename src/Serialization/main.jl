@@ -252,7 +252,7 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  load_node(s, :attrs) do _
+  haskey(s, :attrs) && load_node(s, :attrs) do _
     for attr in attrs_list(s, T)
       haskey(s, attr) && set_attribute!(obj, attr, load_typed_object(s, attr))
     end
