@@ -107,6 +107,10 @@ function exterior_shift(F::Field, K::SimplicialComplex;
 
     if is_generic
       Oscar.ModStdQt.ref_ff_rc!(A)
+    elseif matrix_base isa MPolyQuoRing
+      A_lift = lift.(A)
+      A = matrix_base.(Oscar.ModStdQt.ref_ff_rc!(A_lift))
+      simplify!.(A)
     else
       rref!(A)
     end
