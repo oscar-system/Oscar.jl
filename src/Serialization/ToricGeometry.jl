@@ -8,7 +8,7 @@
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
   attrs = attrs_list(s, T)
 
-  if !isnothing(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
+  if !isempty(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
     save_data_dict(s) do
       save_attrs(s, ntv)
       save_object(s, ntv.polymakeNTV, :pm_data)
