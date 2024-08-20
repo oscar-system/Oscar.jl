@@ -35,7 +35,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     func(loaded)
 
     # test loading on a empty state
-    save(filename, original)
+    save(filename, original; with_attrs=with_attrs)
     Oscar.reset_global_serializer_state()
     loaded = load(filename; params=params, with_attrs=with_attrs)
     @test loaded isa T
