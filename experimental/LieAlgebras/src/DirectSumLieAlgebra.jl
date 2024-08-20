@@ -121,7 +121,7 @@ end
 #
 ###############################################################################
 
-function is_abelian(L::DirectSumLieAlgebra)
+@attr function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
 end
 
