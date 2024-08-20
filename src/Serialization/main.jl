@@ -710,7 +710,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; params::Any = nothing,
-              type::Any = nothing, with_attrs::Bool=false)
+              type::Any = nothing, with_attrs::Bool=true)
   open(filename) do file
     return load(file; params=params, type=type)
   end
