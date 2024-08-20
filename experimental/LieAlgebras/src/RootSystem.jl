@@ -127,6 +127,10 @@ function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
 end
 
+@attr Vector{ZZRingElem} function cartan_symmetrizer(R::RootSystem)
+  return cartan_symmetrizer(cartan_matrix(R); check=false)
+end
+
 @doc raw"""
     coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -912,8 +916,9 @@ end
 function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
 
+  symmetrizer = cartan_symmetrizer(root_system(r))
   return sum(
-    r[i] * cartan_symmetrizer(cartan_matrix(root_system(r)); check=false)[i] * w[i] for
+    r[i] * symmetrizer[i] * w[i] for
     i in 1:rank(root_system(r));
     init=zero(QQ),
   )
