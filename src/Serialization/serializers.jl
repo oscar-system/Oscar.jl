@@ -35,7 +35,7 @@ mutable struct SerializerState
 end
 
 function attrs_list(s::SerializerState, T::Type)
-  return get(s.type_attr_map, T, Symbol[])
+  return get(s.type_attr_map, encode_type(T), Symbol[])
 end
 
 function begin_node(s::SerializerState)
@@ -221,7 +221,7 @@ state(s::OscarSerializer) = s.state
 function serializer_open(
   io::IO,
   T::Type{<: OscarSerializer},
-  type_attr_map::S) where S <: Union{Dict{Type, Vector{Symbol}}, Nothing}
+  type_attr_map::S) where S <: Union{Dict{String, Vector{Symbol}}, Nothing}
   
   # some level of handling should be done here at a later date
   return T(SerializerState(true, UUID[], io, nothing, type_attr_map))
@@ -230,7 +230,7 @@ end
 function deserializer_open(
   io::IO,
   T::Type{JSONSerializer},
-  type_attr_map::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
+  type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
 
   obj = JSON3.read(io)
   refs = nothing
@@ -244,7 +244,7 @@ end
 function deserializer_open(
   io::IO,
   T::Type{IPCSerializer},
-  type_attr_map::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
+  type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
   # @everywhere using Oscar
   # to hang. So we use a Dict here for now.
