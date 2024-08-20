@@ -561,8 +561,8 @@ function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=not
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=false)
-    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=false)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
