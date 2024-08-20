@@ -883,10 +883,6 @@ function is_dominant(w::WeightLatticeElem)
   return all(>=(0), coefficients(w))
 end
 
-function is_integral(w::WeightLatticeElem)
-  return all(is_integer, coefficients(w))
-end
-
 @doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
     
@@ -946,7 +942,6 @@ julia> dim_of_simple_module(R, [1, 0])
 function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
-  @req is_integral(hw) "not an integral weight"
   rho = weyl_vector(R)
   hw_rho = hw + rho
   num = one(ZZ)
