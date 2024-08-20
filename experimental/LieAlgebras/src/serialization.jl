@@ -4,13 +4,18 @@
 #
 ###############################################################################
 
-@register_serialization_type AbstractLieAlgebra uses_id
+const lie_algebra_serialization_attributes = [
+  :is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable
+]
+
+@register_serialization_type AbstractLieAlgebra uses_id lie_algebra_serialization_attributes
 
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
   save_data_dict(s) do
     save_typed_object(s, coefficient_ring(L), :base_ring)
     save_object(s, _struct_consts(L), :struct_consts)
     save_object(s, symbols(L), :symbols)
+    save_root_system_data(s, L)
     save_attrs(s, L)
   end
 end
@@ -20,11 +25,15 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra})
   struct_consts = load_object(s, Matrix, (sparse_row_type(R), R), :struct_consts)
   symbs = load_object(s, Vector, Symbol, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  load_attrs!(s, L)
+  load_root_system_data(s, L)
+  load_attrs(s, L)
   return L
 end
 
-@register_serialization_type LinearLieAlgebra uses_id
+@register_serialization_type LinearLieAlgebra uses_id [
+  lie_algebra_serialization_attributes;
+  [:type, :form]
+]
 
 function save_object(s::SerializerState, L::LinearLieAlgebra)
   save_data_dict(s) do
@@ -32,6 +41,7 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
     save_object(s, L.n, :n)
     save_object(s, matrix_repr_basis(L), :basis)
     save_object(s, symbols(L), :symbols)
+    save_root_system_data(s, L)
     save_attrs(s, L)
   end
 end
@@ -42,11 +52,12 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra})
   basis = load_object(s, Vector, (dense_matrix_type(R), matrix_space(R, n, n)), :basis)
   symbs = load_object(s, Vector, Symbol, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  load_attrs!(s, L)
+  load_root_system_data(s, L)
+  load_attrs(s, L)
   return L
 end
 
-@register_serialization_type DirectSumLieAlgebra uses_id
+@register_serialization_type DirectSumLieAlgebra uses_id lie_algebra_serialization_attributes
 
 function save_object(s::SerializerState, L::DirectSumLieAlgebra)
   save_data_dict(s) do
@@ -57,6 +68,7 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
         save_object(s, ref)
       end
     end
+    save_root_system_data(s, L)
     save_attrs(s, L)
   end
 end
@@ -70,49 +82,26 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra})
   )
 
   L = direct_sum(R, summands)
-  load_attrs!(s, L)
+  load_root_system_data(s, L)
+  load_attrs(s, L)
   return L
 end
 
-function save_attrs(s::SerializerState, L::LieAlgebra)
-  save_data_dict(s, :attrs) do
-    for bool_prop in (:is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable)
-      if has_attribute(L, bool_prop)
-        save_object(s, get_attribute(L, bool_prop), bool_prop)
-      end
-    end
-    for symbol_prop in (:type,)
-      if has_attribute(L, symbol_prop)
-        save_object(s, get_attribute(L, symbol_prop), symbol_prop)
-      end
-    end
-    if has_root_system(L)
-      save_typed_object(s, root_system(L), :root_system)
-      save_object(s, chevalley_basis(L), :chevalley_basis)
-    end
+function save_root_system_data(s::SerializerState, L::LieAlgebra)
+  if has_root_system(L)
+    save_typed_object(s, root_system(L), :root_system)
+    save_object(s, chevalley_basis(L), :chevalley_basis)
   end
 end
 
-function load_attrs!(s::DeserializerState, L::LieAlgebra)
-  load_node(s, :attrs) do _
-    for bool_prop in (:is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable)
-      if haskey(s, bool_prop)
-        set_attribute!(L, bool_prop, load_object(s, Bool, bool_prop))
-      end
-    end
-    for symbol_prop in (:type,)
-      if haskey(s, symbol_prop)
-        set_attribute!(L, symbol_prop, load_object(s, Symbol, symbol_prop))
-      end
-    end
-    if haskey(s, :root_system)
-      @assert L isa AbstractLieAlgebra # TODO: adapt once we have a proper interface for this
-      L.root_system = load_typed_object(s, :root_system)
-      chevalley_basis = load_object(
-        s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
-      )
-      # chevalley basis will become an attribute in the near future
-    end
+function load_root_system_data(s::DeserializerState, L::LieAlgebra)
+  if haskey(s, :root_system)
+    @assert L isa AbstractLieAlgebra # TODO: adapt once we have a proper interface for this
+    L.root_system = load_typed_object(s, :root_system)
+    chevalley_basis = load_object(
+      s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
+    )
+    # chevalley basis will become an attribute in the near future
   end
 end
 

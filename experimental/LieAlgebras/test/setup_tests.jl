@@ -123,7 +123,7 @@ if !isdefined(Main, :lie_algebra_conformance_test)
 
     @testset "Serialization" begin
       mktempdir() do path
-        test_save_load_roundtrip(path, L) do loaded
+        test_save_load_roundtrip(path, L; with_attrs=true) do loaded
           # nothing, cause `L === loaded` anyway
         end
 
