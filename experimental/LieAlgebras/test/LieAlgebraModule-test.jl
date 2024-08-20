@@ -718,9 +718,9 @@
     end
 
     let L = lie_algebra(QQ, :B, 7)
-      @test_skip (@inferred dim_of_simple_module(
+      @test (@inferred dim_of_simple_module(
         ZZRingElem, L, [7, 2, 5, 1, 0, 2, 6]
-      )) == ZZ(307689492858882008424585750) # re-enable this once this is computed without GAP
+      )) == ZZ(307689492858882008424585750)
     end
 
     let L = lie_algebra(QQ, :C, 3)
