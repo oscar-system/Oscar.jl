@@ -34,7 +34,7 @@ mutable struct SerializerState
   type_attr_map::Dict{String, Vector{Symbol}}
 end
 
-function attrs_list(s::SerializerState, T::Type)
+function attrs_list(s::Union{SerializerState, DeserializerState}, T::Type)
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
 

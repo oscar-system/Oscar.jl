@@ -194,8 +194,10 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
 end
 
 function save_attrs(s::SerializerState, obj::T) where T
-  for attr in attrs_list(s, T)
-    has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+  save_data_dict(s, :attrs) do
+    for attr in attrs_list(s, T)
+      has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+    end
   end
 end
 
@@ -250,8 +252,10 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  for attr in attrs_list(s, T)
-    haskey(s, attr) && set_attribute!(obj, load_typed_object(s, attr))
+  load_node(s, :attrs) do _
+    for attr in attrs_list(s, T)
+      haskey(s, attr) && set_attribute!(obj, attr, load_typed_object(s, attr))
+    end
   end
 end
 
@@ -614,7 +618,7 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer_type=JSONSerializer, with_attrs::Bool=false)
+              serializer_type=JSONSerializer, with_attrs::Bool=true)
   s = state(deserializer_open(io, serializer_type,
                               with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
   if haskey(s.obj, :id)

@@ -10,26 +10,26 @@ if !isdefined(Main, :test_save_load_roundtrip)
   function test_save_load_roundtrip(func, path, original::T; params=nothing, with_attrs::Bool=false) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
-    save(filename, original)
-    loaded = load(filename; params=params, with_attrs=with_attrs)
+    save(filename, original; with_attrs=with_attrs)
+    loaded = load(filename; params=params)
     
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer
     io = IOBuffer()
-    save(io, original)
+    save(io, original; with_attrs=with_attrs)
     seekstart(io)
-    loaded = load(io; params=params, with_attrs=with_attrs)
+    loaded = load(io; params=params)
 
     @test loaded isa T
     func(loaded)
 
     # save and load from an IO buffer, with prescribed type
     io = IOBuffer()
-    save(io, original)
+    save(io, original; with_attrs=with_attrs)
     seekstart(io)
-    loaded = load(io; type=T, params=params, with_attrs=with_attrs)
+    loaded = load(io; type=T, params=params)
 
     @test loaded isa T
     func(loaded)
@@ -37,7 +37,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     # test loading on a empty state
     save(filename, original; with_attrs=with_attrs)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params, with_attrs=with_attrs)
+    loaded = load(filename; params=params)
     @test loaded isa T
 
     # test schema
@@ -46,5 +46,4 @@ if !isdefined(Main, :test_save_load_roundtrip)
 
     return loaded
   end
-
 end
