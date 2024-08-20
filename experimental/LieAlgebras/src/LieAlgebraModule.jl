@@ -1406,9 +1406,9 @@ end
 #
 ###############################################################################
 
-# TODO: check semisimplicity check once that is available
+# TODO: add semisimplicity check once that is available
 
-function is_dominant_weight(hw::Vector{Int})
+function is_dominant_weight(hw::Vector{<:IntegerUnion})
   return all(>=(0), hw)
 end
 
@@ -1427,7 +1427,7 @@ function simple_module(L::LieAlgebra, hw::Vector{Int})
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{Int}) -> T
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
 
 Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
 The return value is of type `T`.
@@ -1440,14 +1440,29 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 64
 ```
 """
-function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{Int})
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
   @req is_dominant_weight(hw) "Not a dominant weight."
-  return T(
-    GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))
-  )
+  if has_root_system(L)
+    R = root_system(L)
+    rho = weyl_vector(R)
+    hw_rho = WeightLatticeElem(R, hw) + rho
+    num = one(ZZ)
+    den = one(ZZ)
+    for alpha in positive_roots(R)
+      num *= ZZ(dot(hw_rho, alpha))
+      den *= ZZ(dot(rho, alpha))
+    end
+    return T(div(num, den))
+  else # TODO: remove branch once root system detection is implemented
+    return T(
+      GAPWrap.DimensionOfHighestWeightModule(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
+      ),
+    )
+  end
 end
 
-function dim_of_simple_module(L::LieAlgebra, hw::Vector{Int})
+function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dim_of_simple_module(Int, L, hw)
 end
 

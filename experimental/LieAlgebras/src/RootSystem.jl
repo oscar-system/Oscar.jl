@@ -758,7 +758,7 @@ end
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
   @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
-  return RootSpaceElem(root_system(w), w.vec + w2.vec)
+  return WeightLatticeElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)
@@ -904,6 +904,20 @@ end
 
 function root_system(w::WeightLatticeElem)
   return w.root_system
+end
+
+function dot(r::RootSpaceElem, w::WeightLatticeElem)
+  @req root_system(r) === root_system(w) "parent root system mismatch"
+
+  return sum(
+    r[i] * cartan_symmetrizer(cartan_matrix(root_system(r)); check=false)[i] * w[i] for
+    i in 1:rank(root_system(r));
+    init=zero(QQ),
+  )
+end
+
+function dot(w::WeightLatticeElem, r::RootSpaceElem)
+  return dot(r, w)
 end
 
 ###############################################################################
