@@ -238,7 +238,7 @@ end
 function deserializer_open(
   io::IO,
   T::Type{JSONSerializer},
-  type_attr_map::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
+  type_attr_dict::S) where S <:Union{Dict{Type, Vector{Symbol}}, Nothing}
 
   obj = JSON3.read(io)
   refs = nothing
@@ -250,7 +250,7 @@ function deserializer_open(
     error("Attributes list for $U has not been set")
   end
 
-  for (k, v) in type_attr_map
+  for (k, v) in type_attr_dict
     type_attr_map(::Type{<:k}) = v
   end
 
