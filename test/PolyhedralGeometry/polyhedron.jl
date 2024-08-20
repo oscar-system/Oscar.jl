@@ -238,7 +238,7 @@
     @test relative_interior_point(Q0) == [1//3, 1//3]
 
     # issue #4024
-    let op = Polyhedron{T}(Polymake.polytope.Polytope{Polymake.OscarNumber}(REL_INT_POINT=f.([1//3, -1, -2, -4//3]), CONE_AMBIENT_DIM=4), f)
+    let op = Polyhedron{T}(Polymake.polytope.Polytope{Oscar._scalar_type_to_polymake(T)}(REL_INT_POINT=f.([1//3, -1, -2, -4//3]), CONE_AMBIENT_DIM=4), f)
       @test relative_interior_point(op) == point_vector(f, [-3,-6,-4])
     end
 
