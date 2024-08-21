@@ -864,8 +864,9 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element `z` in `G` such that `x^z` equals `y`.
-To also return the element `z`, use [`is_conjugate_with_data`](@ref).
+i.e., there is an element `z` in `G` such that `inv(z)*x*z` equals `y`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -878,10 +879,10 @@ end
     is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
-return `(true, z)`, where `x^z == y` holds;
+return `(true, z)`, where `inv(z)*x*z == y` holds;
 otherwise, return `(false, nothing)`.
-If the conjugating element `z` is not needed,
-use [`is_conjugate`](@ref).
+If the conjugating element `z` is not needed, use
+[`is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -1075,8 +1076,10 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
 i.e., whether there exists an element `z` in  `G` such that
-`H^z` equals `K`. To also return the element `z`
-use [`is_conjugate_with_data`](@ref).
+the conjugate group `H^z`, which is defined as $\{ z^{-1} h z; h \in H \}$,
+equals `K`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1101,13 +1104,14 @@ false
 """
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(GapObj(G),GapObj(H),GapObj(K))
 
-"""
+@doc raw"""
     is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `(true, z)`
 where `H^z = K`; otherwise, return `(false, nothing)`.
+The conjugate group `H^z` is defined as $\{ z^{-1} h z; h \in H \}$.
 If the conjugating element `z` is not needed, use
-[`is_conjugate`](@ref).
+[`is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest

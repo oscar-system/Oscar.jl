@@ -1190,7 +1190,7 @@ end
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
 
-This is the case if and only if $C = C(w) \cap S \otimes \RR$ has the
+This is the case if and only if $C = C(w) \cap S \otimes \mathbb{R}$ has the
 expected dimension `dim(S)`.
 """
 function is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)

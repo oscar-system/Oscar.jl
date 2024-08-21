@@ -370,7 +370,7 @@ Given a $\mathbb Z$-graded affine algebra $A = R/I$ over a field $K$, where the 
 is inherited from a $\mathbb Z$-grading on the polynomial ring $R$ defined by assigning
 positive integer weights to the variables, return the value $H(A, d),$ where
 
-$H(A, \underline{\phantom{d}}): \N \to \N, \; d  \mapsto \dim_K A_d,$
+$H(A, \underline{\phantom{d}}): \mathbb{N} \to \mathbb{N}, \; d  \mapsto \dim_K A_d,$
 
 is the Hilbert function of $A$.
 
@@ -797,7 +797,7 @@ end
 Given a positively graded affine algebra $A$ over a field $K$ with grading group $G$,
 say, and given an element $g$ of $G$, return the value $H(A, g)$ of the Hilbert function
 
-$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+$H(A, \underline{\phantom{d}}): G \to \mathbb{N}, \; g\mapsto \dim_K(A_g).$
 
     multi_hilbert_function(A::MPolyQuoRing, g::Vector{<:IntegerUnion})
 
