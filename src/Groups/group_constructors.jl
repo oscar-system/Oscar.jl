@@ -588,7 +588,8 @@ end
 AbstractAlgebra.@varnames_interface _free_group(s)
 
 free_group(L0::VarName, Ls::VarName...; kw...) = free_group([L0, Ls...]; kw...)
-free_group(args...; kw...) = _free_group(args...; kw...)[1]
+free_group(a0, args...; kw...) = _free_group(a0, args...; kw...)[1]
+free_group(; kw...) = _free_group(0; kw...)[1]
 
 # HACK to get the default variable name stem `:f` instead of `:x`
 # but also to insert validation for `n`.
