@@ -129,7 +129,7 @@ end
 ###############################################################################
 
 @attr function is_abelian(L::AbstractLieAlgebra)
-  return all(e -> iszero(length(e)), _struct_consts(L))
+  return all(iszero, _struct_consts(L))
 end
 
 ###############################################################################
