@@ -1503,6 +1503,7 @@ mutable struct HilbertData
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
 
     G = groebner_assure(I)
+    singular_assure(I)
     cf = Singular.hilbert_series_data(G.S, W)
     return new(cf, W, I)
   end
