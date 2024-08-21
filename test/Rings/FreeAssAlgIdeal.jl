@@ -28,11 +28,13 @@ end
   @test ideal_membership(f1, I2) 
   gb = groebner_basis(I2, 3; protocol=false)
   @test isdefined(I2, :gb)
+  @test length(gens(I * I2)) == 2
 end
 
 @testset "FreeAssAlgIdeal.utils" begin
   R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
-  I = Oscar.ideal(R, [x*y - y*x, x*z - z*x])
+  I = ideal(R, [x*y - y*x, x*z - z*x])
+  @test base_ring(I) == R
   @test isa(ngens(I),Int)
   @test isequal(ngens(I),2)
   @test isa(gen(I,ngens(I)),FreeAssAlgElem{QQFieldElem})
@@ -56,10 +58,12 @@ end
     I = ideal([f1, f2])
 
     gb = groebner_basis(I, 3; protocol=false)
+    @test !is_groebner_basis(gb)
     @test maximum(total_degree.(gb))==3
     @test isdefined(I, :gb)
     gb2 = groebner_basis([f1, f2], 5; protocol=false)
     @test maximum(total_degree.(gb2))==5
+    @test !is_groebner_basis(gb2)
 end
 
 @testset "FreeAssAlgIdeal.groebner_basis.quantum_automorphism_group" begin
@@ -76,7 +80,10 @@ end
   qAut2 = quantum_symmetric_group(4)
   gena = gens(qAut2)
 
-  gb3 = groebner_basis(gena; interreduce=true)
+  gb3 = groebner_basis(gena; interreduce=false)
+  @test length(gb3) == 146
+  interreduce!(gb3)
+  @test length(gb3) == 78
 
   gb4 = groebner_basis(gena, 4,ordering=:deglex,interreduce=true)
   @test is_groebner_basis(gb3)
@@ -84,12 +91,18 @@ end
   @test sort(leading_monomial.(gb3)) == sort(leading_monomial.(gb4))
 
   I1 = ideal(gb3); I2 = ideal(gb4)
+  @test gb4[end] in I1
+  @test normal_form(gb4[end],I1) == 0
   @test I1 == I2
 
   x = base_ring(I1)[1]; y = base_ring(I1)[7]
   @test !(x*y - y*x in I1)
 
   gb5 = groebner_basis(gens(quantum_symmetric_group(3)); interreduce=true)
+  A = parent(gb5[1])
+  I3 = ideal(Oscar.IdealGens(A, gb5),true)
+  @test is_groebner_basis(I3.gens)
+
   x = base_ring(ideal(gb5))[1]; y = base_ring(ideal(gb5))[7]
   @test x*y - y*x in ideal(gb5)
 end

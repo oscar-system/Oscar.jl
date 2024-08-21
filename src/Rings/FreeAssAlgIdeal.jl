@@ -52,8 +52,8 @@ function ideal(g::Vector{<:FreeAssAlgElem})
   return ideal(algebra, g)
 end
 
-function ideal(g::IdealGens{T}) where T <: FreeAssAlgElem
-  return FreeAssAlgIdeal(g)
+function ideal(g::IdealGens{T}, check_groebner_basis::Bool=false) where T <: FreeAssAlgElem
+  return FreeAssAlgIdeal(g, check_groebner_basis)
 end
 
 
