@@ -32,7 +32,7 @@ end
 Base.show(io::IO, a::FreeAssAlgIdeal) = print(io, "Ideal of ", base_ring(a), " with ", number_of_generators(a), " generators")
 
 function Base.:(==)(I2::FreeAssAlgIdeal, I1::FreeAssAlgIdeal)
-  return I1 in I2 && I2 in I1 
+  return is_subset(I1,I2) && is_subset(I2,I1)
 end
 
 @doc raw"""
@@ -128,7 +128,7 @@ function Base.in(a::FreeAssAlgElem, I::FreeAssAlgIdeal)
   return ideal_membership(a, I)
 end
 
-function Base.in(I1, I2::FreeAssAlgIdeal)
+function is_subset(I1::FreeAssAlgIdeal, I2::FreeAssAlgIdeal)
   return all(x -> in(x, I2), gens(I1))
 end
 
