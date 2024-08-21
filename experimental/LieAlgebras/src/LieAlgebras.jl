@@ -119,7 +119,6 @@ export cartan_symmetrizer
 export cartan_type
 export cartan_type_with_ordering
 export chevalley_basis
-export coefficient_vector
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
 export conjugate_dominant_weight_with_elem

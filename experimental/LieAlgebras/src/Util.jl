@@ -1,5 +1,5 @@
 """
-    coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T}
+    Oscar.LieAlgebras.coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T}
 
 Return the vector of coefficients of the matrix `M` in the basis `basis`.
 Requires that `basis` is linearly independent and that `M` lies in the span of `basis`.
