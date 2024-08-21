@@ -51,7 +51,7 @@ function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Boo
   R = RootSystem(cartan_matrix)
   detect_type &&
     is_finite(weyl_group(R)) &&
-    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
+    set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix)...)
   return R
 end
 
@@ -75,14 +75,14 @@ Root system defined by Cartan matrix
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, [(fam, rk)])
+  set_root_system_type!(R, [(fam, rk)])
   return R
 end
 
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, type)
+  set_root_system_type!(R, type)
   return R
 end
 
@@ -125,6 +125,10 @@ Return the Cartan matrix defining `R`.
 """
 function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
+end
+
+@attr Vector{ZZRingElem} function cartan_symmetrizer(R::RootSystem)
+  return cartan_symmetrizer(cartan_matrix(R); check=false)
 end
 
 @doc raw"""
@@ -324,11 +328,11 @@ function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
 end
 
-function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
-  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type!(R, type, 1:sum(t[2] for t in type; init=0))
 end
 
-function set_root_system_type(
+function set_root_system_type!(
   R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
 )
   R.type = type
@@ -758,7 +762,7 @@ end
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
   @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
-  return RootSpaceElem(root_system(w), w.vec + w2.vec)
+  return WeightLatticeElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)
@@ -904,6 +908,66 @@ end
 
 function root_system(w::WeightLatticeElem)
   return w.root_system
+end
+
+###############################################################################
+# more functions
+
+function dot(r::RootSpaceElem, w::WeightLatticeElem)
+  @req root_system(r) === root_system(w) "parent root system mismatch"
+
+  symmetrizer = cartan_symmetrizer(root_system(r))
+  return sum(
+    r[i] * symmetrizer[i] * w[i] for
+    i in 1:rank(root_system(r));
+    init=zero(QQ),
+  )
+end
+
+function dot(w::WeightLatticeElem, r::RootSpaceElem)
+  return dot(r, w)
+end
+
+@doc raw"""
+    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem -> T
+    dim_of_simple_module([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> T
+
+Compute the dimension of the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw` using Weyl's dimension formula.
+The return value is of type `T`.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 2);
+
+julia> dim_of_simple_module(R, [1, 0])
+5
+```
+"""
+function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  rho = weyl_vector(R)
+  hw_rho = hw + rho
+  num = one(ZZ)
+  den = one(ZZ)
+  for alpha in positive_roots(R)
+    num *= ZZ(dot(hw_rho, alpha))
+    den *= ZZ(dot(rho, alpha))
+  end
+  return T(div(num, den))
+end
+
+function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
+end
+
+function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, R, hw)
+end
+
+function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, R, hw)
 end
 
 ###############################################################################

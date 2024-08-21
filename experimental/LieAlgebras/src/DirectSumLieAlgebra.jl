@@ -121,7 +121,7 @@ end
 #
 ###############################################################################
 
-function is_abelian(L::DirectSumLieAlgebra)
+@attr function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
 end
 
@@ -151,6 +151,16 @@ function canonical_projection(D::DirectSumLieAlgebra, i::Int)
   )
   return hom(D, S, mat; check=false)
 end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+# The following implementation needs direct sums of root systems, which
+# is not yet implemented.
+# has_root_system(D::DirectSumLieAlgebra) = all(has_root_system, D.summands)
 
 ###############################################################################
 #

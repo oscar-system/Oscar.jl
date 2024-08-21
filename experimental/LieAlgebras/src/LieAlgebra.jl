@@ -9,14 +9,19 @@ abstract type LieAlgebra{C<:FieldElem} end
 abstract type LieAlgebraElem{C<:FieldElem} end
 
 # To be implemented by subtypes:
-# parent_type(::Type{MyLieAlgebraElem{C}})
-# elem_type(::Type{MyLieAlgebra{C}})
-# parent(x::MyLieAlgebraElem{C})
-# coefficient_ring(L::MyLieAlgebra{C})
-# dim(L::MyLieAlgebra{C})
-# Base.show(io::IO, x::MyLieAlgebra{C})
-# symbols(L::MyLieAlgebra{C})
-# bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C})
+# Mandatory:
+#   parent_type(::Type{MyLieAlgebraElem{C}}) = MyLieAlgebra{C}
+#   elem_type(::Type{MyLieAlgebra{C}}) = MyLieAlgebraElem{C}
+#   parent(x::MyLieAlgebraElem{C}) -> MyLieAlgebra{C}
+#   coefficient_ring(L::MyLieAlgebra{C}) -> parent_type(C)
+#   dim(L::MyLieAlgebra) -> Int
+#   symbols(L::MyLieAlgebra) -> Vector{Symbol}
+#   bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C}) -> MyLieAlgebraElem{C}
+#   Base.show(io::IO, x::MyLieAlgebra)
+# If the subtype supports root systems:
+#   has_root_system(::MyLieAlgebra) -> Bool
+#   root_system(::MyLieAlgebra) -> RootSystem
+#   chevalley_basis(L::MyLieAlgebra) -> NTuple{3,Vector{elem_type(L)}}
 
 ###############################################################################
 #
@@ -435,6 +440,45 @@ Return `true` if `L` is solvable, i.e. the derived series of `L` terminates in $
 """
 @attr Bool function is_solvable(L::LieAlgebra)
   return dim(derived_series(L)[end]) == 0
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+@doc raw"""
+    has_root_system(L::LieAlgebra) -> Bool
+
+Return whether a root system for `L` is known.
+"""
+has_root_system(L::LieAlgebra) = false # to be implemented by subtypes
+
+@doc raw"""
+    root_system(L::LieAlgebra) -> RootSystem
+
+Return the root system of `L`.
+
+This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+"""
+function root_system(L::LieAlgebra) # to be implemented by subtypes
+  @req has_root_system(L) "root system of `L` not known."
+  throw(Hecke.NotImplemented())
+end
+
+@doc raw"""
+    chevalley_basis(L::LieAlgebra) -> NTuple{3,Vector{elem_type(L)}}
+
+Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
+then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
+to the order of the roots in [`root_system(::LieAlgebra)`](@ref).
+
+This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+"""
+function chevalley_basis(L::LieAlgebra) # to be implemented by subtypes
+  @req has_root_system(L) "root system of `L` not known."
+  throw(Hecke.NotImplemented())
 end
 
 ###############################################################################

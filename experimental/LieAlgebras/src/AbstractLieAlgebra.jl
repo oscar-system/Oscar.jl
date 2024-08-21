@@ -65,40 +65,6 @@ _struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
 
 ###############################################################################
 #
-#   Root system getters
-#
-###############################################################################
-
-has_root_system(L::LieAlgebra) = isdefined(L, :root_system)
-
-function root_system(L::LieAlgebra)
-  @req has_root_system(L) "No root system known."
-  return L.root_system
-end
-
-@doc raw"""
-    chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
-
-Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
-then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
-to the order of the roots in the root system.
-"""
-function chevalley_basis(L::AbstractLieAlgebra)
-  @req has_root_system(L) "No root system known."
-  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
-
-  npos = n_positive_roots(root_system(L))
-  b = basis(L)
-  # root vectors
-  r_plus = b[1:npos]
-  r_minus = b[(npos + 1):(2 * npos)]
-  # basis for cartan algebra
-  h = b[(2 * npos + 1):dim(L)]
-  return (r_plus, r_minus, h)
-end
-
-###############################################################################
-#
 #   String I/O
 #
 ###############################################################################
@@ -162,8 +128,35 @@ end
 #
 ###############################################################################
 
-function is_abelian(L::AbstractLieAlgebra)
-  return all(e -> iszero(length(e)), _struct_consts(L))
+@attr function is_abelian(L::AbstractLieAlgebra)
+  return all(iszero, _struct_consts(L))
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(L::AbstractLieAlgebra) = isdefined(L, :root_system)
+
+function root_system(L::AbstractLieAlgebra)
+  @req has_root_system(L) "no root system known."
+  return L.root_system
+end
+
+function chevalley_basis(L::AbstractLieAlgebra)
+  @req has_root_system(L) "no root system known."
+  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
+
+  npos = n_positive_roots(root_system(L))
+  b = basis(L)
+  # root vectors
+  r_plus = b[1:npos]
+  r_minus = b[(npos + 1):(2 * npos)]
+  # basis for cartan algebra
+  h = b[(2 * npos + 1):dim(L)]
+  return (r_plus, r_minus, h)
 end
 
 ###############################################################################

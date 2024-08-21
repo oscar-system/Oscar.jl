@@ -489,6 +489,8 @@ function Base.iterate(iter::ReducedExpressionIterator)
 end
 
 function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
+  isempty(word) && return nothing
+
   rk = rank(root_system(parent(iter.el)))
 
   # we need to copy word; iterate behaves differently when length is (not) known
