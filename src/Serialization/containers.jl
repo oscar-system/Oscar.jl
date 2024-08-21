@@ -413,24 +413,24 @@ function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, 
     
     if key_type == Int
       key = parse(Int, string(k))
-    elseif haskey(params, :key_params) # type is not Int, String or Symbol
+    elseif key_type <: Union{Symbol, String}
+      key = key_type(k)
+    else
       load_node(s, i) do _
         # 1 is for first entry of tuple which is the key in this case
         key = load_object(s, key_type, params[:key_params], 1) 
       end
-    else
-      key = key_type(k)
     end
 
     if value_type != Any
       if serialize_with_params(value_type)
-        if haskey(params, :key_params) # key type is not Int, String or Symbol
+        if key_type <: Union{Symbol, String}
+          dict[key] = load_object(s, value_type, params[:value_params], k)
+        else
           load_node(s, i) do _
             # 2 is for second entry of tuple which is the value in this case
             dict[key] = load_object(s, value_type, params[:value_params], 2) 
           end
-        else
-          dict[key] = load_object(s, value_type, params[:value_params], k)
         end
       else
         if haskey(params, :key_params) # key type is not Int, String or Symbol

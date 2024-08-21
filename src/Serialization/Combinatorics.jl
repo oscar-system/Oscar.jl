@@ -5,7 +5,7 @@ using JSON
 ###############################################################################
 @register_serialization_type Graph{Directed} "Graph{Directed}"
 @register_serialization_type Graph{Undirected} "Graph{Undirected}"
-@register_serialization_type Edge "Edge"
+@register_serialization_type Edge
 
 function save_object(s::SerializerState, g::Graph{T}) where T <: Union{Directed, Undirected}
   smallobject = pm_object(g)
@@ -28,10 +28,7 @@ function save_object(s::SerializerState, e::Edge)
 end
 
 function load_object(s::DeserializerState, e::Type{Edge})
-  (source,target) = load_array_node(s) do _
-    load_object(s, Int64)
-  end
-  return Edge(source, target)
+  return Edge(load_object(s, Int, 1), load_object(s, Int, 2))
 end
 
 ###############################################################################
