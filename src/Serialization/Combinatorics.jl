@@ -21,15 +21,16 @@ function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{D
 end
 
 function save_object(s::SerializerState, e::Edge)
-  save_data_dict(s) do 
-    save_object(s, src(e), :source)
-    save_object(s, dst(e), :target)
+  save_data_array(s) do 
+    save_object(s, src(e))
+    save_object(s, dst(e))
   end
 end
 
 function load_object(s::DeserializerState, e::Type{Edge})
-  source = load_object(s, Int64, :source)
-  target = load_object(s, Int64, :target)
+  (source,target) = load_array_node(s) do _
+    load_object(s, Int64)
+  end
   return Edge(source, target)
 end
 
