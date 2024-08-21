@@ -3,11 +3,11 @@
 # more efficient implementation.
 
 function combinations(n::Integer, k::Integer)
-  return sort(subsets(n, k))
+  return sort(AbstractAlgebra.combinations(n, k))
 end
 
 @doc raw"""
-    combinations(v::AbstractVector{T}, k::Integer) where {T}
+    Oscar.LieAlgebras.combinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Return an iterator over all combinations of `k` elements of `v`.
 In each iteration, the elements are returned in the order they appear in `v`.
@@ -39,7 +39,7 @@ function multicombinations(n::Integer, k::Integer)
 end
 
 @doc raw"""
-    multicombinations(v::AbstractVector{T}, k::Integer) where {T}
+    Oscar.LieAlgebras.multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Return an iterator over all combinations of `k` elements of `v` with repetitions.
 In each iteration, the elements are returned in the order they appear in `v`.
@@ -70,7 +70,7 @@ function permutations(n::Integer)
 end
 
 @doc raw"""
-    permutations(v::AbstractVector{T}) where {T}
+    Oscar.LieAlgebras.permutations(v::AbstractVector{T}) where {T}
 
 Return an iterator over all permutations of `v`.
 There is no guarantee on the order of the permutations.
@@ -96,7 +96,7 @@ function permutations_with_sign(n::Integer)
 end
 
 @doc raw"""
-    permutations_with_sign(v::AbstractVector{T}) where {T}
+    Oscar.LieAlgebras.permutations_with_sign(v::AbstractVector{T}) where {T}
 
 Return an iterator over all permutations of `v` with their sign.
 There is no guarantee on the order of the permutations.

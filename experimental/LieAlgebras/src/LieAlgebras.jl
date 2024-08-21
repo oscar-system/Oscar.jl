@@ -121,7 +121,6 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coefficient_vector
 export coerce_to_lie_algebra_elem
-export combinations
 export conjugate_dominant_weight
 export conjugate_dominant_weight_with_elem
 export coroot
@@ -161,7 +160,6 @@ export lmul, lmul!
 export longest_element
 export lower_central_series
 export matrix_repr_basis
-export multicombinations
 export negative_coroot
 export negative_coroots
 export negative_root
@@ -169,8 +167,6 @@ export negative_roots
 export number_of_positive_roots
 export number_of_roots
 export number_of_simple_roots
-export permutations
-export permutations_with_sign
 export positive_coroot
 export positive_coroots
 export positive_root
