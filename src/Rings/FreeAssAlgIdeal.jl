@@ -18,10 +18,11 @@ mutable struct FreeAssAlgIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
   gb::IdealGens{T}
   deg_bound::Int
-  function FreeAssAlgIdeal(g::IdealGens{T}) where T <: FreeAssAlgElem
+  function FreeAssAlgIdeal(g::IdealGens{T}, check_groebner_basis::Bool=false) where T <: FreeAssAlgElem
     r = new{T}()
     r.gens = g
-    if base_ring(base_ring(g)) isa Field && is_groebner_basis(g)
+    @req !check_groebner_basis || base_ring(base_ring(g)) isa Field "Groebner basis check requires a field base ring"
+    if check_groebner_basis && base_ring(base_ring(g)) isa Field && is_groebner_basis(g)
       r.gb = g
       r.deg_bound = -1
     end
