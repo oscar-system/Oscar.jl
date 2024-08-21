@@ -303,9 +303,9 @@ export negative_coroot
 export negative_coroots
 export negative_root
 export negative_roots
-export number_of_positive_roots, n_positive_roots  # alias lives in a submodule
-export number_of_roots, n_roots                    # alias lives in a submodule
-export number_of_simple_roots, n_simple_roots      # alias lives in a submodule
+export number_of_positive_roots
+export number_of_roots
+export number_of_simple_roots
 export positive_coroot
 export positive_coroots
 export positive_root
@@ -335,3 +335,8 @@ export universal_enveloping_algebra
 export weyl_group
 export weyl_orbit
 export word
+
+
+export n_positive_roots  # alias lives in a submodule
+export n_roots           # alias lives in a submodule
+export n_simple_roots    # alias lives in a submodule
