@@ -101,13 +101,6 @@ export WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
-export _is_direct_sum
-export _is_dual
-export _is_exterior_power
-export _is_standard_module
-export _is_symmetric_power
-export _is_tensor_power
-export _is_tensor_product
 export abelian_lie_algebra
 export abstract_module
 export base_lie_algebra
@@ -193,6 +186,15 @@ export universal_enveloping_algebra
 export weyl_group
 export weyl_orbit
 export word
+
+# only export into Oscar, not from Oscar
+export _is_direct_sum
+export _is_dual
+export _is_exterior_power
+export _is_standard_module
+export _is_symmetric_power
+export _is_tensor_power
+export _is_tensor_product
 
 function number_of_positive_roots end
 function number_of_roots end
