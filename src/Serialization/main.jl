@@ -68,6 +68,10 @@ function get_oscar_serialization_version()
 end
 
 ################################################################################
+# Type attribute map
+const type_attr_map = Dict{String, Vector{Symbol}}()
+
+################################################################################
 # (De|En)coding types
 
 # parameters of type should not matter here
@@ -189,6 +193,16 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
+function save_attrs(s::SerializerState, obj::T) where T
+  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+    save_data_dict(s, :attrs) do
+      for attr in attrs_list(s, T)
+        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+      end
+    end
+  end
+end
+
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
@@ -239,6 +253,14 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
   end
 end
 
+function load_attrs(s::DeserializerState, obj::T) where T
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    for attr in keys(d)
+      set_attribute!(obj, attr, load_typed_object(s, attr))
+    end
+  end
+end
+
 ################################################################################
 # Default generic save_internal, load_internal
 function save_object_generic(s::SerializerState, obj::T) where T
@@ -283,6 +305,13 @@ function register_serialization_type(@nospecialize(T::Type), str::String)
   reverse_type_map[str] = T
 end
 
+function register_attr_list(@nospecialize(T::Type),
+                            attrs::Union{Vector{Symbol}, Nothing})
+  if !isnothing(attrs)
+    Oscar.type_attr_map[encode_type(T)] = attrs
+  end
+end
+
 import Serialization.serialize
 import Serialization.deserialize
 import Serialization.serialize_type
@@ -295,7 +324,8 @@ serialize_with_id(obj::Any) = false
 serialize_with_params(::Type) = false
 
 
-function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_params::Bool)
+function register_serialization_type(ex::Any, str::String, uses_id::Bool,
+                                     uses_params::Bool, attrs::Any)
   return esc(
     quote
       Oscar.register_serialization_type($ex, $str)
@@ -313,6 +343,9 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
       # Types like ZZ, QQ, and ZZ/nZZ do not require ids since there is no syntactic
       # ambiguities in their encodings.
 
+      # add list of possible attributes to save for a given type to a global dict
+      Oscar.register_attr_list($ex, $attrs)
+      
       Oscar.serialize_with_id(obj::T) where T <: $ex = $uses_id
       Oscar.serialize_with_id(T::Type{<:$ex}) = $uses_id
       Oscar.serialize_with_params(T::Type{<:$ex}) = $uses_params
@@ -327,31 +360,36 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool, uses_p
           Oscar.load(s.io; serializer_type=Oscar.IPCSerializer)
         end
       end
-
     end)
 end
 
 """
-    @register_serialization_type NewType "String Representation of type" uses_id uses_params
+    @register_serialization_type NewType "String Representation of type" uses_id uses_params [:attr1, :attr2]
 
 `@register_serialization_type` is a macro to ensure that the string we generate
 matches exactly the expression passed as first argument, and does not change
 in unexpected ways when import/export statements are adjusted.
 
-The last three arguments are optional and can arise in any order.
 Passing a string argument will override how the type is stored as a string.
-The last two are boolean flags. When setting `uses_id` the object will be
- stored as a reference and will be referred to throughout the serialization
-sessions using a `UUID`. This should typically only be used for types that
- do not have a fixed normal form for example `PolyRing` and `MPolyRing`.
+
+When setting `uses_id` the object will be stored as a reference and
+will be referred to throughout the serialization sessions using a `UUID`.
+This should typically only be used for types that do not have a fixed
+normal form for example `PolyRing` and `MPolyRing`.
+
 Using the `uses_params` flag will serialize the object with a more structured type
 description which will make the serialization more efficient see the discussion on
 `save_type_params` / `load_type_params` below.
+
+Passing a vector of symbols that correspond to attributes of type
+indicates which attributes will be serialized when using save with `with_attrs=true`.
+
 """
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
   str = nothing
+  attrs = nothing
   for el in args
     if el isa String
       str = el
@@ -359,13 +397,15 @@ macro register_serialization_type(ex::Any, args...)
       uses_id = true
     elseif el == :uses_params
       uses_params = true
+    else
+      attrs = el
     end
   end
   if str === nothing
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params)
+  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
 end
 
 
@@ -394,11 +434,13 @@ macro import_all_serialization_functions()
       encode_type,
       haskey,
       load_array_node,
+      load_attrs,
       load_node,
       load_params_node,
       load_ref,
       load_typed_object,
       save_as_ref,
+      save_attrs,
       save_data_array,
       save_data_basic,
       save_data_dict,
@@ -435,11 +477,14 @@ include("Upgrades/main.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing)
-    save(filename::String, obj::Any, metadata::MetaData=nothing)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
+    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=true)
 
 Save an object `obj` to the given io stream
-respectively to the file `filename`.
+respectively to the file `filename`. When used with `with_attrs=true` then the object will
+save it's attributes along with all the attributes of the types used in the object's struct.
+The attributes that will be saved are defined during type registration see
+[`@register_serialization_type`](@ref)
 
 See [`load`](@ref).
 
@@ -463,8 +508,11 @@ julia> load("/tmp/fourtitwo.mrdi")
 ```
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
+              with_attrs::Bool=true,
               serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
-  s = state(serializer_open(io, serializer_type))
+  
+  s = state(serializer_open(io, serializer_type,
+                            with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
   save_data_dict(s) do
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -502,20 +550,21 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing)
+function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing,
+              with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
   open(temp_file, "w") do file
-    save(file, obj; metadata=metadata)
+    save(file, obj; metadata=metadata, with_attrs=with_attrs)
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
 end
 
 """
-    load(io::IO; params::Any = nothing, type::Any = nothing)
-    load(filename::String; params::Any = nothing, type::Any = nothing)
+    load(io::IO; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
+    load(filename::String; params::Any = nothing, type::Any = nothing, with_attrs::Bool=true)
 
 Load the object stored in the given io stream
 respectively in the file `filename`.
@@ -528,6 +577,9 @@ results in setting its parent, or in the case of a container of ring types such 
 
 If a type `T` is given then attempt to load the root object of the data
 being loaded with this type; if this fails, an error is thrown.
+
+If `with_attrs=true` the object will be loaded with attributes available from
+the file (or serialized data).
 
 See [`save`](@ref).
 
@@ -568,8 +620,9 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer_type=JSONSerializer)
-  s = state(deserializer_open(io, serializer_type))
+              serializer_type=JSONSerializer, with_attrs::Bool=true)
+  s = state(deserializer_open(io, serializer_type,
+                              with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
@@ -658,7 +711,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 end
 
-function load(filename::String; params::Any = nothing, type::Any = nothing)
+function load(filename::String; params::Any = nothing,
+              type::Any = nothing, with_attrs::Bool=true)
   open(filename) do file
     return load(file; params=params, type=type)
   end
