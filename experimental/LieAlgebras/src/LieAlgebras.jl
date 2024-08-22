@@ -87,7 +87,8 @@ import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 include("exports.jl")
 
-# only export into Oscar, not from Oscar
+# The following export statements export things *into* module Oscar;
+# they are however for internal use and thus are not exported *from* Oscar.
 export _is_direct_sum
 export _is_dual
 export _is_exterior_power
