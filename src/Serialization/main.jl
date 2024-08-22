@@ -254,9 +254,9 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  haskey(s, :attrs) && load_node(s, :attrs) do _
-    for attr in attrs_list(s, T)
-      haskey(s, attr) && set_attribute!(obj, attr, load_typed_object(s, attr))
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    for attr in keys(d)
+      set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
 end
@@ -508,7 +508,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 ```
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
-              with_attrs::Bool=false,
+              with_attrs::Bool=true,
               serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
   
   s = state(serializer_open(io, serializer_type,
@@ -551,7 +551,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
 end
 
 function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing,
-              with_attrs::Bool=false)
+              with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
