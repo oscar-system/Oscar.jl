@@ -11,6 +11,7 @@ FPGroupElem
 SubFPGroup
 SubFPGroupElem
 free_group
+@free_group
 full_group(G::Union{SubFPGroup, SubPcGroup})
 relators(G::FPGroup)
 length(g::Union{FPGroupElem, SubFPGroupElem})
