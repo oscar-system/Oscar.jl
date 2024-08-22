@@ -115,6 +115,30 @@
           1:n_roots(R),
         )
       end
+
+      @testset "Serialization" begin
+        mktempdir() do path
+          test_save_load_roundtrip(path, R) do loaded
+            # nothing, cause `R === loaded` anyway
+          end
+
+          if n_roots(R) >= 1
+            r = positive_root(R, n_positive_roots(R))
+            test_save_load_roundtrip(path, r) do loaded
+              @test root_system(loaded) === R
+              @test coefficients(loaded) == coefficients(r)
+            end
+          end
+
+          test_save_load_roundtrip(path, positive_roots(R)) do loaded
+            @test length(loaded) == n_positive_roots(R)
+            @test all(
+              coefficients(loaded[i]) == coefficients(root(R, i)) for
+              i in 1:n_positive_roots(R)
+            )
+          end
+        end
+      end
     end
 
     @testset "rk 0" begin
