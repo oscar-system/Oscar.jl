@@ -194,9 +194,11 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
 end
 
 function save_attrs(s::SerializerState, obj::T) where T
-  save_data_dict(s, :attrs) do
-    for attr in attrs_list(s, T)
-      has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+    save_data_dict(s, :attrs) do
+      for attr in attrs_list(s, T)
+        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+      end
     end
   end
 end
