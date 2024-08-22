@@ -477,8 +477,8 @@ include("Upgrades/main.jl")
 # Interacting with IO streams and files
 
 """
-    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=false)
-    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=false)
+    save(io::IO, obj::Any; metadata::MetaData=nothing, with_attrs::Bool=true)
+    save(filename::String, obj::Any, metadata::MetaData=nothing, with_attrs::Bool=true)
 
 Save an object `obj` to the given io stream
 respectively to the file `filename`. When used with `with_attrs=true` then the object will
