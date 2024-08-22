@@ -123,7 +123,25 @@ if !isdefined(Main, :lie_algebra_conformance_test)
 
     @testset "Serialization" begin
       mktempdir() do path
-        test_save_load_roundtrip(path, L; with_attrs=true) do loaded
+        is_abelian(L) # call something that puts an attribute on L
+
+        test_save_load_roundtrip(
+          path,
+          L;
+          with_attrs=false,
+          check_func=loaded -> !has_attribute(loaded, :is_abelian),
+        ) do loaded
+          # nothing, cause `L === loaded` anyway
+        end
+
+        test_save_load_roundtrip(
+          path,
+          L;
+          with_attrs=true,
+          check_func=loaded ->
+            has_attribute(loaded, :is_abelian) &&
+              get_attribute(loaded, :is_abelian) == get_attribute(L, :is_abelian),
+        ) do loaded
           # nothing, cause `L === loaded` anyway
         end
 
