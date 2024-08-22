@@ -25,7 +25,9 @@ end
   I2 = ideal([f1])
   @test !ideal_membership(x*y, I2, 3)
   @test ideal_membership(f1, I2, 4) 
+  @test ideal_membership(f1, I2.gens, 4)
   @test ideal_membership(f1, I2) 
+  @test ideal_membership(f1, I2.gens)
   gb = groebner_basis(I2, 3; protocol=false)
   @test isdefined(I2, :gb)
   @test length(gens(I * I2)) == 2
@@ -81,9 +83,15 @@ end
   gena = gens(qAut2)
 
   gb3 = groebner_basis(gena; interreduce=false)
+  I1 = ideal(copy(gb3))
+  groebner_basis(I1)
   @test length(gb3) == 146
   interreduce!(gb3)
+  @test length(I1.gb) == 146
+  interreduce!(I1)
+  @test length(I1.gb) == 78
   @test length(gb3) == 78
+
 
   gb4 = groebner_basis(gena, 4,ordering=:deglex,interreduce=true)
   @test is_groebner_basis(gb3)
