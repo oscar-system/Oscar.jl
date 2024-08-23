@@ -1,36 +1,3 @@
-@attributes mutable struct LieAlgebraModule{C<:FieldElem}
-  L::LieAlgebra{C}
-  dim::Int
-  transformation_matrices::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LieAlgebraModule{C}(
-    L::LieAlgebra{C},
-    dimV::Int,
-    transformation_matrices::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req dimV == length(s) "Invalid number of basis element names."
-    @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
-    @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
-
-    V = new{C}(L, dimV, transformation_matrices, s)
-    if check
-      @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
-      for xi in basis(L), xj in basis(L), v in basis(V)
-        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
-      end
-    end
-    return V
-  end
-end
-
-struct LieAlgebraModuleElem{C<:FieldElem}
-  parent::LieAlgebraModule{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation

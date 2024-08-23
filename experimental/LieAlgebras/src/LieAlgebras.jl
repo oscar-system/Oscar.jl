@@ -209,6 +209,7 @@ function number_of_simple_roots end
 @alias n_roots number_of_roots
 @alias n_simple_roots number_of_simple_roots
 
+include("Types.jl")
 include("Combinatorics.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")

@@ -1,26 +1,3 @@
-@attributes mutable struct DirectSumLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  dim::Int
-  summands::Vector{<:LieAlgebra{C}}
-  s::Vector{Symbol}
-
-  function DirectSumLieAlgebra{C}(
-    R::Field,
-    summands::Vector{<:LieAlgebra{C}},
-  ) where {C<:FieldElem}
-    @req all(x -> coefficient_ring(x) == R, summands) "Summands must have the same coefficient ring."
-    totaldim = sum(dim, summands; init=0)
-    s = [Symbol("$(x)^($(i))") for (i, S) in enumerate(summands) for x in symbols(S)]
-    L = new{C}(R, totaldim, summands, s)
-    return L
-  end
-end
-
-struct DirectSumLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::DirectSumLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation

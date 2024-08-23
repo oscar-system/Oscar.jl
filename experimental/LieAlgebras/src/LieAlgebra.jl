@@ -1,13 +1,3 @@
-#################################################
-#
-# Abstract parent type
-#
-#################################################
-
-abstract type LieAlgebra{C<:FieldElem} end
-
-abstract type LieAlgebraElem{C<:FieldElem} end
-
 # To be implemented by subtypes:
 # Mandatory:
 #   parent_type(::Type{MyLieAlgebraElem{C}}) = MyLieAlgebra{C}
