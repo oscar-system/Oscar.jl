@@ -17,7 +17,7 @@
   type_ordering::Vector{Int}
 
   function RootSystem(mat::ZZMatrix; check::Bool=true, detect_type::Bool=true)
-    @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
+    @req !check || is_cartan_matrix(mat) "Requires a generalized Cartan matrix"
 
     pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
