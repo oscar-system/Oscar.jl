@@ -271,6 +271,42 @@ include(
     @test w^-4 == inv(w) * inv(w) * inv(w) * inv(w)
   end
 
+  @testset "Base.:(*)(x::WeylGroupElem, w::RootSpaceElem)" begin
+    let R = root_system(:A, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest root
+      @test one(W) * a == a
+      @test W([1]) * a == simple_root(R, 2)
+      @test W([2]) * a == simple_root(R, 1)
+      @test longest_element(W) * a == -a
+
+      a_copy = deepcopy(a)
+      b = W([1]) * a
+      @test a != b
+      @test a == a_copy
+      b = reflect(a, 1)
+      @test a != b
+      @test a == a_copy
+    end
+
+    let R = root_system(:B, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest (long) root
+      @test one(W) * a == a
+      @test W([1]) * a == a
+      @test W([2]) * a == simple_root(R, 1)
+      @test longest_element(W) * a == -a
+
+      a = simple_root(R, 1)
+      @test one(W) * a == a
+      @test W([1]) * a == -a
+      @test W([2]) * a == positive_root(R, n_positive_roots(R))
+      @test longest_element(W) * a == -a
+    end
+  end
+
   @testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
     R = root_system(:A, 2)
     W = weyl_group(R)
