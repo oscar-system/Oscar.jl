@@ -95,7 +95,7 @@ julia> cartan_matrix([(:A, 2), (:B, 2)])
 ```
 """
 function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
-  @req length(type) > 0 "At least one type is required"
+  isempty(type) && return zero_matrix(ZZ, 0, 0)
 
   blocks = [cartan_matrix(t...) for t in type]
   return block_diagonal_matrix(blocks)
