@@ -6,12 +6,11 @@
 
 @attributes mutable struct RootSystem
   cartan_matrix::ZZMatrix # (generalized) Cartan matrix
-  #fw::QQMatrix # fundamental weights as linear combination of simple roots
   positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
   positive_roots_map::Dict{QQMatrix,Int}
   positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
   positive_coroots_map::Dict{QQMatrix,Int}
-  weyl_group::Any     #::WeylGroup (cyclic reference)
+  weyl_group::Any #::WeylGroup (cyclic reference)
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
@@ -81,8 +80,6 @@ end
 #
 ###############################################################################
 
-abstract type CoxeterGroup end
-
 @attributes mutable struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
   refl::Matrix{UInt}        # see positive_roots_and_reflections
@@ -147,9 +144,9 @@ end
 #
 ###############################################################################
 
-abstract type LieAlgebra{C<:FieldElem} end
+abstract type LieAlgebra{C<:FieldElem} <: AbstractAlgebra.Set end
 
-abstract type LieAlgebraElem{C<:FieldElem} end
+abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
 
 ###############################################################################
 # AbstractLieAlgebra
@@ -408,7 +405,7 @@ end
 #
 ###############################################################################
 
-@attributes mutable struct LieAlgebraModule{C<:FieldElem}
+@attributes mutable struct LieAlgebraModule{C<:FieldElem} <: AbstractAlgebra.Set
   L::LieAlgebra{C}
   dim::Int
   transformation_matrices::Vector{MatElem{C}}
@@ -436,7 +433,7 @@ end
   end
 end
 
-struct LieAlgebraModuleElem{C<:FieldElem}
+struct LieAlgebraModuleElem{C<:FieldElem} <: AbstractAlgebra.SetElem
   parent::LieAlgebraModule{C}
   mat::MatElem{C}
 end

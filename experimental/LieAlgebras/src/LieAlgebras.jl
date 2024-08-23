@@ -211,22 +211,26 @@ function number_of_simple_roots end
 
 include("Types.jl")
 include("Combinatorics.jl")
+include("Util.jl")
+
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
-include("Util.jl")
 include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
+include("DirectSumLieAlgebra.jl")
+
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraHom.jl")
-include("DirectSumLieAlgebra.jl")
+
 include("LieAlgebraModule.jl")
 include("LieAlgebraModuleHom.jl")
+
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
