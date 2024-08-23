@@ -17,7 +17,9 @@
   type::Vector{Tuple{Symbol,Int}}
   type_ordering::Vector{Int}
 
-  function RootSystem(mat::ZZMatrix)
+  function RootSystem(mat::ZZMatrix; check::Bool=true, detect_type::Bool=true)
+    @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
+
     pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
@@ -34,6 +36,9 @@
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 
+    detect_type &&
+      is_finite(weyl_group(R)) &&
+      set_root_system_type!(R, cartan_type_with_ordering(mat)...)
     return R
   end
 end
