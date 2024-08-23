@@ -81,6 +81,46 @@ end
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule natural G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  M = natural_gmodule(G, GF(2))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+
+  # for matrix groups
+  G = SL(2, 3)
+  M = natural_gmodule(G)
+  cf = composition_factors_with_multiplicity(M)
+  @test length(cf) == 1 && cf[1][2] == 1
+end
+
+@testset "Experimental.gmodule regular G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  R = GF(2)
+  M, f, g = regular_gmodule(G, R)
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+  @test [x[2] for x in cf] == [2, 2]
+  N = natural_gmodule(G, R)
+  F = f(N)
+  V = M.M
+  @test all(i -> F(gen(V, Int(g(gen(G, i))))).matrix == matrix(N.ac[i]), 1:ngens(G))
+
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+
+  # for pc groups
+  G = dihedral_group(8)
+  M, f, g = regular_gmodule(G, GF(3))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 1, 1, 1, 2]
+  @test all(x -> dim(x[1]) == x[2], cf)
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+end
+
 @testset "Experimental.gmodule extension for matrix group" begin
   G = SL(2,3)
   F = GF(3)

@@ -1705,10 +1705,10 @@ returns (I, q), (hom(Z[G], C), B)
 function dimension_shift(C::GModule)
   G = C.G
   if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
+    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
     Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    zg, ac, em = regular_gmodule(G, base_ring(C))
     Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")
@@ -1751,10 +1751,10 @@ end
 function dimension_shift_left(C::GModule)
   G = C.G
   if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
+    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
     Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    zg, ac, em = regular_gmodule(G, base_ring(C))
     Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")

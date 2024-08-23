@@ -813,15 +813,19 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
 end
 
 """
-Return Z[G] and a function f that, when applied to a G-module M will return
-a map representing the action of Z[G] on M:
+    regular_gmodule(G::GAPGroup, R::Ring)
 
-f(C) yields the extension of g -> action(C, g)
-
-The third value returned is a Map between group elements and the index of the
-corresponding module generator.
+Return `(R[G], f, g)`, where
+- `R[G]` is the group ring of `G` over `R`, as a G-module object,
+- `f` is a function that, when applied to a `G`-module `M` over `R`,
+  will return a function `F` representing the action of `R[G]` on `M`
+  in the sense that for a vector `x` of length `order(G)` over `R`,
+  `F(x)` is the module homomorphism on `M` induced by the action of the
+  element of `R[G]` with coefficient vector `x`, and
+- `g` is a bijective map between the elements of `G` and the
+  indices of the corresponding module generators.
 """
-function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
+function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
   M = free_module(R, Int(order(G)))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -830,13 +834,39 @@ function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
              y->ge[Int(y)])
 end
 
-function natural_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
+function regular_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
   M = free_abelian_group(order(Int, G))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
   return ZG, C->(x -> sum(x[i]*action(C, ge[i]) for i=1:length(ge))),
     MapFromFunc(G, ZZ, x->ZZ(findfirst(isequal(x), ge)),
              y->ge[Int(y)])
+end
+
+"""
+    natural_gmodule(G::PermGroup, R::Ring)
+
+Return the G-module of dimension `degree(G)` over `R`
+that is induced by the permutation action of `G` on the basis of the  module.
+"""
+function natural_gmodule(G::PermGroup, R::Ring)
+  M = free_module(R, degree(G))
+  return GModule(M, G, [hom(M, M, permutation_matrix(R, a)) for a in gens(G)])
+#TODO: We do not really want to write down these matrices.
+#      What is the appropriate way to construct a module homomorphism
+#      without storing a matrix?
+end
+
+"""
+    natural_gmodule(G::MatrixGroup)
+
+Return the G-module of dimension `degree(G)` over `base_ring(G)`
+that is induced by the action of `G` via right multiplication.
+"""
+function natural_gmodule(G::MatrixGroup)
+  R = base_ring(G)
+  M = free_module(R, degree(G))
+  return GModule(M, G, [hom(M, M, matrix(a)) for a in gens(G)])
 end
 
 Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}) = QQ
@@ -1507,7 +1537,7 @@ A = abelian_group([3, 3])
 C = gmodule(G, [hom(A, A, [A[1], A[1]+A[2]])])
 is_consistent(C)
 
-zg, ac = Oscar.GModuleFromGap.natural_gmodule(G, ZZ)
+zg, ac = regular_gmodule(G, ZZ)
 zg = gmodule(FinGenAbGroup, zg)
 H, mH = Oscar.GModuleFromGap.ghom(zg, C)
 inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)])) for c = gens(C.M)])
@@ -1931,6 +1961,8 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
+export natural_gmodule
+export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
@@ -1987,6 +2019,8 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
+export natural_gmodule
+export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
