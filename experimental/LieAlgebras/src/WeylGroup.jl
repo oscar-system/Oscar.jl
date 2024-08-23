@@ -254,7 +254,7 @@ function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
   @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
 
   w2 = deepcopy(w)
-  for s in Iterators.reverse(x.word)
+  for s in Iterators.reverse(word(x))
     reflect!(w2, Int(s))
   end
 
@@ -271,7 +271,7 @@ function Base.:(^)(x::WeylGroupElem, n::Int)
 
   px = deepcopy(x)
   for _ in 2:n
-    for s in Iterators.reverse(x.word)
+    for s in Iterators.reverse(word(x))
       lmul!(px, s)
     end
   end
@@ -314,7 +314,7 @@ function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
 end
 
 function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
-  return x.parent === y.parent && x.word == y.word
+  return parent(x) === parent(y) && word(x) == word(y)
 end
 
 function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
@@ -338,8 +338,8 @@ end
 
 function Base.hash(x::WeylGroupElem, h::UInt)
   b = 0x80f0abce1c544784 % UInt
-  h = hash(x.parent, h)
-  h = hash(x.word, h)
+  h = hash(parent(x), h)
+  h = hash(word(x), h)
 
   return xor(h, b)
 end
@@ -397,10 +397,10 @@ end
 function Base.show(io::IO, x::WeylGroupElem)
   @show_name(io, x)
   @show_special_elem(io, x)
-  if length(x.word) == 0
+  if length(word(x)) == 0
     print(io, "id")
   else
-    print(io, join(Iterators.map(i -> "s$i", x.word), " * "))
+    print(io, join(Iterators.map(i -> "s$i", word(x)), " * "))
   end
 end
 

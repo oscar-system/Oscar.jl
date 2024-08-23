@@ -584,10 +584,14 @@ function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
 end
 
+function reflect(r::RootSpaceElem, s::Int)
+  return reflect!(deepcopy(r), s)
+end
+
 function reflect!(r::RootSpaceElem, s::Int)
   r.vec -=
     dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
-    positive_root(root_system(r), s).vec
+    simple_root(root_system(r), s).vec
   return r
 end
 
