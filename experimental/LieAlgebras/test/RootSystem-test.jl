@@ -31,6 +31,8 @@
 
   @testset "property tests" begin
     function root_system_property_tests(R::RootSystem, rk::Int, npositive_roots::Int)
+      W = weyl_group(R)
+
       @testset "Property tests" begin
         @test rank(R) == rk
         @test n_simple_roots(R) == rk
@@ -68,6 +70,11 @@
         @test all(is_positive_root, simple_roots(R))
         @test all(!is_negative_root, simple_roots(R))
         @test all(iszero, positive_roots(R) + negative_roots(R))
+        n_roots(R) >= 1 && for _ in 1:10
+          r = root(R, rand(1:n_roots(R)))
+          w = rand(W)
+          @test is_root(w * r)
+        end
 
         @test length(simple_coroots(R)) == n_simple_roots(R)
         @test length(positive_coroots(R)) == n_positive_roots(R)
