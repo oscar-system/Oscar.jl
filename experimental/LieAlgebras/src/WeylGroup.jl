@@ -7,41 +7,6 @@
 #
 ###############################################################################
 
-@attributes mutable struct WeylGroup <: AbstractAlgebra.Group
-  finite::Bool              # finite indicates whether the Weyl group is finite
-  refl::Matrix{UInt}        # see positive_roots_and_reflections
-  root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
-
-  function WeylGroup(finite::Bool, refl::Matrix{UInt}, root_system::RootSystem)
-    return new(finite, refl, root_system)
-  end
-end
-
-struct WeylGroupElem <: AbstractAlgebra.GroupElem
-  parent::WeylGroup     # parent group
-  word::Vector{UInt8}   # short revlex normal form of the word
-
-  function WeylGroupElem(W::WeylGroup, word::Vector{<:Integer}; normalize::Bool=true)
-    if !normalize
-      if word isa Vector{UInt8}
-        return new(W, word)
-      else
-        return new(W, UInt8.(word))
-      end
-    end
-
-    @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
-    x = new(W, sizehint!(UInt8[], length(word)))
-    for s in Iterators.reverse(word)
-      lmul!(x, s)
-    end
-
-    return x
-  end
-end
-
-const WeylIteratorNoCopyState = Tuple{WeightLatticeElem,WeylGroupElem}
-
 @doc raw"""
     weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
 
@@ -480,12 +445,6 @@ end
 ###############################################################################
 # ReducedExpressionIterator
 
-struct ReducedExpressionIterator
-  el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
-  #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
-  up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
-end
-
 function Base.IteratorSize(::Type{ReducedExpressionIterator})
   return Base.SizeUnknown()
 end
@@ -552,14 +511,6 @@ end
 # or analogously over all elements in the quotient W/W_P
 # The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
 # this choice is made to align with conjugate_dominant_weight_with_elem
-struct WeylIteratorNoCopy
-  weight::WeightLatticeElem # dominant weight
-  weyl_group::WeylGroup
-
-  function WeylIteratorNoCopy(wt::WeightLatticeElem)
-    return new(conjugate_dominant_weight(wt), weyl_group(root_system(wt)))
-  end
-end
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
   return Base.SizeUnknown()
@@ -647,14 +598,6 @@ end
 
 ###############################################################################
 # WeylOrbitIterator
-
-struct WeylOrbitIterator
-  nocopy::WeylIteratorNoCopy
-
-  function WeylOrbitIterator(wt::WeightLatticeElem)
-    return new(WeylIteratorNoCopy(wt))
-  end
-end
 
 @doc raw"""
     weyl_orbit(wt::WeightLatticeElem)

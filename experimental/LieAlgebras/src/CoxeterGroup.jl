@@ -1,5 +1,3 @@
-abstract type CoxeterGroup end
-
 #function is_coxeter_matrix(M::ZZMatrix) end
 
 @doc raw"""

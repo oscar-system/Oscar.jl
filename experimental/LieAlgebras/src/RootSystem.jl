@@ -1,42 +1,8 @@
 ###############################################################################
 #
-#   Root Systems and Weights
+#   Root Systems
 #
 ###############################################################################
-
-@attributes mutable struct RootSystem
-  cartan_matrix::ZZMatrix # (generalized) Cartan matrix
-  #fw::QQMatrix # fundamental weights as linear combination of simple roots
-  positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
-  positive_roots_map::Dict{QQMatrix,Int}
-  positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
-  positive_coroots_map::Dict{QQMatrix,Int}
-  weyl_group::Any     #::WeylGroup (cyclic reference)
-
-  # optional:
-  type::Vector{Tuple{Symbol,Int}}
-  type_ordering::Vector{Int}
-
-  function RootSystem(mat::ZZMatrix)
-    pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
-    finite = count(refl .== 0) == nrows(mat)
-
-    R = new(mat)
-    R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
-    R.positive_roots_map = Dict(
-      (coefficients(root), ind) for
-      (ind, root) in enumerate(R.positive_roots::Vector{RootSpaceElem})
-    )
-    R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
-    R.positive_coroots_map = Dict(
-      (coefficients(root), ind) for
-      (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
-    )
-    R.weyl_group = WeylGroup(finite, refl, R)
-
-    return R
-  end
-end
 
 @doc raw"""
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
@@ -47,12 +13,7 @@ If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix
 Passing `detect_type=false` will skip the detection of the root system type.
 """
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
-  @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
-  R = RootSystem(cartan_matrix)
-  detect_type &&
-    is_finite(weyl_group(R)) &&
-    set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix)...)
-  return R
+  return RootSystem(cartan_matrix; check, detect_type)
 end
 
 function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
@@ -440,16 +401,10 @@ function weyl_vector(R::RootSystem)
 end
 
 ###############################################################################
-# RootSpaceElem
-
-mutable struct RootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
-end
-
-function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
-end
+#
+#   Root space elements
+#
+###############################################################################
 
 function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
@@ -600,16 +555,10 @@ function root_system(r::RootSpaceElem)
 end
 
 ###############################################################################
-# DualRootSpaceElem
-
-mutable struct DualRootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
-end
-
-function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
-end
+#
+#   Dual root space elements
+#
+###############################################################################
 
 function Base.:(*)(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
@@ -743,21 +692,10 @@ function root_system(r::DualRootSpaceElem)
 end
 
 ###############################################################################
-# WeightLatticeElem
-
-mutable struct WeightLatticeElem
-  root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
-end
-
-@doc raw"""
-    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
-
-Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
-"""
-function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
-end
+#
+#   Weight lattice elements
+#
+###############################################################################
 
 function Base.:(*)(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)
