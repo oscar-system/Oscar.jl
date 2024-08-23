@@ -280,6 +280,14 @@ include(
       @test W([1]) * a == simple_root(R, 2)
       @test W([2]) * a == simple_root(R, 1)
       @test longest_element(W) * a == -a
+
+      a_copy = deepcopy(a)
+      b = W([1]) * a
+      @test a != b
+      @test a == a_copy
+      b = reflect(a, 1)
+      @test a != b
+      @test a == a_copy
     end
 
     let R = root_system(:B, 2)
