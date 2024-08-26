@@ -995,6 +995,77 @@ function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
   return dim_of_simple_module(Int, R, hw)
 end
 
+@doc raw"""
+    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
+    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw`,
+sorted ascendingly by the total height of roots needed to reach them from `hw`.
+
+When supplying `T = Vector{Int}`, the weights are returned as vectors of integers.
+
+See [MP82](@cite) for details and the implemented algorithm.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 3);
+
+julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
+7-element Vector{Vector{Int64}}:
+ [3, 0, 1]
+ [1, 1, 1]
+ [0, 0, 3]
+ [2, 0, 1]
+ [0, 1, 1]
+ [1, 0, 1]
+ [0, 0, 1]
+```
+"""
+function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
+  return dominant_weights(WeightLatticeElem, R, hw)
+end
+
+function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_weights(R, WeightLatticeElem(R, hw))
+end
+
+function dominant_weights(::Type{WeightLatticeElem}, R::RootSystem, hw::WeightLatticeElem)
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+
+  pos_roots = positive_roots(R)
+  pos_roots_w = WeightLatticeElem.(positive_roots(R))
+
+  ws_with_level = Dict(hw => 0)
+  todo = [hw]
+  while !isempty(todo)
+    new_todo = empty(todo)
+    for w in todo
+      for (alpha, alpha_w) in zip(pos_roots, pos_roots_w)
+        w_sub_alpha = w - alpha_w
+        if is_dominant(w_sub_alpha) && !haskey(ws_with_level, w_sub_alpha)
+          push!(new_todo, w_sub_alpha)
+          push!(ws_with_level, w_sub_alpha => ws_with_level[w] + Int(height(alpha)))
+        end
+      end
+    end
+    todo = new_todo
+  end
+  return first.(sort!(collect(ws_with_level); by=last)) # order by level needed for dominant_character
+end
+
+function dominant_weights(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_weights(T, R, WeightLatticeElem(R, hw))
+end
+
+function dominant_weights(
+  T::Type{<:Vector{<:IntegerUnion}}, R::RootSystem, hw::WeightLatticeElem
+)
+  weights = dominant_weights(WeightLatticeElem, R, hw)
+  return [T(_vec(coefficients(w))) for w in weights]
+end
+
 ###############################################################################
 # internal helpers
 

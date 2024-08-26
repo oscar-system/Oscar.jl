@@ -1431,6 +1431,56 @@ function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
 end
 
 @doc raw"""
+    dominant_weights([T,] L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Vector{T}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+sorted ascendingly by the total height of roots needed to reach them from `hw`.
+
+When supplying `T = Vector{Int}`, the weights are returned as vectors of integers.
+
+See [MP82](@cite) for details and the implemented algorithm.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :B, 3);
+
+julia> dominant_weights(L, [1, 0, 3])
+7-element Vector{Vector{Int64}}:
+ [1, 0, 3]
+ [1, 1, 1]
+ [2, 0, 1]
+ [0, 0, 3]
+ [0, 1, 1]
+ [1, 0, 1]
+ [0, 0, 1]
+```
+"""
+function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dominant_weights(T, R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return first.(
+      sort!(
+        collect(
+          T(w) => d for (w, d) in
+          zip(
+            GAP.Globals.DominantWeights(
+              GAP.Globals.RootSystem(codomain(Oscar.iso_oscar_gap(L))),
+              GAP.Obj(hw; recursive=true),
+            )...,
+          )
+        ); by=last)
+    )
+  end
+end
+
+function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  return dominant_weights(Vector{Int}, L, hw)
+end
+
+@doc raw"""
     dominant_character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
