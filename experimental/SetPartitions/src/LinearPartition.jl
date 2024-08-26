@@ -43,9 +43,10 @@ end
 """
     linear_partition(ring::Ring, terms::Vector{Tuple{S, <: Any}}) where {S <: AbstractPartition}
 
-Return a `LinearPartition` generated from the Vector `term` of 2-tuples,
-where the first element in the tuple is a `RingElement` and the second
-a `SetPartition`. Furthermore simplify the term before initializing
+Return a `LinearPartition` generated from the vector `term` of 2-tuples,
+where the first element in the tuple is an `AbstractPartition` and the second
+a `RingElem`. The `ring` argument defines the base ring into which the second 
+elements of the tuples are converted. Furthermore simplify the term before initializing
 the `LinearPartition` object with the corresponding dict.
 
 # Examples
@@ -106,7 +107,7 @@ end
 
 function +(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElem } 
-    @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
+    @req base_ring(p) == base_ring(q) "Linear partitions are defined over different base rings"
     result = deepcopy(coefficients(p))
     for i in pairs(coefficients(q))
         result[i[1]] = get(result, i[1], 0) + i[2]
@@ -132,7 +133,9 @@ Return the composition between `p` and `q`.
 
 The composition is obtained by multiplying each coefficient
 of `p` with each coefficient of `q` and composing the corresponding
-partitions.
+partitions. The `RingElem` parameter `d` multiplies each 
+coefficient based on the number of loops identified during the  
+composition.
 
 # Examples
 ```jldoctest
@@ -148,7 +151,7 @@ LinearPartition{SetPartition, QQPolyRingElem}(Univariate polynomial ring in d ov
 """
 function compose(p::LinearPartition{S, T}, q::LinearPartition{S, T}, d::T) where 
         { S <: AbstractPartition, T <: RingElem }
-    @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
+    @req base_ring(p) == base_ring(q) "Linear partitions are defined over different base rings"
     result = Dict{S, T}()
     for i in pairs(coefficients(p))
         for ii in pairs(coefficients(q))
@@ -180,7 +183,7 @@ LinearPartition{SetPartition, QQPolyRingElem}(Univariate polynomial ring in d ov
 """
 function tensor_product(p::LinearPartition{S, T}, q::LinearPartition{S, T}) where 
         { S <: AbstractPartition, T <: RingElem }
-    @req (base_ring(p) == base_ring(q)) "Linear partitions are defined over different base rings"
+    @req base_ring(p) == base_ring(q) "Linear partitions are defined over different base rings"
     result = Dict{S, T}()
     for i in pairs(coefficients(p))
         for ii in pairs(coefficients(q))

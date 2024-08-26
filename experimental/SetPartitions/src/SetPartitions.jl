@@ -48,6 +48,7 @@ export is_non_crossing
 export is_pair
 export join
 export levels
+export linear_partition
 export lower_colors
 export lower_points
 export number_of_blocks
@@ -63,9 +64,6 @@ export set_partition
 export spatial_partition
 export upper_colors
 export upper_points
-export simplify_operation_zero
-export simplify_operation
-export linear_partition
 
 
 
@@ -97,6 +95,7 @@ export is_non_crossing
 export is_pair
 export join
 export levels
+export linear_partition
 export lower_colors
 export lower_points
 export number_of_blocks
@@ -112,6 +111,3 @@ export set_partition
 export spatial_partition
 export upper_colors
 export upper_points
-export simplify_operation_zero
-export simplify_operation
-export linear_partition
