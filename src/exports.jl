@@ -273,6 +273,7 @@ export bases
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
+export barycentric_subdivision
 export bell
 export betti
 export betti_number

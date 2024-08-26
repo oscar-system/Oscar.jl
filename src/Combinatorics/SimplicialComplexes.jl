@@ -702,3 +702,7 @@ function link_subcomplex(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:
   zero_based_face = Polymake.to_zero_based_indexing(face)
   return SimplicialComplex(Polymake.link_subcomplex(pm_object(K), zero_based_face))
 end
+
+function barycentric_subdivision(K::SimplicialComplex)
+  return SimplicialComplex(Polymake.topaz.barycentric_subdivision(pm_object(K))) 
+end
