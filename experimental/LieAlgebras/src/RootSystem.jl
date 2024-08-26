@@ -88,6 +88,18 @@ function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
 end
 
+@attr QQMatrix function cartan_matrix_inv(R::RootSystem)
+  return inv(matrix(QQ, cartan_matrix(R)))
+end
+
+@attr QQMatrix function cartan_matrix_inv_tr(R::RootSystem)
+  return transpose(cartan_matrix_inv(R))
+end
+
+@attr ZZMatrix function cartan_matrix_tr(R::RootSystem)
+  return transpose(cartan_matrix(R))
+end
+
 @attr Vector{ZZRingElem} function cartan_symmetrizer(R::RootSystem)
   return cartan_symmetrizer(cartan_matrix(R); check=false)
 end
@@ -406,6 +418,20 @@ end
 #
 ###############################################################################
 
+function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
+  return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+end
+
+function RootSpaceElem(R::RootSystem, w::WeightLatticeElem)
+  @req root_system(w) === R "Root system mismatch"
+  coeffs = transpose!(cartan_matrix_inv(R) * coefficients(w))
+  return RootSpaceElem(R, matrix(QQ, coeffs))
+end
+
+function RootSpaceElem(w::WeightLatticeElem)
+  return RootSpaceElem(root_system(w), w)
+end
+
 function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
@@ -560,6 +586,10 @@ end
 #
 ###############################################################################
 
+function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
+  return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+end
+
 function Base.:(*)(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
 end
@@ -696,6 +726,26 @@ end
 #   Weight lattice elements
 #
 ###############################################################################
+
+@doc raw"""
+    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
+
+Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
+"""
+function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
+  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
+end
+
+function WeightLatticeElem(R::RootSystem, r::RootSpaceElem)
+  @req root_system(r) === R "Root system mismatch"
+  coeffs = transpose!(coefficients(r) * cartan_matrix_tr(R))
+  @req all(is_integer, coeffs) "RootSpaceElem does not correspond to a weight"
+  return WeightLatticeElem(R, matrix(ZZ, coeffs))
+end
+
+function WeightLatticeElem(r::RootSpaceElem)
+  return WeightLatticeElem(root_system(r), r)
+end
 
 function Base.:(*)(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)

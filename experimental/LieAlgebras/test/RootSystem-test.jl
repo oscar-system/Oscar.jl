@@ -70,6 +70,7 @@
         @test all(is_positive_root, simple_roots(R))
         @test all(!is_negative_root, simple_roots(R))
         @test all(iszero, positive_roots(R) + negative_roots(R))
+        @test all(r -> r == RootSpaceElem(WeightLatticeElem(r)), simple_roots(R))
         n_roots(R) >= 1 && for _ in 1:10
           r = root(R, rand(1:n_roots(R)))
           w = rand(W)
@@ -121,6 +122,11 @@
             2,
           1:n_roots(R),
         )
+
+        @test length(fundamental_weights(R)) == rank(R)
+        @test all(i -> fundamental_weight(R, i) == fundamental_weights(R)[i], 1:rk)
+        @test all(w -> w == WeightLatticeElem(RootSpaceElem(w)), fundamental_weights(R))
+
       end
 
       @testset "Serialization" begin
@@ -230,5 +236,39 @@
     w = WeightLatticeElem(R, [2, 2])
 
     @test root_system(w) === R
+  end
+
+  @testset "Root/weight conversion" begin
+    let R = root_system(:A, 2) # from Hum72, Ch. 13.1
+      @test WeightLatticeElem(simple_root(R, 1)) == WeightLatticeElem(R, [2, -1])
+      @test WeightLatticeElem(simple_root(R, 2)) == WeightLatticeElem(R, [-1, 2])
+      @test RootSpaceElem(fundamental_weight(R, 1)) == RootSpaceElem(R, (1//3) .* [2, 1])
+      @test RootSpaceElem(fundamental_weight(R, 2)) == RootSpaceElem(R, (1//3) .* [1, 2])
+    end
+
+    let R = root_system(:E, 6) # from Hum72, Ch. 13.1, Table 1
+      @test RootSpaceElem(fundamental_weight(R, 1)) ==
+        RootSpaceElem(R, (1//3) .* [4, 3, 5, 6, 4, 2])
+      @test RootSpaceElem(fundamental_weight(R, 2)) == RootSpaceElem(R, [1, 2, 2, 3, 2, 1])
+      @test RootSpaceElem(fundamental_weight(R, 3)) ==
+        RootSpaceElem(R, (1//3) .* [5, 6, 10, 12, 8, 4])
+      @test RootSpaceElem(fundamental_weight(R, 4)) == RootSpaceElem(R, [2, 3, 4, 6, 4, 2])
+      @test RootSpaceElem(fundamental_weight(R, 5)) ==
+        RootSpaceElem(R, (1//3) .* [4, 6, 8, 12, 10, 5])
+      @test RootSpaceElem(fundamental_weight(R, 6)) ==
+        RootSpaceElem(R, (1//3) .* [2, 3, 4, 6, 5, 4])
+    end
+
+    let R = root_system(:F, 4) # from Hum72, Ch. 13.1, Table 1
+      @test RootSpaceElem(fundamental_weight(R, 1)) == RootSpaceElem(R, [2, 3, 4, 2])
+      @test RootSpaceElem(fundamental_weight(R, 2)) == RootSpaceElem(R, [3, 6, 8, 4])
+      @test RootSpaceElem(fundamental_weight(R, 3)) == RootSpaceElem(R, [2, 4, 6, 3])
+      @test RootSpaceElem(fundamental_weight(R, 4)) == RootSpaceElem(R, [1, 2, 3, 2])
+    end
+
+    let R = root_system(:G, 2) # from Hum72, Ch. 13.1, Table 1
+      @test RootSpaceElem(fundamental_weight(R, 1)) == RootSpaceElem(R, [2, 1])
+      @test RootSpaceElem(fundamental_weight(R, 2)) == RootSpaceElem(R, [3, 2])
+    end
   end
 end
