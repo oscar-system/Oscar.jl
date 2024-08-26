@@ -366,7 +366,7 @@ h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
   @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["u", "v", "w"]
   @test is_base_space_fully_specified(h) == false
   @test is_partially_resolved(h) == false
-  @test string.(zero_section(h)) == ["0", "-b1", "a1"]
+  @test string.(zero_section_coordinates(h)) == ["0", "-b1", "a1"]
 end
 
 

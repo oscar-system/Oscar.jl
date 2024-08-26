@@ -102,6 +102,7 @@ export has_weighted_resolution_generating_sections
 export has_weighted_resolution_zero_sections
 export has_weighted_resolutions
 export has_zero_section
+export has_zero_section_coordinates
 export hodge_h11
 export hodge_h12
 export hodge_h13
@@ -137,6 +138,7 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export passes_elementary_quantization_checks
+export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
 export birational_literature_models
@@ -184,6 +186,7 @@ export set_weighted_resolution_generating_sections
 export set_weighted_resolution_zero_sections
 export set_weighted_resolutions
 export set_zero_section
+export set_zero_section_coordinates
 export simplified_dual_graph
 export singular_loci
 export su5_tate_model_over_arbitrary_3d_base
@@ -211,3 +214,5 @@ export weighted_resolution_generating_sections
 export weighted_resolution_zero_sections
 export weighted_resolutions
 export weights
+export zero_section
+export zero_section_coordinates

@@ -633,6 +633,10 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   if haskey(model_dict["model_data"], "zero_section")
     set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
   end
+  
+  if haskey(model_dict["model_data"], "zero_section_coordinates")
+    set_zero_section_coordinates(model, string.(model_dict["model_data"]["zero_section_coordinates"]))
+  end
 
   if haskey(model_dict["model_data"], "generating_sections")
     set_generating_sections(model, map(k -> string.(k), model_dict["model_data"]["generating_sections"]))
