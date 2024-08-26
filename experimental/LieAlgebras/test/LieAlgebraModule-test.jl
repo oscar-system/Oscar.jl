@@ -782,16 +782,29 @@
   @testset "dominant_character" begin
     is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
 
-    function check_dominant_character(L::LieAlgebra, hw::Vector{Int})
-      domchar = @inferred dominant_character(L, hw)
-      @test domchar[hw] == 1
+    function check_dominant_character(
+      LR::Union{LieAlgebra,RootSystem}, hw::Vector{<:Oscar.IntegerUnion}
+    )
+      domchar = @inferred dominant_character(LR, hw)
+      @test domchar[Int.(hw)] == 1
+      @test issetequal(keys(domchar), dominant_weights(Vector{Int}, LR, hw))
       @test all(w -> is_dominant_weight(w), keys(domchar))
       @test all(>=(1), values(domchar))
       return domchar
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 1]
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      domchar = check_dominant_character(R, hw)
+      @test domchar == Dict(Int[] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 2), hw = [0, 0]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict([0, 0] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 3), hw = ZZ.([1, 1, 1])
       domchar = check_dominant_character(L, hw)
       @test domchar == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
     end
@@ -834,8 +847,8 @@
       )
     end
 
-    let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
-      domchar = check_dominant_character(L, hw)
+    let R = root_system(:E, 6), hw = [1, 0, 1, 0, 1, 0]
+      domchar = check_dominant_character(R, hw)
       @test domchar == Dict(
         [1, 0, 1, 0, 1, 0] => 1,
         [0, 0, 0, 1, 1, 0] => 2,
@@ -870,6 +883,27 @@
         [0, 1] => 7,
         [1, 0] => 10,
         [0, 0] => 10,
+      )
+    end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw = [7] # type A_1 but without known root system
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [7] => 1,
+        [5] => 1,
+        [3] => 1,
+        [1] => 1,
+      )
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [1, 2] => 1,
+        [2, 0] => 1,
+        [0, 2] => 2,
+        [1, 0] => 3,
+        [0, 0] => 3,
       )
     end
   end

@@ -105,7 +105,7 @@ end
 end
 
 @attr ZZMatrix function _cartan_symmetrizer_mat(R::RootSystem)
-  return diagonal_matrix(cartan_symmetrizer(R))
+  return diagonal_matrix(ZZ, cartan_symmetrizer(R))
 end
 
 @doc raw"""
@@ -1065,6 +1065,107 @@ function dominant_weights(
 )
   weights = dominant_weights(WeightLatticeElem, R, hw)
   return [T(_vec(coefficients(w))) for w in weights]
+end
+
+function _action_matrices_on_weights(W::WeylGroup)
+  R = root_system(W)
+  return map(1:rank(R)) do i
+    x = gen(W, i)
+    transpose!(
+      matrix(
+        ZZ, reduce(hcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
+      ),
+    )
+  end
+end
+
+@doc raw"""
+    dominant_character(R::RootSystem, hw::WeightLatticeElem) -> Dict{Vector{Int}, Int}
+    dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw`, together with their multiplicities.
+
+The return type may change in the future.
+
+This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 3);
+
+julia> dominant_character(R, [2, 0, 1])
+Dict{Vector{Int64}, Int64} with 4 entries:
+  [1, 0, 1] => 3
+  [0, 0, 1] => 6
+  [2, 0, 1] => 1
+  [0, 1, 1] => 1
+```
+"""
+function dominant_character(R::RootSystem, hw::WeightLatticeElem)
+  T = Int
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  W = weyl_group(R)
+  rho = weyl_vector(R)
+  hw_plus_rho = hw + rho
+  dot_how_plus_rho = dot(hw_plus_rho, hw_plus_rho)
+
+  pos_roots = positive_roots(R)
+  pos_roots_w = WeightLatticeElem.(positive_roots(R))
+  pos_roots_w_coeffs = transpose.(coefficients.(pos_roots_w))
+
+  char = Dict(hw => T(1))
+
+  todo = dominant_weights(R, hw)
+  all_orbs = Dict{Vector{Int},Vector{Tuple{WeightLatticeElem,Int}}}()
+  action_matrices_on_weights = _action_matrices_on_weights(W)
+
+  for w in Iterators.drop(todo, 1)
+    stab_inds = [i for (i, ci) in enumerate(coefficients(w)) if iszero(ci)]
+    orbs = get!(all_orbs, stab_inds) do
+      gens = action_matrices_on_weights[stab_inds]
+      push!(gens, -identity_matrix(ZZ, rank(R)))
+      G = matrix_group(gens)
+      O = orbits(gset(G, *, [pos_roots_w_coeffs; -pos_roots_w_coeffs]))
+      [
+        (
+          WeightLatticeElem(
+            R,
+            transpose(first(intersect(elements(o)::Vector{ZZMatrix}, pos_roots_w_coeffs))),
+          ),
+          length(o),
+        ) for o in O
+      ]
+    end
+
+    accum = sum(
+      data -> begin
+        rep, len = data
+        accum2 = 0
+        w_plus_i_rep = w + rep
+        while true
+          w_plus_i_rep_conj = conjugate_dominant_weight(w_plus_i_rep)
+          haskey(char, w_plus_i_rep_conj) || break
+          accum2 += char[w_plus_i_rep_conj] * dot(w_plus_i_rep, rep)
+          w_plus_i_rep += rep
+        end
+        len * accum2
+      end, orbs; init=zero(QQ))
+    if !iszero(accum)
+      w_plus_rho = w + rho
+      denom = dot_how_plus_rho - dot(w_plus_rho, w_plus_rho)
+      if !iszero(denom)
+        char[w] = T(ZZ(div(accum, denom)))
+      end
+    end
+  end
+  # return char
+  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+end
+
+function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(R, WeightLatticeElem(R, hw))
 end
 
 ###############################################################################

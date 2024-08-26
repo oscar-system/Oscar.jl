@@ -1481,10 +1481,14 @@ function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
 end
 
 @doc raw"""
-    dominant_character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+    dominant_character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
+
+The return type may change in the future.
+
+This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
 # Example
 ```jldoctest
@@ -1498,12 +1502,21 @@ Dict{Vector{Int64}, Int64} with 4 entries:
   [0, 2, 0] => 1
 ```
 """
-function dominant_character(L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  return Dict{Vector{Int},Int}(
-    Vector{Int}(w) => d for (w, d) in
-    zip(GAPWrap.DominantCharacter(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))...)
-  )
+function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dominant_character(R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return Dict{Vector{Int},Int}(
+      Vector{Int}(w) => d for (w, d) in
+      zip(
+        GAPWrap.DominantCharacter(
+          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
+        )...,
+      )
+    )
+  end
 end
 
 @doc raw"""

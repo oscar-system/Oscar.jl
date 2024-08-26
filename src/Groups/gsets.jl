@@ -787,7 +787,7 @@ end
 
 acting_domain(Omega::GSet) = acting_group(Omega)
 
-Base.length(Omega::GSetByElements) = length(elements(Omega))
+Base.length(Omega::GSetByElements) = length(elements(Omega))::Int
 Base.length(::Type{T}, Omega::GSetByElements) where T <: IntegerUnion = T(length(elements(Omega)))
 
 representative(Omega::GSetByElements) = first(Omega.seeds)
