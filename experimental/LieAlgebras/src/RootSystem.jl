@@ -104,6 +104,10 @@ end
   return cartan_symmetrizer(cartan_matrix(R); check=false)
 end
 
+@attr ZZMatrix function _cartan_symmetrizer_mat(R::RootSystem)
+  return diagonal_matrix(cartan_symmetrizer(R))
+end
+
 @doc raw"""
     coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -866,6 +870,15 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
   return wt, weyl_group(R)(reverse!(word); normalize=false)
 end
 
+function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req root_system(w1) === root_system(w2) "parent weight lattices mismatch"
+  R = root_system(w1)
+
+  return dot(
+    coefficients(w1), cartan_matrix_inv_tr(R) * _cartan_symmetrizer_mat(R), coefficients(w2)
+  )
+end
+
 function expressify(w::WeightLatticeElem, s=:w; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
@@ -931,13 +944,9 @@ end
 
 function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
+  R = root_system(r)
 
-  symmetrizer = cartan_symmetrizer(root_system(r))
-  return sum(
-    r[i] * symmetrizer[i] * w[i] for
-    i in 1:rank(root_system(r));
-    init=zero(QQ),
-  )
+  return dot(coefficients(r), _cartan_symmetrizer_mat(R), coefficients(w))
 end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)

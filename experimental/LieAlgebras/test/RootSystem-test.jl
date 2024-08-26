@@ -126,7 +126,10 @@
         @test length(fundamental_weights(R)) == rank(R)
         @test all(i -> fundamental_weight(R, i) == fundamental_weights(R)[i], 1:rk)
         @test all(w -> w == WeightLatticeElem(RootSpaceElem(w)), fundamental_weights(R))
-
+        @test all(
+          dot(simple_root(R, i), fundamental_weight(R, j)) ==
+          (i == j ? cartan_symmetrizer(R)[i] : 0) for i in 1:rk, j in 1:rk
+        )
       end
 
       @testset "Serialization" begin
@@ -269,6 +272,42 @@
     let R = root_system(:G, 2) # from Hum72, Ch. 13.1, Table 1
       @test RootSpaceElem(fundamental_weight(R, 1)) == RootSpaceElem(R, [2, 1])
       @test RootSpaceElem(fundamental_weight(R, 2)) == RootSpaceElem(R, [3, 2])
+    end
+  end
+
+  @testset "dot" begin
+    @testset "$Rname" for (Rname, R) in [
+      ("A5", root_system(:A, 5)),
+      ("B3", root_system(:B, 3)),
+      ("D4", root_system(:D, 4)),
+      ("F4", root_system(:F, 4)),
+      ("G2", root_system(:G, 2)),
+    ]
+      R = root_system(:B, 3)
+      r1 = RootSpaceElem(R, rand(-10:10, 3))
+      r2 = RootSpaceElem(R, rand(-10:10, 3))
+      w1 = WeightLatticeElem(R, rand(-10:10, 3))
+      w2 = WeightLatticeElem(R, rand(-10:10, 3))
+
+      result = @inferred dot(r1, r2)
+      @test result == @inferred dot(r1, WeightLatticeElem(r2))
+      @test result == @inferred dot(WeightLatticeElem(r1), r2)
+      @test result == @inferred dot(WeightLatticeElem(r1), WeightLatticeElem(r2))
+
+      result = @inferred dot(r1, w2)
+      @test result == @inferred dot(r1, RootSpaceElem(w2))
+      @test result == @inferred dot(WeightLatticeElem(r1), w2)
+      @test result == @inferred dot(WeightLatticeElem(r1), RootSpaceElem(w2))
+
+      result = @inferred dot(w1, r2)
+      @test result == @inferred dot(w1, WeightLatticeElem(r2))
+      @test result == @inferred dot(RootSpaceElem(w1), r2)
+      @test result == @inferred dot(RootSpaceElem(w1), WeightLatticeElem(r2))
+
+      result = @inferred dot(w1, w2)
+      @test result == @inferred dot(w1, RootSpaceElem(w2))
+      @test result == @inferred dot(RootSpaceElem(w1), w2)
+      @test result == @inferred dot(RootSpaceElem(w1), RootSpaceElem(w2))
     end
   end
 end
