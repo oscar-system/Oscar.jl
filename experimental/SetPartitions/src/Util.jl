@@ -134,7 +134,7 @@ Simplify the vector representation of a `LinearPartition` in terms of distributi
 julia> S, d = polynomial_ring(QQ, "d")
 (Univariate polynomial ring in d over QQ, d)
 
-julia> simplify_operation([(set_partition([1, 1], [1, 1]), S(10)), (set_partition([1, 1], [1, 1]), 4*d)])
+julia> Oscar.SetPartitions.simplify_operation([(set_partition([1, 1], [1, 1]), S(10)), (set_partition([1, 1], [1, 1]), 4*d)])
 1-element Vector{Tuple{SetPartition, QQPolyRingElem}}:
  (SetPartition([1, 1], [1, 1]), 4*d + 10)
 ```
