@@ -54,7 +54,7 @@
             [1, 1, 0]
         ],
         "hypersurface_equation": "w^2 + b * v^2 * w - u * (c0 * u^3 + c1 * u^2 * v + c2 * u * v^2 + c3 * v^3)",
-        "zero_section": ["0", "1", "0"],
+        "zero_section_coordinates": ["0", "1", "0"],
         "generating_sections": [["0", "1", "-b"]]
     },
     "birational_models": ["model1208_2695-2.json"]

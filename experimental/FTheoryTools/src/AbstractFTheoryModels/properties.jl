@@ -97,6 +97,7 @@ has_weighted_resolutions(m::AbstractFTheoryModel) = has_attribute(m, :weighted_r
 has_weighted_resolution_generating_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_generating_sections)
 has_weighted_resolution_zero_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_zero_sections)
 has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
+has_zero_section_coordinates(m::AbstractFTheoryModel) = has_attribute(m, :zero_section_coordinates)
 has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
 has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
 

@@ -1013,10 +1013,10 @@ end
 
 
 @doc raw"""
-    zero_section(m::AbstractFTheoryModel)
+    zero_section_coordinates(m::AbstractFTheoryModel)
 
-Return the zero section of the given model.
-If no zero section is known, an error is raised.
+Return the zero section coordinates of the given model.
+If no zero section coordinates are known, an error is raised.
 This information is not typically stored as an attribute for
 Weierstrass and global Tate models, whose zero sections are known.
 
@@ -1026,11 +1026,33 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Hypersurface model over a not fully specified base
 
-julia> zero_section(h)
+julia> zero_section_coordinates(h)
 3-element Vector{QQMPolyRingElem}:
  0
  1
  0
+```
+"""
+function zero_section_coordinates(m::AbstractFTheoryModel)
+  @req has_zero_section_coordinates(m) "No zero section coordinates stored for this model"
+  return get_attribute(m, :zero_section_coordinates)
+end
+
+
+@doc raw"""
+    zero_section(m::AbstractFTheoryModel)
+
+Return the zero section of a model as a cohomology class in the toric ambient space.
+If no zero section is known, an error is raised.
+This information is not typically available for
+Weierstrass and global Tate models, whose zero sections are known.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> zero_section(qsm_model)
+Cohomology class on a normal toric variety given by x32 + 2*x33 + 3*x34 + x35 - x36
 ```
 """
 function zero_section(m::AbstractFTheoryModel)
