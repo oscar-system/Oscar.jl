@@ -25,4 +25,61 @@ dual_subdivision(TropH::TropicalHypersurface)
 ```
 
 ## Examples
-I am working on creating some examples.
+The following code sets up an example and prints the vertices and rays of the tropical hypersurface (in no particular order).
+```julia-repl
+julia> TRing = tropical_semiring();
+
+julia> Tx,(x1,x2) = polynomial_ring(TRing, 2);
+
+julia> g = 1 + 2*x1^2 + 2*x2^2 + 1*x1*x2;
+
+julia> THg = tropical_hypersurface(g);
+
+julia> vertRays = vertices_and_rays(THg)
+5-element SubObjectIterator{Union{PointVector{QQFieldElem}, RayVector{QQFieldElem}}}:
+ [-1, -1]
+ [1, 0]
+ [0, 1]
+ [-1//2, 1//2]
+ [1//2, -1//2]
+```
+By broadcasting the `typeof()` command, we can see, which are vertices, and which are rays.
+```julia-repl
+julia> typeof.(vertRays)
+5-element Vector{DataType}:
+ RayVector{QQFieldElem}
+ RayVector{QQFieldElem}
+ RayVector{QQFieldElem}
+ PointVector{QQFieldElem}
+ PointVector{QQFieldElem}
+```
+The maximal polyhedra of our tropical hypersurface is simply the edges (both bounded and unbounded). The command `maximal_polyhedra()` gives us a list of these edges (in no particular order).
+```julia-repl
+julia> maxPolTg = maximal_polyhedra(THg)
+5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polyhedron in ambient dimension 2
+ Polytope in ambient dimension 2
+ Polyhedron in ambient dimension 2
+```
+The polyhedrons are the unbounded edges, and the polytopes are the bounded edges. This is also made clear if we ask for the vertices of each of the maximal polyhedra (the bounded edges have a vertex at each end, while the unbounded only have one vertex).
+```julia-repl
+julia> vertices.(maxPolTg)
+5-element Vector{SubObjectIterator{PointVector{QQFieldElem}}}:
+ [[-1//2, 1//2]]
+ [[1//2, -1//2]]
+ [[-1//2, 1//2]]
+ [[-1//2, 1//2], [1//2, -1//2]]
+ [[1//2, -1//2]]
+```
+Instead of being between two vertices, the unbounded edges are defined by a vertex and a ray.
+```julia-repl
+julia> rays.(maxPolTg)
+5-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
+ [[-1, -1]]
+ [[-1, -1]]
+ [[0, 1]]
+ 0-element SubObjectIterator{RayVector{QQFieldElem}}
+ [[1, 0]]
+```
