@@ -24,7 +24,7 @@ tropical_polynomial(TropH::TropicalHypersurface)
 dual_subdivision(TropH::TropicalHypersurface)
 ```
 
-## Examples
+## Example
 The following code sets up an example and prints the vertices and rays of the tropical hypersurface (in no particular order).
 ```julia-repl
 julia> TRing = tropical_semiring();
