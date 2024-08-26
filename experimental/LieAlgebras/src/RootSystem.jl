@@ -875,7 +875,8 @@ function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
   R = root_system(w1)
 
   return dot(
-    coefficients(w1), cartan_matrix_inv_tr(R) * _cartan_symmetrizer_mat(R), coefficients(w2)
+    coefficients(w1),
+    cartan_matrix_inv_tr(R) * (_cartan_symmetrizer_mat(R) * coefficients(w2)),
   )
 end
 
@@ -954,7 +955,7 @@ function dot(w::WeightLatticeElem, r::RootSpaceElem)
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem -> T
+    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem) -> T
     dim_of_simple_module([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> T
 
 Compute the dimension of the simple module of the Lie algebra defined by the root system `R`
@@ -973,11 +974,11 @@ function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   rho = weyl_vector(R)
-  hw_rho = hw + rho
+  hw_plus_rho = hw + rho
   num = one(ZZ)
   den = one(ZZ)
   for alpha in positive_roots(R)
-    num *= ZZ(dot(hw_rho, alpha))
+    num *= ZZ(dot(hw_plus_rho, alpha))
     den *= ZZ(dot(rho, alpha))
   end
   return T(div(num, den))

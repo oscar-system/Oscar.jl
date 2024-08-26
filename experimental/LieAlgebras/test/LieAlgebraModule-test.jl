@@ -484,6 +484,7 @@
       end
     end
   end
+
   @testset "so_n correctness regression" begin
     function lie_algebra_module_struct_const(
       L::LieAlgebra{C}, V::LieAlgebraModule{C}

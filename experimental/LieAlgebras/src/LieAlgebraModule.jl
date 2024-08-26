@@ -1398,10 +1398,10 @@ function simple_module(L::LieAlgebra, hw::Vector{Int})
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
+    dim_of_simple_module([T = Int,] L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
 
 Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
- using Weyl's dimension formula.
+using Weyl's dimension formula.
 The return value is of type `T`.
 
 # Example
