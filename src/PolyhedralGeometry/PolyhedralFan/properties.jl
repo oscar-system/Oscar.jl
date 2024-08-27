@@ -5,12 +5,12 @@
 ###############################################################################
 
 @doc raw"""
-    rays[as::Type{T} = RayVector,] (PF::PolyhedralFan)
+    rays([as::Type{T} = RayVector,] PF::PolyhedralFan)
 
 Return the rays of `PF`. The rays are defined to be the
 one-dimensional faces of its cones, so if `PF` has lineality, there are no rays.
 
-See also [`rays_modulo_lineality`](@ref).
+See also [`rays_modulo_lineality`](@ref rays_modulo_lineality(F::_FanLikeType)).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -83,15 +83,15 @@ _matrix_for_polymake(::Val{_ray_fan}) = _vector_matrix
 _maximal_cone(::Type{Cone{T}}, PF::_FanLikeType, i::Base.Integer) where {T<:scalar_types} =
   Cone{T}(Polymake.fan.cone(pm_object(PF), i - 1), coefficient_field(PF))
 
-@doc raw"""                                                 
+@doc raw"""
     rays_modulo_lineality(as, F::PolyhedralFan)
-                         
+
 Return the rays of the polyhedral fan `F` up to lineality as a `NamedTuple`
 with two iterators. If `F` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `F/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
-See also [`rays`](@ref) and [`lineality_space`](@ref).
+See also [`rays`](@ref rays(PF::_FanLikeType)) and [`lineality_space`](@ref lineality_space(PF::_FanLikeType)).
 
 # Examples
 ```jldoctest
@@ -149,7 +149,7 @@ Return the maximal cones of `PF`.
 
 Optionally `IncidenceMatrix` can be passed as a first argument to return the
 incidence matrix specifying the maximal cones of `PF`. In that case, the
-indices refer to the output of [`rays_modulo_lineality(Cone)`](@ref).
+indices refer to the output of [`rays_modulo_lineality(Cone)`](@ref rays_modulo_lineality(F::_FanLikeType)).
 
 # Examples
 Here we ask for the the number of rays for each maximal cone of the face fan of

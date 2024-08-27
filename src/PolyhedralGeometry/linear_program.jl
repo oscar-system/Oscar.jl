@@ -60,8 +60,7 @@ pm_object(lp::LinearProgram) = lp.polymake_lp
 ###############################################################################
 ###############################################################################
 function Base.show(io::IO, LP::LinearProgram)
-  c = dehomogenize(LP.polymake_lp.LINEAR_OBJECTIVE)
-  k = LP.polymake_lp.LINEAR_OBJECTIVE[1]
+  (c, k) = objective_function(LP; as=:pair)
   print(io, "Linear program\n")
   if LP.convention == :max
     print(io, "   max")
@@ -75,7 +74,7 @@ function Base.show(io::IO, LP::LinearProgram)
   end
   print(io, "where P is a " * string(typeof(LP.feasible_region)))
   print(io, " and\n   c=")
-  print(io, string(c'))
+  print(io, string(c))
   print(io, "\n   k=")
   print(io, string(k))
 end
@@ -98,8 +97,9 @@ The allowed values for `as` are
 """
 function objective_function(lp::LinearProgram{T}; as::Symbol=:pair) where {T<:scalar_types}
   if as == :pair
-    return Vector{T}(dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)),
-    convert(T, lp.polymake_lp.LINEAR_OBJECTIVE[1])
+    cf = coefficient_field(lp)
+    return T[cf(x) for x in dehomogenize(lp.polymake_lp.LINEAR_OBJECTIVE)],
+    cf.(lp.polymake_lp.LINEAR_OBJECTIVE[1])
   elseif as == :function
     (c, k) = objective_function(lp; as=:pair)
     return x -> sum(x .* c) + k
@@ -138,7 +138,7 @@ julia> LP=linear_program(C,[1,2,-3])
 Linear program
    max{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[1 2 -3]
+   c=QQFieldElem[1, 2, -3]
    k=0
 
 julia> optimal_vertex(LP)
@@ -168,7 +168,7 @@ end
     optimal_value(LP::LinearProgram)
 
 Return, if it exists, the optimal value of the objective function of `LP` over the feasible region
-of `LP`. Otherwise, return `-inf` or `inf` depending on convention.
+of `LP`. Otherwise, return `-infinity` or `infinity` depending on convention, or `nothing` if the feasible region is empty.
 
 # Examples
 The following example constructs a linear program over the three dimensional cube, and
@@ -181,31 +181,42 @@ julia> LP=linear_program(C,[1,2,-3]; convention = :min)
 Linear program
    min{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[1 2 -3]
+   c=QQFieldElem[1, 2, -3]
    k=0
 
 julia> optimal_value(LP)
 -6
 ```
+
+Optimizing in an unbounded direction yields infinity.
+```jldoctest
+julia> lp = linear_program(convex_hull([0 0], [1 0; 0 1]), [1, 1])
+Linear program
+   max{c*x + k | x in P}
+where P is a Polyhedron{QQFieldElem} and
+   c=QQFieldElem[1, 1]
+   k=0
+
+julia> optimal_value(lp)
+infinity
+```
 """
 function optimal_value(lp::LinearProgram{T}) where {T<:scalar_types}
-  if lp.convention == :max
-    # TODO: consider inf
-    # return convert(T, lp.polymake_lp.MAXIMAL_VALUE)
-    return lp.polymake_lp.MAXIMAL_VALUE
-  else
-    # return convert(T, lp.polymake_lp.MINIMAL_VALUE)
-    return lp.polymake_lp.MINIMAL_VALUE
-  end
+  cf = coefficient_field(lp)
+  conv = lp.convention
+  mv = conv === :max ? lp.polymake_lp.MAXIMAL_VALUE : lp.polymake_lp.MINIMAL_VALUE
+  is_feasible(feasible_region(lp)) || return nothing
+  isinf(mv) && return conv === :max ? PosInf() : NegInf()
+  return cf(mv)
 end
 
 @doc raw"""
     solve_lp(LP::LinearProgram)
 
 Return a pair `(m,v)` where the optimal value `m` of the objective
- function of `LP` is attained at `v` (if `m` exists). If the optimum
- is not attained, `m` may be `inf` or `-inf` in which case `v` is
- `nothing`.
+function of `LP` is attained at `v` (if `m` exists). If the optimum is not
+attained or the feasible region is empty, `m` may be `infinity`, `-infinity`,
+or `nothing` in which case `v` is `nothing`.
 """
 solve_lp(lp::LinearProgram) = optimal_value(lp), optimal_vertex(lp)
 

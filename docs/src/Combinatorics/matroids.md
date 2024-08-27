@@ -125,4 +125,8 @@ chow_ring(M::Matroid; ring::Union{MPolyRing,Nothing}=nothing, extended::Bool=fal
 augmented_chow_ring(M::Matroid)
 ```
 
-
+### Quantum Automorphisms
+```@docs
+quantum_symmetric_group(n::Int)
+quantum_automorphism_group(M::Matroid, structure::Symbol)
+```
