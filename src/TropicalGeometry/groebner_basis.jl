@@ -299,7 +299,7 @@ julia> desimulate_valuation(wSim, nuMax; perturbation=uSim)
 function desimulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
     @req w[1]<0 "invalid weight vector"
     # scale the vector so that first entry is 1, then remove first entry
-    w ./= w[1]
+    w = w ./ w[1]
     if !isnothing(perturbation)
         # negate vector, then remove first entry
         perturbation *= -1
