@@ -25,8 +25,12 @@ dual_subdivision(TropH::TropicalHypersurface)
 ```
 
 ## Example
+```@meta
+CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
+```
 The following code sets up an example and prints the vertices and rays of the tropical hypersurface (in no particular order).
-```jldoctest
+```jldoctest exampleHypersurface
 julia> TRing = tropical_semiring();
 
 julia> Tx,(x1,x2) = polynomial_ring(TRing, 2);
@@ -44,7 +48,7 @@ julia> vertRays = vertices_and_rays(THg)
  [1//2, -1//2]
 ```
 By broadcasting the `typeof()` command, we can see, which are vertices, and which are rays.
-```jldoctest
+```jldoctest exampleHypersurface
 julia> typeof.(vertRays)
 5-element Vector{DataType}:
  RayVector{QQFieldElem}
@@ -54,7 +58,7 @@ julia> typeof.(vertRays)
  PointVector{QQFieldElem}
 ```
 The maximal polyhedra of our tropical hypersurface is simply the edges (both bounded and unbounded). The command `maximal_polyhedra()` gives us a list of these edges (in no particular order).
-```jldoctest
+```jldoctest exampleHypersurface
 julia> maxPolTg = maximal_polyhedra(THg)
 5-element SubObjectIterator{Polyhedron{QQFieldElem}}:
  Polyhedron in ambient dimension 2
@@ -64,7 +68,7 @@ julia> maxPolTg = maximal_polyhedra(THg)
  Polyhedron in ambient dimension 2
 ```
 The polyhedrons are the unbounded edges, and the polytopes are the bounded edges. This is also made clear if we ask for the vertices of each of the maximal polyhedra (the bounded edges have a vertex at each end, while the unbounded only have one vertex).
-```jldoctest
+```jldoctest exampleHypersurface
 julia> vertices.(maxPolTg)
 5-element Vector{SubObjectIterator{PointVector{QQFieldElem}}}:
  [[-1//2, 1//2]]
@@ -74,7 +78,7 @@ julia> vertices.(maxPolTg)
  [[1//2, -1//2]]
 ```
 Instead of being between two vertices, the unbounded edges are defined by a vertex and a ray.
-```jldoctest
+```jldoctest exampleHypersurface
 julia> rays.(maxPolTg)
 5-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
  [[-1, -1]]
