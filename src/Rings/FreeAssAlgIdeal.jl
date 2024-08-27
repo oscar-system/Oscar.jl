@@ -36,6 +36,10 @@ function Base.:(==)(I2::FreeAssAlgIdeal, I1::FreeAssAlgIdeal)
   return is_subset(I1,I2) && is_subset(I2,I1)
 end
 
+function Base.hash(a::FreeAssAlgIdeal, h::UInt)
+  return hash(base_ring(a), h)
+end
+
 @doc raw"""
     ideal(R::FreeAssAlgebra, g::Vector{<:FreeAssAlgElem})
 
