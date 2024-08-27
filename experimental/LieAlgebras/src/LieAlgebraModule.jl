@@ -1520,10 +1520,13 @@ function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
 end
 
 @doc raw"""
-    character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+    character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
 
 Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
+This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::Vector{<:IntegerUnion})).
+
+The return type may change in the future.
 
 # Example
 ```jldoctest
@@ -1531,30 +1534,35 @@ julia> L = lie_algebra(QQ, :A, 3);
 
 julia> character(L, [2, 0, 0])
 Dict{Vector{Int64}, Int64} with 10 entries:
-  [0, 1, 0]   => 1
   [0, -2, 2]  => 1
+  [0, 1, 0]   => 1
   [0, 0, -2]  => 1
-  [-1, 1, -1] => 1
   [-2, 2, 0]  => 1
+  [-1, 1, -1] => 1
   [1, -1, 1]  => 1
-  [-1, 0, 1]  => 1
   [1, 0, -1]  => 1
-  [0, -1, 0]  => 1
+  [-1, 0, 1]  => 1
   [2, 0, 0]   => 1
+  [0, -1, 0]  => 1
 ```
 """
-function character(L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  dc = dominant_character(L, hw)
-  c = Dict{Vector{Int},Int}()
-  W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
-  for (w, d) in dc
-    it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
-    while !GAPWrap.IsDoneIterator(it)
-      push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return character(R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    dc = dominant_character(L, hw)
+    c = Dict{Vector{Int},Int}()
+    W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
+    for (w, d) in dc
+      it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
+      while !GAPWrap.IsDoneIterator(it)
+        push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+      end
     end
+    return c
   end
-  return c
 end
 
 @doc raw"""

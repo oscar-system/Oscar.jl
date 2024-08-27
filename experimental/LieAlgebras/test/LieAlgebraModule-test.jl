@@ -909,18 +909,30 @@
   end
 
   @testset "character" begin
-    function check_character(L::LieAlgebra, hw::Vector{Int})
-      char = @inferred character(L, hw)
-      @test char[hw] == 1
+    function check_character(
+      LR::Union{LieAlgebra,RootSystem}, hw::Vector{<:Oscar.IntegerUnion}
+    )
+      char = @inferred character(LR, hw)
+      @test char[Int.(hw)] == 1
       @test all(>=(1), values(char))
-      @test sum(values(char)) == dim_of_simple_module(L, hw)
-      domchar = @inferred dominant_character(L, hw)
+      @test sum(values(char)) == dim_of_simple_module(LR, hw)
+      domchar = @inferred dominant_character(LR, hw)
       @test all(w -> domchar[w] == char[w], keys(domchar))
       return char
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 0]
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      domchar = check_character(R, hw)
+      @test domchar == Dict(Int[] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 2), hw = [0, 0]
+      domchar = check_character(L, hw)
+      @test domchar == Dict([0, 0] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 3), hw = ZZ.([1, 1, 0])
       char = check_character(L, hw)
       @test char == Dict(
         [1, 1, 0] => 1,
@@ -946,8 +958,8 @@
       char = check_character(L, hw)
     end
 
-    let L = lie_algebra(QQ, :D, 4), hw = [0, 3, 1, 0]
-      char = check_character(L, hw)
+    let R = root_system(:D, 4), hw = [0, 3, 1, 0]
+      char = check_character(R, hw)
     end
 
     let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
@@ -955,6 +967,24 @@
     end
 
     let L = lie_algebra(QQ, :G, 2), hw = [3, 2]
+      char = check_character(L, hw)
+    end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw = [7] # type A_1 but without known root system
+      char = check_character(L, hw)
+      @test char == Dict(
+        [7] => 1,
+        [5] => 1,
+        [3] => 1,
+        [1] => 1,
+        [-1] => 1,
+        [-3] => 1,
+        [-5] => 1,
+        [-7] => 1,
+      )
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
       char = check_character(L, hw)
     end
   end

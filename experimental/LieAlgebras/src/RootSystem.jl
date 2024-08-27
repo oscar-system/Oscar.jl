@@ -1168,6 +1168,54 @@ function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return dominant_character(R, WeightLatticeElem(R, hw))
 end
 
+@doc raw"""
+    character(R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
+    character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+
+Computes all weights occurring in the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw`, together with their multiplicities.
+This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
+
+The return type may change in the future.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 3);
+
+julia> character(R, [0, 0, 1])
+Dict{Vector{Int64}, Int64} with 8 entries:
+  [0, 1, -1]  => 1
+  [-1, 1, -1] => 1
+  [0, 0, 1]   => 1
+  [1, -1, 1]  => 1
+  [-1, 0, 1]  => 1
+  [0, -1, 1]  => 1
+  [0, 0, -1]  => 1
+  [1, 0, -1]  => 1
+```
+"""
+function character(R::RootSystem, hw::WeightLatticeElem)
+  T = Int
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  dom_char = dominant_character(R, hw)
+  char = Dict{WeightLatticeElem,T}()
+
+  for (w_, m) in dom_char
+    w = WeightLatticeElem(R, w_)
+    for w_conj in weyl_orbit(w)
+      push!(char, w_conj => m)
+    end
+  end
+
+  # return char
+  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+end
+
+function character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(R, WeightLatticeElem(R, hw))
+end
+
 ###############################################################################
 # internal helpers
 
