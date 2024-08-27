@@ -70,13 +70,40 @@ end
   @test_broken length(components(exceptional_locus(phi))) == 2
 end
 
+@testset "intersection_matrix (Lipman desing)" begin
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  W = AffineScheme(R)
+  I=ideal(R,[x^2-y^2+z^5])            ## A4 singularity, 4 abs. irred. curves
+  IS = IdealSheaf(W,I)
+  X = subscheme(IS)
+  phi = desingularization(X)
+  M_minus, ex_divs, M_minus_bar, mults = Oscar.intersection_matrix(phi)
+  @test M_minus == ZZMatrix([-2 0 1 0; 0 -2 0 1; 1 0 -2 1; 0 1 1 -2])
+  @test M_minus == M_minus_bar
+  @test mults == [1,1,1,1]
+  J =ideal(R,[x^2+y^2+z^5])           ## A4 singularity, 2 pairs of abs. red. curves
+  JS = IdealSheaf(W,J)
+  Y = subscheme(JS)
+  phi = desingularization(Y)
+  M_plus, ex_divs2, M_plus_bar, mults2 = Oscar.intersection_matrix(phi)
+  @test M_plus_bar == M_minus_bar     ## over k_bar the intersection matrices coincide
+  @test length(ex_divs2) == 2
+  @test mults2 == [2,2]
+  II = ideal(R,[x^2+y^3+z^4])         ## E6 singularity (tests reduction of exc. curves with multiplicty)
+  IIS = IdealSheaf(W,II)
+  Z = subscheme(IIS)
+  phi = desingularization(Z)
+  M, ex_divs, M_bar, mults = Oscar.intersection_matrix(phi)
+  @test M_bar == ZZMatrix([-2 0 0 0 0 1; 0 -2 0 1 0 0; 0 0 -2 0 1 0; 0 1 0 -2 0 1; 0 0 1 0 -2 1; 1 0 0 1 1 -2])
+end
+
 @testset "order of an ideal" begin
   R,(x,y,z) = polynomial_ring(QQ,3)
   W = AffineScheme(R)
   I = ideal(R,[(x+y)^3+z^4])
   IS = IdealSheaf(W,I)
   WC = scheme(IS)
-  IY = locus_of_maximal_order(IS)
+  IY = locus_of_maximal_order(IS)[1]
   decomp = Oscar.maximal_associated_points(IY)
   @test length(decomp) == 1
   @test decomp[1] == IdealSheaf(W,ideal(R,[z,x+y]), covered_scheme=WC)
