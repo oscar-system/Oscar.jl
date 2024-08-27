@@ -169,6 +169,7 @@ function chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
   end
 
   # Ensure that we compute the cohomology ring with the desired by-pass of checks.
+  # Coefficients of the cohomology ring inherited from NormalToricVariety.
   cohomology_ring(v, check = check)
 
   # Compute, set and return the desired Chern class
