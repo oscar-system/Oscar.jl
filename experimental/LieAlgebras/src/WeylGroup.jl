@@ -669,7 +669,7 @@ end
 function Base.iterate(iter::WeylOrbitIterator)
   (wt, _), data = iterate(iter.nocopy)
   # wt is already a copy, so here we don't need to make one
-  return wt, data
+  return deepcopy(wt), data
 end
 
 function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)

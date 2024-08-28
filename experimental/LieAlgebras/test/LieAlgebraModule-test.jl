@@ -991,8 +991,9 @@
 
   @testset "tensor_product_decomposition" begin
     function test_tensor_product_decomposition(
-      LR::Union{LieAlgebra,RootSystem}, hw1::Vector{<:Oscar.IntegerUnion},
-      hw2::Vector{<:Oscar.IntegerUnion}
+      LR::Union{LieAlgebra,RootSystem},
+      hw1::Vector{<:Oscar.IntegerUnion},
+      hw2::Vector{<:Oscar.IntegerUnion},
     )
       dec = @inferred tensor_product_decomposition(LR, hw1, hw2)
       @test dec == @inferred tensor_product_decomposition(LR, hw2, hw1)

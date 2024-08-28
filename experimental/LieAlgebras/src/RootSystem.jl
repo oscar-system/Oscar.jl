@@ -771,6 +771,25 @@ function Base.:-(w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), -w.vec)
 end
 
+function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  add!(wr.vec, w1.vec, w2.vec)
+  return wr
+end
+
+add!(w1::WeightLatticeElem, w2::WeightLatticeElem) = add!(w1, w1, w2)
+
+function neg!(w::WeightLatticeElem)
+  neg!(w.vec)
+  return w
+end
+
+function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  sub!(wr.vec, w1.vec, w2.vec)
+  return wr
+end
+
+sub!(w1::WeightLatticeElem, w2::WeightLatticeElem) = sub!(w1, w1, w2)
+
 function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
   return w.root_system === w2.root_system && w.vec == w2.vec
 end
@@ -824,22 +843,23 @@ end
 Return the unique dominant weight conjugate to `w`.
 """
 function conjugate_dominant_weight(w::WeightLatticeElem)
-  # conj will be the dominant weight conjugate to w
-  conj = deepcopy(w)
+  return conjugate_dominant_weight!(deepcopy(w))
+end
 
-  # conj will be dominant once all fundamental weights have a positive coefficient,
+function conjugate_dominant_weight!(w::WeightLatticeElem)
+  # w will be dominant once all fundamental weights have a positive coefficient,
   # so search for negative coefficients and make them positive by applying the corresponding reflection.
   s = 1
   while s <= rank(root_system(w))
-    if conj.vec[s] < 0
-      reflect!(conj, s)
+    if w[s] < 0
+      reflect!(w, s)
       s = 1
     else
       s += 1
     end
   end
 
-  return conj
+  return w
 end
 
 @doc raw"""
@@ -849,16 +869,20 @@ Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group eleme
 such that `x*w == dom`.
 """
 function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
+  return conjugate_dominant_weight_with_elem!(deepcopy(w))
+end
+
+function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
   R = root_system(w)
-  wt = deepcopy(w)
 
   # determine the Weyl group element taking w to the fundamental chamber
-  word = sizehint!(UInt8[], count(<(0), coefficients(wt))^2)
+  word = UInt8[]
+  #sizehint!(word, count(<(0), coefficients(w))^2)
   s = 1
   while s <= rank(R)
-    if wt[s] < 0
+    if w[s] < 0
       push!(word, UInt8(s))
-      reflect!(wt, s)
+      reflect!(w, s)
       s = 1
     else
       s += 1
@@ -866,8 +890,8 @@ function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
   end
 
   # reversing word means it is in short revlex normal form
-  # and it is the element taking w to wt
-  return wt, weyl_group(R)(reverse!(word); normalize=false)
+  # and it is the element taking original w to new w
+  return w, weyl_group(R)(reverse!(word); normalize=false)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
@@ -1148,7 +1172,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
           w_plus_i_rep_conj = conjugate_dominant_weight(w_plus_i_rep)
           haskey(char, w_plus_i_rep_conj) || break
           accum2 += char[w_plus_i_rep_conj] * dot(w_plus_i_rep, rep)
-          w_plus_i_rep += rep
+          add!(w_plus_i_rep, rep)
         end
         len * accum2
       end, orbs; init=zero(QQ))
@@ -1255,16 +1279,16 @@ function tensor_product_decomposition(
   @req is_dominant(hw1) "not a dominant weight"
   @req is_dominant(hw2) "not a dominant weight"
 
-  W = weyl_group(R)
   rho = weyl_vector(R)
+  hw2_plus_rho = hw2 + rho
 
   mults = multiset(WeightLatticeElem)
   for (w_, m) in dominant_character(R, hw1)
-    for w1 in weyl_orbit(WeightLatticeElem(R, w_))
-      w = w1 + hw2 + rho
-      w_dom, x = conjugate_dominant_weight_with_elem(w)
+    for w in weyl_orbit(WeightLatticeElem(R, w_))
+      add!(w, hw2_plus_rho)
+      w_dom, x = conjugate_dominant_weight_with_elem!(w)
       if all(!iszero, coefficients(w_dom))
-        w_dom -= rho
+        sub!(w_dom, rho)
         coeff = m * (-1)^length(x)
         push!(mults, w_dom, coeff)
       end

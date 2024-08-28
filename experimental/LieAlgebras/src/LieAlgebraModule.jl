@@ -1603,8 +1603,9 @@ function tensor_product_decomposition(
     return multiset(
       Tuple{Vector{Vector{Int}},Vector{Int}}(
         GAPWrap.DecomposeTensorProduct(
-          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1; recursive=true),
-          GAP.Obj(hw2; recursive=true)
+          codomain(Oscar.iso_oscar_gap(L)),
+          GAP.Obj(hw1; recursive=true),
+          GAP.Obj(hw2; recursive=true),
         ),
       )...,
     )
