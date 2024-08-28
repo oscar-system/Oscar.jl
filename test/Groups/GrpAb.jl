@@ -39,6 +39,7 @@ end
 
     # properties
     @test is_abelian(G1) == is_abelian(G2)
+    @test is_elementary_abelian(G1) == is_elementary_abelian(G2)
     @test is_finite(G1) == is_finite(G2)
     @test is_finitely_generated(G1) == is_finitely_generated(G2)
     @test is_perfect(G1) == is_perfect(G2)

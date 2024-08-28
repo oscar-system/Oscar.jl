@@ -220,6 +220,44 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 """
 @gapattribute is_abelian(G::GAPGroup) = GAP.Globals.IsAbelian(GapObj(G))::Bool
 
+
+@doc raw"""
+    elementary_abelian_group(::Type{T} = PcGroup, n::S) where T <: Group where S <: IntegerUnion
+
+Return the elementary abelian group group of order `n`, as an instance of `T`.
+Here, `T` must be one of `PermGroup`, `FPGroup`, `SubFPGroup`, `PcGroup`,
+`SubPcGroup`, or `FinGenAbGroup`.
+
+# Examples
+```jldoctest
+julia> g = elementary_abelian_group(27)
+Pc group of order 27
+
+julia> g = elementary_abelian_group(PermGroup, 27)
+Permutation group of degree 9 and order 27
+```
+"""
+elementary_abelian_group(n::IntegerUnion) = elementary_abelian_group(PcGroup, n)
+
+function elementary_abelian_group(::Type{T}, n::S) where T <: GAPGroup where S <: IntegerUnion
+  flag, e, p = is_prime_power_with_data(n)
+  @req flag "n must be a prime power"
+  return T(GAP.Globals.ElementaryAbelianGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
+end
+
+# Delegating to the GAP constructor via `_gap_filter` does not work here.
+function elementary_abelian_group(::Type{T}, n::S) where T <: Union{PcGroup, SubPcGroup} where S <: IntegerUnion
+  flag, e, p = is_prime_power_with_data(n)
+  @req flag "n must be a prime power"
+  return T(GAP.Globals.ElementaryAbelianGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
+end
+
+function elementary_abelian_group(::Type{FinGenAbGroup}, n::S) where S <: IntegerUnion
+  flag, e, p = is_prime_power_with_data(n)
+  @req flag "n must be a prime power"
+  return abelian_group(fill(p, e))
+end
+
 @doc raw"""
     is_elementary_abelian(G::Group)
 
@@ -241,6 +279,12 @@ false
 ```
 """
 @gapattribute is_elementary_abelian(G::GAPGroup) = GAP.Globals.IsElementaryAbelian(GapObj(G))::Bool
+
+function is_elementary_abelian(G::FinGenAbGroup)
+  e = exponent(G)
+  return e == 1 || is_prime(e)
+end
+
 
 function mathieu_group(n::Int)
   @req 9 <= n <= 12 || 21 <= n <= 24 "n must be a 9-12 or 21-24"

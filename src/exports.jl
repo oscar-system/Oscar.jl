@@ -495,6 +495,7 @@ export dwarfed_product_polygons
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
+export elementary_abelian_group
 export elementary_symmetric
 export elements
 export eliminate
