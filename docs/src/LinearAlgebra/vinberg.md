@@ -33,7 +33,7 @@ DocTestSetup = Oscar.doctestsetup()
  We choose the first roots $r$ by increasing order of the value $\frac{(\~{r}, v_1)}{r^2}$ for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$.
  For any other root length we continue as stated above.
  
- For proofs of the statements above and further explanations see [Vin75](@cite)
+ For proofs of the statements above and further explanations see [Vin75](@cite).
 
  ## Function
  
