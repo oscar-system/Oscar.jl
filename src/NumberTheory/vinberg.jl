@@ -10,18 +10,15 @@ Checks if the inner product of the given v0 is positive or generates such a v0 i
 function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
   if iszero(v0)
     l = nrows(Q)
-    signal = 1
-    while signal in 1:100000000
+    for signal in 1:100000000
       v0_ = rand(-30:30, l)
       if !_is_primitive(v0_)
-        signal += 1
         continue
       end
       v0 = matrix(ZZ, 1, l, v0_)
       if (v0*Q*transpose(v0))[1, 1] > 0
         return v0
       end
-      signal += 1
     end
     error("Choose another Q")
   else
