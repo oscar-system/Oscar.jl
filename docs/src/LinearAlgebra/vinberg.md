@@ -13,7 +13,7 @@ DocTestSetup = Oscar.doctestsetup()
 ## Description 
  The algorithm constructs a fundamental polyhedron $P$ for a Lorentzian lattice $L$ by computing its fundamental roots $r$.
 
- Choose $v_0$ with $v_0^2 > 0$ as a point that $P$ should contain.
+ Choose $v_0$ in $L$ with $v_0^2 > 0$ as a point that $P$ should contain.
 
  Let $Q$ be the corresponding gram matrix of $L$. A fundamental root $r$ satisfies
  - the vector $r$ is primitive
