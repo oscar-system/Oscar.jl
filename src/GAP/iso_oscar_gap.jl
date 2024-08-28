@@ -32,7 +32,7 @@ end
 
 # Assume that `RO` and `RG` are residue rings of the same size
 # in Oscar and GAP, respectively.
-function _iso_oscar_gap_residue_ring_functions(RO::Union{Nemo.zzModRing, Nemo.ZZModRing}, RG::GapObj)
+function _iso_oscar_gap_residue_ring_functions(RO::Union{zzModRing, ZZModRing}, RG::GapObj)
    e = GAPWrap.One(RG)
    f(x) = GAP.Obj(lift(x))*e
 
@@ -47,7 +47,7 @@ end
 
 # Compute the isomorphism between the Oscar residue ring `RO`
 # and a corresponding GAP residue ring.
-function _iso_oscar_gap(RO::Union{Nemo.zzModRing, Nemo.ZZModRing})
+function _iso_oscar_gap(RO::Union{zzModRing, ZZModRing})
    n = ZZRingElem(modulus(RO))
    RG = GAPWrap.mod(GAP.Globals.Integers::GapObj, GAP.Obj(n))
    f, finv = _iso_oscar_gap_residue_ring_functions(RO, RG)
@@ -78,7 +78,7 @@ end
 
 # Assume that `FO` and `FG` are finite fields of the same order
 # in Oscar and GAP, respectively.
-function _iso_oscar_gap_field_finite_functions(FO::Union{Nemo.fpField, Nemo.FpField}, FG::GapObj)
+function _iso_oscar_gap_field_finite_functions(FO::Union{fpField, FpField}, FG::GapObj)
    return _make_prime_field_functions(FO, FG)
 end
 
@@ -245,9 +245,9 @@ function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::Ga
    cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 
-   f = function(x::Nemo.AbsSimpleNumFieldElem)
+   f = function(x::AbsSimpleNumFieldElem)
       coeffs = [Nemo.coeff(x, i) for i in 0:(N-1)]
-      return GAPWrap.CycList(GapObj(coeffs; recursive=true))
+      return GAPWrap.CycList(GapObj(coeffs; recursive = true))
    end
 
    finv = function(x)
@@ -278,7 +278,7 @@ function _iso_oscar_gap_field_quadratic_functions(FO::AbsSimpleNumField, FG::Gap
    zG = GAPWrap.Sqrt(GAP.Obj(N))
    B = GAPWrap.BasisNC(FG, GapObj([oG, zG]))
 
-   f = function(x::Nemo.AbsSimpleNumFieldElem)
+   f = function(x::AbsSimpleNumFieldElem)
       return GAP.Obj(coeff(x,0)) * oG + GAP.Obj(coeff(x,1)) * zG
    end
 
@@ -310,13 +310,13 @@ function _iso_oscar_gap(FO::SimpleNumField{QQFieldElem})
      polFO = defining_polynomial(FO)
      coeffs_polFO = collect(coefficients(polFO))
      fam = GAP.Globals.CyclotomicsFamily::GapObj
-     cfs = GapObj(coeffs_polFO, recursive = true)::GapObj
+     cfs = GapObj(coeffs_polFO; recursive = true)::GapObj
      polFG = GAPWrap.UnivariatePolynomialByCoefficients(fam, cfs, 1)
      FG = GAPWrap.AlgebraicExtension(GAP.Globals.Rationals::GapObj, polFG)
      fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(FG))
 
      f = function(x::SimpleNumFieldElem{QQFieldElem})
-        coeffs = GapObj(coefficients(x), recursive = true)::GapObj
+        coeffs = GapObj(coefficients(x); recursive = true)::GapObj
         return GAPWrap.AlgExtElm(fam, coeffs)
      end
 
@@ -393,7 +393,7 @@ end
 
 # Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
 function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GapObj)
-   return (GAP.julia_to_gap, QQAbElem)
+   return (GAP.julia_to_gap, QQAbFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQAbField)

@@ -567,7 +567,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
 
     local ff
     try
-      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
+      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F; cached=false)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
     catch e
       @show e
       return nothing
@@ -652,7 +652,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
-      l = Hecke.mod_sym(lift(cc), pr^precision(cc))
+      l = Hecke.mod_sym(lift(ZZ, cc), pr^precision(cc))
       if abs(l) > pr^p[1]
         return false, x
       end

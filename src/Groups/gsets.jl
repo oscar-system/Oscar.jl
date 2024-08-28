@@ -41,7 +41,7 @@ The fields are
     action_function::Function
     seeds
 
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where T<:GAPGroup
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where T<:Union{GAPGroup, FinGenAbGroup}
         @assert ! isempty(seeds)
         Omega = new{T}(G, fun, seeds, Dict{Symbol,Any}())
         closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
@@ -107,10 +107,8 @@ action_function(Omega::GSetByElements) = Omega.action_function
 
 # The following works for all G-set types that support attributes
 # and for which the number of elements is an `Int`.
-function action_range(Omega::GSet)
-  return get_attribute!(Omega, :action_range) do
-    return symmetric_group(length(Int, Omega))
-  end
+@attr PermGroup function action_range(Omega::GSet)
+  return symmetric_group(length(Int, Omega))
 end
 
 
@@ -119,7 +117,7 @@ end
 ##  general method with explicit action function
 
 """
-    gset(G::GAPGroup[, fun::Function], seeds, closed::Bool = false)
+    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false)
 
 Return the G-set `Omega` that consists of the closure of the seeds `seeds`
 under the action of `G` defined by `fun`.
@@ -153,7 +151,7 @@ julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
 6
 ```
 """
-function gset(G::GAPGroup, fun::Function, seeds; closed::Bool = false)
+function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false)
   return GSetByElements(G, fun, seeds; closed = closed)
 end
 
@@ -241,11 +239,11 @@ end
 ##
 ##  G-sets given by the complete set
 
-function as_gset(G::T, fun::Function, Omega) where T<:GAPGroup
+function as_gset(G::T, fun::Function, Omega) where T<:Union{GAPGroup,FinGenAbGroup}
     return GSetByElements(G, fun, Omega; closed = true)
 end
 
-as_gset(G::T, Omega) where T<:GAPGroup = as_gset(G, ^, Omega)
+as_gset(G::T, Omega) where T<:Union{GAPGroup,FinGenAbGroup} = as_gset(G, ^, Omega)
 
 
 #############################################################################
@@ -300,7 +298,7 @@ unwrap(omega::ElementOfGSet) = omega.obj
 ##  `:orbit`
 
 """
-    orbit(G::GAPGroup[, fun::Function], omega)
+    orbit(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], omega)
 
 Return the G-set that consists of the images of `omega`
 under the action of `G` defined by `fun`.
@@ -328,7 +326,7 @@ julia> length(orbit(G, on_sets, [1, 2]))
 """
 orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
-orbit(G::GAPGroup, fun::Function, omega) = GSetByElements(G, fun, [omega])
+orbit(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, omega) = GSetByElements(G, fun, [omega])
 
 """
     orbit(Omega::GSet, omega)
@@ -364,9 +362,12 @@ function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
 end
 #T check whether omega lies in Omega?
 
+function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
+    return orbit_via_Julia(Omega, omega)
+end
+
 # simpleminded alternative directly in Julia
-# In fact, '<:GAPGroup' is not used at all in this function.
-function orbit_via_Julia(Omega::GSet{<:GAPGroup}, omega)
+function orbit_via_Julia(Omega::GSet, omega)
     acts = gens(acting_group(Omega))
     orbarray = [omega]
     orb = Set(orbarray)
@@ -410,7 +411,7 @@ julia> map(collect, orbs)
  [5, 6]
 ```
 """
-@attr Vector{GSetByElements{TG}} function orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
+@attr Vector{GSetByElements{TG}} function orbits(Omega::T) where T <: GSetByElements{TG} where TG <: Union{GAPGroup, FinGenAbGroup}
   G = acting_group(Omega)
   orbs = T[]
   for p in Omega.seeds
@@ -478,7 +479,7 @@ julia> permutation(Omega, x)
 (1,2,4,7)(3,6,9,12)(5,8,10,11)
 ```
 """
-function permutation(Omega::GSetByElements{T}, g::GAPGroupElem) where T<:GAPGroup
+function permutation(Omega::GSetByElements{T}, g::Union{GAPGroupElem, FinGenAbGroupElem}) where T<:Union{GAPGroup, FinGenAbGroup}
     omega_list = GAP.Obj(elements(Omega))
     gfun = GAP.Obj(action_function(Omega))
 
@@ -677,7 +678,7 @@ true
 @attr GAPGroupHomomorphism{T, PermGroup} function action_homomorphism(Omega::GSetByElements{T}) where T<:GAPGroup
   G = acting_group(Omega)
   omega_list = GAP.Obj(collect(Omega))
-  gap_gens = GapObj(gens(G); recursive=true)
+  gap_gens = GapObj(gens(G); recursive = true)
   gfun = GAP.Obj(action_function(Omega))
 
   # The following works only because GAP does not check

@@ -224,7 +224,7 @@ function GAP.julia_to_gap(G::MatrixGroup)
     if isdefined(G, :descr)
       assign_from_description(G)
     elseif isdefined(G, :gens)
-      V = GapObj(gens(G); recursive=true)
+      V = GapObj(gens(G); recursive = true)
       G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
     else
       error("Cannot determine underlying GAP object")
@@ -393,14 +393,16 @@ function ==(x::MatrixGroupElem{S,T},y::MatrixGroupElem{S,T}) where {S,T}
 end
 
 function _common_parent_group(x::T, y::T) where T <: MatrixGroup
+   x === y && return x
    @assert x.deg == y.deg
    @assert x.ring === y.ring
-   x === y && return x
    return GL(x.deg, x.ring)::T
 end
 
-# Base.:* is defined in src/Groups/GAPGroups.jl, and it calls the function _prod below
-# if the parents are different, the parent of the output product is set as GL(n,q)
+# Base.:* is defined in src/Groups/GAPGroups.jl,
+# and it calls the function _prod below.
+# If the parents are different,
+# the parent of the product is set as GL(n, R)
 function _prod(x::T,y::T) where {T <: MatrixGroupElem}
    G = _common_parent_group(parent(x), parent(y))
 

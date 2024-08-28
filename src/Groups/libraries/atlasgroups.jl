@@ -306,7 +306,7 @@ function atlas_program(name, paras...)
     slp = GAP.Globals.AtlasProgram(GapObj(name), GapObj("classes"))::GapObj
     slp === GAP.Globals.fail && return nothing
     gapcode = GAP.Globals.LinesOfStraightLineProgram(slp.program)::GapObj
-    juliacode = GAP.gap_to_julia(gapcode, recursive = true)
+    juliacode = GAP.gap_to_julia(gapcode; recursive = true)
     return Oscar.StraightLinePrograms.GAPSLProgram(juliacode)
   else
     error("not yet ...")

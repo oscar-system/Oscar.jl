@@ -34,22 +34,29 @@ end
   weyl = QQ[31   61   52   71   5   -6   5   -2   -7   8]
   weylk3 = change_base_ring(ZZ,Oscar.solve(basis_matrix(L), weyl; side = :left))
   k3,_ = BorcherdsCtx(L, S, weylk3; compute_OR=false)
-  walls = Oscar._walls_of_chamber(k3, weylk3)
-  @test length(walls)==4
-  walls1 =  [
+  walls1 = Oscar._walls_of_chamber(k3, weylk3)
+  @test length(walls1)==4
+  walls2 =  [
   ZZ[0   0   2   1],
   ZZ[1   1   1   2],
   ZZ[0   0   -1   -1],
   ZZ[-1   0   0   0]]
-  @test issetequal(walls, walls1)
+  @test issetequal(walls1, walls2)
+  
+  c = chamber(k3, weylk3, zero_matrix(ZZ,1,rank(S)), walls2)
+  @test length(walls(c)) == 4
+  @test Oscar.alg319(c.data.gramS, walls(c), walls(c), c.data.membership_test) == aut(c)
+
 end
 
 @testset "K3 surface automorphism groups" begin
   S = integer_lattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
+  @test 1 == Oscar.has_zero_entropy(S; rank_unimod=10)[1]
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test order(matrix_group(k3aut))==2
   @test length(chambers) == 1
   @test length(rational_mod_aut) == 3
+  @test length(rays(chambers[1])) == 4
 
   C = chambers[1]
   p = Oscar.inner_point(C)
@@ -59,7 +66,7 @@ end
   wall1 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:short)
   wall2 = Oscar._walls_of_chamber(C.data,weyl_vector(C),:close)
   @test Set(wall1)==Set(wall2)
-
+  
   #=
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 18, compute_OR=true)
   @test order(matrix_group(k3aut))==2
@@ -73,17 +80,17 @@ end
   =#
   # Another example with finite automorphism group
   S,_ = direct_sum(integer_lattice(gram=ZZ[0 1; 1 -2]),rescale(root_lattice(:D,4),-1))
-  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
+  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10; compute_OR=true)
   @test order(matrix_group(k3aut))==6
   @test length(chambers) == 1
   @test length(rational_mod_aut) == 4
 
-  #_, k3aut, chambers, rational_mod_aut = borcherds_method(S, 18, compute_OR=true)
-  #@test order(matrix_group(k3aut))==6
-  #@test length(chambers) == 1
-  #@test length(rational_mod_aut) == 4
+  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 18, compute_OR=true)
+  @test order(matrix_group(k3aut))==6
+  @test length(chambers) == 1
+  @test length(rational_mod_aut) == 4
 
-  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=false)
+  _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10; compute_OR=false)
   @test length(k3aut)==0
   @test length(chambers) == 6
   @test length(rational_mod_aut) == 6
@@ -154,3 +161,38 @@ end
   =#
 end
 
+@testset "find_section" begin
+  L = integer_lattice(gram=ZZ[0 2 3;  2 -2 1; 3 1 -2])
+  f = QQ[1 0 0;]
+  s = Oscar.find_section(L,f)
+  V = ambient_space(L)
+  @test inner_product(V,f,s)==1
+  @test inner_product(V,s,s)==-2
+end
+
+@testset "weyl_vector_non_degenerate" begin 
+  B = matrix(FlintQQ, 10, 10 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1//3, 2//3, 1//3, 2//3, 2//3, 2//3, 1//3, 1//3]);
+  G = matrix(FlintQQ, 10, 10 ,[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 1, -1, -1, -1, 0, 0, 0, 0, -1, -2, 1, -1, 0, -1, 0, 0, 0, 0, 1, 1, -2, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, -2, -1, -1, 0, 0, 0, 0, -1, 0, 0, -1, -2, -1, 0, 0, 0, 0, -1, -1, 1, -1, -1, -2]);
+  L = integer_lattice(B, gram = G);
+  B = matrix(FlintQQ, 4, 10 ,[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]);
+  G = matrix(FlintQQ, 10, 10 ,[-2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, -2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -2, -1, 1, -1, -1, -1, 0, 0, 0, 0, -1, -2, 1, -1, 0, -1, 0, 0, 0, 0, 1, 1, -2, 0, 0, 1, 0, 0, 0, 0, -1, -1, 0, -2, -1, -1, 0, 0, 0, 0, -1, 0, 0, -1, -2, -1, 0, 0, 0, 0, -1, -1, 1, -1, -1, -2]);
+  S = integer_lattice(B, gram = G);
+  u = QQ[90 157 218//3 346//3 -7//3 13//3 16//3 -11//3 -1//3 32//3]
+  weyl = QQ[90 157 218//3 346//3 -7//3 13//3 16//3 -11//3 -1//3 32//3]
+  ample0 = QQ[15 28 13 21 0 0 0 0 0 0]
+  @test !Oscar.is_S_nondegenerate(L,S,weyl)
+  weyl1, _,_ = Oscar.weyl_vector_non_degenerate(L,S,u,weyl,ample0)
+  @test Oscar.is_S_nondegenerate(L,S,weyl1)
+
+end 
+
+@testset "preprocessing" begin
+  g = -gram_matrix(root_lattice(:A,9))
+  g[8,9] = g[9,8] = 0
+  g[9,5] = g[5,9] = 1
+  UE7 = g
+  @assert det(UE7) == 2
+  UE7 = integer_lattice(gram=UE7)
+  L,S,w = Oscar.borcherds_method_preprocessing(rescale(UE7,2),18)
+  @test (w*gram_matrix(rational_span(L))*transpose(w))[1,1] == 620
+end 

@@ -28,7 +28,7 @@ The *invariants* of $G$ are the fixed points of the action defined above, its *i
 $K[V]^G:=\{f\in K[V] \mid f \;\!   . \;\! \pi =f {\text { for any }} \pi\in G\} \subset K[V].$
 
 Explicitly, fixing a basis of $V$ and its dual basis, say, $\{x_1, \dots, x_n\}$ of $V^*$,
-we may identify $\GL(V) \cong \GL_n(K)$ and $K[V]\cong  K[x_1, \dots, x_n]$.
+we may identify $\operatorname{GL}(V) \cong \operatorname{GL}_n(K)$ and $K[V]\cong K[x_1, \dots, x_n]$.
 Then the action of an element $\pi \in G$ with $\rho(\pi) = (a_{i, j})$ on a polynomial $f\in K[x_1,\dots, x_n]$ is given as follows:
 
 $(f \;\!   . \;\! \pi)  (x_1, \dots, x_n) = f\bigl(\sum_j a_{1, j}x_j, \dots, \sum_j a_{n, j}x_j\bigr).$

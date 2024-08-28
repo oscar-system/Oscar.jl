@@ -53,7 +53,8 @@ function _jacobian_criterion(X::CoveredScheme{<:Field})
 
   dec_info = decomposition_info(default_covering(X))
   for (V, fs) in dec_info
-    R = base_ring(OO(V))
+    R_quotient = OO(V)
+    R = R_quotient isa MPolyRing ? R_quotient : base_ring(R_quotient)
     I = saturated_ideal(defining_ideal(V))
     mat = jacobian_matrix(R, gens(I))
     sing_locus = ideal(R, fs) + ideal(R, minors(mat, codim(V)))

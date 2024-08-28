@@ -35,7 +35,7 @@
     "model_descriptors": {
         "type": "tate",
         "description": "E7 Tate model",
-        "gauge_algebra": ["e7"]
+        "gauge_algebra": ["e(7)"]
     },
     "model_data": {
         "base_dim": 3,
@@ -68,7 +68,7 @@
             ]
         ]
     },
-    "related_models": [
+    "associated_models": [
         "model1212_2949-1.json",
         "model1212_2949-2.json",
         "model1212_2949-3.json",

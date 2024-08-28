@@ -156,11 +156,21 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
 
   # Construct the new model
   if m isa GlobalTateModel
-    new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m); coordinate_name)
-    model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
+    if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
+      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m); coordinate_name)
+      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
+    else
+      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m); coordinate_name)
+      model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
+    end
   else
-    new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m); coordinate_name)
-    model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
+    if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
+      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m); coordinate_name)
+      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
+    else
+      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m); coordinate_name)
+      model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
+    end
   end
 
   # Copy/overwrite/set attributes
@@ -530,8 +540,8 @@ function set_paper_title(m::AbstractFTheoryModel, desired_value::String)
   set_attribute!(m, :paper_title => desired_value)
 end
 
-function set_related_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
-  set_attribute!(m, :related_literature_models => desired_value)
+function set_birational_literature_models(m::AbstractFTheoryModel, desired_value::Vector{String})
+  set_attribute!(m, :birational_literature_models => desired_value)
 end
 
 
@@ -565,9 +575,9 @@ function add_paper_buzzword(m::AbstractFTheoryModel, addition::String)
   !(addition in values) && set_attribute!(m, :paper_buzzwords => vcat(values, [addition]))
 end
 
-function add_related_literature_model(m::AbstractFTheoryModel, addition::String)
-  values = has_related_literature_models(m) ? related_literature_models(m) : []
-  !(addition in values) && set_attribute!(m, :related_literature_models => vcat(values, [addition]))
+function add_birational_literature_model(m::AbstractFTheoryModel, addition::String)
+  values = has_birational_literature_models(m) ? birational_literature_models(m) : []
+  !(addition in values) && set_attribute!(m, :birational_literature_models => vcat(values, [addition]))
 end
 
 
@@ -580,6 +590,12 @@ function set_generating_sections(m::AbstractFTheoryModel, vs::Vector{Vector{Stri
   R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
   set_attribute!(m, :generating_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
+end
+
+function set_torsion_sections(m::AbstractFTheoryModel, vs::Vector{Vector{String}})
+  R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
+  f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
+  set_attribute!(m, :torsion_sections => [[f(eval_poly(l, R)) for l in k] for k in vs])
 end
 
 function set_resolutions(m::AbstractFTheoryModel, desired_value::Vector{Vector{Vector}})
@@ -624,6 +640,34 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
+  C = algebraic_closure(QQ)
+  function _construct(g::String)
+    if g == "0"
+      return abelian_lie_algebra(C, 0)
+    elseif g == "u(1)"
+      return lie_algebra(C,1,[C(1im)*identity_matrix(C,1)],["i"])
+    elseif g[1:2] == "su"
+      return special_linear_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "so"
+      return special_orthogonal_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:2] == "sp"
+      return symplectic_lie_algebra(C, parse(Int, g[4:end-1]))
+    elseif g[1:1] == "e"
+      return lie_algebra(C, :E, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "f"
+      return lie_algebra(C, :F, parse(Int, g[3:end-1]))
+    elseif g[1:1] == "g"
+      return lie_algebra(C, :G, parse(Int, g[3:end-1]))
+    end
+    error("Unknown algebra description")
+  end
+  set_attribute!(m, :gauge_algebra => direct_sum(C, LieAlgebra{elem_type(C)}[_construct(g) for g in algebras]))
+end
+
+function set_global_gauge_quotients(m::AbstractFTheoryModel, quotients::Vector{Vector{String}})
+ set_attribute!(m, :global_gauge_quotients => quotients)
+end
 
 
 ##########################################
@@ -631,7 +675,7 @@ end
 ##########################################
 
 function add_generating_section(m::AbstractFTheoryModel, addition::Vector{String})
-  values = has_generating_sections(m) ? related_literature_models(m) : []
+  values = has_generating_sections(m) ? birational_literature_models(m) : []
   !(addition in values) && set_attribute!(m, :generating_sections => vcat(values, [addition]))
 end
 

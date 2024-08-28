@@ -128,3 +128,11 @@ function Base.getindex(r::Hecke.SRow, R::AbstractAlgebra.Ring, u::AbstractUnitRa
   @req base_ring(r) === R "Parent ring mismatch"
   return getindex(r, u)
 end
+
+@deprecate is_full_fp_group(G::FPGroup) GAPWrap.IsFpGroup(GapObj(G))
+
+@deprecate minimal_generators minimal_generating_set
+Base.@deprecate_binding MPolyRingElemLoc MPolyLocRingElem
+
+# deprecated for 1.2
+Base.@deprecate_binding QQAbElem QQAbFieldElem

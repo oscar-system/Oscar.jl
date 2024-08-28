@@ -1161,15 +1161,6 @@ function Base.:(/)(a::ZZRingElem, b::T) where {T<:MPolyLocRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(/)(a::T, b::T) where {T<:MPolyLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  g = gcd(numerator(a), numerator(b))
-  c = divexact(numerator(a), g)
-  d = divexact(numerator(b), g)
-  numerator(fraction(b)) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return (parent(a))(fraction(a) // fraction(b), check=false)
-end
-
 function ==(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return fraction(a) == fraction(b)
@@ -2241,6 +2232,24 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
+### Mapping of elements
+function (f::MPolyLocalizedRingHom)(a::AbsLocalizedRingElem)
+  parent(a) === domain(f) || return f(domain(f)(a))
+  if total_degree(denominator(a)) > 10
+    res = restricted_map(f)
+    img_num = res(numerator(a))
+    den = denominator(a)
+    img_den = one(img_num)
+    fac_den = factor(den)
+    for (a, k) in fac_den
+      img_den = img_den * inv(res(a))^k
+    end
+    img_den = img_den * inv(res(unit(fac_den)))
+    return img_num * img_den
+  end
+  return codomain(f)(restricted_map(f)(numerator(a)))*inv(codomain(f)(restricted_map(f)(denominator(a))))
+end
+
 ### additional constructors
 function MPolyLocalizedRingHom(
       R::MPolyRing,
@@ -2818,3 +2827,13 @@ function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
 end
 
 coefficient_ring(L::MPolyLocRing) = coefficient_ring(base_ring(L))
+
+########################################################################
+# Ported from old implementation in src/Rings/mpoly-local.jl
+########################################################################
+function Oscar.localization(R::MPolyRing{S}, m::MPolyIdeal) where S
+  return MPolyLocRing(R, complement_of_point_ideal(m))
+end
+
+complement_of_point_ideal(m::MPolyIdeal) = complement_of_point_ideal(base_ring(m), rational_point_coordinates(m))
+

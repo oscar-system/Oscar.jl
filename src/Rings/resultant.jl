@@ -102,7 +102,7 @@ function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   if n == 0 # one polynomial
     return is_zero(F[1]) ? zero(K) : leading_coefficient(F[1])
   end
-  S, x = polynomial_ring(K, :x => 0:n-1, cached = false)
+  S, x = polynomial_ring(K, :x => 0:n-1; cached = false)
   h = hom(R, S, vcat(x, [one(S)]))
   f = h.(F)
   h = hom(R, S, vcat(x, [zero(S)]))

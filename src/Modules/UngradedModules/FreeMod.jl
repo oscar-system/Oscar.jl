@@ -77,7 +77,7 @@ free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) =
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
-  - FreeModule(R, n)
+  - free_module(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
 thus the "category" needs to be set explicitly
@@ -93,6 +93,9 @@ end
 # un-named free module over a named ring X will acquire the name 
 # X^r
 function AbstractAlgebra.extra_name(F::FreeMod)
+  if rank(F) == 0
+    return "0"
+  end
   s = AbstractAlgebra.get_name(base_ring(F))
   if s !== nothing
     return "$s^$(rank(F))"

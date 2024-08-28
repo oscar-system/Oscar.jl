@@ -58,7 +58,7 @@ end
   @test_throws ArgumentError associated_literature_models(t1)
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
-  @test_throws ArgumentError related_literature_models(t1)
+  @test_throws ArgumentError birational_literature_models(t1)
 end
 
 set_model_description(t1, "Testing...")
@@ -112,7 +112,7 @@ end
   @test arxiv_model_page(w1) == "34"
   @test arxiv_model_section(w1) == "B"
   @test arxiv_version(w1) == "2"
-  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test birational_literature_models(w1) == ["1208_2695-1"]
   @test length(generating_sections(w1)) == 1
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -134,7 +134,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError associated_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -201,7 +201,7 @@ end
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
-  @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError birational_literature_models(t3)
   @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
 end
 
@@ -274,7 +274,7 @@ end
   @test arxiv_model_page(w2) == "34"
   @test arxiv_model_section(w2) == "B"
   @test arxiv_version(w2) == "2"
-  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test birational_literature_models(w2) == ["1208_2695-1"]
   @test length(generating_sections(w2)) == 1
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -296,7 +296,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError associated_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
@@ -374,22 +374,22 @@ end
 # 8: Test models from F-theory on all toric hypersurfaces over arbitrary base
 #############################################################################
 
-foah1 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4", type = "hypersurface")
-foah2 = literature_model(arxiv_id = "1408.4808v2", equation = "3.12", type = "hypersurface")
-foah3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.54", type = "hypersurface")
-foah4 = literature_model(arxiv_id = "1408.4808v2", equation = "3.17", type = "hypersurface")
-foah5 = literature_model(arxiv_id = "1408.4808v2", equation = "3.73", type = "hypersurface")
-foah6 = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "hypersurface")
-foah7 = literature_model(arxiv_id = "1408.4808v2", equation = "3.96", type = "hypersurface")
-foah8 = literature_model(arxiv_id = "1408.4808v2", equation = "3.106", type = "hypersurface")
-foah9 = literature_model(arxiv_id = "1408.4808v2", equation = "3.118", type = "hypersurface")
-foah10 = literature_model(arxiv_id = "1408.4808v2", equation = "3.130", type = "hypersurface")
-foah11 = literature_model(arxiv_id = "1408.4808v2", equation = "3.142", type = "hypersurface")
-foah12 = literature_model(arxiv_id = "1408.4808v2", equation = "3.155", type = "hypersurface")
-foah13 = literature_model(arxiv_id = "1408.4808v2", equation = "3.181", type = "hypersurface")
-foah14 = literature_model(arxiv_id = "1408.4808v2", equation = "3.168", type = "hypersurface")
-foah15 = literature_model(arxiv_id = "1408.4808v2", equation = "3.190", type = "hypersurface")
-foah16 = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "hypersurface")
+foah1 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface")
+foah2 = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "hypersurface")
+foah3 = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "hypersurface")
+foah4 = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "hypersurface")
+foah5 = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "hypersurface")
+foah6 = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "hypersurface")
+foah7 = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "hypersurface")
+foah8 = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "hypersurface")
+foah9 = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "hypersurface")
+foah10 = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "hypersurface")
+foah11 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface")
+foah12 = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "hypersurface")
+foah13 = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "hypersurface")
+foah14 = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
+foah15 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hypersurface")
 
 @testset "Test hypersurface form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1)) == 3
@@ -457,6 +457,24 @@ foah16 = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "
   @test model_description(foah15) == "F-theory hypersurface model with fiber ambient space F_15"
   @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
   @test haskey(explicit_model_sections(foah6), "s9") == false
+  @test dim(gauge_algebra(foah6)) == 4
+  @test length(global_gauge_quotients(foah6)) == 2
+  @test dim(gauge_algebra(foah8)) == 7
+  @test length(global_gauge_quotients(foah8)) == 3
+  @test dim(gauge_algebra(foah9)) == 5
+  @test length(global_gauge_quotients(foah9)) == 3
+  @test dim(gauge_algebra(foah11)) == 12
+  @test length(global_gauge_quotients(foah11)) == 3
+  @test dim(gauge_algebra(foah12)) == 8
+  @test length(global_gauge_quotients(foah12)) == 4
+  @test dim(gauge_algebra(foah13)) == 21
+  @test length(global_gauge_quotients(foah13)) == 3
+  @test dim(gauge_algebra(foah14)) == 15
+  @test length(global_gauge_quotients(foah14)) == 4
+  @test dim(gauge_algebra(foah15)) == 13
+  @test length(global_gauge_quotients(foah15)) == 5
+  @test dim(gauge_algebra(foah16)) == 24
+  @test length(global_gauge_quotients(foah16)) == 3
 end
 
 
@@ -467,22 +485,22 @@ end
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah2_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.12", type = "hypersurface", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
-foah3_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.54", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah4_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.17", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah5_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.73", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah6_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah7_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.96", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah8_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.106", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah9_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.118", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah10_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.130", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah11_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah12_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.155", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah13_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.181", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah14_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.168", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah15_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah16_B3 = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah2_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "hypersurface", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
+foah3_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah4_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah5_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah6_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah7_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah8_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah9_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah10_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah12_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah13_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah14_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah16_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
 @testset "Test hypersurface form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
   @test dim(base_space(foah1_B3)) == 3
@@ -574,22 +592,22 @@ end
 # 10: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
 ##########################################################################################################
 
-foah1_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.4", type = "weierstrass")
-foah2_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.12", type = "weierstrass")
-foah3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.54", type = "weierstrass")
-foah4_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.17", type = "weierstrass")
-foah5_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.73", type = "weierstrass")
-foah6_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "weierstrass")
-foah7_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.96", type = "weierstrass")
-foah8_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.106", type = "weierstrass")
-foah9_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.118", type = "weierstrass")
-foah10_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.130", type = "weierstrass")
-foah11_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.142", type = "weierstrass")
-foah12_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.155", type = "weierstrass")
-foah13_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.181", type = "weierstrass")
-foah14_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.168", type = "weierstrass")
-foah15_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.190", type = "weierstrass")
-foah16_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "weierstrass")
+foah1_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass")
+foah2_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass")
+foah3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass")
+foah4_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass")
+foah5_weier = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "weierstrass")
+foah6_weier = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "weierstrass")
+foah7_weier = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "weierstrass")
+foah8_weier = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "weierstrass")
+foah9_weier = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "weierstrass")
+foah10_weier = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "weierstrass")
+foah11_weier = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "weierstrass")
+foah12_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "weierstrass")
+foah13_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass")
+foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass")
+foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
+foah16_weier = weierstrass_model(foah16)
 
 @testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
   @test dim(base_space(foah1_weier)) == 3
@@ -666,22 +684,22 @@ end
 
 B3 = projective_space(NormalToricVariety, 3)
 Kbar = anticanonical_divisor(B3)
-foah1_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.4", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah2_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
-foah3_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah4_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah5_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.73", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah6_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.82", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah7_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.96", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah8_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.106", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah9_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.118", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah10_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.130", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah11_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.142", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah12_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.155", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah13_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.181", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah14_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.168", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah15_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
-foah16_B3_weier = literature_model(arxiv_id = "1408.4808v2", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah1_B3_weier = weierstrass_model(foah1_B3)
+foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
+foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah5_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah6_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah7_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah8_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah9_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah10_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah11_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah12_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah13_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah14_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah15_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
 
 @testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
   @test dim(base_space(foah1_B3_weier)) == 3

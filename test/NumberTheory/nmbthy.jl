@@ -41,3 +41,15 @@ begin
   @test h(b) == b && h(K(a)) == K(a)
   @test order(G) == 4 && is_cyclic(G)
 end
+
+@testset "norm equation non-max" begin
+  k, a = wildanger_field(3, 13)
+  zk = maximal_order(k)
+  b = zk(8*a^2 - 24*a - 1)
+  o = Order(k, 8 .* basis(zk))
+  @test length(norm_equation(zk, norm(b))) == 4
+  @test length(norm_equation(o, norm(b))) == 3
+
+  @test length(norm_equation(o, 8)) == 2
+  @test length(norm_equation(zk, 8)) == 1
+end

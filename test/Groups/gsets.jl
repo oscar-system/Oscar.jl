@@ -3,7 +3,7 @@
   # natural constructions (determined by the types of the seeds)
   G = symmetric_group(6)
   Omega = gset(G)
-  @test repr(Omega, context = :supercompact => true) == "G-set"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "G-set"
   @test isa(Omega, GSet)
   @test length(Omega) == 6
   @test length(orbits(Omega)) == 1
@@ -321,7 +321,7 @@ end
   G = symmetric_group(5)
   H = sylow_subgroup(G, 2)[1]
   Omega = right_cosets(G, H)
-  @test repr(Omega, context = :supercompact => true) == "Right cosets of groups"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Right cosets of groups"
   @test isa(Omega, GSet)
   @test acting_group(Omega) == G
   @test length(Omega) == index(G, H)
@@ -382,7 +382,7 @@ end
   G = symmetric_group(5)
   H = sylow_subgroup(G, 2)[1]
   Omega = left_cosets(G, H)
-  @test repr(Omega, context = :supercompact => true) == "Left cosets of groups"
+  @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "Left cosets of groups"
   @test isa(Omega, GSet)
   @test acting_group(Omega) == G
   @test length(Omega) == index(G, H)
@@ -437,4 +437,32 @@ end
   @test rep[1]
   @test inv(rep[2]) * x == y
   @test Oscar.action_function(Omega)(x, rep[2]) == y
+end
+
+@testset "G-sets of FinGenAbGroups" begin
+  # Define an action on class functions.
+  function galois_conjugate(chi::Oscar.GAPGroupClassFunction,
+                            sigma::QQAbAutomorphism)
+    return Oscar.class_function(parent(chi), [x^sigma for x in values(chi)])
+  end
+
+  # Compute Galois orbits on irreducible characters.
+  t = character_table("L2(8)")
+  N = lcm(map(conductor, t))
+  u, mu = unit_group(quo(ZZ, N)[1])
+  @test u isa FinGenAbGroup
+  f = function(chi, g)
+    return galois_conjugate(chi, QQAbAutomorphism(Int(lift(mu(g)))))
+  end
+
+  orb = orbit(u, f, t[3])
+  @test length(collect(orb)) == 3
+
+  Omega = gset(u, f, t)
+  orbs = orbits(Omega)
+  @test length(orbs) == 5
+  @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
+  @test all(o -> conductor(sum(collect(o))) == 1, orbs)
+  o = orbs[findfirst(o -> length(o) == 3, orbs)]
+  @test [order(permutation(o, x)) for x in gens(u)] == [1, 3]
 end

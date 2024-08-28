@@ -25,6 +25,7 @@ function __init__()
   GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
   Hecke.add_assertion_scope(:GaloisInvariant)
 end
@@ -835,7 +836,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = polynomial_ring(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1; cached=false)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
@@ -2172,7 +2173,7 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{ZZRingEle
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
-    lz = lift(l)
+    lz = lift(ZZ, l)
     lz = Hecke.mod_sym(lz, ZZRingElem(p)^precision(l))
     if abs(lz) < value(B)
       return true, lz
@@ -2232,7 +2233,7 @@ function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.d
       cnt += 1
       cnt > 20 && error("no Tschirni found")
       ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-      if degree(ts) > 0
+      if degree(ts) > 0 
         break
       end
     end
@@ -2346,7 +2347,6 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ps = [val]
   d = copy(conj)
   while length(ps) < m
-#    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
     fl, val = isinteger(GC, B, sum(d))
     @assert fl
@@ -2664,7 +2664,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector, gens(G))
+  gs = map(Vector{Int}, gens(G))
   for (g, k) = lf
     for j=2:k
       for i=1:degree(g)

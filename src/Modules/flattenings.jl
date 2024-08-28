@@ -4,11 +4,11 @@ function flatten(F::ModuleFP)
   return flatten(base_ring(F))(F)
 end
 
-FlattableRingElemType = Union{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                      MPolyQuoLocRingElem, MPolyLocRingElem}},
-                              <:MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
-                                                                         MPolyQuoLocRingElem, MPolyLocRingElem}}}
-                             }
+const FlattableRingElemType = Union{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                            MPolyQuoLocRingElem, MPolyLocRingElem}},
+                                    <:MPolyQuoRingElem{<:MPolyRingElem{<:Union{MPolyRingElem, MPolyQuoRingElem, 
+                                                                               MPolyQuoLocRingElem, MPolyLocRingElem}}}
+                                   }
 
 function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: FlattableRingElemType}
   if !haskey(flat_counterparts(flat_map), F)

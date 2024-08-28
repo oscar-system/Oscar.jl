@@ -74,7 +74,7 @@ function affine_algebra(
   if !isdefined(IR, :presentation)
     if algo_gens == :king && algo_rels == :linear_algebra
       error(
-        "Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible",
+        "Combination of arguments :$(algo_gens) for algo_gens and :$(algo_rels) for algo_rels not possible"
       )
     end
 
@@ -142,7 +142,7 @@ function relations_primary_and_irreducible_secondary(RG::FinGroupInvarRing)
   np = length(p_invars)
 
   w = append!([total_degree(f) for f in p_invars], [total_degree(f) for f in is_invars])
-  S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w)
+  S, t = graded_polynomial_ring(K, "t" => 1:(np + length(is_invars)), w; cached=false)
 
   if isempty(is_invars)
     I = ideal(S, elem_type(S)[])

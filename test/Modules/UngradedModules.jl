@@ -150,6 +150,11 @@ end
     @test is_bijective(p)
   end
 
+  # issue 3797
+  R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
+  I = ideal(R, [x, y])
+  FIm = free_resolution(I, algorithm = :mres)
+  @test is_graded(FIm)
 
   # over Rationals
   R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])

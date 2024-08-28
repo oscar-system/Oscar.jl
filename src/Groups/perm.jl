@@ -26,6 +26,9 @@ an integer `n` that is stored in `G`, with the following meaning.
   get the same degree as the given group.
 - The range `1:degree(G)` is used as the default set of points on which
   `G` and its element acts.
+- One can use the syntax `G(H)` in order to get a group that consists of
+  the same permutations as `H` but has the same degree as `G`,
+  provided that the elements of `H` move only points up to `degree(G)`.
 
 !!! note
     The degree of a group of permutations is not necessarily equal to the
@@ -34,7 +37,9 @@ an integer `n` that is stored in `G`, with the following meaning.
 
 # Examples
 ```jldoctest
-julia> degree(symmetric_group(4))
+julia> s4 = symmetric_group(4);
+
+julia> degree(s4)
 4
 
 julia> t4 = trivial_subgroup(symmetric_group(4))[1];
@@ -42,8 +47,13 @@ julia> t4 = trivial_subgroup(symmetric_group(4))[1];
 julia> degree(t4)
 4
 
-julia> t4 == trivial_subgroup(symmetric_group(5))[1]
+julia> t5 = trivial_subgroup(symmetric_group(5))[1];
+
+julia> t4 == t5
 false
+
+julia> t4 == s4(t5)
+true
 
 julia> show(Vector(gen(symmetric_group(4), 2)))
 [2, 1, 3, 4]
@@ -61,6 +71,19 @@ This value is always greater or equal `number_of_moved_points(g)`
 
 """
 degree(g::PermGroupElem) = degree(parent(g))
+
+# coerce a permutation group to a different degree
+function (G::PermGroup)(H::PermGroup)
+  dH = degree(H)
+  dG = degree(G)
+  if dH == dG
+    return H
+  elseif dH < dG || GAPWrap.LargestMovedPoint(GapObj(H)) <= dG
+    return permutation_group(GapObj(H), dG)
+  end
+  throw(ArgumentError("H has degree $dH, cannot be coerced to degree $dG"))
+end
+
 
 @doc raw"""
     moved_points(x::PermGroupElem) -> Vector{Int}
@@ -124,6 +147,28 @@ Sym(6)
 """
 function perm(L::AbstractVector{<:IntegerUnion})
   return PermGroupElem(symmetric_group(length(L)), GAPWrap.PermList(GapObj(L;recursive=true)))
+end
+
+"""
+    smaller_degree_permutation_representation(G::PermGroup) -> PermGroup, map
+  
+Return an isomorphic permutation group of smaller or equal degree
+and the isomorphism from `G` to that group.
+
+# Examples
+```jldoctest
+julia> g = symmetric_group(4);
+
+julia> s, _ = sylow_subgroup(g, 3);
+
+julia> rho = smaller_degree_permutation_representation(s)
+(Permutation group of degree 3 and order 3, Hom: s -> permutation group)
+```
+"""
+function smaller_degree_permutation_representation(G::PermGroup)
+  mp = GAP.Globals.SmallerDegreePermutationRepresentation(GapObj(G))
+  img = PermGroup(GAP.Globals.Image(mp))
+  return img, GAPGroupHomomorphism(G, img, mp)
 end
 
 
@@ -286,7 +331,9 @@ function cperm()
 end
 
 function cperm(L1::AbstractVector{T}, L::AbstractVector{T}...) where T <: IntegerUnion
-  return prod([PermGroupElem(symmetric_group(maximum(y)), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in [L1, L...]])
+  cycles = [L1, L...]
+  n = maximum(map(maximum, cycles))
+  return prod([PermGroupElem(symmetric_group(n), GAPWrap.CycleFromList(GAP.Obj([Int(k) for k in y]))) for y in cycles])
   #TODO: better create the product of GAP permutations?
 end
 

@@ -655,11 +655,11 @@ function automorphism_group(K::SimplicialComplex; action=:on_vertices)
   if action == :on_vertices
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.RAYS_ACTION.GENERATORS)
     n = n_vertices(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   elseif action == :on_facets
     gens_G = Polymake.to_one_based_indexing(pm_K.GROUP.FACETS_ACTION.GENERATORS)
     n = n_facets(K)
-    return permutation_group(n, cperm.(gens_G))
+    return permutation_group(n, perm.(gens_G))
   else
     error("unsupported keyword passed to action")
   end
@@ -680,10 +680,12 @@ julia> G = automorphism_group(K)
 Permutation group of degree 4
 
 julia> g = collect(G)[2]
-(1,2)(3,4)
+(1,4)
 
-julia> on_simplicial_complex(K, g)
-Abstract simplicial complex of dimension 2 on 4 vertices
+julia> facets(on_simplicial_complex(K, g))
+2-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 3])
 ```
 """
 function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)

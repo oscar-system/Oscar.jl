@@ -1,32 +1,8 @@
 ###############################################################################
 #
-#   Root Systems and Weights
+#   Root Systems
 #
 ###############################################################################
-
-mutable struct RootSystem
-  cartan_matrix::ZZMatrix # (generalized) Cartan matrix
-  #fw::QQMatrix # fundamental weights as linear combination of simple roots
-  positive_roots::Vector #::Vector{RootSpaceElem} (cyclic reference)
-  positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
-  weyl_group::Any     #::WeylGroup (cyclic reference)
-
-  # optional:
-  type::Vector{Tuple{Symbol,Int}}
-  type_ordering::Vector{Int}
-
-  function RootSystem(mat::ZZMatrix)
-    pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
-    finite = count(refl .== 0) == nrows(mat)
-
-    R = new(mat)
-    R.positive_roots = map(r -> RootSpaceElem(R, r), pos_roots)
-    R.positive_coroots = map(r -> DualRootSpaceElem(R, r), pos_coroots)
-    R.weyl_group = WeylGroup(finite, refl, R)
-
-    return R
-  end
-end
 
 @doc raw"""
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
@@ -37,12 +13,7 @@ If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix
 Passing `detect_type=false` will skip the detection of the root system type.
 """
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
-  @req !check || is_cartan_matrix(cartan_matrix) "Requires a generalized Cartan matrix"
-  R = RootSystem(cartan_matrix)
-  detect_type &&
-    is_finite(weyl_group(R)) &&
-    set_root_system_type(R, cartan_type_with_ordering(cartan_matrix)...)
-  return R
+  return RootSystem(cartan_matrix; check, detect_type)
 end
 
 function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
@@ -53,18 +24,26 @@ end
     root_system(fam::Symbol, rk::Int) -> RootSystem
 
 Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+
+# Examples
+```jldoctest
+julia> root_system(:A, 2)
+Root system defined by Cartan matrix
+  [ 2   -1]
+  [-1    2]
+```
 """
 function root_system(fam::Symbol, rk::Int)
   cartan = cartan_matrix(fam, rk)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, [(fam, rk)])
+  set_root_system_type!(R, [(fam, rk)])
   return R
 end
 
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
   R = root_system(cartan; check=false, detect_type=false)
-  set_root_system_type(R, type)
+  set_root_system_type!(R, type)
   return R
 end
 
@@ -96,6 +75,10 @@ end
   return cartan_bilinear_form(cartan_matrix(R); check=false)
 end
 
+@attr QQMatrix function _bilinear_form_QQ(R::RootSystem)
+  return QQMatrix(bilinear_form(R))
+end
+
 @doc raw"""
     cartan_matrix(R::RootSystem) -> ZZMatrix
 
@@ -103,6 +86,10 @@ Return the Cartan matrix defining `R`.
 """
 function cartan_matrix(R::RootSystem)
   return R.cartan_matrix
+end
+
+@attr Vector{ZZRingElem} function cartan_symmetrizer(R::RootSystem)
+  return cartan_symmetrizer(cartan_matrix(R); check=false)
 end
 
 @doc raw"""
@@ -163,7 +150,7 @@ This is a more efficient version for `negative_roots(R)[i]`.
 Also see: `negative_roots`.
 """
 function negative_root(R::RootSystem, i::Int)
-  return -R.positive_roots[i]::RootSpaceElem
+  return -(R.positive_roots::Vector{RootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -186,7 +173,7 @@ This is a more efficient version for `negative_coroots(R)[i]`.
 Also see: `negative_coroots`.
 """
 function negative_coroot(R::RootSystem, i::Int)
-  return -R.positive_coroots[i]::DualRootSpaceElem
+  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -242,7 +229,7 @@ This is a more efficient version for `positive_roots(R)[i]`.
 Also see: `positive_roots`.
 """
 function positive_root(R::RootSystem, i::Int)
-  return R.positive_roots[i]::RootSpaceElem
+  return (R.positive_roots::Vector{RootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -266,7 +253,7 @@ This is a more efficient version for `positive_coroots(R)[i]`.
 Also see: `positive_coroots`.
 """
 function positive_coroot(R::RootSystem, i::Int)
-  return R.positive_coroots[i]::DualRootSpaceElem
+  return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
 end
 
 @doc raw"""
@@ -302,11 +289,11 @@ function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
 end
 
-function set_root_system_type(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
-  return set_root_system_type(R, type, 1:sum(t[2] for t in type; init=0))
+function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type!(R, type, 1:sum(t[2] for t in type; init=0))
 end
 
-function set_root_system_type(
+function set_root_system_type!(
   R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
 )
   R.type = type
@@ -414,29 +401,23 @@ function weyl_vector(R::RootSystem)
 end
 
 ###############################################################################
-# RootSpaceElem
-
-mutable struct RootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
-end
-
-function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
-end
+#
+#   Root space elements
+#
+###############################################################################
 
 function Base.:(*)(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
 
 function Base.:(+)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return RootSpaceElem(root_system(r), r.vec + r2.vec)
 end
 
 function Base.:(-)(r::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return RootSpaceElem(root_system(r), r.vec - r2.vec)
 end
@@ -484,9 +465,9 @@ function coeff(r::RootSpaceElem, i::Int)
 end
 
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
-  @req root_system(r1) === root_system(r2) "$r1 and $r2 must belong to the same root space"
+  @req root_system(r1) === root_system(r2) "parent root system mismatch"
 
-  return dot(coefficients(r1) * bilinear_form(root_system(r1)), coefficients(r2))
+  return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2))
 end
 
 @doc raw"""
@@ -499,26 +480,41 @@ function height(r::RootSpaceElem)
   return sum(coefficients(r))
 end
 
+function is_root(r::RootSpaceElem)
+  return is_positive_root(r) || is_negative_root(r)
+end
+
 function is_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), roots(root_system(r)))
-  if isnothing(i)
-    return false, 0
-  else
+  fl, i = is_positive_root_with_index(r)
+  if fl
     return true, i
   end
+  fl, j = is_negative_root_with_index(r)
+  if fl
+    return true, j + number_of_positive_roots(root_system(r))
+  end
+  return false, 0
+end
+
+function is_positive_root(r::RootSpaceElem)
+  return haskey(root_system(r).positive_roots_map, coefficients(r))
 end
 
 function is_positive_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), positive_roots(root_system(r)))
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
     return true, i
   end
+end
+
+function is_negative_root(r::RootSpaceElem)
+  return haskey(root_system(r).positive_roots_map, -coefficients(r))
 end
 
 function is_negative_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), negative_roots(root_system(r)))
+  i = get(root_system(r).positive_roots_map, -coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
@@ -526,9 +522,13 @@ function is_negative_root_with_index(r::RootSpaceElem)
   end
 end
 
+function is_simple_root(r::RootSpaceElem)
+  return is_simple_root_with_index(r)[1]
+end
+
 function is_simple_root_with_index(r::RootSpaceElem)
-  i = findfirst(==(r), simple_roots(root_system(r)))
-  if isnothing(i)
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
     return true, i
@@ -539,10 +539,14 @@ function Base.iszero(r::RootSpaceElem)
   return iszero(r.vec)
 end
 
+function reflect(r::RootSpaceElem, s::Int)
+  return reflect!(deepcopy(r), s)
+end
+
 function reflect!(r::RootSpaceElem, s::Int)
   r.vec -=
     dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
-    positive_root(root_system(r), s).vec
+    simple_root(root_system(r), s).vec
   return r
 end
 
@@ -551,29 +555,23 @@ function root_system(r::RootSpaceElem)
 end
 
 ###############################################################################
-# DualRootSpaceElem
-
-mutable struct DualRootSpaceElem
-  root_system::RootSystem
-  vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
-end
-
-function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
-end
+#
+#   Dual root space elements
+#
+###############################################################################
 
 function Base.:(*)(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
 end
 
 function Base.:(+)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return DualRootSpaceElem(root_system(r), r.vec + r2.vec)
 end
 
 function Base.:(-)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
-  @req root_system(r) === root_system(r2) "$r and $r2 must belong to the same root space"
+  @req root_system(r) === root_system(r2) "parent root system mismatch"
 
   return DualRootSpaceElem(root_system(r), r.vec - r2.vec)
 end
@@ -630,26 +628,41 @@ function height(r::DualRootSpaceElem)
   return sum(coefficients(r))
 end
 
+function is_coroot(r::DualRootSpaceElem)
+  return is_positive_coroot(r) || is_negative_coroot(r)
+end
+
 function is_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), coroots(root_system(r)))
-  if isnothing(i)
-    return false, 0
-  else
+  fl, i = is_positive_coroot_with_index(r)
+  if fl
     return true, i
   end
+  fl, j = is_negative_coroot_with_index(r)
+  if fl
+    return true, j + number_of_positive_roots(root_system(r))
+  end
+  return false, 0
+end
+
+function is_positive_coroot(r::DualRootSpaceElem)
+  return haskey(root_system(r).positive_coroots_map, coefficients(r))
 end
 
 function is_positive_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), positive_coroots(root_system(r)))
+  i = get(root_system(r).positive_coroots_map, coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
     return true, i
   end
+end
+
+function is_negative_coroot(r::DualRootSpaceElem)
+  return haskey(root_system(r).positive_coroots_map, -coefficients(r))
 end
 
 function is_negative_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), negative_coroots(root_system(r)))
+  i = get(root_system(r).positive_coroots_map, -coefficients(r), nothing)
   if isnothing(i)
     return false, 0
   else
@@ -657,9 +670,13 @@ function is_negative_coroot_with_index(r::DualRootSpaceElem)
   end
 end
 
+function is_simple_coroot(r::DualRootSpaceElem)
+  return is_simple_coroot_with_index(r)[1]
+end
+
 function is_simple_coroot_with_index(r::DualRootSpaceElem)
-  i = findfirst(==(r), simple_coroots(root_system(r)))
-  if isnothing(i)
+  i = get(root_system(r).positive_roots_map, coefficients(r), nothing)
+  if isnothing(i) || i > number_of_simple_roots(root_system(r))
     return false, 0
   else
     return true, i
@@ -675,34 +692,23 @@ function root_system(r::DualRootSpaceElem)
 end
 
 ###############################################################################
-# WeightLatticeElem
-
-mutable struct WeightLatticeElem
-  root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
-end
-
-@doc raw"""
-    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
-
-Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
-"""
-function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
-end
+#
+#   Weight lattice elements
+#
+###############################################################################
 
 function Base.:(*)(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)
 end
 
 function Base.:(+)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
-  return RootSpaceElem(root_system(w), w.vec + w2.vec)
+  return WeightLatticeElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:(-)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "$w and $w2 must belong to the same weight lattice"
+  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec - w2.vec)
 end
@@ -847,6 +853,66 @@ function root_system(w::WeightLatticeElem)
 end
 
 ###############################################################################
+# more functions
+
+function dot(r::RootSpaceElem, w::WeightLatticeElem)
+  @req root_system(r) === root_system(w) "parent root system mismatch"
+
+  symmetrizer = cartan_symmetrizer(root_system(r))
+  return sum(
+    r[i] * symmetrizer[i] * w[i] for
+    i in 1:rank(root_system(r));
+    init=zero(QQ),
+  )
+end
+
+function dot(w::WeightLatticeElem, r::RootSpaceElem)
+  return dot(r, w)
+end
+
+@doc raw"""
+    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem -> T
+    dim_of_simple_module([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> T
+
+Compute the dimension of the simple module of the Lie algebra defined by the root system `R`
+with highest weight `hw` using Weyl's dimension formula.
+The return value is of type `T`.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 2);
+
+julia> dim_of_simple_module(R, [1, 0])
+5
+```
+"""
+function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  rho = weyl_vector(R)
+  hw_rho = hw + rho
+  num = one(ZZ)
+  den = one(ZZ)
+  for alpha in positive_roots(R)
+    num *= ZZ(dot(hw_rho, alpha))
+    den *= ZZ(dot(rho, alpha))
+  end
+  return T(div(num, den))
+end
+
+function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
+end
+
+function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, R, hw)
+end
+
+function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, R, hw)
+end
+
+###############################################################################
 # internal helpers
 
 # cartan matrix in the format <a^v, b>
@@ -865,8 +931,12 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
         continue
       end
 
-      pairing = sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank)
-      copairing = sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank)
+      pairing = let i = i
+        sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank; init=zero(ZZ))
+      end
+      copairing = let i = i
+        sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank; init=zero(ZZ))
+      end
       if pairing * copairing >= 4
         refl[s, i] = 0
         continue

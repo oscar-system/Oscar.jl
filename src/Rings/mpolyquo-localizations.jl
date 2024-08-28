@@ -719,13 +719,18 @@ function convert(
   abort = false
   # find some power which works
   while !abort
-   if length(terms(last(powers_of_d))) > 10000
+   if length(terms(last(powers_of_d))) > 100
       id, id_inv = _as_affine_algebra_with_many_variables(L)
-      aa = simplify(id(L(a)))
-      bb = simplify(id(L(b)))
-      success, cc = _divides_hack(aa, bb)
-      !success && error("element can not be converted to localization")
-      return id_inv(simplify(cc))
+      cc = id(L(a)) # the result
+      fac_b = factor(b)
+      for (f, k) in fac_b
+        ff = id(L(f))
+        for i in 1:k
+          success, cc = _divides_hack(cc, ff)
+          @assert success "element can not be converted to localization"
+        end
+      end
+      return id_inv(simplify(cc))*inv(unit(fac_b))
     end
     (abort, coefficient) = _divides_hack(Q(a*last(powers_of_d)), Q(b))
     if !abort
@@ -770,7 +775,11 @@ function +(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   if lifted_denominator(a) == lifted_denominator(b) 
     return (parent(a))(lifted_numerator(a) + lifted_numerator(b), lifted_denominator(a), check=false)
   end
-  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) + lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
+  gcd_ab = gcd([lifted_denominator(b), lifted_denominator(a)])
+  p = divexact(lifted_denominator(a), gcd_ab)
+  q = divexact(lifted_denominator(b), gcd_ab)
+  new_den = p*lifted_denominator(b)
+  return (parent(a))(lifted_numerator(a)*q + lifted_numerator(b)*p, new_den, check=false)
 end
 
 # TODO: improve this method.
@@ -780,16 +789,18 @@ function addeq!(a::T, b::T) where {T<:MPolyQuoLocRingElem}
 end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  if lifted_denominator(a) == lifted_denominator(b) 
-    return (parent(a))(lifted_numerator(a) - lifted_numerator(b), lifted_denominator(a), check=false)
-  end
-  return (parent(a))(lifted_numerator(a)*lifted_denominator(b) - lifted_numerator(b)*lifted_denominator(a), lifted_denominator(a)*lifted_denominator(b), check=false)
+  return a + (-b)
 end
 
 function *(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   parent(a) === parent(b) || error("the arguments do not have the same parent ring")
-  return (parent(a))(lifted_numerator(a)*lifted_numerator(b), lifted_denominator(a)*lifted_denominator(b), check=false)
+  p = gcd([lifted_numerator(a), lifted_denominator(b)])
+  q = gcd([lifted_numerator(b), lifted_denominator(a)])
+  aa = divexact(lifted_numerator(a), p)
+  bb = divexact(lifted_numerator(b), q)
+  da = divexact(lifted_denominator(a), q)
+  db = divexact(lifted_denominator(b), p)
+  return (parent(a))(aa*bb, da*db, check=false)
 end
 
 function *(a::RET, b::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT<:Ring, BRET<:RingElem, RT<:Ring, RET <: RingElem, MST}
@@ -884,7 +895,7 @@ end
 ### enhancement of the arithmetic
 function reduce_fraction(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST<:MPolyPowersOfElement}
   return f # Disable reduction here, because it slows down arithmetic.
-  return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
+  # return parent(f)(lift(simplify(numerator(f))), lifted_denominator(f), check=false)
 end
 
 # for local orderings, reduction does not give the correct result.
@@ -1118,6 +1129,18 @@ end
 function (f::MPolyQuoLocalizedRingHom)(a::AbsLocalizedRingElem)
   parent(a) === domain(f) || return f(domain(f)(a))
   isone(lifted_denominator(a)) && return codomain(f)(restricted_map(f)(lifted_numerator(a)))
+  if total_degree(lifted_denominator(a)) > 10
+    res = restricted_map(f)
+    img_num = res(lifted_numerator(a))
+    den = lifted_denominator(a)
+    img_den = one(img_num)
+    fac_den = factor(den)
+    for (a, k) in fac_den
+      img_den = img_den * inv(res(a))^k
+    end
+    img_den = img_den * inv(res(unit(fac_den)))
+    return img_num * img_den
+  end
   b = a #simplify(a)
   return codomain(f)(restricted_map(f)(lifted_numerator(b)))*inv(codomain(f)(restricted_map(f)(lifted_denominator(b))))
 end
@@ -1346,15 +1369,18 @@ end
   n = ngens(P)
   imgs_y = t[r+1:(r+n)]
   imgs_x = t[r+n+1:end]
-  I = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
+  # Sometimes for unnecessarily complicated sets of generators for I the computation 
+  # wouldn't finish. We try to pass to a `small_generating_set` to hopefully reduce the dependency 
+  # on a particular set of generators. 
+  J = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
                     [theta[i]*evaluate(num, imgs_y) - imgs_x[i] for (i, num) in enumerate(nums)], # Graph relations
-                    [evaluate(g, imgs_y) for g in gens(I)])) # codomain's modulus
+                    [evaluate(g, imgs_y) for g in small_generating_set(I)])) # codomain's modulus
   # We eliminate the Rabinowitsch variables first, the codomain variables second, 
   # and finally get to the domain variables. This elimination should be quicker 
   # than one which does not know the Rabinowitsch property.
   oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
   #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
-  gb = groebner_basis(I, ordering=oo)
+  gb = groebner_basis(J, ordering=oo)
 
   # TODO: Speed up and use build context.
   res_gens = elem_type(A)[f for f in gb if all(e->all(k->is_zero(e[k]), 1:(n+r)), exponents(f))]
@@ -1533,14 +1559,14 @@ end
 # ring R and returns a triple consisting of the new ring, the embedding 
 # of the original one, and a list of the new variables. 
 function _add_variables(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
-  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(symbols(R), Symbol.(v)); cached = false)
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1:n], check=false)
   return ext_R, phi, gens(ext_R)[(n+1):ngens(ext_R)]
 end
 
 function _add_variables_first(R::RingType, v::Vector{<:VarName}) where {RingType<:MPolyRing}
-  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)))
+  ext_R, _ = polynomial_ring(coefficient_ring(R), vcat(Symbol.(v), symbols(R)); cached = false)
   n = ngens(R)
   phi = hom(R, ext_R, gens(ext_R)[1+length(v):n+length(v)], check=false)
   return ext_R, phi, gens(ext_R)[(1:length(v))]
@@ -1566,7 +1592,7 @@ function simplify(L::MPolyQuoLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyPowersOf
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached = false)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
@@ -1622,7 +1648,7 @@ function simplify(L::MPolyQuoRing)
 
   # set up the ring with the fewer variables 
   kept_var_symb = [symbols(R)[i] for i in 1:ngens(R) if !iszero(l[4][i])]
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb, cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), kept_var_symb; cached=false)
 
   # and the maps to go back and forth
   subst_map_R = hom(R, R, R.(gens(l[5])), check=false)
@@ -1653,7 +1679,7 @@ function simplify(L::MPolyQuoRing)
 end
 
 function simplify(R::MPolyRing)
-  Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R), cached=false)
+  Rnew, new_vars = polynomial_ring(coefficient_ring(R), symbols(R); cached=false)
   f = hom(R, Rnew, gens(Rnew), check=false)
   finv = hom(Rnew, R, gens(R), check=false)
   return Rnew, f, finv
@@ -1906,13 +1932,23 @@ function Base.show(io::IO, ::MIME"text/plain", I::MPolyAnyIdeal)
 end
 
 function _get_generators_string_one_line(I::MPolyAnyIdeal, character_limit::Int = 100)
-  # Try a full list of generators if it fits $character_limit characters
+  # Try a full list of generators if it fits $character_limit characters, otherwise
+  # print `default`
+  default = "with $(ItemQuantity(ngens(I), "generator"))"
+
+  if ngens(I)*3 > character_limit
+    # We need at least 3 characters (generator, comma, space) per generator, so
+    # we don't need to build the whole string
+    return default
+  end
+
+  # Generate the full string
   gen_string = "("*join(gens(I), ", ")*")"
   if length(gen_string) <= character_limit
     return gen_string
   end
 
-  return "with $(ItemQuantity(ngens(I), "generator"))"
+  return default
 end
 
 function Base.show(io::IO, I::MPolyAnyIdeal)

@@ -41,6 +41,11 @@ A subdivision of points formed from points and cells made of these points. The
 cells are given as an IncidenceMatrix, where the columns represent the points
 and the rows represent the cells.
 
+!!! warning
+    It is required, but not checked, that the cells cover the convex hull of
+    the points. Likewise it is not checked that the cells form a proper
+    polyhedral complex.
+
 # Examples
 The following is the famous "mother of all examples" (MOAE) non-regular
 triangulation.

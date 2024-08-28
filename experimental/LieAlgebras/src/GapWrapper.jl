@@ -16,7 +16,7 @@ function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra, weight::Vect
   dimV = GAPWrap.Dimension(gapV)
   basisV = GAPWrap.Basis(gapV)
 
-  struct_consts = Matrix{SRow{elem_type(R)}}(undef, dimL, dimV)
+  struct_consts = Matrix{sparse_row_type(R)}(undef, dimL, dimV)
   for i in 1:dimL, j in 1:dimV
     struct_consts[i, j] = sparse_row(
       R,
