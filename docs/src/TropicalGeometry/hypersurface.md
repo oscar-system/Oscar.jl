@@ -1,3 +1,7 @@
+```@meta
+CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
+```
 # Tropical hypersurfaces
 
 ## Introduction
@@ -25,10 +29,6 @@ dual_subdivision(TropH::TropicalHypersurface)
 ```
 
 ## Example
-```@meta
-CurrentModule = Oscar
-DocTestSetup = Oscar.doctestsetup()
-```
 The following code sets up an example and prints the vertices and rays of the tropical hypersurface (in no particular order).
 ```jldoctest exampleHypersurface
 julia> TRing = tropical_semiring();
