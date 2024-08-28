@@ -23,7 +23,7 @@ function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
       end
       signal += 1
     end
-    @req signal < 100000000 "Choose another Q"
+    error("Choose another Q")
   else
     @req (v0*Q*transpose(v0))[1, 1] > 0 "v0 has non positive inner product"
     return v0
