@@ -1233,6 +1233,8 @@ end
 
 Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
 
+Base.eltype(::Type{GAPGroupCharacterTable}) = GAPGroupClassFunction
+
 """
     mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     rem(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
@@ -2346,6 +2348,8 @@ restrict(chi::GAPGroupClassFunction, H::Union{GAPGroup, FinGenAbGroup}) = restri
 Base.length(chi::GAPGroupClassFunction) = length(GapObj(chi))
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(GapObj(chi)) ? nothing : (chi[state], state+1)
+
+Base.eltype(::Type{GAPGroupClassFunction}) = QQAbFieldElem{AbsSimpleNumFieldElem}
 
 @doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)
