@@ -1156,7 +1156,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
         (
           WeightLatticeElem(
             R,
-            transpose(first(intersect(elements(o)::Vector{ZZMatrix}, pos_roots_w_coeffs))),
+            transpose(first(intersect(elements(o), pos_roots_w_coeffs))),
           ),
           length(o),
         ) for o in O
