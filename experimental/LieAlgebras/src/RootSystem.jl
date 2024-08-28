@@ -1216,6 +1216,75 @@ function character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(R, WeightLatticeElem(R, hw))
 end
 
+@doc raw"""
+    tensor_product_decomposition(R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem) -> MSet{Vector{Int}}
+    tensor_product_decomposition(R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
+
+Computes the decomposition of the tensor product of the simple modules of the Lie algebra defined by the root system `R`
+with highest weights `hw1` and `hw2` into simple modules with their multiplicities.
+This function uses Klymik's formula.
+
+The return type may change in the future.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 2);
+
+julia> tensor_product_decomposition(R, [1, 0], [0, 1])
+MSet{Vector{Int64}} with 2 elements:
+  [1, 1]
+  [0, 1]
+
+julia> tensor_product_decomposition(R, [1, 1], [1, 1])
+MSet{Vector{Int64}} with 10 elements:
+  [0, 0]
+  [0, 4]
+  [2, 0]
+  [0, 2] : 2
+  [1, 0]
+  [2, 2]
+  [3, 0]
+  [1, 2] : 2
+```
+"""
+function tensor_product_decomposition(
+  R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem
+)
+  @req root_system(hw1) === R "parent root system mismatch"
+  @req root_system(hw2) === R "parent root system mismatch"
+  @req is_dominant(hw1) "not a dominant weight"
+  @req is_dominant(hw2) "not a dominant weight"
+
+  W = weyl_group(R)
+  rho = weyl_vector(R)
+
+  mults = multiset(WeightLatticeElem)
+  for (w_, m) in dominant_character(R, hw1)
+    for w1 in weyl_orbit(WeightLatticeElem(R, w_))
+      w = w1 + hw2 + rho
+      w_dom, x = conjugate_dominant_weight_with_elem(w)
+      if all(!iszero, coefficients(w_dom))
+        w_dom -= rho
+        coeff = m * (-1)^length(x)
+        push!(mults, w_dom, coeff)
+      end
+    end
+  end
+
+  # return mults
+  return multiset(
+    Dict(Int.(_vec(coefficients(w))) => multiplicity(mults, w) for w in unique(mults))
+  )
+end
+
+function tensor_product_decomposition(
+  R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
+)
+  return tensor_product_decomposition(
+    R, WeightLatticeElem(R, hw1), WeightLatticeElem(R, hw2)
+  )
+end
+
 ###############################################################################
 # internal helpers
 

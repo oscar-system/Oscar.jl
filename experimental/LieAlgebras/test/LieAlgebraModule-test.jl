@@ -991,18 +991,24 @@
 
   @testset "tensor_product_decomposition" begin
     function test_tensor_product_decomposition(
-      L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}
+      LR::Union{LieAlgebra,RootSystem}, hw1::Vector{<:Oscar.IntegerUnion},
+      hw2::Vector{<:Oscar.IntegerUnion}
     )
-      dec = @inferred tensor_product_decomposition(L, hw1, hw2)
-      @test dec == @inferred tensor_product_decomposition(L, hw2, hw1)
-      @test multiplicity(dec, hw1 + hw2) == 1
-      dim_prod = dim_of_simple_module(L, hw1) * dim_of_simple_module(L, hw2)
-      dim_dec = sum(multiplicity(dec, w) * dim_of_simple_module(L, w) for w in unique(dec))
+      dec = @inferred tensor_product_decomposition(LR, hw1, hw2)
+      @test dec == @inferred tensor_product_decomposition(LR, hw2, hw1)
+      @test multiplicity(dec, Int.(hw1 + hw2)) == 1
+      dim_prod = dim_of_simple_module(LR, hw1) * dim_of_simple_module(LR, hw2)
+      dim_dec = sum(multiplicity(dec, w) * dim_of_simple_module(LR, w) for w in unique(dec))
       @test dim_prod == dim_dec
       return dec
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      dec = test_tensor_product_decomposition(R, hw, hw)
+      @test dec == multiset(Dict(Int[] => 1))
+    end
+
     let L = lie_algebra(QQ, :A, 3), hw1 = [2, 1, 2], hw2 = [1, 0, 1]
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
@@ -1046,7 +1052,7 @@
       )
     end
 
-    let L = lie_algebra(QQ, :C, 2), hw1 = [2, 2], hw2 = [2, 0]
+    let L = lie_algebra(QQ, :C, 2), hw1 = [2, 2], hw2 = ZZ.([2, 0])
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
         Dict(
@@ -1063,16 +1069,40 @@
       )
     end
 
-    let L = lie_algebra(QQ, :D, 5), hw1 = [1, 1, 3, 0, 2], hw2 = [2, 1, 0, 2, 0]
+    let L = lie_algebra(QQ, :D, 5), hw1 = ZZ.([1, 1, 3, 0, 2]), hw2 = [2, 1, 0, 2, 0]
       dec = test_tensor_product_decomposition(L, hw1, hw2)
     end
 
-    let L = lie_algebra(QQ, :E, 6), hw1 = [1, 1, 0, 0, 1, 2], hw2 = [2, 0, 1, 1, 0, 0]
-      dec = test_tensor_product_decomposition(L, hw1, hw2)
+    let R = root_system(:E, 6), hw1 = [1, 1, 0, 0, 1, 2], hw2 = [2, 0, 1, 1, 0, 0]
+      dec = test_tensor_product_decomposition(R, hw1, hw2)
     end
 
-    let L = lie_algebra(QQ, :G, 2), hw1 = [1, 3], hw2 = [5, 2]
+    let R = root_system(:G, 2), hw1 = [1, 3], hw2 = [5, 2]
+      dec = test_tensor_product_decomposition(R, hw1, hw2)
+    end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw1 = [7], hw2 = [2] # type A_1 but without known root system
       dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(Dict([9] => 1,
+        [7] => 1,
+        [5] => 1,
+      ))
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw1 = ZZ.([1, 2]), hw2 = ZZ.([1, 1]) # type B_2 but without known root system
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(
+        Dict(
+          [2, 3] => 1,
+          [3, 1] => 1,
+          [0, 5] => 1,
+          [1, 3] => 2,
+          [2, 1] => 2,
+          [0, 3] => 2,
+          [1, 1] => 2,
+          [0, 1] => 1,
+        ),
+      )
     end
   end
 end

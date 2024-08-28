@@ -1566,10 +1566,13 @@ function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
 end
 
 @doc raw"""
-    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}) -> MSet{Vector{Int}}
+    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
 
 Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
 into simple modules with their multiplicities.
+This function uses Klymik's formula.
+
+The return type may change in the future.
 
 # Example
 ```jldoctest
@@ -1589,13 +1592,21 @@ MSet{Vector{Int64}} with 6 elements:
   [0, 3]
 ```
 """
-function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
-  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
-  return multiset(
-    Tuple{Vector{Vector{Int}},Vector{Int}}(
-      GAPWrap.DecomposeTensorProduct(
-        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1), GAP.Obj(hw2)
-      ),
-    )...,
-  )
+function tensor_product_decomposition(
+  L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
+)
+  if has_root_system(L)
+    R = root_system(L)
+    return tensor_product_decomposition(R, hw1, hw2)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
+    return multiset(
+      Tuple{Vector{Vector{Int}},Vector{Int}}(
+        GAPWrap.DecomposeTensorProduct(
+          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1; recursive=true),
+          GAP.Obj(hw2; recursive=true)
+        ),
+      )...,
+    )
+  end
 end
