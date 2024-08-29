@@ -655,7 +655,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   if file_version < VERSION_NUMBER
     jsondict = JSON.parse(JSON3.write(s.obj), dicttype=Dict{Symbol, Any})
     jsondict = upgrade(file_version, jsondict)
-    s.obj = JSON3.read(JSON2.write(jsondict))
+    s.obj = JSON3.read(JSON3.write(jsondict))
     
     if haskey(s.obj, refs_key)
       s.refs = s.obj[refs_key]
