@@ -158,7 +158,7 @@ julia> characteristic(tbl % 2)
 characteristic(tbl::GAPGroupCharacterTable) = characteristic(Int, tbl)
 
 function characteristic(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
-    return T(tbl.characteristic)
+    return T(tbl.characteristic)::T
 end
 
 
