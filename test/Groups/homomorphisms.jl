@@ -301,18 +301,18 @@ end
       iso = @inferred isomorphism(FinGenAbGroup, A)
    end
 
-   @testset "Vector space to FPGroup" begin
-      V = free_module(GF(2), 0)
-      iso = isomorphism(FPGroup, V)
-      x = zero(V)
-      @test preimage(iso, iso(x)) == x
-
-      V = free_module(GF(2), 3)
-      iso = isomorphism(FPGroup, V)
-      x = gen(V, 1)
-      @test preimage(iso, iso(x)) == x
-
-      @test_throws ArgumentError isomorphism(FPGroup, free_module(GF(4), 3))
+   @testset "Vector space to FPGroup or PcGroup" begin
+      for (F, n) in [(GF(2), 0), (GF(3), 2), (GF(4), 2),
+                     (Nemo.Native.GF(2), 0),
+                     (Nemo.Native.GF(3), 2)]
+        V = free_module(F, n)
+        for T in [FPGroup, PcGroup]
+          iso = @inferred isomorphism(T, V)
+          for x in [zero(V), rand(V)]
+            @test preimage(iso, iso(x)) == x
+          end
+        end
+      end
    end
 
    @testset "MultTableGroup to GAPGroups" begin

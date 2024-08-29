@@ -226,7 +226,10 @@ that is, $x*y = y*x$ holds for all elements $x, y$ in `G`.
 
 Return the elementary abelian group group of order `n`, as an instance of `T`.
 Here, `T` must be one of `PermGroup`, `FPGroup`, `SubFPGroup`, `PcGroup`,
-`SubPcGroup`, or `FinGenAbGroup`.
+`SubPcGroup`, or `FinGenAbGroup`,
+and `n` must be a prime power or 1.
+
+The `gens` vector of the result has minimal length.
 
 # Examples
 ```jldoctest
@@ -240,21 +243,18 @@ Permutation group of degree 9 and order 27
 elementary_abelian_group(n::IntegerUnion) = elementary_abelian_group(PcGroup, n)
 
 function elementary_abelian_group(::Type{T}, n::S) where T <: GAPGroup where S <: IntegerUnion
-  flag, e, p = is_prime_power_with_data(n)
-  @req flag "n must be a prime power"
+  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
   return T(GAP.Globals.ElementaryAbelianGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function elementary_abelian_group(::Type{T}, n::S) where T <: Union{PcGroup, SubPcGroup} where S <: IntegerUnion
-  flag, e, p = is_prime_power_with_data(n)
-  @req flag "n must be a prime power"
+  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
   return T(GAP.Globals.ElementaryAbelianGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
 end
 
 function elementary_abelian_group(::Type{FinGenAbGroup}, n::S) where S <: IntegerUnion
-  flag, e, p = is_prime_power_with_data(n)
-  @req flag "n must be a prime power"
+  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
   return abelian_group(fill(p, e))
 end
 
@@ -592,8 +592,26 @@ end
 # for the definition of group modulo relations, see the quo function in the sub.jl section
 
 function free_group(G::FPGroup)
-   return FPGroup(GAPWrap.FreeGroupOfFpGroup(GapObj(G))::GapObj)
+  gapG = GapObj(G)::GapObj
+  gapF = GAPWrap.FreeGroupOfFpGroup(gapG)
+  if gapF === gapG
+    # G is itself a free group
+    return G
+  else
+    return FPGroup(gapF)
+  end
 end
+
+function underlying_word(g::FPGroupElem)
+  G = parent(g)
+  F = free_group(G)
+  if F === G
+    return g
+  else
+    return FPGroupElem(F, GAPWrap.UnderlyingElement(GapObj(g)))
+  end
+end
+
 
 ################################################################################
 #

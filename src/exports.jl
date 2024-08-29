@@ -1497,6 +1497,7 @@ export twist
 export two_sided_ideal
 export underlying_gluing
 export underlying_quotient
+export underlying_word
 export uniform_matroid
 export unit
 export unitary_group

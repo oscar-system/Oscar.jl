@@ -11,6 +11,7 @@
   F = FPGroup(G)
   @test testrels(F)             # full f.p. group
   @test testrels(center(F)[1])  # subgroup of full f.p. group
+  @test testrels(free_group(2)) # free group (empty relations)
   @test testrels(PermGroup(G))  # nothing of the above
 end
 
@@ -76,7 +77,7 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
 
-  G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
+  G = codomain(isomorphism(FPGroup, G, on_gens=true))
   q, mq = maximal_abelian_quotient(PcGroup, G)
   @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
