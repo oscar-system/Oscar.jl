@@ -18,7 +18,7 @@ mutable struct FreeAssociativeAlgebraIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
   gb::IdealGens{T}
   deg_bound::Int
-  function FreeAssociativeAlgebraIdeal(g::IdealGens{T}, check_groebner_basis::Bool=false) where T <: FreeAssociativeAlgebraElem
+  function FreeAssociativeAlgebraIdeal(g::IdealGens{T}; check_groebner_basis::Bool=false) where T <: FreeAssociativeAlgebraElem
     r = new{T}()
     r.gens = g
     @req !check_groebner_basis || base_ring(base_ring(g)) isa Field "Groebner basis check requires a field base ring"
@@ -56,7 +56,7 @@ function ideal(g::Vector{<:FreeAssociativeAlgebraElem})
   return ideal(algebra, g)
 end
 
-function ideal(g::IdealGens{T}, check_groebner_basis::Bool=false) where T <: FreeAssociativeAlgebraElem
+function ideal(g::IdealGens{T}; check_groebner_basis::Bool=false) where T <: FreeAssociativeAlgebraElem
   return FreeAssociativeAlgebraIdeal(g, check_groebner_basis)
 end
 
