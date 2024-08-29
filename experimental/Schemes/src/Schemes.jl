@@ -38,8 +38,8 @@ include("ToricBlowups/attributes.jl")
 include("ToricBlowups/methods.jl")
 
 include("DerivedPushforward.jl")
-include("Resolution_structure.jl")
 include("Resolution_tools.jl")
+include("Resolution_structure.jl")
 
 # Exports
 export CompleteIntersectionGerm

@@ -1,8 +1,14 @@
+export intersection_matrix
+
 ########################################################################
 # intersection matrix of exceptional divisors -- surface case
 ########################################################################
+@doc raw"""
+    function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
 
-function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
+TODO...
+"""
+@attr function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
   phi.resolves_sing || error("intersection_matrix not available for partial desingularizations")
   !isdefined(phi, :is_embedded) || !phi.is_embedded || error("not available yet for embedded desingularization of curves")
   dim(domain(phi))==2 || error("not a surface -- exceptional locus not a graph")
