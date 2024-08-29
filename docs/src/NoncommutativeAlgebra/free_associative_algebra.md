@@ -14,7 +14,7 @@ The OSCAR type for two-sided ideals in a free associative algebra is
 ### Constructors
 
 ```julia
-ideal(R::FreeAssAlgebra, g::Vector{T}) where T <: FreeAssAlgElem
+ideal(R::FreeAssociativeAlgebra, g::Vector{T}) where T <: FreeAssAlgElem
 ideal(g::Vector{T}) where T <: FreeAssAlgElem
 ```
 

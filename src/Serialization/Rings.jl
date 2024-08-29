@@ -5,7 +5,7 @@
 const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem, SMat}
 
 # this union will also need a better name at some point
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssAlgebra}
+const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssociativeAlgebra}
 
 ################################################################################
 # Utility functions for ring parent tree

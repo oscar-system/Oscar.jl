@@ -1,17 +1,17 @@
 ################################################################################
-# FreeAssAlgebra
+# FreeAssociativeAlgebra
 
 # Free associative algebra serialization
-@register_serialization_type FreeAssAlgebra uses_id
+@register_serialization_type FreeAssociativeAlgebra uses_id
 
-function save_object(s::SerializerState, A::FreeAssAlgebra)
+function save_object(s::SerializerState, A::FreeAssociativeAlgebra)
   save_data_dict(s) do
     save_typed_object(s, base_ring(A), :base_ring),
     save_object(s, symbols(A), :symbols)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssAlgebra})
+function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra})
   R = load_typed_object(s, :base_ring)
   gens = load_object(s, Vector{Symbol}, :symbols)
   return free_associative_algebra(R, gens)[1]
