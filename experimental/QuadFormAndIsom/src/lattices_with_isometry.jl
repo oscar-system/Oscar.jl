@@ -1484,7 +1484,7 @@ julia> is_of_hermitian_type(coinvariant_lattice(Lf))
 true
 ```
 """
-@attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
+@attr Bool function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   chi = minimal_polynomial(Lf)
   !is_irreducible(chi) && return false
@@ -2225,7 +2225,7 @@ julia> genus(invariant_lattice(Lf)) == t[1][1]
 true
 ```
 """
-@attr function type(Lf::ZZLatWithIsom)
+@attr Dict{Integer, Tuple} function type(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
