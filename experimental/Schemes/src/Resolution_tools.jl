@@ -1,5 +1,3 @@
-export intersection_matrix
-
 ########################################################################
 # intersection matrix of exceptional divisors -- surface case
 ########################################################################

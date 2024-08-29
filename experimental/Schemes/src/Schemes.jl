@@ -60,6 +60,7 @@ export hypersurface_germ
 export ideal_sheaf
 export index_of_new_ray
 export is_isolated_singularity
+export intersection_matrix
 export milnor_algebra
 export milnor_number
 export point
