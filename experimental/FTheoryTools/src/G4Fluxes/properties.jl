@@ -19,7 +19,7 @@ support this check for $G_4$-fluxes defined on Weierstrass,
 global Tate and hypersurface models. If this condition is not
 met, this method will return an error.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
