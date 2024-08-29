@@ -57,7 +57,7 @@ function ideal(g::Vector{<:FreeAssociativeAlgebraElem})
 end
 
 function ideal(g::IdealGens{T}; check_groebner_basis::Bool=false) where T <: FreeAssociativeAlgebraElem
-  return FreeAssociativeAlgebraIdeal(g, check_groebner_basis)
+  return FreeAssociativeAlgebraIdeal(g, check_groebner_basis=check_groebner_basis)
 end
 
 

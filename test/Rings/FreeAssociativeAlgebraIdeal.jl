@@ -108,7 +108,7 @@ end
 
   gb5 = groebner_basis(gens(quantum_symmetric_group(3)); interreduce=true)
   A = parent(gb5[1])
-  I3 = ideal(Oscar.IdealGens(A, gb5),true)
+  I3 = ideal(Oscar.IdealGens(A, gb5);check_groebner_basis=true)
   @test is_groebner_basis(I3.gens)
 
   x = base_ring(ideal(gb5))[1]; y = base_ring(ideal(gb5))[7]
