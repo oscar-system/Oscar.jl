@@ -15,7 +15,7 @@ end
 
 
 function load_object(s::DeserializerState, g::Type{Graph{T}}) where T <: Union{Directed, Undirected}
-  smallobj = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  smallobj = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return g(smallobj)
 end
 
@@ -56,7 +56,7 @@ function save_object(s::SerializerState, IM::IncidenceMatrix)
 end
 
 function load_object(s::DeserializerState, ::Type{<: IncidenceMatrix})
-  IM = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  IM = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return IM
 end
 
@@ -71,7 +71,7 @@ function save_object(s::SerializerState, K::SimplicialComplex)
 end
 
 function load_object(s::DeserializerState, K::Type{SimplicialComplex})
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(s.obj))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(s.obj))
   return K(bigobject)
 end
 
@@ -85,6 +85,6 @@ function save_object(s::SerializerState, PT::PhylogeneticTree)
 end
 
 function load_object(s::DeserializerState, T::Type{PhylogeneticTree}, dict::Dict)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
   return T(bigobject)
 end

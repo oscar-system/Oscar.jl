@@ -21,7 +21,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{Polymake.BigObject})
   dict = Dict{Symbol, Any}(s.obj)
-  bigobject = Polymake.call_function(:common, :deserialize_json_string, json(dict))
+  bigobject = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(dict))
   return bigobject
 end
 
