@@ -33,17 +33,17 @@ These G-sets are created by default by [`gset`](@ref).
 The fields are
 - the group that acts, of type `T`,
 - the Julia function (for example `on_tuples`) that describes the action,
-- the seeds (something iterable of type `S`) whose closure under the action is the G-set
+- the seeds (something iterable of eltype `S`) whose closure under the action is the G-set
 - the dictionary used to store attributes (orbits, elements, ...).
 """
 @attributes mutable struct GSetByElements{T,S} <: GSet{T}
     group::T
     action_function::Function
-    seeds::S
+    seeds
 
-    function GSetByElements(G::T, fun::Function, seeds::S; closed::Bool = false) where {T<:Union{GAPGroup, FinGenAbGroup}, S}
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where {T<:Union{GAPGroup, FinGenAbGroup}}
         @assert !isempty(seeds)
-        Omega = new{T,S}(G, fun, seeds, Dict{Symbol,Any}())
+        Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
         closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
     end
@@ -411,9 +411,8 @@ julia> map(collect, orbs)
  [5, 6]
 ```
 """
-@attr Vector{GSetByElements{T,Vector{eltype(S)}}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
-  G = acting_group(Omega)
-  orbs = GSetByElements{T,Vector{eltype(S)}}[]
+@attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
+  orbs = GSetByElements{T,S}[]
   for p in Omega.seeds
     if all(o -> !(p in o), orbs)
       push!(orbs, orbit(Omega, p))
@@ -440,7 +439,7 @@ julia> map(length, orbs)
  2
 ```
 """
-@attr Vector{GSetByElements{PermGroup, Vector{Int}}} orbits(G::PermGroup) = orbits(gset(G))
+@attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(gset(G))
 
 
 #############################################################################
@@ -449,7 +448,7 @@ julia> map(length, orbs)
 ##  if `:seeds` is known to be closed under the action then
 ##  keep its ordering of points
 
-@attr Vector{eltype(S)} function elements(Omega::GSetByElements{T,S}) where {T,S}
+@attr Vector{S} function elements(Omega::GSetByElements{T,S}) where {T,S}
   orbs = orbits(Omega)
   return union(map(collect, orbs)...)
 end
