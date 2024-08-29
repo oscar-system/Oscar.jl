@@ -1,4 +1,4 @@
-@testset "FreeAssAlgIdeal.basic" begin
+@testset "FreeAssociativeAlgebraIdeal.basic" begin
   Zt = polynomial_ring(ZZ, "t")[1]
   R, (x, y, z) = free_associative_algebra(Zt, ["x", "y", "z", "w"])
   I = ideal(R, [x*y*x, y*z^2])
@@ -8,13 +8,13 @@
   end
 end
 
-@testset "FreeAssAlgIdeal.printing" begin
+@testset "FreeAssociativeAlgebraIdeal.printing" begin
   R, (x, y, z) = free_associative_algebra(GF(5), ["x", "y", "z", "w"])
   I = ideal(R, [x*y*x, y*z^2])
   @test length(string(I)) > 3
 end
 
-@testset "FreeAssAlgIdeal.membership" begin
+@testset "FreeAssociativeAlgebraIdeal.membership" begin
   R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
   I = ideal(R, [x*y - y*x, x*z - z*x])
   @test !ideal_membership(x, I, 5)
@@ -33,7 +33,7 @@ end
   @test length(gens(I * I2)) == 2
 end
 
-@testset "FreeAssAlgIdeal.utils" begin
+@testset "FreeAssociativeAlgebraIdeal.utils" begin
   R, (x, y, z) = free_associative_algebra(QQ, ["x", "y", "z"])
   I = ideal(R, [x*y - y*x, x*z - z*x])
   @test base_ring(I) == R
@@ -53,7 +53,7 @@ end
   @test isa(F1,FreeAssAlgElem)
 end 
 
-@testset "FreeAssAlgIdeal.groebner_basis" begin
+@testset "FreeAssociativeAlgebraIdeal.groebner_basis" begin
     free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"])
     f1 = x*y + y*z
     f2 = x^2 + y^2
@@ -68,7 +68,7 @@ end
     @test !is_groebner_basis(gb2)
 end
 
-@testset "FreeAssAlgIdeal.groebner_basis.quantum_automorphism_group" begin
+@testset "FreeAssociativeAlgebraIdeal.groebner_basis.quantum_automorphism_group" begin
   M = uniform_matroid(3,4)
   qAut1 = gens(quantum_automorphism_group(M))
   gb1 = groebner_basis(qAut1; interreduce=true)

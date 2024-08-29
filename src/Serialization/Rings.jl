@@ -292,7 +292,7 @@ end
 # way to abstract saving params soon
 const IdealOrdUnionType = Union{MPolyIdeal,
                                 LaurentMPolyIdeal,
-                                FreeAssAlgIdeal,
+                                FreeAssociativeAlgebraIdeal,
                                 IdealGens,
                                 MonomialOrdering}
 

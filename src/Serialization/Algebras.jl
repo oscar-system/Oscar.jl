@@ -53,4 +53,4 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Ve
 end
 
 # Ideals
-@register_serialization_type FreeAssAlgIdeal uses_params
+@register_serialization_type FreeAssociativeAlgebraIdeal uses_params
