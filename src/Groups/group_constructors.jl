@@ -243,18 +243,19 @@ Permutation group of degree 9 and order 27
 elementary_abelian_group(n::IntegerUnion) = elementary_abelian_group(PcGroup, n)
 
 function elementary_abelian_group(::Type{T}, n::S) where T <: GAPGroup where S <: IntegerUnion
-  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
+  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power or 1"
   return T(GAP.Globals.ElementaryAbelianGroup(_gap_filter(T), GAP.Obj(n))::GapObj)
 end
 
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function elementary_abelian_group(::Type{T}, n::S) where T <: Union{PcGroup, SubPcGroup} where S <: IntegerUnion
-  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
+  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power or 1"
   return T(GAP.Globals.ElementaryAbelianGroup(GAP.Globals.IsPcGroup, GAP.Obj(n))::GapObj)
 end
 
 function elementary_abelian_group(::Type{FinGenAbGroup}, n::S) where S <: IntegerUnion
-  @req (n == 1 || is_prime_power_with_data(n)[1]) "n must be a prime power"
+  flag, e, p = is_prime_power_with_data(n)
+  @req (n == 1 || flag) "n must be a prime power or 1"
   return abelian_group(fill(p, e))
 end
 
