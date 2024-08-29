@@ -87,6 +87,35 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
   return upgraded_dict
 end
 
+# upgrades all types in dict based on renamings
+function upgrade_types(dict::Dict, renamings::Dict{String, String})
+  function upgrade_type(d::String)
+    return get(renamings, d, d)
+  end
+  
+  function upgrade_type(d::Dict)
+    upg_d = d
+    upg_d[:name] = get(renamings, d[:name], d[:name])
+    if d[:params] isa Dict
+      if haskey(d[:params], :_type)
+        upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
+      else
+        for (k, v) in d[:params]
+          upg_d[:params][k] = upgrade_type(d[:params][k])
+        end
+      end
+    elseif d[:params] isa Vector
+      upg_d[:params] = [upgrade_type(v) for v in d[:params]]
+    end
+    return upg_d
+  end
+
+  if haskey(dict, :_type)
+    dict[:_type] = upgrade_type(dict[:_type])
+  end
+  return dict
+end
+
 include("0.11.3.jl")
 include("0.12.0.jl")
 include("0.12.2.jl")
