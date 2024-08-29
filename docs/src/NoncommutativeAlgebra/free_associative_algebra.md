@@ -14,8 +14,8 @@ The OSCAR type for two-sided ideals in a free associative algebra is
 ### Constructors
 
 ```julia
-ideal(R::FreeAssociativeAlgebra, g::Vector{T}) where T <: FreeAssAlgElem
-ideal(g::Vector{T}) where T <: FreeAssAlgElem
+ideal(R::FreeAssociativeAlgebra, g::Vector{T}) where T <: FreeAssociativeAlgebraElem
+ideal(g::Vector{T}) where T <: FreeAssociativeAlgebraElem
 ```
 
 ### Ideal Membership
@@ -31,5 +31,5 @@ groebner_basis(I::FreeAssociativeAlgebraIdeal, deg_bound::Int=-1; protocol::Bool
 If a finite Gröbner basis exists, it solves the ideal membership problem.
 
 ```@docs
-ideal_membership(a::FreeAssAlgElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
+ideal_membership(a::FreeAssociativeAlgebraElem, I::FreeAssociativeAlgebraIdeal, deg_bound::Int)
 ```

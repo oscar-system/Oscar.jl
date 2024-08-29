@@ -2,7 +2,7 @@
 # Common union types
 
 # this will need a better name at some point
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem, SMat}
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem, SMat}
 
 # this union will also need a better name at some point
 const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssociativeAlgebra}

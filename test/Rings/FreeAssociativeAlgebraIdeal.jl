@@ -39,7 +39,7 @@ end
   @test base_ring(I) == R
   @test isa(ngens(I),Int)
   @test isequal(ngens(I),2)
-  @test isa(gen(I,ngens(I)),FreeAssAlgElem{QQFieldElem})
+  @test isa(gen(I,ngens(I)),FreeAssociativeAlgebraElem{QQFieldElem})
   @test isa(gens(I),Vector)
 
   lpring, _  = Oscar._to_lpring(R, 3)
@@ -50,7 +50,7 @@ end
   f1 = x*y + y*z
 
   F1 = free(f1)
-  @test isa(F1,FreeAssAlgElem)
+  @test isa(F1,FreeAssociativeAlgebraElem)
 end 
 
 @testset "FreeAssociativeAlgebraIdeal.groebner_basis" begin

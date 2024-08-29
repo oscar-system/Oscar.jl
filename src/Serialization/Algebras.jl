@@ -18,11 +18,11 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra})
 end
 
 # Free associative algebra element serialization
-@register_serialization_type FreeAssAlgElem uses_params
+@register_serialization_type FreeAssociativeAlgebraElem uses_params
 
 # see save_type_params in Rings
 
-function save_object(s::SerializerState, f::FreeAssAlgElem)
+function save_object(s::SerializerState, f::FreeAssociativeAlgebraElem)
   save_data_array(s) do
     for term in terms(f)
       save_data_array(s) do
@@ -33,7 +33,7 @@ function save_object(s::SerializerState, f::FreeAssAlgElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssAlgElem}, parents::Vector)
+function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem}, parents::Vector)
   parent_algebra = parents[end]
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = MPolyBuildCtx(parent_algebra)
