@@ -30,6 +30,11 @@
   Gs, Cs = galois_group(K, algorithm = :Symbolic)
   @test is_isomorphic(G, Gc)
   @test is_isomorphic(G, Gs)
+  _G, _C = galois_group(K)
+  # test caching
+  @test C === _C 
+  _G, _C = galois_group(K; redo = true)
+  @test C !== _C
 
   # from the book
   K, a = number_field(x^9 - 3*x^8 + x^6 + 15*x^5 - 13*x^4 -
