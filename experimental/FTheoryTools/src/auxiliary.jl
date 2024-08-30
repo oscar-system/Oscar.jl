@@ -149,7 +149,7 @@ _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_prima
 
 _string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
 
-function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyRingElem}
+function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}, concrete_base::Bool) where {T<:MPolyRingElem}
   f_ord = ords[1]
   g_ord = ords[2]
   d_ord = ords[3]
@@ -170,51 +170,115 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
   elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
     kod_type = "Non-minimal"
   else
-    # Create new ring with auxiliary variable to construct the monodromy polynomial
-    R = parent(f)
-    S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
-    ring_map = hom(R, S, gens(S)[2:end])
-    poly_f = ring_map(f)
-    poly_g = ring_map(g)
-    poly_d = ring_map(d)
-    locus = ring_map(gens(id)[1])
-    
-    # Compute monodromy polynomial and check factorization for remaining cases
-    if f_ord == 0 && g_ord == 0
-      g_quotient = divrem(9 * poly_g, locus)[2]
-      f_quotient = divrem(2 * poly_f, locus)[2]
-      quotient_val = div(g_quotient, f_quotient)
+    if concrete_base
+      # Over concrete bases, we reduce to only two variables
+      # so that the computation is faster
+      num_gens = length(gens(parent(f)))
+      first_coord_inds = collect(1:num_gens - 2)
+      last_coord_inds = collect(3:num_gens)
+      rand_ints_ab2 = rand(-100:100, num_gens - 2)
+      w_first_2 = evaluate(forget_decoration(gens(id)[1]), last_coord_inds, rand_ints_ab2)
+      f_first_2 = evaluate(forget_decoration(f), last_coord_inds, rand_ints_ab2)
+      g_first_2 = evaluate(forget_decoration(g), last_coord_inds, rand_ints_ab2)
+      d_first_2 = evaluate(forget_decoration(d), last_coord_inds, rand_ints_ab2)
+      w_last_2 = evaluate(forget_decoration(gens(id)[1]), first_coord_inds, rand_ints_ab2)
+      f_last_2 = evaluate(forget_decoration(f), first_coord_inds, rand_ints_ab2)
+      g_last_2 = evaluate(forget_decoration(g), first_coord_inds, rand_ints_ab2)
+      d_last_2 = evaluate(forget_decoration(d), first_coord_inds, rand_ints_ab2)
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
-    elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+      # Check monodromy conditions for remaining cases
+      if f_ord == 0 && g_ord == 0
+        q_first = quotient(ideal([9 * g_first_2, w_first_2]), ideal([2 * f_first_2, w_first_2]))
+        q_last = quotient(ideal([9 * g_last_2, w_last_2]), ideal([2 * f_last_2, w_last_2]))
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
-    elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      f_quotient = divrem(div(poly_f, locus^2), locus)[2]
-      g_quotient = divrem(div(poly_g, locus^3), locus)[2]
-      
-      monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
-    elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
-      d_quotient = div(poly_d, locus^d_ord)
-      f_quotient = div(2 * poly_f, locus^2)
-      g_quotient = div(9 * poly_g, locus^3)
-      num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
-      den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
-      quotient_val = div(num_quotient, den_quotient)
+        kod_type = if (is_radical(q_first) && is_radical(q_last)) "Non-split I_$d_ord" else "Split I_$d_ord" end
+      elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
+        q_first = quotient(ideal([g_first_2]), ideal([w_first_2^2])) + ideal([w_first_2])
+        q_last = quotient(ideal([g_last_2]), ideal([w_last_2^2])) + ideal([w_last_2])
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
-    elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+        kod_type = if (is_radical(q_first) && is_radical(q_last)) "Non-split IV" else "Split IV" end
+      elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
+        # For type I_0^* singularities, we have to rely on the old method for now,
+        # which is not always dependable
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
+        # Create new ring with auxiliary variable to construct the monodromy polynomial
+        R = parent(f)
+        S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
+        ring_map = hom(R, S, gens(S)[2:end])
+        poly_f = ring_map(f)
+        poly_g = ring_map(g)
+        locus = ring_map(gens(id)[1])
+
+        f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+        g_quotient = divrem(div(poly_g, locus^3), locus)[2]
+        
+        monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+      elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
+        if d_ord % 2 == 0
+          q_first = quotient(ideal([4 // 81 * (d_first_2 * f_first_2^2) / w_first_2^(d_ord + 4), w_first_2]), ideal([g_first_2^2 / w_first_2^6, w_first_2]))
+          q_last = quotient(ideal([4 // 81 * (d_last_2 * f_last_2^2) / w_last_2^(d_ord + 4), w_last_2]), ideal([g_last_2^2 / w_last_2^6, w_last_2]))
+        else
+          q_first = quotient(ideal([2 // 729 * (d_first_2 * f_first_2^3) / w_first_2^(d_ord + 6), w_first_2]), ideal([g_first_2^3 / w_first_2^9, w_first_2]))
+          q_last = quotient(ideal([2 // 729 * (d_last_2 * f_last_2^3) / w_last_2^(d_ord + 6), w_last_2]), ideal([g_last_2^3 / w_last_2^9, w_last_2]))
+        end
+
+        kod_type = if (is_radical(q_first) && is_radical(q_last)) "Non-split I^*_$(d_ord - 6)" else "Split I^*_$(d_ord - 6)" end
+      elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
+        q_first = quotient(ideal([g_first_2]), ideal([w_first_2^4])) + ideal([w_first_2])
+        q_last = quotient(ideal([g_last_2]), ideal([w_last_2^4])) + ideal([w_last_2])
+
+        kod_type = if (is_radical(q_first) && is_radical(q_last)) "Non-split IV^*" else "Split IV^*" end
+      else
+        kod_type = "Unrecognized"
+      end
     else
-      kod_type = "Unrecognized"
+      # Create new ring with auxiliary variable to construct the monodromy polynomial
+      R = parent(f)
+      S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
+      ring_map = hom(R, S, gens(S)[2:end])
+      poly_f = ring_map(f)
+      poly_g = ring_map(g)
+      poly_d = ring_map(d)
+      locus = ring_map(gens(id)[1])
+      
+      # Compute monodromy polynomial and check factorization for remaining cases
+      if f_ord == 0 && g_ord == 0
+        g_quotient = divrem(9 * poly_g, locus)[2]
+        f_quotient = divrem(2 * poly_f, locus)[2]
+        quotient_val = div(g_quotient, f_quotient)
+  
+        monodromy_poly = _psi^2 + quotient_val
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
+      elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
+        g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+  
+        monodromy_poly = _psi^2 - g_quotient
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
+      elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
+        f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+        g_quotient = divrem(div(poly_g, locus^3), locus)[2]
+        
+        monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+      elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
+        d_quotient = div(poly_d, locus^d_ord)
+        f_quotient = div(2 * poly_f, locus^2)
+        g_quotient = div(9 * poly_g, locus^3)
+        num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
+        den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
+        quotient_val = div(num_quotient, den_quotient)
+  
+        monodromy_poly = _psi^2 + quotient_val
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
+      elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
+        g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+  
+        monodromy_poly = _psi^2 - g_quotient
+        kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
+      else
+        kod_type = "Unrecognized"
+      end
     end
   end
   
