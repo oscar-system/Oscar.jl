@@ -1,17 +1,26 @@
 ################################################################################
 #
-#  Tropicalization of equi-dimensional ideals
+#  Tropicalization of prime ideals
 #
-#  WARNING: assumes without test that `I` is equi-dimensional
+#  WARNING: assumes without test that `I` is prime
 #
 ################################################################################
 
-function tropical_variety_equidimensional(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
-    return tropical_variety_equidimensional_singular(I,nu; weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+    # compute a reduced GB to check whether I is homogeneous
+    G = groebner_basis(I,complete_reduction=true)
+
+    if all(Oscar._is_homogeneous.(G))
+        return tropical_variety_prime_singular(I,nu; weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    end
+
+    Ih = homogenize_pre_tropicalization(I)
+    TropIh = tropical_variety_prime_singular(Ih,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    return dehomogenize_post_tropicalization(TropIh)
 end
 
-# trivial valuation case
-function tropical_variety_equidimensional_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+# trivial valuation
+function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,Nothing,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
     R = base_ring(I)
     singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
                             "ideal I = "*join(string.(gens(I)), ",")*";",
@@ -29,7 +38,8 @@ function tropical_variety_equidimensional_singular(I::MPolyIdeal, nu::TropicalSe
     return TropI
 end
 
-function tropical_variety_equidimensional_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
+# p-adic valuation
+function tropical_variety_prime_singular(I::MPolyIdeal, nu::TropicalSemiringMap{QQField,ZZRingElem,<:Union{typeof(min),typeof(max)}}; weighted_polyhedral_complex_only::Bool=false)
     R = base_ring(I)
     singularCommand = join(["ring r=0,("*join(string.(symbols(R)),",")*"),dp;",
                             "ideal I = "*join(string.(gens(I)), ",")*";",
@@ -53,6 +63,9 @@ end
 # if dehomogenizeFan==true, the gfan fan is a homogenized polyhedral complex, and we need to dehomogenize it
 function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=false, dehomogenizeFan::Bool=false)
 
+    # Extracting AMBIENT_DIM
+    ambientDim = parse(Int, match(r"AMBIENT_DIM\n(\d+)", input_string).captures[1])
+
     # Extracting the RAYS, LINEALITY_SPACE and MAXIMAL_CONES sections
     stringsParsed = Vector{SubString{String}}[]
     for regexp in [r"RAYS\n([\s\S]*?)\nN_RAYS", r"LINEALITY_SPACE\n([\s\S]*?)\nORTH_LINEALITY_SPACE", r"MAXIMAL_CONES\n([\s\S]*)"]
@@ -64,14 +77,29 @@ function gfan_fan_string_to_oscar_complex(input_string::String, negateFan::Bool=
 
     # Convert Rays and ORTH_LINEALITY_SPACE to matrices
     # and negate if necessary
-    rayGenerators = matrix(QQ,[parse.(Int, split(line)) for line in stringsParsed[1]])
-    linealityGenerators = matrix(QQ,[parse.(Int, split(line)) for line in stringsParsed[2]])
+    rayGenerators = [parse.(Int, split(line)) for line in stringsParsed[1]]
+    if isempty(rayGenerators)
+        rayGenerators = zero_matrix(QQ,0,ambientDim)
+    else
+        rayGenerators = matrix(QQ,rayGenerators)
+    end
     if negateFan
         rayGenerators *= -1
     end
 
+    linealityGenerators = [parse.(Int, split(line)) for line in stringsParsed[2]]
+    if isempty(linealityGenerators)
+        linealityGenerators = zero_matrix(QQ,0,ambientDim)
+    else
+        linealityGenerators = matrix(QQ,linealityGenerators)
+    end
+
     # Convert MAXIMAL_CONES to a Vector{Vector{Int}}
-    coneIncidences = [parse.(Int, split(replace(line, r"[{}]" => ""), r"\s+")) .+ 1 for line in stringsParsed[3]]
+    if length(stringsParsed[3])==1 && first(stringsParsed[3])=="{}"
+        coneIncidences = [Int[]]
+    else
+        coneIncidences = [parse.(Int, split(replace(line, r"[{}]" => ""), r"\s+")) .+ 1 for line in stringsParsed[3]]
+    end
 
     if dehomogenizeFan
         # if the singular fan is a homogenized polyhedral complex,
