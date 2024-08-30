@@ -150,6 +150,14 @@ function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
+function Base.hash(R::RootSystem, h::UInt)
+  # even though we don't have a == method for RootSystem, we add a hash method
+  # to make hashing of RootSpaceElem and WeightLatticeElem more deterministic
+  b = 0xeb5362118dea2a0e % UInt
+  h = hash(cartan_matrix(R), h)
+  return xor(b, h)
+end
+
 function is_simple(R::RootSystem)
   if is_finite(weyl_group(R))
     return length(root_system_type(R)) == 1
@@ -1040,8 +1048,8 @@ julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
 7-element Vector{Vector{Int64}}:
  [3, 0, 1]
  [1, 1, 1]
- [0, 0, 3]
  [2, 0, 1]
+ [0, 0, 3]
  [0, 1, 1]
  [1, 0, 1]
  [0, 0, 1]
@@ -1263,8 +1271,8 @@ julia> tensor_product_decomposition(R, [1, 1], [1, 1])
 MSet{Vector{Int64}} with 10 elements:
   [0, 0]
   [0, 4]
-  [2, 0]
   [0, 2] : 2
+  [2, 0]
   [1, 0]
   [2, 2]
   [3, 0]
