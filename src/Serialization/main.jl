@@ -653,7 +653,8 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   if file_version < VERSION_NUMBER
-    jsondict = JSON.parse(JSON3.write(s.obj), dicttype=Dict{Symbol, Any})
+    # we need a mutable dictionary
+    jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
     jsondict_str = JSON3.write(jsondict)
     s = state(deserializer_open(jsondict_str, 
