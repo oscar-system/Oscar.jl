@@ -24,10 +24,10 @@ end
 #
 ################################################################################
 
-function Base.show(io::IO, tv::TropicalVariety{typeof(min), true})
+function Base.show(io::IO, ::TropicalVariety{typeof(min), true})
     print(io, "Min tropical variety")
 end
-function Base.show(io::IO, tv::TropicalVariety{typeof(max), true})
+function Base.show(io::IO, ::TropicalVariety{typeof(max), true})
     print(io, "Max tropical variety")
 end
 
@@ -40,7 +40,7 @@ end
 ################################################################################
 
 @doc raw"""
-    tropical_variety(Sigma::PolyhedralComplex, mult, minOrMax::Union{typeof(min),typeof(max)}=min)
+    tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
 Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplicities `mult` and convention `minOrMax`. Here, `mult` is optional can be specified as a `Vector{ZZRingElem}` which represents a list of multiplicities on the maximal polyhedra in the order of `maximal_polyhedra(Sigma)`.  If `mult` is unspecified, then all multiplicities are set to one.
 
@@ -133,21 +133,37 @@ If `nu==nothing`, will compute with respect to the trivial valuation and min con
 If `weighted_polyhedral_complex_only==true`, will not cache any additional information.
 
 !!! warning
-    Assumes that `I` is equi-dimensional.  Only special cases supported:
-    - any valuation: `I` principal, binomial, affine linear
-    - trivial and p-adic valuation only: `I` general
+    Experimental feature, only special cases supported:
+    - any coefficient field and any valuation: `I` principal, binomial, or affine linear
+    - QQ and trivial / p-adic valuation only: `I` prime
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y,z) = QQ["x","y","z"];
 
-julia> I = ideal([(x^2+y)*(x+y^2)*(x+y)]);
+julia> nu_2 = tropical_semiring_map(QQ,2)
+Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
-julia> tropical_variety(I)
-3-element Vector{TropicalVariety}:
- Min tropical variety
- Min tropical variety
- Min tropical variety
+julia> f1 = 8*x^2 + x*y + x*z + x + 8*y^2 + y*z + y + 8*z^2 + z + 8;
+
+julia> f2 = x + 1;
+
+julia> I = ideal([f1,f2]);
+
+julia> TropI_0 = tropical_variety(I)
+Min tropical variety
+
+julia> vertices(TropI_0)
+1-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+
+julia> TropI_2 = tropical_variety(I,nu_2)
+Min tropical variety
+
+julia> vertices(TropI_2)
+2-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, -3, 3]
+ [0, 3, -3]
 
 ```
 """
@@ -171,7 +187,7 @@ function tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=
     end
 
     # I general
-    return tropical_variety_equidimensional(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    return tropical_variety_prime(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 end
 
 
@@ -206,13 +222,14 @@ function homogenize_pre_tropicalization(I::MPolyIdeal)
 end
 
 
-function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
-    @req lineality_dim(Sigma)>0 "dehomogenizing polyhedral complex without lineality"
+function dehomogenize_post_tropicalization(TropV::TropicalVarietySupertype)
+
+    @req lineality_dim(TropV)>0 "dehomogenizing polyhedral complex without lineality"
 
     ###
     # Construct hyperplane {first coord = 0}
     ###
-    n = ambient_dim(Sigma)
+    n = ambient_dim(TropV)
     zerothUnitRowVector = zeros(Int,1,n)
     zerothUnitRowVector[1,1] = 1
     dehomogenisingHyperplane = polyhedron((zeros(Int,0,n),zeros(Int,0)), (zerothUnitRowVector,[0]))
@@ -224,7 +241,7 @@ function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
     dehomogenizedVertices = Vector{QQFieldElem}[]
     incidenceMatrixRays = Vector{Int}[]
     dehomogenizedRays = Vector{QQFieldElem}[]
-    for sigma in maximal_polyhedra(Sigma)
+    for sigma in maximal_polyhedra(TropV)
         sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
         incidenceVectorVertices = Int[]
         V,_ = minimal_faces(sigmaDehomogenized)
@@ -267,12 +284,17 @@ function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
     ###
     # Dehomogenize lineality space
     ###
-    sigma = first(maximal_polyhedra(Sigma))
+    sigma = first(maximal_polyhedra(TropV))
     sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
     dehomogenizedLineality = [linealityVector[2:end] for linealityVector in lineality_space(sigmaDehomogenized)]
 
-    return polyhedral_complex(incidenceMatrixVerticesAndRays,
-                              dehomogenizedVerticesAndRays,
-                              collect(length(dehomogenizedVertices)+1:length(dehomogenizedVertices)+length(dehomogenizedRays)),
-                              dehomogenizedLineality)
+    SigmaDehom =  polyhedral_complex(incidenceMatrixVerticesAndRays,
+                                     dehomogenizedVerticesAndRays,
+                                     collect(length(dehomogenizedVertices)+1:length(dehomogenizedVertices)+length(dehomogenizedRays)),
+                                     dehomogenizedLineality)
+
+    TropVDehom = tropical_variety(SigmaDehom,multiplicities(TropV),convention(TropV))
+    # TropVDehom.__attrs = deepcopy(TropV.__attrs) # TODO: not working, how to copy all attributes?
+    return TropVDehom
+
 end
