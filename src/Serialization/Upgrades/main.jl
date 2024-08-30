@@ -95,7 +95,14 @@ function upgrade_types(dict::Dict, renamings::Dict{String, String})
   
   function upgrade_type(d::Dict)
     upg_d = d
-    upg_d[:name] = get(renamings, d[:name], d[:name])
+
+    if haskey(d, :name)
+      upg_d[:name] = get(renamings, d[:name], d[:name])
+    else
+      upg_d[:_type] = get(renamings, d[:_type], d[:_type])
+      return upg_d
+    end
+    
     if d[:params] isa Dict
       if haskey(d[:params], :_type)
         upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
