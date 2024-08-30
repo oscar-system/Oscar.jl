@@ -41,12 +41,13 @@ function script(upgrade_script::UpgradeScript)
   return upgrade_script.script
 end
 
-struct UpgradeState
+mutable struct UpgradeState
   id_to_dict::Dict{Symbol, Any}
+  nested_level::Int
 end
 
 function UpgradeState()
-  return UpgradeState(Dict{Symbol, Any}())
+  return UpgradeState(Dict{Symbol, Any}(), 0)
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
@@ -63,6 +64,7 @@ recursing on the tree structure. It is independent of any particular
 file format version and can be used in any upgrade script.
 """
 function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
+  s.nested_level += 1
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
@@ -71,19 +73,24 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
     elseif dict_value isa Dict
+      s.nested_level += 1
       upgraded_dict[key] = upgrade(s, dict_value)
+      s.nested_level -= 1
     else  # not a string or a dictionary, so must be a vector
       new_value = []
       for v in dict_value
         if v isa String
           push!(new_value, v)
         else
+          s.nested_level += 1
           push!(new_value, upgrade(s, v))
+          s.nested_level -= 1
         end
       end
       upgraded_dict[key] = new_value
     end
   end
+  s.nested_level -= 1
   return upgraded_dict
 end
 
