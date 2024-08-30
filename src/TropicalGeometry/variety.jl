@@ -81,12 +81,8 @@ end
 function tropical_variety(TropH::TropicalHypersurface{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
     TropV = tropical_variety(polyhedral_complex(TropH),multiplicities(TropH), convention(TropH))
 
-    if has_attribute(TropH,:algebraic_polynomial)
-        set_attribute!(TropV,:algebraic_ideal,ideal([get_attribute(TropH,:algebraic_polynomial)]))
-    end
-    if has_attribute(TropH,:tropical_semiring_map)
-        set_attribute!(TropV,:tropical_semiring_map,get_attribute(TropH,:tropical_semiring_map))
-    end
+    # copy all attributes
+    TropV.__attrs = deepcopy(TropH.__attrs)
 
     return TropV
 end
@@ -95,12 +91,8 @@ end
 function tropical_variety(TropL::TropicalLinearSpace{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
     TropV = tropical_variety(polyhedral_complex(TropL),multiplicities(TropL), convention(TropL))
 
-    if has_attribute(TropL,:algebraic_ideal)
-        set_attribute!(TropV,:algebraic_ideal,get_attribute(TropL,:algebraic_ideal))
-    end
-    if has_attribute(TropL,:tropical_semiring_map)
-        set_attribute!(TropV,:tropical_semiring_map,get_attribute(TropL,:tropical_semiring_map))
-    end
+    # copy all attributes
+    TropV.__attrs = deepcopy(TropL.__attrs)
 
     return TropV
 end
