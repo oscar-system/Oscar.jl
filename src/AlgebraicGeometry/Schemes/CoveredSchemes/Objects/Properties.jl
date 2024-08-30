@@ -14,7 +14,7 @@ Return the boolean value whether a covered scheme `X` is empty.
 
 """
 is_empty(X::AbsCoveredScheme) = is_empty(underlying_scheme(X))
-@attr function is_empty(X::CoveredScheme)
+@attr Bool function is_empty(X::CoveredScheme)
   if !isdefined(X, :coverings)
     return true
   end
@@ -31,7 +31,7 @@ Return the boolean value whether a covered scheme `X` is smooth.
 """
 is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
 
-@attr function is_smooth(X::CoveredScheme)
+@attr Bool function is_smooth(X::CoveredScheme)
   if !isdefined(X, :coverings)
     return true
   end
@@ -76,7 +76,7 @@ end
 Return the boolean value whether a covered scheme `X` is integral.
 
 """
-@attr function is_integral(X::AbsCoveredScheme)
+@attr Bool function is_integral(X::AbsCoveredScheme)
   !is_empty(X) || return false
   return is_reduced(X) && is_irreducible(X)
 end
@@ -95,7 +95,7 @@ covering of the scheme X is connected.
     This function is designed to ignore empty patches, which may arise e.g. upon creation of subschemes of covered schemes,
 
 """
-@attr function is_connected_gluing(X::AbsCoveredScheme)
+@attr Bool function is_connected_gluing(X::AbsCoveredScheme)
   return is_connected(pruned_gluing_graph(default_covering(X)))
 end
 
@@ -108,7 +108,7 @@ end
 Return the boolean value whether a covered scheme `X` is connected.
 
 """
-@attr function is_connected(X::AbsCoveredScheme)
+@attr Bool function is_connected(X::AbsCoveredScheme)
   is_connected_gluing(X) || return false
   # note for future implementation: expensive property
   # 1) do primary decomposition
@@ -125,7 +125,7 @@ end
 Return the boolean value whether a covered scheme `X` is reduced.
 
 """
-@attr function is_reduced(X::AbsCoveredScheme)
+@attr Bool function is_reduced(X::AbsCoveredScheme)
   return all(is_reduced, affine_charts(X))
 end
 
@@ -138,7 +138,7 @@ end
 Return the boolean value whether a covered scheme `X` is irreducible.
 
 """
-@attr function is_irreducible(X::AbsCoveredScheme)
+@attr Bool function is_irreducible(X::AbsCoveredScheme)
   is_connected_gluing(X) || return false
   !is_empty(X) || return false
   v=findall(!is_empty, affine_charts(X))  ## only check non-empty patches
