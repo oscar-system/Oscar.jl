@@ -635,19 +635,19 @@ function set_weighted_resolution_zero_sections(m::AbstractFTheoryModel, vs::Vect
   set_attribute!(m, :weighted_resolution_zero_sections => result)
 end
 
-function set_zero_section_coordinates(m::AbstractFTheoryModel, desired_value::Vector{String})
+function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String})
   R, _ = polynomial_ring(QQ, collect(keys(explicit_model_sections(m))), cached = false)
   f = hom(R, cox_ring(base_space(m)), collect(values(explicit_model_sections(m))))
-  set_attribute!(m, :zero_section_coordinates => [f(eval_poly(l, R)) for l in desired_value])
+  set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
-function set_zero_section(m::AbstractFTheoryModel, desired_value::String)
+function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
   divs = torusinvariant_prime_divisors(ambient_space(m))
   cohomology_ring(ambient_space(m); check=false)
   cox_gens = string.(gens(cox_ring(ambient_space(m))))
   @req desired_value in cox_gens "Specified zero section is invalid"
   index = findfirst(x -> x==desired_value, cox_gens)
-  set_attribute!(m, :zero_section => cohomology_class(divs[index]))
+  set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
 end
 
 function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})

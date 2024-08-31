@@ -65,7 +65,7 @@
             [1, 0, 0]
         ],
         "hypersurface_equation": "u*(s1*u^2 + s2*u*v + s3*v^2 + s5*u*w + s6*v*w + s8*w^2) + (a1*v + b1*w) * (a2*v + b2*w) * (a3*v + b3*w)",
-        "zero_section_coordinates": ["0", "-b1", "a1"],
+        "zero_section": ["0", "-b1", "a1"],
         "generating_sections": [
             ["0", "-b2", "a2"],
             ["0", "-b3", "a3"]
