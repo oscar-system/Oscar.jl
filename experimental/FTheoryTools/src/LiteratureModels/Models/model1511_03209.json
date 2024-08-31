@@ -47,8 +47,8 @@
         "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
             [1, 2, 3, 4, 6]
         ],
-        "zero_section": "z",
-        "zero_section_coordinates": ["1", "1", "0"]
+        "zero_section_class": "z",
+        "zero_section": ["1", "1", "0"]
         "resolutions": [
             [
                 [
