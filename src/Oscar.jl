@@ -90,15 +90,17 @@ function __init__()
   # Up to now, hopefully the GAP packages listed below have not been loaded.
   # We want newer versions of some GAP packages than the distributed ones.
   # (But we do not complain if the installation fails.)
-  for (url, branch) in [
-     ("https://github.com/danielrademacher/recog.git", ""),
-     ]
-    GAP_Packages_install(url, interactive = false, branch = branch)
-  end
   for (pkg, version) in [
+     ("recog", "1.4.2"),
      ("repsn", "3.1.1"),
      ]
-    GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+    # Avoid downloading something if the requested version is already loaded.
+#TODO: Remove this check as soon as GAP.jl contains it,
+#      see https://github.com/oscar-system/GAP.jl/pull/1019.
+    info = GAP.Globals.GAPInfo.PackagesLoaded
+    if !(hasproperty(info, pkg) && version == string(getproperty(info, pkg)[2]))
+      GAP.Packages.install(pkg, version, interactive = false, quiet = true)
+    end
   end
 
   withenv("TERMINFO_DIRS" => joinpath(GAP.GAP_jll.Readline_jll.Ncurses_jll.find_artifact_dir(), "share", "terminfo")) do

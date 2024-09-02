@@ -365,12 +365,12 @@ end
 
 
 @doc raw"""
-    associated_literature_models(m::AbstractFTheoryModel)
+    birational_literature_models(m::AbstractFTheoryModel)
 
-Return a list of the unique identifiers any `associated_literature_models` of
+Return a list of the unique identifiers of `birational_literature_models` of
 the given model. These are either other presentations (Weierstrass, Tate, ...)
 of the given model, or other version of the same model from a different paper
-in the literature. If no `associated_literature_models` are known,
+in the literature. If no `birational_literature_models` are known,
 an error is raised.
 
 ```jldoctest
@@ -379,14 +379,14 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Weierstrass model over a not fully specified base -- U(1)xU(1) Weierstrass model based on arXiv paper 1507.05954 Eq. (A.1)
 
-julia> associated_literature_models(m)
+julia> birational_literature_models(m)
 1-element Vector{String}:
  "1507_05954-1"
 ```
 """
-function associated_literature_models(m::AbstractFTheoryModel)
-  @req has_associated_literature_models(m) "No associated models known for this model"
-  return get_attribute(m, :associated_literature_models)
+function birational_literature_models(m::AbstractFTheoryModel)
+  @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
+  return get_attribute(m, :birational_literature_models)
 end
 
 
@@ -782,12 +782,12 @@ end
 
 
 @doc raw"""
-    related_literature_models(m::AbstractFTheoryModel)
+    associated_literature_models(m::AbstractFTheoryModel)
 
-Return a list of the unique identifiers of any `related_literature_models` of
+Return a list of the unique identifiers of any `associated_literature_models` of
 the given model. These are models that are introduced in the same paper as
 the given model, but that are distinct from the given model. If no
-`related_literature_models` are known, an error is raised.
+`associated_literature_models` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 5))
@@ -795,7 +795,7 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(11) Tate model with parameter values (k = 5) based on arXiv paper 1212.2949 Eq. (3.2)
 
-julia> related_literature_models(m)
+julia> associated_literature_models(m)
 6-element Vector{String}:
  "1212_2949-2"
  "1212_2949-3"
@@ -805,9 +805,31 @@ julia> related_literature_models(m)
  "1212_2949-7"
 ```
 """
-function related_literature_models(m::AbstractFTheoryModel)
-  @req has_related_literature_models(m) "No related models known for this model"
-  return get_attribute(m, :related_literature_models)
+function associated_literature_models(m::AbstractFTheoryModel)
+  @req has_associated_literature_models(m) "No associated models known for this model"
+  return get_attribute(m, :associated_literature_models)
+end
+
+
+@doc raw"""
+    model_index(m::AbstractFTheoryModel)
+Return database index of a literature model. This index is a unique identifier that can be used to more conveniently construct the model. 
+All models have a model_index and these will not change in the future.
+
+```jldoctest
+julia> t = literature_model(31)
+Assuming that the first row of the given grading is the grading under Kbar
+
+Weierstrass model over a not fully specified base -- F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10 based on arXiv paper 1408.4808 Eq. (3.130)
+
+julia> model_index(t)
+31
+```
+"""
+function model_index(m::AbstractFTheoryModel)
+  directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
+  model_indices = JSON.parsefile(directory * "model_indices.json")
+  return parse(Int, model_indices["model" * literature_identifier(m) * ".json"])
 end
 
 
@@ -1031,12 +1053,15 @@ Assuming that the first row of the given grading is the grading under Kbar
 Hypersurface model over a not fully specified base
 
 julia> gauge_algebra(t)
-5-element Vector{LinearLieAlgebra{QQBarFieldElem}}:
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Special linear Lie algebra of degree 2 over QQBar
- Linear Lie algebra with 1x1 matrices over QQBar
+Direct sum Lie algebra
+  of dimension 13
+with summands
+  sl_2
+  sl_2
+  sl_2
+  sl_2
+  linear Lie algebra
+over field of algebraic numbers
 ```
 """
 function gauge_algebra(m::AbstractFTheoryModel)
@@ -1047,10 +1072,12 @@ end
 
 @doc raw"""
     global_gauge_quotients(m::AbstractFTheoryModel)
-Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by gauge_algebra(m).
+
+Return list of lists of matrices, where each list of matrices corresponds to a gauge factor of the same index given by `gauge_algebra(m)`.
 These matrices are elements of the center of the corresponding gauge factor and quotienting by them replicates the action of some discrete group on the center of the lie algebra.
-This list combined with gauge_algebra(m) completely determines the gauge group of the model.
+This list combined with `gauge_algebra(m)` completely determines the gauge group of the model.
 If no gauge quotients are known, an error is raised.
+
 ```jldoctest
 julia> t = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
 Assuming that the first row of the given grading is the grading under Kbar
@@ -1069,6 +1096,146 @@ julia> global_gauge_quotients(t)
 function global_gauge_quotients(m::AbstractFTheoryModel)
   @req has_global_gauge_quotients(m) "No gauge quotients stored for this model"
   return get_attribute(m, :global_gauge_quotients)
+end
+
+
+@doc raw"""
+    chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+this very cohomology class $h$, otherwise it raises an error.
+
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+smooth and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_class(qsm_model, 4; check = false);
+
+julia> is_trivial(h)
+false
+```
+"""
+function chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
+
+  # Consistency checks
+  @req k >= 0 "Chern class index must be non-negative"
+  @req k <= dim(ambient_space(m)) - 1 "Chern class index must not exceed dimension of the space"
+
+  # Check if we can compute the Chern classes for the toric ambient space
+  if check
+    @req is_smooth(ambient_space(m)) && is_complete(ambient_space(m)) "The Chern classes of the tangent bundle of the toric ambient space are only supported if the toric ambient space is smooth and complete"
+  end
+
+  # If thus far, no non-trivial Chern classes have been computed for this toric variety, add an "empty" vector
+  if !has_attribute(m, :chern_classes)
+    cs = Vector{Union{Nothing,CohomologyClass}}(nothing, dim(ambient_space(m)))
+    cs[1] = cohomology_class(ambient_space(m), one(cohomology_ring(ambient_space(m), check = check)))
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+    cs[2] = chern_class(ambient_space(m), 1, check = check) - cy
+    set_attribute!(m, :chern_classes, cs)
+  end
+
+  # Check if the Chern class in question is known
+  cs = get_attribute(m, :chern_classes)::Vector{Union{Nothing,CohomologyClass}}
+  if cs[k+1] !== nothing
+    return cs[k+1]::CohomologyClass
+  end
+
+  # Chern class is not known, so compute and return it...
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  cs[k+1] = chern_class(ambient_space(m), k, check = check) - cy * chern_class(m, k-1; check = check)
+  set_attribute!(m, :chern_classes, cs)
+  return cs[k+1]
+end
+
+
+@doc raw"""
+    chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute a cohomology class $h$ on the
+toric ambient space $X_\Sigma$, such that its restriction to $Y_n$ is the k-th Chern class
+$c_k$ of the tangent bundle of $Y_n$. If those assumptions are satisfied, this method returns
+a vector with the cohomology classes corresponding to all non-trivial Chern classes $c_k$ of
+$Y_n$. Otherwise, this methods raises an error.
+
+As of right now, this method is computationally expensive for involved toric ambient spaces,
+such as in the example below.
+
+The theory guarantees that the implemented algorithm works for toric ambient spaces which are
+simplicial and complete. The check for completeness can be very time consuming. This check can
+be switched off by setting the optional argument `check` to the value `false`, as demonstrated below.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = chern_classes(qsm_model; check = false);
+
+julia> is_one(polynomial(h[1]))
+true
+
+julia> is_trivial(h[2])
+true
+
+julia> is_trivial(h[3])
+false
+```
+"""
+function chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Chern class of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Chern class of F-theory model currently supported only for toric ambient space"
+  return [chern_class(m, k, check = check) for k in 0:dim(ambient_space(m))-1]
+end
+
+
+@doc raw"""
+    euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+
+If the elliptically fibered n-fold $Y_n$ underlying the F-theory model in question is given
+as a hypersurface in a toric ambient space, we can compute the Euler characteristic. If this
+assumptions is satisfied, this method returns the Euler characteristic, otherwise it raises an
+error.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> h = euler_characteristic(qsm_model; check = false)
+378
+```
+"""
+function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
+  @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
+
+  # Check if the answer is known
+  if has_attribute(m, :euler_characteristic)
+    return get_attribute(m, :euler_characteristic)::CohomologyClass
+  end
+
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
+
+  # Compute the cohomology class corresponding to the hypersurface equation
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+
+  # Compute the Euler characteristic
+  h = integrate(chern_class(m, 4; check) * cy; check)
+  set_attribute!(m, :euler_characteristic, h)
+  return h
 end
 
 

@@ -7,7 +7,7 @@
 # it will remove all the higher degree / codimension stuff
 function Oscar.simplify(x::MPolyDecRingElem)
   R = parent(x)
-  n = get_attribute(R, :abstract_variety_dim)
+  n = get_attribute(R, :abstract_variety_dim)::Union{Nothing, Int}
   n === nothing && return x
   return sum(x[0:n])
 end
@@ -59,13 +59,11 @@ end
 #
 
 # generate a list of symbols [x₁,…,xₙ] using LaTeX / unicode for IJulia / REPL
-import AbstractAlgebra.Generic: subscriptify
+
 function _parse_symbol(symbol::String, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$i}" for i in I]
-  [symbol*subscriptify(i) for i in I]
-end
-function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
-  isdefined(Main, :IJulia) && Main.IJulia.inited && return [symbol*"_{$n,$i}" for i in I]
-  [symbol*subscriptify(n)*","*subscriptify(i) for i in I]
+  return ["$symbol[$i]" for i in I]
 end
 
+function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
+  return [symbol*"[$n, $i]" for i in I]
+end

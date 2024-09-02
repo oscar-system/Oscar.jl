@@ -88,4 +88,4 @@ julia> fl = is_free(M)
 false
 
 julia> defining_polynomial(K)
-x^8 + 735*x^6 + 11340*x^4 + 33075*x^2 + 11025
+x^8 + 105*x^6 + 3465*x^4 + 44100*x^2 + 176400

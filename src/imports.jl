@@ -196,8 +196,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element,
-  QQBar
+  primitive_element
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)

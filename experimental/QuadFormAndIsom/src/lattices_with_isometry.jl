@@ -1484,7 +1484,7 @@ julia> is_of_hermitian_type(coinvariant_lattice(Lf))
 true
 ```
 """
-@attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
+@attr Bool function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   chi = minimal_polynomial(Lf)
   !is_irreducible(chi) && return false
@@ -1837,7 +1837,7 @@ function signatures(Lf::ZZLatWithIsom)
   f = isometry(Lf)
   n = order_of_isometry(Lf)
   C = CalciumField()
-  eig = eigenvalues(QQBar, f)
+  eig = eigenvalues(algebraic_closure(QQ), f)
   lambda = C(eig[1])
   Sq = Int[i for i in 1:div(n,2) if gcd(i,n) == 1]
   D = Dict{Integer, Tuple{Int, Int}}()
@@ -2225,7 +2225,7 @@ julia> genus(invariant_lattice(Lf)) == t[1][1]
 true
 ```
 """
-@attr function type(Lf::ZZLatWithIsom)
+@attr Dict{Integer, Tuple} function type(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = isometry(Lf)
   n = order_of_isometry(Lf)

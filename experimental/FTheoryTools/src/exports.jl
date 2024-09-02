@@ -15,7 +15,7 @@ export add_journal_report_number
 export add_model_parameter
 export add_paper_author
 export add_paper_buzzword
-export add_related_literature_model
+export add_birational_literature_model
 export add_resolution
 export add_resolution_generating_section
 export add_resolution_zero_section
@@ -35,6 +35,8 @@ export associated_literature_models
 export base_space
 export blow_up
 export calabi_yau_hypersurface
+export chern_class
+export chern_classes
 export classes_of_model_sections
 export components_of_dual_graph
 export components_of_simplified_dual_graph
@@ -48,9 +50,11 @@ export discriminant
 export display_all_literature_models
 export dual_graph
 export estimated_number_of_triangulations
+export euler_characteristic
 export explicit_model_sections
 export family_of_spaces
 export fiber_ambient_space
+export g4_flux
 export gauge_algebra
 export genera_of_ci_curves
 export genera_of_components_of_dual_graph
@@ -89,7 +93,7 @@ export has_paper_buzzwords
 export has_paper_description
 export has_paper_title
 export has_quick_triangulation
-export has_related_literature_models
+export has_birational_literature_models
 export has_resolution_generating_sections
 export has_resolution_zero_sections
 export has_resolutions
@@ -107,6 +111,7 @@ export hypersurface_model
 export indices_of_trivial_ci_curves
 export irrelevant_ideal
 export is_base_space_fully_specified
+export is_calabi_yau
 export is_partially_resolved
 export journal_doi
 export journal_link
@@ -121,15 +126,18 @@ export kbar3
 export literature_identifier
 export literature_model
 export max_lattice_pts_in_facet
+export model
 export model_description
+export model_index
 export model_parameters
 export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
+export passes_elementary_quantization_checks
 export polytope_index
 export put_over_concrete_base
-export related_literature_models
+export birational_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
@@ -164,7 +172,7 @@ export set_paper_authors
 export set_paper_buzzwords
 export set_paper_description
 export set_paper_title
-export set_related_literature_models
+export set_birational_literature_models
 export set_resolution_generating_sections
 export set_resolution_zero_sections
 export set_resolutions
@@ -187,6 +195,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export tune
+export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
 export weierstrass_model
 export weierstrass_model_over_del_pezzo_surface

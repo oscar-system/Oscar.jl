@@ -588,4 +588,8 @@ end
   end
 end
 
-
+@testset "Issue 3992" begin
+  P, (x, y) = QQ[:x, :y]
+  I = ideal(P, elem_type(P)[])
+  @test !radical_membership(x, I)
+end

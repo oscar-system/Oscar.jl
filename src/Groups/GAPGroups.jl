@@ -864,8 +864,9 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element `z` in `G` such that `x^z` equals `y`.
-To also return the element `z`, use [`is_conjugate_with_data`](@ref).
+i.e., there is an element `z` in `G` such that `inv(z)*x*z` equals `y`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -878,10 +879,10 @@ end
     is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
-return `(true, z)`, where `x^z == y` holds;
+return `(true, z)`, where `inv(z)*x*z == y` holds;
 otherwise, return `(false, nothing)`.
-If the conjugating element `z` is not needed,
-use [`is_conjugate`](@ref).
+If the conjugating element `z` is not needed, use
+[`is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -1075,8 +1076,10 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
 i.e., whether there exists an element `z` in  `G` such that
-`H^z` equals `K`. To also return the element `z`
-use [`is_conjugate_with_data`](@ref).
+the conjugate group `H^z`, which is defined as $\{ z^{-1} h z; h \in H \}$,
+equals `K`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1101,13 +1104,14 @@ false
 """
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(GapObj(G),GapObj(H),GapObj(K))
 
-"""
+@doc raw"""
     is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `(true, z)`
 where `H^z = K`; otherwise, return `(false, nothing)`.
+The conjugate group `H^z` is defined as $\{ z^{-1} h z; h \in H \}$.
 If the conjugating element `z` is not needed, use
-[`is_conjugate`](@ref).
+[`is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1908,18 +1912,18 @@ end
     relators(G::FPGroup)
 
 Return a vector of relators for the full finitely presented group `G`, i.e.,
-elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
-`G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
+elements $[w_1, w_2, \ldots, w_n]$ in $F =$ `free_group(ngens(G))` such that
+`G` is isomorphic with $F/[w_1, w_2, \ldots, w_n]$.
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  (x, y) = gens(f);
+julia> f = @free_group(:x, :y);
 
 julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 3-element Vector{FPGroupElem}:
- f1^2
- f2^2
- f1^-1*f2^-1*f1*f2
+ x^2
+ y^2
+ x^-1*y^-1*x*y
 ```
 """
 function relators(G::FPGroup)
@@ -1930,7 +1934,7 @@ end
 
 
 @doc raw"""
-    map_word(g::FPGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$
@@ -1944,7 +1948,9 @@ and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
-of the underlying free group.
+of the underlying free group of `full_group(parent(g))`.
+In particular, `genimgs` are interpreted as the images of the generators
+of this free group, not of `gens(parent(g))`.
 
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
@@ -1957,13 +1963,17 @@ to be the inverses of the corresponding entries in `genimgs`,
 and the function will use (and set) these entries in order to avoid
 calling `inv` (more than once) for entries of `genimgs`.
 
+If `init` is different from `nothing` then the product gets initialized with
+`init`.
+
 If `v` has length zero then `init` is returned if also `genimgs` has length
 zero, otherwise `one(genimgs[1])` is returned.
-In all other cases, `init` is ignored.
+Thus the intended value for the empty word must be specified as `init`
+whenever it is possible that the elements in `genimgs` do not support `one`.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> imgs = gens(symmetric_group(4))
 2-element Vector{PermGroupElem}:
@@ -1979,6 +1989,9 @@ julia> map_word(F2, imgs)
 julia> map_word(one(F), imgs)
 ()
 
+julia> map_word(one(F), imgs, init = imgs[1])
+(1,2,3,4)
+
 julia> invs = Vector(undef, 2);
 
 julia> map_word(F1^-2*F2, imgs, genimgs_inv = invs)
@@ -1988,7 +2001,6 @@ julia> invs
 2-element Vector{Any}:
     (1,4,3,2)
  #undef
-
 ```
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
@@ -2021,13 +2033,13 @@ end
 
 
 @doc raw"""
-    map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+    map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
 Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
 which is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
-of $G$ and the $e_i$ are nonzero integers,
+of `full_group(parent(g))` and the $e_i$ are nonzero integers,
 and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
 
 # Examples
@@ -2042,7 +2054,7 @@ julia> map_word(g, gens(free_group(:x, :y)))
 x*y^4
 ```
 """
-function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
   Ggens = gens(G)
   if length(Ggens) == 0
@@ -2061,10 +2073,37 @@ function map_word(g::PcGroupElem, genimgs::Vector; genimgs_inv::Vector = Vector(
 end
 
 function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  length(genimgs) == 0 && (@assert length(v) == 0; return init)
-  length(v) == 0 && return one(genimgs[1])
-  return prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise try the `one` of one of the `genimgs`
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return one(genimgs[1])
+  end
+  res = prod(i -> _map_word_syllable(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init * res
+  end
+  return res
 end
+
+# Support mapping to `FinGenAbGroupElem`:
+# We use `+` instead of `*`, and scalar multiplication instead of powering.
+function map_word(v::Union{Vector{Int}, Vector{Pair{Int, Int}}, Vector{Any}}, genimgs::Vector{FinGenAbGroupElem}; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
+  if length(v) == 0
+    # If `init` is given then return it.
+    init !== nothing && return init
+    # Otherwise use the `zero` of one of the `genimgs`.
+    @req length(genimgs) != 0 "no `init` given in `map_word` without generators"
+    return zero(parent(genimgs[1]))
+  end
+  res = sum(i -> _map_word_syllable_additive(i, genimgs, genimgs_inv), v)
+  if init !== nothing
+    res = init + res
+  end
+  return res
+end
+
 
 function _map_word_syllable(vi::Int, genimgs::Vector, genimgs_inv::Vector)
   vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
@@ -2090,6 +2129,30 @@ function _map_word_syllable(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Ve
 end
 
 
+function _map_word_syllable_additive(vi::Int, genimgs::Vector, genimgs_inv::Vector)
+  vi > 0 && (@assert vi <= length(genimgs); return genimgs[vi])
+  vi = -vi
+  @assert vi <= length(genimgs)
+  isassigned(genimgs_inv, vi) && return genimgs_inv[vi]
+  res = -genimgs[vi]
+  genimgs_inv[vi] = res
+  return res
+end
+
+function _map_word_syllable_additive(vi::Pair{Int, Int}, genimgs::Vector, genimgs_inv::Vector)
+  x = vi[1]
+  @assert (x > 0 && x <= length(genimgs))
+  e = vi[2]
+  e > 1 && return e * genimgs[x]
+  e == 1 && return genimgs[x]
+  isassigned(genimgs_inv, x) && return (-e) * genimgs_inv[x]
+  res = -genimgs[x]
+  genimgs_inv[x] = res
+  e == -1 && return res
+  return (-e) * res
+end
+
+
 @doc raw"""
     syllables(g::Union{FPGroupElem, SubFPGroupElem})
 
@@ -2098,7 +2161,7 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> syllables(F1^5*F2^-3)
 2-element Vector{Pair{Int64, Int64}}:
@@ -2131,7 +2194,7 @@ numbers.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> letters(F1^5*F2^-3)
 8-element Vector{Int64}:
@@ -2176,7 +2239,7 @@ otherwise an exception is thrown.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> length(F1*F2^-2)
 3

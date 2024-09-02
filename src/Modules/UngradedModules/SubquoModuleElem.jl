@@ -1107,8 +1107,10 @@ end
 
 function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
+  isdefined(m, :coeffs) && is_zero(m.coeffs) && return true
+  is_zero(repres(m)) && return true
   if !isdefined(C, :quo)
-    return iszero(repres(m))
+    return false
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)

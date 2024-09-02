@@ -37,7 +37,7 @@ julia> LP = linear_program(P,[3,-2,4];k=2,convention = :min)
 Linear program
    min{c*x + k | x in P}
 where P is a Polyhedron{QQFieldElem} and
-   c=Polymake.LibPolymake.Rational[3 -2 4]
+   c=QQFieldElem[3, -2, 4]
    k=2
 ```
 
@@ -71,11 +71,6 @@ julia> ℓ = objective_function(LP; as = :function);
 julia> ℓ(v) == convert(QQFieldElem, m)
 true
 ```
-
-!!! note "Infinite solutions"
-    Note that the optimal value may be $\pm\infty$ which currently is
-    well-defined by `Polymake.jl`, but not with the `QQFieldElem` number type. Hence
-    manual conversion is necessary, until this issue has been resolved.
 
 The optimal value and an optimal vertex may be obtained individually as well.
 

@@ -294,8 +294,7 @@ homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, v
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
   stack((homogenize(x[i], val) for i in 1:length(x))...)
 
-dehomogenize(vec::AbstractVector) = vec[2:end]
-dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
+dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
 unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
@@ -675,6 +674,14 @@ function _promoted_bigobject(
 end
 
 # oscarnumber helpers
+
+function Polymake._fieldelem_to_floor(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(floor(ZZRingElem, e))
+end
+
+function Polymake._fieldelem_to_ceil(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(ceil(ZZRingElem, e))
+end
 
 function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
   return Rational{BigInt}(QQ(e))

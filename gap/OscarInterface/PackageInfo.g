@@ -64,14 +64,7 @@ Status := "other",
 
 AbstractHTML   :=  "",
 
-PackageDoc := rec(
-  BookName  := "OscarInterface",
-  ArchiveURLSubset := ["doc"],
-  HTMLStart := "doc/chap0_mj.html",
-  PDFFile   := "doc/manual.pdf",
-  SixFile   := "doc/manual.six",
-  LongTitle := "GAP interface to OSCAR",
-),
+PackageDoc := [],
 
 Dependencies := rec(
   GAP := ">= 4.12",

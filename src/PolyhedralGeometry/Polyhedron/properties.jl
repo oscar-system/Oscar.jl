@@ -177,7 +177,7 @@ where `p` is only unique modulo `L`. The return type is a dict, the key
 `:base_points` gives an iterator over such `p`, and the key `:lineality_basis`
 lets one access a basis for the lineality space `L` of `P`.
 
-See also [`vertices`](@ref) and [`lineality_space`](@ref).
+See also [`vertices`](@ref vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}).
 
 # Examples
 The polyhedron `P` is just a line through the origin:
@@ -223,7 +223,7 @@ with two iterators. If `P` has lineality `L`, then the iterator
 `rays_modulo_lineality` iterates over representatives of the rays of `P/L`.
 The iterator `lineality_basis` gives a basis of the lineality space `L`.
 
-See also [`rays`](@ref) and [`lineality_space`](@ref).
+See also [`rays`](@ref rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}).
 
 # Examples
 ```jldoctest
@@ -269,7 +269,7 @@ Return an iterator over the vertices of `P` in the format defined by `as`. The
 vertices are defined to be the zero-dimensional faces, so if `P` has lineality,
 there are no vertices, only minimal faces.
 
-See also [`minimal_faces`](@ref) and [`rays`](@ref).
+See also [`minimal_faces`](@ref minimal_faces(P::Polyhedron{T}) where {T<:scalar_types}) and [`rays`](@ref rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `PointVector`.
@@ -401,7 +401,7 @@ Return a minimal set of generators of the cone of unbounded directions of `P`
 one-dimensional faces of the recession cone, so if `P` has lineality, there
 are no rays.
 
-See also [`rays_modulo_lineality`](@ref), [`recession_cone`](@ref) and [`vertices`](@ref).
+See also [`rays_modulo_lineality`](@ref rays_modulo_lineality(P::Polyhedron{T}) where {T<:scalar_types}), [`recession_cone`](@ref recession_cone(P::Polyhedron{T}) where {T<:scalar_types}) and [`vertices`](@ref vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}).
 
 Optional arguments for `as` include
 * `RayVector`.
@@ -731,7 +731,7 @@ julia> dim(P)
 dim(P::Polyhedron) = Polymake.polytope.dim(pm_object(P))::Int
 
 @doc raw"""
-    lattice_points(P::Polyhedron{QQFieldElem})
+    lattice_points(P::Polyhedron)
 
 Return the integer points contained in the bounded polyhedron `P`.
 
@@ -757,7 +757,7 @@ julia> matrix(ZZ, lattice_points(S))
 [2   0]
 ```
 """
-function lattice_points(P::Polyhedron{QQFieldElem})
+function lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _lattice_point, size(pm_object(P).LATTICE_POINTS_GENERATORS[1], 1)
@@ -765,7 +765,7 @@ function lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).LATTICE_POINTS_GENERATORS[1][i, 2:end])::T
 
 _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -774,7 +774,7 @@ _point_matrix(::Val{_lattice_point}, P::Polyhedron; homogenized=false) =
 _matrix_for_polymake(::Val{_lattice_point}) = _point_matrix
 
 @doc raw"""
-    interior_lattice_points(P::Polyhedron{QQFieldElem})
+    interior_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the interior of the bounded polyhedron
 `P`.
@@ -792,7 +792,7 @@ julia> matrix(ZZ, interior_lattice_points(c))
 [0   0   0]
 ```
 """
-function interior_lattice_points(P::Polyhedron{QQFieldElem})
+function interior_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _interior_lattice_point, size(pm_object(P).INTERIOR_LATTICE_POINTS, 1)
@@ -800,7 +800,7 @@ function interior_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _interior_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).INTERIOR_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -813,7 +813,7 @@ _point_matrix(::Val{_interior_lattice_point}, P::Polyhedron; homogenized=false) 
 _matrix_for_polymake(::Val{_interior_lattice_point}) = _point_matrix
 
 @doc raw"""
-    boundary_lattice_points(P::Polyhedron{QQFieldElem})
+    boundary_lattice_points(P::Polyhedron)
 
 Return the integer points contained in the boundary of the bounded polyhedron
 `P`.
@@ -841,7 +841,7 @@ julia> matrix(ZZ, boundary_lattice_points(c))
 [ 1    0    0]
 ```
 """
-function boundary_lattice_points(P::Polyhedron{QQFieldElem})
+function boundary_lattice_points(P::Polyhedron)
   @req pm_object(P).BOUNDED "Polyhedron not bounded"
   return SubObjectIterator{PointVector{ZZRingElem}}(
     P, _boundary_lattice_point, size(pm_object(P).BOUNDARY_LATTICE_POINTS, 1)
@@ -849,7 +849,7 @@ function boundary_lattice_points(P::Polyhedron{QQFieldElem})
 end
 
 _boundary_lattice_point(
-  T::Type{PointVector{ZZRingElem}}, P::Polyhedron{QQFieldElem}, i::Base.Integer
+  T::Type{PointVector{ZZRingElem}}, P::Polyhedron, i::Base.Integer
 ) = point_vector(ZZ, @view pm_object(P).BOUNDARY_LATTICE_POINTS[i, 2:end])::T
 
 _point_matrix(::Val{_boundary_lattice_point}, P::Polyhedron; homogenized=false) =
@@ -1336,7 +1336,7 @@ is_fulldimensional(P::Polyhedron) = pm_object(P).FULL_DIM::Bool
 
 Check whether `P` is a Johnson solid, i.e., a $3$-dimensional polytope with regular faces that is not vertex transitive.
 
-See also [`johnson_solid`](@ref).
+See also [`johnson_solid`](@ref johnson_solid(index::Int)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1346,7 +1346,7 @@ See also [`johnson_solid`](@ref).
 julia> J = johnson_solid(37)
 Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
 
-julia> is_johnson_solid(J) 
+julia> is_johnson_solid(J)
 true
 ```
 """
@@ -1358,7 +1358,7 @@ is_johnson_solid(P::Polyhedron) = _is_3d_pol_reg_facets(P) && !is_vertex_transit
 Check whether `P` is an Archimedean solid, i.e., a $3$-dimensional vertex
 transitive polytope with regular facets, but not a prism or antiprism.
 
-See also [`archimedean_solid`](@ref).
+See also [`archimedean_solid`](@ref archimedean_solid(s::String)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1387,7 +1387,7 @@ is_archimedean_solid(P::Polyhedron) =
 
 Check whether `P` is a Platonic solid.
 
-See also [`platonic_solid`](@ref).
+See also [`platonic_solid`](@ref platonic_solid(s::String)).
 
 !!! note
     This will only recognize algebraically precise solids, i.e. no solids with approximate coordinates.
@@ -1501,7 +1501,7 @@ end
 @doc raw"""
     f_vector(P::Polyhedron)
 
-Return the vector $(f₀,f₁,f₂,...,f_{(dim(P)-1))$` where $f_i$ is the number of
+Return the vector $(f₀,f₁,f₂,...,f_{dim(P) - 1})$ where $f_i$ is the number of
 faces of $P$ of dimension $i$.
 
 # Examples

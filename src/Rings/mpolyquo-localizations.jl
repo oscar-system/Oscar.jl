@@ -1369,15 +1369,18 @@ end
   n = ngens(P)
   imgs_y = t[r+1:(r+n)]
   imgs_x = t[r+n+1:end]
-  I = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
+  # Sometimes for unnecessarily complicated sets of generators for I the computation 
+  # wouldn't finish. We try to pass to a `small_generating_set` to hopefully reduce the dependency 
+  # on a particular set of generators. 
+  J = ideal(A, vcat([one(A) - theta[i]*evaluate(den, imgs_y) for (i, den) in enumerate(denoms)], # Rabinowitsch relations
                     [theta[i]*evaluate(num, imgs_y) - imgs_x[i] for (i, num) in enumerate(nums)], # Graph relations
-                    [evaluate(g, imgs_y) for g in gens(I)])) # codomain's modulus
+                    [evaluate(g, imgs_y) for g in small_generating_set(I)])) # codomain's modulus
   # We eliminate the Rabinowitsch variables first, the codomain variables second, 
   # and finally get to the domain variables. This elimination should be quicker 
   # than one which does not know the Rabinowitsch property.
   oo = degrevlex(theta)*degrevlex(imgs_y)*degrevlex(imgs_x)
   #oo = lex(theta)*lex(imgs_y)*lex(imgs_x)
-  gb = groebner_basis(I, ordering=oo)
+  gb = groebner_basis(J, ordering=oo)
 
   # TODO: Speed up and use build context.
   res_gens = elem_type(A)[f for f in gb if all(e->all(k->is_zero(e[k]), 1:(n+r)), exponents(f))]
@@ -1929,13 +1932,23 @@ function Base.show(io::IO, ::MIME"text/plain", I::MPolyAnyIdeal)
 end
 
 function _get_generators_string_one_line(I::MPolyAnyIdeal, character_limit::Int = 100)
-  # Try a full list of generators if it fits $character_limit characters
+  # Try a full list of generators if it fits $character_limit characters, otherwise
+  # print `default`
+  default = "with $(ItemQuantity(ngens(I), "generator"))"
+
+  if ngens(I)*3 > character_limit
+    # We need at least 3 characters (generator, comma, space) per generator, so
+    # we don't need to build the whole string
+    return default
+  end
+
+  # Generate the full string
   gen_string = "("*join(gens(I), ", ")*")"
   if length(gen_string) <= character_limit
     return gen_string
   end
 
-  return "with $(ItemQuantity(ngens(I), "generator"))"
+  return default
 end
 
 function Base.show(io::IO, I::MPolyAnyIdeal)
@@ -2006,11 +2019,11 @@ function jacobian_matrix(g::Vector{<:MPolyQuoLocRingElem})
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+@attr Bool function is_prime(I::MPolyQuoLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end
 
-@attr function _is_integral_domain(W::MPolyQuoLocRing)
+@attr Bool function _is_integral_domain(W::MPolyQuoLocRing)
   return is_prime(modulus(W))
 end
 
@@ -2037,7 +2050,7 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr function dim(I::MPolyQuoLocalizedIdeal)
+@attr Int function dim(I::MPolyQuoLocalizedIdeal)
   return dim(pre_image_ideal(I))
 end
 
