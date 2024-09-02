@@ -11,7 +11,11 @@ struct IPCSerializer <: OscarSerializer end
 
 abstract type MultiFileSerializer <: OscarSerializer end
 
-struct LPSerializer <: MultiFileSerializer end
+struct LPSerializer <: MultiFileSerializer
+  basepath::String
+end
+
+basepath(serializer::MultiFileSerializer) = serializer.basepath
 
 ################################################################################
 # (de)Serializer States

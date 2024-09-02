@@ -354,10 +354,10 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
-          Oscar.save(s.io, obj; serializer_type=Oscar.IPCSerializer)
+          Oscar.save(s.io, obj; serializer_type=Oscar.IPCSerializer())
         end
         function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
-          Oscar.load(s.io; serializer_type=Oscar.IPCSerializer)
+          Oscar.load(s.io; serializer_type=Oscar.IPCSerializer())
         end
       end
     end)
@@ -539,11 +539,18 @@ end
 
 function save(filename::String, obj::Any;
               metadata::Union{MetaData, Nothing}=nothing,
-              serializer::OscarSerializer=JSONSerializer(),
+              serializer_type::Type{<:OscarSerializer}=JSONSerializer,
               with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+
+  if serializer_type <: MultiFileSerializer
+    serializer = serializer_type(splitext(filename)[1])
+  else
+    serializer = serializer_type()
+  end
+  
   open(temp_file, "w") do file
     save(file, obj;
          metadata=metadata,
@@ -704,8 +711,15 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; params::Any = nothing,
-              type::Any = nothing, with_attrs::Bool=true)
+              type::Any = nothing, with_attrs::Bool=true,
+              serializer_type::Type{<:OscarSerializer}=JSONSerializer)
+  if serializer_type <: MultiFileSerializer
+    serializer = serializer_type(splitext(filename)[1])
+  else
+    serializer = serializer_type()
+  end
+
   open(filename) do file
-    return load(file; params=params, type=type)
+    return load(file; params=params, type=type, serializer=serializer)
   end
 end
