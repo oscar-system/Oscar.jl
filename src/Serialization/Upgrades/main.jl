@@ -92,6 +92,10 @@ function upgrade_types(dict::Dict, renamings::Dict{String, String})
   function upgrade_type(d::String)
     return get(renamings, d, d)
   end
+
+  function upgrade_type(v::Vector)
+    return map(upgrade_type, v)
+  end
   
   function upgrade_type(d::Dict)
     upg_d = d
@@ -112,7 +116,7 @@ function upgrade_types(dict::Dict, renamings::Dict{String, String})
         end
       end
     elseif d[:params] isa Vector
-      upg_d[:params] = [upgrade_type(v) for v in d[:params]]
+      upg_d[:params] = upgrade_type(d[:params])
     end
     return upg_d
   end
