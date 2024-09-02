@@ -354,10 +354,10 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
-          Oscar.save(s.io, obj; serializer_type=Oscar.IPCSerializer())
+          Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
         end
         function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
-          Oscar.load(s.io; serializer_type=Oscar.IPCSerializer())
+          Oscar.load(s.io; serializer=Oscar.IPCSerializer())
         end
       end
     end)
