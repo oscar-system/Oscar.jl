@@ -94,6 +94,11 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   end
 end
 
+function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
+  Polymake.polytope.poly2lp(
+    pm_object(lp.feasible_region), lp.polymake_lp, lp.convention == :min ? true : false, "/tmp/test.lp")
+end
+
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
