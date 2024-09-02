@@ -4,7 +4,7 @@ if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
 end
 
-if !isdefined(Main, :lie_algebra_conformance_test)
+if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
   function lie_algebra_conformance_test(
     L::LieAlgebra{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10
   ) where {C<:FieldElem}
@@ -172,7 +172,7 @@ if !isdefined(Main, :lie_algebra_conformance_test)
   end
 end
 
-if !isdefined(Main, :lie_algebra_module_conformance_test)
+if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
   function lie_algebra_module_conformance_test(
     L::LieAlgebra{C},
     V::LieAlgebraModule{C},

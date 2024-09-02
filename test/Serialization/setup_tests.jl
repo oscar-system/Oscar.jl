@@ -4,7 +4,7 @@ using JSONSchema, Oscar.JSON
 
 # we only need to define this once
 
-if !isdefined(Main, :test_save_load_roundtrip)
+if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
 
   function test_save_load_roundtrip(func, path, original::T;
