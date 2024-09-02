@@ -132,6 +132,62 @@ end
 
 ###############################################################################
 #
+#   Lie algebra modules
+#
+###############################################################################
+
+@register_serialization_type LieAlgebraModule uses_id
+
+function save_object(s::SerializerState, V::LieAlgebraModule)
+  save_data_dict(s) do
+    save_typed_object(s, base_lie_algebra(V), :lie_algebra)
+    save_object(s, dim(V), :dim)
+    save_object(s, transformation_matrices(V), :transformation_matrices)
+    save_object(s, symbols(V), :symbols)
+    save_attrs(s, V)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{LieAlgebraModule})
+  L = load_typed_object(s, :lie_algebra)
+  R = coefficient_ring(L)
+  dim = load_object(s, Int, :dim)
+  transformation_matrices = load_object(
+    s, Vector, (dense_matrix_type(R), matrix_space(R, dim, dim)), :transformation_matrices
+  )
+  symbs = load_object(s, Vector, Symbol, :symbols)
+  V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
+  load_attrs(s, V)
+  return V
+end
+
+@register_serialization_type LieAlgebraModuleElem uses_params
+
+function save_object(s::SerializerState, x::LieAlgebraModuleElem)
+  save_object(s, coefficients(x))
+end
+
+function load_object(
+  s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
+)
+  return V(load_object(s, Vector, coefficient_ring(V)))
+end
+
+function save_type_params(s::SerializerState, v::LieAlgebraModuleElem)
+  save_data_dict(s) do
+    save_object(s, encode_type(typeof(v)), :name)
+    parent_x = parent(v)
+    parent_ref = save_as_ref(s, parent_x)
+    save_object(s, parent_ref, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraModuleElem})
+  return load_typed_object(s)
+end
+
+###############################################################################
+#
 #   Root systems
 #
 ###############################################################################

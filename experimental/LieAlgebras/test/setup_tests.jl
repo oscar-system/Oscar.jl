@@ -277,5 +277,33 @@ if !isdefined(Main, :lie_algebra_module_conformance_test)
         @test (x * y) * v == x * (y * v) - y * (x * v)
       end
     end
+
+    coefficient_ring(V) isa FqField && return nothing # see https://github.com/oscar-system/Oscar.jl/issues/4064
+    if dim(V) <= 50 # for better test runtimes
+      @testset "Serialization" begin
+        mktempdir() do path
+          test_save_load_roundtrip(path, V) do loaded
+            # nothing, cause `V === loaded` anyway
+          end
+
+          if dim(V) >= 1
+            v = basis(V, 1)
+            test_save_load_roundtrip(path, v) do loaded
+              @test parent(loaded) === V
+              @test coefficients(loaded) == coefficients(v)
+            end
+          end
+
+          if dim(V) >= 1 # TODO: remove this condition once deserializing empty vectors keeps the type (https://github.com/oscar-system/Oscar.jl/issues/3983)
+            test_save_load_roundtrip(path, basis(V)) do loaded
+              @test length(loaded) == dim(V)
+              @test all(
+                coefficients(loaded[i]) == coefficients(basis(V, i)) for i in 1:dim(V)
+              )
+            end
+          end
+        end
+      end
+    end
   end
 end
