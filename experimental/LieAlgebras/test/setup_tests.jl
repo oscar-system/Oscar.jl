@@ -138,9 +138,15 @@ if !isdefined(Main, :lie_algebra_conformance_test)
           path,
           L;
           with_attrs=true,
-          check_func=loaded ->
-            has_attribute(loaded, :is_abelian) &&
-              get_attribute(loaded, :is_abelian) == get_attribute(L, :is_abelian),
+          check_func=loaded -> all((
+            has_attribute(loaded, :is_abelian),
+            get_attribute(loaded, :is_abelian) == get_attribute(L, :is_abelian),
+            sprint(show, "text/plain", loaded) == sprint(show, "text/plain", L) ||
+              occursin(
+                "cyclotomic field",
+                lowercase(sprint(print, "text/plain", coefficient_ring(L))),
+              ), # cyclotomic fields are printed as number fields after (de)serialization          
+          )),
         ) do loaded
           # nothing, cause `L === loaded` anyway
         end
