@@ -703,9 +703,16 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
+    if file_version > VERSION_NUMBER
+      @warn """
+      Attempted loading file stored with Oscar version $file_version
+      using Oscar version $VERSION_NUMBER
+      """
+    end
+    
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
-      @warn "Attempting to load file stored using a DEV version with commit $commit"
+      @warn "Attempted loading file stored using a DEV version with commit $commit"
     end
     rethrow(e)
   end
