@@ -30,6 +30,7 @@ cases = [
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
   (PF, PF(1), PF(6), "Default Prime Field"),
+  (F, F(1), F(1), "Default Prime Field Extension"),
   (FF, FF(1), r, "Default Finite Field"),
   (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
