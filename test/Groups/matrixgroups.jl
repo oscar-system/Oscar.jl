@@ -159,7 +159,8 @@ end
      (matrix(QQ, [0 1; 1 0]), matrix(QQ, [0 1; -1 -1])),
  #   # infinite group
  #   (matrix(QQ, [0 -1; 1 0]), matrix(QQ, [0 1; -1 -1])),
-#TODO: do not run into a GAP error message
+#TODO: do not run into a GAP error message, see
+# https://github.com/gap-system/gap/issues/5790
    ]
 
    for (x, y) in inputs
