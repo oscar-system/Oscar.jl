@@ -31,8 +31,8 @@ end
 
 # computes the system of equations whose solutions are the realizable cylinder
 # coordinates
-function system_of_equations(cylinder_diagram::CylinderDiagram)::ZZMatrix
-    M::ZZMatrix = zero_matrix(ZZ, cylinder_diagram.cycles_count, cylinder_diagram.separatrix_count)
+function system_of_equations(cylinder_diagram::CylinderDiagram)
+    M = zero_matrix(ZZ, cylinder_diagram.cycles_count, cylinder_diagram.separatrix_count)
     for (i, (bot, top)) in enumerate(cylinders(cylinder_diagram))
         for t in top
             M[i, t + 1] = 1
@@ -47,7 +47,7 @@ end
 # positive integer linear combinations of the computed rays
 # give possible lengths for the separatrix of the cylinder diagram
 # i.e. the resulting surface exists
-function compute_rays(equations::ZZMatrix, separatrix_count::Int)::Vector{Vector{Int}}
+function compute_rays(equations, separatrix_count::Int)::Vector{Vector{Int}}
     if(is_zero(equations))
         n = separatrix_count
         return [Int[i == j for j in 1:n] for i in 1:n]
@@ -67,7 +67,7 @@ function all_combinations(n::Int, m::Int)::Vector{Vector{Int}}
         new_combinations = Vector{Vector{Int}}()
         for current in combinations
             for i in 1:n
-                push!(new_combinations, vcat(current, [i]))
+                push!(new_combinations, [current..., i])
             end
         end
         combinations = new_combinations
@@ -151,6 +151,7 @@ function product_gray_code(m::Vector{Int})::Vector{Tuple{Int, Int}}
 end
 
 # get origamis from cylinder diagram and realizable lengths
+# from surface_dynamics by Vincent, Delecroix et al.
 function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram, lengths::Vector{Int}, heights::Vector{Int})
     # the total width of each cylinder is the sum of the lengths of the separatrices
     widths = [sum(lengths[i+1] for i in bot) for bot in cyl_diagram.bot]
@@ -196,7 +197,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram, lengths
     end
     
     no_twist = normal_form(origami(lx, perm([x + 1 for x in ly])))
-    results = Set([no_twist])
+    results = Set{Origami}([no_twist])
 
     ly = [x+1 for x in ly]
 
