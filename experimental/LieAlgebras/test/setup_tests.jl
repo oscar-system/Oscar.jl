@@ -278,7 +278,6 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
       end
     end
 
-    coefficient_ring(V) isa FqField && return nothing # see https://github.com/oscar-system/Oscar.jl/issues/4064
     if dim(V) <= 50 # for better test runtimes
       @testset "Serialization" begin
         mktempdir() do path
