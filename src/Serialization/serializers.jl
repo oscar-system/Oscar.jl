@@ -249,7 +249,6 @@ function deserializer_open(
   return T(DeserializerState(obj, nothing, nothing, type_attr_map))
 end
 
-const state_types = Union{SerializerState, DeserializerState}
 
 function attrs_list(s::SerializerState, T::Type) 
   return get(s.type_attr_map, encode_type(T), Symbol[])
