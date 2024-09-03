@@ -143,7 +143,7 @@ mutable struct DeserializerState
   obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
-  type_attr_map::Bool
+  type_attr::Bool
 end
 
 # general loading of a reference
