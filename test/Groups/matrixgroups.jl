@@ -153,6 +153,22 @@ end
    end
 end
 
+@testset "small_generating_set" begin
+   inputs = [
+     # finite group over an infinite base domain
+     (matrix(QQ, [0 1; 1 0]), matrix(QQ, [0 1; -1 -1])),
+ #   # infinite group
+ #   (matrix(QQ, [0 -1; 1 0]), matrix(QQ, [0 1; -1 -1])),
+#TODO: do not run into a GAP error message, see
+# https://github.com/gap-system/gap/issues/5790
+   ]
+
+   for (x, y) in inputs
+     G = matrix_group([x, y, x*y, y*x])
+     @test length(small_generating_set(G)) < length(gens(G))
+   end
+end
+
 @testset "matrix group over QQBar" begin
    K = algebraic_closure(QQ)
    e = one(K)
