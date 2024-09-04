@@ -214,6 +214,9 @@ Return a generic section of the toric line bundle `l`, that
 is return the sum of all elements `basis_of_global_sections(l)`,
 each multiplied by a random integer.
 
+The optional keyword argument `range` can be used to set the range
+of the random integers, e.g., `generic_section(l, range = -100:100)`
+
 # Examples
 ```jldoctest
 julia> v = projective_space(NormalToricVariety, 2)
@@ -228,9 +231,12 @@ julia> parent(s) == cox_ring(toric_variety(l))
 true
 ```
 """
-function generic_section(l::ToricLineBundle)
-  if length(basis_of_global_sections(l)) == 0
-    return zero(cox_ring(toric_variety(l)))
-  end
-  return sum([rand(Int) * b for b in basis_of_global_sections(l)])
+function generic_section(l::ToricLineBundle; range::UnitRange{Int64} = -10000:10000)
+    global_sections = basis_of_global_sections(l)
+
+    if length(global_sections) == 0
+        return zero(cox_ring(toric_variety(l)))
+    end
+
+    return sum(rand(range) * b for b in global_sections)
 end

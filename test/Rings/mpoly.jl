@@ -300,8 +300,8 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
-    test_ideal = ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
+    R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
+    test_ideal =ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
     @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 end
 
@@ -551,3 +551,33 @@ end
   I = flag_pluecker_ideal(R,dimension_vector, ambient_dimension, minimal=false)
   @test isa(I, Ideal)
 end
+
+@testset "default ordering" begin
+  R, _ = QQ["x", "y", "z"]
+  S, _ = grade(R, [2, 1, 2])
+  for T in [R, S]
+    x, y, z = gens(T)
+    f = x + y^2
+    I = ideal(T, [y^2 - z, x - z])
+    old_default = @inferred default_ordering(T)
+    f = with_ordering(T, invlex(T)) do
+          normal_form(f, I)
+        end
+    @test f == normal_form(f, I, ordering = invlex(T))
+    @test default_ordering(T) == old_default
+
+    # Make sure the ordering is reset in case of an error
+    # The `@test_throws` is just here to catch the error
+    @test_throws ErrorException with_ordering(T, invlex(T)) do
+      error()
+    end
+    @test default_ordering(T) == old_default
+  end
+end
+
+@testset "Issue 3992" begin
+  P, (x, y) = QQ[:x, :y]
+  I = ideal(P, elem_type(P)[])
+  @test !radical_membership(x, I)
+end
+

@@ -58,7 +58,7 @@ end
   @test_throws ArgumentError associated_literature_models(t1)
   @test_throws ArgumentError journal_report_numbers(t1)
   @test_throws ArgumentError model_parameters(t1)
-  @test_throws ArgumentError related_literature_models(t1)
+  @test_throws ArgumentError birational_literature_models(t1)
 end
 
 set_model_description(t1, "Testing...")
@@ -89,7 +89,7 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-w1 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+w1 = literature_model(arxiv_id = "1208.2695", equation = "B.19", base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 
 @testset "Test defining data for literature Weierstrass model over concrete base" begin
   @test parent(weierstrass_section_f(w1)) == cox_ring(base_space(w1))
@@ -112,7 +112,7 @@ end
   @test arxiv_model_page(w1) == "34"
   @test arxiv_model_section(w1) == "B"
   @test arxiv_version(w1) == "2"
-  @test associated_literature_models(w1) == ["1208_2695-1"]
+  @test birational_literature_models(w1) == ["1208_2695-1"]
   @test length(generating_sections(w1)) == 1
   @test journal_doi(w1) == "10.1007/JHEP10(2012)128"
   @test journal_link(w1) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -134,7 +134,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over concrete base" begin
   @test_throws ArgumentError model_parameters(w1)
-  @test_throws ArgumentError related_literature_models(w1)
+  @test_throws ArgumentError associated_literature_models(w1)
   @test_throws ArgumentError resolutions(w1)
   @test_throws ArgumentError resolution_generating_sections(w1)
   @test_throws ArgumentError resolution_zero_sections(w1)
@@ -201,7 +201,7 @@ end
   @test_throws ArgumentError associated_literature_models(t3)
   @test_throws ArgumentError journal_report_numbers(t3)
   @test_throws ArgumentError model_parameters(t3)
-  @test_throws ArgumentError related_literature_models(t3)
+  @test_throws ArgumentError birational_literature_models(t3)
   @test_throws ArgumentError literature_model(arxiv_id = "1212.2949", equation = "3.2")
 end
 
@@ -230,13 +230,13 @@ end
 #############################################################
 
 ζ0 = torusinvariant_prime_divisors(B3)[1]
-t4b = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t5b = literature_model(arxiv_id = "1212.2949", equation = "3.42", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t6b = literature_model(arxiv_id = "1212.2949", equation = "4.1", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t7b = literature_model(arxiv_id = "1212.2949", equation = "4.23", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t8b  = literature_model(arxiv_id = "1212.2949", equation = "5.1", base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t9b = literature_model(arxiv_id = "1212.2949", equation = "5.7", base_space = B3, model_sections = Dict("ζ0" => ζ0))
-t10b = literature_model(arxiv_id = "1212.2949", equation = "5.13", base_space = B3, model_sections = Dict("ζ0" => ζ0))
+t4b = literature_model(arxiv_id = "1212.2949", equation = "3.2", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => toric_line_bundle(ζ0)))
+t5b = literature_model(arxiv_id = "1212.2949", equation = "3.42", model_parameters = Dict("k" => 2), base_space = B3, model_sections = Dict("ζ0" => toric_divisor_class(ζ0)))
+t6b = literature_model(arxiv_id = "1212.2949", equation = "4.1", model_parameters = Dict("k" => 2), base_space = B3, defining_classes = Dict("ζ0" => toric_line_bundle(ζ0)))
+t7b = literature_model(arxiv_id = "1212.2949", equation = "4.23", model_parameters = Dict("k" => 2), base_space = B3, defining_classes = Dict("ζ0" => toric_divisor_class(ζ0)))
+t8b  = literature_model(arxiv_id = "1212.2949", equation = "5.1", base_space = B3, defining_classes = Dict("ζ0" => ζ0))
+t9b = literature_model(arxiv_id = "1212.2949", equation = "5.7", base_space = B3, defining_classes = Dict("ζ0" => ζ0))
+t10b = literature_model(arxiv_id = "1212.2949", equation = "5.13", base_space = B3, defining_classes = Dict("ζ0" => ζ0))
 
 @testset "Test more Tate models (from paper Tate form on Steroids) in our database, by constructing them over concrete bases" begin
   @test is_base_space_fully_specified(t4b) == true
@@ -274,7 +274,7 @@ end
   @test arxiv_model_page(w2) == "34"
   @test arxiv_model_section(w2) == "B"
   @test arxiv_version(w2) == "2"
-  @test associated_literature_models(w2) == ["1208_2695-1"]
+  @test birational_literature_models(w2) == ["1208_2695-1"]
   @test length(generating_sections(w2)) == 1
   @test journal_doi(w2) == "10.1007/JHEP10(2012)128"
   @test journal_link(w2) == "https://link.springer.com/article/10.1007/JHEP10(2012)128"
@@ -296,7 +296,7 @@ end
 
 @testset "Test error messages for literature Weierstrass model over arbitrary base" begin
   @test_throws ArgumentError model_parameters(w2)
-  @test_throws ArgumentError related_literature_models(w2)
+  @test_throws ArgumentError associated_literature_models(w2)
   @test_throws ArgumentError resolutions(w2)
   @test_throws ArgumentError resolution_generating_sections(w2)
   @test_throws ArgumentError resolution_zero_sections(w2)
@@ -320,9 +320,9 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[2]
-w4 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false, base_space = B2, model_sections = Dict("b" =>b))
+w4 = literature_model(arxiv_id = "1208.2695", equation = "B.19", completeness_check = false, base_space = B2, defining_classes = Dict("b" =>b))
 b2 = anticanonical_divisor(B2)
-w5 = literature_model(arxiv_id = "1507.05954", equation = "A.1", completeness_check = false, base_space = B2, model_sections = Dict("s8" => b2, "a1" => b, "a2" => b, "a3" => b))
+w5 = literature_model(arxiv_id = "1507.05954", equation = "A.1", completeness_check = false, base_space = B2, defining_classes = Dict("s8" => b2, "a1" => b, "a2" => b, "a3" => b))
 
 @testset "Test defining data for literature Weierstrass model over concrete base" begin
   @test length(singular_loci(w4)) == 1
@@ -340,7 +340,7 @@ end
 
 B2 = projective_space(NormalToricVariety, 2)
 b = torusinvariant_prime_divisors(B2)[1]
-w6 = literature_model(3, base_space = B2, model_sections = Dict("b" => b), completeness_check = false)
+w6 = literature_model(3, base_space = B2, defining_classes = Dict("b" => b), completeness_check = false)
 
 @testset "Test defining data for literature model defined by model index" begin
   @test length(singular_loci(w6)) == 1
@@ -366,4 +366,420 @@ h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
   @test is_base_space_fully_specified(h) == false
   @test is_partially_resolved(h) == false
   @test string.(zero_section(h)) == ["0", "-b1", "a1"]
+end
+
+
+
+#############################################################################
+# 8: Test models from F-theory on all toric hypersurfaces over arbitrary base
+#############################################################################
+
+foah1 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface")
+foah2 = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "hypersurface")
+foah3 = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "hypersurface")
+foah4 = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "hypersurface")
+foah5 = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "hypersurface")
+foah6 = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "hypersurface")
+foah7 = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "hypersurface")
+foah8 = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "hypersurface")
+foah9 = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "hypersurface")
+foah10 = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "hypersurface")
+foah11 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface")
+foah12 = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "hypersurface")
+foah13 = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "hypersurface")
+foah14 = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface")
+foah15 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface")
+foah16 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hypersurface")
+
+@testset "Test hypersurface form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
+  @test dim(base_space(foah1)) == 3
+  @test dim(base_space(foah2)) == 3
+  @test dim(base_space(foah3)) == 3
+  @test dim(base_space(foah4)) == 3
+  @test dim(base_space(foah5)) == 3
+  @test dim(base_space(foah6)) == 3
+  @test dim(base_space(foah7)) == 3
+  @test dim(base_space(foah8)) == 3
+  @test dim(base_space(foah9)) == 3
+  @test dim(base_space(foah10)) == 3
+  @test dim(base_space(foah11)) == 3
+  @test dim(base_space(foah12)) == 3
+  @test dim(base_space(foah13)) == 3
+  @test dim(base_space(foah14)) == 3
+  @test dim(base_space(foah15)) == 3
+  @test dim(base_space(foah16)) == 3
+  @test dim(ambient_space(foah1)) == 5
+  @test dim(ambient_space(foah2)) == 5
+  @test dim(ambient_space(foah3)) == 5
+  @test dim(ambient_space(foah4)) == 5
+  @test dim(ambient_space(foah5)) == 5
+  @test dim(ambient_space(foah6)) == 5
+  @test dim(ambient_space(foah7)) == 5
+  @test dim(ambient_space(foah8)) == 5
+  @test dim(ambient_space(foah9)) == 5
+  @test dim(ambient_space(foah10)) == 5
+  @test dim(ambient_space(foah11)) == 5
+  @test dim(ambient_space(foah12)) == 5
+  @test dim(ambient_space(foah13)) == 5
+  @test dim(ambient_space(foah14)) == 5
+  @test dim(ambient_space(foah15)) == 5
+  @test dim(ambient_space(foah16)) == 5
+  @test is_base_space_fully_specified(foah1) == false
+  @test is_base_space_fully_specified(foah2) == false
+  @test is_base_space_fully_specified(foah3) == false
+  @test is_base_space_fully_specified(foah4) == false
+  @test is_base_space_fully_specified(foah5) == false
+  @test is_base_space_fully_specified(foah6) == false
+  @test is_base_space_fully_specified(foah7) == false
+  @test is_base_space_fully_specified(foah8) == false
+  @test is_base_space_fully_specified(foah9) == false
+  @test is_base_space_fully_specified(foah10) == false
+  @test is_base_space_fully_specified(foah11) == false
+  @test is_base_space_fully_specified(foah12) == false
+  @test is_base_space_fully_specified(foah13) == false
+  @test is_base_space_fully_specified(foah14) == false
+  @test is_base_space_fully_specified(foah15) == false
+  @test is_base_space_fully_specified(foah16) == false
+  @test model_description(foah1) == "F-theory hypersurface model with fiber ambient space F_1"
+  @test model_description(foah2) == "F-theory hypersurface model with fiber ambient space F_2"
+  @test model_description(foah3) == "F-theory hypersurface model with fiber ambient space F_3"
+  @test model_description(foah4) == "F-theory hypersurface model with fiber ambient space F_4"
+  @test model_description(foah5) == "F-theory hypersurface model with fiber ambient space F_5"
+  @test model_description(foah6) == "F-theory hypersurface model with fiber ambient space F_6"
+  @test model_description(foah7) == "F-theory hypersurface model with fiber ambient space F_7"
+  @test model_description(foah8) == "F-theory hypersurface model with fiber ambient space F_8"
+  @test model_description(foah9) == "F-theory hypersurface model with fiber ambient space F_9"
+  @test model_description(foah10) == "F-theory hypersurface model with fiber ambient space F_10"
+  @test model_description(foah11) == "F-theory hypersurface model with fiber ambient space F_11"
+  @test model_description(foah12) == "F-theory hypersurface model with fiber ambient space F_12"
+  @test model_description(foah13) == "F-theory hypersurface model with fiber ambient space F_13"
+  @test model_description(foah14) == "F-theory hypersurface model with fiber ambient space F_14"
+  @test model_description(foah15) == "F-theory hypersurface model with fiber ambient space F_15"
+  @test model_description(foah16) == "F-theory hypersurface model with fiber ambient space F_16"
+  @test haskey(explicit_model_sections(foah6), "s9") == false
+  @test dim(gauge_algebra(foah6)) == 4
+  @test length(global_gauge_quotients(foah6)) == 2
+  @test dim(gauge_algebra(foah8)) == 7
+  @test length(global_gauge_quotients(foah8)) == 3
+  @test dim(gauge_algebra(foah9)) == 5
+  @test length(global_gauge_quotients(foah9)) == 3
+  @test dim(gauge_algebra(foah11)) == 12
+  @test length(global_gauge_quotients(foah11)) == 3
+  @test dim(gauge_algebra(foah12)) == 8
+  @test length(global_gauge_quotients(foah12)) == 4
+  @test dim(gauge_algebra(foah13)) == 21
+  @test length(global_gauge_quotients(foah13)) == 3
+  @test dim(gauge_algebra(foah14)) == 15
+  @test length(global_gauge_quotients(foah14)) == 4
+  @test dim(gauge_algebra(foah15)) == 13
+  @test length(global_gauge_quotients(foah15)) == 5
+  @test dim(gauge_algebra(foah16)) == 24
+  @test length(global_gauge_quotients(foah16)) == 3
+end
+
+
+
+#############################################################################
+# 9: Test models from F-theory on all toric hypersurfaces over concrete base
+#############################################################################
+
+B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor(B3)
+foah1_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah2_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "hypersurface", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
+foah3_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah4_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah5_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah6_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah7_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah8_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah9_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah10_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah11_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah12_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah13_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah14_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah16_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+
+@testset "Test hypersurface form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
+  @test dim(base_space(foah1_B3)) == 3
+  @test dim(base_space(foah2_B3)) == 3
+  @test dim(base_space(foah3_B3)) == 3
+  @test dim(base_space(foah4_B3)) == 3
+  @test dim(base_space(foah5_B3)) == 3
+  @test dim(base_space(foah6_B3)) == 3
+  @test dim(base_space(foah7_B3)) == 3
+  @test dim(base_space(foah8_B3)) == 3
+  @test dim(base_space(foah9_B3)) == 3
+  @test dim(base_space(foah10_B3)) == 3
+  @test dim(base_space(foah11_B3)) == 3
+  @test dim(base_space(foah12_B3)) == 3
+  @test dim(base_space(foah13_B3)) == 3
+  @test dim(base_space(foah14_B3)) == 3
+  @test dim(base_space(foah15_B3)) == 3
+  @test dim(base_space(foah16_B3)) == 3
+  @test dim(ambient_space(foah1_B3)) == 5
+  @test dim(ambient_space(foah2_B3)) == 5
+  @test dim(ambient_space(foah3_B3)) == 5
+  @test dim(ambient_space(foah4_B3)) == 5
+  @test dim(ambient_space(foah5_B3)) == 5
+  @test dim(ambient_space(foah6_B3)) == 5
+  @test dim(ambient_space(foah7_B3)) == 5
+  @test dim(ambient_space(foah8_B3)) == 5
+  @test dim(ambient_space(foah9_B3)) == 5
+  @test dim(ambient_space(foah10_B3)) == 5
+  @test dim(ambient_space(foah11_B3)) == 5
+  @test dim(ambient_space(foah12_B3)) == 5
+  @test dim(ambient_space(foah13_B3)) == 5
+  @test dim(ambient_space(foah14_B3)) == 5
+  @test dim(ambient_space(foah15_B3)) == 5
+  @test dim(ambient_space(foah16_B3)) == 5
+  @test is_base_space_fully_specified(foah1_B3) == true
+  @test is_base_space_fully_specified(foah2_B3) == true
+  @test is_base_space_fully_specified(foah3_B3) == true
+  @test is_base_space_fully_specified(foah4_B3) == true
+  @test is_base_space_fully_specified(foah5_B3) == true
+  @test is_base_space_fully_specified(foah6_B3) == true
+  @test is_base_space_fully_specified(foah7_B3) == true
+  @test is_base_space_fully_specified(foah8_B3) == true
+  @test is_base_space_fully_specified(foah9_B3) == true
+  @test is_base_space_fully_specified(foah10_B3) == true
+  @test is_base_space_fully_specified(foah11_B3) == true
+  @test is_base_space_fully_specified(foah12_B3) == true
+  @test is_base_space_fully_specified(foah13_B3) == true
+  @test is_base_space_fully_specified(foah14_B3) == true
+  @test is_base_space_fully_specified(foah15_B3) == true
+  @test is_base_space_fully_specified(foah16_B3) == true
+  @test model_description(foah1_B3) == "F-theory hypersurface model with fiber ambient space F_1"
+  @test model_description(foah2_B3) == "F-theory hypersurface model with fiber ambient space F_2"
+  @test model_description(foah3_B3) == "F-theory hypersurface model with fiber ambient space F_3"
+  @test model_description(foah4_B3) == "F-theory hypersurface model with fiber ambient space F_4"
+  @test model_description(foah5_B3) == "F-theory hypersurface model with fiber ambient space F_5"
+  @test model_description(foah6_B3) == "F-theory hypersurface model with fiber ambient space F_6"
+  @test model_description(foah7_B3) == "F-theory hypersurface model with fiber ambient space F_7"
+  @test model_description(foah8_B3) == "F-theory hypersurface model with fiber ambient space F_8"
+  @test model_description(foah9_B3) == "F-theory hypersurface model with fiber ambient space F_9"
+  @test model_description(foah10_B3) == "F-theory hypersurface model with fiber ambient space F_10"
+  @test model_description(foah11_B3) == "F-theory hypersurface model with fiber ambient space F_11"
+  @test model_description(foah12_B3) == "F-theory hypersurface model with fiber ambient space F_12"
+  @test model_description(foah13_B3) == "F-theory hypersurface model with fiber ambient space F_13"
+  @test model_description(foah14_B3) == "F-theory hypersurface model with fiber ambient space F_14"
+  @test model_description(foah15_B3) == "F-theory hypersurface model with fiber ambient space F_15"
+  @test model_description(foah16_B3) == "F-theory hypersurface model with fiber ambient space F_16"
+  @test parent(explicit_model_sections(foah1_B3)["s7"]) == cox_ring(base_space(foah1_B3))
+  @test parent(explicit_model_sections(foah2_B3)["b7"]) == cox_ring(base_space(foah2_B3))
+  @test parent(explicit_model_sections(foah3_B3)["s7"]) == cox_ring(base_space(foah3_B3))
+  @test parent(explicit_model_sections(foah4_B3)["d4"]) == cox_ring(base_space(foah4_B3))
+  @test parent(explicit_model_sections(foah5_B3)["s7"]) == cox_ring(base_space(foah5_B3))
+  @test parent(explicit_model_sections(foah6_B3)["s7"]) == cox_ring(base_space(foah6_B3))
+  @test parent(explicit_model_sections(foah7_B3)["s7"]) == cox_ring(base_space(foah7_B3))
+  @test parent(explicit_model_sections(foah8_B3)["s7"]) == cox_ring(base_space(foah8_B3))
+  @test parent(explicit_model_sections(foah9_B3)["s7"]) == cox_ring(base_space(foah9_B3))
+  @test parent(explicit_model_sections(foah10_B3)["s5"]) == cox_ring(base_space(foah10_B3))
+  @test parent(explicit_model_sections(foah11_B3)["s5"]) == cox_ring(base_space(foah11_B3))
+  @test parent(explicit_model_sections(foah12_B3)["s7"]) == cox_ring(base_space(foah12_B3))
+  @test parent(explicit_model_sections(foah13_B3)["s1"]) == cox_ring(base_space(foah13_B3))
+  @test parent(explicit_model_sections(foah14_B3)["s7"]) == cox_ring(base_space(foah14_B3))
+  @test parent(explicit_model_sections(foah15_B3)["s7"]) == cox_ring(base_space(foah15_B3))
+  @test parent(explicit_model_sections(foah16_B3)["s7"]) == cox_ring(base_space(foah16_B3))
+  @test string(hypersurface_equation_parametrization(foah1_B3)) == "s1*u^3 + s2*u^2*v + s3*u*v^2 + s4*v^3 + s5*u^2*w + s6*u*v*w + s7*v^2*w + s8*u*w^2 + s9*v*w^2 + s10*w^3"
+end
+
+
+
+##########################################################################################################
+# 10: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over arbitrary base
+##########################################################################################################
+
+foah1_weier = literature_model(arxiv_id = "1408.4808", equation = "3.4", type = "weierstrass")
+foah2_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass")
+foah3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass")
+foah4_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass")
+foah5_weier = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "weierstrass")
+foah6_weier = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "weierstrass")
+foah7_weier = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "weierstrass")
+foah8_weier = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "weierstrass")
+foah9_weier = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "weierstrass")
+foah10_weier = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "weierstrass")
+foah11_weier = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "weierstrass")
+foah12_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "weierstrass")
+foah13_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass")
+foah14_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass")
+foah15_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass")
+foah16_weier = weierstrass_model(foah16)
+
+@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over arbitrary base" begin
+  @test dim(base_space(foah1_weier)) == 3
+  @test dim(base_space(foah2_weier)) == 3
+  @test dim(base_space(foah3_weier)) == 3
+  @test dim(base_space(foah4_weier)) == 3
+  @test dim(base_space(foah5_weier)) == 3
+  @test dim(base_space(foah6_weier)) == 3
+  @test dim(base_space(foah7_weier)) == 3
+  @test dim(base_space(foah8_weier)) == 3
+  @test dim(base_space(foah9_weier)) == 3
+  @test dim(base_space(foah10_weier)) == 3
+  @test dim(base_space(foah11_weier)) == 3
+  @test dim(base_space(foah12_weier)) == 3
+  @test dim(base_space(foah13_weier)) == 3
+  @test dim(base_space(foah14_weier)) == 3
+  @test dim(base_space(foah15_weier)) == 3
+  @test dim(base_space(foah16_weier)) == 3
+  @test dim(ambient_space(foah1_weier)) == 5
+  @test dim(ambient_space(foah2_weier)) == 5
+  @test dim(ambient_space(foah3_weier)) == 5
+  @test dim(ambient_space(foah4_weier)) == 5
+  @test dim(ambient_space(foah5_weier)) == 5
+  @test dim(ambient_space(foah6_weier)) == 5
+  @test dim(ambient_space(foah7_weier)) == 5
+  @test dim(ambient_space(foah8_weier)) == 5
+  @test dim(ambient_space(foah9_weier)) == 5
+  @test dim(ambient_space(foah10_weier)) == 5
+  @test dim(ambient_space(foah11_weier)) == 5
+  @test dim(ambient_space(foah12_weier)) == 5
+  @test dim(ambient_space(foah13_weier)) == 5
+  @test dim(ambient_space(foah14_weier)) == 5
+  @test dim(ambient_space(foah15_weier)) == 5
+  @test dim(ambient_space(foah16_weier)) == 5
+  @test is_base_space_fully_specified(foah1_weier) == false
+  @test is_base_space_fully_specified(foah2_weier) == false
+  @test is_base_space_fully_specified(foah3_weier) == false
+  @test is_base_space_fully_specified(foah4_weier) == false
+  @test is_base_space_fully_specified(foah5_weier) == false
+  @test is_base_space_fully_specified(foah6_weier) == false
+  @test is_base_space_fully_specified(foah7_weier) == false
+  @test is_base_space_fully_specified(foah8_weier) == false
+  @test is_base_space_fully_specified(foah9_weier) == false
+  @test is_base_space_fully_specified(foah10_weier) == false
+  @test is_base_space_fully_specified(foah11_weier) == false
+  @test is_base_space_fully_specified(foah12_weier) == false
+  @test is_base_space_fully_specified(foah13_weier) == false
+  @test is_base_space_fully_specified(foah14_weier) == false
+  @test is_base_space_fully_specified(foah15_weier) == false
+  @test is_base_space_fully_specified(foah16_weier) == false
+  @test model_description(foah1_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_1"
+  @test model_description(foah2_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_2"
+  @test model_description(foah3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_3"
+  @test model_description(foah4_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_4"
+  @test model_description(foah5_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_5"
+  @test model_description(foah6_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_6"
+  @test model_description(foah7_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_7"
+  @test model_description(foah8_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_8"
+  @test model_description(foah9_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_9"
+  @test model_description(foah10_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10"
+  @test model_description(foah11_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_11"
+  @test model_description(foah12_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_12"
+  @test model_description(foah13_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_13"
+  @test model_description(foah14_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_14"
+  @test model_description(foah15_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_15"
+  @test model_description(foah16_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_16"
+end
+
+
+
+########################################################################################################
+# 11: Test weierstrass counterparts of models from F-theory on all toric hypersurfaces over concrete base
+########################################################################################################
+
+B3 = projective_space(NormalToricVariety, 3)
+Kbar = anticanonical_divisor(B3)
+foah1_B3_weier = weierstrass_model(foah1_B3)
+foah2_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.12", type = "weierstrass", base_space = B3, defining_classes = Dict("b7" => Kbar, "b9" => Kbar), completeness_check = false)
+foah3_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.54", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah4_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.17", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah5_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.73", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah6_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.82", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah7_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.96", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah8_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.106", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah9_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.118", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah10_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.130", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah11_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.142", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah12_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.155", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah13_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.181", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah14_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.168", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah15_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", type = "weierstrass", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar), completeness_check = false)
+
+@testset "Test weierstrass form of models in F-theory on all toric hypersurfaces, defined over concrete base" begin
+  @test dim(base_space(foah1_B3_weier)) == 3
+  @test dim(base_space(foah2_B3_weier)) == 3
+  @test dim(base_space(foah3_B3_weier)) == 3
+  @test dim(base_space(foah4_B3_weier)) == 3
+  @test dim(base_space(foah5_B3_weier)) == 3
+  @test dim(base_space(foah6_B3_weier)) == 3
+  @test dim(base_space(foah7_B3_weier)) == 3
+  @test dim(base_space(foah8_B3_weier)) == 3
+  @test dim(base_space(foah9_B3_weier)) == 3
+  @test dim(base_space(foah10_B3_weier)) == 3
+  @test dim(base_space(foah11_B3_weier)) == 3
+  @test dim(base_space(foah12_B3_weier)) == 3
+  @test dim(base_space(foah13_B3_weier)) == 3
+  @test dim(base_space(foah14_B3_weier)) == 3
+  @test dim(base_space(foah15_B3_weier)) == 3
+  @test dim(base_space(foah16_B3_weier)) == 3
+  @test dim(ambient_space(foah1_B3_weier)) == 5
+  @test dim(ambient_space(foah2_B3_weier)) == 5
+  @test dim(ambient_space(foah3_B3_weier)) == 5
+  @test dim(ambient_space(foah4_B3_weier)) == 5
+  @test dim(ambient_space(foah5_B3_weier)) == 5
+  @test dim(ambient_space(foah6_B3_weier)) == 5
+  @test dim(ambient_space(foah7_B3_weier)) == 5
+  @test dim(ambient_space(foah8_B3_weier)) == 5
+  @test dim(ambient_space(foah9_B3_weier)) == 5
+  @test dim(ambient_space(foah10_B3_weier)) == 5
+  @test dim(ambient_space(foah11_B3_weier)) == 5
+  @test dim(ambient_space(foah12_B3_weier)) == 5
+  @test dim(ambient_space(foah13_B3_weier)) == 5
+  @test dim(ambient_space(foah14_B3_weier)) == 5
+  @test dim(ambient_space(foah15_B3_weier)) == 5
+  @test dim(ambient_space(foah16_B3_weier)) == 5
+  @test is_base_space_fully_specified(foah1_B3_weier) == true
+  @test is_base_space_fully_specified(foah2_B3_weier) == true
+  @test is_base_space_fully_specified(foah3_B3_weier) == true
+  @test is_base_space_fully_specified(foah4_B3_weier) == true
+  @test is_base_space_fully_specified(foah5_B3_weier) == true
+  @test is_base_space_fully_specified(foah6_B3_weier) == true
+  @test is_base_space_fully_specified(foah7_B3_weier) == true
+  @test is_base_space_fully_specified(foah8_B3_weier) == true
+  @test is_base_space_fully_specified(foah9_B3_weier) == true
+  @test is_base_space_fully_specified(foah10_B3_weier) == true
+  @test is_base_space_fully_specified(foah11_B3_weier) == true
+  @test is_base_space_fully_specified(foah12_B3_weier) == true
+  @test is_base_space_fully_specified(foah13_B3_weier) == true
+  @test is_base_space_fully_specified(foah14_B3_weier) == true
+  @test is_base_space_fully_specified(foah15_B3_weier) == true
+  @test is_base_space_fully_specified(foah16_B3_weier) == true
+  @test model_description(foah1_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_1"
+  @test model_description(foah2_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_2"
+  @test model_description(foah3_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_3"
+  @test model_description(foah4_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_4"
+  @test model_description(foah5_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_5"
+  @test model_description(foah6_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_6"
+  @test model_description(foah7_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_7"
+  @test model_description(foah8_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_8"
+  @test model_description(foah9_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_9"
+  @test model_description(foah10_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_10"
+  @test model_description(foah11_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_11"
+  @test model_description(foah12_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_12"
+  @test model_description(foah13_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_13"
+  @test model_description(foah14_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_14"
+  @test model_description(foah15_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_15"
+  @test model_description(foah16_B3_weier) == "F-theory weierstrass model dual to hypersurface model with fiber ambient space F_16"
+  @test parent(explicit_model_sections(foah1_B3_weier)["s7"]) == cox_ring(base_space(foah1_B3_weier))
+  @test parent(explicit_model_sections(foah2_B3_weier)["b7"]) == cox_ring(base_space(foah2_B3_weier))
+  @test parent(explicit_model_sections(foah3_B3_weier)["s7"]) == cox_ring(base_space(foah3_B3_weier))
+  @test parent(explicit_model_sections(foah4_B3_weier)["d4"]) == cox_ring(base_space(foah4_B3_weier))
+  @test parent(explicit_model_sections(foah5_B3_weier)["s7"]) == cox_ring(base_space(foah5_B3_weier))
+  @test parent(explicit_model_sections(foah6_B3_weier)["s7"]) == cox_ring(base_space(foah6_B3_weier))
+  @test parent(explicit_model_sections(foah7_B3_weier)["s7"]) == cox_ring(base_space(foah7_B3_weier))
+  @test parent(explicit_model_sections(foah8_B3_weier)["s7"]) == cox_ring(base_space(foah8_B3_weier))
+  @test parent(explicit_model_sections(foah9_B3_weier)["s7"]) == cox_ring(base_space(foah9_B3_weier))
+  @test parent(explicit_model_sections(foah10_B3_weier)["s5"]) == cox_ring(base_space(foah10_B3_weier))
+  @test parent(explicit_model_sections(foah11_B3_weier)["s5"]) == cox_ring(base_space(foah11_B3_weier))
+  @test parent(explicit_model_sections(foah12_B3_weier)["s7"]) == cox_ring(base_space(foah12_B3_weier))
+  @test parent(explicit_model_sections(foah13_B3_weier)["s1"]) == cox_ring(base_space(foah13_B3_weier))
+  @test parent(explicit_model_sections(foah14_B3_weier)["s7"]) == cox_ring(base_space(foah14_B3_weier))
+  @test parent(explicit_model_sections(foah15_B3_weier)["s7"]) == cox_ring(base_space(foah15_B3_weier))
+  @test parent(explicit_model_sections(foah16_B3_weier)["s7"]) == cox_ring(base_space(foah16_B3_weier))
 end

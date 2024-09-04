@@ -1,16 +1,11 @@
-using Documenter
-
 # Make sure that the tests start without cached character tables.
 # (Running the tests will store information that changes some test outputs,
 # thus running the tests twice needs these calls.)
 GAP.Globals.UnloadCharacterTableData()
 empty!(Oscar.character_tables_by_id)
 
-#
-# This module only exists to "host" a doctest used by the test suite.
-#
-module AuxDocTest_GroupCharacters
-@doc raw"""
+Oscar.@_AuxDocTest "show and print character tables", (fix = false),
+raw"""
 ```jldoctest group_characters.test
 julia> using Oscar
 
@@ -55,18 +50,18 @@ julia> show([t_a5_2])
 Oscar.GAPGroupCharacterTable[2-modular Brauer table of A5]
 ```
 
-supercompact printing
+terse printing
 ```jldoctest group_characters.test
-julia> print(IOContext(stdout, :supercompact => true), t_a4)
+julia> print(AbstractAlgebra.terse(stdout), t_a4)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5)
+julia> print(AbstractAlgebra.terse(stdout), t_a5)
 character table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a4_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a4_2)
 2-modular Brauer table of a group
 
-julia> print(IOContext(stdout, :supercompact => true), t_a5_2)
+julia> print(AbstractAlgebra.terse(stdout), t_a5_2)
 2-modular Brauer table of a group
 ```
 
@@ -744,18 +739,7 @@ X_2  2  . -1
 X_3  1  1  1
 ```
 """
-function dummy_placeholder end
 
-end
-
-
-@testset "show and print character tables" begin
-  # temporarily disable GC logging to avoid glitches in the doctests
-  VERSION >= v"1.8.0" && GC.enable_logging(false)
-  doctest(nothing, [AuxDocTest_GroupCharacters])
-  #doctest(nothing, [AuxDocTest_GroupCharacters]; fix=true)
-  VERSION >= v"1.8.0" && GC.enable_logging(true)
-end
 
 @testset "create character tables" begin
   @testset "library of character tables" begin
@@ -769,7 +753,7 @@ end
 @testset "access fields in character tables" begin
   # table without group
   t = character_table("A5")
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test_throws UndefRefError t.group
   @test_throws UndefRefError t.isomorphism
@@ -777,7 +761,7 @@ end
   # table with `GAPGroup` group
   g = symmetric_group(4)
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
@@ -785,7 +769,7 @@ end
   # table with `FinGenAbGroup` group
   g = abelian_group([2, 4])
   t = character_table(g)
-  @test Oscar.GAPTable(t) === t.GAPTable
+  @test GapObj(t) === t.GAPTable
   @test characteristic(t) == t.characteristic
   @test group(t) === t.group === g
   @test Oscar.isomorphism_to_GAP_group(t) === t.isomorphism
@@ -848,6 +832,10 @@ end
   @test coordinates(re) == degree.(t)
   re = regular_character(t)
   @test coordinates(re) == degree.(t)
+  lin = @inferred linear_characters(g)
+  @test length(lin) == 2
+  lin = @inferred linear_characters(t)
+  @test length(lin) == 2
   chi = t[2]
   @test chi isa Oscar.GAPGroupClassFunction
   @test chi[4] == t[2,4]
@@ -870,10 +858,12 @@ end
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
+  @test all(chi -> chi * chi == tensor_product(chi, chi), t)
+
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
-  for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+  for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
     scpT = scalar_product(T, t[1],t[1])
     @test scpT == scp
     @test scpT isa T
@@ -942,6 +932,23 @@ end
   t = character_table(g)
   @test all(x -> conj(x) == QQAbAutomorphism(5)(x), t)
   @test all(x -> x == QQAbAutomorphism(4)(x), t)
+
+  t = character_table("A5")
+  sums = [galois_orbit_sum(x) for x in t]
+  degrees = [degree(character_field(x)[1]) for x in t]
+  @test degrees == [1, 2, 2, 1, 1]
+  @test all(i -> sums[i][1] == t[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+  m = mod(t, 2)
+  sums = [galois_orbit_sum(x) for x in m]
+  degrees = [degree(character_field(x)[1]) for x in m]
+  @test degrees == [1, 2, 2, 1]
+  @test all(i -> sums[i][1] == m[i][1] * degrees[i], 1:length(sums))
+  @test all(x -> degree(character_field(x)[1]) == 1, sums)
+
+  # irreducibles not all rational but all are defined over the prime field
+  m = character_table("L3(2)", 2)
+  @test all(x -> x == galois_orbit_sum(x), m)
 end
 
 @testset "induction and restriction of characters" begin
@@ -950,10 +957,10 @@ end
   t = character_table(g)
 
   # `induced_cyclic`: no group is needed
-  indcyc = induced_cyclic(t)
+  indcyc = @inferred induced_cyclic(t)
   @test sort!([degree(chi) for chi in indcyc]) == [6, 8, 12, 12, 24]
   @test all(x -> scalar_product(trivial_character(t), x) == 1, indcyc)
-  @test indcyc == induced_cyclic(t, 1:nrows(t))
+  @test indcyc == @inferred induced_cyclic(t, 1:nrows(t))
 
   # `induce` for character tables with groups
   ind = [chi^t for chi in character_table(h)]
@@ -1013,7 +1020,7 @@ end
   z = zero(K)
   G = general_linear_group(2, 3)
   @test values(natural_character(hom(G, G, gens(G)))) ==
-        [QQAbElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
+        [QQAbFieldElem(x, 8) for x in [2*o, -2*o, z, -a^3-a, a^3+a, z]]
 
   G = small_group(4, 1)  # pc group
   @test_throws MethodError natural_character(G)
@@ -1222,14 +1229,17 @@ end
     @test length(chi) == n
     @test 1 in chi
     @test [chi(representative(c)) for c in conjugacy_classes(tbl1)] == values(chi)
+    @test all(x -> degree(x) == 1, linear_characters(G1))
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
 
+    @test all(chi -> chi * chi == tensor_product(chi, chi), tbl1)
+
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1
     @test scp isa QQFieldElem
-    for T in [ZZRingElem, QQFieldElem, Int64, QQAbElem]
+    for T in [ZZRingElem, QQFieldElem, Int64, QQAbFieldElem]
       scpT = scalar_product(T, tbl1[1],tbl1[1])
       @test scpT == scp
       @test scpT isa T
@@ -1245,10 +1255,12 @@ end
     subtbl = character_table(H)
     ind = [chi^tbl1 for chi in subtbl]
     @test all(chi -> degree(chi) == index(G1, H), ind)
+    @test ind == [chi^G1 for chi in subtbl]
 
     # restricted characters
     rest = [restrict(psi, subtbl) for psi in ind]
     @test all(chi -> degree(chi) == index(G1, H), rest)
+    @test rest == [restrict(psi, H) for psi in ind]
 
     # conjugate characters
     H, _ = pcore(G1, 2)

@@ -55,6 +55,10 @@ weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 
 Return the Weierstrass polynomial of the Weierstrass model.
 
+For convenience and uniformity with (general) hypersurface
+models, we also support the method `hypersurface_equation`
+to access the Weierstrass polynomial.
+
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
 Assuming that the first row of the given grading is the grading under Kbar
@@ -62,6 +66,9 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
+
+julia> weierstrass_polynomial(w) == hypersurface_equation(w)
+true
 ```
 """
 function weierstrass_polynomial(w::WeierstrassModel)
@@ -78,6 +85,8 @@ function weierstrass_polynomial(w::WeierstrassModel)
   return w.weierstrass_polynomial
 end
 
+hypersurface_equation(w::WeierstrassModel) = weierstrass_polynomial(w)
+
 
 @doc raw"""
     weierstrass_ideal_sheaf(w::WeierstrassModel)
@@ -91,7 +100,7 @@ Normal toric variety
 julia> w = 2 * torusinvariant_prime_divisors(B3)[1]
 Torus-invariant, non-prime divisor on a normal toric variety
 
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, model_sections = Dict("w" => w), completeness_check = false)
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w" => w), completeness_check = false)
 Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)

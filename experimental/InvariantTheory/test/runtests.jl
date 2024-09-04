@@ -1,8 +1,8 @@
 @testset "Invariant Theory of SL_m" begin
     S, z = polynomial_ring(QQ, "z"=> (1:2, 1:2))
     G = linearly_reductive_group(:SL,2,S)
-    @test group(G)[1] == :SL
-    @test group(G)[2] == 2
+    @test group_type(G) == :SL
+    @test group_dim(G) == 2
     @test group_ideal(G) == ideal([z[1, 1]*z[2, 2] - z[2, 1]*z[1, 2] - 1])
     @test ncols(canonical_representation(G)) == 2
     @test natural_representation(G) == canonical_representation(G)
@@ -63,4 +63,40 @@
     RT = invariant_ring(r)
     A, _ = affine_algebra(RT)
     @test ngens(modulus(A)) == 1
+
+    #no reynolds operator required/available:
+
+    #SL(2) over symmetric forms of degree 2
+    g = linearly_reductive_group(:SL,2,QQ)
+    r = representation_on_forms(g,2)
+    M = representation_matrix(r)
+    ringg = parent(M[1,1])
+    z = gens(ringg)
+    f = z[1]*z[4] - z[2]*z[3] - 1
+    G = linearly_reductive_group(ideal([f]))
+    R = representation_reductive_group(G,M)
+    RG = invariant_ring(R)
+    F = fundamental_invariants(RG)
+    @test length(F) == 1
+    X = polynomial_ring(RG)
+    g = gens(X)
+    @test F[1] == g[1]*g[3] - g[2]^2
+
+    #SL(2) over symmetric forms of degree 4:
+    #Here we see that without the Reynolds operator we get many more generators.
+    g = linearly_reductive_group(:SL,2,QQ)
+    r = representation_on_forms(g,4)
+    #with reynolds operator we get 2 fundamental invariants:
+    rg = invariant_ring(r)
+    FF = fundamental_invariants(rg)
+    @test length(FF) == 2
+    M = representation_matrix(r)
+    ringg = parent(M[1,1])
+    z = gens(ringg)
+    f = z[1]*z[4] - z[2]*z[3] - 1
+    G = linearly_reductive_group(ideal([f]))
+    R = representation_reductive_group(G,M)
+    RG = invariant_ring(R)
+    F = fundamental_invariants(RG)
+    @test length(F) == 27
 end

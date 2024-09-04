@@ -6,6 +6,10 @@
 
 base_ring(HBB::HomBasisBuilder) = HBB.R
 
+base_ring_type(
+  ::Type{HomBasisBuilder{RingType,RingElemType}}
+) where {RingType,RingElemType} = RingType
+
 power_product_cache(HBB::HomBasisBuilder) = HBB.C
 
 group(HBB::HomBasisBuilder) = HBB.G
@@ -285,7 +289,7 @@ function cox_ring(
   # to the grading induced by the action of A.
 
   # The action of A on RH
-  A_action = (f, g) -> right_action(f, preimage(GtoA, g).elm)
+  A_action = (f, g) -> right_action(f, matrix(preimage(GtoA, g)))
 
   # We compute eigenvectors of the linear action of A on the vector space of
   # polynomials of a fixed degree of RH. The corresponding eigenvalues are the

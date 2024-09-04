@@ -1,48 +1,3 @@
-@attributes mutable struct LieSubalgebra{C<:FieldElem,LieT<:LieAlgebraElem{C}}
-  base_lie_algebra::LieAlgebra{C}
-  gens::Vector{LieT}
-  basis_elems::Vector{LieT}
-  basis_matrix::MatElem{C}
-
-  function LieSubalgebra{C,LieT}(
-    L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
-  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
-    @req all(g -> parent(g) === L, gens) "Parent mismatch."
-    L::parent_type(LieT)
-    if is_basis
-      basis_elems = gens
-      basis_matrix = if length(gens) == 0
-        matrix(coefficient_ring(L), 0, dim(L), C[])
-      else
-        matrix(coefficient_ring(L), [coefficients(g) for g in gens])
-      end
-      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
-    else
-      basis_matrix = matrix(coefficient_ring(L), 0, dim(L), C[])
-      gens = unique(g for g in gens if !iszero(g))
-      left = copy(gens)
-      while !isempty(left)
-        g = pop!(left)
-        can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for i in 1:nrows(basis_matrix)
-          push!(left, g * L(basis_matrix[i, :]))
-        end
-        basis_matrix = vcat(basis_matrix, _matrix(g))
-        rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
-      end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
-      return new{C,LieT}(L, gens, basis_elems, basis_matrix)
-    end
-  end
-
-  function LieSubalgebra{C,LieT}(
-    L::LieAlgebra{C}, gens::Vector; kwargs...
-  ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
-    return LieSubalgebra{C,LieT}(L, Vector{LieT}(map(L, gens)); kwargs...)
-  end
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -87,7 +42,7 @@ function basis(S::LieSubalgebra, i::Int)
 end
 
 @doc raw"""
-  dim(S::LieSubalgebra) -> Int
+    dim(S::LieSubalgebra) -> Int
 
 Return the dimension of the Lie subalgebra `S`.
 """
@@ -99,7 +54,9 @@ dim(S::LieSubalgebra) = length(basis(S))
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
+function Base.show(io::IO, mime::MIME"text/plain", S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, mime, S)
   io = pretty(io)
   println(io, LowercaseOff(), "Lie subalgebra")
   println(io, Indent(), "of dimension $(dim(S))", Dedent())
@@ -111,12 +68,14 @@ function Base.show(io::IO, ::MIME"text/plain", S::LieSubalgebra)
 end
 
 function Base.show(io::IO, S::LieSubalgebra)
+  @show_name(io, S)
+  @show_special(io, S)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie subalgebra")
   else
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(S))
+    print(terse(io), base_lie_algebra(S))
   end
 end
 

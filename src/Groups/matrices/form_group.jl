@@ -58,7 +58,7 @@ function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    n = degree(G)
    M = T[]
    for mat in gens(G)
-      mmat = map(y->frobenius(y,div(degree(F),2)),(mat.elm)^-1)
+      mmat = map(y->frobenius(y,div(degree(F),2)),matrix(mat)^-1)
       MM = zero_matrix(F,n^2,n^2)
       for i in 1:n, j in 1:n, k in 1:n
          MM[n*(i-1)+j,n*(k-1)+j] += mat[i,k]
@@ -416,9 +416,9 @@ is not absolutely irreducible.
     At the moment, the output is returned of type `mat_elem_type(G)`.
 """
 function invariant_bilinear_form(G::MatrixGroup)
-   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantBilinearForm(V)
-   return preimage_matrix(G.ring_iso, B)
+   return preimage_matrix(_ring_iso(G), B)
 end
 
 """
@@ -434,9 +434,9 @@ of odd degree over the prime field.
 """
 function invariant_sesquilinear_form(G::MatrixGroup)
    @req iseven(degree(base_ring(G))) "group is defined over a field of odd degree"
-   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+   V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
    B = GAP.Globals.MTX.InvariantSesquilinearForm(V)
-   return preimage_matrix(G.ring_iso, B)
+   return preimage_matrix(_ring_iso(G), B)
 end
 
 """
@@ -451,9 +451,9 @@ is not absolutely irreducible.
 """
 function invariant_quadratic_form(G::MatrixGroup)
    if iseven(characteristic(base_ring(G)))
-      V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X), codomain(G.ring_iso))
+      V = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)), codomain(_ring_iso(G)))
       B = GAP.Globals.MTX.InvariantQuadraticForm(V)
-      return _upper_triangular_version(preimage_matrix(G.ring_iso, B))
+      return _upper_triangular_version(preimage_matrix(_ring_iso(G), B))
    else
       m = invariant_bilinear_form(G)
       for i in 1:degree(G), j in i+1:degree(G)
@@ -475,12 +475,12 @@ Since the procedure relies on a pseudo-random generator,
 the user may need to execute the operation more than once to find all invariant quadratic forms.
 """
 function preserved_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
-   L = GAP.Globals.PreservedQuadraticForms(G.X)
+   L = GAP.Globals.PreservedQuadraticForms(GapObj(G))
    R = SesquilinearForm{S}[]
    for f_gap in L
-      f = quadratic_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+      f = quadratic_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       f.X = f_gap
-      f.ring_iso = G.ring_iso
+      f.ring_iso = _ring_iso(G)
       push!(R,f)
    end
    return R
@@ -495,15 +495,15 @@ Since the procedure relies on a pseudo-random generator,
 the user may need to execute the operation more than once to find all invariant sesquilinear forms.
 """
 function preserved_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
-   L = GAP.Globals.PreservedSesquilinearForms(G.X)
+   L = GAP.Globals.PreservedSesquilinearForms(GapObj(G))
    R = SesquilinearForm{S}[]
    for f_gap in L
       if GAPWrap.IsHermitianForm(f_gap)
-         f = hermitian_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = hermitian_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       elseif GAPWrap.IsSymmetricForm(f_gap)
-         f = symmetric_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = symmetric_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       elseif GAPWrap.IsAlternatingForm(f_gap)
-         f = alternating_form(preimage_matrix(G.ring_iso, GAP.Globals.GramMatrix(f_gap)))
+         f = alternating_form(preimage_matrix(_ring_iso(G), GAP.Globals.GramMatrix(f_gap)))
       else
          error("Invalid form")
       end
@@ -527,7 +527,7 @@ is a finite field, return
 function orthogonal_sign(G::MatrixGroup)
     R = base_ring(G)
     R isa FinField || error("G must be a matrix group over a finite field")
-    M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(G.X),
+    M = GAP.Globals.GModuleByMats(GAPWrap.GeneratorsOfGroup(GapObj(G)),
                                   codomain(iso_oscar_gap(R)))
     sign = GAP.Globals.MTX.OrthogonalSign(M)
     sign === GAP.Globals.fail && return nothing
@@ -618,11 +618,11 @@ function isometry_group(f::SesquilinearForm{T}) where T
          e = -1
       end
    end
-   Xf = is_congruent(SesquilinearForm(preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+   Xf = is_congruent(SesquilinearForm(preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
 # if dimension is odd, fn may be congruent to a scalar multiple of the standard form
 # TODO: I don't really need a primitive_element(F); I just need a non-square in F. Is there a faster way to get it?
    if Xf === nothing && isodd(r)
-      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(fn.ring_iso, _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
+      Xf = is_congruent(SesquilinearForm(primitive_element(F)*preimage_matrix(_ring_iso(fn), _standard_form(fn.descr, e, r, F)), fn.descr), fn)[2]
    end
 
 
@@ -647,7 +647,7 @@ function isometry_group(f::SesquilinearForm{T}) where T
       L = dense_matrix_type(elem_type(F))[]
       for i in 1:ngens(G)
          temp = deepcopy(Idn)
-         temp[1:r,1:r] = Xfn*(G[i].elm)*Xf
+         temp[1:r,1:r] = Xfn*matrix(G[i])*Xf
          push!(L, An*temp*A)
       end
       for g in _gens_for_GL(n-r,F)
@@ -683,8 +683,8 @@ function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int
   get_attribute!(L, :isometry_group) do
     gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
     G = matrix_group(gens)
-    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
-  end
+    return G
+  end::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
 end
 
 @doc raw"""
@@ -725,8 +725,8 @@ function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_d
     else
       error("Unknown algorithm: for the moment, we support :direct or :decomposition")
     end
-    return G::MatrixGroup{QQFieldElem, QQMatrix}
-  end
+    return G
+  end::MatrixGroup{QQFieldElem, QQMatrix}
 end
 
 """
@@ -827,7 +827,7 @@ function _isometry_group_via_decomposition(L::ZZLat; closed = true, direct=true,
   @vprint :Lattice 2 "Lifting \n"
 
   T = _orthogonal_group(H1, ZZMatrix[matrix(phi * hom(g) * inv(phi)) for g in gens(G2q)]; check = false)
-  S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(T.X, G1q.X))
+  S, _ = _as_subgroup(G1q, GAP.Globals.Intersection(GapObj(T), GapObj(G1q)))
   append!(K, [preimage(psi1, g) * preimage(psi2, G2q(inv(phi) * hom(g) * phi; check = false)) for g in gens(S)])
   G = matrix_group(matrix.(K))
   @hassert :Lattice 2 all(on_lattices(L, g) == L for g in gens(G))
@@ -866,8 +866,8 @@ Setting `closed = true` assumes that `G` actually preserves `short_vectors`.
 function _set_nice_monomorphism!(G::MatrixGroup, short_vectors; closed=false)
   phi = action_homomorphism(gset(G, on_vector, short_vectors; closed))
   GAP.Globals.SetIsInjective(phi.map, true) # fixes an infinite recursion
-  GAP.Globals.SetIsHandledByNiceMonomorphism(G.X, true)
-  GAP.Globals.SetNiceMonomorphism(G.X, phi.map)
+  GAP.Globals.SetIsHandledByNiceMonomorphism(GapObj(G), true)
+  GAP.Globals.SetNiceMonomorphism(GapObj(G), phi.map)
 end
 
 function _row_span!(L::Vector{Vector{ZZRingElem}})

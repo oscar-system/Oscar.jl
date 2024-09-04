@@ -42,10 +42,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -101,10 +101,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
 3-element Vector{FreeModElem{QQMPolyRingElem}}:
@@ -116,10 +116,10 @@ julia> a = hom(F, G, V)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> a(F[2])
 x*e[1] + y*e[2]
@@ -133,10 +133,10 @@ julia> b = hom(F, G, B)
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> a == b
 true
@@ -325,10 +325,10 @@ that converts elements from $S$ into morphisms $F \to G$.
 julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> F1 = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> F2 = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
@@ -337,10 +337,10 @@ julia> f(V[1])
 Map with following data
 Domain:
 =======
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 ```
 
@@ -382,13 +382,14 @@ function hom(F::FreeMod, G::FreeMod)
   m = ngens(G)
   R = base_ring(F)
   function im(x::FreeModElem)
-    return hom(F, G, Vector{elem_type(G)}([FreeModElem(x.coords[R, (i-1)*m+1:i*m], G) for i=1:n]), check=false)
+    c = coordinates(x)
+    return hom(F, G, Vector{elem_type(G)}([FreeModElem(c[(i-1)*m+1:i*m], G) for i=1:n]), check=false)
   end
   function pre(h::FreeModuleHom)
     s = sparse_row(F.R)
     o = 0
     for i=1:n
-      for (p,v) = h(gen(F, i)).coords
+      for (p,v) = coordinates(h(gen(F, i)))
         push!(s.pos, o+p)
         push!(s.values, v)
       end
@@ -414,10 +415,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -434,7 +435,7 @@ Submodule with 1 generator
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ)
+Free module of rank 3 over R)
 ```
 
 ```jldoctest
@@ -487,8 +488,7 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   g = images_of_generators(h)
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
-  I, inc = sub(F, v)
+  v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
   return sub(F, v)
 end
 
@@ -510,11 +510,13 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   g = vcat(g, relations(M))
   R = base_ring(G)
   H = FreeMod(R, length(g))
+  # This code is also used by graded modules and we need to care for that.
+  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
   phi = hom(H, G, g)
-  K, inc = kernel(phi)
+  K, _ = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
-  return sub(F, v)
+  v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]
+  return sub(F, filter!(!iszero, v))
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})
@@ -546,10 +548,10 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 3 over R
 
 julia> G = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 
@@ -570,7 +572,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ)
+Free module of rank 2 over R)
 ```
 
 ```jldoctest

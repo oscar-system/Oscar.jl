@@ -115,12 +115,12 @@ Rational field
 ```
 """
 function invariant_ring(G::MatrixGroup)
-  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action)
 end
 
 function invariant_ring(R::MPolyDecRing, G::MatrixGroup)
-  action = mat_elem_type(typeof(G))[g.elm for g in gens(G)]
+  action = mat_elem_type(typeof(G))[matrix(g) for g in gens(G)]
   return FinGroupInvarRing(base_ring(G), G, action, R)
 end
 
@@ -138,12 +138,12 @@ function Base.show(io::IO, ::MIME"text/plain", RG::FinGroupInvarRing)
 end
 
 function Base.show(io::IO, RG::FinGroupInvarRing)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Invariant ring")
   else
     io = pretty(io)
     print(io, "Invariant ring of ")
-    print(IOContext(io, :supercompact => true), Lowercase(), group(RG))
+    print(terse(io), Lowercase(), group(RG))
   end
 end
 
@@ -178,10 +178,11 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
   return MapFromFunc(R, R, right_action_by_M)
 end
 
-right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, M.elm)
+right_action(R::MPolyRing{T}, M::MatrixGroupElem{T}) where {T} = right_action(R, matrix(M))
 right_action(f::MPolyRingElem{T}, M::MatrixElem{T}) where {T} =
   right_action(parent(f), M)(f)
-right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} = right_action(f, M.elm)
+right_action(f::MPolyRingElem{T}, M::MatrixGroupElem{T}) where {T} =
+  right_action(f, matrix(M))
 
 function right_action(R::MPolyRing{T}, p::PermGroupElem) where {T}
   n = nvars(R)
@@ -223,7 +224,7 @@ function reynolds_operator(
 end
 
 @doc raw"""
-     reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
+    reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T) where {FldT, GrpT, T <: MPolyRingElem}
 
 In the non-modular case, return the image of `f` under the Reynolds operator
 projecting onto `IR`.
@@ -352,8 +353,8 @@ function reynolds_operator(
 end
 
 @doc raw"""
-     reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
-       where {FldT, GrpT, T <: MPolyRingElem}
+    reynolds_operator(IR::FinGroupInvarRing{FldT, GrpT, T}, f::T, chi::GAPGroupClassFunction)
+      where {FldT, GrpT, T <: MPolyRingElem}
 
 In the case of characteristic zero, return the image of `f` under the twisted
 Reynolds operator projecting onto the isotypic component of the polynomial ring
@@ -400,7 +401,7 @@ julia> x = gens(R);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> reynolds_operator(IR, x[1], chi)
 1//2*x[1] - 1//2*x[2]
@@ -426,7 +427,7 @@ end
 ################################################################################
 
 @doc raw"""
-     basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
+    basis(IR::FinGroupInvarRing, d::Int, algorithm::Symbol = :default)
 
 Given an invariant ring `IR` and an integer `d`, return a basis for the invariants in degree `d`.
 
@@ -534,7 +535,7 @@ julia> R = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of group Sym( [ 1 .. 2 ] ), QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of group Sym( [ 1 .. 2 ] ), [1, -1])
 
 julia> basis(R, 3, chi)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -578,7 +579,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   for c in C
     g = representative(c)
     if g isa MatrixGroupElem
-      f = charpoly(Kt, g.elm)
+      f = charpoly(Kt, matrix(g))
     elseif g isa PermGroupElem
       f = charpoly(Kt, permutation_matrix(K, g))
     else
@@ -598,10 +599,10 @@ function _molien_series_nonmodular_via_gap(
   @assert !is_modular(I)
   G = group(I)
   @assert G isa MatrixGroup || G isa PermGroup
-  t = GAP.Globals.CharacterTable(G.X)
+  t = GAP.Globals.CharacterTable(GapObj(G))
   if G isa MatrixGroup
     if is_zero(characteristic(coefficient_ring(I)))
-      psi = natural_character(G).values
+      psi = GapObj(natural_character(G))
     else
       psi = [
         GAP.Globals.BrauerCharacterValue(GAPWrap.Representative(c)) for
@@ -616,10 +617,10 @@ function _molien_series_nonmodular_via_gap(
     ]
   end
   if chi === nothing
-    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t, GAP.GapObj(psi)))
+    info = GAP.Globals.MolienSeriesInfo(GAP.Globals.MolienSeries(t, GapObj(psi)))
   else
     info = GAP.Globals.MolienSeriesInfo(
-      GAP.Globals.MolienSeries(t, GAP.GapObj(psi), chi.values)
+      GAP.Globals.MolienSeries(t, GapObj(psi), GapObj(chi))
     )
   end
   num = S(
@@ -678,7 +679,7 @@ julia> IR = invariant_ring(QQ, S2);
 julia> F = abelian_closure(QQ)[1];
 
 julia> chi = Oscar.class_function(S2, [ F(sign(representative(c))) for c in conjugacy_classes(S2) ])
-class_function(character table of S2, QQAbElem{AbsSimpleNumFieldElem}[1, -1])
+class_function(character table of S2, [1, -1])
 
 julia> molien_series(IR)
 1//(t^3 - t^2 - t + 1)

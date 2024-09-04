@@ -11,6 +11,13 @@
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+    # issue 3665
+    kt,t = polynomial_ring(GF(2),:t)
+    Ft = fraction_field(kt)
+    P,(x,y) = polynomial_ring(Ft,[:x,:y])
+    I = ideal(P,[x,y])
+    @test normal_form([x], I) == [0]
+
     R, (x, y) = polynomial_ring(GF(5), ["x", "y"])
     I = ideal(R, [x])
     gb = groebner_basis(I)
@@ -18,18 +25,26 @@
     @test Oscar._normal_form_singular([y], I, degrevlex(R)) == [y]
     @test Oscar._normal_form_f4([y], I) == [y]
     @test normal_form(y, I) == y
+
     G = groebner_basis(I)
     J = ideal(R, y)
     @test reduce(J.gens, G) == [y]
+    @test reduce(y, G) == y
     J = ideal(R, x*y^2)
     matrix, res = reduce_with_quotients(J.gens, G)
     @test matrix * gens(G) + res == gens(J)
+    matrix, res = reduce_with_quotients(x*y^2, G)
+    @test matrix * gens(G) + [res] == [x*y^2]
     units, quots, res = reduce_with_quotients_and_unit(J.gens, G)
     @test matrix * gens(G) + res == units * gens(J)
+    unit, quots, res = reduce_with_quotients_and_unit(x*y^2, G)
+    @test matrix * gens(G) + [res] == units * [x*y^2]
     @test reduce(y^3, [y^2 - x, x^3 - 2*y^2]) == x*y
     @test reduce(y^3, elem_type(R)[]) == y^3
+    @test reduce(y^3, Oscar.IdealGens(R, elem_type(R)[])) == y^3
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2]) == [x*y]
     @test reduce([y^3], elem_type(R)[]) == [y^3]
+    @test reduce([y^3], Oscar.IdealGens(R, elem_type(R)[])) == [y^3]
     @test reduce([y^3], [y^2 - x, x^3 - 2*y^2], ordering=lex(R)) == [y^3]
     f = x+y^3
     g = x
@@ -41,17 +56,25 @@
     @test q * F + [r] == [f]
     q, r = reduce_with_quotients(f, elem_type(R)[])
     @test q * elem_type(R)[] + [r] == [f]
+    q, r = reduce_with_quotients(f, Oscar.IdealGens(R, elem_type(R)[]))
+    @test q * elem_type(R)[] + [r] == [f]
     q, r = reduce_with_quotients([f], F)
     @test q * F + r == [f]
     q, r = reduce_with_quotients([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == [f]
+    q, r = reduce_with_quotients([f], Oscar.IdealGens(R, elem_type(R)[]))
     @test q * elem_type(R)[] + r == [f]
     u, q, r = reduce_with_quotients_and_unit(f, F)
     @test q * F + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit(f, elem_type(R)[])
     @test q * elem_type(R)[] + [r] == u * [f]
+    u, q, r = reduce_with_quotients_and_unit(f, Oscar.IdealGens(R, elem_type(R)[]))
+    @test q * elem_type(R)[] + [r] == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], F)
     @test q * F + r == u * [f]
     u, q, r = reduce_with_quotients_and_unit([f], elem_type(R)[])
+    @test q * elem_type(R)[] + r == u * [f]
+    u, q, r = reduce_with_quotients_and_unit([f], Oscar.IdealGens(R, elem_type(R)[]))
     @test q * elem_type(R)[] + r == u * [f]
     f = x
     F = [1-x]
@@ -97,6 +120,13 @@
     standard_basis_highest_corner(I, ordering=negdeglex(R))
     @test elements(I.gb[negdeglex(R)]) == H
     @test_throws ArgumentError standard_basis_highest_corner(I)
+end
+
+@testset "normal form graded" begin
+    R, (a, b, c) = graded_polynomial_ring(QQ, ["a", "b", "c"])
+    I = ideal([a^2+b^2, c^3])
+    # verify normal form of inhomogeneous polynomial work
+    @test normal_form(a^2+b, I) == -b^2+b
 end
 
 @testset "groebner leading ideal" begin
@@ -208,6 +238,12 @@ end
   I = ideal(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException groebner_basis(I, algorithm=:fglm)
   @test_throws ErrorException fglm(I, destination_ordering=lex(R))
+
+  # Issue #4026
+  R, (x, y) = QQ["x", "y"]
+  I = ideal([x, y])
+  G = groebner_basis(I, ordering = lex([y, x]), algorithm = :fglm)
+  @test gens(G) == elem_type(R)[x, y]
 end
 
 @testset "groebner hilbert driven" begin

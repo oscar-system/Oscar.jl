@@ -60,8 +60,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyPowersOfElement)
 end
 
 function Base.show(io::IO, S::MPolyPowersOfElement)
-  # no need for supercompact printing
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Products of ")
     print(io, ItemQuantity(length(denominators(S)), "element"))
   else
@@ -85,11 +84,18 @@ end
 ### simplification. 
 # Replaces each element d by its list of square free prime divisors.
 function simplify!(S::MPolyPowersOfElement)
+  S.is_simplified && return S
   S.a = denominators(simplify(S))
+  S.is_simplified = true
   return S
 end
 
 function simplify(S::MPolyPowersOfElement)
+  if S.is_simplified 
+    result = MPolyPowersOfElement(ring(S), denominators(S))
+    result.is_simplified = true
+    return result
+  end
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
   for d in denominators(S)
@@ -102,11 +108,18 @@ function simplify(S::MPolyPowersOfElement)
 end
 
 function simplify_light!(S::MPolyPowersOfElement)
+  (S.is_simplified || S.is_lightly_simplified) && return S
   S.a = denominators(simplify_light(S))
   return S
 end
 
 function simplify_light(S::MPolyPowersOfElement)
+  if S.is_simplified || S.is_lightly_simplified
+    result = MPolyPowersOfElement(ring(S), denominators(S))
+    result.is_lightly_simplified = true
+    return result
+  end
+    
   # TODO: replace this by coprime_base once this has a method for multivariate polynomial rings.
   R = ring(S)
   new_denom = Vector{elem_type(R)}()
@@ -126,7 +139,23 @@ function simplify_light(S::MPolyPowersOfElement)
   end
 
   new_denom = elem_type(R)[a for a in unique!(new_denom) if !is_unit(a)]
+  fac_denom = elem_type(R)[]
 
+  # Try to factor the denominators if this is deemed possible
+  for a in new_denom
+    if total_degree(a) > 50 || length(a) > 10000
+      push!(fac_denom, a)
+    else
+      for (b, _) in factor(a)
+        push!(fac_denom, b)
+      end
+    end
+  end
+
+  new_denom = fac_denom
+
+  # Otherwise, it is still possible to play one denominator against another 
+  # with gcd to get more factors in a relatively efficient way.
   simplified = true
   while simplified
     new_denom = elem_type(R)[a for a in unique!(new_denom) if !is_unit(a)]
@@ -144,6 +173,7 @@ function simplify_light(S::MPolyPowersOfElement)
   end
 
   result = MPolyPowersOfElement(R, new_denom)
+  result.is_lightly_simplified = true
   return result
 end
 
@@ -176,7 +206,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfPrimeIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfPrimeIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Complement of prime ideal")
   else
     io = pretty(io)
@@ -329,7 +359,7 @@ function Base.show(io::IO, ::MIME"text/plain", S::MPolyComplementOfKPointIdeal)
 end
 
 function Base.show(io::IO, S::MPolyComplementOfKPointIdeal)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Complement of maximal ideal")
   else
     print(io, "Complement of maximal ideal of point ")
@@ -405,12 +435,12 @@ end
 
 function Base.show(io::IO, S::MPolyProductOfMultSets)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Product of multiplicatively closed subsets")
   else
     print(io, "Product of the multiplicative subsets [")
     for s in sets(S)
-      print(IOContext(io, :supercompact=>true), Lowercase(), s)
+      print(terse(io), Lowercase(), s)
       s !== last(sets(S)) && print(io, ", ")
     end
     print(io, "]")
@@ -465,11 +495,11 @@ end
 
 function Base.show(io::IO, S::MPolyLeadingMonOne)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Elements with leading monomial 1")
   else
     print(io, "Elements with leading monomial 1 w.r.t. ")
-    print(IOContext(io, :supercompact=>true), ordering(S))
+    print(terse(io), ordering(S))
   end
 end
 
@@ -869,6 +899,7 @@ end
 
 ### required getter functions 
 base_ring(W::MPolyLocRing) = W.R
+base_ring_type(::Type{MPolyLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 inverted_set(W::MPolyLocRing) = W.S
 
 ### additional getter functions
@@ -1130,15 +1161,6 @@ function Base.:(/)(a::ZZRingElem, b::T) where {T<:MPolyLocRingElem}
   return (parent(b))(a//fraction(b))
 end
 
-function Base.:(/)(a::T, b::T) where {T<:MPolyLocRingElem}
-  parent(a) == parent(b) || error("the arguments do not have the same parent ring")
-  g = gcd(numerator(a), numerator(b))
-  c = divexact(numerator(a), g)
-  d = divexact(numerator(b), g)
-  numerator(fraction(b)) in inverted_set(parent(b)) || error("the second argument is not a unit in this local ring")
-  return (parent(a))(fraction(a) // fraction(b), check=false)
-end
-
 function ==(a::T, b::T) where {T<:MPolyLocRingElem}
   parent(a) == parent(b) || error("the arguments do not have the same parent ring")
   return fraction(a) == fraction(b)
@@ -1277,6 +1299,7 @@ end
 gens(I::MPolyLocalizedIdeal) = copy(I.gens)
 gen(I::MPolyLocalizedIdeal, i::Int) = I.gens[i]
 base_ring(I::MPolyLocalizedIdeal) = I.W
+base_ring_type(::Type{MPolyLocalizedIdeal{LRT, LRET}}) where {LRT, LRET} = LRT
 
 ### type getters
 ideal_type(::Type{MPolyLocalizedRingType}) where {MPolyLocalizedRingType<:MPolyLocRing} = MPolyLocalizedIdeal{MPolyLocalizedRingType, elem_type(MPolyLocalizedRingType)}
@@ -1303,7 +1326,7 @@ function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
 end
 
 # TODO: Also add a special dispatch for localizations at 𝕜-points
-@attr function is_prime(I::MPolyLocalizedIdeal)
+@attr Bool function is_prime(I::MPolyLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end
 
@@ -1790,7 +1813,7 @@ Complement
   in multivariate polynomial ring in 2 variables over QQ
 
 julia> L, _ = localization(R, U)
-(Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal (x, y^2 + 1), Hom: multivariate polynomial ring -> localized ring)
+(Localization of multivariate polynomial ring in 2 variables over QQ at complement of prime ideal (x, y^2 + 1), Hom: R -> localized ring)
 
 julia> J = ideal(L,[y*(x^2+(y^2+1)^2)])
 Ideal generated by
@@ -2209,6 +2232,24 @@ end
 # Homomorphisms of localized polynomial rings                          #
 ########################################################################
 
+### Mapping of elements
+function (f::MPolyLocalizedRingHom)(a::AbsLocalizedRingElem)
+  parent(a) === domain(f) || return f(domain(f)(a))
+  if total_degree(denominator(a)) > 10
+    res = restricted_map(f)
+    img_num = res(numerator(a))
+    den = denominator(a)
+    img_den = one(img_num)
+    fac_den = factor(den)
+    for (a, k) in fac_den
+      img_den = img_den * inv(res(a))^k
+    end
+    img_den = img_den * inv(res(unit(fac_den)))
+    return img_num * img_den
+  end
+  return codomain(f)(restricted_map(f)(numerator(a)))*inv(codomain(f)(restricted_map(f)(denominator(a))))
+end
+
 ### additional constructors
 function MPolyLocalizedRingHom(
       R::MPolyRing,
@@ -2264,7 +2305,7 @@ julia> (PSI, )
 """
 function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), phi)
+  println(terse(io), phi)
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(phi))
   println(io, "to ", Lowercase(), codomain(phi))
@@ -2281,13 +2322,13 @@ function Base.show(io::IO, ::MIME"text/plain", phi::MPolyLocalizedRingHom)
 end
 
 function Base.show(io::IO, phi::MPolyLocalizedRingHom)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Ring homomorphism")
   else
     R = base_ring(domain(phi))
     psi = restricted_map(phi)
     io = pretty(io)
-    io = IOContext(io, :supercompact=>true)
+    io = terse(io)
     print(io, "hom: ", domain(phi))
     if is_unicode_allowed()
       print(io, " → ")
@@ -2540,7 +2581,8 @@ function kernel(f::MPolyAnyMap{<:MPolyRing, <:MPolyLocRing})
   R = base_ring(L)
   J = saturated_ideal(I)
   d = [lifted_denominator(g) for g in f.(gens(domain(f)))]
-  W = MPolyQuoLocRing(R, ideal(R, zero(R)), MPolyPowersOfElement(R, d))
+  U = simplify!(MPolyPowersOfElement(R, d))
+  W = MPolyQuoLocRing(R, ideal(R, zero(R)), U)
   id =  _as_affine_algebra(W)
   A = codomain(id)
   h = hom(P, A, id.(f.(gens(P))))
@@ -2608,15 +2650,15 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
   return dim(saturated_ideal(I))
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
   return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))
@@ -2785,3 +2827,13 @@ function is_homogeneous(a::MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing})
 end
 
 coefficient_ring(L::MPolyLocRing) = coefficient_ring(base_ring(L))
+
+########################################################################
+# Ported from old implementation in src/Rings/mpoly-local.jl
+########################################################################
+function Oscar.localization(R::MPolyRing{S}, m::MPolyIdeal) where S
+  return MPolyLocRing(R, complement_of_point_ideal(m))
+end
+
+complement_of_point_ideal(m::MPolyIdeal) = complement_of_point_ideal(base_ring(m), rational_point_coordinates(m))
+

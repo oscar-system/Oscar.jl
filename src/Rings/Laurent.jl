@@ -61,11 +61,11 @@ function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
     C = base_ring(R)
-    Cx, x = polynomial_ring(C, append!(["x$i" for i in 1:n], ["x$i^-1" for i in 1:n]))
+    Cx, x = polynomial_ring(C, append!(["x$i" for i in 1:n], ["x$i^-1" for i in 1:n]); cached = false)
     I = ideal(Cx, [x[i]*x[i + n] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
-  end
+  end::_LaurentMPolyBackend  # TODO: make the type fully concrete
 end
 
 function _evaluate_gens_cache(f::_LaurentMPolyBackend{D, C}) where {D, C}
@@ -207,6 +207,8 @@ end
 ################################################################################
 
 base_ring(I::LaurentMPolyIdeal{T}) where {T} = I.R::parent_type(T)
+
+base_ring_type(::Type{LaurentMPolyIdeal{T}}) where {T} = parent_type(T)
 
 gens(I::LaurentMPolyIdeal) = I.gens
 

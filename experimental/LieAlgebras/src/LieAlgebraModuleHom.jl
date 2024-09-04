@@ -1,42 +1,3 @@
-@attributes mutable struct LieAlgebraModuleHom{T1<:LieAlgebraModule,T2<:LieAlgebraModule} <:
-                           Map{T1,T2,Hecke.HeckeMap,LieAlgebraModuleHom}
-  header::MapHeader{T1,T2}
-  matrix::MatElem
-
-  inverse_isomorphism::LieAlgebraModuleHom{T2,T1}
-
-  function LieAlgebraModuleHom(
-    V1::LieAlgebraModule,
-    V2::LieAlgebraModule,
-    imgs::Vector{<:LieAlgebraModuleElem};
-    check::Bool=true,
-  )
-    @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
-    @req all(x -> parent(x) === V2, imgs) "Images must lie in the codomain"
-    @req length(imgs) == dim(V1) "Number of images must match dimension of domain"
-
-    mat = zero_matrix(coefficient_ring(V2), dim(V1), dim(V2))
-    for (i, img) in enumerate(imgs)
-      mat[i, :] = _matrix(img)
-    end
-    return LieAlgebraModuleHom(V1, V2, mat; check)
-  end
-
-  function LieAlgebraModuleHom(
-    V1::LieAlgebraModule, V2::LieAlgebraModule, mat::MatElem; check::Bool=true
-  )
-    @req base_lie_algebra(V1) === base_lie_algebra(V2) "Lie algebras must be the same" # for now at least
-    @req size(mat) == (dim(V1), dim(V2)) "Matrix size must match dimensions of domain and codomain"
-    h = new{typeof(V1),typeof(V2)}()
-    h.matrix = mat::dense_matrix_type(coefficient_ring(V2))
-    h.header = MapHeader(V1, V2)
-    if check
-      @req is_welldefined(h) "Not a homomorphism"
-    end
-    return h
-  end
-end
-
 ###############################################################################
 #
 #   Basic properties
@@ -76,9 +37,11 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
+function Base.show(io::IO, mime::MIME"text/plain", h::LieAlgebraModuleHom)
+  @show_name(io, h)
+  @show_special(io, mime, h)
   io = pretty(io)
-  println(IOContext(io, :supercompact => true), h)
+  println(io, LowercaseOff(), "Lie algebra module morphism")
   print(io, Indent())
   println(io, "from ", Lowercase(), domain(h))
   print(io, "to ", Lowercase(), codomain(h))
@@ -86,8 +49,10 @@ function Base.show(io::IO, ::MIME"text/plain", h::LieAlgebraModuleHom)
 end
 
 function Base.show(io::IO, h::LieAlgebraModuleHom)
+  @show_name(io, h)
+  @show_special(io, h)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, LowercaseOff(), "Lie algebra module morphism")
   else
     print(io, LowercaseOff(), "Lie algebra module morphism: ")
@@ -220,8 +185,8 @@ julia> V2 = direct_sum(V1, V3);
 
 julia> h = hom(V1, V2, [V2([v, zero(V3)]) for v in basis(V1)])
 Lie algebra module morphism
-  from standard module of dimension 2 over sl_2
-  to direct sum module of dimension 5 over sl_2
+  from standard module of dimension 2 over L
+  to direct sum module of dimension 5 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
 2-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
@@ -258,8 +223,8 @@ julia> V2 = trivial_module(L);
 
 julia> h = hom(V1, V2, matrix(QQ, 3, 1, [0, 0, 0]))
 Lie algebra module morphism
-  from standard module of dimension 3 over gl_3
-  to abstract Lie algebra module of dimension 1 over gl_3
+  from standard module of dimension 3 over L
+  to abstract Lie algebra module of dimension 1 over L
 
 julia> [(v, h(v)) for v in basis(V1)]
 3-element Vector{Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}}}:
@@ -290,8 +255,8 @@ over special linear Lie algebra of degree 3 over QQ
 
 julia> identity_map(V)
 Lie algebra module morphism
-  from standard module of dimension 3 over sl_3
-  to standard module of dimension 3 over sl_3
+  from standard module of dimension 3 over L
+  to standard module of dimension 3 over L
 ```
 """
 function identity_map(V::LieAlgebraModule)
@@ -315,8 +280,8 @@ over special linear Lie algebra of degree 3 over QQ
 
 julia> zero_map(V)
 Lie algebra module morphism
-  from standard module of dimension 3 over sl_3
-  to standard module of dimension 3 over sl_3
+  from standard module of dimension 3 over L
+  to standard module of dimension 3 over L
 ```
 """
 function zero_map(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}

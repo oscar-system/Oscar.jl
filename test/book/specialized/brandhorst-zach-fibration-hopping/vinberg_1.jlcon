@@ -40,7 +40,7 @@ julia> length(Xchambers)
 1
 
 julia> C = Xchambers[1]
-Chamber  in dimension 20 with 36 walls
+Chamber in dimension 20 with 36 walls
 
 julia> Xelliptic_classes = [f for f in rays(C) if 0 == f*gram_matrix(NS)*transpose(f)];
 

@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Affine Algebras and Their Ideals](@id affine_algebras)
@@ -13,15 +11,15 @@ by an ideal $I$ of $R$, we refer to $A$ as an *affine algebra over $C$*, or an *
 discuss functionality for handling such algebras in OSCAR.
 
 !!! note
-    To emphasize this point: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
+    We emphasize: In this section, we view $R/I$ together with its ring structure. Realizing $R/I$ as an
     $R$-module means to implement it as the quotient of a free $R$-module of rank 1. See the section on [modules](@ref modules_multivariate).
 
 !!! note
     Most functions discussed here rely on Gröbner basis techniques. In particular, they typically make use of a Gröbner basis for the
     modulus of the quotient. Nevertheless, the construction of quotients is lazy in the sense that the computation of such a Gröbner
-    basis is delayed until the user performs an operation that indeed requires it (the Gröbner basis is then computed with respect
-    to the monomial ordering entered by the user when creating the quotient; if no such ordering is entered, OSCAR will use the
-	`default_ordering` on the underlying polynomial ring; see the section on [Gröbner/Standard Bases](@ref gb_fields) for default orderings in OSCAR).
+    basis is delayed until the user performs an operation that indeed requires it. The Gröbner basis is then computed with respect
+    to the monomial ordering entered by the user when creating the quotient; if no ordering is entered, OSCAR will use the
+	`default_ordering` on the underlying polynomial ring. See the section on [Gröbner/Standard Bases](@ref gb_fields) for default orderings in OSCAR.
 	Once computed, the Gröbner basis is cached for later reuse.
 
 !!! note
@@ -62,8 +60,9 @@ If `A=R/I` is the quotient of a multivariate polynomial ring `R` modulo an ideal
 - `base_ring(A)` refers to `R`,
 - `modulus(A)` to `I`,
 - `gens(A)` to the generators of `A`,
-- `number_of_generators(A)` / `ngens(A)` to the number of these generators, and
-- `gen(A, i)` as well as `A[i]` to the `i`-th such generator.
+- `number_of_generators(A)` / `ngens(A)` to the number of these generators,
+- `gen(A, i)` as well as `A[i]` to the `i`-th such generator, and
+- `ordering(A)` to the monomial ordering used in the construction of `A`.
 
 ###### Examples
 
@@ -92,6 +91,9 @@ julia> number_of_generators(A)
 
 julia> gen(A, 2)
 y
+
+julia> ordering(A)
+degrevlex([x, y, z])
 
 ```
 
@@ -337,9 +339,9 @@ In OSCAR, such homomorphisms are created as follows:
 hom(A::MPolyQuoRing, S::NCRing, coeff_map, images::Vector; check::Bool = true)
 ```
 
-Given a ring homomorphism `F` : `R` $\to$ `S` as above, `domain(F)` and `codomain(F)`
-refer to `R` and `S`, respectively. Given ring homomorphisms `F` : `R` $\to$ `S` and
-`G` : `S` $\to$ `T` as above, `compose(F, G)` refers to their composition.
+Given a ring homomorphism `F` : `A` $\to$ `S` as above, `domain(F)` and `codomain(F)`
+refer to `A` and `S`, respectively.  Given ring homomorphisms `F` : `A` $\to$ `B` and
+`G` : `B` $\to$ `T` as above, `compose(F, G)` refers to their composition.
 
 ## Homomorphisms of Affine Algebras
 
@@ -602,7 +604,7 @@ graded by $G$. That is, $G$ is free and each graded piece $R_g$ has finite dimen
 Then also $A_g$ is a finite dimensional $K$-vector space for each $g$, and we have the
 well-defined *Hilbert function* of $A$,
 
-$H(A, \underline{\phantom{d}}): G \to \N, \; g\mapsto \dim_K(A_g).$
+$H(A, \underline{\phantom{d}}): G \to \mathbb{N}, \; g\mapsto \dim_K(A_g).$
 
 The *Hilbert series* of $A$ is the generating function
 
@@ -639,7 +641,7 @@ $A = \bigoplus_{d\geq 0} A_d$, where each graded piece $A_d$ is a finite dimensi
 $K$-vector space. In this situation, the *Hilbert function* of $A$ is
 of type
 
-$H(A, \underline{\phantom{d}}): \N \to \N, \;d \mapsto \dim_K(d),$
+$H(A, \underline{\phantom{d}}): \mathbb{N} \to \mathbb{N}, \;d \mapsto \dim_K(d),$
 
 and the *Hilbert series* of $A$ is the formal power series
 

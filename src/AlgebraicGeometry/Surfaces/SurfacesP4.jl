@@ -52,7 +52,8 @@ function surface(n::String)
   I = load(n)
   S = base_ring(I)
   R = grade(S)[1]
-  return proj(R, ideal(R, map(R, gens(I))))
+  #return proj(R, ideal(R, map(R, gens(I))))
+  return variety(ideal(R, map(R, gens(I))), check = false, is_radical = false,)
 end
 
 ###############################

@@ -37,7 +37,7 @@ The string `name` specifies how the basis vectors are printed.
 julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
 
 julia> FR = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> x*FR[1]
 x*e[1]
@@ -49,7 +49,7 @@ julia> U = complement_of_prime_ideal(P);
 julia> RL, _ = localization(R, U);
 
 julia> FRL = free_module(RL, 2, "f")
-Free module of rank 2 over Localization of multivariate polynomial ring in 3 variables over QQ at complement of prime ideal (x, y, z)
+Free module of rank 2 over Localization of R at complement of prime ideal (x, y, z)
 
 julia> RL(x)*FRL[1]
 x*f[1]
@@ -77,7 +77,7 @@ free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) =
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
-  - FreeModule(R, n)
+  - free_module(R, n)
   - direct sum of rings, ie. a ring
   - set of n-th powers of R
 thus the "category" needs to be set explicitly
@@ -93,6 +93,9 @@ end
 # un-named free module over a named ring X will acquire the name 
 # X^r
 function AbstractAlgebra.extra_name(F::FreeMod)
+  if rank(F) == 0
+    return "0"
+  end
   s = AbstractAlgebra.get_name(base_ring(F))
   if s !== nothing
     return "$s^$(rank(F))"

@@ -142,9 +142,6 @@ end
 
 Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax`. To be precise, the tropical hypersurface of the tropical polynomial with exponent vectors `points(Delta)` and coefficients `min_weight(Delta)` (min-convention) or `-min_weight(Delta)` (max-convention).  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
-!!! warning
-    There is a known bug when the subdivision is too simple, e.g., `tropical_hypersurface(subdivision_of_points(simplex(2),[0,0,1]))` see issue 2628.
-
 # Examples
 ```jldoctest
 julia> Delta = subdivision_of_points([0 0; 1 0; 0 1; 2 0],[0,0,0,1])
@@ -189,7 +186,7 @@ Return the polynomial over a valued field used to construct `TropH`.  Raises an 
 """
 function algebraic_polynomial(TropH::TropicalHypersurface)
     @req has_attribute(TropH,:algebraic_polynomial) "no algebraic polynomial cached"
-    return get_attribute(TropH,:algebraic_polynomial)
+    return get_attribute(TropH, :algebraic_polynomial)::MPolyRingElem
 end
 
 
@@ -239,7 +236,7 @@ julia> maximal_cells(sop)
 """
 function dual_subdivision(TropH::TropicalHypersurface{minOrMax,true}) where minOrMax
     @req has_attribute(TropH,:dual_subdivision) "no dual subdivision cached"
-    return get_attribute(TropH,:dual_subdivision)
+    return get_attribute(TropH, :dual_subdivision)::SubdivisionOfPoints
 end
 
 
@@ -248,9 +245,9 @@ end
 
 Return the tropical polynomial used to construct `TropH`.  Raises an error if it is not cached.
 """
-function tropical_polynomial(TropH::TropicalHypersurface)
+function tropical_polynomial(TropH::TropicalHypersurface{minOrMax}) where minOrMax
     @req has_attribute(TropH,:tropical_polynomial) "no tropical polynomial cached"
-    return get_attribute(TropH,:tropical_polynomial)
+    return get_attribute(TropH,:tropical_polynomial)::mpoly_type(TropicalSemiringElem{minOrMax})
 end
 
 

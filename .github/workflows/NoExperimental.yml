@@ -33,12 +33,12 @@ jobs:
         group: [ 'short', 'long' ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: '1.10'
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
@@ -57,12 +57,12 @@ jobs:
     timeout-minutes: 150
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        uses: julia-actions/setup-julia@v2
         with:
           version: '1.10'
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         with:
           cache-name: julia-cache;workflow=${{ github.workflow }};julia=1.10;arch=${{ runner.arch }}
           include-matrix: false
@@ -89,7 +89,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'

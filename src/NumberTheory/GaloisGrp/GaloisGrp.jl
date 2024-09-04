@@ -25,6 +25,7 @@ function __init__()
   GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
   Hecke.add_assertion_scope(:GaloisInvariant)
 end
@@ -835,7 +836,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = polynomial_ring(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1; cached=false)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
@@ -1676,7 +1677,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #TODO: wrap this properly
     if hasproperty(GAP.Globals, :ConStabilize)
       tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(G.X), tmp)))
+      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
       G = Oscar._as_subgroup(G, H)[1]
     else
       #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
@@ -1951,10 +1952,18 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
   pStart::Int = 2*degree(K), 
   prime::Int = 0, 
   do_shape::Bool = true,
+  redo::Bool = false,
   algorithm::Symbol=:pAdic, 
   field::Union{Nothing, AbsSimpleNumField} = nothing)
 
   @assert algorithm in [:pAdic, :Complex, :Symbolic]
+  
+  X = get_attribute(K, :GaloisCtx)
+  if X !== nothing && !redo && algorithm == :pAdic
+    if prime == 0 || X.prime == prime
+      return X.G, X
+    end
+  end
 
   if do_shape
     p, ct = find_prime(K.pol, pStart)
@@ -2006,6 +2015,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
         G = symmetric_group(degree(K))
       end
       GC.G = G
+      if algorithm == :pAdic
+        set_attribute!(K, :GaloisCtx => GC)
+      end
       return G, GC
     end
 
@@ -2027,6 +2039,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
     #   some subgroups of the wreath products
     if degree(K) == 1
       GC.G = G
+      if algorithm == :pAdic 
+        set_attribute!(K, :GaloisCtx => GC)
+      end
       return G, GC
     end
 
@@ -2039,6 +2054,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
 
     # TODO: here we know if we are primitive; can we detect 2-transitive (inside starting_group)?
 
+    if algorithm == :pAdic
+      set_attribute!(K, :GaloisCtx => GC)
+    end
     return descent(GC, G, F, si, extra = extra)
   end
 end
@@ -2052,7 +2070,7 @@ supergroup of the Galois group, operating on the roots in `GC`, the context obje
 The groups are filtered by `F` and the result needs to contain the permutation `si`.
 For verbose output, the groups are printed through `grp_id`.
 """
-function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
+function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = x -> degree(x) >= 32 ? (degree(x), -1) : transitive_group_identification(x), extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(grp_id(G))\n"
 
   n = degree(GC.f)
@@ -2172,7 +2190,7 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{ZZRingEle
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
-    lz = lift(l)
+    lz = lift(ZZ, l)
     lz = Hecke.mod_sym(lz, ZZRingElem(p)^precision(l))
     if abs(lz) < value(B)
       return true, lz
@@ -2232,7 +2250,7 @@ function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.d
       cnt += 1
       cnt > 20 && error("no Tschirni found")
       ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-      if degree(ts) > 0
+      if degree(ts) > 0 
         break
       end
     end
@@ -2346,7 +2364,6 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ps = [val]
   d = copy(conj)
   while length(ps) < m
-#    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
     fl, val = isinteger(GC, B, sum(d))
     @assert fl
@@ -2664,7 +2681,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector, gens(G))
+  gs = map(Vector{Int}, gens(G))
   for (g, k) = lf
     for j=2:k
       for i=1:degree(g)
@@ -2730,14 +2747,22 @@ function are_disjoint(G::GaloisCtx{T}, S::GaloisCtx{T}) where T <: Union{Hecke.q
     @vprint :GaloisGroup 2 "\n poly discs have small gcd ($g)..."
     o1 = any_order(number_field(G.f, cached = false, check = false)[1])
     p = radical(g)
-    O1 = pmaximal_overorder(o1, p)
+    if is_probable_prime(p)
+      O1 = pmaximal_overorder(o1, p)
+    else
+      O1, = Hecke._TameOverorderBL(o1, [p])
+    end
     p = gcd(discriminant(O1), p)
     if isone(p)
       @vprint :GaloisGroup 2 "p-maximal order of 1st is p-free\n"
       return true
     end
     o2 = any_order(number_field(S.f, cached = false, check = false)[1])
-    O2 = pmaximal_overorder(o2, p)
+    if is_probable_prime(p)
+      O2 = pmaximal_overorder(o2, p)
+    else
+      O2, = Hecke._TameOverorderBL(o2, [p])
+    end
     @vprint :GaloisGroup 2 "p-maximal order of 2nd is "
     p = gcd(discriminant(O2), p)
     if isone(p)

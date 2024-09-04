@@ -23,8 +23,10 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/abelian/introduction.md",
+     "Hecke/manual/abelian/introduction.md",
      "Groups/group_characters.md",
+     "Groups/recog.md",
+     "Groups/tom.md",
   ],
 
   "Rings" => [
@@ -49,8 +51,8 @@
      "Fields/intro.md",
      "AbstractAlgebra/field.md",
      "Rings/rational.md",
-     "Hecke/FacElem.md",
-     "Hecke/class_fields/intro.md",
+     "Hecke/manual/misc/FacElem.md",
+     "Hecke/manual/number_fields/class_fields.md",
      "AbstractAlgebra/fraction.md",
      "Local Fields" => [
         "Nemo/padic.md",
@@ -63,7 +65,7 @@
 
   "Linear Algebra" => [
      "LinearAlgebra/intro.md",
-     "Hecke/sparse/intro.md",
+     "Hecke/manual/misc/sparse.md",
      "AbstractAlgebra/matrix.md",
      "AbstractAlgebra/matrix_algebras.md",
      "Modules" => [
@@ -75,30 +77,30 @@
         "AbstractAlgebra/module_homomorphism.md",
      ],
      "Quadratic and Hermitian forms" => [
-        "Hecke/quad_forms/introduction.md",
-        "Hecke/quad_forms/basics.md",
-        "Hecke/quad_forms/lattices.md",
-        "Hecke/quad_forms/genusherm.md",
-        "Hecke/quad_forms/integer_lattices.md",
-        "Hecke/quad_forms/Zgenera.md",
-        "Hecke/quad_forms/discriminant_group.md"
+        "Hecke/manual/quad_forms/introduction.md",
+        "Hecke/manual/quad_forms/basics.md",
+        "Hecke/manual/quad_forms/lattices.md",
+        "Hecke/manual/quad_forms/genusherm.md",
+        "Hecke/manual/quad_forms/integer_lattices.md",
+        "Hecke/manual/quad_forms/Zgenera.md",
+        "Hecke/manual/quad_forms/discriminant_group.md"
      ],
   ],
 
   "Number Theory" => [
      "NumberTheory/intro.md",
      "Number Fields" => [
-        "Hecke/number_fields/intro.md",
-        "Hecke/number_fields/fields.md",
-        "Hecke/number_fields/elements.md",
-        "Hecke/number_fields/internal.md",
+        "Hecke/manual/number_fields/intro.md",
+        "Hecke/manual/number_fields/fields.md",
+        "Hecke/manual/number_fields/elements.md",
+        "Hecke/manual/number_fields/internal.md",
      ],
      "Orders" => [
-        "Hecke/orders/introduction.md",
-        "Hecke/orders/orders.md",
-        "Hecke/orders/elements.md",
-        "Hecke/orders/ideals.md",
-        "Hecke/orders/frac_ideals.md",
+        "Hecke/manual/orders/introduction.md",
+        "Hecke/manual/orders/orders.md",
+        "Hecke/manual/orders/elements.md",
+        "Hecke/manual/orders/ideals.md",
+        "Hecke/manual/orders/frac_ideals.md",
      ],
      "NumberTheory/abelian_closure.md",
      "NumberTheory/galois.md",
@@ -163,15 +165,13 @@
         "AlgebraicGeometry/Schemes/GeneralSchemes.md",
         "AlgebraicGeometry/Schemes/AffineSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfAffineSchemes.md",
-        "AlgebraicGeometry/Schemes/ArchitectureOfAffineSchemes.md",
+        "AlgebraicGeometry/Schemes/RationalPointsAffine.md",
         "AlgebraicGeometry/Schemes/CoveredSchemes.md",
         "AlgebraicGeometry/Schemes/CoveringsAndGluings.md",
         "AlgebraicGeometry/Schemes/CoveredSchemeMorphisms.md",
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
-     ],
-     "Sheaf Cohomology" => [
-        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
+        "AlgebraicGeometry/Schemes/RationalPointsProjective.md",
      ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
@@ -181,9 +181,20 @@
         "AlgebraicGeometry/AlgebraicVarieties/AffineVariety.md",
         "AlgebraicGeometry/AlgebraicVarieties/ProjectiveVariety.md",
      ],
-     "Rational Points" => [
-        "AlgebraicGeometry/RationalPoints/Affine.md",
-        "AlgebraicGeometry/RationalPoints/Projective.md",
+     "Curves" => [
+         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
+         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
+         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
+	 "AlgebraicGeometry/Curves/ParametrizationPlaneCurves.md",
+     ],
+     "Surfaces" => [
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
+	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
+        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+     ],
+     "Sheaf Cohomology" => [
+        "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
      ],
      "Toric Varieties" => [
         "AlgebraicGeometry/ToricVarieties/intro.md",
@@ -201,18 +212,12 @@
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
         "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
      ],
-     "Curves" => [
-         "AlgebraicGeometry/Curves/AffinePlaneCurves.md",
-         "AlgebraicGeometry/Curves/ProjectiveCurves.md",
-         "AlgebraicGeometry/Curves/ProjectivePlaneCurves.md",
-     ],
-     "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
-        "AlgebraicGeometry/Surfaces/SurfacesP4.md",
-     ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
-     ]
+     ],
+     "Frameworks for Developers" => [
+        "AlgebraicGeometry/FrameWorks/ArchitectureOfAffineSchemes.md",
+     ],
   ],
 
   "Tropical Geometry" => [
@@ -247,6 +252,7 @@
       "Combinatorics/EnumerativeCombinatorics/partitions.md",
       "Combinatorics/EnumerativeCombinatorics/tableaux.md",
       "Combinatorics/EnumerativeCombinatorics/schur_polynomials.md",
+      "Combinatorics/EnumerativeCombinatorics/compositions.md",
     ],
   ],
 
@@ -264,6 +270,7 @@
     "DeveloperDocumentation/documentation.md",
     "DeveloperDocumentation/printing_details.md",
     "DeveloperDocumentation/debugging.md",
+    "DeveloperDocumentation/caching.md",
     "DeveloperDocumentation/serialization.md",
     "DeveloperDocumentation/design_decisions.md",
     "DeveloperDocumentation/gap_integration.md",

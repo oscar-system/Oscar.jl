@@ -1,36 +1,3 @@
-@attributes mutable struct LieAlgebraModule{C<:FieldElem}
-  L::LieAlgebra{C}
-  dim::Int
-  transformation_matrices::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LieAlgebraModule{C}(
-    L::LieAlgebra{C},
-    dimV::Int,
-    transformation_matrices::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req dimV == length(s) "Invalid number of basis element names."
-    @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
-    @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
-
-    V = new{C}(L, dimV, transformation_matrices, s)
-    if check
-      @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
-      for xi in basis(L), xj in basis(L), v in basis(V)
-        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
-      end
-    end
-    return V
-  end
-end
-
-struct LieAlgebraModuleElem{C<:FieldElem}
-  parent::LieAlgebraModule{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -151,7 +118,9 @@ end
 #
 ###############################################################################
 
-function Base.show(io::IO, ::MIME"text/plain", V::LieAlgebraModule)
+function Base.show(io::IO, mime::MIME"text/plain", V::LieAlgebraModule)
+  @show_name(io, V)
+  @show_special(io, mime, V)
   io = pretty(io)
   println(io, _module_type_to_string(V))
   println(io, Indent(), "of dimension $(dim(V))")
@@ -211,12 +180,14 @@ function _show_inner(io::IO, V::LieAlgebraModule)
 end
 
 function Base.show(io::IO, V::LieAlgebraModule)
-  if get(io, :supercompact, false)
+  @show_name(io, V)
+  @show_special(io, V)
+  if is_terse(io)
     print(io, _module_type_to_string(V))
   else
     io = pretty(io)
     print(io, _module_type_to_string(V), " of dimension $(dim(V)) over ", Lowercase())
-    print(IOContext(io, :supercompact => true), base_lie_algebra(V))
+    print(terse(io), base_lie_algebra(V))
   end
 end
 
@@ -651,7 +622,7 @@ function abstract_module(
 end
 
 @doc raw"""
-    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{SRow{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
+    abstract_module(L::LieAlgebra{C}, dimV::Int, struct_consts::Matrix{sparse_row_type{C}}, s::Vector{<:VarName}; check::Bool) -> LieAlgebraModule{C}
 
 Construct the the Lie algebra module over `L` of dimension `dimV` given by
 structure constants `struct_consts` and with basis element names `s`.
@@ -670,7 +641,7 @@ such that $x_i * v_j = \sum_k a_{i,j,k} v_k$.
 function abstract_module(
   L::LieAlgebra{C},
   dimV::Int,
-  struct_consts::Matrix{SRow{C}},
+  struct_consts::Matrix{<:SRow{C}},
   s::Vector{<:VarName}=[Symbol("v_$i") for i in 1:dimV];
   check::Bool=true,
 ) where {C<:FieldElem}
@@ -680,7 +651,9 @@ function abstract_module(
 
   transformation_matrices = [zero_matrix(coefficient_ring(L), dimV, dimV) for _ in 1:dim(L)]
   for i in 1:dim(L), j in 1:dimV
-    transformation_matrices[i][j, :] = dense_row(struct_consts[i, j], dimV)
+    transformation_matrices[i][j, :] = dense_row(
+      struct_consts[i, j]::sparse_row_type(C), dimV
+    )
   end
 
   return LieAlgebraModule{C}(L, dimV, transformation_matrices, Symbol.(s); check)
@@ -873,11 +846,11 @@ end
 
 # TODO: add caching
 @doc raw"""
-  tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
-  ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    tensor_product(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
+    ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
-construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.
+construct their tensor product $V_1 \otimes \cdots \otimes V_n$.
 
 # Examples
 ```jldoctest
@@ -1000,7 +973,7 @@ julia> L = special_linear_lie_algebra(QQ, 2);
 julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 3 over sl_2, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> exterior power module)
+(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> E)
 
 julia> E
 Exterior power module
@@ -1129,7 +1102,7 @@ julia> L = special_linear_lie_algebra(QQ, 4);
 julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
 julia> S, map = symmetric_power(V, 2)
-(Symmetric power module of dimension 10 over sl_4, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> symmetric power module)
+(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> S)
 
 julia> S
 Symmetric power module
@@ -1283,7 +1256,7 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
 julia> T, map = tensor_power(V, 2)
-(Tensor power module of dimension 9 over sl_3, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> tensor power module)
+(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> T)
 
 julia> T
 Tensor power module
@@ -1400,9 +1373,9 @@ end
 #
 ###############################################################################
 
-# TODO: check semisimplicity check once that is available
+# TODO: add semisimplicity check once that is available
 
-function is_dominant_weight(hw::Vector{Int})
+function is_dominant_weight(hw::Vector{<:IntegerUnion})
   return all(>=(0), hw)
 end
 
@@ -1421,9 +1394,10 @@ function simple_module(L::LieAlgebra, hw::Vector{Int})
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{Int}) -> T
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
 
-Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
+Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
+ using Weyl's dimension formula.
 The return value is of type `T`.
 
 # Example
@@ -1434,14 +1408,21 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 64
 ```
 """
-function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  return T(
-    GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))
-  )
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dim_of_simple_module(T, R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return T(
+      GAPWrap.DimensionOfHighestWeightModule(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
+      ),
+    )
+  end
 end
 
-function dim_of_simple_module(L::LieAlgebra, hw::Vector{Int})
+function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dim_of_simple_module(Int, L, hw)
 end
 

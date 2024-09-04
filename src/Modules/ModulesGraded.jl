@@ -383,7 +383,7 @@ See the `grade` and `graded_free_module` functions.
 function set_grading!(M::FreeMod, W::Vector{FinGenAbGroupElem})
   @assert length(W) == ngens(M)
   @assert is_graded(base_ring(M))
-  R = base_ring(F)
+  R = base_ring(M)
   all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
   M.d = W
 end
@@ -541,10 +541,10 @@ function is_homogeneous(el::FreeModElem)
   return isa(el.d, FinGenAbGroupElem)
 end
 
-AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
-                          <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
-                          <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
-                         }
+const AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
+                                <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
+                                <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
+                               }
 
 @doc raw"""
     degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
@@ -1454,13 +1454,13 @@ total: 1  3  2
 ```
 """
 function betti_table(F::FreeResolution; project::Union{FinGenAbGroupElem, Nothing} = nothing, reverse_direction::Bool=false)
+  @assert is_graded(F) "resolution must be graded"
   generator_count = Dict{Tuple{Int, Any}, Int}()
   C = F.C
   rng = Hecke.map_range(C)
   n = first(rng)
   for i in 0:n
     module_degrees = F[i].d
-    module_degrees === nothing && error("One of the modules in the graded free resolution is not graded.")
     for degree in module_degrees
       idx = (i, degree)
       generator_count[idx] = get(generator_count, idx, 0) + 1
@@ -1558,7 +1558,6 @@ function Base.show(io::IO, b::BettiTable)
           print(io, " "^(column_widths[i_total] - ndigits(sum_row)-1))
         end
       end
-      print(io, "\n")
     end
   else
     parent(b.project) == parent(x[1][2]) || error("projection vector has wrong type")
@@ -2153,6 +2152,8 @@ Return the underlying ring of `F`.
 """
 base_ring(F::FreeMod_dec) = forget_decoration(F).R
 
+base_ring_type(::Type{FreeMod_dec{T}}) where {T} = base_ring_type(FreeMod{T})
+
 @doc raw"""
     rank(F::FreeMod_dec)
 
@@ -2571,7 +2572,6 @@ julia> betti_table(FA)
 2    : -  -  1  1  
 ------------------
 total: 1  5  6  2  
-
 
 julia> minimal_betti_table(FA)
        0  1  2  3  

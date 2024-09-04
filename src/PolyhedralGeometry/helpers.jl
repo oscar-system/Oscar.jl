@@ -1,7 +1,7 @@
 import Polymake: IncidenceMatrix
 
 @doc raw"""
-     IncidenceMatrix
+    IncidenceMatrix
 
 A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
 
@@ -34,7 +34,7 @@ number_of_rows(A::Polymake.Matrix) = Polymake.nrows(A)
 number_of_columns(A::Polymake.Matrix) = Polymake.ncols(A)
 
 @doc raw"""
-     row(i::IncidenceMatrix, n::Int)
+    row(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
@@ -56,7 +56,7 @@ Set{Int64} with 3 elements:
 row(i::IncidenceMatrix, n::Int) = convert(Set{Int}, Polymake.row(i, n))
 
 @doc raw"""
-     column(i::IncidenceMatrix, n::Int)
+    column(i::IncidenceMatrix, n::Int)
 
 Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 
@@ -216,6 +216,10 @@ end
 (F::Field)(x::Polymake.Rational) = F(QQ(x))
 (F::Field)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
 
+# Disambiguation
+(F::QQBarField)(x::Polymake.Rational) = F(QQ(x))
+(F::QQBarField)(x::Polymake.OscarNumber) = F(Polymake.unwrap(x))
+
 Polymake.convert_to_pm_type(::Type{typeof(min)}) = Polymake.Min
 Polymake.convert_to_pm_type(::Type{typeof(max)}) = Polymake.Max
 
@@ -290,8 +294,7 @@ homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, v
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
   stack((homogenize(x[i], val) for i in 1:length(x))...)
 
-dehomogenize(vec::AbstractVector) = vec[2:end]
-dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
+dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
 unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)
@@ -672,6 +675,14 @@ end
 
 # oscarnumber helpers
 
+function Polymake._fieldelem_to_floor(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(floor(ZZRingElem, e))
+end
+
+function Polymake._fieldelem_to_ceil(e::Union{EmbeddedNumFieldElem,QQBarFieldElem})
+  return BigInt(ceil(ZZRingElem, e))
+end
+
 function Polymake._fieldelem_to_rational(e::EmbeddedNumFieldElem)
   return Rational{BigInt}(QQ(e))
 end
@@ -717,4 +728,17 @@ function _property_qe_to_on(x, f::Field)
   else
     return x
   end
+end
+
+# Helper function for conversion
+# Cone -> Polyhedron
+# PolyhedralFan -> PolyhedralComplex
+# for transforming coordinate matrices.
+function embed_at_height_one(M::Polymake.Matrix{T}, add_vert::Bool) where {T}
+  result = Polymake.Matrix{T}(add_vert + nrows(M), ncols(M) + 1)
+  if add_vert
+    result[1, 1] = 1
+  end
+  result[(add_vert + 1):end, 2:end] = M
+  return result
 end

@@ -51,7 +51,7 @@
     @test grid_morphism(bl + bl) == grid_morphism(2 * bl)
     @test grid_morphism(bl - bl) == grid_morphism(0 * bl)
     @test grid_morphism(bl * toric_identity_morphism(codomain(bl))) == grid_morphism(bl)
-    @test bl != bl2
+    @test bl !== bl2
   end
 
   S = cox_ring(P2)

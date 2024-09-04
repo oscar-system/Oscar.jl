@@ -51,6 +51,10 @@ function base_ring(I::FreeAssAlgIdeal{T}) where T
   return I.gens.Ox::parent_type(T)
 end
 
+function base_ring_type(::Type{<:FreeAssAlgIdeal{T}}) where T
+  return parent_type(T)
+end
+
 function number_of_generators(a::FreeAssAlgIdeal)
   return length(a.gens)
 end
@@ -135,7 +139,11 @@ _to_lpring(a::FreeAssAlgebra, deg_bound::Int) = Singular.FreeAlgebra(base_ring(a
 @doc raw"""
     groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)
 
-Return the Groebner basis of `I` with respect to the degree bound `deg_bound`. If `protocol` is `true`, the protocol of the computation is also returned. The default value of `deg_bound` is `-1`, which means that no degree bound is imposed, which leads to a computation that uses a much slower algorithm, that may not terminate, but returns a full groebner basis if it does.
+Return the Groebner basis of `I` with respect to the degree bound `deg_bound`.
+If `protocol` is `true`, the protocol of the computation is also returned.
+The default value of `deg_bound` is `-1`, which means that no degree bound is
+imposed, resulting in a computation that is usually slower, but will return a
+full Groebner basis if there exists a finite one.
 ```jldoctest
 julia> free, (x,y,z) = free_associative_algebra(QQ, ["x", "y", "z"]);
 
@@ -147,10 +155,10 @@ julia> I = ideal([f1, f2]);
 
 julia> gb = groebner_basis(I, 3; protocol=false)
 Ideal generating system with elements
-1 -> x*y + y*z
-2 -> x^2 + y^2
-3 -> y^3 + y*z^2
-4 -> y^2*x + y*z*y
+  1 -> x*y + y*z
+  2 -> x^2 + y^2
+  3 -> y^3 + y*z^2
+  4 -> y^2*x + y*z*y
 ```
 """
 function groebner_basis(I::FreeAssAlgIdeal, deg_bound::Int=-1; protocol::Bool=false)

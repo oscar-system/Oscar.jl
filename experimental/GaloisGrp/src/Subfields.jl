@@ -68,6 +68,7 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     r = roots(G, pr, raw = true)
     c = map(f, r) # TODO: use the embedding map!
     bs = Hecke.MPolyFact.block_system(c)
+
     if all(x->length(x) == length(bs[1]), bs)
       sort!(bs)
       return bs
@@ -341,6 +342,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   nf = sum(x*x for x = coefficients(f))
   B = degree(f)^2*(iroot(nf, 2)+1) #from Paper: bound on the coeffs we need
   B = B^2 # Nemo works with norm-squared....
+
   pr = clog(B, p)
   pr *= div(n,2)
   pr += 2*clog(2*n, p)
@@ -361,7 +363,6 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 
   d = map(frobenius, r)
   si = symmetric_group(degree(K))([findfirst(y->y==x, r) for x = d])
-
 
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
@@ -397,7 +398,6 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
 #      M = M*D
       while true
 #        @show maximum(nbits, M), nbits(B), size(M)
-
         #TODO: possible scale (and round) by 1/sqrt(B) so that
         #      the lattice entries are smaller (ie like in the
         #      van Hoeij factoring)

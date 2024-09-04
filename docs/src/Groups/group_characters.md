@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Group characters
@@ -103,6 +101,7 @@ characteristic(tbl::GAPGroupCharacterTable)
 Base.mod(tbl::GAPGroupCharacterTable, p::Int)
 quo(tbl::GAPGroupCharacterTable, nclasses::Vector{Int})
 all_character_table_names
+is_character_table_name
 ```
 
 ## Attributes of group characters
@@ -112,6 +111,7 @@ character_field
 conductor(chi::GAPGroupClassFunction)
 conj(chi::GAPGroupClassFunction)
 Nemo.degree(chi::GAPGroupClassFunction)
+galois_orbit_sum
 indicator
 is_faithful(chi::GAPGroupClassFunction)
 is_rational(chi::GAPGroupClassFunction)
@@ -131,17 +131,18 @@ class_names(tbl::GAPGroupCharacterTable)
 class_parameters
 conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
-identifier
+identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
 is_duplicate_table
 maxes
 names_of_fusion_sources
-class_lengths
+class_lengths(tbl::GAPGroupCharacterTable)
 orders_centralizers
-orders_class_representatives
+orders_class_representatives(tbl::GAPGroupCharacterTable)
 ordinary_table(tbl::GAPGroupCharacterTable)
 trivial_character(tbl::GAPGroupCharacterTable)
 regular_character(tbl::GAPGroupCharacterTable)
+linear_characters(tbl::GAPGroupCharacterTable)
 ```
 
 The following properties of a group can be read off from its
@@ -165,6 +166,7 @@ is_supersolvable(tbl::GAPGroupCharacterTable)
 ## Construct group characters from groups
 
 ```@docs
+linear_characters(G::GAPGroup)
 natural_character(G::PermGroup)
 natural_character(G::Union{MatrixGroup{QQFieldElem}, MatrixGroup{AbsSimpleNumFieldElem}})
 natural_character(G::MatrixGroup{T, MT}) where T <: FinFieldElem where MT
@@ -207,7 +209,8 @@ arithmetic operations:
   where the group of `chi` is a subgroup of the group of `tbl`.
 
 ```@docs
-scalar_product
+scalar_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
+tensor_product(chi::GAPGroupClassFunction, psi::GAPGroupClassFunction)
 coordinates(chi::GAPGroupClassFunction)
 multiplicities_eigenvalues
 induce(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)

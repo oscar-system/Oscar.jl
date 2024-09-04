@@ -112,7 +112,7 @@ function star_subdivision(Sigma::_FanLikeType, new_ray::AbstractVector{<:Integer
   end
   mc_old = maximal_cones(IncidenceMatrix, Sigma)
 
-  facet_normals = pm_object(Sigma).FACET_NORMALS
+  facet_normals = matrix(QQ, pm_object(Sigma).FACET_NORMALS)
   refinable_cones = _get_maximal_cones_containing_vector(Sigma, new_ray)
   @req length(refinable_cones) > 0 "$new_ray not contained in support of fan."
   new_cones = _get_refinable_facets(Sigma, new_ray, refinable_cones, facet_normals, mc_old)
@@ -137,12 +137,12 @@ function _get_refinable_facets(
   Sigma::_FanLikeType,
   new_ray::AbstractVector{<:IntegerUnion},
   refinable_cones::Vector{Int},
-  facet_normals::AbstractMatrix,
+  facet_normals::MatElem,
   mc_old::IncidenceMatrix,
 )
   new_cones = Vector{Int}[]
   v_facet_signs = _facet_signs(facet_normals, new_ray)
-  R = pm_object(Sigma).RAYS
+  R = rays(Sigma)
   hd = pm_object(Sigma).HASSE_DIAGRAM
   hd_graph = Graph{Directed}(hd.ADJACENCY)
   hd_maximal_cones = inneighbors(hd_graph, hd.TOP_NODE + 1)
@@ -168,11 +168,11 @@ end
 
 function _get_refinable_facets_of_cone(
   mc_hd_index::Int,
-  facet_normals::AbstractMatrix,
+  facet_normals::MatElem,
   hd,
   hd_graph::Graph{Directed},
   v_facet_signs::AbstractVector,
-  R::AbstractMatrix,
+  R::AbstractVector{<:RayVector},
   mcfi::Vector{Int},
 )
   refinable_facets = Vector{Int}[]
@@ -182,7 +182,7 @@ function _get_refinable_facets_of_cone(
   for fc_index in inneighbors(hd_graph, mc_hd_index)
     fc_indices = Polymake.to_one_based_indexing(Polymake._get_entry(hd.FACES, fc_index - 1))
     length(fc_indices) > 0 || return refinable_facets # The only facet was 0
-    inner_ray = sum([R[i, :] for i in fc_indices])
+    inner_ray = sum([R[i] for i in fc_indices])
     fc_facet_signs = _facet_signs(facet_normals, inner_ray)
     if (!_check_containment_via_facet_signs(v_facet_signs[mcfi], fc_facet_signs[mcfi]))
       push!(refinable_facets, Vector{Int}(fc_indices))
@@ -191,11 +191,8 @@ function _get_refinable_facets_of_cone(
   return refinable_facets
 end
 
-# FIXME: Small workaround, since sign does not work for polymake types.
-_int_sign(e) = e > 0 ? 1 : (e < 0 ? -1 : 0)
-_facet_signs(F::AbstractMatrix, v::AbstractVector{<:IntegerUnion}) =
-  [_int_sign(e) for e in (F * Polymake.Vector{Polymake.Integer}(v))]
-_facet_signs(F::AbstractMatrix, v::AbstractVector) = [_int_sign(e) for e in (F * v)]
+_facet_signs(F::MatElem, v::AbstractVector) = sign.(Int, F * v)[:, 1]
+
 function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector{Int})
   for a in zip(smaller, bigger)
     p = prod(a)
@@ -305,4 +302,100 @@ Polyhedral fan in ambient dimension 5
 function Base.:*(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
   prod = Polymake.fan.product(pm_object(PF1), pm_object(PF2))
   return PolyhedralFan{QQFieldElem}(prod, QQ)
+end
+
+#################################################################################
+## Hyperplane arrangements
+#################################################################################
+
+@doc raw"""
+    arrangement_polynomial([ring::MPolyRing{<: FieldElem},] A::MatElem{<: FieldElem})
+
+Given some $A\in\mathbb{F}^{n\times d},$ return the product of the linear forms
+corresponding to the rows.
+
+Let $A$ be a $n\times d$ matrix with entries from a field $\mathbb{F}$.
+The rows of $A$  are the normal vectors for a hyperplane arrangement
+$$\mathcal{A} = \{H_{1},\dots,H_{n}:H_{i}\subset \mathbb{F}^{d}\}.$$
+We have $H_{i} = V(\alpha_{i})$, where $\alpha_{i}\in\mathbb{F}[x_{1},\dots,x_{d}]$
+is a linear form whose coefficients are the entries of the $i$th row.
+
+Then we have $$\cup_{H_{i}\in\mathcal{A}}H_{i} = V(\Pi^{n}_{i=1}\alpha_{i}).$$
+
+Optionally one can select to use columns instead of rows in the following way:
+```
+arrangement_polynomial(...  ; hyperplanes=:in_cols)
+```
+
+# Example using standard ring and then custom ring.
+```jldoctest
+julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
+[   1   2   5//2]
+[   0   0      1]
+[   2   3      2]
+[1//2   3      5]
+[   3   1      2]
+[   7   8      1]
+
+julia> factor(arrangement_polynomial(A))
+(1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+
+julia> R,_ = polynomial_ring(QQ, ["x", "y", "z"])
+(Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
+
+julia> factor(arrangement_polynomial(R, A))
+(1//4) * (2*x + 3*y + 2*z) * (7*x + 8*y + z) * (x + 6*y + 10*z) * (2*x + 4*y + 5*z) * z * (3*x + y + 2*z)
+```
+
+To use the columns instead, proceed in the following way:
+```jldoctest
+julia> A = matrix(QQ,[1 0 2 1//2 3 7;2 0 3 3 1 8;5//2 1 2 5 2 1]);
+
+julia> factor(arrangement_polynomial(A; hyperplanes=:in_cols))
+(1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
+```
+"""
+function arrangement_polynomial(A::MatElem{<:FieldElem}; hyperplanes=:in_rows)
+  F = base_ring(A)
+  nvars = hyperplanes == :in_rows ? ncols(A) : nrows(A)
+  P, _ = polynomial_ring(F, nvars; cached=false)
+  return arrangement_polynomial(P, A; hyperplanes)
+end
+function arrangement_polynomial(
+  ring::MPolyRing{<:FieldElem}, A::MatElem{<:FieldElem}; hyperplanes=:in_rows
+)
+  if hyperplanes == :in_cols
+    return arrangement_polynomial(ring, transpose(A))
+  else
+    @req dim(ring) == ncols(A) "dimension of ring must be number of rows of input matrix"
+    @req base_ring(A) == coefficient_ring(ring) "entries of input matrix must be coefficients from ring"
+    x = gens(ring)
+    return prod(A * x)
+  end
+end
+function arrangement_polynomial(A::AbstractVector{<:AbstractVector{<:FieldElem}})
+  @req length(A) > 0 "At least one hyperplane needs to be provided"
+  nvars = length(A[1])
+  @req all(x -> length(x) == nvars, A) "All hyperplanes need to have the same dimension"
+  F = parent(first(first(A)))
+  return arrangement_polynomial(matrix(F, A))
+end
+function arrangement_polynomial(
+  ring::MPolyRing{<:FieldElem}, A::AbstractVector{<:AbstractVector{<:FieldElem}}
+)
+  @req length(A) > 0 "At least one hyperplane needs to be provided"
+  nvars = length(A[1])
+  @req all(x -> length(x) == nvars, A) "All hyperplanes need to have the same dimension"
+  F = parent(first(first(A)))
+  return arrangement_polynomial(ring, matrix(F, A))
+end
+function arrangement_polynomial(A::AbstractMatrix{<:FieldElem}; hyperplanes=:in_rows)
+  F = parent(first(A))
+  return arrangement_polynomial(matrix(F, A); hyperplanes)
+end
+function arrangement_polynomial(
+  ring::MPolyRing{<:FieldElem}, A::AbstractMatrix{<:FieldElem}; hyperplanes=:in_rows
+)
+  F = parent(first(A))
+  return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end

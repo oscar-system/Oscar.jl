@@ -18,10 +18,10 @@ GAP.julia_to_gap(obj::QQFieldElem) = GAP.Globals.QUO(GAP.julia_to_gap(numerator(
 GAP.julia_to_gap(obj::PosInf) = GAP.Globals.infinity
 
 ## `ZZMatrix` to matrix of GAP integers
-GAP.julia_to_gap(obj::ZZMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true)
+GAP.julia_to_gap(obj::ZZMatrix) = GAP.julia_to_gap(Matrix(obj); recursive = true)
 
 ## `QQMatrix` to matrix of GAP rationals or integers
-GAP.julia_to_gap(obj::QQMatrix) = GAP.julia_to_gap(Matrix(obj), recursive = true)
+GAP.julia_to_gap(obj::QQMatrix) = GAP.julia_to_gap(Matrix(obj); recursive = true)
 
 ## element of cyclotomic field to GAP cyclotomic
 function GAP.julia_to_gap(obj::AbsSimpleNumFieldElem)
@@ -31,13 +31,13 @@ function GAP.julia_to_gap(obj::AbsSimpleNumFieldElem)
     v = zeros(QQFieldElem, N)
     coeffs = coefficients(obj)
     v[1:length(coeffs)] = coeffs
-    return GAPWrap.CycList(GAP.julia_to_gap(v, recursive = true))
+    return GAPWrap.CycList(GAP.julia_to_gap(v; recursive = true))
 end
 
-## `QQAbElem` to GAP cyclotomic
-function GAP.julia_to_gap(elm::QQAbElem)
+## `QQAbFieldElem` to GAP cyclotomic
+function GAP.julia_to_gap(elm::QQAbFieldElem)
     coeffs = [Nemo.coeff(elm.data, i) for i in 0:(elm.c-1)]  # QQFieldElem
-    return GAPWrap.CycList(GAP.GapObj(coeffs; recursive=true))
+    return GAPWrap.CycList(GapObj(coeffs; recursive = true))
 end
 
 ## matrix of elements of cyclotomic field to GAP matrix of cyclotomics
@@ -71,4 +71,18 @@ function GAP.julia_to_gap(
     @assert GAPWrap.IsSet(gapset)
 
     return gapset
+end
+
+## TODO: remove the following once GAP.jl has it
+## (This will be the case when the change from
+## https://github.com/oscar-system/GAP.jl/pull/989
+## will be available.)
+using JSON3
+
+function GAP.julia_to_gap(
+    obj::JSON3.Array,
+    recursion_dict::IdDict{Any,Any} = IdDict();
+    recursive::Bool = false)
+
+    return GAP.julia_to_gap(copy(obj), recursion_dict; recursive)
 end

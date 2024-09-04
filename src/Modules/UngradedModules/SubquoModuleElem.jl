@@ -90,7 +90,7 @@ function repres(v::SubquoModuleElem)
   if !isdefined(v, :repres)
     @assert isdefined(v, :coeffs) "neither coeffs nor repres is defined on a SubquoModuleElem"
     M = parent(v)
-    v.repres = sum(a*M.sub[i] for (i, a) in v.coeffs; init=zero(M.sub))
+    v.repres = sum(a*M.sub[i] for (i, a) in coordinates(v); init=zero(M.sub))
   end
   return v.repres
 end
@@ -539,7 +539,6 @@ function sub(F::FreeMod{T}, s::SubquoModule{T}; cache_morphism::Bool=false) wher
   @assert !isdefined(s, :quo)
   @assert s.F === F
   emb = hom(s, F, elem_type(F)[repres(x) for x in gens(s)]; check=false)
-  #emb = hom(s, F, [FreeModElem(x.repres.coords, F) for x in gens(s)])
   set_attribute!(s, :canonical_inclusion => emb)
   cache_morphism && register_morphism!(emb)
   return s, emb
@@ -624,7 +623,7 @@ Submodule with 3 generators
 represented as subquotient with no relations.
 Codomain:
 =========
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 ```
 """
 function sub(M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; cache_morphism::Bool=false) where T
@@ -822,7 +821,7 @@ julia> proj
 Map with following data
 Domain:
 =======
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 Codomain:
 =========
 Subquotient of Submodule with 1 generator
@@ -934,7 +933,9 @@ end
 Return the generators of `M`.
 """
 function gens(M::SubquoModule{T}) where T
-  return SubquoModuleElem{T}[gen(M,i) for i=1:ngens(M)]
+  R = base_ring(M)
+  e = R(1)
+  return [SubquoModuleElem{T}(sparse_row(R, [i], [e]), M) for i in 1:ngens(M)]
 end
 
 @doc raw"""
@@ -944,9 +945,7 @@ Return the `i`th generator of `M`.
 """
 function gen(M::SubquoModule{T}, i::Int) where T
   R = base_ring(M)
-  v::SRow{T} = sparse_row(R)
-  v.pos = [i]
-  v.values = [R(1)]
+  v = sparse_row(R, [i], [R(1)])
   return SubquoModuleElem{T}(v, M)
 end
 
@@ -962,7 +961,9 @@ number_of_generators(M::SubquoModule) = number_of_generators(M.sub)
 
 Given an `R`-module `M`, return `R`.
 """
-base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M.F)
+base_ring(M::SubquoModule) = base_ring(M.F)::base_ring_type(M)
+
+base_ring_type(::Type{SubquoModule{T}}) where {T} = base_ring_type(FreeMod{T})
 
 @doc raw"""
     zero(M::SubquoModule)
@@ -982,7 +983,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x^2+y^2;]
 [x^2 + y^2]
@@ -1021,7 +1022,7 @@ eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
 function *(a::FreeModElem, b::Vector{FreeModElem})
   @assert dim(parent(a)) == length(b)
   s = zero(parent(a))
-  for (p,v) = a.coords
+  for (p,v) in coordinates(a)
     s += v*b[p]
   end
   return s
@@ -1038,7 +1039,7 @@ julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
-Free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 1 over R
 
 julia> A = R[x; y]
 [x]
@@ -1106,8 +1107,10 @@ end
 
 function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
+  isdefined(m, :coeffs) && is_zero(m.coeffs) && return true
+  is_zero(repres(m)) && return true
   if !isdefined(C, :quo)
-    return iszero(repres(m))
+    return false
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)

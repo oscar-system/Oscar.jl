@@ -8,7 +8,7 @@
 @doc raw"""
     cartan_matrix(fam::Symbol, rk::Int) -> ZZMatrix
 
-Returns the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
+Return the Cartan matrix of finite type, where `fam` is the family ($A$, $B$, $C$, $D$, $E$, $F$ $G$)
 and `rk` is the rank of the associated the root system; for $B$ and $C$ the rank has to be at least 2, for $D$ at least 4.
 The convention is $(a_{ij}) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
 
@@ -95,7 +95,7 @@ julia> cartan_matrix([(:A, 2), (:B, 2)])
 ```
 """
 function cartan_matrix(type::Vector{Tuple{Symbol,Int}})
-  @req length(type) > 0 "At least one type is required"
+  isempty(type) && return zero_matrix(ZZ, 0, 0)
 
   blocks = [cartan_matrix(t...) for t in type]
   return block_diagonal_matrix(blocks)
@@ -104,7 +104,7 @@ end
 @doc raw"""
     cartan_matrix(type::Tuple{Symbol,Int}...) -> ZZMatrix
 
-Returns a block diagonal matrix of indecomposable Cartan matrices as defined by type.
+Return a block diagonal matrix of indecomposable Cartan matrices as defined by type.
 For allowed values see `cartan_matrix(fam::Symbol, rk::Int)`.
 
 # Example
@@ -198,7 +198,7 @@ function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
   while any(undone)
     if head == tail
       head += 1
-      plan[head] = findfirst(undone)
+      plan[head] = findfirst(undone)::Int
       undone[plan[head]] = false
     end
 
@@ -251,7 +251,7 @@ end
 @doc raw"""
     cartan_bilinear_form(gcm::ZZMatrix; check::Bool=true) -> ZZMatrix
 
-Returns the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_symmetrizer`.
+Return the matrix of the symmetric bilinear form associated to the Cartan matrix from `cartan_symmetrizer`.
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a generalized Cartan matrix.
 
 # Example
@@ -273,7 +273,7 @@ end
 @doc raw"""
     cartan_type(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}
 
-Returns the Cartan type of a Cartan matrix `gcm` (currently only Cartan matrices of finite type are supported).
+Return the Cartan type of a Cartan matrix `gcm` (currently only Cartan matrices of finite type are supported).
 This function is left inverse to `cartan_matrix`, i.e. in the case of isomorphic types (e.g. $B_2$ and $C_2$)
 the ordering of the roots does matter (see the example below).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a Cartan matrix of finite type.
@@ -300,7 +300,7 @@ end
 @doc raw"""
     cartan_type_with_ordering(gcm::ZZMatrix; check::Bool=true) -> Vector{Tuple{Symbol, Int}}, Vector{Int}
 
-Returns the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
+Return the Cartan type of a Cartan matrix `gcm` together with a vector indicating a canonical ordering
 of the roots in the Dynkin diagram (currently only Cartan matrices of finite type are supported).
 The keyword argument `check` can be set to `false` to skip verification whether `gcm` is indeed a
 Cartan matrix of finite type.

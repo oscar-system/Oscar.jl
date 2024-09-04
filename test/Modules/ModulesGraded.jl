@@ -339,6 +339,12 @@ end
     @test codomain(psi) == N
     @test is_bijective(phi)
     @test is_bijective(psi)
+  I = ideal(Rg, [x^2, x*y, y])
+  A, _ = quo(Rg, I)
+  M = quotient_ring_as_module(A)
+  mp = presentation(M, minimal = true)
+  @test rank(mp[0]) == 1
+  @test rank(mp[1]) == 2
 end
 
 
@@ -1053,9 +1059,9 @@ end
   # To reproduce the string on the right hand side, evaluate
   #   `"$(Oscar.minimal_betti_table(M))"`
   # and insert the result here; after verification of the result!
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1"
 
-  @test "$(Oscar.minimal_betti_table(M))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1\n"
+  @test "$(Oscar.minimal_betti_table(M))" == "       0  1   2  3  4\n---------------------\n0    : 1  -   -  -  -\n1    : -  -   -  -  -\n2    : -  7  10  5  1\n---------------------\ntotal: 1  7  10  5  1"
 
   @test "$(Oscar.minimal_betti_table(I))" == "$(Oscar.minimal_betti_table(sub_F))"
 
@@ -1063,13 +1069,13 @@ end
   R, x = graded_polynomial_ring(QQ, :x => 1:7)
   I = ideal(R, [x[1]*x[2]*x[5], x[1]*x[2]*x[6], x[3]*x[4]*x[6], x[3]*x[4]*x[7], x[5]*x[7]])
   A, _ = quo(R, I)
-  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n-----------------\ntotal: 1  5  5  1\n"
+  @test "$(Oscar.minimal_betti_table(A))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  1  -  -\n2    : -  4  4  -\n3    : -  -  1  -\n4    : -  -  -  1\n-----------------\ntotal: 1  5  5  1"
 
   # another example due to Wolfram
   R, (x, y, z, w) = graded_polynomial_ring(QQ, [:x, :y, :z, :w])
   I = ideal(R, [w^2 - x*z, w*x - y*z, x^2 - w*y, x*y - z^2, y^2 - w*z])
   A, _ = quo(R, I)
-  @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n-----------------\ntotal: 1  5  5  1\n"
+  @test "$(Oscar.minimal_betti_table(free_resolution(A)))" == "       0  1  2  3\n-----------------\n0    : 1  -  -  -\n1    : -  5  5  -\n2    : -  -  -  1\n-----------------\ntotal: 1  5  5  1"
 end
 
 @testset "sheaf cohomology" begin
@@ -1225,3 +1231,17 @@ end
   M, _ = forget_grading(Omega)
   prune_with_map(M)
 end
+
+@testset "kernels FreeMod -> Subquo with gradings" begin
+  S, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
+  G = grading_group(S)
+  F0 = graded_free_module(S, [zero(G)])
+  F1 = graded_free_module(S, [-1])
+  M, _ = sub(F1, [F1[1]])
+  phi = hom(F0, M, [x*M[1]])
+  @test is_graded(phi)
+  K, inc = kernel(phi)
+end
+
+
+

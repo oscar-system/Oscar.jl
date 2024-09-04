@@ -1,4 +1,4 @@
-function word end
+isdefined(Oscar, :word) || function word end
 
 module LieAlgebras
 
@@ -9,7 +9,8 @@ import Oscar: GAPWrap, IntegerUnion, MapHeader
 import Random
 
 # not importet in Oscar
-using AbstractAlgebra: CacheDictType, ProductIterator, get_cached!, ordinal_number_string
+using AbstractAlgebra:
+  ProductIterator, _number_of_direct_product_factors, ordinal_number_string
 
 using AbstractAlgebra.PrettyPrinting
 
@@ -45,8 +46,9 @@ import ..Oscar:
   gen,
   gens,
   height,
-  hom_tensor,
   hom,
+  hom_direct_sum,
+  hom_tensor,
   ideal,
   identity_map,
   image,
@@ -81,9 +83,12 @@ import ..Oscar:
   ⊕,
   ⊗
 
+Oscar.@import_all_serialization_functions
+
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DirectSumLieAlgebra, DirectSumLieAlgebraElem
 export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
@@ -131,20 +136,27 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_negative_coroot
 export is_negative_coroot_with_index
+export is_negative_root
 export is_negative_root_with_index
+export is_positive_coroot
 export is_positive_coroot_with_index
+export is_positive_root
 export is_positive_root_with_index
+export is_root
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot
 export is_simple_coroot_with_index
+export is_simple_root
 export is_simple_root_with_index
 export lie_algebra
 export lmul, lmul!
@@ -197,31 +209,40 @@ function number_of_simple_roots end
 @alias n_roots number_of_roots
 @alias n_simple_roots number_of_simple_roots
 
+include("Types.jl")
 include("Combinatorics.jl")
+include("Util.jl")
+
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
-include("Util.jl")
 include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
+include("DirectSumLieAlgebra.jl")
+
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraHom.jl")
+
 include("LieAlgebraModule.jl")
 include("LieAlgebraModuleHom.jl")
+
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("serialization.jl")
 
 end # module LieAlgebras
 
 using .LieAlgebras
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
+export DirectSumLieAlgebra, DirectSumLieAlgebraElem
 export DualRootSpaceElem
 export LieAlgebra, LieAlgebraElem
 export LieAlgebraHom
@@ -260,20 +281,27 @@ export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
-export hom_direct_sum
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
 export is_cartan_matrix
 export is_cartan_type
+export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_negative_coroot
 export is_negative_coroot_with_index
+export is_negative_root
 export is_negative_root_with_index
+export is_positive_coroot
 export is_positive_coroot_with_index
+export is_positive_root
 export is_positive_root_with_index
+export is_root
 export is_root_with_index
 export is_self_normalizing
+export is_simple_coroot
 export is_simple_coroot_with_index
+export is_simple_root
 export is_simple_root_with_index
 export lie_algebra
 export lmul, lmul!

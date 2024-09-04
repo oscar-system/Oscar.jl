@@ -51,6 +51,8 @@ mutable struct MPolyPowersOfElement{
 
   R::RingType # the parent ring
   a::Vector{RingElemType} # the list of elements whose powers belong to this set
+  is_simplified::Bool
+  is_lightly_simplified::Bool
 
   function MPolyPowersOfElement(R::RingType, a::Vector{RingElemType}) where {RingType<:MPolyRing, RingElemType<:MPolyRingElem}
     for f in a 
@@ -58,7 +60,7 @@ mutable struct MPolyPowersOfElement{
       !iszero(f) || error("can not localize at the zero element")
     end
     k = coefficient_ring(R)
-    return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a)
+    return new{typeof(k), elem_type(k), RingType, RingElemType}(R, a, false, false)
   end
 end
 

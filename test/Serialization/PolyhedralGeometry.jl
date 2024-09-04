@@ -12,6 +12,25 @@ using Oscar: _integer_variables
       end
     end
 
+    @testset "Matroid" begin
+      @testset "Fano" begin
+        M = fano_matroid()
+        test_save_load_roundtrip(path, M) do loaded
+          @test sort(bases(M)) == sort(bases(loaded))
+          @test length(M) == length(loaded)
+          @test rank(M) == rank(loaded)
+        end
+      end
+      @testset "uniform" begin
+        M = uniform_matroid(2, 4)
+        test_save_load_roundtrip(path, M) do loaded
+          @test sort(bases(M)) == sort(bases(loaded))
+          @test length(M) == length(loaded)
+          @test rank(M) == rank(loaded)
+        end
+      end
+    end
+
     @testset "Cone" begin
       C = positive_hull([1 0; 0 1])
       test_save_load_roundtrip(path, C) do loaded
@@ -30,15 +49,30 @@ using Oscar: _integer_variables
 
     @testset "Polyhedron" begin
       square = cube(2)
+      f_vector(square)
       test_save_load_roundtrip(path, square) do loaded
         @test n_vertices(square) == n_vertices(loaded)
         @test dim(square) == dim(loaded)
         @test square == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
       end
-      
+
+      n2 = (QQBarField()(5))^(QQ(4//5))
+      c = cube(QQBarField(), 3, -1, n2)
+      f_vector(c)
+      lattice_points(c)
+      test_save_load_roundtrip(path, c) do loaded
+        @test n_vertices(c) == n_vertices(loaded)
+        @test dim(c) == dim(loaded)
+        @test c == loaded
+        @test Polymake.exists(Oscar.pm_object(loaded), "HASSE_DIAGRAM.DECORATION")
+      end
+
       d_hedron = dodecahedron()
       facets(d_hedron)
       vertices(d_hedron)
+      f_vector(d_hedron)
+      lattice_points(d_hedron)
 
       dict_ps = Dict{String, Any}(
         "unprecise" => polyhedron(
@@ -97,7 +131,7 @@ using Oscar: _integer_variables
         @test feasible_region(LP) == feasible_region(loaded)
       end
     end
-    
+
     @testset "MixedIntegerLinearProgram" begin
       P = cube(3)
       MILP = mixed_integer_linear_program(

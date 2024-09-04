@@ -8,11 +8,13 @@ and they contain the same elements.
 """
 struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem} 
    G::T                    # big group containing the subgroup and the element
-   H::T                    # subgroup
+   H::GAPGroup             # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
    X::GapObj               # GapObj(H*repr)
 end
+
+GAP.julia_to_gap(obj::GroupCoset) = obj.X
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
@@ -22,7 +24,7 @@ function _group_coset(G::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol
 end
 
 function ==(x::GroupCoset, y::GroupCoset)
-   return x.X == y.X && x.side == y.side
+   return GapObj(x) == GapObj(y) && x.side == y.side
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
@@ -30,19 +32,19 @@ function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
   io = pretty(io)
   println(io, "$side coset of ", Lowercase(), x.H)
   print(io, Indent())
-  println(io, "with representative ", x.repr)
+  println(io, "with representative ", representative(x))
   print(io, "in ", Lowercase(), x.G)
   print(io, Dedent())
 end
 
 function Base.show(io::IO, x::GroupCoset)
   side = x.side === :left ? "Left" : "Right"
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$side coset of a group")
   else
     print(io, "$side coset of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " with representative ", x.repr)
+    print(terse(io), Lowercase(), x.H, " with representative ", representative(x))
   end
 end
 
@@ -71,9 +73,8 @@ Right coset of Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
-   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
-   return _group_coset(parent(g), H, g, :right, GAP.Globals.RightCoset(H.X,g.X))
+   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(H)) "H is not a subgroup of parent(g)"
+   return _group_coset(parent(g), H, g, :right, GAPWrap.RightCoset(GapObj(H), GapObj(g)))
 end
 
 """
@@ -100,9 +101,8 @@ Left coset of Sym(3)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
-   @assert elem_type(H) == typeof(g)
-   @req GAPWrap.IsSubset(parent(g).X, H.X) "H is not a subgroup of parent(g)"
-   return _group_coset(parent(g), H, g, :left, GAP.Globals.RightCoset(GAP.Globals.ConjugateSubgroup(H.X,GAP.Globals.Inverse(g.X)),g.X))
+   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(H)) "H is not a subgroup of parent(g)"
+   return _group_coset(parent(g), H, g, :left, GAPWrap.RightCoset(GAPWrap.ConjugateSubgroup(GapObj(H), GAPWrap.Inverse(GapObj(g))), GapObj(g)))
 end
 
 
@@ -126,24 +126,24 @@ Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
 function Base.:*(c::GroupCoset, y::GAPGroupElem)
    @assert y in c.G "element not in the group"
    if c.side == :right
-      return right_coset(c.H, c.repr*y)
+      return right_coset(c.H, representative(c)*y)
    else
-      return left_coset(c.H^y, c.repr*y)
+      return left_coset(c.H^y, representative(c)*y)
    end
 end
 
 function Base.:*(y::GAPGroupElem, c::GroupCoset)
    @assert y in c.G "element not in the group"
    if c.side == :left
-      return left_coset(c.H, y*c.repr)
+      return left_coset(c.H, y*representative(c))
    else
-      return right_coset(c.H^(y^-1), y*c.repr)
+      return right_coset(c.H^(y^-1), y*representative(c))
    end
 end
 
 function Base.:*(c::GroupCoset, d::GroupCoset)
    @req (c.side == :right && d.side == :left) "Wrong input"
-   return double_coset(c.H, c.repr*d.repr, d.H)
+   return double_coset(c.H, representative(c)*representative(d), d.H)
 end
 
 """
@@ -238,10 +238,10 @@ julia> is_bicoset(fH)
 true
 ```
 """
-is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(C.X)
+is_bicoset(C::GroupCoset) = GAPWrap.IsBiCoset(GapObj(C))
 
 """
-    right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the right cosets of `H` in `G`.
 
@@ -268,12 +268,13 @@ julia> collect(rc)
  Right coset of H with representative (1,4,3)
 ```
 """
-function right_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
 """
-    left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return the G-set that describes the left cosets of `H` in `G`.
 
@@ -293,7 +294,8 @@ Left cosets of
   Sym(4)
 ```
 """
-function left_cosets(G::T, H::T; check::Bool=true) where T<: GAPGroup
+function left_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
+#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :left, check = check)
 end
 
@@ -315,6 +317,8 @@ struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: Abst
    X::GapObj               # underlying *right* transversal in GAP
 end
 
+GAP.julia_to_gap(T::SubgroupTransversal) = T.X
+
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
   println(io, "$side transversal of length $(length(x)) of")
@@ -327,12 +331,12 @@ end
 
 function Base.show(io::IO, x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "$side transversal of groups")
   else
     print(io, "$side transversal of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H, " in ", Lowercase(), x.G)
+    print(terse(io), Lowercase(), x.H, " in ", Lowercase(), x.G)
   end
 end
 
@@ -341,7 +345,7 @@ Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
 function Base.getindex(T::SubgroupTransversal, i::Int)
-  res = group_element(T.G, T.X[i])
+  res = group_element(T.G, GapObj(T)[i])
   if T.side === :left
     res = inv(res)
   end
@@ -359,7 +363,7 @@ end
 
 
 """
-    right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
+    right_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the right cosets of `H` in `G`.
@@ -389,14 +393,17 @@ julia> collect(T)
  (1,4,3)
 ```
 """
-function right_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :right,
-              GAP.Globals.RightTransversal(G.X, H.X))
+function right_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :right,
+              GAPWrap.RightTransversal(GapObj(G), GapObj(H)))
 end
 
 """
-    left_transversal(G::T, H::T; check::Bool=true) where T<: Group
+    left_transversal(G::GAPGroup, H::GAPGroup; check::Bool=true)
 
 Return a vector containing a complete set of representatives for
 the left cosets for `H` in `G`.
@@ -426,14 +433,17 @@ julia> collect(T)
  (1,3,4)
 ```
 """
-function left_transversal(G::T, H::T; check::Bool=true) where T<: GAPGroup
-   @req (!check || GAPWrap.IsSubset(G.X, H.X)) "H is not a subgroup of G"
-   return SubgroupTransversal{T, T, eltype(T)}(G, H, :left,
-              GAP.Globals.RightTransversal(G.X, H.X))
+function left_transversal(G::T1, H::T2; check::Bool=true) where T1 <: GAPGroup where T2 <: GAPGroup
+   if check
+     @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of G"
+     _check_compatible(G, H)
+   end
+   return SubgroupTransversal{T1, T2, eltype(T1)}(G, H, :left,
+              GAPWrap.RightTransversal(GapObj(G), GapObj(H)))
 end
 
 Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
-Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(G.X))
+Base.iterate(G::GroupCoset) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
 function Base.iterate(G::GroupCoset, state)
   GAPWrap.IsDoneIterator(state) && return nothing
@@ -452,17 +462,31 @@ Two double cosets are equal if, and only if, they contain the same elements.
 struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
 # T=type of the group, S=type of the element
    G::T
-   H::T
-   K::T
+   H::GAPGroup
+   K::GAPGroup
    repr::S
-   X::GapObj
+   X::Ref{GapObj}
+   size::Ref{ZZRingElem}
+   
+   function GroupDoubleCoset(G::T, H::GAPGroup, K::GAPGroup, representative::S) where {T<: GAPGroup, S<:GAPGroupElem}
+     return new{T, S}(G, H, K, representative, Ref{GapObj}(), Ref{ZZRingElem}())
+   end 
+end
+
+function GAP.julia_to_gap(C::GroupDoubleCoset)
+  if !isassigned(C.X)
+    C.X[] = GAPWrap.DoubleCoset(GapObj(C.H), GapObj(representative(C)), GapObj(C.K))
+  end
+  return C.X[]
 end
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupDoubleCoset{T,S}}) where {T,S} = S
 
 function ==(x::GroupDoubleCoset, y::GroupDoubleCoset)
-   return x.X == y.X
+   # Avoid creating a GAP object if the result is obviously `false`.
+   isassigned(x.size) && isassigned(y.size) && order(x) != order(y) && return false
+   return GapObj(x) == GapObj(y)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
@@ -470,19 +494,19 @@ function Base.show(io::IO, ::MIME"text/plain", x::GroupDoubleCoset)
   println(io, "Double coset of ", Lowercase(), x.H)
   print(io, Indent())
   println(io, "and ", Lowercase(), x.K)
-  println(io, "with representative ", x.repr)
+  println(io, "with representative ", representative(x))
   print(io, "in ", Lowercase(), x.G)
   print(io, Dedent())
 end
 
 function Base.show(io::IO, x::GroupDoubleCoset)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Double coset of a group")
   else
     print(io, "Double coset of ")
     io = pretty(io)
-    print(IOContext(io, :supercompact => true), Lowercase(), x.H,
-      " and ", Lowercase(), x.K, " with representative ", x.repr)
+    print(terse(io), Lowercase(), x.H,
+      " and ", Lowercase(), x.K, " with representative ", representative(x))
   end
 end
 
@@ -514,16 +538,17 @@ Double coset of Sym(3)
   in Sym(5)
 ```
 """
-function double_coset(G::T, g::GAPGroupElem{T}, H::T) where T<: GAPGroup
-   @req GAPWrap.IsSubset(parent(g).X,G.X) "G is not a subgroup of parent(g)"
-   @req GAPWrap.IsSubset(parent(g).X,H.X) "H is not a subgroup of parent(g)"
-   return GroupDoubleCoset(parent(g),G,H,g,GAP.Globals.DoubleCoset(G.X,g.X,H.X))
+function double_coset(G::GAPGroup, g::GAPGroupElem, H::GAPGroup)
+#T what if g is in some subgroup of a group of which G, H are also a subgroup?
+   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(G)) "G is not a subgroup of parent(g)"
+   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(H)) "H is not a subgroup of parent(g)"
+   return GroupDoubleCoset(parent(g), G, H, g)
 end
 
 Base.:*(H::GAPGroup, g::GAPGroupElem, K::GAPGroup) = double_coset(H,g,K)
 
 """
-    double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
+    double_cosets(G::GAPGroup, H::GAPGroup, K::GAPGroup; check::Bool=true)
 
 Return a vector of all the double cosets `HxK` for `x` in `G`.
 If `check == false`, do not check whether `H` and `K` are subgroups of `G`.
@@ -546,32 +571,43 @@ julia> double_cosets(G,H,K)
  Double coset of H and K with representative (1,4,3)
 ```
 """
-function double_cosets(G::T, H::T, K::T; check::Bool=true) where T<: GAPGroup
-   if !check
-      dcs = GAP.Globals.DoubleCosetsNC(G.X,H.X,K.X)
-   else
+function double_cosets(G::T, H::GAPGroup, K::GAPGroup; check::Bool=true) where T <: GAPGroup
+   if check
       @assert is_subset(H, G) "H is not a subgroup of G"
       @assert is_subset(K, G) "K is not a subgroup of G"
-      dcs = GAP.Globals.DoubleCosets(G.X,H.X,K.X)
    end
-   res = Vector{GroupDoubleCoset{T,elem_type(T)}}(undef, length(dcs))
-   for i = 1:length(res)
-     dc = dcs[i]
-     g = group_element(G, GAPWrap.Representative(dc))
-     res[i] = GroupDoubleCoset(G,H,K,g,dc)
+   dcs = GAPWrap.DoubleCosetRepsAndSizes(GapObj(G), GapObj(H), GapObj(K))
+   res = Vector{GroupDoubleCoset{T, elem_type(T)}}(undef, length(dcs))
+   for i in 1:length(res)
+     g = group_element(G, dcs[i][1])
+     C = GroupDoubleCoset(G, H, K, g)
+     n = dcs[i][2]
+     C.size[] = ZZRingElem(n)
+     res[i] = C
    end
-   return res
-   #return [GroupDoubleCoset(G,H,K,group_element(G.X,GAPWrap.Representative(dc)),dc) for dc in dcs]
+   return res 
 end
 
-
 """
-    order(C::Union{GroupCoset,GroupDoubleCoset})
+    order(::Type{T} = ZZRingElem, C::Union{GroupCoset,GroupDoubleCoset})
 
-Return the cardinality of the (double) coset `C`.
+Return the cardinality of the (double) coset `C`,
+as an instance of the type `T`.
 """
-order(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = GAPWrap.Size(C.X)
+order(C::Union{GroupCoset,GroupDoubleCoset}) = order(ZZRingElem, C)
+
+function order(::Type{T}, C::GroupCoset) where T <: IntegerUnion
+  return T(GAPWrap.Size(GapObj(C)))
+end
+
+function order(::Type{T}, C::GroupDoubleCoset) where T <: IntegerUnion
+  if !isassigned(C.size)
+    C.size[] = ZZRingElem(GAPWrap.Size(GapObj(C)))
+  end
+  return T(C.size[])
+end 
+
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = order(C)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})
@@ -582,7 +618,7 @@ using the random number generator `rng`.
 Base.rand(C::Union{GroupCoset,GroupDoubleCoset}) = Base.rand(Random.GLOBAL_RNG, C)
 
 function Base.rand(rng::Random.AbstractRNG, C::Union{GroupCoset,GroupDoubleCoset})
-  s = GAP.Globals.Random(GAP.wrap_rng(rng), C.X)
+  s = GAPWrap.Random(GAP.wrap_rng(rng), GapObj(C))
   return group_element(C.G, s)
 end
 
@@ -609,7 +645,7 @@ right_acting_group(C::GroupDoubleCoset) = C.K
 
 Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
 
-Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(G.X))
+Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
 function Base.iterate(G::GroupDoubleCoset, state)
   GAPWrap.IsDoneIterator(state) && return nothing
@@ -623,18 +659,19 @@ end
 Return a vector containing all elements belonging to all groups and cosets
 in `V`.
 """
-function intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
+function Base.intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
    if V[1] isa GAPGroup
       G = V[1]
    else
       G = V[1].G
    end
-   l = GAP.Obj([v.X for v in V])
-   ints = GAP.Globals.Intersection(l)
-   L = Vector{typeof(G)}(undef, length(ints))
+   l = GAP.Obj(V; recursive = true)
+   ints = GAPWrap.Intersection(l)
+   L = Vector{eltype(G)}(undef, length(ints))
    for i in 1:length(ints)
       L[i] = group_element(G,ints[i])
    end
 
    return L
 end
+#TODO:  Can this method get called at all?

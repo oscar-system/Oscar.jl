@@ -66,7 +66,7 @@ end
 
 function Base.show(io::IO, G::AbsGluing)
   io = pretty(io)
-  if get(io, :supercompact, false)
+  if is_terse(io)
     print(io, "Gluing")
   else
     print(io, "Gluing: ", Lowercase(), patches(G)[1], " -> ", Lowercase(), patches(G)[2])

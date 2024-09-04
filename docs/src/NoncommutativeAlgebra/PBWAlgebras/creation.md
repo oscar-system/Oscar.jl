@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating PBW-Algebras
@@ -37,7 +35,7 @@ Note that any  global monomial ordering on $\text{Mon}_{2n}(x, \partial)$ is adm
 The constructor below returns the algebras equipped with `degrevlex`.
 
 ```@docs
-    weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
+weyl_algebra(K::Ring, xs::AbstractVector{<:VarName})
 ```
 
 ### Universal Enveloping Algebras of Finite Dimensional Lie Algebras
@@ -52,7 +50,7 @@ where $[x_j, x_i]$ corresponds to evaluating the Lie bracket $[x_j, x_i]_\mathfr
 in $U(\mathfrak g)$ indeed form a $K$-basis for $U(\mathfrak g)$ is the content of the
 Poincar``\'{\text{e}}``-Birkhoff-Witt theorem (the names PBW-basis and PBW-algebra are derived from this fact).
 
-Note that any degree compatible global monomial ordering on $\N^n$ is admissible for $U(\mathfrak g)$.
+Note that any degree compatible global monomial ordering on $\mathbb{N}^n$ is admissible for $U(\mathfrak g)$.
 
 The constructors below return the algebras equipped with `degrevlex`.
 

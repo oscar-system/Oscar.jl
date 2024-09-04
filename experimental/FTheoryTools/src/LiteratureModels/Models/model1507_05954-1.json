@@ -40,25 +40,30 @@
     "model_descriptors": {
         "type": "hypersurface",
         "description": "U(1)xU(1) hypersurface model",
-        "gauge_algebra": ["u1", "u1"]
+        "gauge_algebra": ["u(1)", "u(1)"]
     },
     "model_data": {
         "base_dim": 2,
-        "model_sections": ["s8", "a1", "a2", "a3"],
-        "base_coordinates": ["s8", "a1", "a2", "a3", "s1", "s2", "s3", "s5", "s6", "b1", "b2", "b3"],
-        "auxiliary_base_grading": [
-            [0, 0, 0, 0,  6,  4,  2,  3, 1, -1, -1, -1],
-            [1, 0, 0, 0, -3, -2, -1, -1, 0,  1,  1,  1],
-            [0, 1, 0, 0, -2, -1,  0, -1, 0,  1,  0,  0],
-            [0, 0, 1, 0, -2, -1,  0, -1, 0,  0,  1,  0],
-            [0, 0, 0, 1, -2, -1,  0, -1, 0,  0,  0,  1]
+        "defining_classes": ["s8", "a1", "a2", "a3"],
+        "model_sections": ["s1", "s2", "s3", "s5", "s6", "s8", "b1", "b2", "b3", "a1", "a2", "a3"],
+        "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes": [
+            [6,  4, 2,  3, 1, 0, -1, -1, -1, 0, 0, 0],
+            [-3, -2, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0],
+            [-2, -1, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0],
+            [-2, -1, 0, -1, 0, 0, 0, 1, 0, 0, 1, 0],
+            [-2, -1, 0, -1, 0, 0, 0, 0, 1, 0, 0, 1]
         ],
         "fiber_ambient_space_rays": [[1, 0], [0, 1], [-1, -1]],
         "fiber_ambient_space_max_cones": [[1, 2], [2, 3], [3, 1]],
         "fiber_ambient_space_coordinates": ["u", "v", "w"],
         "fiber_ambient_space_name": "P2",
-        "D1": [3, 2, 1, 1, 1],
-        "D2": [1, 1, 0, 0, 0],
+        "fiber_twist_matrix": [
+            [3, 1, 0],
+            [2, 1, 0],
+            [1, 0, 0],
+            [1, 0, 0],
+            [1, 0, 0]
+        ],
         "hypersurface_equation": "u*(s1*u^2 + s2*u*v + s3*v^2 + s5*u*w + s6*v*w + s8*w^2) + (a1*v + b1*w) * (a2*v + b2*w) * (a3*v + b3*w)",
         "zero_section": ["0", "-b1", "a1"],
         "generating_sections": [
@@ -252,5 +257,5 @@
             ]
         ]
     },
-    "associated_models": ["model1507_05954-2.json"]
+    "birational_models": ["model1507_05954-2.json"]
 }
