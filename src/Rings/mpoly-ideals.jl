@@ -898,19 +898,24 @@ Multivariate polynomial ring in 2 variables over number field graded by
   y -> [1]
 ```
 """
-@attr Any function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr Vector{Tuple{typeof(I), typeof(I), ideal_type(change_base_ring(rationals_as_number_field()[1], base_ring(I))[1]), Int64}} function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
+  K, _ = rationals_as_number_field()
+  RK, _ = change_base_ring(K, R)
   if is_zero(I)
-     return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
+    return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(RK, zero(RK)), 1)]
   end
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(singular_polynomial_ring(I), singular_generators(I))
+  if isempty(d)
+    return Vector{Tuple{typeof(I), typeof(I), ideal_type(RK), Int64}}()
+  end
   decomp = d[:primary_decomp]
   absprimes = d[:absolute_primes]
   @assert length(decomp) == length(absprimes)
   V =  [(_map_last_var(R, decomp[i][1], 1, one(QQ))) for i in 1:length(decomp)]
   if length(V) == 1 && is_one(gen(V[1], 1))
-    return Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, Int64}[]
-  end 
+    return Vector{Tuple{typeof(I), typeof(I), ideal_type(RK), Int64}}()
+  end
   return [(V[i], _map_last_var(R, decomp[i][2], 1, one(QQ)),
          _map_to_ext(R, absprimes[i][1]),
          absprimes[i][2]::Int)
