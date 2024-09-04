@@ -160,7 +160,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
   obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
-  type_attr_map::Dict{String, Vector{Symbol}}
+  type_attr_map::Bool
 end
 
 # general loading of a reference
@@ -268,7 +268,7 @@ end
 
 const state_types = Union{SerializerState, DeserializerState}
 
-function attrs_list(s::U, T::Type) where U <: state_types
+function attrs_list(s::SerializerState, T::Type) 
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
 
