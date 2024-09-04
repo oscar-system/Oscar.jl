@@ -623,7 +623,6 @@ true
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer, with_attrs::Bool=true)
   s = deserializer_open(io, serializer_type, with_attrs)
-  
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
