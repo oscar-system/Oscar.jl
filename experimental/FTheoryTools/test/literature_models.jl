@@ -37,6 +37,7 @@ end
   @test journal_model_equation_number(t1) == "3.1"
   @test journal_model_page(t1) == "9"
   @test journal_model_section(t1) == "3"
+  @test journal_name(t1) == "Nucl. Phys. B"
   @test journal_pages(t1) == "1–47"
   @test journal_volume(t1) == "858"
   @test journal_year(t1) ==  "2012"

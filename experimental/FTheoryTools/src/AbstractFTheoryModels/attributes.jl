@@ -577,8 +577,8 @@ end
 @doc raw"""
     journal_name(m::AbstractFTheoryModel)
 
-Return the `journal_volume` of the published paper in which the given model was introduced.
-If no `journal_volume` are known, an error is raised.
+Return the `journal_name` of the published paper in which the given model was introduced.
+If no `journal_name` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -586,8 +586,8 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> journal_volume(m)
-"858"
+julia> journal_name(m)
+"Nucl. Phys. B"
 ```
 """
 function journal_name(m::AbstractFTheoryModel)
