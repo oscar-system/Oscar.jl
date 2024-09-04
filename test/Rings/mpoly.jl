@@ -216,6 +216,12 @@ end
   d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 5
 
+  d = @inferred absolute_primary_decomposition(ideal(R()))
+  @test length(d) == 1
+
+  d = @inferred absolute_primary_decomposition(ideal(R(1)))
+  @test isempty(d)
+
   # Issue 4039
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
   I = ideal(R, [x + 1, y + 1, y])
