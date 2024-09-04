@@ -134,21 +134,16 @@ function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel;
   @req has_attribute(m, :h13) "Verification of Euler characteristic of F-theory model requires h13"
   @req has_attribute(m, :h22) "Verification of Euler characteristic of F-theory model requires h22"
 
-  # Check if the answer is known
-  if has_attribute(m, :verify_euler_characteristic_from_hodge_numbers)
-    return get_attribute(m, :verify_euler_characteristic_from_hodge_numbers)::Bool
-  end
+  return get_attribute!(m, :verify_euler_characteristic_from_hodge_numbers) do
+    # Computer Euler characteristic from integrating c4
+    ec = euler_characteristic(m, check = check)
 
-  # Computer Euler characteristic from integrating c4
-  ec = euler_characteristic(m, check = check)
+    # Compute Euler characteristic from adding Hodge numbers
+    ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
 
-  # Compute Euler characteristic from adding Hodge numbers
-  ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
-
-  # Compute result of verification
-  h = (ec == ec2)
-  set_attribute!(m, :verify_euler_characteristic_from_hodge_numbers, h)
-  return h
+    # Compute result of verification
+    return ec == ec2
+  end::Bool
 end
 
 
