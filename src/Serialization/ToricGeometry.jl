@@ -1,13 +1,30 @@
 ################################################################################
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
-@register_serialization_type NormalToricVariety uses_id
 
-function save_object(s::SerializerState, ntv::NormalToricVarietyType)
-  save_object(s, ntv.polymakeNTV)
+@register_serialization_type NormalToricVariety uses_id [:cox_ring]
+
+
+function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
+  attrs = attrs_list(s, T)
+
+  if !isempty(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
+    save_data_dict(s) do
+      save_attrs(s, ntv)
+      save_object(s, ntv.polymakeNTV, :pm_data)
+    end
+  else
+    save_object(s, ntv.polymakeNTV)
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
+  if haskey(s, :pm_data)
+    ntv = T(load_object(s, Polymake.BigObject, :pm_data))
+    load_attrs(s, ntv)
+    
+    return ntv
+  end
   return T(load_object(s, Polymake.BigObject))
 end
 

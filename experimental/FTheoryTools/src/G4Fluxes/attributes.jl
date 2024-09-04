@@ -7,7 +7,7 @@
 
 Return the F-theory model for which this $G_4$-flux candidate is defined.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 
@@ -30,7 +30,7 @@ model(gf::G4Flux) = gf.model
 
 Return the cohomology class which defines the $G_4$-flux candidate.
 
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 

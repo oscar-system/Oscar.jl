@@ -42,7 +42,7 @@ ring with `check = false`. This will avoid this time consuming test.
 An example is in order.
 
 # Examples
-```jldoctest
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
 

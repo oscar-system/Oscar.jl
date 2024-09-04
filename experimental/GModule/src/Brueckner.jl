@@ -450,7 +450,7 @@ In particular Satz 15 c should be implemented.
 =#
 
 #= EXAMPLE
-F = free_group("a", "b"); a,b = gens(F);
+F = @free_group(:a, :b)
 G, hom = quo(F, [a^2*b*a^-1*b*a^-1*b^-1*a*b^-2,  a^2*b^-1*a*b^-1*a*b*a^
 -1*b^2])
 f1 = Oscar.RepPc.solvable_quotient(G)

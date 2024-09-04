@@ -1,49 +1,3 @@
-@attributes mutable struct AbstractLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  dim::Int
-  struct_consts::Matrix{<:SRow{C}}
-  s::Vector{Symbol}
-
-  # only set if known
-  root_system::RootSystem
-
-  function AbstractLieAlgebra{C}(
-    R::Field,
-    struct_consts::Matrix{<:SRow{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @assert struct_consts isa Matrix{sparse_row_type(R)} "Invalid structure constants type."
-    (n1, n2) = size(struct_consts)
-    @req n1 == n2 "Invalid structure constants dimensions."
-    dimL = n1
-    @req length(s) == dimL "Invalid number of basis element names."
-    if check
-      @req all(
-        r -> all(e -> parent(last(e)) === R, r), struct_consts
-      ) "Invalid structure constants."
-      @req all(iszero, struct_consts[i, i] for i in 1:dimL) "Not anti-symmetric."
-      @req all(
-        iszero, struct_consts[i, j] + struct_consts[j, i] for i in 1:dimL, j in 1:dimL
-      ) "Not anti-symmetric."
-      @req all(
-        iszero,
-        sum(
-          struct_consts[i, j][k] * struct_consts[k, l] +
-          struct_consts[j, l][k] * struct_consts[k, i] +
-          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL; init=sparse_row(R)
-        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
-      ) "Jacobi identity does not hold."
-    end
-    return new{C}(R, dimL, struct_consts, s)
-  end
-end
-
-struct AbstractLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::AbstractLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -62,40 +16,6 @@ dim(L::AbstractLieAlgebra) = L.dim
 
 _struct_consts(L::AbstractLieAlgebra{C}) where {C<:FieldElem} =
   L.struct_consts::Matrix{sparse_row_type(C)}
-
-###############################################################################
-#
-#   Root system getters
-#
-###############################################################################
-
-has_root_system(L::LieAlgebra) = isdefined(L, :root_system)
-
-function root_system(L::LieAlgebra)
-  @req has_root_system(L) "No root system known."
-  return L.root_system
-end
-
-@doc raw"""
-    chevalley_basis(L::AbstractLieAlgebra{C}) -> NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
-
-Return the Chevalley basis of the Lie algebra `L` in three vectors, stating first the positive root vectors, 
-then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
-to the order of the roots in the root system.
-"""
-function chevalley_basis(L::AbstractLieAlgebra)
-  @req has_root_system(L) "No root system known."
-  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
-
-  npos = n_positive_roots(root_system(L))
-  b = basis(L)
-  # root vectors
-  r_plus = b[1:npos]
-  r_minus = b[(npos + 1):(2 * npos)]
-  # basis for cartan algebra
-  h = b[(2 * npos + 1):dim(L)]
-  return (r_plus, r_minus, h)
-end
 
 ###############################################################################
 #
@@ -162,8 +82,35 @@ end
 #
 ###############################################################################
 
-function is_abelian(L::AbstractLieAlgebra)
-  return all(e -> iszero(length(e)), _struct_consts(L))
+@attr Bool function is_abelian(L::AbstractLieAlgebra)
+  return all(iszero, _struct_consts(L))
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(L::AbstractLieAlgebra) = isdefined(L, :root_system)
+
+function root_system(L::AbstractLieAlgebra)
+  @req has_root_system(L) "no root system known."
+  return L.root_system
+end
+
+function chevalley_basis(L::AbstractLieAlgebra)
+  @req has_root_system(L) "no root system known."
+  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
+
+  npos = n_positive_roots(root_system(L))
+  b = basis(L)
+  # root vectors
+  r_plus = b[1:npos]
+  r_minus = b[(npos + 1):(2 * npos)]
+  # basis for cartan algebra
+  h = b[(2 * npos + 1):dim(L)]
+  return (r_plus, r_minus, h)
 end
 
 ###############################################################################

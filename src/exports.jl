@@ -2,6 +2,7 @@
 # execute:  LC_COLLATE=C sort < src/exports.jl > dummy ; mv dummy src/exports.jl
 export *
 export @check
+export @free_group
 export @pbw_relations
 export @perm
 export @permutation_group
@@ -318,6 +319,8 @@ export character_table
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
+export chern_class
+export chern_classes
 export chief_series, has_chief_series, set_chief_series
 export chow_ring
 export circuits

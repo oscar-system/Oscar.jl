@@ -807,7 +807,7 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
       continue
     end
     T = action(C, r)
-    push!(chr, (c, trace(matrix(T))))
+    push!(chr, (c, K(trace(matrix(T)))))
   end
   return chr
 end
@@ -1872,7 +1872,7 @@ function Oscar.gmodule(T::Union{Type{CyclotomicField}, Type{AbsSimpleNumField}},
   N = gmodule(T, M)
   c = get_attribute(M, :_character)
   if c !== nothing
-    set_attribute!(N, :_character => c)
+    set_attribute!(N, :_character => [(x[1], base_ring(N)(x[2])) for x = c])
   end
   c = get_attribute(M, :_character_field)
   if c !== nothing

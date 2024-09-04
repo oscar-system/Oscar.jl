@@ -31,6 +31,7 @@ mutable struct SerializerState
   refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
+  type_attr_map::Dict{String, Vector{Symbol}}
 end
 
 function begin_node(s::SerializerState)
@@ -142,6 +143,7 @@ mutable struct DeserializerState
   obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
+  type_attr_map::Dict{String, Vector{Symbol}}
 end
 
 # general loading of a reference
@@ -212,26 +214,44 @@ end
 
 state(s::OscarSerializer) = s.state
 
-function serializer_open(io::IO, T::Type{<: OscarSerializer})
+function serializer_open(
+  io::IO,
+  T::Type{<: OscarSerializer},
+  type_attr_map::S) where S <: Union{Dict{String, Vector{Symbol}}, Nothing}
+  
   # some level of handling should be done here at a later date
-  return T(SerializerState(true, UUID[], io, nothing))
+  return T(SerializerState(true, UUID[], io, nothing, type_attr_map))
 end
 
-function deserializer_open(io::IO, T::Type{JSONSerializer})
+function deserializer_open(
+  io::IO,
+  T::Type{JSONSerializer},
+  type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
+
   obj = JSON3.read(io)
   refs = nothing
   if haskey(obj, refs_key)
     refs = obj[refs_key]
   end
-
-  return T(DeserializerState(obj, nothing, refs))
+  
+  return T(DeserializerState(obj, nothing, refs, type_attr_map))
 end
 
-function deserializer_open(io::IO, T::Type{IPCSerializer})
+function deserializer_open(
+  io::IO,
+  T::Type{IPCSerializer},
+  type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
   # @everywhere using Oscar
   # to hang. So we use a Dict here for now.
 
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
-  return T(DeserializerState(obj, nothing, nothing))
+  return T(DeserializerState(obj, nothing, nothing, type_attr_map))
 end
+
+const state_types = Union{SerializerState, DeserializerState}
+
+function attrs_list(s::U, T::Type) where U <: state_types
+  return get(s.type_attr_map, encode_type(T), Symbol[])
+end
+

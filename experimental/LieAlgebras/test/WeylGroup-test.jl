@@ -271,6 +271,42 @@ include(
     @test w^-4 == inv(w) * inv(w) * inv(w) * inv(w)
   end
 
+  @testset "Base.:(*)(x::WeylGroupElem, w::RootSpaceElem)" begin
+    let R = root_system(:A, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest root
+      @test one(W) * a == a
+      @test W([1]) * a == simple_root(R, 2)
+      @test W([2]) * a == simple_root(R, 1)
+      @test longest_element(W) * a == -a
+
+      a_copy = deepcopy(a)
+      b = W([1]) * a
+      @test a != b
+      @test a == a_copy
+      b = reflect(a, 1)
+      @test a != b
+      @test a == a_copy
+    end
+
+    let R = root_system(:B, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest (long) root
+      @test one(W) * a == a
+      @test W([1]) * a == a
+      @test W([2]) * a == simple_root(R, 1)
+      @test longest_element(W) * a == -a
+
+      a = simple_root(R, 1)
+      @test one(W) * a == a
+      @test W([1]) * a == -a
+      @test W([2]) * a == positive_root(R, n_positive_roots(R))
+      @test longest_element(W) * a == -a
+    end
+  end
+
   @testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
     R = root_system(:A, 2)
     W = weyl_group(R)
@@ -429,6 +465,64 @@ include(
 
       @test !isnothing(findfirst(==(wt), orb))
       @test allunique(orb)
+    end
+  end
+
+  @testset "Serialization" begin
+    mktempdir() do path
+      @testset "simple saving and loading" begin
+        W = weyl_group((:A, 2), (:B, 4))
+
+        test_save_load_roundtrip(path, W) do loaded
+          # nothing, cause `W === loaded` anyway
+        end
+
+        x = rand(W)
+        test_save_load_roundtrip(path, x) do loaded
+          @test parent(loaded) === W
+          @test word(loaded) == word(x)
+        end
+
+        test_save_load_roundtrip(path, gens(W)) do loaded
+          @test length(loaded) == ngens(W)
+          @test all(
+            word(loaded[i]) == word(gen(W, i)) for i in 1:ngens(W)
+          )
+        end
+      end
+
+      @testset "cyclic reference between R and W survives" begin
+        Oscar.reset_global_serializer_state()
+
+        R_filename = joinpath(path, "R.mrdi")
+        W_filename = joinpath(path, "W.mrdi")
+
+        R = root_system(:D, 5)
+        W = weyl_group(R)
+
+        save(R_filename, R)
+        save(W_filename, W)
+
+        Oscar.reset_global_serializer_state()
+
+        loaded_R = load(R_filename)
+        loaded_W = load(W_filename)
+
+        @test loaded_R === root_system(loaded_W)
+        @test loaded_W === weyl_group(loaded_R)
+
+        loaded_R = loaded_W = nothing # unset all references
+
+        Oscar.reset_global_serializer_state()
+
+        loaded_W = load(W_filename)
+        loaded_R = load(R_filename)
+
+        @test loaded_R === root_system(loaded_W)
+        @test loaded_W === weyl_group(loaded_R)
+
+        loaded_R = loaded_W = nothing # unset all references        
+      end
     end
   end
 end
