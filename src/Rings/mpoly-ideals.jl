@@ -898,7 +898,7 @@ Multivariate polynomial ring in 2 variables over number field graded by
   y -> [1]
 ```
 """
-@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr Any function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
   if is_zero(I)
      return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
@@ -917,7 +917,7 @@ Multivariate polynomial ring in 2 variables over number field graded by
          for i in 1:length(decomp)]
 end
 
-@attr function absolute_primary_decomposition(
+@attr Any function absolute_primary_decomposition(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
@@ -1204,7 +1204,7 @@ julia> L = equidimensional_decomposition_weak(I)
  Ideal with 1 generator
 ```
 """
-@attr function equidimensional_decomposition_weak(I::MPolyIdeal)
+@attr Any function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
   iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -1230,7 +1230,7 @@ julia> L = equidimensional_decomposition_weak(I)
   return V
 end
 
-@attr function equidimensional_decomposition_weak(
+@attr Any function equidimensional_decomposition_weak(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
@@ -1278,7 +1278,7 @@ julia> L = equidimensional_decomposition_radical(I)
  Ideal (x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 ```
 """
-@attr function equidimensional_decomposition_radical(I::MPolyIdeal)
+@attr Any function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
@@ -1305,7 +1305,7 @@ julia> L = equidimensional_decomposition_radical(I)
   return V
 end
 
-@attr function equidimensional_decomposition_radical(
+@attr Any function equidimensional_decomposition_radical(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)

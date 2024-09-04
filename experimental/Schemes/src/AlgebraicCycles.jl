@@ -374,7 +374,7 @@ function Base.show(io::IO, D::AlgebraicCycle)
 end
 
 
-@attr function dim(D::AlgebraicCycle)
+@attr Any function dim(D::AlgebraicCycle)
   result = -1
   for I in components(D)
     d = dim(I)

@@ -1065,7 +1065,7 @@ end
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return
 the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
 """
-@attr function dual(M::SheafOfModules)
+@attr Any function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
   F = free_module(OOX, ["1"])
   return HomSheaf(M, F)
@@ -1431,7 +1431,7 @@ end
 end
 
 #@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
-@attr function trivializing_covering(M::AbsCoherentSheaf)
+@attr Any function trivializing_covering(M::AbsCoherentSheaf)
   X = scheme(M)
   OOX = OO(X)
   patch_list = Vector{AbsAffineScheme}()
@@ -1466,7 +1466,7 @@ function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
   return C
 end
 
-@attr function trivializing_covering(M::HomSheaf)
+@attr Any function trivializing_covering(M::HomSheaf)
   X = scheme(M)
   OOX = OO(X)
   # The problem is that every module of a HomSheaf must know that it is
