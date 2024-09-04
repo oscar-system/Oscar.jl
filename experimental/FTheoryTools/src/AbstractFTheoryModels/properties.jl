@@ -48,7 +48,7 @@ julia> is_partially_resolved(t2)
 true
 ```
 """
-is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)
+is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)::Bool
 
 
 
@@ -179,5 +179,5 @@ function is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
   return get_attribute!(m, :is_calabi_yau) do
     return is_trivial(chern_class(m, 1, check = check))
-  end
+  end::Bool
 end
