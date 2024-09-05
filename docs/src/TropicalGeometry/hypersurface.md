@@ -67,7 +67,20 @@ julia> maxPol = maximal_polyhedra(TropH)
  Polytope in ambient dimension 2
  Polyhedron in ambient dimension 2
 ```
-The polyhedrons are the unbounded edges, and the polytopes are the bounded edges. This is also made clear if we ask for the vertices of each of the maximal polyhedra (the bounded edges have a vertex at each end, while the unbounded only have one vertex).
+The polyhedrons are the unbounded edges, and the polytopes are the bounded edges.
+
+The incidence matrix of the maximal polyhedra is a list of the relations between the elements of `vertices_and_rays(TropH)`. 
+From these relations, we can draw the hypersurface. However, one should be careful, as there is no distinction between vertices and rays in the incidence matrix.
+```jldoctest exampleHypersurface
+julia> IncidenceMatrix(maxPol)
+5×5 IncidenceMatrix
+[1, 4]
+[1, 5]
+[3, 4]
+[4, 5]
+[2, 5]
+```
+This is made clearer if we ask for the vertices of each of the maximal polyhedra (the bounded edges have a vertex at each end, while the unbounded only have one vertex).
 ```jldoctest exampleHypersurface
 julia> vertices.(maxPol)
 5-element Vector{SubObjectIterator{PointVector{QQFieldElem}}}:
@@ -77,7 +90,7 @@ julia> vertices.(maxPol)
  [[-1//2, 1//2], [1//2, -1//2]]
  [[1//2, -1//2]]
 ```
-Instead of being between two vertices, the unbounded edges are defined by a vertex and a ray.
+Instead of being between two vertices, the unbounded edges are defined by a vertex and a ray. These rays can be seen in the following way.
 ```jldoctest exampleHypersurface
 julia> rays.(maxPol)
 5-element Vector{SubObjectIterator{RayVector{QQFieldElem}}}:
