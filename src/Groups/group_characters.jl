@@ -241,7 +241,7 @@ julia> [length(c) for c in conjugacy_classes(tbl)] == class_lengths(tbl)
 true
 ```
 """
-@attr function conjugacy_classes(tbl::GAPGroupCharacterTable)
+@attr Any function conjugacy_classes(tbl::GAPGroupCharacterTable)
     G = group(tbl)
 
     # If `GapObj(tbl)` does not yet store conjugacy classes

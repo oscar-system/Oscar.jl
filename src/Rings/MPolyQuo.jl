@@ -558,7 +558,7 @@ end
 # and `MPolyQuoLocRing` together with their ideals.
 # We return the preimage of the given ideal under the
 # canonical map from the underlying free polynomial ring.
-@attr function saturated_ideal(I::MPolyQuoIdeal)
+@attr Any function saturated_ideal(I::MPolyQuoIdeal)
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J

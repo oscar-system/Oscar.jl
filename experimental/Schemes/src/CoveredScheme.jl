@@ -239,7 +239,7 @@ end
 end
 
 # coefficient ring an MPolyAnyRing
-@attr function standard_covering(X::AbsProjectiveScheme{CRT, <:Union{<:MPolyDecRing, <:MPolyQuoRing}}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
+@attr Any function standard_covering(X::AbsProjectiveScheme{CRT, <:Union{<:MPolyDecRing, <:MPolyQuoRing}}) where {CRT<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyRing, <:MPolyQuoRing}}
   Y = base_scheme(X)
   R = ambient_coordinate_ring(Y)
   kk = coefficient_ring(R)
