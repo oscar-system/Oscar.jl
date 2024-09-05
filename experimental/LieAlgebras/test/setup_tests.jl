@@ -298,14 +298,7 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
                 occursin(
                   "cyclotomic field",
                   lowercase(sprint(print, "text/plain", coefficient_ring(V))),
-                ) # cyclotomic fields are printed as number fields after (de)serialization
-                || Oscar.LieAlgebras._is_standard_module(V)     # TODO: make work
-                || Oscar.LieAlgebras._is_dual(V)[1]             # TODO: make work
-                || Oscar.LieAlgebras._is_direct_sum(V)[1]       # TODO: make work
-                || Oscar.LieAlgebras._is_tensor_product(V)[1]   # TODO: make work
-                || Oscar.LieAlgebras._is_exterior_power(V)[1]   # TODO: make work
-                || Oscar.LieAlgebras._is_symmetric_power(V)[1]  # TODO: make work
-                || Oscar.LieAlgebras._is_tensor_power(V)[1],     # TODO: make work
+                ), # cyclotomic fields are printed as number fields after (de)serialization
             )),
           ) do loaded
             # nothing, cause `V === loaded` anyway
