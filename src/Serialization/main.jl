@@ -254,6 +254,8 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
+  !s.with_attrs && return
+
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
       set_attribute!(obj, attr, load_typed_object(s, attr))
@@ -621,8 +623,7 @@ true
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer, with_attrs::Bool=true)
-  s = state(deserializer_open(io, serializer_type,
-                              with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
+  s = state(deserializer_open(io, serializer_type, with_attrs))
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))

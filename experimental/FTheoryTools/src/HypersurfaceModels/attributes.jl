@@ -82,7 +82,7 @@ Weierstrass model over a not fully specified base -- F-theory weierstrass model 
 function weierstrass_model(h::HypersurfaceModel)
   @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
   w = get_attribute(h, :weierstrass_model)
-  if typeof(w) == String
+  if w isa String
     directory = joinpath(dirname(@__DIR__), "LiteratureModels/")
     model_indices = JSON.parsefile(directory * "model_indices.json")
     if is_base_space_fully_specified(h)
