@@ -75,6 +75,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
