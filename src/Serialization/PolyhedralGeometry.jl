@@ -96,11 +96,7 @@ end
 
 function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
   lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
-  _internal_save_lp(
-    lp_filename,
-    pm_object(lp.feasible_region),
-    lp.polymake_lp,
-    lp.convention == :min ? true : false)
+  save_lp(lp_filename, lp)
 
   save_object(s, basename(lp_filename))
 end
