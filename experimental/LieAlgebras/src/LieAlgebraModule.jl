@@ -419,18 +419,18 @@ end
 ###############################################################################
 
 function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
-  return V1.dim == V2.dim &&
-         V1.s == V2.s &&
-         V1.L == V2.L &&
-         V1.transformation_matrices == V2.transformation_matrices
+  return dim(V1) == dim(V2) &&
+         symbols(V1) == symbols(V2) &&
+         base_lie_algebra(V1) == base_lie_algebra(V2) &&
+         transformation_matrices(V1) == transformation_matrices(V2)
 end
 
 function Base.hash(V::LieAlgebraModule, h::UInt)
   b = 0x28b0c111e3ff8526 % UInt
-  h = hash(V.dim, h)
-  h = hash(V.s, h)
-  h = hash(V.L, h)
-  h = hash(V.transformation_matrices, h)
+  h = hash(dim(V), h)
+  h = hash(symbols(V), h)
+  h = hash(base_lie_algebra(V), h)
+  h = hash(transformation_matrices(V), h)
   return xor(h, b)
 end
 
@@ -478,8 +478,12 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Fiel
   )
 end
 
+function transformation_matrices(V::LieAlgebraModule{C}) where {C<:FieldElem}
+  return (V.transformation_matrices)::Vector{dense_matrix_type(C)}
+end
+
 function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:FieldElem}
-  return (V.transformation_matrices[i])::dense_matrix_type(C)
+  return transformation_matrices(V)[i]
 end
 
 ###############################################################################
