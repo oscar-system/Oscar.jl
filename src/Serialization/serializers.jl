@@ -226,26 +226,23 @@ function serializer_open(
   return SerializerState(serializer, true, UUID[], io, nothing, type_attr_map)
 end
 
-function deserializer_open(io::IO, T::Type{JSONSerializer}, with_attrs::Bool)
+function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
   refs = nothing
   if haskey(obj, refs_key)
     refs = obj[refs_key]
   end
 
-  return DeserializerState(serializer, obj, nothing, refs, type_attr_map)
+  return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(
-  io::IO,
-  serializer::IPCSerializer,
-  type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
+function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
   # @everywhere using Oscar
   # to hang. So we use a Dict here for now.
 
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
-  return DeserializerState(serializer, obj, nothing, nothing, type_attr_map)
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
 function handle_refs(s::SerializerState)
