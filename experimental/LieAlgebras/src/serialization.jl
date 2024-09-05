@@ -136,7 +136,7 @@ end
 #
 ###############################################################################
 
-@register_serialization_type LieAlgebraModule uses_id [:_dummy_attribute]
+@register_serialization_type LieAlgebraModule uses_id [:__serialize_construction]
 
 function save_object(s::SerializerState, V::LieAlgebraModule)
   save_data_dict(s) do
@@ -166,7 +166,7 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule})
 end
 
 function save_construction_data(s::SerializerState, V::LieAlgebraModule)
-  :_dummy_attribute in Oscar.attrs_list(s, typeof(V)) || return nothing # attribute saving disabled
+  :__serialize_construction in Oscar.attrs_list(s, typeof(V)) || return nothing # attribute saving disabled
   save_data_dict(s, :construction_data) do
     if _is_standard_module(V)
       save_object(s, save_as_ref(s, base_lie_algebra(V)), :is_standard_module)
