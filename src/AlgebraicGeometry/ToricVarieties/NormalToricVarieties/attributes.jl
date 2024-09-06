@@ -254,6 +254,8 @@ end
 
 Computes the Cox ring of the normal toric variety `v`.
 Note that [CLS11](@cite) refers to this ring as the "total coordinate ring".
+For uniformity with schemes, we also support the function
+`coordinate_ring` to refer to the Cox ring.
 
 # Examples
 ```jldoctest
@@ -266,6 +268,9 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   y1 -> [1]
   y2 -> [1]
   y3 -> [1]
+
+julia> cox_ring(p2) == coordinate_ring(p2)
+true
 ```
 """
 @attr MPolyRing function cox_ring(v::NormalToricVarietyType)
@@ -273,6 +278,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
     return cox_ring(S, v)
 end
 
+coordinate_ring(v::NormalToricVarietyType) = cox_ring(v)
 
 ########################################
 # Stanley-Reisner ideal
