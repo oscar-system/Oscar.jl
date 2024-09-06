@@ -720,7 +720,7 @@ end
 
 function load(filename::String; params::Any = nothing,
               type::Any = nothing, with_attrs::Bool=true,
-              serializer::Type{<:OscarSerializer}=JSONSerializer())
+              serializer::OscarSerializer=JSONSerializer())
   open(filename) do file
     return load(file; params=params, type=type, serializer=serializer)
   end
