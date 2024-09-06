@@ -65,7 +65,7 @@ hypersurface_equation_parametrization(h::HypersurfaceModel) = h.hypersurface_equ
     weierstrass_model(h::HypersurfaceModel)
 
 Return the Weierstrass model corresponding to the
-hypersurface model, provided that the latter is known.
+hypersurface model, provided that the former is known.
 
 ```jldoctest
 julia> t = literature_model(14)

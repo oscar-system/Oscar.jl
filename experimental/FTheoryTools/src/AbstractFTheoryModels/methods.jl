@@ -303,6 +303,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
   # Conduct elementary entry checks
   @req base_space(m) isa FamilyOfSpaces "The model must be defined over a family of spaces"
   @req haskey(concrete_data, "base") "The base space must be specified"
+  @req (concrete_data["base"] isa NormalToricVariety) "Currently, models over families of spaces can only be put over toric bases"
   @req ((m isa WeierstrassModel) || (m isa GlobalTateModel)) "Currently, only Tate or Weierstrass models can be put on a concrete base"
   
   # Work out the Weierstrass/Tate sections
@@ -362,7 +363,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "g")
         new_sec = mapper(parametrization["g"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["g"] = new_sec
@@ -374,7 +375,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a1")
         new_sec = mapper(parametrization["a1"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"]))) "Degree mismatch"
         end
         new_model_secs["a1"] = new_sec
@@ -384,7 +385,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a2")
         new_sec = mapper(parametrization["a2"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^2)) "Degree mismatch"
         end
         new_model_secs["a2"] = new_sec
@@ -394,7 +395,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a3")
         new_sec = mapper(parametrization["a3"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^3)) "Degree mismatch"
         end
         new_model_secs["a3"] = new_sec
@@ -404,7 +405,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a4")
         new_sec = mapper(parametrization["a4"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^4)) "Degree mismatch"
         end
         new_model_secs["a4"] = new_sec
@@ -414,7 +415,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a6")
         new_sec = mapper(parametrization["a6"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["a6"] = new_sec
