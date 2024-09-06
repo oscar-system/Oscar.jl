@@ -459,6 +459,19 @@ function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   )
 end
 
+@attr dense_matrix_type(C) function killing_matrix(L::LieAlgebra{C}) where {C<:FieldElem}
+  R = coefficient_ring(L)
+  A = zero_matrix(R, dim(L), dim(L))
+  for (i, adxi) in enumerate(adjoint_matrices(L))
+    for (j, adxj) in enumerate(adjoint_matrices(L))
+      i > j && continue # killing form is symmetric
+      val = tr(adxi * adxj)
+      A[j, i] = A[i, j] = val
+    end
+  end
+  return A
+end
+
 ###############################################################################
 #
 #   Root system getters

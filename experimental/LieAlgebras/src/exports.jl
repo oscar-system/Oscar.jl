@@ -66,6 +66,7 @@ export is_simple_coroot
 export is_simple_coroot_with_index
 export is_simple_root
 export is_simple_root_with_index
+export killing_matrix
 export lie_algebra
 export lmul, lmul!
 export longest_element
