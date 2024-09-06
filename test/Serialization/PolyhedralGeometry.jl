@@ -131,7 +131,7 @@ using Oscar: _integer_variables
         @test feasible_region(LP) == feasible_region(loaded)
       end
 
-      serializer=Oscar.LPSerializer(joinpath(path, "original.json")
+      serializer=Oscar.LPSerializer(joinpath(path, "original.json"))
       test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
