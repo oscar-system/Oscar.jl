@@ -541,7 +541,7 @@ end
 
 function save(filename::String, obj::Any;
               metadata::Union{MetaData, Nothing}=nothing,
-              serializer::Type{<:OscarSerializer}=JSONSerializer(),
+              serializer::OscarSerializer=JSONSerializer(),
               with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
