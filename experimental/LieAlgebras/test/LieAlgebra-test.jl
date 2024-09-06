@@ -93,4 +93,13 @@
     @test !is_nilpotent(L)
     @test !is_solvable(L)
   end
+
+  @testset "adjoint_matrix" begin
+    @testset for n in 2:4, F in [QQ, GF(2), GF(3)]
+      L = general_linear_lie_algebra(F, n)
+      x = L(rand(-10:10, dim(L)))
+      y = L(rand(-10:10, dim(L)))
+      @test coefficients(x * y) == coefficients(y) * adjoint_matrix(x)
+    end
+  end
 end

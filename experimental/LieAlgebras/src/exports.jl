@@ -20,6 +20,7 @@ export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
+export adjoint_matrix
 export base_lie_algebra
 export bilinear_form
 export bracket

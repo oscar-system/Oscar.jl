@@ -434,6 +434,33 @@ end
 
 ###############################################################################
 #
+#   Adjoint elements
+#
+###############################################################################
+
+@attr Vector{dense_matrix_type(C)} function adjoint_matrices(
+  L::LieAlgebra{C}
+) where {C<:FieldElem}
+  return map(1:dim(L)) do i
+    x = basis(L, i)
+    A = zero_matrix(coefficient_ring(L), dim(L), dim(L))
+    for (j, bj) in enumerate(basis(L))
+      A[j, :] = _matrix(bracket(x, bj))
+    end
+    return A
+  end
+end
+
+function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  L = parent(x)
+  return sum(
+    c * g for (c, g) in zip(coefficients(x), adjoint_matrices(L));
+    init=zero_matrix(coefficient_ring(L), dim(L), dim(L)),
+  )
+end
+
+###############################################################################
+#
 #   Root system getters
 #
 ###############################################################################
