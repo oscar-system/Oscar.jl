@@ -720,13 +720,7 @@ end
 
 function load(filename::String; params::Any = nothing,
               type::Any = nothing, with_attrs::Bool=true,
-              serializer_type::Type{<:OscarSerializer}=JSONSerializer)
-  if serializer_type <: MultiFileSerializer
-    serializer = serializer_type(splitext(filename)[1])
-  else
-    serializer = serializer_type()
-  end
-
+              serializer::Type{<:OscarSerializer}=JSONSerializer())
   open(filename) do file
     return load(file; params=params, type=type, serializer=serializer)
   end

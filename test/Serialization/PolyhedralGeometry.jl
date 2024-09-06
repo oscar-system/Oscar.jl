@@ -131,18 +131,11 @@ using Oscar: _integer_variables
         @test feasible_region(LP) == feasible_region(loaded)
       end
 
-      # currently cant pass the kws to setup tests
-      filename = joinpath(path, "original.json")
-      save(filename, LP; serializer_type=Oscar.LPSerializer)
-      loaded = load(filename; serializer_type=Oscar.LPSerializer)
-      @test feasible_region(LP) == feasible_region(loaded)
-      # should also test warning?
-
-      test_save_load_roundtrip(path, LP) do loaded
+      serializer=Oscar.LPSerializer(joinpath(path, "original.json")
+      test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
-
     end
 
     @testset "MixedIntegerLinearProgram" begin

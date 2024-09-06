@@ -238,10 +238,10 @@ end
 
 function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # @everywhere using Oscar
-  # to hang. So we use a Dict here for now.
-
+  # put_params to hang
+  #obj = JSON3.read(io)
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
+
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
