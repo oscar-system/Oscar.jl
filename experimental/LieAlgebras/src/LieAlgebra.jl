@@ -472,6 +472,52 @@ end
   return A
 end
 
+@doc raw"""
+    is_ad_nilpotent(x::LieAlgebraElem{C}) -> Bool
+
+Return whether `x` is ad-nilpotent, i.e. whether the linear operator $\mathrm{ad}(x)$ is nilpotent.
+"""
+function is_ad_nilpotent(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  return is_nilpotent(adjoint_matrix(x))
+end
+
+@doc raw"""
+    any_non_ad_nilpotent_element(L::LieAlgebra{C}) -> LieAlgebraElem{C}
+
+Return an element of `L` that is not ad-nilpotent, or the zero element if all elements are ad-nilpotent.
+
+The used algorithm is described in [GIR96; Ch. 3](@cite).
+"""
+function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
+  if dim(L) <= 1
+    # L is abelian and hence nilpotent
+  elseif characteristic(L) == 0
+    for x in basis(L)
+      !is_ad_nilpotent(x) && return x
+    end
+    for (i, x) in enumerate(basis(L))
+      for (j, y) in enumerate(basis(L))
+        i > j && continue
+        xy = x * y
+        !is_ad_nilpotent(xy) && return xy
+      end
+    end
+  else # characteristic > 0
+    x = basis(L, 1)
+    !is_ad_nilpotent(x) && return x
+    K = sub(L, [x]; is_basis=true)
+    while dim(K) < dim(L)
+      # find an element b in L \ K with [b,K]⊆K
+      N = normalizer(L, K)
+      b = basis(N, findfirst(b -> !(b in K), basis(N)))
+      !is_ad_nilpotent(b) && return b
+      K = sub(L, [basis(K); b]; is_basis=true)
+    end
+  end
+  set_attribute!(L, :is_nilpotent, true)
+  return zero(L)
+end
+
 ###############################################################################
 #
 #   Root system getters
