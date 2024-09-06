@@ -103,7 +103,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
   if s.obj isa String
-    Error("Loading this file requires using the LPSerializer")
+    error("Loading this file requires using the LPSerializer")
   end
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
