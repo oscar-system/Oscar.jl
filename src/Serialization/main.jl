@@ -541,17 +541,11 @@ end
 
 function save(filename::String, obj::Any;
               metadata::Union{MetaData, Nothing}=nothing,
-              serializer_type::Type{<:OscarSerializer}=JSONSerializer,
+              serializer::Type{<:OscarSerializer}=JSONSerializer(),
               with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
-
-  if serializer_type <: MultiFileSerializer
-    serializer = serializer_type(splitext(filename)[1])
-  else
-    serializer = serializer_type()
-  end
   
   open(temp_file, "w") do file
     save(file, obj;
