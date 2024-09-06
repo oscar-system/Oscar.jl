@@ -415,10 +415,14 @@ function load_object(s::DeserializerState, ::Type{<:Dict}, params::Dict{Symbol, 
       key = parse(Int, string(k))
     elseif key_type <: Union{Symbol, String}
       key = key_type(k)
-    else
+    elseif serialize_with_params(key_type)
       load_node(s, i) do _
         # 1 is for first entry of tuple which is the key in this case
         key = load_object(s, key_type, params[:key_params], 1) 
+      end
+    else 
+      load_node(s,i) do _ 
+        key = load_object(s, key_type, 1)
       end
     end
 
