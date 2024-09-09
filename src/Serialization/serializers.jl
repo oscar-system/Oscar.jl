@@ -224,7 +224,7 @@ function serializer_open(
 end
 
 function deserializer_open(
-  io::Union{IO, String},
+  io::IO,
   T::Type{JSONSerializer},
   type_attr_map::S) where S <:Union{Dict{String, Vector{Symbol}}, Nothing}
 
