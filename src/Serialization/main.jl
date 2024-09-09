@@ -660,7 +660,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict_str = JSON3.write(jsondict)
     s = state(deserializer_open(IOBuffer(jsondict_str),
                                 serializer_type,
-                                with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
+                                with_attrs))
   end
 
   try
