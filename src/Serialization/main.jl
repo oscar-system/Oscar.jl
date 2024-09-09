@@ -254,6 +254,8 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
+  !s.with_attrs && return
+
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
       set_attribute!(obj, attr, load_typed_object(s, attr))
@@ -621,8 +623,7 @@ true
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
               serializer_type=JSONSerializer, with_attrs::Bool=true)
-  s = state(deserializer_open(io, serializer_type,
-                              with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
+  s = state(deserializer_open(io, serializer_type, with_attrs))
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
@@ -703,9 +704,16 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
+    if file_version > VERSION_NUMBER
+      @warn """
+      Attempted loading file stored with Oscar version $file_version
+      using Oscar version $VERSION_NUMBER
+      """
+    end
+    
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
-      @warn "Attempting to load file stored using a DEV version with commit $commit"
+      @warn "Attempted loading file stored using a DEV version with commit $commit"
     end
     rethrow(e)
   end

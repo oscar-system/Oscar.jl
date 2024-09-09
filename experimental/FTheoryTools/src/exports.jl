@@ -81,6 +81,7 @@ export has_journal_link
 export has_journal_model_equation_number
 export has_journal_model_page
 export has_journal_model_section
+export has_journal_name
 export has_journal_pages
 export has_journal_report_numbers
 export has_journal_volume
@@ -118,6 +119,7 @@ export journal_link
 export journal_model_equation_number
 export journal_model_page
 export journal_model_section
+export journal_name
 export journal_pages
 export journal_report_numbers
 export journal_volume
@@ -160,6 +162,7 @@ export set_journal_link
 export set_journal_model_equation_number
 export set_journal_model_page
 export set_journal_model_section
+export set_journal_name
 export set_journal_pages
 export set_journal_report_numbers
 export set_journal_volume

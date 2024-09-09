@@ -132,6 +132,116 @@ end
 
 ###############################################################################
 #
+#   Lie algebra modules
+#
+###############################################################################
+
+@register_serialization_type LieAlgebraModule uses_id [:__serialize_construction]
+
+function save_object(s::SerializerState, V::LieAlgebraModule)
+  save_data_dict(s) do
+    save_typed_object(s, base_lie_algebra(V), :lie_algebra)
+    save_object(s, dim(V), :dim)
+    save_object(s, transformation_matrices(V), :transformation_matrices)
+    save_object(s, symbols(V), :symbols)
+    save_construction_data(s, V)
+    save_attrs(s, V)
+  end
+end
+
+function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule})
+  L = load_typed_object(s, :lie_algebra)
+  R = coefficient_ring(L)
+  dim = load_object(s, Int, :dim)
+  transformation_matrices = load_object(
+    s, Vector, (dense_matrix_type(R), matrix_space(R, dim, dim)), :transformation_matrices
+  )
+  symbs = load_object(s, Vector, Symbol, :symbols)
+  V = load_construction_data(s, T)
+  if isnothing(V)
+    V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
+  end
+  load_attrs(s, V)
+  return V
+end
+
+function save_construction_data(s::SerializerState, V::LieAlgebraModule)
+  :__serialize_construction in Oscar.attrs_list(s, typeof(V)) || return nothing # attribute saving disabled
+  save_data_dict(s, :construction_data) do
+    if _is_standard_module(V)
+      save_object(s, save_as_ref(s, base_lie_algebra(V)), :is_standard_module)
+    elseif ((fl, W) = _is_dual(V); fl)
+      save_object(s, save_as_ref(s, W), :is_dual)
+    elseif ((fl, Vs) = _is_direct_sum(V); fl)
+      save_object(s, Vs, :is_direct_sum)
+    elseif ((fl, Vs) = _is_tensor_product(V); fl)
+      save_object(s, Vs, :is_tensor_product)
+    elseif ((fl, W, k) = _is_exterior_power(V); fl)
+      save_object(s, (W, k), :is_exterior_power)
+    elseif ((fl, W, k) = _is_symmetric_power(V); fl)
+      save_object(s, (W, k), :is_symmetric_power)
+    elseif ((fl, W, k) = _is_tensor_power(V); fl)
+      save_object(s, (W, k), :is_tensor_power)
+    end
+  end
+end
+
+function load_construction_data(s::DeserializerState, T::Type{<:LieAlgebraModule})
+  V = nothing
+  s.with_attrs && haskey(s, :construction_data) &&
+    load_node(s, :construction_data) do _
+      if haskey(s, :is_standard_module)
+        V = standard_module(load_typed_object(s, :is_standard_module))
+      elseif haskey(s, :is_dual)
+        W = load_typed_object(s, :is_dual)
+        V = dual(W)
+      elseif haskey(s, :is_direct_sum)
+        Vs = load_object(s, Vector, LieAlgebraModule, :is_direct_sum)
+        V = direct_sum(Vs...)
+      elseif haskey(s, :is_tensor_product)
+        Vs = load_object(s, Vector, LieAlgebraModule, :is_tensor_product)
+        V = tensor_product(Vs...)
+      elseif haskey(s, :is_exterior_power)
+        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_exterior_power)
+        V = exterior_power(W, k)[1]
+      elseif haskey(s, :is_symmetric_power)
+        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_symmetric_power)
+        V = symmetric_power(W, k)[1]
+      elseif haskey(s, :is_tensor_power)
+        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_tensor_power)
+        V = tensor_power(W, k)[1]
+      end
+    end
+  return V::Union{T,Nothing}
+end
+
+@register_serialization_type LieAlgebraModuleElem uses_params
+
+function save_object(s::SerializerState, x::LieAlgebraModuleElem)
+  save_object(s, coefficients(x))
+end
+
+function load_object(
+  s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
+)
+  return V(load_object(s, Vector, coefficient_ring(V)))
+end
+
+function save_type_params(s::SerializerState, v::LieAlgebraModuleElem)
+  save_data_dict(s) do
+    save_object(s, encode_type(typeof(v)), :name)
+    parent_x = parent(v)
+    parent_ref = save_as_ref(s, parent_x)
+    save_object(s, parent_ref, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraModuleElem})
+  return load_typed_object(s)
+end
+
+###############################################################################
+#
 #   Root systems
 #
 ###############################################################################

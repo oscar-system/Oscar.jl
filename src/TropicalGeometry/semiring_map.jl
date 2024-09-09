@@ -254,5 +254,5 @@ function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt
     c = valued_field(nu)(c)
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
     c *= valued_field(nu)(uniformizer(nu))^(-t_adic_valuation(c,uniformizer(nu)))
-    return residue_field(nu)(c)
+    return evaluate(numerator(c),0)
 end

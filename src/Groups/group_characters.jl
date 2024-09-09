@@ -158,7 +158,7 @@ julia> characteristic(tbl % 2)
 characteristic(tbl::GAPGroupCharacterTable) = characteristic(Int, tbl)
 
 function characteristic(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
-    return T(tbl.characteristic)
+    return T(tbl.characteristic)::T
 end
 
 
@@ -241,7 +241,7 @@ julia> [length(c) for c in conjugacy_classes(tbl)] == class_lengths(tbl)
 true
 ```
 """
-@attr function conjugacy_classes(tbl::GAPGroupCharacterTable)
+@attr Any function conjugacy_classes(tbl::GAPGroupCharacterTable)
     G = group(tbl)
 
     # If `GapObj(tbl)` does not yet store conjugacy classes

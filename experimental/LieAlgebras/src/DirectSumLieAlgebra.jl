@@ -98,7 +98,7 @@ end
 #
 ###############################################################################
 
-@attr function is_abelian(L::DirectSumLieAlgebra)
+@attr Bool function is_abelian(L::DirectSumLieAlgebra)
   return all(is_abelian, L.summands)
 end
 

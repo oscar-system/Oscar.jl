@@ -221,7 +221,7 @@ with default covering
     3: [x_1_3, x_2_3]
 ```
 """
-@attr function underlying_scheme(Z::NormalToricVariety)
+@attr Any function underlying_scheme(Z::NormalToricVariety)
   @req is_pure(polyhedral_fan(Z)) "underlying_scheme is currently only supported for toric varieties whose fan is pure"
   patch_list = affine_open_covering(Z)
   for (k, A) in enumerate(patch_list)

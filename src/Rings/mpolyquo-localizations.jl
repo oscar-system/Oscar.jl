@@ -2019,11 +2019,11 @@ function jacobian_matrix(g::Vector{<:MPolyQuoLocRingElem})
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+@attr Bool function is_prime(I::MPolyQuoLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end
 
-@attr function _is_integral_domain(W::MPolyQuoLocRing)
+@attr Bool function _is_integral_domain(W::MPolyQuoLocRing)
   return is_prime(modulus(W))
 end
 
@@ -2050,7 +2050,7 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr function dim(I::MPolyQuoLocalizedIdeal)
+@attr Int function dim(I::MPolyQuoLocalizedIdeal)
   return dim(pre_image_ideal(I))
 end
 

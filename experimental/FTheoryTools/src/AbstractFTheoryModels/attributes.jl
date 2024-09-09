@@ -222,7 +222,7 @@ julia> arxiv_id(m)
 """
 function arxiv_id(m::AbstractFTheoryModel)
   @req has_arxiv_id(m) "No arxiv identifier known for this model"
-  return get_attribute(m, :arxiv_id)
+  return get_attribute(m, :arxiv_id)::String
 end
 
 
@@ -245,7 +245,7 @@ julia> arxiv_doi(m)
 """
 function arxiv_doi(m::AbstractFTheoryModel)
   @req has_arxiv_doi(m) "No arXiv DOI known for this model"
-  return get_attribute(m, :arxiv_doi)
+  return get_attribute(m, :arxiv_doi)::String
 end
 
 
@@ -268,7 +268,7 @@ julia> arxiv_link(m)
 """
 function arxiv_link(m::AbstractFTheoryModel)
   @req has_arxiv_link(m) "No arXiv link known for this model"
-  return get_attribute(m, :arxiv_link)
+  return get_attribute(m, :arxiv_link)::String
 end
 
 
@@ -291,7 +291,7 @@ julia> arxiv_model_equation_number(m)
 """
 function arxiv_model_equation_number(m::AbstractFTheoryModel)
   @req has_arxiv_model_equation_number(m) "No arXiv equation number known for this model"
-  return get_attribute(m, :arxiv_model_equation_number)
+  return get_attribute(m, :arxiv_model_equation_number)::String
 end
 
 
@@ -314,7 +314,7 @@ julia> arxiv_model_page(m)
 """
 function arxiv_model_page(m::AbstractFTheoryModel)
   @req has_arxiv_model_page(m) "No arXiv page number known for this model"
-  return get_attribute(m, :arxiv_model_page)
+  return get_attribute(m, :arxiv_model_page)::String
 end
 
 
@@ -337,7 +337,7 @@ julia> arxiv_model_section(m)
 """
 function arxiv_model_section(m::AbstractFTheoryModel)
   @req has_arxiv_model_section(m) "No arXiv section number known for this model"
-  return get_attribute(m, :arxiv_model_section)
+  return get_attribute(m, :arxiv_model_section)::String
 end
 
 
@@ -360,7 +360,7 @@ julia> arxiv_version(m)
 """
 function arxiv_version(m::AbstractFTheoryModel)
   @req has_arxiv_version(m) "No arXiv version known for this model"
-  return get_attribute(m, :arxiv_version)
+  return get_attribute(m, :arxiv_version)::String
 end
 
 
@@ -386,7 +386,7 @@ julia> birational_literature_models(m)
 """
 function birational_literature_models(m::AbstractFTheoryModel)
   @req has_birational_literature_models(m) "No birationally equivalent models known for this model"
-  return get_attribute(m, :birational_literature_models)
+  return get_attribute(m, :birational_literature_models)::Vector{String}
 end
 
 
@@ -409,7 +409,7 @@ julia> journal_doi(m)
 """
 function journal_doi(m::AbstractFTheoryModel)
   @req has_journal_doi(m) "No journal DOI known for this model"
-  return get_attribute(m, :journal_doi)
+  return get_attribute(m, :journal_doi)::String
 end
 
 
@@ -432,7 +432,7 @@ julia> journal_link(m)
 """
 function journal_link(m::AbstractFTheoryModel)
   @req has_journal_link(m) "No journal link known for this model"
-  return get_attribute(m, :journal_link)
+  return get_attribute(m, :journal_link)::String
 end
 
 
@@ -455,7 +455,7 @@ julia> journal_model_equation_number(m)
 """
 function journal_model_equation_number(m::AbstractFTheoryModel)
   @req has_journal_model_equation_number(m) "No journal equation number known for this model"
-  return get_attribute(m, :journal_model_equation_number)
+  return get_attribute(m, :journal_model_equation_number)::String
 end
 
 
@@ -478,7 +478,7 @@ julia> journal_model_page(m)
 """
 function journal_model_page(m::AbstractFTheoryModel)
   @req has_journal_model_page(m) "No journal page number known for this model"
-  return get_attribute(m, :journal_model_page)
+  return get_attribute(m, :journal_model_page)::String
 end
 
 
@@ -501,7 +501,7 @@ julia> journal_model_section(m)
 """
 function journal_model_section(m::AbstractFTheoryModel)
   @req has_journal_model_section(m) "No journal section number known for this model"
-  return get_attribute(m, :journal_model_section)
+  return get_attribute(m, :journal_model_section)::String
 end
 
 
@@ -523,7 +523,7 @@ julia> journal_pages(m)
 """
 function journal_pages(m::AbstractFTheoryModel)
   @req has_journal_pages(m) "No journal pages known for this model"
-  return get_attribute(m, :journal_pages)
+  return get_attribute(m, :journal_pages)::String
 end
 
 
@@ -548,7 +548,7 @@ julia> journal_report_numbers(m)
 """
 function journal_report_numbers(m::AbstractFTheoryModel)
   @req has_journal_report_numbers(m) "No journal report numbers known for this model"
-  return get_attribute(m, :journal_report_numbers)
+  return get_attribute(m, :journal_report_numbers)::Vector{String}
 end
 
 
@@ -570,15 +570,15 @@ julia> journal_volume(m)
 """
 function journal_volume(m::AbstractFTheoryModel)
   @req has_journal_volume(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_volume)
+  return get_attribute(m, :journal_volume)::String
 end
 
 
 @doc raw"""
     journal_name(m::AbstractFTheoryModel)
 
-Return the `journal_volume` of the published paper in which the given model was introduced.
-If no `journal_volume` are known, an error is raised.
+Return the `journal_name` of the published paper in which the given model was introduced.
+If no `journal_name` are known, an error is raised.
 
 ```jldoctest
 julia> m = literature_model(arxiv_id = "1109.3454", equation = "3.1")
@@ -586,13 +586,13 @@ Assuming that the first row of the given grading is the grading under Kbar
 
 Global Tate model over a not fully specified base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> journal_volume(m)
-"858"
+julia> journal_name(m)
+"Nucl. Phys. B"
 ```
 """
 function journal_name(m::AbstractFTheoryModel)
 @req has_journal_name(m) "No journal volume known for this model"
-  return get_attribute(m, :journal_name)
+  return get_attribute(m, :journal_name)::String
 end
 
 
@@ -614,7 +614,7 @@ julia> journal_year(m)
 """
 function journal_year(m::AbstractFTheoryModel)
   @req has_journal_year(m) "No journal year known for this model"
-  return get_attribute(m, :journal_year)
+  return get_attribute(m, :journal_year)::String
 end
 
 
@@ -637,7 +637,7 @@ julia> literature_identifier(m)
 """
 function literature_identifier(m::AbstractFTheoryModel)
   @req has_literature_identifier(m) "No literature identifier known for this model"
-  return get_attribute(m, :literature_identifier)
+  return get_attribute(m, :literature_identifier)::String
 end
 
 
@@ -659,7 +659,7 @@ julia> model_description(m)
 """
 function model_description(m::AbstractFTheoryModel)
   @req has_model_description(m) "No model description known for this model"
-  return get_attribute(m, :model_description)
+  return get_attribute(m, :model_description)::String
 end
 
 
@@ -682,7 +682,7 @@ Dict{String, Int64} with 1 entry:
 """
 function model_parameters(m::AbstractFTheoryModel)
   @req has_model_parameters(m) "No model parameters known for this model"
-  return get_attribute(m, :model_parameters)
+  return get_attribute(m, :model_parameters)::Dict{String, Int64}
 end
 
 
@@ -707,7 +707,7 @@ julia> paper_authors(m)
 """
 function paper_authors(m::AbstractFTheoryModel)
   @req has_paper_authors(m) "No paper authors known for this model"
-  return get_attribute(m, :paper_authors)
+  return get_attribute(m, :paper_authors)::Vector{String}
 end
 
 
@@ -733,7 +733,7 @@ julia> paper_buzzwords(m)
 """
 function paper_buzzwords(m::AbstractFTheoryModel)
   @req has_paper_buzzwords(m) "No paper buzzwords known for this model"
-  return get_attribute(m, :paper_buzzwords)
+  return get_attribute(m, :paper_buzzwords)::Vector{String}
 end
 
 
@@ -755,7 +755,7 @@ julia> paper_description(m)
 """
 function paper_description(m::AbstractFTheoryModel)
   @req has_paper_description(m) "No paper description known for this model"
-  return get_attribute(m, :paper_description)
+  return get_attribute(m, :paper_description)::String
 end
 
 
@@ -777,7 +777,7 @@ julia> paper_title(m)
 """
 function paper_title(m::AbstractFTheoryModel)
   @req has_paper_title(m) "No paper title known for this model"
-  return get_attribute(m, :paper_title)
+  return get_attribute(m, :paper_title)::String
 end
 
 
@@ -807,7 +807,7 @@ julia> associated_literature_models(m)
 """
 function associated_literature_models(m::AbstractFTheoryModel)
   @req has_associated_literature_models(m) "No associated models known for this model"
-  return get_attribute(m, :associated_literature_models)
+  return get_attribute(m, :associated_literature_models)::Vector{String}
 end
 
 
@@ -1221,21 +1221,16 @@ function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
   @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
 
-  # Check if the answer is known
-  if has_attribute(m, :euler_characteristic)
-    return get_attribute(m, :euler_characteristic)::CohomologyClass
-  end
+  return get_attribute!(m, :euler_characteristic) do
+    # Trigger potential short-cut computation of cohomology ring
+    cohomology_ring(ambient_space(m); check)
 
-  # Trigger potential short-cut computation of cohomology ring
-  cohomology_ring(ambient_space(m); check)
+    # Compute the cohomology class corresponding to the hypersurface equation
+    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
-  # Compute the cohomology class corresponding to the hypersurface equation
-  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
-
-  # Compute the Euler characteristic
-  h = integrate(chern_class(m, 4; check) * cy; check)
-  set_attribute!(m, :euler_characteristic, h)
-  return h
+    # Compute the Euler characteristic
+    return Int(integrate(chern_class(m, 4; check) * cy; check))
+  end::Int
 end
 
 
@@ -1267,7 +1262,7 @@ julia> vertices(qsm_model)
 """
 function vertices(m::AbstractFTheoryModel)
   @req has_attribute(m, :vertices) "No vertices known for this model"
-  return get_attribute(m, :vertices)
+  return get_attribute(m, :vertices)::Vector{Vector{QQFieldElem}}
 end
 
 
@@ -1287,7 +1282,7 @@ julia> polytope_index(qsm_model)
 """
 function polytope_index(m::AbstractFTheoryModel)
   @req has_attribute(m, :poly_index) "No polytope index known for this model"
-  return get_attribute(m, :poly_index)
+  return get_attribute(m, :poly_index)::Int
 end
 
 
@@ -1336,7 +1331,7 @@ julia> max_lattice_pts_in_facet(qsm_model)
 """
 function max_lattice_pts_in_facet(m::AbstractFTheoryModel)
   @req has_attribute(m, :max_lattice_pts_in_facet) "Maximal number of lattice points of facets not known for this model"
-  return get_attribute(m, :max_lattice_pts_in_facet)
+  return get_attribute(m, :max_lattice_pts_in_facet)::Int
 end
 
 
@@ -1357,7 +1352,7 @@ julia> estimated_number_of_triangulations(qsm_model)
 """
 function estimated_number_of_triangulations(m::AbstractFTheoryModel)
   @req has_attribute(m, :estimated_number_of_triangulations) "Estimated number of (full, regular, star) triangulation not known for this model"
-  return get_attribute(m, :estimated_number_of_triangulations)
+  return get_attribute(m, :estimated_number_of_triangulations)::Int
 end
 
 
@@ -1381,7 +1376,7 @@ julia> kbar3(qsm_model)
 """
 function kbar3(m::AbstractFTheoryModel)
   @req has_attribute(m, :Kbar3) "Kbar3 not known for this model"
-  return get_attribute(m, :Kbar3)
+  return get_attribute(m, :Kbar3)::Int
 end
 
 
@@ -1401,7 +1396,7 @@ julia> hodge_h11(qsm_model)
 """
 function hodge_h11(m::AbstractFTheoryModel)
   @req has_attribute(m, :h11) "Hodge number h11 of ambient space not known for this model"
-  return get_attribute(m, :h11)
+  return get_attribute(m, :h11)::Int
 end
 
 
@@ -1421,7 +1416,7 @@ julia> hodge_h12(qsm_model)
 """
 function hodge_h12(m::AbstractFTheoryModel)
   @req has_attribute(m, :h12) "Hodge number h12 of ambient space not known for this model"
-  return get_attribute(m, :h12)
+  return get_attribute(m, :h12)::Int
 end
 
 
@@ -1441,7 +1436,7 @@ julia> hodge_h13(qsm_model)
 """
 function hodge_h13(m::AbstractFTheoryModel)
   @req has_attribute(m, :h13) "Hodge number h13 of ambient space not known for this model"
-  return get_attribute(m, :h13)
+  return get_attribute(m, :h13)::Int
 end
 
 
@@ -1461,7 +1456,7 @@ julia> hodge_h22(qsm_model)
 """
 function hodge_h22(m::AbstractFTheoryModel)
   @req has_attribute(m, :h22) "Hodge number h22 of ambient space not known for this model"
-  return get_attribute(m, :h22)
+  return get_attribute(m, :h22)::Int
 end
 
 
@@ -1571,7 +1566,7 @@ julia> indices_of_trivial_ci_curves(qsm_model)
 """
 function indices_of_trivial_ci_curves(m::AbstractFTheoryModel)
   @req has_attribute(m, :index_facet_interior_divisors) "Degree of Kbar restriction to Ci curves not known for this model"
-  return get_attribute(m, :index_facet_interior_divisors)
+  return get_attribute(m, :index_facet_interior_divisors)::Vector{Int}
 end
 
 

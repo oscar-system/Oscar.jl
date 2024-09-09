@@ -635,6 +635,13 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
+   # We claim that the finiteness check is cheap in Oscar.
+   # This does not hold in GAP,
+   # and GAP's method selection benefits from the known finiteness flag.
+   if G isa MatrixGroup && is_infinite(base_ring(G))
+     is_finite(G)
+   end
+
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)

@@ -706,6 +706,7 @@ export inradical
 export integral_basis
 export integrate
 export interior_lattice_points
+export interreduce!
 export intersect
 export intersection_form
 export intersection_multiplicity

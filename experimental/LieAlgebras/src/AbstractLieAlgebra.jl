@@ -82,7 +82,7 @@ end
 #
 ###############################################################################
 
-@attr function is_abelian(L::AbstractLieAlgebra)
+@attr Bool function is_abelian(L::AbstractLieAlgebra)
   return all(iszero, _struct_consts(L))
 end
 
