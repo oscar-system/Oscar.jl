@@ -481,6 +481,12 @@ function is_ad_nilpotent(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return is_nilpotent(adjoint_matrix(x))
 end
 
+###############################################################################
+#
+#   Root system detection
+#
+###############################################################################
+
 @doc raw"""
     any_non_ad_nilpotent_element(L::LieAlgebra{C}) -> LieAlgebraElem{C}
 
@@ -516,6 +522,69 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
   end
   set_attribute!(L, :is_nilpotent, true)
   return zero(L)
+end
+
+@doc raw"""
+    engel_subalgebra(x::LieAlgebraElem{C}) -> LieSubalgebra{C,elem_type(parent(x))}
+
+Return the Engel subalgebra of `x`, i.e. the generalized eigenspace of the linear operator $\mathrm{ad}(x)$.
+"""
+function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  L = parent(x)
+  n = dim(L)
+  A = adjoint_matrix(x)^n
+  ker = kernel(A; side=:left)
+  basis = [L(ker[i, :]) for i in 1:nrows(ker)]
+  L0adx = sub(L, basis; is_basis=true)
+  return L0adx
+end
+
+@doc raw"""
+    Oscar.LieAlgebras.cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem} -> LieSubalgebra{C,elem_type(L)}
+
+Return a Cartan subalgebra of `L`.
+
+If `L` knows its root system, this function uses the Chevalley basis to construct a Cartan subalgebra.
+Otherise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
+"""
+function cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
+  if has_root_system(L)
+    return sub(L, chevalley_basis(L)[3]; is_basis=true)
+  else
+    return _cartan_subalgebra(L)
+  end
+end
+
+function _cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
+  F = coefficient_ring(L)
+  n = dim(L)
+  @req is_infinite(F) || length(F) > dim(L) "The implemented algorithm requires a large field"
+  x = any_non_ad_nilpotent_element(L)
+  if is_zero(x) # L is nilpotent
+    return sub(L)
+  end
+
+  L0adx = engel_subalgebra(x)
+  while true # decreasing variant is dim(L0adx)
+    y = any_non_ad_nilpotent_element(L0adx)
+    if is_zero(y) # L0adx is nilpotent
+      return L0adx
+    end
+
+    c_itr =
+      characteristic(F) == 0 ? (F(i) for i in 1:(n + 1)) : Iterators.filter(!iszero, F)
+    z = x
+    L0adz = L0adx
+    for c in c_itr # at most n+1 iterations
+      z = x + c * (y - x)
+      L0adz = engel_subalgebra(z)
+      if dim(L0adz) < dim(L0adx) && is_subset(L0adz, L0adx)
+        break
+      end
+    end
+    x = z
+    L0adx = L0adz
+  end
 end
 
 ###############################################################################

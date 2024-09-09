@@ -27,6 +27,7 @@ export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
+export cartan_subalgebra
 export cartan_symmetrizer
 export cartan_type
 export cartan_type_with_ordering
@@ -41,6 +42,7 @@ export derived_algebra
 export dim_of_simple_module
 export dominant_character
 export dominant_weights
+export engel_subalgebra
 export exterior_power
 export fundamental_weight
 export fundamental_weights
