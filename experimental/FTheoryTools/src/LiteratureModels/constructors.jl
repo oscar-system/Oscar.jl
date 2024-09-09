@@ -1,6 +1,6 @@
 ########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
 # The definitions here SHOULD apply throughout FTheoryTools!
-#                                                defining_classes: This should be a dictionary that includes specifies the divisor classes
+#                                                defining_classes: This should be a dictionary that specifies the divisor classes
 #                                                                  of any parameters used to tune the model beyond the fully generic
 #                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
 #                                                                  may be tuned by setting
