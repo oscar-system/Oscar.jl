@@ -134,6 +134,19 @@ morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]
 
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div
+exceptional_divisor_as_ideal_sheafs(phi::MixedBlowUpSequence) = exceptional_divisor_list(phi,true)
+
+function exceptional_divisor_as_ideal_sheafs(phi::BlowUpSequence)
+  !is_empty(phi.ex_div) || return phi.ex_div
+  E_list = phi.ex_div
+  ret_list = Vector{AbsIdealSheaf}()
+  for i in 1:length(E_list)
+    E = E_list[i]
+    E = (!(E isa AbsIdealSheaf) ? ideal_sheaf(E) : E)
+    push!(ret_list, E)
+  end
+  return ret_list
+end
 
 ## entries of ex_div corresponding to normalization steps are only exceptional divisors at the very end
 ## so only return them at the very end or on specific demand 
@@ -433,10 +446,8 @@ function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I:
   U = patches[i]
 
   ## now check containment for exceptional divisor
-  C_list = f.ex_div
-  for i in 1:length(C_list)
-    C_temp = C_list[i]
-    C_temp = (!(C_temp isa AbsIdealSheaf) ? ideal_sheaf(C_temp) : C_temp)
+  C_list = exceptional_divisor_as_ideal_sheafs(f)
+  for C_temp in C_list
     if !all(radical_membership(x,I(U)) for x in gens(C_temp(U)))
       push!(dont_meet,(i,length(C_list)+1))
     end
