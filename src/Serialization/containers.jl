@@ -360,8 +360,9 @@ function load_type_params(s::DeserializerState, ::Type{<:Dict})
   params_dict = Dict{Symbol, Any}()
   for (k, _) in s.obj
     load_node(s, k) do _
+      println(k)
       value_type = decode_type(s)
-
+      
       if serialize_with_params(value_type)
         params_dict[k] = Dict{Symbol, Any}(
           type_key => value_type,

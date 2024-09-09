@@ -288,7 +288,7 @@ function jukes_cantor_model(graph::Graph{Directed})
   ne = n_edges(graph)
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
-  root_distr = repeat([1//ns], outer = ns)
+  root_distr = repeat([QQ(1, ns)], outer = ns)
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b b b
