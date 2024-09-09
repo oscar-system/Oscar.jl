@@ -3,20 +3,20 @@
 
 function save_object(s::SerializerState, pm::PhylogeneticModel)
   save_data_dict(s) do 
-    save_typed_object(s, graph(pm), :tree) # already implemented 
-    save_object(s, number_states(pm), :states) # already implemented 
-    save_typed_object(s, probability_ring(pm), :probability_ring) # already implemented
-    save_typed_object(s, root_distribution(pm), :root_distribution) # needs to be implemented, or we change the entry type to QQFieldElem
-    save_typed_object(s, transition_matrices(pm), :transition_matrices) # needs to be implemented
+    save_typed_object(s, graph(pm), :tree) 
+    save_object(s, number_states(pm), :states) 
+    save_typed_object(s, probability_ring(pm), :probability_ring) 
+    save_typed_object(s, root_distribution(pm), :root_distribution) 
+    save_typed_object(s, transition_matrices(pm), :transition_matrices) 
   end
 end
 
 function save_object(s::SerializerState, pm::GroupBasedPhylogeneticModel)
   save_data_dict(s) do
-    save_typed_object(s, phylogenetic_model(pm), :phylomodel) # details see above
-    save_typed_object(s, fourier_ring(pm), :fourier_ring) # already implemented
-    save_typed_object(s, fourier_parameters(pm), :fourier_params) # needs to be implemented
-    save_typed_object(s, group_of_model(pm), :group) # already implemented
+    save_typed_object(s, phylogenetic_model(pm), :phylomodel) 
+    save_typed_object(s, fourier_ring(pm), :fourier_ring) 
+    save_typed_object(s, fourier_parameters(pm), :fourier_params) 
+    save_typed_object(s, group_of_model(pm), :group) 
   end
 end
 

@@ -158,7 +158,7 @@ Return the distribution of the random variable at the root of the tree specifyin
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> root_distribution(pm)
-4-element Vector{Any}:
+4-element Vector{QQFieldElem}:
  1//4
  1//4
  1//4
