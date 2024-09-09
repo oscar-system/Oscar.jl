@@ -120,6 +120,12 @@
     standard_basis_highest_corner(I, ordering=negdeglex(R))
     @test elements(I.gb[negdeglex(R)]) == H
     @test_throws ArgumentError standard_basis_highest_corner(I)
+
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+    I = ideal(R,[x^2+x*y+y,x+y^2])
+    standard_basis(I, ordering=lex(R), complete_reduction=true)
+    G = Oscar.groebner_assure(I, true, true)
+    @test G.ord == lex(R)
 end
 
 @testset "normal form graded" begin
