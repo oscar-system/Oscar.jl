@@ -498,6 +498,7 @@ export dwarfed_product_polygons
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
+export elementary_abelian_group
 export elementary_symmetric
 export elements
 export eliminate
@@ -1502,6 +1503,7 @@ export twist
 export two_sided_ideal
 export underlying_gluing
 export underlying_quotient
+export underlying_word
 export uniform_matroid
 export unit
 export unitary_group

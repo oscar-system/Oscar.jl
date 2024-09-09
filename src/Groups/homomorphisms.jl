@@ -479,6 +479,35 @@ end
 #
 ################################################################################
 
+function _isomorphism_same_type(G::T, on_gens::Bool) where T <: GAPGroup
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (T, on_gens)) do
+     return id_hom(G)
+   end::GAPGroupHomomorphism{T, T}
+end
+
+for T in [PermGroup, SubFPGroup, SubPcGroup]
+  @eval begin
+    isomorphism(::Type{$T}, G::$T) = _isomorphism_same_type(G, false)
+  end
+end
+
+for T in [FPGroup, PcGroup]
+  @eval begin
+    isomorphism(::Type{$T}, G::$T; on_gens::Bool = false) = _isomorphism_same_type(G, on_gens)
+  end
+end
+
+function isomorphism(::Type{FinGenAbGroup}, A::FinGenAbGroup)
+   # Known isomorphisms are cached in the attribute `:isomorphisms`.
+   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+   return get!(isos, (FinGenAbGroup, false)) do
+     return identity_map(A)
+   end::AbstractAlgebra.Generic.IdentityMap{FinGenAbGroup}
+end
+
+
 _get_iso_function(::Type{PermGroup}) = GAP.Globals.IsomorphismPermGroup
 
 # We use `GAP.Globals.IsomorphismPcGroup` as the `_get_iso_function` value
@@ -542,30 +571,28 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (FPGroup, on_gens)) do
-     if on_gens
-       Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
-       if length(Ggens) == 0
+     if is_trivial(G)
 # TODO: remove this special treatment as soon as the change from
 #       https://github.com/gap-system/gap/pull/5700 is available in Oscar
 #       (not yet in GAP 4.13.0)
-         f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
-         GAP.Globals.SetIsBijective(f, true)
-       else
-         # The computations are easy if `Ggens` is a pcgs,
-         # otherwise GAP will call `CoKernel`.
-         if GAP.Globals.HasFamilyPcgs(GapObj(G))
-           pcgs = GAP.Globals.InducedPcgsWrtFamilyPcgs(GapObj(G))
-           if pcgs == Ggens
-             # `pcgs` fits *and* is an object in `GAP.Globals.IsPcgs`,
-             # for which a special `GAPWrap.IsomorphismFpGroupByGenerators`
-             # method is applicable.
-             # (Currently the alternative is a cokernel computation.
-             # It might be useful to improve this on the GAP side.)
-             Ggens = pcgs
-           end
+       f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
+       GAP.Globals.SetIsBijective(f, true)
+     elseif on_gens
+       Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
+       # The computations are easy if `Ggens` is a pcgs,
+       # otherwise GAP will call `CoKernel`.
+       if GAP.Globals.HasFamilyPcgs(GapObj(G))
+         pcgs = GAP.Globals.InducedPcgsWrtFamilyPcgs(GapObj(G))
+         if pcgs == Ggens
+           # `pcgs` fits *and* is an object in `GAP.Globals.IsPcgs`,
+           # for which a special `GAPWrap.IsomorphismFpGroupByGenerators`
+           # method is applicable.
+           # (Currently the alternative is a cokernel computation.
+           # It might be useful to improve this on the GAP side.)
+           Ggens = pcgs
          end
-         f = GAPWrap.IsomorphismFpGroupByGenerators(GapObj(G), Ggens)
        end
+       f = GAPWrap.IsomorphismFpGroupByGenerators(GapObj(G), Ggens)
      else
        f = GAPWrap.IsomorphismFpGroup(GapObj(G))
      end
@@ -850,34 +877,112 @@ end
 
 ####
 
-function isomorphism(::Type{FinGenAbGroup}, A::FinGenAbGroup)
-   # Known isomorphisms are cached in the attribute `:isomorphisms`.
-   isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
-   return get!(isos, (FinGenAbGroup, false)) do
-     return identity_map(A)
-   end::AbstractAlgebra.Generic.IdentityMap{FinGenAbGroup}
-end
-
 # We need not find independent generators in order to create
 # a presentation of a fin. gen. abelian group.
 function isomorphism(::Type{FPGroup}, A::FinGenAbGroup)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, A, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (FPGroup, false)) do
-      G = free_group(ngens(A); eltype = :syllable)
+      n = ngens(A)
+      G = free_group(n; eltype = :syllable)
       R = rels(A)
-      s = vcat(elem_type(G)[i*j*inv(i)*inv(j) for i = gens(G) for j = gens(G) if i != j],
-           elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:ngens(A) if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
+      gG = gens(G)
+      gGi = map(inv, gG)
+      s = vcat(elem_type(G)[gG[i]*gG[j]*gGi[i]*gGi[j] for i in 1:n for j in (i+1):n],
+           elem_type(G)[prod([gen(G, i)^R[j,i] for i=1:n if !iszero(R[j,i])], init = one(G)) for j=1:nrows(R)])
       F, mF = quo(G, s)
       set_is_abelian(F, true)
       set_is_finite(F, is_finite(A))
       is_finite(A) && set_order(F, order(A))
       return MapFromFunc(
         A, F,
-        y->F([i => y[i] for i=1:ngens(A)]),
+        y->F([i => y[i] for i=1:n]),
         x->sum([w.second*gen(A, w.first) for w = syllables(x)], init = zero(A)))
    end::MapFromFunc{FinGenAbGroup, FPGroup}
 end
+
+
+# We need not find independent generators in order to create
+# a presentation of a `FPModule` over a finite field.
+# Note that additively, the given module is an elementary abelian p-group
+# where p is the characteristic.
+# The function guarantees always a correspondence of `gens(M)` and the `gens`
+# value of the codomain of the result,
+# that is, the value of `on_gens` is irrelevant.
+# (This method is needed in the construction of group extensions
+# from information computed by `cohomology_group`.)
+function isomorphism(::Type{T}, M::S; on_gens::Bool=true) where T <: Union{FPGroup, PcGroup} where S <: AbstractAlgebra.FPModule{<:FinFieldElem}
+  # Known isomorphisms are cached in the attribute `:isomorphisms`.
+  isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, M, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
+    return get!(isos, (T, false)) do
+      k = base_ring(M)
+      p = characteristic(k)
+      B = elementary_abelian_group(T, order(M))
+      FB = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(B)))
+
+      # module to group
+      function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem}})
+        F = base_ring(parent(a))
+        @assert absolute_degree(F) == 1
+        r = ZZRingElem[]
+        for i=1:ngens(M)
+          if !iszero(a[i])
+            push!(r, i)
+            push!(r, lift(ZZ, a[i]))
+          end
+        end
+        return GapObj(r; recursive = true)
+      end
+
+      function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem, FqFieldElem}})
+        r = ZZRingElem[]
+        for i=1:ngens(M)
+          if !iszero(a[i])
+            for j=0:degree(k)-1
+              if !iszero(coeff(a[i], j))
+                push!(r, (i-1)*degree(k)+j+1)
+                push!(r, lift(ZZ, coeff(a[i], j)))
+              end
+            end
+          end
+        end
+        return GapObj(r; recursive = true)
+      end
+
+      # group to module
+      gap_to_julia = function(a::GapObj)
+        e = GAPWrap.ExtRepOfObj(a)
+        z = zeros(ZZRingElem, ngens(M)*degree(k))
+        for i=1:2:length(e)
+          if !iszero(e[i+1])
+            z[e[i]] = e[i+1]
+          end
+        end
+        c = elem_type(k)[]
+        for i=1:dim(M)
+          push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
+        end
+        return M(c)
+      end
+
+      if T === PcGroup
+        return MapFromFunc(
+          M, B,
+          y -> PcGroupElem(B, GAPWrap.ObjByExtRep(FB, Julia_to_gap(y))),
+          x -> gap_to_julia(GapObj(x)))
+      else
+        # We need an indirection: First create the word in the free group,
+        # then wrap it into an element of the f.p. group.
+        FR = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GAPWrap.FreeGroupOfFpGroup(GapObj(B))))
+
+        return MapFromFunc(
+          M, B,
+          y -> FPGroupElem(B, GAPWrap.ElementOfFpGroup(FB, GAPWrap.ObjByExtRep(FR, Julia_to_gap(y)))),
+          x -> gap_to_julia(GapObj(x)))
+      end
+   end::MapFromFunc{S, T}
+end
+
 
 """
     FPGroup(G::T) where T <: Union{GAPGroup, FinGenAbGroup}

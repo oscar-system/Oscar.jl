@@ -1939,6 +1939,29 @@ function relators(G::FPGroup)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
 end
 
+function relators(G::PcGroup)
+  gapG = GapObj(G)
+  Ggens = GAPWrap.GeneratorsOfGroup(gapG)
+  Gpcgs = GAPWrap.Pcgs(gapG)
+  if Ggens == Gpcgs
+    # The generators form a pcgs, compute w.r.t. this pcgs.
+    f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GapObj("g"))
+    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+    return relators(FPGroup(GAPWrap.Image(f)))
+  else
+    return _relators_by_generators(FPGroup(GAPWrap.Image(f)))
+  end
+end
+
+relators(G::GAPGroup) = _relators_by_generators(G)
+
+function _relators_by_generators(G::GAPGroup)
+  gapG = GapObj(G)
+  f = GAPWrap.IsomorphismFpGroupByGenerators(gapG, GAPWrap.GeneratorsOfGroup(gapG))
+  @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+  return relators(FPGroup(GAPWrap.Image(f)))
+end
+
 
 @doc raw"""
     map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
