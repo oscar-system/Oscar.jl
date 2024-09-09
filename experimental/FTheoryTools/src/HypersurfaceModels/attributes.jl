@@ -176,6 +176,6 @@ at each locus. Also the refined Tate fiber type is returned.
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(h::HypersurfaceModel)
   @req base_space(h) isa NormalToricVariety "Singular loci currently only supported for toric varieties as base space"
-  @req has_attribute(h, :weierstrass_model) "No corresponding Weierstrass model is known"
-  return singular_loci(weierstrass_model(h))
+  @req has_attribute(h, :weierstrass_model) || has_attribute(h, :global_tate_model) "No corresponding Weierstrass model or global Tate model is known"
+  return has_attribute(h, :weierstrass_model) ? singular_loci(weierstrass_model(h)) : singular_loci(global_tate_model(h))
 end
