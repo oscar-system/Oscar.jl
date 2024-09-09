@@ -63,7 +63,7 @@ end
 @doc raw"""
     passes_verticality_checks(gf::G4Flux)
 
-G4-fluxes are subject to verticality conditions described in [Wei18](@cite).
+G4-fluxes are subject to verticality conditions described first in [GH12](@cite) and in more detail in [Wei18](@cite).
 It is hard to verify that these condition are met. However,
 we can execute a number of simple consistency checks, by
 verifying that $\int_{Y}{G_4 \wedge [D_1] \wedge [zero section]} = 0$ and $\int_{Y}{G_4 \wedge [D_1] \wedge [D_2]} = 0$
