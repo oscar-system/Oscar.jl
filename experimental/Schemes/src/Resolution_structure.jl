@@ -693,6 +693,10 @@ function desingularization(X::AbsAffineScheme; algorithm::Symbol=:BEV)
   return desingularization(CoveredScheme(X); algorithm)
 end
 
+function weak_to_strong_desingularization_surface(phi::BlowUpSequence)
+  return weak_to_strong_desingularization_surface(mixed_blow_up_sequence(phi))
+end
+
 function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
   dim(domain(phi)) == 2 || error("not implmemented yet")
 
@@ -1113,6 +1117,7 @@ end
 # check for singularities worse than A1 (they lie at ret_ideal_sheaf)
 # and count the A1 encountered on the way (their count is total_number)
 function curve_sing_A1_or_beyond(I::AbsIdealSheaf)
+  !is_one(I) || return(I,0)
   @assert dim(I) == 1
   I_scheme,I_inc = sub(I)
   I_sl = pushforward(I_inc)(ideal_sheaf_of_singular_locus(I_scheme))

@@ -97,6 +97,39 @@ end
   @test M_bar == ZZMatrix([-2 0 0 0 0 1; 0 -2 0 1 0 0; 0 0 -2 0 1 0; 0 1 0 -2 0 1; 0 0 1 0 -2 1; 1 0 0 1 1 -2])
 end
 
+@testset "intersection_matrix (blow up sequence)" begin
+  R,(x,y,z,w) = polynomial_ring(QQ,4)
+  W = AffineScheme(R)
+  I=ideal(R,[x^2+y^2+3*z^2+2*w^2,x*z-y*w]) ## tests former self-intersection bug
+  IS = IdealSheaf(W,I)
+  X = subscheme(IS)
+  phi = blow_up(Oscar.ideal_sheaf_of_singular_locus(X))
+  phi_seq = Oscar.initialize_blow_up_sequence(phi)
+  psi = blow_up(Oscar.ideal_sheaf_of_singular_locus(domain(phi)))
+  @test is_one(Oscar.ideal_sheaf_of_singular_locus(domain(psi)))
+  Oscar.add_map!(phi_seq, psi)
+  phi_seq.resolves_sing = true
+  phi_seq.is_strong = true
+  inter_data = Oscar.intersection_matrix(phi_seq)
+  @test ncols(inter_data[1]) == 1
+  @test inter_data[1][1,1] == -2
+  @test inter_data[1] == inter_data[3]
+  R,(x,y,z) = polynomial_ring(QQ,3)
+  W = AffineScheme(R)
+  I=ideal(R,[x^8-(y^2+z^2)*(y^2-2*z^2)])   ## tests 'all meet all' setting
+  IS = IdealSheaf(W,I)
+  X = subscheme(IS)
+  phi = blow_up(Oscar.ideal_sheaf_of_singular_locus(X))
+  phi_seq = Oscar.initialize_blow_up_sequence(phi)
+  psi = blow_up(Oscar.ideal_sheaf_of_singular_locus(domain(phi)))
+  @test is_one(Oscar.ideal_sheaf_of_singular_locus(domain(psi)))
+  Oscar.add_map!(phi_seq, psi)
+  phi_seq.resolves_sing = true
+  phi_seq.is_strong = true
+  inter_data2 = Oscar.intersection_matrix(phi_seq)
+  @test inter_data2[3] == ZZMatrix([-2 0 0 0 1; 0 -2 0 0 1; 0 0 -2 0 1; 0 0 0 -2 1; 1 1 1 1 -4])
+end
+
 @testset "order of an ideal" begin
   R,(x,y,z) = polynomial_ring(QQ,3)
   W = AffineScheme(R)

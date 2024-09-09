@@ -13,7 +13,7 @@ TODO...
   sl_orig = Oscar.ideal_sheaf_of_singular_locus(codomain(phi))
   dim_sl_orig = dim(sl_orig)
   dim_sl_orig >= 0 || error("original scheme was non-singular, no exceptional curves added")
-  dim_sl_orig == 0 || error("not implemented yet for non-isolated singularities")
+  dim_sl_orig == 0 || error("only available for isolated singularities")
 
 ## make sure that we have a strong resolution (i.e. exceptional divisor is simple normal crossing)
   phi = weak_to_strong_desingularization_surface(phi)
@@ -62,8 +62,13 @@ TODO...
       if l != nothing
         p = gen(OO(U),l) - a[l]
       else
-        p = sum(gen(OO(u),x) - a[x], 1:ngens(OO(U)))
-        is_prime(ideal(OO(U),[p])) || error("choose hypersurface through point: no irreducible one found")
+        p = sum(gen(OO(U),x) - a[x] for x in 1:ngens(OO(U)))
+        if !is_prime(ideal(OO(U),[p]))
+          decomp_h = minimal_primes(ideal(OO(U),[p]))
+          h_ind = findfirst(x -> is_subset(x,I(U)), decomp_h)
+          h_ind !== nothing || error("choose hypersurface through point: no irreducible one found")
+          p = small_generating_set(decomp_h[h_ind])
+        end
       end
     else
       l = findfirst(x -> (deg(x) == 1 && is_prime(ideal(OO(U),[x]))), gens(I(U)))
@@ -97,16 +102,8 @@ TODO...
                  saturated_ideal(strict_inter(patches_scheme[found_index]))
                        + modulus(OO(patches_scheme[found_index])))[1]))
       # next we consider H . equidimensional_hull(sl_orig)  -- zero, if dim(sl_orig) == 0
-# CAUTION: equidimensional_hull not available for IdealSheaves yet
-#          point_count_with_multiplicity not available for Ideal sheaves yet
-#  ---> for now throw error, replace by subsequent 2 lines when functionality is available
-       dim_sl_orig == 0 || error("not implemented yet")
-       orig_inter = 0
-#      orig_inter = (dim_sl_orig == 0 ? 0 :
-#                        point_count_with_multiplicity(equidimensional_hull(sl_orig)+H))
-#      inter_mat_k[i,i] = (orig_inter
-#            - sum([m*e for (m,e) in zip(v,[inter_mat_k[i,l] for l in 1:nrows(inter_mat_k)])])
-#                       + strict_summand)/v[i]
+      dim_sl_orig == 0 || error("not implemented yet")
+      orig_inter = 0
       divtemp = divides(orig_inter
                        - sum([m*e for (m,e) in zip(v,[inter_mat_k[i,l] for l in 1:nrows(inter_mat_k)])])
                        - strict_summand,
@@ -238,11 +235,15 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
 
 end
 
+function _cleanup_ex_div(phi::BlowUpSequence)
+  return _cleanup_ex_div(mixed_blow_up_sequence(phi))
+end
+
 function _cleanup_ex_div(phi::MixedBlowUpSequence)
 ## initialization
   ex_divs = phi.ex_div
   ret_divs = Vector{AbsIdealSheaf}()
-  dont_meet_raw = phi.dont_meet
+  dont_meet_raw = ( has_attribute(phi, :dont_meet) ? phi.dont_meet : Tuple{Int,Int}[])
   dont_meet = Vector{Tuple{Int,Int}}()
   skip_list = Vector{Int}()
   skip_count = length(skip_list)
@@ -264,9 +265,9 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
 
   # correct dont_meet
   if skip_count > 0
-    for i in skip_count:1
-      dont_meet_raw = [(a >= skip_list[i] ? a-1 : a,
-                        b >= skip_list[i] ? b-1 : b) for (a,b) in dont_meet_raw]
+    for i in 0:skip_count-1
+      dont_meet_raw = [(a >= skip_list[skip_count-i] ? a-1 : a,
+                        b >= skip_list[skip_count-i] ? b-1 : b) for (a,b) in dont_meet_raw]
       dont_meet_raw = [a for a in dont_meet if a[1] > 0]
     end
   end
