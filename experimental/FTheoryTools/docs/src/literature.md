@@ -80,6 +80,7 @@ following methods:
 * `has_journal_model_equation_number(m::AbstractFTheoryModel)`,
 * `has_journal_model_page(m::AbstractFTheoryModel)`,
 * `has_journal_model_section(m::AbstractFTheoryModel)`,
+* `has_journal_name(m::AbstractFTheoryModel)`,
 * `has_journal_pages(m::AbstractFTheoryModel)`,
 * `has_journal_report_numbers(m::AbstractFTheoryModel)`,
 * `has_journal_volume(m::AbstractFTheoryModel)`,

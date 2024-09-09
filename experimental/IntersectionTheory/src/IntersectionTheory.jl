@@ -8,9 +8,11 @@ import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import..Oscar: pullback, pushforward, base, OO, product, compose
 import ..Oscar: trivial_line_bundle
+import ..Oscar: chern_class
 
 export a_hat_genus
 export abstract_bundle
+export abstract_flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface
@@ -89,6 +91,7 @@ using .IntersectionTheory
 
 export a_hat_genus
 export abstract_bundle
+export abstract_flag_bundle
 export abstract_flag_variety
 export abstract_grassmannian
 export abstract_hirzebruch_surface

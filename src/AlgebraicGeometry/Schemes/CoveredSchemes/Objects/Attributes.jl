@@ -190,7 +190,7 @@ function dim(X::AbsCoveredScheme)
   return get_attribute(X, :dim)::Int
 end
 
-@attr function singular_locus_reduced(X::AbsCoveredScheme)
+@attr Any function singular_locus_reduced(X::AbsCoveredScheme)
   D = IdDict{AbsAffineScheme, Ideal}()
   for U in affine_charts(X)
     _, inc_sing = singular_locus_reduced(U)
@@ -257,7 +257,7 @@ given by the pullback function
     (y//z) -> 0
 ```
 """
-@attr function singular_locus(
+@attr Any function singular_locus(
     X::AbsCoveredScheme;
   )
   D = IdDict{AbsAffineScheme, Ideal}()

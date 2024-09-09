@@ -5,8 +5,8 @@
   Omega = gset(G)
   @test AbstractAlgebra.PrettyPrinting.repr_terse(Omega) == "G-set"
   @test isa(Omega, GSet)
-  @test length(Omega) == 6
-  @test length(orbits(Omega)) == 1
+  @test (@inferred length(Omega)) == 6
+  @test (@inferred length(@inferred orbits(Omega))) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
@@ -455,12 +455,12 @@ end
     return galois_conjugate(chi, QQAbAutomorphism(Int(lift(mu(g)))))
   end
 
-  orb = orbit(u, f, t[3])
+  orb = @inferred orbit(u, f, t[3])
   @test length(collect(orb)) == 3
 
-  Omega = gset(u, f, t)
-  orbs = orbits(Omega)
-  @test length(orbs) == 5
+  Omega = @inferred gset(u, f, t)
+  orbs = @inferred orbits(Omega)
+  @test (@inferred length(orbs)) == 5
   @test sort(map(length, orbs)) == [1, 1, 1, 3, 3]
   @test all(o -> conductor(sum(collect(o))) == 1, orbs)
   o = orbs[findfirst(o -> length(o) == 3, orbs)]

@@ -1,36 +1,3 @@
-@attributes mutable struct LinearLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  n::Int  # the n of the gl_n this embeds into
-  dim::Int
-  basis::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LinearLieAlgebra{C}(
-    R::Field,
-    n::Int,
-    basis::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
-    @req length(s) == length(basis) "Invalid number of basis element names."
-    L = new{C}(R, n, length(basis), basis, s)
-    if check
-      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-      # TODO: make work
-      # for xi in basis(L), xj in basis(L)
-      #   @req (xi * xj) in L
-      # end
-    end
-    return L
-  end
-end
-
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation

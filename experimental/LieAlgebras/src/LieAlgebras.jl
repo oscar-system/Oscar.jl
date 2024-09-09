@@ -83,6 +83,8 @@ import ..Oscar:
   ⊕,
   ⊗
 
+Oscar.@import_all_serialization_functions
+
 import Base: getindex, deepcopy_internal, hash, issubset, iszero, parent, zero
 
 export AbstractLieAlgebra, AbstractLieAlgebraElem
@@ -207,26 +209,33 @@ function number_of_simple_roots end
 @alias n_roots number_of_roots
 @alias n_simple_roots number_of_simple_roots
 
+include("Types.jl")
 include("Combinatorics.jl")
+include("Util.jl")
+
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
-include("Util.jl")
 include("LieAlgebra.jl")
 include("AbstractLieAlgebra.jl")
 include("LinearLieAlgebra.jl")
+include("DirectSumLieAlgebra.jl")
+
 include("LieSubalgebra.jl")
 include("LieAlgebraIdeal.jl")
 include("LieAlgebraHom.jl")
-include("DirectSumLieAlgebra.jl")
+
 include("LieAlgebraModule.jl")
 include("LieAlgebraModuleHom.jl")
+
 include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
+
+include("serialization.jl")
 
 end # module LieAlgebras
 

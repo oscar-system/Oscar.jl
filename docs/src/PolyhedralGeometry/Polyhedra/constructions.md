@@ -19,8 +19,8 @@ polyhedron(::Oscar.scalar_type_or_field, A::AnyVecOrMat, b::AbstractVector)
 polyhedron(::Oscar.scalar_type_or_field, I::Union{Nothing, AbstractCollection[AffineHalfspace]}, E::Union{Nothing, AbstractCollection[AffineHyperplane]} = nothing)
 ```
 
-The complete $H$-representation can be retrieved using [`facets`](@ref facets)
-and [`affine_hull`](@ref affine_hull):
+The complete $H$-representation can be retrieved using [`facets`](@ref facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}})
+and [`affine_hull`](@ref affine_hull(P::Polyhedron{T}) where {T<:scalar_types}):
 ```jldoctest
 julia> P = polyhedron(([-1 0; 1 0], [0,1]), ([0 1], [0]))
 Polyhedron in ambient dimension 2
@@ -68,7 +68,7 @@ julia> halfspace_matrix_pair(facets(T))
 ```
 
 The complete $V$-representation can be retrieved using [`minimal_faces`](@ref
-minimal_faces), [`rays_modulo_lineality`](@ref rays_modulo_lineality) and [`lineality_space`](@ref lineality_space):
+minimal_faces(P::Polyhedron{T}) where {T<:scalar_types}), [`rays_modulo_lineality`](@ref rays_modulo_lineality(P::Polyhedron{T}) where {T<:scalar_types}) and [`lineality_space`](@ref lineality_space(P::Polyhedron{T}) where {T<:scalar_types}):
 
 ```jldoctest; filter = r"^polymake: +WARNING.*\n|^"
 julia> P = convex_hull([0 0], [1 0], [0 1])

@@ -542,7 +542,7 @@ end
 (::Colon)(a::MPolyQuoIdeal, b::MPolyQuoIdeal) = quotient(a, b)
 
 # TODO: replace by a more efficient method!
-@attr function is_prime(I::MPolyQuoIdeal)
+@attr Bool function is_prime(I::MPolyQuoIdeal)
   return is_prime(saturated_ideal(I))
 end
 
@@ -558,7 +558,7 @@ end
 # and `MPolyQuoLocRing` together with their ideals.
 # We return the preimage of the given ideal under the
 # canonical map from the underlying free polynomial ring.
-@attr function saturated_ideal(I::MPolyQuoIdeal)
+@attr Any function saturated_ideal(I::MPolyQuoIdeal)
   R = base_ring(base_ring(I))
   J = ideal(R, lift.(gens(I))) + modulus(base_ring(I))
   return J
@@ -1878,7 +1878,7 @@ function AbstractAlgebra.promote_rule(::Type{MPolyQuoRingElem{S}}, ::Type{T}) wh
   end
 end
 
-@attr function _is_integral_domain(A::MPolyQuoRing)
+@attr Bool function _is_integral_domain(A::MPolyQuoRing)
   return is_prime(modulus(A))
 end
 

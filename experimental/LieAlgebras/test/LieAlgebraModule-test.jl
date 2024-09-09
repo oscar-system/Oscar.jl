@@ -712,43 +712,69 @@
   @testset "dim_of_simple_module" begin
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     let L = lie_algebra(QQ, :A, 6)
-      @test (@inferred dim_of_simple_module(
+      dim = @inferred dim_of_simple_module(
         Int, L, [1, 3, 5, 0, 1, 0]
-      )) == ZZ(393513120)
+      )
+      @test dim isa Int
+      @test dim == 393513120
     end
 
-    let L = lie_algebra(QQ, :B, 7)
-      @test_skip (@inferred dim_of_simple_module(
-        ZZRingElem, L, [7, 2, 5, 1, 0, 2, 6]
-      )) == ZZ(307689492858882008424585750) # re-enable this once this is computed without GAP
+    let R = root_system(:B, 7)
+      dim = @inferred dim_of_simple_module(
+        ZZRingElem, R, [7, 2, 5, 1, 0, 2, 6]
+      )
+      @test dim isa ZZRingElem
+      @test dim == 307689492858882008424585750
     end
 
     let L = lie_algebra(QQ, :C, 3)
-      @test (@inferred dim_of_simple_module(
+      dim = @inferred dim_of_simple_module(
         L, [3, 3, 3]
-      )) == 262144
+      )
+      @test dim isa Int
+      @test dim == 262144
     end
 
     let L = lie_algebra(QQ, :D, 5)
-      @test (@inferred dim_of_simple_module(
+      dim = @inferred dim_of_simple_module(
         Int128, L, [1, 2, 3, 4, 5]
-      )) == Int128(591080490000)
+      )
+      @test dim isa Int128
+      @test dim == 591080490000
     end
 
     let L = lie_algebra(QQ, :E, 6)
-      @test (@inferred dim_of_simple_module(
+      dim = @inferred dim_of_simple_module(
         ZZRingElem, L, [6, 5, 4, 3, 2, 1]
-      )) == ZZ(53947263633682628459250)
+      )
+      @test dim isa ZZRingElem
+      @test dim == 53947263633682628459250
     end
 
     let L = lie_algebra(QQ, :F, 4)
-      @test (@inferred dim_of_simple_module(
-        ZZRingElem, L, [2, 4, 1, 2]
-      )) == ZZ(5989283015625)
+      dim = @inferred dim_of_simple_module(
+        BigInt, L, [2, 4, 1, 2]
+      )
+      @test dim isa BigInt
+      @test dim == 5989283015625
     end
 
     let L = lie_algebra(QQ, :G, 2)
-      @test (@inferred dim_of_simple_module(L, [2, 2])) == 729
+      dim = @inferred dim_of_simple_module(L, ZZ.([2, 2]))
+      @test dim isa Int
+      @test dim == 729
+    end
+
+    let L = special_linear_lie_algebra(QQ, 2) # type A_1 but without known root system
+      dim = @inferred dim_of_simple_module(Int8, L, [15])
+      @test dim isa Int8
+      @test dim == 16
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5) # type B_2 but without known root system
+      dim = @inferred dim_of_simple_module(L, ZZ.([1, 2]))
+      @test dim isa Int
+      @test dim == 35
     end
   end
 

@@ -915,7 +915,7 @@ function _compute_gluing(gd::ProjectiveGluingData)
   return pr
 end
 
-@attr function covered_scheme(P::CoveredProjectiveScheme)
+@attr Any function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
   C = base_covering(P)
   new_patches = Vector{AbsAffineScheme}()
@@ -989,7 +989,7 @@ end
   return result
 end
 
-@attr function covered_projection_to_base(P::CoveredProjectiveScheme)
+@attr Any function covered_projection_to_base(P::CoveredProjectiveScheme)
   if !has_attribute(P, :covering_projection_to_base)
     covered_scheme(P)
   end

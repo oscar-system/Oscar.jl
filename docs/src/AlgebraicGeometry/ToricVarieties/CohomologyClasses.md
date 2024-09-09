@@ -64,4 +64,6 @@ integrate(c::CohomologyClass; check::Bool = true)
 cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
 volume_form(v::NormalToricVariety)
 intersection_form(v::NormalToricVariety)
+chern_class(v::NormalToricVariety, k::Int; check::Bool = true)
+chern_classes(v::NormalToricVariety; check::Bool = true)
 ```

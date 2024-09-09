@@ -1932,13 +1932,23 @@ function Base.show(io::IO, ::MIME"text/plain", I::MPolyAnyIdeal)
 end
 
 function _get_generators_string_one_line(I::MPolyAnyIdeal, character_limit::Int = 100)
-  # Try a full list of generators if it fits $character_limit characters
+  # Try a full list of generators if it fits $character_limit characters, otherwise
+  # print `default`
+  default = "with $(ItemQuantity(ngens(I), "generator"))"
+
+  if ngens(I)*3 > character_limit
+    # We need at least 3 characters (generator, comma, space) per generator, so
+    # we don't need to build the whole string
+    return default
+  end
+
+  # Generate the full string
   gen_string = "("*join(gens(I), ", ")*")"
   if length(gen_string) <= character_limit
     return gen_string
   end
 
-  return "with $(ItemQuantity(ngens(I), "generator"))"
+  return default
 end
 
 function Base.show(io::IO, I::MPolyAnyIdeal)
@@ -2009,11 +2019,11 @@ function jacobian_matrix(g::Vector{<:MPolyQuoLocRingElem})
   return matrix(L, n, length(g), [derivative(x, i) for i=1:n for x = g])
 end
 
-@attr function is_prime(I::MPolyQuoLocalizedIdeal)
+@attr Bool function is_prime(I::MPolyQuoLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end
 
-@attr function _is_integral_domain(W::MPolyQuoLocRing)
+@attr Bool function _is_integral_domain(W::MPolyQuoLocRing)
   return is_prime(modulus(W))
 end
 
@@ -2040,7 +2050,7 @@ end
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 
-@attr function dim(I::MPolyQuoLocalizedIdeal)
+@attr Int function dim(I::MPolyQuoLocalizedIdeal)
   return dim(pre_image_ideal(I))
 end
 

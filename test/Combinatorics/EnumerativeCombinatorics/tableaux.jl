@@ -71,6 +71,7 @@
       end
     end
     @test collect(semistandard_tableaux(T[], T[])) == [young_tableau(Vector{T}[])]
+    @test length(collect(semistandard_tableaux(partition(T[5, 3, 1, 1]), T[4, 3, 2, 1]))) == 2
 
     #semistandard_tableaux(box_num, max_val)
     BoxNum = T(0):T(5)

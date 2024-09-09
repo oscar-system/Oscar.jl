@@ -19,34 +19,23 @@ function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
   if all_graded
     G.d = vcat([f.d for f in F]...)
   end
-  G.S = []
-  for i = 1:length(F)
-    s = "("
-    for j=1:i-1
-      s *= "0, "
-    end
-    e = ""
-    if i<length(F)
-      e*=", "
-    end
-    for j=i+1:length(F)-1
-      e *= "0, "
-    end
-    if i<length(F)
-      e *= "0"
-    end
-    e*=")"
-
-    for t = F[i].S
-      push!(G.S, Symbol(s*string(t)*e))
-    end
-  end
   set_attribute!(G, :show => Hecke.show_direct_product, :direct_product => F)
   emb = []
   pro = []
   projection_dictionary = IdDict{Int,ModuleFPHom}()
   injection_dictionary = IdDict{Int,ModuleFPHom}()
-  set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  ranges = sizehint!(Vector{UnitRange{Int}}(), length(F))
+  i=0
+  for x in F
+    j = i + ngens(x)
+    push!(ranges, i+1:j)
+    i = j
+  end
+  G.S = vcat([Symbol[Symbol("("*join(vcat(["0" for k in 1:j-1], 
+                                          [string(F[j].S[i])], 
+                                          ["0" for k in j+1:length(F)]), ", ")
+                            *")") for i in 1:ngens(F[j])] for j in 1:length(F)]...)
+  set_attribute!(G, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   i = 0
   for f = F
     if task in [:sum, :both]
@@ -92,7 +81,14 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
   set_attribute!(s, :show => Hecke.show_direct_product, :direct_product => M)
   projection_dictionary = IdDict{Int,ModuleFPHom}()
   injection_dictionary = IdDict{Int,ModuleFPHom}()
-  set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary)
+  ranges = sizehint!(Vector{UnitRange{Int}}(), length(M))
+  i=0
+  for x in M
+    j = i + ngens(x)
+    push!(ranges, i+1:j)
+    i = j
+  end
+  set_attribute!(s, :projection_morphisms => projection_dictionary, :injection_morphisms => injection_dictionary, :ranges => ranges)
   if task == :none
     return s
   end
@@ -189,7 +185,8 @@ function canonical_injection(G::ModuleFP, i::Int)
   end
   @req 0 < i <= length(H) "index out of bound"
   j = sum(ngens(H[l]) for l in 1:i-1; init=0)
-  emb = hom(H[i], G, Vector{elem_type(G)}([G[l+j] for l in 1:ngens(H[i])]); check=false)
+  img_gens = elem_type(G)[G[l+j] for l in 1:ngens(H[i])]
+  emb = hom(H[i], G, img_gens; check=false)
   injection_dictionary[i] = emb
   return emb
 end
@@ -220,7 +217,12 @@ function canonical_projection(G::ModuleFP, i::Int)
   end
   @req 0 < i <= length(H) "index out of bound"
   j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
-  pro = hom(G, H[i], Vector{elem_type(H[i])}(vcat([zero(H[i]) for l in 1:j], gens(H[i]), [zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)])); check=false)
+  img_gens = vcat(
+                  elem_type(H[i])[zero(H[i]) for l in 1:j], 
+                  gens(H[i]), 
+                  elem_type(H[i])[zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)]
+                 )
+  pro = hom(G, H[i], img_gens; check=false)
   projection_dictionary[i] = pro
   return pro
 end

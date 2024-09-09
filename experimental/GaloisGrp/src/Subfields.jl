@@ -75,7 +75,7 @@ function block_system(G::GaloisCtx, a::SimpleNumFieldElem)
     end
     pr *= 2
 #    error("adada")
-    @show bs, pr
+    #@show bs, pr
     if pr > 100
       error("too bad")
     end
@@ -297,7 +297,7 @@ end
 
 function frob_test(E::SubfieldLatticeElem, si::PermGroupElem)
   #test if the (tentative) block system in E makes sense
-  @show bs = E.b
+  bs = E.b
   L = E.p #the lattice
   for i=3:length(L)
     x = intersect(bs, L[i].b)

@@ -60,7 +60,7 @@ end
 ### forwarding of all essential functionality
 underlying_cycle(D::WeilDivisor) = D.C
 
-@attr function dim(I::AbsIdealSheaf)
+@attr Any function dim(I::AbsIdealSheaf)
   dims = [dim(I(U)) for U in affine_charts(scheme(I))]
   return maximum(dims)
 end
@@ -401,12 +401,12 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
   return result
 end
 
-@attr function has_dimension_leq_zero(I::Ideal)
+@attr Any function has_dimension_leq_zero(I::Ideal)
   is_one(I) && return true
   return dim(I) <= 0
 end
 
-@attr function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
+@attr Any function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
   R = base_ring(I)
   P = base_ring(R)::MPolyRing
   J = ideal(P, numerator.(gens(I)))
@@ -415,7 +415,7 @@ end
   return dim(I) <= 0
 end
 
-@attr function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
+@attr Any function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
   R = base_ring(I)
   P = base_ring(R)::MPolyRing
   J = ideal(P, lifted_numerator.(gens(I)))

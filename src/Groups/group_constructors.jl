@@ -475,27 +475,47 @@ projective_omega_group(n::Int, q::Int) = projective_omega_group(0, n, q)
 #
 ################################################################################
 
-"""
+@doc raw"""
     free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter) -> FPGroup
-    free_group(L::Vector{<:VarName}) -> FPGroup
-    free_group(L::VarName...) -> FPGroup
+    free_group(L::VarName... ; eltype::Symbol = :letter) -> FPGroup
+    free_group(varnames_specifiers... ; eltype::Symbol = :letter) -> FPGroup
 
-The first form returns the free group of rank `n`, where the generators are
-printed as `s1`, `s2`, ..., the default being `f1`, `f2`, ...
-If `eltype` has the value `:syllable` then each element in the free group is
-internally represented by a vector of syllables,
-whereas a representation by a vector of integers is chosen in the default case
-of `eltype == :letter`.
+Return a free group.
 
-The second form, if `L` has length `n`, returns the free group of rank `n`,
-where the `i`-th generator is printed as `L[i]`.
+The first form returns a free group of rank `n`, where the generators are
+printed as `"$s1"`, `"$s2"`, ..., the default being `f1`, `f2`, ...
 
-The third form, if there are `n` arguments `L...`,
-returns the free group of rank `n`,
-where the `i`-th generator is printed as `L[i]`.
+The second form returns a free group of rank `n`, where `n` is the length of `L`,
+and `L` consists of strings, symbols or characters giving the variable names.
 
-!!! warning "Note"
-    Variables named like the group generators are *not* created by this function.
+In the final form, the argument list consists of a sequence of one or
+more of the following:
+1. A vector `L` of variable names.
+2. A pair of the form `A => B`, where `A` is a `VarName` (so a string, symbol
+   or character) and `B` is a range or more generally an `AbstractVector`.
+   Then `length(B)` generators are defined whose names derive from a combination
+   of `A` and the respective element of `B`.
+   For example `:x => 1:3` defines three generators `x[1], x[2], x[3]`.
+3. A pair of the form `A => C`, where `A` is again a `VarName`, and `C` is
+   a tuple of ranges or v. For example `"a" => (1:2, 1:2)` defines four generators
+   `a[1, 1], a[2, 1], a[1, 2], a[2, 2]`.
+
+For the second and third type, optionally the `A` part can contain the
+placeholder `#` to modify where the indices are inserted. For example
+`"a#" => (1:2, 1:2)` defines four generators `a11, a21, a12, a22`.
+
+Also, instead of a range, any vector can be used. For example `"#" => ([:x,:y], [:A, :B])`
+defines four generators `xA, yA, xB, yB`.
+
+In all variants, if the optional keyword argument `eltype` is given and
+has the value `:syllable` then each element in the free group is
+internally represented by a vector of syllables, whereas a
+representation by a vector of integers is chosen in the default case of
+`eltype == :letter`.
+
+!!! warning
+    Julia variables named like the group generators are *not* created by this function.
+    However, the macro [`@free_group`](@ref) does just that.
 
 # Examples
 ```jldoctest
@@ -505,34 +525,139 @@ Free group of rank 2
 julia> w = F[1]^3 * F[2]^F[1] * F[-2]^2
 a^2*b*a*b^-2
 ```
+
+Here we show some of the different ways to create a free group.
+```jldoctest
+julia> gens(free_group(2))
+2-element Vector{FPGroupElem}:
+ f1
+ f2
+
+julia> gens(free_group(2, :a))
+2-element Vector{FPGroupElem}:
+ a1
+ a2
+
+julia> gens(free_group(:u, :v))
+2-element Vector{FPGroupElem}:
+ u
+ v
+
+julia> gens(free_group([:a, :b], "x" => 1:2, 'y' => (1:2, 1:2)))
+8-element Vector{FPGroupElem}:
+ a
+ b
+ x[1]
+ x[2]
+ y[1, 1]
+ y[2, 1]
+ y[1, 2]
+ y[2, 2]
+```
 """
-function free_group(n::Int, s::VarName = :f; eltype::Symbol = :letter)
-   @req n >= 0 "n must be a non-negative integer"
-   t = s isa Char ? string(s) : s
+function free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
+   @req allunique(L) "generator names must be unique"
+   J = GapObj(L, recursive = true)
    if eltype == :syllable
-     G = FPGroup(GAP.Globals.FreeGroup(n, GapObj(t); FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+     G = FPGroup(GAP.Globals.FreeGroup(J; FreeGroupFamilyType = GapObj("syllable"))::GapObj)
+   elseif eltype == :letter
+     G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    else
-     G = FPGroup(GAP.Globals.FreeGroup(n, GapObj(t))::GapObj)
+     error("eltype must be :letter or :syllable, not ", eltype)
    end
-   GAP.Globals.SetRankOfFreeGroup(GapObj(G), n)
-   return G
-end
-
-function free_group(L::Vector{<:VarName})
-   J = GapObj(L; recursive = true)
-   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
    GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
    return G
 end
 
-function free_group(L::Vector{<:Char})
-   J = GapObj(Symbol.(L); recursive = true)
-   G = FPGroup(GAP.Globals.FreeGroup(J)::GapObj)
-   GAP.Globals.SetRankOfFreeGroup(GapObj(G), length(J))
-   return G
+# HACK: we want to use `AbstractAlgebra.@varnames_interface` for free groups,
+# but by default this requires the "constructor" function to have two return
+# values: the ring/group/whatever, and its generator. But `free_group` has
+# traditionally just one return value and we can't change that without badly
+# breaking backwards compatibility. (Besides, I don't really *want* to change
+# this, but that's a different matter).
+#
+# So we use a trick: we introduce `_free_group` with the right return value,
+# and then delegate `free_group` to it, and similarly define the macro
+# `@free_group` by delegating to the `@_free_group` macros (plus some extra
+# shenigans).
+function _free_group(L::Vector{<:Symbol}; eltype::Symbol = :letter)
+   G = free_group(L; eltype)
+   return G, gens(G)
 end
 
-free_group(L::VarName...) = free_group(collect(L))
+AbstractAlgebra.@varnames_interface _free_group(s)
+
+free_group(L0::VarName, Ls::VarName...; kw...) = free_group([L0, Ls...]; kw...)
+free_group(a0, args...; kw...) = _free_group(a0, args...; kw...)[1]
+free_group(; kw...) = _free_group(0; kw...)[1]
+
+# HACK to get the default variable name stem `:f` instead of `:x`
+# but also to insert validation for `n`.
+function free_group(n::Int, s::VarName = :f; kw...)
+   @req n >= 0 "n must be a non-negative integer"
+  _free_group(n, s; kw...)[1]
+end
+
+"""
+    @free_group(args...)
+
+Return the free group obtained from `free_group(args...)` and introduce
+its generators as Julia variables into the current scope.
+
+# Examples
+```jldoctest
+julia> F = @free_group(:a, :b)
+Free group of rank 2
+
+julia> a^2*b*a*b^-2
+a^2*b*a*b^-2
+```
+
+Note that the `varname => vector` syntax for specifying a vector or
+matrix or general array of variables behaves slightly differently
+compared to `free_group`, as the following example demonstrates.
+```jldoctest
+julia> U1 = free_group("x" => 1:3); gens(U1)
+3-element Vector{FPGroupElem}:
+ x[1]
+ x[2]
+ x[3]
+
+julia> U2 = @free_group("x" => 1:3); gens(U2)
+3-element Vector{FPGroupElem}:
+ x1
+ x2
+ x3
+
+julia> (x2^x1)^-1
+x1^-1*x2^-1*x1
+```
+"""
+macro free_group(args...)
+  if all(n -> n isa VarName || (n isa QuoteNode && n.value isa VarName), args)
+    # if the arguments are varnames, put them into a vector before delegating
+    # to @_free_group
+    esc(quote
+      Oscar.@_free_group([$(args...)])
+    end)
+  else
+    # by default just delegate to `@_free_group`
+    esc(quote
+      Oscar.@_free_group($(args...))
+    end)
+  end
+end
+
+macro free_group(n::Int, sym = :f)
+  if sym isa QuoteNode
+    sym = sym.value
+  end
+  s = Symbol(sym)::Symbol
+  esc(quote
+    Oscar.@_free_group($(QuoteNode(s)) => 1:$n)
+  end)
+end
+
 
 # FIXME: a function `free_abelian_group` with the same signature is
 # already being defined by Hecke

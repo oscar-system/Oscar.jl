@@ -39,6 +39,10 @@ General textbooks offering details on theory and algorithms include:
 - [EH16](@cite)
 - [Ful98](@cite)
 
+For computations in the Chow rings of abstract flag bundles see 
+- [GSS22](@cite).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:

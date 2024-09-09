@@ -1,5 +1,90 @@
+function norm_equation_fac_elem_non_max(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = false)
+  #Idea
+  #every solution in R is also one in S, the maximal order, hence
+  #associated to some solution in S
+  #Step 1: solve completely in S
+  #Step 2: compute X = S^*/R^* (finite)
+  #Step 3: for each solution b find all x in X s.th. bx in R
+  #
+  # Improvement, sometimes: f = conductor(R, S)
+  # then 1 -> R^* -> S^* -> (S/f)^*/(R/f)^* 
+  # is exact (and used to compute R^*)
+  # if k is coprime to f, then every solution b in S is also coprime to
+  # f, hence in (S/f)^*/(R/f)^*
+  # so instead of all X, just use all preimages in S^* of b
+  #
+  # finally, adjust for signs...
+  #
+  S = maximal_order(R)
+  U, mU = unit_group_fac_elem(S)
+  q, mqS, mSq = Hecke.OO_mod_F_mod_O_mod_F(R)
+  s = norm_equation_fac_elem(S, k; abs)
+  f = conductor(R, S)
+  mu = hom(U, q, [preimage(mqS, mSq(mU(x))) for x = gens(U)])
+
+  p, phi = quo(U, kernel(mu)[1])
+  t = typeof(s)()
+  have_unit = false
+  if isodd(degree(R)) 
+    u_m1 = FacElem(number_field(R)(-1))
+    have_unit = true
+  end
+  for x = s
+    if is_one(gcd(minimum(f), k))
+      y = preimage(mqS, mSq(x))
+      fl, d = has_preimage_with_preimage(mu, y)
+      fl || continue
+      u = mU(-d)
+      if !abs && !have_unit && norm(u) == -1
+        u_m1 = u
+        have_unit = true
+      end
+      push!(t, x*u)
+      @assert is_zero(preimage(mqS, mSq(t[end])))
+    else
+      for z = p
+        u = mU(preimage(phi, z))
+        if !abs && !have_unit && norm(u) == -1
+          u_m1 = u
+          have_unit = true
+        end
+        xx = u*x
+        xxx = evaluate(xx)
+        if denominator(xxx, R) == 1
+          push!(t, xx)
+        end
+      end
+    end
+  end
+  if !abs && !have_unit
+    U, mU = unit_group(R)
+    for g = gens(U)
+      u = mU(g)
+      if norm(u) == -1
+        u_m1 = u
+        have_unit = true
+        break
+      end
+    end
+  end
+  tt = typeof(t)()
+  for x = t
+    if !abs && norm(x) != k
+      if have_unit
+        push!(tt, u_m1*x)
+      end
+    else
+      push!(tt, x)
+    end
+  end
+
+  return tt
+end
+
 function norm_equation_fac_elem(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = false)
-  @assert Hecke.is_maximal(R)
+  if !Hecke.is_maximal(R)
+    return norm_equation_fac_elem_non_max(R, k; abs)
+  end
   lp = factor(k)
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
   for (p, k) = lp.fac
