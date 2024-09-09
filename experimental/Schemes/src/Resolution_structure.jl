@@ -442,7 +442,7 @@ function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I:
   i=1
 
   ## I describes a point, find a patch where it is visible
-  i = findfirst(!isone(I(patches[i])) for i in 1:length(patches))
+  i = findfirst(j ->!is_one(I(patches[j])), 1:length(patches))
   U = patches[i]
 
   ## now check containment for exceptional divisor
