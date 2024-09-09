@@ -377,14 +377,14 @@ function extend(f::MixedBlowUpSequence, g::Union{BlowUpSequence,MixedBlowUpSeque
 end
 
 function _blow_up_at_all_points_embedded(f::BlowUpSequence, I_all::AbsIdealSheaf)
-  @assert domain(f) == scheme(I_all)
+  @assert domain(f) === scheme(I_all)
 
   decomp=maximal_associated_points(I_all)
-  while length(decomp)>0
+  while !is_empty(decomp)
     I = small_generating_set(pop!(decomp))
     f = _do_blow_up_embedded!(f,I)
-    if length(decomp)>0
-      decomp = [strict_transform(last_map(f),J) for J in decomp]
+    if !is_empty(decomp)
+      decomp = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in decomp]
     end
   end
   return f
@@ -394,21 +394,21 @@ function _blow_up_at_all_points_embedded(f::BlowUpSequence, V::Vector{AbsIdealSh
    I = small_generating_set(pop!(V))
    f = _do_blow_up_embedded!(f,I)
    if length(V) > 0
-     tempV = [strict_transform(last_map(f),J) for J in decomp]
+     tempV = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in decomp]
      f = _blow_up_at_all_points_embedded(f,tempV)
    end
    return f
 end
 
 function _blow_up_at_all_points(f::Union{BlowUpSequence, MixedBlowUpSequence}, I_all::AbsIdealSheaf)
-  @assert domain(f) == scheme(I_all)
+  @assert domain(f) === scheme(I_all)
 
   decomp=maximal_associated_point(I_all)
-  while length(decomp)>0
+  while !is_empty(decomp)
     I = small_generating_set(pop!(decomp))
     f = _do_blow_up!(f,I)
     if length(decom)>0
-      decomp = [strict_transform(last_map(f),J) for J in decomp]
+      decomp = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in decomp]
     end
   end
   return f
@@ -423,18 +423,13 @@ end
 
 function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I::AbsIdealSheaf)
   dim(I) == 0 || return f
+  is_prime(I) || return f
   patches = Oscar.patches(default_covering(scheme(I)))
-  if !isdefined(f,:dont_meet)
-    dont_meet = Vector{Tuple{Int,Int}}()
-  else
-    dont_meet = f.dont_meet
-  end
+  dont_meet = isdefined(f,:dont_meet) ? f.dont_meet : Vector{Tuple{Int,Int}}()
   i=1
 
   ## I describes a point, find a patch where it is visible
-  while i < length(patches) && is_one(I(patches[i]))
-    i = i+1
-  end
+  i = findfirst(!isone(I(patches[i])) for i in 1:length(patches))
   U = patches[i]
 
   ## now check containment for exceptional divisor
@@ -745,10 +740,10 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   
   I_sl_temp = I_sl
   while !is_one(I_sl_temp)
-    while length(decomp) > 0
+    while !is_empty(decomp)
       I = small_generating_set(pop!(decomp))
       phi = _do_blow_up!(phi,I)
-      if length(decomp)>0 
+      if !is_empty(decomp)
         decomp = [strict_transform(last_map(phi),J) for J in decomp]
       end
     end
@@ -776,10 +771,10 @@ function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUp
   decomp = maximal_associated_points(I_sl_temp)
 
   while !is_one(I_sl_temp)
-    while length(decomp) > 0
+    while !is_empty(decomp)
       I = small_generating_set(pop!(decomp))
       f = _do_blow_up!(f,I)
-      if length(decomp)>0 
+      if !is_empty(decomp) 
         decomp = [strict_transform(last_map(f),J) for J in decomp]
       end
     end
@@ -805,10 +800,10 @@ function _desing_emb_curve(f::CoveredClosedEmbedding, I_sl::AbsIdealSheaf)
   decomp = [strict_transform(current_blow_up,J) for J in decomp]
   I_sl_temp = I_sl
   while !is_one(I_sl_temp)
-    while length(decomp) > 0
+    while !is_empty(decomp)
       I = small_generating_set(pop!(decomp))
       phi = _do_blow_up_embedded!(phi,I)
-      if length(decomp)>0
+      if !is_empty(decomp)
         decomp = [strict_transform(last_map(phi),J) for J in decomp]
       end
     end
@@ -1199,7 +1194,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
   F1 = leading_module(Jm_shifted,o)
   F1quo = quo(F_shifted, F1)[1]
 
-  return (vector_space_dimension(F1quo) == 1 ? true : false)
+  return vector_space_dimension(F1quo) == 1
 end
 
 function divisor_intersections_with_X(current_div, I_X)

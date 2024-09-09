@@ -33,7 +33,7 @@ TODO...
       inter_id = one(OO(patches_scheme[1]))
       !((i,j) in dont_meet) ||  continue                # cannot meet, entry stays 0
       found_index = findfirst(V->(!is_one(ex_divs[i](V) + ex_divs[j](V))), patches_scheme)
-      found_index != nothing || continue
+      found_index !== nothing || continue
       U = patches_scheme[found_index]
       inter_id = ex_divs[i](U) + ex_divs[j](U)
       inter_mat_k[i,j] = vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
@@ -59,7 +59,7 @@ TODO...
     if vector_space_dimension(quo(OO(U),I(U))[1]) == 1
       a = Oscar.rational_point_coordinates(saturated_ideal(I(U)))
       l = findfirst(x -> is_prime(ideal(OO(U),gen(OO(U),x)-a[x])),1:ngens(OO(U)))
-      if l != nothing
+      if l !== nothing
         p = gen(OO(U),l) - a[l]
       else
         p = sum(gen(OO(U),x) - a[x] for x in 1:ngens(OO(U)))
@@ -72,7 +72,7 @@ TODO...
       end
     else
       l = findfirst(x -> (deg(x) == 1 && is_prime(ideal(OO(U),[x]))), gens(I(U)))
-      l != nothing || error("choose hypersurface: random choice not implemented yet")
+      l !== nothing || error("choose hypersurface: random choice not implemented yet")
       p = gen(I(U),l)
     end
     H = Oscar.IdealSheaf(scheme(sl_orig),U,ideal(OO(U),p))
@@ -136,7 +136,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
     ## could still be absolutely irreducible, but also absolutely reducible
     ## first check, whether we can deduce that it is absolutely reducible
     b = findfirst(c -> (M[c,a] > 1 || M[a,c] > 1), abs_irred_list)
-    if b != nothing
+    if b !== nothing
       ## inferrable from other data
       if has_attribute(ex_divs[a],:A1count)
         ## we already counted A1s
@@ -162,7 +162,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
   for i in todo_list
     ## try intersections with known data
     j = findfirst(a->((M[a,i]>0 || M[i,a]>0) && abs_data[a][2] >0),1:ncols(M))
-    if (j != nothing) && (M[i,j] > abs_data[j][2])
+    if (j !== nothing) && (M[i,j] > abs_data[j][2])
       ## either the k_bar components meet pairwise or all meet all
       ## ==> ex_divs[i] not absolutely irreducible and all meet all
         is_sane, mult_i = divides(M[i,j],abs_data[j][2])
@@ -179,7 +179,7 @@ function _pass_to_kbar_intermat(M::ZZMatrix, ex_divs::Vector{AbsIdealSheaf})
   end
 
   ## don't go any further, if we are done
-  findfirst(v -> v[2]!=1 , abs_data) != nothing || return M,[1 for i in 1:nrows(M)]
+  findfirst(v -> v[2]!=1 , abs_data) !== nothing || return M,[1 for i in 1:nrows(M)]
 
   ## fill the non-diagonal entries of the intersection matrix over algebraic closure
   ncols_kbar = sum([a[2] for a in abs_data])
