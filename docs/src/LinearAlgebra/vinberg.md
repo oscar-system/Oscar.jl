@@ -5,7 +5,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Vinberg's algorithm
 
- A Lorentzian lattice $L$ is an integral $\Z$-lattice in hyperbolic space.
+ A Lorentzian lattice $L$ is an integral $\Z$-lattice of signature $(s_+, s_-)$ with $s_+=1$ and $s_->0$. 
  $L$ is called reflective if the set of fundamental roots $\~{R}(L)$ is finite.
 
  See for example [Tur17](@cite) for the theory of Arithmetic Reflection Groups and Reflective Lorentzian Lattices.
