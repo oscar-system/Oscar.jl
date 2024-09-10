@@ -26,7 +26,7 @@ DocTestSetup = Oscar.doctestsetup()
 
  Perhaps $v_0$ lies on one or on several roots. Then $P$ is cannot be uniquely determined.
  In that case we need a direction vector $v_1$ that satisfies
- - the pair $(v_0, v_1)$ lies orthogonal on each other, i.e. $(v_0, v_1) = 0$
+ - $v_1$ is orthogonal to $v_0$ ```
  - for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$ it holds $(\~{v}, v_1) \neq 0$ 
 
  With $v_0$ and $v_1$ fixed $P$ can be uniquely determined for any choice of root lengths and maximal distance $(v_0, r)$.
