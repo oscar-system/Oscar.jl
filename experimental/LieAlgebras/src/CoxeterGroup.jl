@@ -23,13 +23,14 @@ function coxeter_matrix_entry_from_cartan_matrix(gcm::ZZMatrix, i::Int, j::Int)
     return 1
   end
 
-  if gcm[i, j] * gcm[j, i] == 0
+  d = gcm[i, j] * gcm[j, i]
+  if d == 0
     return 2
-  elseif gcm[i, j] * gcm[j, i] == 1
+  elseif d == 1
     return 3
-  elseif gcm[i, j] * gcm[j, i] == 2
+  elseif d == 2
     return 4
-  elseif gcm[i, j] * gcm[j, i] == 3
+  elseif d == 3
     return 6
   else
     return 0
