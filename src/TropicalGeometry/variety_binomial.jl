@@ -24,7 +24,7 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     ###
     # Constructing tropical variety set-theoretically
     ###
-    A = QQMatrix(A)
+    A = matrix(QQ, A)
     L = transpose(kernel(A, side = :right))
     can_solve, V = can_solve_with_solution(transpose(A),matrix(QQ,[b]),side=:left)
     @req can_solve "tropical variety cannot be empty"
