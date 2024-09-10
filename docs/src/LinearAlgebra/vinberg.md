@@ -29,7 +29,7 @@ DocTestSetup = Oscar.doctestsetup()
  - $v_1$ is orthogonal to $v_0$ ```
  - for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$ it holds $(\~{v}, v_1) \neq 0$ 
 
- With $v_0$ and $v_1$ fixed $P$ can be uniquely determined for any choice of root lengths and maximal distance $(v_0, r)$.
+ With $v_0$ and $v_1$ fixed $P$ is uniquely determined for any choice of root lengths and maximal distance $(v_0, r)$.
  We choose the first roots $r$ by increasing order of the value $\frac{(\~{r}, v_1)}{r^2}$ for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$.
  For any other root length we continue as stated above.
  
