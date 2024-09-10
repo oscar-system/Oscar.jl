@@ -118,7 +118,7 @@ end
 
 
 @doc raw"""
-    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
+    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
 
 Given modules `M` and `N` which are products with `r` respective `s` factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
