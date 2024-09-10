@@ -1570,7 +1570,7 @@ end
 
 Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
 into simple modules with their multiplicities.
-This function uses Klymik's formula.
+This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
 
 The return type may change in the future.
 
