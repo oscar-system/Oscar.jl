@@ -314,12 +314,16 @@ end
 
 function save_object(s::SerializerState, W::WeylGroup)
   RS_ref = save_as_ref(s, root_system(W))
-  save_object(s, RS_ref)
+  save_data_dict(s) do
+    save_object(s, RS_ref, :root_system)
+  end
 end
 
 function load_object(s::DeserializerState, ::Type{WeylGroup})
-  R = load_ref(s)
-  return weyl_group(R)
+  load_node(s, :root_system) do _
+    R = load_ref(s)
+    return weyl_group(R)
+  end
 end
 
 @register_serialization_type WeylGroupElem uses_params
