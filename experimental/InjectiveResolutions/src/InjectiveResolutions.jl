@@ -42,7 +42,6 @@ struct IrrRes # irreducible resolution (including all computed data and the coch
     cochainComplex::ComplexOfMorphisms # if sequence not exact return trivial cochain_complex (M0 -> M0)
 end
 
-
 ##computes system of inequalities for polyhedron {r*a : r >= 0}, a \in ZZ^2
 ##INPUT:    vector a in ZZ^2
 ##OUTPUT:   matrix A, vector b such that Ax <= b for all x on hyperplane through a
@@ -74,9 +73,14 @@ function compute_inequalities(a::Vector{Int})
     return A, b
 end
 
-##get face F corresponding to a prime ideal P_F
-##INPUT:    prime ideal p_F
-##OUTPUT:   list [face F, matrix A, vector b] such that F is defined by Ax <= b
+@doc raw"
+    get_face_to_prime(P_F::Ideal)
+
+    Given a homogeneous prime ideal, return the corresponding face F
+
+    INPUT:    prime ideal p_F
+    OUTPUT:   list [face F, matrix A, vector b] such that F is defined by Ax <= b
+"
 function get_face_to_prime(P_F::Ideal)
     R_Q = base_ring(P_F)
     #get generators of k[F] = k[Q]/P_F
@@ -166,10 +170,15 @@ function generators_W_H(Q_P::Polyhedron,G::Polyhedron,Fs::Vector{Polyhedron{QQFi
     return B_red
 end
 
-##computes the Bass numbers up to cohomological degree i
-##INPUT:    monomial ideal I
-#           integer i
-##OUTPUT:   list of ZZ^d graded degrees of Bass numbers up to cohomological degree i
+@doc raw"
+    compute_bass_numbers(I,i)
+
+    computes degrees of non-zero Bass numbers up to some given cohomological degree
+
+    INPUT:  monomial ideal I
+            integer i
+    OUTPUT: list of ZZ^d graded degrees of Bass numbers up to cohomological degree i
+"
 function compute_bass_numbers(I,i)
     R_Q = base_ring(I)
     I_R = modulus(R_Q)
@@ -235,7 +244,6 @@ function compute_shift(I,i,c,P_Q)
     end
     return j*c
 end
-
 
 #computes the quotient of a module M by an ideal I, i.e. (0 :_M I)
 #INPUT:     SubquoModule M
@@ -406,10 +414,15 @@ function quotient_by_ideal(I::Ideal)
 end
 
 
-#compute irreducible hull of M as in algorithm 3.6
-#INPUT:     SubquoModule M over semigroup ring k[Q]
-#           List of prime ideals corresponding to the faces of Q
-#OUTPUT:    effective irreducible hull W_bar and effective vector set lambda
+@doc raw"""
+    irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
+
+    Computes an irreducible hull of a $\ZZ^d$-graded $k[Q]$-module
+
+    INPUT:    SubquoModule M over semigroup ring k[Q]
+               List of prime ideals corresponding to the faces of Q
+    OUTPUT:    effective irreducible hull W_bar and effective vector set lambda
+"""
 function irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
     N = M
     W_F = Vector{FaceQ}()
@@ -439,13 +452,18 @@ function irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
     return IrrHull(W_F,W_deg,foldl(hcat,lambda))
 end
 
-#compute irreducible resolution of k[Q]-module M 
-#INPUT:     SubquoModule M over semigroup ring k[Q]
-#           list of primes P corresponding to faces
-#           semigroup Q as polyhedron P_Q
-#           list of faces F of Q 
-#           list of hyperplanes H bounding Q as tuples (polyhedron,A,b)
-#OUTPUT:    irreducible resolution of M given by a list of of k[Q]-modules and homomorphisms in between
+@doc raw"""
+    irreducible_res(M::SubquoModule,P::Vector{FaceQ},P_Q::Polyhedron,G::Polyhedron,F::Vector{Polyhedron{QQFieldElem}},H::Vector{FaceQ})
+
+    Computes a minimal irreducible resolution of a finitely generated $\ZZ^d$-graded module over some affine semigroup ring
+
+    INPUT:  SubquoModule M over semigroup ring $k[Q]$
+            list of primes P corresponding to faces
+            semigroup Q as polyhedron P_Q
+            list of faces F of Q 
+            list of hyperplanes H bounding Q as tuples (polyhedron,A,b)
+    OUTPUT: irreducible resolution of M given by a list of of k[Q]-modules and homomorphisms in between
+"""
 function irreducible_res(M::SubquoModule,P::Vector{FaceQ},P_Q::Polyhedron,G::Polyhedron,F::Vector{Polyhedron{QQFieldElem}},H::Vector{FaceQ})
     Mi = M # current module in resolution
     gi = identity_map(Mi) #initilalize
