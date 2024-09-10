@@ -49,7 +49,11 @@ function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_
 #   A = matrix(vcat(type_vector[embU(v) for v in gens(U)], type_vector[embK(v) for v in gens(K)] ))
 
    if _is_symmetric
-      return A*B*transpose(map(y -> frobenius(y,e),A)), A, d
+      if e == 0
+         return A*B*transpose(A), A, d
+      else
+         return A*B*conjugate_transpose(A), A, d
+      end
    else
       A = transpose(A)
       return B*A, A, d
@@ -64,7 +68,7 @@ end
 # returns D, A such that A*B*transpose(frobenius(A)) = D and 
 # D is diagonal matrix (or with blocks [0 1 s 0])
 # f = dimension of the zero block in B in the isotropic case
-function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)  where T <: FinFieldElem
+function _block_anisotropic_elim(B::MatElem{T}, ::Val{_type}; isotr=false, f=0)  where {T <: FinFieldElem, _type}
 
    d = nrows(B)
    F = base_ring(B)
@@ -75,17 +79,17 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
    if _type==:symmetric
       degF=0
       s=1
+      star(X) = transpose(X)
    elseif _type==:alternating
       degF=0
       s=-1
+      star(X) = transpose(X)
    elseif _type==:hermitian
       degF=div(degree(F),2)
       s=1
+      star(X) = conjugate_transpose(X)
    end
 
-   # conjugate transpose in hermitian case
-   # transpose in the other cases
-   star(X) = transpose(map(y -> frobenius(y,degF),X))
 
    if isotr
       q = characteristic(F)^degF
@@ -181,9 +185,9 @@ function _block_herm_elim(B::MatElem{T}, _type) where T <: FinFieldElem
    c = Int(ceil(d/2))
    B2 = B[1:c, 1:c]
    if B2==0
-      D,A = _block_anisotropic_elim(B,_type; isotr=true, f=c)
+      D,A = _block_anisotropic_elim(B, Val(_type); isotr=true, f=c)
    else
-      D,A = _block_anisotropic_elim(B,_type)
+      D,A = _block_anisotropic_elim(B, Val(_type))
    end
 
    return D,A
