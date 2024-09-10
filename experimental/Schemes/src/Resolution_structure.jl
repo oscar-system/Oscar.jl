@@ -128,10 +128,10 @@ end
 ##################################################################################################
 underlying_morphism(phi::NormalizationMorphism) = phi.underlying_morphism
 inclusion_morphisms(phi::NormalizationMorphism) = phi.inclusions
-normalization_steps(phi::NormalizationMorphism) = phi.normalization_steps
 morphisms(phi::AbsDesingMor) = copy(phi.maps)
 morphism(phi::AbsDesingMor,i::Int) = phi.maps[i]
 last_map(phi::AbsDesingMor) = phi.maps[end]
+normalization_steps(phi::MixedBlowUpSequence) = phi.normalization_steps
 
 exceptional_divisor_list(phi::BlowUpSequence) = phi.ex_div
 exceptional_divisor_as_ideal_sheafs(phi::MixedBlowUpSequence) = exceptional_divisor_list(phi,true)
@@ -155,7 +155,6 @@ function exceptional_divisor_list(phi::MixedBlowUpSequence, seq_unclean::Bool=fa
   return phi.ex_div
 end
 
-normalization_steps(phi::MixedBlowUpSequence) = phi.normalization_steps
  
 embeddings(phi::BlowUpSequence) = phi.embeddings
 
@@ -347,7 +346,7 @@ function add_map!(f::MixedBlowUpSequence, phi::NormalizationMorphism)
   ex_div = (AbsIdealSheaf)[pullback(phi,E) for E in exceptional_divisorlist(f,true)]
   push!(ex_div,pullback(phi, sl))
   f.ex_div = ex_div
-  push!(f.normalization_steps,length(f.maps))
+  push!(normalization_steps(f),length(f.maps))
   if isdefined(f, :underlying_morphism)
     f.underlying_morphism = CompositeCoveredSchemeMorphism(reverse(morphisms(f)))
   end
@@ -403,29 +402,42 @@ function _blow_up_at_all_points_embedded(f::BlowUpSequence, I_all::AbsIdealSheaf
   return f
 end
 
-function _blow_up_at_all_points_embedded(f::BlowUpSequence, V::Vector{AbsIdealSheaf})
+function _blow_up_at_all_points_embedded(f::BlowUpSequence, V::Vector{<:AbsIdealSheaf})
+   !is_empty(V) || return(f)
    I = small_generating_set(pop!(V))
    f = _do_blow_up_embedded!(f,I)
    if length(V) > 0
-     tempV = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in decomp]
+     tempV = [strict_transform(last_map(f),J) for J in V]
      f = _blow_up_at_all_points_embedded(f,tempV)
    end
    return f
 end
 
-function _blow_up_at_all_points(f::Union{BlowUpSequence, MixedBlowUpSequence}, I_all::AbsIdealSheaf)
+function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, I_all::AbsIdealSheaf)
   @assert domain(f) === scheme(I_all)
 
-  decomp=maximal_associated_point(I_all)
+  decomp=maximal_associated_points(I_all)
   while !is_empty(decomp)
     I = small_generating_set(pop!(decomp))
     f = _do_blow_up!(f,I)
-    if length(decom)>0
-      decomp = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in decomp]
+    if length(decomp)>0
+      decomp = [strict_transform(last_map(f),J) for J in decomp]
     end
   end
   return f
 end
+
+function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, V::Vector{<:AbsIdealSheaf})
+   !is_empty(V) || return(f)
+   I = small_generating_set(pop!(V))
+   f = _do_blow_up!(f,I)
+   if length(V) > 0
+     tempV = StrictTransformIdealSheaf[strict_transform(last_map(f),J) for J in V]
+     f = _blow_up_at_all_points(f,tempV)
+   end
+   return f
+end
+
 
 function extend(f::BlowUpSequence, g:: BlowUpSequence)
   for g_i in morphisms(g)
@@ -708,7 +720,7 @@ function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
 
   !phi.is_strong || return phi
   ex_divs = phi.ex_div
-  for i in phi.normalization_steps
+  for i in normalization_steps(phi)
     !is_one(ex_divs[i]) || continue
     scheme_E,inc_E = sub(radical(ex_divs[i]))                             # here radical is cheap and necessary
     I_sl = ideal_sheaf_of_singular_locus(scheme_E)
@@ -718,7 +730,7 @@ function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
   end
 
   for i in 1:length(ex_divs)
-    !(i in phi.normalization_steps) || continue
+    !(i in normalization_steps(phi)) || continue
     ex_divs[i] = radical(ex_divs[i])                                      # multiplicities here are artefacts
     I_sl, countA1s = curve_sing_A1_or_beyond(radical(ex_divs[i]))
     set_attribute!(phi.ex_div[i],:A1count,countA1s)
@@ -747,19 +759,12 @@ function _desing_curve(X::AbsCoveredScheme, I_sl::AbsIdealSheaf)
   I = small_generating_set(pop!(decomp))
   current_blow_up = blow_up(I)
   phi = initialize_blow_up_sequence(current_blow_up)::BlowUpSequence
-  decomp = [strict_transform(current_blow_up,J) for J in decomp]
+  phi = _blow_up_at_all_points(phi,decomp)
   
-  I_sl_temp = I_sl
+  I_sl_temp = ideal_sheaf_of_singular_locus(domain(phi))
   while !is_one(I_sl_temp)
-    while !is_empty(decomp)
-      I = small_generating_set(pop!(decomp))
-      phi = _do_blow_up!(phi,I)
-      if !is_empty(decomp)
-        decomp = [strict_transform(last_map(phi),J) for J in decomp]
-      end
-    end
+    phi = _blow_up_at_all_points(phi,I_sl_temp)
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(phi)))
-    decomp = maximal_associated_points(I_sl_temp)
   end
 
   phi.resolves_sing = true
@@ -770,25 +775,19 @@ end
 function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUpSequence)
   dim(X) == 2 || error("Lipman's algorithm is not applicable")
 
-  if dim(I_sl) == 1                         # called for a non-normal X
-    Xnorm, phi = normalization(X)
-    incs = phi.inclusions
-    f = initialize_mixed_blow_up_sequence(phi,I_sl)
+  if dim(I_sl) == 1  
+  # not normal, do a normalization first                       
+    f = _do_normalization!(f)
+    Xnorm = domain(f)
     I_sl_temp = ideal_sheaf_of_singular_locus(Xnorm)
   else
+  # already normal
     I_sl_temp = I_sl
   end    
-  
-  decomp = maximal_associated_points(I_sl_temp)
 
+  # now iterate this
   while !is_one(I_sl_temp)
-    while !is_empty(decomp)
-      I = small_generating_set(pop!(decomp))
-      f = _do_blow_up!(f,I)
-      if !is_empty(decomp) 
-        decomp = [strict_transform(last_map(f),J) for J in decomp]
-      end
-    end
+    f = _blow_up_at_all_points(f,I_sl_temp)
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
     if dim(I_sl_temp) == 1
       f = _do_normalization!(f)
