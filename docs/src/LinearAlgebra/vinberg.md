@@ -20,7 +20,7 @@ DocTestSetup = Oscar.doctestsetup()
  - reflection by $r$ preserves the lattice, i.e. $\frac{2}{r^2}*r*Q$ is an integer matrix.
  - the pair $(r, v_0)$ is positive oriented, i.e. $(r, v_0) > 0$
  - the product $(r, \~{r}) \geq \ 0$ for all roots $\~{r}$ already found
- This implies that $r^2$ divides $2*i$ for $i$ being the level of $Q$, i.e. the last invariant of the smith normal form of $Q$. 
+ This implies that $r^2$ divides $2*i$ for $i$ being the level of $Q$, i.e. the last invariant of the Smith normal form of $Q$. 
 
  $P$ can be constructed by solving $(r, v_0) = n$ and $r^2 = k$ by increasing order of the value $\frac{n^2}{k}$ and $r$ satisfying the above conditions.
 
