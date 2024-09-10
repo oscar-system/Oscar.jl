@@ -59,14 +59,6 @@ function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
 end
 
 
-@doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
-
-Given modules `M`, `N` which are tensor products with the same number of factors,
-say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
-and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
-$a_1 \otimes \cdots \otimes a_r$.
-"""
 function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
@@ -91,6 +83,14 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP
 end
 
 # the case of a non-trivial base change
+@doc raw"""
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+
+Given modules `M`, `N` which are tensor products with the same number of factors,
+say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
+and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
+$a_1 \otimes \cdots \otimes a_r$.
+"""
 function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")

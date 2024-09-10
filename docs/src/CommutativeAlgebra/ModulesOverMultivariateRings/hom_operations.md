@@ -13,7 +13,7 @@ hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<: ModuleFPHom})
 ```
 
 ```@docs
-hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
 ```
 
 ```@docs
