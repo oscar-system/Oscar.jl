@@ -276,6 +276,7 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0 = matrix(ZZ,
   iteration = _distance_indices(upper_bound, real_root_lengths) # find the right order to iterate through v.v0 and v^2
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case v.v0 = 0
   for (n, k) in iteration # we  search for vectors which solve n = v.v0 and k = v^2
+    @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)" 
     possible_Vec = Oscar.short_vectors_affine(Q, v0, QQ(n), k)
     for v in possible_Vec
       if !_is_primitive(v)
