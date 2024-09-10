@@ -710,7 +710,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       using Oscar version $VERSION_NUMBER
       """
     end
-    
+
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
       @warn "Attempted loading file stored using a DEV version with commit $commit"
