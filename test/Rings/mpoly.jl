@@ -208,13 +208,25 @@ end
   # absolute_primary_decomposition
   R,(x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
-  d = absolute_primary_decomposition(I)
+  d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 3
 
   R,(x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
-  d = absolute_primary_decomposition(I)
+  d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 5
+
+  d = @inferred absolute_primary_decomposition(ideal(R()))
+  @test length(d) == 1
+
+  d = @inferred absolute_primary_decomposition(ideal(R(1)))
+  @test isempty(d)
+
+  # Issue 4039
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, [x + 1, y + 1, y])
+  d = @inferred absolute_primary_decomposition(I)
+  @test isempty(d)
 
   # is_prime
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
