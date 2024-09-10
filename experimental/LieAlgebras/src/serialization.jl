@@ -313,11 +313,12 @@ end
 @register_serialization_type WeylGroup uses_id
 
 function save_object(s::SerializerState, W::WeylGroup)
-  save_object(s, root_system(W))
+  RS_ref = save_as_ref(s, root_system(W))
+  save_object(s, RS_ref)
 end
 
 function load_object(s::DeserializerState, ::Type{WeylGroup})
-  R = load_object(s, RootSystem)
+  R = load_ref(s)
   return weyl_group(R)
 end
 
