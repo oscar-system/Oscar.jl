@@ -5,9 +5,9 @@
 @doc raw"""
     _check_v0(Q::ZZMatrix, v0::ZZMatrix) -> ZZMatrix
 
-Checks if the inner product of the given v0 is positive or generates such a v0 if none is given.
+Checks if the inner product of the given `v0` is positive or generates such a v0 if none is given.
 """
-function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
+function _check_v0(Q::ZZMatrix, v0::ZZMatrix) #test
   if iszero(v0)
     l = nrows(Q)
     for signal in 1:100000000
