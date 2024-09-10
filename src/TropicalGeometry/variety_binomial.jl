@@ -12,8 +12,8 @@ function tropical_variety_binomial(I::MPolyIdeal,nu::TropicalSemiringMap; weight
     # and vector of coefficient valuation differences
     ###
     G = gens(I)
-    A = matrix(ZZ,[first(collect(expv))-last(collect(expv)) for expv in exponents.(G)])
-    b = [ QQ(nu(last(collect(coeff))/first(collect(coeff)))) for coeff in coefficients.(G)]
+    A = matrix(ZZ,[first(expv)-last(expv) for expv in exponents.(G)])
+    b = [ QQ(nu(last(coeff)/first(coeff))) for coeff in coefficients.(G)]
 
     ###
     # Compute tropical variety multiplicity
