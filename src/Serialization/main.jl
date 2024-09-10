@@ -545,7 +545,7 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
     end
 
     if !isnothing(metadata)
-      save_json(s, json(metadata), :meta)
+      save_json(s, JSON3.write(metadata), :meta)
     end
   end
   serializer_close(s)
@@ -654,13 +654,13 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
   end
 
   if file_version < VERSION_NUMBER
-    jsondict = JSON.parse(json(s.obj), dicttype=Dict{Symbol, Any})
+    # we need a mutable dictionary
+    jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
-    s.obj = JSON3.read(json(jsondict))
-    
-    if haskey(s.obj, refs_key)
-      s.refs = s.obj[refs_key]
-    end
+    jsondict_str = JSON3.write(jsondict)
+    s = state(deserializer_open(IOBuffer(jsondict_str),
+                                serializer_type,
+                                with_attrs))
   end
 
   try
@@ -710,7 +710,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       using Oscar version $VERSION_NUMBER
       """
     end
-    
+
     if contains(string(file_version), "DEV")
       commit = split(string(file_version), "-")[end]
       @warn "Attempted loading file stored using a DEV version with commit $commit"

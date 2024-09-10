@@ -8,12 +8,12 @@
 Load a graph stored in JSON format, given the filename as input.
 """
 function load_from_polymake(::Type{Graph{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Directed, Undirected}}
-  polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  polymake_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   return Graph{T}(polymake_object)
 end
 
 function load_from_polymake(::Type{PhylogeneticTree{T}}, jsondict::Dict{Symbol, Any}) where {T <: Union{Float64, Int, QQFieldElem}}
-  polymake_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  polymake_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   return PhylogeneticTree{T}(polymake_object)
 end
 
@@ -35,7 +35,7 @@ const polymake2OscarTypes = Dict{String, Type}([
 function load_from_polymake(::Type{T}, jsondict::Dict{Symbol, Any}) where {
   T<:Union{Cone{<:scalar_types}, Polyhedron{<:scalar_types}, PolyhedralFan{<:scalar_types}, 
            PolyhedralComplex{<:scalar_types}, SubdivisionOfPoints{<:scalar_types}, SimplicialComplex}}
-  inner_object = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+  inner_object = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
   if T <: PolyhedralObject{Float64}
     return T(inner_object, AbstractAlgebra.Floats{Float64}())
   end
@@ -54,7 +54,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
     return load_from_polymake(oscar_type, jsondict)
   else 
     # We just try to default to something from Polymake.jl
-    deserialized = Polymake.call_function(:common, :deserialize_json_string, json(jsondict))
+    deserialized = Polymake.call_function(:common, :deserialize_json_string, JSON3.write(jsondict))
     if !isa(deserialized, Polymake.BigObject)
       @warn "No function for converting the deserialized Polymake type to Oscar type: $(typeof(deserialized))"
       return deserialized
