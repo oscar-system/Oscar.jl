@@ -112,7 +112,7 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
     return res
   end
   bc_map = base_ring_map(first(V))
-  @assert all(domain(g) === domain(bc_map) && codomain(g) === codomain(bc_map) for g in base_ring_map.(V))
+  bc_map !== nothing && @assert all(domain(g) === domain(bc_map) && codomain(g) === codomain(bc_map) for g in base_ring_map.(V))
   return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))), bc_map)
 end
 
