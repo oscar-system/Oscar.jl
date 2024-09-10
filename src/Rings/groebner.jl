@@ -40,8 +40,8 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_g
       complete_reduction || return G
       if !G.isReduced
         I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
-        return I.gb[G.ord]
       end
+      return I.gb[G.ord]
     end
   end
   ord = default_ordering(base_ring(I))
