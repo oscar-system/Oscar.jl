@@ -301,6 +301,20 @@ end
       iso = @inferred isomorphism(FinGenAbGroup, A)
    end
 
+   @testset "Vector space to FPGroup or PcGroup" begin
+      for (F, n) in [(GF(2), 0), (GF(3), 2), (GF(4), 2),
+                     (Nemo.Native.GF(2), 0),
+                     (Nemo.Native.GF(3), 2)]
+        V = free_module(F, n)
+        for T in [FPGroup, PcGroup]
+          iso = @inferred isomorphism(T, V)
+          for x in [zero(V), rand(V)]
+            @test preimage(iso, iso(x)) == x
+          end
+        end
+      end
+   end
+
    @testset "MultTableGroup to GAPGroups" begin
       for G in [Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB()),
                 Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())]

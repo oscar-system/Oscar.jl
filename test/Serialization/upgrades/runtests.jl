@@ -21,4 +21,10 @@
     loaded_p =  load(joinpath(@__DIR__, "file_version_less_than_0.12.0.json"); params=Rx);
     @test p == loaded_p
   end
+
+  @testset "< 1.2.0 Upgrade" begin
+    # test loading
+    loaded = load(joinpath(@__DIR__, "file_version_less_than_1.2.0.json"));
+    @test loaded isa Dict
+  end
 end

@@ -1269,7 +1269,7 @@ end
 is_domain_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true 
 is_exact_type(T::Type{MPolyLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = true
 
-@attr function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
+@attr Any function base_ring_shifts(L::MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}) 
   a = point_coordinates(inverted_set(L))
   R = base_ring(L)
   shift = hom(R, R, gens(R)+R.(a), check=false)
@@ -1326,7 +1326,7 @@ function ideal_membership(a::RingElem, I::MPolyLocalizedIdeal)
 end
 
 # TODO: Also add a special dispatch for localizations at 𝕜-points
-@attr function is_prime(I::MPolyLocalizedIdeal)
+@attr Bool function is_prime(I::MPolyLocalizedIdeal)
   return is_prime(saturated_ideal(I))
 end
 
@@ -1956,7 +1956,7 @@ end
 
 Base.:(:)(I::IdealType, J::IdealType) where {IdealType<:MPolyLocalizedIdeal} = quotient(I, J)
 
-@attr function shifted_ideal(
+@attr Any function shifted_ideal(
     I::MPolyLocalizedIdeal{LRT, LRET}
   ) where {LRT<:MPolyLocRing{<:Any, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, LRET}
   L = base_ring(I)
@@ -2650,15 +2650,15 @@ true
   return ideal(base_ring(I), [g for g in R.(gens(radical(J))) if !is_zero(g)])
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement}}
   return dim(saturated_ideal(I))
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Ring, <:RingElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}}
   return dim(saturated_ideal(I)) - dim(prime_ideal(inverted_set(base_ring(I))))
 end
 
-@attr function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
+@attr Int function dim(I::MPolyLocalizedIdeal{RT}) where {RT<:MPolyLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal}}
   J = shifted_ideal(I)
   # TODO: Is there a more conceptual way to do this???
   oo = negdegrevlex(gens(base_ring(J)))

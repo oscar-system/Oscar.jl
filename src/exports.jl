@@ -2,6 +2,7 @@
 # execute:  LC_COLLATE=C sort < src/exports.jl > dummy ; mv dummy src/exports.jl
 export *
 export @check
+export @free_group
 export @pbw_relations
 export @perm
 export @permutation_group
@@ -319,6 +320,8 @@ export character_table
 export character_to_rational_function
 export characteristic_subgroups, has_characteristic_subgroups, set_characteristic_subgroups
 export charpoly
+export chern_class
+export chern_classes
 export chief_series, has_chief_series, set_chief_series
 export chow_ring
 export circuits
@@ -496,6 +499,7 @@ export dwarfed_product_polygons
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
+export elementary_abelian_group
 export elementary_symmetric
 export elements
 export eliminate
@@ -704,6 +708,7 @@ export inradical
 export integral_basis
 export integrate
 export interior_lattice_points
+export interreduce!
 export intersect
 export intersection_form
 export intersection_multiplicity
@@ -1500,6 +1505,7 @@ export twist
 export two_sided_ideal
 export underlying_gluing
 export underlying_quotient
+export underlying_word
 export uniform_matroid
 export unit
 export unitary_group

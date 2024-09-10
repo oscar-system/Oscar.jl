@@ -55,6 +55,10 @@ weierstrass_section_g(w::WeierstrassModel) = explicit_model_sections(w)["g"]
 
 Return the Weierstrass polynomial of the Weierstrass model.
 
+For convenience and uniformity with (general) hypersurface
+models, we also support the method `hypersurface_equation`
+to access the Weierstrass polynomial.
+
 ```jldoctest
 julia> w = su5_weierstrass_model_over_arbitrary_3d_base()
 Assuming that the first row of the given grading is the grading under Kbar
@@ -62,6 +66,9 @@ Assuming that the first row of the given grading is the grading under Kbar
 Weierstrass model over a not fully specified base
 
 julia> weierstrass_polynomial(w);
+
+julia> weierstrass_polynomial(w) == hypersurface_equation(w)
+true
 ```
 """
 function weierstrass_polynomial(w::WeierstrassModel)
@@ -77,6 +84,8 @@ function weierstrass_polynomial(w::WeierstrassModel)
   end
   return w.weierstrass_polynomial
 end
+
+hypersurface_equation(w::WeierstrassModel) = weierstrass_polynomial(w)
 
 
 @doc raw"""
@@ -257,7 +266,7 @@ julia> length(singular_loci(w))
     g_order = !isnothing(g_index) ? saturation_with_index(g_primes[g_index][1], d_prime[2])[2] : 0
     d_order = saturation_with_index(d_prime[1], d_prime[2])[2]
     ords = (f_order, g_order, d_order)
-    push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], weierstrass_section_f(w), weierstrass_section_g(w), discriminant(w), ords)))
+    push!(kodaira_types, (d_prime[2], ords, _kodaira_type(d_prime[2], ords, w)))
   end
   
   return kodaira_types

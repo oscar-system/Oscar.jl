@@ -59,8 +59,9 @@ classes_of_model_sections(m::AbstractFTheoryModel)
 defining_classes(m::AbstractFTheoryModel)
 gauge_algebra(m::AbstractFTheoryModel)
 global_gauge_quotients(m::AbstractFTheoryModel)
-chern_class_c1(m::AbstractFTheoryModel; check::Bool = true)
-chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
+chern_class(m::AbstractFTheoryModel, k::Int; check::Bool = true)
+chern_classes(m::AbstractFTheoryModel; check::Bool = true)
+euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 
@@ -68,7 +69,9 @@ chern_class_c2(m::AbstractFTheoryModel; check::Bool = true)
 
 ```@docs
 is_base_space_fully_specified(m::AbstractFTheoryModel)
+is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
 is_partially_resolved(m::AbstractFTheoryModel)
+verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel; check::Bool = true)
 ```
 
 

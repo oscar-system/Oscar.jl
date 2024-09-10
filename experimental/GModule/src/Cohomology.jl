@@ -184,22 +184,9 @@ function inv_action(C::GModule)
 end
 
 function fp_group_with_isomorphism(C::GModule)
-  #TODO: better for PcGroup!!!
-  G = group(C)
   if !isdefined(C, :F)
-    if (!isa(G, FPGroup)) && is_trivial(G)
-      C.F = free_group(0)
-      C.mF = hom(G, C.F, elem_type(G)[], elem_type(C.F)[])
-    elseif isa(group(C), PcGroup) && GAP.Globals.GeneratorsOfGroup(G.X) == GAP.Globals.Pcgs(G.X)
-      X = GAPWrap.IsomorphismFpGroupByPcgs(GAP.Globals.InducedPcgsWrtFamilyPcgs(G.X), GAP.julia_to_gap("a"))
-
-      C.F = FPGroup(GAPWrap.Range(X))
-      C.mF = GAPGroupHomomorphism(G, C.F, X)
-      return C.F, C.mF
-    else
-      C.F, C.mF = fp_group_with_isomorphism(gens(G))
-#      C.mF = GAPGroupHomomorphism(C.F, group(C), GAP.Globals.InverseGeneralMapping(C.mF.map))
-    end
+    iso = isomorphism(FPGroup, group(C), on_gens=true)
+    C.F, C.mF = codomain(iso), iso
   end
   return C.F, C.mF
 end
@@ -551,17 +538,6 @@ Oscar.group(C::GModule) = C.G
 ###########################################################
 
 """
-Compute an fp-presentation of the common parent 'G' of 'g'
-and return both the group and the map from 'G' to the new group.
-"""
-function fp_group_with_isomorphism(g::Vector{<:Oscar.GAPGroupElem})
-  G = parent(g[1])
-  @assert all(x->parent(x) == G, g)
-  iso = isomorphism(FPGroup, G, on_gens=true)
-  return codomain(iso), iso
-end
-
-"""
 For an element of an fp-group, return a corresponding word as a sequence
 of integers. A positive integers indicates the corresponding generator,
 a negative one the inverse.
@@ -572,39 +548,18 @@ function word(y::FPGroupElem)
 end
 
 """
-The relations defining 'F' as an array of pairs.
+The relations defining 'G' as an array of pairs.
 """
-function _relations_by_generators(G::Oscar.GAPGroup)
-   f = GAPWrap.IsomorphismFpGroupByGenerators(GapObj(G), GAPWrap.GeneratorsOfGroup(GapObj(G)))
-   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-   H = FPGroup(GAPWrap.Image(f))
-   return relations(H)
+function Oscar.relations(G::Oscar.GAPGroup)
+  rels = relators(G)
+  if length(rels) == 0
+    T = eltype(rels)
+    return Tuple{T,T}[]
+  end
+  z = one(parent(rels[1]))
+  return [(x, z) for x in rels]
 end
 
-Oscar.relations(G::Oscar.GAPGroup) = _relations_by_generators(G)
-
-function Oscar.relations(F::Union{FPGroup, SubFPGroup})
-  Oscar._is_full_fp_group(GapObj(F)) || return _relations_by_generators(F)
-  R = relators(F)
-  z = one(free_group(F))
-  return [(x, z) for x = R]
-end
-
-function Oscar.relators(F::PcGroup)
-  #TODO: do it properly!!!!
-  return [x[1] for x = relations(F)]
-end
-
-function Oscar.relations(G::PcGroup)
-   # Call `GAPWrap.IsomorphismFpGroupByPcgs` only if `gens(G)` is a pcgs.
-   Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
-   Gpcgs = GAPWrap.Pcgs(GapObj(G))
-   Ggens == Gpcgs || return _relations_by_generators(G)
-   f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GAP.Obj("g"))
-   @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
-   H = FPGroup(GAPWrap.Image(f))
-   return relations(H)
-end
 
 ######################################################
 #
@@ -759,14 +714,14 @@ end
 Evaluate a 2-cochain, a 2-cochain is a map from pairs of group elements
 into the module
 """
-function (C::CoChain{2})(g::Oscar.BasicGAPGroupElem, h::Oscar.BasicGAPGroupElem)
+function (C::CoChain{2})(g::Oscar.GAPGroupElem, h::Oscar.GAPGroupElem)
   if haskey(C.d, (g,h))
     return C.d[(g,h)]
   end
   @assert isdefined(C, :D)
   return C.d[(g,h)] = C.D((g, h))
 end
-(C::CoChain{2})(g::NTuple{2, <:Oscar.BasicGAPGroupElem}) = C(g[1], g[2])
+(C::CoChain{2})(g::NTuple{2, <:Oscar.GAPGroupElem}) = C(g[1], g[2])
 
 #TODO: re-write to get the maps! To support Q/Z as well
 """
@@ -1705,10 +1660,10 @@ returns (I, q), (hom(Z[G], C), B)
 function dimension_shift(C::GModule)
   G = C.G
   if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
+    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
     Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    zg, ac, em = regular_gmodule(G, base_ring(C))
     Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")
@@ -1751,10 +1706,10 @@ end
 function dimension_shift_left(C::GModule)
   G = C.G
   if isa(C.M, FinGenAbGroup)
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(FinGenAbGroup, G, ZZ)
+    zg, ac, em = regular_gmodule(FinGenAbGroup, G, ZZ)
     Z = Hecke.zero_obj(zg.M)
   elseif isa(C.M, AbstractAlgebra.FPModule{<:FieldElem})
-    zg, ac, em = Oscar.GModuleFromGap.natural_gmodule(G, base_ring(C))
+    zg, ac, em = regular_gmodule(G, base_ring(C))
     Z = free_module(base_ring(C), 0)
   else
     error("unsupported module")
@@ -1853,12 +1808,12 @@ function cohomology_group(C::GModule, i::Int; Tate::Bool = false)
   error("only H^0, H^1 and H^2 are supported")
 end
 
-# return an f.p. group `F` and an isomorphism `M -> F`
+# better use `isomorphism` directly
 function fp_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem})
-  p, mp = pc_group_with_isomorphism(M, refine = false)
-  mf = isomorphism(FPGroup, p)
-  return codomain(mf), mf*mp
+  iso = isomorphism(FPGroup, M, on_gens=true)
+  return codomain(iso), iso
 end
+
 
 #########################################################
 function Oscar.matrix(M::FreeModuleHom{FreeMod{QQAbFieldElem}, FreeMod{QQAbFieldElem}})
@@ -1973,81 +1928,12 @@ function pc_group_with_isomorphism(M::FinGenAbGroup; refine::Bool = true)
     x->image(mM, gap_to_julia(GapObj(x))))
 end
 
+# `refine` is irrelevant because `M` is elementary abelian.
 function pc_group_with_isomorphism(M::AbstractAlgebra.FPModule{<:FinFieldElem}; refine::Bool = true)
-  k = base_ring(M)
-  p = characteristic(k)
-
-  G = free_group(degree(k)*dim(M))
-
-  C = GAP.Globals.CombinatorialCollector(GapObj(G),
-                  GAP.Obj([p for i=1:ngens(G)]; recursive = true))
-  F = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(G)))
-
-  # Note that we have specified all relative orders as `p`.
-  # Missing commutator and power relators are interpreted as trivial,
-  # thus `C` describes an elementary abelian group.
-  B = PcGroup(GAP.Globals.GroupByRws(C))
-  @assert is_abelian(B)
-  @assert order(B) == order(M)
-
-  FB = GAP.Globals.FamilyObj(GAP.Globals.Identity(GapObj(B)))
-
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{fpFieldElem, FpFieldElem, FqFieldElem}})
-    F = base_ring(parent(a))
-    @assert absolute_degree(F) == 1
-    r = ZZRingElem[]
-    for i=1:ngens(M)
-      if !iszero(a[i])
-        push!(r, i)
-        push!(r, lift(ZZ, a[i]))
-      end
-    end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
-    return g
-  end
-
-  function Julia_to_gap(a::AbstractAlgebra.FPModuleElem{<:Union{FqPolyRepFieldElem, fqPolyRepFieldElem}})
-    r = ZZRingElem[]
-    for i=1:ngens(M)
-      if !iszero(a[i])
-        for j=0:degree(k)-1
-          if !iszero(coeff(a[i], j))
-            push!(r, (i-1)*degree(k)+j+1)
-            push!(r, ZZ(coeff(a[i], j)))
-          end
-        end
-      end
-    end
-    g = GAP.Globals.ObjByExtRep(FB, GAP.Obj(r; recursive = true))
-    return g
-  end
-
-
-  gap_to_julia = function(a::GapObj)
-    e = GAPWrap.ExtRepOfObj(a)
-    z = zeros(ZZRingElem, ngens(M)*degree(k))
-    for i=1:2:length(e)
-      if !iszero(e[i+1])
-        z[e[i]] = e[i+1]
-      end
-    end
-    c = elem_type(k)[]
-    for i=1:dim(M)
-      push!(c, k(z[(i-1)*degree(k)+1:i*degree(k)]))
-    end
-    return M(c)
-  end
-
-  return B, MapFromFunc(
-    M, B,
-    y->PcGroupElem(B, Julia_to_gap(y)),
-    x->gap_to_julia(GapObj(x)))
+  iso = isomorphism(PcGroup, M, on_gens=true)
+  return codomain(iso), iso
 end
 
-
-function underlying_word(g::FPGroupElem)
-  return FPGroupElem(free_group(parent(g)), GAPWrap.UnderlyingElement(GapObj(g)))
-end
 
 """
 Given a 2-cocycle, return the corresponding group extension, ie. the large
@@ -2061,7 +1947,7 @@ If the gmodule is defined via a pc-group and the 1st argument is the
 function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
-  F, _ = fp_group_with_isomorphism(gens(G))
+  F = codomain(isomorphism(FPGroup, G, on_gens=true))
   M = Module(C)
   ac = action(C)
   iac = inv_action(C)
