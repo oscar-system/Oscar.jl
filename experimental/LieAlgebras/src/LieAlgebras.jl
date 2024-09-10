@@ -113,9 +113,6 @@ function number_of_simple_roots end
 @alias n_roots number_of_roots
 @alias n_simple_roots number_of_simple_roots
 
-# TODO: move me
-export dominant_weights
-
 include("Types.jl")
 include("Combinatorics.jl")
 include("Util.jl")
@@ -145,9 +142,6 @@ include("GapWrapper.jl")
 include("serialization.jl")
 
 end # module LieAlgebras
-
-# TODO: move me
-export dominant_weights
 
 using .LieAlgebras
 
