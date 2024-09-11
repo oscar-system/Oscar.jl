@@ -88,6 +88,14 @@ export default defineConfig({
                 { text: 'Discriminant groups', link: 'manual/quad_forms/discriminant_group'},
               ]
             },
+            { text: 'Algebras',
+              collapsed: true,
+              items: [
+                { text: 'Introduction', link: 'manual/algebras/intro'},
+                { text: 'Basics', link: 'manual/algebras/basics'},
+                { text: 'Structure constant algebras', link: 'manual/algebras/structureconstant'},
+              ]
+            },
             {
               text: 'Elliptic curves',
               collapsed: true,
