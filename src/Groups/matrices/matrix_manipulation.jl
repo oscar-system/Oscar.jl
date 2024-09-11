@@ -45,7 +45,7 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
   e = div(e, 2)
 
   y = similar(x, ncols(x), nrows(x))
-  for i in 1:nrows(x), j in 1:ncols(x)
+  for i in 1:ncols(x), j in 1:nrows(x)
     # This code could be *much* faster, by precomputing the Frobenius map
     # once; see also FrobeniusCtx in Hecke (but that does not yet support all
     # finite field types at the time this comment was written).
