@@ -33,7 +33,7 @@ julia> Y = subscheme(JS);
 
 julia> phi = desingularization(Y);
 
-julia> julia> L = intersection_matrix(phi);
+julia> L = intersection_matrix(phi);
 
 julia> L[1]
 [-4    2]
