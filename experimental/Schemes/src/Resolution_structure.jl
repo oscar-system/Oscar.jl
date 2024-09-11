@@ -775,8 +775,8 @@ end
 function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUpSequence)
   dim(X) == 2 || error("Lipman's algorithm is not applicable")
 
-  if dim(I_sl) == 1  
-  # not normal, do a normalization first                       
+  if dim(I_sl) == 1
+  # not normal, do a normalization first
     f = _do_normalization!(f)
     Xnorm = domain(f)
     I_sl_temp = ideal_sheaf_of_singular_locus(Xnorm)
@@ -1127,14 +1127,15 @@ function curve_sing_A1_or_beyond(I::AbsIdealSheaf)
   I_scheme,I_inc = sub(I)
   I_sl = pushforward(I_inc)(ideal_sheaf_of_singular_locus(I_scheme))
   decomp = maximal_associated_points(I_sl)    # zero-dimensional, as I describes a curve
-  ret_ideal_sheaf = unit_ideal_sheaf(scheme(I_sl))
+  init_ideal_sheaf = unit_ideal_sheaf(scheme(I_sl))
+  ret_ideal_sheaf = init_ideal_sheaf
   total_number = 0
   for J in decomp
     check_val,local_number = is_A1_at_point_curve(I,J)
     if check_val
       total_number = total_number + local_number
     else
-      ret_ideal_sheaf = ret_ideal_sheaf * J
+      ret_ideal_sheaf = (ret_ideal_sheaf != init_ideal_sheaf ? ret_ideal_sheaf * J : J)
     end
   end
   return ret_ideal_sheaf, total_number

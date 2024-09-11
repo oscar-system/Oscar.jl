@@ -97,6 +97,22 @@ end
   @test M_bar == ZZMatrix([-2 0 0 0 0 1; 0 -2 0 1 0 0; 0 0 -2 0 1 0; 0 1 0 -2 0 1; 0 0 1 0 -2 1; 1 0 0 1 1 -2])
 end
 
+@testset "only conical singularities" begin
+  R,(x,y) = polynomial_ring(QQ,2)
+  W = AffineScheme(R)
+  I = ideal(R,[y^2-(x-1)^2*x^2])
+  IS = IdealSheaf(W,I)
+  J,c = Oscar.curve_sing_A1_or_beyond(IS)
+  @test is_empty(sub(J)[1])
+  @test c == 2
+  I = ideal(R,[y^2-(x-1)^2*x^3])
+  IS = IdealSheaf(W,I)
+  J,c = Oscar.curve_sing_A1_or_beyond(IS)
+  @test J isa Oscar.PrimeIdealSheafFromChart
+  @test dim(J) == 0
+  @test c == 1
+end
+
 @testset "intersection_matrix (blow up sequence)" begin
   R,(x,y,z,w) = polynomial_ring(QQ,4)
   W = AffineScheme(R)
