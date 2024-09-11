@@ -79,15 +79,15 @@ function _block_anisotropic_elim(B::MatElem{T}, ::Val{_type}; isotr=false, f=0) 
    if _type==:symmetric
       degF=0
       s=1
-      star(X) = transpose(X)
+      star = X -> transpose(X)
    elseif _type==:alternating
       degF=0
       s=-1
-      star(X) = transpose(X)
+      star = X -> transpose(X)
    elseif _type==:hermitian
       degF=div(degree(F),2)
       s=1
-      star(X) = conjugate_transpose(X)
+      star = X -> conjugate_transpose(X)
    end
 
 
