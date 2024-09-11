@@ -4,7 +4,58 @@
 @doc raw"""
     function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
 
-TODO...
+Given a desingularization `phi` of a surface (2-dimensional reduced scheme), 
+return the intersection matrix of the exceptional divisor of phi.
+
+Return a tuple `M`, `v`, `M2`, `m` where 
+`M` is the intersection matrix computed over the underlying field `k`, 
+`v` is the list of k-irreducible components of the exceptional divisor ordered as in the columns of `M`, 
+`M2` is the intersection matrix over the algebraic closure `kbar` of `k`,
+`m` the number of kbar-irreducible components of each entry of `v`.
+
+!!! warning
+  This is only applicable, if the `phi` is the desingularization of a 2-dimensional reduced scheme, as the exceptional divisor of the desingularization of higher dimensional schemes is not a curve.
+
+!!! note
+  The intersection matrix referred to in textbooks is `M2`, as these usually restrict to the case of algebraically closed fields, but computations are usually performed over suitable subfields, e.g. QQ instead of CC. 
+
+# Example
+```jldoctest
+julia> R,(x,y,z) = polynomial_ring(QQ,3);
+
+julia> W = AffineScheme(R);
+
+julia> J =ideal(R,[x^2+y^2+z^5]);           ## A4 singularity, 2 pairs of abs. red. curves
+
+julia> JS = IdealSheaf(W,J);
+
+julia> Y = subscheme(JS);
+
+julia> phi = desingularization(Y);
+
+julia> julia> L = intersection_matrix(phi);
+
+julia> L[1]
+[-4    2]
+[ 2   -2]
+
+julia> L[2]
+2-element Vector{Oscar.AbsIdealSheaf}:
+ Sheaf of prime ideals on scheme over QQ covered with 5 patches
+ Sheaf of prime ideals on scheme over QQ covered with 5 patches
+
+julia> L[3]
+[-2    0    1    0]
+[ 0   -2    0    1]
+[ 1    0   -2    1]
+[ 0    1    1   -2]
+
+julia> L[4]
+2-element Vector{Int64}:
+ 2
+ 2
+
+```
 """
 @attr function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
   phi.resolves_sing || error("intersection_matrix not available for partial desingularizations")
