@@ -7,7 +7,7 @@
 
 Checks if the inner product of the given `v0` is positive or generates such a v0 if none is given.
 """
-function _check_v0(Q::ZZMatrix, v0::ZZMatrix) #test
+function _check_v0(Q::ZZMatrix, v0::ZZMatrix) 
   if iszero(v0)
     l = nrows(Q)
     for signal in 1:100000000
@@ -250,10 +250,10 @@ end
 @doc raw"""
     vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
-Return the roots r of a given hyperbolic reflection lattice Q with squared length contained in root_lengths and 
+Return the roots `r` of a given hyperbolic reflection lattice represented by its belonging Gram matrix Q with squared length contained in root_lengths and 
 by increasing order of the value ((r.v0)^2)//(r^2), stopping by upper_bound.
-If root_lengths is not defined it takes all possible values of r^2.
-If v0 lies on several possible roots and if there is no given direction vector it is a random choice which reflection chamber
+If root_lengths is not defined it takes all possible values of $r^2$.
+If `v0` lies on several possible roots and if there is no given direction vector it is a random choice which reflection chamber
 next to v0 will be computed.
 
 # Arguments
