@@ -411,6 +411,16 @@ function change_base_ring(f::Map{DomType, CodType}, M::SubquoModule) where {DomT
   return MS, map
 end
 
+function change_base_ring(phi::Any, f::ModuleFPHom; 
+    domain_base_change=change_base_ring(phi, domain(f))[2], 
+    codomain_base_change=change_base_ring(phi, codomain(f))[2]
+  )
+  new_dom = codomain(domain_base_change)
+  new_cod = codomain(codomain_base_change)
+  return hom(new_dom, new_cod, codomain_base_change.(f.(gens(domain(f)))))
+end
+
+
 ### Duals of modules
 @doc raw"""
     dual(M::ModuleFP; codomain::Union{FreeMod, Nothing}=nothing)
@@ -801,9 +811,10 @@ end
 # constructor of induced maps.
 tensor_product(dom::ModuleFP, cod::ModuleFP, maps::Vector{<:ModuleFPHom}) = hom_tensor(dom, cod, maps)
 
-function tensor_product(maps::Vector{<:ModuleFPHom})
-  dom = tensor_product([domain(f) for f in maps])
-  cod = tensor_product([codomain(f) for f in maps])
-  return tensor_product(dom, cod, maps)
+function tensor_product(maps::Vector{<:ModuleFPHom}; 
+        domain::ModuleFP = tensor_product([domain(f) for f in maps]), 
+        codomain::ModuleFP = tensor_product([codomain(f) for f in maps])
+    )
+  return tensor_product(domain, codomain, maps)
 end
 
