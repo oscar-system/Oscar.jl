@@ -52,6 +52,7 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
     # If you need this function to be faster, talk to Claus or Max.
     y[i,j] = frobenius(x[j,i],e)
   end
+  return y
 end
 
 
