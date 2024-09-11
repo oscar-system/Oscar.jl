@@ -43,7 +43,7 @@ julia> Z = dual(tautological_bundles(PF)[1])
 AbstractBundle of rank 1 on AbstractVariety of dim 8
 
 julia> z = chern_class(Z, 1)
-h
+z
 
 julia> integral((2*p + z)^8)
 92
