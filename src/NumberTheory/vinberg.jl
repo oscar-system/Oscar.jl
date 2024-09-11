@@ -5,7 +5,7 @@
 @doc raw"""
     _check_v0(Q::ZZMatrix, v0::ZZMatrix) -> ZZMatrix
 
-Checks if the inner product of the given `v0` is positive or generates such a v0 if none is given.
+Checks if the inner product of the given `v0` is positive or generates such a `v0` if none is given.
 """
 function _check_v0(Q::ZZMatrix, v0::ZZMatrix) 
   if iszero(v0)
@@ -19,10 +19,11 @@ function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
       if (v0*Q*transpose(v0))[1, 1] > 0
         return v0
       end
-    end
+    end 
     error("Choose another Q")
   else
     @req (v0*Q*transpose(v0))[1, 1] > 0 "v0 has non positive inner product"
+    @req isone(reduce(gcd, v)) "v0 is not primitive"
     return v0
   end
 end
@@ -32,12 +33,12 @@ end
 
 If the user does not want any specific root lengths, we take all of them.
 
-For Q the matrix representing the hyperbolic reflection lattice and l a length to check,
-it is necessary that l divides 2*i for l being a possible root length,  
-with i being the level of Q, i.e. the last invariant (biggest entry) of the smith normal form of Q.
-Prf: r being a root implies that (2*r.L)//r^2 is a subset of ZZ
-     r being primitive implies that 2*i*ZZ is a subset of 2*r.L,
-     which is a subset of (r^2)*ZZ, what implies that r^2 divides 2*i
+For `Q` the matrix representing the hyperbolic reflection lattice and `l` a length to check,
+it is necessary that `l` divides $2.i$ for `l` being a possible root length,  
+with `i` being the level of `Q`, i.e. the last invariant (biggest entry) of the Smith normal form of `Q`.
+Prf: `r` being a root implies that $\frac{2.r.L}{r^2}$ is a subset of $\Z$
+     `r` being primitive implies that $2.i.\Z$ is a subset of $2.r.L$,
+     which is a subset of $(r^2).\Z$, what implies that $r^2$ divides $2.i$
 """
 function _all_root_lengths(Q::ZZMatrix)
   l = nrows(Q)
@@ -74,16 +75,15 @@ end
 @doc raw"""
     _distance_indices(upper_bound::ZZRingElem, root_lengths::Vector{ZZRingElem}) -> Vector{Tuple{Int, ZZRingElem}}
 
-Returns all possible tuples (n, l) with n a natural number and l contained in root_lengths,
-sorted by increase of the value n^2//l, stopping by upper_bound.
+Returns all possible tuples $(n, l)$ with `n` a natural number and `l` contained in `root_lengths`,
+sorted by increase of the value $\frac{n^2}{l}$, stopping by `upper_bound`.
 """
-function _distance_indices(upper_bound::ZZRingElem, root_lengths::Vector{ZZRingElem})
+function _distance_indices(upper_bound::Rational, root_lengths::Vector{ZZRingElem})
 
   result = Tuple{Int,ZZRingElem}[]
 
   for l in root_lengths
-    x0 = sqrt(Float64(abs(l * upper_bound))) # consider n^2//l < upper_bound => n < sqrt(l*upper_bound)
-    x = Int(floor(x0))
+    x = isqrt(x0*upper_bound) # consider n^2//l < upper_bound => n < sqrt(l*upper_bound)
     for n in 1:x
       push!(result, (n, l))
     end
@@ -96,17 +96,23 @@ end
 @doc raw"""
     _is_primitive(v)
 
-Check if v is primitive, which is equivalent to checking whether the gcd of the entries of v is equal to 1.
+Check if `v` is primitive, which is equivalent to checking whether the greatest common divisor of the entries of `v`
+is equal to 1. If `v` is not primitive, we divide `v` by its gcd.
 """
 function _is_primitive(v)
-  return isone(reduce(gcd, v))
+  gcd = reduce(gcd, v)
+  if isone(gcd)
+    return v
+  else 
+    return (1//gcd * v)
+  end
 end
 
 @doc raw"""
     _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
 
-Check if reflection by v preserves the lattice, i.e. check if for v a row vector
-(2*v*Q)//v^2 is an integer matrix. 
+Check if reflection by `v` preserves the lattice, i.e. check if for `v` a row vector
+$\frac{2.v.Q}{v^2}$ is an integer matrix. 
 """
 function _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
   A = Q * transpose(v)
@@ -119,8 +125,8 @@ end
 @doc raw"""
     _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix, v0::ZZMatrix)
 
-First check whether v has non-obtuse angles with all roots r already found by checking that v.r >= 0.
-Then also check the coorientation of v by checking that v.v0 >= 0.
+First check whether `v` has non-obtuse angles with all roots `r` already found by checking that $v.r \geq 0$.
+Then also check the coorientation of `v` by checking that $v.v_0 \geq 0$.
 """
 function _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix, v0::ZZMatrix)
   Qv = Q * transpose(v)
@@ -130,26 +136,26 @@ function _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix,
     end
   end
 
-  if (v*Q*transpose(v0))[1, 1] < 0
-    return false
-  end
-  return true
+  return (v*Q*transpose(v0))[1, 1] > 0
 end
 
 @doc raw"""
     _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}) -> Vector{ZZMatrix}
 
-Return the roots which are orthogonal on v0.
+Return the roots which are orthogonal to `v0`.
 
-After gathering all vectors v which are orthogonal on v0 with length contained in root_lengths,
-we execute the algorithm again by replacing v0 with the direction vector v1.
+After gathering all primitive vectors `v` which are orthogonal to `v0` with length contained in `root_lengths`
+satisfying the crystallographic condition, we check for those `v` in order of increase of the value $\frac{(v.v_1)^2}{v^2}$ 
+if they are roots, e.g. if they also satisfy
+- $(v.v_1) > 0$
+- $(v.r) \geq 0$ for all roots `r` already found
 """
 function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix)
   roots = ZZMatrix[]
   possible_vec = ZZMatrix[]
   # _short_vectors_gram is more efficient than short_vectors_affine
   # Thus we have to make some preparations
-  bm = saturate(kernel(Q*transpose(v0); side=:left))
+  bm = kernel(Q*transpose(v0); side=:left)
   QI = bm*Q*transpose(bm)
   QI = QI[1, 1] > 0 ? QI : -QI
   for d in root_lengths # gather all vectors which are orthogonal on v0 with length contained in root_lengths 
@@ -187,8 +193,8 @@ function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}
     if n < 0
       v = -v
     end
-    if all((v*Q*transpose(w))[1, 1] >= 0 for w in roots)
-
+    vQ = v*Q
+    if all((vQ*transpose(w))[1, 1] >= 0 for w in roots)
       push!(roots, v)
     end
   end
@@ -198,9 +204,8 @@ end
 @doc raw"""
     _generate_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vector{ZZMatrix}) -> ZZMatrix
 
-Since no direction vector v1 was given, we need to find one which satisfies the following conditions:
-- v0.v1 = 0
-- v.v1 != 0 for all possible roots v with v.v0 = 0
+Since no direction vector `v1` was given, we need to find one which satisfies $(\~{v}, v_1) \neq 0$ 
+for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$
 """
 function _generate_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vector{ZZMatrix})
   l = length(v0)
@@ -215,16 +220,12 @@ function _generate_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vec
       v1_ = rand(-20:20, l)  # for higher l it is not necessary/efficient to choose a big random range
     end
     v1 = matrix(QQ, l, 1, v1_)
-    if (v0*Q*v1)[1, 1] != 0
-      signal += 1
-      continue
-    end
     @hassert :Vinberg 1 (transpose(v1)*Q*v1)[1, 1] < 0
     if all((v*Q*v1)[1, 1] != 0 for v in possible_vec)
       # To run the algorithm it suffices to require that v*Q*v1 != 0, but we get a random (right) solution. 
       # This is the case because it is a random choice in which direction the fundamental cone 
       # is built everytime we use the algorithm.
-      # To get always the same solution one could require that v*Q*v1 > 0, but this has very huge impact on the efficiency. 
+      # To get always the same solution one should suply v1  
       @vprintln :Vinberg 2 "direction vector v1 = $v1"
       return v1
     end
@@ -236,36 +237,32 @@ end
 @doc raw"""
     _check_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vector{ZZMatrix}, direction_vector::ZZMatrix) -> ZZMatrix
 
-We check if the given direction vector holds the following requirements:
-- v0.v1 = 0
-- v.v1 != 0 for all possible roots v with v.v0 = 0
+We check if the given direction vector `v1` satisfies $(\~{v}, v_1) \neq 0$ 
+for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$
 """
 function _check_direction_vector(Q::ZZMatrix, v0::ZZMatrix, possible_vec::Vector{ZZMatrix}, direction_vector::ZZMatrix)
   v1 = transpose(direction_vector)
-  @req (v0*Q*v1)[1, 1] == 0 "The direction vector has to be orthogonal on v0"
-  @req all((v*Q*v1)[1, 1] != 0 for v in possible_vec) "The direction vector cannot be orthogonal on one of the possible roots"
+  @req all((v*Q*v1)[1, 1] != 0 for v in possible_vec) "The direction vector cannot be orthogonal to one of the possible roots"
   return v1
 end
 
 @doc raw"""
     vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
-Return the roots `r` of a given hyperbolic reflection lattice represented by its belonging Gram matrix Q with squared length contained in root_lengths and 
-by increasing order of the value ((r.v0)^2)//(r^2), stopping by upper_bound.
-If root_lengths is not defined it takes all possible values of $r^2$.
-If `v0` lies on several possible roots and if there is no given direction vector it is a random choice which reflection chamber
-next to v0 will be computed.
+Return the roots `r` of a given hyperbolic reflection lattice represented by its corresponding Gram matrix `Q` with squared length contained in `root_lengths` and 
+by increasing order of the value $\frac{r.v_0)^2}{r^2}, stopping by `upper_bound`.
+If `root_lengths` is not defined it takes all possible values of $r^2$.
+If `v0` lies on a root hyperplane and if there is no given `direction_vector` it is a random choice which reflection chamber
+next to `v0` will be computed.
 
 # Arguments
-- 'Q': symmetric ZZ matrix 
-- 'upper_bound': the integer upper bound of the value ((r.v0)^2)//(r^2)
-- 'v0': row vector with $v^2 > 0$
-- 'root_lengths': the possible integer values of r^2
-- 'direction_vector': row vector v1 with v0.v1 = 0 and v.v1 != 0 for all possible roots v with v.v0 = 0
-
-The output is given in the ambient representation.
+- 'Q': symmetric $\Z$ matrix -- the corresponding Gram matrix
+- 'upper_bound': the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
+- 'v0': primitive row vector with $v^2 > 0$
+- 'root_lengths': the possible integer values of $r^2$
+- 'direction_vector': row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
 """
-function vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0 = matrix(ZZ, 1, 1, [0])::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector = matrix(ZZ, 1, 1, [0])::ZZMatrix)
+function vinberg_algorithm(Q::ZZMatrix, upper_bound::Rational; v0 = matrix(ZZ, 1, 1, [0])::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector = matrix(ZZ, 1, 1, [0])::ZZMatrix)
   @req is_symmetric(Q) "Matrix is not symmetric"
   v0 = _check_v0(Q, v0)
   if isempty(root_lengths)
@@ -278,10 +275,11 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound::ZZRingElem; v0 = matrix(ZZ,
   for (n, k) in iteration # we  search for vectors which solve n = v.v0 and k = v^2
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)" 
     possible_Vec = Oscar.short_vectors_affine(Q, v0, QQ(n), k)
-    for v in possible_Vec
-      if !_is_primitive(v)
+    for v in possible_Vec 
+      if v in roots
         continue
       end
+      v = _is_primitive(v)
       if _crystallographic_condition(Q, v)
         if _check_coorientation(Q, roots, v, v0)
           push!(roots, v)

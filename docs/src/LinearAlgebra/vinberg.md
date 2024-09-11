@@ -24,10 +24,9 @@ DocTestSetup = Oscar.doctestsetup()
 
  $P$ can be constructed by solving $(r, v_0) = n$ and $r^2 = k$ by increasing order of the value $\frac{n^2}{k}$ and $r$ satisfying the above conditions.
 
- Perhaps $v_0$ lies on one or on several roots. Then $P$ is cannot be uniquely determined.
- In that case we need a direction vector $v_1$ that satisfies
- - $v_1$ is orthogonal to $v_0$ ```
- - for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$ it holds $(\~{v}, v_1) \neq 0$ 
+ If $v_0$ lies on a root hyperplane, then $P$ is not uniquely determined.
+ In that case we need a direction vector $v_1$ which satisfies $(\~{v}, v_1) \neq 0$ 
+ for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$  
 
  With $v_0$ and $v_1$ fixed $P$ is uniquely determined for any choice of root lengths and maximal distance $(v_0, r)$.
  We choose the first roots $r$ by increasing order of the value $\frac{(\~{r}, v_1)}{r^2}$ for all possible roots $\~{v}$ with $(v_0, \~{v}) = 0$.
