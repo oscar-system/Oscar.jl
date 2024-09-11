@@ -2,7 +2,7 @@
 # TODO : in this file, some functions for matrices and vectors are defined just to make other files work,
 # such as forms.jl, transform_form.jl, linear_conjugate.jl and linear_centralizer.jl
 # TODO : functions in this file are only temporarily, and often inefficient.
-# TODO: once similar working methods are defined in other files or packages (e.g. Hecke), 
+# TODO: once similar working methods are defined in other files or packages (e.g. Hecke),
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
@@ -50,7 +50,7 @@ function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
     # once; see also FrobeniusCtx in Hecke (but that does not yet support all
     # finite field types at the time this comment was written).
     # If you need this function to be faster, talk to Claus or Max.
-    y[i,j] = frobenius([x[j,i]],e)
+    y[i,j] = frobenius(x[j,i],e)
   end
 end
 
@@ -158,7 +158,7 @@ function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: RingEl
          return y == h*x ? (true,h) : (false, nothing)
       end
    end
-  
+
    # at this point, x must be zero
    return y == 0 ? (true, F(1)) : (false, nothing)
 end
