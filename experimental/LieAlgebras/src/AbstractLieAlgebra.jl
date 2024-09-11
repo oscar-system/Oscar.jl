@@ -234,7 +234,7 @@ function lie_algebra(
     @req fl "Not closed under the bracket."
     struct_consts[i, j] = sparse_row(row)
   end
-  s = map(AbstractAlgebra.obj_to_string, basis)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
   return lie_algebra(R, struct_consts, s; check)
 end
 

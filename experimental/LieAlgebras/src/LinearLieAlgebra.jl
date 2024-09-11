@@ -179,7 +179,7 @@ function lie_algebra(
   @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
   R = coefficient_ring(parent_L)
   n = parent_L.n
-  s = map(AbstractAlgebra.obj_to_string, basis)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
   return lie_algebra(R, n, matrix_repr.(basis), s; check)
 end
 
