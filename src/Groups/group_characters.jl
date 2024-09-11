@@ -1899,7 +1899,7 @@ GapObj(chi::GAPGroupClassFunction) = chi.values
 
 # The following is needed for recursive `GapObj` calls with arrays
 # of class functions.
-GAP.julia_to_gap(chi::GAPGroupClassFunction) = chi.values
+GAP.@install GapObj(chi::GAPGroupClassFunction) = chi.values
 
 parent(chi::GAPGroupClassFunction) = chi.table
 

@@ -219,7 +219,7 @@ function _ring_iso(G::MatrixGroup{T}) where T
   return G.ring_iso
 end
 
-function GAP.julia_to_gap(G::MatrixGroup)
+GAP.@install function GapObj(G::MatrixGroup)
   if !isdefined(G, :X)
     if isdefined(G, :descr)
       assign_from_description(G)
@@ -233,7 +233,7 @@ function GAP.julia_to_gap(G::MatrixGroup)
   return G.X
 end
 
-function GAP.julia_to_gap(x::MatrixGroupElem)
+GAP.@install function GapObj(x::MatrixGroupElem)
   if !isdefined(x, :X)
     x.X = map_entries(_ring_iso(x.parent), x.elm)
   end
