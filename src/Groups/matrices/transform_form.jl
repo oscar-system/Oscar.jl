@@ -18,7 +18,7 @@
 # TODO: it would be better if this is deterministic. This depends on gen(F) and is_square(F).
 
 function _solve_eqn(a::T, b::T, c::T) where T <: FinFieldElem
-   F = parent(a)  
+   F = parent(a)
    for x in F
       s = (c - a*x^2)*b^-1
       fl, t = is_square_with_sqrt(s)
@@ -49,7 +49,11 @@ function _find_radical(B::MatElem{T}, F::Field, nr::Int, nc::Int; e::Int=0, _is_
 #   A = matrix(vcat(type_vector[embU(v) for v in gens(U)], type_vector[embK(v) for v in gens(K)] ))
 
    if _is_symmetric
-      return A*B*transpose(map(y -> frobenius(y,e),A)), A, d
+      if e == 0
+         return A*B*transpose(A), A, d
+      else
+         return A*B*conjugate_transpose(A), A, d
+      end
    else
       A = transpose(A)
       return B*A, A, d
@@ -61,10 +65,10 @@ end
 
 
 
-# returns D, A such that A*B*transpose(frobenius(A)) = D and 
+# returns D, A such that A*B*transpose(frobenius(A)) = D and
 # D is diagonal matrix (or with blocks [0 1 s 0])
 # f = dimension of the zero block in B in the isotropic case
-function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)  where T <: FinFieldElem
+function _block_anisotropic_elim(B::MatElem{T}, ::Val{_type}; isotr=false, f=0)  where {T <: FinFieldElem, _type}
 
    d = nrows(B)
    F = base_ring(B)
@@ -75,17 +79,17 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
    if _type==:symmetric
       degF=0
       s=1
+      star = X -> transpose(X)
    elseif _type==:alternating
       degF=0
       s=-1
+      star = X -> transpose(X)
    elseif _type==:hermitian
       degF=div(degree(F),2)
       s=1
+      star = X -> conjugate_transpose(X)
    end
 
-   # conjugate transpose in hermitian case
-   # transpose in the other cases
-   star(X) = transpose(map(y -> frobenius(y,degF),X))
 
    if isotr
       q = characteristic(F)^degF
@@ -117,7 +121,7 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
             push!(Aarray, matrix(F,2,2,[1,0,0,1]))
          end
       end
-      B0,A0 = _block_anisotropic_elim(Bprime,_type)
+      B0,A0 = _block_anisotropic_elim(Bprime, Val(_type))
       B1 = cat(Barray..., dims=(1,2))
       B1 = cat(B1,B0,dims=(1,2))
       C = C^-1
@@ -143,15 +147,15 @@ function _block_anisotropic_elim(B::MatElem{T}, _type::Symbol; isotr=false, f=0)
       U1 = U[1:f, 1:e]
       U2 = U[1:f, e+1:c]
       Z = V-s*U1*B1^-1*star(U1)
-      D1,A1 = _block_anisotropic_elim(B1,_type)
+      D1,A1 = _block_anisotropic_elim(B1, Val(_type))
       Temp = zero_matrix(F,d-e,d-e)
       Temp[1:c-e, c-e+1:c-e+f] = s*star(U2)
       Temp[c-e+1:c-e+f, 1:c-e] = U2
       Temp[c-e+1:c-e+f, c-e+1:c-e+f] = Z
       if c-e==0
-         D2,A2 = _block_anisotropic_elim(Temp,_type)
+         D2,A2 = _block_anisotropic_elim(Temp, Val(_type))
       else
-         D2,A2 = _block_anisotropic_elim(Temp, _type; isotr=true, f=c-e)
+         D2,A2 = _block_anisotropic_elim(Temp, Val(_type); isotr=true, f=c-e)
       end
       Temp = hcat(-U1*B1^-1, zero_matrix(F,f,c-e))*A0
       Temp = vcat(A0,Temp)
@@ -167,7 +171,7 @@ end
 # assume B is nondegenerate
 
 
-# returns D, A such that A*B*transpose(frobenius(A)) = D and 
+# returns D, A such that A*B*transpose(frobenius(A)) = D and
 # D is diagonal matrix (or with blocks [0 1 s 0])
 # f = dimension of the zero block in B in the isotropic case
 function _block_herm_elim(B::MatElem{T}, _type) where T <: FinFieldElem
@@ -181,9 +185,9 @@ function _block_herm_elim(B::MatElem{T}, _type) where T <: FinFieldElem
    c = Int(ceil(d/2))
    B2 = B[1:c, 1:c]
    if B2==0
-      D,A = _block_anisotropic_elim(B,_type; isotr=true, f=c)
+      D,A = _block_anisotropic_elim(B, Val(_type); isotr=true, f=c)
    else
-      D,A = _block_anisotropic_elim(B,_type)
+      D,A = _block_anisotropic_elim(B, Val(_type))
    end
 
    return D,A
@@ -388,7 +392,7 @@ function is_congruent(f::SesquilinearForm{T}, g::SesquilinearForm{T}) where T <:
    f.descr==g.descr || return false, nothing
    n = nrows(gram_matrix(f))
    F = base_ring(f)
-   
+
    if f.descr==:quadratic
       if iseven(characteristic(F))            # in this case we use the GAP algorithms
          Bg = preimage_matrix(_ring_iso(g), GAP.Globals.BaseChangeToCanonical(g.X))
