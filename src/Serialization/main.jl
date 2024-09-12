@@ -651,9 +651,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
     jsondict_str = JSON3.write(jsondict)
-    s = state(deserializer_open(IOBuffer(jsondict_str),
-                                serializer_type,
-                                with_attrs))
+    s = deserializer_open(IOBuffer(jsondict_str),
+                                serializer,
+                                with_attrs)
   end
 
   try
