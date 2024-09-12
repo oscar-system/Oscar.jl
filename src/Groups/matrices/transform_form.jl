@@ -79,20 +79,19 @@ function _block_anisotropic_elim(B::MatElem{T}, ::Val{_type}; isotr=false, f=0) 
    if _type==:symmetric
       degF=0
       s=1
-      star = X -> transpose(X)
+      star = transpose
    elseif _type==:alternating
       degF=0
       s=-1
-      star = X -> transpose(X)
+      star = transpose
    elseif _type==:hermitian
       degF=div(degree(F),2)
       s=1
-      star = X -> conjugate_transpose(X)
+      star = conjugate_transpose
    end
 
 
    if isotr
-      q = characteristic(F)^degF
       g = d-f
       U = B[1:f, f+1:f+g]
       V = B[f+1:f+g, f+1:f+g]
