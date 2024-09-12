@@ -83,20 +83,11 @@ function setup_experimental_package(Oscar::Module, package_name::String)
     return []
   end
 
-  # Set symlink inside docs/src/experimental
-  symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
-
-  if !ispath(symlink_target)
+  # Assumes that a symbolic link from `experimental/package_name/docs/src`
+  # to `docs/src/Experimental/package_name` has been created (or there is no
+  # documentation for this package)
+  if !ispath(joinpath(Oscar.oscardir, "docs/src/Experimental", package_name))
     return []
-  end
-
-  if !ispath(symlink_link)
-    symlink(symlink_target, symlink_link)
-  elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
-    error("""$symlink_link already exists, but is not a symlink to $symlink_target
-    Please investigate the contents of $symlink_link,
-    optionally move them somewhere else and delete the directory once you are done.""")
   end
 
   # Read doc.main of package
@@ -109,24 +100,6 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   return result
 end
 
-function link_experimental_docs(Oscar::Module)
-  # Remove symbolic links from earlier runs
-  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
-  for x in readdir(expdocdir; join=true)
-    islink(x) && rm(x)
-  end
-
-  # Link the experimental documentation to docs/src and collect the pages
-  collected = Any["Experimental/intro.md"]
-  for pkg in Oscar.exppkgs
-    pkgdocs = setup_experimental_package(Oscar, pkg)
-    if length(pkgdocs) > 0
-      append!(collected, pkgdocs)
-    end
-  end
-  return collected
-end
-
 function doit(
   Oscar::Module;
   warnonly=false,
@@ -137,7 +110,16 @@ function doit(
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
-  collected = link_experimental_docs(Oscar)
+
+  # Link experimental docs to `docs/src` and collect the documentation pages
+  Oscar.link_experimental_docs(Oscar)
+  collected = Any["Experimental/intro.md"]
+  for pkg in Oscar.exppkgs
+    pkgdocs = setup_experimental_package(Oscar, pkg)
+    if length(pkgdocs) > 0
+      append!(collected, pkgdocs)
+    end
+  end
   push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
