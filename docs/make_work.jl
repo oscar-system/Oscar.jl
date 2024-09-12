@@ -109,22 +109,14 @@ function setup_experimental_package(Oscar::Module, package_name::String)
   return result
 end
 
-function doit(
-  Oscar::Module;
-  warnonly=false,
-  local_build::Bool=false,
-  doctest::Union{Bool,Symbol}=true,
-)
-
+function link_experimental_docs(Oscar::Module)
   # Remove symbolic links from earlier runs
   expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
   for x in readdir(expdocdir; join=true)
     islink(x) && rm(x)
   end
 
-  # include the list of pages, performing substitutions
-  s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
-  doc = eval(Meta.parse(s))
+  # Link the experimental documentation to docs/src and collect the pages
   collected = Any["Experimental/intro.md"]
   for pkg in Oscar.exppkgs
     pkgdocs = setup_experimental_package(Oscar, pkg)
@@ -132,6 +124,20 @@ function doit(
       append!(collected, pkgdocs)
     end
   end
+  return collected
+end
+
+function doit(
+  Oscar::Module;
+  warnonly=false,
+  local_build::Bool=false,
+  doctest::Union{Bool,Symbol}=true,
+)
+
+  # include the list of pages, performing substitutions
+  s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
+  doc = eval(Meta.parse(s))
+  collected = link_experimental_docs(Oscar)
   push!(doc, ("Experimental" => collected))
 
   # Load the bibliography
