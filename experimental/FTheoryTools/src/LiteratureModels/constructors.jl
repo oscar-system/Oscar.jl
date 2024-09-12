@@ -1,6 +1,6 @@
 ########################################################## DESCRIPTION OF TERMINOLOGY ###########################################################
 # The definitions here SHOULD apply throughout FTheoryTools!
-#                                                defining_classes: This should be a dictionary that includes specifies the divisor classes
+#                                                defining_classes: This should be a dictionary that specifies the divisor classes
 #                                                                  of any parameters used to tune the model beyond the fully generic
 #                                                                  Weierstrass/Tate/etc polynomial. For example, a Tate SU(5) Model
 #                                                                  may be tuned by setting
@@ -632,6 +632,10 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
   
   if haskey(model_dict["model_data"], "zero_section")
     set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
+  end
+  
+  if haskey(model_dict["model_data"], "zero_section_class")
+    set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
   end
 
   if haskey(model_dict["model_data"], "generating_sections")

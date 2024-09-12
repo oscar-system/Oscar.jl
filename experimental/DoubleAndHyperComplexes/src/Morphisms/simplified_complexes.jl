@@ -248,6 +248,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 end
 
 function can_compute(fac::SimplifiedChainFactory, c::AbsHyperComplex, I::Tuple)
+  @assert dim(c) == 1
   i = first(I)
   can_compute_index(original_complex(fac), I) || return false
   I_p = (i+1,)

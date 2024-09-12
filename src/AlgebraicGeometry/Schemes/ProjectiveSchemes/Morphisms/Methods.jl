@@ -15,7 +15,7 @@ function ==(f::AbsProjectiveSchemeMorphism{<:AbsProjectiveScheme{<:Union{<:MPoly
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
-@attr function covered_scheme_morphism(
+@attr Any function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism{<:Any, <:Any, <:Any, Nothing} # No map on base rings
   )
   PX = domain(f)
@@ -114,7 +114,7 @@ with default covering
     3: [(x//z), (y//z)]
 ```
 """
-@attr function covered_scheme_morphism(
+@attr Any function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism
   ) # with map on the base rings
   PX = domain(f)

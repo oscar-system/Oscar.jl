@@ -56,7 +56,7 @@ x_1 - x_2 <= -2
 x_1 <= -3
 ```
 """
-@attr function immaculate_line_bundles(variety::NormalToricVarietyType)
+@attr Any function immaculate_line_bundles(variety::NormalToricVarietyType)
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
     list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
     return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))

@@ -244,7 +244,7 @@ The first return value is the basis of the ambient space of `L`.
 The second consists of additional generators for `L` coming from torsion sections.
 The third is ``L``.
 """
-@attr function algebraic_lattice(X::EllipticSurface)
+@attr Any function algebraic_lattice(X::EllipticSurface)
   return _algebraic_lattice(X,X.MWL)
 end
 
@@ -335,7 +335,7 @@ end
 
 Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
 """
-@attr function mordell_weil_torsion(S::EllipticSurface)
+@attr Any function mordell_weil_torsion(S::EllipticSurface)
   E = generic_fiber(S)
   O = E([0,1,0])
   N = trivial_lattice(S)[2]
@@ -729,7 +729,7 @@ Internal function. Returns a list consisting of:
 - gram matrix
 - fiber_components without multiplicities
 """
-@attr function _trivial_lattice(S::EllipticSurface)
+@attr Any function _trivial_lattice(S::EllipticSurface)
   #=
   inc_Y = S.inc_Y
   X = codomain(inc_Y)
@@ -977,7 +977,7 @@ function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors
   return fiber_components
 end
   
-@attr function exceptional_divisors(S::EllipticSurface)
+@attr Any function exceptional_divisors(S::EllipticSurface)
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
   for E in S.ambient_exceptionals
@@ -1107,7 +1107,7 @@ end
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
+@attr Any zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
 
 ################################################################################
 #

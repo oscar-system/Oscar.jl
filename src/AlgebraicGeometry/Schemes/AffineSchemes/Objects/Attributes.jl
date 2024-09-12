@@ -50,7 +50,7 @@ end
 
 Return the total ring of fractions of the coordinate ring of `X`.
 """
-@attr function total_ring_of_fractions(X::AbsAffineScheme)
+@attr Any function total_ring_of_fractions(X::AbsAffineScheme)
   return total_ring_of_fractions(OO(X))
 end
 
@@ -196,15 +196,15 @@ function ambient_space(X::AbsAffineScheme{BRT, RT}) where {BRT, RT<:MPolyRing}
   return X
 end
 
-@attr function ambient_space(X::AffineScheme{BRT,RT}) where {BRT<:Field, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr Any function ambient_space(X::AffineScheme{BRT,RT}) where {BRT<:Field, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return variety(spec(ambient_coordinate_ring(X)), check=false)
 end
 
-@attr function ambient_space(X::AffineScheme{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr Any function ambient_space(X::AffineScheme{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return spec(ambient_coordinate_ring(X))
 end
 
-@attr function ambient_space(X::AbsAffineScheme{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
+@attr Any function ambient_space(X::AbsAffineScheme{BRT,RT}) where {BRT, RT <: Union{MPolyQuoRing,MPolyLocRing,MPolyQuoLocRing}}
   return ambient_space(underlying_scheme(X))
 end
 
@@ -401,15 +401,15 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 """
 dim(X::AbsAffineScheme)
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
   error("Not implemented")
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   # Spec (R / I)_P
   R = OO(X)
   P = prime_ideal(inverted_set(R))
@@ -417,25 +417,25 @@ end
   return dim(I) - dim(P)
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
   error("Not implemented")
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
   # zariski open subset of A^n
   return dim(closure(X))
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
   P = prime_ideal(inverted_set(OO(X)))
   return codim(P)
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
 end
 
-@attr function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
+@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
   return dim(modulus(OO(X)))
 end
 
@@ -477,7 +477,7 @@ julia> codim(Y)
 1
 ```
 """
-@attr function codim(X::AbsAffineScheme)
+@attr Any function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
@@ -573,7 +573,7 @@ julia> reduced_scheme(Y)
 
 ```
 """
-@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
+@attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoLocRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
     return X, identity_map(X)
   end
@@ -585,7 +585,7 @@ julia> reduced_scheme(Y)
   return Xred, inc
 end
 
-@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
+@attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPolyQuoRing})
   if has_attribute(X, :is_reduced) && is_reduced(X)
     return X, identity_map(X)
   end
@@ -597,7 +597,7 @@ end
 end
 
 ## to make reduced_scheme agnostic for quotient ring
-@attr function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
+@attr Any function reduced_scheme(X::AbsAffineScheme{<:Field, <:MPAnyNonQuoRing})
   return X, ClosedEmbedding(X, ideal(OO(X), one(OO(X))), check=false)
 end
 
@@ -873,7 +873,7 @@ true
 ```
 """
 defining_ideal(X::AbsAffineScheme) = error("method not implemented for input of type $(typeof(X))")
-@attr defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
+@attr Any defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyRing}) = ideal(OO(X), [zero(OO(X))])
 defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyQuoRing}) = modulus(OO(X))
 defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyLocRing}) = modulus(OO(X))
 defining_ideal(X::AbsAffineScheme{<:Any, <:MPolyQuoLocRing}) = modulus(OO(X))

@@ -498,6 +498,7 @@ export dwarfed_product_polygons
 export edges
 export ehrhart_polynomial
 export element_to_homomorphism
+export elementary_abelian_group
 export elementary_symmetric
 export elements
 export eliminate
@@ -706,6 +707,7 @@ export inradical
 export integral_basis
 export integrate
 export interior_lattice_points
+export interreduce!
 export intersect
 export intersection_form
 export intersection_multiplicity
@@ -1336,6 +1338,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export roots
 export row
 export rss_associahedron
 export saturated_ideal
@@ -1501,6 +1504,7 @@ export twist
 export two_sided_ideal
 export underlying_gluing
 export underlying_quotient
+export underlying_word
 export uniform_matroid
 export unit
 export unitary_group

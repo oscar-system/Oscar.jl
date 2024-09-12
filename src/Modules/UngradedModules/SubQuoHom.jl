@@ -455,7 +455,7 @@ function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
     D = domain(f)
     C = codomain(f)
-    R = base_ring(D)
+    R = base_ring(C)
     matrix = zero_matrix(R, ngens(D), ngens(C))
     for i=1:ngens(D), j=1:ngens(C)
       matrix[i,j] = f.im[i][j]

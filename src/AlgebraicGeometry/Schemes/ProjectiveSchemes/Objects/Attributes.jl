@@ -152,7 +152,7 @@ Projective space of dimension 2
 with homogeneous coordinates [x, y, z]
 ```
 """
-@attr function ambient_space(X::AbsProjectiveScheme)
+@attr Any function ambient_space(X::AbsProjectiveScheme)
   return proj(ambient_coordinate_ring(X))
 end
 
@@ -215,7 +215,7 @@ with default covering
 end
 
 
-@attr function covered_projection_to_base(X::AbsProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyQuoRing, <:MPolyRing}})
+@attr Any function covered_projection_to_base(X::AbsProjectiveScheme{<:Union{<:MPolyQuoLocRing, <:MPolyLocRing, <:MPolyQuoRing, <:MPolyRing}})
   if !has_attribute(X, :covering_projection_to_base)
     C = standard_covering(X)
   end
@@ -286,7 +286,7 @@ julia> affine_cone(P)
 """
 affine_cone(P::AbsProjectiveScheme)
 
-@attr function affine_cone(
+@attr Any function affine_cone(
     P::AbsProjectiveScheme{RT}
   ) where {RT<:Union{MPolyRing, MPolyQuoRing, MPolyQuoLocRing, MPolyLocRing}}
   S = homogeneous_coordinate_ring(P)
@@ -298,7 +298,7 @@ affine_cone(P::AbsProjectiveScheme)
   return C, phi
 end
 
-@attr function affine_cone(
+@attr Any function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyQuoRing}
   ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
@@ -312,7 +312,7 @@ end
   return C, phi
 end
 
-@attr function affine_cone(
+@attr Any function affine_cone(
     P::AbsProjectiveScheme{RT, <:MPolyDecRing}
   ) where {RT<:Union{Field, ZZRing}}
   S = homogeneous_coordinate_ring(P)
@@ -322,7 +322,7 @@ end
   return C, phi
 end
 
-@attr function affine_cone(
+@attr Any function affine_cone(
     X::AbsProjectiveScheme{CRT, RT}
   ) where {
            CRT<:AffineSchemeOpenSubschemeRing,
@@ -349,7 +349,7 @@ end
   return X.C, psi
 end
 
-@attr function affine_cone(
+@attr Any function affine_cone(
     X::AbsProjectiveScheme{CRT, RT}
   ) where {
            CRT<:AffineSchemeOpenSubschemeRing,

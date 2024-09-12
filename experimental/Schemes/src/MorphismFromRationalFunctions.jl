@@ -595,11 +595,11 @@ end
 # But they can be set by the user so that certain checks of other methods 
 # are satisfied; i.e. the user has to take responsibility and confirm that 
 # they know what they're doing through these channels. 
-@attr function is_proper(phi::AbsCoveredSchemeMorphism)
+@attr Any function is_proper(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check properness")
 end
 
-@attr function is_isomorphism(phi::AbsCoveredSchemeMorphism)
+@attr Any function is_isomorphism(phi::AbsCoveredSchemeMorphism)
   error("no method implemented to check for being an isomorphism")
 end
 

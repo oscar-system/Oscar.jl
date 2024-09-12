@@ -58,7 +58,7 @@ julia> polynomial(volume_form(hirzebruch_surface(NormalToricVariety, 5)))
 end
 
 
-@attr function _intersection_form_via_exponents(v::NormalToricVariety)
+@attr Any function _intersection_form_via_exponents(v::NormalToricVariety)
     # extract the cohomology classes corresponding to the torus-invariant prime divisors
     generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
     

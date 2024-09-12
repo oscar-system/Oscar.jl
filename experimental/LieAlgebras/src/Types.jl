@@ -408,7 +408,7 @@ end
 @attributes mutable struct LieAlgebraModule{C<:FieldElem} <: AbstractAlgebra.Set
   L::LieAlgebra{C}
   dim::Int
-  transformation_matrices::Vector{MatElem{C}}
+  transformation_matrices::Vector{<:MatElem{C}} # Vector{dense_matrix_type(C)}
   s::Vector{Symbol}
 
   function LieAlgebraModule{C}(

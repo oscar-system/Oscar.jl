@@ -25,7 +25,7 @@ UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
 cohomCalg_jll = "5558cf25-a90e-53b0-b813-cadaa3ae7ade"
 
 [compat]
-AbstractAlgebra = "0.42.0"
+AbstractAlgebra = "0.42.3"
 AlgebraicSolving = "0.5.1"
 Distributed = "1.6"
 GAP = "0.10.2"
