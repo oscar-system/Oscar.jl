@@ -112,7 +112,7 @@ function doit(
   doc = eval(Meta.parse(s))
 
   # Link experimental docs to `docs/src` and collect the documentation pages
-  Oscar.link_experimental_docs(Oscar)
+  Oscar.link_experimental_docs()
   collected = Any["Experimental/intro.md"]
   for pkg in Oscar.exppkgs
     pkgdocs = setup_experimental_package(Oscar, pkg)

@@ -15,7 +15,7 @@
 # Oscar needs some complicated setup to get the printing right. This provides a
 # helper function to set this up consistently.
 function doctestsetup()
-  link_experimental_docs(Oscar)
+  link_experimental_docs()
   return :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
 end
 
@@ -237,17 +237,17 @@ end
 
 # Create symbolic links from any documentation directory in `experimental` into
 # `docs/src`
-function link_experimental_docs(Oscar::Module)
+function link_experimental_docs()
   # Remove symbolic links from earlier runs
-  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
+  expdocdir = joinpath(oscardir, "docs", "src", "Experimental")
   for x in readdir(expdocdir; join=true)
     islink(x) && rm(x)
   end
 
-  for pkg in Oscar.exppkgs
+  for pkg in exppkgs
     # Set symlink inside docs/src/experimental
-    symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", pkg)
-    symlink_target = joinpath(Oscar.oscardir, "experimental", pkg, "docs", "src")
+    symlink_link = joinpath(oscardir, "docs/src/Experimental", pkg)
+    symlink_target = joinpath(oscardir, "experimental", pkg, "docs", "src")
 
     if !ispath(symlink_target)
       continue
