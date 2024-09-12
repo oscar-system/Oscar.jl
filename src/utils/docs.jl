@@ -241,7 +241,12 @@ function link_experimental_docs()
   # Remove symbolic links from earlier runs
   expdocdir = joinpath(oscardir, "docs", "src", "Experimental")
   for x in readdir(expdocdir; join=true)
-    islink(x) && rm(x)
+    !islink(x) && continue
+    pkg = splitpath(x)[end]
+    if !(pkg in exppkgs)
+      # We don't know this link, let's remove it
+      rm(x)
+    end
   end
 
   for pkg in exppkgs
