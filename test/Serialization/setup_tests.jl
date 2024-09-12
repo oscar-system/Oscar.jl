@@ -12,7 +12,7 @@ if !isdefined(Main, :test_save_load_roundtrip)
     # save and load from a file
     filename = joinpath(path, "original.json")
     save(filename, original; kw...)
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, kw...)
     
     @test loaded isa T
     func(loaded)
