@@ -8,10 +8,10 @@
 #   symbols(L::MyLieAlgebra) -> Vector{Symbol}
 #   bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C}) -> MyLieAlgebraElem{C}
 #   Base.show(io::IO, x::MyLieAlgebra)
-# If the subtype supports root systems:
 #   has_root_system(::MyLieAlgebra) -> Bool
 #   root_system(::MyLieAlgebra) -> RootSystem
-#   chevalley_basis(L::MyLieAlgebra) -> NTuple{3,Vector{elem_type(L)}}
+#   chevalley_basis(L::MyLieAlgebra{C}) -> NTuple{3,Vector{MyLieAlgebraElem{C}}}
+#   set_root_system_and_chevalley_basis!(L::MyLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{MyLieAlgebraElem{C}}}}})
 
 ###############################################################################
 #
@@ -549,24 +549,6 @@ function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
   return L0adx
 end
 
-@doc raw"""
-    Oscar.LieAlgebras.cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem} -> LieSubalgebra{C,elem_type(L)}
-
-Return a Cartan subalgebra of `L`.
-
-If `L` knows its root system, this function uses the Chevalley basis to construct a Cartan subalgebra.
-Otherise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
-The subalgebra object returned by this function may differ in the two cases, in particular, the bases may be different.
-However, their spans are guaranteed to be equal.
-"""
-function cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
-  if has_root_system(L)
-    return sub(L, chevalley_basis(L)[3]; is_basis=true)
-  else
-    return _cartan_subalgebra(L)
-  end
-end
-
 function _cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
   F = coefficient_ring(L)
   n = dim(L)
@@ -756,6 +738,14 @@ function _root_system_and_chevalley_basis(
   return R, (xs, ys, hs)
 end
 
+function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}
+  if !has_root_system(L)
+    R, chev = _root_system_and_chevalley_basis(L)
+    set_root_system_and_chevalley_basis!(L, R, chev)
+  end
+  @assert has_root_system(L)
+end
+
 ###############################################################################
 #
 #   Root system getters
@@ -774,10 +764,9 @@ has_root_system(L::LieAlgebra) = false # to be implemented by subtypes
 
 Return the root system of `L`.
 
-This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+This function will error if no root system is known and none can be computed.
 """
 function root_system(L::LieAlgebra) # to be implemented by subtypes
-  @req has_root_system(L) "root system of `L` not known."
   throw(Hecke.NotImplemented())
 end
 
@@ -788,11 +777,27 @@ Return the Chevalley basis of the Lie algebra `L` in three vectors, stating firs
 then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
 to the order of the roots in [`root_system(::LieAlgebra)`](@ref).
 
-This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+This function will error if no root system is known and none can be computed.
 """
 function chevalley_basis(L::LieAlgebra) # to be implemented by subtypes
-  @req has_root_system(L) "root system of `L` not known."
   throw(Hecke.NotImplemented())
+end
+
+@doc raw"""
+    cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem} -> LieSubalgebra{C,elem_type(L)}
+
+Return a Cartan subalgebra of `L`.
+
+If `L` knows its root system, this function uses the Chevalley basis to construct a Cartan subalgebra.
+Otherise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
+The return value of this function may change when the root system of `L` is first computed.
+"""
+function cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
+  if has_root_system(L)
+    return sub(L, chevalley_basis(L)[3]; is_basis=true)
+  else
+    return _cartan_subalgebra(L)
+  end
 end
 
 ###############################################################################
