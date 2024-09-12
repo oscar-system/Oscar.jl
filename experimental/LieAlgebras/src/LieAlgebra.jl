@@ -587,6 +587,8 @@ function _root_system_and_chevalley_basis(
   @req base_lie_algebra(H) === L "Incompatible Lie algebras."
   # we just assume that H is indeed a Cartan subalgebra
 
+  @req is_invertible(killing_matrix(L)) "The Killing form is degenerate"
+
   F = coefficient_ring(L)
 
   # compute the common eigenspaces of the adjoint action of H.
@@ -637,9 +639,7 @@ function _root_system_and_chevalley_basis(
     end
   end
 
-  function CartanInt(
-    roots::Vector{Vector{QQFieldElem}}, a::Vector{QQFieldElem}, b::Vector{QQFieldElem}
-  )
+  function CartanInt(roots::Vector{RootType}, a::RootType, b::RootType) where {RootType}
     # `a` and `b` are two roots in `roots`.
     a == b && return 2
     a == -b && return -2
@@ -718,7 +718,7 @@ function _root_system_and_chevalley_basis(
   root_vectors = [
     begin
       concrete_root = sum(
-        c * root_simple for
+        c .* root_simple for
         (c, root_simple) in zip(coefficients(abstract_root), roots_simple)
       )
       @assert concrete_root in roots
@@ -726,14 +726,15 @@ function _root_system_and_chevalley_basis(
     end for abstract_root in Oscar.roots(R)
   ]
   xs = root_vectors[1:n_positive_roots(R)]
-  ys = [
+  ys = Vector{elem_type(L)}([
     begin
       x = xs[i]
       y = root_vectors[n_positive_roots(R) + i]
       y *= 2//only(solve(_matrix(x), _matrix(bracket(bracket(x, y), x)); side=:left))
+      y
     end for i in 1:n_positive_roots(R)
-  ]
-  hs = [xs[i] * ys[i] for i in 1:n_simple_roots(R)]
+  ])
+  hs = elem_type(L)[xs[i] * ys[i] for i in 1:n_simple_roots(R)]
 
   return R, (xs, ys, hs)
 end
