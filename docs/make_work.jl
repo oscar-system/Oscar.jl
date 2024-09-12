@@ -26,14 +26,6 @@ include("citation_style.jl")
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-# We monkey-patch Base.walkdir to use true as default value for follow_symlinks
-# (normally false is the default), in order to "trick" the Documenter code into
-# following those symlinks.
-# See also:
-# https://github.com/JuliaDocs/Documenter.jl/pull/552
-# https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
-Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
-
 # When we read a `doc.main` from an experimental package, we need to equip all
 # its entries with a prefix to fit with our docs. The doc.main of an
 # experimental package will contain paths relative to
