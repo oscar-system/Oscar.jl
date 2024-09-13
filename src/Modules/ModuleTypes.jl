@@ -1,12 +1,19 @@
 import AbstractAlgebra.WeakKeyIdDict
 
+# The following type union gathers all types for elements for which 
+# we expect the `ModuleFP` framework to be functional and/or working.
+# It can gradually be extended, but should not be considered to be 
+# visible or accessible to the outside world. 
+const AdmissibleModuleFPRingElem = Union{RingElem, PBWAlgQuoElem, PBWAlgElem}
+const AdmissibleModuleFPRing = Union{Ring, PBWAlgQuo, PBWAlgRing}
+
 @doc raw"""
     ModuleFP{T}
 
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T} <: AbstractAlgebra.Module{T} end
+abstract type ModuleFP{T <: AdmissibleModuleFPRingElem} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
@@ -70,7 +77,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
-@attributes mutable struct FreeMod{T <: NCRingElem} <: AbstractFreeMod{T}
+@attributes mutable struct FreeMod{T} <: AbstractFreeMod{T}
   R::NCRing
   n::Int
   S::Vector{Symbol}
@@ -91,7 +98,7 @@ option is set in suitable functions.
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
-  function FreeMod{T}(n::Int,R::NCRing,S::Vector{Symbol}) where T <: NCRingElem
+  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, S::Vector{Symbol}) where T <: AdmissibleModuleFPRingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
