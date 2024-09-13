@@ -64,7 +64,7 @@ function simulate_valuation(I::MPolyIdeal, nu::TropicalSemiringMap)
     R = valued_ring(nu)
     Rtx,tx = polynomial_ring(R,vcat([:tsim],symbols(base_ring(I))); cached=false)
 
-    sG = [R(uniformizer(nu))-tx[1]]
+    sG = [uniformizer(nu)-tx[1]]
     for f in clear_coefficient_denominators.(gens(I))
         fRtx = MPolyBuildCtx(Rtx)
         for (cK,expvKx) = zip(coefficients(f),exponents(f))
