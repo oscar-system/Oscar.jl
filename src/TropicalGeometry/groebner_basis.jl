@@ -346,44 +346,10 @@ julia> groebner_basis(I,nu,w)
 ```
 """
 function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
-
     G = gens(I)
-
-    ###
-    # Principal ideal, return G
-    ###
-    if isone(length(G))
+    # Principal and binomial ideal shortcut, return G
+    if isone(length(G)) || all(isequal(2),length.(G))
         return G
-    end
-
-    ###
-    # Binomial ideal, return G if w is in the tropicalization, continue with general algorithm if it is not
-    ###
-    if all(isequal(2),length.(G)) && all(isequal(2),length.(initial.(G,Ref(nu),Ref(w))))
-        return G
-    end
-
-    ###
-    # Linear ideal, do a reduced row echelon form of the Macaulay matrix sorted by w
-    ###
-    if all(isequal(1),total_degree.(G)) && is_trivial(nu)
-        R = base_ring(I)
-        K = coefficient_ring(R)
-        xand1 = vcat(gens(R),[one(R)])
-        wand0 = tropical_semiring(nu).(vcat(w,[0]))
-        xand1Sorted = xand1[sortperm(wand0)]
-        macaulayMatrixSorted = matrix(K,[[coeff(g,xj) for xj in xand1Sorted] for g in G])
-        return rref(macaulayMatrixSorted)[2]*xand1Sorted
-    end
-
-    ###
-    # Trivial valuation, return classical Groebner basis of `I` if weight vector defines a global ordering
-    ###
-    if is_trivial(nu) && convention(nu)==max && all(is_positive.(w))
-        return groebner_basis(I,ordering=weight_ordering(Int.(w),default_ordering(base_ring(I))))
-    end
-    if is_trivial(nu) && convention(nu)==min && all(is_negative.(w))
-        return groebner_basis(I,ordering=weight_ordering(Int.(-w),default_ordering(base_ring(I))))
     end
 
     @req (is_trivial(nu)&&all(is_positive.(w))) || all(Oscar._is_homogeneous,G) "if semiring map non-trivial or weight vector not positive, input ideal needs homogeneous generators"
