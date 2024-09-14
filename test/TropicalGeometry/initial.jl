@@ -10,11 +10,11 @@
         @test initial(f,nuMax,w) == 2*x+2*y # trivial, max
 
         nuMin = tropical_semiring_map(QQ,2)
-        S = Oscar.get_polynomial_ring_over_residue_field(R,nuMin)
+        S = Oscar.get_polynomial_ring_for_initial(R,nuMin)
         x,y = gens(S)
         @test initial(f,nuMin,w) == x^2+y^2 # padic, min
         nuMax = tropical_semiring_map(QQ,2,max)
-        S = Oscar.get_polynomial_ring_over_residue_field(R,nuMax)
+        S = Oscar.get_polynomial_ring_for_initial(R,nuMax)
         x,y = gens(S)
         @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
 
@@ -23,11 +23,11 @@
         f = x^2+y^2+t*x+t*y
         w = [-1,-1]
         nuMin = tropical_semiring_map(K,t)
-        S = Oscar.get_polynomial_ring_over_residue_field(R,nuMin)
+        S = Oscar.get_polynomial_ring_for_initial(R,nuMin)
         x,y = gens(S)
         @test initial(f,nuMin,w) == x^2+y^2 # tadic, min
         nuMax = tropical_semiring_map(K,t,max)
-        S = Oscar.get_polynomial_ring_over_residue_field(R,nuMax)
+        S = Oscar.get_polynomial_ring_for_initial(R,nuMax)
         x,y = gens(S)
         @test initial(f,nuMax,w) == x^2+y^2+x+y # tadic, max
     end
