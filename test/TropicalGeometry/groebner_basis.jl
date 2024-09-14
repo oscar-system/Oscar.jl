@@ -15,16 +15,16 @@
 
         nuMin = tropical_semiring_map(QQ,2)
         nuMax = tropical_semiring_map(QQ,2,max)
-        @test issetequal(groebner_basis(I,nuMin,w),[8*x^2,x+y]) # padic, min
-        @test issetequal(groebner_basis(I,nuMax,w),[8*y^2,x+y]) # padic, max
+        @test issetequal(groebner_basis(I,nuMin,w),[x^2,x+y]) # padic, min
+        @test issetequal(groebner_basis(I,nuMax,w),[y^2,x+y]) # padic, max
 
         K,t = rational_function_field(GF(2),"t")
         R,(x,y) = K["x","y"]
         I = ideal(R,[x^2+x*y+t^3*y^2,x+y])
         nuMin = tropical_semiring_map(K,t)
         nuMax = tropical_semiring_map(K,t,max)
-        @test issetequal(groebner_basis(I,nuMin,w),[t^3*x^2,x+y]) # tadic, min
-        @test issetequal(groebner_basis(I,nuMax,w),[t^3*y^2,x+y]) # tadic, max
+        @test issetequal(groebner_basis(I,nuMin,w),[x^2,x+y]) # tadic, min
+        @test issetequal(groebner_basis(I,nuMax,w),[y^2,x+y]) # tadic, max
     end
 
     @testset "groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector) - principal ideals" begin

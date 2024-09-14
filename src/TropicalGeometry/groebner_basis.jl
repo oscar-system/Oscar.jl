@@ -352,11 +352,21 @@ function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVecto
         return G
     end
 
-    @req (is_trivial(nu)&&all(is_positive.(w))) || all(Oscar._is_homogeneous,G) "if semiring map non-trivial or weight vector not positive, input ideal needs homogeneous generators"
+    requiresHomogenization = !is_trivial(nu) || !all(is_positive,w)
+    if requiresHomogenization
+        I,_,dehomogenizationMap = homogenize_pre_tropicalization(I)
+        w = vcat(0,w)
+    end
+
     Isim = simulate_valuation(I,nu)
     wSim = simulate_valuation(QQ.(w),nu)
     oSim = weight_ordering(Int.(wSim),default_ordering(base_ring(Isim)))
     Gsim = standard_basis(Isim; ordering = oSim)
     G = desimulate_valuation(gens(Gsim),nu)
+
+    if requiresHomogenization
+        G = dehomogenizationMap.(G)
+    end
+
     return G
 end
