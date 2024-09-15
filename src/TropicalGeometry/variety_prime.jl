@@ -10,7 +10,7 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
     # compute a reduced GB to check whether I is homogeneous
     G = groebner_basis(I,complete_reduction=true)
 
-    if all(Oscar._is_homogeneous.(G))
+    if all(Oscar._is_homogeneous, G)
         return tropical_variety_prime_singular(I,nu; weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     end
 
