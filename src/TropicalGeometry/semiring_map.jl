@@ -6,12 +6,6 @@
 #    - a valuation on K
 #    - a choice of min- or max-convention
 #
-#  also collects dictionaries that assign to a polynomial ring over K
-#    - a polynomial ring over the ring of integers with an extra variable
-#      (for the computation of tropical groebner bases)
-#    - a polynomial ring over the residue field
-#      (for initial forms and initial ideals)
-#
 ################################################################################
 struct TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}
     valued_field::typeofValuedField
@@ -20,20 +14,10 @@ struct TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}
     uniformizer_ring::typeofUniformizer
     residue_field::Field
     tropical_semiring::TropicalSemiring{minOrMax}
-    ###
-    # Dictionaries for polynomial ring caches consisting of pairs
-    #   R => S
-    # where
-    # - R is a polynomial ring over valued_field
-    # - S is a polynomial ring over valued_ring or residue_field
-    #   (with the same variables as R)
-    ###
-    polynomial_rings_for_groebner::Dict{MPolyRing,MPolyRing}
-    polynomial_rings_for_initial::Dict{MPolyRing,MPolyRing}
 
     # Constructor with empty dictionaries
     function TropicalSemiringMap{typeofValuedField,typeofUniformizer,minOrMax}(valuedField::typeofValuedField,uniformizerField::Union{Nothing,FieldElem},valuedRing::Ring,uniformizerRing::typeofUniformizer,residueField::Field,tropicalSemiring::TropicalSemiring{minOrMax}) where {typeofValuedField<:Field,typeofUniformizer<:Union{Nothing,RingElem},minOrMax<:Union{typeof(min),typeof(max)}}
-        return new{typeofValuedField,typeofUniformizer,minOrMax}(valuedField,uniformizerField,valuedRing,uniformizerRing,residueField,tropicalSemiring,Dict{MPolyRing,MPolyRing}(),Dict{MPolyRing,MPolyRing}())
+        return new{typeofValuedField,typeofUniformizer,minOrMax}(valuedField,uniformizerField,valuedRing,uniformizerRing,residueField,tropicalSemiring)
     end
 end
 
@@ -271,56 +255,4 @@ function initial(c::Union{RingElem,Integer,Rational}, nu::TropicalSemiringMap{Kt
     iszero(c) && return zero(residue_field(nu)) # if c is zero, return 0
     c *= uniformizer_field(nu)^(-t_adic_valuation(c,uniformizer(nu)))
     return evaluate(numerator(c),0)
-end
-
-
-
-################################################################################
-#
-#  constructing and caching polynomial rings for groebner and initial
-#  (see groebner_basis.jl and initial.jl)
-#
-################################################################################
-
-function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap)
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
-    # return cached polynomial ring if available, create and cache it otherwise
-    return get!(polynomial_rings_for_groebner(nu), R, first(polynomial_ring(valued_ring(nu),vcat([:tsim],symbols(R)); cached=false)))
-end
-
-# special function for trivial valuation to ensure reusing original ring
-function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
-    # return cached polynomial ring if available, create and cache it otherwise
-    return get!(polynomial_rings_for_groebner(nu), R, R)
-end
-
-function get_polynomial_ring_for_groebner_desimulation(S::MPolyRing, nu::TropicalSemiringMap)
-    @req coefficient_ring(S)==valued_ring(nu) "coefficient ring is not valued ring"
-    # return cached polynomial ring if available, raise error otherwise
-
-    R = findfirst(isequal(S), polynomial_rings_for_groebner(nu))
-    @req !isnothing(R) error("no polynomial ring for groebner basis desimulation found")
-    return R
-end
-
-# special function for trivial valuation to ensure reusing original ring
-function get_polynomial_ring_for_groebner_desimulation(S::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
-    @req coefficient_ring(S)==valued_ring(nu) "coefficient ring is not valued ring"
-    # return cached polynomial ring if available, raise error otherwise
-    return S
-end
-
-
-function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap)
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
-    # return cached polynomial ring if available, create and cache it otherwise
-    return get!(polynomial_rings_for_initial(nu), R, first(polynomial_ring(residue_field(nu),symbols(R); cached=false)))
-end
-
-# special function for trivial valuation to ensure reusing original ring
-function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
-    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
-    # return cached polynomial ring if available, create and cache it otherwise
-    return get!(polynomial_rings_for_initial(nu), R, R)
 end

@@ -14,6 +14,44 @@
 
 ################################################################################
 #
+#  Caching of polynomial rings over valued rings
+#
+################################################################################
+function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap)
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+
+    if !has_attribute(R, :tropical_geometry_polynomial_rings_for_groebner)
+        set_attribute!(R, :tropical_geometry_polynomial_rings_for_groebner, Dict{TropicalSemiringMap,MPolyRing}())
+    end
+
+    polynomialRingsForGroebner = get_attribute(R, :tropical_geometry_polynomial_rings_for_groebner)
+    return get!(polynomialRingsForGroebner, nu, first(polynomial_ring(valued_ring(nu),vcat([:tsim],symbols(R)); cached=false)))
+end
+
+# special function for trivial valuation to ensure reusing original ring
+function get_polynomial_ring_for_groebner_simulation(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    return R
+end
+
+function get_polynomial_ring_for_groebner_desimulation(S::MPolyRing, nu::TropicalSemiringMap)
+    @req coefficient_ring(S)==valued_ring(nu) "coefficient ring is not valued ring"
+
+    polynomialRingsForGroebner = get_attribute(S, :tropical_geometry_polynomial_rings_for_groebner)
+    R = findfirst(isequal(S), polynomialRingsForGroebner)
+    @req !isnothing(R) error("no polynomial ring for groebner basis desimulation cached")
+    return R
+end
+
+# special function for trivial valuation to ensure reusing original ring
+function get_polynomial_ring_for_groebner_desimulation(S::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+    @req coefficient_ring(S)==valued_ring(nu) "coefficient ring is not valued ring"
+    return S
+end
+
+
+################################################################################
+#
 #  Simulating and desimulating valuations
 #
 ################################################################################
@@ -215,9 +253,9 @@ end
 
 
 @doc raw"""
-    desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap)
+    desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap, R::MPolyRing)
 
-Given a generating set of the simulation ideal, reconstruct a generating set of the original ideal.  In pparticular, given a standard basis of the simulation ideal with respect to `wSim`, return the (tropical) Groebner basis of the original ideal with respect to `w`.
+Given a generating set `sG` of the simulation ideal, reconstruct a generating set of the original ideal.  In particular, given a standard basis of the simulation ideal with respect to `wSim`, return the (tropical) Groebner basis of the original ideal with respect to `w`.
 
 # Example ($p$-adic)
 ```jldoctest
@@ -236,18 +274,17 @@ julia> sG = gens(simulate_valuation(I,nu_2))
  tsim*x2 + x1
  tsim*x3 + x2
 
-julia> desimulate_valuation(sG,nu_2)
+julia> desimulate_valuation(sG,nu_2,Kx)
 2-element Vector{QQMPolyRingElem}:
  x1 + 2*x2
  x2 + 2*x3
 
 ```
 """
-function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap)
+function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap, R::MPolyRing)
     S = parent(first(sG))
-    R = get_polynomial_ring_for_groebner_desimulation(S,nu)
 
-    # map everything from simulation ring to original polynomial ring
+    # map everything from simulation ring to the specified polynomial ring
     # whilst substituting first variable tsim by uniformizer
     desimulation_map = hom(S,R,c->valued_field(nu)(c),vcat(uniformizer_field(nu),gens(R)))
     G = desimulation_map.(sG)
@@ -257,7 +294,7 @@ function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalS
 end
 
 # if valuation trivial, do nothing
-function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, ::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
+function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, ::TropicalSemiringMap{K,Nothing,minOrMax}, R::MPolyRing) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
     return sG
 end
 
@@ -362,7 +399,7 @@ function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVecto
     wSim = simulate_valuation(QQ.(w),nu)
     oSim = weight_ordering(Int.(wSim),default_ordering(base_ring(Isim)))
     Gsim = standard_basis(Isim; ordering = oSim)
-    G = desimulate_valuation(gens(Gsim),nu)
+    G = desimulate_valuation(gens(Gsim),nu,base_ring(I))
 
     if requiresHomogenization
         G = dehomogenizationMap.(G)

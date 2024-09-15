@@ -1,9 +1,41 @@
 ################################################################################
 #
 #  Initial forms and initial ideals
+#  ================================
 #
 ################################################################################
 
+
+
+################################################################################
+#
+#  Caching of polynomial rings over residue fields
+#
+################################################################################
+function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap)
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+
+    if !has_attribute(R, :tropical_geometry_polynomial_rings_for_initial)
+        set_attribute!(R, :tropical_geometry_polynomial_rings_for_initial, Dict{TropicalSemiringMap,MPolyRing}())
+    end
+
+    polynomialRingsForInitial = get_attribute(R, :tropical_geometry_polynomial_rings_for_initial)
+    return get!(polynomialRingsForInitial, nu, first(polynomial_ring(residue_field(nu),symbols(R); cached=false)))
+end
+
+# special function for trivial valuation to ensure reusing original ring
+function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    return R
+end
+
+
+
+################################################################################
+#
+#  Initial form
+#
+################################################################################
 @doc raw"""
     initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector)
 
@@ -72,6 +104,11 @@ end
 
 
 
+################################################################################
+#
+#  Initial ideal
+#
+################################################################################
 @doc raw"""
     initial(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false)
 
