@@ -361,10 +361,6 @@ end
 
 Return a (tropical) Groebner basis of `I` with respect to the tropical semiring map `nu` and weight vector `w`.
 
-!!! warning
-    No general algorithm for (tropical) computing Groebner bases exist and `groebner_basis` will return an error if it does not know how to compute one for the input.
-    For a list of cases in which Groebner bases can be computed, see Section "Groebner Theory" in the documentation.
-
 # Examples
 ```jldoctest
 julia> R,(x,y) = QQ["x","y"];
