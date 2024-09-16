@@ -16,7 +16,7 @@ function tropical_variety_zerodimensional_eigenvalue(I::MPolyIdeal,nu::TropicalS
     ma = representation_matrix(a)
     mb = representation_matrix(k(lp[1].gen_two*lp[2].gen_two^2))
     @assert iszero(ma*mb - mb*ma)
-    Qp = PadicField(p, 10)
+    Qp = padic_field(p; precision=10)
     TropVDict = simultaneous_diagonalization([map_entries(Qp, ma),map_entries(Qp, mb)])
 
     TropVPoints = collect(values(TropVDict))
