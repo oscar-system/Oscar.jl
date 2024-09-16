@@ -162,7 +162,7 @@ function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeo
     # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
     # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
     coeffs = TT.(coeffs; preserve_ordering=true)
-    _,x = polynomial_ring(TT,length(first(expvs)))
+    _,x = polynomial_ring(TT,length(first(expvs)); cached=false)
     tropf = sum([c*prod(x.^alpha) for (c,alpha) in zip(coeffs,expvs)])
     TropH = tropical_hypersurface(tropf)
 
