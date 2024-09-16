@@ -1921,7 +1921,6 @@ function ample_class(S::ZZLat)
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = polynomial_ring(QQ,"x")
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)
@@ -1931,21 +1930,19 @@ function ample_class(S::ZZLat)
       h = r
     else
       rv = (r*gram_matrix(S)*transpose(v))[1,1]
-      p = x^2*vsq + 2*x*rv + rsq
-      rp = roots(algebraic_closure(QQ), p)
-      a = rp[1]
-      b = rp[2]
-      if a > b
-        (a,b) = (b,a)
-      end
-      a = ZZRingElem(floor(a))
-      b = ZZRingElem(ceil(b))
+      p(x) = x^2*vsq + 2*x*rv + rsq
+      # find zeros of x^2*vsq + 2*x*rv + rsq
+      p0 = -rv / vsq
+      q0 = rsq / vsq
+      r0 = sqrt(QQBarFieldElem(p0^2 - q0))
+      a = floor(ZZRingElem, p0 - r0)
+      b = ceil(ZZRingElem, p0 + r0)
       if p(a) == 0  # catches the case of an integer root
-        a = a -1
+        a -= 1
         @assert p(a) > 0
       end
       if p(b) == 0
-        b = b + 1
+        b += 1
         @assert p(b) > 0
       end
       if abs(a) > abs(b)
