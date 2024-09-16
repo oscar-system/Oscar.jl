@@ -120,7 +120,7 @@ function exterior_algebra(K::Field, listOfVarNames::AbstractVector{<:VarName})
   ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
   # Create Quotient ring with special implementation:
   ExtAlg, _ = quo(PBW, I; SpecialImpl=ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
-  ######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the have_special_impl function suffices.
+  ######    set_attribute!(ExtAlg, :is_exterior_algebra, :true)  ### DID NOT WORK (see PBWAlgebraQuo.jl)  Anyway, the has_special_impl function suffices.
   return ExtAlg, gens(ExtAlg)
 end
 
