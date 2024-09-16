@@ -451,7 +451,7 @@ end
 function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I::AbsIdealSheaf)
   dim(I) == 0 || return f
   is_prime(I) || return f
-  patches = patches(default_covering(scheme(I)))
+  patches = Oscar.patches(default_covering(scheme(I)))
   dont_meet = isdefined(f,:dont_meet) ? f.dont_meet : Vector{Tuple{Int,Int}}()
   i=1
 
