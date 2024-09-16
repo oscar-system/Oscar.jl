@@ -4,8 +4,8 @@ import AbstractAlgebra.WeakKeyIdDict
 # we expect the `ModuleFP` framework to be functional and/or working.
 # It can gradually be extended, but should not be considered to be 
 # visible or accessible to the outside world. 
-const AdmissibleModuleFPRingElem = Union{RingElem, PBWAlgQuoElem, PBWAlgElem}
-const AdmissibleModuleFPRing = Union{Ring, PBWAlgQuo, PBWAlgRing}
+const AdmissibleModuleFPRingElem = NCRingElem
+const AdmissibleModuleFPRing = NCRing
 
 @doc raw"""
     ModuleFP{T}
