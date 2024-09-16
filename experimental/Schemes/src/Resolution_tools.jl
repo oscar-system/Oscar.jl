@@ -17,7 +17,7 @@ Return a tuple `M`, `v`, `M2`, `m` where
   This is only applicable, if the `phi` is the desingularization of a 2-dimensional reduced scheme, as the exceptional divisor of the desingularization of higher dimensional schemes is not a curve.
 
 !!! note
-  The intersection matrix referred to in textbooks is `M2`, as these usually restrict to the case of algebraically closed fields, but computations are usually performed over suitable subfields, e.g. QQ instead of CC. 
+  The intersection matrix referred to in textbooks is `M2`, as these usually restrict to the case of algebraically closed fields, but computations are usually performed over suitable subfields, e.g. `QQ` instead of `CC`. 
 
 # Example
 ```jldoctest
@@ -61,7 +61,7 @@ julia> L[4]
   phi.resolves_sing || error("intersection_matrix not available for partial desingularizations")
   !isdefined(phi, :is_embedded) || !phi.is_embedded || error("not available yet for embedded desingularization of curves")
   dim(domain(phi))==2 || error("not a surface -- exceptional locus not a graph")
-  sl_orig = Oscar.ideal_sheaf_of_singular_locus(codomain(phi))
+  sl_orig = ideal_sheaf_of_singular_locus(codomain(phi))
   dim_sl_orig = dim(sl_orig)
   dim_sl_orig >= 0 || error("original scheme was non-singular, no exceptional curves added")
   dim_sl_orig == 0 || error("only available for isolated singularities")
@@ -120,7 +120,7 @@ julia> L[4]
     U = patches_orig[found_index]
     dim(I) == 0 || error("case of non-isolated singularities not implemented yet")
     if vector_space_dimension(quo(OO(U),I(U))[1]) == 1
-      a = Oscar.rational_point_coordinates(saturated_ideal(I(U)))
+      a = rational_point_coordinates(saturated_ideal(I(U)))
       l = findfirst(x -> is_prime(ideal(OO(U),gen(OO(U),x)-a[x])),1:ngens(OO(U)))
       if l !== nothing
         p = gen(OO(U),l) - a[l]
@@ -138,7 +138,7 @@ julia> L[4]
       l !== nothing || error("choose hypersurface: random choice not implemented yet")
       p = gen(I(U),l)
     end
-    H = Oscar.IdealSheaf(scheme(sl_orig),U,ideal(OO(U),p))
+    H = IdealSheaf(scheme(sl_orig),U,ideal(OO(U),p))
     full_preimage_H = pullback(phi,H)
     H_strict = strict_transform(phi,H)
     decomp_H = _decompose_pullback_simple(full_preimage_H,ex_divs)

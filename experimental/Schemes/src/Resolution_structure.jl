@@ -383,7 +383,7 @@ function add_map_embedded!(f::BlowUpSequence, phi::BlowupMorphism)
   return f
 end
 
-function extend(f::MixedBlowUpSequence, g::Union{BlowUpSequence,MixedBlowUpSequence})
+function extend!(f::MixedBlowUpSequence, g::Union{BlowUpSequence,MixedBlowUpSequence})
   for g_i in morphisms(g)
     add_map!(f,g_i)
   end
@@ -441,7 +441,7 @@ function _blow_up_at_all_points(f::Union{BlowUpSequence,MixedBlowUpSequence}, V:
 end
 
 
-function extend(f::BlowUpSequence, g:: BlowUpSequence)
+function extend!(f::BlowUpSequence, g:: BlowUpSequence)
   for g_i in morphisms(g)
     add_map!(f,g_i)
   end
@@ -451,7 +451,7 @@ end
 function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I::AbsIdealSheaf)
   dim(I) == 0 || return f
   is_prime(I) || return f
-  patches = Oscar.patches(default_covering(scheme(I)))
+  patches = patches(default_covering(scheme(I)))
   dont_meet = isdefined(f,:dont_meet) ? f.dont_meet : Vector{Tuple{Int,Int}}()
   i=1
 
@@ -696,11 +696,11 @@ function desingularization(X::AbsCoveredScheme; algorithm::Symbol=:Lipman)
   elseif ((dimX == 2) && (algorithm==:Jung))
     error("not implemented yet")
 #    second_seq = _desing_jung(Xnorm,f)
-#    return_value = extend(phi, second_seq)
+#    return_value = extend!(phi, second_seq)
   else
     error("not implemented yet")
 #    second_seq = forget_embedding(_desing_BEV(Xnorm))
-#    return_value = extend(phi, second_seq)
+#    return_value = extend!(phi, second_seq)
   end
 
   return return_value
@@ -757,7 +757,7 @@ function weak_to_strong_desingularization_surface(phi::MixedBlowUpSequence)
     I_sl = ideal_sheaf_of_singular_locus(scheme_E)
     !is_one(I_sl) || continue
     psi = _desing_emb_curve(inc_E,I_sl)
-    phi = extend(phi,psi)
+    phi = extend!(phi,psi)
   end
 
   for i in 1:length(ex_divs)
