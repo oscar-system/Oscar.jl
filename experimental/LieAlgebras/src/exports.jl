@@ -38,6 +38,7 @@ export coxeter_matrix
 export derived_algebra
 export dim_of_simple_module
 export dominant_character
+export dominant_weights
 export exterior_power
 export fundamental_weight
 export fundamental_weights
