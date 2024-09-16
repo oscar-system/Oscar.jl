@@ -951,30 +951,6 @@ end
 ###############################################################################
 # more functions
 
-function Base.:+(r::RootSpaceElem, w::WeightLatticeElem)
-  @req root_system(r) === root_system(w) "parent root system mismatch"
-
-  return WeightLatticeElem(r) + w
-end
-
-function Base.:+(w::WeightLatticeElem, r::RootSpaceElem)
-  @req root_system(w) === root_system(r) "parent root system mismatch"
-
-  return w + WeightLatticeElem(r)
-end
-
-function Base.:-(r::RootSpaceElem, w::WeightLatticeElem)
-  @req root_system(r) === root_system(w) "parent root system mismatch"
-
-  return WeightLatticeElem(r) - w
-end
-
-function Base.:-(w::WeightLatticeElem, r::RootSpaceElem)
-  @req root_system(w) === root_system(r) "parent root system mismatch"
-
-  return w - WeightLatticeElem(r)
-end
-
 function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
   R = root_system(r)
