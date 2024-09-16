@@ -95,10 +95,10 @@ Normal toric variety
 julia> cox_ring(bP3)
 Multivariate polynomial ring in 5 variables over QQ graded by
   x1 -> [1 0]
-  x2 -> [0 1]
-  x3 -> [0 1]
+  x2 -> [1 2]
+  x3 -> [1 3]
   x4 -> [1 0]
-  e -> [1 -1]
+  e -> [0 -1]
 
 julia> typeof(center_unnormalized(f))
 Oscar.ToricIdealSheafFromCoxRingIdeal{NormalToricVariety, AbsAffineScheme, Ideal, Map}
