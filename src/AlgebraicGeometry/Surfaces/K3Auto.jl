@@ -1935,8 +1935,8 @@ function ample_class(S::ZZLat)
       p0 = -rv / vsq
       q0 = rsq / vsq
       r0 = sqrt(QQBarFieldElem(p0^2 - q0))
-      a = ZZRingElem(floor(p0 - r0))
-      b = ZZRingElem(ceil(p0 + r0))
+      a = floor(ZZRingElem, p0 - r0)
+      b = ceil(ZZRingElem, p0 + r0)
       if p(a) == 0  # catches the case of an integer root
         a -= 1
         @assert p(a) > 0
