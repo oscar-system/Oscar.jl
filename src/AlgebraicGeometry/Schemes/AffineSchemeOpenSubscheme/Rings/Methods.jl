@@ -243,7 +243,7 @@ function restriction_map(
   # the terms accordingly, we derive the desired expressions for the cᵢ's.
   #W = localized_ring(OO(Y))
   W = OO(Y)
-  S, t = polynomial_ring(W, ["t$i" for i in 1:r])
+  S, t = polynomial_ring(W, ["t$i" for i in 1:r]; cached=false)
   ta = length(a) == 0 ? zero(S) : sum([t*a for (t, a) in zip(t, a)])
   function mysecondmap(f::AffineSchemeOpenSubschemeRingElem)
     sep = [pull_from_denominator(f[i], d[i]) for i in 1:r]
@@ -267,7 +267,7 @@ function restriction_map(
       for i in 1:r
         if exponent(m, 1, i) == k[i]
           c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])
-          cleaned = cleaned + b*m
+          cleaned += b*m
           break
         end
       end
@@ -275,20 +275,20 @@ function restriction_map(
     dirty = dirty - cleaned
 
     while !iszero(dirty)
-      m = m + 1
+      m += 1
       c = (x->poh*x).(c)
-      dirty = dirty*ta
+      dirty *= ta
       cleaned = zero(dirty)
       for (b, m) in zip(AbstractAlgebra.coefficients(dirty), AbstractAlgebra.monomials(dirty))
         for i in 1:r
           if exponent(m, 1, i) == k[i]
             c[i] = c[i] + b*evaluate(m, [(j == i ? one(W) : W(d[j])) for j in 1:r])
-            cleaned = cleaned + b*m
+            cleaned += b*m
             break
           end
         end
       end
-      dirty = dirty - cleaned
+      dirty -= cleaned
     end
     g = [_cast_fraction(W, p, q, check=false) for (p, q, dk, k) in sep]
     dk = [dk for (p, q, dk, k) in sep]
