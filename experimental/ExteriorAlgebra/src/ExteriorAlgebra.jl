@@ -45,12 +45,12 @@ If `K` is a field, this function will use a special implementation in Singular.
 
 # Examples
 ```jldoctest
-julia> E, (e1,e2)  =  exterior_algebra(QQ, 2);
+julia> E, (x1,x2)  =  exterior_algebra(QQ, 2);
 
-julia> e2*e1
--e1*e2
+julia> x2*x1
+-x1*x2
 
-julia> (e1+e2)^2  # over fields, result is automatically reduced!
+julia> (x1+x2)^2  # over fields, result is automatically reduced!
 0
 
 julia> E, (x,y)  =  exterior_algebra(QQ, ["x","y"]);
