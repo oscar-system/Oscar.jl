@@ -43,3 +43,9 @@ end
   end
 end
 
+### Compatibility
+underlying_morphism(f::CoveredSchemeMorphism) = f
+
+function CoveredSchemeMorphism(f::CoveredSchemeMorphism)
+  return f
+end
