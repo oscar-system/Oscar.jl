@@ -15,13 +15,13 @@ end
 
 mutable struct ExtAlgElem{T} <: NCRingElem
   parent::ExteriorAlgebra{T}
-  components::Dict{Int, SRow{T}}
+  components::Dict{Int, <:SRow{T}}
 
   function ExtAlgElem(E::ExteriorAlgebra{T}) where {T}
     return new{T}(E)
   end
 
-  function ExtAlgElem(E::ExteriorAlgebra{T}, comp::Dict{Int, SRow{T}}; 
+  function ExtAlgElem(E::ExteriorAlgebra{T}, comp::Dict{Int, <:SRow{T}}; 
       check::Bool=true
     ) where {T}
     @assert all(base_ring(x) === base_ring(E) for (_, x) in comp)
