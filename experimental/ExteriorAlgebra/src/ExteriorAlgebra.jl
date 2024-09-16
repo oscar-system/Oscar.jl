@@ -198,12 +198,12 @@ end
 ### Manual realization of exterior algebras
 
 include("Types.jl")
-function ExtAlgElem(E::ExteriorAlgebra{T}, a::Vector{Tuple{Int, SRow{T}}}; check::Bool=true) where {T}
-  return ExtAlgElem(E, Dict{Int, SRow{T}}(i => v for (i, v) in a if !iszero(v)))
+function ExtAlgElem(E::ExteriorAlgebra{T}, a::Vector{<:Tuple{Int, SRow{T}}}; check::Bool=true) where {T}
+  return ExtAlgElem(E, Dict{Int, sparse_row_type(T)}(i => v for (i, v) in a if !iszero(v)))
 end
 
 function ExtAlgElem(E::ExteriorAlgebra{T}, p::Int, v::SRow{T}; check::Bool=true) where {T}
-  return ExtAlgElem(E, Dict{Int, SRow{T}}(i => v for (i, v) in a if !iszero(v)))
+  return ExtAlgElem(E, Dict{Int, sparse_row_type(T)}(i => v for (i, v) in a if !iszero(v)))
 end
 
 function mul!(a::T, w::ExtAlgElem{T}) where {T}
@@ -219,7 +219,7 @@ function *(a::T, w::ExtAlgElem{T}) where {T <:NCRingElem}
   @assert parent(a) === base_ring(parent(w))
   nc = [(i, a*v) for (i, v) in components(w)]
   return ExtAlgElem(parent(w),
-                    Dict{Int, SRow{T}}(i => v for (i, v) in nc if !iszero(v));
+                    Dict{Int, sparse_row_type(T)}(i => v for (i, v) in nc if !iszero(v));
                     check=false
                    )
 end
@@ -265,21 +265,21 @@ base_ring(w::ExtAlgElem) = base_ring(parent(w))
 parent(w::ExtAlgElem) = w.parent
 
 rank(E::ExteriorAlgebra) = E.rank
-base_ring(E::ExteriorAlgebra) = E.base_ring
+base_ring(E::ExteriorAlgebra{T}) where {T} = E.base_ring::parent_type(T)
+base_ring_type(::Type{ExteriorAlgebra{T}}) where {T} = parent_type(T)
 
 zero(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E)
 zero(w::ExtAlgElem) = zero(parent(w))
 
 function components(w::ExtAlgElem{T}) where {T}
   if !isdefined(w, :components)
-    w.components = Dict{Int, SRow{T}}()
+    w.components = Dict{Int, sparse_row_type(T)}()
   end
-  return w.components
+  return w.components::Dict{Int, sparse_row_type(T)}
 end
 
 function getindex(w::ExtAlgElem, p::Int)
-  !haskey(w.components, p) && return sparse_row(base_ring(parent(w)))
-  return w.components[p]
+  return get(components(w), p, sparse_row(base_ring(parent(w))))
 end
 
 function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T<:NCRingElem}
@@ -315,7 +315,7 @@ function *(v::ExtAlgElem{T}, w::ExtAlgElem{T}) where {T<:NCRingElem}
       end
       if  !isempty(new_elem)
         if haskey(components(result), r)
-          components(result)[r] += sparse_row(R, [(i, v) for (i, v) in new_elem])
+          components(result)[r] = Hecke.add_scaled_row!(components(result)[r], sparse_row(R, [(i, v) for (i, v) in new_elem]), one(R))
         else
           components(result)[r] = sparse_row(R, [(i, v) for (i, v) in new_elem])
         end
@@ -340,12 +340,12 @@ function print_symbols(E::ExteriorAlgebra, p::Int)
 end
 
 function gens(E::ExteriorAlgebra{T}) where {T}
-  return [ExtAlgElem(E, Dict{Int, SRow{T}}(1 => sparse_row(base_ring(E), 
+  return [ExtAlgElem(E, Dict{Int, sparse_row_type(T)}(1 => sparse_row(base_ring(E), 
                                                            [(i, one(base_ring(E)))]))) 
           for i in 1:rank(E)]
 end
 
-one(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E, Dict{Int, SRow{T}}(0 => sparse_row(base_ring(E), [(1, one(base_ring(E)))])); check=false)
+one(E::ExteriorAlgebra{T}) where {T} = ExtAlgElem(E, Dict{Int, sparse_row_type(T)}(0 => sparse_row(base_ring(E), [(1, one(base_ring(E)))])); check=false)
 
 function Base.show(io::IO, w::ExtAlgElem)
   E = parent(w)
@@ -536,7 +536,7 @@ function (F::FreeMod{ExtAlgElem{T}})(v::Vector{FreeModElem{T}}, p::Int) where {T
   v_comp_list = [[G(coordinates(w)[r]) for (G, r) in zip(F_p_parts, ranges)] for w in v]
   #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
   d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
-  v_comp_coords_list = [[iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)] for v_comps in v_comp_list]
+  v_comp_coords_list = [[iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, sparse_row_type(T)}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)] for v_comps in v_comp_list]
   return elem_type(F)[sum(a*g for (a, g) in zip(v_comp_coords, g_E); init=zero(F)) for v_comp_coords in v_comp_coords_list]
 end
 
@@ -555,7 +555,7 @@ function (F::FreeMod{ExtAlgElem{T}})(v::FreeModElem{T}, p::Int) where {T}
   v_comps = [G(coordinates(v)[r]) for (G, r) in zip(F_p_parts, ranges)]
   #d = [Int(degree(g; check=false)[1]) for g in gens(F)]
   d = [Int(d[1]) for d in degrees_of_generators(F; check=false)]
-  v_comp_coords = [iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, SRow{T}}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)]
+  v_comp_coords = [iszero(c.coords) ? E() : ExtAlgElem(E, Dict{Int, sparse_row_type(T)}([p-d[i]=>c.coords])) for (i, c) in enumerate(v_comps)]
   return sum(a*g for (a, g) in zip(v_comp_coords, g_E); init=zero(F))
 end
 
@@ -971,7 +971,7 @@ function _ext_module_map(M::SubquoModule{T}, d::Int) where {T<:MPolyDecRingElem}
 end
 
 function gen(E::ExteriorAlgebra{T}, i::Int) where {T}
-  return ExtAlgElem(E, Dict{Int, SRow{T}}(1 => sparse_row(base_ring(E), [(i, one(base_ring(E)))]))) 
+  return ExtAlgElem(E, Dict{Int, sparse_row_type(T)}(1 => sparse_row(base_ring(E), [(i, one(base_ring(E)))]))) 
 end
   
 
