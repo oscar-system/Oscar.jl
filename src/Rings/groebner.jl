@@ -117,11 +117,12 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+                   complete_reduction::Bool = false, algorithm::Symbol = :default)
 
 Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
+- `:default` (tries to choose the best possible implementation),
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
@@ -220,11 +221,12 @@ end
 @doc raw"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
+      complete_reduction::Bool = false, algorithm::Symbol = :default)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
+- `:default` (tries to choose the best possible implementation),
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
