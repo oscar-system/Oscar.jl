@@ -10,7 +10,7 @@ function tropical_variety_affine_linear(I::MPolyIdeal,nu::TropicalSemiringMap; w
     # compute a reduced GB to check whether I is homogeneous
     G = groebner_basis(I,complete_reduction=true)
 
-    if all(Oscar._is_homogeneous.(G))
+    if all(Oscar._is_homogeneous,G)
         # input homogneeous, construct TropicalVariety via TropicalLinearSpace
         return tropical_variety(tropical_linear_space(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only))
     end
