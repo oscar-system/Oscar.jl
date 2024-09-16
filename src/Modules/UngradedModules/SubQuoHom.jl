@@ -267,8 +267,8 @@ julia> is_welldefined(c)
 false
 ```
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
-hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
+hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
+hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
 
 
 @doc raw"""
@@ -964,12 +964,12 @@ function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end

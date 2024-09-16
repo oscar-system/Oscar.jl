@@ -5,14 +5,14 @@
 ###############################################################################
 
 @doc raw"""
-    graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+    graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
 
 Given a graded ring `R` with grading group `G`, say,
 and given a vector `W` with `p` elements of `G`, create the free module $R^p$ 
 equipped with its basis of standard unit vectors, and assign weights to these 
 vectors according to the entries of `W`. Return the resulting graded free module.
 
-    graded_free_module(R::Ring, W::Vector{FinGenAbGroupElem}, name::String="e")
+    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{FinGenAbGroupElem}, name::String="e")
 
 As above, with `p = length(W)`.
 
@@ -36,7 +36,7 @@ julia> graded_free_module(R, [G[1], 2*G[1]])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 """
-function graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{FinGenAbGroupElem}=[grading_group(R)[0] for i in 1:p], name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
   all(x -> parent(x) == grading_group(R), W) || error("entries of W must be elements of the grading group of the base ring")
@@ -45,7 +45,7 @@ function graded_free_module(R::Ring, p::Int, W::Vector{FinGenAbGroupElem}=[gradi
   return M
 end
 
-function graded_free_module(R::Ring, p::Int, W::Vector{Any}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, p::Int, W::Vector{Any}, name::String="e")
   @assert length(W) == p
   @assert is_graded(R)
   p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
@@ -53,12 +53,12 @@ function graded_free_module(R::Ring, p::Int, W::Vector{Any}, name::String="e")
   return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::Ring, W::Vector{FinGenAbGroupElem}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{FinGenAbGroupElem}, name::String="e")
   p = length(W)
   return graded_free_module(R, p, W, name)
 end
 
-function graded_free_module(R::Ring, W::Vector{Any}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{Any}, name::String="e")
   p = length(W)
   @assert is_graded(R)
   p == 0 || error("W should be either an empty array or a Vector{FinGenAbGroupElem}")
@@ -67,7 +67,7 @@ function graded_free_module(R::Ring, W::Vector{Any}, name::String="e")
 end
 
 @doc raw"""
-    graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
 
 Given a graded ring `R` with grading group $G = \mathbb Z^m$, 
 and given a vector `W` of integer vectors of the same size `p`, say, create the free 
@@ -75,11 +75,11 @@ module $R^p$ equipped with its basis of standard unit vectors, and assign weight
 vectors according to the entries of `W`, converted to elements of `G`. Return the 
 resulting graded free module.
 
-    graded_free_module(R::Ring, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+    graded_free_module(R::AdmissibleModuleFPRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
 
 As above, converting the columns of `W`.
 
-    graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
+    graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:IntegerUnion}, name::String="e")
 
 Given a graded ring `R` with grading group $G = \mathbb Z$, 
 and given a vector `W` of integers, set `p = length(W)`, create the free module $R^p$ 
@@ -113,7 +113,7 @@ julia> FF == FFF
 true
 ```
 """
-function graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:Vector{<:IntegerUnion}}, name::String="e")
   @assert is_zm_graded(R)
   n = length(W[1])
   @assert all(x->length(x) == n, W)
@@ -122,14 +122,14 @@ function graded_free_module(R::Ring, W::Vector{<:Vector{<:IntegerUnion}}, name::
   return graded_free_module(R, length(W), d, name)
 end
 
-function graded_free_module(R::Ring, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, W::Union{ZZMatrix, Matrix{<:IntegerUnion}}, name::String="e")
   @assert is_zm_graded(R)
   A = grading_group(R)
   d = [A(W[:, i]) for i = 1:size(W, 2)]
   return graded_free_module(R, size(W, 2), d, name)
 end
 
-function graded_free_module(R::Ring, W::Vector{<:IntegerUnion}, name::String="e")
+function graded_free_module(R::AdmissibleModuleFPRing, W::Vector{<:IntegerUnion}, name::String="e")
   @assert is_graded(R)
   A = grading_group(R)
   d = [W[i] * A[1] for i in 1:length(W)]
@@ -652,7 +652,7 @@ function graded_map(A::MatElem)
   return graded_map(Fcdm, A)
 end
 
-function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
   R = base_ring(F)
   G = grading_group(R)
   source_degrees = Vector{eltype(G)}()
@@ -669,7 +669,7 @@ function graded_map(F::FreeMod{T}, A::MatrixElem{T}; check::Bool=true) where {T 
   return phi
 end
 
-function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::Bool=true) where {T <: RingElement}
+function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
@@ -697,7 +697,7 @@ function graded_map(F::FreeMod{T}, V::Vector{<:AbstractFreeModElem{T}}; check::B
 end
 
 
-function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T <: RingElement}
+function graded_map(F::SubquoModule{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where {T <: AdmissibleModuleFPRingElem}
   R = base_ring(F)
   G = grading_group(R)
   nrows = length(V)
