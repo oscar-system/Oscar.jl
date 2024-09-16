@@ -7,7 +7,9 @@ abstract type OscarSerializer end
 
 struct JSONSerializer <: OscarSerializer end
 
-struct IPCSerializer <: OscarSerializer end
+struct IPCSerializer <: OscarSerializer
+  worker_pid::Int
+end
 
 abstract type MultiFileSerializer <: OscarSerializer end
 

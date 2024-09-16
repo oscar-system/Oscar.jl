@@ -129,7 +129,7 @@ end
 function save_as_ref(s::SerializerState, obj::T) where T
   # find ref or create one
   ref = get(global_serializer_state.obj_to_id, obj, nothing)
-  if ref !== nothing
+  if !isnothing(ref)
     if !(ref in s.refs)
       push!(s.refs, ref)
     end
@@ -138,6 +138,36 @@ function save_as_ref(s::SerializerState, obj::T) where T
   ref = global_serializer_state.obj_to_id[obj] = uuid4()
   global_serializer_state.id_to_obj[ref] = obj
   push!(s.refs, ref)
+  return string(ref)
+end
+
+function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
+  ref = get(global_serializer_state.obj_to_id, obj, nothing)
+  w = s.serializer.worker_pid
+  if !isnothing(ref)
+    # check if ref already exists on worker
+    println("2")
+    f = remotecall_fetch(
+      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
+      w,
+      string(ref)) #&& return string(ref)
+    println(f, " ", typeof(f))
+    return string(ref)
+  else
+    ref = uuid4()
+    global_serializer_state.id_to_obj[ref] = obj
+  end
+
+  # put obj on the remote worker 
+  chnnl = RemoteChannel(() -> Channel{T}(32), w)
+  rrid = remoteref_id(chnnl)
+  put!(chnnl, obj)
+
+  # take the obj on remote worker
+  println("4")
+  
+  #f = remotecall_wait((chnnl) -> x = take!(chnnl), w, chnnl)
+  println("5")
   return string(ref)
 end
 
@@ -164,6 +194,7 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
 end
 
 function save_typed_object(s::SerializerState, x::T) where T
+  println("save typed object")
   if serialize_with_params(T)
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
@@ -356,10 +387,16 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
-          Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
+          Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer(
+            worker_id_from_socket(s.io)
+          ))
+          println("after save")
         end
-        function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
-          Oscar.load(s.io; serializer=Oscar.IPCSerializer())
+        function Oscar.deserialize(s::Oscar.AbstractSerializer, T::Type{<:$ex})
+          println("deserializing", T)
+          Oscar.load(s.io; serializer=Oscar.IPCSerializer(
+            worker_id_from_socket(s.io)
+          ))
         end
       end
     end)
@@ -512,8 +549,10 @@ julia> load("/tmp/fourtitwo.mrdi")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
               serializer::OscarSerializer = JSONSerializer()) where T
+  println("open serializer")
   s = serializer_open(io, serializer,
                       with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}())
+  println("save_data dict")
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -697,7 +736,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
-    if VersionNumber(replace(String(file_version), r"DEV.+", "DEV")) > VERSION_NUMBER
+    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
       @warn """
       Attempted loading file stored with Oscar version $file_version
       using Oscar version $VERSION_NUMBER
