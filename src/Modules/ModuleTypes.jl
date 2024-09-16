@@ -1,26 +1,33 @@
 import AbstractAlgebra.WeakKeyIdDict
 
+# The following type union gathers all types for elements for which 
+# we expect the `ModuleFP` framework to be functional and/or working.
+# It can gradually be extended, but should not be considered to be 
+# visible or accessible to the outside world. 
+const AdmissibleModuleFPRingElem = Union{RingElem, PBWAlgQuoElem, PBWAlgElem}
+const AdmissibleModuleFPRing = Union{Ring, PBWAlgQuo, PBWAlgRing}
+
 @doc raw"""
     ModuleFP{T}
 
 The abstract supertype of all finitely presented modules.
 The type variable `T` refers to the type of the elements of the base ring.
 """
-abstract type ModuleFP{T} <: AbstractAlgebra.Module{T} end
+abstract type ModuleFP{T <: AdmissibleModuleFPRingElem} <: AbstractAlgebra.Module{T} end
 
 @doc raw"""
     AbstractFreeMod{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely generated free modules.
 """
-abstract type AbstractFreeMod{T} <: ModuleFP{T} end
+abstract type AbstractFreeMod{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T} end
 
 @doc raw"""
     AbstractSubQuo{T} <: ModuleFP{T}
 
 The abstract supertype of all finitely presented subquotient modules.
 """
-abstract type AbstractSubQuo{T} <: ModuleFP{T} end
+abstract type AbstractSubQuo{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T} end
 
 
 @doc raw"""
@@ -28,21 +35,21 @@ abstract type AbstractSubQuo{T} <: ModuleFP{T} end
 
 The abstract supertype of all elements of finitely presented modules.
 """
-abstract type ModuleFPElem{T} <: ModuleElem{T} end
+abstract type ModuleFPElem{T <: AdmissibleModuleFPRingElem} <: ModuleElem{T} end
 
 @doc raw"""
     AbstractFreeModElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of finitely generated free modules.
 """
-abstract type AbstractFreeModElem{T} <: ModuleFPElem{T} end
+abstract type AbstractFreeModElem{T <: AdmissibleModuleFPRingElem} <: ModuleFPElem{T} end
 
 @doc raw"""
     AbstractSubQuoElem{T} <: ModuleFPElem{T}
 
 The abstract supertype of all elements of subquotient modules.
 """
-abstract type AbstractSubQuoElem{T} <: ModuleFPElem{T} end
+abstract type AbstractSubQuoElem{T <: AdmissibleModuleFPRingElem} <: ModuleFPElem{T} end
 
 abstract type ModuleFPHomDummy end
 
@@ -70,8 +77,8 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `FreeMod{T}` is a subtype of `AbstractFreeMod{T}`.
 """
-@attributes mutable struct FreeMod{T <: RingElem} <: AbstractFreeMod{T}
-  R::Ring
+@attributes mutable struct FreeMod{T <: AdmissibleModuleFPRingElem} <: AbstractFreeMod{T}
+  R::NCRing
   n::Int
   S::Vector{Symbol}
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
@@ -91,7 +98,7 @@ option is set in suitable functions.
   incoming::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
   outgoing::WeakKeyIdDict{<:ModuleFP, <:Tuple{<:SMat, <:Any}}
 
-  function FreeMod{T}(n::Int,R::Ring,S::Vector{Symbol}) where T <: RingElem
+  function FreeMod{T}(n::Int, R::AdmissibleModuleFPRing, S::Vector{Symbol}) where T <: AdmissibleModuleFPRingElem
     r = new{elem_type(R)}()
     r.n = n
     r.R = R
@@ -105,7 +112,7 @@ option is set in suitable functions.
 end
 
 @doc raw"""
-    FreeModElem{T} <: AbstractFreeModElem{T}
+    FreeModElem{T <: AdmissibleModuleFPRingElem} <: AbstractFreeModElem{T}
 
 The type of free module elements. An element of a free module $F$ is given by a sparse row (`SRow`)
 which specifies its coordinates with respect to the basis of standard unit vectors of $F$.
@@ -131,7 +138,7 @@ julia> f == g
 true
 ```
 """
-mutable struct FreeModElem{T} <: AbstractFreeModElem{T}
+mutable struct FreeModElem{T <: AdmissibleModuleFPRingElem} <: AbstractFreeModElem{T}
   coords::SRow{T} # also usable via coeffs()
   parent::FreeMod{T}
   d::Union{FinGenAbGroupElem, Nothing}
@@ -155,7 +162,7 @@ and all the conversion is taken care of here.
 This data structure is also used for representing Gröbner / standard bases.
 Relative Gröbner / standard bases are also supported.
 """
-@attributes mutable struct ModuleGens{T} # T is the type of the elements of the ground ring.
+@attributes mutable struct ModuleGens{T <: AdmissibleModuleFPRingElem} # T is the type of the elements of the ground ring.
   O::Vector{FreeModElem{T}}
   S::Singular.smodule
   F::FreeMod{T}
@@ -166,7 +173,7 @@ Relative Gröbner / standard bases are also supported.
   ordering::ModuleOrdering
   quo_GB::ModuleGens{T} # Pointer to the quotient GB when having a relative GB
 
-  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T}
+  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}) where {T <: AdmissibleModuleFPRingElem}
     r = new{T}()
     r.O = O
     r.F = F
@@ -175,7 +182,7 @@ Relative Gröbner / standard bases are also supported.
 
   # ModuleGens from an Array of Oscar free module elements, specifying the free module 
   # and Singular free module, only useful indirectly
-  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T}
+  function ModuleGens{T}(O::Vector{<:FreeModElem}, F::FreeMod{T}, SF::Singular.FreeMod) where {T <: AdmissibleModuleFPRingElem}
     r = new{T}()
     r.O = O
     r.SF = SF
@@ -184,7 +191,7 @@ Relative Gröbner / standard bases are also supported.
   end
 
   # ModuleGens from a Singular submodule
-  function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S} # FreeMod is necessary due to type S
+  function ModuleGens{S}(F::FreeMod{S}, s::Singular.smodule) where {S <: AdmissibleModuleFPRingElem} # FreeMod is necessary due to type S
     r = new{S}()
     r.F = F
     if Singular.ngens(s) == 0
@@ -198,14 +205,14 @@ Relative Gröbner / standard bases are also supported.
 end
 
 @doc raw"""
-    SubModuleOfFreeModule{T} <: ModuleFP{T}
+    SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
 
 Data structure for submodules of free modules. `SubModuleOfFreeModule` shouldn't be
 used by the end user.
 When computed, a standard basis (computed via `standard_basis()`) and generating matrix (that is the rows of the matrix
 generate the submodule) (computed via `generator_matrix()`) are cached.
 """
-@attributes mutable struct SubModuleOfFreeModule{T} <: ModuleFP{T}
+@attributes mutable struct SubModuleOfFreeModule{T <: AdmissibleModuleFPRingElem} <: ModuleFP{T}
   F::FreeMod{T}
   gens::ModuleGens{T}
   groebner_basis::Dict{ModuleOrdering, ModuleGens{T}}
@@ -224,7 +231,7 @@ end
 
 
 @doc raw"""
-    SubquoModule{T} <: AbstractSubQuo{T}
+    SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
 
 The type of subquotient modules.
 A subquotient module $M$ is a module where $M = A + B / B$ where $A$ and $B$ are 
@@ -236,7 +243,7 @@ Moreover, canonical incoming and outgoing morphisms are stored if the correspond
 option is set in suitable functions.
 `SubquoModule{T}` is a subtype of `ModuleFP{T}`.
 """
-@attributes mutable struct SubquoModule{T} <: AbstractSubQuo{T}
+@attributes mutable struct SubquoModule{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuo{T}
   #meant to represent sub+ quo mod quo - as lazy as possible
   F::FreeMod{T}
   sub::SubModuleOfFreeModule
@@ -264,7 +271,7 @@ end
 
 
 @doc raw"""
-    SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
+    SubquoModuleElem{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuoElem{T} 
 
 The type of subquotient elements. An element $f$ of a subquotient $M$ over the ring $R$
 is given by a sparse row (`SRow`) which specifies the coefficients of an $R$-linear 
@@ -308,13 +315,13 @@ julia> f == g
 true
 ```
 """
-mutable struct SubquoModuleElem{T} <: AbstractSubQuoElem{T} 
+mutable struct SubquoModuleElem{T <: AdmissibleModuleFPRingElem} <: AbstractSubQuoElem{T} 
   parent::SubquoModule{T}
   coeffs::SRow{T} # Need not be defined! Use `coordinates` as getter
   repres::FreeModElem{T} # Need not be defined! Use `repres` as getter
   is_reduced::Bool # `false` by default. Will be set by `simplify` and `simplify!`.
 
-  function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R}
+  function SubquoModuleElem{R}(v::SRow{R}, SQ::SubquoModule) where {R <: AdmissibleModuleFPRingElem}
     @assert length(v) <= ngens(SQ.sub)
     if isempty(v)
       r = new{R}(SQ, v, zero(SQ.F))
@@ -326,7 +333,7 @@ mutable struct SubquoModuleElem{T} <: AbstractSubQuoElem{T}
     return r
   end
 
-  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R}
+  function SubquoModuleElem{R}(a::FreeModElem{R}, SQ::SubquoModule; is_reduced::Bool=false) where {R <: AdmissibleModuleFPRingElem}
     @assert a.parent === SQ.F
     r = new{R}(SQ)
     r.repres = a

@@ -45,33 +45,31 @@ end
 mutable struct RootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple roots
-end
 
-function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+  function RootSpaceElem(root_system::RootSystem, vec::QQMatrix)
+    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
+    return new(root_system, vec)
+  end
 end
 
 mutable struct DualRootSpaceElem
   root_system::RootSystem
   vec::QQMatrix # the coordinate (row) vector with respect to the simple coroots
-end
 
-function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
-  return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
+  function DualRootSpaceElem(root_system::RootSystem, vec::QQMatrix)
+    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
+    return new(root_system, vec)
+  end
 end
 
 mutable struct WeightLatticeElem
   root_system::RootSystem
   vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
-end
 
-@doc raw"""
-    WeightLatticeElem(R::RootSystem, v::Vector{IntegerUnion}) -> WeightLatticeElem
-
-Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
-"""
-function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
+  function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
+    @req size(vec) == (rank(root_system), 1) "Invalid dimension"
+    return new(root_system, vec)
+  end
 end
 
 ###############################################################################

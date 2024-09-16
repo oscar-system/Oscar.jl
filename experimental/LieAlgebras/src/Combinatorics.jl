@@ -3,18 +3,18 @@
 # more efficient implementation.
 
 function combinations(n::Integer, k::Integer)
-  return sort(subsets(n, k))
+  return sort(AbstractAlgebra.combinations(n, k))
 end
 
 @doc raw"""
-    combinations(v::AbstractVector{T}, k::Integer) where {T}
+    Oscar.LieAlgebras.combinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Return an iterator over all combinations of `k` elements of `v`.
 In each iteration, the elements are returned in the order they appear in `v`.
 The order of the combinations is lexicographic.
 
-```jldoctest; setup = :(using Oscar.LieAlgebras)
-julia> collect(combinations([1, 2, 3, 4], 2))
+```jldoctest
+julia> collect(Oscar.LieAlgebras.combinations([1, 2, 3, 4], 2))
 6-element Vector{Vector{Int64}}:
  [1, 2]
  [1, 3]
@@ -39,14 +39,14 @@ function multicombinations(n::Integer, k::Integer)
 end
 
 @doc raw"""
-    multicombinations(v::AbstractVector{T}, k::Integer) where {T}
+    Oscar.LieAlgebras.multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 
 Return an iterator over all combinations of `k` elements of `v` with repetitions.
 In each iteration, the elements are returned in the order they appear in `v`.
 The order of the combinations is lexicographic.
 
-```jldoctest; setup = :(using Oscar.LieAlgebras)
-julia> collect(multicombinations([1, 2, 3, 4], 2))
+```jldoctest
+julia> collect(Oscar.LieAlgebras.multicombinations([1, 2, 3, 4], 2))
 10-element Vector{Vector{Int64}}:
  [1, 1]
  [1, 2]
@@ -70,13 +70,13 @@ function permutations(n::Integer)
 end
 
 @doc raw"""
-    permutations(v::AbstractVector{T}) where {T}
+    Oscar.LieAlgebras.permutations(v::AbstractVector{T}) where {T}
 
 Return an iterator over all permutations of `v`.
 There is no guarantee on the order of the permutations.
 
-```jldoctest; setup = :(using Oscar.LieAlgebras)
-julia> sort(collect(permutations([1, 2, 3])))
+```jldoctest
+julia> sort(collect(Oscar.LieAlgebras.permutations([1, 2, 3])))
 6-element Vector{Vector{Int64}}:
  [1, 2, 3]
  [1, 3, 2]
@@ -96,13 +96,13 @@ function permutations_with_sign(n::Integer)
 end
 
 @doc raw"""
-    permutations_with_sign(v::AbstractVector{T}) where {T}
+    Oscar.LieAlgebras.permutations_with_sign(v::AbstractVector{T}) where {T}
 
 Return an iterator over all permutations of `v` with their sign.
 There is no guarantee on the order of the permutations.
 
-```jldoctest; setup = :(using Oscar.LieAlgebras)
-julia> sort(collect(permutations_with_sign([1, 2, 3])))
+```jldoctest
+julia> sort(collect(Oscar.LieAlgebras.permutations_with_sign([1, 2, 3])))
 6-element Vector{Tuple{Vector{Int64}, Int64}}:
  ([1, 2, 3], 1)
  ([1, 3, 2], -1)

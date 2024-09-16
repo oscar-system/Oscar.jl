@@ -11,7 +11,7 @@ const orderedpkgs = [
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",
-  "FTheoryTools",            # must be loaded after Schemes
+  "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))

@@ -383,7 +383,11 @@ function singular_generators(B::IdealGens, monorder::MonomialOrdering=default_or
   isdefined(B, :ord) && B.ord == monorder && monomial_ordering(B.Ox, Singular.ordering(base_ring(B.S))) == B.ord && return B.gens.S
   SR = singular_poly_ring(B.Ox, monorder)
   f = Singular.AlgebraHomomorphism(B.Sx, SR, gens(SR))
-  return Singular.map_ideal(f, B.gens.S)
+  S = Singular.map_ideal(f, B.gens.S)
+  if isdefined(B, :ord) && B.ord == monorder
+    S.isGB = B.isGB
+  end
+  return S
 end
 
 @doc raw"""
@@ -745,7 +749,7 @@ function singular_assure(I::IdealGens)
     I.gens.Sx = singular_poly_ring(I.Ox; keep_ordering = I.keep_ordering)
     I.gens.S = Singular.Ideal(I.Sx, elem_type(I.Sx)[I.Sx(x) for x = I.O])
   end
-  if I.isGB
+  if I.isGB && (!isdefined(I, :ord) || I.ord == monomial_ordering(I.gens.Ox, internal_ordering(I.gens.Sx)))
     I.gens.S.isGB = true
   end
 end

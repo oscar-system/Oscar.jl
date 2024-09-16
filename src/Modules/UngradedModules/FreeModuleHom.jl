@@ -21,12 +21,12 @@ img_gens(f::FreeModuleHom) = images_of_generators(f)
 images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
 image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 
 @doc raw"""
@@ -232,6 +232,7 @@ scalars in `base_ring(F)` to their images under `h`.
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check::Bool=true) where {T} = FreeModuleHom(F, M, V; check)
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""

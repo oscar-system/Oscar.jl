@@ -1502,8 +1502,8 @@ mutable struct HilbertData
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
 
-    G = groebner_assure(I)
-    cf = Singular.hilbert_series_data(G.S, W)
+    S = singular_groebner_generators(I, false, true)
+    cf = Singular.hilbert_series_data(S, W)
     return new(cf, W, I)
   end
   function HilbertData(B::IdealGens)

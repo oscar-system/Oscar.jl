@@ -81,7 +81,7 @@ function clear_coefficient_denominators(f::MPolyRingElem)
     return lcm(denominator.(coefficients(f)))*f
 end
 # if valuation trivial, do nothing
-function simulate_valuation(I::MPolyIdeal, nu::TropicalSemiringMap{K,Nothing,<:Union{typeof(min),typeof(max)}}) where {K}
+function simulate_valuation(I::MPolyIdeal, ::TropicalSemiringMap{K,Nothing,<:Union{typeof(min),typeof(max)}}) where {K}
     return I
 end
 
@@ -157,14 +157,14 @@ function tighten_simulation(f::MPolyRingElem, nu::TropicalSemiringMap)
     return finish(sf)
 end
 # if valuation trivial, do nothing
-function tighten_simulation(f::MPolyRingElem, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+function tighten_simulation(f::MPolyRingElem, ::TropicalSemiringMap{K,Nothing,minOrMax}) where {K, minOrMax<:Union{typeof(min),typeof(max)}}
     return f
 end
 
 
 
 @doc raw"""
-    simulate_valuation(w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}, nu::TropicalSemiringMap{K,p,<:Union{typeof(min),typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+    simulate_valuation(w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}}, nu::TropicalSemiringMap{K,p,<:Union{typeof(min),typeof(max)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
 
 Return an integer vector `wSim` so that the (tropical) Groebner basis of an ideal `I` with respect to `w` corresponds to the standard basis of its simulation with respect to `wSim`.  If `pertubation!=nothing`, also returns a corresponding `perturbationSim`.
 
@@ -186,7 +186,7 @@ julia> simulate_valuation(w,nuMax;perturbation=u)
 
 ```
 """
-function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+function simulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
     w = vcat([one(QQ)],w)        # prepend +1 to the vector
     w .*= -lcm(denominator.(w))  # scale vector to make entries integral
                                  # negate vector to convert to max convention for Singular
@@ -197,7 +197,7 @@ function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,
     end
     return w
 end
-function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+function simulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,p,typeof(max)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
     w = vcat([-one(QQ)],w)      # prepend -1 to the vector
     w .*= lcm(denominator.(w))  # scale vector to make entries integral
     if !isnothing(perturbation)
@@ -209,17 +209,17 @@ function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,
     return w
 end
 # if valuation is trivial, just flip sign depending on convention
-function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,Nothing,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K}
+function simulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,Nothing,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K}
     isnothing(perturbation) ? (return -w) : (return -w, -perturbation)
 end
-function simulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,Nothing,typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K}
+function simulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,Nothing,typeof(max)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K}
     isnothing(perturbation) ? (return w) : (return w,perturbation)
 end
 
 
 
 @doc raw"""
-    desimulate_valuation(sG::Vector{<:MPolyRingElem}, nu::TropicalSemiringMap)
+    desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap)
 
 Given a generating set of the simulation ideal, reconstruct a generating set of the original ideal.  In pparticular, given a standard basis of the simulation ideal with respect to `wSim`, return the (tropical) Groebner basis of the original ideal with respect to `w`.
 
@@ -247,7 +247,7 @@ julia> desimulate_valuation(sG,nu_2)
 
 ```
 """
-function desimulate_valuation(sG::Vector{<:MPolyRingElem}, nu::TropicalSemiringMap)
+function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, nu::TropicalSemiringMap)
     # construct original polynomial ring over valued field
     Rtx = parent(first(sG))
     xSymbols = copy(symbols(Rtx))[2:end]
@@ -261,14 +261,14 @@ function desimulate_valuation(sG::Vector{<:MPolyRingElem}, nu::TropicalSemiringM
     return G[findall(!iszero,G)] # return only non-zero elements
 end
 # if valuation trivial, do nothing
-function desimulate_valuation(sG::Vector{<:MPolyRingElem}, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
+function desimulate_valuation(sG::AbstractVector{<:MPolyRingElem}, ::TropicalSemiringMap{K,Nothing,minOrMax}) where {K,minOrMax<:Union{typeof(min),typeof(max)}}
     return sG
 end
 
 
 
 @doc raw"""
-    desimulate_valuation(w::Vector, nu::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+    desimulate_valuation(w::AbstractVector, nu::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
 
 Given a weight vector `wSim` on the simulation ring, return weight vector `w` on the original polynomial ring so that a standard basis with respect to `wSim` corresponds to a (tropical) Groebner basis with respect to `w`.
 
@@ -296,32 +296,33 @@ julia> desimulate_valuation(wSim, nuMax; perturbation=uSim)
 
 ```
 """
-function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+function desimulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,p,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
     @req w[1]<0 "invalid weight vector"
     # scale the vector so that first entry is 1, then remove first entry
-    w ./= w[1]
+    w = w[2:end] ./ w[1]
     if !isnothing(perturbation)
         # negate vector, then remove first entry
-        perturbation *= -1
-        return w[2:end],perturbation[2:end]
+        perturbation = perturbation[2:end] * -1
+        return w,perturbation
     end
-    return w[2:end]
+    return w
 end
-function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,p,typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K,p}
+function desimulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,p,typeof(max)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K,p}
     @req w[1]<0 "invalid weight vector"
     # scale the vector so that first entry is -1, then remove first entry
-    w ./= -w[1]
+    w = w[2:end] ./ -w[1]
     if !isnothing(perturbation)
         # remove first entry
-        return w[2:end],perturbation[2:end]
+        perturbation = perturbation[2:end]
+        return w,perturbation
     end
-    return w[2:end]
+    return w
 end
 # if trivial valuation, just flip sign depending on convention
-function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,Nothing,typeof(min)}; perturbation::Union{Nothing,Vector}=nothing) where {K}
+function desimulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,Nothing,typeof(min)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K}
     isnothing(perturbation) ? (return -w) : (return -w,-perturbation)
 end
-function desimulate_valuation(w::Vector{QQFieldElem}, nu::TropicalSemiringMap{K,Nothing,typeof(max)}; perturbation::Union{Nothing,Vector}=nothing) where {K}
+function desimulate_valuation(w::AbstractVector{QQFieldElem}, ::TropicalSemiringMap{K,Nothing,typeof(max)}; perturbation::Union{Nothing,AbstractVector}=nothing) where {K}
     isnothing(perturbation) ? (return w) : (return w,perturbation)
 end
 
@@ -333,7 +334,7 @@ end
 #
 ################################################################################
 @doc raw"""
-    groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
+    groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
 
 Return a (tropical) Groebner basis of `I` with respect to the tropical semiring map `nu` and weight vector `w`.
 
@@ -358,7 +359,7 @@ julia> groebner_basis(I,nu,w)
 
 ```
 """
-function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
+function groebner_basis(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector{<:Union{QQFieldElem,ZZRingElem,Rational,Integer}})
 
     G = gens(I)
 

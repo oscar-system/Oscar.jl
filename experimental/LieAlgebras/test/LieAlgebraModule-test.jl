@@ -484,6 +484,7 @@
       end
     end
   end
+
   @testset "so_n correctness regression" begin
     function lie_algebra_module_struct_const(
       L::LieAlgebra{C}, V::LieAlgebraModule{C}
@@ -781,16 +782,29 @@
   @testset "dominant_character" begin
     is_dominant_weight = Oscar.LieAlgebras.is_dominant_weight
 
-    function check_dominant_character(L::LieAlgebra, hw::Vector{Int})
-      domchar = @inferred dominant_character(L, hw)
-      @test domchar[hw] == 1
+    function check_dominant_character(
+      LR::Union{LieAlgebra,RootSystem}, hw::Vector{<:Oscar.IntegerUnion}
+    )
+      domchar = @inferred dominant_character(LR, hw)
+      @test domchar[Int.(hw)] == 1
+      @test issetequal(keys(domchar), dominant_weights(Vector{Int}, LR, hw))
       @test all(w -> is_dominant_weight(w), keys(domchar))
       @test all(>=(1), values(domchar))
       return domchar
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 1]
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      domchar = check_dominant_character(R, hw)
+      @test domchar == Dict(Int[] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 2), hw = [0, 0]
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict([0, 0] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 3), hw = ZZ.([1, 1, 1])
       domchar = check_dominant_character(L, hw)
       @test domchar == Dict([1, 1, 1] => 1, [2, 0, 0] => 2, [0, 0, 2] => 2, [0, 1, 0] => 4)
     end
@@ -833,8 +847,8 @@
       )
     end
 
-    let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
-      domchar = check_dominant_character(L, hw)
+    let R = root_system(:E, 6), hw = [1, 0, 1, 0, 1, 0]
+      domchar = check_dominant_character(R, hw)
       @test domchar == Dict(
         [1, 0, 1, 0, 1, 0] => 1,
         [0, 0, 0, 1, 1, 0] => 2,
@@ -871,21 +885,54 @@
         [0, 0] => 10,
       )
     end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw = [7] # type A_1 but without known root system
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [7] => 1,
+        [5] => 1,
+        [3] => 1,
+        [1] => 1,
+      )
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
+      domchar = check_dominant_character(L, hw)
+      @test domchar == Dict(
+        [1, 2] => 1,
+        [2, 0] => 1,
+        [0, 2] => 2,
+        [1, 0] => 3,
+        [0, 0] => 3,
+      )
+    end
   end
 
   @testset "character" begin
-    function check_character(L::LieAlgebra, hw::Vector{Int})
-      char = @inferred character(L, hw)
-      @test char[hw] == 1
+    function check_character(
+      LR::Union{LieAlgebra,RootSystem}, hw::Vector{<:Oscar.IntegerUnion}
+    )
+      char = @inferred character(LR, hw)
+      @test char[Int.(hw)] == 1
       @test all(>=(1), values(char))
-      @test sum(values(char)) == dim_of_simple_module(L, hw)
-      domchar = @inferred dominant_character(L, hw)
+      @test sum(values(char)) == dim_of_simple_module(LR, hw)
+      domchar = @inferred dominant_character(LR, hw)
       @test all(w -> domchar[w] == char[w], keys(domchar))
       return char
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
-    let L = lie_algebra(QQ, :A, 3), hw = [1, 1, 0]
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      domchar = check_character(R, hw)
+      @test domchar == Dict(Int[] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 2), hw = [0, 0]
+      domchar = check_character(L, hw)
+      @test domchar == Dict([0, 0] => 1)
+    end
+
+    let L = lie_algebra(QQ, :A, 3), hw = ZZ.([1, 1, 0])
       char = check_character(L, hw)
       @test char == Dict(
         [1, 1, 0] => 1,
@@ -911,8 +958,8 @@
       char = check_character(L, hw)
     end
 
-    let L = lie_algebra(QQ, :D, 4), hw = [0, 3, 1, 0]
-      char = check_character(L, hw)
+    let R = root_system(:D, 4), hw = [0, 3, 1, 0]
+      char = check_character(R, hw)
     end
 
     let L = lie_algebra(QQ, :E, 6), hw = [1, 0, 1, 0, 1, 0]
@@ -922,22 +969,47 @@
     let L = lie_algebra(QQ, :G, 2), hw = [3, 2]
       char = check_character(L, hw)
     end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw = [7] # type A_1 but without known root system
+      char = check_character(L, hw)
+      @test char == Dict(
+        [7] => 1,
+        [5] => 1,
+        [3] => 1,
+        [1] => 1,
+        [-1] => 1,
+        [-3] => 1,
+        [-5] => 1,
+        [-7] => 1,
+      )
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
+      char = check_character(L, hw)
+    end
   end
 
   @testset "tensor_product_decomposition" begin
     function test_tensor_product_decomposition(
-      L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}
+      LR::Union{LieAlgebra,RootSystem},
+      hw1::Vector{<:Oscar.IntegerUnion},
+      hw2::Vector{<:Oscar.IntegerUnion},
     )
-      dec = @inferred tensor_product_decomposition(L, hw1, hw2)
-      @test dec == @inferred tensor_product_decomposition(L, hw2, hw1)
-      @test multiplicity(dec, hw1 + hw2) == 1
-      dim_prod = dim_of_simple_module(L, hw1) * dim_of_simple_module(L, hw2)
-      dim_dec = sum(multiplicity(dec, w) * dim_of_simple_module(L, w) for w in unique(dec))
+      dec = @inferred tensor_product_decomposition(LR, hw1, hw2)
+      @test dec == @inferred tensor_product_decomposition(LR, hw2, hw1)
+      @test multiplicity(dec, Int.(hw1 + hw2)) == 1
+      dim_prod = dim_of_simple_module(LR, hw1) * dim_of_simple_module(LR, hw2)
+      dim_dec = sum(multiplicity(dec, w) * dim_of_simple_module(LR, w) for w in unique(dec))
       @test dim_prod == dim_dec
       return dec
     end
 
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
+    let R = root_system(Tuple{Symbol,Int}[]), hw = Int[]
+      dec = test_tensor_product_decomposition(R, hw, hw)
+      @test dec == multiset(Dict(Int[] => 1))
+    end
+
     let L = lie_algebra(QQ, :A, 3), hw1 = [2, 1, 2], hw2 = [1, 0, 1]
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
@@ -981,7 +1053,7 @@
       )
     end
 
-    let L = lie_algebra(QQ, :C, 2), hw1 = [2, 2], hw2 = [2, 0]
+    let L = lie_algebra(QQ, :C, 2), hw1 = [2, 2], hw2 = ZZ.([2, 0])
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
         Dict(
@@ -998,16 +1070,40 @@
       )
     end
 
-    let L = lie_algebra(QQ, :D, 5), hw1 = [1, 1, 3, 0, 2], hw2 = [2, 1, 0, 2, 0]
+    let L = lie_algebra(QQ, :D, 5), hw1 = ZZ.([1, 1, 3, 0, 2]), hw2 = [2, 1, 0, 2, 0]
       dec = test_tensor_product_decomposition(L, hw1, hw2)
     end
 
-    let L = lie_algebra(QQ, :E, 6), hw1 = [1, 1, 0, 0, 1, 2], hw2 = [2, 0, 1, 1, 0, 0]
-      dec = test_tensor_product_decomposition(L, hw1, hw2)
+    let R = root_system(:E, 6), hw1 = [1, 1, 0, 0, 1, 2], hw2 = [2, 0, 1, 1, 0, 0]
+      dec = test_tensor_product_decomposition(R, hw1, hw2)
     end
 
-    let L = lie_algebra(QQ, :G, 2), hw1 = [1, 3], hw2 = [5, 2]
+    let R = root_system(:G, 2), hw1 = [1, 3], hw2 = [5, 2]
+      dec = test_tensor_product_decomposition(R, hw1, hw2)
+    end
+
+    let L = special_linear_lie_algebra(QQ, 2), hw1 = [7], hw2 = [2] # type A_1 but without known root system
       dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(Dict([9] => 1,
+        [7] => 1,
+        [5] => 1,
+      ))
+    end
+
+    let L = special_orthogonal_lie_algebra(QQ, 5), hw1 = ZZ.([1, 2]), hw2 = ZZ.([1, 1]) # type B_2 but without known root system
+      dec = test_tensor_product_decomposition(L, hw1, hw2)
+      @test dec == multiset(
+        Dict(
+          [2, 3] => 1,
+          [3, 1] => 1,
+          [0, 5] => 1,
+          [1, 3] => 2,
+          [2, 1] => 2,
+          [0, 3] => 2,
+          [1, 1] => 2,
+          [0, 1] => 1,
+        ),
+      )
     end
   end
 end

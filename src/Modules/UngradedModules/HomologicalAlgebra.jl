@@ -59,15 +59,7 @@ function cochain_complex(V::Vector{<:ModuleFPHom}; seed::Int = 0)
 end
 
 
-@doc raw"""
-    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
-
-Given modules `M`, `N` which are tensor products with the same number of factors,
-say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
-and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
-$a_1 \otimes \cdots \otimes a_r$.
-"""
-function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
+function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
   tM = get_attribute(M, :tensor_product)
   tM === nothing && error("both modules must be tensor products")
   tN = get_attribute(N, :tensor_product)
@@ -90,15 +82,50 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{ <: ModuleFPHom})
   return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
 end
 
+# the case of a non-trivial base change
 @doc raw"""
-    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
+    hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+
+Given modules `M`, `N` which are tensor products with the same number of factors,
+say $M = M_1 \otimes \cdots \otimes M_r$, $N = N_1 \otimes \cdots \otimes N_r$,
+and given a vector `V` of homomorphisms $a_i : M_i \to N_i$, return 
+$a_1 \otimes \cdots \otimes a_r$.
+"""
+function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom})
+  tM = get_attribute(M, :tensor_product)
+  tM === nothing && error("both modules must be tensor products")
+  tN = get_attribute(N, :tensor_product)
+  tN === nothing && error("both modules must be tensor products")
+  @assert length(tM) == length(tN) == length(V)
+  @assert all(i-> domain(V[i]) === tM[i] && codomain(V[i]) === tN[i], 1:length(V))
+  #gens of M are M[i][j] tensor M[h][l] for i != h and all j, l
+  #such a pure tensor is mapped to V[i](M[i][j]) tensor V[h](M[j][l])
+  #thus need the pure map - and re-create the careful ordering of the generators as in the 
+  # constructor
+  #store the maps? and possibly more data, like the ordeing
+  decompose_M = get_attribute(M, :tensor_generator_decompose_function)
+  pure_N = get_attribute(N, :tensor_pure_function)
+  function map_gen(g) # Is there something that generalizes FreeModElem and SubquoModuleElem?
+    g_decomposed = decompose_M(g)
+    image_as_tuple = Tuple(f(x) for (f,x) in zip(V,g_decomposed))
+    res = pure_N(image_as_tuple)
+    return res
+  end
+  bc_map = base_ring_map(first(V))
+  bc_map !== nothing && @assert all(domain(g) === domain(bc_map) && codomain(g) === codomain(bc_map) for g in base_ring_map.(V))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))), bc_map)
+end
+
+
+@doc raw"""
+    hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
 
 Given modules `M` and `N` which are products with `r` respective `s` factors,  
 say $M = \prod_{i=1}^r M_i$, $N = \prod_{j=1}^s N_j$, and given a $r \times s$ matrix 
 `A` of homomorphisms $a_{ij} : M_i \to N_j$, return the homomorphism
 $M \to N$ with $ij$-components $a_{ij}$.
 """
-function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom})
+function hom_product(M::ModuleFP, N::ModuleFP, A::Matrix{<:ModuleFPHom{<:ModuleFP, <:ModuleFP, Nothing}})
   tM = get_attribute(M, :direct_product)
   tM === nothing && error("both modules must be direct products")
   tN = get_attribute(N, :direct_product)

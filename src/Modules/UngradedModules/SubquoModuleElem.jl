@@ -409,7 +409,7 @@ function *(a::MPolyRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::RingElem, b::SubquoModuleElem)
+function *(a::NCRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end

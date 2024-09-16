@@ -1338,6 +1338,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export roots
 export row
 export rss_associahedron
 export saturated_ideal
