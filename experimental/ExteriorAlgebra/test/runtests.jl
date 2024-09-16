@@ -19,7 +19,7 @@
     @test ngens(A) == n
     @test gens(A) == g
   end
-  
+
   @testset "constructor with no variables" begin
     @test_throws ArgumentError exterior_algebra(QQ, 0)
     @test_throws ArgumentError exterior_algebra(QQ, Symbol[])

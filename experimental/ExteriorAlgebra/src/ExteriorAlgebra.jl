@@ -4,7 +4,6 @@ export exterior_algebra
 #   * tests in Oscar.jl/test/Experimental/ExteriorAlgebra-test.jl
 #   * doc tests in Oscar.jl/docs/src/NoncommutativeAlgebra/PBWAlgebras/quotients.md
 
-
 #---------------------- MAIN FUNCTION ----------------------
 
 # Returns 2 components: ExtAlg, list of the gens/variables
@@ -79,7 +78,9 @@ function exterior_algebra(K::Ring, varnames::Vector{Symbol})
     # get var names from PBW in case it had "mangled" them.
     K_singular = singular_coeff_ring(coefficient_ring(R))
     R_singular, _ = Singular.polynomial_ring(K_singular, symbols(PBW))
-    SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(Singular.libSingular.rCopy(R_singular.ptr))
+    SINGULAR_PTR = Singular.libSingular.exteriorAlgebra(
+      Singular.libSingular.rCopy(R_singular.ptr)
+    )
     ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
     # Create Quotient ring with special implementation:
     ExtAlg, _ = quo(PBW, I; special_impl=ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
@@ -90,7 +91,7 @@ function exterior_algebra(K::Ring, varnames::Vector{Symbol})
   end
 end
 
-AbstractAlgebra.@varnames_interface exterior_algebra(K::Ring, varnames) macros=:no
+AbstractAlgebra.@varnames_interface exterior_algebra(K::Ring, varnames) macros = :no
 
 # # BUGS/DEFICIENCIES (2023-02-13):
 # # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE
