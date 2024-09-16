@@ -544,10 +544,10 @@ Pc group of order 6
 julia> iso = isomorphism(PermGroup, G)
 Group homomorphism
   from pc group of order 6
-  to permutation group of degree 6 and order 6
+  to permutation group of degree 3 and order 6
 
 julia> permutation_group(G)
-Permutation group of degree 6 and order 6
+Permutation group of degree 3 and order 6
 
 julia> codomain(iso) === ans
 true
