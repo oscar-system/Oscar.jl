@@ -97,7 +97,9 @@ Lipman.
   # always carried along to domain(maps[end])) using strict_transform
   ex_div::Vector{AbsIdealSheaf}      # list of exc. divisors arising from individual steps
   dont_meet::Vector{Tuple{Int,Int}}             # mostly for dim=2: intersections which cannot exist
-                                                 # according to intermediate computations
+                                                # according to intermediate computations
+  caution_multi_charts::Vector{Tuple{Int,Int}}  # only for dim=2: intersection of divisors not
+                                                # entirely visible in a single chart
 
   # keep track of the normalization steps
   normalization_steps::Vector{Int}
@@ -466,6 +468,35 @@ function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I:
   end
 
   f.dont_meet = dont_meet
+  return f
+end
+
+function update_caution_multi_charts!(f::Union{BlowUpSequence, MixedBlowUpSequence},U :: AbsAffineScheme)
+  dim(domain(phi)) == 2 || error("feature only available in the surface case")
+  cent = center(phi)
+  dim(cent) == 0 || return f
+
+  ## find the charts originating from phi and prepare for using decomposition_info
+  dom_covered = covered_scheme(domain(phi))
+  patches_codom = patches(simplified_covering(codomain(phi)))
+  chart_ind = findfirst(U -> !is_one(cent(U)), patches_codom)
+  U = oatches_codom[chart_ind]
+  U_blown_up = covered_scheme(P[U])
+  has_decomposition_info(U_blown_up) || return f
+
+  ## check whether a single chart suffices for the intersections not in dont_meet
+  ex_div = exceptional_divisor_as_ideal_sheafs(f)
+  cov_above_U = simplifed_covering(U_blown_up)
+  patches_above_U = patches(cov_above_U)
+  caution_multi_charts_new = Vector{Tuple{Int,Int}}
+  E_last = ex_div[end]
+  for i in 1:length(ex_div)-1
+    findfirst(a -> a == (i,length(ex_div)), f.dont_meet) !== nothing || continue
+    if length(findall(V -> !is_one(ex_div[i](V)+E_last(V)+decomposition_info(cov_above_U)[V]), patches_above_U)) != 1
+      push!(caution_multi_charts_new, (i,length(ex_div)))
+    end
+  end
+  append!(f.caution_multi_charts, caution_multi_charts_new)
   return f
 end
 

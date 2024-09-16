@@ -69,10 +69,11 @@ julia> L[4]
 ## make sure that we have a strong resolution (i.e. exceptional divisor is simple normal crossing)
   phi = weak_to_strong_desingularization_surface(phi)
 
-  patches_scheme = patches(simplified_covering(domain(phi)))
+  cov_dom = simplified_covering(domain(phi))
+  patches_scheme = patches(cov_dom)
 
 ## keep only non-empty exceptional curves
-  ex_divs, dont_meet = _cleanup_ex_div(phi)
+  ex_divs, dont_meet, caution_multi_charts = _cleanup_ex_div(phi)
 ## first determin intersection matrix: over given field
   inter_mat_k = zero_matrix(ZZ,length(ex_divs),length(ex_divs))
 
@@ -83,11 +84,22 @@ julia> L[4]
     for j in i+1:nrows(inter_mat_k)
       inter_id = one(OO(patches_scheme[1]))
       !((i,j) in dont_meet) ||  continue                # cannot meet, entry stays 0
-      found_index = findfirst(V->(!is_one(ex_divs[i](V) + ex_divs[j](V))), patches_scheme)
-      found_index !== nothing || continue
-      U = patches_scheme[found_index]
-      inter_id = ex_divs[i](U) + ex_divs[j](U)
-      inter_mat_k[i,j] = vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
+      if !((i,j) in caution_multi_charts)
+        found_index = findfirst(V->(!is_one(ex_divs[i](V) + ex_divs[j](V))), patches_scheme)
+        found_index !== nothing || continue
+        U = patches_scheme[found_index]
+        inter_id = ex_divs[i](U) + ex_divs[j](U)
+        inter_mat_k[i,j] = vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
+      else
+        temp_inter = ex_divs[i] + ex_divs[j]
+        !is_one(temp_inter) || continue
+        tempint = 0
+        for U in patches_scheme
+          inter_id = temp_inter(U) + decomposition_info(U)
+          tempint += vector_space_dimension(quo(base_ring(inter_id),inter_id)[1])
+        end
+        inter_mat_k[i,j] = tempint
+      end
     end
   end
 
@@ -296,6 +308,8 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
   ret_divs = Vector{AbsIdealSheaf}()
   dont_meet_raw = ( has_attribute(phi, :dont_meet) ? phi.dont_meet : Tuple{Int,Int}[])
   dont_meet = Vector{Tuple{Int,Int}}()
+  caution_multi_charts_raw = (has_attribute(phi, :caution_multi_charts) ? phi.caution_multi_charts : Tuple{Int,Int}[])
+  caution_multi_charts = Vector{Tuple{Int,Int}}()
   skip_list = Vector{Int}()
   skip_count = length(skip_list)
   offset = 0
@@ -314,12 +328,16 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
     end
   end
 
-  # correct dont_meet
+  # correct dont_meet and caution_multi_charts
   if skip_count > 0
     for i in 0:skip_count-1
       dont_meet_raw = [(a >= skip_list[skip_count-i] ? a-1 : a,
                         b >= skip_list[skip_count-i] ? b-1 : b) for (a,b) in dont_meet_raw]
-      dont_meet_raw = [a for a in dont_meet if a[1] > 0]
+      dont_meet = [a for a in dont_meet_raw if a[1] > 0]
+      caution_multi_charts_raw = [(a >= skip_list[skip_count-i] ? a-1 : a,
+                        b >= skip_list[skip_count-i] ? b-1 : b)
+                        for (a,b) in caution_multi_charts_raw]
+      caution_multi_charts = [a for a in caution_multi_charts_raw if a[1] > 0]
     end
   end
 
@@ -333,10 +351,11 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
   if length(ret_divs) > length(div_list_raw)
     for (i,j) in dont_meet_raw
       append!(dont_meet,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(caution_multi_charts,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
     end
-    return ret_divs, dont_meet
+    return ret_divs, dont_meet, caution_multi_charts
   else
-    return ret_divs, dont_meet
+    return ret_divs, dont_meet, caution_multi_charts
   end
 end
 
