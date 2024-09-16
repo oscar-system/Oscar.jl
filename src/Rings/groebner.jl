@@ -1082,7 +1082,7 @@ end
 
 function is_normal_form_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
     return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
-            && ((typeof(coefficient_ring(I)) == FqField
+            && ((coefficient_ring(I) isa FqField
                  && absolute_degree(coefficient_ring(I)) == 1
                  && characteristic(coefficient_ring(I)) < 2^31)))
 end
