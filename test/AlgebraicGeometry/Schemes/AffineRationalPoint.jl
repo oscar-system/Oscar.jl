@@ -6,15 +6,13 @@
   pX = X([1,0])
   pA = A2(pX)
   @test pX == pA
+  @test A2([1,0]) == pA
   # ring around the rosie once
   @test pX == X(rational_point_coordinates(defining_ideal(scheme(pX))))
   Oscar.closed_embedding(pA)
   Oscar.closed_embedding(pX)
   @test dim(tangent_space(pX))==1
   @test dim(tangent_space(pA))==2
-
-  A2a = affine_space(GF(2), [:x, :y]);
-  @test A2a([1,0]) == pA
 
   @test pX in X
   @test pA in X
