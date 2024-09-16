@@ -15,11 +15,9 @@
 function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap)
     @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
 
-    if !has_attribute(R, :tropical_geometry_polynomial_rings_for_initial)
-        set_attribute!(R, :tropical_geometry_polynomial_rings_for_initial, Dict{TropicalSemiringMap,MPolyRing}())
-    end
-
-    polynomialRingsForInitial = get_attribute(R, :tropical_geometry_polynomial_rings_for_initial)
+    polynomialRingsForInitial = get_attribute!(R, :tropical_geometry_polynomial_rings_for_initial) do
+        return Dict{TropicalSemiringMap,MPolyRing}()
+    end::Dict{TropicalSemiringMap,MPolyRing}
     return get!(polynomialRingsForInitial, nu, first(polynomial_ring(residue_field(nu),symbols(R); cached=false)))
 end
 
