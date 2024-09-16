@@ -1028,27 +1028,26 @@ function irreducible_fiber(S::EllipticSurface)
   sing = reduce(append!,r, init=[])
   pt = k.([0,0]) # initialize
   found = false
-  if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
-    pt = k.([1, 0])
-    found = true
-  else
-    if is_finite(k)
-      for i in k
-        if !(i in sing)  # true if the fiber over [i,1] is irreducible
-          pt = k.([i,1])
-          found = true
-          break
-        end
+  if is_finite(k)
+    for i in k
+      if !(i in sing)  # true if the fiber over [i,1] is irreducible
+        pt = k.([i,1])
+        found = true
+        break
       end
-    else
-      i = k(0)
-      while true
-        i = i+1
-        if !(i in sing)
-          pt = k.([i,1])
-          found = true
-          break
-        end
+    end
+    if !found && (degree(d) >= 12*euler_characteristic(S) - 1)  # irreducible at infinity?
+      pt = k.([1, 0])
+      found = true
+    end
+  else
+    i = k(0)
+    while true
+      i = i+1
+      if !(i in sing)
+        pt = k.([i,1])
+        found = true
+        break
       end
     end
   end
@@ -1517,6 +1516,12 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
+@doc raw"""
+    basis_representation(X::EllipticSurface, D::WeilDivisor)
+
+Return the vector representing the numerical class of `D` 
+with respect to the basis of the ambient space of `algebraic_lattice(X)`.
+"""
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
   basis_ambient,_, NS = algebraic_lattice(X)
   G = gram_matrix(ambient_space(NS))
@@ -1524,6 +1529,7 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   for i in 1:n
+    @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
     v[i] = intersect(basis_ambient[i], D)
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"
