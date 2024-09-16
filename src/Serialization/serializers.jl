@@ -265,3 +265,37 @@ function attrs_list(s::SerializerState, T::Type)
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
 
+################################################################################
+# Refs Channel
+import Base: put!, wait, isready, take!, fetch
+
+mutable struct RefChannel{T} <: AbstractChannel{T}
+  stack::Vector
+  cond_take::Condition    # waiting for data to become available
+  RefChannel{T}(size::Int) where T = new([], Condition())
+end
+
+function put!(D::RefChannel, k, v)
+    D.d[k] = v
+    notify(D.cond_take)
+    D
+end
+
+function take!(D::RefChannel, k)
+    v=fetch(D,k)
+    delete!(D.d, k)
+    v
+end
+
+isready(D::RefChannel) = length(D.d) > 1
+isready(D::RefChannel, k) = haskey(D.d,k)
+function fetch(D::RefChannel, k)
+    wait(D,k)
+    D.d[k]
+end
+
+function wait(D::RefChannel, k)
+    while !isready(D, k)
+        wait(D.cond_take)
+    end
+end

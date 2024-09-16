@@ -157,9 +157,7 @@ function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
     ref = uuid4()
     global_serializer_state.id_to_obj[ref] = obj
   end
-
-  # put obj on the remote worker 
-  chnnl = RemoteChannel(() -> Channel{T}(32), w)
+  
   rrid = remoteref_id(chnnl)
   put!(chnnl, obj)
 

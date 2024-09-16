@@ -666,7 +666,7 @@ function automorphism_group(K::SimplicialComplex; action=:on_vertices)
 end
 
 @doc raw"""
-    on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
+    on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem; action=:on_vertices)
 
 Given a simplicial complex `K` return the simplicial complex corresponding
 to a permutation on it's vertices given by `g`.
