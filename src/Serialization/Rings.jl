@@ -784,6 +784,20 @@ function load_object(s::DeserializerState, ::Type{<:MPolyPowersOfElement})
 end
 
 
+@register_serialization_type MPolyComplementOfPrimeIdeal uses_id
+
+function save_object(s::SerializerState, U::MPolyComplementOfPrimeIdeal)
+  save_data_dict(s) do
+    save_typed_object(s, prime_ideal(U), :ideal)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal})
+  id = load_typed_object(s, :ideal)
+  return MPolyComplementOfPrimeIdeal(R, id)
+end
+
+
 @register_serialization_type MPolyLocRing uses_id
 
 function save_object(s::SerializerState, L::MPolyLocRing)
@@ -797,5 +811,17 @@ function load_object(s::DeserializerState, ::Type{<:MPolyLocRing})
   R = load_typed_object(s, :ring)
   U = load_typed_object(s, :inv_set)
   return MPolyLocRing(R, U)
+end
+
+@register_serialization_type MPolyLocRingElem uses_params
+
+function save_object(s::SerializerState, a::MPolyLocRingElem)
+  # Because the `parent` of `a` is a `Ring` the generic implementation
+  # for `uses_params` above calls `save_type_params` and that stores 
+  # the ring. Hopefully. 
+  save_data_array(s) do
+    save_object(s, numerator(a))
+    save_object(s, denominator(a))
+  end
 end
 
