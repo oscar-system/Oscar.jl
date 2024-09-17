@@ -496,7 +496,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
        k char field
        |
        Q
-     
+
     So: V is given as G -> GL(n, K)
     This is represented by
       sigma: Gal(K/k)^2 -> K a 2-chain
@@ -520,7 +520,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       split by A in GL(n, K)
       Now, technically, A V A^-1 has values in Gl(n, E)
     Step 7:
-      Replacing V -> A V A^-1 changes 
+      Replacing V -> A V A^-1 changes
                 X_g -> A^g X A^-1
       As A V A^-1 is in GL(n, E), A^g X A^-1 can be normlized (mult. by
       scalar in K) to be in Gl(n, E)
@@ -543,7 +543,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     d = reduce(lcm, [x[2] for x = ld], init = 1)
 
     s = subfields(base_ring(V))
-    
+
     s = [x for x in s if degree(x[1]) >= d*degree(k)]
     sort!(s, lt = (a,b) -> degree(a[1]) < degree(b[1]))
     for (m, mm) in s
@@ -600,7 +600,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       #we need Gal(E/k) as the quotient of A/U
       q, mq = quo(domain(mA), U)
       X = Dict( g => map_entries(mA(preimage(mq, g)), AA) * X[preimage(mq, g)] * AAi for g = q)
-      for (g, x) = X  
+      for (g, x) = X
         lf = findfirst(!iszero, x)
         x *= inv(x[lf])
         X[g] = map_entries(pseudo_inv(mm), x)
@@ -636,7 +636,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       LD = Dict{AbsSimpleNumFieldOrderIdeal, Int}()
       LI = Dict{AbsSimpleNumFieldEmbedding, Int}()
       for (p, d) = ld
-        if p == -1 
+        if p == -1
           @assert d == 2
           if signature(k)[2] == 0
             for e = real_embeddings(k)
@@ -659,13 +659,13 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       C, mC = automorphism_group(PermGroup, EF)
       gE = mE_EF(E[1])
       hBC = hom(C, B, [[b for b = B if mC(c)(gE) == mE_EF(mB(b)(E[1]))][1] for c = gens(C)])
-      gF = mF_EF(F[1])    
-      U, mU = sub(C, [c for c = C if mC(c)(gF) == gF])    
+      gF = mF_EF(F[1])
+      U, mU = sub(C, [c for c = C if mC(c)(gF) == gF])
       MEF = MultGrp(EF)
       #inflate
       s = Dict{NTuple{2, elem_type(U)}, elem_type(MEF)}((f, g) => MEF(mE_EF(s[(hBC(f), hBC(g))])) for f = U for g = U)
 
-          
+
       D = gmodule(U, [hom(MEF, MEF, mC(mU(x))) for x = gens(U)])
       Sigma = CoChain{2,PermGroupElem, MultGrpElem{AbsSimpleNumFieldElem}}(D, s)
 
@@ -673,7 +673,7 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
       @assert fl
       #inflate X
       X = Dict( g => map_entries(mE_EF, X[preimage(h, hBC(mU(g)))]) *mu(g).data for g = U)
-      @hassert :MinField 1 isone_cochain(X, mU*mC)  
+      @hassert :MinField 1 isone_cochain(X, mU*mC)
       @vtime :MinField 2 BB, BBi = hilbert90_generic(X, mU*mC)
       c = content_ideal(BB)
       sd = Hecke.short_elem(inv(c))
@@ -697,7 +697,8 @@ end
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
   #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
-  return [gmodule(QQ, descent_to_minimal_degree_field(m)) for m in z]
+  temp = map(x -> galois_orbit_sum(character(x)), VQ)
+  return [gmodule(QQ, descent_to_minimal_degree_field(z[i])) for i in unique(i -> temp[i], 1:length(temp))]
 end
 
 function irreducible_modules(::ZZRing, G::Oscar.GAPGroup)
@@ -1324,14 +1325,14 @@ function Oscar.is_coboundary(c::CoChain{1,PermGroupElem,MultGrpElem{AbsSimpleNum
   cnt = 0
   while true
     local Y
-    while true 
+    while true
       Y = rand(K, -5:5)
       iszero(Y) || break
     end
     cnt += 1
     S = sum(mA(emb(g))(Y)*c((g,)).data for g = G)
       is_zero(S) || return true, mK(S)
-    if cnt > 10 
+    if cnt > 10
       error("should not happen")
     end
   end
