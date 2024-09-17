@@ -5,21 +5,21 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Vinberg's algorithm
 
- A Lorentzian lattice $L$ is an integral $\Z$-lattice of signature $(s_+, s_-)$ with $s_+=1$ and $s_->0$. 
- $L$ is called reflective if the set of fundamental roots $\~{R}(L)$ is finite.
+ A $\textit{Lorentzian lattice} L$ is an integral $\Z$-lattice of signature $(s_+, s_-)$ with $s_+=1$ and $s_->0$. 
+ A $\textit{root}$ of $r \in L$ is a primitive vector s.t. reflection in the hyperplane $r^\perp$ maps $L$ to itself.
+ $L$ is called $\textit{reflective} if the set of fundamental roots $\~{R}(L)$ is finite.
 
  See for example [Tur17](@cite) for the theory of Arithmetic Reflection Groups and Reflective Lorentzian Lattices.
 
 ## Description 
- The algorithm constructs a fundamental polyhedron $P$ for a Lorentzian lattice $L$ by computing its fundamental roots $r$.
+ The algorithm constructs a fundamental polyhedron $P$ for a Lorentzian lattice $L$ by computing its $\textit{fundamental roots} $r$, i.e. the roots $r$ which are perpendicular to the faces of $P$ and which have inner product at least 0 with the elements of $P$.
+ Choose $v_0$ in $L$ primitive with $v_0^2 > 0$ as a point that $P$ should contain.
 
- Choose $v_0$ in $L$ with $v_0^2 > 0$ as a point that $P$ should contain.
-
- Let $Q$ be the corresponding gram matrix of $L$. A fundamental root $r$ satisfies
- - the vector $r$ is primitive
- - reflection by $r$ preserves the lattice, i.e. $\frac{2}{r^2}*r*Q$ is an integer matrix.
- - the pair $(r, v_0)$ is positive oriented, i.e. $(r, v_0) > 0$
- - the product $(r, \~{r}) \geq \ 0$ for all roots $\~{r}$ already found
+ Let $Q$ be the corresponding Gram matrix of $L$ with standard basis. A vector $r$ is a fundamental root, if
+ - the vector $r$ is primitive,
+ - reflection by $r$ preserves the lattice, i.e. $\frac{2}{r^2}*r*Q$ is an integer matrix,
+ - the pair $(r, v_0)$ is positive oriented, i.e. $(r, v_0) > 0$,
+ - the product $(r, \~{r}) \geq \ 0$ for all roots $\~{r}$ already found.
  This implies that $r^2$ divides $2*i$ for $i$ being the level of $Q$, i.e. the last invariant of the Smith normal form of $Q$. 
 
  $P$ can be constructed by solving $(r, v_0) = n$ and $r^2 = k$ by increasing order of the value $\frac{n^2}{k}$ and $r$ satisfying the above conditions.
