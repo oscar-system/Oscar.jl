@@ -126,49 +126,6 @@ end
 ################################################################################
 # High level
 
-function save_as_ref(s::SerializerState, obj::T) where T
-  # find ref or create one
-  ref = get(global_serializer_state.obj_to_id, obj, nothing)
-  if !isnothing(ref)
-    if !(ref in s.refs)
-      push!(s.refs, ref)
-    end
-    return string(ref)
-  end
-  ref = global_serializer_state.obj_to_id[obj] = uuid4()
-  global_serializer_state.id_to_obj[ref] = obj
-  push!(s.refs, ref)
-  return string(ref)
-end
-
-function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
-  ref = get(global_serializer_state.obj_to_id, obj, nothing)
-  w = s.serializer.worker_pid
-  if !isnothing(ref)
-    # check if ref already exists on worker
-    println("2")
-    f = remotecall_fetch(
-      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
-      w,
-      string(ref)) #&& return string(ref)
-    println(f, " ", typeof(f))
-    return string(ref)
-  else
-    ref = uuid4()
-    global_serializer_state.id_to_obj[ref] = obj
-  end
-  
-  rrid = remoteref_id(chnnl)
-  put!(chnnl, obj)
-
-  # take the obj on remote worker
-  println("4")
-  
-  #f = remotecall_wait((chnnl) -> x = take!(chnnl), w, chnnl)
-  println("5")
-  return string(ref)
-end
-
 function save_object(s::SerializerState, x::Any, key::Symbol)
   set_key(s, key)
   save_object(s, x)
@@ -192,7 +149,6 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
 end
 
 function save_typed_object(s::SerializerState, x::T) where T
-  println("save typed object")
   if serialize_with_params(T)
     save_type_params(s, x, type_key)
     save_object(s, x, :data)

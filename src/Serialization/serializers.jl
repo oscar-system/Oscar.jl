@@ -147,6 +147,57 @@ function save_data_json(s::SerializerState, jsonstr::Any,
   write(s.io, jsonstr)
 end
 
+
+function save_as_ref(s::SerializerState, obj::T) where T
+  # find ref or create one
+  ref = get(global_serializer_state.obj_to_id, obj, nothing)
+  if !isnothing(ref)
+    if !(ref in s.refs)
+      push!(s.refs, ref)
+    end
+    return string(ref)
+  end
+  ref = global_serializer_state.obj_to_id[obj] = uuid4()
+  global_serializer_state.id_to_obj[ref] = obj
+  push!(s.refs, ref)
+  return string(ref)
+end
+
+function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
+  ref = get(global_serializer_state.obj_to_id, obj, nothing)
+  w = s.serializer.worker_pid
+  if !isnothing(ref)
+    # check if ref already exists on worker
+    f = remotecall_fetch(
+      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
+      w,
+      string(ref)) #&& return string(ref)
+    return string(ref)
+  else
+    ref = uuid4()
+    global_serializer_state.id_to_obj[ref] = obj
+  end
+
+  rrid = Distributed.RRID(myid(), w)
+  put!(channel_from_id(rrid), obj)
+
+  return string(ref)
+end
+
+function handle_refs(s::SerializerState)
+  if !isempty(s.refs) 
+    save_data_dict(s, refs_key) do
+      for id in s.refs
+        ref_obj = global_serializer_state.id_to_obj[id]
+        s.key = Symbol(id)
+        save_data_dict(s) do
+          save_typed_object(s, ref_obj)
+        end
+      end
+    end
+  end
+end
+
 function serializer_close(s::SerializerState)
   finish_writing(s)
 end
@@ -166,6 +217,7 @@ mutable struct DeserializerState{T <: OscarSerializer}
 end
 
 # general loading of a reference
+
 function load_ref(s::DeserializerState)
   id = s.obj
   if haskey(global_serializer_state.id_to_obj, UUID(id))
@@ -247,20 +299,6 @@ function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
-function handle_refs(s::SerializerState)
-  if !isempty(s.refs) 
-    save_data_dict(s, refs_key) do
-      for id in s.refs
-        ref_obj = global_serializer_state.id_to_obj[id]
-        s.key = Symbol(id)
-        save_data_dict(s) do
-          save_typed_object(s, ref_obj)
-        end
-      end
-    end
-  end
-end
-
 function attrs_list(s::SerializerState, T::Type) 
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
@@ -272,17 +310,18 @@ import Base: put!, wait, isready, take!, fetch
 mutable struct RefChannel{T} <: AbstractChannel{T}
   stack::Vector
   cond_take::Condition    # waiting for data to become available
-  RefChannel{T}(size::Int) where T = new([], Condition())
+  RefChannel{T}() where T = new([], Condition())
 end
 
-function put!(D::RefChannel, k, v)
-    D.d[k] = v
-    notify(D.cond_take)
-    D
+function put!(D::RefChannel, v)
+  push!(D.stack, v)
+  prinlnt(v)
+  notify(D.cond_take)
+  D
 end
 
-function take!(D::RefChannel, k)
-    v=fetch(D,k)
+function take!(D::RefChannel)
+    v = fetch(D)
     delete!(D.d, k)
     v
 end
