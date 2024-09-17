@@ -80,7 +80,7 @@ custom variable name.
 
 # Examples
 
-In the example below `f.center_unnormalized` has type `ToricIdealSheafFromCoxRingIdeal` and we can access the corresponding ideal in the Cox ring using `Oscar.ideal_in_cox_ring`.
+In the example below `center_unnormalized(f)` has type `ToricIdealSheafFromCoxRingIdeal` and we can access the corresponding ideal in the Cox ring using `Oscar.ideal_in_cox_ring`.
 
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
