@@ -27,6 +27,12 @@ end
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
+function type_params(x::T) where T <: RingMatElemUnion
+  parent_x = parent(x)
+  serialize_with_id(parent_x) && return parent_x
+  return nothing
+end
+
 function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -766,4 +772,5 @@ function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering})
   vars = load_typed_object(s, :vars)
   return Orderings.SymbOrdering(S, vars)
 end
+
 

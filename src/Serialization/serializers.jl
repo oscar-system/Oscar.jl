@@ -315,7 +315,6 @@ end
 
 function put!(D::RefChannel, v)
   push!(D.stack, v)
-  prinlnt(v)
   notify(D.cond_take)
   D
 end
@@ -327,13 +326,13 @@ function take!(D::RefChannel)
 end
 
 isready(D::RefChannel) = length(D.d) > 1
-isready(D::RefChannel, k) = haskey(D.d,k)
-function fetch(D::RefChannel, k)
+
+function fetch(D::RefChannel)
     wait(D,k)
     D.d[k]
 end
 
-function wait(D::RefChannel, k)
+function wait(D::RefChannel)
     while !isready(D, k)
         wait(D.cond_take)
     end
