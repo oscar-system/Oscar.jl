@@ -794,7 +794,23 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfPrimeIdeal})
   id = load_typed_object(s, :ideal)
-  return MPolyComplementOfPrimeIdeal(R, id)
+  return MPolyComplementOfPrimeIdeal(id)
+end
+
+
+@register_serialization_type MPolyComplementOfKPointIdeal uses_id
+
+function save_object(s::SerializerState, U::MPolyComplementOfKPointIdeal)
+  save_data_dict(s) do
+    save_typed_object(s, ring(U), :ring)
+    save_typed_object(s, point_coordinates(U), :pt_coords)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyComplementOfKPointIdeal})
+  R = load_typed_object(s, :ring)
+  a = load_typed_object(s, :pt_coords)
+  return MPolyComplementOfKPointIdeal(R, a)
 end
 
 
@@ -823,5 +839,14 @@ function save_object(s::SerializerState, a::MPolyLocRingElem)
     save_object(s, numerator(a))
     save_object(s, denominator(a))
   end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyLocRingElem}, prts::Vector)
+  L = prts[end]::MPolyLocRing
+  P = base_ring(L)
+  RET = elem_type(P)
+  num = load_object(s, RET, P, 1)
+  den = load_object(s, RET, P, 2)
+  return L(num, den)
 end
 
