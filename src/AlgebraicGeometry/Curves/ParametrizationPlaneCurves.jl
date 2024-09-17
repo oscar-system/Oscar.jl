@@ -6,7 +6,7 @@
 
 
 ################################################################################
-function _tosingular(C::ProjectivePlaneCurve{QQField})
+@attr Singular.spoly{Singular.n_Q} function _tosingular(C::ProjectivePlaneCurve{QQField})
     F = defining_equation(C)
     T = parent(F)
     Tx = singular_poly_ring(T)
@@ -22,7 +22,7 @@ function _fromsingular_ring(R::Singular.PolyRing)
     else
         K = QQ
     end
-    newring, _ = polynomial_ring(K, symbols(R))
+    newring, _ = polynomial_ring(K, symbols(R); cached=false)
     return newring
 end
 
@@ -53,11 +53,10 @@ julia> parametrization(C)
 ```
 """
 function parametrization(C::ProjectivePlaneCurve{QQField})
-    s = "local"
     F = _tosingular(C)
-    L = Singular.LibParaplanecurves.paraPlaneCurve(F, s)
+    L = Singular.LibParaplanecurves.paraPlaneCurve(F, "local")
     R = L[1]
-    J = [L[2][i] for i in keys(L[2])][1]
+    J = L[2][:PARA]
     S = _fromsingular_ring(R)
     return gens(ideal(S, J))
 end
@@ -141,7 +140,7 @@ function rational_point_conic(C::ProjectivePlaneCurve{QQField})
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.rationalPointConic(F)
     R = L[1]
-    P = [L[2][i] for i in keys(L[2])][1]
+    P = L[2][:point]
     S = _fromsingular_ring(R)
     return [S(P[1, i]) for i in 1:3]
 end
@@ -157,7 +156,7 @@ function parametrization_conic(C::ProjectivePlaneCurve{QQField})
     F = _tosingular(C)
     L = Singular.LibParaplanecurves.paraConic(F)
     R = L[1]
-    J = [L[2][i] for i in keys(L[2])][1]
+    J = L[2][:PARACONIC]
     S = _fromsingular_ring(R)
     return gens(ideal(S, J))
 end
@@ -188,7 +187,7 @@ function map_to_rational_normal_curve(C::ProjectivePlaneCurve{QQField})
     I = Singular.LibParaplanecurves.adjointIdeal(F)
     L = Singular.LibParaplanecurves.mapToRatNormCurve(F, I)
     S = _fromsingular_ring(L[1])
-    J = [L[2][i] for i in keys(L[2])][1]
+    J = L[2][:RNC]
     R,_ = grade(S)
     IC = ideal(R, R.(gens(J)))
     return ProjectiveCurve(IC)
