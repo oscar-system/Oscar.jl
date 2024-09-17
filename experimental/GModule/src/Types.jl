@@ -1,5 +1,5 @@
 mutable struct GModuleHom{
-    G<:Any
+    G<:Any,
     T1<:Any,
     T2<:Any,
     RingMapType<:Any} <: Map{GModule{G, T1}, GModule{G, T2}}
@@ -30,10 +30,6 @@ mutable struct GModuleHom{
       r = new{G, typeof(M1.mT), S, RingMapType}(M1, M2, FreeModuleHom(M1.mT, M2.mT, a, h))
     end
 end
-
-
-
-
 
 
 function GModuleHom(
