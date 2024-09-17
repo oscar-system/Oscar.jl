@@ -697,7 +697,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
-    if VersionNumber(replace(String(file_version), r"DEV.+", "DEV")) > VERSION_NUMBER
+    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
       @warn """
       Attempted loading file stored with Oscar version $file_version
       using Oscar version $VERSION_NUMBER
