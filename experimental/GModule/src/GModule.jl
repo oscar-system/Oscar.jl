@@ -697,7 +697,7 @@ end
 function irreducible_modules(::QQField, G::Oscar.GAPGroup)
   #if cyclo is not minimal, this is not irreducible
   z = irreducible_modules(CyclotomicField, G)
-  temp = map(x -> galois_orbit_sum(character(x)), VQ)
+  temp = map(x -> galois_orbit_sum(character(x)), z)
   return [gmodule(QQ, descent_to_minimal_degree_field(z[i])) for i in unique(i -> temp[i], 1:length(temp))]
 end
 
