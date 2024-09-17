@@ -28,6 +28,8 @@ include("ToricBlowups/methods.jl")
 
 include("DerivedPushforward.jl")
 include("Resolution_structure.jl")
+include("Resolution_tools.jl")
+
 
 # Exports
 export CompleteIntersectionGerm
@@ -47,6 +49,7 @@ export hypersurface_germ
 export ideal_sheaf
 export index_of_new_ray
 export is_isolated_singularity
+export intersection_matrix
 export milnor_algebra
 export milnor_number
 export point

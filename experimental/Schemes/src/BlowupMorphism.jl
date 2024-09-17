@@ -864,6 +864,7 @@ end
                                                  #     if is_embedded == false
   resolves_sing::Bool                            # domain(maps[end]) smooth?
   is_trivial::Bool                               # codomain already smooth?
+  is_strong::Bool                                # snc divisors ensured?
   transform_type::Symbol                         # can be :strict, :weak or :control
                                                  #     only relevant for is_embedded == true
 
@@ -875,6 +876,11 @@ end
                                                  # total transform, not set for is_embedded == false
                                                  # or transform_type == strict
   controlled_transform::AbsIdealSheaf            # holds weak or controlled transform according to transform_type
+  dont_meet::Vector{Tuple{Int,Int}}              # mostly for dim=2: intersections which cannot exist according
+                                                 # to intermediate computations
+  caution_multi_charts::Vector{Tuple{Int,Int}}   # only for dim=2: intersection of divisors not
+                                                 # entirely visible in a single chart
+
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
