@@ -25,7 +25,7 @@ julia> R,(x,y,z) = polynomial_ring(QQ,3);
 
 julia> W = AffineScheme(R);
 
-julia> J =ideal(R,[x^2+y^2+z^5]);           ## A4 singularity, 2 pairs of abs. red. curves
+julia> J = ideal(R,[x^2+y^2+z^5]);           ## A4 singularity, 2 pairs of abs. red. curves
 
 julia> JS = IdealSheaf(W,J);
 
@@ -306,9 +306,9 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
 ## initialization
   ex_divs = phi.ex_div
   ret_divs = Vector{AbsIdealSheaf}()
-  dont_meet_raw = ( has_attribute(phi, :dont_meet) ? phi.dont_meet : Tuple{Int,Int}[])
+  dont_meet_raw = ( isdefined(phi, :dont_meet) ? phi.dont_meet : Tuple{Int,Int}[])
   dont_meet = Vector{Tuple{Int,Int}}()
-  caution_multi_charts_raw = (has_attribute(phi, :caution_multi_charts) ? phi.caution_multi_charts : Tuple{Int,Int}[])
+  caution_multi_charts_raw = ( isdefined(phi, :caution_multi_charts) ? phi.caution_multi_charts : Tuple{Int,Int}[])
   caution_multi_charts = Vector{Tuple{Int,Int}}()
   skip_list = Vector{Int}()
   skip_count = length(skip_list)
@@ -353,10 +353,10 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
       append!(dont_meet,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
       append!(caution_multi_charts,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
     end
-    return ret_divs, dont_meet, caution_multi_charts
-  else
-    return ret_divs, dont_meet, caution_multi_charts
   end
+
+  return ret_divs, dont_meet, caution_multi_charts
+
 end
 
 function _decompose_pullback_simple(H::AbsIdealSheaf, ex_divs::Vector{AbsIdealSheaf})

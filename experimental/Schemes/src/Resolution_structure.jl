@@ -143,8 +143,7 @@ function exceptional_divisor_as_ideal_sheafs(phi::BlowUpSequence)
   E_list = phi.ex_div
   ret_list = Vector{AbsIdealSheaf}()
   for i in 1:length(E_list)
-    E = E_list[i]
-    E = (!(E isa AbsIdealSheaf) ? ideal_sheaf(E) : E)
+    E = (!(E_list[i] isa AbsIdealSheaf) ? ideal_sheaf(E_list[i]) : E_list[i])
     push!(ret_list, E)
   end
   return ret_list
@@ -460,10 +459,10 @@ function update_dont_meet_pts!(f::Union{BlowUpSequence, MixedBlowUpSequence}, I:
   U = patches[i]
 
   ## now check containment for exceptional divisor
-  C_list = exceptional_divisor_as_ideal_sheafs(f)
-  for C_temp in C_list
-    if !all(radical_membership(x,I(U)) for x in gens(C_temp(U)))
-      push!(dont_meet,(i,length(C_list)+1))
+  C_list = exceptional_divisor_as_ideal_sheafs(f)      ## this looks clumsy, but we need the position in the list
+  for i in 1:length(C_list)
+    if !all(radical_membership(x,I(U)) for x in gens(C_list[i](U)))
+      push!(dont_meet,(i,length(C_list)+1))            ## add the pair (position, new_one) to dont_meet
     end
   end
 
