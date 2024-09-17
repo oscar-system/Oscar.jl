@@ -1098,8 +1098,10 @@
       ))
     end
 
-    let L = special_orthogonal_lie_algebra(QQ, 7), hw1 = ZZ.([1, 1, 0]),
-      hw2 = ZZ.([0, 1, 1]) # type B_3 but without known root system
+    let L = special_orthogonal_lie_algebra(QQ, 7) # type B_3 but without known root system
+      hw1 = ZZ.([1, 1, 0])
+      hw2 = ZZ.([0, 1, 1])
+
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
         Dict(
