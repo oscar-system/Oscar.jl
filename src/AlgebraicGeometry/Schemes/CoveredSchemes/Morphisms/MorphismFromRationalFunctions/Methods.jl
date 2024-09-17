@@ -1,5 +1,3 @@
-export morphism_from_rational_functions
-
 # Type declaration has been moved to Types.jl
 
 domain(Phi::MorphismFromRationalFunctions) = Phi.domain

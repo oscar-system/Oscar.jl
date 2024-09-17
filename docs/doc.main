@@ -172,6 +172,7 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/RationalPointsProjective.md",
+        "AlgebraicGeometry/Schemes/Sheaves.md",
      ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",

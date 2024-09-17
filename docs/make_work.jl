@@ -26,14 +26,6 @@ include("citation_style.jl")
 # Remove the module prefix
 Base.print(io::IO, b::Base.Docs.Binding) = print(io, b.var)
 
-# We monkey-patch Base.walkdir to use true as default value for follow_symlinks
-# (normally false is the default), in order to "trick" the Documenter code into
-# following those symlinks.
-# See also:
-# https://github.com/JuliaDocs/Documenter.jl/pull/552
-# https://github.com/JuliaLang/julia/blob/master/doc/make.jl#L19
-Base.walkdir(str::String) = Base.walkdir(str; follow_symlinks=true)
-
 # When we read a `doc.main` from an experimental package, we need to equip all
 # its entries with a prefix to fit with our docs. The doc.main of an
 # experimental package will contain paths relative to
@@ -83,20 +75,11 @@ function setup_experimental_package(Oscar::Module, package_name::String)
     return []
   end
 
-  # Set symlink inside docs/src/experimental
-  symlink_link = joinpath(Oscar.oscardir, "docs/src/Experimental", package_name)
-  symlink_target = joinpath(Oscar.oscardir, "experimental", package_name, "docs", "src")
-
-  if !ispath(symlink_target)
+  # Assumes that a symbolic link from `experimental/package_name/docs/src`
+  # to `docs/src/Experimental/package_name` has been created (or there is no
+  # documentation for this package)
+  if !ispath(joinpath(Oscar.oscardir, "docs/src/Experimental", package_name))
     return []
-  end
-
-  if !ispath(symlink_link)
-    symlink(symlink_target, symlink_link)
-  elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
-    error("""$symlink_link already exists, but is not a symlink to $symlink_target
-    Please investigate the contents of $symlink_link,
-    optionally move them somewhere else and delete the directory once you are done.""")
   end
 
   # Read doc.main of package
@@ -116,15 +99,12 @@ function doit(
   doctest::Union{Bool,Symbol}=true,
 )
 
-  # Remove symbolic links from earlier runs
-  expdocdir = joinpath(Oscar.oscardir, "docs", "src", "Experimental")
-  for x in readdir(expdocdir; join=true)
-    islink(x) && rm(x)
-  end
-
   # include the list of pages, performing substitutions
   s = read(joinpath(Oscar.oscardir, "docs", "doc.main"), String)
   doc = eval(Meta.parse(s))
+
+  # Link experimental docs to `docs/src` and collect the documentation pages
+  Oscar.link_experimental_docs()
   collected = Any["Experimental/intro.md"]
   for pkg in Oscar.exppkgs
     pkgdocs = setup_experimental_package(Oscar, pkg)

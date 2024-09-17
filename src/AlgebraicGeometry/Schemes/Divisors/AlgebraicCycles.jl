@@ -1,8 +1,4 @@
-export AbsAlgebraicCycle
-export AlgebraicCycle
-export algebraic_cycle
-export components
-export scheme
+
 
 
 ########################################################################
@@ -97,46 +93,6 @@ end
 
 function underlying_cycle(D::AbsAlgebraicCycle)
   error("method `underlying_cycle` not implemented for arguments of type $(typeof(D))")
-end
-
-
-########################################################################
-#
-# AlgebraicCycle
-#
-# A minimal implementation of AbsAlgebraicCycle.
-########################################################################
- 
-@attributes mutable struct AlgebraicCycle{
-                                          CoveredSchemeType<:AbsCoveredScheme, 
-                                          CoefficientRingType<:AbstractAlgebra.Ring, 
-                                          CoefficientRingElemType<:AbstractAlgebra.RingElem
-                                         } <: AbsAlgebraicCycle{CoveredSchemeType, 
-                                                                CoefficientRingType}
-
-  X::CoveredSchemeType # the parent
-  R::CoefficientRingType # the ring of coefficients
-  coefficients::IdDict{AbsIdealSheaf, CoefficientRingElemType} # the formal linear combination
-
-  function AlgebraicCycle(
-      X::AbsCoveredScheme,
-      R::CoefficientRingType, 
-      coefficients::IdDict{<:AbsIdealSheaf, CoefficientRingElemType};
-      check::Bool=true
-    ) where {CoefficientRingType, CoefficientRingElemType}
-    for D in keys(coefficients)
-      space(D) === X || error("component of divisor does not lie in the given scheme")
-      parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
-    end
-    if check
-      is_integral(X) || error("scheme must be integral") 
-      #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
-      for D in keys(coefficients)
-        is_equidimensional(D) || error("components of a divisor must be sheaves of equidimensional ideals")
-      end
-    end
-    return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
-  end
 end
 
 ### implementation of the essential functionality

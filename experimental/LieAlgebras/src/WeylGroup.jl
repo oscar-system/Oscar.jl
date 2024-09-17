@@ -442,6 +442,38 @@ function word(x::WeylGroupElem)
   return x.word
 end
 
+function fp_group(W::WeylGroup; set_properties::Bool=true)
+  return codomain(isomorphism(FPGroup, W; set_properties))
+end
+
+function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
+  R = root_system(W)
+  F = free_group(rank(R))
+
+  gcm = cartan_matrix(R)
+  rels = [
+    (gen(F, i) * gen(F, j))^coxeter_matrix_entry_from_cartan_matrix(gcm, i, j) for
+    i in 1:rank(R) for j in i:rank(R)
+  ]
+
+  G, _ = quo(F, rels)
+
+  if set_properties
+    set_is_finite(G, is_finite(W))
+    is_finite(W) && set_order(G, order(W))
+  end
+
+  iso = function (w::WeylGroupElem)
+    return G([i => 1 for i in word(w)])
+  end
+
+  isoinv = function (g::FPGroupElem)
+    return W(abs.(letters(g)))
+  end
+
+  return MapFromFunc(W, G, iso, isoinv)
+end
+
 ###############################################################################
 # ReducedExpressionIterator
 
@@ -636,8 +668,7 @@ end
 
 function Base.iterate(iter::WeylOrbitIterator)
   (wt, _), data = iterate(iter.nocopy)
-  # wt is already a copy, so here we don't need to make one
-  return wt, data
+  return deepcopy(wt), data
 end
 
 function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)

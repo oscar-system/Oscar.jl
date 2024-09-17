@@ -53,7 +53,7 @@ Quotient
 """
 @attr MPolyQuoRing function chow_ring(v::NormalToricVarietyType)
     @req is_simplicial(v) "The combinatorial Chow ring is (currently) only supported for simplicial toric varieties"
-    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
+    R, _ = polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
     linear_relations = ideal_of_linear_relations(R, v)
     stanley_reisner = stanley_reisner_ideal(R, v)
     return quo(R, linear_relations + stanley_reisner)[1]

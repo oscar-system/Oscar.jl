@@ -1,10 +1,3 @@
-export IdealSheaf
-export extend!
-export ideal_sheaf
-export order_on_divisor
-export scheme
-export subscheme
-
 ### Forwarding the presheaf functionality
 underlying_presheaf(I::IdealSheaf) = I.I
 underlying_presheaf(I::PrimeIdealSheafFromChart) = I.F
@@ -704,11 +697,22 @@ function _minimal_power_such_that(I::Ideal, P::PropertyType) where {PropertyType
 end
 
 @doc raw"""
-    order_on_divisor(f::VarietyFunctionFieldElem, I::AbsIdealSheaf; check::Bool=true) -> Int
+    order_of_vanishing(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true) -> Int
+
+Return the order of the rational function `f` on the prime divisor `D`.
+"""
+function order_of_vanishing(f::VarietyFunctionFieldElem, D::WeilDivisor; check::Bool=true)
+  @check is_prime(D) "divisor must be prime for the order of vanishing to be defined"
+  P = components(D)[1]
+  return order_of_vanishing(f, P)
+end 
+
+@doc raw"""
+    order_of_vanishing(f::VarietyFunctionFieldElem, I::AbsIdealSheaf; check::Bool=true) -> Int
 
 Return the order of the rational function `f` on the prime divisor given by the ideal sheaf `I`.
 """
-function order_on_divisor(
+function order_of_vanishing(
     f::VarietyFunctionFieldElem,
     I::AbsIdealSheaf;
     check::Bool=true
@@ -1568,9 +1572,23 @@ function produce_object(F::AbsIdealSheaf, U::AbsAffineScheme)
 end
 
 ### PrimeIdealSheafFromChart
+@doc raw"""
+produce_object(F::PrimeIdealSheafFromChart, U2::AbsAffineScheme; 
+               algorithm::Symbol=:pullback)
+        
+Return the ideal ``F(U_2)``. 
+
+# Input
+The optional argument `algorithm` must be either `:pushforward` or `:pullback`.
+This determines how to extend through the gluings.
+- `:pullback` -- works via a saturation and turned out to be faster for complicated ideals 
+  (and relatively simple gluings.)
+- `:pushforward` -- works via a preimage computation 
+
+"""
 function produce_object(
     F::PrimeIdealSheafFromChart, U2::AbsAffineScheme; 
-    algorithm::Symbol=:pushforward # Either :pushforward or :pullback
+    algorithm::Symbol=:pullback # Either :pushforward or :pullback
                                    # This determines how to extend through the gluings.
   )
   # Initialize some local variables
@@ -1614,14 +1632,31 @@ function produce_object(
   function complexity(X1::AbsAffineScheme)
     init = maximum(total_degree.(lifted_numerator.(gens(F(X1)))); init=0)
     glue = default_covering(X)[X1, V2]
-    if glue isa SimpleGluing || (glue isa LazyGluing && is_computed(glue))
-      return init
-    end
-    return init + 1000
+    init += _gluing_complexity(glue)
+    return init
   end
-
+      
+  function _gluing_complexity(glue::SimpleGluing)
+    f, g = gluing_morphisms(glue)
+    img_gens = pullback(f).(gens(OO(codomain(f))))
+    init = sum(total_degree.(lifted_numerator(i)) for i in img_gens)
+    init += sum(total_degree.(lifted_denominator(i)) for i in img_gens)
+    return init
+  end
+      
+  function _gluing_complexity(glue::LazyGluing)
+    is_computed(glue) && return _gluing_complexity(underlying_gluing(glue))
+    return 5000
+  end
+  
+  function _gluing_complexity(glue::AbsGluing)
+    return 10000
+  end 
+    
   sort!(fat, by=complexity)
+  @vprintln :Divisors 2 "complexities in production function of $(F) on $(U2) $(complexity.(fat))"
   for W in fat
+    @vprintln :Divisors 3 "moving primve divisor from $(W)"
     # In case there is no gluing there is no extension.
     !haskey(gluings(default_covering(X)), (W, V2)) && continue
 
@@ -1630,8 +1665,10 @@ function produce_object(
     if glue isa SimpleGluing || (glue isa LazyGluing && first(gluing_domains(glue)) isa PrincipalOpenSubset)
       if algorithm == :pushforward
         complement_equation(codomain(g)) in F(W) && return ideal(OO(U2), one(OO(U2))) # We know the ideal is prime. No need to saturate!
+        @vprintln :Divisors 3 "complement equation $(complement_equation(codomain(f)))"
         pb_f = pullback(f)::AbsLocalizedRingHom
         pb_f_res = restricted_map(pb_f)
+        @vprintln :Divisors 4 pb_f_res.(gens(domain(pb_f_res)))
         @assert domain(pb_f_res) === ambient_coordinate_ring(V2)
         Q = preimage(pb_f_res, F(domain(f)))
         rest = OOX(V2, U2)

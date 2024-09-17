@@ -15,6 +15,7 @@ export AbsAffineRationalPoint
 export AbsAffineScheme
 export AbsAffineSchemeMor
 export AbsAffineVariety
+export AbsAlgebraicCycle
 export AbsCoveredCurve
 export AbsCoveredScheme
 export AbsCoveredSchemeMorphism
@@ -25,6 +26,7 @@ export AbsLocalizedRing
 export AbsLocalizedRingElem
 export AbsLocalizedRingHom
 export AbsMultSet
+export AbsPreSheaf
 export AbsProjectiveAlgebraicSet
 export AbsProjectiveCurve
 export AbsProjectiveScheme
@@ -43,10 +45,12 @@ export AffineSchemeOpenSubschemeMor
 export AffineSchemeOpenSubschemeRing
 export AffineSchemeOpenSubschemeRingElem
 export AffineVariety
+export AlgebraicCycle
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BettiTable
 export BorcherdsCtx
+export CartierDivisor
 export ClosedEmbedding
 export ClosedSubvarietyOfToricVariety
 export CohomologyClass
@@ -58,8 +62,10 @@ export Covering
 export CoveringMorphism
 export CyclicQuotientSingularity
 export DirectProductGroup
+export DirectSumSheaf
 export Directed
 export Edge
+export EffectiveCartierDivisor
 export EmptyScheme
 export FPGroup
 export FPGroupElem
@@ -88,6 +94,7 @@ export Halfspace
 export Hecke
 export HilbertData
 export Hyperplane
+export IdealSheaf
 export IncidenceMatrix
 export InfiniteDimensionError
 export K3Chamber
@@ -97,6 +104,7 @@ export LazyPolyRing
 export LinearHalfspace
 export LinearHyperplane
 export LinearProgram, linear_program
+export LinearSystem
 export MPolyDecRing
 export MPolyDecRingElem
 export MPolyIdeal
@@ -130,6 +138,7 @@ export PolyhedralComplex, polyhedral_complex
 export PolyhedralFan, polyhedral_fan
 export Polyhedron
 export Polymake
+export PreSheafOnScheme
 export PrincipalOpenSubset
 export ProjectiveAlgebraicSet
 export ProjectiveCurve
@@ -137,6 +146,8 @@ export ProjectivePlaneCurve
 export ProjectiveScheme
 export ProjectiveSchemeMor
 export ProjectiveVariety
+export PullbackSheaf
+export PushforwardSheaf
 export QQ
 export R10_matroid
 export RationalEquivalenceClass
@@ -155,6 +166,7 @@ export SimpleGluing
 export SimplicialComplex
 export Singular
 export Sp
+export StructureSheafOfRings
 export SubFPGroup
 export SubFPGroupElem
 export SubObjectIterator
@@ -176,7 +188,10 @@ export TropicalSemiring, TropicalSemiringElem, tropical_semiring
 export TropicalSemiringMap, tropical_semiring_map
 export TropicalVariety
 export Undirected
+export VarietyFunctionField
+export VarietyFunctionFieldElem
 export WeakComposition
+export WeilDivisor
 export WreathProductGroup
 export YoungTableau
 export ZZ
@@ -216,6 +231,7 @@ export affine_scheme
 export affine_scheme_open_subscheme_ring_type
 export affine_space
 export alexander_dual
+export algebraic_cycle
 export algebraic_ideal
 export algebraic_matrix
 export algebraic_matroid
@@ -299,6 +315,7 @@ export canonical_divisor_class
 export canonical_isomorphism
 export canonical_matrix
 export cartesian_power
+export cartier_divisor
 export catalan_solid
 export cauchy_ideal
 export cellular_associated_primes
@@ -347,6 +364,8 @@ export codomain
 export codomain_covering
 export coefficient_field
 export coefficient_ring
+export coefficient_ring_type
+export coefficient_type
 export coefficients
 export coefficients_and_exponents
 export cohomology
@@ -376,6 +395,7 @@ export complements
 export complete_bipartite_graph
 export complete_graph
 export complex_projective_plane
+export components
 export components
 export compose
 export composition
@@ -412,6 +432,7 @@ export corank
 export core
 export corresponding_bilinear_form
 export corresponding_quadratic_form
+export cotangent_sheaf
 export covered_projection_to_base
 export covered_scheme
 export covered_scheme_morphism
@@ -489,6 +510,7 @@ export double_coset
 export double_cosets
 export double_dual
 export dst
+export dual
 export dual_continued_fraction_hirzebruch_jung
 export dual_graph
 export dual_matroid
@@ -496,6 +518,7 @@ export dual_subdivision
 export dwarfed_cube
 export dwarfed_product_polygons
 export edges
+export effective_cartier_divisor
 export ehrhart_polynomial
 export element_to_homomorphism
 export elementary_abelian_group
@@ -517,6 +540,7 @@ export exponent, has_exponent, set_exponent
 export exponents
 export ext
 export ext_of_degree
+export extend!
 export extension_field
 export exterior_derivative
 export exterior_power
@@ -566,6 +590,7 @@ export free_module_dec
 export free_resolution
 export free_resolution_via_kernels
 export full_group
+export function_field
 export fundamental_circuit
 export fundamental_cocircuit
 export fundamental_group
@@ -655,6 +680,7 @@ export homogeneity_space
 export homogeneity_vector
 export homogeneous_component
 export homogeneous_components
+export homogeneous_coordinate_ring
 export homogeneous_coordinates
 export homogenization_map
 export homogenize
@@ -676,6 +702,7 @@ export ideal
 export ideal_as_module
 export ideal_membership
 export ideal_of_linear_relations
+export ideal_sheaf
 export identifier
 export identity_map
 export image
@@ -684,6 +711,7 @@ export image_in_Oq
 export images
 export img_gens
 export immaculate_line_bundles
+export in_linear_system
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
@@ -820,6 +848,7 @@ export is_leaf
 export is_left
 export is_linearly_normal
 export is_local
+export is_locally_free
 export is_loopless
 export is_manifold
 export is_maximal_subgroup
@@ -960,6 +989,7 @@ export linear_hyperplane
 export linear_inequality_matrix
 export linear_span
 export linear_symmetries
+export linear_system
 export link_subcomplex
 export load
 export load_lp
@@ -988,7 +1018,6 @@ export mathieu_group
 export matrix_group
 export matrix_kernel
 export matrix_ordering
-export matroid_hex
 export matroid_base_polytope
 export matroid_from_bases
 export matroid_from_circuits
@@ -1000,6 +1029,7 @@ export matroid_from_nonbases
 export matroid_from_prime_ideal
 export matroid_from_revlex_basis_encoding
 export matroid_groundset
+export matroid_hex
 export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
@@ -1037,6 +1067,7 @@ export monomials_of_degree
 export mori_cone
 export morphism
 export morphism_from_cox_variety
+export morphism_from_rational_functions
 export morphism_on_class_group
 export morphism_on_picard_group
 export morphism_on_torusinvariant_cartier_divisor_group
@@ -1147,6 +1178,7 @@ export orbit_representatives_and_stabilizers
 export orbits
 export order, has_order, set_order
 export order_field_of_definition
+export order_of_vanishing
 export ordering
 export orders_centralizers
 export orders_class_representatives
@@ -1310,6 +1342,8 @@ export rem_vertices!
 export renest
 export repres
 export representative
+export representative_field
+export representative_patch
 export represents_element
 export restrict
 export restrict_automorphism
@@ -1349,6 +1383,7 @@ export save_lp
 export save_mps
 export scalar_product
 export scheme
+export scheme_type
 export schensted
 export schur_cover
 export schur_index
@@ -1378,6 +1413,7 @@ export set_theoretic_intersection
 export sets
 export shape
 export sheaf_cohomology
+export sheaf_of_rings
 export short_right_transversal
 export shortest_path_dijkstra
 export show_morphism
@@ -1413,6 +1449,7 @@ export solve_lp
 export solve_milp
 export solve_mixed
 export solve_non_negative
+export space
 export spanning_sets
 export spec
 export special_linear_group
@@ -1441,6 +1478,7 @@ export subgroup_classes
 export subquo_type
 export subquotient
 export subscheme
+export subsystem
 export support_function
 export syllables
 export sylow_subgroup
@@ -1457,7 +1495,9 @@ export syzygy_generators
 export table_of_marks
 export tail
 export tangent_lines
+export tangent_sheaf
 export tangent_space
+export tautological_bundle
 export taxa
 export tensor_product
 export terms
@@ -1491,6 +1531,7 @@ export trivial_divisor_class
 export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
+export trivializing_covering
 export tropical_matrix
 export tropical_median_consensus
 export tropical_pluecker_vector
@@ -1501,8 +1542,10 @@ export turn_denominator_into_polyhedron
 export tutte_connectivity
 export tutte_polynomial
 export twist
+export twisting_sheaf
 export two_sided_ideal
 export underlying_gluing
+export underlying_presheaf
 export underlying_quotient
 export underlying_word
 export uniform_matroid
@@ -1551,6 +1594,7 @@ export weight
 export weight_cone
 export weight_ordering
 export weighted_projective_space
+export weil_divisor
 export weyl_algebra
 export weyl_vector
 export with_ordering
