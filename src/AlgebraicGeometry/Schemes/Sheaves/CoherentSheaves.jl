@@ -1,14 +1,4 @@
-export DirectSumSheaf
-export PullbackSheaf
-export PushforwardSheaf
-export cotangent_sheaf
-export dual
-export is_locally_free
-export projectivization
-export sheaf_of_rings
-export tangent_sheaf
-export tautological_bundle
-export twisting_sheaf
+
 
 abstract type AbsCoherentSheaf{
                                SpaceType, OpenType,

@@ -1,44 +1,3 @@
-export CartierDivisor
-export cartier_divisor
-export EffectiveCartierDivisor
-export effective_cartier_divisor
-export trivializing_covering
-
-@attributes mutable struct EffectiveCartierDivisor{
-                                                   CoveredSchemeType<:AbsCoveredScheme
-                                                  }
-  X::CoveredSchemeType
-  I::AbsIdealSheaf
-  C::Covering
-
-  function EffectiveCartierDivisor(
-      X::AbsCoveredScheme, 
-      D::IdDict{<:AbsAffineScheme, <:RingElem};
-      trivializing_covering::Covering=begin
-        C = Covering(collect(keys(D)), IdDict{Tuple{AbsAffineScheme, AbsAffineScheme}, AbsGluing}())
-        inherit_gluings!(C, default_covering(X))
-        C
-      end,
-      check::Bool=true
-    )
-    for U in patches(trivializing_covering)
-      U in keys(D) || error("the divisor must be prescribed on all patches of its trivializing covering")
-    end
-    ID = IdDict{AbsAffineScheme, Ideal}()
-    for U in keys(D)
-      ID[U] = ideal(OO(U), D[U])
-    end
-    I = IdealSheaf(X, ID, check=check)
-    @check begin
-      for U in keys(D)
-        is_zero_divisor(OO(U)(D[U])) && error("local elements must not be zero divisors")
-      end
-      # TODO: 
-      # - Check that every affine chart is covered
-    end
-    return new{typeof(X)}(X, I, trivializing_covering)
-  end
-end
 
 function (C::EffectiveCartierDivisor)(U::AbsAffineScheme)
   return gens(C.I(U))
@@ -63,20 +22,7 @@ function EffectiveCartierDivisor(I::AbsIdealSheaf;
 end
 
 
-@attributes mutable struct CartierDivisor{
-                                          CoveredSchemeType<:AbsCoveredScheme,
-                                          CoeffType<:RingElem
-                                         }
-  X::CoveredSchemeType
-  R::Ring
-  coeff_dict::IdDict{EffectiveCartierDivisor, CoeffType}
 
-  function CartierDivisor(X::AbsCoveredScheme, R::Ring, coeff_dict::IdDict{<:EffectiveCartierDivisor, CoeffType}) where {CoeffType<:RingElem}
-    all(x->(scheme(x)===X), keys(coeff_dict)) || error("all effective divisors must be defined over the same scheme")
-    all(x->(parent(x) === R), values(coeff_dict)) || error("all coefficients must belong to the same parent")
-    return new{typeof(X), CoeffType}(X, R, coeff_dict)
-  end
-end
 
 scheme(C::CartierDivisor) = C.X
 coefficient_ring(C::CartierDivisor) = C.R

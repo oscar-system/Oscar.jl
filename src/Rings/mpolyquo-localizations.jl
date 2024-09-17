@@ -2046,7 +2046,7 @@ end
   R_simp, iso, iso_inv = simplify(R) # This usually does not cost much
   I_simp = ideal(R_simp, restricted_map(iso).(lifted_numerator.(gens(I))))
   J = pre_image_ideal(I_simp)
-  pre_result = ideal(R_simp, [g for g in R_simp.(gens(radical(J))) if !iszero(g)])
+  pre_result = ideal(R_simp, [R_simp(g) for g in gens(radical(J)) if !iszero(g)])
   return ideal(R, restricted_map(iso_inv).(lifted_numerator.(gens(pre_result))))
 end
 

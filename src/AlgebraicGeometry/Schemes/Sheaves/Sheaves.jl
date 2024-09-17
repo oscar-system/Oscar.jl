@@ -1,8 +1,3 @@
-export PreSheafOnScheme
-export StructureSheafOfRings
-export restriction_map
-export space
-export underlying_presheaf
 
 ########################################################################
 # The AbsPreSheaf interface                                            
