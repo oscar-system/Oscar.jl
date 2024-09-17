@@ -72,7 +72,10 @@ julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
 7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
- ⋮
+ x3
+ x4
+ x
+ y
  z
 
 julia> blow_up(t, ideal([x, y, x1]); coordinate_name = "e1")
@@ -107,7 +110,10 @@ julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
 7-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
  x1
  x2
- ⋮
+ x3
+ x4
+ x
+ y
  z
 
 julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
