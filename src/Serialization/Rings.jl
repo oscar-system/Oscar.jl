@@ -767,3 +767,35 @@ function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering})
   return Orderings.SymbOrdering(S, vars)
 end
 
+# localizations of polynomial rings
+@register_serialization_type MPolyPowersOfElement uses_id
+
+function save_object(s::SerializerState, U::MPolyPowersOfElement)
+  save_data_dict(s) do
+    save_typed_object(s, ring(U), :ring)
+    save_typed_object(s, denominators(U), :dens)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyPowersOfElement})
+  R = load_typed_object(s, :ring)
+  dens = load_typed_object(s, :dens)
+  return MPolyPowersOfElement(R, dens)
+end
+
+
+@register_serialization_type MPolyLocRing uses_id
+
+function save_object(s::SerializerState, L::MPolyLocRing)
+  save_data_dict(s) do
+    save_typed_object(s, base_ring(L), :ring)
+    save_typed_object(s, inverted_set(L), :inv_set)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyLocRing})
+  R = load_typed_object(s, :ring)
+  U = load_typed_object(s, :inv_set)
+  return MPolyLocRing(R, U)
+end
+
