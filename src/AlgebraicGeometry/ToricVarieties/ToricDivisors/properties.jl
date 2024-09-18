@@ -155,7 +155,7 @@ false
 """
 @attr Bool function is_very_ample(td::ToricDivisor)
   @req is_complete(toric_variety(td)) "Very ampleness test is only implemented for complete toric varieties. ([Def 6.1.9 CLS11])"
-  pm_object(td).VERY_AMPLE
+  return pm_object(td).VERY_AMPLE
 end
 
 
