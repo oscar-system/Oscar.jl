@@ -287,7 +287,7 @@ function (P::LSPathModel)(v::Vector{<:IntegerUnion})
 end
 
 function (P::LSPathModel)(w::WeightLatticeElem)
-  nf = inv(QQ.(cartan_matrix(root_system(P)))) * coefficients(P.wt - w)
+  nf = cartan_matrix_inv(root_system(P)) * coefficients(P.wt - w)
   if !all(is_integral, nf)
     return LSPathModelElem[]
   end
