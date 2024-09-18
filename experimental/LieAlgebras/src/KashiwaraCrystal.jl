@@ -1,7 +1,3 @@
-abstract type KashiwaraCrystal <: AbstractAlgebra.Set end
-
-abstract type KashiwaraCrystalElem <: AbstractAlgebra.SetElem end
-
 module KashiwaraCrystal
 
 function e end

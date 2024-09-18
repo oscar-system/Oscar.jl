@@ -15,17 +15,11 @@ function adapted_string(p::KashiwaraCrystalElem, rdec::Vector{Int})
   return s
 end
 
-# LS Path Model
-
-struct LSPathModel
-  wt::WeightLatticeElem
-  ext::Dict{Vector{UInt8},ZZMatrix} # map from Weyl group elements to extremal weights
-
-  function LSPathModel(wt::WeightLatticeElem)
-    @req is_dominant(wt) "weight must be dominant"
-    return new(wt, Dict(UInt8[] => wt))
-  end
-end
+###############################################################################
+#
+#   LS path model
+#
+###############################################################################
 
 function Base.show(io::IO, mime::MIME"text/plain", P::LSPathModel)
   #@show_name(io, P)
@@ -91,20 +85,16 @@ function root_system(P::LSPathModel)
   return root_system(P.wt)
 end
 
-# LSPathModelElem
+function Base.hash(s::LSPathSegment, h::UInt)
+  b = 0x73a37b46bd4d49b4 % UInt
+  h = hash(s.t, h)
+  h = hash(s.w, h)
 
-struct LSPathSegment
-  t::QQFieldElem
-  w::WeylGroupElem
+  return xor(h, b)
 end
 
 function Base.:(==)(s1::LSPathSegment, s2::LSPathSegment)
   return s1.t == s2.t && s1.w == s2.w
-end
-
-struct LSPathModelElem <: KashiwaraCrystalElem
-  parent::LSPathModel
-  s::Vector{LSPathSegment}
 end
 
 function parent(p::LSPathModelElem)

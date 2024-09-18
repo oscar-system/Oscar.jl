@@ -2,6 +2,8 @@
 # should be included twice in LieAlgebras.jl, once to export from Oscar.LieAlgebras
 # into Oscar, and once to export from Oscar.
 
+export KashiwaraCrystal
+
 export AbstractLieAlgebra, AbstractLieAlgebraElem
 export DirectSumLieAlgebra, DirectSumLieAlgebraElem
 export DualRootSpaceElem
@@ -12,6 +14,7 @@ export LieAlgebraModule, LieAlgebraModuleElem
 export LieAlgebraModuleHom
 export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
+export LSPathModel, LSPathModelElem
 export RootSpaceElem
 export RootSystem
 export WeightLatticeElem
@@ -20,6 +23,7 @@ export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
+export adapted_string
 export base_lie_algebra
 export bilinear_form
 export bracket
