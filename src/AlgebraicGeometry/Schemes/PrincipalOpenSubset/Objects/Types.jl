@@ -33,8 +33,21 @@
   function PrincipalOpenSubset(X::AbsAffineScheme, R::Ring, f::Vector{T};
       check::Bool=true
     ) where {T<:RingElem}
-    d = prod(length(f) > 0 ? f : one(OO(X)))
-    return PrincipalOpenSubset(X, R, lifted_numerator.(f), d, check=check)
+    @check begin
+        d = prod(length(f) > 0 ? f : one(OO(X)))
+        U = spec(R)
+        U == hypersurface_complement(X, d)
+    end
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, lifted_numerator.(f))
+  end
+  function PrincipalOpenSubset(X::AbsAffineScheme, U::AbsAffineScheme, f::Vector{T};
+      check::Bool=true
+    ) where {T<:RingElem}
+    @check begin
+        d = prod(length(f) > 0 ? f : one(OO(X)))
+        U == hypersurface_complement(X, d)
+    end
+    return new{base_ring_type(X), ring_type(U), typeof(X)}(X, U, lifted_numerator.(f))
   end
 end
 

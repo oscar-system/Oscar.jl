@@ -75,7 +75,7 @@ function CoveredClosedEmbedding(X::AbsCoveredScheme, I::AbsIdealSheaf;
     U = codomain(mor_dict[Unew])
     for Vnew in keys(mor_dict)
       V = codomain(mor_dict[Vnew])
-      gluing_dict[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction,
+      gluing_dict[(Unew, Vnew)] = LazyGluing(Unew, Vnew, 
                                                RestrictionDataClosedEmbedding(covering[U, V], Unew, Vnew)
                                               )
     end
