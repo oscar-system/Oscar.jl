@@ -193,3 +193,28 @@ end
 # # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE
 # #      modulo the squares of the generators.
 # # (2)  Do we want/need a special printing function?  (show/display)
+
+function Oscar.degrevlex(R::PBWAlgQuo)
+  return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
+end
+
+function singular_poly_ring(Rx::PBWAlgQuo, ord::Singular.sordering) 
+  return Rx.sring
+end
+
+function length(x::PBWAlgElem)
+  return length(x.sdata)
+end
+
+function length(x::PBWAlgQuoElem)
+  return length(x.data.sdata)
+end
+
+#have to make a function that calls a term from a PBWAlgQuoElem
+#or rather change the SetExp function to accept more than just monomials. 
+
+#function set_exponent_vector!(x::PBWAlgQuoElem, len::Int, vec::Vector{Int})
+#  singelem = x.data.sdata
+#  ptr = singelem.ptr
+
+#end

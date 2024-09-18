@@ -223,7 +223,7 @@ Return a standard basis of `F` as an object of type `ModuleGens`.
 If `reduced` is set to `true` and the ordering of the underlying ring is global,
 a reduced Gröbner basis is computed.
 """
-function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: MPolyRingElem}
+function standard_basis(F::ModuleGens{T}, reduced::Bool=false) where {T <: Union{MPolyRingElem, PBWAlgQuoElem}}
   @req is_exact_type(elem_type(base_ring(F))) "This functionality is only supported over exact fields."
   singular_assure(F)
   if reduced

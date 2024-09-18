@@ -250,6 +250,13 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
+  if typeof(Sx) <: Singular.PluralRing
+    for (p,v) in coordinates(m)
+      w = v.data.sdata
+      e += Sx(w)*g[p]
+    end
+    return e
+  end
   for (p,v) in coordinates(m)
     e += Sx(v)*g[p]
   end
@@ -273,7 +280,13 @@ function (F::FreeMod)(s::Singular.svector)
       f = length(values)
       push!(pos, i)
     end
-    push_term!(values[f], R(c), e)
+    if typeof(Rx) <: PBWAlgRing 
+      push_term!(values[f], (base_ring(R))(c), e)
+    elseif typeof(Rx) <: PBWAlgQuo
+      push_term!(values[f], (base_ring(base_ring(R)))(c), e)
+    else
+      push_term!(values[f], R(c), e)
+    end
   end
   pv = Tuple{Int, elem_type(Rx)}[(pos[i], base_ring(F)(finish(values[i]))) for i=1:length(pos)]
   return FreeModElem(sparse_row(base_ring(F), pv), F)
