@@ -219,7 +219,7 @@ function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, sta
   return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
-function build_ctx(R::PBWAlgRing)
+function build_ctx(R::Union{PBWAlgRing, PBWAlgQuo})
   return OscarPair(R, MPolyBuildCtx(R.sring))
 end
 
@@ -1307,4 +1307,12 @@ ErrorException("could not find elimination ordering")
 """
 function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem}; ordering = nothing)
   return eliminate(I, [var_index(i) for i in sigmaC]; ordering = ordering)
+end
+
+function Oscar.degrevlex(R::PBWAlgRing)
+  return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
+end
+
+function singular_poly_ring(Rx::PBWAlgRing, ord::Singular.sordering) 
+  return Rx.sring
 end

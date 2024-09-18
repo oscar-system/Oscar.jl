@@ -251,9 +251,16 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   e = SF()
   Sx = base_ring(SF)
   if typeof(Sx) <: Singular.PluralRing
-    for (p,v) in coordinates(m)
-      w = v.data.sdata
-      e += Sx(w)*g[p]
+    if base_ring(parent(m)) isa PBWAlgQuo
+      for (p,v) in coordinates(m)
+        w = v.data.sdata
+        e += Sx(w)*g[p]
+      end
+    elseif base_ring(parent(m)) isa PBWAlgRing
+      for (p,v) in coordinates(m)
+        w = v.sdata
+        e += Sx(w)*g[p]
+      end
     end
     return e
   end
@@ -276,7 +283,7 @@ function (F::FreeMod)(s::Singular.svector)
   for (i, e, c) = s
     f = Base.findfirst(x->x==i, pos)
     if f === nothing
-      push!(values, MPolyBuildCtx(base_ring(F)))
+      push!(values, build_ctx(base_ring(F)))
       f = length(values)
       push!(pos, i)
     end
@@ -290,6 +297,11 @@ function (F::FreeMod)(s::Singular.svector)
   end
   pv = Tuple{Int, elem_type(Rx)}[(pos[i], base_ring(F)(finish(values[i]))) for i=1:length(pos)]
   return FreeModElem(sparse_row(base_ring(F), pv), F)
+end
+
+#This is a helper function used in the previous function. The specific case for PBWAlgRing and PBWAlgQuo are in the respective files.
+function build_ctx(R::Any)
+  return MPolyBuildCtx(R)
 end
 
 # After creating the required infrastruture in Singular,

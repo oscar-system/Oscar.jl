@@ -198,14 +198,6 @@ function Oscar.degrevlex(R::PBWAlgQuo)
   return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
 end
 
-function singular_poly_ring(Rx::PBWAlgQuo, ord::Singular.sordering) 
-  return Rx.sring
-end
-
-function length(x::PBWAlgElem)
-  return length(x.sdata)
-end
-
 function length(x::PBWAlgQuoElem)
   return length(x.data.sdata)
 end
