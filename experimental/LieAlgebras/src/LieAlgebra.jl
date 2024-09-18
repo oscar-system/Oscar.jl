@@ -702,7 +702,6 @@ function _root_system_and_chevalley_basis(
   type, ordering = cartan_type_with_ordering(cm; check=false)
   permute!(roots_simple, ordering)
   R = root_system(type)
-  @assert root_system_type_with_ordering(R)[2] == 1:rank(R)
 
   # compute a Chevalley basis of L
   root_vectors = [
