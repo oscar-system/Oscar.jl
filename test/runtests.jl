@@ -68,10 +68,10 @@ function print_stats(io::IO, stats_dict::Dict; fmt=PrettyTables.tf_unicode, max=
   table = hcat(first.(sorted), permutedims(reduce(hcat, collect.(values.(last.(sorted))))))
   if haskey(first(values(stats_dict)), :ctime)
     header=[:Filename, Symbol("Runtime in s"), Symbol("+ Compilation"), Symbol("+ Recompilation"), Symbol("Allocations in MB")]
-    formatters = (ft_printf("%.2f", [2,3,4]), ft_printf("%.1f", [5]))
+    formatters = (PrettyTables.ft_printf("%.2f", [2,3,4]), PrettyTables.ft_printf("%.1f", [5]))
   else
     header=[:Filename, Symbol("Time in s"), Symbol("Allocations in MB")]
-    formatters = (ft_printf("%.2f", [2]), ft_printf("%.1f", [3]))
+    formatters = (PrettyTables.ft_printf("%.2f", [2]), PrettyTables.ft_printf("%.1f", [3]))
   end
   PrettyTables.pretty_table(io, table; tf=fmt, max_num_of_rows=max, header=header, formatters=formatters)
 end
