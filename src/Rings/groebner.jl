@@ -40,8 +40,8 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_g
       complete_reduction || return G
       if !G.isReduced
         I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
-        return I.gb[G.ord]
       end
+      return I.gb[G.ord]
     end
   end
   ord = default_ordering(base_ring(I))
@@ -1282,7 +1282,7 @@ with respect to the ordering
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
   Singular.dimension(singular_generators(G)) == 0 || error("Dimension of corresponding ideal must be zero.")
-  SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
+  SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = singular(ordering))
 
   ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
   return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))

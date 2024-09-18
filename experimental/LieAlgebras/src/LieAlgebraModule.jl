@@ -1,36 +1,3 @@
-@attributes mutable struct LieAlgebraModule{C<:FieldElem}
-  L::LieAlgebra{C}
-  dim::Int
-  transformation_matrices::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LieAlgebraModule{C}(
-    L::LieAlgebra{C},
-    dimV::Int,
-    transformation_matrices::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req dimV == length(s) "Invalid number of basis element names."
-    @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
-    @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
-
-    V = new{C}(L, dimV, transformation_matrices, s)
-    if check
-      @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
-      for xi in basis(L), xj in basis(L), v in basis(V)
-        @req (xi * xj) * v == xi * (xj * v) - xj * (xi * v) "Transformation matrices do not define a module."
-      end
-    end
-    return V
-  end
-end
-
-struct LieAlgebraModuleElem{C<:FieldElem}
-  parent::LieAlgebraModule{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -452,18 +419,18 @@ end
 ###############################################################################
 
 function Base.:(==)(V1::LieAlgebraModule{C}, V2::LieAlgebraModule{C}) where {C<:FieldElem}
-  return V1.dim == V2.dim &&
-         V1.s == V2.s &&
-         V1.L == V2.L &&
-         V1.transformation_matrices == V2.transformation_matrices
+  return dim(V1) == dim(V2) &&
+         symbols(V1) == symbols(V2) &&
+         base_lie_algebra(V1) == base_lie_algebra(V2) &&
+         transformation_matrices(V1) == transformation_matrices(V2)
 end
 
 function Base.hash(V::LieAlgebraModule, h::UInt)
   b = 0x28b0c111e3ff8526 % UInt
-  h = hash(V.dim, h)
-  h = hash(V.s, h)
-  h = hash(V.L, h)
-  h = hash(V.transformation_matrices, h)
+  h = hash(dim(V), h)
+  h = hash(symbols(V), h)
+  h = hash(base_lie_algebra(V), h)
+  h = hash(transformation_matrices(V), h)
   return xor(h, b)
 end
 
@@ -511,8 +478,12 @@ function action(x::LieAlgebraElem{C}, v::LieAlgebraModuleElem{C}) where {C<:Fiel
   )
 end
 
+function transformation_matrices(V::LieAlgebraModule{C}) where {C<:FieldElem}
+  return (V.transformation_matrices)::Vector{dense_matrix_type(C)}
+end
+
 function transformation_matrix(V::LieAlgebraModule{C}, i::Int) where {C<:FieldElem}
-  return (V.transformation_matrices[i])::dense_matrix_type(C)
+  return transformation_matrices(V)[i]
 end
 
 ###############################################################################
@@ -883,7 +854,7 @@ end
     ⊗(Vs::LieAlgebraModule{C}...) -> LieAlgebraModule{C}
 
 Given modules $V_1,\dots,V_n$ over the same Lie algebra $L$,
-construct their tensor product $V_1 \otimes \cdots \otimes \V_n$.
+construct their tensor product $V_1 \otimes \cdots \otimes V_n$.
 
 # Examples
 ```jldoctest
@@ -1406,9 +1377,9 @@ end
 #
 ###############################################################################
 
-# TODO: check semisimplicity check once that is available
+# TODO: add semisimplicity check once that is available
 
-function is_dominant_weight(hw::Vector{Int})
+function is_dominant_weight(hw::Vector{<:IntegerUnion})
   return all(>=(0), hw)
 end
 
@@ -1427,9 +1398,10 @@ function simple_module(L::LieAlgebra, hw::Vector{Int})
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{Int}) -> T
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
 
-Computes the dimension of the simple module of the Lie algebra `L` with highest weight `hw`.
+Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
+using Weyl's dimension formula.
 The return value is of type `T`.
 
 # Example
@@ -1440,22 +1412,83 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 64
 ```
 """
-function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  return T(
-    GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))
-  )
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dim_of_simple_module(T, R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return T(
+      GAPWrap.DimensionOfHighestWeightModule(
+        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
+      ),
+    )
+  end
 end
 
-function dim_of_simple_module(L::LieAlgebra, hw::Vector{Int})
+function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dim_of_simple_module(Int, L, hw)
 end
 
 @doc raw"""
-    dominant_character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+    dominant_weights([T,] L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Vector{T}
+
+Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+sorted ascendingly by the total height of roots needed to reach them from `hw`.
+
+When supplying `T = Vector{Int}`, the weights are returned as vectors of integers.
+
+See [MP82](@cite) for details and the implemented algorithm.
+
+# Example
+```jldoctest
+julia> L = lie_algebra(QQ, :B, 3);
+
+julia> dominant_weights(L, [1, 0, 3])
+7-element Vector{Vector{Int64}}:
+ [1, 0, 3]
+ [1, 1, 1]
+ [2, 0, 1]
+ [0, 0, 3]
+ [0, 1, 1]
+ [1, 0, 1]
+ [0, 0, 1]
+```
+"""
+function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dominant_weights(T, R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return first.(
+      sort!(
+        collect(
+          T(w) => d for (w, d) in
+          zip(
+            GAP.Globals.DominantWeights(
+              GAP.Globals.RootSystem(codomain(Oscar.iso_oscar_gap(L))),
+              GAP.Obj(hw; recursive=true),
+            )...,
+          )
+        ); by=last)
+    )
+  end
+end
+
+function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  return dominant_weights(Vector{Int}, L, hw)
+end
+
+@doc raw"""
+    dominant_character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
+
+The return type may change in the future.
+
+This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
 # Example
 ```jldoctest
@@ -1469,19 +1502,31 @@ Dict{Vector{Int64}, Int64} with 4 entries:
   [0, 2, 0] => 1
 ```
 """
-function dominant_character(L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  return Dict{Vector{Int},Int}(
-    Vector{Int}(w) => d for (w, d) in
-    zip(GAPWrap.DominantCharacter(codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw))...)
-  )
+function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return dominant_character(R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    return Dict{Vector{Int},Int}(
+      Vector{Int}(w) => d for (w, d) in
+      zip(
+        GAPWrap.DominantCharacter(
+          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
+        )...,
+      )
+    )
+  end
 end
 
 @doc raw"""
-    character(L::LieAlgebra{C}, hw::Vector{Int}) -> Dict{Vector{Int}, Int}
+    character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
 
 Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
+This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::Vector{<:IntegerUnion})).
+
+The return type may change in the future.
 
 # Example
 ```jldoctest
@@ -1497,29 +1542,37 @@ Dict{Vector{Int64}, Int64} with 10 entries:
   [1, -1, 1]  => 1
   [-1, 0, 1]  => 1
   [1, 0, -1]  => 1
-  [0, -1, 0]  => 1
   [2, 0, 0]   => 1
+  [0, -1, 0]  => 1
 ```
 """
-function character(L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
-  dc = dominant_character(L, hw)
-  c = Dict{Vector{Int},Int}()
-  W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
-  for (w, d) in dc
-    it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
-    while !GAPWrap.IsDoneIterator(it)
-      push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  if has_root_system(L)
+    R = root_system(L)
+    return character(R, hw)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw) "Not a dominant weight."
+    dc = dominant_character(L, hw)
+    c = Dict{Vector{Int},Int}()
+    W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
+    for (w, d) in dc
+      it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
+      while !GAPWrap.IsDoneIterator(it)
+        push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
+      end
     end
+    return c
   end
-  return c
 end
 
 @doc raw"""
-    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int}) -> MSet{Vector{Int}}
+    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
 
 Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
 into simple modules with their multiplicities.
+This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
+
+The return type may change in the future.
 
 # Example
 ```jldoctest
@@ -1539,13 +1592,22 @@ MSet{Vector{Int64}} with 6 elements:
   [0, 3]
 ```
 """
-function tensor_product_decomposition(L::LieAlgebra, hw1::Vector{Int}, hw2::Vector{Int})
-  @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
-  return multiset(
-    Tuple{Vector{Vector{Int}},Vector{Int}}(
-      GAPWrap.DecomposeTensorProduct(
-        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw1), GAP.Obj(hw2)
-      ),
-    )...,
-  )
+function tensor_product_decomposition(
+  L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
+)
+  if has_root_system(L)
+    R = root_system(L)
+    return tensor_product_decomposition(R, hw1, hw2)
+  else # TODO: remove branch once root system detection is implemented
+    @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
+    return multiset(
+      Tuple{Vector{Vector{Int}},Vector{Int}}(
+        GAPWrap.DecomposeTensorProduct(
+          codomain(Oscar.iso_oscar_gap(L)),
+          GAP.Obj(hw1; recursive=true),
+          GAP.Obj(hw2; recursive=true),
+        ),
+      )...,
+    )
+  end
 end

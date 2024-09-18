@@ -123,7 +123,7 @@ of a rational point this returns a triple ``(F♭, φ, φ⁻¹)`` where ``F♭``
 corresponding free module over ``R`` and ``φ : F♭ → F♭`` is the isomorphism over 
 the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
 """
-@attr function shifted_module(
+@attr Any function shifted_module(
     F::FreeMod{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
@@ -132,7 +132,7 @@ the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the orig
   return base_ring_module(F), a, b
 end
 
-@attr function base_ring_shifts(
+@attr Any function base_ring_shifts(
     F::FreeMod{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
@@ -156,7 +156,7 @@ of a rational point and a `pre_saturated_module` ``N`` over ``R``, this returns 
 ``(N', φ, φ⁻¹)`` where ``N'`` is a module over ``R``, and ``φ : N → N'`` is an isomorphism over 
 the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
 """
-@attr function shifted_module(
+@attr Any function shifted_module(
     M::SubquoModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, 
                                <:MPolyComplementOfKPointIdeal}}
@@ -187,7 +187,7 @@ ideal ``𝔪`` of a rational point and a `pre_saturated_module` ``N`` over ``R``
 ``(N', φ, φ⁻¹)`` where ``N'`` is a module over ``R``, and ``φ : N → N'`` is an isomorphism over
 the shift map ``Φ : R → R`` which is moving the point of ``𝔪`` to the origin.
 """
-@attr function shifted_module(
+@attr Any function shifted_module(
     M::SubModuleOfFreeModule{T}
   ) where {T<:MPolyLocRingElem{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem,
                                <:MPolyComplementOfKPointIdeal}}

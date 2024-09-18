@@ -85,3 +85,7 @@ Objects of type `Graph` can be saved to a file and loaded with the methods
 polymake object. In particular, this file can now be read by both polymake and
 OSCAR.
 
+## Quantum Automorphisms
+```@docs
+quantum_automorphism_group(G::Graph{Undirected})
+```

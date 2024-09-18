@@ -21,12 +21,12 @@ img_gens(f::FreeModuleHom) = images_of_generators(f)
 images_of_generators(f::FreeModuleHom) = f.imgs_of_gens::Vector{elem_type(codomain(f))}
 image_of_generator(phi::FreeModuleHom, i::Int) = phi.imgs_of_gens[i]::elem_type(codomain(phi))
 base_ring_map(f::FreeModuleHom) = f.ring_map
-@attr Map function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::FreeModuleHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 base_ring_map(f::SubQuoHom) = f.ring_map
-@attr Map function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
-    return identity_map(base_ring(domain(f)))
+function base_ring_map(f::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
+  return nothing
 end
 
 @doc raw"""
@@ -232,6 +232,7 @@ scalars in `base_ring(F)` to their images under `h`.
     the homomorphism under consideration as a *homogeneous module homomorphism*.
 """
 hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, V, h; check)
+hom(F::FreeMod, M::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}, h::Nothing; check::Bool=true) where {T} = FreeModuleHom(F, M, V; check)
 hom(F::FreeMod, M::ModuleFP{T}, A::MatElem{T}, h::RingMapType; check::Bool=true) where {T, RingMapType} = FreeModuleHom(F, M, A, h; check)
 
 @doc raw"""
@@ -488,8 +489,7 @@ function _simple_kernel(h::FreeModuleHom{<:FreeMod, <:FreeMod})
   g = images_of_generators(h)
   b = ModuleGens(g, G, default_ordering(G))
   M = syzygy_module(b)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(repres(v)); init=zero(F)) for v in gens(M)]
-  I, inc = sub(F, v)
+  v = elem_type(F)[F(coordinates(repres(w))) for w in gens(M) if !is_zero(w)]
   return sub(F, v)
 end
 
@@ -511,11 +511,13 @@ function kernel(h::FreeModuleHom{<:FreeMod, <:SubquoModule})
   g = vcat(g, relations(M))
   R = base_ring(G)
   H = FreeMod(R, length(g))
+  # This code is also used by graded modules and we need to care for that.
+  is_graded(h) && is_homogeneous(h) && set_grading!(H, degree.(g))
   phi = hom(H, G, g)
-  K, inc = kernel(phi)
+  K, _ = kernel(phi)
   r = ngens(F)
-  v = elem_type(F)[sum(c*F[i] for (i, c) in coordinates(v) if i <= r; init=zero(F)) for v in images_of_generators(inc)]
-  return sub(F, v)
+  v = elem_type(F)[F(coordinates(v)[1:ngens(F)]) for v in ambient_representatives_generators(K)]
+  return sub(F, filter!(!iszero, v))
 end
 
 function is_welldefined(H::SubQuoHom{<:SubquoModule})

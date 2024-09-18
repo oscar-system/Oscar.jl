@@ -130,6 +130,12 @@ using Oscar: _integer_variables
         @test objective_function(LP) == objective_function(loaded)
         @test feasible_region(LP) == feasible_region(loaded)
       end
+
+      serializer=Oscar.LPSerializer(joinpath(path, "original"))
+      test_save_load_roundtrip(path, LP; serializer=serializer) do loaded
+        @test objective_function(LP) == objective_function(loaded)
+        @test feasible_region(LP) == feasible_region(loaded)
+      end
     end
 
     @testset "MixedIntegerLinearProgram" begin

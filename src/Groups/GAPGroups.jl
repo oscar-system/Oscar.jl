@@ -635,6 +635,13 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
+   # We claim that the finiteness check is cheap in Oscar.
+   # This does not hold in GAP,
+   # and GAP's method selection benefits from the known finiteness flag.
+   if G isa MatrixGroup && is_infinite(base_ring(G))
+     is_finite(G)
+   end
+
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
@@ -864,8 +871,9 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element `z` in `G` such that `x^z` equals `y`.
-To also return the element `z`, use [`is_conjugate_with_data`](@ref).
+i.e., there is an element `z` in `G` such that `inv(z)*x*z` equals `y`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -878,10 +886,10 @@ end
     is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
-return `(true, z)`, where `x^z == y` holds;
+return `(true, z)`, where `inv(z)*x*z == y` holds;
 otherwise, return `(false, nothing)`.
-If the conjugating element `z` is not needed,
-use [`is_conjugate`](@ref).
+If the conjugating element `z` is not needed, use
+[`is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -1016,8 +1024,8 @@ julia> G = symmetric_group(5);
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in G
- Conjugacy class of Alt(5) in G
  Conjugacy class of permutation group in G
+ Conjugacy class of Alt(5) in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
@@ -1075,8 +1083,10 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
 i.e., whether there exists an element `z` in  `G` such that
-`H^z` equals `K`. To also return the element `z`
-use [`is_conjugate_with_data`](@ref).
+the conjugate group `H^z`, which is defined as $\{ z^{-1} h z; h \in H \}$,
+equals `K`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1101,13 +1111,14 @@ false
 """
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(GapObj(G),GapObj(H),GapObj(K))
 
-"""
+@doc raw"""
     is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `(true, z)`
 where `H^z = K`; otherwise, return `(false, nothing)`.
+The conjugate group `H^z` is defined as $\{ z^{-1} h z; h \in H \}$.
 If the conjugating element `z` is not needed, use
-[`is_conjugate`](@ref).
+[`is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1908,24 +1919,47 @@ end
     relators(G::FPGroup)
 
 Return a vector of relators for the full finitely presented group `G`, i.e.,
-elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
-`G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
+elements $[w_1, w_2, \ldots, w_n]$ in $F =$ `free_group(ngens(G))` such that
+`G` is isomorphic with $F/[w_1, w_2, \ldots, w_n]$.
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  (x, y) = gens(f);
+julia> f = @free_group(:x, :y);
 
 julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 3-element Vector{FPGroupElem}:
- f1^2
- f2^2
- f1^-1*f2^-1*f1*f2
+ x^2
+ y^2
+ x^-1*y^-1*x*y
 ```
 """
 function relators(G::FPGroup)
   L = GAPWrap.RelatorsOfFpGroup(GapObj(G))::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
+end
+
+function relators(G::PcGroup)
+  gapG = GapObj(G)
+  Ggens = GAPWrap.GeneratorsOfGroup(gapG)
+  Gpcgs = GAPWrap.Pcgs(gapG)
+  if Ggens == Gpcgs
+    # The generators form a pcgs, compute w.r.t. this pcgs.
+    f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GapObj("g"))
+    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+    return relators(FPGroup(GAPWrap.Image(f)))
+  else
+    return _relators_by_generators(FPGroup(GAPWrap.Image(f)))
+  end
+end
+
+relators(G::GAPGroup) = _relators_by_generators(G)
+
+function _relators_by_generators(G::GAPGroup)
+  gapG = GapObj(G)
+  f = GAPWrap.IsomorphismFpGroupByGenerators(gapG, GAPWrap.GeneratorsOfGroup(gapG))
+  @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+  return relators(FPGroup(GAPWrap.Image(f)))
 end
 
 
@@ -1969,7 +2003,7 @@ whenever it is possible that the elements in `genimgs` do not support `one`.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> imgs = gens(symmetric_group(4))
 2-element Vector{PermGroupElem}:
@@ -2157,7 +2191,7 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> syllables(F1^5*F2^-3)
 2-element Vector{Pair{Int64, Int64}}:
@@ -2190,7 +2224,7 @@ numbers.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> letters(F1^5*F2^-3)
 8-element Vector{Int64}:
@@ -2235,7 +2269,7 @@ otherwise an exception is thrown.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> length(F1*F2^-2)
 3

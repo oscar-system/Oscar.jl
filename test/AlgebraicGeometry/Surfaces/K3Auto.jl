@@ -34,18 +34,24 @@ end
   weyl = QQ[31   61   52   71   5   -6   5   -2   -7   8]
   weylk3 = change_base_ring(ZZ,Oscar.solve(basis_matrix(L), weyl; side = :left))
   k3,_ = BorcherdsCtx(L, S, weylk3; compute_OR=false)
-  walls = Oscar._walls_of_chamber(k3, weylk3)
-  @test length(walls)==4
-  walls1 =  [
+  walls1 = Oscar._walls_of_chamber(k3, weylk3)
+  @test length(walls1)==4
+  walls2 =  [
   ZZ[0   0   2   1],
   ZZ[1   1   1   2],
   ZZ[0   0   -1   -1],
   ZZ[-1   0   0   0]]
-  @test issetequal(walls, walls1)
+  @test issetequal(walls1, walls2)
+  
+  c = chamber(k3, weylk3, zero_matrix(ZZ,1,rank(S)), walls2)
+  @test length(walls(c)) == 4
+  @test Oscar.alg319(c.data.gramS, walls(c), walls(c), c.data.membership_test) == aut(c)
+
 end
 
 @testset "K3 surface automorphism groups" begin
   S = integer_lattice(gram=QQ[-2 1 0 0; 1 -2 1 1; 0 1 -2 1; 0 1 1 -2])
+  @test 1 == Oscar.has_zero_entropy(S; rank_unimod=10)[1]
   _, k3aut, chambers, rational_mod_aut = borcherds_method(S, 10, compute_OR=true)
   @test order(matrix_group(k3aut))==2
   @test length(chambers) == 1
@@ -178,4 +184,15 @@ end
   weyl1, _,_ = Oscar.weyl_vector_non_degenerate(L,S,u,weyl,ample0)
   @test Oscar.is_S_nondegenerate(L,S,weyl1)
 
+end 
+
+@testset "preprocessing" begin
+  g = -gram_matrix(root_lattice(:A,9))
+  g[8,9] = g[9,8] = 0
+  g[9,5] = g[5,9] = 1
+  UE7 = g
+  @assert det(UE7) == 2
+  UE7 = integer_lattice(gram=UE7)
+  L,S,w = Oscar.borcherds_method_preprocessing(rescale(UE7,2),18)
+  @test (w*gram_matrix(rational_span(L))*transpose(w))[1,1] == 620
 end 

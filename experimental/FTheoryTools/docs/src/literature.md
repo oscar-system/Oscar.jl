@@ -80,6 +80,7 @@ following methods:
 * `has_journal_model_equation_number(m::AbstractFTheoryModel)`,
 * `has_journal_model_page(m::AbstractFTheoryModel)`,
 * `has_journal_model_section(m::AbstractFTheoryModel)`,
+* `has_journal_name(m::AbstractFTheoryModel)`,
 * `has_journal_pages(m::AbstractFTheoryModel)`,
 * `has_journal_report_numbers(m::AbstractFTheoryModel)`,
 * `has_journal_volume(m::AbstractFTheoryModel)`,
@@ -99,6 +100,7 @@ following methods:
 * `has_weighted_resolution_generating_sections(m::AbstractFTheoryModel)`,
 * `has_weighted_resolution_zero_sections(m::AbstractFTheoryModel)`,
 * `has_zero_section(m::AbstractFTheoryModel)`,
+* `has_zero_section_coordinates(m::AbstractFTheoryModel)`,
 * `has_gauge_algebra(m::AbstractFTheoryModel)`,
 * `has_global_gauge_quotients(m::AbstractFTheoryModel)`.
 

@@ -232,6 +232,9 @@ function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, parents::Vect
 end
 
 function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, parent::FqField)
+  if absolute_degree(parent) != 1
+    return load_object(s, FqFieldElem, get_parents(parent))
+  end
   load_node(s) do str
     return parent(parse(ZZRingElem, str))
   end

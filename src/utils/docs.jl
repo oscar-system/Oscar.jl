@@ -14,7 +14,10 @@
 
 # Oscar needs some complicated setup to get the printing right. This provides a
 # helper function to set this up consistently.
-doctestsetup() = :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+function doctestsetup()
+  link_experimental_docs()
+  return :(using Oscar; Oscar.AbstractAlgebra.set_current_module(@__MODULE__))
+end
 
 # use tempdir by default to ensure a clean manifest (and avoid modifying the project)
 function doc_init(;path=mktempdir())
@@ -230,4 +233,39 @@ function build_doc(; doctest::Union{Symbol, Bool} = false, warnonly = true, open
   if doctest != false && !versioncheck
     @warn versionwarn
   end
+end
+
+# Create symbolic links from any documentation directory in `experimental` into
+# `docs/src`
+function link_experimental_docs()
+  # Remove symbolic links from earlier runs
+  expdocdir = joinpath(oscardir, "docs", "src", "Experimental")
+  for x in readdir(expdocdir; join=true)
+    !islink(x) && continue
+    pkg = splitpath(x)[end]
+    if !(pkg in exppkgs)
+      # We don't know this link, let's remove it
+      rm(x)
+    end
+  end
+
+  for pkg in exppkgs
+    # Set symlink inside docs/src/experimental
+    symlink_link = joinpath(oscardir, "docs/src/Experimental", pkg)
+    symlink_target = joinpath(oscardir, "experimental", pkg, "docs", "src")
+
+    if !ispath(symlink_target)
+      continue
+    end
+
+    if !ispath(symlink_link)
+      symlink(symlink_target, symlink_link)
+    elseif !islink(symlink_link) || readlink(symlink_link) != symlink_target
+      error("""$symlink_link already exists, but is not a symlink to $symlink_target
+      Please investigate the contents of $symlink_link,
+      optionally move them somewhere else and delete the directory once you are done.""")
+    end
+  end
+
+  return nothing
 end

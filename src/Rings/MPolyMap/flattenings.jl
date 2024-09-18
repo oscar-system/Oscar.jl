@@ -459,7 +459,7 @@ function preimage(phi::RingFlattening, x::RingElem)
 end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType},
                    Nothing
@@ -477,7 +477,7 @@ end
   return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map

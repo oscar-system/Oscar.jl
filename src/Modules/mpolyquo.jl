@@ -4,7 +4,7 @@
 ########################################################################
 # The essential three functions:                                       #
 ########################################################################
-@attr function kernel(
+@attr Any function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
            DomainType<:FreeMod{<:MPolyQuoRingElem},
@@ -45,7 +45,7 @@ end
 # unless we implement them.                                            #
 ########################################################################
 #=
-@attr function kernel(
+@attr Any function kernel(
     f::FreeModuleHom{DomainType, CodomainType}
   ) where {
            DomainType<:FreeMod{<:MPolyQuoRingElem},
@@ -99,7 +99,7 @@ end
 ### For a free module F = R^r over R = P/I, this returns a lifting map 
 # to the module P^r/I*P^r. Note that this is an unnatural map since 
 # the latter is an R-module only by accident.
-@attr function _lifting_iso(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _lifting_iso(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")
@@ -112,7 +112,7 @@ end
 
 ### For a free module F = R^r over R = P/I, this returns a lifting map 
 # to the module P^r. Note that this is not a homomorphism of modules. 
-@attr function _lifting_map(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _lifting_map(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   FP = _poly_module(F)
   function my_lift(v::FreeModElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")
@@ -125,7 +125,7 @@ end
 
 ### To a free module over R = P/I, return the free module over R 
 # in the same number of generators
-@attr function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R) # the polynomial ring
   r = rank(F)
@@ -135,7 +135,7 @@ end
 
 ### Return the canonical projection FP -> F from the P-module FP to the 
 # R-module F.
-@attr function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _poly_module_restriction(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R)
   FP = _poly_module(F)
@@ -143,7 +143,7 @@ end
 end
 
 ### Return the same module, but as a SubquoModule over the polynomial ring
-@attr function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _as_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   R = base_ring(F)
   P = base_ring(R)
   I = modulus(R)
@@ -166,14 +166,14 @@ end
 end
 
 ### Return an isomorphism with _as_poly_module(F)
-@attr function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _iso_with_poly_module(F::FreeMod{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   return hom(M, F, gens(F), x->(base_ring(F)(x)))
 end
 
 ### Return the preimage of M under the canonical projection P^r -> R^r 
 # for R^r the ambient_free_module of M.
-@attr function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _poly_module(M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
   v = elem_type(FP)[_lifting_map(F)(g) for g in gens(M)] 
@@ -182,7 +182,7 @@ end
   return MP
 end
 
-@attr function _as_poly_module(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _as_poly_module(M::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   F = ambient_free_module(M) 
   FP = _poly_module(F)
   v = [_lifting_map(F)(g) for g in ambient_representatives_generators(M)] 
@@ -192,12 +192,12 @@ end
   return MP
 end
 
-@attr function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _iso_with_poly_module(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   return hom(M, F, gens(F), x->(base_ring(F)(x)))
 end
 
-@attr function _lifting_iso(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
+@attr Any function _lifting_iso(F::SubquoModule{T}) where {T<:MPolyQuoRingElem}
   M = _as_poly_module(F)
   function my_lift(v::SubquoModuleElem{T}) where {T<:MPolyQuoRingElem}
     parent(v) === F || error("element does not have the right parent")

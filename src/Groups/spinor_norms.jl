@@ -434,7 +434,7 @@ end
 
 
 @doc raw"""
-    image_in_Oq(L::ZZLat) -> AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism
+    image_in_Oq(L::ZZLat) -> AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism
 
 Return the image of $O(L) \to O(L^\vee / L)$.
 
@@ -466,7 +466,7 @@ julia> order(Oq)
 12
 ```
 """
-@attr function image_in_Oq(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_in_Oq(L::ZZLat)
   @req is_integral(L) "L must be integral"
   flag = is_even(L)
 
@@ -490,7 +490,7 @@ julia> order(Oq)
   return sub(Oq, unique!([Oq(g; check = false) for g in gens(G)]))
 end
 
-@attr function image_in_Oq_signed(L::ZZLat)::Tuple{AutomorphismGroup{Hecke.TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{Hecke.TorQuadModule}, AutomorphismGroup{Hecke.TorQuadModule}}}
+@attr Tuple{AutomorphismGroup{TorQuadModule}, GAPGroupHomomorphism{AutomorphismGroup{TorQuadModule}, AutomorphismGroup{TorQuadModule}}} function image_in_Oq_signed(L::ZZLat)
   @req is_integral(L) "L must be integral"
   @req rank(L) > 2 && !is_definite(L) "L must be indefinite of rank at least 3"
   flag = is_even(L)

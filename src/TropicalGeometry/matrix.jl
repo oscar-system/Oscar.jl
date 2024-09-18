@@ -74,3 +74,63 @@ function is_tropically_generic(A::MatrixElem{<:TropicalSemiringElem})
     return helper(transpose(A),nca,nra)
   end
 end
+
+@doc raw"""
+    do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+
+Check if the tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
+
+# Examples
+```jldoctest
+julia> A = tropical_semiring()[0 0 1; 0 1 0; 0 3 3]
+[(0)   (0)   (1)]
+[(0)   (1)   (0)]
+[(0)   (3)   (3)]
+
+julia> Oscar.do_rows_form_polytrope(A)
+true
+```
+"""
+function do_rows_form_polytrope(A::MatrixElem{<:TropicalSemiringElem})
+  #=Convert the matrix of tropical numbers into matrix of rational numbers in
+  to pass it into polymake's tropical convex hull function =#
+  ncA = ncols(A)
+  nrA = nrows(A)
+  QQA = zero_matrix(QQ,nrA,ncA)
+  for i in 1:nrA
+    for j in 1:ncA
+      iszero(A[i,j]) && return false
+      QQA[i,j] += QQ(A[i,j])
+    end
+  end
+  #Compute the tropical convex hull 
+  tempP = Polymake.tropical.Polytope{convention(A)}(POINTS=QQA)
+  #=Compute the tropical convex hull again, this time with 
+  the minimal generating set of vertices of tropical polytope=#
+  P = Polymake.tropical.Polytope{convention(A)}(POINTS=tempP.VERTICES)
+  return length(P.POLYTOPE_MAXIMAL_COVECTORS) == 1
+end
+
+@doc raw"""
+    do_rows_form_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+
+Check if the `minOrMax`-tropical convex hull of the rows of `A` is ordinarily convex (ie a polytrope)
+
+# Examples
+```jldoctest
+julia> A = QQ[0 0 1; 0 1 0; 0 3 3]
+[0   0   1]
+[0   1   0]
+[0   3   3]
+
+julia> Oscar.do_rows_form_polytrope(A, min)
+true
+```
+"""
+function do_rows_form_polytrope(A::QQMatrix, minOrMax::Union{typeof(min),typeof(max)}=min)
+  tempP = Polymake.tropical.Polytope{minOrMax}(POINTS=A)
+  #=Compute the tropical convex hull again, this time with 
+  the minimal generating set of vertices of tropical polytope=#
+  P = Polymake.tropical.Polytope{minOrMax}(POINTS=tempP.VERTICES)
+  return length(P.POLYTOPE_MAXIMAL_COVECTORS) == 1
+end

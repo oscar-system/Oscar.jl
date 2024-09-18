@@ -158,7 +158,7 @@ julia> characteristic(tbl % 2)
 characteristic(tbl::GAPGroupCharacterTable) = characteristic(Int, tbl)
 
 function characteristic(::Type{T}, tbl::GAPGroupCharacterTable) where T <: IntegerUnion
-    return T(tbl.characteristic)
+    return T(tbl.characteristic)::T
 end
 
 
@@ -241,7 +241,7 @@ julia> [length(c) for c in conjugacy_classes(tbl)] == class_lengths(tbl)
 true
 ```
 """
-@attr function conjugacy_classes(tbl::GAPGroupCharacterTable)
+@attr Any function conjugacy_classes(tbl::GAPGroupCharacterTable)
     G = group(tbl)
 
     # If `GapObj(tbl)` does not yet store conjugacy classes
@@ -1232,6 +1232,8 @@ end
 #TODO: cache the values once they are known?
 
 Base.iterate(tbl::GAPGroupCharacterTable, state = 1) = state > nrows(tbl) ? nothing : (tbl[state], state+1)
+
+Base.eltype(::Type{GAPGroupCharacterTable}) = GAPGroupClassFunction
 
 """
     mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
@@ -2346,6 +2348,8 @@ restrict(chi::GAPGroupClassFunction, H::Union{GAPGroup, FinGenAbGroup}) = restri
 Base.length(chi::GAPGroupClassFunction) = length(GapObj(chi))
 
 Base.iterate(chi::GAPGroupClassFunction, state = 1) = state > length(GapObj(chi)) ? nothing : (chi[state], state+1)
+
+Base.eltype(::Type{GAPGroupClassFunction}) = QQAbFieldElem{AbsSimpleNumFieldElem}
 
 @doc raw"""
     degree(::Type{T} = QQFieldElem, chi::GAPGroupClassFunction)

@@ -142,9 +142,6 @@ end
 
 Construct the tropical hypersurface dual to a regular subdivision `Delta` in convention `minOrMax`. To be precise, the tropical hypersurface of the tropical polynomial with exponent vectors `points(Delta)` and coefficients `min_weight(Delta)` (min-convention) or `-min_weight(Delta)` (max-convention).  If `weighted_polyhedral_complex==true`, will not cache any extra information.
 
-!!! warning
-    There is a known bug when the subdivision is too simple, e.g., `tropical_hypersurface(subdivision_of_points(simplex(2),[0,0,1]))` see issue 2628.
-
 # Examples
 ```jldoctest
 julia> Delta = subdivision_of_points([0 0; 1 0; 0 1; 2 0],[0,0,0,1])
@@ -165,7 +162,7 @@ function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeo
     # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
     # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
     coeffs = TT.(coeffs; preserve_ordering=true)
-    _,x = polynomial_ring(TT,length(first(expvs)))
+    _,x = polynomial_ring(TT,length(first(expvs)); cached=false)
     tropf = sum([c*prod(x.^alpha) for (c,alpha) in zip(coeffs,expvs)])
     TropH = tropical_hypersurface(tropf)
 

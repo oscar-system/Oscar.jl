@@ -244,7 +244,7 @@ The first return value is the basis of the ambient space of `L`.
 The second consists of additional generators for `L` coming from torsion sections.
 The third is ``L``.
 """
-@attr function algebraic_lattice(X::EllipticSurface)
+@attr Any function algebraic_lattice(X::EllipticSurface)
   return _algebraic_lattice(X,X.MWL)
 end
 
@@ -335,7 +335,7 @@ end
 
 Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
 """
-@attr function mordell_weil_torsion(S::EllipticSurface)
+@attr Any function mordell_weil_torsion(S::EllipticSurface)
   E = generic_fiber(S)
   O = E([0,1,0])
   N = trivial_lattice(S)[2]
@@ -729,7 +729,7 @@ Internal function. Returns a list consisting of:
 - gram matrix
 - fiber_components without multiplicities
 """
-@attr function _trivial_lattice(S::EllipticSurface)
+@attr Any function _trivial_lattice(S::EllipticSurface)
   #=
   inc_Y = S.inc_Y
   X = codomain(inc_Y)
@@ -977,7 +977,7 @@ function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors
   return fiber_components
 end
   
-@attr function exceptional_divisors(S::EllipticSurface)
+@attr Any function exceptional_divisors(S::EllipticSurface)
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
   for E in S.ambient_exceptionals
@@ -1028,27 +1028,26 @@ function irreducible_fiber(S::EllipticSurface)
   sing = reduce(append!,r, init=[])
   pt = k.([0,0]) # initialize
   found = false
-  if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
-    pt = k.([1, 0])
-    found = true
-  else
-    if is_finite(k)
-      for i in k
-        if !(i in sing)  # true if the fiber over [i,1] is irreducible
-          pt = k.([i,1])
-          found = true
-          break
-        end
+  if is_finite(k)
+    for i in k
+      if !(i in sing)  # true if the fiber over [i,1] is irreducible
+        pt = k.([i,1])
+        found = true
+        break
       end
-    else
-      i = k(0)
-      while true
-        i = i+1
-        if !(i in sing)
-          pt = k.([i,1])
-          found = true
-          break
-        end
+    end
+    if !found && (degree(d) >= 12*euler_characteristic(S) - 1)  # irreducible at infinity?
+      pt = k.([1, 0])
+      found = true
+    end
+  else
+    i = k(0)
+    while true
+      i = i+1
+      if !(i in sing)
+        pt = k.([i,1])
+        found = true
+        break
       end
     end
   end
@@ -1107,7 +1106,7 @@ end
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
+@attr Any zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
 
 ################################################################################
 #
@@ -1517,6 +1516,12 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
+@doc raw"""
+    basis_representation(X::EllipticSurface, D::WeilDivisor)
+
+Return the vector representing the numerical class of `D` 
+with respect to the basis of the ambient space of `algebraic_lattice(X)`.
+"""
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
   basis_ambient,_, NS = algebraic_lattice(X)
   G = gram_matrix(ambient_space(NS))
@@ -1524,6 +1529,7 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   for i in 1:n
+    @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
     v[i] = intersect(basis_ambient[i], D)
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"

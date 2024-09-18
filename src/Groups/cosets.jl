@@ -317,7 +317,7 @@ struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: Abst
    X::GapObj               # underlying *right* transversal in GAP
 end
 
-GAP.julia_to_gap(T::SubgroupTransversal) = T.X
+GAP.julia_to_gap(T::SubgroupTransversal, d::IdDict{Any,Any} = IdDict(); recursive::Bool = false) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
