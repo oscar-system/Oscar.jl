@@ -5,9 +5,9 @@ export exceptional_prime_divisor
 @doc raw"""
     underlying_morphism(bl::ToricBlowdownMorphism)
 
-Return the underlying toric morphism of a toric blowup.
-Access to other attributes such as `domain`, `codomain`, `covering_morphism`
-are executed via `underlying_morphism`.
+Return the underlying toric morphism of a toric blowup. Access to other
+attributes such as `domain`, `codomain`, `covering_morphism` are
+executed via `underlying_morphism`.
 
 # Examples
 ```jldoctest
@@ -28,7 +28,8 @@ underlying_morphism(bl::ToricBlowdownMorphism) = bl.toric_morphism
 @doc raw"""
     index_of_new_ray(bl::ToricBlowdownMorphism)
 
-Return the index of the new ray used in the construction of the toric blowup.
+Return the index of the new ray used in the construction of the toric
+blowup.
 
 # Examples
 ```jldoctest
@@ -48,7 +49,8 @@ index_of_new_ray(bl::ToricBlowdownMorphism) = bl.index_of_new_ray
 @doc raw"""
     center_data(bl::ToricBlowdownMorphism)
 
-Returns the ideal, ideal sheaf or ray that was used to construct the morphism.
+Returns the ideal, ideal sheaf or ray that was used to construct the
+morphism.
 
 # Examples
 ```jldoctest
@@ -73,7 +75,8 @@ end
 @doc raw"""
     center_unnormalized(bl::ToricBlowdownMorphism)
 
-Returns an ideal sheaf `I` such that the normalization of the blowup along `I` gives the morphism `bl`.
+Returns an ideal sheaf `I` such that the normalization of the blowup
+along `I` gives the morphism `bl`.
 
 # Examples
 ```jldoctest
@@ -113,7 +116,10 @@ end
 @doc raw"""
     exceptional_prime_divisor(bl::ToricBlowdownMorphism)
 
-Return the exceptional prime Weil divisor (as a toric divisor) of the ray used to construct the toric blowup. Note that this divisor need not be Cartier and this divisor need not coincide with the locus where the morphism is not an isomorphism.
+Return the exceptional prime Weil divisor (as a toric divisor) of the
+ray used to construct the toric blowup. Note that this divisor need not
+be Cartier and this divisor need not coincide with the locus where the
+morphism is not an isomorphism.
 
 # Examples
 ```jldoctest

@@ -66,10 +66,9 @@ end
 Blow up the toric variety by subdividing the fan of the variety with the
 provided new ray. This function returns the corresponding morphism.
 
-Note that this ray must be a primitive element in the lattice Z^d that
-does not coincide with any existing ray, with d the dimension of the
-fan. In particular, it is currently impossible to blow up along a ray
-which corresponds to a non-Q-Cartier divisor.
+Note that this ray must be a primitive element in the lattice Z^d, with
+d the dimension of the fan. In particular, it is currently impossible to
+blow up along a ray which corresponds to a non-Q-Cartier divisor.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
 the exceptional prime divisor. As optional argument one can supply a

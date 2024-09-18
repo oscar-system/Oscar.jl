@@ -944,8 +944,9 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   J = original_ideal_sheaf(I)
   @assert any(x->x===U, affine_charts(X))
   if f isa ToricBlowdownMorphism
-    # This is not actually an exceptional divisor of a blowup.
+    # This is not actually an exceptional divisor of a blowup along an ideal sheaf.
     # This is the prime Weil divisor corresponding to the added/chosen ray.
+    # This is the exceptional divisor of a blowup along a certain Rees algebra.
     E = exceptional_prime_divisor(f)
   else
     E = exceptional_divisor(f)
