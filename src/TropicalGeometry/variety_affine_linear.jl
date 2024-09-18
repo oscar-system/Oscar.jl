@@ -16,7 +16,7 @@ function tropical_variety_affine_linear(I::MPolyIdeal,nu::TropicalSemiringMap; w
     end
 
     # input inhomogeneous, homogenise first
-    Ih = homogenize_pre_tropicalization(I)
+    Ih,_,_ = homogenize_pre_tropicalization(I)
     TropLh = tropical_linear_space(Ih,nu,weighted_polyhedral_complex_only=true)
     return dehomogenize_post_tropicalization(TropLh)
 end
