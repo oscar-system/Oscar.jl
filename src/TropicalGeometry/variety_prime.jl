@@ -14,7 +14,7 @@ function tropical_variety_prime(I::MPolyIdeal, nu::TropicalSemiringMap; weighted
         return tropical_variety_prime_singular(I,nu; weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     end
 
-    Ih = homogenize_pre_tropicalization(I)
+    Ih,_,_ = homogenize_pre_tropicalization(I)
     TropIh = tropical_variety_prime_singular(Ih,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     return dehomogenize_post_tropicalization(TropIh)
 end
