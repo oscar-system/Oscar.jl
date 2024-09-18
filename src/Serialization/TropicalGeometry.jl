@@ -5,72 +5,69 @@
 ## elements
 @register_serialization_type TropicalSemiringElem uses_params
 
-function save_type_params(s::SerializerState, x::T) where {T <: TropicalSemiringElem}
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, parent(x), :params)
-  end
-end
-
-
-function load_type_params(s::DeserializerState, ::Type{<:TropicalSemiringElem})
-  return load_typed_object(s)
-end
-
 function save_object(s::SerializerState, x::TropicalSemiringElem)
   str = string(x)
   save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem}, params::TropicalSemiring)
+function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem}, params::Vector)
+  t_ring = params[end]
   load_node(s) do str
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
-      return inf(params)
+      return inf(t_ring)
     else
-      # looks like (q)
-      return params(load_object(s, QQFieldElem))
+      return t_ring(load_object(s, QQFieldElem))
     end
   end
 end
 
-# Tropical Hypersurfaces
-@register_serialization_type TropicalHypersurface uses_id
+function load_object(s::DeserializerState, T::Type{<:TropicalSemiringElem},
+                     parent_ring::TropicalSemiring)
+  return load_object(s, T, get_parents(parent_ring))
+end
 
-function save_object(s::SerializerState, t_surf::T) where T <: TropicalHypersurface
+# Tropical Hypersurfaces
+@register_serialization_type TropicalHypersurface uses_id uses_params
+
+type_params(t::T) where T <: TropicalHypersurface = type_params(tropical_polynomial(t))
+
+function save_object(s::SerializerState, t::T) where T <: TropicalHypersurface
   save_data_dict(s) do
-    save_typed_object(s, tropical_polynomial(t_surf), :tropical_polynomial)
+    save_object(s, tropical_polynomial(t), :tropical_polynomial)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface})
-  polynomial = load_typed_object(s, :tropical_polynomial)
+function load_object(s::DeserializerState, ::Type{<: TropicalHypersurface},
+                     params::MPolyRing)
+  polynomial = load_object(s, MPolyRingElem, params, :tropical_polynomial)
   return tropical_hypersurface(polynomial)
 end
 
 # Tropical Curves
-@register_serialization_type TropicalCurve uses_id
+@register_serialization_type TropicalCurve uses_id uses_params
 
-function save_object(s::SerializerState, t_curve::TropicalCurve{M, EMB}) where {M, EMB}
+type_params(t::TropicalCurve{M, true}) where M = type_params(polyhedral_complex(t))
+# here to handle annnoying edge case
+type_params(t::TropicalCurve{M, false}) where M = "graph"
+
+function save_object(s::SerializerState, t::TropicalCurve{M, EMB}) where {M, EMB}
   save_data_dict(s) do
     if EMB
-      save_typed_object(s, polyhedral_complex(t_curve), :polyhedral_complex)
-      save_object(s, true, :is_embedded)
+      save_object(s, polyhedral_complex(t), :polyhedral_complex)
     else
-      save_typed_object(s, graph(t_curve), :graph)
-      save_object(s, false, :is_embedded)
+      save_object(s, graph(t), :graph)
     end
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: TropicalCurve})
-  EMB = load_object(s, Bool, :is_embedded)
-  if EMB
-    return tropical_curve(
-      load_typed_object(s, :polyhedral_complex)
-    )
-  else
-    return tropical_curve(
-      load_typed_object(s, :graph)
-    )
-  end
+function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, params::Field)
+  return tropical_curve(
+    load_object(s, PolyhedralComplex, params, :polyhedral_complex)
+  )
+end
+
+function load_object(s::DeserializerState, ::Type{<: TropicalCurve}, ::String)
+  return tropical_curve(
+    load_object(s, Graph{Undirected}, :graph)
+  )
 end

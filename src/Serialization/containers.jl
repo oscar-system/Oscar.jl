@@ -5,19 +5,19 @@
 
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 
-function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T}}
-  save_data_dict(s) do
-    save_object(s, encode_type(S), :name)
-    if serialize_with_params(T) && !isempty(obj)
-      if !(T <: MatVecType) && hasmethod(parent, (T,))
-        parents = parent.(obj)
-        parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
-        @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
-      end
-      save_type_params(s, obj[1], :params)
-    else
-      save_object(s, encode_type(T), :params)
-    end
+function type_params(obj::S) where {T, S <:MatVecType{T}}
+  if isempty(obj)
+    return T
+  end
+
+  if !(T <: MatVecType) && hasmethod(type_params, (T,))
+    params = type_params.(obj)
+    params_all_equal = all(map(x -> isequal(first(params), x), params))
+    @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+
+    return params[1]
+  else
+    return T
   end
 end
 

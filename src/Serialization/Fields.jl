@@ -3,7 +3,11 @@
 function get_parents(parent_ring::Field)
   # we have reached the end of the parent references and the current ring
   # can be found as the base_ring of the previous parent without ambiguity
-  if !serialize_with_id(parent_ring)
+
+  # TropicalSemiring is a field apparently?
+  if parent_ring isa TropicalSemiring
+    return RingMatSpaceUnion[parent_ring]
+  elseif !serialize_with_id(parent_ring)
     return RingMatSpaceUnion[]
   end
 
@@ -117,18 +121,18 @@ end
 ################################################################################
 # SimpleNumField
 
-@register_serialization_type Hecke.RelSimpleNumField uses_id
-@register_serialization_type AbsSimpleNumField uses_id
+@register_serialization_type Hecke.RelSimpleNumField uses_id uses_params
+@register_serialization_type AbsSimpleNumField uses_id uses_params
+
+type_params(obj::SimpleNumField) = defining_polynomial(obj)
 
 function save_object(s::SerializerState, K::SimpleNumField)
   save_data_dict(s) do
-    save_typed_object(s, defining_polynomial(K), :def_pol)
     save_object(s, var(K), :var)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SimpleNumField})
-  def_pol = load_typed_object(s, :def_pol)
+function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, def_pol::PolyRingElem)
   var = load_node(s, :var) do var
     Symbol(var)
   end
@@ -138,7 +142,7 @@ end
 
 ################################################################################
 # FqNmodfinitefield
-@register_serialization_type fqPolyRepField uses_id
+@register_serialization_type fqPolyRepField uses_id use_params
 
 function save_object(s::SerializerState, K::fqPolyRepField)
   save_data_dict(s) do
@@ -146,8 +150,7 @@ function save_object(s::SerializerState, K::fqPolyRepField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: fqPolyRepField})
-  def_pol = load_typed_object(s, :def_pol)
+function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, def_pol::PolyringElem)
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end

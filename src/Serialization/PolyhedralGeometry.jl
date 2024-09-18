@@ -32,12 +32,7 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, coefficient_field(obj), :params)
-  end
-end
+type_params(obj::T) where T<: PolyhedralObject = coefficient_field(obj)
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
@@ -51,10 +46,6 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
   save_data_dict(s) do
     save_typed_object(s, _polyhedral_object_as_dict(obj))
   end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
-  return load_typed_object(s)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},

@@ -173,10 +173,20 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
+
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
+
+function save_type_params(s::SerializerState, obj::T) where T
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_typed_object(s, type_params(obj), :params)
+  end
+end
+
+load_type_params(s::DeserializerState, ::Type{<:T}) where T = load_typed_object(s)
 
 function save_attrs(s::SerializerState, obj::T) where T
   if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
@@ -344,10 +354,8 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
           Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer(
             worker_id_from_socket(s.io)
           ))
-          println("after save")
         end
         function Oscar.deserialize(s::Oscar.AbstractSerializer, T::Type{<:$ex})
-          println("deserializing", T)
           Oscar.load(s.io; serializer=Oscar.IPCSerializer(
             worker_id_from_socket(s.io)
           ))
@@ -503,10 +511,8 @@ julia> load("/tmp/fourtitwo.mrdi")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
               serializer::OscarSerializer = JSONSerializer()) where T
-  println("open serializer")
   s = serializer_open(io, serializer,
                       with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}())
-  println("save_data dict")
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)

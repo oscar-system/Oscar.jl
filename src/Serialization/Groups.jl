@@ -90,24 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
-  # this has just been more or less copied from the Rings section
-  # and might be removed from this file during a future refactor
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    parent_p = parent(p)
-    if serialize_with_id(parent_p)
-      parent_ref = save_as_ref(s, parent_p)
-      save_object(s, parent_ref, :params)
-    else
-      save_typed_object(s, parent_p, :params)
-    end
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
-  return load_typed_object(s)
-end
+type_params(p::T) where T <: GrpElemUnionType = parent(p)
 
 ##############################################################################
 # PermGroup

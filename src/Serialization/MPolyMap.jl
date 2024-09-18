@@ -1,20 +1,10 @@
 @register_serialization_type MPolyAnyMap uses_params
 
-function save_type_params(s::SerializerState, phi::T) where T <: MPolyAnyMap
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-
-    save_data_dict(s, :params) do
-      save_typed_object(s, domain(phi), :domain)
-      save_typed_object(s, codomain(phi), :codomain)
-    end
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:MPolyAnyMap})
-  d = load_typed_object(s, :domain)
-  c = load_typed_object(s, :codomain)
-  return (d, c)
+function type_params(phi::MPolyAnyMap)
+  return Dict(
+    :domain => domain(phi),
+    :codomain => codomain(phi)
+  )
 end
 
 function save_object(s::SerializerState, phi::MPolyAnyMap)
@@ -29,9 +19,9 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyAnyMap},
-                     params::Tuple{MPolyRing, MPolyRing})
-  d = params[1]
-  c = params[2]
+                     params::Dict) 
+  d = params[:domain]
+  c = params[:codomain]
   imgs = load_object(s, Vector, c, :images)
 
   if haskey(s, :coeff_map)

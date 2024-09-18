@@ -2,10 +2,12 @@
 # Common union types
 
 # this will need a better name at some point
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem, SMat}
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
+                               SMat, TropicalSemiringElem}
 
 # this union will also need a better name at some point
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssociativeAlgebra}
+const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
+                                FreeAssociativeAlgebra, TropicalSemiring}
 
 ################################################################################
 # Utility functions for ring parent tree
@@ -14,11 +16,10 @@ const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssociativeAlgebr
 function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
   # we have reached the end of the parent references and the current ring
   # can be found as the base_ring of the previous parent without ambiguity
-  if !serialize_with_id(parent_ring)
+  if !serialize_with_id(parent_ring) 
     return RingMatSpaceUnion[]
   end
   base = base_ring(parent_ring)
-
   parents = get_parents(base)
   push!(parents, parent_ring)
   return parents
@@ -27,31 +28,10 @@ end
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
-function type_params(x::T) where T <: RingMatElemUnion
-  parent_x = parent(x)
-  serialize_with_id(parent_x) && return parent_x
-  return nothing
-end
-
-function save_type_params(s::SerializerState, x::T) where T <: RingMatElemUnion
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    parent_x = parent(x)
-    if serialize_with_id(parent_x)
-      parent_ref = save_as_ref(s, parent_x)
-      save_object(s, parent_ref, :params)
-    else
-      save_typed_object(s, parent_x, :params)
-    end
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:RingMatElemUnion})
-  return load_typed_object(s)
-end
+type_params(x::T) where T <: RingMatElemUnion = parent(x)
 
 # fix for polynomial cases
-function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion) 
+function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion)
   parents = get_parents(parent_ring)
   return load_object(s, T, parents)
 end
@@ -254,7 +234,6 @@ function load_object(s::DeserializerState,
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(base)
-
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
         c = nothing
@@ -302,17 +281,7 @@ const IdealOrdUnionType = Union{MPolyIdeal,
                                 IdealGens,
                                 MonomialOrdering}
 
-function save_type_params(s::SerializerState, x::T) where T <: IdealOrdUnionType
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    ref = save_as_ref(s, base_ring(x))
-    save_object(s, ref, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<: IdealOrdUnionType})
-  return load_type_params(s, RingElem)
-end
+type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
 
 function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
   save_object(s, gens(I))

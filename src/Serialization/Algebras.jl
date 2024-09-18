@@ -20,7 +20,7 @@ end
 # Free associative algebra element serialization
 @register_serialization_type FreeAssociativeAlgebraElem uses_params
 
-# see save_type_params in Rings
+# see type_params in Rings
 
 function save_object(s::SerializerState, f::FreeAssociativeAlgebraElem)
   save_data_array(s) do
