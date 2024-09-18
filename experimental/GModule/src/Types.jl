@@ -4,66 +4,93 @@ mutable struct GModuleHom{
     T2<:Any,
     RingMapType<:Any} <: Map{GModule{G, T1}, GModule{G, T2}}
 
-    GM1::GModule{G, T1}
-    GM2::GModule{G, T2}
-    module_map::Map{T1, T2}
+  GM1::GModule{G, T1}
+  GM2::GModule{G, T2}
+  module_map::MP
 
-    function GModuleHom(
-        M1::GModule{G, AbstractFreeMod},
-        M2::GModule{G, S},
-        a::Vector{ModuleElemType}
-        ) where {G, S<:ModuleFP, ModuleElemtype<:ModuleFPElem}
-        # Need to require that
-        #   1. Both GModules have the same group
-        #   2. The group action is respected
-        @assert M1.gT == M2.gT
-        r = new{G, typeof(M1.mT), S, Nothing}(M1, M2, FreeModuleHom(M1.mT, M2.mT, a))
+  function GModuleHom(
+    M1::GModule,
+    M2::GModule,
+    mp::Map;
+    check::Bool = false
+    ) 
+    # Need to require that
+    #   1. Both GModules have the same group
+    #   2. The group action is respected
+    @req M1.G === M2.G "groups need to be identical"
+    @req domain(mp) === M1.M && codomain(mp) === M2.M "map need to map 1st module into 2nd"
+    #not every hom is a G-Hom...that is what check is supposed to do - eventually
+    #see 2.
+    if check
+      @assert all(g->action(M1, g)*mp == mp*action(M2, g), gens(M1.G))
     end
 
-    function GModuleHom(
-        M1::GModule{G, AbstractFreeMod},
-        M2::GModule{G, S},
-        a::Vector{ModuleElemType},
-        h::RingMapType
-      ) where {G, S, ModuleElemType<:ModuleFPElem, RingMapType}
-      @assert M1.gT == M2.gT
-      r = new{G, typeof(M1.mT), S, RingMapType}(M1, M2, FreeModuleHom(M1.mT, M2.mT, a, h))
-    end
+    return new{typeof(M1.G), typeof(M1.M), typeof(M2.M), typeof(mp)}(M1, M2, mp)
+  end
 end
 
-
-function GModuleHom(
-    M1::GModule{G, AbstractFreeMod{T}},
-    M2::GModule{G, S},
-    mat::MatElem{T}) where {T<:RingElem, S<:AbstractFreeMod}
-    @assert M1.gT == M2.gT
-    r = new{G, typeof(M1.mT), S, Nothing}(M1, M2, FreeModuleHom(M1.mT, m2.mT, mat))
+function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: AbstractAlgebra.Group
+  return GModuleHom(M1, M2, mp; check) 
 end
 
-function GModuleHom(
-    M1::GModule{G, AbstractFreeMod{T}},
-    M2::GModule{G, S},
-    mat::MatElem{T}) where {T<:RingElem, S<:ModuleFP}
-    @assert M1.gT == M2.gT
-    r = new{G, typeof(M1.mT), S, Nothing}(M1, M2, FreeModuleHom(M1.mT, m2.mT, mat))
+function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: AbstractAlgebra.Group
+  return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check) 
 end
 
-function GModuleHom(
-    M1::GModule{G, AbstractFreeMod{T}},
-    M2::GModule{G, S},
-    mat::MatElem{T}, h::RingMapType) where {T<:RingElem, S<:AbstractFreeMod, RingMapType}
-    @assert M1.gT == M2.gT
-    r = new{G, typeof(M1.mT), S, Nothing}(M1, M2, FreeModuleHom(M1.mT, m2.mT, mat, h))
+domain(M::GModuleHom) = M.Gm1
+codomain(M::GModuleHom) = M.Gm2
+parent(M::GModuleHom) = Hecke.MapParent(domain(M), codomain(M), "homomorphisms")
+
+mutable struct GModuleElem{T}
+  parent::GModule
+  data::T
 end
 
-function GModuleHom(
-    M1::GModule{G, AbstractFreeMod{T}},
-    M2::GModule{G, S},
-    mat::MatElem{T}, h::RingMapType) where {T<:RingElem, S<:ModuleFP, RingMapType}
-    @assert M1.gT == M2.gT
-    r = new{G, typeof(M1.mT), S, Nothing}(M1, M2, FreeModuleHom(M1.mT, m2.mT, mat, h))
+parent(a::GModuleElem) = a.parent
+
+function (C::GModule)(a::Union{ModuleElem, FinGenAbGroupElem})
+  @req parent(a) === C.M "wrong parent for $a"
+  return GModuleElem(C, a)
 end
 
+function ==(a::GModuleElem, b::GModuleElem)
+  @req parent(a) === parent(b) "parents differ"
+  return a.data == b.data
+end
 
-domain(M::Map(GModuleHom)) = M.Gm1
-codomain(M::Map(GModuleHom)) = M.Gm2
+function hash(a::GModuleElem, u::UInt)
+  return hash(a.data, u)
+end
+  
+function +(a::GModuleElem, b::GModuleElem)
+  @req parent(a) === parent(b) "parents differ"
+  return GModuleElem(parent(a), a.data + b.data)
+end
+
+function -(a::GModuleElem, b::GModuleElem)
+  @req parent(a) === parent(b) "parents differ"
+  return GModuleElem(parent(a), a.data - b.data)
+end
+
+function -(a::GModuleElem)
+  return GModuleElem(parent(a), -a.data)
+end
+
+function *(a::GModuleElem, g::GroupElem)
+  @req parent(a).G === parent(g) "group element has wrong parent"
+  return GModuleElem(parent(a), action(parent(a), g, a.data))
+end
+
+function (A::GModuleHom)(a::GModuleElem)
+  @req parent(a) === domain(A) "element has wrong parent"
+  return GModuleElem(codomain(A), A.module_map(a))
+end
+
+function kernel(A::GModuleHom)
+  return sub(A, kernel(A.module_map)[2])
+end
+
+function image(A::GModuleHom)
+  return sub(A, image(A.module_map)[2])
+end
+
