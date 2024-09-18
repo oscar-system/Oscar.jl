@@ -1,6 +1,7 @@
 isdefined(Oscar, :word) || function word end
 
 include("Cohomology.jl")
+include("Types.jl")
 include("GaloisCohomology.jl")
 include("GrpExt.jl")
 include("Misc.jl")
