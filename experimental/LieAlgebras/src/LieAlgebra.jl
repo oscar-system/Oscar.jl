@@ -699,11 +699,7 @@ function _root_system_and_chevalley_basis(
       alpha_j in roots_simple
     ],
   )
-  R = root_system(cm; check=true) # TODO: disable check
-
-  # reorder the simple roots according to the Dynkin diagram.
-  # users usually expect this ordering, but it is not necessary for the root system.
-  _, ordering = root_system_type_with_ordering(R)
+  _, ordering = cartan_type_with_ordering(cm)
   permute!(roots_simple, ordering)
   cm = matrix(
     ZZ,
