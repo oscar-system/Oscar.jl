@@ -17,7 +17,8 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
     @req domain(mp) === M1.M && codomain(mp) === M2.M "map need to map 1st module into 2nd"
     #not every hom is a G-Hom...that is what check is supposed to do - eventually
     #see 2.
-    if check
+    if check #only works if mp is a morphism so that "*" and "==" are doing
+      #s.th. useful
       @assert all(g->action(M1, g)*mp == mp*action(M2, g), gens(M1.G))
     end
 
@@ -33,8 +34,8 @@ function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) wh
   return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check) 
 end
 
-domain(M::GModuleHom) = M.Gm1
-codomain(M::GModuleHom) = M.Gm2
+domain(M::GModuleHom) = M.GM1
+codomain(M::GModuleHom) = M.GM2
 parent(M::GModuleHom) = Hecke.MapParent(domain(M), codomain(M), "homomorphisms")
 
 mutable struct GModuleElem{T}
@@ -79,7 +80,7 @@ end
 
 function (A::GModuleHom)(a::GModuleElem)
   @req parent(a) === domain(A) "element has wrong parent"
-  return GModuleElem(codomain(A), A.module_map(a))
+  return GModuleElem(codomain(A), A.module_map(a.data))
 end
 
 function kernel(A::GModuleHom)

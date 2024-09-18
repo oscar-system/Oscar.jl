@@ -8,7 +8,6 @@ include("Misc.jl")
 
 module GModuleFromGap
 using Oscar
-using Hecke
 import Hecke: data
 
 #XXX: clash of names!
@@ -44,7 +43,7 @@ julia> C = gmodule(CyclotomicField, C);
 julia> h = subfields(base_ring(C), degree = 2)[1][2];
 
 julia> restriction_of_scalars(C, h)
-G-module for G acting on vector space of dimension 4 over number field
+(G-module for G acting on vector space of dimension 4 over number field, Map: C -> g-module for G acting on vector space of dimension 4 over number field)
 
 julia> restriction_of_scalars(C, QQ)
 G-module for G acting on vector space of dimension 8 over QQ
@@ -57,9 +56,15 @@ function restriction_of_scalars(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.F
   @assert codomain(phi) == base_ring(M)
   d = divexact(degree(codomain(phi)), degree(domain(phi)))
   F = free_module(domain(phi), dim(M)*d)
-  _, _, rep = relative_field(phi)
+  _, coord, rep = relative_field(phi)
 
-  return GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x in transpose(matrix(y))]...)) for y in M.ac])
+  D = GModule(F, group(M), [hom(F, F, hvcat(dim(M), [rep(x) for x in transpose(matrix(y))]...)) for y in M.ac])
+  #the blow-up function is not a "nice" module hom as tis is used
+  #to make from a K-Module to e.g. a QQ-module, so the map
+  #will be QQ-linear and we'd need to get QQ-gens from a K-module
+  #also: pre-image is not working (not implemented) (needs more info from
+  #relative_field)
+  return D, hom(M, D, MapFromFunc(M.M, D.M, x->D.M(vcat([coord(t) for t = x.v[1,:]]...))); check = false)
 end
 
 function restriction_of_scalars(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}}, ::QQField)
@@ -314,7 +319,7 @@ function maximal_submodule_bases(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.
   return res
 end
 
-function maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
+function Oscar.maximal_submodules(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   return [sub(M, s) for s = maximal_submodule_bases(M)]
 end
 
@@ -928,7 +933,8 @@ function Oscar.sub(C::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, m::MatElem{
 
   y = GAP.Globals.MTX.InducedActionSubmoduleNB(g, x)
   F = free_module(k, nrows(b))
-  return gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators]), hom(F, C.M, b)
+  D = gmodule(F, Group(C), [hom(F, F, matrix([preimage(h, x[i, j]) for i in 1:GAPWrap.NrRows(x), j in 1:GAPWrap.NrCols(x)])) for x = y.generators])
+  return D, hom(C, D, b)
   return b
 end
 
@@ -938,7 +944,8 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
   @assert codomain(f) == M.M
   S = domain(f)
   Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
-  return gmodule(S, M.G, Sac)
+  D = gmodule(S, M.G, Sac)
+  return D, hom(D, M, f)
 end
 
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
