@@ -113,6 +113,10 @@ end
   mktempdir() do path
     IP = projective_space(GF(29), 3)
     X = covered_scheme(IP)
+    test_save_load_roundtrip(path, X) do loaded
+      @test length(patches(default_covering(X))) == 4
+      @test length(gluings(default_covering(X))) == 16
+    end
     cov = default_covering(X)
     for U in affine_charts(X)
       for V in affine_charts(X)
@@ -129,3 +133,15 @@ end
 end
 
 
+@testset "covered schemes II" begin
+  mktempdir() do path
+    IA3 = affine_space(QQ, 3)
+    I = ideal(OO(IA3), gens(OO(IA3)))
+    pr = blow_up(IA3, I)
+    Y = domain(pr)
+    und = Oscar.underlying_morphism(pr)
+    test_save_load_roundtrip(path, und) do loaded
+      @test length(patches(default_covering(domain(und)))) == 3
+    end
+  end
+end

@@ -736,6 +736,19 @@ function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
   return MPolyQuoRing(R, I, o)
 end
 
+@register_serialization_type MPolyQuoRingElem uses_params
+
+function save_object(s::SerializerState, a::MPolyQuoRingElem)
+  save_object(s, lift(a))
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoRingElem}, prts::Vector)
+  Q = prts[end]::MPolyQuoRing
+  R = base_ring(Q)
+  rep = load_object(s, elem_type(R), R)
+  return Q(rep)
+end
+
 ### Serialization of Monomial orderings
 @register_serialization_type MonomialOrdering uses_params
 
@@ -891,31 +904,6 @@ function load_object(s::DeserializerState, ::Type{<:MPolyQuoLocRingElem}, prts::
 end
 
 ### Morphisms of the four types of rings
-
-#=
-@register_serialization_type MPolyAnyMap uses_id
-
-function save_object(s::SerializerState, phi::MPolyAnyMap)
-  save_data_dict(s) do
-    save_typed_object(s, domain(phi), :domain)
-    save_typed_object(s, codomain(phi), :codomain)
-    _has_coefficient_map(phi) && save_object(s, coefficient_map(phi), :coeff_map)
-    save_object(s, _images(phi), :img_gens)
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{<:MPolyAnyMap})
-  dom = load_typed_object(s, :domain)
-  cod = load_typed_object(s, :codomain)
-  img_gens = load_object(s, :img_gens)
-  if haskey(s, :coeff_map)
-    coeff_map = load_object(s, :coeff_map)
-    return hom(dom, cod, coeff_map, img_gens)
-  end
-  return hom(dom, cod, img_gens)
-end
-=#
-
 
 @register_serialization_type MPolyLocalizedRingHom uses_id
 
