@@ -1,12 +1,8 @@
-mutable struct GModuleHom{
-    G<:Any,
-    T1<:Any,
-    T2<:Any,
-    RingMapType<:Any} <: Map{GModule{G, T1}, GModule{G, T2}}
+mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, OscarMap, GModuleHom}
 
   GM1::GModule{G, T1}
   GM2::GModule{G, T2}
-  module_map::MP
+  module_map::Map{T1, T2}
 
   function GModuleHom(
     M1::GModule,
@@ -25,7 +21,7 @@ mutable struct GModuleHom{
       @assert all(g->action(M1, g)*mp == mp*action(M2, g), gens(M1.G))
     end
 
-    return new{typeof(M1.G), typeof(M1.M), typeof(M2.M), typeof(mp)}(M1, M2, mp)
+    return new{typeof(M1.G), typeof(M1.M), typeof(M2.M)}(M1, M2, mp)
   end
 end
 
