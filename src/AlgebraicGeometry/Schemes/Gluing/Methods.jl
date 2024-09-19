@@ -199,7 +199,7 @@ struct BaseChangeGluingData{T1, T2}
   patch_change2::AbsAffineSchemeMor
 end
 
-function _compute_gluing_base_change(gd::BaseChangeGluingData)
+function _compute_gluing(gd::BaseChangeGluingData)
   # extraction of the gluing data
   G = gd.G
   pc1 = gd.patch_change1
@@ -231,6 +231,6 @@ function base_change(phi::Any, G::AbsGluing;
     patch_change2::AbsAffineSchemeMor=base_change(phi, gluing_domains(G)[2])[2]  # the two gluing patches
   )
   gd = BaseChangeGluingData{typeof(phi), typeof(G)}(phi, G, patch_change1, patch_change2)
-  return LazyGluing(domain(patch_change1), domain(patch_change2), _compute_gluing_base_change, gd)
+  return LazyGluing(domain(patch_change1), domain(patch_change2), gd)
 end
 

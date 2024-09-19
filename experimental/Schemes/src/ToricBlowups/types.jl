@@ -4,21 +4,31 @@
 
 @attributes mutable struct ToricBlowdownMorphism{
   DomainType <: NormalToricVariety, 
-  CodomainType <: NormalToricVariety} <: AbsSimpleBlowdownMorphism{DomainType, CodomainType, ToricBlowdownMorphism}
+  CodomainType <: NormalToricVariety,
+  CenterDataType <: Union{
+    AbstractVector{<:IntegerUnion},
+    MPolyIdeal,
+    ToricIdealSheafFromCoxRingIdeal,
+    IdealSheaf,
+  },
+  CenterUnnormalizedType <: Union{
+    ToricIdealSheafFromCoxRingIdeal,
+    IdealSheaf,
+  },
+} <: AbsSimpleBlowdownMorphism{DomainType, CodomainType, ToricBlowdownMorphism}
 
   toric_morphism::ToricMorphism
   index_of_new_ray::Integer
-  center::Union{ToricIdealSheafFromCoxRingIdeal, IdealSheaf}
-  exceptional_divisor::ToricDivisor
+  center_data::CenterDataType
+  center_unnormalized::CenterUnnormalizedType
+  exceptional_prime_divisor::ToricDivisor
 
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, center::ToricIdealSheafFromCoxRingIdeal, new_ray::AbstractVector{<:IntegerUnion})
-    bl = ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray)
-    bl.center = center
-    return bl
-  end
-
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion})
-
+  function _toric_blowdown_morphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+    AbstractVector{<:IntegerUnion},
+    MPolyIdeal,
+    ToricIdealSheafFromCoxRingIdeal,
+    IdealSheaf,
+  }
     # Compute position of new ray
     new_rays = matrix(ZZ, rays(new_variety))
     position_new_ray = nothing
@@ -42,8 +52,40 @@
     @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
 
     # Construct the toric morphism and construct the object
-    bl = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return new{typeof(domain(bl)), typeof(codomain(bl))}(bl, position_new_ray)
+    bl_toric = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
+    return bl_toric, position_new_ray, center_data
+  end
+  
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
+    AbstractVector{<:IntegerUnion},
+    MPolyIdeal,
+    ToricIdealSheafFromCoxRingIdeal,
+    IdealSheaf,
+  }
+    bl_toric, position_new_ray, center_data = _toric_blowdown_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl = new{
+      typeof(domain(bl_toric)),
+      typeof(codomain(bl_toric)),
+      typeof(center_data),
+      typeof(center_unnormalized),
+    }(bl_toric, position_new_ray, center_data, center_unnormalized)
+    return bl
+  end
+  
+  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+    AbstractVector{<:IntegerUnion},
+    MPolyIdeal,
+    ToricIdealSheafFromCoxRingIdeal,
+    IdealSheaf,
+  }
+    bl_toric, position_new_ray, center_data = _toric_blowdown_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl = new{
+      typeof(domain(bl_toric)),
+      typeof(codomain(bl_toric)),
+      typeof(center_data),
+      IdealSheaf{NormalToricVariety, AbsAffineScheme, Ideal, Map},
+    }(bl_toric, position_new_ray, center_data)
+    return bl
   end
 end
 

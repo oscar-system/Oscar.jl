@@ -8,10 +8,10 @@
 #   symbols(L::MyLieAlgebra) -> Vector{Symbol}
 #   bracket(x::MyLieAlgebraElem{C}, y::MyLieAlgebraElem{C}) -> MyLieAlgebraElem{C}
 #   Base.show(io::IO, x::MyLieAlgebra)
-# If the subtype supports root systems:
 #   has_root_system(::MyLieAlgebra) -> Bool
 #   root_system(::MyLieAlgebra) -> RootSystem
-#   chevalley_basis(L::MyLieAlgebra) -> NTuple{3,Vector{elem_type(L)}}
+#   chevalley_basis(L::MyLieAlgebra{C}) -> NTuple{3,Vector{MyLieAlgebraElem{C}}}
+#   set_root_system_and_chevalley_basis!(L::MyLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{MyLieAlgebraElem{C}}}}})
 
 ###############################################################################
 #
@@ -434,6 +434,310 @@ end
 
 ###############################################################################
 #
+#   Adjoint elements
+#
+###############################################################################
+
+@attr Vector{dense_matrix_type(C)} function adjoint_matrices(
+  L::LieAlgebra{C}
+) where {C<:FieldElem}
+  return map(1:dim(L)) do i
+    x = basis(L, i)
+    A = zero_matrix(coefficient_ring(L), dim(L), dim(L))
+    for (j, bj) in enumerate(basis(L))
+      A[j, :] = _matrix(bracket(x, bj))
+    end
+    return A
+  end
+end
+
+function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  L = parent(x)
+  return sum(
+    c * g for (c, g) in zip(coefficients(x), adjoint_matrices(L));
+    init=zero_matrix(coefficient_ring(L), dim(L), dim(L)),
+  )
+end
+
+function _adjoint_matrix(S::LieSubalgebra{C}, x::LieAlgebraElem{C}) where {C<:FieldElem}
+  L = parent(x)
+  @req base_lie_algebra(S) === L "Incompatible Lie algebras"
+  A = zero_matrix(coefficient_ring(L), dim(S), dim(S))
+  for (i, bi) in enumerate(basis(S))
+    A[i, :] = coefficient_vector(bracket(x, bi), S)
+  end
+  return A
+end
+
+@attr dense_matrix_type(C) function killing_matrix(L::LieAlgebra{C}) where {C<:FieldElem}
+  R = coefficient_ring(L)
+  A = zero_matrix(R, dim(L), dim(L))
+  for (i, adxi) in enumerate(adjoint_matrices(L))
+    for (j, adxj) in enumerate(adjoint_matrices(L))
+      i > j && continue # killing form is symmetric
+      val = tr(adxi * adxj)
+      A[j, i] = A[i, j] = val
+    end
+  end
+  return A
+end
+
+@doc raw"""
+    is_ad_nilpotent(x::LieAlgebraElem{C}) -> Bool
+
+Return whether `x` is ad-nilpotent, i.e. whether the linear operator $\mathrm{ad}(x)$ is nilpotent.
+"""
+function is_ad_nilpotent(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  return is_nilpotent(adjoint_matrix(x))
+end
+
+###############################################################################
+#
+#   Root system detection
+#
+###############################################################################
+
+@doc raw"""
+    any_non_ad_nilpotent_element(L::LieAlgebra{C}) -> LieAlgebraElem{C}
+
+Return an element of `L` that is not ad-nilpotent, or the zero element if all elements are ad-nilpotent.
+
+The used algorithm is described in [GIR96; Ch. 3](@cite).
+"""
+function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
+  if dim(L) <= 1
+    # L is abelian and hence nilpotent
+  elseif characteristic(L) == 0
+    for x in basis(L)
+      !is_ad_nilpotent(x) && return x
+    end
+    for (i, x) in enumerate(basis(L))
+      for (j, y) in enumerate(basis(L))
+        i > j && continue
+        xy = x * y
+        !is_ad_nilpotent(xy) && return xy
+      end
+    end
+  else # characteristic > 0
+    x = basis(L, 1)
+    !is_ad_nilpotent(x) && return x
+    K = sub(L, [x]; is_basis=true)
+    while dim(K) < dim(L)
+      # find an element b in L \ K with [b,K]⊆K
+      N = normalizer(L, K)
+      b = basis(N, findfirst(b -> !(b in K), basis(N)))
+      !is_ad_nilpotent(b) && return b
+      K = sub(L, [basis(K); b]; is_basis=true)
+    end
+  end
+  set_attribute!(L, :is_nilpotent, true)
+  return zero(L)
+end
+
+@doc raw"""
+    engel_subalgebra(x::LieAlgebraElem{C}) -> LieSubalgebra{C,elem_type(parent(x))}
+
+Return the Engel subalgebra of `x`, i.e. the generalized eigenspace of the linear operator $\mathrm{ad}(x)$.
+"""
+function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
+  L = parent(x)
+  n = dim(L)
+  A = adjoint_matrix(x)^n
+  ker = kernel(A; side=:left)
+  basis = [L(ker[i, :]) for i in 1:nrows(ker)]
+  L0adx = sub(L, basis; is_basis=true)
+  return L0adx
+end
+
+function _cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
+  F = coefficient_ring(L)
+  n = dim(L)
+  @req is_infinite(F) || length(F) > dim(L) "The implemented algorithm requires a large field"
+  x = any_non_ad_nilpotent_element(L)
+  if is_zero(x) # L is nilpotent
+    return sub(L)
+  end
+
+  L0adx = engel_subalgebra(x)
+  while true # decreasing variant is dim(L0adx)
+    y = any_non_ad_nilpotent_element(L0adx)
+    if is_zero(y) # L0adx is nilpotent
+      return L0adx
+    end
+
+    c_itr =
+      characteristic(F) == 0 ? (F(i) for i in 1:(n + 1)) : Iterators.filter(!iszero, F)
+    z = x
+    L0adz = L0adx
+    for c in c_itr # at most n+1 iterations
+      z = x + c * (y - x)
+      L0adz = engel_subalgebra(z)
+      if dim(L0adz) < dim(L0adx) && is_subset(L0adz, L0adx)
+        break
+      end
+    end
+    x = z
+    L0adx = L0adz
+  end
+end
+
+function _root_system_and_chevalley_basis(
+  L::LieAlgebra{C}, H::LieSubalgebra{C}=_cartan_subalgebra(L)
+) where {C<:FieldElem}
+  @req base_lie_algebra(H) === L "Incompatible Lie algebras."
+  # we just assume that H is indeed a Cartan subalgebra
+
+  @req is_invertible(killing_matrix(L)) "The Killing form is degenerate"
+
+  F = coefficient_ring(L)
+
+  # compute the common eigenspaces of the adjoint action of H.
+  # B is a list of subspaces of L that gets refined in each iteration.
+  # to exploit existing functionality, we use the LieSubalgebra type even
+  # though the subspaces are in general not Lie subalgebras. With setting
+  # is_basis=true, we ensure that the subspace generators do not get
+  # extended to a subalgebra.
+  B = [sub(L, basis(L); is_basis=true)]
+  for h in basis(H)
+    B_new = empty(B)
+    for B_j in B
+      A = _adjoint_matrix(B_j, h)
+      facs = factor(minimal_polynomial(A))
+      for (f, k) in facs
+        @assert k == 1 # TODO: is this always the case?
+        ker = kernel((f^k)(A); side=:left)
+        basis = [B_j(ker[i, :]) for i in 1:nrows(ker)]
+        push!(B_new, sub(L, basis; is_basis=true))
+      end
+    end
+    B = B_new
+  end
+  filter!(!=(H), B)
+  @req all(B_j -> dim(B_j) == 1, B) "The Cartan subalgebra is not split"
+
+  # compute the roots, i.e. the list of eigenvalues of basis(H) on each B_j
+  root_spaces = Dict(
+    begin
+      b = only(basis(B_j))
+      root = [only(solve(_matrix(b), _matrix(bracket(h, b)); side=:left)) for h in basis(H)]
+      root => B_j
+    end for B_j in B
+  )
+  roots = collect(keys(root_spaces))
+
+  # compute an R-basis of the root space, s.t. the corresponding co-roots are a basis of H
+  roots_basis = empty(roots)
+  basis_mat_H = zero_matrix(F, 0, dim(L))
+  for root in roots
+    nrows(basis_mat_H) == dim(H) && break
+    x_j = only(basis(root_spaces[root]))
+    y_j = only(basis(root_spaces[-root]))
+    h_j = bracket(x_j, y_j)
+    if !can_solve(basis_mat_H, _matrix(h_j); side=:left)
+      basis_mat_H = vcat(basis_mat_H, _matrix(h_j))
+      push!(roots_basis, root)
+    end
+  end
+
+  function CartanInt(roots::Vector{RootType}, a::RootType, b::RootType) where {RootType}
+    # `a` and `b` are two roots in `roots`.
+    a == b && return 2
+    a == -b && return -2
+    # If a != ±b, the Cartan integer of `a` and `b` is `s-t`, where
+    # `s` and `t` are the largest integers such that `b-s*a` and `b+t*a` are still roots.
+    rt = b - a
+    s = 0
+    while rt in roots
+      s += 1
+      rt -= a
+    end
+    rt = b + a
+    t = 0
+    while rt in roots
+      t += 1
+      rt += a
+    end
+    return s - t
+  end
+
+  # we define a root to be positive if the first of its non-zero Cartan integers with the R-basis is positive
+  roots_positive = empty(roots)
+  for root in roots
+    2 * length(roots_positive) == length(roots) && break
+    root in roots_positive && continue
+    -root in roots_positive && continue
+    c = first(
+      Iterators.dropwhile(
+        iszero, Iterators.map(b_j -> CartanInt(roots, root, b_j), roots_basis)
+      ),
+    )
+    if c > 0
+      push!(roots_positive, root)
+    else
+      push!(roots_positive, -root)
+    end
+  end
+
+  # a positive root is simple if it is not the sum of two positive roots
+  roots_simple = empty(roots)
+  roots_positive_sums = Set(
+    alpha_i + alpha_j for (i, alpha_i) in enumerate(roots_positive) for
+    (j, alpha_j) in enumerate(roots_positive) if i < j
+  )
+  for root in roots_positive
+    if !(root in roots_positive_sums)
+      push!(roots_simple, root)
+    end
+  end
+  @assert length(roots_simple) == dim(H)
+
+  # compute the Cartan matrix and abstract root system
+  cm = matrix(
+    ZZ,
+    [
+      CartanInt(roots, alpha_i, alpha_j) for alpha_i in roots_simple,
+      alpha_j in roots_simple
+    ],
+  )
+  type, ordering = cartan_type_with_ordering(cm; check=false)
+  permute!(roots_simple, ordering)
+  R = root_system(type)
+
+  # compute a Chevalley basis of L
+  root_vectors = [
+    begin
+      concrete_root = sum(
+        c .* root_simple for
+        (c, root_simple) in zip(coefficients(abstract_root), roots_simple)
+      )
+      @assert concrete_root in roots
+      root_vector = only(basis(root_spaces[concrete_root]))
+    end for abstract_root in Oscar.roots(R)
+  ]
+  xs = root_vectors[1:n_positive_roots(R)]
+  ys = Vector{elem_type(L)}([
+    begin
+      x = xs[i]
+      y = root_vectors[n_positive_roots(R) + i]
+      y *= 2//only(solve(_matrix(x), _matrix(bracket(bracket(x, y), x)); side=:left))
+      y
+    end for i in 1:n_positive_roots(R)
+  ])
+  hs = elem_type(L)[xs[i] * ys[i] for i in 1:n_simple_roots(R)]
+
+  return R, (xs, ys, hs)
+end
+
+function assure_root_system(L::LieAlgebra{C}) where {C<:FieldElem}
+  if !has_root_system(L)
+    R, chev = _root_system_and_chevalley_basis(L)
+    set_root_system_and_chevalley_basis!(L, R, chev)
+  end
+  @assert has_root_system(L)
+end
+
+###############################################################################
+#
 #   Root system getters
 #
 ###############################################################################
@@ -450,10 +754,9 @@ has_root_system(L::LieAlgebra) = false # to be implemented by subtypes
 
 Return the root system of `L`.
 
-This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+This function will error if no root system is known and none can be computed.
 """
 function root_system(L::LieAlgebra) # to be implemented by subtypes
-  @req has_root_system(L) "root system of `L` not known."
   throw(Hecke.NotImplemented())
 end
 
@@ -464,11 +767,27 @@ Return the Chevalley basis of the Lie algebra `L` in three vectors, stating firs
 then the negative root vectors, and finally the basis of the Cartan subalgebra. The order of root vectors corresponds
 to the order of the roots in [`root_system(::LieAlgebra)`](@ref).
 
-This function will error if no root system is known (see [`has_root_system(::LieAlgebra)`](@ref)).
+This function will error if no root system is known and none can be computed.
 """
 function chevalley_basis(L::LieAlgebra) # to be implemented by subtypes
-  @req has_root_system(L) "root system of `L` not known."
   throw(Hecke.NotImplemented())
+end
+
+@doc raw"""
+    cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem} -> LieSubalgebra{C,elem_type(L)}
+
+Return a Cartan subalgebra of `L`.
+
+If `L` knows its root system, this function uses the Chevalley basis to construct a Cartan subalgebra.
+Otherise, it uses the algorithm described in [Gra00; Ch. 3.2](@cite).
+The return value of this function may change when the root system of `L` is first computed.
+"""
+function cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem}
+  if has_root_system(L)
+    return sub(L, chevalley_basis(L)[3]; is_basis=true)
+  else
+    return _cartan_subalgebra(L)
+  end
 end
 
 ###############################################################################
