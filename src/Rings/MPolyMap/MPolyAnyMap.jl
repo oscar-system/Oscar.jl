@@ -48,15 +48,27 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
                                 # simple form.
 
   function MPolyAnyMap{D, C, U, V}(domain::D,
-                                codomain::C,
-                                coeff_map::U,
-                                img_gens::Vector{V}) where {D, C, U, V}
-      @assert V === elem_type(C)
-      for g in img_gens
-        @assert parent(g) === codomain "elements does not have the correct parent"
-      end
+                                   codomain::C,
+                                   coeff_map::U,
+                                   img_gens::Vector{V}) where {D, C, U, V}
+    @assert V === elem_type(C)
+    for g in img_gens
+      @assert parent(g) === codomain "elements does not have the correct parent"
+    end
+    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
+  end
+  function MPolyAnyMap{D, C, U, V}(domain::D,
+                                   codomain::C,
+                                   coeff_map::U,
+                                   img_gens::Vector{V}) where {D <: Union{<:MPolyRing, <:MPolyQuoRing}, 
+                                                               C <: Union{<:MPolyRing, <:MPolyQuoRing}, 
+                                                               U, V}
+    @assert V === elem_type(C)
+    for g in img_gens
+      @assert parent(g) === codomain "elements does not have the correct parent"
+    end
     result = new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-    if all(x in gens(codomain) for x in img_gens) && length(unique(img_gens)) == ngens(domain)
+    if all(is_gen(x) for x in img_gens) && allunique(img_gens)
       result.variable_indices = [findfirst(x==y for y in gens(codomain)) for x in img_gens]
     end
     return result
