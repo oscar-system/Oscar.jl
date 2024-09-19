@@ -194,6 +194,7 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
 end
 
 function save_attrs(s::SerializerState, obj::T) where T
+  !with_attrs(s) && return 
   if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
     save_data_dict(s, :attrs) do
       for attr in attrs_list(s, T)
@@ -254,7 +255,7 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  !s.with_attrs && return
+  !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
@@ -450,7 +451,9 @@ macro import_all_serialization_functions()
       save_typed_object,
       serialize_with_id,
       serialize_with_params,
-      set_key
+      set_key,
+      with_attrs,
+      type_attr_map
   end
 end
 
@@ -512,8 +515,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer,
-                      with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}())
+  s = serializer_open(io, serializer, with_attrs)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
