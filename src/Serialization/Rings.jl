@@ -28,7 +28,7 @@ end
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
-type_params(x::T) where T <: RingMatElemUnion = parent(x)
+type_params(x::T) where T <: RingMatElemUnion =  parent(x)
 
 # fix for polynomial cases
 function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion)
@@ -77,22 +77,30 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@register_serialization_type PolyRing uses_id
-@register_serialization_type MPolyRing uses_id
-@register_serialization_type UniversalPolyRing uses_id
-@register_serialization_type MPolyDecRing uses_id
-@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
+@register_serialization_type PolyRing uses_id  uses_params
+@register_serialization_type MPolyRing uses_id uses_params
+@register_serialization_type UniversalPolyRing uses_id uses_params
+@register_serialization_type MPolyDecRing uses_id uses_params
+@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id uses_params
 
-function save_object(s::SerializerState, R::Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing})
+const PolyUnionType = Union{UniversalPolyRing,
+                            MPolyRing,
+                            PolyRing,
+                            AbstractAlgebra.Generic.LaurentMPolyWrapRing}
+type_params(R::PolyUnionType) = base_ring(R)
+
+function save_object(s::SerializerState, R::PolyUnionType)
+  base = base_ring(R)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(R), :base_ring)
+    !Base.issingletontype(typeof(base)) && save_object(s, base, :base_ring)
     save_object(s, symbols(R), :symbols)
   end
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<: Union{UniversalPolyRing, MPolyRing, PolyRing, AbstractAlgebra.Generic.LaurentMPolyWrapRing}})
-  base_ring = load_typed_object(s, :base_ring)
+                     T::Type{<: PolyUnionType},
+                     params)
+  base_ring = load_object(s,   :base_ring)
   symbols = load_object(s, Vector, Symbol, :symbols)
 
   if T <: PolyRing
@@ -128,7 +136,6 @@ end
 @register_serialization_type MPolyDecRingElem uses_params
 @register_serialization_type UniversalPolyRingElem uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params
-const PolyElemUniontype = Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})

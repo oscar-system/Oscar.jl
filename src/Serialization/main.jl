@@ -173,6 +173,7 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
+type_params(obj::Any) = obj
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
@@ -182,7 +183,19 @@ end
 function save_type_params(s::SerializerState, obj::T) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    save_typed_object(s, type_params(obj), :params)
+    params = type_params(obj)
+
+    if params isa Dict
+      save_data_dict(s, :params) do 
+        for (k, v) in params
+          save_typed_object(s, v, k)
+        end
+      end
+    elseif params isa Vector
+      println("unimplemented")
+    else
+      save_typed_object(s, params, :params)
+    end
   end
 end
 

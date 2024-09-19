@@ -124,33 +124,29 @@ end
 @register_serialization_type Hecke.RelSimpleNumField uses_id uses_params
 @register_serialization_type AbsSimpleNumField uses_id uses_params
 
-type_params(obj::SimpleNumField) = defining_polynomial(obj)
+type_params(obj::SimpleNumField) = type_params(defining_polynomial(obj))
 
 function save_object(s::SerializerState, K::SimpleNumField)
   save_data_dict(s) do
+    save_object(s, defining_polynomial(K), :def_pol)
     save_object(s, var(K), :var)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, def_pol::PolyRingElem)
-  var = load_node(s, :var) do var
-    Symbol(var)
-  end
+function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, params::Vector)
+  var = load_object(s, Symbol, :var)
+  def_pol = load_object(s, PolyRingElem, params)
   K, _ = number_field(def_pol, var, cached=false)
   return K
 end
 
 ################################################################################
 # FqNmodfinitefield
-@register_serialization_type fqPolyRepField uses_id use_params
+@register_serialization_type fqPolyRepField uses_id uses_params
 
-function save_object(s::SerializerState, K::fqPolyRepField)
-  save_data_dict(s) do
-    save_typed_object(s, defining_polynomial(K), :def_pol)
-  end
-end
+type_params(K::fqPolyRepField) = Dict(:def_pol => defining_polynomial(K))
 
-function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, def_pol::PolyringElem)
+function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, def_pol::PolyRingElem)
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end
@@ -186,30 +182,13 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type FqField uses_id
+@register_serialization_type FqField uses_id uses_params
 @register_serialization_type FqFieldElem uses_params
 
-function save_object(s::SerializerState, K::FqField)
-  if absolute_degree(K) == 1
-    save_object(s, order(K))
-  else
-    save_data_dict(s) do
-      save_typed_object(s, defining_polynomial(K))
-    end
-  end
-end
+type_params(K::FqField) = absolute_degree(K) == 1 ? order(K) : defining_polynomial(K)
 
-function load_object(s::DeserializerState, ::Type{<: FqField})
-  load_node(s) do node
-    if node isa String
-      order = ZZRingElem(node)
-      return finite_field(order)[1]
-    else
-      def_pol = load_typed_object(s)
-      return finite_field(def_pol, cached=false)[1]
-    end
-  end
-end
+load_object(s::DeserializerState, ::Type{<: FqField}, params::String) = finite_field(params)[1]
+load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRingElem) = finite_field(def_pol, cached=false)[1]
 
 # elements
 function save_object(s::SerializerState, k::FqFieldElem)
@@ -246,19 +225,21 @@ end
 ################################################################################
 # Non Simple Extension
 
-@register_serialization_type Hecke.RelNonSimpleNumField uses_id
-@register_serialization_type AbsNonSimpleNumField uses_id
+@register_serialization_type Hecke.RelNonSimpleNumField uses_id uses_params
+@register_serialization_type AbsNonSimpleNumField uses_id uses_params
+
+type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = Dict(:def_pols => defining_polynomials(K))
 
 function save_object(s::SerializerState, K::Union{AbsNonSimpleNumField, RelNonSimpleNumField})
-  def_pols = defining_polynomials(K)
   save_data_dict(s) do
-    save_typed_object(s, def_pols, :def_pols)
     save_object(s, vars(K), :vars)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Union{AbsNonSimpleNumField, RelNonSimpleNumField}})
-  def_pols = load_typed_object(s, :def_pols)
+function load_object(s::DeserializerState,
+                     ::Type{<: Union{AbsNonSimpleNumField, RelNonSimpleNumField}},
+                     params::Vector{PolyRingElem})
+  def_pols = params[:def_pols]
 
   vars = load_node(s, :vars) do vars_data
     return map(Symbol, vars_data)
@@ -296,23 +277,17 @@ end
 ################################################################################
 # FracField
 
-@register_serialization_type FracField uses_id
+@register_serialization_type FracField uses_id uses_params
 
-function save_object(s::SerializerState, K::FracField)
-  save_data_dict(s) do
-    save_typed_object(s, base_ring(K), :base_ring)
-  end
-end
+const FracUnionTypes = Union{MPolyRing, PolyRing, UniversalPolyRing}
+# we use the union to prevent QQField from using this method
+type_params(K::FracUnionTypes) = base_ring(K)
 
-function load_object(s::DeserializerState, ::Type{<: FracField})
-  R = load_typed_object(s, :base_ring)
-
-  return fraction_field(R, cached=false)
-end
+load_object(s::DeserializerState, ::Type{<: FracField}, params::Dict) = fraction_field(params[:base_ring], cached=false)
 
 # elements
-# we use the union to prevent QQFieldElem being registered here
-@register_serialization_type FracElem{<:Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}} "FracElem" uses_params
+
+@register_serialization_type FracElem{<: FracUnionTypes} "FracElem" uses_params
 
 function save_object(s::SerializerState, f::FracElem)
   save_data_array(s) do
@@ -338,20 +313,21 @@ end
 ################################################################################
 # RationalFunctionField
 
-@register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
+@register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id uses_params
+
+type_params(RF::AbstractAlgebra.Generic.RationalFunctionField) = Dict(:base_ring => base_ring(RF))
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(RF), :base_ring)
     syms = symbols(RF)
     save_object(s, syms, :symbols)
   end
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: AbstractAlgebra.Generic.RationalFunctionField})
-  R = load_typed_object(s, :base_ring)
+                     ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, params::Dict)
+  R = params[:base_ring]
   # ensure proper types of univariate case on load
   symbols = load_node(s, :symbols) do symbols_data
     if symbols_data isa Vector
@@ -460,66 +436,80 @@ end
 
 const FieldEmbeddingTypes = Union{Hecke.AbsSimpleNumFieldEmbedding, Hecke.RelSimpleNumFieldEmbedding, Hecke.AbsNonSimpleNumFieldEmbedding, Hecke.RelNonSimpleNumFieldEmbedding}
 
-@register_serialization_type Hecke.AbsNonSimpleNumFieldEmbedding uses_id
-@register_serialization_type Hecke.RelNonSimpleNumFieldEmbedding uses_id
-@register_serialization_type Hecke.AbsSimpleNumFieldEmbedding uses_id
-@register_serialization_type Hecke.RelSimpleNumFieldEmbedding uses_id
+@register_serialization_type Hecke.AbsNonSimpleNumFieldEmbedding uses_id  uses_params
+@register_serialization_type Hecke.RelNonSimpleNumFieldEmbedding uses_id uses_params
+@register_serialization_type Hecke.AbsSimpleNumFieldEmbedding uses_id uses_params
+@register_serialization_type Hecke.RelSimpleNumFieldEmbedding uses_id uses_params
+
+function type_params(E::FieldEmbeddingTypes)
+  K = number_field(E)
+  base_K = base_field(K)
+  d = Dict(:num_field => type_params(K))
+
+  if !(base_field(K) isa QQField)
+    d[:base_field_emb] = type_params(restrict(E, base_K))
+  end
+  return d
+end
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
-  k = base_field(K)
-
+  base_K = base_field(K)
+  
   save_data_dict(s) do
-    save_typed_object(s, K, :num_field)
-    if !(base_field(K) isa QQField)
-      save_typed_object(s, restrict(E, k), :base_field_emb)
-    end
     if is_simple(K)
       a = gen(K)
-      data = E(a)
-      if any(overlaps(data, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, k) == restrict(e, k))
+      gen_emb_approx = E(a)
+      if any(overlaps(gen_emb_approx, e(a)) for e in complex_embeddings(K) if e != E && restrict(E, base_K) == restrict(e, base_K))
         error("Internal error in internal serialization.")
       end
+      save_object(s, gen_emb_approx, :gen_approx)
     else
       a = gens(K)
       data = E.(a)
       if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, k) == restrict(e, k))
         error("Internal error in internal serialization.")
       end
-      data = tuple(data...)
+      save_object(s, tuple(data...), :gen_approx)
     end
-    save_typed_object(s, data, :data)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes})
-  K = load_typed_object(s, :num_field)
-  data = load_typed_object(s, :data)
-  if data isa Tuple
-    data = collect(data)
-  end
-  if base_field(K) isa QQField
-    return complex_embedding(K, data)
-  else
-    return complex_embedding(K, load_typed_object(s, :base_field_emb), data)
+function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, params::Dict)
+  K = params(s, :num_field)
+
+  load_node(s) do data
+    if !is_simple(K)
+      data = collect(data)
+    end
+    if base_field(K) isa QQField
+      return complex_embedding(K, data)
+    else
+      return complex_embedding(K, params(:base_field_emb), data)
+    end
   end
 end
 
-@register_serialization_type EmbeddedNumField uses_id
+@register_serialization_type EmbeddedNumField uses_id uses_params
+
+type_params(E::EmbeddedNumField) = Dict(
+  :num_field_params => type_params(number_field(E)),
+  :embedding_params => type_params(embedding(E))
+)
 
 function save_object(s::SerializerState, E::EmbeddedNumField)
   K = number_field(E)
   e = embedding(E)
 
   save_data_dict(s) do
-    save_typed_object(s, K, :num_field)
-    save_typed_object(s, e, :embedding)
+    save_object(s, K, :num_field)
+    save_object(s, e, :embedding)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{EmbeddedNumField})
-  K = load_typed_object(s, :num_field)
-  e = load_typed_object(s, :embedding)
+function load_object(s::DeserializerState, ::Type{EmbeddedNumField}, params::Dict)
+  K = number_field(params[:num_field_params])
+  e = load_object(s, FieldEmbeddingTypes, dict[:embedding_params])
 
   return Hecke.embedded_field(K, e)[1]
 end
