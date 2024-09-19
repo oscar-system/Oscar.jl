@@ -885,6 +885,8 @@ end
 
 @doc raw"""
     tutte_polynomial(M::Matroid)
+    tutte_polynomial(M::Matroid; parent::ZZMPolyRing)
+    tutte_polynomial(parent::ZZMPolyRing, M::Matroid)
 
 Return the Tutte polynomial of `M`. This is polynomial in the variables x and y with integral coefficients.
 See Section 15.3 in [Oxl11](@cite).
@@ -896,15 +898,20 @@ x^3 + 4*x^2 + 7*x*y + 3*x + y^4 + 3*y^3 + 6*y^2 + 3*y
 
 ```
 """
-function tutte_polynomial(M::Matroid)
-    R, (x, y) = polynomial_ring(ZZ, ["x", "y"])
-    poly = pm_object(M).TUTTE_POLYNOMIAL
-    exp = Polymake.monomials_as_matrix(poly)
-    return R(Vector{Int}(Polymake.coefficients_as_vector(poly)),[[exp[i,1],exp[i,2]] for i in 1:size(exp)[1]])
+function tutte_polynomial(M::Matroid;
+           parent::ZZMPolyRing = polynomial_ring(ZZ, [:x, :y]; cached = false)[1])
+  @assert ngens(parent) >= 2
+  poly = pm_object(M).TUTTE_POLYNOMIAL
+  exp = Polymake.monomials_as_matrix(poly)
+  return parent(Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
 end
+
+tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
 
 @doc raw"""
     characteristic_polynomial(M::Matroid)
+    characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the characteristic polynomial of `M`. This is polynomial in the variable q with integral coefficients.
 It is computed as an evaluation of the Tutte polynmomial.
@@ -917,13 +924,17 @@ q^3 - 7*q^2 + 14*q - 8
 
 ```
 """
-function characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    return (-1)^rank(M)*tutte_polynomial(M)(1-q,0)
+function characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  return (-1)^rank(M) * tutte_polynomial(M)(1 - gen(parent), 0)
 end
+
+characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)
 
 @doc raw"""
     reduced_characteristic_polynomial(M::Matroid)
+    reduced_characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
+    reduced_characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the reduced characteristic polynomial of `M`. This is the quotient of the characteristic polynomial by (q-1).
 See Section 15.2 in [Oxl11](@cite).
@@ -935,17 +946,19 @@ q^2 - 6*q + 8
 
 ```
 """
-function reduced_characteristic_polynomial(M::Matroid)
-    R, q = polynomial_ring(ZZ, 'q')
-    p = characteristic_polynomial(M)
-    c = Vector{Int}(undef,degree(p))
-    s = 0
-    for i in 1:degree(p)
-        s-= coeff(p,i-1)
-        c[i] = s
-    end
-    return R(c)
+function reduced_characteristic_polynomial(M::Matroid;
+           parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
+  p = characteristic_polynomial(M, parent = parent)
+  c = Vector{ZZRingElem}(undef, degree(p))
+  s = ZZ(0)
+  for i in 1:degree(p)
+    s -= coeff(p, i - 1)
+    c[i] = s
+  end
+  return parent(c)
 end
+
+reduced_characteristic_polynomial(R::ZZPolyRing, M::Matroid) = reduced_characteristic_polynomial(M, parent = R)
 
 # This function compares two sets A and B in reverse lexicographic order.
 # It assumes that both sets are of the same length and ordered.
