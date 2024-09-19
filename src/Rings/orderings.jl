@@ -101,21 +101,24 @@ function _canonical_matrix(w_in::ZZMatrix)
   # We first convert it, but eventually we should consider using sparse matrices also there. 
   w = sparse_matrix(w_in)
   ww = sparse_matrix(ZZ, 0, ncols(w))
+  ent = ZZ()
   for i in 1:nrows(w)
-    is_empty(w[i]) && continue
+    iszero(w[i]) && continue
     nw = w[i]
     c = content(nw)
     if !isone(c)
       nw = divexact(nw, c)
     end
     for j in 1:nrows(ww)
-      is_empty(ww[j]) && continue
-      (h, ent) = first(ww[j])
+      iszero(ww[j]) && continue
+      h = ww[j].pos[1]
+      # TODO: Provide an "in place" getindex for ZZRingElem_Array
+      ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ptr{Int}), ent, Hecke.get_ptr(ww[j].values, 1))
       hnw = findfirst(isequal(h), nw.pos)
       hnw == nothing && continue
       nw = abs(ent)*nw - sign(ent)*nw.values[hnw]*ww[j]
     end
-    if !is_empty(nw)
+    if !iszero(nw)
       c = content(nw)
       if !isone(c)
         nw = divexact(nw, c)
