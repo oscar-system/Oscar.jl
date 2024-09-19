@@ -3,8 +3,8 @@
 ########################################################################
 
 @attributes mutable struct ToricBlowdownMorphism{
-  DomainType <: NormalToricVariety, 
-  CodomainType <: NormalToricVariety,
+  DomainType <: NormalToricVarietyType, 
+  CodomainType <: NormalToricVarietyType,
   CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
@@ -23,7 +23,7 @@
   center_unnormalized::CenterUnnormalizedType
   exceptional_prime_divisor::ToricDivisor
 
-  function _toric_blowdown_morphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function _toric_blowdown_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
@@ -57,7 +57,7 @@
     return bl_toric, position_new_ray, center_data
   end
   
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
+  function ToricBlowdownMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
@@ -73,7 +73,7 @@
     return bl
   end
   
-  function ToricBlowdownMorphism(v::NormalToricVariety, new_variety::NormalToricVariety, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function ToricBlowdownMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
@@ -84,7 +84,7 @@
       typeof(domain(bl_toric)),
       typeof(codomain(bl_toric)),
       typeof(center_data),
-      IdealSheaf{NormalToricVariety, AbsAffineScheme, Ideal, Map},
+      IdealSheaf{typeof(v), AbsAffineScheme, Ideal, Map},
     }(bl_toric, position_new_ray, center_data)
     return bl
   end

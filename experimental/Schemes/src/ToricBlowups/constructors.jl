@@ -50,7 +50,7 @@ and exceptional divisor
       4a: Ideal (x_1_4*x_2_4)
 ```
 """
-function blow_up(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(m::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(m, coordinate_name)
   defining_ideal = ideal_in_cox_ring(I)
   if all(x -> x in gens(base_ring(defining_ideal)), gens(defining_ideal))
@@ -157,7 +157,7 @@ julia> typeof(center_unnormalized(f))
 IdealSheaf{NormalToricVariety, AbsAffineScheme, Ideal, Map}
 ```
 """
-function blow_up(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   new_variety = normal_toric_variety(star_subdivision(v, new_ray))
   if is_smooth(v) == false
@@ -208,7 +208,7 @@ Multivariate polynomial ring in 5 variables over QQ graded by
   e -> [1 -1]
 ```
 """
-function blow_up(v::NormalToricVariety, n::Int; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   gens_S = gens(cox_ring(v))
   center_unnormalized = ideal_sheaf(v, ideal([gens_S[i] for i in 1:number_of_rays(v) if cones(v)[n,i]]))
@@ -268,7 +268,7 @@ julia> codomain(b2P3) === P3
 true
 ```
 """
-function blow_up(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   cox = cox_ring(v)
   indices = [findfirst(y -> y == x, gens(cox)) for x in gens(I)]
@@ -288,6 +288,6 @@ function _generic_blow_up(v::Any, I::Any)
   error("Not yet supported")
 end
 
-function _generic_blow_up(v::NormalToricVariety, I::MPolyIdeal)
+function _generic_blow_up(v::NormalToricVarietyType, I::MPolyIdeal)
   return blow_up(ideal_sheaf(v, I))
 end
