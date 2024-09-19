@@ -71,7 +71,7 @@ end
 # if fullrank is true, then the matrix should be invertible
 struct MatrixOrdering <: AbsGenOrdering
   vars::Vector{Int}
-  matrix::SMat{ZZRingElem}
+  matrix::ZZMatrix
   fullrank::Bool
   function MatrixOrdering(v, m::ZZMatrix, fullrank::Bool)
     @req length(v) == ncols(m) "number of variables should match the number of columns"
@@ -1770,7 +1770,7 @@ mutable struct ModuleOrdering{S}
   M::S
   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 
-  canonical_matrix::ZZMatrix
+  canonical_matrix::SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}
 
   function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
     return new{S}(M, o)
