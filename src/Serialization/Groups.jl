@@ -187,7 +187,7 @@ end
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
 
-@register_serialization_type FPGroup uses_id 
+@register_serialization_type FPGroup uses_id
 @register_serialization_type SubFPGroup uses_id
 
 function save_object(s::SerializerState, G::Union{FPGroup, SubFPGroup})
