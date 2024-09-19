@@ -254,7 +254,7 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  !s.with_attrs && return
+  !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
@@ -512,8 +512,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer,
-                      with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}())
+  s = serializer_open(io, serializer, with_attrs)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
