@@ -333,3 +333,7 @@ end
 function singular_poly_ring(Rx::PBWAlgQuo, ord::Singular.sordering) 
   return Rx.sring
 end
+
+function build_ctx(R::PBWAlgQuo)
+  return OscarPair(R, MPolyBuildCtx(R.sring))
+end

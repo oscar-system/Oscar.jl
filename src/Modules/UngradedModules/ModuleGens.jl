@@ -250,7 +250,7 @@ function (SF::Singular.FreeMod)(m::FreeModElem)
   g = Singular.gens(SF)
   e = SF()
   Sx = base_ring(SF)
-  if typeof(Sx) <: Singular.PluralRing
+  if Sx isa Singular.PluralRing
     if base_ring(parent(m)) isa PBWAlgQuo
       for (p,v) in coordinates(m)
         w = v.data.sdata
@@ -287,9 +287,9 @@ function (F::FreeMod)(s::Singular.svector)
       f = length(values)
       push!(pos, i)
     end
-    if typeof(Rx) <: PBWAlgRing 
+    if Rx isa PBWAlgRing 
       push_term!(values[f], (base_ring(R))(c), e)
-    elseif typeof(Rx) <: PBWAlgQuo
+    elseif Rx isa PBWAlgQuo
       push_term!(values[f], (base_ring(base_ring(R)))(c), e)
     else
       push_term!(values[f], R(c), e)

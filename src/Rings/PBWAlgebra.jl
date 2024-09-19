@@ -219,7 +219,7 @@ function Base.iterate(a::OscarPair{<:PBWAlgRing{T}, <:Singular.SPolyCoeffs}, sta
   return (coefficient_ring(a.first)(b[1])::T, b[2])
 end
 
-function build_ctx(R::Union{PBWAlgRing, PBWAlgQuo})
+function build_ctx(R::PBWAlgRing)
   return OscarPair(R, MPolyBuildCtx(R.sring))
 end
 
