@@ -194,7 +194,7 @@ end
       c = rand_elem()
       aa = deepcopy(a)
       bb = deepcopy(b)
-      @test addeq!(a, b) == aa + bb
+      @test add!(a, b) == aa + bb
       @test b == bb
       aa = deepcopy(a)
       @test Oscar.AbelianClosure.neg!(a) == -aa

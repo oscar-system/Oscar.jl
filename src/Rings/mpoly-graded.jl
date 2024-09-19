@@ -719,14 +719,6 @@ end
 
 ^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(forget_decoration(a)^i, parent(a))
 
-function mul!(a::MPolyDecRingElem, b::MPolyDecRingElem, c::MPolyDecRingElem)
-  return b*c
-end
-
-function addeq!(a::MPolyDecRingElem, b::MPolyDecRingElem)
-  return a+b
-end
-
 length(a::MPolyDecRingElem) = length(forget_decoration(a))
 
 @doc raw"""

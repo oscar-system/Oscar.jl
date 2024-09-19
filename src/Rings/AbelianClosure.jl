@@ -34,8 +34,8 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
-                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
+import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
+                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
                 parent_type, promote_rule, root, root_of_unity, roots
 
 using Hecke
@@ -625,14 +625,22 @@ end
 #
 ################################################################################
 
-function addeq!(c::QQAbFieldElem, a::QQAbFieldElem)
-  _c, _a = make_compatible(c, a)
-  addeq!(_c.data, _a.data)
-  return _c
+function add!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  b, c = make_compatible(b, c)
+  a, b = make_compatible(a, b)
+  c.data = add!(c.data, a.data, b.data)
+  return c
+end
+
+function add!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = add!(a.data, b.data)
+  return a
 end
 
 function neg!(a::QQAbFieldElem)
-  mul!(a.data,a.data,-1)
+  a.data = neg!(a.data)
   return a
 end
 
@@ -640,8 +648,14 @@ function mul!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   b, c = make_compatible(b, c)
   a, b = make_compatible(a, b)
-  mul!(c.data, a.data, b.data)
+  c.data = mul!(c.data, a.data, b.data)
   return c
+end
+
+function mul!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = mul!(a.data, b.data)
+  return a
 end
 
 ################################################################################

@@ -81,7 +81,7 @@ end
 
   z = zero(Q)
   simplify(z)
-  addeq!(z, Q(x))
+  z = add!(z, Q(x))
   @test iszero(z)
 end
 
