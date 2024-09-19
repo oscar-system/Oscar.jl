@@ -256,11 +256,6 @@ end
 # scalar multiplication with polynomials, integers
 *(a::Any, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
 
-# scalar multiplication with PBWAlg(Quo)Elem is separate because there is no base_ring
-# TODO: check if this is still necessary
-*(a::PBWAlgQuoElem, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
-*(a::PBWAlgElem, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
-
 function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleModuleFPRingElem}
   @assert is_left(parent(b)) "left multiplication is not defined for non-left module $(parent(b))"
   parent(a) === base_ring(parent(b)) && return parent(b)(a*coordinates(b))
