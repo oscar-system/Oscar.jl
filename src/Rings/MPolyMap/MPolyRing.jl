@@ -132,12 +132,16 @@ end
 #
 ################################################################################
 
+# Some additional methods needed for the test in the constructor for MPolyAnyMap
+is_gen(x::MPolyQuoRingElem) = is_gen(lift(x))
+is_gen(x::MPolyDecRingElem) = is_gen(forget_grading(x))
+
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
   if isdefined(F, :variable_indices)
     S = codomain(F)::MPolyRing
     r = ngens(S)
     ctx = MPolyBuildCtx(S)
-    for (c, e) in zip(coefficients(u), exponents(u))
+    for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
       ee = [0 for _ in 1:r]
       for (i, k) in enumerate(e)
         ee[F.variable_indices[i]] = k
