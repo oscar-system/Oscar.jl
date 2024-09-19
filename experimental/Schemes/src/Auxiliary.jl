@@ -254,7 +254,7 @@ struct InheritGluingData
   Y::AbsAffineScheme
 end
 
-function _compute_inherited_gluing(gd::InheritGluingData)
+function _compute_gluing(gd::InheritGluingData)
   X = gd.X
   Y = gd.Y
   C = gd.orig
@@ -363,7 +363,6 @@ function inherit_gluings!(ref::Covering, orig::Covering)
     for V in patches(ref)
       if !haskey(gluings(ref), (U, V))
         gluings(ref)[(U, V)] = LazyGluing(U, V, 
-                                            _compute_inherited_gluing,
                                             InheritGluingData(orig, U, V)
                                            )
       end

@@ -33,7 +33,7 @@ function simplify(C::Covering)
     iY, jY = identification_maps(Ysimp)
     G = GD[(X, Y)]
     #new_gluings[(Xsimp, Ysimp)] = restrict(G, jX, jY, check=false)
-    new_gluings[(Xsimp, Ysimp)] = LazyGluing(Xsimp, Ysimp, _compute_restriction, _compute_domains,
+    new_gluings[(Xsimp, Ysimp)] = LazyGluing(Xsimp, Ysimp,
                                                RestrictionDataIsomorphism(G, jX, jY)
                                               )
   end

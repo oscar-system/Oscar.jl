@@ -12,23 +12,15 @@
   X::LeftAffineSchemeType
   Y::RightAffineSchemeType
   GD::GluingDataType
-  compute_function::Function
-  compute_gluing_domains::Function
   gluing_domains::Union{Tuple{PrincipalOpenSubset, PrincipalOpenSubset},
                          Tuple{AffineSchemeOpenSubscheme, AffineSchemeOpenSubscheme}}
   G::AbsGluing
 
-  function LazyGluing(X::AbsAffineScheme, Y::AbsAffineScheme, 
-      compute_function::Function, GD::GluingDataType
-    ) where {GluingDataType}
-    return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD, compute_function)
-  end
-  function LazyGluing(X::AbsAffineScheme, Y::AbsAffineScheme, 
-      compute_function::Function, compute_gluing_domains::Function, 
+  function LazyGluing(
+      X::AbsAffineScheme, Y::AbsAffineScheme, 
       GD::GluingDataType
     ) where {GluingDataType}
-    return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD, compute_function, 
-                                                      compute_gluing_domains)
+    return new{typeof(X), typeof(Y), GluingDataType}(X, Y, GD)
   end
 end
 
