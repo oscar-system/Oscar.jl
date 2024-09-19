@@ -132,12 +132,43 @@ end
 #
 ################################################################################
 
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
+  if isdefined(F, :variable_indices)
+    S = codomain(F)::MPolyRing
+    r = ngens(S)
+    ctx = MPolyBuildCtx(S)
+    for (c, e) in zip(coefficients(u), exponents(u))
+      ee = [0 for _ in 1:r]
+      for (i, k) in enumerate(e)
+        ee[F.variable_indices[i]] = k
+      end
+      push_term!(ctx, c, ee)
+    end
+    return finish(ctx)
+  end
+
+  return evaluate(u, F.img_gens)
+end
+
 function _evaluate_plain(F::MPolyAnyMap{<: MPolyRing}, u)
   return evaluate(u, F.img_gens)
 end
 
 # See the comment in MPolyQuo.jl
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
+  if isdefined(F, :variable_indices)
+    S = base_ring(codomain(F))::MPolyRing
+    r = ngens(S)
+    ctx = MPolyBuildCtx(S)
+    for (c, e) in zip(coefficients(u), exponents(u))
+      ee = [0 for _ in 1:r]
+      for (i, k) in enumerate(e)
+        ee[F.variable_indices[i]] = k
+      end
+      push_term!(ctx, c, ee)
+    end
+    return codomain(F)(finish(ctx))
+  end
   A = codomain(F)
   v = evaluate(lift(u), lift.(_images(F)))
   return simplify(A(v))
