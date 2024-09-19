@@ -143,6 +143,7 @@ end
 Get the default ordering of `M`.
 """
 function default_ordering(M::SubModuleOfFreeModule)
+  return default_ordering(ambient_free_module(M))
   if !isdefined(M, :default_ordering)
     ord = default_ordering(ambient_free_module(M))
     set_default_ordering!(M, ord)
@@ -166,7 +167,14 @@ end
 Compute a standard basis of `submod` with respect to the given `odering``.
 The return type is `ModuleGens`.
 """
-function standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
+function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))
+  # This is to circumvent hashing of the ordering in the obviously avoidable cases
+  if ordering===default_ordering(submod)
+    for (ord, gb) in submod.groebner_basis
+      ord === ordering && return gb
+    end
+  end
+    
   @req is_exact_type(elem_type(base_ring(submod))) "This functionality is only supported over exact fields."
   gb = get!(submod.groebner_basis, ordering) do
     return compute_standard_basis(submod, ordering)
