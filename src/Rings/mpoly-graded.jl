@@ -970,14 +970,21 @@ true
 function is_homogeneous(F::MPolyDecRingElem)
   D = parent(F).D
   d = parent(F).d
-  S = Set{elem_type(D)}()
+  S = nothing
+  u = zero(D)
   for c = MPolyExponentVectors(forget_decoration(F))
-    u = parent(F).D[0]
+    zero!(u.coeff)
+    # TODO: once Hecke supports zero! on FinGenAbGroupElem, switch to this:
+    #zero!(u)
     for i=1:length(c)
-      u += c[i]*d[i]
+      addmul!(u.coeff, d[i].coeff, c[i])
+      # TODO: once Hecke supports addmul! on FinGenAbGroupElem, switch to this:
+      #addmul!(u, d[i], c[i])
     end
-    push!(S, u)
-    if length(S) > 1
+    Hecke.assure_reduced!(parent(u), u.coeff)
+    if S === nothing
+      S = deepcopy(u)
+    elseif S != u
       return false
     end
   end
