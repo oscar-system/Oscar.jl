@@ -902,7 +902,7 @@ function tutte_polynomial(M::Matroid;
   @assert ngens(parent) >= 2
   poly = pm_object(M).TUTTE_POLYNOMIAL
   exp = Polymake.monomials_as_matrix(poly)
-  return parent(Vector{Int}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
+  return parent(Vector{ZZRingElem}(Polymake.coefficients_as_vector(poly)), [[exp[i, 1],exp[i, 2]] for i in 1:size(exp)[1]])
 end
 
 tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
@@ -945,14 +945,14 @@ q^2 - 6*q + 8
 """
 function reduced_characteristic_polynomial(M::Matroid;
            parent::ZZPolyRing = polynomial_ring(ZZ, :q; cached = false)[1])
-    p = characteristic_polynomial(M, parent = parent)
-    c = Vector{Int}(undef,degree(p))
-    s = 0
-    for i in 1:degree(p)
-        s-= coeff(p,i-1)
-        c[i] = s
-    end
-    return parent(c)
+  p = characteristic_polynomial(M, parent = parent)
+  c = Vector{ZZRingElem}(undef, degree(p))
+  s = ZZ(0)
+  for i in 1:degree(p)
+    s -= coeff(p, i - 1)
+    c[i] = s
+  end
+  return parent(c)
 end
 
 reduced_characteristic_polynomial(R::ZZPolyRing, M::Matroid) = reduced_characteristic_polynomial(M, parent = R)
