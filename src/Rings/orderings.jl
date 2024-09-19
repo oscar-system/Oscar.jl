@@ -130,7 +130,7 @@ function _canonical_matrix(w)
     nw = view(w, i:i, :)
     c = content(nw)
     if !isone(c)
-      nw = divexact!(nw, nw, c)
+      divexact!(nw, nw, c)
     end
     for j in 1:k
       h = piv[j]
@@ -141,7 +141,7 @@ function _canonical_matrix(w)
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
-        nw = divexact!(nw, nw, c)
+        divexact!(nw, nw, c)
       end
       ww[(k + 1):(k + 1), :] = nw
       push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
