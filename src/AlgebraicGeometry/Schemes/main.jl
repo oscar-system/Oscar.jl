@@ -177,6 +177,7 @@ include("Sheaves/Sheaves.jl")
 include("Sheaves/CoherentSheaves.jl")
 include("Sheaves/StructureSheaf.jl")
 include("Sheaves/IdealSheaves.jl")
+include("Sheaves/Methods.jl")
 
 ########################################################################
 # Rational functions
