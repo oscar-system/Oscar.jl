@@ -553,7 +553,7 @@ end
 For a `SheafOfModules` ``ℳ`` on an `AbsCoveredScheme` ``X``, return
 the ``𝒪_X``-dual ``ℋ om_{𝒪_X}(ℳ , 𝒪_X)`` of ``ℳ``.
 """
-@attr Any function dual(M::SheafOfModules)
+@attr AbsCoherentSheaf function dual(M::SheafOfModules)
   OOX = sheaf_of_rings(M)
   F = free_module(OOX, ["1"])
   return HomSheaf(M, F)
@@ -623,10 +623,11 @@ end
 underlying_presheaf(M::PushforwardSheaf) = M.F
 sheaf_of_rings(M::PushforwardSheaf) = M.OOY
 original_sheaf(M::PushforwardSheaf) = M.M
-map(M::PushforwardSheaf) = M.inc
+morphism(M::PushforwardSheaf) = M.inc
+identification_dict(M::PushforwardSheaf) = M.ident
 
 function Base.show(io::IO, M::PushforwardSheaf)
-  print(io, "pushforward of $(original_sheaf(M)) along $(map(M))")
+  print(io, "pushforward of $(original_sheaf(M)) along $(morphism(M))")
 end
 
 ########################################################################
@@ -653,7 +654,7 @@ end
 #
 # is a local affine representative of the map f. But then the Uᵢ might
 # not be `affine_charts` of X, anymore. Thus, we can a priori only
-# construct the modules locally on X and the `production_func` has
+# construct the modules locally on X and `produce_object` has
 # to take care of extending them to the `affine_charts` if necessary.
 #
 # Again, it is clear that this can and should be made lazy.
@@ -708,11 +709,11 @@ end
 underlying_presheaf(M::PullbackSheaf) = M.F
 sheaf_of_rings(M::PullbackSheaf) = M.OOX
 original_sheaf(M::PullbackSheaf) = M.M
-map(M::PullbackSheaf) = M.f
+morphism(M::PullbackSheaf) = M.f
 pullbacks_on_patches(M::PullbackSheaf) = M.pullback_of_sections
 
 function Base.show(io::IO, M::PullbackSheaf)
-  print(io, "pullback of $(original_sheaf(M)) along $(map(M))")
+  print(io, "pullback of $(original_sheaf(M)) along $(morphism(M))")
 end
 
 
@@ -760,7 +761,7 @@ end
 end
 
 #@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
-@attr Any function trivializing_covering(M::AbsCoherentSheaf)
+@attr Covering function trivializing_covering(M::AbsCoherentSheaf)
   X = scheme(M)
   OOX = OO(X)
   patch_list = Vector{AbsAffineScheme}()
@@ -795,7 +796,7 @@ function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
   return C
 end
 
-@attr Any function trivializing_covering(M::HomSheaf)
+@attr Covering function trivializing_covering(M::HomSheaf)
   X = scheme(M)
   OOX = OO(X)
   # The problem is that every module of a HomSheaf must know that it is

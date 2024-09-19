@@ -45,7 +45,7 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
   # production functions for new objects
   is_open_func::Function # To check whether one set is open in the other
 
-  function PreSheafOnScheme(X::Scheme, 
+  function PreSheafOnScheme(X::Scheme; 
       OpenType=AbsAffineScheme, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
