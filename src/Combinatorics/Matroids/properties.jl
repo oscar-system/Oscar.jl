@@ -884,8 +884,9 @@ function tutte_connectivity(M::Matroid)
 end
 
 @doc raw"""
+    tutte_polynomial(M::Matroid)
     tutte_polynomial(M::Matroid; parent::ZZMPolyRing)
-    tutte_polynomial(R::ZZMPolyRing, M::Matroid)
+    tutte_polynomial(parent::ZZMPolyRing, M::Matroid)
 
 Return the Tutte polynomial of `M`. This is polynomial in the variables x and y with integral coefficients.
 See Section 15.3 in [Oxl11](@cite).
@@ -908,8 +909,9 @@ end
 tutte_polynomial(R::ZZMPolyRing, M::Matroid) = tutte_polynomial(M, parent = R)
 
 @doc raw"""
+    characteristic_polynomial(M::Matroid)
     characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
-    characteristic_polynomial(R::ZZPolyRing, M::Matroid)
+    characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the characteristic polynomial of `M`. This is polynomial in the variable q with integral coefficients.
 It is computed as an evaluation of the Tutte polynmomial.
@@ -930,8 +932,9 @@ end
 characteristic_polynomial(R::ZZPolyRing, M::Matroid) = characteristic_polynomial(M, parent = R)
 
 @doc raw"""
+    reduced_characteristic_polynomial(M::Matroid)
     reduced_characteristic_polynomial(M::Matroid; parent::ZZPolyRing)
-    reduced_characteristic_polynomial(R::ZZPolyRing, M::Matroid)
+    reduced_characteristic_polynomial(parent::ZZPolyRing, M::Matroid)
 
 Return the reduced characteristic polynomial of `M`. This is the quotient of the characteristic polynomial by (q-1).
 See Section 15.2 in [Oxl11](@cite).
