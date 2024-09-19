@@ -117,12 +117,11 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :default)
+                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
-- `:default` (tries to choose the best possible implementation),
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
@@ -152,68 +151,59 @@ with respect to the ordering
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :default)
+                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
     return I.gb[ordering]
   end
-  if algorithm == :default && is_f4_applicable(I, ordering)
+  if algorithm == :buchberger
+    if !haskey(I.gb, ordering)
+      I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
+    elseif complete_reduction == true
+      I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :fglm
+    _compute_groebner_basis_using_fglm(I, ordering)
+  elseif algorithm == :hc
+    standard_basis_highest_corner(I, ordering=ordering)
+  elseif algorithm == :hilbert
+    weights = _find_weights(gens(I))
+    if !any(iszero, weights)
+      J, target_ordering, hn = I, ordering, nothing
+    else
+      R = base_ring(I)
+      K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
+      S = base_ring(K)
+      gb = groebner_assure(K, degrevlex(S))
+      # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
+      H = homogenizer(S, "w")
+      K_hom = H(K)
+      gb_hom = IdealGens(H.(gens(gb)))
+      gb_hom.isGB = true
+      K_hom.gb[degrevlex(S)] = gb_hom
+      singular_assure(K_hom.gb[degrevlex(S)])
+      hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
+      H2 = homogenizer(R, "w")
+      J = H2(I)
+      weights = ones(Int, ngens(base_ring(J)))
+      target_ordering = _extend_mon_order(ordering, base_ring(J))
+    end
+    GB = groebner_basis_hilbert_driven(J, destination_ordering=target_ordering,
+                                       complete_reduction=complete_reduction,
+                                       weights=weights,
+                                       hilbert_numerator=hn)
+    if base_ring(I) == base_ring(J)
+      I.gb[ordering] = GB
+    else
+      DH2 = dehomogenizer(H2)
+      GB_dehom_gens = DH2.(gens(GB))
+      I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
+    end
+  elseif algorithm == :f4
     #  since msolve v0.7.0 is most of the time more efficient
     #  to compute a reduced GB by default
     groebner_basis_f4(I, complete_reduction=true)
-  else
-    if algorithm == :default
-        algorithm = :buchberger
-    end
-    if algorithm == :buchberger
-      if !haskey(I.gb, ordering)
-        I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
-      elseif complete_reduction == true
-        I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
-      end
-    elseif algorithm == :fglm
-      _compute_groebner_basis_using_fglm(I, ordering)
-    elseif algorithm == :hc
-      standard_basis_highest_corner(I, ordering=ordering)
-    elseif algorithm == :hilbert
-      weights = _find_weights(gens(I))
-      if !any(iszero, weights)
-        J, target_ordering, hn = I, ordering, nothing
-      else
-        R = base_ring(I)
-        K = iszero(characteristic(R)) && !haskey(I.gb, degrevlex(R)) ? _mod_rand_prime(I) : I
-        S = base_ring(K)
-        gb = groebner_assure(K, degrevlex(S))
-        # 2024-02-09 Next lines "blindly" updated to use new homogenization UI
-        H = homogenizer(S, "w")
-        K_hom = H(K)
-        gb_hom = IdealGens(H.(gens(gb)))
-        gb_hom.isGB = true
-        K_hom.gb[degrevlex(S)] = gb_hom
-        singular_assure(K_hom.gb[degrevlex(S)])
-        hn = hilbert_series(quo(base_ring(K_hom), K_hom)[1])[1]
-        H2 = homogenizer(R, "w")
-        J = H2(I)
-        weights = ones(Int, ngens(base_ring(J)))
-        target_ordering = _extend_mon_order(ordering, base_ring(J))
-      end
-      GB = groebner_basis_hilbert_driven(J, destination_ordering=target_ordering,
-                                         complete_reduction=complete_reduction,
-                                         weights=weights,
-                                         hilbert_numerator=hn)
-      if base_ring(I) == base_ring(J)
-        I.gb[ordering] = GB
-      else
-        DH2 = dehomogenizer(H2)
-        GB_dehom_gens = DH2.(gens(GB))
-        I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
-      end
-    elseif algorithm == :f4
-      #  since msolve v0.7.0 is most of the time more efficient
-      #  to compute a reduced GB by default
-      groebner_basis_f4(I, complete_reduction=true)
-    end
   end
   return I.gb[ordering]
 end
@@ -221,12 +211,11 @@ end
 @doc raw"""
     groebner_basis(I::MPolyIdeal;
       ordering::MonomialOrdering = default_ordering(base_ring(I)),
-      complete_reduction::Bool = false, algorithm::Symbol = :default)
+      complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 If `ordering` is global, return a Gröbner basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
-- `:default` (tries to choose the best possible implementation),
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
@@ -308,7 +297,7 @@ julia> leading_coefficient(G[8])
 ```
 """
 function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)), complete_reduction::Bool=false,
-                        algorithm::Symbol = :default)
+                        algorithm::Symbol = :buchberger)
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
