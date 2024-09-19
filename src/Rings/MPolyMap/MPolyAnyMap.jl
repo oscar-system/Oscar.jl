@@ -42,6 +42,10 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
   coeff_map::U
   img_gens::Vector{V}
   temp_ring           # temporary ring used when evaluating maps
+  variable_indices::Vector{Int} # a table where the i-th entry contains the 
+                                # index of the variable where it's mapped to
+                                # in case the mapping takes such a particularly
+                                # simple form.
 
   function MPolyAnyMap{D, C, U, V}(domain::D,
                                 codomain::C,
@@ -51,7 +55,11 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
       for g in img_gens
         @assert parent(g) === codomain "elements does not have the correct parent"
       end
-    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
+    result = new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
+    if all(x in gens(codomain) for x in img_gens) && length(unique(img_gens)) == ngens(domain)
+      result.variable_indices = [findfirst(x==y for y in gens(codomain)) for x in img_gens]
+    end
+    return result
   end
 end
 
