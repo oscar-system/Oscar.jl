@@ -110,14 +110,28 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
     end
 
     @testset "Root systems" begin
-      if has_root_system(L)
-        rs = root_system(L)
-        @test rs isa RootSystem
-        @test dim(L) == n_roots(rs) + n_simple_roots(rs)
-        chev = @inferred chevalley_basis(L)
-        @test length(chev) == 3
-        @test length(chev[1]) == length(chev[2])
-        @test dim(L) == sum(length, chev; init=0)
+      if !(L isa DirectSumLieAlgebra) # TODO: make root_system work for DirectSumLieAlgebra
+        try
+          root_system(L)
+        catch e
+          e isa ArgumentError || rethrow()
+          @test any(
+            msg -> contains(e.msg, msg),
+            ["Killing form is degenerate", "Cartan subalgebra is not split"],
+          )
+        end
+        if has_root_system(L)
+          rs = root_system(L)
+          @test rs isa RootSystem
+          @test dim(L) == n_roots(rs) + n_simple_roots(rs)
+          chev = @inferred chevalley_basis(L)
+          @test length(chev) == 3
+          @test length(chev[1]) == length(chev[2])
+          @test dim(L) == sum(length, chev; init=0)
+          H = cartan_subalgebra(L)
+          @test all(h -> h in H, chev[3])
+          @test all(xs -> bracket(xs...) in H, zip(chev[1], chev[2]))
+        end
       end
     end
 

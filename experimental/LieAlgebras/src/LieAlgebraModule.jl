@@ -1413,17 +1413,8 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 ```
 """
 function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dim_of_simple_module(T, R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return T(
-      GAPWrap.DimensionOfHighestWeightModule(
-        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
-      ),
-    )
-  end
+  R = root_system(L)
+  return dim_of_simple_module(T, R, hw)
 end
 
 function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1456,24 +1447,8 @@ julia> dominant_weights(L, [1, 0, 3])
 ```
 """
 function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dominant_weights(T, R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return first.(
-      sort!(
-        collect(
-          T(w) => d for (w, d) in
-          zip(
-            GAP.Globals.DominantWeights(
-              GAP.Globals.RootSystem(codomain(Oscar.iso_oscar_gap(L))),
-              GAP.Obj(hw; recursive=true),
-            )...,
-          )
-        ); by=last)
-    )
-  end
+  R = root_system(L)
+  return dominant_weights(T, R, hw)
 end
 
 function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1503,20 +1478,8 @@ Dict{Vector{Int64}, Int64} with 4 entries:
 ```
 """
 function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dominant_character(R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return Dict{Vector{Int},Int}(
-      Vector{Int}(w) => d for (w, d) in
-      zip(
-        GAPWrap.DominantCharacter(
-          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
-        )...,
-      )
-    )
-  end
+  R = root_system(L)
+  return dominant_character(R, hw)
 end
 
 @doc raw"""
@@ -1547,22 +1510,8 @@ Dict{Vector{Int64}, Int64} with 10 entries:
 ```
 """
 function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return character(R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    dc = dominant_character(L, hw)
-    c = Dict{Vector{Int},Int}()
-    W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
-    for (w, d) in dc
-      it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
-      while !GAPWrap.IsDoneIterator(it)
-        push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
-      end
-    end
-    return c
-  end
+  R = root_system(L)
+  return character(R, hw)
 end
 
 @doc raw"""
@@ -1595,19 +1544,6 @@ MSet{Vector{Int64}} with 6 elements:
 function tensor_product_decomposition(
   L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
 )
-  if has_root_system(L)
-    R = root_system(L)
-    return tensor_product_decomposition(R, hw1, hw2)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
-    return multiset(
-      Tuple{Vector{Vector{Int}},Vector{Int}}(
-        GAPWrap.DecomposeTensorProduct(
-          codomain(Oscar.iso_oscar_gap(L)),
-          GAP.Obj(hw1; recursive=true),
-          GAP.Obj(hw2; recursive=true),
-        ),
-      )...,
-    )
-  end
+  R = root_system(L)
+  return tensor_product_decomposition(R, hw1, hw2)
 end

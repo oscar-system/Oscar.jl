@@ -772,10 +772,10 @@
       @test dim == 16
     end
 
-    let L = special_orthogonal_lie_algebra(QQ, 5) # type B_2 but without known root system
-      dim = @inferred dim_of_simple_module(L, ZZ.([1, 2]))
+    let L = special_orthogonal_lie_algebra(QQ, 7) # type B_3 but without known root system
+      dim = @inferred dim_of_simple_module(L, ZZ.([1, 2, 1]))
       @test dim isa Int
-      @test dim == 35
+      @test dim == 2800
     end
   end
 
@@ -896,14 +896,22 @@
       )
     end
 
-    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
+    let L = special_orthogonal_lie_algebra(QQ, 7), hw = ZZ.([1, 2, 0]) # type B_3 but without known root system
       domchar = check_dominant_character(L, hw)
       @test domchar == Dict(
-        [1, 2] => 1,
-        [2, 0] => 1,
-        [0, 2] => 2,
-        [1, 0] => 3,
-        [0, 0] => 3,
+        [1, 2, 0] => 1,
+        [2, 0, 2] => 1,
+        [2, 1, 0] => 1,
+        [0, 1, 2] => 2,
+        [0, 2, 0] => 2,
+        [3, 0, 0] => 2,
+        [1, 0, 2] => 3,
+        [1, 1, 0] => 6,
+        [2, 0, 0] => 6,
+        [0, 0, 2] => 9,
+        [0, 1, 0] => 9,
+        [1, 0, 0] => 15,
+        [0, 0, 0] => 15,
       )
     end
   end
@@ -984,7 +992,7 @@
       )
     end
 
-    let L = special_orthogonal_lie_algebra(QQ, 5), hw = ZZ.([1, 2]) # type B_2 but without known root system
+    let L = special_orthogonal_lie_algebra(QQ, 7), hw = ZZ.([1, 2, 1]) # type B_3 but without known root system
       char = check_character(L, hw)
     end
   end
@@ -1090,18 +1098,26 @@
       ))
     end
 
-    let L = special_orthogonal_lie_algebra(QQ, 5), hw1 = ZZ.([1, 2]), hw2 = ZZ.([1, 1]) # type B_2 but without known root system
+    let L = special_orthogonal_lie_algebra(QQ, 7) # type B_3 but without known root system
+      hw1 = ZZ.([1, 1, 0])
+      hw2 = ZZ.([0, 1, 1])
+
       dec = test_tensor_product_decomposition(L, hw1, hw2)
       @test dec == multiset(
         Dict(
-          [2, 3] => 1,
-          [3, 1] => 1,
-          [0, 5] => 1,
-          [1, 3] => 2,
-          [2, 1] => 2,
-          [0, 3] => 2,
-          [1, 1] => 2,
-          [0, 1] => 1,
+          [1, 2, 1] => 1,
+          [2, 0, 3] => 1,
+          [2, 1, 1] => 1,
+          [0, 1, 3] => 1,
+          [0, 2, 1] => 1,
+          [3, 0, 1] => 1,
+          [1, 0, 3] => 2,
+          [1, 1, 1] => 3,
+          [2, 0, 1] => 2,
+          [0, 0, 3] => 2,
+          [0, 1, 1] => 2,
+          [1, 0, 1] => 2,
+          [0, 0, 1] => 1,
         ),
       )
     end

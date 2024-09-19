@@ -48,6 +48,8 @@ Return the dimension of the Lie subalgebra `S`.
 """
 dim(S::LieSubalgebra) = length(basis(S))
 
+coefficient_ring(S::LieSubalgebra) = coefficient_ring(base_lie_algebra(S))
+
 ###############################################################################
 #
 #   String I/O
@@ -77,6 +79,55 @@ function Base.show(io::IO, S::LieSubalgebra)
     print(io, LowercaseOff(), "Lie subalgebra of dimension $(dim(S)) of ", Lowercase())
     print(terse(io), base_lie_algebra(S))
   end
+end
+
+###############################################################################
+#
+#   Parent object call overload
+#
+###############################################################################
+
+@doc raw"""
+    (S::LieSubalgebra{C})() -> LieAlgebraElem{C}
+
+Return the zero element of the Lie subalgebra `S`.
+"""
+function (S::LieSubalgebra)()
+  return zero(base_lie_algebra(S))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector `v`.
+Fail, if `Int` cannot be coerced into the base ring of `S`.
+"""
+function (S::LieSubalgebra)(v::Vector{Int})
+  return S(coefficient_ring(S).(v))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector `v`.
+"""
+function (S::LieSubalgebra{C})(v::Vector{C}) where {C<:FieldElem}
+  @req length(v) == dim(S) "Length of vector does not match dimension."
+  mat = matrix(coefficient_ring(S), 1, length(v), v)
+  L = base_lie_algebra(S)
+  return elem_type(L)(L, mat * basis_matrix(S))
+end
+
+@doc raw"""
+    (S::LieSubalgebra{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the element of `S` with coefficient vector equivalent to
+the $1 \times \dim(S)$ matrix `mat`.
+"""
+function (S::LieSubalgebra{C})(mat::MatElem{C}) where {C<:FieldElem}
+  @req size(mat) == (1, dim(S)) "Invalid matrix dimensions."
+  L = base_lie_algebra(S)
+  return elem_type(L)(L, mat * basis_matrix(S))
 end
 
 ###############################################################################
@@ -114,12 +165,24 @@ end
 ###############################################################################
 
 @doc raw"""
-    in(x::LieAlgebraElem, S::LieSubalgebra) -> Bool
+    in(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) -> Bool
 
 Return `true` if `x` is in the Lie subalgebra `S`, `false` otherwise.
 """
-function Base.in(x::LieAlgebraElem, S::LieSubalgebra)
+function Base.in(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(S) "Incompatible Lie algebras"
   return can_solve(basis_matrix(S), _matrix(x); side=:left)
+end
+
+@doc raw"""
+    Oscar.LieAlgebras.coefficient_vector(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) -> Vector{C}
+
+Return the coefficient vector of `x` in the basis of `S`.
+This function will throw an error if `x` is not in `S`.
+"""
+function coefficient_vector(x::LieAlgebraElem{C}, S::LieSubalgebra{C}) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(S) "Incompatible Lie algebras"
+  return solve(basis_matrix(S), _matrix(x); side=:left)
 end
 
 ###############################################################################
@@ -209,6 +272,18 @@ Return `true` if `S` is self-normalizing, i.e. if its normalizer is `S`.
 """
 function is_self_normalizing(S::LieSubalgebra)
   return normalizer(base_lie_algebra(S), S) == S
+end
+
+###############################################################################
+#
+#   More misc stuff
+#
+###############################################################################
+
+function any_non_ad_nilpotent_element(S::LieSubalgebra)
+  LS, emb = lie_algebra(S)
+  x = any_non_ad_nilpotent_element(LS)
+  return emb(x)
 end
 
 ###############################################################################
