@@ -88,7 +88,11 @@ struct MatrixOrdering <: AbsGenOrdering
 end
 
 # TODO: Move the following two methods to Hecke
-function content(v::SRow{ZZRingElem})
+function Hecke.content(v::SRow{ZZRingElem})
+  isempty(v) && return ZZ(0)
+  if length(v) == 1
+    return abs(v.values[1])
+  end
   return reduce(gcd, v.values) # TODO: Make this clean!
 end
 
@@ -98,38 +102,30 @@ function _canonical_matrix(w_in::ZZMatrix)
   w = sparse_matrix(w_in)
   ww = sparse_matrix(ZZ, 0, ncols(w))
   for i in 1:nrows(w)
-    is_zero(w[i]) && continue
-   # if is_zero_row(w, i)
-   #   continue
-   # end
-   #  nw = w[i:i, :]
+    is_empty(w[i]) && continue
     nw = w[i]
     c = content(nw)
     if !isone(c)
       nw = divexact(nw, c)
     end
     for j in 1:nrows(ww)
-      is_zero(ww[j]) && continue
+      is_empty(ww[j]) && continue
       (h, ent) = first(ww[j])
-      nw = abs(ww[j, h])*nw - sign(ww[j, h])*ent*ww[j]
-      #h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      #if !iszero(nw[1, h])
-      #  nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
-      #end
+      hnw = findfirst(isequal(h), nw.pos)
+      hnw == nothing && continue
+      nw = abs(ent)*nw - sign(ent)*nw.values[hnw]*ww[j]
     end
-    if !iszero(nw)
+    if !is_empty(nw)
       c = content(nw)
       if !isone(c)
         nw = divexact(nw, c)
       end
       push!(ww, nw)
-      #ww = vcat(ww, nw)
     end
   end
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
-
 
 # convert (y,x,z) => (2,1,3) and check uniqueness
 function _unique_var_indices(a::AbstractVector{<:MPolyRingElem})
