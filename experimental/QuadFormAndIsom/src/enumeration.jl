@@ -134,7 +134,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   end
 
   # A+B and C must agree locally at every primes except p
-  for q in filter(qq -> qq != p, union!(ZZRingElem[2], primes(AperpB), primes(C)))
+  for q in filter(!=(p), union!(ZZRingElem[2], primes(AperpB), primes(C)))
     if local_symbol(AperpB, q) != local_symbol(C, q)
       return false
     end
@@ -432,7 +432,7 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion)
     parts = Vector{Int}[]
     l = divexact(s2-l, 2)
     for v in AllParts(l)
-      if any(i -> i > rk, v)
+      if any(>(rk), v)
         continue
       end
       if length(v) > s

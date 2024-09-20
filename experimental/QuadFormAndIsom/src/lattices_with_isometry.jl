@@ -1791,10 +1791,10 @@ function _real_kernel_signatures(L::ZZLat, M::MatElem)
   diag = Hecke._gram_schmidt(diag, C)[1]
   diag = diagonal(diag)
 
-  @hassert :ZZLatWithIsom 1 all(z -> isreal(z), diag)
-  @hassert :ZZLatWithIsom 1 all(z -> !iszero(z), diag)
+  @hassert :ZZLatWithIsom 1 all(isreal, diag)
+  @hassert :ZZLatWithIsom 1 all(!iszero, diag)
 
-  k1 = count(z -> z > 0, diag)
+  k1 = count(>(0), diag)
   k2 = length(diag) - k1
 
   return k1, k2
