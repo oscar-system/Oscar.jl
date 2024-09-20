@@ -54,15 +54,17 @@ process_ids = addprocs(3)
 @everywhere using Oscar
 
 @testset "parallel smoothness test for schemes" begin
-  #X = rational_d9_pi6()
-  IP4 = projective_space(QQ, [:x, :y, :z, :v, :w])
-  S = homogeneous_coordinate_ring(IP4)
-  (x, y, z, v, w) = gens(S)
+  X = rational_d9_pi6()
+  #set_assertion_scope(:Parallelization, 5)
+  #set_verbosity_scope(:Parallelization, 5)
+  #IP4 = projective_space(QQ, [:x, :y, :z, :v, :w])
+  #S = homogeneous_coordinate_ring(IP4)
+  #(x, y, z, v, w) = gens(S)
   
-  I = ideal(S, sum(u^6 for u in gens(S)))
-  X, _ = sub(IP4, I)
+  #I = ideal(S, sum(u^6 for u in gens(S)))
+  #X, _ = sub(IP4, I)
   X_cov = covered_scheme(X)
-  Oscar.is_smooth_parallel(X_cov) # still fails!
+  Oscar.is_smooth_parallel2(X_cov) # works!
 end  
 
 map(rmprocs, process_ids)
