@@ -554,8 +554,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   new_rk = Singular.rank(s_mod_new)
 
   # find which generators were scratched
-  img_inds = [findlast(j -> j == i, p) for i in 1:new_rk]
-  @assert all(i -> !isnothing(i), img_inds) "something went wrong when trying to construct the map"
+  img_inds = [findlast(==(i), p) for i in 1:new_rk]
+  @assert all(!isnothing, img_inds) "something went wrong when trying to construct the map"
   phi2 = map(pm, 0)
   F2 = domain(phi2)
 

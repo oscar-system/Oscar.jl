@@ -267,7 +267,7 @@ function (F::FreeMod)(s::Singular.svector)
   Rx = base_ring(F)
   R = base_ring(Rx)
   for (i, e, c) = s
-    f = Base.findfirst(x->x==i, pos)
+    f = Base.findfirst(==(i), pos)
     if f === nothing
       push!(values, MPolyBuildCtx(base_ring(F)))
       f = length(values)

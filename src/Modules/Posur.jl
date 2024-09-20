@@ -682,7 +682,7 @@ function iszero(v::SubquoModuleElem{<:AbsLocalizedRingElem})
   Mb = pre_saturated_module(M)
   w = repres(v)
   b = as_matrix(repres(v))
-  all(x->iszero(x), b) && return true
+  all(is_zero, b) && return true
 
   (u, d) = clear_denominators(w)
   iszero(Mb(u)) && return true
@@ -730,7 +730,7 @@ function iszero(
   Mb = pre_saturated_module(M)
   w = repres(v)
   b = as_matrix(repres(v))
-  all(x->iszero(x), b) && return true
+  all(is_zero, b) && return true
 
   (u, d) = clear_denominators(w)
   iszero(Mb(u)) && return true

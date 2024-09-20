@@ -143,7 +143,7 @@ function transport(M::SubquoModule, v::SubquoModuleElem)
   N = parent(v)
   morphisms = find_sequence_of_morphisms(N, M)
 
-  return foldl((x,f) -> f(x), morphisms; init=v)
+  return foldl(|>, morphisms; init=v)
 end
 
 @doc raw"""
@@ -378,7 +378,7 @@ function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
   FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
 
@@ -398,7 +398,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, S); check=false)
   return MS, map
 end
 

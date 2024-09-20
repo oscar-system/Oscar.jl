@@ -1629,7 +1629,7 @@ function Base.getindex(st::sheafCohTable, ind...)
 end
 
 function Base.show(io::IO, table::sheafCohTable)
-  chi = [any(v -> v == -1, col) ? -1 : sum(col) for col in eachcol(table.values)]
+  chi = [any(==(-1), col) ? -1 : sum(col) for col in eachcol(table.values)]
   # pad every value in the table to this length
   val_space_length = max(maximum(_ndigits, table.values), maximum(_ndigits, chi))
   nrows = size(table.values, 1)
@@ -2754,7 +2754,7 @@ function truncate(I::ModuleFP, d::Int, task::Symbol=:with_morphism; check::Bool=
   if  d <= dmin
      return _return_wrt_task((I, identity_map(I)), task)
   end
-  V = sort(gens(I), lt = (a, b) -> degree(Int, a; check) <= degree(Int, b; check))
+  V = sort(gens(I); by=a -> degree(Int, a; check))
   RES = elem_type(I)[]
   s = dmin
   B = monomial_basis(R, d-s)
