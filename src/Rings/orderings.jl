@@ -87,35 +87,6 @@ struct MatrixOrdering <: AbsGenOrdering
   end
 end
 
-function __canonical_matrix(w)
-  ww = matrix(ZZ, 0, ncols(w), [])
-  for i in 1:nrows(w)
-    if is_zero_row(w, i)
-      continue
-    end
-    nw = w[i:i, :]
-    c = content(nw)
-    if !isone(c)
-      nw = divexact(nw, c)
-    end
-    for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
-      end
-    end
-    if !iszero(nw)
-      c = content(nw)
-      if !isone(c)
-        nw = divexact(nw, c)
-      end
-      ww = vcat(ww, nw)
-    end
-  end
-  @assert nrows(ww) <= ncols(ww)
-  return ww
-end
-
 function _canonical_matrix(w)
   # we store the results in ww and keep track of the "real" number of rows
   # in k
