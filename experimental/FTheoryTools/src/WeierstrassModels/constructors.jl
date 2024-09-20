@@ -53,7 +53,7 @@ function weierstrass_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "f") "Weierstrass section f must be specified"
   @req haskey(explicit_model_sections, "g") "Weierstrass section g must be specified"
   vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["f", "g"], vs2) "Only the Weierstrass sections f, g must be parametrized"
+  @req all(in(("f", "g")), vs2) "Only the Weierstrass sections f, g must be parametrized"
 
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
