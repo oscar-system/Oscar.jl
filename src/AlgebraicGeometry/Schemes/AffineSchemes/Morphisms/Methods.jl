@@ -18,7 +18,7 @@ function fiber_product(
   )
   Y = domain(f)
   X = codomain(f)
-  X == codomain(g) || error("maps need to have the same codomain")
+  X === codomain(g) || error("maps need to have the same codomain")
   Z = domain(g)
   YxZ, pY, pZ = product(Y, Z)
   RX = ambient_coordinate_ring(X)
