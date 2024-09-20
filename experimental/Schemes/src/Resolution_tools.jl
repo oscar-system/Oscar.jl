@@ -350,8 +350,8 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
 
   if length(ret_divs) > length(div_list_raw)
     for (i,j) in dont_meet_raw
-      append!(dont_meet,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
-      append!(caution_multi_charts,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(dont_meet,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(caution_multi_charts,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
     end
   end
 

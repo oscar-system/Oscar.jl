@@ -53,7 +53,7 @@ and exceptional divisor
 function blow_up(m::NormalToricVarietyType, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(m, coordinate_name)
   defining_ideal = ideal_in_cox_ring(I)
-  if all(x -> x in gens(base_ring(defining_ideal)), gens(defining_ideal))
+  if all(in(gens(base_ring(defining_ideal))), gens(defining_ideal))
     return blow_up(m, defining_ideal; coordinate_name) # Apply toric method
   else
     return blow_up(I) # Reroute to scheme theory
@@ -271,8 +271,8 @@ true
 function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   cox = cox_ring(v)
-  indices = [findfirst(y -> y == x, gens(cox)) for x in gens(I)]
-  if all(index -> index !== nothing, indices)
+  indices = [findfirst(==(x), gens(cox)) for x in gens(I)]
+  if all(!isnothing, indices)
     rs = matrix(ZZ, rays(v))
     new_ray = vec(sum(rs[index, :] for index in indices))
     new_ray = new_ray ./ gcd(new_ray)
