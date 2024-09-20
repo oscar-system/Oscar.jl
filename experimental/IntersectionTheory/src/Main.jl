@@ -2211,7 +2211,7 @@ end
 function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks)
+  @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
   # FIXME ordering
@@ -2302,7 +2302,7 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   
   l = length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks) && dims[end] <= n
+  @assert all(>(0), ranks) && dims[end] <= n
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
     push!(ranks, n-dims[l])
