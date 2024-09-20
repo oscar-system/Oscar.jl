@@ -146,13 +146,13 @@ function possible_permutation_characters_from_sylow_subgroup(tbl::Oscar.GAPGroup
   q = p^q
 
   # Perhaps the Sylow `p`-subgroup is cyclic.
-  pos = findfirst(x -> x == q, orders_class_representatives(tbl))
+  pos = findfirst(==(q), orders_class_representatives(tbl))
   pos != nothing && return [induced_cyclic(tbl, [pos])[1]]
 
   # Do we have the table of marks?
   tom = GAP.Globals.TableOfMarks(GapObj(tbl))
   if tom != GAP.Globals.fail
-    pos = findfirst(x -> x == q, Vector{Int}(GAP.Globals.OrdersTom(tom)))
+    pos = findfirst(==(q), Vector{Int}(GAP.Globals.OrdersTom(tom)))
     return [Oscar.class_function(tbl, GAP.Globals.PermCharsTom(GapObj(tbl), tom)[pos])]
   end
 

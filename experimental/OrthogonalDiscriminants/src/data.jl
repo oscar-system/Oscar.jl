@@ -69,7 +69,7 @@ julia> orthogonal_discriminant(t2[4])
 """
 function orthogonal_discriminant(chi::Oscar.GAPGroupClassFunction)
   tbl = parent(chi)
-  pos = findfirst(x -> x === chi, tbl)
+  pos = findfirst(===(chi), tbl)
   pos === nothing && return ""
   p = characteristic(tbl)
   if p == 0
@@ -456,8 +456,7 @@ function all_od_infos(L...)
       names = [ids]
     elseif ids isa Vector{String}
       if names !== nothing
-        names = filter(x -> x in names,
-                       [(OD_simple_names[x], x) for x in ids])
+        names = filter(in(names), [(OD_simple_names[x], x) for x in ids])
       else
         names = [(OD_simple_names[x], x) for x in ids]
       end
