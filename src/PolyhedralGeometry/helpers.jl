@@ -238,7 +238,7 @@ Base.convert(
 ) where {T<:Union{Directed,Undirected}} = Oscar.pm_object(g)
 
 function remove_zero_rows(A::AbstractMatrix)
-  A[findall(x -> !iszero(x), collect(eachrow(A))), :]
+  A[findall(!iszero, collect(eachrow(A))), :]
 end
 function remove_zero_rows(A::AbstractMatrix{Float64})
   A[
