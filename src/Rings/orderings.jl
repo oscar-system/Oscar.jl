@@ -88,30 +88,38 @@ struct MatrixOrdering <: AbsGenOrdering
 end
 
 function _canonical_matrix(w)
-  ww = matrix(ZZ, 0, ncols(w), [])
+  # we store the results in ww and keep track of the "real" number of rows
+  # in k
+  ww = zero_matrix(ZZ, nrows(w), ncols(w))
+  k = 0
+  piv = Int[]
+  # piv[i] stores the column index of the first non-zero entry in row i of ww
   for i in 1:nrows(w)
     if is_zero_row(w, i)
       continue
     end
-    nw = w[i:i, :]
+    nw = view(w, i:i, :)
     c = content(nw)
     if !isone(c)
-      nw = divexact(nw, c)
+      divexact!(nw, nw, c)
     end
-    for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
+    for j in 1:k
+      h = piv[j]
+      if !is_zero_entry(nw, 1, h)
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*view(ww, j:j, :)
       end
     end
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
-        nw = divexact(nw, c)
+        divexact!(nw, nw, c)
       end
-      ww = vcat(ww, nw)
+      ww[(k + 1):(k + 1), :] = nw
+      push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
+      k += 1
     end
   end
+  ww = view(ww, 1:k, :)
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
