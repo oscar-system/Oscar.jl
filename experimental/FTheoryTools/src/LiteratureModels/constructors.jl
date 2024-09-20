@@ -297,7 +297,7 @@ end
 #######################################################
 
 function _find_model(doi::String, arxiv_id::String, version::String, equation::String, type::String)
-  @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
+  @req any(!isempty, [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
   for k in 1:length(file_index)

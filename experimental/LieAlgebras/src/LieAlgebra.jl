@@ -525,7 +525,7 @@ function any_non_ad_nilpotent_element(L::LieAlgebra{C}) where {C<:FieldElem}
     while dim(K) < dim(L)
       # find an element b in L \ K with [b,K]⊆K
       N = normalizer(L, K)
-      b = basis(N, findfirst(b -> !(b in K), basis(N)))
+      b = basis(N, findfirst(!in(K), basis(N)))
       !is_ad_nilpotent(b) && return b
       K = sub(L, [basis(K); b]; is_basis=true)
     end

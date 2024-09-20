@@ -256,14 +256,14 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
         push!(quotients, quotient(ideal([9 * g2s[i], gauge2s[i]]), ideal([2 * f2s[i], gauge2s[i]])))
       end
 
-      kod_type = if all(q -> is_radical(q), quotients) "Non-split I_$d_ord" else "Split I_$d_ord" end
+      kod_type = if all(is_radical, quotients) "Non-split I_$d_ord" else "Split I_$d_ord" end
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
       quotients = []
       for i in eachindex(gauge2s)
         push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^2])) + ideal([gauge2s[i]]))
       end
 
-      kod_type = if all(q -> is_radical(q), quotients) "Non-split IV" else "Split IV" end
+      kod_type = if all(is_radical, quotients) "Non-split IV" else "Split IV" end
     elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
       quotients = []
       if d_ord % 2 == 0
@@ -276,14 +276,14 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
         end
       end
 
-      kod_type = if all(q -> is_radical(q), quotients) "Non-split I^*_$(d_ord - 6)" else "Split I^*_$(d_ord - 6)" end
+      kod_type = if all(is_radical, quotients) "Non-split I^*_$(d_ord - 6)" else "Split I^*_$(d_ord - 6)" end
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
       quotients = []
       for i in eachindex(gauge2s)
         push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^4])) + ideal([gauge2s[i]]))
       end
 
-      kod_type = if all(q -> is_radical(q), quotients) "Non-split IV^*" else "Split IV^*" end
+      kod_type = if all(is_radical, quotients) "Non-split IV^*" else "Split IV^*" end
     else
       kod_type = "Unrecognized"
     end
@@ -464,7 +464,7 @@ _strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_tran
 
 function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal)
   center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
-  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
+  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(in(gens(base_ring(center_ideal))), gens(center_ideal)) == false)
     return strict_transform(bd, II)
   end
   S = cox_ring(domain(bd))

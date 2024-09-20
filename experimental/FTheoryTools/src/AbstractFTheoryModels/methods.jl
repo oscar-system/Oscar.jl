@@ -333,7 +333,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
-      if any(x -> x != 0, all_appearing_exponents[k,:])
+      if any(!is_zero, all_appearing_exponents[k,:])
         gen_name = string(gens(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
         @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
@@ -646,7 +646,7 @@ function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
   cohomology_ring(ambient_space(m); check=false)
   cox_gens = string.(gens(cox_ring(ambient_space(m))))
   @req desired_value in cox_gens "Specified zero section is invalid"
-  index = findfirst(x -> x==desired_value, cox_gens)
+  index = findfirst(==(desired_value), cox_gens)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
 end
 
@@ -840,7 +840,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
       # Compute strict transform of ideal sheaves appearing in blowup center
       exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
-      positions = [findfirst(x -> x == l, exceptionals) for l in exceptional_center]
+      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
       exceptional_divisors = [exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for l in positions]
       exceptional_ideal_sheafs = [ideal_sheaf(d) for d in exceptional_divisors]
       for l in 1:length(positions)

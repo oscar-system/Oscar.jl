@@ -11,7 +11,7 @@
 function _iterate_size(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
   is_empty(lbs) && return 0
   if d == 0
-    return any(bb -> bb > 0, lbs) ? 0 : 1
+    return any(>(0), lbs) ? 0 : 1
   end
 
   @assert length(lbs) == length(ubs)
@@ -37,7 +37,7 @@ function _iterate_size_no_lbs(ubs::Vector{Int}, d::Int)
     return d <= ubs[1] ? 1 : 0
   end
 
-  if all(k -> k >= d, ubs)
+  if all(>=(d), ubs)
     return binomial(d+length(ubs)-1, d)
   end
 
@@ -195,9 +195,9 @@ function elevator(L::Vector{T}, f::U, d::Int; lbs::Vector{Int} = Int[0 for i in 
   fL = f.(L)
   @req issorted(fL) "L is not sorted with respect to f"
   @req length(lbs) == length(L) "Bounds conditions must have the same length as the entry list"
-  @req all(i -> i >= 0, lbs) "Bounds conditions must consist of non negative integers"
+  @req all(>=(0), lbs) "Bounds conditions must consist of non negative integers"
 
-  no_ubs = any(i -> i < 0, ubs)
+  no_ubs = any(<(0), ubs)
 
   _fL = unique(fL)
   _lbs = Int[sum([lbs[i] for i in 1:length(lbs) if fL[i] == _fL[j]]) for j in 1:length(_fL)]
@@ -235,7 +235,7 @@ elevator(L::Vector{Int}, d::Int; lbs::Vector{Int} = [0 for i in 1:length(L)], ub
 # default is the lexicographic order
 function _first(EC::ElevCtx, sumtype::Vector{ZZRingElem})
   @assert sum(sumtype) == degree_of_elevations(EC)
-  @assert any(s -> s == sumtype, _possible_sums(EC))
+  @assert any(==(sumtype), _possible_sums(EC))
   lbs, ubs  = associated_bounds(EC)
   L = underlying_list(EC)
   f = associated_function(EC)
@@ -273,7 +273,7 @@ function _first_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
 
   i = 1
   while length(s) != d
-    if count(j -> j == i, s) < ubs[i]
+    if count(==(i), s) < ubs[i]
       push!(s, i)
     else
       i += 1
@@ -328,7 +328,7 @@ function _last_homog(lbs::Vector{Int}, ubs::Vector{Int}, d::Int)
 
   i = length(lbs)
   while length(s) != d
-    if count(j -> j == i, s) < ubs[i]
+    if count(==(i), s) < ubs[i]
       push!(s, i)
     else
       i -= 1
@@ -424,7 +424,7 @@ function _next_homog_no_lbs(ubs::Vector{Int}, elhn::Vector{Int})
   _ubs = deepcopy(ubs)
   _ubs[elhn[end]] -= 1
   s = _next_homog_no_lbs(_ubs, elhn[1:end-1])
-  nb = count(j -> j == s[end], s)
+  nb = count(==(s[end]), s)
   j = findfirst(j -> (j == s[end] && ubs[j] > nb) || (j > s[end] && ubs[j] != 0), 1:length(ubs))
   push!(s, j)
   return s

@@ -319,7 +319,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
     index_0 = 0
     for point in C
         if is_zero(point)
-            index_0 = findfirst(item -> item == point, C)
+            index_0 = findfirst(==(point), C)
         end
         c = true
         for i in 1:n
@@ -347,7 +347,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                     u = m*gen(R,i)
                     v = w + W[i]
                     if v in C
-                        index = findfirst(item -> item == v, C)
+                        index = findfirst(==(v), C)
                         c = true
                         for elem in S[index]
                             if is_divisible_by(u, elem)
@@ -361,7 +361,7 @@ function torus_invariants_fast(W::Vector{Vector{ZZRingElem}}, R::MPolyRing)
                         end
                     end
                 end
-                deleteat!(U[j], findall(item -> item == m, U[j]))
+                deleteat!(U[j], findall(==(m), U[j]))
             else
                 count += 1
             end

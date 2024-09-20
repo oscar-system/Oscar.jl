@@ -69,7 +69,7 @@ function reps(K, G::Oscar.PcGroup)
           X = l[1]
           Xp = X^p
           #Brueckner: C*Xp == Y for some scalar C
-          ii = findfirst(x->!iszero(x), Xp)
+          ii = findfirst(!is_zero, Xp)
           @assert !iszero(Y[ii])
           C = divexact(Y[ii], Xp[ii])
           @assert C*Xp == Y

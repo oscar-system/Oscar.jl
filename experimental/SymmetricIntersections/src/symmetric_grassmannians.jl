@@ -517,7 +517,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
   ideal_PV = ideal(S, vec(collect(matrix(S, 1, nvars(S), gens(S))*K)))
   PV = subscheme(X, ideal_PV)
   _J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
-  J = ideal(S, elem_type(S)[map_coefficients(x -> F(x), p; parent = S) for p in gens(_J)])
+  J = ideal(S, elem_type(S)[map_coefficients(F, p; parent = S) for p in gens(_J)])
   J = saturation(J)
   return J::ideal_type(S)
 end

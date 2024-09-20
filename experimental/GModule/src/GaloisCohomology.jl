@@ -868,7 +868,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   @vprint :GaloisCohomology 2 " .. S-units (for all) ..\n"
   U, mU = sunit_group_fac_elem(S)
   I.mU = mU
-  z = MapFromFunc(codomain(mU), k, x->evaluate(x), y->FacElem(y))
+  z = MapFromFunc(codomain(mU), k, evaluate, FacElem)
   E = gmodule(G, mU, mG)
   Hecke.assure_has_hnf(E.M)
   @hassert :GaloisCohomology -1 is_consistent(E)
@@ -1641,7 +1641,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
     G = s
     mG = ms*mG
   else
-    mp = MapFromFunc(QQ, K, x -> K(x), y-> QQ(y))
+    mp = MapFromFunc(QQ, K, K, QQ)
   end
   B = RelativeBrauerGroup(mp)
   B.mG = mG
@@ -1673,7 +1673,7 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
     S, mS = sunit_group(lP)
 
     MC = Oscar.GrpCoh.MultGrp(K)
-    mMC = MapFromFunc(K, MC, x->MC(x), y->y.data)
+    mMC = MapFromFunc(K, MC, MC, y->y.data)
 
     mG = B.mG
     G = domain(mG)
@@ -1724,8 +1724,8 @@ function relative_brauer_group(K::AbsSimpleNumField, k::Union{QQField, AbsSimple
   end
 
   B.map =  MapFromFunc(B, Oscar.GrpCoh.AllCoChains{2, PermGroupElem, Oscar.GrpCoh.MultGrpElem{AbsSimpleNumFieldElem}}(),
-                       x->elem_to_cocycle(x), 
-                       y->cocycle_to_elem(y))
+                       elem_to_cocycle, 
+                       cocycle_to_elem)
   return B, B.map
 end
 

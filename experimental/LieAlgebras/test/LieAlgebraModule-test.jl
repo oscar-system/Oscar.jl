@@ -788,7 +788,7 @@
       domchar = @inferred dominant_character(LR, hw)
       @test domchar[Int.(hw)] == 1
       @test issetequal(keys(domchar), dominant_weights(Vector{Int}, LR, hw))
-      @test all(w -> is_dominant_weight(w), keys(domchar))
+      @test all(is_dominant_weight, keys(domchar))
       @test all(>=(1), values(domchar))
       return domchar
     end

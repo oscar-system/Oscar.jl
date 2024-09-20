@@ -106,7 +106,7 @@ function exp_groebner_assure(I::MPolyIdeal{Generic.MPoly{AbsSimpleNumFieldElem}}
       end
 #      @show gd
     else
-      new_idx = [any(x -> any(x->!iszero(x), Hecke.modular_proj(x, me)), AbstractAlgebra.coefficients(gd[i] - IP[i])) for i=1:length(gc)]
+      new_idx = [any(x -> any(!is_zero, Hecke.modular_proj(x, me)), AbstractAlgebra.coefficients(gd[i] - IP[i])) for i=1:length(gc)]
       @vprint :ModStdNF 1 "new information in $new_idx\n"
       push!(R, ZZRingElem(p), lift(Zx, me.ce.pr[end]))
       fl = !any(new_idx)

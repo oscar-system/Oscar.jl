@@ -115,7 +115,7 @@ function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
 
   if i < e
     S = abelian_group()
-    return S, x -> one(E), x -> id(S)
+    return S, _ -> one(E), _ -> id(S)
   end
 
   t = e-1
