@@ -42,9 +42,9 @@ end
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2))
     # serialization working? 
     mktempdir() do path 
-      test_save_load_roundtrip(path, pm) do loaded
-        @test pm == loaded
-        @test transition_matrices(pm) == transition_matrices(loaded)
+      test_save_load_roundtrip(path, model) do loaded
+        @test model == loaded
+        @test probability_map(model) == probability_map(loaded) 
       end
     end
   end
@@ -73,6 +73,13 @@ end
     #group of the model
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+    # serialization working? 
+    mktempdir() do path 
+      test_save_load_roundtrip(path, model) do loaded
+        @test model == loaded
+        @test probability_map(model) == probability_map(loaded) 
+      end
+    end
   end
 
   @testset "kimura2_model" begin
@@ -99,6 +106,13 @@ end
     # group of the model
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+    # serialization working? 
+    mktempdir() do path 
+      test_save_load_roundtrip(path, model) do loaded
+        @test model == loaded
+        @test probability_map(model) == probability_map(loaded) 
+      end
+    end
   end
     
   @testset "kimura3_model" begin
@@ -125,6 +139,13 @@ end
     # group of the model
     G = group_of_model(model)
     @test is_isomorphic(unique(parent.(G))[1], abelian_group(2,2))
+    # serialization working? 
+    mktempdir() do path 
+      test_save_load_roundtrip(path, model) do loaded
+        @test model == loaded
+        @test probability_map(model) == probability_map(loaded) 
+      end
+    end
   end
 
   @testset "general_markov_model" begin
@@ -144,6 +165,13 @@ end
     @test tr_mat[Edge(4,1)] isa AbstractAlgebra.Generic.MatSpaceElem{QQMPolyRingElem}
     # generators of the polynomial ring
     @test length(gens(model.prob_ring)) == 148 
+    # serialization working? 
+    mktempdir() do path 
+      test_save_load_roundtrip(path, model) do loaded
+        @test model == loaded
+        @test probability_map(model) == probability_map(loaded) 
+      end
+    end
   end
 
   @testset "affine models" begin 
