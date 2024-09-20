@@ -2148,7 +2148,7 @@ end
 ################################################################################
 
 _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
- iseven(count(z -> z > t, a) + count(z -> z < t, b)) ? 1 : -1
+ iseven(count(>(t), a) + count(<(t), b)) ? 1 : -1
 @doc raw"""
     flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 

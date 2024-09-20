@@ -43,7 +43,7 @@
   K = kernel(f) 
   @test zero(S) in K 
  
-  f = hom(S, S, x->x, [S[1], S[1]])
+  f = hom(S, S, identity, [S[1], S[1]])
   K = kernel(f)
   @test S[1] - S[2] in K
  

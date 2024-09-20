@@ -426,7 +426,7 @@ Ideals in localizations of polynomial rings.
       map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
-          x->W(x),
+          W,
           y->(isone(denominator(y)) ? numerator(y) : divexact(numerator(y), denominator(y))),
         )
     ) where {LocRingElemType<:AbsLocalizedRingElem}

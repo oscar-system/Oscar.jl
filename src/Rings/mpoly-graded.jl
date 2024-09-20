@@ -752,7 +752,7 @@ function has_weighted_ordering(R::MPolyDecRing)
     if all(isone, w)
       w_ord = degrevlex(gens(R))
       grading_to_ordering = true
-    elseif all(x -> x > 0, w)
+    elseif all(>(0), w)
       w_ord = wdegrevlex(gens(R), w)
       grading_to_ordering = true
     end
@@ -1453,7 +1453,7 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  D = get_attribute!(() -> Dict{Any, Any}(), R, :relshp)::Dict{Any, Any}
+  D = get_attribute!(R, :relshp, Dict{Any, Any}())::Dict{Any, Any}
   if haskey(D, S)
     error("try to add double")
   end
@@ -1888,7 +1888,7 @@ function _sat_poly_by_var(f::MPolyRingElem{T}, h::MPolyRingElem{T})  where { T <
     return f;
   end
   # Below i is index of the variable h
-  i = findfirst(x -> x>0, exponent_vector(h,1))
+  i = findfirst(>(0), exponent_vector(h,1))
   n = length(f)
   EV = AbstractAlgebra.exponent_vectors(f)  # list or iterator
   multiplicity = exponent_vector(f,1)[i]
@@ -2278,7 +2278,7 @@ function  truncate(I::MPolyIdeal, d::Int)
   if  d <= dmin
      return I
   end
-  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  V = sort(gens(I); by=a -> degree(Int, a))
   RES = elem_type(R)[]
   s = dmin
   B = monomial_basis(R, d-s)

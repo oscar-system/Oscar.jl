@@ -441,7 +441,7 @@ julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   istd, m = Singular.lift_std(singular_generators(B, ordering), complete_reduction = complete_reduction)
-  return IdealGens(B.Ox, istd), map_entries(x -> B.Ox(x), m)
+  return IdealGens(B.Ox, istd), map_entries(B.Ox, m)
 end
 
 @doc raw"""
@@ -1701,7 +1701,7 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
     R = base_ring(idl)
     gb = gens(groebner_basis(idl, ordering = ordering,
                              complete_reduction = true))
-    sort!(gb, by = p -> leading_monomial(p),
+    sort!(gb; by = leading_monomial,
           lt = (m1, m2) -> cmp(MonomialOrdering(R, ordering.o), m1, m2) > 0)
   end
   

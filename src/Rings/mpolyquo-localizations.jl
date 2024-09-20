@@ -328,7 +328,7 @@ function localization(
     S::AbsMPolyMultSet{BRT, BRET, RT, RET}
   ) where {BRT, BRET, RT, RET, MST}
   ring(S) === base_ring(L) || error("multiplicative set does not belong to the correct ring")
-  #issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, x->x)
+  #issubset(S, inverted_set(L)) && return L, MapFromFunc(L, L, identity)
   U = inverted_set(L)*S
   W = MPolyQuoLocRing(base_ring(L), modulus(underlying_quotient(L)), U, underlying_quotient(L), localization(U)[1])
   return W, MapFromFunc(L, W, (x->W(lifted_numerator(x), lifted_denominator(x), check=false)))
@@ -702,7 +702,7 @@ function convert(
   I = saturated_ideal(modulus(L))
   isone(I) && return zero(L)
   denoms = denominators(inverted_set(W))
-  if iszero(length(denoms)) || all(x->isone(x), denoms)
+  if iszero(length(denoms)) || all(is_one, denoms)
     success, q = divides(Q(a), Q(b))
     success || error("element can not be converted")
     return L(q)
@@ -1378,7 +1378,7 @@ end
   gb = groebner_basis(J, ordering=oo)
 
   # TODO: Speed up and use build context.
-  res_gens = elem_type(A)[f for f in gb if all(e->all(k->is_zero(e[k]), 1:(n+r)), exponents(f))]
+  res_gens = elem_type(A)[f for f in gb if all(e -> is_zero(view(e, 1:(n+r))), exponents(f))]
   img_gens2 = vcat([zero(R) for i in 1:(n+r)], gens(R))
   result = ideal(R, elem_type(R)[evaluate(g, img_gens2) for g in res_gens])
   return result
@@ -1709,7 +1709,7 @@ Ideals in localizations of affine algebras.
       map_from_base_ring::Map = MapFromFunc(
           base_ring(W), 
           W,
-          x->W(x),
+          W,
           y->(isone(lifted_denominator(y)) ? lifted_numerator(y) : divexact(lifted_numerator(y), lifted_denominator(y))),
         )
     ) where {LocRingElemType<:MPolyQuoLocRingElem}
@@ -2295,7 +2295,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
       c = leading_coefficient(b, ordering=ordering)
       t = normal_form(c*m, I_shift, ordering=ordering)
       if t == c*m 
-        j = findfirst(n->n==m, V_gens)
+        j = findfirst(==(m), V_gens)
         result = result + c * V[j]
         b = b - c * m
       else
@@ -2328,7 +2328,7 @@ end
   inverse_name=:_0
   R = base_ring(L)
   f = denominators(inverted_set(L))
-  f = sort(f, lt=(x, y)->total_degree(x)>total_degree(y))
+  f = sort(f; by=total_degree, rev=true)
   r = length(f)
   A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
   theta = t[1:r]
@@ -2361,7 +2361,7 @@ end
   inverse_name=:_0
   R = base_ring(L)
   f = denominators(inverted_set(L))
-  f = sort(f, lt=(x, y)->total_degree(x)>total_degree(y))
+  f = sort(f; by=total_degree, rev=true)
   r = length(f)
   A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
   theta = t[1:r]
