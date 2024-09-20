@@ -286,7 +286,7 @@ function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool
   if haskey(obj, refs_key)
     refs = obj[refs_key]
   end
-
+  
   return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 

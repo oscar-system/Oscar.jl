@@ -123,6 +123,7 @@ end
 
 @register_serialization_type Hecke.RelSimpleNumField uses_id uses_params
 @register_serialization_type AbsSimpleNumField uses_id uses_params
+const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
 type_params(obj::SimpleNumField) = type_params(defining_polynomial(obj))
 
@@ -133,7 +134,7 @@ function save_object(s::SerializerState, K::SimpleNumField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, params::Vector)
+function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, params::SimNumFieldTypeUnion)
   var = load_object(s, Symbol, :var)
   def_pol = load_object(s, PolyRingElem, params)
   K, _ = number_field(def_pol, var, cached=false)
@@ -144,9 +145,14 @@ end
 # FqNmodfinitefield
 @register_serialization_type fqPolyRepField uses_id uses_params
 
-type_params(K::fqPolyRepField) = Dict(:def_pol => defining_polynomial(K))
+type_params(K::fqPolyRepField) = type_params(defining_polynomial(K))
 
-function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, def_pol::PolyRingElem)
+function save_object(s::SerializerState, K::fqPolyRepField)
+  save_object(s, defining_polynomial(K))
+end
+
+function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, params::PolyRing)
+  def_pol = load_object(s, PolyRingElem, params)
   K, _ = Nemo.Native.finite_field(def_pol, cached=false)
   return K
 end
@@ -155,9 +161,9 @@ end
 @register_serialization_type fqPolyRepFieldElem uses_params
 @register_serialization_type AbsSimpleNumFieldElem uses_params
 @register_serialization_type Hecke.RelSimpleNumFieldElem uses_params
-const NumFieldElemTypeUnion = Union{AbsSimpleNumFieldElem, fqPolyRepFieldElem, Hecke.RelSimpleNumFieldElem}
+const SimNumFieldElemTypeUnion = Union{AbsSimpleNumFieldElem, fqPolyRepFieldElem, Hecke.RelSimpleNumFieldElem}
 
-function save_object(s::SerializerState, k::NumFieldElemTypeUnion)
+function save_object(s::SerializerState, k::SimNumFieldElemTypeUnion)
   K = parent(k)
   polynomial = parent(defining_polynomial(K))(k)
   save_object(s, polynomial)
@@ -169,13 +175,8 @@ function save_object(s::SerializerState, k::Hecke.RelSimpleNumFieldElem{AbsNonSi
   save_object(s, polynomial)
 end
 
-function load_object(s::DeserializerState, ::Type{<: NumFieldElemTypeUnion},
-                     parents::Vector)
-  polynomial = load_node(s) do _
-    load_object(s, PolyRingElem, parents[1:end - 1])
-  end
-
-  K = parents[end]
+function load_object(s::DeserializerState, ::Type{<: SimNumFieldElemTypeUnion}, K::Union{SimNumFieldTypeUnion, fqPolyRepField})
+  polynomial = load_object(s, PolyRingElem, parent(defining_polynomial(K)))
   loaded_terms = evaluate(polynomial, gen(K))
   return K(loaded_terms)
 end
@@ -227,20 +228,21 @@ end
 
 @register_serialization_type Hecke.RelNonSimpleNumField uses_id uses_params
 @register_serialization_type AbsNonSimpleNumField uses_id uses_params
+const NonSimFieldTypeUnion = Union{AbsNonSimpleNumField, RelNonSimpleNumField}
 
-type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = Dict(:def_pols => defining_polynomials(K))
+type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = type_params(defining_polynomials(K))
 
-function save_object(s::SerializerState, K::Union{AbsNonSimpleNumField, RelNonSimpleNumField})
+function save_object(s::SerializerState, K::NonSimFieldTypeUnion)
   save_data_dict(s) do
+    save_object(s, defining_polynomials(K), :def_pols)
     save_object(s, vars(K), :vars)
   end
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: Union{AbsNonSimpleNumField, RelNonSimpleNumField}},
-                     params::Vector{PolyRingElem})
-  def_pols = params[:def_pols]
-
+                     ::Type{<: NonSimFieldTypeUnion},
+                     params::PolyRing)
+  def_pols = load_object(s, Vector{PolyRingElem}, params)
   vars = load_node(s, :vars) do vars_data
     return map(Symbol, vars_data)
   end
@@ -259,16 +261,16 @@ function save_object(s::SerializerState, k::Union{AbsNonSimpleNumFieldElem, Heck
   save_object(s, polynomial)
 end
 
-function load_object(s::DeserializerState, ::Type{<: Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem}},
-                     parents::Vector)
-  K = parents[end]
+function load_object(s::DeserializerState,
+                     ::Type{<: Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem}},
+                     params::Union{AbsNonSimpleNumField, RelNonSimpleNumField})
+  K = params
   n = ngens(K)
   # forces parent of MPolyRingElem
-  poly_ring = polynomial_ring(base_field(K), n; cached=false)
-  parents[end - 1], _ = poly_ring
+  poly_ring, _ = polynomial_ring(base_field(K), n; cached=false)
   poly_elem_type = elem_type
   load_node(s) do _
-    polynomial = load_object(s, MPolyRingElem, parents[1:end - 1])
+    polynomial = load_object(s, MPolyRingElem, poly_ring)
   end
   polynomial = evaluate(polynomial, gens(K))
   return K(polynomial)
@@ -315,7 +317,7 @@ end
 
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id uses_params
 
-type_params(RF::AbstractAlgebra.Generic.RationalFunctionField) = Dict(:base_ring => base_ring(RF))
+type_params(RF::AbstractAlgebra.Generic.RationalFunctionField) = base_ring(RF)
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -326,8 +328,7 @@ function save_object(s::SerializerState,
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, params::Dict)
-  R = params[:base_ring]
+                     ::Type{<: AbstractAlgebra.Generic.RationalFunctionField}, R::Ring)
   # ensure proper types of univariate case on load
   symbols = load_node(s, :symbols) do symbols_data
     if symbols_data isa Vector

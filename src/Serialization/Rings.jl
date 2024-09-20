@@ -28,13 +28,13 @@ end
 ################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
-type_params(x::T) where T <: RingMatElemUnion =  parent(x)
+type_params(x::T) where T <: RingMatElemUnion = parent(x)
 
 # fix for polynomial cases
-function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion)
-  parents = get_parents(parent_ring)
-  return load_object(s, T, parents)
-end
+#function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion)
+#
+#  return load_object(s, T, parent_ring)
+#end
 
 ################################################################################
 # ring of integers (singleton type)
@@ -71,7 +71,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:ModRingElemUnion},
                      parent_ring::T) where T <: ModRingUnion
-  return parent_ring(load_object(s, ZZRingElem))
+  return parent_ring(load_object(s, ZZRingElem, ZZRing()))
 end
 
 ################################################################################
@@ -83,36 +83,33 @@ end
 @register_serialization_type MPolyDecRing uses_id uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id uses_params
 
-const PolyUnionType = Union{UniversalPolyRing,
+const PolyRingUnionType = Union{UniversalPolyRing,
                             MPolyRing,
                             PolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-type_params(R::PolyUnionType) = base_ring(R)
+type_params(R::PolyRingUnionType) = base_ring(R)
 
-function save_object(s::SerializerState, R::PolyUnionType)
+function save_object(s::SerializerState, R::PolyRingUnionType)
   base = base_ring(R)
   save_data_dict(s) do
-    !Base.issingletontype(typeof(base)) && save_object(s, base, :base_ring)
     save_object(s, symbols(R), :symbols)
   end
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<: PolyUnionType},
+                     T::Type{<: PolyRingUnionType},
                      params)
-  base_ring = load_object(s,   :base_ring)
   symbols = load_object(s, Vector, Symbol, :symbols)
-
   if T <: PolyRing
-    return polynomial_ring(base_ring, symbols..., cached=false)[1]
+    return polynomial_ring(params, symbols..., cached=false)[1]
   elseif T <: UniversalPolyRing
-    poly_ring = universal_polynomial_ring(base_ring, cached=false)
+    poly_ring = universal_polynomial_ring(params, cached=false)
     gens(poly_ring, symbols)
     return poly_ring
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
-    return laurent_polynomial_ring(base_ring, symbols, cached=false)[1]
+    return laurent_polynomial_ring(params, symbols, cached=false)[1]
   end
-  return polynomial_ring(base_ring, symbols, cached=false)[1]
+  return polynomial_ring(base, params, cached=false)[1]
 end
 
 # with grading
@@ -189,8 +186,8 @@ function save_object(s::SerializerState, p::PolyRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: PolyRingElem}, parents::Vector)
-  parent_ring = parents[end]
+function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
+                     parent_ring::PolyRing)
   load_node(s) do terms
     if isempty(terms)
       return parent_ring(0)
@@ -209,21 +206,9 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem}, parents::Vec
     coeff_type = elem_type(base)
 
     for (i, exponent) in enumerate(exponents)
-      load_node(s, i) do term
-        if serialize_with_params(coeff_type)
-          if length(parents) == 1
-            params = coefficient_ring(parent_ring)
-          else
-            params = parents[1:end - 1]
-          end
-          # place coefficient at s.obj
-          load_node(s, 2) do _
-            loaded_terms[exponent] = load_object(s, coeff_type, params)
-          end
-        else
-          load_node(s, 2) do _
-            loaded_terms[exponent] = load_object(s, coeff_type)
-          end
+      load_node(s, i) do _
+        load_node(s, 2) do _
+          loaded_terms[exponent] = load_object(s, coeff_type, base)
         end
       end
     end
@@ -234,30 +219,15 @@ end
 
 function load_object(s::DeserializerState,
                      ::Type{<:Union{MPolyRingElem, UniversalPolyRingElem, AbstractAlgebra.Generic.LaurentMPolyWrap}},
-                     parents::Vector)
+                     parent_ring::PolyRingUnionType)
   load_node(s) do terms
     exponents = [term[1] for term in terms]
-    parent_ring = parents[end]
     base = base_ring(parent_ring)
     polynomial = MPolyBuildCtx(parent_ring)
     coeff_type = elem_type(base)
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
-        c = nothing
-        if serialize_with_params(coeff_type)
-          if length(parents) == 1
-            params = coefficient_ring(parent_ring)
-          else
-            params = parents[1:end - 1]
-          end
-          load_node(s, 2) do _
-            c = load_object(s, coeff_type, params)
-          end
-        else
-          load_node(s, 2) do _
-            c = load_object(s, coeff_type)
-          end
-        end
+        c = load_object(s, coeff_type, base, 2)
         e_int = [parse(Int, x) for x in e]
         push_term!(polynomial, c, e_int)
       end
@@ -266,13 +236,10 @@ function load_object(s::DeserializerState,
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parents::Vector)
-  parent_ring = parents[end]
-  new_parents = push!(parents[1:end - 1], forget_grading(parent_ring))
-  poly = load_object(s, MPolyRingElem, new_parents)
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRingElem}, parent_ring::MPolyDecRingElem)
+  poly = load_object(s, MPolyRingElem, forget_grading(parent_ring))
   return parent_ring(poly)
 end
-
 
 ################################################################################
 # Polynomial Ideals

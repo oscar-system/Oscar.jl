@@ -36,7 +36,6 @@ cases = [
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
 ]
 
-
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
     @testset "Empty Ideal" begin
