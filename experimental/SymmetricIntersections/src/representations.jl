@@ -847,7 +847,7 @@ end
 
 function _same_support(v::Vector{T}, w::Vector{T}) where T
   @req length(v) == length(w) "Tensor must have the same number of components"
-  return all(cv -> any(cw -> cv == cw, w), v)
+  return issetequal(v, w)
 end
 
 function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
@@ -855,7 +855,7 @@ function _div(v::Vector{T}, w::Vector{T}; symmetric = false) where T
   if symmetric
     return 1
   else
-    return sign(perm(Int[findfirst(vv -> vv == ww, v) for ww in w]))
+    return sign(perm(Int[findfirst(==(ww), v) for ww in w]))
   end
 end
 
