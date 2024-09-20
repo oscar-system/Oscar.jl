@@ -58,9 +58,6 @@ function produce_object(F::AbsPreSheaf, U)
   error("method for `produce_object` must be overwritten for sheaves of type $(typeof(F))")
 end
 
-### temporary workaround
-produce_object(F::AbsPreSheaf, U::AbsAffineScheme) = produce_object(underlying_presheaf(F), U)
-
 @doc raw"""
     restriction_map(F::AbsPreSheaf, U, V)
 

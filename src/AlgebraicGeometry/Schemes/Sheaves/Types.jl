@@ -42,7 +42,6 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
   obj_cache::IdDict{<:OpenType, <:OutputType} # To cache values that have already been computed
   #res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
 
-  # production functions for new objects
   is_open_func::Function # To check whether one set is open in the other
 
   function PreSheafOnScheme(X::Scheme; 
