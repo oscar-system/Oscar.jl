@@ -34,7 +34,7 @@ Int8[6, 1, 2, 3]
 """
 function composition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUnion}
   if check
-    @req all(x -> x > 0, parts) "The integers must be positive"
+    @req all(>(0), parts) "The integers must be positive"
   end
   return Composition{T}(parts)
 end

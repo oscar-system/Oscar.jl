@@ -412,7 +412,7 @@ julia> spanning_sets(uniform_matroid(2, 3))
 function spanning_sets(M::Matroid)
     # To avoid code duplication we use that spanning sets are the complements of independent sets in the dual matroid.
     coindependent_sets = independent_sets(dual_matroid(M))
-    span_sets = [filter(k -> !(k in set), matroid_groundset(M)) for set in coindependent_sets]
+    span_sets = [filter(!in(set), matroid_groundset(M)) for set in coindependent_sets]
     return reverse(span_sets)
 end
 
