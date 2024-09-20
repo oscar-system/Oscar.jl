@@ -43,37 +43,53 @@ is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
 end
 
 function _put_and_take(channel::RemoteChannel, wid::Int, a::Any)
+  @show a
+  @show serialize_with_id(a)
+  !serialize_with_id(a) && return # check whether we actually need to send something.
+  @show length(keys(global_serializer_state.obj_to_id))
   put!(channel, a)
+  @show length(keys(global_serializer_state.obj_to_id))
   function take_param(ch::RemoteChannel)
     params = take!(ch)
   end
-  remotecall(take_param, wid, channel)
+  remotecall_wait(take_param, wid, channel)
+  @show length(keys(global_serializer_state.obj_to_id))
+  _check_other_side(a, wid)
 end
 
 function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyRing) where {T<:Channel{<:Ring}}
+  @show "sending polynomial ring"
   _put_and_take(channel, wid, coefficient_ring(R))
   _put_and_take(channel, wid, R)
+  @show "done sending polynomial ring"
 end
 
 function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyQuoRing) where {T<:Channel{<:Ring}}
-  _put_and_take(channel, wid, base_ring(R))
+  _put_ring(channel, wid, base_ring(R))
   _put_and_take(channel, wid, R)
 end
 
 function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyLocRing) where {T<:Channel{<:Ring}}
-  _put_and_take(channel, wid, base_ring(R))
+  _put_ring(channel, wid, base_ring(R))
   _put_and_take(channel, wid, R)
 end
 
 function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyQuoLocRing) where {T<:Channel{<:Ring}}
-  _put_and_take(channel, wid, base_ring(R))
-  _put_and_take(channel, wid, underlying_quotient(R))
-  _put_and_take(channel, wid, localized_ring(R))
+  _put_ring(channel, wid, base_ring(R))
+  _put_ring(channel, wid, underlying_quotient(R))
+  _put_ring(channel, wid, localized_ring(R))
   _put_and_take(channel, wid, R)
 end
 
 
-@attr Bool function is_smooth_parallel(X::CoveredScheme)
+function _check_other_side(R::Any, wid::Int)
+  ref = get(global_serializer_state.obj_to_id, R, nothing)
+  @show typeof(R)
+  @assert ref !== nothing
+  @assert remotecall_fetch((a)->haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(a)), wid, string(ref))
+end
+
+function is_smooth_parallel(X::CoveredScheme)
   if !isdefined(X, :coverings)
     return true
   end
@@ -84,31 +100,66 @@ end
   n = length(channels)
   wids = workers()
   @show n
+  charts = affine_charts(X)
   data_buckets = Dict{Int, Vector{AbsAffineScheme}}()
-  for (i, U) in enumerate(affine_charts(X))
+  for (i, U) in enumerate(charts)
     @show i
     k = mod(i-1, n)+1
+    # pmap chooses freely which worker to use for which entry.
+    # Hence, we have no insurance about sending specific rings 
+    # to specific workers and, for the moment, we have to send 
+    # everything everywhere. 
+    for (ch, wid) in zip(channels, wids)
+      R = OO(U)
+      @show R
+      @show typeof(R)
+      _put_ring(ch, wid, R)
+      ref = get(global_serializer_state.obj_to_id, R, nothing)
+      @assert ref !== nothing
+      @assert remotecall_fetch((a)->haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(a)), wid, string(ref))
+    end
+    #=
     @show k
     current_channel = channels[k]
     wid = wids[k]
     _put_ring(current_channel, wid, OO(U))
+
+    # make sure the ring really got to the other side
+    R = OO(U)
+    ref = get(global_serializer_state.obj_to_id, R, nothing)
+    @assert ref !== nothing
+    @assert remotecall_fetch((a)->haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(a)), wid, string(ref))
+    =#
+
     bucket = get!(data_buckets, k) do
       AbsAffineScheme[]
     end
     push!(bucket, U)
   end
   
-  lst = affine_charts(X)[1:n]
+  lst = charts[1:n]
   pmap(one, OO.(lst))
 
 
   @show "done with distribution"
 
   round = 1
+  @show data_buckets
   while length(data_buckets) == n && !any(isempty(v) for (_, v) in data_buckets)
     @show "computing round $round"
     round += 1
     data = [pop!(data_buckets[i]) for i in 1:n]
+
+    @show "test whether the rings are over there"
+    for (j, U) in enumerate(data)
+      @show j
+      # make sure the ring really got to the other side
+      R = OO(U)
+      ref = get(global_serializer_state.obj_to_id, R, nothing)
+      @assert ref !== nothing
+      @assert remotecall_fetch((a)->haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(a)), wids[j], string(ref))
+    end
+
     @show data
     @show "calling pmap"
     result = pmap(is_smooth, data)
