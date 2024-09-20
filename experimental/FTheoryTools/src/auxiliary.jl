@@ -460,15 +460,15 @@ eval_poly(n::Number, R) = R(n)
 ### 10 strict_transform helpers
 ##########################################
 
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf; coordinate_name = "e") = strict_transform(bd, II)
+_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
 
-function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal; coordinate_name = "e")
+function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal)
   center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
   if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
     return strict_transform(bd, II)
   end
   S = cox_ring(domain(bd))
-  _e = eval_poly(coordinate_name, S)
+  _e = gen(S, index_of_new_ray(bd))
   images = MPolyRingElem[]
   g_list = gens(S)
   g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
@@ -487,9 +487,9 @@ function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCox
   return ideal_sheaf(domain(bd), strict_transform)
 end
 
-function _strict_transform(bd::ToricBlowdownMorphism, tate_poly::MPolyRingElem; coordinate_name = "e")
+function _strict_transform(bd::ToricBlowdownMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
-  _e = eval_poly(coordinate_name, S)
+  _e = gen(S, index_of_new_ray(bd))
   g_list = string.(gens(S))
   g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
