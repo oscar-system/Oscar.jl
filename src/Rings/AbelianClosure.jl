@@ -36,7 +36,7 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
                 has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
-                parent_type, promote_rule, root, root_of_unity, roots
+                parent_type, promote_rule, root, root_of_unity, roots, @req
 
 using Hecke
 import Hecke: conductor, data
@@ -774,7 +774,7 @@ AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbF
 ###############################################################################
 
 function Oscar.root(a::QQAbFieldElem, n::Int)
-  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
+  @req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
