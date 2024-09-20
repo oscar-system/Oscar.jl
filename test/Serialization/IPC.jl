@@ -24,4 +24,28 @@ end
 
 map(rmprocs, process_ids)
 
+process_ids = addprocs(3)
+@everywhere using Oscar
+
+@testset "parallel smoothness test for schemes" begin
+  channels = Oscar.params_channels(Union{AffineScheme, Ring})
+  
+  IP2 = projective_space(QQ, [:x, :y, :z])
+  S = homogeneous_coordinate_ring(IP2)
+  (x, y, z) = gens(S)
+  
+  I = ideal(S, y^2*z + x^3 + x^2*z)
+  
+  X, _ = sub(IP2, I)
+  X_cov = covered_scheme(X)
+  U = affine_charts(X_cov)
+  for a in U
+    Oscar.put_params(channels, ambient_coordinate_ring(a))
+    Oscar.put_params(channels, OO(a))
+  end
+  results = pmap(is_smooth, U)
+  @test results == [1, 1, 0]
+end  
+
+map(rmprocs, process_ids)
 
