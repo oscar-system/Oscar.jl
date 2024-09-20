@@ -42,6 +42,84 @@ is_smooth(X::AbsCoveredScheme) = is_smooth(underlying_scheme(X))
   return all(is_smooth, affine_charts(X))
 end
 
+function _put_and_take(channel::RemoteChannel, wid::Int, a::Any)
+  put!(channel, a)
+  function take_param(ch::RemoteChannel)
+    params = take!(ch)
+  end
+  remotecall(take_param, wid, channel)
+end
+
+function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyRing) where {T<:Channel{<:Ring}}
+  _put_and_take(channel, wid, coefficient_ring(R))
+  _put_and_take(channel, wid, R)
+end
+
+function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyQuoRing) where {T<:Channel{<:Ring}}
+  _put_and_take(channel, wid, base_ring(R))
+  _put_and_take(channel, wid, R)
+end
+
+function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyLocRing) where {T<:Channel{<:Ring}}
+  _put_and_take(channel, wid, base_ring(R))
+  _put_and_take(channel, wid, R)
+end
+
+function _put_ring(channel::RemoteChannel{T}, wid::Int, R::MPolyQuoLocRing) where {T<:Channel{<:Ring}}
+  _put_and_take(channel, wid, base_ring(R))
+  _put_and_take(channel, wid, underlying_quotient(R))
+  _put_and_take(channel, wid, localized_ring(R))
+  _put_and_take(channel, wid, R)
+end
+
+
+@attr Bool function is_smooth_parallel(X::CoveredScheme)
+  if !isdefined(X, :coverings)
+    return true
+  end
+  # Make sure all required parents are known on the other workers.
+  # This step will be automated, eventually, but right now we have 
+  # to take care of it.
+  channels = Oscar.params_channels(Ring)
+  n = length(channels)
+  wids = workers()
+  @show n
+  data_buckets = Dict{Int, Vector{AbsAffineScheme}}()
+  for (i, U) in enumerate(affine_charts(X))
+    @show i
+    k = mod(i-1, n)+1
+    @show k
+    current_channel = channels[k]
+    wid = wids[k]
+    _put_ring(current_channel, wid, OO(U))
+    bucket = get!(data_buckets, k) do
+      AbsAffineScheme[]
+    end
+    push!(bucket, U)
+  end
+  
+  lst = affine_charts(X)[1:n]
+  pmap(one, OO.(lst))
+
+
+  @show "done with distribution"
+
+  round = 1
+  while length(data_buckets) == n && !any(isempty(v) for (_, v) in data_buckets)
+    @show "computing round $round"
+    round += 1
+    data = [pop!(data_buckets[i]) for i in 1:n]
+    @show data
+    @show "calling pmap"
+    result = pmap(is_smooth, data)
+    @show "result: $result"
+    any(is_zero(x) for x in result) && return false
+  end
+
+  # the last few can be done here
+  return all(is_smooth(first(l)) for (_, l) in data_buckets)
+end
+
 function _jacobian_criterion(X::CoveredScheme{<:Field})
   if !isdefined(X, :coverings)
     return true

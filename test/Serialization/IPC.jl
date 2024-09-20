@@ -27,7 +27,7 @@ map(rmprocs, process_ids)
 process_ids = addprocs(3)
 @everywhere using Oscar
 
-@testset "parallel smoothness test for schemes" begin
+@testset "parallel smoothness test for schemes: proof-of-concept" begin
   channels = Oscar.params_channels(Union{AffineScheme, Ring})
   
   IP2 = projective_space(QQ, [:x, :y, :z])
@@ -45,6 +45,18 @@ process_ids = addprocs(3)
   end
   results = pmap(is_smooth, U)
   @test results == [1, 1, 0]
+end  
+
+map(rmprocs, process_ids)
+
+
+process_ids = addprocs(3)
+@everywhere using Oscar
+
+@testset "parallel smoothness test for schemes" begin
+  X = rational_d9_pi6()
+  X_cov = covered_scheme(X)
+  Oscar.is_smooth_parallel(X_cov) # still fails!
 end  
 
 map(rmprocs, process_ids)
