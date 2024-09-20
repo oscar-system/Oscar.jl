@@ -174,7 +174,7 @@ function koszul_duals(v::Vector{T}; cached::Bool=true) where {T<:FreeModElem}
   n = rank(M)
   success || error("element must be an exterior product")
   k = [findfirst(==(u), gens(F)) for u in v]
-  any(is_nothing, k) && error("elements must be generators of the module")
+  any(isnothing, k) && error("elements must be generators of the module")
   ind = [ordered_multi_index(r, p, n) for r in k]
   comp = [ordered_multi_index([i for i in 1:n if !(i in indices(I))], n) for I in ind]
   lin_ind = linear_index.(comp)
