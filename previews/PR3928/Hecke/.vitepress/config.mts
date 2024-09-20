@@ -88,6 +88,14 @@ export default defineConfig({
                 { text: 'Discriminant groups', link: 'manual/quad_forms/discriminant_group'},
               ]
             },
+            { text: 'Algebras',
+              collapsed: true,
+              items: [
+                { text: 'Introduction', link: 'manual/algebras/intro'},
+                { text: 'Basics', link: 'manual/algebras/basics'},
+                { text: 'Structure constant algebras', link: 'manual/algebras/structureconstant'},
+              ]
+            },
             {
               text: 'Elliptic curves',
               collapsed: true,
@@ -116,6 +124,7 @@ export default defineConfig({
                 { text: 'Sparse linear algebra', link: 'manual/misc/sparse'},
                 { text: 'Conjugacy of integer matrices', link: 'manual/misc/conjugacy'},
                 { text: 'Multisets', link: 'manual/misc/mset'},
+                { text: 'Pseudo-matrices', link: 'manual/misc/pmat'},
               ]
             },
             {

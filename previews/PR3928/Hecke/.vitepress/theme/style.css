@@ -6,18 +6,6 @@ https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/var
 
 /* Layouts */
 
-/* One would have thought that vitepress is something user-friendly, where
- * one could for example increase the width of the content.
- * But this is not the case:
- *
- * https://github.com/vuejs/vitepress/issues/1147#issuecomment-1211605918
- *
- * So we hack around this
-*/
-
-:root {
-    --vp-layout-max-width: 1440px;
-}
 
 :root {
   --vp-font-family-mono: "Fira Code", Menlo, Monaco, Consolas, "Courier New", monospace;
@@ -30,21 +18,6 @@ https://github.com/vuejs/vitepress/blob/main/src/client/theme-default/styles/var
 
 .dark {
   --vp-home-hero-name-color: #ffffff !important;
-}
-
-.content-container {
-    max-width: 100% !important;
-}
-
-@media (min-width: 1440px) {
-    .VPSidebar {
-        padding-left: calc((100% - (var(--vp-layout-max-width) - 64px)) / 2) !important;
-        width: calc((100% - (var(--vp-layout-max-width) - 64px)) / 2 + var(--vp-sidebar-width) - 32px) !important;
-    }
-    .VPContent.has-sidebar {
-        padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width)) !important;
-        padding-right: calc((100vw - var(--vp-layout-max-width)) / 2) !important;
-    }
 }
 
 .VPHero .clip {
@@ -167,7 +140,7 @@ mjx-container {
 }
 
 mjx-container {
-  display: inline-block;
+  display: inline;
   margin: auto 2px -2px;
 }
 
@@ -197,5 +170,41 @@ mjx-container > svg {
 }
 
 .MathJax { font-size: 0.9em !important; }
+
+/* https://bddxg.top/article/note/vitepress优化/一些细节上的优化.html#文档页面调整-加宽 */
+
+
+.VPDoc.has-aside .content-container {
+  max-width: 100% !important;
+}
+.aside {
+  max-width: 200px !important;
+  padding-left: 0 !important;
+}
+.VPDoc {
+  padding-top: 15px !important;
+  padding-left: 5px !important;
+
+}
+/* This one does the right menu */
+
+.VPDocOutlineItem li {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.VPNavBar .title {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .VPDoc {
+    padding-left: 25px !important;
+  }
+}
 
 /* .mjx-container {font-size: calc(0.5 * var(--editor-font-size));} */
