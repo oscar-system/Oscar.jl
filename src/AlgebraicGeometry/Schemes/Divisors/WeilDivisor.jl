@@ -775,7 +775,7 @@ function _subsystem(L::LinearSystem, P::AbsIdealSheaf, n; covering::Covering=sim
   A = zero_matrix(kk, ngens(L), length(all_mons))
   for i in 1:ngens(L)
     for (c, m) in zip(coefficients(images[i]), monomials(images[i]))
-      k = findfirst(x->(x==m), all_mons)
+      k = findfirst(==(m), all_mons)
       A[i, k] = c
     end
   end
@@ -804,7 +804,7 @@ end
   # sheaf of prime ideals, with some coefficients, and we check whether this
   # irreducible decomposition is prime
   if length(components(D))>1
-    all(I -> is_prime(I), components(D)) && return false
+    all(is_prime, components(D)) && return false
     return is_prime(irreducible_decomposition(D))
   end
   # If D = a*C, then D is prime if and only if C is prime and a == 1

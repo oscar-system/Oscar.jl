@@ -77,7 +77,7 @@ end
 ## the gluing graph afterwards
 ## (relevant data for connectedness of gluing)
 function pruned_gluing_graph(C::Covering)
-  v = findall(U->!is_empty(U), C.patches)
+  v = findall(!is_empty, C.patches)
   m = length(v)
   gt = Graph{Undirected}(m)
   for (X, Y) in keys(gluings(C))
@@ -351,8 +351,8 @@ function common_refinement(C::Covering, D::Covering)
     end
   end
 
-  dirty_C = filter!(x->!(x in keys(map_dict_C)), dirty_C)
-  dirty_D = filter!(x->!(x in keys(map_dict_D)), dirty_D)
+  dirty_C = filter!(x -> !haskey(map_dict_C, x), dirty_C)
+  dirty_D = filter!(x -> !haskey(map_dict_D, x), dirty_D)
 
   #TODO: Check that all leftover dirty patches are already
   #covered by those in the keysets. What if this is not the case?
