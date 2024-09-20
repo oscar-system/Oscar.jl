@@ -562,7 +562,7 @@ function Oscar.solve(f::ZZPolyRingElem; max_prec::Int=typemax(Int), show_radical
   K = number_field(fld_arr[length(pp)+1])[1]
   i = length(pp)+2
   if K == QQ
-    h = MapFromFunc(K, K, x->x, y->y)
+    h = MapFromFunc(K, K, identity, identity)
   else
     h = hom(K, K, gen(K))
   end

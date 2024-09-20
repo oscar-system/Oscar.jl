@@ -7,7 +7,7 @@ import Oscar.GaloisGrp: POSet, POSetElem, GaloisCtx, find_prime,
 
 
 function embedding_hom(k, K)
-  return MapFromFunc(k, K, x->K(x))
+  return MapFromFunc(k, K, K)
 end
 
 const BlockSystem_t = Vector{Vector{Int}}
@@ -124,7 +124,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
   while true
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), cs)
+      i = findall(x->any(in(d), x), cs)
       x = Set(d)
       union!(x, cs[i]...)
       empty!(d)
@@ -137,7 +137,7 @@ function Base.intersect(A::SubfieldLatticeElem, B::SubfieldLatticeElem)
     end
     n = length(ds[1])
     for d=ds
-      i = findall(x->any(y->y in d, x), bs)
+      i = findall(x->any(in(d), x), bs)
       x = Set(d)
       union!(x, bs[i]...)
       empty!(d)
@@ -362,7 +362,7 @@ function _subfields(K::AbsSimpleNumField; pStart = 2*degree(K)+1, prime = 0)
   r = roots(G, 1, raw = true)
 
   d = map(frobenius, r)
-  si = symmetric_group(degree(K))([findfirst(y->y==x, r) for x = d])
+  si = symmetric_group(degree(K))([findfirst(==(x), r) for x = d])
 
   F, mF = residue_field(parent(r[1]))
   r = map(mF, r)
