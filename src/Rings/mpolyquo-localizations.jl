@@ -1357,7 +1357,7 @@ end
   inverse_name=:_0
   r = length(denoms)
   kk = coefficient_ring(R)
-  A, t = polynomial_ring(kk, vcat([Symbol(String(inverse_name)*"$k") for k in 1:r],
+  A, t = polynomial_ring(kk, vcat([Symbol(inverse_name,k) for k in 1:r],
                                   symbols(P), symbols(R)); cached=false)
   r = length(denoms)
   theta = t[1:r]
@@ -2330,7 +2330,7 @@ end
   f = denominators(inverted_set(L))
   f = sort(f; by=total_degree, rev=true)
   r = length(f)
-  A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name,k) for k in 1:r])
   theta = t[1:r]
   I = ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
   ordering = degrevlex(gens(A)[r+1:end])
@@ -2363,7 +2363,7 @@ end
   f = denominators(inverted_set(L))
   f = sort(f; by=total_degree, rev=true)
   r = length(f)
-  A, phi, t = _add_variables_first(R, [Symbol(String(inverse_name)*"$k") for k in 1:r])
+  A, phi, t = _add_variables_first(R, [Symbol(inverse_name,k) for k in 1:r])
   theta = t[1:r]
   I = ideal(A, [phi(g) for g in gens(modulus(underlying_quotient(L)))]) + ideal(A, [one(A)-theta[k]*phi(f[k]) for k in 1:r])
   ordering = degrevlex(gens(A)[r+1:end])
