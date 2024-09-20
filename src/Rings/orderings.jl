@@ -87,35 +87,48 @@ struct MatrixOrdering <: AbsGenOrdering
   end
 end
 
-function _canonical_matrix(w)
-  ww = matrix(ZZ, 0, ncols(w), [])
+# TODO: Move the following two methods to Hecke
+function Hecke.content(v::SRow{ZZRingElem})
+  isempty(v) && return ZZ(0)
+  if length(v) == 1
+    return abs(v.values[1])
+  end
+  return reduce(gcd, v.values) # TODO: Make this clean!
+end
+
+function _canonical_matrix(w_in::ZZMatrix)
+  # The matrix coming in from polynomial rings is not sparse.
+  # We first convert it, but eventually we should consider using sparse matrices also there. 
+  w = sparse_matrix(w_in)
+  ww = sparse_matrix(ZZ, 0, ncols(w))
+  ent = ZZ()
   for i in 1:nrows(w)
-    if is_zero_row(w, i)
-      continue
-    end
-    nw = w[i:i, :]
+    iszero(w[i]) && continue
+    nw = w[i]
     c = content(nw)
     if !isone(c)
       nw = divexact(nw, c)
     end
     for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
-      end
+      iszero(ww[j]) && continue
+      h = ww[j].pos[1]
+      # TODO: Provide an "in place" getindex for ZZRingElem_Array
+      ccall((:fmpz_set, Nemo.libflint), Nothing, (Ref{ZZRingElem}, Ptr{Int}), ent, Hecke.get_ptr(ww[j].values, 1))
+      hnw = findfirst(isequal(h), nw.pos)
+      hnw == nothing && continue
+      nw = abs(ent)*nw - sign(ent)*nw.values[hnw]*ww[j]
     end
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
         nw = divexact(nw, c)
       end
-      ww = vcat(ww, nw)
+      push!(ww, nw)
     end
   end
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
-
 
 # convert (y,x,z) => (2,1,3) and check uniqueness
 function _unique_var_indices(a::AbstractVector{<:MPolyRingElem})
@@ -175,7 +188,7 @@ mutable struct MonomialOrdering{S}
   o::AbsGenOrdering
   is_total::Bool
   is_total_is_known::Bool
-  canonical_matrix::ZZMatrix
+  canonical_matrix::SMat{ZZRingElem}
 
   function MonomialOrdering(R::S, o::AbsGenOrdering) where {S}
     return new{S}(R, o, false, false)
@@ -1367,7 +1380,7 @@ function Hecke.simplify(M::MonomialOrdering)
 end
 
 function canonical_matrix(nvars::Int, M::AbsOrdering)
-  return _canonical_matrix(_matrix(nvars, M))
+  return _canonical_matrix(_matrix(nvars, M))::sparse_matrix_type(ZZRingElem)
 end
 
 @doc raw"""
@@ -1757,7 +1770,7 @@ mutable struct ModuleOrdering{S}
   M::S
   o::AbsModOrdering # must allow gen*mon or mon*gen product ordering
 
-  canonical_matrix::ZZMatrix
+  canonical_matrix::SMat{ZZRingElem, Hecke.ZZRingElem_Array_Mod.ZZRingElem_Array}
 
   function ModuleOrdering(M::S, o::AbsModOrdering) where {S}
     return new{S}(M, o)
@@ -1809,7 +1822,7 @@ end
 function _canonical_matrix_intern(o::ModuleOrdering)
   nvrs = ngens(o.M) + ngens(base_ring(o.M))
   eo = _embedded_ring_ordering(o)
-  return canonical_matrix(nvrs, eo)
+  return canonical_matrix(nvrs, eo)::sparse_matrix_type(ZZRingElem)
 end
 
 function canonical_matrix(o::ModuleOrdering)
@@ -1820,7 +1833,7 @@ function canonical_matrix(o::ModuleOrdering)
       o.canonical_matrix = _canonical_matrix_intern(o)
     end
   end
-  return o.canonical_matrix
+  return o.canonical_matrix::sparse_matrix_type(ZZRingElem)
 end
 
 # is_obviously_equal checks whether the two orderings are defined in the exact
