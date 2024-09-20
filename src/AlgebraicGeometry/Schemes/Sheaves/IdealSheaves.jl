@@ -322,10 +322,9 @@ function subscheme(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(
     for (V, Vnew) in new_patches
       (U, V) in keys(gluings(C)) || continue # No gluing before, no gluing after.
       old_glue = C[U, V]
-      new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew, _compute_restriction,
+      new_gluings[(Unew, Vnew)] = LazyGluing(Unew, Vnew,
                                              RestrictionDataClosedEmbedding(C[U, V], Unew, Vnew)
                                             )
-      #new_gluings[(Vnew, Unew)] = LazyGluing(Vnew, Unew, inverse, new_gluings[(Unew, Vnew)])
     end
   end
   Cnew = Covering(collect(values(new_patches)), new_gluings, check=false)

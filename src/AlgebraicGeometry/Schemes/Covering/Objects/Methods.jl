@@ -247,9 +247,14 @@ true
 function add_gluing!(C::Covering, G::AbsGluing)
   (X, Y) = patches(G)
   C.gluings[(X, Y)] = G
-  C.gluings[(Y, X)] = LazyGluing(Y, X, inverse, G)
+  C.gluings[(Y, X)] = LazyGluing(Y, X, G)
   return C
 end
+
+# This implements the _compute_gluing for the case of a lazy gluing where 
+# we only need the inverse. The gluing data is just the original gluing in 
+# this case.
+_compute_gluing(G::AbsGluing) = inverse(G)
 
 ########################################################################
 # Printing                                                             #

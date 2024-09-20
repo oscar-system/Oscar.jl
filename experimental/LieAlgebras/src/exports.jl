@@ -20,11 +20,14 @@ export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
+export adjoint_matrix
+export any_non_ad_nilpotent_element
 export base_lie_algebra
 export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
+export cartan_subalgebra
 export cartan_symmetrizer
 export cartan_type
 export cartan_type_with_ordering
@@ -39,12 +42,14 @@ export derived_algebra
 export dim_of_simple_module
 export dominant_character
 export dominant_weights
+export engel_subalgebra
 export exterior_power
 export fundamental_weight
 export fundamental_weights
 export general_linear_lie_algebra
 export induced_map_on_symmetric_power
 export induced_map_on_tensor_power
+export is_ad_nilpotent
 export is_cartan_matrix
 export is_cartan_type
 export is_coroot
@@ -65,6 +70,7 @@ export is_simple_coroot
 export is_simple_coroot_with_index
 export is_simple_root
 export is_simple_root_with_index
+export killing_matrix
 export lie_algebra
 export lmul, lmul!
 export longest_element

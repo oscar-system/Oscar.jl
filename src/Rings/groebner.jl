@@ -117,7 +117,7 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`.
 
@@ -151,7 +151,7 @@ with respect to the ordering
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
@@ -201,7 +201,9 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    groebner_basis_f4(I, complete_reduction=complete_reduction)
+    #  since msolve v0.7.0 is most of the time more efficient
+    #  to compute a reduced GB by default
+    groebner_basis_f4(I, complete_reduction=true)
   end
   return I.gb[ordering]
 end
@@ -324,6 +326,14 @@ function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering
     return sb
 end
 
+function is_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
+  return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
+            && ((coefficient_ring(I) isa FqField
+                 && absolute_degree(coefficient_ring(I)) == 1
+                 && characteristic(coefficient_ring(I)) < 2^31)
+                || coefficient_ring(I) == QQ))
+end
+
 @doc raw"""
     groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
@@ -331,7 +341,7 @@ Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 
 See [Fau99](@cite) for more information.
 
 !!! note
-    At current state only prime fields of characteristic `0 < p < 2^{31}` are supported.
+    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported.
 
 # Possible keyword arguments
 - `initial_hts::Int=17`: initial hash table size `log_2`.
@@ -340,6 +350,8 @@ See [Fau99](@cite) for more information.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
 - `eliminate::Int=0`: size of first block of variables to be eliminated.
 - `complete_reduction::Bool=true`: compute a reduced Gröbner basis for `I`
+- `normalize::Bool=true`: normalizes elements in computed Gröbner basis for `I`
+- `truncate_lifting::Int=0`: degree up to which the elements of the Gröbner basis are lifted to `QQ`, `0` for complete lifting
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 
 # Examples
@@ -371,24 +383,35 @@ function groebner_basis_f4(
         la_option::Int=2,
         eliminate::Int=0,
         complete_reduction::Bool=true,
+        normalize::Bool=true,
+        truncate_lifting::Int=0,
         info_level::Int=0
         )
-    AI = AlgebraicSolving.Ideal(I.gens.O)
-    AlgebraicSolving.groebner_basis(AI,
-                initial_hts = initial_hts,
-                nr_thrds = nr_thrds,
-                max_nr_pairs = max_nr_pairs,
-                la_option = la_option,
-                eliminate = eliminate,
-                complete_reduction = complete_reduction,
-                info_level = info_level)
 
+    AI = AlgebraicSolving.Ideal(I.gens.O)
     vars = gens(base_ring(I))[eliminate+1:end]
     ord = degrevlex(vars)
-    I.gb[ord] =
-        IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
-    I.gb[ord].isReduced = complete_reduction
+    if length(AI.gens) == 0
+        I.gb[ord]        = IdealGens(I.gens.Ox, singular_generators(I), complete_reduction)
+        I.gb[ord].ord    = ord
+        I.gb[ord].isGB   = true
+        I.gb[ord].S.isGB = true
+    else
+        AlgebraicSolving.groebner_basis(AI,
+                    initial_hts = initial_hts,
+                    nr_thrds = nr_thrds,
+                    max_nr_pairs = max_nr_pairs,
+                    la_option = la_option,
+                    eliminate = eliminate,
+                    complete_reduction = complete_reduction,
+                    normalize = normalize,
+                    truncate_lifting = truncate_lifting,
+                    info_level = info_level)
 
+        I.gb[ord] =
+            IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
+        I.gb[ord].isReduced = complete_reduction
+    end
     return I.gb[ord]
 end
 
@@ -1039,13 +1062,20 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
-  if ordering == degrevlex(base_ring(J)) && typeof(base_ring(J)) == FqField && absolute_degree(base_ring(J)) == 1
+  if is_normal_form_f4_applicable(J, ordering)
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
   end
 
   return res
+end
+
+function is_normal_form_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
+    return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
+            && ((coefficient_ring(I) isa FqField
+                 && absolute_degree(coefficient_ring(I)) == 1
+                 && characteristic(coefficient_ring(I)) < 2^31)))
 end
 
 @doc raw"""

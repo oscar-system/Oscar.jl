@@ -942,7 +942,7 @@ end
     U === V && continue
     for UW in affine_charts(parts[U])
       for VW in affine_charts(parts[V])
-        GGG = LazyGluing(UW, VW, _compute_gluing,
+        GGG = LazyGluing(UW, VW, 
                          ProjectiveGluingData(U, V, UW, VW, C, P)
                         )
         result_gluings[(UW, VW)] = GGG

@@ -82,6 +82,7 @@ option is set in suitable functions.
   n::Int
   S::Vector{Symbol}
   d::Union{Vector{FinGenAbGroupElem}, Nothing}
+  default_ordering::ModuleOrdering
 
   # We register the incoming and outgoing natural morphisms.
   # This must be done in a way that objects can be collected by the 

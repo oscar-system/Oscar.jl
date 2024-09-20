@@ -127,7 +127,7 @@ struct ToricGluingData
 # j::Int
 end
 
-function _compute_toric_gluing(gd::ToricGluingData)
+function _compute_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
@@ -237,7 +237,7 @@ with default covering
       X = patch_list[i]
       Y = patch_list[j]
       gd = ToricGluingData(Z, X, Y)
-      add_gluing!(cov, LazyGluing(X, Y, _compute_toric_gluing, gd))
+      add_gluing!(cov, LazyGluing(X, Y, gd))
       continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue

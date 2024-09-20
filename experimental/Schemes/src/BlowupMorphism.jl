@@ -949,7 +949,14 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   Y = codomain(f)
   J = original_ideal_sheaf(I)
   @assert any(x->x===U, affine_charts(X))
-  E = exceptional_divisor(f)
+  if f isa ToricBlowdownMorphism
+    # This is not actually an exceptional divisor of a blowup along an ideal sheaf.
+    # This is the prime Weil divisor corresponding to the added/chosen ray.
+    # This is the exceptional divisor of a blowup along a certain Rees algebra.
+    E = exceptional_prime_divisor(f)
+  else
+    E = exceptional_divisor(f)
+  end
   IE = ideal_sheaf(E)
   # We assume that the covering morphism has the default_covering of X as its domain.
   @assert domain(covering_morphism(f)) === default_covering(X) "not implemented for this covering"

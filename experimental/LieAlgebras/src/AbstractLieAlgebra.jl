@@ -95,22 +95,20 @@ end
 has_root_system(L::AbstractLieAlgebra) = isdefined(L, :root_system)
 
 function root_system(L::AbstractLieAlgebra)
-  @req has_root_system(L) "no root system known."
+  assure_root_system(L)
   return L.root_system
 end
 
 function chevalley_basis(L::AbstractLieAlgebra)
-  @req has_root_system(L) "no root system known."
-  # TODO: once there is root system detection, this function needs to be updated to indeed return the Chevalley basis
+  assure_root_system(L)
+  return L.chevalley_basis::NTuple{3,Vector{elem_type(L)}}
+end
 
-  npos = n_positive_roots(root_system(L))
-  b = basis(L)
-  # root vectors
-  r_plus = b[1:npos]
-  r_minus = b[(npos + 1):(2 * npos)]
-  # basis for cartan algebra
-  h = b[(2 * npos + 1):dim(L)]
-  return (r_plus, r_minus, h)
+function set_root_system_and_chevalley_basis!(
+  L::AbstractLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{AbstractLieAlgebraElem{C}}}
+) where {C<:FieldElem}
+  L.root_system = R
+  L.chevalley_basis = chev
 end
 
 ###############################################################################
@@ -234,7 +232,7 @@ function lie_algebra(
     @req fl "Not closed under the bracket."
     struct_consts[i, j] = sparse_row(row)
   end
-  s = map(AbstractAlgebra.obj_to_string, basis)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
   return lie_algebra(R, struct_consts, s; check)
 end
 
@@ -264,7 +262,14 @@ function lie_algebra(
   ]
 
   L = lie_algebra(R, struct_consts, s; check=false)
-  L.root_system = rs
+
+  npos = n_positive_roots(rs)
+  # set Chevalley basis
+  r_plus = basis(L)[1:npos]
+  r_minus = basis(L)[(npos + 1):(2 * npos)]
+  h = basis(L)[(2 * npos + 1):end]
+  chev = (r_plus, r_minus, h)
+  set_root_system_and_chevalley_basis!(L, rs, chev)
   return L
 end
 
