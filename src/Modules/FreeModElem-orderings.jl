@@ -57,12 +57,12 @@ end
 Return an array of `Tuple{Int, Int}` that puts the terms of `f` in the order
 `ord`. The index tuple `(i, j)` corresponds to `term(f[i], j)`.
 """
-function Orderings.permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
+function Orderings.permutation_of_terms(f::FreeModElem{<:AdmissibleModuleFPRingElem}, ord::ModuleOrdering)
   # redispatch to take advantage of the type of ord.o
   return Orderings.__permutation_of_terms(f, ord.o)
 end
 
-function Orderings.__permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::Orderings.AbsOrdering)
+function Orderings.__permutation_of_terms(f::FreeModElem{<:AdmissibleModuleFPRingElem}, ord::Orderings.AbsOrdering)
   ff = coordinates(f)
   p = collect((i, j) for i in ff.pos for j in 1:length(ff[i]))
   sort!(p, lt = (k, l) -> (Orderings._cmp_vector_monomials(k[1], ff[k[1]], k[2],
@@ -70,7 +70,7 @@ function Orderings.__permutation_of_terms(f::FreeModElem{<:MPolyRingElem}, ord::
   return p
 end
 
-function Orderings.index_of_leading_term(f::FreeModElem{<:MPolyRingElem}, ord::ModuleOrdering)
+function Orderings.index_of_leading_term(f::FreeModElem{<:AdmissibleModuleFPRingElem}, ord::ModuleOrdering)
   p = Orderings.permutation_of_terms(f, ord)
   @req !isempty(p) "zero element does not have a leading term"
   return p[1]
@@ -99,11 +99,18 @@ end
 @enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyRingElem}, <:Vector{Tuple{Int, Int}}}
 
 # expressify wrt ordering
-function expressify(a::OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrdering}; context = nothing)
+function expressify(a::OscarPair{<:FreeModElem{<:AdmissibleModuleFPRingElem}, <:ModuleOrdering}; context = nothing)
   perm = Orderings.permutation_of_terms(a.first, a.second)
   return expressify(OscarPair(a.first, perm); context = context)
 end
-@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:MPolyRingElem}, <:ModuleOrdering}
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:AdmissibleModuleFPRingElem}, <:ModuleOrdering}
+
+#Note that for PBWAlgElem and PBWAlgQuoElem we do not 'permute' to return the smallest terms first.
+function expressify(a::OscarPair{<:FreeModElem{<:AdmissibleModuleFPRingElem}, <:ModuleOrdering}; context = nothing)
+  return expressify(a.first)
+end
+@enable_all_show_via_expressify OscarPair{<:FreeModElem{<:AdmissibleModuleFPRingElem}, <:ModuleOrdering}
+
 
 @doc raw"""
     coefficients(f::FreeModElem; ordering::ModuleOrdering = default_ordering(parent(f)))
