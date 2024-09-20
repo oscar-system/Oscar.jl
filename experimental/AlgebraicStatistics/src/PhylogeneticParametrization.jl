@@ -216,7 +216,7 @@ Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem} with 5 entries:
 """
 function compute_equivalent_classes(parametrization::Dict{Tuple{Vararg{Int64}}, QQMPolyRingElem})
   polys = unique(collect(values(parametrization)))
-  polys = polys[findall(x -> x!=0, polys)]
+  polys = polys[findall(!is_zero, polys)]
 
   equivalent_keys = []
   for value in polys
