@@ -129,7 +129,7 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
           @test length(chev[1]) == length(chev[2])
           @test dim(L) == sum(length, chev; init=0)
           H = cartan_subalgebra(L)
-          @test all(h -> h in H, chev[3])
+          @test all(in(H), chev[3])
           @test all(xs -> bracket(xs...) in H, zip(chev[1], chev[2]))
         end
       end

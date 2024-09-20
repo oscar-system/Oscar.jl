@@ -67,7 +67,7 @@ function multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 end
 
 function permutations(n::Integer)
-  return map(p -> Vector{Int}(p), AbstractAlgebra.SymmetricGroup(n))
+  return map(Vector{Int}, AbstractAlgebra.SymmetricGroup(n))
 end
 
 @doc raw"""
