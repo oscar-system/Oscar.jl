@@ -243,7 +243,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   U = complement_of_point_ideal(R,a)
   RL, loc_map = localization(R,U)
   IX_loc = loc_map(IX)
-  JM_loc =  map(x ->loc_map(x), JM[:,:])
+  JM_loc =  map(loc_map, JM[:,:])
 
   if !all(iszero(a))
     F_loc = free_module(RL,ngens(IX))

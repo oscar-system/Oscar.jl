@@ -31,7 +31,7 @@ with restrictions
   if is_prime(td)
     S = cox_ring(X)
     x = gens(S)
-    j = findfirst(x->x==1, coefficients(td)) # Find out which one of the rays we actually have
+    j = findfirst(is_one, coefficients(td)) # Find out which one of the rays we actually have
     @assert j !== nothing "no ray was found"
     II = IdealSheaf(X, ideal(S, x[j]))
     return II
@@ -103,7 +103,7 @@ function IdealSheaf(X::NormalToricVarietyType, I::MPolyIdeal)
       # We first create the morphism \pi_s* from p. 224, l. 3.
       indices = [k for k in row(IM, k)]
       help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-      imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
+      imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
       phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 
       # Now we need to create the inverse of alpha*.
@@ -191,8 +191,8 @@ end
 # we don't want to do it that way?
 function Base.in(tau::Cone, Sigma::PolyhedralFan)
   # Check that all the rays of tau are also rays of Sigma
-  indices = [findfirst(w->w==v, rays(Sigma)) for v in rays(tau)]
-  any(x->x===nothing, indices) && return false
+  indices = [findfirst(==(v), rays(Sigma)) for v in rays(tau)]
+  any(isnothing, indices) && return false
   # Now check that this cone is really in Sigma
   all_cones = cones(Sigma)
   return any(j->all(i -> all_cones[j, i], indices), 1:nrows(all_cones))
@@ -206,7 +206,7 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
 #  # We first create the morphism \pi_s* from p. 224, l. 3.
 #  indices = [k for k in row(IM, k)]
 #  help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-#  imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
+#  imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
 #  phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 # 
 #  # Now we need to create alpha*.
@@ -244,7 +244,7 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
   # Assemble the dehomogenization map phi_sigma^star.
   indices = [k for k in row(IM, k)]
   help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
-  imgs_phi_star = [j in indices ? x_rho[findfirst(k->k==j, indices)] : one(help_ring) for j in 1:n_rays(X)]
+  imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
   phi_s_star = hom(S_loc, help_ring, imgs_phi_star; check=false)
 
   # Compute the preimage of I_loc under beta.

@@ -383,7 +383,7 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
   kk = coefficient_ring(R)
   result = SRow(kk)
   iszero(v) && return result
-  pos = [findfirst(k->k==m, b) for m in monomials(v)]
+  pos = [findfirst(==(m), b) for m in monomials(v)]
   vals = collect(coefficients(v))
   return SRow(kk, pos, vals)
 end

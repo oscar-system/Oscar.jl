@@ -598,7 +598,7 @@ function is_one(I::SumIdealSheaf; covering::Covering=default_covering(scheme(I))
 end
 
 function is_one(I::ProductIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  return all(x->is_one(x), factors(I))
+  return all(is_one, factors(I))
 end
 
 @doc raw"""
@@ -643,7 +643,7 @@ function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)
-  if !all(x->x==d, local_dims) ||
+  if !all(==(d), local_dims) ||
      !all(U->(isone(I(U)) || is_equidimensional(I(U))), patches(covering))
     set_attribute!(I, :is_equidimensional=>false)
     return false
@@ -897,7 +897,7 @@ function maximal_associated_points(
     loc_primes = minimal_primes(I(U); algorithm)
 
     # Take only those not visible in other charts 
-    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(g->g in p, loc_dec), loc_primes) 
+    use_decomposition_info && has_decomposition_info(covering) && filter!(p->all(in(p), loc_dec), loc_primes) 
     for p in loc_primes
       P = PrimeIdealSheafFromChart(X, U, p)
       P in comps && continue
@@ -1034,7 +1034,7 @@ function match_on_intersections(
         I_res = [OOX(U, UV[i])(I) for i in 1:ngens(UV)]
         IV_res = [OOX(V, UV[i])(IV) for i in 1:ngens(UV)]
         if all(i->(I_res[i] == IV_res[i]), 1:ngens(UV))
-          match_found = !all(I->is_one(I), I_res)                               ## count only non-trivial matches
+          match_found = !all(is_one, I_res)                               ## count only non-trivial matches
           check || break
         else
           match_contradicted = true
@@ -1885,9 +1885,7 @@ function cheap_sub_ideal(II::PrimeIdealSheafFromChart, U2::AbsAffineScheme)
     return init + 1000
   end
 
-  ext = [(U, complexity(U)) for U in fat]
-  sort!(ext, by=x->x[2])
-  fat = [U for (U, _) in ext]
+  sort!(fat; by=complexity)
   count = 0
   for W in fat
     glue = default_covering(X)[W, V2]

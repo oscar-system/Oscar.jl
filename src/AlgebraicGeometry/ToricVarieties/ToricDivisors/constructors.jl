@@ -44,7 +44,7 @@ function toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <:
     if sum(coeffs) != 1
         set_attribute!(td, :is_prime, false)
     else
-        set_attribute!(td, :is_prime, all(y -> (y == 1 || y == 0), coeffs))
+        set_attribute!(td, :is_prime, all(y -> is_zero(y) || is_one(y), coeffs))
     end
     
     # return the result

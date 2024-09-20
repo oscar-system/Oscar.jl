@@ -639,7 +639,7 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
   function complexity_codomain(V::AbsAffineScheme)
     return sum(total_degree.(lifted_numerator.(gens(I(V)))); init=0)
   end
-  sort!(all_V, lt=(x,y)->complexity_codomain(x)<complexity_codomain(y))
+  sort!(all_V; by=complexity_codomain)
   for V in all_V
 
     # Find a patch in X in which the pullback is visible
@@ -649,7 +649,7 @@ function _try_pullback_cheap(phi::MorphismFromRationalFunctions, I::AbsIdealShea
       a = realization_preview(phi, U, V)
       return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
     end
-    sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+    sort!(all_U; by=complexity)
 
     # First try to get hold of the component via cheap realizations 
     pullbacks = IdDict{AbsAffineScheme, Ideal}()
@@ -815,7 +815,7 @@ function _pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
     a = realization_preview(phi, U, V)
     return maximum(vcat([total_degree(numerator(f)) for f in a], [total_degree(denominator(f)) for f in a]))
   end
-  sort!(all_U, lt=(x,y)->complexity(x)<complexity(y))
+  sort!(all_U; by=complexity)
 
   for U in all_U
     psi_loc = realize_maximally_on_open_subset(phi, U, V)
@@ -890,7 +890,7 @@ function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=de
   if !is_empty(cand)
     c = complexity.(cand)
     m = minimum(c)
-    i = findfirst(x->x==m, c)
+    i = findfirst(==(m), c)
     return cand[i]
   end
 
@@ -933,8 +933,7 @@ function _prepare_pushforward_prime_divisor(
     return result
   end
 
-  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
-  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  sort!(sorted_charts; by=compl)
 
   bad_charts = Int[]
   for (i, V) in enumerate(sorted_charts)
@@ -959,8 +958,7 @@ function _prepare_pushforward_prime_divisor(
   end
 
   sorted_charts = AbsAffineScheme[V for (i, V) in enumerate(sorted_charts) if !(i in bad_charts)]
-  sorted_charts_with_complexity = [(V, compl(V)) for V in sorted_charts]
-  sorted_charts = AbsAffineScheme[V for (V, _) in sort!(sorted_charts_with_complexity, by=x->x[2])]
+  sort!(sorted_charts; by=compl)
   
   # try random realizations second
   loc_ring, _ = localization(OO(U), complement_of_prime_ideal(I(U)))

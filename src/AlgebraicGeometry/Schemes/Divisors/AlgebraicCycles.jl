@@ -406,7 +406,7 @@ Return a divisor ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ 
 where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  all(I->is_prime(I), keys(coefficient_dict(D))) && return D
+  all(is_prime, keys(coefficient_dict(D))) && return D
   result = zero(D)
   for (I, a) in coefficient_dict(D)
     next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
@@ -436,7 +436,7 @@ function _colength_in_localization(Q::AbsIdealSheaf, P::AbsIdealSheaf; covering=
 end
 
 function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle) 
-  if all(k->k in keys(coefficient_dict(D)), keys(coefficient_dict(E))) && all(k->k in keys(coefficient_dict(E)), keys(coefficient_dict(D))) 
+  if all(k -> haskey(coefficient_dict(D), k), keys(coefficient_dict(E))) && all(k -> haskey(coefficient_dict(E), k), keys(coefficient_dict(D))) 
     for I in keys(coefficient_dict(D))
       if haskey(coefficient_dict(E), I)
         D[I] == E[I] || return false
@@ -455,13 +455,13 @@ function ==(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
     keys_D = collect(keys(coefficient_dict(D)))
     keys_E = collect(keys(coefficient_dict(E)))
     for I in keys(coefficient_dict(D))
-      I_cand = findall(x->(x==I), keys_D)
-      J_cand = findall(x->(x==I), keys_E)
+      I_cand = findall(==(I), keys_D)
+      J_cand = findall(==(I), keys_E)
       sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
     end
     for J in keys(coefficient_dict(E))
-      I_cand = findall(x->(x==J), keys_D)
-      J_cand = findall(x->(x==J), keys_E)
+      I_cand = findall(==(J), keys_D)
+      J_cand = findall(==(J), keys_E)
       sum([D[keys_D[i]] for i in I_cand]) == sum([E[keys_E[j]] for j in J_cand]) || return false
     end
   end
