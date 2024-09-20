@@ -42,21 +42,16 @@ A basic minimal implementation of the interface for `AbsPreSheaf`; to be used in
   obj_cache::IdDict{<:OpenType, <:OutputType} # To cache values that have already been computed
   #res_cache::IdDict{<:Tuple{<:OpenType, <:OpenType}, <:RestrictionType} # To cache already computed restrictions
 
-  # production functions for new objects
   is_open_func::Function # To check whether one set is open in the other
-  production_func::Union{Function, Nothing} # To produce ℱ(U) for U ⊂ X
-  restriction_func::Union{Function, Nothing} # To produce the restriction maps ℱ(U) → ℱ(V) for V ⊂ U ⊂ X open
 
-  function PreSheafOnScheme(X::Scheme, 
-      production_func::Union{Function, Nothing}=nothing, 
-      restriction_func::Union{Function, Nothing}=nothing;
+  function PreSheafOnScheme(X::Scheme; 
       OpenType=AbsAffineScheme, OutputType=Any, RestrictionType=Any,
       is_open_func::Any=is_open_embedding
     )
     return new{typeof(X), OpenType, OutputType, RestrictionType,
               }(X, IdDict{OpenType, OutputType}(),
                 #IdDict{Tuple{OpenType, OpenType}, RestrictionType}(),
-                is_open_func, production_func, restriction_func
+                is_open_func
                )
   end
 end
@@ -92,17 +87,7 @@ identifications given by the gluings in the `default_covering`.
     function is_open_func(U::AbsAffineScheme, V::AbsAffineScheme)
       return is_subset(V, X) && is_open_embedding(U, V) # Note the restriction to subsets of X
     end
-
-    function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
-      return OO(U)
-    end
-    function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
-      OU = F(U) # assumed to be previously cached
-      OV = F(V) # same as above
-      return hom(OV, OU, gens(OU), check=false) # check=false assures quicker computation
-    end
-
-    R = PreSheafOnScheme(X, production_func, restriction_func,
+    R = PreSheafOnScheme(X,
                     OpenType=AbsAffineScheme, OutputType=Ring,
                     RestrictionType=Map,
                     is_open_func=is_open_func
