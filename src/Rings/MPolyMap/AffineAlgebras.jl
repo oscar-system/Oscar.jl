@@ -122,7 +122,7 @@ function is_finite(F::AffAlgHom)
   b = falses(n)
   for f in gb
     exp = exponent_vector(leading_monomial(f, ordering = o), 1)
-    inds = findall(x -> x != 0, exp)
+    inds = findall(!is_zero, exp)
     if length(inds) > 1 || inds[1] > n
       continue
     end

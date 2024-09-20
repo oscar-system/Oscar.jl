@@ -1726,6 +1726,6 @@ function (==)(F::FreeMod, G::SubquoModule)
   if isdefined(G, :quo) 
     iszero(G.quo) || return false
   end
-  all(e -> e in G, gens(F)) || return false
+  all(in(G), gens(F)) || return false
   return true
 end

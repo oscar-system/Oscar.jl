@@ -841,7 +841,7 @@ function (F::Generic.FreeModule)(s::Singular.svector)
   Rx = base_ring(F)
   R = base_ring(Rx)
   for (i, e, c) = s
-    f = Base.findfirst(x->x==i, pos)
+    f = findfirst(==(i), pos)
     if f === nothing
       push!(values, MPolyBuildCtx(Rx))
       f = length(values)
@@ -950,7 +950,7 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
     if type == :names
       i = Int[]
       for h = symbols(R)
-        push!(i, findfirst(x -> x == h, symbols(S)))
+        push!(i, findfirst(==(h), symbols(S)))
       end
       return MPolyHom_vars{T1, T2}(R, S, i)
     end

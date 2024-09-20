@@ -2,7 +2,7 @@ using Oscar: SLPolynomialRing
 
 const SLP = Oscar.StraightLinePrograms
 
-replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
+replstr(c) = sprint(show, MIME"text/plain"(), c)
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(AbstractAlgebra.ZZ)
@@ -323,7 +323,7 @@ end
     p = 2*x^3+y^2+3
     @test evaluate(p, [2, 3]) == 28
     @test SLP.evaluate!(Int[], p, [2, 3]) == 28
-    @test SLP.evaluate!(Int[], p, [2, 3], x -> x) == 28
+    @test SLP.evaluate!(Int[], p, [2, 3], identity) == 28
     @test SLP.evaluate!(Int[], p, [2, 3], x -> -x) == -10
 
     # trivial rings

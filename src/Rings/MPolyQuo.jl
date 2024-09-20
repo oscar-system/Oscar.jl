@@ -1299,7 +1299,7 @@ function vector_space(K::AbstractAlgebra.Field, Q::MPolyQuoRing)
     while !iszero(b)
       m = leading_monomial(b, ordering=o)
       c = leading_coefficient(b, ordering=o)
-      j = findfirst(n->n==m, l)
+      j = findfirst(==(m), l)
       result = result + c * V[j]
       b = b - c * m
     end

@@ -400,8 +400,8 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   end
   #TODO should there be a check for === up to permutation in order to avoid std-computation?
   # If yes, this could also be incorporated in the `in`-function.
-  all(x->(x in N), gens(M)) || return false
-  all(x->(x in M), gens(N)) || return false 
+  all(in(N), gens(M)) || return false
+  all(in(M), gens(N)) || return false 
   return true
 end
 

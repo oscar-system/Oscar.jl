@@ -663,7 +663,7 @@ julia> matroid_groundset(N)
 ```
 """
 function restriction(M::Matroid, set::GroundsetType)
-    deleted_elems = filter(x -> !(x in set), M.groundset)
+    deleted_elems = filter(!in(set), M.groundset)
     return deletion(M, deleted_elems)
 end
 
@@ -963,7 +963,7 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     n=Int((q^(r+1)-1)/(q-1))
     for i in 1:(q^(r+1)-1)
         new_column = digits(i, base=q, pad=r+1)
-        if new_column[findfirst(k->k!=0, new_column)]==1
+        if new_column[findfirst(!is_zero, new_column)]==1
             M = vcat(M, new_column)
         end
     end

@@ -113,14 +113,14 @@ function bases_matrix_coordinates(Bs::Vector{Vector{Int}}, B::Vector{Int})
     
     for b in coord_bases
         row_b = setdiff(B,b)[1]
-        row_b = count(a->(a<row_b), B) + 1
+        row_b = count(<(row_b), B) + 1
         # count(f, v) does what?
         # - iterate through the elements a in v
         # - compute f(a) 
         # - if that is true, increment the counting variable by 1
         # - otherwise, continue
         # - return the value of the internal counter.
-        # Similar with all(a->(a<row_b), B), for instance.
+        # Similar with all(a<(row_b), B), for instance.
         #row_b = length([a for a in B if a < row_b]) + 1
         
         col_b = setdiff(b,B)[1]
@@ -303,7 +303,7 @@ function realization_bases_coordinates(Bs::Vector{Vector{Int}}, A::Vector{Int})
         end
         
         row_b = setdiff(B,b)[1]
-        row_b = count(a->(a<row_b), B) + 1
+        row_b = count(<(row_b), B) + 1
         
         col_b = setdiff(b,B)[1]
         col_b = col_b - length([a for a in A if a <= col_b])

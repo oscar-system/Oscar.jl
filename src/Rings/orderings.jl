@@ -1903,7 +1903,7 @@ end
 function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    R = parent(first(a))
    g = gens(R)
-   aa = [findfirst(x -> x == y, g) for y = a]
+   aa = [findfirst(==(y), g) for y = a]
    if nothing in aa
      error("only generators allowed")
    end
@@ -1992,7 +1992,7 @@ end
 
 function __permutation_of_terms(f::MPolyRingElem, ord::AbsOrdering)
   p = collect(1:length(f))
-  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
+  sort!(p; lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
   return p
 end
 

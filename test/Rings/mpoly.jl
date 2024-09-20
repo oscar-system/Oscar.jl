@@ -116,8 +116,8 @@ end
 
   # Test disabled because it could not be reliably reproduced and also 
   # it is mathematical not rigorous
-  # @test length(findall(x->x==r1, L)) == 1
-  # @test length(findall(x->x==r2, L)) == 1
+  # @test length(findall(==(r1), L)) == 1
+  # @test length(findall(==(r2), L)) == 1
   @test ideal(parent(r1), L) == ideal(parent(r1), [r1, r2])
 
   @test issubset(ideal(S, [a]), ideal(S, [a]))

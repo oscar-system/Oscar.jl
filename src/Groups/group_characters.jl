@@ -306,7 +306,7 @@ julia> Oscar.with_unicode() do
 ```
 """
 function character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
-    tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
+    tbls = get_attribute!(G, :character_tables, Dict{Int,Any}())
     return get!(tbls, p) do
       p != 0 && return mod(character_table(G, 0), p)
       iso = isomorphism_to_GAP_group(G)
@@ -1256,8 +1256,8 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     @req is_prime(p) "p must be a prime integer"
     characteristic(tbl) == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
-    if ! haskey(modtbls, p)
+    modtbls = get_attribute!(tbl, :brauer_tables, Dict{Int,Any}())
+    if !haskey(modtbls, p)
       modtblgap = mod(GapObj(tbl), GAP.Obj(p))::GapObj
       if modtblgap === GAP.Globals.fail
         modtbls[p] = nothing
@@ -1618,7 +1618,7 @@ julia> tbl = character_table("A5");
 julia> println(maxes(tbl))
 ["a4", "D10", "S3"]
 
-julia> all(x -> x in names_of_fusion_sources(tbl), maxes(tbl))
+julia> all(in(names_of_fusion_sources(tbl)), maxes(tbl))
 true
 ```
 """
@@ -1944,7 +1944,7 @@ Return the character of `tbl` that has the value `QQAbFieldElem(1)` in each posi
 ```jldoctest
 julia> t = character_table(symmetric_group(4));
 
-julia> all(x -> x == 1, trivial_character(t))
+julia> all(==(1), trivial_character(t))
 true
 ```
 """
@@ -1963,7 +1963,7 @@ that has the value `QQAbFieldElem(1)` in each position.
 ```jldoctest
 julia> g = symmetric_group(4);
 
-julia> all(x -> x == 1, trivial_character(g))
+julia> all(==(1), trivial_character(g))
 true
 ```
 """
@@ -2243,7 +2243,7 @@ function _induce(chi::GAPGroupClassFunction,
   H, emb = is_subgroup(G_chi, G_tbl)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(parent(chi))]
   Greps = [representative(C) for C in conjugacy_classes(tbl)]
-  fus = [findfirst(x -> x == y, Greps) for y in Hreps]
+  fus = [findfirst(==(y), Greps) for y in Hreps]
   return induce(chi, tbl, fus)
 end
 
@@ -2338,7 +2338,7 @@ function _restrict(chi::GAPGroupClassFunction,
   H, emb = is_subgroup(G_subtbl, G_chi)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(subtbl)]
   Greps = [representative(C) for C in conjugacy_classes(parent(chi))]
-  fus = [findfirst(x -> x == y, Greps) for y in Hreps]
+  fus = [findfirst(==(y), Greps) for y in Hreps]
   return restrict(chi, subtbl, fus)
 end
 
@@ -2562,7 +2562,7 @@ the values of `chi`.
 ```jldoctest
 julia> tbl = character_table(alternating_group(4));
 
-julia> println([findfirst(y -> y == conj(x), tbl) for x in tbl])
+julia> println([findfirst(==(conj(x)), tbl) for x in tbl])
 [1, 3, 2, 4]
 ```
 """

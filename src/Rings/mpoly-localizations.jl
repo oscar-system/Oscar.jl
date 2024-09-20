@@ -948,7 +948,7 @@ defined by
 function localization(S::AbsMPolyMultSet)
     R = ring(S)
     Rloc = MPolyLocRing(R, S)
-    #iota = MapFromFunc(R, Rloc, x -> Rloc(x))
+    #iota = MapFromFunc(R, Rloc, Rloc)
     iota = hom(R, Rloc, Rloc.(gens(R)), check=false)
     return Rloc, iota
 end

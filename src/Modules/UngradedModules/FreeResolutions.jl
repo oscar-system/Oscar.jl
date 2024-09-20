@@ -512,7 +512,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       end
 
       K, inc = kernel(map(C, i))
-      nz = findall(x->!iszero(x), gens(K))
+      nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
@@ -538,7 +538,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
   while true
     k, mk = kernel(mp[1])
-    nz = findall(x->!iszero(x), gens(k))
+    nz = findall(!is_zero, gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)

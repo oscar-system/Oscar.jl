@@ -1483,7 +1483,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
   dg = dual_graph(P)
-  ngon_is = findall(x -> x == n, nvf)
+  ngon_is = findall(==(n), nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])

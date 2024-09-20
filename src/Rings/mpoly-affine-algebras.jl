@@ -1308,7 +1308,7 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
   if start > 0
     W = V[start + 1:end]
     # Sort by increasing degree
-    sp = sortperm(W, lt = (x, y) -> degree(x)[1] < degree(y)[1])
+    sp = sortperm(W; by=x -> degree(x)[1])
     W = W[sp]
 
     res = V[1:start]
@@ -1316,7 +1316,7 @@ function _minimal_subalgebra_generators_with_relations(V::Vector{PolyRingElemT},
       rels[i] = gen(S, i)
     end
   else
-    sp = sortperm(V, lt = (x, y) -> degree(x)[1] < degree(y)[1])
+    sp = sortperm(V; by=x -> degree(x)[1])
     W = V[sp]
 
     res = elem_type(R)[ W[1] ]
@@ -1563,7 +1563,7 @@ function noether_normalization(A::MPolyQuoRing)
  ###mi_arr = [collect(matrix([gens(R)])*map_entries(R, mi))[i] for i in 1:ngens(R)]
  mi_arr = [collect(map_entries(R, mi)*gens(R))[i] for i in 1:ngens(R)]
  h = hom(R, R, i1)
- V = map(x->h(x), gens(I))
+ V = map(h, gens(I))
  B, _ = quo(R, ideal(R, V))
  h1 = hom(A, B, map(B, i1))
  h2 = hom(B, A, map(A, mi_arr))
