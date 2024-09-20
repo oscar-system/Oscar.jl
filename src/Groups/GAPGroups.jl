@@ -2342,7 +2342,7 @@ end
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
-   l_tor = filter(x -> x != 0, l)
+   l_tor = filter(!is_zero, l)
    free = length(l) - length(l_tor)
    res = length(l_tor) == 0 ? "" : "Z/" * join([string(x) for x in l_tor], " + Z/")
    return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )

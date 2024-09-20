@@ -62,7 +62,7 @@ Return the homomorphism from `G` to `H` sending every element of `G` into the
 identity of `H`.
 """
 function trivial_morphism(G::GAPGroup, H::GAPGroup = G)
-  return hom(G, H, x -> one(H))
+  return hom(G, H, _ -> one(H))
 end
 
 """
@@ -756,7 +756,7 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      Ggens = Vector{GapObj}(GAPWrap.GeneratorsOfGroup(GapG)::GapObj)
      if length(Ggens) < length(exponents)
        # It may happen that GAP omits the generators of order 1. Insert them.
-       @assert length(Ggens) + length(filter(x -> x == 1, exponents)) ==
+       @assert length(Ggens) + length(filter(is_one, exponents)) ==
                length(exponents)
        o = GapObj(one(G))
        newGgens = Vector{GapObj}()

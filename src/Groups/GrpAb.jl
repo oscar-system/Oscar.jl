@@ -59,7 +59,7 @@ end
 
 function index(::Type{I}, G::T, H::T) where I <: IntegerUnion where T <: FinGenAbGroup
    @req is_subgroup(H, G)[1] "H must be a subgroup of G"
-   f = count(x -> x == 0, snf(G)[1].snf) - count(x -> x == 0, snf(H)[1].snf)
+   f = count(is_zero, snf(G)[1].snf) - count(is_zero, snf(H)[1].snf)
    @req f == 0 "index is supported only for subgroups of finite index"
    return I(divexact(order(torsion_subgroup(G)[1]), order(torsion_subgroup(H)[1]), check = false))
 end
