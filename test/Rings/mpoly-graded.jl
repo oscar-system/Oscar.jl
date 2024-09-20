@@ -120,7 +120,7 @@ end
 
         @test (polys[1] + polys[2])^2 == polys[1]^2 + 2*polys[1]*polys[2] + polys[2]^2
         @test (polys[3] - polys[4])^2 == polys[3]^2 + 2*(-polys[3])*polys[4] + polys[4]^2
-        @test polys[2] * (polys[3] + polys[4]) == Oscar.addeq!(Oscar.mul!(polys[1], polys[2], polys[3]), Oscar.mul!(polys[1], polys[2], polys[4]))
+        @test polys[2] * (polys[3] + polys[4]) == Oscar.add!(Oscar.mul!(polys[1], polys[2], polys[3]), Oscar.mul!(polys[1], polys[2], polys[4]))
         @test parent(polys[1]) === RR
 
         for k in 1:length(polys[4])

@@ -714,13 +714,13 @@ end
 #^(a::MPolyQuoRingElem, b::Base.Integer) = MPolyQuoRingElem(Base.power_by_squaring(a.f, b), a.P)
 
 function Oscar.mul!(a::MPolyQuoRingElem, b::MPolyQuoRingElem, c::MPolyQuoRingElem)
-  a.f = b.f*c.f
+  a.f = b.f * c.f
   a.simplified = false
   return a
 end
 
-function Oscar.addeq!(a::MPolyQuoRingElem, b::MPolyQuoRingElem)
-  a.f += b.f
+function Oscar.add!(a::MPolyQuoRingElem, b::MPolyQuoRingElem, c::MPolyQuoRingElem)
+  a.f = b.f + c.f
   a.simplified = false
   return a
 end

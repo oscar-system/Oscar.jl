@@ -167,7 +167,7 @@ function right_action(R::MPolyRing{T}, M::MatrixElem{T}) where {T}
       if iszero(M[i, j])
         continue
       end
-      vars[i] = addeq!(vars[i], M[i, j] * x[j])
+      vars[i] = add!(vars[i], M[i, j] * x[j])
     end
   end
 
@@ -214,7 +214,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for action in actions
-      g = addeq!(g, action(f))
+      g = add!(g, action(f))
     end
     return g * base_ring(f)(1//order(group(IR)))
   end
@@ -344,7 +344,7 @@ function reynolds_operator(
   function reynolds(f::PolyRingElemT)
     g = parent(f)()
     for (action, val) in actions_and_values
-      g = addeq!(g, action(f) * val)
+      g = add!(g, action(f) * val)
     end
     return g * base_ring(f)(1//order(group(IR)))
   end

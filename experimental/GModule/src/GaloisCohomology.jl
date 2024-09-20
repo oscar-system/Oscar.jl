@@ -340,7 +340,7 @@ defaulting to the full automorphism group over the prime field.
 Find the embedding of Gp -> G, realizing the local automorphism group
 as a subgroup of the global one.
 """
-function Oscar.decomposition_group(K::AbsSimpleNumField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), prime_field(codomain(mK))); _sub::Bool = false)
+function Oscar.decomposition_group(K::AbsSimpleNumField, mK::Map, mG::Map = automorphism_group(K)[2], mGp::Map = automorphism_group(codomain(mK), absolute_base_field(codomain(mK))); _sub::Bool = false)
   Kp = codomain(mK)
   @assert domain(mK) == K
 
@@ -998,7 +998,7 @@ function idele_class_gmodule(k::AbsSimpleNumField, s::Vector{Int} = Int[]; redo:
   Hecke.popindent()
   @vprint :GaloisCohomology 2 " .. gathering the local modules ..\n"
   Hecke.pushindent()
-  C = [gmodule(x[1], prime_field(x[1])) for x = L];
+  C = [gmodule(x[1], absolute_base_field(x[1])) for x = L];
   I.D = [x[2] for x = C]
   I.L = [x[3] for x = C]
   @hassert :GaloisCohomology 1 all(x->is_consistent(x[1]), C)
@@ -1314,7 +1314,7 @@ function local_index(CC::Vector{GrpCoh.CoChain{2, PermGroupElem, GrpCoh.MultGrpE
     cn = data[7]
   else
     L, mL = completion(k, P)#, 40*ramification_index(P))
-    C, mGp, mU = gmodule(L, prime_field(L))
+    C, mGp, mU = gmodule(L, absolute_base_field(L))
 
     G = domain(mG)
     emb, _m = decomposition_group(k, mL, mG, mGp, _sub = true)
@@ -1860,7 +1860,7 @@ function serre(A::IdeleParent, P::AbsNumFieldOrderIdeal)
   Kp, mKp, mGp, mUp, pro, inj = completion(A, P)
   mp = decomposition_group(A.k, mKp, A.mG, mGp)
   qr = restrict(C, mp)
-  s = Hecke.Hecke.local_fundamental_class_serre(Kp, prime_field(Kp))
+  s = Hecke.Hecke.local_fundamental_class_serre(Kp, absolute_base_field(Kp))
 #  Oscar.GModuleFromGap.istwo_cocycle(Dict( (g, h) => s(mGp(g), mGp(h)) for g = domain(mGp) for h = domain(mGp)), mGp)
 
   z = gmodule(domain(mGp), [hom(domain(mUp), domain(mUp), [preimage(mUp, mGp(g)(mUp(u))) for u = gens(domain(mUp))]) for g = gens(domain(mGp))])

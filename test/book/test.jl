@@ -211,7 +211,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
             println("  created mockrepl: $(mockrepl.mockdule)")
 
             # clear verbosity levels before each chapter
-            empty!(Hecke.VERBOSE_LOOKUP)
+            empty!(AbstractAlgebra.VERBOSE_LOOKUP)
 
             copy!(LOAD_PATH, custom_load_path)
             auxmain = joinpath(Oscar.oscardir, "test/book", chapter, "auxiliary_code", "main.jl")

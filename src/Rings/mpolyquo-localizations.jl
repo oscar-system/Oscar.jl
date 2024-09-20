@@ -782,11 +782,6 @@ function +(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   return (parent(a))(lifted_numerator(a)*q + lifted_numerator(b)*p, new_den, check=false)
 end
 
-# TODO: improve this method.
-function addeq!(a::T, b::T) where {T<:MPolyQuoLocRingElem}
-  a = a+b
-  return a
-end
 
 function -(a::T, b::T) where {T<:MPolyQuoLocRingElem}
   return a + (-b)

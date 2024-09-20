@@ -209,9 +209,6 @@ function total_degree(I::SLPoly)
   return value(evaluate(I, [C(1) for i = 1:n]))
 end
 
-Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
-Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
-
 #my 1st invariant!!!
 @doc raw"""
     sqrt_disc(a::Vector)

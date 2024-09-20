@@ -445,11 +445,6 @@ function Oscar.add!(a::NfNSGenElem, b::NfNSGenElem, c::NfNSGenElem)
   return a
 end
 
-function Oscar.addeq!(a::NfNSGenElem, b::NfNSGenElem)
-  a.f += b.f
-  return a
-end
-
 ################################################################################
 #
 #  Comparison

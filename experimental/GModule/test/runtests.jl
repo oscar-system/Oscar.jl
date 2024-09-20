@@ -220,8 +220,8 @@ end
 
   l2 = prime_decomposition(maximal_order(k), 2)
   k2, _ = Hecke.completion(k, l2[1][1], 120)
-  z = Hecke.local_fundamental_class_serre(k2, prime_field(k2))
-  C, mG, mU = Oscar.GrpCoh.gmodule(k2, prime_field(k2))
+  z = Hecke.local_fundamental_class_serre(k2, absolute_base_field(k2))
+  C, mG, mU = Oscar.GrpCoh.gmodule(k2, absolute_base_field(k2))
   G = domain(mG)
 
   pe = gen(k2)

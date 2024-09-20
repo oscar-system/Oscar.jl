@@ -250,19 +250,19 @@ end
     # mutating ops
     X, Y = gens(S)
     p = S(x*y-16*y^2)
-    # SLP.addeq!(p, S(x)) # TODO: this bugs
-    @test p === addeq!(p, S(x*y))
+    # SLP.add!(p, S(x)) # TODO: this bugs
+    @test p === add!(p, S(x*y))
     @test convert(R, p) == 2*x1*y1-16y1^2
     @test p == X*Y-16Y^2+X*Y
 
-    @test p === SLP.subeq!(p, S(-16y^2))
+    @test p === sub!(p, S(-16y^2))
     @test convert(R, p) == 2*x1*y1
     @test p == X*Y-16Y^2+X*Y- (-16*Y^2)
 
-    @test p === SLP.subeq!(p)
+    @test p === neg!(p)
     @test convert(R, p) == -2*x1*y1
-    # @test p === SLP.muleq!(p, p) # TODO: this bugs
-    @test p === SLP.muleq!(p, S(-2*x*y))
+    # @test p === mul!(p, p) # TODO: this bugs
+    @test p === mul!(p, S(-2*x*y))
     @test convert(R, p) == 4*(x1*y1)^2
     @test p === SLP.expeq!(p, 3)
     @test convert(R, p) == 64*(x1*y1)^6
