@@ -76,7 +76,7 @@ Map
     mapping_matrix = matrix(ZZ, zeros(ZZ, torsion_free_rank(torusinvariant_weil_divisor_group(cod)), 0))
     for i in 1:nrows(images)
       v = [images[i,k] for k in 1:ncols(images)]
-      j = findfirst(x -> x == true, [(v in maximal_cones(cod)[j]) for j in 1:n_maximal_cones(cod)])
+      j = findfirst(j -> v in maximal_cones(cod)[j], 1:n_maximal_cones(cod))
       m = reduce(vcat, [Int(ray_indices(maximal_cones(cod))[j, k]) * cod_rays[k:k, :] for k in 1:n_rays(cod)])
       mapping_matrix = hcat(mapping_matrix, solve(transpose(m), transpose(images[i:i, :]); side = :right))
     end
@@ -252,7 +252,7 @@ Covering
     sol = vcat(sol_list...)
 
     @assert sol*hb_U_mat == hb_V_img
-    @assert all(x->x>=0, sol)
+    @assert all(>=(0), sol)
 
     # assemble the monomials where the variables of OO(V) are mapped
     imgs = [prod(gens(OO(U))[k]^sol[i, k] for k in 1:ngens(OO(U)); init=one(OO(U))) for i in 1:nrows(sol)]
