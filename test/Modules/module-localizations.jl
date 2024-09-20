@@ -114,8 +114,8 @@ end
   F2 = FreeMod(Q, 2)
   B0 = sub(F2, A)[1]
   B1 = sub(F2, K2)[1] 
-  @test all(g->(g in B1), gens(B0))
-  @test all(g->(g in B0), gens(B1))
+  @test all(in(B1), gens(B0))
+  @test all(in(B0), gens(B1))
 end
 
 @testset "shifts for local orderings" begin

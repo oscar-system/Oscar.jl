@@ -463,7 +463,7 @@ end
   end
 
   F = GF(2)
-  mp = MapFromFunc(ZZ, F, x -> F(x))
+  mp = MapFromFunc(ZZ, F, F)
   red = map_entries(mp, G)
   @test red == map_entries(F, G)
   red = map_entries(mp, T)

@@ -1092,7 +1092,7 @@ end
     H = element_to_homomorphism(H)
 
     u = [SubquoModuleElem(sparse_row(matrix([randpoly(R) for _=1:1, _=1:ngens(N)])), N) for _=1:3]
-    image_of_u = sub_object(M,map(x -> H(x),u))
+    image_of_u = sub_object(M, map(H, u))
     preimage_test_module = image_of_u + sub_object(M,[M[1]])
     _,emb = preimage(H,preimage_test_module,:with_morphism)
     @test issubset(sub_object(N,u), image(emb)[1])
@@ -1118,7 +1118,7 @@ end
   MS, mapM = change_base_ring(S, M)
   @test iszero(mapM(M[1]))
 
-  f = MapFromFunc(R, S, x->S(x))
+  f = MapFromFunc(R, S, S)
   MS, mapM = change_base_ring(f, M)
   @test iszero(mapM(M[1]))
 end
