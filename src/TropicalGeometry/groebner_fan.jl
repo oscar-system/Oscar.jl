@@ -139,7 +139,7 @@ function homogeneity_vector(G::Vector{<:MPolyRingElem})
     positiveOrthant = positive_hull(identity_matrix(ZZ,n))
     posHomogeneitySpace = intersect(homogeneitySpace,positiveOrthant)
     homogeneityVector = unique_identifying_point(posHomogeneitySpace)
-    if isnothing(findfirst(vi -> (vi<=0), homogeneityVector))
+    if isnothing(findfirst(<=(0), homogeneityVector))
         return homogeneityVector
     end
 
