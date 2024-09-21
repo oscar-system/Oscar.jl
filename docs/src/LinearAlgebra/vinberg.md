@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
  A $\textit{root}$ of $r \in L$ is a primitive vector s.t. reflection in the hyperplane $r^\perp$ maps $L$ to itself.
  $L$ is called $\textit{reflective} if the set of fundamental roots $\~{R}(L)$ is finite.
 
- See for example [Tur17](@cite) for the theory of Arithmetic Reflection Groups and Reflective Lorentzian Lattices.
+ See for example [Tur18](@cite) for the theory of Arithmetic Reflection Groups and Reflective Lorentzian Lattices.
 
 ## Description 
  The algorithm constructs a fundamental polyhedron $P$ for a Lorentzian lattice $L$ by computing its $\textit{fundamental roots} $r$, i.e. the roots $r$ which are perpendicular to the faces of $P$ and which have inner product at least 0 with the elements of $P$.

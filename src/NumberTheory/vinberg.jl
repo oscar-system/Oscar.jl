@@ -8,19 +8,12 @@
 Checks if the inner product of the given `v0` is positive or generates such a `v0` if none is given.
 """
 function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
-  if iszero(v0)
-    Eigenvalues = eigenvalues(QQ, Q)
-    stopping_condition = 0
-    negative_eigenvalue = 0
-    for x in Eigenvalues
-      if x < 0
-        negative_eigenvalue = x
-        break
-      end
-      stopping_condition =+
-    end
-    @req stopping_condition < length(Eigenvalues) "Q is not of signature (1, n)"
-    return _rescale_primitive(ZZ.(eigenspace(Q, x)))
+  if iszero(v0) # generate `v0` by finding the negative eigenvalue `neg_ev` of `Q`. We set `v0` as a primitive generator of the eigenspace of `neg_ev`
+    ev = eigenvalues(QQ, Q)
+    pos_neg_ev = findfirst(is_negative, ev) # find the position `pos_neg_ev` of the negative eigenvalue `neg_ev` 
+    @req pos_neg_ev === nothing "Q is not of signature (1, n)"
+    neg_ev = ev[pos_neg_ev]
+    return _rescale_primitive(ZZ.(eigenspace(Q, neg_ev)))
   else
     @req (v0*Q*transpose(v0))[1, 1] > 0 "v0 has non positive inner product"
     @req isone(reduce(gcd, v)) "v0 is not primitive"
@@ -83,8 +76,8 @@ function _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem})
   result = Tuple{Int,ZZRingElem}[]
 
   for l in root_lengths
-    x0 = sqrt(big(abs(l * upper_bound))) # consider n^2//l < upper_bound => n < sqrt(l*upper_bound)
-    x = isqrt(x0 * upper_bound) 
+    x0 = sqrt(big(abs(l * upper_bound))) # consider for the `upper_bound` $u$ $\frac{n^2}{l} < u \implies n < \sqrt{l*u}$
+    x = isqrt(x0 * upper_bound)
     for n in 1:x
       push!(result, (n, l))
     end
@@ -97,16 +90,12 @@ end
 @doc raw"""
     _rescale_primitive(v::ZZMatrix) -> ZZMatrix
 
-Check if `v` is primitive, which is equivalent to checking whether the greatest common divisor of the entries of `v`
-is equal to 1. If `v` is not primitive, we divide `v` by its gcd.
+Check if `v` is primitive, which is equivalent to checking whether the greatest common divisor `g` of the entries of `v`
+is equal to 1. If `v` is not primitive, we divide `v` by `g`.
 """
 function _rescale_primitive(v::ZZMatrix)
-  gcd = reduce(gcd, v)
-  if isone(gcd)
-    return v
-  else
-    return (1 // gcd * v)
-  end
+  g = reduce(gcd, v)
+  return isone(g) ? v : v / g
 end
 
 @doc raw"""
@@ -117,9 +106,8 @@ $\frac{2.v.Q}{v^2}$ is an integer matrix.
 """
 function _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
   A = Q * transpose(v)
-  b = (v*A)[1, 1]
+  b = (v * A)[1, 1]
   A = 2 * A
-
   return all(iszero(mod(x, b)) for x in A)
 end
 
@@ -132,7 +120,7 @@ Then also check the coorientation of `v` by checking that $v.v_0 \geq 0$.
 function _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix, v0::ZZMatrix)
   Qv = Q * transpose(v)
   for r in roots
-    if (r*Qv)[1, 1] < 0
+    if (r * Qv)[1, 1] < 0
       return false
     end
   end
@@ -157,9 +145,9 @@ function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}
   bm = kernel(Q * transpose(v0); side=:left)
   QI = bm * Q * transpose(bm)
   QI = QI[1, 1] > 0 ? QI : -QI
-  for d in root_lengths # gather all vectors which are orthogonal on v0 with length contained in root_lengths 
+  for d in root_lengths # gather all vectors which are orthogonal on `v0` with length contained in `root_lengths`
     d = abs(d)
-    V = Hecke._short_vectors_gram(Hecke.LatEnumCtx, map_entries(QQ, QI), d, d, ZZRingElem) # QI POSITIVE
+    V = Hecke._short_vectors_gram(Hecke.LatEnumCtx, map_entries(QQ, QI), d, d, ZZRingElem) # `QI` positive 
     for (v_, _) in V
       v = matrix(ZZ, 1, nrows(bm), v_) * bm
       if !_rescale_primitive(v)
@@ -177,7 +165,7 @@ function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}
   else
     v1 = _check_direction_vector(Q, possible_vec, direction_vector)
   end
-  # Now we want to sort the vectors by increase of the value ((v.v1)^2)//v^2
+  # Now we want to sort the vectors by increase of the value $\frac{(v.v_1)^2}{v^2}$
   possible_vec_sort = Tuple{ZZMatrix,RationalUnion,RationalUnion}[]
   for v in possible_vec
     vQ = v * Q
@@ -187,7 +175,7 @@ function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}
   end
   sort!(possible_vec_sort; by=x -> (x[2]^2) // abs(x[3]))
 
-  # We execute the algorithm with replacing v0 by v1
+  # We execute the algorithm with replacing `v0` by `v1`
   for (v, n) in possible_vec_sort
     if n < 0
       v = -v
@@ -208,7 +196,7 @@ for all `possible_vec` $\~{v}$ with $(v_0, \~{v}) = 0$
 """
 function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
   l = length(Q)[1]
-  v1 = zero_matrix(QQ, l, 1) # initializing v1 that it survives the for loop
+  v1 = zero_matrix(QQ, l, 1) # initializing `v1` that it survives the for loop
   signal = 1 # initializing a stopping condition
   while signal in 1:100000000
     if l < 4
@@ -216,7 +204,7 @@ function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
     elseif l < 10
       v1_ = rand(-25:25, l)
     else
-      v1_ = rand(-20:20, l)  # for higher l it is not necessary/efficient to choose a big random range
+      v1_ = rand(-20:20, l)  # for higher `l` it is not necessary/efficient to choose a big random range
     end
     v1 = matrix(QQ, l, 1, v1_)
     @hassert :Vinberg 1 (transpose(v1)*Q*v1)[1, 1] < 0
@@ -224,13 +212,13 @@ function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
       # To run the algorithm it suffices to require that v*Q*v1 != 0, but we get a random (right) solution. 
       # This is the case because it is a random choice in which direction the fundamental cone 
       # is built everytime we use the algorithm.
-      # To get always the same solution one should suply v1  
+      # To get always the same solution one should suply a `direction_vector` `v1`  
       @vprintln :Vinberg 2 "direction vector v1 = $v1"
       return v1
     end
     signal += 1
   end
-  @req signal < 10000000 "Choose another v0" # break the algorithm if no v1 was found
+  @req signal < 10000000 "Choose another v0" # break the algorithm if no `v1` was found
 end
 
 @doc raw"""
@@ -269,9 +257,9 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=matrix(ZZ, 1, 1, [0])::Z
   else
     real_root_lengths = _check_root_lengths(Q, root_lengths) # sort out impossible lengths
   end
-  iteration = _distance_indices(upper_bound, real_root_lengths) # find the right order to iterate through v.v0 and v^2
-  roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case v.v0 = 0
-  for (n, k) in iteration # we  search for vectors which solve n = v.v0 and k = v^2
+  iteration = _distance_indices(upper_bound, real_root_lengths) # find the right order to iterate through $v.v_0$ and $v^2$
+  roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
+  for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
     possible_Vec = short_vectors_affine(Q, v0, QQ(n), k)
     for v in possible_Vec
@@ -309,14 +297,14 @@ function vinberg_algorithm(S::ZZLat, upper_bound; v0=matrix(ZZ, 1, 1, [0])::ZZMa
   Q = gram_matrix(S)
   if !iszero(v0)
     tmp = v0 * gram_matrix(ambient_space(S)) * transpose(basis_matrix(S))
-    v0 = solve(gram_matrix(S), tmp; side = :left)
+    v0 = solve(gram_matrix(S), tmp; side=:left)
   end
   if !iszero(direction_vector)
     tmp = direction_vector * gram_matrix(ambient_space(S)) * transpose(basis_matrix(S))
-    direction_vector = solve(gram_matrix(S), tmp; side = :left)
+    direction_vector = solve(gram_matrix(S), tmp; side=:left)
   end
   roots = vinberg_algorithm(Q, upper_bound, v0, root_lengths, direction_vector)
   B = basis_matrix(S)
-  return [r*B for r in roots]
+  return [r * B for r in roots]
 end
 
