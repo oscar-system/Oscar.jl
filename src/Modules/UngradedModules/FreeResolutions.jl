@@ -230,15 +230,15 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 end
 
 @doc raw"""
-    free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-        ordering::ModuleOrdering = default_ordering(M),
-        length::Int = 0, algorithm::Symbol = :fres
-      )
+    free_resolution(M::SubquoModule{T}; 
+        length::Int=0,
+        algorithm::Symbol = T <:MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
+Current options for `algorithm` are `:fres`, `:nres`, and `:mres` for modules over
+polynomial rings and `:sres` for modules over quotients of polynomial rings.
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
@@ -254,6 +254,10 @@ Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
     If `algorithm == fres`, the function relies on an enhanced version of Schreyer's algorithm 
     [EMSS16](@cite). Typically, this is more efficient than the approaches above, but the 
     resulting resolution is far from being minimal.
+
+!!! note
+    If `M` is a module over a quotient of a polynomial ring then the `length` keyword must
+    be set to a nonzero value.
 
 # Examples
 ```jldoctest
@@ -392,7 +396,7 @@ julia> matrix(map(FM3, 1))
 
 ```
 
-**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+**Note:** Over rings other than polynomial rings or quotients of polynomial rings, the method will default to a lazy, 
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{T}; 
