@@ -29,6 +29,12 @@ Hecke.@include_deprecated_bindings()
 
 include("utils/utils.jl")
 
+import BinaryWrappers
+
+#const perl_binpath = BinaryWrappers.@generate_wrappers(Polymake.Perl_jll)
+#const polymake_binpath = BinaryWrappers.@generate_wrappers(Polymake.polymake_jll)
+const singular_binpath = BinaryWrappers.@generate_wrappers(Singular.Singular_jll)
+
 # More helpful error message for users on Windows.
 windows_error() = error("""
 
@@ -86,6 +92,36 @@ function __init__()
   # make Oscar module accessible from GAP (it may not be available as
   # `Julia.Oscar` if Oscar is loaded indirectly as a package dependency)
   GAP.Globals.BindGlobal(GapObj("Oscar"), Oscar)
+
+  # ensure the GAP package 'singular' finds a Singular interpreter it can actually
+  # execute, by pointing it at the binary wrapper for the Singular in Singular_jll
+  GAP.Globals.sing_exec = GapObj(joinpath(singular_binpath, "Singular"))
+
+  # TODO: do the same for the GAP package 'polymaking' and polymake ; this is
+  # complicated by the fact that the `polymake` executable is just a perl
+  # script, which begins with `#!/usr/bin/env perl`. Hence the following
+  # doesn't work:
+  #
+  #     GAP.Globals.POLYMAKE_COMMAND = GapObj(joinpath(polymake_binpath, "polymake"))
+  #
+  # ... as this ends up trying to use a system install version of Perl (which
+  # may not even exist). So we need to use the perl from our Perl_jll. E.g this
+  # works to launch polymake:
+  #
+  #     import Oscar.Polymake: polymake_jll
+  #     run(addenv(`$(polymake_jll.Perl_jll.perl()) $(polymake_jll.polymake_path)`,
+  #                polymake_jll.JLLWrappers.LIBPATH_env=>polymake_jll.LIBPATH[]))
+  #
+  # But GAP needs a path to an executable and we can't tell it to set
+  # environment variables. So we either need to generate our own wrapper shell
+  # script; or someone needs to generalize BinaryWrappers to teach it to
+  # generate wrappers that set up environment variables based on one JLL
+  # (here: polymake_jll), but executes something from another (here: perl from
+  # Perl_jll).
+  #
+  # Since nobody has request anything using `polymaking` right now, we'll leave
+  # it at that for the moment (ideally any code using it would be rewritten to
+  # instead use our Julia-GAP and Julia-polymake bridges instead anyway).
 
   # Up to now, hopefully the GAP packages listed below have not been loaded.
   # We want newer versions of some GAP packages than the distributed ones.
