@@ -973,15 +973,11 @@ function is_homogeneous(F::MPolyDecRingElem)
   S = nothing
   u = zero(D)
   for c = MPolyExponentVectors(forget_decoration(F))
-    zero!(u.coeff)
-    # TODO: once Hecke supports zero! on FinGenAbGroupElem, switch to this:
-    #zero!(u)
+    u = zero!(u)
     for i=1:length(c)
-      addmul!(u.coeff, d[i].coeff, c[i])
-      # TODO: once Hecke supports addmul! on FinGenAbGroupElem, switch to this:
-      #addmul!(u, d[i], c[i])
+      u = addmul_delayed_reduction!(u, d[i], c[i])
     end
-    Hecke.assure_reduced!(parent(u), u.coeff)
+    u = reduce!(u)
     if S === nothing
       S = deepcopy(u)
     elseif S != u
