@@ -112,7 +112,7 @@ Note that this property is not stable under base extension.
   E = irreducible_decomposition(D)
   C = coefficient_dict(E)
   length(C)>1 && return false
-  return isone(unique(values(C))) 
+  return isone(first(values(C))) 
 end
 
 is_irreducible(D::AbsAlgebraicCycle) = is_prime(D)

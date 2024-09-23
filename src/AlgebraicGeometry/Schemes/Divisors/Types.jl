@@ -26,12 +26,14 @@
       space(D) === X || error("component of divisor does not lie in the given scheme")
       parent(coefficients[D]) === R || error("coefficients do not lie in the given ring")
     end
-    if check
+    @check begin
       is_integral(X) || error("scheme must be integral") 
       #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
+      d = isempty(coefficients) ? 0 : dim(first(keys(coefficients)))
       for D in keys(coefficients)
-        is_equidimensional(D) || error("components of a cycle must be sheaves of equidimensional ideals")
+        (is_equidimensional(D) && dim(D) == d) || error("components of a cycle must be sheaves of equidimensional ideals")
       end
+      true
     end
     return new{typeof(X), CoefficientRingType, CoefficientRingElemType}(X, R, coefficients)
   end
