@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Ideals and Lie subalgebras
@@ -19,7 +17,7 @@ They are used similarly in most cases.
 dim(::LieAlgebraIdeal)
 basis(::LieAlgebraIdeal)
 basis(::LieAlgebraIdeal, ::Int)
-Base.in(::LieAlgebraElem, ::LieAlgebraIdeal)
+Base.in(::LieAlgebraElem{C}, ::LieAlgebraIdeal{C}) where {C<:FieldElem}
 bracket(::LieAlgebraIdeal{C,LieT}, ::LieAlgebraIdeal{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
 normalizer(::LieAlgebra, ::LieAlgebraIdeal)
 centralizer(::LieAlgebra, ::LieAlgebraIdeal)
@@ -31,7 +29,7 @@ centralizer(::LieAlgebra, ::LieAlgebraIdeal)
 dim(::LieSubalgebra)
 basis(::LieSubalgebra)
 basis(::LieSubalgebra, ::Int)
-Base.in(::LieAlgebraElem, ::LieSubalgebra)
+Base.in(::LieAlgebraElem{C}, ::LieSubalgebra{C}) where {C<:FieldElem}
 bracket(::LieSubalgebra{C,LieT}, ::LieSubalgebra{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
 normalizer(::LieAlgebra, ::LieSubalgebra)
 centralizer(::LieAlgebra, ::LieSubalgebra)

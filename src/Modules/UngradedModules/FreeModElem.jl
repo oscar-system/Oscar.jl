@@ -254,28 +254,39 @@ function Base.deepcopy_internal(a::AbstractFreeModElem, dict::IdDict)
 end
 
 # scalar multiplication with polynomials, integers
-function *(a::MPolyDecRingElem, b::AbstractFreeModElem)
-  @req parent(a) === base_ring(parent(b)) "elements not compatible"
-  return parent(b)(a*coordinates(b))
+*(a::Any, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+
+function *(a::T, b::AbstractFreeModElem{T}) where {T <: AdmissibleModuleFPRingElem}
+  @assert is_left(parent(b)) "left multiplication is not defined for non-left module $(parent(b))"
+  parent(a) === base_ring(parent(b)) && return parent(b)(a*coordinates(b))
+  return parent(b)(base_ring(parent(b))(a)*coordinates(b))
 end
 
-function *(a::MPolyRingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
+function *(b::AbstractFreeModElem{T}, a::T) where {T <: AdmissibleModuleFPRingElem}
+  @assert is_right(parent(b)) "right multiplication not defined for non-right module $(parent(b))"
+  error("right multiplication is not supported at the moment")
 end
 
-function *(a::RingElem, b::AbstractFreeModElem) 
-  if parent(a) !== base_ring(parent(b))
-    return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
-  end
-  return parent(b)(a*coordinates(b))
+function *(b::AbstractFreeModElem{T}, a::Any) where {T <: RingElem}
+  error("scalar multiplication from the right is not yet supported")
 end
 
-*(a::Int, b::AbstractFreeModElem) = parent(b)(a*coordinates(b))
-*(a::Integer, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
-*(a::QQFieldElem, b::AbstractFreeModElem) = parent(b)(base_ring(parent(b))(a)*coordinates(b))
+# Methods to determine whether a module is a left-, right-, or bi-module. 
+# We plan to have flags set for this. But for the moment the generic code only supports left-multiplication, 
+# so we can decide this from the type alone. How we do it in the long run is not yet decided, but in either case
+# we want to use these functions to decide as they are already there for ideals. 
+is_left(M::ModuleFP) = is_left(typeof(M))
+is_left(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_left(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = true # Left multiplication is generically supported
+
+is_right(M::ModuleFP) = is_right_module(typeof(M))
+is_right(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_right(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
+
+is_two_sided(M::ModuleFP) = is_right_module(typeof(M))
+is_two_sided(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
+is_two_sided(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # see above
+
 
 @doc raw"""
     zero(F::AbstractFreeMod)

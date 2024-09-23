@@ -46,7 +46,7 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
     
 
 # Examples
-```jldoctest
+```jldoctest; filter = r"\#\d+" => "#"
 julia> K, a = finite_field(2, 2, "a");
 
 julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);

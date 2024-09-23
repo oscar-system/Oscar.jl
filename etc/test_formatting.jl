@@ -43,6 +43,7 @@ result = 0
   enabled = [
     "src/InvariantTheory",
     "src/PolyhedralGeometry",
+    "test/PolyhedralGeometry",
     "src/aliases.jl",
     "experimental/BasisLieHighestWeight",
     "experimental/ExperimentalTemplate",
@@ -51,8 +52,6 @@ result = 0
     "experimental/LinearQuotients",
   ]
   skip = [
-    "src/PolyhedralGeometry/Polyhedron/standard_constructions.jl",
-    "src/PolyhedralGeometry/Polyhedron/properties.jl",
     "experimental/InvariantTheory/src/InvariantTheory.jl",# the path matches the whitelist entry "src/InvariantTheory"
   ]
 
@@ -66,8 +65,8 @@ result = 0
   failed = String[]
 
   for file in entire
-    is_enabled = !isnothing(findfirst(e -> occursin(e, file), enabled))
-    should_skip = !isnothing(findfirst(e -> occursin(e, file), skip))
+    is_enabled = !isnothing(findfirst(occursin(file), enabled))
+    should_skip = !isnothing(findfirst(occursin(file), skip))
     if is_enabled && !should_skip
       # Do not actually format file, only check whether format is ok.
       res = @test format(file; overwrite=false)

@@ -88,30 +88,38 @@ struct MatrixOrdering <: AbsGenOrdering
 end
 
 function _canonical_matrix(w)
-  ww = matrix(ZZ, 0, ncols(w), [])
+  # we store the results in ww and keep track of the "real" number of rows
+  # in k
+  ww = zero_matrix(ZZ, nrows(w), ncols(w))
+  k = 0
+  piv = Int[]
+  # piv[i] stores the column index of the first non-zero entry in row i of ww
   for i in 1:nrows(w)
     if is_zero_row(w, i)
       continue
     end
-    nw = w[i:i, :]
+    nw = view(w, i:i, :)
     c = content(nw)
     if !isone(c)
-      nw = divexact(nw, c)
+      divexact!(nw, nw, c)
     end
-    for j in 1:nrows(ww)
-      h = findfirst(x->ww[j, x] != 0, 1:ncols(w))
-      if !iszero(nw[1, h])
-        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*ww[j:j, :]
+    for j in 1:k
+      h = piv[j]
+      if !is_zero_entry(nw, 1, h)
+        nw = abs(ww[j, h])*nw - sign(ww[j, h])*nw[1, h]*view(ww, j:j, :)
       end
     end
     if !iszero(nw)
       c = content(nw)
       if !isone(c)
-        nw = divexact(nw, c)
+        divexact!(nw, nw, c)
       end
-      ww = vcat(ww, nw)
+      ww[(k + 1):(k + 1), :] = nw
+      push!(piv, findfirst(x -> !is_zero_entry(nw, 1, x), 1:ncols(w)))
+      k += 1
     end
   end
+  ww = view(ww, 1:k, :)
   @assert nrows(ww) <= ncols(ww)
   return ww
 end
@@ -1232,7 +1240,7 @@ function matrix_ordering(v::AbstractVector{<:MPolyRingElem}, M::Union{Matrix{T},
 end
 
 @doc raw"""
-    weight_ordering(W::Vector{Int}, ord::MonomialOrdering) -> MonomialOrdering
+    weight_ordering(W::Vector{<:IntegerUnion}, ord::MonomialOrdering) -> MonomialOrdering
 
 Given an integer vector `W` and a monomial ordering `ord` on a set of monomials in
 `length(W)` variables, return the monomial ordering `ord_W` on this set of monomials
@@ -1280,7 +1288,7 @@ julia> canonical_matrix(o2)
 [0   0    1]
 ```
 """
-function weight_ordering(w::Vector{Int}, o::MonomialOrdering)
+function weight_ordering(w::Vector{<:IntegerUnion}, o::MonomialOrdering)
   i = _support_indices(o.o)
   m = ZZMatrix(1, length(w), w)
   return MonomialOrdering(base_ring(o), MatrixOrdering(i, m, false))*o
@@ -1796,7 +1804,11 @@ end
 
 function _embedded_ring_ordering(o::ModProdOrdering)
   ea = _embedded_ring_ordering(o.a)
-  shift = maximum(ea.vars)
+  if ea isa ProdOrdering
+    shift = maximum([ea.a.vars;ea.b.vars])
+  else
+    shift = maximum(ea.vars)
+  end
   eb = _embedded_ring_ordering(o.b)
   eb.vars .+= shift 
   return ea*eb
@@ -1891,7 +1903,7 @@ end
 function ordering(a::AbstractVector{<:AbstractAlgebra.ModuleElem}, s...)
    R = parent(first(a))
    g = gens(R)
-   aa = [findfirst(x -> x == y, g) for y = a]
+   aa = [findfirst(==(y), g) for y = a]
    if nothing in aa
      error("only generators allowed")
    end
@@ -1980,7 +1992,7 @@ end
 
 function __permutation_of_terms(f::MPolyRingElem, ord::AbsOrdering)
   p = collect(1:length(f))
-  sort!(p, lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
+  sort!(p; lt = (k, l) -> (Orderings._cmp_monomials(f, k, f, l, ord) < 0), rev = true)
   return p
 end
 

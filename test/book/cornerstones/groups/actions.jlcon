@@ -60,10 +60,10 @@ Group homomorphism
 julia> isomorphism(PermGroup, U)
 Group homomorphism
   from pc group of order 8
-  to permutation group of degree 8 and order 8
+  to permutation group of degree 4 and order 8
 
 julia> permutation_group(U)
-Permutation group of degree 8 and order 8
+Permutation group of degree 4 and order 8
 
 julia> for g in all_transitive_groups(degree => 3:9, !is_primitive)
          h = image(optimal_perm_rep(g))[1]

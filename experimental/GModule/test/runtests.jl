@@ -11,6 +11,7 @@
   F = FPGroup(G)
   @test testrels(F)             # full f.p. group
   @test testrels(center(F)[1])  # subgroup of full f.p. group
+  @test testrels(free_group(2)) # free group (empty relations)
   @test testrels(PermGroup(G))  # nothing of the above
 end
 
@@ -25,12 +26,12 @@ end
 
 @testset "Experimental.gmodule" begin
   G = small_group(1, 1)
-  z = Oscar.RepPc.reps(QQ, G)
+  z = Oscar.RepPc.reps(QQ, pc_group(G))
   _, mp = Oscar.GrpCoh.fp_group_with_isomorphism(z[1])
   @test is_bijective(mp)
 
   G = small_group(7*3, 1)
-  z = Oscar.RepPc.reps(abelian_closure(QQ)[1], G)
+  z = Oscar.RepPc.reps(abelian_closure(QQ)[1], pc_group(G))
   @test length(z) == 5
 
   z = irreducible_modules(G)
@@ -51,7 +52,7 @@ end
   @test count(isequal(1), ds) == 6
   @test count(isequal(2), ds) == 2
 
-  G = SL(2, 3)
+  G = pc_group(SL(2, 3))
   @test length(Oscar.RepPc.reps(abelian_closure(QQ)[1], G)) == 7
   @test length(Oscar.RepPc.reps(GF(7, 6), G)) == 7
   @test length(Oscar.RepPc.reps(GF(2, 6), G)) == 3
@@ -76,11 +77,136 @@ end
   z = irreducible_modules(ZZ, G)
   @test length(Oscar.GModuleFromGap.invariant_lattice_classes(z[3])) == 2
 
-  # G = Oscar.GrpCoh.fp_group_with_isomorphism(gens(G))[1]
-  # q, mq = maximal_abelian_quotient(PcGroup, G)
-  # @test length(Oscar.RepPc.brueckner(mq)) == 24
+  G = codomain(isomorphism(FPGroup, G, on_gens=true))
+  q, mq = maximal_abelian_quotient(PcGroup, G)
+  @test length(Oscar.RepPc.brueckner(mq)) == 6
 end
 
+@testset "Experimental.gmodule natural G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  M = natural_gmodule(G, GF(2))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+
+  # for matrix groups
+  G = SL(2, 3)
+  M = natural_gmodule(G)
+  cf = composition_factors_with_multiplicity(M)
+  @test length(cf) == 1 && cf[1][2] == 1
+end
+
+@testset "Experimental.gmodule regular G-modules" begin
+  # for permutation groups
+  G = symmetric_group(3)
+  R = GF(2)
+  M, f, g = regular_gmodule(G, R)
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 2]
+  @test [x[2] for x in cf] == [2, 2]
+  N = natural_gmodule(G, R)
+  F = f(N)
+  V = M.M
+  @test all(i -> F(gen(V, Int(g(gen(G, i))))).matrix == matrix(N.ac[i]), 1:ngens(G))
+
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+
+  # for pc groups
+  G = dihedral_group(8)
+  M, f, g = regular_gmodule(G, GF(3))
+  cf = composition_factors_with_multiplicity(M)
+  @test sort([dim(x[1]) for x in cf]) == [1, 1, 1, 1, 2]
+  @test all(x -> dim(x[1]) == x[2], cf)
+  @test map(g, collect(G)) == 1:order(G)
+  @test [preimage(g, i) for i in 1:order(G)] == collect(G)
+end
+
+@testset "Experimental.gmodule extension for matrix group" begin
+  G = SL(2,3)
+  F = GF(3)
+  m = free_module(F, 2)
+  M = GModule(m, G, [hom(m, m, matrix(a)) for a in gens(G)])
+  H2 = Oscar.GrpCoh.cohomology_group(M, 2)
+  x = collect(H2[1])[1]
+  c = H2[2](x)
+  e = extension(c)
+  GG = e[1]
+  @test order(GG) == 216
+  @test GG isa FPGroup
+end
+
+@testset "Experimental.gmodule SL(2,5)" begin
+  G = SL(2, 5)
+  T = character_table(G)
+  R = gmodule(T[end])
+  S = gmodule(CyclotomicField, R)
+  @test schur_index(T[end]) == 2
+  S = gmodule_minimal_field(S)
+  @test degree(base_ring(S)) == 2
+end
+
+@testset "Experimental.gmodule GModule" begin
+  k = quadratic_field(10)[1]
+  h = hilbert_class_field(k) 
+  M = gmodule(h)
+  hash(M)
+
+  c, mc = cohomology_group(M, 0)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 0, Tate = true)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 1)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 2)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  M = gmodule(GF(2), M)
+  hash(M)
+   c, mc = cohomology_group(M, 0)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 0, Tate = true)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 1)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  c, mc = cohomology_group(M, 2)
+  @test order(c) == 2
+  @test preimage(mc, mc(c[1])) == c[1]
+
+  X = cyclic_group(4)
+  M, _ = sub(X, [X[1]^2])
+  C, c = extension_with_abelian_kernel(X, M)
+  @test is_isomorphic(extension(c)[1], X)
+end
+
+@testset "Experimental Schur" begin
+  G = alternating_group(4)
+  Z = free_abelian_group(1)
+  M = trivial_gmodule(G, Z)
+  a, b = Oscar.GrpCoh.H_two_maps(M)
+  Z2 = torsion_subgroup(cokernel(b)[1])[1]
+  @test order(Z2) == 2
+
+  M = trivial_gmodule(G, Z2)
+  h, mh = cohomology_group(M, 2)
+  @test Set(is_stem_extension(Oscar.GrpExt(mh(x))) for x = h) == Set([0,1]) 
+  @test Set(is_stem_extension(extension(mh(x))[2]) for x = h) == Set([0,1]) 
+
+
+end
 @testset "Experimental LocalH2" begin
   Qx, x = QQ["x"]
   k, a = number_field(x^6+108, cached = false)
@@ -94,8 +220,8 @@ end
 
   l2 = prime_decomposition(maximal_order(k), 2)
   k2, _ = Hecke.completion(k, l2[1][1], 120)
-  z = Hecke.local_fundamental_class_serre(k2, prime_field(k2))
-  C, mG, mU = Oscar.GrpCoh.gmodule(k2, prime_field(k2))
+  z = Hecke.local_fundamental_class_serre(k2, absolute_base_field(k2))
+  C, mG, mU = Oscar.GrpCoh.gmodule(k2, absolute_base_field(k2))
   G = domain(mG)
 
   pe = gen(k2)

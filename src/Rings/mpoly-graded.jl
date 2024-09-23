@@ -4,6 +4,9 @@
   D::FinGenAbGroup
   d::Vector{FinGenAbGroupElem}
   lt::Any
+  hilbert_series_parent::Generic.LaurentPolyWrapRing{ZZRingElem, ZZPolyRing}
+  multi_hilbert_series_parent::Generic.LaurentMPolyWrapRing{ZZRingElem, ZZMPolyRing}
+
   function MPolyDecRing(R::S, d::Vector{FinGenAbGroupElem}) where {S}
     @assert length(d) == ngens(R)
     r = new{elem_type(base_ring(R)), S}()
@@ -716,14 +719,6 @@ end
 
 ^(a::MPolyDecRingElem, i::Int) = MPolyDecRingElem(forget_decoration(a)^i, parent(a))
 
-function mul!(a::MPolyDecRingElem, b::MPolyDecRingElem, c::MPolyDecRingElem)
-  return b*c
-end
-
-function addeq!(a::MPolyDecRingElem, b::MPolyDecRingElem)
-  return a+b
-end
-
 length(a::MPolyDecRingElem) = length(forget_decoration(a))
 
 @doc raw"""
@@ -757,7 +752,7 @@ function has_weighted_ordering(R::MPolyDecRing)
     if all(isone, w)
       w_ord = degrevlex(gens(R))
       grading_to_ordering = true
-    elseif all(x -> x > 0, w)
+    elseif all(>(0), w)
       w_ord = wdegrevlex(gens(R), w)
       grading_to_ordering = true
     end
@@ -1458,7 +1453,7 @@ end
 #########################################
 function add_relshp(R, S, h)
   #this assumes that h is essentially a canonical map from R -> S
-  D = get_attribute!(() -> Dict{Any, Any}(), R, :relshp)::Dict{Any, Any}
+  D = get_attribute!(Dict{Any, Any}, R, :relshp)::Dict{Any, Any}
   if haskey(D, S)
     error("try to add double")
   end
@@ -1499,8 +1494,8 @@ mutable struct HilbertData
     @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
     @req all(is_homogeneous, gens(I)) "The generators of the ideal must be homogeneous"
 
-    G = groebner_assure(I)
-    cf = Singular.hilbert_series_data(G.S, W)
+    S = singular_groebner_generators(I, false, true)
+    cf = Singular.hilbert_series_data(S, W)
     return new(cf, W, I)
   end
   function HilbertData(B::IdealGens)
@@ -1661,7 +1656,7 @@ struct Homogenizer
     WH = hcat(Matrix(W[:, 1:(pos-1)]),
               Matrix(identity_matrix(ZZ, grading_dimension)),
               Matrix(W[:, pos:n]))
-    P_homog,_ = graded_polynomial_ring(base_ring(P), vars; weights = [G(WH[:, i]) for i = 1:size(WH, 2)])
+    P_homog,_ = graded_polynomial_ring(base_ring(P), vars; weights = [G(WH[:, i]) for i = 1:size(WH, 2)], cached = false)
 
     VarMap = vcat(1:pos-1, pos+grading_dimension:n+grading_dimension)
     HVars = collect(pos:pos+grading_dimension-1)
@@ -1893,7 +1888,7 @@ function _sat_poly_by_var(f::MPolyRingElem{T}, h::MPolyRingElem{T})  where { T <
     return f;
   end
   # Below i is index of the variable h
-  i = findfirst(x -> x>0, exponent_vector(h,1))
+  i = findfirst(>(0), exponent_vector(h,1))
   n = length(f)
   EV = AbstractAlgebra.exponent_vectors(f)  # list or iterator
   multiplicity = exponent_vector(f,1)[i]
@@ -2283,7 +2278,7 @@ function  truncate(I::MPolyIdeal, d::Int)
   if  d <= dmin
      return I
   end
-  V = sort(gens(I), lt = (a, b) -> degree(Int, a) <= degree(Int, b))
+  V = sort(gens(I); by=a -> degree(Int, a))
   RES = elem_type(R)[]
   s = dmin
   B = monomial_basis(R, d-s)

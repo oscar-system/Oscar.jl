@@ -228,7 +228,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
       w = Tinv[i]
       new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
       for (real_j, b) in w
-        j = findfirst(k->k==real_j, J)
+        j = findfirst(==(real_j), J)
         j === nothing && continue
         push!(new_entries, (j, b))
       end
@@ -248,6 +248,7 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
 end
 
 function can_compute(fac::SimplifiedChainFactory, c::AbsHyperComplex, I::Tuple)
+  @assert dim(c) == 1
   i = first(I)
   can_compute_index(original_complex(fac), I) || return false
   I_p = (i+1,)

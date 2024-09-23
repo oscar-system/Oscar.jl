@@ -25,11 +25,11 @@ julia> Oscar.groebner_assure(I, degrevlex(R));
 
 julia> I.gb[degrevlex(R)]
 Gröbner basis with elements
-1 -> x*y - 3*x
-2 -> y^3 - 6*x^2
-3 -> 2*x^3 - 9*x
+  1 -> x*y - 3*x
+  2 -> y^3 - 6*x^2
+  3 -> 2*x^3 - 9*x
 with respect to the ordering
-degrevlex([x, y])
+  degrevlex([x, y])
 ```
 """
 function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_global::Bool = false)
@@ -40,8 +40,8 @@ function groebner_assure(I::MPolyIdeal, complete_reduction::Bool = false, need_g
       complete_reduction || return G
       if !G.isReduced
         I.gb[G.ord] = _compute_standard_basis(G, G.ord, true)
-        return I.gb[G.ord]
       end
+      return I.gb[G.ord]
     end
   end
   ord = default_ordering(base_ring(I))
@@ -90,16 +90,16 @@ julia> R,(x,y) = polynomial_ring(QQ, ["x","y"])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
-1 -> x*y - 3*x
-2 -> -2*x^2*y + y^3
+  1 -> x*y - 3*x
+  2 -> -2*x^2*y + y^3
 
 julia> B = Oscar._compute_standard_basis(A, degrevlex(R))
 Gröbner basis with elements
-1 -> x*y - 3*x
-2 -> y^3 - 6*x^2
-3 -> 2*x^3 - 9*x
+  1 -> x*y - 3*x
+  2 -> y^3 - 6*x^2
+  3 -> 2*x^3 - 9*x
 with respect to the ordering
-degrevlex([x, y])
+  degrevlex([x, y])
 ```
 """
 function _compute_standard_basis(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
@@ -117,7 +117,7 @@ end
 # standard basis for non-global orderings #############################
 @doc raw"""
     standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+                   complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
 
 Return a standard basis of `I` with respect to `ordering`.
 
@@ -144,14 +144,14 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
 julia> standard_basis(I, ordering = negdegrevlex(R))
 Standard basis with elements
-1 -> x
-2 -> y
+  1 -> x
+  2 -> y
 with respect to the ordering
-negdegrevlex([x, y])
+  negdegrevlex([x, y])
 ```
 """
 function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_ordering(base_ring(I)),
-                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger) 
+                        complete_reduction::Bool = false, algorithm::Symbol = :buchberger)
   complete_reduction && @assert is_global(ordering)
   @req is_exact_type(elem_type(base_ring(I))) "This functionality is only supported over exact fields."
   if haskey(I.gb, ordering) && (complete_reduction == false || I.gb[ordering].isReduced == true)
@@ -201,7 +201,9 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = IdealGens(GB_dehom_gens, ordering, isGB = true)
     end
   elseif algorithm == :f4
-    groebner_basis_f4(I, complete_reduction=complete_reduction)
+    #  since msolve v0.7.0 is most of the time more efficient
+    #  to compute a reduced GB by default
+    groebner_basis_f4(I, complete_reduction=true)
   end
   return I.gb[ordering]
 end
@@ -235,11 +237,11 @@ julia> I = ideal(R, [y-x^2, z-x^3]);
 
 julia> G = groebner_basis(I)
 Gröbner basis with elements
-1 -> y^2 - x*z
-2 -> x*y - z
-3 -> x^2 - y
+  1 -> y^2 - x*z
+  2 -> x*y - z
+  3 -> x^2 - y
 with respect to the ordering
-degrevlex([x, y, z])
+  degrevlex([x, y, z])
 
 julia> elements(G)
 3-element Vector{QQMPolyRingElem}:
@@ -252,12 +254,12 @@ true
 
 julia> groebner_basis(I, ordering = lex(R))
 Gröbner basis with elements
-1 -> y^3 - z^2
-2 -> x*z - y^2
-3 -> x*y - z
-4 -> x^2 - y
+  1 -> y^3 - z^2
+  2 -> x*z - y^2
+  3 -> x*y - z
+  4 -> x^2 - y
 with respect to the ordering
-lex([x, y, z])
+  lex([x, y, z])
 ```
 ```jldoctest
 julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, 3]);
@@ -266,12 +268,12 @@ julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
 
 julia> groebner_basis(I)
 Gröbner basis with elements
-1 -> 3*x^4 - x*y
-2 -> 2*x^3*y^2 - 3*y^3
-3 -> x*y^3
-4 -> y^4
+  1 -> 3*x^4 - x*y
+  2 -> 2*x^3*y^2 - 3*y^3
+  3 -> x*y^3
+  4 -> y^4
 with respect to the ordering
-wdegrevlex([x, y], [1, 3])
+  wdegrevlex([x, y], [1, 3])
 ```
 
 ```jldoctest
@@ -324,6 +326,14 @@ function standard_basis_highest_corner(I::MPolyIdeal; ordering::MonomialOrdering
     return sb
 end
 
+function is_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
+  return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
+            && ((coefficient_ring(I) isa FqField
+                 && absolute_degree(coefficient_ring(I)) == 1
+                 && characteristic(coefficient_ring(I)) < 2^31)
+                || coefficient_ring(I) == QQ))
+end
+
 @doc raw"""
     groebner_basis_f4(I::MPolyIdeal, <keyword arguments>)
 
@@ -331,7 +341,7 @@ Compute a Gröbner basis of `I` with respect to `degrevlex` using Faugère's F4 
 See [Fau99](@cite) for more information.
 
 !!! note
-    At current state only prime fields of characteristic `0 < p < 2^{31}` are supported.
+    At current state only prime fields of characteristic `0 < p < 2^{31}` and the rationals are supported.
 
 # Possible keyword arguments
 - `initial_hts::Int=17`: initial hash table size `log_2`.
@@ -340,6 +350,8 @@ See [Fau99](@cite) for more information.
 - `la_option::Int=2`: linear algebra option: exact sparse-dense (`1`), exact sparse (`2`, default), probabilistic sparse-dense (`42`), probabilistic sparse(`44`).
 - `eliminate::Int=0`: size of first block of variables to be eliminated.
 - `complete_reduction::Bool=true`: compute a reduced Gröbner basis for `I`
+- `normalize::Bool=true`: normalizes elements in computed Gröbner basis for `I`
+- `truncate_lifting::Int=0`: degree up to which the elements of the Gröbner basis are lifted to `QQ`, `0` for complete lifting
 - `info_level::Int=0`: info level printout: off (`0`, default), summary (`1`), detailed (`2`).
 
 # Examples
@@ -355,12 +367,12 @@ Ideal generated by
 
 julia> groebner_basis_f4(I)
 Gröbner basis with elements
-1 -> x + 2*y + 2*z + 100
-2 -> y*z + 82*z^2 + 10*y + 40*z
-3 -> y^2 + 60*z^2 + 20*y + 81*z
-4 -> z^3 + 28*z^2 + 64*y + 13*z
+  1 -> x + 2*y + 2*z + 100
+  2 -> y*z + 82*z^2 + 10*y + 40*z
+  3 -> y^2 + 60*z^2 + 20*y + 81*z
+  4 -> z^3 + 28*z^2 + 64*y + 13*z
 with respect to the ordering
-degrevlex([x, y, z])
+  degrevlex([x, y, z])
 ```
 """
 function groebner_basis_f4(
@@ -371,24 +383,35 @@ function groebner_basis_f4(
         la_option::Int=2,
         eliminate::Int=0,
         complete_reduction::Bool=true,
+        normalize::Bool=true,
+        truncate_lifting::Int=0,
         info_level::Int=0
         )
-    AI = AlgebraicSolving.Ideal(I.gens.O)
-    AlgebraicSolving.groebner_basis(AI,
-                initial_hts = initial_hts,
-                nr_thrds = nr_thrds,
-                max_nr_pairs = max_nr_pairs,
-                la_option = la_option,
-                eliminate = eliminate,
-                complete_reduction = complete_reduction,
-                info_level = info_level)
 
+    AI = AlgebraicSolving.Ideal(I.gens.O)
     vars = gens(base_ring(I))[eliminate+1:end]
     ord = degrevlex(vars)
-    I.gb[ord] =
-        IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
-    I.gb[ord].isReduced = complete_reduction
+    if length(AI.gens) == 0
+        I.gb[ord]        = IdealGens(I.gens.Ox, singular_generators(I), complete_reduction)
+        I.gb[ord].ord    = ord
+        I.gb[ord].isGB   = true
+        I.gb[ord].S.isGB = true
+    else
+        AlgebraicSolving.groebner_basis(AI,
+                    initial_hts = initial_hts,
+                    nr_thrds = nr_thrds,
+                    max_nr_pairs = max_nr_pairs,
+                    la_option = la_option,
+                    eliminate = eliminate,
+                    complete_reduction = complete_reduction,
+                    normalize = normalize,
+                    truncate_lifting = truncate_lifting,
+                    info_level = info_level)
 
+        I.gb[ord] =
+            IdealGens(AI.gb[eliminate], ord, keep_ordering = false, isGB = true)
+        I.gb[ord].isReduced = complete_reduction
+    end
     return I.gb[ord]
 end
 
@@ -409,21 +432,16 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
-1 -> x*y - 3*x
-2 -> -2*x^2*y + y^3
+  1 -> x*y - 3*x
+  2 -> -2*x^2*y + y^3
 
 julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
-(Ideal generating system with elements
-1 -> x*y - 3*x
-2 -> -6*x^2 + y^3
-3 -> 6*x^3 - 27*x
-with associated ordering
-degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
+(Ideal generating system with 3 elements with associated ordering degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])
 ```
 """
 function _compute_standard_basis_with_transform(B::IdealGens, ordering::MonomialOrdering, complete_reduction::Bool = false)
   istd, m = Singular.lift_std(singular_generators(B, ordering), complete_reduction = complete_reduction)
-  return IdealGens(B.Ox, istd), map_entries(x -> B.Ox(x), m)
+  return IdealGens(B.Ox, istd), map_entries(B.Ox, m)
 end
 
 @doc raw"""
@@ -444,10 +462,7 @@ julia> R,(x,y) = polynomial_ring(QQ,["x","y"]);
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
 julia> G, T = standard_basis_with_transformation_matrix(I, ordering=neglex(R))
-(Standard basis with elements
-1 -> 1 - x*y^2
-with respect to the ordering
-neglex([x, y]), [-1; 0])
+(Standard basis with 1 element w.r.t. neglex([x, y]), [-1; 0])
 
 julia> gens(I)*T == gens(G)
 true
@@ -479,12 +494,7 @@ julia> R,(x,y) = polynomial_ring(QQ,["x","y"]);
 julia> I = ideal([x*y^2-1,x^3+y^2+x*y]);
 
 julia> G, T = groebner_basis_with_transformation_matrix(I)
-(Gröbner basis with elements
-1 -> x*y^2 - 1
-2 -> x^3 + x*y + y^2
-3 -> y^4 + x^2 + y
-with respect to the ordering
-degrevlex([x, y]), [1 0 -x^2-y; 0 1 y^2])
+(Gröbner basis with 3 elements w.r.t. degrevlex([x, y]), [1 0 -x^2-y; 0 1 y^2])
 
 julia> gens(I)*T == gens(G)
 true
@@ -881,11 +891,11 @@ julia> I = ideal(R, [x*y, y^3]);
 
 julia> gb = groebner_basis(J)
 Gröbner basis with elements
-1 -> x*y + 10*y^2
-2 -> x^2
-3 -> y^3
+  1 -> x*y + 10*y^2
+  2 -> x^2
+  3 -> y^3
 with respect to the ordering
-degrevlex([x, y, z])
+  degrevlex([x, y, z])
 
 julia> M, res = reduce_with_quotients(I.gens, gb)
 ([1 0 0; 0 0 1], FqMPolyRingElem[y^2, 0])
@@ -1052,13 +1062,20 @@ end
 
 function normal_form(A::Vector{T}, J::MPolyIdeal; ordering::MonomialOrdering=default_ordering(base_ring(J))) where { T <: MPolyRingElem }
   @req is_exact_type(elem_type(base_ring(J))) "This functionality is only supported over exact fields."
-  if ordering == degrevlex(base_ring(J)) && typeof(base_ring(J)) == FqField && absolute_degree(base_ring(J)) == 1
+  if is_normal_form_f4_applicable(J, ordering)
     res = _normal_form_f4(A, J)
   else
     res = _normal_form_singular(A, J, ordering)
   end
 
   return res
+end
+
+function is_normal_form_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
+    return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
+            && ((coefficient_ring(I) isa FqField
+                 && absolute_degree(coefficient_ring(I)) == 1
+                 && characteristic(coefficient_ring(I)) < 2^31)))
 end
 
 @doc raw"""
@@ -1178,10 +1195,10 @@ false
 
 julia> standard_basis(I, ordering=neglex(R))
 Standard basis with elements
-1 -> y
-2 -> x^2
+  1 -> y
+  2 -> x^2
 with respect to the ordering
-neglex([x, y])
+  neglex([x, y])
 
 julia> is_standard_basis(I.gb[neglex(R)], ordering=neglex(R))
 true
@@ -1231,11 +1248,11 @@ false
 
 julia> groebner_basis(I, ordering=lex(R))
 Gröbner basis with elements
-1 -> y^2 + y
-2 -> x*y - y
-3 -> x^2 + y
+  1 -> y^2 + y
+  2 -> x*y - y
+  3 -> x^2 + y
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
 julia> is_groebner_basis(I.gb[lex(R)], ordering=lex(R))
 true
@@ -1272,30 +1289,30 @@ Ideal generated by
 
 julia> groebner_basis(J, ordering=degrevlex(R), complete_reduction=true)
 Gröbner basis with elements
-1 -> x1 + 2*x2 + 2*x3 + 2*x4 + 100
-2 -> x3^2 + 2*x2*x4 + 19*x3*x4 + 76*x4^2 + 72*x2 + 86*x3 + 42*x4
-3 -> x2*x3 + 99*x2*x4 + 40*x3*x4 + 11*x4^2 + 65*x2 + 58*x3 + 30*x4
-4 -> x2^2 + 2*x2*x4 + 30*x3*x4 + 45*x4^2 + 43*x2 + 72*x3 + 86*x4
-5 -> x3*x4^2 + 46*x4^3 + 28*x2*x4 + 16*x3*x4 + 7*x4^2 + 58*x2 + 63*x3 + 15*x4
-6 -> x2*x4^2 + 67*x4^3 + 56*x2*x4 + 58*x3*x4 + 45*x4^2 + 14*x2 + 86*x3
-7 -> x4^4 + 65*x4^3 + 26*x2*x4 + 47*x3*x4 + 71*x4^2 + 37*x2 + 79*x3 + 100*x4
+  1 -> x1 + 2*x2 + 2*x3 + 2*x4 + 100
+  2 -> x3^2 + 2*x2*x4 + 19*x3*x4 + 76*x4^2 + 72*x2 + 86*x3 + 42*x4
+  3 -> x2*x3 + 99*x2*x4 + 40*x3*x4 + 11*x4^2 + 65*x2 + 58*x3 + 30*x4
+  4 -> x2^2 + 2*x2*x4 + 30*x3*x4 + 45*x4^2 + 43*x2 + 72*x3 + 86*x4
+  5 -> x3*x4^2 + 46*x4^3 + 28*x2*x4 + 16*x3*x4 + 7*x4^2 + 58*x2 + 63*x3 + 15*x4
+  6 -> x2*x4^2 + 67*x4^3 + 56*x2*x4 + 58*x3*x4 + 45*x4^2 + 14*x2 + 86*x3
+  7 -> x4^4 + 65*x4^3 + 26*x2*x4 + 47*x3*x4 + 71*x4^2 + 37*x2 + 79*x3 + 100*x4
 with respect to the ordering
-degrevlex([x1, x2, x3, x4])
+  degrevlex([x1, x2, x3, x4])
 
 julia> Oscar._fglm(J.gb[degrevlex(R)], lex(R))
 Gröbner basis with elements
-1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
-2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
-3 -> x2 + 25*x4^7 + 57*x4^6 + 13*x4^5 + 16*x4^4 + 78*x4^3 + 31*x4^2 + 16*x4
-4 -> x1 + 46*x4^7 + 3*x4^6 + 28*x4^5 + 17*x4^4 + 35*x4^3 + 9*x4^2 + 97*x4 + 100
+  1 -> x4^8 + 36*x4^7 + 95*x4^6 + 39*x4^5 + 74*x4^4 + 7*x4^3 + 45*x4^2 + 98*x4
+  2 -> x3 + 53*x4^7 + 93*x4^6 + 74*x4^5 + 26*x4^4 + 56*x4^3 + 15*x4^2 + 88*x4
+  3 -> x2 + 25*x4^7 + 57*x4^6 + 13*x4^5 + 16*x4^4 + 78*x4^3 + 31*x4^2 + 16*x4
+  4 -> x1 + 46*x4^7 + 3*x4^6 + 28*x4^5 + 17*x4^4 + 35*x4^3 + 9*x4^2 + 97*x4 + 100
 with respect to the ordering
-lex([x1, x2, x3, x4])
+  lex([x1, x2, x3, x4])
 ```
 """
 function _fglm(G::IdealGens, ordering::MonomialOrdering)
   (G.isGB == true && G.isReduced == true) || error("Input must be a reduced Gröbner basis.") 
   Singular.dimension(singular_generators(G)) == 0 || error("Dimension of corresponding ideal must be zero.")
-  SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = Singular.ordering_as_symbol(singular(ordering)))
+  SR_destination, = Singular.polynomial_ring(base_ring(G.Sx),["$i" for i in gens(G.Sx)]; ordering = singular(ordering))
 
   ptr = Singular.libSingular.fglmzero(G.S.ptr, G.Sx.ptr, SR_destination.ptr)
   return IdealGens(base_ring(G), Singular.sideal{Singular.spoly}(SR_destination, ptr, true))
@@ -1375,27 +1392,27 @@ Ideal generated by
 
 julia> Oscar._compute_groebner_basis_using_fglm(I, lex(R))
 Gröbner basis with elements
-1 -> y^2 + y
-2 -> x*y - y
-3 -> x^2 + y
+  1 -> y^2 + y
+  2 -> x*y - y
+  3 -> x^2 + y
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
 julia> I.gb[lex(R)]
 Gröbner basis with elements
-1 -> y^2 + y
-2 -> x*y - y
-3 -> x^2 + y
+  1 -> y^2 + y
+  2 -> x*y - y
+  3 -> x^2 + y
 with respect to the ordering
-lex([x, y])
+  lex([x, y])
 
 julia> I.gb[degrevlex(R)]
 Gröbner basis with elements
-1 -> y^2 + y
-2 -> x*y - y
-3 -> x^2 + y
+  1 -> y^2 + y
+  2 -> x*y - y
+  3 -> x^2 + y
 with respect to the ordering
-degrevlex([x, y])
+  degrevlex([x, y])
 ```
 """
 function _compute_groebner_basis_using_fglm(I::MPolyIdeal,
@@ -1572,7 +1589,7 @@ function _mod_rand_prime(I::MPolyIdeal)
     p = Hecke.next_prime(p)
     
     base_field = GF(p)
-    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)))
+    ModP, _ = polynomial_ring(base_field, ngens(base_ring(I)); cached = false)
     I_mod_p_gens =
       try
         [map_coefficients(base_field, f; parent=ModP) for f in gens(I)]
@@ -1669,11 +1686,11 @@ Ideal generated by
 
 julia> groebner_basis_modular(I)
 Gröbner basis with elements
-1 -> y^3 + 403//3583947*y
-2 -> x^2 + 1209
-3 -> x*y + 3279*y^2
+  1 -> y^3 + 403//3583947*y
+  2 -> x^2 + 1209
+  3 -> x*y + 3279*y^2
 with respect to the ordering
-degrevlex([x, y, z])
+  degrevlex([x, y, z])
 ```
 """
 function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::MonomialOrdering = default_ordering(base_ring(I)),
@@ -1684,7 +1701,7 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
     R = base_ring(idl)
     gb = gens(groebner_basis(idl, ordering = ordering,
                              complete_reduction = true))
-    sort!(gb, by = p -> leading_monomial(p),
+    sort!(gb; by = leading_monomial,
           lt = (m1, m2) -> cmp(MonomialOrdering(R, ordering.o), m1, m2) > 0)
   end
   
@@ -1696,9 +1713,9 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
 
   p = iterate(primes)[1]
   Qt = base_ring(I)
-  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)], cached = false)[1]
+  Zt = polynomial_ring(ZZ, [string(s) for s = symbols(Qt)]; cached = false)[1]
 
-  Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+  Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)]; cached = false)
   std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
     map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
   end
@@ -1711,7 +1728,7 @@ function groebner_basis_modular(I::MPolyIdeal{QQMPolyRingElem}; ordering::Monomi
   while !done
     while n_stable_primes < 2
       p = iterate(primes, p)[1]
-      Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)], cached = false)
+      Rt, t = polynomial_ring(GF(p), [string(s) for s = symbols(Qt)]; cached = false)
       std_basis_mod_p_lifted = map(sorted_gb(ideal(Rt, gens(I)))) do x
         map_coefficients(z -> lift(ZZ, z), x, parent = Zt)
       end

@@ -25,6 +25,7 @@ function __init__()
   GAP.Packages.load("ferret"; install=true)
 
   Hecke.add_verbosity_scope(:GaloisGroup)
+  Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
   Hecke.add_assertion_scope(:GaloisInvariant)
 end
@@ -117,14 +118,14 @@ Operations are:
  - `ab  := a+b`
 """
 function max_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->x, "max-ring")
+  return BoundRing{ZZRingElem}(+, max, (x,y) -> y*x, identity, "max-ring")
 end
 
 """
 Normal ring
 """
 function add_ring(;type::Type=ZZRingElem)
-  return BoundRing{type}( (x,y) -> x*y, (x,y) -> x+y, (x,y) -> x^y, x->abs(x), "add-ring")
+  return BoundRing{type}(*, +, ^, abs, "add-ring")
 end
 
 #roots rt are power series sum a_n x^n
@@ -163,7 +164,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function cost_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y+1, (x,y) -> x+y, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
+  return BoundRing{ZZRingElem}( (x,y) -> x+y+1, +, (x,y) -> x+2*nbits(y), x->0, "cost-ring")
 end
 
 """
@@ -177,7 +178,7 @@ Operations:
  - all constants are mapped to `0`
 """
 function degree_ring()
-  return BoundRing{ZZRingElem}( (x,y) -> x+y, (x,y) -> max(x, y), (x,y) -> y*x, x->0, "degree-ring")
+  return BoundRing{ZZRingElem}( +, max, (x,y) -> y*x, x->0, "degree-ring")
 end
 
 @doc raw"""
@@ -207,9 +208,6 @@ function total_degree(I::SLPoly)
   C = degree_ring()
   return value(evaluate(I, [C(1) for i = 1:n]))
 end
-
-Oscar.mul!(a::BoundRingElem, b::BoundRingElem, c::BoundRingElem) = b*c
-Oscar.addeq!(a::BoundRingElem, b::BoundRingElem) = a+b
 
 #my 1st invariant!!!
 @doc raw"""
@@ -532,7 +530,7 @@ function Hecke.MPolyFact.block_system(a::Vector{AcbFieldElem}, eps = 1e-9)
       push!(b[cb[fl]], i)
     end
   end
-  bs = sort(collect(values(b)), lt = (a,b) -> isless(a[1], b[1]))
+  bs = sort(collect(values(b)); by=first)
   return bs
 end
 
@@ -835,7 +833,7 @@ function to_elementary_symmetric(f)
   if n == 1 || is_constant(f)
     return f
   end
-  T = polynomial_ring(base_ring(S), n-1)[1]
+  T = polynomial_ring(base_ring(S), n-1; cached=false)[1]
   g1 = to_elementary_symmetric(evaluate(f, vcat(gens(T), [T(0)])))
   es = [elementary_symmetric(gens(S), i) for i=1:n-1]
   f = f - evaluate(g1, es)
@@ -897,7 +895,7 @@ function set_orbit(G::PermGroup, H::PermGroup)
   l = representative.(low_index_subgroup_classes(H, 2*degree(G)^2))
   S, g = slpoly_ring(ZZ, degree(G), cached = false)
 
-  sort!(l, lt = (a,b) -> isless(order(b), order(a)))
+  sort!(l; by=order, rev=true)
   for U = l
     O = orbits(U)
     for o in O
@@ -1165,7 +1163,7 @@ Hecke.minpoly(R::QQPolyRing, C::GaloisCtx, I, extra::Int = 5) = Hecke.minpoly(C,
 
 struct GroupFilter
   f::Vector{Tuple{Function, String}}
-  GroupFilter() = new([(x->true, "")])
+  GroupFilter() = new([(_ -> true, "")])
 end
 
 #TODO: Max: rank the filter function by cost, cheapest first...
@@ -1440,7 +1438,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     # - one of them should be (Sl wr Sk) meet A(lk))
     #   disc(K) is a square
     # - see below in starting_group
-    sort!(v, lt = (x,y) -> minimum(x) < minimum(y))
+    sort!(v; by=minimum)
     push!(bs, v)
     fld[v] = (s, ms)
   end
@@ -1508,12 +1506,12 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
       if isa(r[1], AbsSimpleNumFieldElem)
         @assert parent(r[1]) == parent(R[1])
         f = _F = parent(r[1])
-        mf = mF = x->x
-        mfF = x->x
+        mf = mF = identity
+        mfF = identity
       elseif isa(r[1], AcbFieldElem)
         f = _F = parent(r[1])
-        mf = mF = x->x
-        mfF = x->x
+        mf = mF = identity
+        mfF = identity
       else
         f, mf = residue_field(parent(r[1]))
         _F, mF = residue_field(parent(R[1]))
@@ -1565,7 +1563,7 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     si = collect(1:length(c))
   else
     d = map(frobenius, c)
-    si = [findfirst(y->y==x, c) for x = d]
+    si = [findfirst(==(x), c) for x = d]
   end
 
   @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
@@ -1659,10 +1657,10 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     pc = parent(c[1])
     if isa(pc, NumField)
       k = pc
-      mk = x->x
+      mk = identity
     elseif isa(c[1], AcbFieldElem)
       k = pc
-      mk = x->x
+      mk = identity
     else
       k, mk = residue_field(pc)
     end
@@ -1700,7 +1698,7 @@ Starts searching at `pStart`, returns the prime as well as the cycle types ident
 
 If `prime` is given, no search is performed.
 """
-function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = x->true, filter_pattern = x->true)
+function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::Int = 2*degree(f), filter_prime = _->true, filter_pattern = _->true)
   if prime != 0
     p = prime
     lf = factor(GF(p), f)
@@ -1733,7 +1731,7 @@ function find_prime(f::QQPolyRingElem, extra::Int = 5; prime::Int = 0, pStart::I
       continue
     end
     lf = factor(GF(p), f)
-    if any(x->x>1, values(lf.fac))
+    if any(>(1), values(lf.fac))
       continue
     end
     filter_pattern(lf) || continue
@@ -1807,7 +1805,7 @@ function order_from_shape(ct::Set{CycleType}, n)
     # the plan is to take to 2 different largest ones
 
     mu = [(y.s[end][1], y.s[end][1]*y.s[end][2]) for y = ct_pp]
-    sort!(mu, lt = (a,b) -> a[1] < b[1])
+    sort!(mu,; by=first)
     if length(mu) == 1
       p_part = mu[1][1]
       o1 *= p_part
@@ -1951,10 +1949,18 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
   pStart::Int = 2*degree(K), 
   prime::Int = 0, 
   do_shape::Bool = true,
+  redo::Bool = false,
   algorithm::Symbol=:pAdic, 
   field::Union{Nothing, AbsSimpleNumField} = nothing)
 
   @assert algorithm in [:pAdic, :Complex, :Symbolic]
+  
+  X = get_attribute(K, :GaloisCtx)
+  if X !== nothing && !redo && algorithm == :pAdic
+    if prime == 0 || X.prime == prime
+      return X.G, X
+    end
+  end
 
   if do_shape
     p, ct = find_prime(K.pol, pStart)
@@ -2006,6 +2012,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
         G = symmetric_group(degree(K))
       end
       GC.G = G
+      if algorithm == :pAdic
+        set_attribute!(K, :GaloisCtx => GC)
+      end
       return G, GC
     end
 
@@ -2027,6 +2036,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
     #   some subgroups of the wreath products
     if degree(K) == 1
       GC.G = G
+      if algorithm == :pAdic 
+        set_attribute!(K, :GaloisCtx => GC)
+      end
       return G, GC
     end
 
@@ -2039,6 +2051,9 @@ function galois_group(K::AbsSimpleNumField, extra::Int = 5;
 
     # TODO: here we know if we are primitive; can we detect 2-transitive (inside starting_group)?
 
+    if algorithm == :pAdic
+      set_attribute!(K, :GaloisCtx => GC)
+    end
     return descent(GC, G, F, si, extra = extra)
   end
 end
@@ -2052,7 +2067,7 @@ supergroup of the Galois group, operating on the roots in `GC`, the context obje
 The groups are filtered by `F` and the result needs to contain the permutation `si`.
 For verbose output, the groups are printed through `grp_id`.
 """
-function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = transitive_group_identification, extra::Int = 5)
+function descent(GC::GaloisCtx, G::PermGroup, F::GroupFilter, si::PermGroupElem; grp_id = x -> degree(x) >= 32 ? (degree(x), -1) : transitive_group_identification(x), extra::Int = 5)
   @vprint :GaloisGroup 2 "Have starting group with id $(grp_id(G))\n"
 
   n = degree(GC.f)
@@ -2172,7 +2187,7 @@ function isinteger(GC::GaloisCtx{Hecke.qAdicRootCtx}, B::BoundRingElem{ZZRingEle
   p = GC.C.p
   if e.length<2
     l = coeff(e, 0)
-    lz = lift(l)
+    lz = lift(ZZ, l)
     lz = Hecke.mod_sym(lz, ZZRingElem(p)^precision(l))
     if abs(lz) < value(B)
       return true, lz
@@ -2232,7 +2247,7 @@ function find_transformation(r, I::Vector{<:SLPoly}; RNG::AbstractRNG = Random.d
       cnt += 1
       cnt > 20 && error("no Tschirni found")
       ts = rand(RNG, Zx, 2:rand(2:max(2, length(r))), -4:4) #TODO: try smaller degrees stronger
-      if degree(ts) > 0
+      if degree(ts) > 0 
         break
       end
     end
@@ -2346,7 +2361,6 @@ function fixed_field(GC::GaloisCtx, U::PermGroup, extra::Int = 5)
   ps = [val]
   d = copy(conj)
   while length(ps) < m
-#    @show length(ps)
     @vtime :GaloisGroup 2 d .*= conj
     fl, val = isinteger(GC, B, sum(d))
     @assert fl
@@ -2664,7 +2678,7 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector, gens(G))
+  gs = map(Vector{Int}, gens(G))
   for (g, k) = lf
     for j=2:k
       for i=1:degree(g)
@@ -2822,7 +2836,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
     @assert length(Set(rr)) == length(rr)
 
     d = map(frobenius, rr)
-    si = [findfirst(y->y==x, rr) for x = d]
+    si = [findfirst(==(x), rr) for x = d]
 
     @vprint :GaloisGroup 1 "found Frobenius element: $si\n"
 
@@ -2834,7 +2848,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
       K, mK = residue_field(parent(r[1]))
       r = map(mK, r)
       phi = Hecke.find_morphism(K, k)
-      po = vcat(po, [findfirst(x->x == phi(y), rr) for y = r])
+      po = vcat(po, [findfirst(==(phi(y)), rr) for y = r])
     end
 
     con = (symmetric_group(length(po))(po))

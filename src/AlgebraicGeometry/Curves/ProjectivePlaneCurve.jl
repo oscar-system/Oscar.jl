@@ -66,12 +66,11 @@ end
 Return the defining equation of the (reduced) plane curve `C`.
 """
 function defining_equation(C::ProjectivePlaneCurve{S,MPolyQuoRing{T}}) where {S,T}
-  if isdefined(C, :defining_equation)
-    return C.defining_equation::T
+  if !isdefined(C, :defining_equation)
+    m = minimal_generating_set(vanishing_ideal(C))
+    C.defining_equation = only(m)
   end
-  m = minimal_generating_set(vanishing_ideal(C))
-  @assert length(m) == 1
-  return m[1]::T
+  return C.defining_equation::T
 end
 
 ################################################################################

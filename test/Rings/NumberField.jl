@@ -145,7 +145,7 @@
       @test e == b + c
 
       e = deepcopy(b)
-      @inferred addeq!(b, c)
+      b = @inferred add!(b, c)
       @test b == e + c
     end
 

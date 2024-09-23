@@ -864,6 +864,7 @@ end
                                                  #     if is_embedded == false
   resolves_sing::Bool                            # domain(maps[end]) smooth?
   is_trivial::Bool                               # codomain already smooth?
+  is_strong::Bool                                # snc divisors ensured?
   transform_type::Symbol                         # can be :strict, :weak or :control
                                                  #     only relevant for is_embedded == true
 
@@ -875,6 +876,11 @@ end
                                                  # total transform, not set for is_embedded == false
                                                  # or transform_type == strict
   controlled_transform::AbsIdealSheaf            # holds weak or controlled transform according to transform_type
+  dont_meet::Vector{Tuple{Int,Int}}              # mostly for dim=2: intersections which cannot exist according
+                                                 # to intermediate computations
+  caution_multi_charts::Vector{Tuple{Int,Int}}   # only for dim=2: intersection of divisors not
+                                                 # entirely visible in a single chart
+
 
   # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
   underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
@@ -943,7 +949,14 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   Y = codomain(f)
   J = original_ideal_sheaf(I)
   @assert any(x->x===U, affine_charts(X))
-  E = exceptional_divisor(f)
+  if f isa ToricBlowdownMorphism
+    # This is not actually an exceptional divisor of a blowup along an ideal sheaf.
+    # This is the prime Weil divisor corresponding to the added/chosen ray.
+    # This is the exceptional divisor of a blowup along a certain Rees algebra.
+    E = exceptional_prime_divisor(f)
+  else
+    E = exceptional_divisor(f)
+  end
   IE = ideal_sheaf(E)
   # We assume that the covering morphism has the default_covering of X as its domain.
   @assert domain(covering_morphism(f)) === default_covering(X) "not implemented for this covering"

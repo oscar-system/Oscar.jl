@@ -699,8 +699,9 @@ true
   L = localized_ring(OO(X))
   I = modulus(OO(X))
   f = gens(saturated_ideal(I))
+  is_empty(f) && return true
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end
@@ -710,7 +711,7 @@ end
   I = modulus(OO(X))
   f = gens(I)
   Df = jacobian_matrix(f)
-  A = map_entries(x->OO(X)(x), Df)
+  A = map_entries(OO(X), Df)
   success, _, _ = Oscar._is_projective_without_denominators(A, task=:without_projector)
   return success
 end

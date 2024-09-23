@@ -4,7 +4,6 @@
 
 using Oscar
 
-import Oscar.Nemo.zzModRing
 import Oscar: base_ring, base_ring_type, inverted_set, ring, localization, parent, numerator, denominator, one, zero
 import Oscar.AbstractAlgebra: elem_type, parent_type
 
@@ -77,7 +76,7 @@ inverted_set(W::NmodLocalizedRing{MultSetType}) where {MultSetType} = W.S::MultS
 ### required extension of the localization function
 function localization(S::NmodComplementOfPrimeIdeal)
   L = NmodLocalizedRing(S)
-  return L, MapFromFunc(base_ring(L), L, x->(L(x)))
+  return L, MapFromFunc(base_ring(L), L, L)
 end
 
 

@@ -663,7 +663,7 @@ julia> matroid_groundset(N)
 ```
 """
 function restriction(M::Matroid, set::GroundsetType)
-    deleted_elems = filter(x -> !(x in set), M.groundset)
+    deleted_elems = filter(!in(set), M.groundset)
     return deletion(M, deleted_elems)
 end
 
@@ -963,7 +963,7 @@ function projective_geometry(r::Int, q::Int; check::Bool=false)
     n=Int((q^(r+1)-1)/(q-1))
     for i in 1:(q^(r+1)-1)
         new_column = digits(i, base=q, pad=r+1)
-        if new_column[findfirst(k->k!=0, new_column)]==1
+        if new_column[findfirst(!is_zero, new_column)]==1
             M = vcat(M, new_column)
         end
     end
@@ -1015,7 +1015,32 @@ Permutation group of degree 4
 """
 function automorphism_group(M::Matroid) 
   @req length(M) > 0 "The matroid should not be empty."
-  I = rank(M) < 1 ? IncidenceMatrix(bases(dual_matroid(M))) : IncidenceMatrix(bases(M))
+  I = rank(M) < 1 ? IncidenceMatrix(bases(Int, dual_matroid(M))) : IncidenceMatrix(bases(Int, M))
   resize!(I, nrows(I), length(M))
   return automorphism_group(I; action=:on_cols)
+end
+
+@doc raw"""
+    is_quotient(Q1::Matroid, Q2::Matroid)
+
+Let `Q1` and `Q2` be matroids on the same groundset with rank $rank(Q1) \leq rank(Q2)$.  
+Check if `Q1` is a matroid quotient of `Q2`.
+
+# Examples
+
+```jldoctest
+julia> Q1 = uniform_matroid(1, 3)
+Matroid of rank 1 on 3 elements
+
+julia> Q2 = uniform_matroid(2, 3)
+Matroid of rank 2 on 3 elements
+
+julia> is_quotient(Q1, Q2)
+true
+```
+"""
+function is_quotient(Q1::Matroid, Q2::Matroid)
+    @req matroid_groundset(Q1) == matroid_groundset(Q2) "matroids must be on same groundset" 
+    @req rank(Q1)<=rank(Q2) "matroids must be of equal or increasing rank"
+    return issubset(flats(Q1), flats(Q2))
 end

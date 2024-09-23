@@ -35,7 +35,7 @@
     "model_descriptors": {
         "type": "hypersurface",
         "description": "U(1) hypersurface model",
-        "gauge_algebra": ["u1"]
+        "gauge_algebra": ["u(1)"]
     },
     "model_data": {
         "base_dim": 2,
@@ -57,5 +57,5 @@
         "zero_section": ["0", "1", "0"],
         "generating_sections": [["0", "1", "-b"]]
     },
-    "associated_models": ["model1208_2695-2.json"]
+    "birational_models": ["model1208_2695-2.json"]
 }

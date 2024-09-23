@@ -162,6 +162,8 @@ end
 
     # directions are inverted by reflection
     dirs = [(direction(original_complex, i) == :chain ? (:cochain) : (:chain)) for i in 1:dim(original_complex)]
+    upper_bounds = Union{Int, Nothing}[has_lower_bound(original_complex, i) ? -lower_bound(original_complex, i) : nothing for i in 1:dim(original_complex)]
+    lower_bounds = Union{Int, Nothing}[has_upper_bound(original_complex, i) ? -upper_bound(original_complex, i) : nothing for i in 1:dim(original_complex)]
 
     # Create an instance of `HyperComplex` using your factories.
     #
@@ -171,7 +173,9 @@ end
     internal_complex = HyperComplex(
                                     dim(original_complex), # the reflected complex has the same dimension
                                     chain_fac, map_fac,    # use your factories
-                                    dirs #, cached=true # an optional argument to switch off caching 
+                                    dirs;
+                                    upper_bounds,
+                                    lower_bounds #, cached=true # an optional argument to switch off caching 
                                                         # and only use the factories.
                                                         # Use only if you know what you're doing!
                                    )

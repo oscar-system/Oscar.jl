@@ -12,11 +12,11 @@ abstract type AbsSpaceGerm{BaseRingType<:Ring, RingType<:Ring} <: AbsAffineSchem
 ####################################################################
 ## two short hand definitions for internal use only
 ####################################################################
-GermAtClosedPoint = AffineScheme{<:Field,
+const GermAtClosedPoint = AffineScheme{<:Field,
                          <:AbsLocalizedRing{<:Ring, <:Any,
                                             <:MPolyComplementOfKPointIdeal}
                         }
-GermAtGeometricPoint = AffineScheme{<:Field,
+const GermAtGeometricPoint = AffineScheme{<:Field,
                             <:AbsLocalizedRing{<:Ring, <:Any,
                                                <:MPolyComplementOfPrimeIdeal}
                            }
@@ -1140,7 +1140,7 @@ function milnor_number(X::CompleteIntersectionGerm)
         dims = dims + sign * dtemp         ## contribute to alternating sum
         sign = -sign
         push!(w,f)                          ## put f in 'used' list
-        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        deleteat!(v, findfirst(==(f), v)) ## remove f from 'unused' list
         found = true
         break
       end
@@ -1220,7 +1220,7 @@ function milnor_number(X::AffineScheme{<:Field,<:MPolyQuoRing})
         dims = dims + sign * dtemp         ## alternating sum
         sign = -sign
         push!(w,f)                          ## put f in 'used' list
-        deleteat!(v, findfirst(x->x==f,v)) ## remove f from 'unused' list
+        deleteat!(v, findfirst(==(f), v)) ## remove f from 'unused' list
         found = true
         break
       end

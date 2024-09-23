@@ -456,8 +456,7 @@ function all_od_infos(L...)
       names = [ids]
     elseif ids isa Vector{String}
       if names !== nothing
-        names = filter(x -> x in names,
-                       [(OD_simple_names[x], x) for x in ids])
+        names = filter(in(names), [(OD_simple_names[x], x) for x in ids])
       else
         names = [(OD_simple_names[x], x) for x in ids]
       end

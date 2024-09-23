@@ -120,6 +120,12 @@
     standard_basis_highest_corner(I, ordering=negdeglex(R))
     @test elements(I.gb[negdeglex(R)]) == H
     @test_throws ArgumentError standard_basis_highest_corner(I)
+
+    R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+    I = ideal(R,[x^2+x*y+y,x+y^2])
+    standard_basis(I, ordering=lex(R), complete_reduction=true)
+    G = Oscar.groebner_assure(I, true, true)
+    @test G.ord == lex(R)
 end
 
 @testset "normal form graded" begin
@@ -221,7 +227,7 @@ end
   A = Oscar.IdealGens(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException Oscar._fglm(A, lex(R))
   I = ideal(R, gens(A))
-  groebner_basis(I)
+  groebner_basis(I, algorithm=:buchberger)
   @test_throws ErrorException Oscar._fglm(I.gb[degrevlex(R)], lex(R))
   groebner_basis(I, complete_reduction=true)
   G = Oscar._fglm(I.gb[degrevlex([x, y])], lex(R))
@@ -238,6 +244,12 @@ end
   I = ideal(R, [x*y-1, x^2+y^2])
   @test_throws ErrorException groebner_basis(I, algorithm=:fglm)
   @test_throws ErrorException fglm(I, destination_ordering=lex(R))
+
+  # Issue #4026
+  R, (x, y) = QQ["x", "y"]
+  I = ideal([x, y])
+  G = groebner_basis(I, ordering = lex([y, x]), algorithm = :fglm)
+  @test gens(G) == elem_type(R)[x, y]
 end
 
 @testset "groebner hilbert driven" begin

@@ -5,15 +5,19 @@ A tropical linear space is a balanced polyhedral complex supported on a finite i
 - Chapter 4.4 in [MS15](@cite)
 - Chapter 10 in [Jos21](@cite)
 
-Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
+#### Note:
+- Objects of type `TropicalLinearSpace` need to be embedded, abstract tropical linear spaces are currently not supported.
+- The type `TropicalLinearSpace` can be thought of as subtype of `TropicalVariety` in the sense that it should have all properties and features of the latter.
 
 
 ## Constructors
 In addition to converting from `TropicalVariety`, objects of type `TropicalLinearSpace` can be constructed from:
-- Pluecker vectors over a tropical semiring,
-- Pluecker vectors over a field and a tropical semiring map,
-- matrices over a tropical semiring,
-- matrices over a field and a tropical semiring map.
+1. Pluecker vectors over a tropical semiring: uses a low-level implementation in `polymake`
+2. Pluecker vectors over a field and a tropical semiring map: computes coordinatewise valuation and uses constructor (1.)
+3. matrices over a tropical semiring: computes tropical minors and uses constructor (1.)
+4. matrices over a field and a tropical semiring map.
+    - if matrix over `QQ` and tropical semiring map is trivial, uses an implementation of Rincon's algorithm [Rin13](@cite) in `polymake`
+    - for general input, computes minors and uses constructor (2.)
 ```@docs
 tropical_linear_space
 ```

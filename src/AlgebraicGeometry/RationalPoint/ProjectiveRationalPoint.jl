@@ -23,7 +23,7 @@ function dehomogenization(p::AbsProjectiveRationalPoint, i::Int)
   c = coordinates(p)
   s = inv(c[i])
   w = weights(codomain(p))
-  any(x->!isone(x), w) && error("cannot dehomogenize with weights")
+  any(!is_one, w) && error("cannot dehomogenize with weights")
   return [s*c[j] for j in 1:length(c) if j!=i]
 end
 
@@ -173,11 +173,11 @@ function ==(a::AbsProjectiveRationalPoint{S, T}, b::AbsProjectiveRationalPoint{S
     i += 1
   end
   iszero(b[i]) && return false
-  CalciumFieldElem = a[i]
+  ca = a[i]
   cb = b[i]
   i += 1
   while i <= n
-    CalciumFieldElem^w[i] * b[i] == cb^w[i] * a[i] || return false
+    ca^w[i] * b[i] == cb^w[i] * a[i] || return false
     i += 1
   end
   return true
@@ -193,14 +193,14 @@ function normalize!(a::AbsProjectiveRationalPoint{<:FieldElem})
   while iszero(a[i])
     i += 1
   end
-  CalciumFieldElem = inv(a[i])
+  ca = inv(a[i])
   a[i] = one(coefficient_ring(a))
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
+  any(!is_one, w) && error("cannot normalize with weights")
   i += 1
   l = length(w)
   while i <= l
-    a[i] = CalciumFieldElem^w[i]*a[i]
+    a[i] = ca^w[i]*a[i]
     i += 1
   end
   return a
@@ -219,10 +219,10 @@ function normalize!(a::AbsProjectiveRationalPoint{ZZRingElem})
     i += 1
   end
   w = weights(codomain(a))
-  any(x->!isone(x), w) && error("cannot normalize with weights")
-  CalciumFieldElem = sign(a[i])
+  any(!is_one, w) && error("cannot normalize with weights")
+  ca = sign(a[i])
   while i <= dim(codomain(a))
-    a[i] = CalciumFieldElem*a[i]  #TODO: weights
+    a[i] = ca*a[i]  #TODO: weights
     i += 1
   end
   return a

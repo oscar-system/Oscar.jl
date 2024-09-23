@@ -22,7 +22,6 @@ Given a smooth rational surface `X` which is linearly normal in the given embedd
 # Examples
 ```jldoctest
 julia> X = bordiga()
-[ Info: upgrading serialized data....
 Projective variety
   in projective 4-space over GF(31991) with coordinates [x, y, z, u, v]
 defined by ideal with 4 generators
@@ -71,7 +70,7 @@ function parametrization(X::AbsProjectiveVariety)
    while n > 0    
      S = base_ring(L[2][n])
      phi = hom(S, RXterminal, H)
-     M =  syz(transpose(map_entries(x->phi(x), L[2][n])))
+     M =  syz(transpose(map_entries(phi, L[2][n])))
      H = M[1, :]
      n = n-1  
    end

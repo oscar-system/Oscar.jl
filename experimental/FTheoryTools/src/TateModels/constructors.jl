@@ -59,7 +59,7 @@ function global_tate_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "a4") "Tate section a4 must be specified"
   @req haskey(explicit_model_sections, "a6") "Tate section a6 must be specified"
   vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["a1", "a2", "a3", "a4", "a6"], vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
+  @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -212,16 +212,16 @@ function Base.show(io::IO, t::GlobalTateModel)
     push!(properties_string, "not fully specified base")
   end
   if has_model_description(t)
-    push!(properties_string, "-- " * string(get_attribute(t, :model_description)))
+    push!(properties_string, "-- " * model_description(t))
     if has_model_parameters(t)
       push!(properties_string, "with parameter values (" * join(["$key = $(string(val))" for (key, val) in model_parameters(t)], ", ") * ")")
     end
   end
   if has_arxiv_id(t)
-    push!(properties_string, "based on arXiv paper " * string(get_attribute(t, :arxiv_id)))
+    push!(properties_string, "based on arXiv paper " * arxiv_id(t))
   end
   if has_arxiv_model_equation_number(t)
-    push!(properties_string, "Eq. (" * string(get_attribute(t, :arxiv_model_equation_number)) * ")")
+    push!(properties_string, "Eq. (" * arxiv_model_equation_number(t) * ")")
   end
   join(io, properties_string, " ")
 end

@@ -77,7 +77,7 @@ end
 ## the gluing graph afterwards
 ## (relevant data for connectedness of gluing)
 function pruned_gluing_graph(C::Covering)
-  v = findall(U->!is_empty(U), C.patches)
+  v = findall(!is_empty, C.patches)
   m = length(v)
   gt = Graph{Undirected}(m)
   for (X, Y) in keys(gluings(C))
@@ -247,9 +247,14 @@ true
 function add_gluing!(C::Covering, G::AbsGluing)
   (X, Y) = patches(G)
   C.gluings[(X, Y)] = G
-  C.gluings[(Y, X)] = LazyGluing(Y, X, inverse, G)
+  C.gluings[(Y, X)] = LazyGluing(Y, X, G)
   return C
 end
+
+# This implements the _compute_gluing for the case of a lazy gluing where 
+# we only need the inverse. The gluing data is just the original gluing in 
+# this case.
+_compute_gluing(G::AbsGluing) = inverse(G)
 
 ########################################################################
 # Printing                                                             #
@@ -346,8 +351,8 @@ function common_refinement(C::Covering, D::Covering)
     end
   end
 
-  dirty_C = filter!(x->!(x in keys(map_dict_C)), dirty_C)
-  dirty_D = filter!(x->!(x in keys(map_dict_D)), dirty_D)
+  dirty_C = filter!(x -> !haskey(map_dict_C, x), dirty_C)
+  dirty_D = filter!(x -> !haskey(map_dict_D, x), dirty_D)
 
   #TODO: Check that all leftover dirty patches are already
   #covered by those in the keysets. What if this is not the case?

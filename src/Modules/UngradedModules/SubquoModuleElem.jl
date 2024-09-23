@@ -409,7 +409,7 @@ function *(a::MPolyRingElem, b::SubquoModuleElem)
   return SubquoModuleElem(a*repres(b), b.parent)
 end
 
-function *(a::RingElem, b::SubquoModuleElem)
+function *(a::NCRingElem, b::SubquoModuleElem)
   if parent(a) !== base_ring(parent(b))
     return base_ring(parent(b))(a)*b # this will throw if conversion is not possible
   end
@@ -1107,8 +1107,10 @@ end
 
 function is_zero(m::SubquoModuleElem{<:MPolyRingElem{T}}) where {T<:Union{ZZRingElem, <:FieldElem}}
   C = parent(m)
+  isdefined(m, :coeffs) && is_zero(m.coeffs) && return true
+  is_zero(repres(m)) && return true
   if !isdefined(C, :quo)
-    return iszero(repres(m))
+    return false
   end
   x = reduce(repres(m), C.quo)
   return iszero(x)

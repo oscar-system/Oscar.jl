@@ -77,7 +77,7 @@ pm_object(milp::MixedIntegerLinearProgram) = milp.polymake_milp
 ###############################################################################
 ###############################################################################
 function describe(io::IO, MILP::MixedIntegerLinearProgram)
-  c = dehomogenize(MILP.polymake_milp.LINEAR_OBJECTIVE)
+  c = MILP.polymake_milp.LINEAR_OBJECTIVE[2:end]
   k = MILP.polymake_milp.LINEAR_OBJECTIVE[1]
   print(io, "The mixed integer linear program\n")
   if MILP.convention == :max
@@ -128,7 +128,7 @@ function objective_function(
   milp::MixedIntegerLinearProgram{T}; as::Symbol=:pair
 ) where {T<:scalar_types}
   if as == :pair
-    return Vector{T}(dehomogenize(milp.polymake_milp.LINEAR_OBJECTIVE)),
+    return Vector{T}(milp.polymake_milp.LINEAR_OBJECTIVE[2:end]),
     convert(T, milp.polymake_milp.LINEAR_OBJECTIVE[1])
   elseif as == :function
     (c, k) = objective_function(milp; as=:pair)

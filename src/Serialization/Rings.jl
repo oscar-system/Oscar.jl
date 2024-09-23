@@ -2,10 +2,10 @@
 # Common union types
 
 # this will need a better name at some point
-const RingMatElemUnion = Union{RingElem, MatElem, FreeAssAlgElem, SMat}
+const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem, SMat}
 
 # this union will also need a better name at some point
-const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssAlgebra}
+const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace, FreeAssociativeAlgebra}
 
 ################################################################################
 # Utility functions for ring parent tree
@@ -58,20 +58,20 @@ end
 #  Mod Rings
 @register_serialization_type Nemo.zzModRing
 @register_serialization_type Nemo.ZZModRing
-const ModRingUnion = Union{Nemo.zzModRing, Nemo.ZZModRing}
+const ModRingUnion = Union{zzModRing, ZZModRing}
 
 function save_object(s::SerializerState, R::T) where T <: ModRingUnion
   save_object(s, modulus(R))
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.zzModRing})
+function load_object(s::DeserializerState, ::Type{zzModRing})
   modulus = load_object(s, UInt64)
-  return Nemo.zzModRing(modulus)
+  return zzModRing(modulus)
 end
 
-function load_object(s::DeserializerState, ::Type{Nemo.ZZModRing})
+function load_object(s::DeserializerState, ::Type{ZZModRing})
   modulus = load_object(s, ZZRingElem)
-  return Nemo.ZZModRing(modulus)
+  return ZZModRing(modulus)
 end
 
 #elements
@@ -292,7 +292,7 @@ end
 # way to abstract saving params soon
 const IdealOrdUnionType = Union{MPolyIdeal,
                                 LaurentMPolyIdeal,
-                                FreeAssAlgIdeal,
+                                FreeAssociativeAlgebraIdeal,
                                 IdealGens,
                                 MonomialOrdering}
 

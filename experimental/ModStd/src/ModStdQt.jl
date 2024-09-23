@@ -790,7 +790,7 @@ function afact(g::QQMPolyRingElem, a::Vector{Int}; int::Bool = false)
         push!(pres, Qt(res[i:i+j]))
         i += j+1
       end
-      d = findfirst(x->x == maximum(degs), degs)
+      d = findfirst(==(maximum(degs)), degs)
       co = []
       for i=1:length(pres)
         push!(co, lift(pres[d], pres[i], coeff(fac, d), coeff(fac, i), fpt))

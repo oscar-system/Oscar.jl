@@ -1,9 +1,9 @@
 # Compute the ideal sheaves and Weil divisors of the rays of `polyhedral_fan(X)` 
 # according to the "orbit-cone-correspondence", Theorem 3.2.6 in 
-# Cox-Little-Schenk.
+# CLS11.
 #
 # We would like to use Equation (3.2.7) from page 121 of the electronic
-# version of the CLS book. It turned out that there is a misprint in this
+# version of CLS11. It turned out that there is a misprint in this
 # formula in the online version, always leading to the unit ideal. In the
 # print version, which might not be accessible to all of us, the formula
 # has been corrected.
@@ -25,7 +25,7 @@
 #       ideal.
 #
 # What we do above is also supported by the description of divisors 
-# in CLS, Formula (4.3.2): For a ray ρ ∈ Σ(1) the divisor -D with 
+# in CLS11, Formula (4.3.2): For a ray ρ ∈ Σ(1) the divisor -D with 
 # linear system consisting of the rational functions f which vanish 
 # on D is then locally given by 
 #
@@ -98,7 +98,7 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
   # The rays correspond to 'primitive divisors' from which everything 
   # else can be composed in the toric case. If we can write down ideal 
   # sheaves for these, we can hence do so for every divisor.
-  @assert all(x->x>=0, c) "divisor must be effective"
+  @assert all(>=(0), c) "divisor must be effective"
   ray_list = rays(polyhedral_fan(X)) # All rays of the polyhedral fan of X
   ideal_dict = IdDict{AbsAffineScheme, Ideal}() # The final output: A list of ideals, one for each 
                                         # affine_chart of X
@@ -115,8 +115,8 @@ function _ideal_sheaf_via_polymake(X::NormalToricVariety, c::Vector{ZZRingElem};
                                # to the index k of the same ray in the list `ray_list` 
                                # of all rays of the fan
     # Populate that dictionary
-    for (i, r) in enumerate(r_sigma)
-      k = findfirst(s->s==r, ray_list)
+    for r in r_sigma
+      k = findfirst(==(r), ray_list)
       k === nothing && error("ray not found")
       div_dict[r] = ray_list[k]
       push!(index_dict, k)

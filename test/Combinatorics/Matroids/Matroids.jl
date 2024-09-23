@@ -249,7 +249,7 @@
             @test vertical_connectivity(M) == values[4]
             @test girth(M) == values[5]
             @test tutte_connectivity(M) == values[6]
-            @test characteristic_polynomial(M) == values[7]
+            @test characteristic_polynomial(R, M) == values[7]
             @test length(cobases(M)) == length(bases(M))
             @test cohyperplanes(M) == [setdiff(matroid_groundset(M),set) for set in circuits(M)]
             @test is_regular(M) == values[8]
@@ -288,7 +288,7 @@
 
         @test cobases(N) == [['i','j'], [2,'j'], [2,'i'], [1,'j'], [1,'i']]
 
-        @test charpoly(N) == R(q^2-3q+2)
+        @test charpoly(R, N) == R(q^2-3q+2)
 
         @test is_clutter(bases(N)) == true
         @test is_clutter(circuits(N)) == true
@@ -347,6 +347,85 @@
         @test order(automorphism_group(M)) == 120
         @test automorphism_group(uniform_matroid(0, 2)) == symmetric_group(2)
         U = matroid_from_bases([[1,2],[2,3],[1,3]],5)
-        @test automorphism_group(U) == automorphism_group(dual_matroid(U)) 
+        @test automorphism_group(U) == automorphism_group(dual_matroid(U))
+
+        g = complete_graph(4)
+        rem_edge!(g,1,2)
+        M = cycle_matroid(g)
+        @test degree(automorphism_group(M)) == 5
     end
+    @testset "quantum_automorphism_group" begin
+      # _cnt is the number of elements the quantum permutation group should have
+      _cnt(n::Int) = 2*n + n^2 + 2*n*n*(n-1)
+      function _cnt(M::Matroid, structure::Symbol=:bases)
+        k = rank(M)
+        b  = length(eval(structure)(M))
+        n  = length(M)  
+        return 2 * factorial(k) * b * (n^k - b* factorial(k))
+      end
+      n = 4
+      # Test of quantum_symmetric_group
+      S4 = quantum_symmetric_group(n)
+      @test length(gens(S4)) == _cnt(n)
+      A = base_ring(S4)
+      u = permutedims(reshape(gens(A),(n,n)),[2,1])
+      @test u[2,3]*u[2,2] in gens(S4)
+      @test u[1,1]*u[1,1] - u[1,1]  in gens(S4)
+      @test sum(u[2,n] for n in 1:4)-1 in gens(S4) 
+
+      #Test of quantum_automorphism_group for bases of uniform_matroid
+      M = uniform_matroid(3,4)
+      qAut = quantum_automorphism_group(M,:bases)
+      n = length(uniform_matroid(3,4))
+      @test length(gens(qAut)) == _cnt(M) + _cnt(n)
+
+      A = base_ring(qAut)
+      u = permutedims(reshape(gens(A),(n,n)),[2,1])
+      
+      @test u[2,3]*u[2,2] in gens(S4)
+      @test u[2,2]*u[2,2] - u[2,2] in gens(S4)
+      @test sum(u[2,n] for n in 1:4)-1 in gens(S4) 
+
+      @test u[2,4]*u[2,3]*u[1,2] in gens(qAut)
+
+      #Test of quantum_automorphism_group for circuits of uniform_matroid
+      qAut1 = quantum_automorphism_group(M,:circuits)
+      A = base_ring(qAut1)
+      u = permutedims(reshape(gens(A),(n,n)),[2,1])
+
+      @test length(gens(qAut1)) == 11256
+      @test u[2,3]*u[2,2] in gens(qAut1)
+    
+      #Test of quantum_automorphism_group for Graphs
+      G = complete_graph(5)
+      E = length(edges(G))
+      n = nv(G)
+      qAut2 = quantum_automorphism_group(G)
+      @test length(gens(qAut2)) == 235
+
+
+    end
+    @testset "matroid quotient" begin
+	   Q1 = uniform_matroid(1, 3)
+	   Q2 = uniform_matroid(2, 3)
+	   @test is_quotient(Q1, Q2) == true
+	   Q1 = matroid_from_bases([[3]], 3)
+	   Q2 = matroid_from_bases([[1, 2]], 3)
+	   @test is_quotient(Q1, Q2) == false
+	   M1 = uniform_matroid(1, 4)
+           M2 = uniform_matroid(3, 4)
+	   @test is_quotient(M1,M2) == true
+	   @test_throws ArgumentError is_quotient(M2, M1)
+	   @test_throws ArgumentError is_quotient(Q2, M2)
+   end
+    
+  @testset "matroid_hex" begin
+    M = fano_matroid() 
+    N = uniform_matroid(2, 4)
+
+    M1 = matroid_from_matroid_hex(matroid_hex(M)) 
+    N1 = matroid_from_matroid_hex(matroid_hex(N))
+    @test is_isomorphic(M, M1)
+    @test is_isomorphic(N, N1)
+  end
 end

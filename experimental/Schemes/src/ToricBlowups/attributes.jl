@@ -1,19 +1,23 @@
+export center_data
+export center_unnormalized
+export exceptional_prime_divisor
+
 @doc raw"""
     underlying_morphism(bl::ToricBlowdownMorphism)
 
-Return the underlying toric morphism of a toric blowdown morphism.
-Access to other attributes such as `domain`, `codomain`, `covering_morphism`
-are executed via `underlying_morphism`.
+Return the underlying toric morphism of a toric blowup. Access to other
+attributes such as `domain`, `codomain`, `covering_morphism` are
+executed via `underlying_morphism`.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+julia> f = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
 
-julia> Oscar.underlying_morphism(blow_down_morphism)
+julia> Oscar.underlying_morphism(f)
 Toric morphism
 ```
 """
@@ -24,49 +28,76 @@ underlying_morphism(bl::ToricBlowdownMorphism) = bl.toric_morphism
 @doc raw"""
     index_of_new_ray(bl::ToricBlowdownMorphism)
 
-Return the index of the new ray used in the construction of the toric blowdown morphism.
+Return the index of the new ray used in the construction of the toric
+blowup.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+julia> f = blow_up(P3, [0, 1, 1])
 Toric blowdown morphism
 
-julia> index_of_new_ray(blow_down_morphism)
+julia> index_of_new_ray(f)
 5
 ```
 """
 index_of_new_ray(bl::ToricBlowdownMorphism) = bl.index_of_new_ray
 
 
-
 @doc raw"""
-    center(bl::ToricBlowdownMorphism)
+    center_data(bl::ToricBlowdownMorphism)
 
-Return the center of the toric blowdown morphism as ideal sheaf.
+Returns the ideal, ideal sheaf or ray that was used to construct the
+morphism.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+julia> f = blow_up(P3, [0, 2, 3])
 Toric blowdown morphism
 
-julia> center(blow_down_morphism)
+julia> center_data(f)
+3-element Vector{Int64}:
+ 0
+ 2
+ 3
+```
+"""
+function center_data(bl::ToricBlowdownMorphism)
+  return bl.center_data
+end
+
+
+@doc raw"""
+    center_unnormalized(bl::ToricBlowdownMorphism)
+
+Returns an ideal sheaf `I` such that the normalization of the blowup
+along `I` gives the morphism `bl`.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> f = blow_up(P3, [0, 2, 3])
+Toric blowdown morphism
+
+julia> center_unnormalized(f)
 Sheaf of ideals
   on normal, smooth toric variety
 with restrictions
-  1: Ideal (x_3_1, x_2_1)
-  2: Ideal (x_3_2, x_2_2)
+  1: Ideal (x_2_1^2, x_3_1^3)
+  2: Ideal (x_2_2^2, x_3_2^3)
   3: Ideal (1)
   4: Ideal (1)
 ```
 """
-function center(bl::ToricBlowdownMorphism)
-  if !isdefined(bl, :center)
+function center_unnormalized(bl::ToricBlowdownMorphism)
+  if !isdefined(bl, :center_unnormalized)
     # TODO: The implementation below is highly inefficient. Improve it if you know how.
     X = domain(bl)
     S = cox_ring(X)
@@ -75,43 +106,48 @@ function center(bl::ToricBlowdownMorphism)
     I = ideal(S, x[j])
     II = ideal_sheaf(X, I)
     JJ = pushforward(bl, II)::IdealSheaf
-    bl.center = JJ
+    bl.center_unnormalized = JJ
   end
-  return bl.center
+  return bl.center_unnormalized
 end
 
 
 
 @doc raw"""
-    exceptional_divisor(bl::ToricBlowdownMorphism)
+    exceptional_prime_divisor(bl::ToricBlowdownMorphism)
 
-Return the exceptional divisor (as toric divisor)  of the toric blowdown morphism.
+Return the exceptional prime Weil divisor (as a toric divisor) of the
+ray used to construct the toric blowup. Note that this divisor need not
+be Cartier and this divisor need not coincide with the locus where the
+morphism is not an isomorphism.
 
 # Examples
 ```jldoctest
 julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
-julia> blow_down_morphism = blow_up(P3, [0, 1, 1])
+julia> f = blow_up(P3, [0, 2, 3])
 Toric blowdown morphism
 
-julia> exceptional_divisor(blow_down_morphism)
-Torus-invariant, cartier, prime divisor on a normal toric variety
+julia> E = exceptional_prime_divisor(f)
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> is_cartier(E)
+false
 ```
 """
-function exceptional_divisor(bl::ToricBlowdownMorphism)
-  if !isdefined(bl, :exceptional_divisor)
+function exceptional_prime_divisor(bl::ToricBlowdownMorphism)
+  if !isdefined(bl, :exceptional_prime_divisor)
     X = domain(bl)
     S = cox_ring(X)
     x = gens(S)
     j = index_of_new_ray(bl)
     help_list = [i == j ? 1 : 0 for i in 1:ngens(S)]
     td = toric_divisor(X, help_list)
-    @assert is_cartier(td) "exceptional divisor must be Cartier"
-    @assert is_prime(td) "exceptional divisor must be prime"
-    bl.exceptional_divisor = td
+    @assert is_prime(td) "exceptional prime divisor must be prime"
+    bl.exceptional_prime_divisor = td
   end
-  return bl.exceptional_divisor
+  return bl.exceptional_prime_divisor
 end
 
 

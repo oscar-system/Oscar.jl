@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # [Gröbner/Standard Bases Over Fields](@id gb_fields)
@@ -69,7 +67,7 @@ julia> default_ordering(R)
 degrevlex([x, y, z])
 
 julia> F = free_module(R, 2)
-Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
+Free module of rank 2 over R
 
 julia> default_ordering(F)
 degrevlex([x, y, z])*lex([gen(1), gen(2)])
@@ -149,7 +147,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> F = free_module(R, 3)
-Free module of rank 3 over Multivariate polynomial ring in 2 variables over QQ
+Free module of rank 3 over R
 
 julia> f = (5*x*y^2-y^10+3)*F[1]+(4*x^3+2*y) *F[2]+16*x*F[3]
 (5*x*y^2 - y^10 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]

@@ -267,8 +267,8 @@ julia> is_welldefined(c)
 false
 ```
 """
-hom(M::SubquoModule, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
-hom(M::SubquoModule, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
+hom(M::SubquoModule{T}, N::ModuleFP{T}, V::Vector{<:ModuleFPElem{T}}; check::Bool=true) where T = SubQuoHom(M, N, V; check)
+hom(M::SubquoModule{T}, N::ModuleFP{T},  A::MatElem{T}; check::Bool=true) where T = SubQuoHom(M, N, A; check)
 
 
 @doc raw"""
@@ -455,7 +455,7 @@ function matrix(f::SubQuoHom)
   if !isdefined(f, :matrix)
     D = domain(f)
     C = codomain(f)
-    R = base_ring(D)
+    R = base_ring(C)
     matrix = zero_matrix(R, ngens(D), ngens(C))
     for i=1:ngens(D), j=1:ngens(C)
       matrix[i,j] = f.im[i][j]
@@ -964,12 +964,12 @@ function +(h::ModuleFPHom{D, C, Nothing}, g::ModuleFPHom{D, C, Nothing}) where {
   return hom(domain(h), codomain(h), elem_type(codomain(h))[h(x) + g(x) for x in gens(domain(h))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
+function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, Nothing}) where {D, C}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], check=false)
 end
 
-function *(a::RingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
+function *(a::AdmissibleModuleFPRingElem, g::ModuleFPHom{D, C, T}) where {D, C, T}
   @assert base_ring(codomain(g)) === parent(a)
   return hom(domain(g), codomain(g), elem_type(codomain(g))[a*g(x) for x in gens(domain(g))], base_ring_map(g), check=false)
 end
@@ -1051,11 +1051,11 @@ end
 Return the canonical projection from $F = R^I$ to $R^(\texttt{indices})$ where $\texttt{indices} \subset I$.
 """
 function projection(F::FreeMod, indices::AbstractArray)
-  @assert all(x -> x <= ngens(F), indices)
+  @assert all(<=(ngens(F)), indices)
   @assert length(Set(indices)) == length(indices) # unique indices
   R = base_ring(F)
   G = FreeMod(R, length(indices))
-  return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(x->x==i,indices)] : zero(G) for i=1:ngens(F)]), check=false)
+  return hom(F, G, Vector{elem_type(G)}([i in indices ? G[findfirst(==(i),indices)] : zero(G) for i=1:ngens(F)]), check=false)
 end
 
 @doc raw"""
@@ -1092,7 +1092,7 @@ function preimage(H::SubQuoHom,elems::Vector{SubquoModuleElem{T}}, task::Symbol 
   @assert all(x->parent(x)===codomain(H),elems)
   cod_coker,i_cod_coker_inv = present_as_cokernel(codomain(H), :with_morphism)
   i_cod_coker = inv(i_cod_coker_inv) # this is cheap
-  elems_in_coker = map(x->i_cod_coker(x),elems)
+  elems_in_coker = map(i_cod_coker, elems)
   cokernel_modulo_elmes,projection = quo(cod_coker,elems_in_coker)
   preimage, emb = kernel(H*i_cod_coker*projection)
 
@@ -1135,8 +1135,8 @@ function simplify_light(M::SubquoModule)
   M_gens = ambient_representatives_generators(M)
   M_rels = relations(M)
 
-  N_rels = unique(filter(x -> !iszero(x), M_rels))
-  N_gens = unique(setdiff(filter(x -> !iszero(x), M_gens), N_rels))
+  N_rels = unique(filter(!is_zero, M_rels))
+  N_gens = unique(setdiff(filter(!is_zero, M_gens), N_rels))
 
   N = length(N_rels) == 0 ? SubquoModule(ambient_free_module(M), N_gens) : SubquoModule(ambient_free_module(M), N_gens, N_rels)
 
@@ -1268,10 +1268,10 @@ function _old_simplify(M::SubquoModule)
   projection_matrix = zero_matrix(R, size(M_generators)[1], size(K_gen)[2]-length(to_delete))
   for i=1:size(M_generators)[1]
     if i in to_delete
-      index = findfirst(x -> x==i, to_delete)
+      index = findfirst(==(i), to_delete)
       assign_row!(projection_matrix, R(-1)*R(inv(coeff(K_gen[corresponding_row[index],i], 1)))*delete_columns(K_gen[corresponding_row[index]:(corresponding_row[index]),:], to_delete), i)
     else
-      standard_unit_vector_index = i-length(filter(x -> x < i, to_delete))
+      standard_unit_vector_index = i-length(filter(<(i), to_delete))
       standard_unit_vector = [j == standard_unit_vector_index ? R(1) : R(0) for j=1:size(projection_matrix)[2]]
       assign_row!(projection_matrix, standard_unit_vector, i)
     end

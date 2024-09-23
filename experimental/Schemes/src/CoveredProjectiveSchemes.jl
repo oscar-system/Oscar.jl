@@ -915,7 +915,7 @@ function _compute_gluing(gd::ProjectiveGluingData)
   return pr
 end
 
-@attr function covered_scheme(P::CoveredProjectiveScheme)
+@attr Any function covered_scheme(P::CoveredProjectiveScheme)
   X = base_scheme(P)
   C = base_covering(P)
   new_patches = Vector{AbsAffineScheme}()
@@ -938,16 +938,14 @@ end
   result_covering = Covering(result_patches, result_gluings, check=false)
 
   # Now we need to add gluings
-  for U in patches(C)
-    for V in patches(C)
-      U === V && continue
-      for UW in affine_charts(parts[U])
-        for VW in affine_charts(parts[V])
-          GGG = LazyGluing(UW, VW, _compute_gluing,
-                            ProjectiveGluingData(U, V, UW, VW, C, P)
-                           )
-          result_gluings[(UW, VW)] = GGG
-        end
+  for (U, V) in keys(gluings(C))
+    U === V && continue
+    for UW in affine_charts(parts[U])
+      for VW in affine_charts(parts[V])
+        GGG = LazyGluing(UW, VW, 
+                         ProjectiveGluingData(U, V, UW, VW, C, P)
+                        )
+        result_gluings[(UW, VW)] = GGG
       end
     end
   end
@@ -991,7 +989,7 @@ end
   return result
 end
 
-@attr function covered_projection_to_base(P::CoveredProjectiveScheme)
+@attr Any function covered_projection_to_base(P::CoveredProjectiveScheme)
   if !has_attribute(P, :covering_projection_to_base)
     covered_scheme(P)
   end

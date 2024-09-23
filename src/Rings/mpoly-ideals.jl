@@ -45,8 +45,9 @@ function ideal(I::IdealGens{T}) where {T <: MPolyRingElem}
   return MPolyIdeal(I)
 end
 
-# TODO: Can we make this the default?
-# (Or maybe remove ideal(...) without a ring completely?)
+function ideal(x::MPolyRingElem{T}) where T <: RingElem
+  return ideal([x])
+end
 
 function ideal(Qxy::MPolyRing{T}, x::MPolyRingElem{T}) where T <: RingElem
   return ideal(Qxy, [x])
@@ -897,26 +898,31 @@ Multivariate polynomial ring in 2 variables over number field graded by
   y -> [1]
 ```
 """
-@attr function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
+@attr Vector{Tuple{typeof(I), typeof(I), ideal_type(change_base_ring(rationals_as_number_field()[1], base_ring(I))[1]), Int64}} function absolute_primary_decomposition(I::MPolyIdeal{<:MPolyRingElem{QQFieldElem}})
   R = base_ring(I)
+  K, _ = rationals_as_number_field()
+  RK, _ = change_base_ring(K, R)
   if is_zero(I)
-     return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(R, zero(R)), 1)]
+    return [(ideal(R, zero(R)), ideal(R, zero(R)), ideal(RK, zero(RK)), 1)]
   end
   (S, d) = Singular.LibPrimdec.absPrimdecGTZ(singular_polynomial_ring(I), singular_generators(I))
+  if isempty(d)
+    return Vector{Tuple{typeof(I), typeof(I), ideal_type(RK), Int64}}()
+  end
   decomp = d[:primary_decomp]
   absprimes = d[:absolute_primes]
   @assert length(decomp) == length(absprimes)
   V =  [(_map_last_var(R, decomp[i][1], 1, one(QQ))) for i in 1:length(decomp)]
   if length(V) == 1 && is_one(gen(V[1], 1))
-    return Tuple{MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{QQMPolyRingElem}, MPolyIdeal{AbstractAlgebra.Generic.MPoly{AbsSimpleNumFieldElem}}, Int64}[]
-  end 
+    return Vector{Tuple{typeof(I), typeof(I), ideal_type(RK), Int64}}()
+  end
   return [(V[i], _map_last_var(R, decomp[i][2], 1, one(QQ)),
          _map_to_ext(R, absprimes[i][1]),
          absprimes[i][2]::Int)
          for i in 1:length(decomp)]
 end
 
-@attr function absolute_primary_decomposition(
+@attr Any function absolute_primary_decomposition(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
@@ -958,9 +964,9 @@ function _map_to_ext(Qx::MPolyRing, I::Oscar.Singular.sideal)
   end
   R, a = number_field(minpoly)
   if is_graded(Qx)
-    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)])
+    Rx, _ = graded_polynomial_ring(R, symbols(Qx), [degree(x) for x = gens(Qx)]; cached = false)
   else
-    Rx, _ = polynomial_ring(R, symbols(Qx))
+    Rx, _ = polynomial_ring(R, symbols(Qx); cached = false)
   end
   return _map_last_var(Rx, I, 2, a)
 end
@@ -1203,7 +1209,7 @@ julia> L = equidimensional_decomposition_weak(I)
  Ideal with 1 generator
 ```
 """
-@attr function equidimensional_decomposition_weak(I::MPolyIdeal)
+@attr Any function equidimensional_decomposition_weak(I::MPolyIdeal)
   R = base_ring(I)
   iszero(I) && return [I]
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
@@ -1229,7 +1235,7 @@ julia> L = equidimensional_decomposition_weak(I)
   return V
 end
 
-@attr function equidimensional_decomposition_weak(
+@attr Any function equidimensional_decomposition_weak(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
@@ -1277,7 +1283,7 @@ julia> L = equidimensional_decomposition_radical(I)
  Ideal (x^4 - x^3*y - x^3 - x^2 - x*y^2 + x*y + x + y^3 + y^2)
 ```
 """
-@attr function equidimensional_decomposition_radical(I::MPolyIdeal)
+@attr Any function equidimensional_decomposition_radical(I::MPolyIdeal)
   R = base_ring(I)
   @req coefficient_ring(R) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
@@ -1304,7 +1310,7 @@ julia> L = equidimensional_decomposition_radical(I)
   return V
 end
 
-@attr function equidimensional_decomposition_radical(
+@attr Any function equidimensional_decomposition_radical(
     I::MPolyIdeal{T}
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
   R = base_ring(I)
@@ -1607,6 +1613,7 @@ false
 ```
 """
 function radical_membership(f::T, I::MPolyIdeal{T}) where T
+  iszero(I) && return iszero(f)
   Sx = singular_polynomial_ring(I)
   return Singular.LibPolylib.rad_con(Sx(f), singular_generators(I)) == 1
 end
@@ -2038,6 +2045,12 @@ function small_generating_set(
   # If we are unlucky, mstd can even produce a larger generating set
   # than the original one!!!
   return_value = filter(!iszero, (R).(gens(sing_min)))
+
+  # The following is a common phenomenon which we can not fully explain yet. So far nothing but a 
+  # restart really seems to help, unfortunately.
+  if is_zero(length(return_value))
+    !is_zero(I) && error("singular crashed in the background; please restart your session!")
+  end
   if length(return_value) <= ngens(I)
     return return_value
   else
@@ -2055,23 +2068,25 @@ small_generating_set(I::MPolyIdeal{<:MPolyDecRingElem}; algorithm::Symbol=:simpl
 ################################################################################
 #returns Pluecker ideal in ring with standard grading
 function grassmann_pluecker_ideal(subspace_dimension::Int, ambient_dimension::Int)
-  I = convert(MPolyIdeal{QQMPolyRingElem},
-              Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
-  base, _ = grade(base_ring(I))
-  o = degrevlex(base)
-
-  return ideal(IdealGens(base,base.(gens(I)), o;
-                   keep_ordering=true,
-                   isReduced=true,
-                   isGB=true))
+  I = convert(MPolyIdeal{QQMPolyRingElem}, 
+	      Polymake.ideal.pluecker_ideal(subspace_dimension, ambient_dimension))
+  base = base_ring(I)
+  base2, x = graded_polynomial_ring(coefficient_ring(base), :x=> sort(subsets(ambient_dimension, subspace_dimension)))
+  h = hom(base, base2, x)
+  o = degrevlex(base2)
+  return ideal(IdealGens(base2, h.(gens(I)), o;
+                keep_ordering=true,
+                isReduced=true,
+                isGB=true))
 end
 
 @doc raw"""
     grassmann_pluecker_ideal([ring::MPolyRing,] subspace_dimension::Int, ambient_dimension::Int)
 
-Given a (possibly graded) ring, an ambient dimension, and a subspace dimension, return the ideal in the ring
+Given a (possibly graded) ring, an ambient dimension $n$ and a subspace dimension $d$, return the ideal in the ring
 generated by the Plücker relations. If the input ring is not graded, return the ideal in the ring with the standard grading.
-If the ring is not specified return the ideal in a multivariate polynomial ring over the rationals with the standard grading.
+If the ring is not specified return the ideal in a multivariate polynomial ring over the rationals with variables indexed by
+elements of ${[n]\choose d}$ with the standard grading.
 
 The Grassmann-Plücker ideal is the homogeneous ideal generated by the relations defined by 
 the Plücker Embedding of the Grassmannian. That is given Gr$(k, n)$ the Moduli 
@@ -2083,7 +2098,7 @@ are given by all $d \times d$ minors of a $d \times n$ matrix. For the algorithm
 ```jldoctest
 julia> grassmann_pluecker_ideal(2, 4)
 Ideal generated by
-  x[1]*x[6] - x[2]*x[5] + x[3]*x[4]
+  x[[1, 2]]*x[[3, 4]] - x[[1, 3]]*x[[2, 4]] + x[[1, 4]]*x[[2, 3]]
 
 julia> R, x = polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
 (Multivariate polynomial ring in 6 variables over ZZ/(7), zzModMPolyRingElem[x[1, 1] x[1, 2] x[1, 3]; x[2, 1] x[2, 2] x[2, 3]])
@@ -2104,7 +2119,7 @@ function grassmann_pluecker_ideal(ring::MPolyRing,
     return coeff_ring(numerator(c))
   end
   if !is_graded(ring)
-	 ring, _ = grade(ring)
+    ring, _ = grade(ring)
   end
   h = hom(base_ring(I), ring, coeffmap, gens(ring))
   converted_generators = elem_type(ring)[h(g) for g in groebner_basis(I; ordering = degrevlex(base_ring(I)))]
@@ -2133,9 +2148,9 @@ end
 ################################################################################
 
 _pluecker_sgn(a::Vector{Int}, b::Vector{Int}, t::Int)::Int =
- iseven(count(z -> z > t, a) + count(z -> z < t, b)) ? 1 : -1
+ iseven(count(>(t), a) + count(<(t), b)) ? 1 : -1
 @doc raw"""
-    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int},n::Int; minimal::Bool=true)
+    flag_pluecker_ideal(F::Union{Field, MPolyRing}, dimensions::Vector{Int}, n::Int; minimal::Bool=true)
 
 Returns the generators of the defining ideal for the complete flag variety 
 $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
@@ -2143,11 +2158,12 @@ $\text{Fl}(\mathbb{F}, (d_1,\dots,d_k), n)$, where $(d_1,\dots,d_k)
 set of this ideal corresponds to the space of $k$-step flags of linear
 subspaces $V_1\subset\dots\subset V_k$ in $\mathbb{F}^n$, where
 $\text{dim}(V_j) = d_{j}$.  You can obtain the generators for the
-$\emph{complete flag variety}$ of $\mathbb{F}^{n}$ by taking `dimensions`
+*complete flag variety* of $\mathbb{F}^{n}$ by taking `dimensions`
 $=(1,\dots,n-1)$ and `n`$=n$.  We remark that evaluating for `F = QQ` yields
 the same set of generators as any field of characteristic $0$.
 
-The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$, with $\Sum^{k}_{j=1}{n\choose d_{j}$ variables.  
+The first parameter can either be $\mathbb{F}$, or a polynomial ring over $\mathbb{F}$,
+with $\sum^{k}_{j=1}{n\choose d_j}$ variables.
 The parameter `dimensions` needs to be a vector of distinct increasing entries.
 Evaluating this function with the parameter `minimal = true` returns the reduced Gröbner basis for
 the flag Plücker ideal with respect to the degree reverse lexicographical order. For more details, see Theorem 14.6 [MS05](@cite)

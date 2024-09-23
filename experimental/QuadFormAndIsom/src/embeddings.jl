@@ -1671,7 +1671,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   # Requirements for [BH23]
   same_ambient = ambient_space(lattice(A)) === ambient_space(lattice(B)) === ambient_space(lattice(C))
   if check
-    @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
+    @req all(is_integral, [A, B, C]) "Underlying lattices must be integral"
     chiA = minimal_polynomial(A)
     chiB = minimal_polynomial(parent(chiA), isometry(B))
     @req gcd(chiA, chiB) == 1 "Minimal irreducible polynomials must be relatively coprime"
@@ -2028,12 +2028,12 @@ function _glue_stabilizers(phi::TorQuadModuleMap,
   OqA = domain(OqAinOD)
   imA, _ = image(actA)
   kerA = elem_type(OD)[OqAinOD(x) for x in gens(kernel(actA)[1])]
-  push!(kerA, OqAinOD(one(OqA)))
+  push!(kerA, one(OD))
 
   OqB = domain(OqBinOD)
   imB, _ = image(actB)
   kerB = elem_type(OD)[OqBinOD(x) for x in gens(kernel(actB)[1])]
-  push!(kerB, OqBinOD(one(OqB)))
+  push!(kerB, one(OD))
 
   ext = domain(graph)
   perp, j = orthogonal_submodule(codomain(graph), ext)

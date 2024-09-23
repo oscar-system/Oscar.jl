@@ -164,9 +164,9 @@
   f = hom(Qix, Qi, h, [i, 0])
   fh = @inferred f * h
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
 end
 
 @testset "coefficient maps" begin

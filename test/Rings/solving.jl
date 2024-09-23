@@ -41,7 +41,7 @@
 
     # issue 1743
     R, (x1, x2) = polynomial_ring(QQ, ["x1", "x2"])
-    I = ideal(R, [x1 + ZZRingElem(2)^100, x2 + ZZRingElem(2)^100])
+    I = ideal(R, [x1 + ZZ(2)^100, x2 + ZZ(2)^100])
     sols = Vector{QQFieldElem}[[-1267650600228229401496703205376, -1267650600228229401496703205376]]
     @test sols == real_solutions(I)[1]
 end

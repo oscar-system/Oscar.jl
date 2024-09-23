@@ -29,7 +29,7 @@ function _expand_coefficient_field(R::MPolyRing{T}; rec_depth=0) where {T<:Union
   K = coefficient_ring(R)
   alpha = first(gens(K))
   kk = base_field(K)
-  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)")], symbols(R)), cached=false)
+  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)")], symbols(R)); cached = false)
   theta = first(gens(P))
   f = defining_polynomial(K)
   d = degree(f)
@@ -47,7 +47,7 @@ function _expand_coefficient_field(
   alpha = gens(K)
   r = length(alpha)
   kk = base_field(K)
-  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)_$i") for i in 1:r], symbols(R)), cached=false)
+  P, _ = polynomial_ring(kk, vcat([Symbol("θ_$(rec_depth)_$i") for i in 1:r], symbols(R)); cached = false)
   theta = gens(P)[1:r]
   f = defining_polynomials(K)
   d = degree.(f)
@@ -130,7 +130,7 @@ function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; re
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
-@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -139,7 +139,7 @@ end
 end
 
 
-@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -147,7 +147,7 @@ end
   return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
 end
 
-@attr function equidimensional_hull(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -155,7 +155,7 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -163,7 +163,7 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function absolute_primary_decomposition(I::MPolyQuoIdeal)
+@attr Any function absolute_primary_decomposition(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -195,7 +195,7 @@ end
 function change_base_ring(phi::Any, R::MPolyRing)
   kk = coefficient_ring(R)
   L = parent(phi(zero(kk)))
-  RR, _ = polynomial_ring(L, symbols(R))
+  RR, _ = polynomial_ring(L, symbols(R); cached = false)
   psi = hom(R, RR, phi, gens(RR); check=false)
   return RR, psi
 end

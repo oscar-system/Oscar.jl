@@ -22,3 +22,6 @@ include("Morphisms/linear_strands.jl")
 include("Morphisms/methods.jl")
 include("Objects/Methods.jl")
 include("Exports.jl")
+
+include("base_change_types.jl")
+include("base_change.jl")

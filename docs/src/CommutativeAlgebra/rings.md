@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-  using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Creating Multivariate Rings
@@ -26,10 +24,12 @@ of the coefficient ring of the polynomial ring.
 The basic constructor below allows one to build multivariate polynomial rings:
 
 ```@julia
-polynomial_ring(C::Ring, V::Vector{String}; cached::Bool = true)
+polynomial_ring(C::Ring, xs::AbstractVector{<:VarName}; cached::Bool = true)
 ```
 
-Its return value is a tuple, say `R, vars`, consisting of a polynomial ring `R` with coefficient ring `C` and a vector `vars` of generators (variables) which print according to the strings in the vector `V` .
+Given a ring `C` and a vector `xs` of  Strings, Symbols, or Characters, return 
+a tuple `R, vars`, say, which consists of a polynomial ring `R` with coefficient ring `C`
+and a vector `vars` of generators (variables) which print according to the entries of `xs`.
 
 !!! note
     Caching is used to ensure that a given ring constructed from given parameters is unique in the system. For example, there is only one ring of multivariate polynomials over  $\mathbb{Z}$ with variables printing as x, y, z.
@@ -54,6 +54,19 @@ julia> T, _ = polynomial_ring(ZZ, ["x", "y", "z"])
 
 julia> R === S === T
 true
+
+```
+
+```jldoctest
+julia> R1, _ = polynomial_ring(ZZ, [:x, :y, :z]);
+
+julia> R2, _ = polynomial_ring(ZZ, ["x", "y", "z"]);
+
+julia> R3, _ = polynomial_ring(ZZ, ['x', 'y', 'z']);
+
+julia> R1 === R2 === R3
+true
+
 ```
 
 ```jldoctest
@@ -153,7 +166,7 @@ julia> F = GF(3)
 Prime field of characteristic 3
 
 julia> T, t = polynomial_ring(F, "t")
-(Univariate polynomial ring in t over GF(3), t)
+(Univariate polynomial ring in t over F, t)
 
 julia> K, a = finite_field(t^2 + 1, "a")
 (Finite field of degree 2 and characteristic 3, a)
@@ -405,7 +418,7 @@ julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> B = MPolyBuildCtx(R)
-Builder for an element of multivariate polynomial ring
+Builder for an element of R
 
 julia> for i = 1:5 push_term!(B, QQ(i), [i, i-1]) end
 

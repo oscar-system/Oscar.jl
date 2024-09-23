@@ -26,7 +26,7 @@ Int8[6, 0, 2, 3]
 """
 function weak_composition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUnion}
   if check
-    @req all(x -> x >= 0, parts) "The integers must be non-negative"
+    @req all(>=(0), parts) "The integers must be non-negative"
   end
   return WeakComposition{T}(parts)
 end
@@ -138,7 +138,7 @@ function Base.iterate(W::WeakCompositions{T}, state::Nothing = nothing) where T
   return weak_composition(c, check = false), s
 end
 
-function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
+@inline function Base.iterate(W::WeakCompositions{T}, s::Vector{T}) where T
   n = base(W)
   k = parts(W)
   if k == 0 || s[k] == n

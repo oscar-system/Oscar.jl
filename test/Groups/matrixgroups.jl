@@ -24,7 +24,7 @@
 #   end
 #   xg=GAP.Obj(xg)
 
-   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive=true)
+   xg = GapObj([[G.ring_iso(xo[i,j]) for j in 1:3] for i in 1:3]; recursive = true)
    @test map_entries(G.ring_iso, xo) == xg
    @test Oscar.preimage_matrix(G.ring_iso, xg) == xo
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
@@ -133,7 +133,7 @@ end
        @test g(g\x) == x
      end
 
-     H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive=true))
+     H = GAP.Globals.Group(GAP.Obj(gens(G0); recursive = true))
      f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
@@ -150,6 +150,22 @@ end
      @test characteristic(base_ring(G7)) == 7
      G3, g = Oscar.isomorphic_group_over_finite_field(G0, min_char = 3)
      @test G === G3
+   end
+end
+
+@testset "small_generating_set" begin
+   inputs = [
+     # finite group over an infinite base domain
+     (matrix(QQ, [0 1; 1 0]), matrix(QQ, [0 1; -1 -1])),
+ #   # infinite group
+ #   (matrix(QQ, [0 -1; 1 0]), matrix(QQ, [0 1; -1 -1])),
+#TODO: do not run into a GAP error message, see
+# https://github.com/gap-system/gap/issues/5790
+   ]
+
+   for (x, y) in inputs
+     G = matrix_group([x, y, x*y, y*x])
+     @test length(small_generating_set(G)) < length(gens(G))
    end
 end
 
@@ -447,7 +463,7 @@ end
   end
 
   F = GF(2)
-  mp = MapFromFunc(ZZ, F, x -> F(x))
+  mp = MapFromFunc(ZZ, F, F)
   red = map_entries(mp, G)
   @test red == map_entries(F, G)
   red = map_entries(mp, T)
@@ -657,7 +673,7 @@ end
       @test parent(s)==G
       @test parent(u)==G
       @test is_coprime(order(s),3)
-      @test isone(u) || is_power(order(u))[2]==3
+      @test isone(u) || is_perfect_power_with_data(order(u))[2]==3
       @test is_semisimple(s)
       @test is_unipotent(u)
       @test s*u==G(x)

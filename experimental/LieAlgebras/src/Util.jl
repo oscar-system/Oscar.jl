@@ -1,12 +1,12 @@
 """
-    coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T}
+    Oscar.LieAlgebras.coefficient_vector(M::MatElem{T}, basis::Vector{<:MatElem{T}}) where {T}
 
 Return the vector of coefficients of the matrix `M` in the basis `basis`.
 Requires that `basis` is linearly independent and that `M` lies in the span of `basis`.
 
 # Examples
-```jldoctest; setup = :(using Oscar.LieAlgebras)
-julia> coefficient_vector(matrix(QQ, [1 2;3 4]), [matrix(QQ, [1 0;0 0]), matrix(QQ, [0 1;0 2]), matrix(QQ, [0 0;-1 0])])
+```jldoctest
+julia> Oscar.LieAlgebras.coefficient_vector(matrix(QQ, [1 2;3 4]), [matrix(QQ, [1 0;0 0]), matrix(QQ, [0 1;0 2]), matrix(QQ, [0 0;-1 0])])
 [1   2   -3]
 ```
 """

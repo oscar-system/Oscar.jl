@@ -55,7 +55,6 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
   allow_unicode,
   base_ring,
   canonical_unit,
@@ -75,6 +74,7 @@ import AbstractAlgebra:
   gen,
   Generic,
   Generic.finish,
+  Generic.interreduce!,
   Generic.MPolyBuildCtx,
   Generic.MPolyCoeffs,
   Generic.MPolyExponentVectors,
@@ -160,6 +160,8 @@ import Nemo:
   ZZRing,
   ZZRingElem
 
+# By default we import everything exported by Hecke, and then also re-export
+# it -- with the exception of identifiers listed in `exclude_hecke` below:
 let exclude_hecke = [
     :change_uniformizer,
     :coefficients,
@@ -194,8 +196,7 @@ import Hecke:
   IntegerUnion,
   MapHeader,
   multiplicative_jordan_decomposition,
-  primitive_element,
-  QQBar
+  primitive_element
 
 # temporary workaround, see https://github.com/thofma/Hecke.jl/pull/1224
 if !isdefined(Hecke, :torsion_free_rank)
@@ -204,10 +205,3 @@ if !isdefined(Hecke, :torsion_free_rank)
 end
 
 import cohomCalg_jll
-
-import Nemo: is_cyclo_type
-import Nemo: is_maxreal_type
-import Nemo: ZZModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: zzModRing  # FIXME: remove if/once Nemo exports this
-import Nemo: FpField  # FIXME: remove if/once Nemo exports this
-import Nemo: fpField  # FIXME: remove if/once Nemo exports this

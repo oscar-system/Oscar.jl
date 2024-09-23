@@ -244,7 +244,7 @@ The first return value is the basis of the ambient space of `L`.
 The second consists of additional generators for `L` coming from torsion sections.
 The third is ``L``.
 """
-@attr function algebraic_lattice(X::EllipticSurface)
+@attr Any function algebraic_lattice(X::EllipticSurface)
   return _algebraic_lattice(X,X.MWL)
 end
 
@@ -335,7 +335,7 @@ end
 
 Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
 """
-@attr function mordell_weil_torsion(S::EllipticSurface)
+@attr Any function mordell_weil_torsion(S::EllipticSurface)
   E = generic_fiber(S)
   O = E([0,1,0])
   N = trivial_lattice(S)[2]
@@ -347,10 +347,11 @@ Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
     end
     r = 1
     i = 0
+    dp = typeof(O)[]
     while true
       i = i+1
       @vprint :EllipticSurface 2 "computing $(p^i)-torsion"
-      global dp = division_points(O, p^i)
+      dp = division_points(O, p^i)
       if length(dp) == r
         break
       end
@@ -438,7 +439,7 @@ function weierstrass_model(X::EllipticSurface)
   a = [numerator(a)(t) for a in a]
   (a1,a2,a3,a4,a6) = a
   ft = y^2  + a1*x*y + a3*y - (x^3 + a2*x^2 + a4*x+a6)
-  I = IdealSheaf(P, U, [ft])
+  I = IdealSheaf(P, U, [ft]; check=false)
 
   inc_S = CoveredClosedEmbedding(P, I)
   Scov = domain(inc_S)  # The ADE singular elliptic K3 surface
@@ -533,7 +534,7 @@ function _separate_singularities!(X::EllipticSurface)
   # no extra singularities in the X = 1 chart
   # therefore we just exclude all the singularities visible here
   for W in [P[1][2],P[1][5]]
-    local Ising = I_sing_P(W)
+    Ising = I_sing_P(W)
     if isone(Ising)
       push!(refined_charts, W)
       continue
@@ -728,7 +729,7 @@ Internal function. Returns a list consisting of:
 - gram matrix
 - fiber_components without multiplicities
 """
-@attr function _trivial_lattice(S::EllipticSurface)
+@attr Any function _trivial_lattice(S::EllipticSurface)
   #=
   inc_Y = S.inc_Y
   X = codomain(inc_Y)
@@ -849,9 +850,10 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
   @req all(is_prime(i) for i in f) "not a vector of prime divisors"
   f = copy(f)
   O = components(zero_section(S))[1]
+  local f0
   for (i,D) in enumerate(f)
     if !isone(O+components(D)[1])
-      global f0 = D
+      f0 = D
       deleteat!(f,i)
       break
     end
@@ -948,15 +950,46 @@ end
 
 Return the fiber components of the fiber over the point $P \in C$.
 """
-function fiber_components(S::EllipticSurface, P)
+function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors)
   @vprint :EllipticSurface 2 "computing fiber components over $(P)\n"
-  F = fiber_cartier(S, P)
-  @vprint :EllipticSurface 2 "decomposing fiber   "
-  comp = maximal_associated_points(ideal_sheaf(F))
-  @vprint :EllipticSurface 2 "done decomposing fiber\n"
-  return [weil_divisor(c, check=false) for c in comp]
+  P = base_ring(S).(P)
+  W = codomain(S.inc_Weierstrass)
+  Fcart = fiber_cartier(S, P)
+  if isone(P[2])
+    U = default_covering(W)[1]
+    (x,y,t) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(t - P[1]))
+  elseif isone(P[1])
+    U = default_covering(W)[4]
+    (x,y,s) = coordinates(U)
+    F = PrimeIdealSheafFromChart(W, U, ideal(s - P[2]))
+  end 
+  FF = ideal_sheaf(Fcart)
+  EE = exceptional_divisors(S)
+  EP = filter(E->issubset(FF, E), EE)
+  for bl in S.ambient_blowups
+    F = strict_transform(bl, F)
+  end
+  F = pullback(S.inc_Y, F)
+  F = weil_divisor(F, ZZ)
+  fiber_components = [weil_divisor(E, ZZ) for E in EP]
+  push!(fiber_components, F)
+  return fiber_components
 end
-
+  
+@attr Any function exceptional_divisors(S::EllipticSurface)
+  PP = AbsIdealSheaf[]
+  @vprintln :EllipticSurface 2 "computing exceptional divisors"
+  for E in S.ambient_exceptionals
+    @vprintln :EllipticSurface 4 "decomposing divisor "
+    mp = maximal_associated_points(ideal_sheaf(pullback(S.inc_Y,E));
+                                   use_decomposition_info=true)
+    append!(PP, mp)
+  end 
+  @vprintln :EllipticSurface 3 "done"
+  return PP
+end
+  
 function fiber(X::EllipticSurface)
   b, pt, F = irreducible_fiber(X)
   if b
@@ -995,27 +1028,26 @@ function irreducible_fiber(S::EllipticSurface)
   sing = reduce(append!,r, init=[])
   pt = k.([0,0]) # initialize
   found = false
-  if degree(d) >= 12*euler_characteristic(S) - 1  # irreducible at infinity?
-    pt = k.([1, 0])
-    found = true
-  else
-    if is_finite(k)
-      for i in k
-        if !(i in sing)  # true if the fiber over [i,1] is irreducible
-          pt = k.([i,1])
-          found = true
-          break
-        end
+  if is_finite(k)
+    for i in k
+      if !(i in sing)  # true if the fiber over [i,1] is irreducible
+        pt = k.([i,1])
+        found = true
+        break
       end
-    else
-      i = k(0)
-      while true
-        i = i+1
-        if !(i in sing)
-          pt = k.([i,1])
-          found = true
-          break
-        end
+    end
+    if !found && (degree(d) >= 12*euler_characteristic(S) - 1)  # irreducible at infinity?
+      pt = k.([1, 0])
+      found = true
+    end
+  else
+    i = k(0)
+    while true
+      i = i+1
+      if !(i in sing)
+        pt = k.([i,1])
+        found = true
+        break
       end
     end
   end
@@ -1074,7 +1106,7 @@ end
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
+@attr Any zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
 
 ################################################################################
 #
@@ -1317,6 +1349,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   E = generic_fiber(X)
   basisNS, tors, NS = algebraic_lattice(X)
   V = ambient_space(NS)
+  @req F in algebraic_lattice(X)[3] "not in the algebraic lattice"
   @req inner_product(V, F, F)==0 "not an isotropic divisor"
   @req euler_characteristic(X) == 2 "not a K3 surface"
   # how to give an ample divisor automagically in general?
@@ -1483,6 +1516,12 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
+@doc raw"""
+    basis_representation(X::EllipticSurface, D::WeilDivisor)
+
+Return the vector representing the numerical class of `D` 
+with respect to the basis of the ambient space of `algebraic_lattice(X)`.
+"""
 function basis_representation(X::EllipticSurface, D::WeilDivisor)
   basis_ambient,_, NS = algebraic_lattice(X)
   G = gram_matrix(ambient_space(NS))
@@ -1490,6 +1529,7 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   for i in 1:n
+    @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
     v[i] = intersect(basis_ambient[i], D)
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"
@@ -1589,12 +1629,12 @@ degree at most ``4`` to Weierstrass form, apply Tate's algorithm and
 return the corresponding relatively minimal elliptic surface 
 as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
+function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem}; minimize=true)
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
   g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  Y2, phi1 = _elliptic_surface_with_trafo(g2)
+  Y2, phi1 = _elliptic_surface_with_trafo(g2; minimize)
   return Y2, phi2 * phi1  
 end
 
@@ -1619,7 +1659,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     new_trans = MapFromFunc(F, F, f->begin
                                 switch_num = switch(numerator(f))
                                 switch_den = switch(denominator(f))
-                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
+                                interm_res = trans(F(switch_num))//trans(F(switch_den))
                                 num = numerator(interm_res)
                                 den = denominator(interm_res)
                                 switch(num)//switch(den)
@@ -1628,6 +1668,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     return switch(g_trans), new_trans
   end
 
+  g = inv(coeff(g,[0,2]))*g # normalise g
   kk = coefficient_ring(R)
   kkx, X = polynomial_ring(kk, :x, cached=false)
   kkxy, Y = polynomial_ring(kkx, :y, cached=false)
@@ -1640,11 +1681,19 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   @assert all(h->degree(h)<=4, coefficients(G)) "input polynomial must be of degree <= 4 in x"
   @assert iszero(coefficients(G)[1]) "coefficient of linear term in y must be zero"
   @assert isone(coefficients(G)[2]) "leading coefficient in y must be one"
+  
+  if length(P) == 3 && isone(P[3])
+      P = P[1:2]
+  end 
+      
 
-  length(P) == 2 || error("need precisely two point coordinates")
-  (px, py) = P
+  if length(P) == 2
+    @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
+    (px, py) = P
+  else 
+    px = P[1]
+  end
   #    assert g.subs({x:px,y:py})==0
-  @assert iszero(evaluate(g, P)) "point does not lie on the hypersurface"
   gx = -evaluate(g, [X + px, zero(X)])
   coeff_gx = collect(coefficients(gx))
   A = coeff(gx, 4)
@@ -1653,7 +1702,16 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
   D = coeff(gx, 1)
   E = coeff(gx, 0)
   #E, D, C, B, A = coeff_gx
-  if !iszero(E)
+  if length(P)==3
+    @req all(h->degree(h)<=3, coefficients(G)) "infinity (0:1:0) is not a point of this hypersurface"
+    # y^2 = B*x^3+C*x^2+C*x+D
+    x1 = F(inv(B)*x)
+    y1 = F(inv(B)*y)
+    trans = MapFromFunc(F, F, f->evaluate(numerator(f), [x1, y1])//evaluate(denominator(f), [x1, y1]))
+    f_trans = B^2*trans(F(g))
+    result = numerator(B^2*f_trans)
+    return result, trans
+  elseif !iszero(E)
     b = py
     a4, a3, a2, a1, a0 = A,B,C,D,E
     A = b
@@ -2000,10 +2058,12 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   composit = morphism_from_rational_functions(X, BY, UX, UBY, [fracs[3]], check=false)
 
   lat_X = algebraic_lattice(X)[1]
-  if !is_prime(lat_X[1])
+  if !has_attribute(lat_X[1], :is_prime)
     ex, pt, F = irreducible_fiber(X)
     ex || error("no irreducible fiber found; case not implemented")
     lat_X[1] = weil_divisor(F)
+    set_attribute!(lat_X[1], :is_prime=>true)
+    set_attribute!(first(components(lat_X[1])), :is_prime=>true)
   end
 
   # We first estimate for every element in the lattic of X whether its image 
@@ -2013,7 +2073,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   for D in lat_X
     @assert length(components(D)) == 1 "divisors in the algebraic lattice must be prime"
     I = first(components(D))
-    @assert is_prime(I)
+    @assert has_is_prime(I) && is_prime(I) "ideal sheaf must be known to be prime"
     pre_select[D] = _pushforward_prime_divisor(composit, I)
   end
 
@@ -2284,7 +2344,7 @@ end
 # The transformation is a morphism from the fraction field of the 
 # parent of g to the fraction field of the `ambient_coordinate_ring` 
 # of the `weierstrass_chart` of the resulting surface.
-function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem})
+function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic.FracFieldElem}; minimize::Bool=true)
   x, y = gens(parent(g))
   E = elliptic_curve(g, x, y)
   kkt = base_field(E)
@@ -2294,11 +2354,12 @@ function _elliptic_surface_with_trafo(g::MPolyRingElem{<:AbstractAlgebra.Generic
 
   # The following three commands won't work unless we convert to a rational_function_field
   EE = base_change(x->evaluate(x, t), E)
-
-  EE = tates_algorithm_global(EE)
-  EE, _ = short_weierstrass_model(EE)
-  EE, _ = integral_model(EE)
-
+  if minimize
+    EE = tates_algorithm_global(EE)
+    EE, _ = short_weierstrass_model(EE)
+    EE, _ = integral_model(EE)
+  end
+  
   # ...and back.
   E2 = base_change(x->evaluate(x, gen(kkt)), EE)
 

@@ -60,11 +60,11 @@ end
   dual_basis = Oscar.koszul_duals(gens(Fwedge1))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge1))]
   Fwedge5, _ = Oscar.exterior_power(F, 5)
-  @test all(x->x==Fwedge5[1], tmp)
+  @test all(==(Fwedge5[1]), tmp)
 
   dual_basis = Oscar.koszul_duals(gens(Fwedge2))
   tmp = [Oscar.wedge(u, v) for (u, v) in zip(dual_basis, gens(Fwedge2))]
-  @test all(x->x==Fwedge5[1], tmp)
+  @test all(==(Fwedge5[1]), tmp)
 end
 
 @testset "induced maps on exterior powers" begin

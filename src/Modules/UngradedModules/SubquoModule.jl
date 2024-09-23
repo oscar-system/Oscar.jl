@@ -157,7 +157,7 @@ end
 Construct the subquotient with ambient free module `F`, generators `g`
 and relations `q`.
 """
-function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:RingElem} 
+function SubquoModule(F::FreeMod{T}, g::Vector{FreeModElem{T}}, q::Vector{FreeModElem{T}}) where {T<:AdmissibleModuleFPRingElem} 
   return SubquoModule(SubModuleOfFreeModule(F, g), SubModuleOfFreeModule(F, q))
 end
 
@@ -1726,6 +1726,6 @@ function (==)(F::FreeMod, G::SubquoModule)
   if isdefined(G, :quo) 
     iszero(G.quo) || return false
   end
-  all(e -> e in G, gens(F)) || return false
+  all(in(G), gens(F)) || return false
   return true
 end

@@ -116,8 +116,8 @@ end
 
   # Test disabled because it could not be reliably reproduced and also 
   # it is mathematical not rigorous
-  # @test length(findall(x->x==r1, L)) == 1
-  # @test length(findall(x->x==r2, L)) == 1
+  # @test length(findall(==(r1), L)) == 1
+  # @test length(findall(==(r2), L)) == 1
   @test ideal(parent(r1), L) == ideal(parent(r1), [r1, r2])
 
   @test issubset(ideal(S, [a]), ideal(S, [a]))
@@ -208,13 +208,25 @@ end
   # absolute_primary_decomposition
   R,(x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
   I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
-  d = absolute_primary_decomposition(I)
+  d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 3
 
   R,(x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
-  d = absolute_primary_decomposition(I)
+  d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 5
+
+  d = @inferred absolute_primary_decomposition(ideal(R()))
+  @test length(d) == 1
+
+  d = @inferred absolute_primary_decomposition(ideal(R(1)))
+  @test isempty(d)
+
+  # Issue 4039
+  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  I = ideal(R, [x + 1, y + 1, y])
+  d = @inferred absolute_primary_decomposition(I)
+  @test isempty(d)
 
   # is_prime
   R, (x, y) = polynomial_ring(QQ, ["x", "y"])
@@ -300,9 +312,18 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-    R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
-    test_ideal =ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
-    @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
+  R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
+  test_ideal =ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
+  @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
+
+  # Issue #4018
+  I = grassmann_pluecker_ideal(2, 5)
+  @test degree(I) == 5
+  @test dim(I) == 7
+  R, x = graded_polynomial_ring(GF(7), 10, "x")
+  I = grassmann_pluecker_ideal(R, 2, 5)
+  @test degree(I) == 5
+  @test dim(I) == 7
 end
 
 @testset "IdealGens" begin
@@ -574,3 +595,10 @@ end
     @test default_ordering(T) == old_default
   end
 end
+
+@testset "Issue 3992" begin
+  P, (x, y) = QQ[:x, :y]
+  I = ideal(P, elem_type(P)[])
+  @test !radical_membership(x, I)
+end
+

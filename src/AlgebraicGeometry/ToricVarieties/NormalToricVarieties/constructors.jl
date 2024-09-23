@@ -179,6 +179,17 @@ end
 
 
 ######################
+# Equality
+######################
+
+function Base.:(==)(tv1::NormalToricVariety, tv2::NormalToricVariety)
+  tv1 === tv2 && return true
+  error("Equality of normal toric varieties is computationally very demanding. More details in the documentation.")
+end
+
+
+
+######################
 # Display
 ######################
 

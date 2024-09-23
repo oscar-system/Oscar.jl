@@ -190,7 +190,7 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
     _rC = map(x->mG(mF(x)), rC)
     _rS = map(x->mp(mH(x)), rS)
     @assert Set(_rC) == Set(_rS)
-    prm = [findfirst(x->x == y, _rS) for y = _rC]
+    prm = [findfirst(==(y), _rS) for y in _rC]
     pr = symmetric_group(length(prm))(prm)
 
     # need to verify the starting group
@@ -283,7 +283,7 @@ function galois_group(FF::Generic.FunctionField{QQFieldElem}; overC::Bool = fals
                         #      (might be pointless: if U descents, then
                         #      all conjugates also do, hence this is automatic)
                         #      (it might save a cheap evaluation)
-      descent(C, C.G, F, one(C.G), grp_id = x->order(x))
+      descent(C, C.G, F, one(C.G), grp_id=order)
       return C.G, C, fixed_field(S, C.G^pr)
     end
     return C.G, C
@@ -567,7 +567,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
 
     local ff
     try
-      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
+      @vtime :Subfields 2 ff = interpolate(polynomial_ring(F; cached=false)[1], R, [con[findfirst(x->i in x, bs)] for i=1:length(R)])   # should be the embedding poly
     catch e
       @show e
       return nothing
@@ -582,7 +582,7 @@ function is_subfield(FF::Generic.FunctionField, C::GaloisCtx, bs::Vector{Vector{
     ff = (ff*derivative(fff)) % fff
     # step 3: lift (and put the denominator back in)
     em = map(x->isinteger(C, B_emb, x), coefficients(ff))
-    if any(x->!x[1], em)
+    if any(!first, em)
       return nothing
     end
     emb = parent(defining_polynomial(FF))([x[2](gen(base_ring(FF))) for x in em])(gen(FF)) // derivative(defining_polynomial(FF))(gen(FF))
@@ -652,7 +652,7 @@ function isinteger(G::GaloisCtx, B::BoundRingElem{Tuple{ZZRingElem, Int, QQField
     
     if c.length < 2 || all(x->iszero(coeff(c, x)), 1:c.length-1)
       cc = coeff(c, 0)
-      l = Hecke.mod_sym(lift(cc), pr^precision(cc))
+      l = Hecke.mod_sym(lift(ZZ, cc), pr^precision(cc))
       if abs(l) > pr^p[1]
         return false, x
       end

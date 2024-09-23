@@ -196,7 +196,7 @@ Return the normalization of the reduced scheme ``X``.
 # Output:
 A triple ``(Y, \nu\colon Y \to X, \mathrm{injs})`` where ``Y`` is a
 normal scheme, ``\nu`` is the normalization, and ``\mathrm{injs}`` is a
-vector of inclusion morphisms ``ı_i\co Y_i \to Y``, where ``Y_i`` are
+vector of inclusion morphisms ``ı_i\colon Y_i \to Y``, where ``Y_i`` are
 the connected components of the scheme ``Y``.
 See [Tag 0CDV](https://stacks.math.columbia.edu/tag/0CDV) in
 [Stacks](@cite) or Definition 7.5.1 in [Liu06](@cite) for normalization
@@ -333,11 +333,11 @@ function _normalization_integral(
   data = NormalizationIntegralGluingData(G, X_1_norm_output, X_2_norm_output, check)
   X_1_norm = X_1_norm_output[1]
   X_2_norm = X_2_norm_output[1]
-  return LazyGluing(X_1_norm, X_2_norm, _compute_normalization_integral, data)
+  return LazyGluing(X_1_norm, X_2_norm, data)
 end
 
 # Warning: assume patches irreducible
-function _compute_normalization_integral(
+function _compute_gluing(
     data::NormalizationIntegralGluingData
   )
   # Initialize the variables

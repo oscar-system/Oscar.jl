@@ -2,6 +2,22 @@ using JSON3
 import Base.haskey
 
 ################################################################################
+# Serializers
+abstract type OscarSerializer end
+
+struct JSONSerializer <: OscarSerializer end
+
+struct IPCSerializer <: OscarSerializer end
+
+abstract type MultiFileSerializer <: OscarSerializer end
+
+struct LPSerializer <: MultiFileSerializer
+  basepath::String
+end
+
+basepath(serializer::MultiFileSerializer) = serializer.basepath
+
+################################################################################
 # (de)Serializer States
 
 # this struct is used to keep a global state of serialized objs during a session
@@ -23,14 +39,15 @@ function reset_global_serializer_state()
 end
 
 # struct which tracks state for (de)serialization
-mutable struct SerializerState
-  # dict to track already serialized objects
+mutable struct SerializerState{T <: OscarSerializer}
+  serializer::T
   new_level_entry::Bool
   # UUIDs that point to the objs in the global state,
   # ideally this would be an ordered set
   refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
+  with_attrs::Bool
 end
 
 function begin_node(s::SerializerState)
@@ -53,6 +70,11 @@ end
 
 function end_dict_node(s::SerializerState)
   write(s.io, "}")
+
+  if s.new_level_entry
+    # makes sure that entries after empty dicts add comma
+    s.new_level_entry = false
+  end
 end
 
 function begin_array_node(s::SerializerState)
@@ -131,12 +153,14 @@ function finish_writing(s::SerializerState)
   # nothing to do here
 end
 
-mutable struct DeserializerState
+mutable struct DeserializerState{T <: OscarSerializer}
   # or perhaps Dict{Int,Any} to be resilient against corrupts/malicious files using huge ids
   # the values of refs are objects to be deserialized
+  serializer::T
   obj::Union{Dict{Symbol, Any}, Vector, JSON3.Object, JSON3.Array, BasicTypeUnion}
   key::Union{Symbol, Int, Nothing}
   refs::Union{Dict{Symbol, Any}, JSON3.Object, Nothing}
+  with_attrs::Bool
 end
 
 # general loading of a reference
@@ -148,6 +172,7 @@ function load_ref(s::DeserializerState)
     s.obj = s.refs[Symbol(id)]
     loaded_ref = load_typed_object(s)
     global_serializer_state.id_to_obj[UUID(id)] = loaded_ref
+    global_serializer_state.obj_to_id[loaded_ref] = UUID(id)
   end
   return loaded_ref
 end
@@ -192,40 +217,46 @@ function load_params_node(s::DeserializerState)
   end
 end
 
-################################################################################
-# Serializers
-abstract type OscarSerializer end
-
-struct JSONSerializer <: OscarSerializer
-  state::S where S <: Union{SerializerState, DeserializerState}
-end
-
-struct IPCSerializer <: OscarSerializer
-  state::S where S <: Union{SerializerState, DeserializerState}
-end
-
-state(s::OscarSerializer) = s.state
-
-function serializer_open(io::IO, T::Type{<: OscarSerializer})
+function serializer_open(io::IO, serializer::OscarSerializer,  with_attrs::Bool)
   # some level of handling should be done here at a later date
-  return T(SerializerState(true, UUID[], io, nothing))
+  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
 end
 
-function deserializer_open(io::IO, T::Type{JSONSerializer})
+function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
   obj = JSON3.read(io)
   refs = nothing
   if haskey(obj, refs_key)
     refs = obj[refs_key]
   end
 
-  return T(DeserializerState(obj, nothing, refs))
+  return DeserializerState(serializer, obj, nothing, refs, with_attrs)
 end
 
-function deserializer_open(io::IO, T::Type{IPCSerializer})
+function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool) 
   # Using a JSON3.Object from JSON3 version 1.13.2 causes
-  # @everywhere using Oscar
-  # to hang. So we use a Dict here for now.
-
+  # put_params to hang
+  #obj = JSON3.read(io)
   obj = JSON.parse(io, dicttype=Dict{Symbol, Any})
-  return T(DeserializerState(obj, nothing, nothing))
+
+  return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
+
+function handle_refs(s::SerializerState)
+  if !isempty(s.refs) 
+    save_data_dict(s, refs_key) do
+      for id in s.refs
+        ref_obj = global_serializer_state.id_to_obj[id]
+        s.key = Symbol(id)
+        save_data_dict(s) do
+          save_typed_object(s, ref_obj)
+        end
+      end
+    end
+  end
+end
+
+function attrs_list(s::U, T::Type) where U <: Union{DeserializerState, SerializerState}
+  return get(type_attr_map, encode_type(T), Symbol[])
+end
+
+with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs

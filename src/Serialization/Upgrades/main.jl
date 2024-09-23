@@ -41,19 +41,20 @@ function script(upgrade_script::UpgradeScript)
   return upgrade_script.script
 end
 
-struct UpgradeState
+mutable struct UpgradeState
   id_to_dict::Dict{Symbol, Any}
+  nested_level::Int
 end
 
 function UpgradeState()
-  return UpgradeState(Dict{Symbol, Any}())
+  return UpgradeState(Dict{Symbol, Any}(), 0)
 end
 
 (u_s::UpgradeScript)(s::UpgradeState,
                      dict::Dict{Symbol, Any}) = script(u_s)(s, dict)
 
 # The list of all available upgrade scripts
-upgrade_scripts_set = Set{UpgradeScript}()
+const upgrade_scripts_set = Set{UpgradeScript}()
 
 """
     upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
@@ -63,6 +64,7 @@ recursing on the tree structure. It is independent of any particular
 file format version and can be used in any upgrade script.
 """
 function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
+  s.nested_level += 1
   # file comes from polymake
   haskey(dict, :_ns) && haskey(dict[:_ns], :polymake) && return dict
   
@@ -71,20 +73,65 @@ function upgrade_data(upgrade::Function, s::UpgradeState, dict::Dict)
     if dict_value isa String || dict_value isa Int64 || dict_value isa Bool
       upgraded_dict[key] = dict_value
     elseif dict_value isa Dict
+      s.nested_level += 1
       upgraded_dict[key] = upgrade(s, dict_value)
+      s.nested_level -= 1
     else  # not a string or a dictionary, so must be a vector
       new_value = []
       for v in dict_value
         if v isa String
           push!(new_value, v)
         else
+          s.nested_level += 1
           push!(new_value, upgrade(s, v))
+          s.nested_level -= 1
         end
       end
       upgraded_dict[key] = new_value
     end
   end
+  s.nested_level -= 1
   return upgraded_dict
+end
+
+# upgrades all types in dict based on renamings
+function upgrade_types(dict::Dict, renamings::Dict{String, String})
+  function upgrade_type(d::String)
+    return get(renamings, d, d)
+  end
+
+  function upgrade_type(v::Vector)
+    return map(upgrade_type, v)
+  end
+  
+  function upgrade_type(d::Dict)
+    upg_d = d
+
+    if haskey(d, :name)
+      upg_d[:name] = get(renamings, d[:name], d[:name])
+    else
+      upg_d[:_type] = get(renamings, d[:_type], d[:_type])
+      return upg_d
+    end
+    
+    if d[:params] isa Dict
+      if haskey(d[:params], :_type)
+        upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
+      else
+        for (k, v) in d[:params]
+          upg_d[:params][k] = upgrade_type(d[:params][k])
+        end
+      end
+    elseif d[:params] isa Vector
+      upg_d[:params] = upgrade_type(d[:params])
+    end
+    return upg_d
+  end
+
+  if haskey(dict, :_type)
+    dict[:_type] = upgrade_type(dict[:_type])
+  end
+  return dict
 end
 
 include("0.11.3.jl")
@@ -93,8 +140,9 @@ include("0.12.2.jl")
 include("0.13.0.jl")
 include("0.15.0.jl")
 include("1.1.0.jl")
+include("1.2.0.jl")
 
-upgrade_scripts = collect(upgrade_scripts_set)
+const upgrade_scripts = collect(upgrade_scripts_set)
 sort!(upgrade_scripts; by=version)
 
 ################################################################################
@@ -115,8 +163,8 @@ function upgrade(format_version::VersionNumber, dict::Dict)
     if format_version < script_version
       # TODO: use a macro from Hecke that will allow user to suppress
       # such a message
-      @info("upgrading serialized data....",
-            maxlog=1)
+      @debug("upgrading serialized data....",
+             maxlog=1)
 
       upgrade_state = UpgradeState()
       # upgrading large files needs a work around since the new load
