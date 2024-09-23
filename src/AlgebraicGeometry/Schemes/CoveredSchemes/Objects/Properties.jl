@@ -132,6 +132,10 @@ function _check_other_side(R::Any, wid::Int)
   @assert remotecall_fetch((a)->haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(a)), wid, string(ref))
 end
 
+function _compute_(dat)
+  return _is_smooth(dat[1]; focus=dat[2])
+end
+
 function is_smooth_parallel2(X::CoveredScheme)
   channels = Oscar.params_channels(Ring)
   n = length(channels)
@@ -141,10 +145,7 @@ function is_smooth_parallel2(X::CoveredScheme)
   end
   cov = default_covering(X)
   data = [(U, ideal(OO(U), decomposition_info(cov)[U])) for U in affine_charts(X)]
-  function compute(dat)
-    return _is_smooth(dat[1]; focus=dat[2])
-  end
-  result = pmap(compute, data)
+  result = pmap(_compute_, data)
   return all(isone(x) for x in result)
 end
 
@@ -172,20 +173,23 @@ function _is_smooth(U::AbsAffineScheme{<:Field, RT};
   return error("not implemented")
 end
 
+_complexity(a::RingElem) = 0
+_complexity(a::MPolyRingElem) = length(a)
+_complexity(a::MPolyQuoRingElem) = length(lift(a))
+_complexity(a::MPolyLocRingElem) = length(numerator(a)) + length(denominator(a))
+_complexity(a::MPolyQuoLocRingElem) = length(lifted_numerator(a)) + length(lifted_denominator(a))
+
+
 function has_constant_rank(
-    A::MatrixElem;
-    focus::Union{Ideal, Nothing} = nothing
+    A::MatrixElem
   )
   @show size(A)
-  if focus !== nothing
-    Q, pr = quo(base_ring(A), focus)
-    AA = map_entries(pr, A)
-    return has_constant_rank(AA)
-  end
+  is_zero(A) && return true
+
   R = base_ring(A)
-  bound = 5
+  bound = 3
   if nrows(A) <= bound || ncols(A) <= bound
-    for r in 1:3
+    for r in 1:bound
       @show r
       I = ideal(R, minors(A, r))
       is_one(I) && continue
@@ -194,7 +198,6 @@ function has_constant_rank(
     end
   end
       
-  is_zero(A) && return true
   m = nrows(A)
   n = ncols(A)
   entry_list = elem_type(R)[A[i, j] for i in 1:m for j in 1:n]
@@ -202,6 +205,9 @@ function has_constant_rank(
   is_one(I) || return false
   c = coordinates(one(R), I)
   ind = _non_zero_indices(c)
+  ind_with_comp = [(k, _complexity(c[ind[k]])) for k in 1:length(ind)]
+  sort!(ind_with_comp; by=p->p[2])
+  ind = [ind[k] for k in first.(ind_with_comp)]
   @show length(ind)
   ind_pairs = [(div(k-1, n)+1, mod(k-1, n)+1) for k in ind]
   foc_eqns = elem_type(R)[]
