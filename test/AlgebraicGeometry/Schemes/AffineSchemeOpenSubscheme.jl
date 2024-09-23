@@ -32,7 +32,7 @@ end
   set_name!(U, "U")
   @test name(U) == "U"
 
-  S, (u, v) = polynomial_ring(QQ, ["u", "v"])
+  S, (u, v) = polynomial_ring(QQ, [:u, :v])
   Z = spec(S)
   g = maximal_extension(Y, Z, [x//z, y])
   g = restrict(g, domain(g), AffineSchemeOpenSubscheme(Z, [v]))
@@ -88,7 +88,7 @@ end
 
 @testset "AffineSchemeOpenSubscheme4" begin
   R, (x,y) = QQ["x", "y"]
-  S, (t) = polynomial_ring(QQ, ["t"])
+  S, (t) = polynomial_ring(QQ, [:t])
   t = t[1]
 
   A = spec(R)

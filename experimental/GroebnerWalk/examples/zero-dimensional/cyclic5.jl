@@ -1,6 +1,6 @@
 using Oscar
 
-R, (a, b, c, d, x) = polynomial_ring(QQ, ["a", "b", "c", "d", "x"])
+R, (a, b, c, d, x) = polynomial_ring(QQ, [:a, :b, :c, :d, :x])
 
 I = ideal([
   a + b + c + d + x,

@@ -18,7 +18,7 @@ The keyword `algorithm` can be set to `:maps` for the default algorithm or to `:
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 2);
 
@@ -228,7 +228,7 @@ that converts elements from $S$ into morphisms $F \to G$.
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, _ = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = free_module(R, 3)
 Free module of rank 3 over Multivariate polynomial ring in 3 variables over QQ
@@ -251,7 +251,7 @@ Free module of rank 2 over Multivariate polynomial ring in 3 variables over QQ
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [1,2,2])
 Graded free module Rg^1([-1]) + Rg^2([-2]) of rank 3 over Rg
@@ -367,7 +367,7 @@ If `f` is an element of a module created via `hom(M,N)`, for some modules `M` an
 return the homomorphism `M` $\to$ `N` corresponding to `f`.
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 2);
 
@@ -433,7 +433,7 @@ If the module `H` is created via `hom(M,N)`, for some modules `M` and `N`, and
 `a`: `M` $\to$ `N` is a homomorphism, then return the element of `H` corresponding to `a`.
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 2);
 

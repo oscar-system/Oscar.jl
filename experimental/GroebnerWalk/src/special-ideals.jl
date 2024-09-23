@@ -61,7 +61,7 @@ function newell_patch_with_orderings(k::Field, n::Int=1)
 end
 
 function get_newell_patch_generators(n::Int)
-  R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
+  R, (x,y,z,u,v) = polynomial_ring(QQ, [:x,:y,:z,:u,:v])
 
   if n == 1
     return [

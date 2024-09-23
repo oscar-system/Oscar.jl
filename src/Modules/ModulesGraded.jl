@@ -23,7 +23,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
+julia> R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> graded_free_module(R,3)
@@ -94,14 +94,14 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x,y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> F = graded_free_module(R, [1, 2])
 Graded free module R^1([-1]) + R^1([-2]) of rank 2 over R
 ```
 
 ```jldoctest
-julia> S, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1 0 1; 0 1 1]);
+julia> S, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1 0 1; 0 1 1]);
 
 julia> FF = graded_free_module(S, [[1, 2], [-1, 3]])
 Graded free module S^1([-1 -2]) + S^1([1 -3]) of rank 2 over S
@@ -153,7 +153,7 @@ As above, with all weights set to `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> R, x, y = polynomial_ring(QQ, "x" => 1:2, "y" => 1:3);
+julia> R, x, y = polynomial_ring(QQ, :x => 1:2, :y => 1:3);
 
 julia> G = abelian_group([0, 0])
 Z^2
@@ -222,7 +222,7 @@ Return the new module.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"],  [1 0 1; 0 1 1])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z],  [1 0 1; 0 1 1])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
 
 julia> F = free_module(R, 2)
@@ -236,7 +236,7 @@ Graded free module R^1([-1 0]) + R^1([0 -1]) of rank 2 over R
 ```
 
 ```jldoctest
-julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> S, _ = quo(R, [x*y])
@@ -285,7 +285,7 @@ Return the grading group of `base_ring(F)`.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x,y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
@@ -426,7 +426,7 @@ Return the degrees of the generators of `F`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 2)
 Graded free module R^2([0]) of rank 2 over R
@@ -518,7 +518,7 @@ Given an element `f` of a graded free module, return `true` if `f` is homogeneou
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [1, 2, 3]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 2, 3]);
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -563,7 +563,7 @@ If `check` is set to `false`, then there is no check for homegeneity. This shoul
 internally on provably sane input, as it speeds up computation significantly. 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> f = y^2*z − x^2*w
 -w*x^2 + y^2*z
@@ -743,7 +743,7 @@ If `a` is graded, return the degree of `a`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
@@ -817,7 +817,7 @@ Return `true` if `a` is graded, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
@@ -878,7 +878,7 @@ If `a` is graded, return the grading group of `a`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
@@ -920,7 +920,7 @@ is graded of degree `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 3)
 Graded free module R^3([0]) of rank 3 over R
@@ -998,7 +998,7 @@ Return the grading group of `base_ring(M)`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1031,7 +1031,7 @@ Return the degrees of the generators of `M`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1077,7 +1077,7 @@ Return  `true` if `m` is homogeneous, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1157,7 +1157,7 @@ Given a homogeneous element `m` of a $\mathbb Z$-graded subquotient, return the 
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F1 = graded_free_module(Rg, [2,2,2]);
 
@@ -1243,7 +1243,7 @@ If `a` is graded, return the degree of `a`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1322,7 +1322,7 @@ If `a` is graded, return the grading group of `a`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1360,7 +1360,7 @@ is graded of degree `zero(G)`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -1413,7 +1413,7 @@ Alternatively, use `betti`.
 
 # Examples
 ```julia
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> I = ideal(R, [x*z, y*z, x*w^2, y*w^2])
 ideal(x*z, y*z, w^2*x, w^2*y)
@@ -1436,7 +1436,7 @@ julia> betti_table(FA)
 ------------------
 total: 1  4  4  1
 
-julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x, y, x+y]);
 
@@ -1681,7 +1681,7 @@ The keyword `algorithm` can be set to
     Due to the shape of the Tate resolution, the algorithm addressed by `bgg` does not compute all values in the given range `l` $<$ `h`. The missing values are indicated by a `*`. To determine all values in the range `l` $<$ `h`, enter `sheaf_cohomology(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+julia> R, x = polynomial_ring(QQ, :x => 1:4);
 
 julia> S, _= grade(R);
 
@@ -1727,7 +1727,7 @@ chi:      *    *    *   70   36   15    4    -    -    1    -    6    *    *    
 ```
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:5);
+julia> R, x = polynomial_ring(QQ, :x => 1:5);
 
 julia> S, _  = grade(R);
 
@@ -1771,7 +1771,7 @@ with a cohomological index and a value between `l` and `h` as shown
 in the example below.
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:5);
+julia> R, x = polynomial_ring(QQ, :x => 1:5);
 
 julia> R, x = grade(R);
 
@@ -1801,7 +1801,7 @@ chi:      *    *    *    *   15    5    1    -    -    -    -    1    5   15    
 ```
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+julia> R, x = polynomial_ring(QQ, :x => 1:4);
 
 julia> S, _= grade(R);
 
@@ -1862,7 +1862,7 @@ with a cohomological index and a value between `l` and `h` as shown
 in the example below.
 
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x" => 1:4);
+julia> R, x = polynomial_ring(QQ, :x => 1:4);
 
 julia> S, _= grade(R);
 
@@ -1896,7 +1896,7 @@ julia> tbl[3, -6]
 julia> tbl[1, 0]
 1
 
-julia> R, x = polynomial_ring(QQ, "x" => 1:5);
+julia> R, x = polynomial_ring(QQ, :x => 1:5);
 
 julia> R, x = grade(R);
 
@@ -2028,7 +2028,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x,y) = graded_polynomial_ring(QQ, ["x", "y"])
+julia> R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
@@ -2499,7 +2499,7 @@ of the minimal free resolution of `M`. Similarly for `A` and `I`.
 
 # Examples
 ```julia
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> I = ideal(R, [w^2-x*z, w*x-y*z, x^2-w*y, x*y-z^2, y^2-w*z]);
 
@@ -2551,7 +2551,7 @@ Betti table of the minimal free resolution arising from `F`.
 
 # Examples
 ```julia
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> I = ideal(R, [w^2-x*z, w*x-y*z, x^2-w*y, x*y-z^2, y^2-w*z]);
 
@@ -2703,7 +2703,7 @@ of the grading group of `base_ring(I)` and proceed as above.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 1)
 Graded free module R^1([0]) of rank 1 over R
@@ -2806,7 +2806,7 @@ Castelnuovo-Mumford regularity of `I`.
 
 # Examples
 ```julia
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(R, 1);
 
@@ -2834,7 +2834,7 @@ julia> minimal_betti_table(M)
 total: 1 3 3 1 
 ```
 ```julia
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> I = ideal(R, [-x*z+y^2, x*y-w*z, x^2-w*y]);
 
@@ -2885,7 +2885,7 @@ As above, where `A` is the quotient of `base_ring(I)` modulo `I`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x^2, y^3])
 Ideal generated by
@@ -2900,7 +2900,7 @@ by Submodule with 2 generators
 2 -> y^3*e[1]
 ```
 ```jldoctest
-julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> S, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(S, [x^2, y^3])
 Ideal generated by
@@ -2936,7 +2936,7 @@ Return `I` considered as an object of type `SubquoModule`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x^2, y^3])
 Ideal generated by
@@ -2950,7 +2950,7 @@ Submodule with 2 generators
 represented as subquotient with no relations.
 ```
 ```jldoctest
-julia> S, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> S, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(S, [x^2, y^3])
 Ideal generated by
@@ -2994,7 +2994,7 @@ convert `d` into an element `g` of the grading group of the ring and proceed as 
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = graded_polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [zero(R)])
 Ideal generated by

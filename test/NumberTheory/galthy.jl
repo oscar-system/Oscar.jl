@@ -10,7 +10,7 @@
   @test degree(L) == order(G)
   @test length(roots(L, k.pol)) == 5
 
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, :x)
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
   g, C = galois_group(pol)
   @test order(g) == 18
@@ -99,7 +99,7 @@ end
   # Contributed by "Lloyd" on slack
   R, s = QQ["s"]
   K, q = number_field(s^2 - 2, "q")
-  Kw, w = polynomial_ring(K, "w")
+  Kw, w = polynomial_ring(K, :w)
   f = w^16 - 32*w^14 - 192*w^12 + 22720*w^10 + 23104*w^8 - 2580480*w^6 + 41287680*w^4 + 106168320*w^2 + 84934656
   g, s = galois_group(f)
   @test order(g) == 1536

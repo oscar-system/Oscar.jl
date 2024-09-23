@@ -1,7 +1,7 @@
 @testset "solving" begin
-    R, (x1,x2,x3) = polynomial_ring(QQ, ["x1", "x2", "x3"])
+    R, (x1,x2,x3) = polynomial_ring(QQ, [:x1, :x2, :x3])
     I = ideal(R, [x1+2*x2+2*x3-1, x1^2+2*x2^2+2*x3^2-x1, 2*x1*x2+2*x2*x3-x2])
-    C, x = polynomial_ring(QQ, "x")
+    C, x = polynomial_ring(QQ, :x)
     elim = 84*x^4 - 40*x^3 + x^2 + x
     denom = 336*x^3 - 120*x^2 + 2*x + 1
     p1  = -184*x^3 + 80*x^2 - 4*x - 1
@@ -30,17 +30,17 @@
     @test_throws ErrorException real_solutions(I)
     @test_throws ErrorException Oscar._rational_solutions(I)
     # Issue #1040
-    Qx, (x,) = polynomial_ring(QQ, ["x"])
+    Qx, (x,) = polynomial_ring(QQ, [:x])
     I = ideal(Qx, [x^2 + 1])
     res = real_solutions(I)
-    C, x = polynomial_ring(QQ, "x")
+    C, x = polynomial_ring(QQ, :x)
     @test res[1] == []
     @test res[2].vars == Symbol[:x]
     @test res[2].elim == x^2+1
     @test res[2].denom == 2*x
 
     # issue 1743
-    R, (x1, x2) = polynomial_ring(QQ, ["x1", "x2"])
+    R, (x1, x2) = polynomial_ring(QQ, [:x1, :x2])
     I = ideal(R, [x1 + ZZ(2)^100, x2 + ZZ(2)^100])
     sols = Vector{QQFieldElem}[[-1267650600228229401496703205376, -1267650600228229401496703205376]]
     @test sols == real_solutions(I)[1]

@@ -412,7 +412,7 @@ See Section 6.7 of [Oxl11](@cite).
 
 # Examples
 ```jldoctest
-julia> R,(x,y,s,t,Δ) = polynomial_ring(QQ, ["x","y","s","t","Δ"]);
+julia> R,(x,y,s,t,Δ) = polynomial_ring(QQ, [:x,:y,:s,:t,:Δ]);
 
 julia> I = ideal(R, [y^2 - x^3 - s*x - t, Δ + 16*(4*s^3 + 27*t^2)]);
 
@@ -444,7 +444,7 @@ See Section 6.7 of [Oxl11](@cite).
 # Examples
 This is the algebraic matroid pictured in Figure 6.27 of [Oxl11](@cite):
 ```jldoctest
-julia> R,v = polynomial_ring(GF(2), ["x","y","z"]);
+julia> R,v = polynomial_ring(GF(2), [:x,:y,:z]);
 
 julia> F = fraction_field(R);
 
@@ -480,7 +480,7 @@ function algebraic_matroid(G::Vector; check::Bool=true)
   # Implicitize the rational map t[i] -> G[i]. Since the G can have
   # denominators, we can't at the moment use kernel(hom(F, ...)).
   C = coefficient_ring(R)
-  S, t, x = polynomial_ring(C, "t" => 1:length(G), [string(x) for x in gens(R)]; cached=false)
+  S, t, x = polynomial_ring(C, :t => 1:length(G), [string(x) for x in gens(R)]; cached=false)
   phi = hom(R, S, x)
   I = F isa FracField ?
     ideal(S, [phi(R(numerator(g))) - t*phi(R(denominator(g))) for (g,t) in zip(G,t)]) :

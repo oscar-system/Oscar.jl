@@ -201,12 +201,12 @@ end
   f = hom(Qix, Qi, identity, [i, 0])
 
   # Construct stacked domain
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-  S, (u, v) = polynomial_ring(QQ, ["u", "v"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  S, (u, v) = polynomial_ring(QQ, [:u, :v])
   I = ideal(S, [ u - v^2 ])
   Q, StoQ = quo(S, I)
   QtoR = hom(Q, R, [ x^2, x ])
-  T, (a, b, c) = polynomial_ring(Q, [ "a", "b", "c" ])
+  T, (a, b, c) = polynomial_ring(Q, [ :a, :b, :c ])
   J = ideal(T, [ a*b - c^2 ])
   A, TtoA = quo(T, J)
   # The test is whether the following two lines work at all

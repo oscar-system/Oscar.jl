@@ -1,6 +1,6 @@
 @testset "AffinePlaneCurves" begin
   @testset "constructors" begin
-      R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
       F = y^3 * x^6 - y^6 * x^2
       C = plane_curve(F)
 
@@ -11,7 +11,7 @@
   end
 
   @testset "reducible functions" begin
-      R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
       F = plane_curve((x^2 + y^2))
       P = F([0, 0])
 
@@ -30,7 +30,7 @@
   end
 
   @testset "intersection functions" begin
-      R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
       F = plane_curve(x * (x + y))
       G = plane_curve(x + y^2 + 1)
       H = plane_curve(x * (x + y) * y)
@@ -48,7 +48,7 @@
   end
 
   @testset "int_multiplicity functions" begin
-      R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
       F = plane_curve((x^2 + y^2) * (x^2 + y^2 + 2 * y))
       G = plane_curve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2))
       P = F([0, 0])
@@ -59,7 +59,7 @@
   end
 
   @testset "singularity functions" begin
-      R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+      R, (x, y) = polynomial_ring(QQ, [:x, :y])
 
       F = plane_curve(x + y^2)
 

@@ -190,7 +190,7 @@ end
 end
  
 @testset "Polynomial Orderings comparison" begin
-   R, (x, y, z) = @inferred polynomial_ring(QQ, ["x", "y", "z"])
+   R, (x, y, z) = @inferred polynomial_ring(QQ, [:x, :y, :z])
 
    @test lex([x])*lex([y,z]) == lex([x, y, z])
    @test lex([z])*lex([y])*lex([x]) == invlex([x, y, z])
@@ -316,7 +316,7 @@ end
 end
 
 @testset "Polynomial Ordering internal conversion to Singular" begin
-   R, (x, y, s, t, u) = polynomial_ring(QQ, ["x", "y", "s", "t", "u"])
+   R, (x, y, s, t, u) = polynomial_ring(QQ, [:x, :y, :s, :t, :u])
 
    for O in (wdegrevlex([x,y,s],[1,2,3])*invlex([t,u]),
              neglex([x,y,s])*neginvlex([t,u]),
@@ -400,8 +400,8 @@ end
    @test simplify(a) isa MonomialOrdering
 
    #issue 3870
-   D, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
-   C, (s,t) = polynomial_ring(QQ, ["s", "t"]);
+   D, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
+   C, (s,t) = polynomial_ring(QQ, [:s, :t]);
    T, _ = tensor_product(C, D, use_product_ordering = true);
    F = free_module(T, 2);
    G = gens(T);
@@ -435,7 +435,7 @@ end
 end
 
 @testset "Monomial Orderings comparison" begin
-  R, (x,y,z,w) = polynomial_ring(GF(32003), ["x", "y", "z", "w"]);
+  R, (x,y,z,w) = polynomial_ring(GF(32003), [:x, :y, :z, :w]);
   F = FreeMod(R, 2)
   o = lex(gens(F))*lex(gens(R))
   oo = lex(gens(F))*lex(gens(R))

@@ -573,7 +573,7 @@ function _molien_series_char0(S::PolyRing, I::FinGroupInvarRing)
   G = group(I)
   n = degree(G)
   K = coefficient_ring(I)
-  Kt, _ = polynomial_ring(K, "t"; cached=false)
+  Kt, _ = polynomial_ring(K, :t; cached=false)
   C = conjugacy_classes(G)
   res = zero(fraction_field(Kt))
   for c in C
@@ -718,12 +718,12 @@ function molien_series(
 )
   if chi === nothing
     if !isdefined(I, :molien_series)
-      S, t = polynomial_ring(QQ, "t"; cached=false)
+      S, t = polynomial_ring(QQ, :t; cached=false)
       I.molien_series = molien_series(S, I)
     end
     return I.molien_series
   else
-    S, t = polynomial_ring(QQ, "t"; cached=false)
+    S, t = polynomial_ring(QQ, :t; cached=false)
     return molien_series(S, I, chi)
   end
 end

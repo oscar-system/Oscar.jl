@@ -1,6 +1,6 @@
 #random polynomial system in 4 variables over Q, computed in M2 
 using Oscar
-R, (a, b, c, d)  = polynomial_ring(QQ, ["a", "b", "c", "d"])
+R, (a, b, c, d)  = polynomial_ring(QQ, [:a, :b, :c, :d])
 
 
 f1 = 15013d^3 + 5213*c*d^2 + 15893*c^2*d - 2837*b*d^2 - 10238*c^3 + 13538*b*c*d - 4578*a*d^2 + 5035*b*c^2 +

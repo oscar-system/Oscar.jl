@@ -14,7 +14,7 @@
     # test loading
     load(joinpath(@__DIR__, "file_version_less_than_0.12.0.json"));
     
-    Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
+    Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], :t)
     Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
     Rx, x = Fin["x"]
     p = x^2 + d * x + 1

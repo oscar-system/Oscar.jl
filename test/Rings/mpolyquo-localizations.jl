@@ -504,7 +504,7 @@ end
 end
 
 @testset "MPolyAnyIdeal printing" begin
-  R, x = polynomial_ring(QQ, 100, "x")
+  R, x = polynomial_ring(QQ, 100, :x)
   @test Oscar._get_generators_string_one_line(ideal(R, [x[1]])) == "(x1)"
   @test Oscar._get_generators_string_one_line(ideal(R, [x[1], x[2]])) == "(x1, x2)"
   @test Oscar._get_generators_string_one_line(ideal(R, x)) == "with 100 generators"

@@ -298,7 +298,7 @@ function to_uni(f::MPolyRingElem, trans::Int = 1)
   @assert nvars(parent(f)) == 2
   k = base_ring(f)
   Qs, s = rational_function_field(k, "s", cached = false)
-  Qst, t = polynomial_ring(Qs, "t", cached = false)
+  Qst, t = polynomial_ring(Qs, :t, cached = false)
   if trans == 1
     ev = [Qst(s), t]
   else

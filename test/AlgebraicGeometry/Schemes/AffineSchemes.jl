@@ -223,7 +223,7 @@ end
 @testset "fiber product" begin
   R, _ = QQ["x","t"]
   S, _ = QQ["y","t"]
-  T, _ = polynomial_ring(QQ,["t"])
+  T, _ = polynomial_ring(QQ,[:t])
   X = Oscar.standard_spec(spec(R))
   Y = Oscar.standard_spec(spec(S))
   B = Oscar.standard_spec(spec(T))

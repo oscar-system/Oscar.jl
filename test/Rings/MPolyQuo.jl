@@ -1,5 +1,5 @@
 @testset "MPolyQuoRing" begin
-  R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
   f = y^2+y+x^2
   C = ideal(R, [f])
 
@@ -39,7 +39,7 @@
 end
 
 @testset "MpolyQuo.manipulation" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [zero(R)])
   Q, q = quo(R,I)
   f = q(x*y)
@@ -65,7 +65,7 @@ end
   @test K(2) * x == Kx(2) * x
 
   # simplify
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [x^2])
   Q, q = quo(R,I)
 
@@ -75,7 +75,7 @@ end
   mul!(z, z, Q(x))
   @test iszero(z)
 
-  R, (x,) = polynomial_ring(QQ, ["x"])
+  R, (x,) = polynomial_ring(QQ, [:x])
   I = ideal(R, [x])
   Q, q = quo(R,I)
 
@@ -86,7 +86,7 @@ end
 end
 
 @testset "MPolyQuoRing.ideals" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   Q, _ = quo(R, ideal(R, [x*y, x*z]))
   (x, y, z) = map(Q, (x, y, z))
 
@@ -131,7 +131,7 @@ end
   @test intersect(I,J,K) == ideal(Q, [y+1, x])
   @test intersect(I,J,K) == intersect([I,J,K])
 
-  R, (x, y) = graded_polynomial_ring(QQ, [ "x", "y" ], [ 1, 2 ])
+  R, (x, y) = graded_polynomial_ring(QQ, [ :x, :y ], [ 1, 2 ])
   I = ideal(R, [ x*y ])
   Q, RtoQ = quo(R, I)
   J = ideal(Q, [ x^3 + x*y, y, x^2 + y ])
@@ -186,9 +186,9 @@ end
 end
 
 @testset "issue #1901" begin
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   L, _ = localization(R, powers_of_element(R[1]))
-  S, (s0, s1, s2) = polynomial_ring(L, ["s0", "s1", "s2"])
+  S, (s0, s1, s2) = polynomial_ring(L, [:s0, :s1, :s2])
   I = ideal(S, [x*s0 - y*s1^2, y*s0 - z*s2^7])
   Q, _ = quo(S, I)
   @test Q isa MPolyQuoRing
@@ -211,7 +211,7 @@ end
 end
 
 @testset "issue #2292" begin
-  R, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
   A, p = quo(R, ideal(R, [x-y]))
   V = [x, z^2, x^3+y^3, y^4, y*z^5]
   a = ideal(A, V)
@@ -338,8 +338,8 @@ end
 end
 
 @testset "Tensor product" begin
-  R, x = polynomial_ring(QQ, 3, "x")
-  S, y = polynomial_ring(QQ, 4, "y")
+  R, x = polynomial_ring(QQ, 3, :x)
+  S, y = polynomial_ring(QQ, 4, :y)
 
   @test_throws AssertionError tensor_product(R, GF(3)["x", "y"][1])
 

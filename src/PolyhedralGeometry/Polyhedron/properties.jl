@@ -1059,7 +1059,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1070,7 +1070,7 @@ Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
@@ -1101,7 +1101,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1112,7 +1112,7 @@ Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)

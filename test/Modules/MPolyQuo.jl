@@ -62,7 +62,7 @@ end
     F = FreeMod(R, 1)
     FQ = FreeMod(Q, 1)
     f = hom(F, FQ, gens(FQ), phi)
-    W, (t,) = polynomial_ring(QQ, ["t"])
+    W, (t,) = polynomial_ring(QQ, [:t])
     psi = hom(Q, W, [zero(W), W[1]])
     FW = FreeMod(W, 1)
     g = hom(FQ, FW, gens(FW), psi)

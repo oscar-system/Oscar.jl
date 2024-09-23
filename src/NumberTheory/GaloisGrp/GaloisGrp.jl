@@ -409,13 +409,13 @@ mutable struct GaloisCtx{T}
     F, mF = residue_field(Qq)
     H = Hecke.MPolyFact.HenselCtxFqRelSeries(f, F)
     SQq, _ = power_series_ring(Qq, 2, "s", cached = false)
-    SQqt, _ = polynomial_ring(SQq, "t", cached = false)
+    SQqt, _ = polynomial_ring(SQq, :t, cached = false)
     mc(f) = map_coefficients(x->map_coefficients(y->setprecision(preimage(mF, y), 1), x, parent = SQq), f, parent = SQqt)
     HQ = Hecke.MPolyFact.HenselCtxFqRelSeries(H.f, map(mc, H.lf), map(mc, H.cf), H.n)
     r = new{Hecke.MPolyFact.HenselCtxFqRelSeries{AbstractAlgebra.Generic.RelSeries{QadicFieldElem}}}()
     r.prime = (shft, p)
     Qt, t = rational_function_field(QQ, "t", cached = false)
-    Qts, s = polynomial_ring(Qt, "s", cached = false)
+    Qts, s = polynomial_ring(Qt, :s, cached = false)
     r.f = evaluate(f, [s, Qts(t)])
     r.C = HQ
     r.chn = Tuple{PermGroup, SLPoly, ZZPolyRingElem, Vector{PermGroupElem}}[]

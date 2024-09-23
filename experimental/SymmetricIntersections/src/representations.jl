@@ -888,7 +888,7 @@ space `V`, return an induced action on Sym^d V.
 function _action_symmetric_power(mr::Vector{AbstractAlgebra.Generic.MatSpaceElem{S}}, d::Int) where S
   n = ncols(mr[1])
   F = base_ring(mr[1])
-  R, _ = graded_polynomial_ring(F, "x"=>1:n; cached=false)
+  R, _ = graded_polynomial_ring(F, :x=>1:n; cached=false)
   R1, R1toR = homogeneous_component(R, 1)
   Rd, RdtoR = homogeneous_component(R, d)
   bsp = reverse!(RdtoR.(gens(Rd)))

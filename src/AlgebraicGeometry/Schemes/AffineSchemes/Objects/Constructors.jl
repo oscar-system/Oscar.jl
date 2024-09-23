@@ -37,7 +37,7 @@ This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -62,7 +62,7 @@ of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -90,7 +90,7 @@ localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -125,7 +125,7 @@ when in need to copy an affine spectrum.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -247,7 +247,7 @@ Spectrum
       by ideal (0)
     at products of (1)
 
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 

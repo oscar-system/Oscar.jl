@@ -79,7 +79,7 @@ const rng = Oscar.get_seeded_rng()
   @test (f*(x-1) in U)
   @test !(f*x in U)
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   o = degrevlex([x, y])*negdegrevlex([z])
   S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
@@ -264,7 +264,7 @@ end
 end
 
 @testset "localization_at_orderings_2" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   o = degrevlex([x, y])*negdegrevlex([z])
   S, _ = localization(R, o)
   @test z + 1 in inverted_set(S)
@@ -480,7 +480,7 @@ end
 end
 
 @testset "mpoly-loc constructors" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   m = ideal(R, [y - 1, x - 2, z - 3])
   Q = localization(R, m)
   I = ideal(Q, [x - 2, (y - 1)^2*z])
@@ -491,7 +491,7 @@ end
 end
 
 @testset "mpoly-loc operations" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   m = ideal(R, [y - 1, x - 2, z - 3])
   Q = localization(R, m)
   I = ideal(Q, [x - 2, (y - 1)^2*z])

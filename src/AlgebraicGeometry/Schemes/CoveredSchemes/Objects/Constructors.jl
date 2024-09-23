@@ -102,7 +102,7 @@ with default covering
     2: [(x//y), (z//y)]
     3: [(x//z), (y//z)]
 
-julia> R_2, (u, v) = polynomial_ring(rational_field(), ["u", "v"]);
+julia> R_2, (u, v) = polynomial_ring(rational_field(), [:u, :v]);
 
 julia> I_2 = ideal(R_2, u + v^2);
 
@@ -158,7 +158,7 @@ Returns a `CoveredScheme` ``C`` isomorphic to ``X``.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(rational_field(), "x" => 1:3);
+julia> R, x = polynomial_ring(rational_field(), :x => 1:3);
 
 julia> X = spec(R);
 

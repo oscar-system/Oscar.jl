@@ -16,7 +16,7 @@
   @test has_du_val_singularities(X) == false
   @test decide_du_val_singularity(X2,J1)[1][3] == (:D, 8)
 
-  Rg,(x,y,z,w) = graded_polynomial_ring(QQ,["x","y","z","w"])
+  Rg,(x,y,z,w) = graded_polynomial_ring(QQ,[:x,:y,:z,:w])
   X = proj(Rg)
   I = ideal(Rg,[x^2*w+y^2*z+z^3])
   Y = subscheme(X,I)

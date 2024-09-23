@@ -592,7 +592,7 @@ Normalization is usually slower, but not always.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> C = plane_curve(z*x^2-y^3)
 Projective plane curve
