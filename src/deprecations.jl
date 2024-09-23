@@ -139,3 +139,4 @@ Base.@deprecate_binding QQAbElem QQAbFieldElem
 
 Base.@deprecate_binding FreeAssAlgIdeal FreeAssociativeAlgebraIdeal
 
+Base.@deprecate_binding in_linear_system is_in_linear_system

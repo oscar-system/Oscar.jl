@@ -1,11 +1,29 @@
-
 function (C::EffectiveCartierDivisor)(U::AbsAffineScheme)
   return gens(C.I(U))
 end
 
+@doc raw"""
+    ideal_sheaf(C::EffectiveCartierDivisor)
+    
+Return the sheaf of ideals $\mathcal{I}_C \subseteq \mathcal{O}_X$ representing `C`.
+"""
 ideal_sheaf(C::EffectiveCartierDivisor) = C.I
 
+@doc raw"""
+    scheme(C::EffectiveCartierDivisor)
+    
+Return the ambient scheme containing `C`. 
+"""
 scheme(C::EffectiveCartierDivisor) = C.X
+
+@doc raw"""
+    trivializing_covering(C::EffectiveCartierDivisor)
+    
+Return the trivializing covering of the effective Cartier divisor `C`.
+
+A covering $(U_i)_{i \in I}$ is called trivializing for $C$ if 
+$C(U_i)$ is principal for all $i \in I$.
+"""
 trivializing_covering(C::EffectiveCartierDivisor) = C.C
 
 function EffectiveCartierDivisor(I::AbsIdealSheaf; 
@@ -21,13 +39,28 @@ function EffectiveCartierDivisor(I::AbsIdealSheaf;
   return EffectiveCartierDivisor(X, eq_dict, trivializing_covering=trivializing_covering, check=check)
 end
 
-
-
-
+@doc raw"""
+    scheme(C::CartierDivisor)
+    
+Return the ambient scheme containing `C`. 
+"""
 scheme(C::CartierDivisor) = C.X
+
+@doc raw"""
+    coefficient_ring(C::CartierDivisor)
+    
+Return the ring of coefficients of `C`.
+"""
 coefficient_ring(C::CartierDivisor) = C.R
+
 coefficient_dict(C::CartierDivisor) = C.coeff_dict
 getindex(C::CartierDivisor, k::EffectiveCartierDivisor) = coefficient_dict(C)[k]
+
+@doc raw"""
+    components(C::CartierDivisor)
+    
+Return a list of effective Cartier divisors $C_i$ such that $C$ is a linear combination of the $C_i$.
+"""
 components(C::CartierDivisor) = collect(keys(coefficient_dict(C)))
 
 function +(C::CartierDivisor, D::CartierDivisor) 
@@ -192,6 +225,12 @@ defined by
 """
 effective_cartier_divisor(I::AbsIdealSheaf; trivializing_covering::Covering = default_covering(scheme(I)), check::Bool = true) = EffectiveCartierDivisor(I, trivializing_covering=trivializing_covering, check=check)
 
+@doc raw"""
+    effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
+    
+Return the effective Cartier divisor on the projective scheme ``X`` defined by the homogeneous 
+polynomial ``f``. 
+"""
 function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   parent(f) === homogeneous_coordinate_ring(IP) || error("element does not belong to the correct ring")
   d = degree(f)
@@ -204,6 +243,12 @@ function effective_cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRin
   return C
 end
 
+@doc raw"""
+    cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
+    
+Return the (effective) Cartier divisor on the projective scheme ``X`` defined by the homogeneous 
+polynomial ``f``. 
+"""
 function cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRingElem})
   return one(ZZ)*effective_cartier_divisor(IP, f)
 end
@@ -241,9 +286,7 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
     components_here = minimal_primes(I_temp)
     for comp in components_here
       I_temp, saturation_index = saturation_with_index(I_temp, comp)
-      temp_dict=IdDict{AbsAffineScheme,Ideal}()
-      temp_dict[U] = comp
-      I_sheaf_temp = IdealSheaf(X, extend!(cov, temp_dict), check=false)
+      I_sheaf_temp = PrimeIdealSheafFromChart(X, U, comp, check=false)
       push!(associated_primes_temp, (I_sheaf_temp, saturation_index))
     end
   end
@@ -255,24 +298,6 @@ function weil_divisor(C::EffectiveCartierDivisor;
     is_prime::Bool=false # Indicate whether this divisor is already prime
   )
   return WeilDivisor(ideal_sheaf(C), ZZ, check=is_prime)
-
-  # TODO: See what we can recycle from the code below.
-  X = scheme(C)
-  OOX = OO(X)
-
-  decomp = Vector{Tuple{typeof(ideal_sheaf(C)), Int}}()
-  if is_prime
-    push!(decomp, (ideal_sheaf(C), 1))
-  else
-    decomp = irreducible_decomposition(C)
-  end
-  result = WeilDivisor(X, ZZ)
-
-  for (I,k) in decomp
-    result = result + k*WeilDivisor(I,ZZ, check=false)
-  end
-
-  return result
 end
 
 function weil_divisor(C::CartierDivisor)
@@ -305,14 +330,12 @@ end
 
 Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
 returns an `AbsAlgebraicCycle` of codimension ``2``.
-
-!!! note
-  The `components` of ``W`` must be sheaves of prime ideals; use `irreducible_decomposition(W)` to achieve this. The check for primality can be switched off using `check=false`. 
 """
-function intersect(W::WeilDivisor, C::CartierDivisor; check::Bool=true)
+function intersect(W::AbsWeilDivisor, C::CartierDivisor; check::Bool=true)
   result = zero(W)
-  for c in components(C)
-    result = result + C[c] * intersect(W, c, check=check)
+  iC = irreducible_decomposition(C)
+  for c in components(iC)
+    result = result + iC[c] * intersect(W, c, check=check)
   end
   return result
 end

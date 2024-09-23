@@ -711,7 +711,7 @@ export image_in_Oq
 export images
 export img_gens
 export immaculate_line_bundles
-export in_linear_system
+export is_in_linear_system
 export incidence_matrix
 export inclusion_morphism
 export independent_sets

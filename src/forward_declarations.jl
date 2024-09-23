@@ -20,22 +20,37 @@ abstract type AbsAffineScheme{BaseRingType, RingType<:Ring} <: Scheme{BaseRingTy
 @doc raw"""
     AbsCoveredScheme{BaseRingType}
 
-An abstract scheme ``X`` over some `base_ring` ``𝕜`` of type 
+A scheme ``X`` over some `base_ring` ``𝕜`` of type 
 `BaseRingType`, given by means of affine charts and their gluings.
 """
 abstract type AbsCoveredScheme{BaseRingType} <: Scheme{BaseRingType} end
 
-### Algebraic cycles and divisors 
-# CAUTION: This has been moved here from experimental!!!
+@doc raw"""
+    AbsAlgebraicCycle{CoveredSchemeType<:AbsCoveredScheme, CoefficientRingType<:Ring}
+    
+An algebraic cycle $D$ on a (locally) Noetherian integral scheme $X$ with coefficients in a ring $R$ 
+is a formal linear combination $\sum_i a_i D_i$ with 
+$D_i \subseteq X$ integral, closed subschemes and the $a_i \in R$.
+
+Such a cycle is represented non-uniquely as a formal sum $E = \sum_l b_l \mathcal{I}_l$ 
+of equidimensional ideal sheaves $\mathcal{I}_l \subseteq \mathcal{O}_X$. 
+For an equidimensional ideal sheaf $\mathcal{I}$ its interpretation as a cycle is as follows:
+Let $V(\mathcal{I})=E_{1} \cup \dots E_{n}$ be the decomposition of the vanishing locus
+of $\mathcal{I}$ into irreducible components $E_i=V(\mathcal{P}_i)$ with $\mathcal{P}_i$ prime. 
+Then $E$ corresponds to the cycle $D = \sum_{i=1}^{n} \mathrm{colength}_{\mathcal{P}_i}(\mathcal{I})E_i$.
+"""
 abstract type AbsAlgebraicCycle{
                                 CoveredSchemeType<:AbsCoveredScheme, 
                                 CoefficientRingType<:AbstractAlgebra.Ring
                                }
 end
 
-abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
+@doc raw"""
+    AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType}
 
-### END Algebraic cycles and divisors
+A Weil divisor with coefficients of type `CoefficientRingType` on a (locally) Noetherian integral scheme ``X``  of type `CoveredSchemeType`.
+"""
+abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
 
 ###########################################
 # (2) Toric Varieties

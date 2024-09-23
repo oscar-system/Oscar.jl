@@ -339,6 +339,11 @@ function subscheme(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(
 end
 
 
+@attr Int function dim(I::AbsIdealSheaf)
+  dims = [dim(I(U)) for U in affine_charts(scheme(I))]
+  return maximum(dims)
+end
+  
 @doc raw"""
     extend!(C::Covering, D::Dict{AffineSchemeType, IdealType}) where {AffineSchemeType<:AffineScheme, IdealType<:Ideal}
 
