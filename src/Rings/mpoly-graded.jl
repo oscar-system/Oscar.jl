@@ -970,14 +970,17 @@ true
 function is_homogeneous(F::MPolyDecRingElem)
   D = parent(F).D
   d = parent(F).d
-  S = Set{elem_type(D)}()
+  S = nothing
+  u = zero(D)
   for c = MPolyExponentVectors(forget_decoration(F))
-    u = parent(F).D[0]
+    u = zero!(u)
     for i=1:length(c)
-      u += c[i]*d[i]
+      u = addmul_delayed_reduction!(u, d[i], c[i])
     end
-    push!(S, u)
-    if length(S) > 1
+    u = reduce!(u)
+    if S === nothing
+      S = deepcopy(u)
+    elseif S != u
       return false
     end
   end
