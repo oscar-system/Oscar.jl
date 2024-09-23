@@ -396,10 +396,15 @@ julia> matrix(map(FM3, 1))
 iterative kernel computation.
 """
 function free_resolution(M::SubquoModule{T}; 
-                         length::Int=0, algorithm::Symbol=:fres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+                         length::Int=0,
+                         algorithm::Symbol = T <:MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
+
+  if T <: MPolyQuoRingElem
+    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  end
 
   cc_complete = false
 
@@ -434,6 +439,9 @@ function free_resolution(M::SubquoModule{T};
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
     res = Singular.nres(gbpres, length)
+  elseif algorithm == :sres && T <: MPolyQuoRingElem
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.sres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
