@@ -38,6 +38,7 @@ julia> using Oscar
 | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
 | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
  \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.2.0-DEV
+
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
 
