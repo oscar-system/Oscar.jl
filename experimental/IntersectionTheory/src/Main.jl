@@ -874,7 +874,7 @@ chi(p::Int, X::AbstractVariety) = chi(exterior_power(dual(X.T), p)) # generalize
 
 function todd_polynomial(n::Int)
   X = abstract_variety(n)
-  R, z = X.ring["z"]
+  R, z = X.ring[:z]
   sum(chi(p, X) * (z-1)^p for p in 0:n)
 end
 
@@ -2220,7 +2220,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
-  Rx, x = R.R["x"]
+  Rx, x = R.R[:x]
   g = sum(gi[i+1].f * x^(n-i) for i in 0:n)
   q = mod(x^n, g)
   rels = [R(coeff(q, i)) for i in 0:n-1]
@@ -2327,7 +2327,7 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   # compute the relations
   
   c = pushfirst!([1+sum(gens(R1)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R1)[1:dims[1]]))
-  Rx, x = R1["x"]
+  Rx, x = R1[:x]
   fi = pback(total_chern_class(F).f)[0:n]
   f = sum(fi[i+1].f * x^(n-i) for i in 0:n)
   gi = prod(c)[0:n]

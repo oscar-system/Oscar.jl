@@ -27,7 +27,7 @@ the dimension. This is a desired feature for most, if not all,
 F-theory literature constructions.
 
 ```jldoctest
-julia> coord_ring, _ = QQ["f", "g", "Kbar", "u"];
+julia> coord_ring, _ = QQ[:f, :g, :Kbar, :u];
 
 julia> grading = [4 6 1 0; 0 0 0 1]
 2×4 Matrix{Int64}:

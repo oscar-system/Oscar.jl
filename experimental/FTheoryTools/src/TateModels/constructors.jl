@@ -116,7 +116,7 @@ The following code exemplifies this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 2×6 Matrix{Int64}:

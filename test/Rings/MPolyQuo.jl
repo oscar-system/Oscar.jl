@@ -58,7 +58,7 @@ end
 
   # promote rule
   K = GF(2)
-  Kx, (x, y) = K["x", "y"]
+  Kx, (x, y) = K[:x, :y]
   I = ideal(Kx, elem_type(Kx)[])
   Kx, = quo(Kx, I)
   x = Kx(x)
@@ -140,14 +140,14 @@ end
   @test minimal_generating_set(ideal(Q, [ Q() ])) == elem_type(Q)[]
 
   # 1530
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, zero(R))
   Q, _ = quo(R, I)
   J = ideal(Q, [x^7, y^2])
   @test !(one(Q) in J)
 
   # allowing empty set of generators 
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, x*y)
   Q, _ = quo(R, I)
   J = ideal(Q, elem_type(Q)[])
@@ -159,7 +159,7 @@ end
 end
 
 @testset "prime ideals" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x])
   A, _ = quo(R, I)
   J = ideal(A, [A(y)])
@@ -169,7 +169,7 @@ end
 end
 
 @testset "saturated ideal compatibility" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x+y+z])
   A, _ = quo(R,I)
   J = ideal(A, [x, y])
@@ -178,7 +178,7 @@ end
 
 @testset "issue 1794" begin
   kk, _ = cyclotomic_field(5)
-  R, (x, y) = kk["x", "y"]
+  R, (x, y) = kk[:x, :y]
   I = ideal(R, [x^2, y^2])
   A, _ = quo(R, I)
   a = inv(A(1-x*y))
@@ -195,10 +195,10 @@ end
 end
 
 @testset "#2119/wrong promotion" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   I = ideal(R, x)
   Q, _ = quo(R, I)
-  P, (u, v) = Q["u", "v"]
+  P, (u, v) = Q[:u, :v]
   J = ideal(P, u)
   A, _ = quo(P, J)
   @test iszero(x * u)
@@ -221,7 +221,7 @@ end
 end
 
 @testset "quotients as vector spaces" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   I = ideal(R, [x^3- 2, y^2+3*x])
   A, pr = quo(R, I)
   V, id = vector_space(QQ, A)
@@ -235,7 +235,7 @@ end
 end
 
 @testset "divides hack" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, 1-x*y)
   o = invlex([x, y])
   Q = MPolyQuoRing(R, I, o)
@@ -243,9 +243,9 @@ end
 end
 
 @testset "representatives and hashing" begin
-  R1, (x1, y1) = QQ["x", "y"]
-  R2, (x2, y2) = ZZ["x", "y"]
-  R3, (x3, y3) = GF(7)["x", "y"]
+  R1, (x1, y1) = QQ[:x, :y]
+  R2, (x2, y2) = ZZ[:x, :y]
+  R3, (x3, y3) = GF(7)[:x, :y]
 
   Q1, p1 = quo(R1, ideal(R1, [x1-3]))
   Q2, p2 = quo(R2, ideal(R2, [x2-3]))
@@ -261,7 +261,7 @@ end
   @test simplify(p3(x3)).f == Q3(3).f
 
   # A case that uses the RingFlattening and does not have a singular backend:
-  P, (u, v) = Q3["u", "v"]
+  P, (u, v) = Q3[:u, :v]
   QP, pP = quo(P, ideal(P, [u]))
   @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
   @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
@@ -276,7 +276,7 @@ end
   simplify(b)
   @test iszero(b.f)
 
-  P, (u, v) = R3["u", "v"]
+  P, (u, v) = R3[:u, :v]
   QP, pP = quo(P, ideal(P, [u]))
   @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
   @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
@@ -292,7 +292,7 @@ end
   @test iszero(b.f)
 
   L3, _ = localization(R3, powers_of_element(y3))
-  P, (u, v) = L3["u", "v"]
+  P, (u, v) = L3[:u, :v]
   QP, pP = quo(P, ideal(P, [u]))
   @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
   @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
@@ -308,7 +308,7 @@ end
   @test iszero(b.f)
 
   W3, _ = localization(Q3, powers_of_element(y3))
-  P, (u, v) = W3["u", "v"]
+  P, (u, v) = W3[:u, :v]
   QP, pP = quo(P, ideal(P, [u]))
   @test_throws ErrorException hash(pP(v)) # Hashing is forbidden
   @test simplify(pP(v-3*u)).f != simplify(pP(v)).f # Simplification does not bring 
@@ -341,7 +341,7 @@ end
   R, x = polynomial_ring(QQ, 3, :x)
   S, y = polynomial_ring(QQ, 4, :y)
 
-  @test_throws AssertionError tensor_product(R, GF(3)["x", "y"][1])
+  @test_throws AssertionError tensor_product(R, GF(3)[:x, :y][1])
 
   I = ideal(R, [x[1]])
   J = ideal(S, [y[1]])

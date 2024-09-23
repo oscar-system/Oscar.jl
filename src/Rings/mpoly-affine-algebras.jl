@@ -423,7 +423,7 @@ function hilbert_polynomial(A::MPolyQuoRing)
        R = base_ring(A.I)
        @req is_standard_graded(R) "The base ring must be standard ZZ-graded"
        n = ngens(A)
-       Qt, t = QQ["t"]
+       Qt, t = QQ[:t]
        b = one(Qt)
        for i in QQ(1):QQ(n-1)
            b = b * (t+i)

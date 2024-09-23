@@ -218,7 +218,7 @@ blowup).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> A3 = spec(R)
 Spectrum

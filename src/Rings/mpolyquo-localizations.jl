@@ -1754,7 +1754,7 @@ Return the intersection of two or more ideals.
 
 # Examples
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> Q = ideal(R,[x*y-z*w]);
 

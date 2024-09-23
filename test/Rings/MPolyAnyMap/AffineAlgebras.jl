@@ -58,7 +58,7 @@
 
   begin
     # #655
-    R, vars = QQ["x","y"]
+    R, vars = QQ[:x, :y]
     x = vars[1]
     y = vars[2]
     f = hom(R, R, vars)

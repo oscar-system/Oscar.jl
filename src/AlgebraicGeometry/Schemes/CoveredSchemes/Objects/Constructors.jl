@@ -12,9 +12,9 @@ Return a `CoveredScheme` ``X`` with `C` as its `default_covering`.
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 

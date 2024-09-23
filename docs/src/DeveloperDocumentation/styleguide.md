@@ -235,7 +235,7 @@ polynomial of a matrix. You could do it as follows:
 ```julia
 function characteristic_polynomial(A::MatrixElem)
   kk = base_ring(A)
-  P, x = kk["x"]
+  P, x = kk[:x]
   AP = change_base_ring(P, A)
   return det(AP - x*one(AP))
 end

@@ -95,7 +95,7 @@ algorithm requires an elimination ordering, `o` might be ignored.
 
 # Example
 ```jldoctest withordering
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> f = x + y^2;
 

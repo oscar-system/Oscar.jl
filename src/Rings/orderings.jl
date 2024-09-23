@@ -1195,7 +1195,7 @@ return the matrix ordering on the set of monomials in the given variables which 
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = QQ["w", "x", "y", "z"];
+julia> R, (w, x, y, z) = QQ[:w, :x, :y, :z];
 
 julia> M =[1 1 1 1; 0 -1 -1 -1; 0 0 -1 -1; 0 0 0 -1]
 4×4 Matrix{Int64}:

@@ -7,12 +7,12 @@
     push!(tests, (F, a, ["a"]))
 
     # univariate fraction_field
-    F = fraction_field(k["a"][1])
+    F = fraction_field(k[:a][1])
     a = F(gen(base_ring(F)))
     push!(tests, (F, a, ["a"]))
 
     # multivariate fraction_field
-    F = fraction_field(k["a1", "a2"][1])
+    F = fraction_field(k[:a1, :a2][1])
     a = F(base_ring(F)[1])
     push!(tests, (F, a, ["a1", "a2"]))
 

@@ -1,5 +1,5 @@
 @testset "constant sheaf of integers on AffineScheme" begin
-  R, x = QQ["x", "y", "z"]
+  R, x = QQ[:x, :y, :z]
   X = spec(R)
   Xcov = covered_scheme(X)
 

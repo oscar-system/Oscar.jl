@@ -44,7 +44,7 @@ we use `map_coefficients` to map polynomials over the integers to polynomials
 over a finite field, and the results can be added -- this is only possible because
 the new polynomials have the same parent, thanks to caching.
 ```jldoctest
-julia> Zx, x = ZZ["x"]
+julia> Zx, x = ZZ[:x]
 (Univariate polynomial ring in x over ZZ, x)
 
 julia> F = GF(2);

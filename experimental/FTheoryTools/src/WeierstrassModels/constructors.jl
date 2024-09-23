@@ -109,7 +109,7 @@ The following example illustrates this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ["f", "g", "Kbar", "u"]
+julia> auxiliary_base_ring, (f, g, Kbar, v) = QQ[:f, :g, :Kbar, :u]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[f, g, Kbar, u])
 
 julia> auxiliary_base_grading = [4 6 1 0]

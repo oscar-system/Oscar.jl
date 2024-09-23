@@ -383,10 +383,10 @@ end
 end
 
 @testset "Polynomial Ordering misc bugs" begin
-   R, (x, y) = QQ["x", "y"]
+   R, (x, y) = QQ[:x, :y]
    @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
-   R, (x, y, z) = QQ["x", "y", "z"]
+   R, (x, y, z) = QQ[:x, :y, :z]
    @test degrevlex(gens(R)) != degrevlex(Oscar.reverse(gens(R)))
 
    a = negwdegrevlex([z, x, y], [4, 5, 6])
@@ -412,7 +412,7 @@ end
 end
 
 @testset "Polynomial Ordering elimination" begin
-   R, (x, y, z, w) = QQ["x", "y", "z", "w"]
+   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
    @test is_elimination_ordering(lex(R), [x])
    @test is_elimination_ordering(lex(R), [x,y])
    @test is_elimination_ordering(lex(R), [x,y,z])

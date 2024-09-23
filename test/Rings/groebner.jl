@@ -184,7 +184,7 @@ end
 end
 
 @testset "non-global orderings" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x^2*(x-1)-y^2, y^3*(x+y-6)])
   o = negdegrevlex(gens(R))
   G = standard_basis(I, ordering=o)
@@ -246,7 +246,7 @@ end
   @test_throws ErrorException fglm(I, destination_ordering=lex(R))
 
   # Issue #4026
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal([x, y])
   G = groebner_basis(I, ordering = lex([y, x]), algorithm = :fglm)
   @test gens(G) == elem_type(R)[x, y]

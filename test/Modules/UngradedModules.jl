@@ -1101,7 +1101,7 @@ end
 
 @testset "change of base rings" begin
   Oscar.set_seed!(235)
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   U = Oscar.MPolyPowersOfElement(x)
   S = Oscar.MPolyLocRing(R, U)
   F = FreeMod(R, 2)
@@ -1125,7 +1125,7 @@ end
 
 @testset "duals" begin
   Oscar.set_seed!(235)
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   F1 = FreeMod(R, 1)
   F2 = FreeMod(R, 2)
   F2v, ev = Oscar.dual(F2, codomain=F1)
@@ -1194,7 +1194,7 @@ end
 
 @testset "vector_space_dimension and vector_space_basis" begin
   Oscar.set_seed!(235)
-  R,(x,y,z,w) = QQ["x","y","z","w"]
+  R,(x,y,z,w) = QQ[:x, :y, :z, :w]
   U=complement_of_point_ideal(R,[0,0,0,0])
   RL, loc_map = localization(R,U)
   Floc = free_module(RL,2)

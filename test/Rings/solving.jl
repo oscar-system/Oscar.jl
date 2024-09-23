@@ -47,7 +47,7 @@
 end
 
 @testset "Rational solutions" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal([x - 1, y - 1])
   J = ideal([x - 2, y - 3])
   pts = rational_solutions(I * J)
@@ -55,7 +55,7 @@ end
   @test issetequal(pts, Vector{QQFieldElem}[[1, 1], [2, 3]])
 
   k, a = quadratic_field(-1)
-  R, (x, y) = k["x", "y"]
+  R, (x, y) = k[:x, :y]
   I = ideal([x^2 + 1, y^3 - 1])
   pts = rational_solutions(I)
   @test length(pts) == 2
@@ -63,7 +63,7 @@ end
 
   k = GF(5)
   a = k(2)
-  R, (x, y) = k["x", "y"]
+  R, (x, y) = k[:x, :y]
   I = ideal([x^2 + 1, y^3 - 1])
   pts = rational_solutions(I)
   @test length(pts) == 2

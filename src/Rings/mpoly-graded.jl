@@ -1504,7 +1504,7 @@ mutable struct HilbertData
 end
 
 function hilbert_series(H::HilbertData)
-  Zt, t = ZZ["t"]
+  Zt, t = ZZ[:t]
   den = prod([1-t^w for w in H.weights])
   h = Zt(map(ZZRingElem, H.coeffs[1:end]))
   return h, den
@@ -1530,7 +1530,7 @@ function hilbert_polynomial(H::HilbertData)
     nf *= i
     q = derivative(q)
   end
-  Qt, t = QQ["t"]
+  Qt, t = QQ[:t]
   d==-1 && return zero(Qt)
   bin = one(Qt)
   b = QQPolyRingElem[]
@@ -1556,7 +1556,7 @@ function Oscar.degree(H::HilbertData)
 end
 
 function _rational_function_to_power_series(P::QQRelPowerSeriesRing, n, d)
-  Qt, t = QQ["t"]
+  Qt, t = QQ[:t]
   nn = map_coefficients(QQ, n; parent = Qt)
   dd = map_coefficients(QQ, d; parent = Qt)
   gg, ee, _ = gcdx(dd, t^max_precision(P))
@@ -1577,7 +1577,7 @@ Given a rational function $f$ over the rationals, expand $f$ as a power series
 up to terms of degree $d$.
 
 ```jldoctest
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> expand(1//(1 - x^2), 5)
 1 + t^2 + t^4 + O(t^6)

@@ -3,7 +3,7 @@ R, x = polynomial_ring(QQ, :x)
 q = x^2 + 3//4
 L, (e, f) = number_field([x^2 + 5, x^3 - 6])
 K, a = number_field(q)
-Ky, y = K["y"]
+Ky, y = K[:y]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
@@ -14,7 +14,7 @@ P7 = PadicField(7, 30)
 T = tropical_semiring()
 PF = GF(7)
 F  = GF(2, 2)
-Fs, s = F["s"]
+Fs, s = F[:s]
 FF, r = finite_field(s^2 + gen(F) * s + 1, "r")
 
 cases = [

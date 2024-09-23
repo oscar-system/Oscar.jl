@@ -69,7 +69,7 @@ Return the tropical hypersurface of the tropical polynomial `f`.  If `weighted_p
 julia> T = tropical_semiring()
 Min tropical semiring
 
-julia> R,(x,y) = T["x","y"];
+julia> R,(x,y) = T[:x, :y];
 
 julia> f = x+y+1
 x + y + (1)
@@ -108,7 +108,7 @@ Return the tropical hypersurface of the tropical polynomial that is the image of
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> val = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field

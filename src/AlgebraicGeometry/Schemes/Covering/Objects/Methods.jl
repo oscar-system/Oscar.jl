@@ -204,9 +204,9 @@ The `patches` of `G` must be among the `affine_charts` of `C`.
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"];
+julia> P1, (x,y) = QQ[:x, :y];
 
-julia> P2, (u,v) = QQ["u", "v"];
+julia> P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1);
 

@@ -1339,7 +1339,7 @@ Return the intersection of two or more ideals.
 
 # Examples
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> f = x+y+z+w-1;
 
@@ -1799,7 +1799,7 @@ Note that the last two variants are only provided to allow a coherent usage.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = QQ["x", "y"]
+julia> R, (x, y) = QQ[:x, :y]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x, y^2+1])
@@ -2681,7 +2681,7 @@ generators of `I`. If `I` is the zero ideal an empty list is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = QQ["x", "y"];
+julia> R, (x, y) = QQ[:x, :y];
 
 julia> L, phi = localization(R, complement_of_point_ideal(R, [1, 2]));
 
@@ -2755,7 +2755,7 @@ If the localization is at a point, a minimal set of generators is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = QQ["x", "y"];
+julia> R, (x, y) = QQ[:x, :y];
 
 julia> L, phi = localization(R, powers_of_element(x));
 

@@ -12,11 +12,11 @@
   # this example relies on the same source as polymake's johnson_solid(84):
   # https://de.wikipedia.org/wiki/Trigondodekaeder
   # as of now, johnson solid J84 is realized as a Polyhedron over floats within polymake
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   K, r = number_field(x^3 - 3x^2 - 4x + 8, "r")
-  Ky, y = K["y"]
+  Ky, y = K[:y]
   L, = number_field(y^2 - (2 - r^2)//2, "q")
-  Lz, z = L["z"]
+  Lz, z = L[:z]
   E, q = Hecke.embedded_field(L, real_embeddings(L)[2])
   pq1 = E(roots(z^2 - (3 + 2r - r^2))[2])
   pq2 = E(roots(z^2 - (3 - r^2))[1])

@@ -279,7 +279,7 @@ end
 end
 
 @testset "#795" begin
-  R, = QQ["x", "y"]
+  R, = QQ[:x, :y]
   I = ideal(R, zero(R))
   @test issubset(I, I)
   @test I == I
@@ -342,7 +342,7 @@ end
 end
 
 @testset "NonSimpleField" begin
-  Qt, t = QQ["t"];
+  Qt, t = QQ[:t];
   K, (a1,a2) = number_field([t^2 - 2, t^2 - 3], "a");
   R, (x,y) = polynomial_ring(K,[:x,:y]);
   I = ideal(R, [x^2-a1])
@@ -402,10 +402,10 @@ end
 end
 
 @testset "primary decomposition in graded rings" begin
-  Pt, t = QQ["t"]
+  Pt, t = QQ[:t]
   f = t^2 + 1
   kk, i = number_field(f)
-  R, (x, y) = kk["x", "y"]
+  R, (x, y) = kk[:x, :y]
 
   S, _ = grade(R)
 
@@ -526,7 +526,7 @@ end
 @testset "primary decomposition over AbsNonSimpleNumField" begin
   _, x = QQ[:x]
   K, a = number_field([x - 1, x - 2]);
-  Kt, t = K["t"];
+  Kt, t = K[:t];
   L, b = number_field(t - 1, "b");
   M, = number_field(t - 1, "b");
   Mx, = polynomial_ring(M, 2);
@@ -574,7 +574,7 @@ end
 end
 
 @testset "default ordering" begin
-  R, _ = QQ["x", "y", "z"]
+  R, _ = QQ[:x, :y, :z]
   S, _ = grade(R, [2, 1, 2])
   for T in [R, S]
     x, y, z = gens(T)

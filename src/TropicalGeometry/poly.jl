@@ -256,7 +256,7 @@ Return the dual subdivision on `exponents(f)` with weights `nu.(coefficients(f))
 
 # Examples
 ```jldoctest
-julia> _, (x,y) = QQ["x", "y"];
+julia> _, (x,y) = QQ[:x, :y];
 
 julia> nu = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
@@ -306,7 +306,7 @@ end
 # julia> K = PadicField(7, 2)
 # Field of 7-adic numbers
 
-# julia> Kxy, (x,y) = K["x", "y"]
+# julia> Kxy, (x,y) = K[:x, :y]
 # (Multivariate polynomial ring in 2 variables over QQ_7, AbstractAlgebra.Generic.MPoly{PadicFieldElem}[x, y])
 
 # julia> f = 7*x+y+49

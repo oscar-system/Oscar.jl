@@ -1881,7 +1881,7 @@ julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> Zx,x = ZZ["x"]
+julia> Zx,x = ZZ[:x]
 (Univariate polynomial ring in x over ZZ, x)
 
 julia> mf = minimal_polynomial(Lf)

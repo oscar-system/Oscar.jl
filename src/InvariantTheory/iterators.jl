@@ -15,7 +15,7 @@ variables of `R` to be used.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> collect(monomials_of_degree(R, 3))
 10-element Vector{QQMPolyRingElem}:

@@ -208,7 +208,7 @@ return the new algebra together with the quotient map $A\to A/I$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 

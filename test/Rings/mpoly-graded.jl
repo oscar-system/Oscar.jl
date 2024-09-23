@@ -226,21 +226,21 @@ end
 # Conversion bug
 
 begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   R_ext, _ = polynomial_ring(R, [:u, :v])
   S, (u,v) = grade(R_ext, [1,1])
   @test S(R_ext(x)) == @inferred S(x)
 end
 
 begin
-  R, (x,y) = QQ["x", "y"]
-  P, (s, t) = R["s", "t"]
+  R, (x,y) = QQ[:x, :y]
+  P, (s, t) = R[:s, :t]
   S, (u, v) = grade(P, [1,1])
   @test one(QQ)*u == u
 end
 
 begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   S, (u, v) = grade(R)
   @test hash(S(u)) == hash(S(u))
 
@@ -318,7 +318,7 @@ end
 
 @testset "Rand" begin
   for K in [ZZ, GF(3), QQ]
-    R, = K["x", "y", "z"]
+    R, = K[:x, :y, :z]
     S, = grade(R)
     for i in 1:100
       f = rand(R, 5:10, 1:10, 1:100)

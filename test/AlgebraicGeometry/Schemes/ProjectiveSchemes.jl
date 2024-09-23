@@ -1,6 +1,6 @@
 @testset "projective_schemes_1" begin
   # test for relative projective space over a polynomial ring
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   S, (u,v) = graded_polynomial_ring(R, [:u, :v])
 
   I = ideal(S, [x*v - y*u])
@@ -44,7 +44,7 @@
 end
 
 @testset "projective_schemes_2" begin
-  R, (x, y, z) = QQ["x", "y", "z"]
+  R, (x, y, z) = QQ[:x, :y, :z]
   I = ideal(R, [x^2-y*z])
   X = spec(R, I)
   U = AffineSchemeOpenSubscheme(X, [x, y])
@@ -70,7 +70,7 @@ end
 end
 
 @testset "singular schemes" begin
-  A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+  A, (x, y, z) = grade(QQ[:x, :y, :z][1]);
   B, _ = quo(A, ideal(A, [x^2 + y^2]));
   C = proj(B)
   @test !is_smooth(C; algorithm=:projective_jacobian)
@@ -114,7 +114,7 @@ end
 end
 
 @testset "morphisms of projective schemes I" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
 
   IP2_X = projective_space(R, 2, var_name="u")
   projective_space(R, ["u", "v", "w"])
@@ -271,7 +271,7 @@ end
 end
 
 @testset "properties of projective schemes" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   S, _ = grade(R)
   X = proj(S)
   I = ideal(S, x^2 - y*z)
@@ -287,7 +287,7 @@ end
   @test is_smooth(C; algorithm=:affine_cone)
   @test arithmetic_genus(C) == 0
 
-  R, (x,y,z,w) = QQ["x", "y", "z", "w"]
+  R, (x,y,z,w) = QQ[:x, :y, :z, :w]
   S, _ = grade(R)
   I = ideal(S, [x^4 + y^4 + z^4 + w^4])
   Q, _ = quo(S, I)

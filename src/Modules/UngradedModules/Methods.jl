@@ -540,7 +540,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns i
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -647,7 +647,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 

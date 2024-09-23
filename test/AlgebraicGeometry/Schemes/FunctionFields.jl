@@ -1,5 +1,5 @@
 @testset "fraction fields of varieties" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   @test is_irreducible(spec(R))
   @test is_irreducible(spec(R, ideal(R, x)))
   @test !is_irreducible(spec(R, ideal(R, x*y)))

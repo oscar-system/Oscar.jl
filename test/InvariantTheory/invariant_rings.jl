@@ -100,7 +100,7 @@
     ),
   )
   I = invariant_ring(G)
-  S, t = QQ["t"]
+  S, t = QQ[:t]
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t^2) * (1 - t^3) * (1 - t^4) * (1 - t^5))
 
@@ -190,7 +190,7 @@ end
 
   # S4 (natural permutation module in characteristic 5)
   s4 = symmetric_group(4)
-  S, t = QQ["t"]
+  S, t = QQ[:t]
   I = invariant_ring(GF(5), s4)
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t) * (1 - t^2) * (1 - t^3) * (1 - t^4))

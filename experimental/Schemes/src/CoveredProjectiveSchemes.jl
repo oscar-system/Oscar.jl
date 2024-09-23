@@ -307,7 +307,7 @@ empty covered scheme over `R`.
 
 # Example
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> Oscar.empty_covered_projective_scheme(R)
 Relative projective scheme

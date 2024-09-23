@@ -138,7 +138,7 @@ Given a polynomial `f` in the simulation ring, "replace" the uniformizer with th
 julia> nu_2 = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
 
-julia> Rtx,(p,x1,x2,x3) = Oscar.valued_ring(nu_2)["p","x1","x2","x3"]
+julia> Rtx,(p,x1,x2,x3) = Oscar.valued_ring(nu_2)[:p,:x1,:x2,:x3]
 (Multivariate polynomial ring in 4 variables over ZZ, ZZMPolyRingElem[p, x1, x2, x3])
 
 julia> f = x1+p*x1+p^2*x1+2^2*x2+p*x2+p^2*x2+x3
@@ -363,7 +363,7 @@ Return a (tropical) Groebner basis of `I` with respect to the tropical semiring 
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y]);
 
