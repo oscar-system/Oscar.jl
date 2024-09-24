@@ -190,8 +190,8 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
   function lie_algebra_module_conformance_test(
     L::LieAlgebra{C},
     V::LieAlgebraModule{C},
-    parentT::DataType=LieAlgebraModule{C},
-    elemT::DataType=LieAlgebraModuleElem{C};
+    parentT::DataType=LieAlgebraModule{C,elem_type(L)},
+    elemT::DataType=LieAlgebraModuleElem{C,elem_type(L)};
     num_random_tests::Int=10,
   ) where {C<:FieldElem}
     @testset "basic manipulation" begin
