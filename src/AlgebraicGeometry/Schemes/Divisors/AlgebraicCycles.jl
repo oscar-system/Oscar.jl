@@ -23,11 +23,11 @@ coefficient_ring_elem_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = elem_
 ### essential getters and functionality
 
 @doc raw"""
-    scheme(D::AbsAlgebraicCycle)
+    ambient_scheme(D::AbsAlgebraicCycle)
 
 Return the `CoveredScheme` ``X`` on which `D` is defined.
 """
-scheme(D::AbsAlgebraicCycle) = scheme(underlying_cycle(D))
+ambient_scheme(D::AbsAlgebraicCycle) = ambient_scheme(underlying_cycle(D))
 
 # For an element `I` of `components(D)`, this returns the coefficient 
 # of `I` in the formal sum for `D`.
@@ -139,7 +139,7 @@ function underlying_cycle(D::AbsAlgebraicCycle)
 end
 
 ### implementation of the essential functionality
-scheme(D::AlgebraicCycle) = D.X
+ambient_scheme(D::AlgebraicCycle) = D.X
 getindex(D::AlgebraicCycle, I::AbsIdealSheaf) = (D.coefficients)[I]
 
 components(D::AlgebraicCycle) = collect(keys(D.coefficients))
@@ -168,7 +168,7 @@ function AlgebraicCycle(X::AbsCoveredScheme, R::Ring; check::Bool=true)
 end
 
 function zero(D::AbsAlgebraicCycle; check::Bool=true) 
-  return AlgebraicCycle(scheme(D), coefficient_ring(D); check)
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D); check)
 end
 
 # provide non-camelcase methods
@@ -284,7 +284,7 @@ function copy(D::AlgebraicCycle)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return AlgebraicCycle(scheme(D), coefficient_ring(D), new_dict)
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), new_dict)
 end
 
 ###############################################################################
@@ -301,7 +301,7 @@ end
 # needs to take care about some left offsets.
 function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   # If the IO context knows about a covering to be used, we use this one.
   # Otherwise, we check whether X has a simplified covering. If not, we use the
   # default covering of X
@@ -348,7 +348,7 @@ end
 
 function Base.show(io::IO, D::AlgebraicCycle)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   eff = all(i >= 0 for i in collect(values(D.coefficients)))
   if length(components(D)) == 1
     prim = D[components(D)[1]] == 1 ? true : false
@@ -360,15 +360,15 @@ function Base.show(io::IO, D::AlgebraicCycle)
   elseif is_terse(io)
     print(io, "Algebraic cycle")
   elseif length(components(D)) == 0
-    print(io, "Zero algebraic cycle on ", Lowercase(), scheme(D))
+    print(io, "Zero algebraic cycle on ", Lowercase(), ambient_scheme(D))
   elseif eff
     if prim
-      print(io, "Irreducible algebraic cycle on ", Lowercase(), scheme(D))
+      print(io, "Irreducible algebraic cycle on ", Lowercase(), ambient_scheme(D))
     else
-      print(io, "Effective algebraic cycle on ", Lowercase(), scheme(D))
+      print(io, "Effective algebraic cycle on ", Lowercase(), ambient_scheme(D))
     end
   else
-    print(io, "Algebraic cycle on ", Lowercase(), scheme(D))
+    print(io, "Algebraic cycle on ", Lowercase(), ambient_scheme(D))
   end
 end
 
@@ -391,8 +391,8 @@ end
 # so the implementation can not be truly generic. 
 
 function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
-  X = scheme(D)
-  X === scheme(E) || error("divisors do not live on the same scheme")
+  X = ambient_scheme(D)
+  X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("coefficient rings do not coincide")
   dict = IdDict{AbsIdealSheaf, elem_type(R)}()
@@ -419,7 +419,7 @@ function -(D::T) where {T<:AbsAlgebraicCycle}
   for I in keys(coefficient_dict(D))
     dict[I] = -D[I]
   end
-  return AlgebraicCycle(scheme(D), coefficient_ring(D), dict, check=false)
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), dict, check=false)
 end
 
 -(D::T, E::T) where {T<:AbsAlgebraicCycle} = D + (-E)
@@ -434,7 +434,7 @@ function *(a::RingElem, E::AbsAlgebraicCycle)
       dict[I] = c
     end
   end
-  return AlgebraicCycle(scheme(E), coefficient_ring(E), dict, check=false)
+  return AlgebraicCycle(ambient_scheme(E), coefficient_ring(E), dict, check=false)
 end
 
 *(a::Int, E::AbsAlgebraicCycle) = coefficient_ring(E)(a)*E
@@ -458,7 +458,7 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
       k = _colength_in_localization(I, P)
       next_dict[P] = coefficient_ring(D)(k)
     end
-    result = result + a * AlgebraicCycle(scheme(D), coefficient_ring(D), next_dict, check=false)
+    result = result + a * AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), next_dict, check=false)
   end
   return result
 end
@@ -519,7 +519,7 @@ the lengths of all the components of dimension `0` of ``W``.
 """
 function integral(W::AbsAlgebraicCycle; check::Bool=true)
   result = zero(coefficient_ring(W))
-  X = scheme(W)
+  X = ambient_scheme(W)
   for I in components(W)
     @check begin
       dim(I) == 0 || continue

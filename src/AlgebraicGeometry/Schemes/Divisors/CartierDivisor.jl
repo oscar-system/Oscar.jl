@@ -2,6 +2,8 @@ function (C::EffectiveCartierDivisor)(U::AbsAffineScheme)
   return gens(C.I(U))
 end
 
+iszero(C::EffectiveCartierDivisor) = isone(ideal_sheaf(C))
+
 @doc raw"""
     ideal_sheaf(C::EffectiveCartierDivisor)
     
@@ -10,11 +12,11 @@ Return the sheaf of ideals $\mathcal{I}_C \subseteq \mathcal{O}_X$ representing 
 ideal_sheaf(C::EffectiveCartierDivisor) = C.I
 
 @doc raw"""
-    scheme(C::EffectiveCartierDivisor)
+    ambient_scheme(C::EffectiveCartierDivisor)
     
 Return the ambient scheme containing `C`. 
 """
-scheme(C::EffectiveCartierDivisor) = C.X
+ambient_scheme(C::EffectiveCartierDivisor) = C.X
 
 @doc raw"""
     trivializing_covering(C::EffectiveCartierDivisor)
@@ -40,11 +42,11 @@ function EffectiveCartierDivisor(I::AbsIdealSheaf;
 end
 
 @doc raw"""
-    scheme(C::CartierDivisor)
+    ambient_scheme(C::CartierDivisor)
     
 Return the ambient scheme containing `C`. 
 """
-scheme(C::CartierDivisor) = C.X
+ambient_scheme(C::CartierDivisor) = C.X
 
 @doc raw"""
     coefficient_ring(C::CartierDivisor)
@@ -64,7 +66,7 @@ Return a list of effective Cartier divisors $C_i$ such that $C$ is a linear comb
 components(C::CartierDivisor) = collect(keys(coefficient_dict(C)))
 
 function +(C::CartierDivisor, D::CartierDivisor) 
-  scheme(C) === scheme(D) || error("divisors must be defined over the same scheme")
+  ambient_scheme(C) === ambient_scheme(D) || error("divisors must be defined over the same scheme")
   coefficient_ring(C) === coefficient_ring(D) || error("divisors must have the same coefficient rings")
   R = coefficient_ring(C)
   coeff_dict = IdDict{EffectiveCartierDivisor, elem_type(R)}()
@@ -83,7 +85,7 @@ function +(C::CartierDivisor, D::CartierDivisor)
       coeff_dict[k] = D[k]
     end
   end
-  return CartierDivisor(scheme(C), coefficient_ring(C), coeff_dict)
+  return CartierDivisor(ambient_scheme(C), coefficient_ring(C), coeff_dict)
 end
 
 function +(C::CartierDivisor, D::EffectiveCartierDivisor) 
@@ -98,6 +100,8 @@ function +(C::EffectiveCartierDivisor, D::CartierDivisor)
   return CartierDivisor(C) + D
 end
 
+zero(D::CartierDivisor) = CartierDivisor(ambient_scheme(D),coefficient_ring(D))
+
 function *(a::RingElem, C::CartierDivisor)
   parent(a) === coefficient_ring(C) || return coefficient_ring(C)(a)*C
   coeff_dict = IdDict{EffectiveCartierDivisor, typeof(a)}()
@@ -109,7 +113,7 @@ function *(a::RingElem, C::CartierDivisor)
       coeff_dict[k] = c
     end
   end
-  return CartierDivisor(scheme(C), coefficient_ring(C), coeff_dict)
+  return CartierDivisor(ambient_scheme(C), coefficient_ring(C), coeff_dict)
 end
 
 function *(a::Integer, C::CartierDivisor)
@@ -121,7 +125,21 @@ function -(C::CartierDivisor, D::CartierDivisor)
 end
 
 function iszero(C::CartierDivisor)
-  return iszero(length(keys(coefficient_dict(C)))) || all(k->iszero(C[k]), components(C))
+  iszero(length(keys(coefficient_dict(C)))) && return true
+  all(iszero, values(coefficient_dict(C))) && return true
+  all(iszero, keys(coefficient_dict(C))) && return true
+  
+  # write C = P - M with P and M effective.
+  # TODO: Multiplying everything together is quick and dirty
+  P = sum(ai*Ci for (Ci,ai) in coefficient_dict(C) if ai>0; init=zero(C))
+  M = sum(-ai*Ci for (Ci,ai) in coefficient_dict(C) if ai<0; init=zero(C))
+  if iszero(length(coefficient_dict(P))) || iszero(length(coefficient_dict(M)))
+      # we know that there is at least one non-zero summand and no cancellation
+      return false
+  end
+  IP = prod(ideal_sheaf(Ci)^ai for (Ci,ai) in coefficient_dict(P))
+  IM = prod(ideal_sheaf(Ci)^ai for (Ci,ai) in coefficient_dict(M))
+  return IP==IM
 end
 
 @doc raw"""
@@ -167,7 +185,7 @@ defined by the formal sum of
 cartier_divisor(E::EffectiveCartierDivisor) = CartierDivisor(E)
 
 function CartierDivisor(C::EffectiveCartierDivisor)
-  return CartierDivisor(scheme(C), ZZ, IdDict([C => one(ZZ)]))
+  return CartierDivisor(ambient_scheme(C), ZZ, IdDict([C => one(ZZ)]))
 end
 
 function CartierDivisor(X::AbsCoveredScheme, kk::Ring)
@@ -175,21 +193,14 @@ function CartierDivisor(X::AbsCoveredScheme, kk::Ring)
 end
 
 function *(a::RingElem, C::EffectiveCartierDivisor)
-  return CartierDivisor(scheme(C), parent(a), IdDict{EffectiveCartierDivisor, typeof(a)}([C => a]))
+  return CartierDivisor(ambient_scheme(C), parent(a), IdDict{EffectiveCartierDivisor, typeof(a)}([C => a]))
 end
 function *(a::Integer, C::EffectiveCartierDivisor)
-  return CartierDivisor(scheme(C), ZZ, IdDict{EffectiveCartierDivisor, elem_type(ZZ)}([C => ZZ(a)]))
+  return CartierDivisor(ambient_scheme(C), ZZ, IdDict{EffectiveCartierDivisor, elem_type(ZZ)}([C => ZZ(a)]))
 end
 
 function ==(C::CartierDivisor, D::CartierDivisor)
-  C === D && return true
-  for k in components(C)
-    iszero(C[k]) || (haskey(coefficient_dict(D), k) && D[k] == C[k]) || error("equality check not implemented in this complicated case")
-  end
-  for k in components(D) 
-    iszero(D[k]) || (haskey(coefficient_dict(C), k) && D[k] == C[k]) || error("equality check not implemented in this complicated case")
-  end
-  return true
+  return iszero(C-D)
 end
 
 @doc raw"""
@@ -262,7 +273,7 @@ end
 Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `AbsIdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
 """
 function irreducible_decomposition(C::EffectiveCartierDivisor)
-  X = scheme(C)
+  X = ambient_scheme(C)
   cov = default_covering(X)
   OOX = OO(X)
 
@@ -301,7 +312,7 @@ function weil_divisor(C::EffectiveCartierDivisor;
 end
 
 function weil_divisor(C::CartierDivisor)
-  X = scheme(C)
+  X = ambient_scheme(C)
   kk = coefficient_ring(C)
   result = WeilDivisor(X, kk)
   for c in components(C)
@@ -310,11 +321,16 @@ function weil_divisor(C::CartierDivisor)
   return result
 end
 
+@doc raw"""
+    intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
+    
+Computes the intersection of ``W`` and ``C`` as in [Ful98](@cite) and 
+returns an `AbsAlgebraicCycle` of codimension ``2``.
+"""
 function intersect(W::WeilDivisor, C::EffectiveCartierDivisor; check::Bool=true)
-  X = scheme(W)
+  X = ambient_scheme(W)
   result = zero(W)
-  for I in components(W)
-    @check is_prime(I) "all components of the first argument must be sheaves of prime ideals"
+  for I in components(irreducible_decomposition(W))
     inc_Y = CoveredClosedEmbedding(X, I, check=false)
     #inc_Y = CoveredClosedEmbedding(X, I, covering=trivializing_covering(C), check=false)
     Y = domain(inc_Y)
@@ -333,9 +349,8 @@ returns an `AbsAlgebraicCycle` of codimension ``2``.
 """
 function intersect(W::AbsWeilDivisor, C::CartierDivisor; check::Bool=true)
   result = zero(W)
-  iC = irreducible_decomposition(C)
-  for c in components(iC)
-    result = result + iC[c] * intersect(W, c, check=check)
+  for c in components(C)
+    result = result + C[c] * intersect(W, c, check=check)
   end
   return result
 end
@@ -356,22 +371,8 @@ function intersect(D::CartierDivisor, C::CartierDivisor)
   return intersect(irreducible_decomposition(weil_divisor(D)), C)
 end
 
-
-function pushforward(inc::CoveredClosedEmbedding, W::WeilDivisor)
-  X = domain(inc)
-  Y = codomain(inc)
-  X === scheme(W) || error("divisor not defined on the domain")
-  kk = coefficient_ring(W)
-  ideal_dict = IdDict{AbsIdealSheaf, elem_type(kk)}()
-  for I in components(W)
-    pfI = pushforward(inc)(I)
-    ideal_dict[pfI] = W[I]
-  end
-  return WeilDivisor(Y, kk, ideal_dict, check=false)
-end
-
-dim(C::EffectiveCartierDivisor) = dim(scheme(C))-1
-dim(C::CartierDivisor) = dim(scheme(C))-1
+dim(C::EffectiveCartierDivisor) = dim(ambient_scheme(C))-1
+dim(C::CartierDivisor) = dim(ambient_scheme(C))-1
 
 ###########################################################################
 ## show functions for Cartier divisors
@@ -379,7 +380,7 @@ dim(C::CartierDivisor) = dim(scheme(C))-1
 function Base.show(io::IO, C::EffectiveCartierDivisor)
   io = pretty(io)
   if get(io, :show_semi_compact, false)
-    cov = Oscar._covering_for_printing(io, scheme(C))
+    cov = Oscar._covering_for_printing(io, ambient_scheme(C))
     n = get(io, :label, "")
     _show_semi_compact(io, C, cov, n)
   elseif is_terse(io)
@@ -388,7 +389,7 @@ function Base.show(io::IO, C::EffectiveCartierDivisor)
     print(io, get_attribute(C, :name))
   else
     print(io, "Effective cartier divisor on ", Lowercase())
-    show(io, scheme(C))
+    show(io, ambient_scheme(C))
   end
 end
 
@@ -397,7 +398,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", C::EffectiveCartierDivisor)
   io = pretty(io)
   I = ideal_sheaf(C)
-  X = scheme(C)
+  X = ambient_scheme(C)
   cov = Oscar._covering_for_printing(io, X)
 
   print(io, "Effective cartier divisor")
@@ -424,7 +425,7 @@ end
 # We usually use "a" for the domain and "b" for the codomain
 function _show_semi_compact(io::IO, C::EffectiveCartierDivisor, cov::Covering, n::String)
   io = pretty(io)
-  X = scheme(C)
+  X = ambient_scheme(C)
   print(io, "Effective cartier divisor")
   if has_attribute(C, :name)
     print(io, " ", get_attribute(C, :name))
@@ -438,7 +439,7 @@ end
 function Base.show(io::IO, C::CartierDivisor)
   io = pretty(io)
   if get(io, :show_semi_compact, false)
-    cov = Oscar._covering_for_printing(io, scheme(C))
+    cov = Oscar._covering_for_printing(io, ambient_scheme(C))
     n = get(io, :label, "")
     _show_semi_compact(io, C, cov, n)
   elseif is_terse(io)
@@ -447,7 +448,7 @@ function Base.show(io::IO, C::CartierDivisor)
     print(io, get_attribute(C, :name))
   else
     print(io, "Cartier divisor on ", Lowercase())
-    show(io, scheme(C))
+    show(io, ambient_scheme(C))
   end
 end
 
@@ -458,13 +459,13 @@ end
 # right.
 function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor)
   io = pretty(io)
-  X = scheme(C)
+  X = ambient_scheme(C)
   cov = Oscar._covering_for_printing(io, X)
   cc = components(C)
   if length(cc) == 0
     print(io, "Zero cartier divisor ")
     print(io, Indent(), "on ", Lowercase())
-    show(IOContext(io, :covering => cov), scheme(C))
+    show(IOContext(io, :covering => cov), ambient_scheme(C))
     print(io, Dedent())
   else
     print(io, "Cartier divisor")
@@ -473,7 +474,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::CartierDivisor)
     end
     println(io)
     print(io, Indent(), "on ", Lowercase())
-    show(IOContext(io, :covering => cov), scheme(C))
+    show(IOContext(io, :covering => cov), ambient_scheme(C))
     println(io)
     println(io, Dedent(), "with coefficients in ", Lowercase(), coefficient_ring(C))
     print(io, "defined by the formal sum of")
@@ -503,7 +504,7 @@ end
 # We usually use "a" for the domain and "b" for the codomain
 function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering, n::String)
   io = pretty(io)
-  X = scheme(C)
+  X = ambient_scheme(C)
   cc = components(C)
   if length(cc) == 0
     print(io, "Zero cartier divisor")

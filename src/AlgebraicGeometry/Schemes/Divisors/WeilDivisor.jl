@@ -24,7 +24,7 @@ function WeilDivisor(X::AbsCoveredScheme, R::Ring)
 end
 
 function zero(W::WeilDivisor)
-  return WeilDivisor(scheme(W), coefficient_ring(W))
+  return WeilDivisor(ambient_scheme(W), coefficient_ring(W))
 end
 
 # provide non-camelcase methods
@@ -109,7 +109,7 @@ function copy(D::AbsWeilDivisor)
   for I in keys(coefficient_dict(D))
     new_dict[I] = D[I]
   end
-  return WeilDivisor(scheme(D), coefficient_ring(D), new_dict, check=false)
+  return WeilDivisor(ambient_scheme(D), coefficient_ring(D), new_dict, check=false)
 end
 
 function irreducible_decomposition(D::AbsWeilDivisor)
@@ -121,7 +121,7 @@ end
 # relevant information for free
 function Base.show(io::IO, D::AbsWeilDivisor)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   if get(io, :show_semi_compact, false)
     cov = Oscar._covering_for_printing(io, X)
     _show_semi_compact(io, D, cov)
@@ -157,7 +157,7 @@ end
 # everything consistently.
 function _show_semi_compact(io::IO, D::AbsWeilDivisor, cov::Covering)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
   prim = eff && get_attribute(D, :is_prime, false)
@@ -181,7 +181,7 @@ end
 # on the right.
 function Base.show(io::IO, ::MIME"text/plain", D::AbsWeilDivisor)
   io = pretty(io)
-  X = scheme(D)
+  X = ambient_scheme(D)
   cov = Oscar._covering_for_printing(io, X)
   C = underlying_cycle(D)
   eff = all(i >= 0 for i in collect(values(coefficient_dict(C))))
@@ -294,7 +294,7 @@ function ==(D::WeilDivisor, E::WeilDivisor)
 end
 
 @doc raw"""
-    intersect(D::AbsWeilDivisor, E::AbsWeilDivisor; covering::Covering=default_covering(scheme(D)))
+    intersect(D::AbsWeilDivisor, E::AbsWeilDivisor; covering::Covering=default_covering(ambient_scheme(D)))
 
 Return the intersection number of the the Weil divisors `D` and `E`
 on a complete smooth surface as defined in [Har77](@cite).
@@ -303,11 +303,11 @@ on a complete smooth surface as defined in [Har77](@cite).
 The optional keyword argument `covering` specifies the covering to be used for the computation.
 """
 function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
-    covering::Covering=default_covering(scheme(D))
+    covering::Covering=default_covering(ambient_scheme(D))
   )
-  X = scheme(D)
+  X = ambient_scheme(D)
   @req dim(X) == 2 "intersection of Weil divisors is only implemented for surfaces."
-  X === scheme(E) || error("divisors do not live on the same scheme")
+  X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
   R === coefficient_ring(E) || error("divisors do not have the same coefficient ring")
   result = zero(R)
@@ -334,115 +334,21 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
   return result
 end
 
-@attr Bool function has_dimension_leq_zero(I::Ideal)
-  is_one(I) && return true
-  return dim(I) <= 0
-end
 
-@attr Bool function has_dimension_leq_zero(I::MPolyLocalizedIdeal)
-  R = base_ring(I)
-  P = base_ring(R)::MPolyRing
-  J = ideal(P, numerator.(gens(I)))
-  has_dimension_leq_zero(J) && return true
-  is_one(I) && return true
-  return dim(I) <= 0
-end
-
-@attr Bool function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
-  R = base_ring(I)
-  P = base_ring(R)::MPolyRing
-  J = ideal(P, lifted_numerator.(gens(I)))
-  has_dimension_leq_zero(J) && return true
-  is_one(I) && return true
-  return dim(I) <= 0
+function pushforward(inc::CoveredClosedEmbedding, W::WeilDivisor)
+  X = domain(inc)
+  Y = codomain(inc)
+  X === ambient_scheme(W) || error("divisor not defined on the domain")
+  kk = coefficient_ring(W)
+  ideal_dict = IdDict{AbsIdealSheaf, elem_type(kk)}()
+  for I in components(W)
+    pfI = pushforward(inc)(I)
+    ideal_dict[pfI] = W[I]
+  end
+  return WeilDivisor(Y, kk, ideal_dict, check=false)
 end
 
 
-function has_dimension_leq_zero(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  for U in keys(object_cache(I))
-    has_dimension_leq_zero(I(U)) || return false
-  end
-
-  all_patches = patches(covering)
-  for U in all_patches
-    if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-      has_dimension_leq_zero(I(U)) || return false
-    end
-  end
-  return true
-end
-
-function has_dimension_leq_zero(I::SumIdealSheaf; 
-    covering::Covering=default_covering(scheme(I)),
-    use_decomposition_info::Bool=true
-  )
-  J = summands(I)
-
-  common_patches = keys(object_cache(first(J)))
-  for JJ in J[2:end]
-    common_patches = [U for U in common_patches if U in keys(object_cache(JJ))]
-  end
-
-  for U in common_patches
-    has_dimension_leq_zero(I(U)) || return false
-  end
-
-  all_patches = patches(covering)
-  for U in all_patches
-    patch_ok = false
-    # go through the object cache of the summands
-    if U in keys(object_cache(I))
-      i = I(U)
-      if has_decomposition_info(covering) && use_decomposition_info
-        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-        has_dimension_leq_zero(K + i) && (patch_ok = true)
-      else
-        has_dimension_leq_zero(i) && (patch_ok = true)
-      end
-      patch_ok && continue
-    end
-
-    # Do the same for the summands
-    for j in summands(I)
-      if U in keys(object_cache(j))
-        j_loc = j(U)
-        if has_decomposition_info(covering) && use_decomposition_info
-          K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-          has_dimension_leq_zero(K + j_loc) && (patch_ok = true)
-        else
-          has_dimension_leq_zero(j_loc) && (patch_ok = true)
-        end
-        patch_ok && break
-      end
-    end
-    patch_ok && continue
-
-    # repeat with cheap sub-ideals
-    for j in summands(I)
-      j_cheap = cheap_sub_ideal(j, U)
-      if has_decomposition_info(covering) && use_decomposition_info
-        K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-        has_dimension_leq_zero(K + j_cheap) && (patch_ok = true)
-      else
-        has_dimension_leq_zero(j_cheap) && (patch_ok = true)
-      end
-      patch_ok && break
-    end
-    patch_ok && continue
-
-    if has_decomposition_info(covering) && use_decomposition_info
-      K = ideal(OO(U), OO(U).(decomposition_info(covering)[U]))
-      if !has_dimension_leq_zero(cheap_sub_ideal(I, U) + K)
-        has_dimension_leq_zero(I(U) + K) || return false
-      end
-    else
-      if !has_dimension_leq_zero(cheap_sub_ideal(I, U))
-        has_dimension_leq_zero(I(U)) || return false
-      end
-    end
-  end
-  return true
-end
 
 """
     _self_intersection(I::AbsIdealSheaf) -> Integer
@@ -495,91 +401,6 @@ function _is_known_to_be_one(I::SumIdealSheaf, U::AbsAffineScheme;
   return false
 end
 
-@doc raw"""
-    colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-    
-Return the colength of `I`.
-
-
-"""
-function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
-  X = scheme(I)
-  all_patches = copy(patches(covering))
-  patches_done = AbsAffineScheme[]
-  patches_todo = AbsAffineScheme[]
-  @vprintln :Divisors 2 "checking colength of $(I)"
-  for U in all_patches
-    dec_inf = (has_decomposition_info(covering) ? elem_type(OO(U))[OO(U)(g) for g in decomposition_info(covering)[U]] : elem_type(OO(U))[])
-    if _is_known_to_be_one(I, U; dec_inf)
-      push!(patches_done, U)
-    else
-      push!(patches_todo, U)
-    end
-  end
-
-  result = 0
-  while length(patches_todo) != 0
-    U = pop!(patches_todo)
-
-    # First do a cheaper test whether this chart needs to be looked at
-    J_cheap = cheap_sub_ideal(I, U)
-    if has_decomposition_info(covering)
-      h = decomposition_info(covering)[U]
-      if isone(J_cheap + ideal(OO(U), elem_type(OO(U))[OO(U)(a) for a in h])) # R(a) is not type stable for R::MPolyQuoRing
-        # push!(patches_done, U)
-        continue
-      end
-    end
-
-    J = I(U)
-    if has_decomposition_info(covering)
-      h = decomposition_info(covering)[U]
-      # The elements in h indicate where components must 
-      # be located so that they can not be spotted in other charts.
-      # We iteratively single out these components by adding a sufficiently high 
-      # power of the equation to the ideal.
-      for f in h
-        g = f
-        while !(g in ideal(OO(U), g*f) + J)
-          g = g * g
-        end
-        J = J + ideal(OO(U), g)
-        if isone(J)
-          push!(patches_done, U)
-          continue
-        end
-      end
-    else
-      # To avoid overcounting, throw away all components that 
-      # were already visible in other charts.
-      for V in patches_done
-        if !haskey(gluings(covering), (U, V))
-          continue
-        end
-        G = covering[U, V]
-        (UV, VU) = gluing_domains(G)
-        UV isa PrincipalOpenSubset || error("method is only implemented for simple gluings")
-        f = complement_equation(UV)
-        # Find a sufficiently high power of f such that it throws
-        # away all components away from the horizon, but does not affect
-        # those on the horizon itself.
-        g = f
-        while !(g in ideal(OO(U), g*f) + J)
-          g = g * g
-        end
-        J = J + ideal(OO(U), g)
-        isone(J) && break
-      end
-    end
-    if !isone(J)
-      JJ = leading_ideal(saturated_ideal(J))
-      A, _ = quo(base_ring(JJ), JJ)
-      result = result + ngens(vector_space(coefficient_ring(base_ring(A)), A)[1])
-    end
-    push!(patches_done, U)
-  end
-  return result
-end
 
 @doc raw"""
     is_in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=true, check::Bool=true) -> Bool
@@ -590,7 +411,7 @@ Return whether the rational function `f` is in the linear system ``|D|``, i.e. i
 - `regular_on_complement` -- set to `true` if `f` is regular on the complement of the support of `D`. 
 """
 function is_in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
-  X = scheme(D) 
+  X = ambient_scheme(D) 
   X === variety(parent(f)) || error("schemes not compatible")
   C = simplified_covering(X)
   for I in components(D)
@@ -671,7 +492,7 @@ gen(L::LinearSystem, i::Int) = L.f[i]
 
 Return the variety on which `L` is defined.
 """
-variety(L::LinearSystem) = scheme(weil_divisor(L))
+variety(L::LinearSystem) = ambient_scheme(weil_divisor(L))
 # an alias for the user's convenience 
 scheme(L::LinearSystem) = variety(L)
 

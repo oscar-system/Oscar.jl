@@ -16,7 +16,7 @@ algebraic_cycle(I::AbsIdealSheaf)
 ```
 ### Properties
 ```@docs
-scheme(D::AbsAlgebraicCycle)
+ambient_scheme(D::AbsAlgebraicCycle)
 components(D::AbsAlgebraicCycle)
 dim(D::AbsAlgebraicCycle)
 irreducible_decomposition(D::AbsAlgebraicCycle)
@@ -46,7 +46,6 @@ weil_divisor(I::AbsIdealSheaf, R::Ring; check::Bool=true)
 Besides the methods for [`AbsAlgebraicCycle`](@ref)
 the following are available.
 ```@docs
-colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
 is_in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=false, check::Bool=true)
 order_of_vanishing(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; check::Bool=true)
 intersect(D::AbsWeilDivisor, E::AbsWeilDivisor; covering::Covering=default_covering(scheme(D)))
@@ -76,8 +75,8 @@ cartier_divisor(IP::AbsProjectiveScheme, f::Union{MPolyDecRingElem, MPolyQuoRing
 ### Attributes
 ```@docs
 ideal_sheaf(C::EffectiveCartierDivisor)
-scheme(C::EffectiveCartierDivisor)
-scheme(C::CartierDivisor)
+ambient_scheme(C::EffectiveCartierDivisor)
+ambient_scheme(C::CartierDivisor)
 coefficient_ring(C::CartierDivisor)
 components(C::CartierDivisor)
 trivializing_covering(C::EffectiveCartierDivisor)
