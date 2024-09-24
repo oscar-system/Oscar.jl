@@ -509,12 +509,22 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     end
 
     # Adjust Sinv_transp
-    inc_row = sum(a*Sinv_transp[i] for (i, a) in a_col_del; init=sparse_row(R))
+    #inc_row = sum(a*Sinv_transp[i] for (i, a) in a_col_del; init=sparse_row(R))
+    inc_row = sparse_row(R)
+    for (i, a) in a_col_del
+      #is_zero(Sinv_transp[i]) && continue # can not be true since S is invertible
+      Hecke.add_scaled_row!(Sinv_transp[i], inc_row, a)
+    end
     Hecke.add_scaled_row!(inc_row, Sinv_transp[p], uinv)
 
     # Adjust T
     #T[q] = T[q] + sum(uinv*a*T[i] for (i, a) in a_row_del; init=sparse_row(R))
-    Hecke.add_scaled_row!(sum(a*T[i] for (i, a) in a_row_del if !iszero(T[i]); init=sparse_row(R)), T[q], uinv)
+    inc_row = sparse_row(R)
+    for (i, a) in a_row_del
+      # is_zero(T[i]) && continue # can not be true since T is invertible
+      Hecke.add_scaled_row!(T[i], inc_row, a)
+    end
+    Hecke.add_scaled_row!(inc_row, T[q], uinv)
 
     # Adjust Tinv_transp
     v = deepcopy(Tinv_transp[q])
