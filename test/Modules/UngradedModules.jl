@@ -282,7 +282,7 @@ end
   M2 = A[-x-y 2*x^2+x; z^4 0; 0 z^4; 8*x^3*y - 4*x^3 - 4*x^2*y + 2*x^2 + 2*x*y - x - y x; x^4 0]
   M = SubquoModule(M1, M2)
   fr = free_resolution(M, length = 9)
-  @test all(iszero, homology(fr[2:end]))
+  @test all(iszero, homology(fr)[2:end])
 end
 
 @testset "Prune With Map" begin
