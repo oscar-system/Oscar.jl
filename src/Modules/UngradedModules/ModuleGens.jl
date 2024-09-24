@@ -261,22 +261,49 @@ end
 
 Convert a Singular vector to a free module element.
 """
-function (F::FreeMod)(s::Singular.svector)
-  pos = Int[]
+function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   Rx = base_ring(F)
   R = coefficient_ring(Rx)
-  values = elem_type(Rx)[]
+  ctx = MPolyBuildCtx(Rx)
+  
+  # shortcut in order not to allocate the dictionary
+# if isone(length(s)) # TODO: length doesn't work!
+#   (i, e, c) = first(s)
+#   push_term!(ctx, R(c), e)
+#   return FreeModElem(sparse_row(Qx, [(i, finish(ctx))]))
+# end
+
+  cache = IdDict{Int, typeof(ctx)}()
   for (i, e, c) in s
-    f = Base.findfirst(x->x==i, pos)
-    if f === nothing
-      push!(values, zero(Rx))
-      f = length(values)
-      push!(pos, i)
+    ctx = get!(cache, i) do
+      MPolyBuildCtx(Rx)
     end
-    values[f] += R(c)*prod(gens(Rx) .^ e)
+    push_term!(ctx, R(c), e)
   end
-  pv = [(pos[i], values[i]) for i=1:length(pos)]
-  return FreeModElem(sparse_row(base_ring(F), pv), F)
+  return FreeModElem(sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache]), F)
+end
+
+function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
+  Qx = base_ring(F)::MPolyQuoRing
+  Rx = base_ring(Qx)::MPolyRing
+  R = coefficient_ring(Rx)
+  ctx = MPolyBuildCtx(Rx)
+
+  # shortcut in order not to allocate the dictionary
+# if isone(length(s)) # TODO: length doesn't work!
+#   (i, e, c) = first(s)
+#   push_term!(ctx, R(c), e)
+#   return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx)))]))
+# end
+
+  cache = IdDict{Int, typeof(ctx)}()
+  for (i, e, c) in s
+    ctx = get!(cache, i) do
+      MPolyBuildCtx(Rx)
+    end
+    push_term!(ctx, R(c), e)
+  end
+  return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx))) for (i, ctx) in cache]), F)
 end
 
 # After creating the required infrastruture in Singular,
