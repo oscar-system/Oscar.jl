@@ -178,6 +178,55 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
   return simplify(A(v))
 end
 
+function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
+  if domain(F) === codomain(F) && coefficient_map(F) === nothing
+    return evaluate(map_coefficients(coefficient_map(F), u,
+                                     parent = domain(F)), F.img_gens)
+  else
+    S = temp_ring(F)
+    if S !== nothing
+      if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+        return evaluate(map_coefficients(coefficient_map(F), u,
+                                         parent = S), F.img_gens)
+      else
+        tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
+        cod_ring = codomain(F)::MPolyRing
+        r = ngens(cod_ring)
+        ctx = MPolyBuildCtx(cod_ring)
+        for (p, e) in zip(coefficients(tmp_poly), exponents(tmp_poly))
+          ee = [0 for _ in 1:r]
+          for (i, k) in enumerate(e)
+            ee[F.variable_indices[i]] = k
+          end
+          p::MPolyRingElem
+          @assert parent(p) === cod_ring
+          for (c, d) in zip(coefficients(p), exponents(p))
+            push_term!(ctx, c, ee+d)
+          end
+        end
+        return finish(ctx)
+      end
+    else
+      if !isdefined(F, :variable_indices)
+        return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
+      else
+        tmp_poly = map_coefficients(coefficient_map(F), u)
+        cod_ring = codomain(F)::MPolyRing
+        r = ngens(cod_ring)
+        ctx = MPolyBuildCtx(cod_ring)
+        for (c, e) in zip(coefficients(tmp_poly), exponents(tmp_poly))
+          ee = [0 for _ in 1:r]
+          for (i, k) in enumerate(e)
+            ee[F.variable_indices[i]] = k
+          end
+          push_term!(ctx, c, ee)
+        end
+        return finish(ctx)
+      end
+    end
+  end
+end
+
 function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), u,
@@ -186,7 +235,7 @@ function _evaluate_general(F::MPolyAnyMap{<: MPolyRing}, u)
     S = temp_ring(F)
     if S !== nothing
       return evaluate(map_coefficients(coefficient_map(F), u,
-                                parent = S), F.img_gens)
+                                       parent = S), F.img_gens)
     else
       return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
     end
