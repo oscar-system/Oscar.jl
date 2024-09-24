@@ -11,17 +11,15 @@
            CodomainType<:FreeMod{<:MPolyQuoRingElem}
           }
   R = base_ring(codomain(f))
-  P = base_ring(R)
-  F = _poly_module(domain(f))
-  M = _as_poly_module(codomain(f))
-  id = _iso_with_poly_module(codomain(f))
-  # Why does img_gens(f) return a list of SubQuoElems???
-  phi = _lifting_iso(codomain(f))
-  g = hom(F, M, phi.(f.(gens(domain(f)))))
-  K, inc = kernel(g)
-  tr =  compose(inc, _poly_module_restriction(domain(f)))
-  KK, inc2 = sub(domain(f), unique!(filter!(!iszero, tr.(gens(K)))))
-  return KK, inc2
+  SR = singular_poly_ring(R)
+  F = domain(f)
+  G = codomain(f)
+  img_gens = images_of_generators(f)
+  MG = ModuleGens(img_gens, G)
+  singular_assure(MG)
+  sing_ker_gens = Singular.syz(singular_generators(MG))
+  KG = ModuleGens(F, sing_ker_gens)
+  return sub(F, oscar_generators(KG))
 end
 
 function Base.in(a::FreeModElem{T}, M::SubModuleOfFreeModule{T}) where {T<:MPolyQuoRingElem}
