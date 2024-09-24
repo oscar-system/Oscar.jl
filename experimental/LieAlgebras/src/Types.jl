@@ -203,7 +203,7 @@ end
   R::Field
   n::Int  # the n of the gl_n this embeds into
   dim::Int
-  basis::Vector{MatElem{C}}
+  basis::Vector{<:MatElem{C}}
   s::Vector{Symbol}
 
   # only set if known
