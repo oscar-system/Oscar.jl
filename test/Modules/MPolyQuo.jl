@@ -96,7 +96,7 @@ end
   A2 = FreeMod(A, 2)
   v = [x*A2[1] + y*A2[2], z*A2[1] + (x-1)*A2[2]]
   M, _ = quo(A2, v)
-  p = free_resolution(M)
+  p = free_resolution(M, length = 11)
   @test !iszero(p[10])
 end
 
