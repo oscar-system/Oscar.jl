@@ -2283,6 +2283,6 @@ end
 # See issue #4143 for problems entailed. Interestingly, this does not yet fix 
 # the failure of unique! on lists of ideals.
 function hash(I::Ideal, c::UInt)
-  return UInt(0)
+  return hash(typeof(I), hash(base_ring(I), c))
 end
 
