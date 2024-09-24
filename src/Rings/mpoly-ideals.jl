@@ -2266,3 +2266,11 @@ function flag_pluecker_ideal(ring::MPolyRing{<: FieldElem}, dimensions::Vector{I
                    isReduced=true,
                    isGB=true))
 end
+
+# Since most ideals implement `==`, they have to implement the hash function.
+# See issue #4143 for problems entailed. Interestingly, this does not yet fix 
+# the failure of unique! on lists of ideals.
+function hash(I::Ideal, c::UInt)
+  return UInt(0)
+end
+
