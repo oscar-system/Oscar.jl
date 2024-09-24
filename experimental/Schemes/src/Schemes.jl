@@ -68,7 +68,6 @@ export is_contact_equivalent
 
 
 # Deprecated after 0.15
-Base.@deprecate_binding _compute_inherited_glueing _compute_inherited_gluing
 Base.@deprecate_binding base_glueing base_gluing
 Base.@deprecate_binding inherit_glueings! inherit_gluings!
 Base.@deprecate_binding AbsProjectiveGlueing AbsProjectiveGluing

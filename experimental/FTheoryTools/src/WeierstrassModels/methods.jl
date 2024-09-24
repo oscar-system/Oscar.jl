@@ -86,7 +86,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   isempty(input_sections) && return w
   secs_names = collect(keys(explicit_model_sections(w)))
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(w))
@@ -143,7 +143,7 @@ function tune(w::WeierstrassModel, input_sections::Dict{String, <:Any}; complete
   # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
   if !isempty(def_secs_param)
     naive_vars = string.(gens(parent(first(values(def_secs_param)))))
-    filtered_vars = filter(x -> x in keys(explicit_secs), naive_vars)
+    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
     desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
     for (key, value) in def_secs_param
       def_secs_param[key] = eval_poly(string(value), desired_ring)

@@ -59,7 +59,7 @@ function global_tate_model(base::NormalToricVariety,
   @req haskey(explicit_model_sections, "a4") "Tate section a4 must be specified"
   @req haskey(explicit_model_sections, "a6") "Tate section a6 must be specified"
   vs2 = collect(keys(defining_section_parametrization))
-  @req all(x -> x in ["a1", "a2", "a3", "a4", "a6"], vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
+  @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
   gens_base_names = [string(g) for g in gens(cox_ring(base))]
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -116,7 +116,7 @@ The following code exemplifies this approach.
 
 # Examples
 ```jldoctest
-julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a10, a21, a32, a43, a65, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; 0 -1 -2 -3 -5 1]
 2×6 Matrix{Int64}:

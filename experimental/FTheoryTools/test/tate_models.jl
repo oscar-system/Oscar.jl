@@ -124,8 +124,8 @@ end
 #############################################################
 
 # rings needed for constructions
-istar0_s_auxiliary_base_ring, (a1pp, a2pp, a3pp, a4pp, a6pp, vp, wp, mp) = QQ["a1pp", "a2pp", "a3pp", "a4pp", "a6pp", "vp", "wp", "mp"];
-tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v, w) = QQ["a1p", "a2p", "a3p", "a4p", "a6p", "v", "w"];
+istar0_s_auxiliary_base_ring, (a1pp, a2pp, a3pp, a4pp, a6pp, vp, wp, mp) = QQ[:a1pp, :a2pp, :a3pp, :a4pp, :a6pp, :vp, :wp, :mp];
+tate_auxiliary_base_ring, (a1p, a2p, a3p, a4p, a6p, v, w) = QQ[:a1p, :a2p, :a3p, :a4p, :a6p, :v, :w];
 
 # construct Tate models over arbitrary base
 t_istar0_s = global_tate_model(istar0_s_auxiliary_base_ring, [1 2 3 4 6 0 0 2; -2 -4 -4 -6 -8 1 2 -2], 3, [a1pp * (vp^2 + wp)^1, mp * (vp^2 + wp)^1 + a2pp * (vp^2 + wp)^2, a3pp * (vp^2 + wp)^2, mp^2 * (vp^2 + wp)^2 + a4pp * (vp^2 + wp)^3, a6pp * (vp^2 + wp)^4]);

@@ -480,12 +480,12 @@ $S^k h: V \to W$ (analogous for other types of powers).
 function hom(
   V::LieAlgebraModule{C}, W::LieAlgebraModule{C}, h::LieAlgebraModuleHom
 ) where {C<:FieldElem}
-  if _is_exterior_power(V)[1]
-    return induced_map_on_exterior_power(h; domain=V, codomain=W)
-  elseif _is_symmetric_power(V)[1]
-    return induced_map_on_symmetric_power(h; domain=V, codomain=W)
-  elseif _is_tensor_power(V)[1]
-    return induced_map_on_tensor_power(h; domain=V, codomain=W)
+  if ((fl, _, k) = _is_exterior_power(V); fl)
+    return induced_map_on_exterior_power(h, k; domain=V, codomain=W)
+  elseif ((fl, _, k) = _is_symmetric_power(V); fl)
+    return induced_map_on_symmetric_power(h, k; domain=V, codomain=W)
+  elseif ((fl, _, k) = _is_tensor_power(V); fl)
+    return induced_map_on_tensor_power(h, k; domain=V, codomain=W)
   else
     throw(ArgumentError("First module must be a power module"))
   end
@@ -494,8 +494,8 @@ end
 function _induced_map_on_power(
   D::LieAlgebraModule, C::LieAlgebraModule, h::LieAlgebraModuleHom, power::Int, type::Symbol
 )
-  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)
-  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)
+  TD = type == :tensor ? D : get_attribute(D, :embedding_tensor_power)::typeof(D)
+  TC = type == :tensor ? C : get_attribute(C, :embedding_tensor_power)::typeof(C)
 
   mat = reduce(
     kronecker_product,
@@ -507,48 +507,53 @@ function _induced_map_on_power(
   if type == :tensor
     return TD_to_TC
   else
-    D_to_TD = get_attribute(D, :embedding_tensor_power_embedding)
-    TC_to_C = get_attribute(C, :embedding_tensor_power_projection)
+    D_to_TD = get_attribute(
+      D, :embedding_tensor_power_embedding
+    )::LieAlgebraModuleHom{typeof(D),typeof(TD)}
+    TC_to_C = get_attribute(
+      C, :embedding_tensor_power_projection
+    )::LieAlgebraModuleHom{typeof(TC),typeof(C)}
     return D_to_TD * TD_to_TC * TC_to_C
   end
 end
 
 function induced_map_on_exterior_power(
-  h::LieAlgebraModuleHom;
-  domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(phi), p)[1],
-  codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(phi), p)[1],
+  h::LieAlgebraModuleHom,
+  k::Int;
+  domain::LieAlgebraModule{C}=exterior_power(Oscar.domain(h), k)[1],
+  codomain::LieAlgebraModule{C}=exterior_power(Oscar.codomain(h), k)[1],
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_exterior_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_exterior_power(codomain)
   @req domain_fl "Domain must be an exterior power"
   @req codomain_fl "Codomain must be an exterior power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  k = domain_k
   return _induced_map_on_power(domain, codomain, h, k, :ext)
 end
 
 function induced_map_on_symmetric_power(
-  h::LieAlgebraModuleHom;
-  domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(phi), p)[1],
-  codomain::LieAlgebraModule{C}=symmetric_power(Oscar.codomain(phi), p)[1],
+  h::LieAlgebraModuleHom,
+  k::Int;
+  domain::LieAlgebraModule{C}=symmetric_power(Oscar.domain(h), k)[1],
+  codomain::LieAlgebraModule{C}=symmetric_power(Oscar.codomain(h), k)[1],
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_symmetric_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_symmetric_power(codomain)
   @req domain_fl "Domain must be an symmetric power"
   @req codomain_fl "Codomain must be an symmetric power"
-  @req domain_k == codomain_k "Exponent mismatch"
+  @req k == domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  k = domain_k
   return _induced_map_on_power(domain, codomain, h, k, :sym)
 end
 
 function induced_map_on_tensor_power(
-  h::LieAlgebraModuleHom;
-  domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(phi), p)[1],
-  codomain::LieAlgebraModule{C}=tensor_power(Oscar.codomain(phi), p)[1],
+  h::LieAlgebraModuleHom,
+  k::Int;
+  domain::LieAlgebraModule{C}=tensor_power(Oscar.domain(h), k)[1],
+  codomain::LieAlgebraModule{C}=tensor_power(Oscar.codomain(h), k)[1],
 ) where {C<:FieldElem}
   (domain_fl, domain_base, domain_k) = _is_tensor_power(domain)
   (codomain_fl, codomain_base, codomain_k) = _is_tensor_power(codomain)
@@ -557,6 +562,5 @@ function induced_map_on_tensor_power(
   @req domain_k == codomain_k "Exponent mismatch"
   @req Oscar.domain(h) === domain_base && Oscar.codomain(h) === codomain_base "Domain/codomain mismatch"
 
-  k = domain_k
   return _induced_map_on_power(domain, codomain, h, k, :tensor)
 end

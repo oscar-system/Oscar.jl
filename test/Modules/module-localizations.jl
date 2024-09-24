@@ -1,6 +1,6 @@
 @testset "module localizations 1" begin
   kk = QQ
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   U = Oscar.MPolyComplementOfKPointIdeal(R, [0, 0])
   L, _ = localization(U)
   F = FreeMod(L, 3)
@@ -27,7 +27,7 @@
 end
 
 @testset "module localizations 2" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   U = Oscar.MPolyPowersOfElement(x+y)
   S, _ = localization(U)
   F = FreeMod(S, 2)
@@ -74,7 +74,7 @@ end
 end
 
 @testset "module localizations 3" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   U = Oscar.MPolyPowersOfElement(x^7)
   S, _ = localization(U)
   F = FreeMod(S, 1)
@@ -93,7 +93,7 @@ end
 @testset "module localizations 4" begin
   # An example of maximal Cohen-Macaulay modules and their 
   # matrix factorization.
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   W, _ = localization(R, units_of(R))
   F1 = FreeMod(W, 1)
   M, _ = quo(F1, W[x^3+y^4;])
@@ -104,7 +104,7 @@ end
 end
 
 @testset "syzygies over quotient rings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   M = R[x-1 y; z x]
   I = ideal(R, det(M))
   Q = Oscar.MPolyQuoLocRing(R, I, units_of(R))
@@ -114,12 +114,12 @@ end
   F2 = FreeMod(Q, 2)
   B0 = sub(F2, A)[1]
   B1 = sub(F2, K2)[1] 
-  @test all(g->(g in B1), gens(B0))
-  @test all(g->(g in B0), gens(B1))
+  @test all(in(B1), gens(B0))
+  @test all(in(B0), gens(B1))
 end
 
 @testset "shifts for local orderings" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   U = complement_of_point_ideal(R, [1, 2])
   L, _ = localization(R, U)
   F = FreeMod(L, 1)

@@ -194,7 +194,7 @@ end
       c = rand_elem()
       aa = deepcopy(a)
       bb = deepcopy(b)
-      @test addeq!(a, b) == aa + bb
+      @test add!(a, b) == aa + bb
       @test b == bb
       aa = deepcopy(a)
       @test Oscar.AbelianClosure.neg!(a) == -aa
@@ -340,7 +340,7 @@ end
 
   @testset "Polynomial" begin
     K, z = abelian_closure(QQ)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(z(4)) == z(4)^2 + 1
   end
 

@@ -212,8 +212,7 @@ end
 
 
 function _iso_oscar_gap_field_rationals_functions(FO::QQField, FG::GapObj)
-#TODO   return (GAP.Obj, QQFieldElem)
-   return (x -> GAP.Obj(x), x -> QQFieldElem(x))
+   return (GAP.Obj, QQFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQField)
@@ -225,8 +224,7 @@ function _iso_oscar_gap(FO::QQField)
 end
 
 function _iso_oscar_gap_ring_integers_functions(FO::ZZRing, FG::GapObj)
-#TODO  return (GAP.Obj, ZZRingElem)
-   return (x -> GAP.Obj(x), x -> ZZRingElem(x))
+   return (GAP.Obj, ZZRingElem)
 end
 
 function _iso_oscar_gap(FO::ZZRing)

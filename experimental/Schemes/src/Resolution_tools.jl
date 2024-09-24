@@ -57,7 +57,7 @@ julia> L[4]
 
 ```
 """
-@attr function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
+@attr Any function intersection_matrix(phi::Union{BlowUpSequence,MixedBlowUpSequence})
   phi.resolves_sing || error("intersection_matrix not available for partial desingularizations")
   !isdefined(phi, :is_embedded) || !phi.is_embedded || error("not available yet for embedded desingularization of curves")
   dim(domain(phi))==2 || error("not a surface -- exceptional locus not a graph")
@@ -350,8 +350,8 @@ function _cleanup_ex_div(phi::MixedBlowUpSequence)
 
   if length(ret_divs) > length(div_list_raw)
     for (i,j) in dont_meet_raw
-      append!(dont_meet,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
-      append!(caution_multi_charts,[(a,b) for a in findall(c -> c ==i,remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(dont_meet,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
+      append!(caution_multi_charts,[(a,b) for a in findall(==(i),remember_orig) for b in findall(d -> d == j, remember_orig)])
     end
   end
 

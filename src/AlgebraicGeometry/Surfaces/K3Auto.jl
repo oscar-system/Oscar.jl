@@ -416,7 +416,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   # fp[1, i] = # vectors v such that v has same length as b_i for all forms
   for i in 1:n
     cvl = gramB[i,i]
-    fp[1, i] = count(x->x==cvl, lengths)
+    fp[1, i] = count(==(cvl), lengths)
 
   end
 
@@ -1339,7 +1339,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     rep[l+i] = (i, s, true)
   end
   @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
-  sort!(rep, by=x->x[2])
+  sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)
   for (i,s,indualDeltaR) in rep
@@ -1914,7 +1914,7 @@ function ample_class(S::ZZLat)
   end
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
-  i = findfirst(x->x, [d>0 for d in diagonal(D)])
+  i = findfirst(>(0), diagonal(D))
   v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
@@ -2018,7 +2018,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
-    i = findfirst(x->x==1,g)
+    i = findfirst(is_one,g)
     s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else

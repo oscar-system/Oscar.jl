@@ -1,10 +1,13 @@
 patches(G::LazyGluing) = (G.X, G.Y)
 
 # The underlying_gluing triggers the computation of the gluing on request.
+#
+# For the latter, the user has to implement a method of `_compute_gluing` 
+# for their specific type of gluing data. 
 function underlying_gluing(G::LazyGluing)
   if !isdefined(G, :G)
     @vprintln :Gluing 5 "computing gluing domains"
-    G.G = G.compute_function(G.GD)
+    G.G = _compute_gluing(G.GD)
   end
   return G.G
 end
@@ -15,20 +18,23 @@ function is_computed(G::LazyGluing)
   return isdefined(G, :G)
 end
 
-function gluing_domains(G::LazyGluing) # TODO: Type annotation
-  if !isdefined(G, :gluing_domains)
-    # If there was a function provided to do the extra computation, use it.
-    if isdefined(G, :compute_gluing_domains)
-      G.gluing_domains = G.compute_gluing_domains(G.GD)
-    else
-      # Otherwise default to computation of the whole gluing.
-      G.gluing_domains = gluing_domains(underlying_gluing(G))
-    end
-  end
-  return G.gluing_domains
-end
+# We have offered the possibility to compute the gluing domains only, possibly 
+# avoiding computations of the gluing morphisms. To this end, the user 
+# must implement _gluing_domains for their specific type of gluing data. 
+#
+# However, we decided to abandon this feature now, since it did not really 
+# pay off in performance and it made the things unnecessarily complicated 
+# for the serialization of gluings.
+gluing_domains(G::LazyGluing) = gluing_domains(underlying_gluing(G))
 
-function _compute_restriction(GD::RestrictionDataClosedEmbedding)
+# Fallback method for the deprecated feature described above. 
+# This should not be called, unless the user really has intended this to be used 
+# for their particular type of lazy gluing. Therefore we didn't put a fallback 
+# which would just be `gluing_domains(_compute_gluing)`. That wouldn't cache the 
+# gluing and hence encourages the user to use it in very bad ways. 
+_gluing_domains(gd::Any) = error("no shortcut for computation of gluing domains for gluing data of type $(typeof(gd))")
+
+function _compute_gluing(GD::RestrictionDataClosedEmbedding)
   _compute_domains(GD) # Fills in the empty fields for the gluing domains
   return restrict(GD.G, GD.X, GD.Y, GD.UX, GD.VY, check=false)
 end
@@ -49,7 +55,7 @@ function _compute_domains(GD::RestrictionDataClosedEmbedding)
   end
 end
 
-function _compute_restriction(GD::RestrictionDataIsomorphism)
+function _compute_gluing(GD::RestrictionDataIsomorphism)
   _compute_domains(GD) # Fills in the empty fields for the gluing domains
   return restrict(GD.G, GD.i, GD.j, GD.i_res, GD.j_res, check=false)
 end

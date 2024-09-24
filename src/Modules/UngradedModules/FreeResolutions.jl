@@ -82,7 +82,7 @@ Return `true` if the free resolution `fr` is complete, otherwise return `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -257,7 +257,7 @@ Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -301,7 +301,7 @@ true
 ```
 
 ```
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> Z = R(0)
 0
@@ -512,7 +512,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       end
 
       K, inc = kernel(map(C, i))
-      nz = findall(x->!iszero(x), gens(K))
+      nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
@@ -538,7 +538,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
   while true
     k, mk = kernel(mp[1])
-    nz = findall(x->!iszero(x), gens(k))
+    nz = findall(!is_zero, gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)

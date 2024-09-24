@@ -179,8 +179,8 @@ _ambient_dim(x::Union{Halfspace,Hyperplane}) = length(x.a)
 function Base.:(==)(x::Halfspace, y::Halfspace)
   ax = normal_vector(x)
   ay = normal_vector(y)
-  ix = findfirst(a -> !iszero(a), ax)
-  iy = findfirst(a -> !iszero(a), ay)
+  ix = findfirst(!is_zero, ax)
+  iy = findfirst(!is_zero, ay)
   ix == iy || return false
   r = y.a[iy]//x.a[ix]
   r > 0 || return false
@@ -190,8 +190,8 @@ end
 function Base.:(==)(x::Hyperplane, y::Hyperplane)
   ax = normal_vector(x)
   ay = normal_vector(y)
-  ix = findfirst(a -> !iszero(a), ax)
-  iy = findfirst(a -> !iszero(a), ay)
+  ix = findfirst(!is_zero, ax)
+  iy = findfirst(!is_zero, ay)
   ix == iy || return false
   r = y.a[iy]//x.a[ix]
   return (r .* ax == ay) && (r * negbias(x) == negbias(y))

@@ -187,6 +187,7 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
 
   # only set if known
   root_system::RootSystem
+  chevalley_basis::NTuple{3,Vector{<:LieAlgebraElem{C}}}
 
   function AbstractLieAlgebra{C}(
     R::Field,
@@ -235,6 +236,10 @@ end
   basis::Vector{MatElem{C}}
   s::Vector{Symbol}
 
+  # only set if known
+  root_system::RootSystem
+  chevalley_basis::NTuple{3,Vector{<:LieAlgebraElem{C}}}
+
   function LinearLieAlgebra{C}(
     R::Field,
     n::Int,
@@ -270,6 +275,10 @@ end
   summands::Vector{<:LieAlgebra{C}}
   s::Vector{Symbol}
 
+  # only set if known
+  root_system::RootSystem
+  chevalley_basis::NTuple{3,Vector{<:LieAlgebraElem{C}}}
+
   function DirectSumLieAlgebra{C}(
     R::Field,
     summands::Vector{<:LieAlgebra{C}},
@@ -278,6 +287,7 @@ end
     totaldim = sum(dim, summands; init=0)
     s = [Symbol("$(x)^($(i))") for (i, S) in enumerate(summands) for x in symbols(S)]
     L = new{C}(R, totaldim, summands, s)
+    # TODO: glue root systems if all summands have one
     return L
   end
 end

@@ -7,7 +7,7 @@ A reduced curve in the projective plane.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> C = plane_curve(y^3*x^6 - y^6*x^2*z)
 Projective plane curve

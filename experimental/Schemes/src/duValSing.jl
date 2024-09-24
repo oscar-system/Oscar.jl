@@ -5,7 +5,7 @@ Return whether the given ``X`` has at most du Val (surface) singularities.
 
 # Example:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
 
 julia> I = ideal(R,[w,x^2+y^3+z^4])
@@ -69,7 +69,7 @@ Return whether the given ``X`` has at most du Val (surface) singularities at the
 
 # Example:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
 
 julia> I = ideal(R,[w,x^2+y^3+z^4])
@@ -149,7 +149,7 @@ If ``X`` has a least one singularity which is not du Val, the returned vector co
 
 # Example:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"]
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w]
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x, y, z, w])
 
 julia> I = ideal(R,[w,x^2+y^3+z^4])
@@ -243,7 +243,7 @@ function _check_duval_at_point(IX::Ideal,Ipt::Ideal)
   U = complement_of_point_ideal(R,a)
   RL, loc_map = localization(R,U)
   IX_loc = loc_map(IX)
-  JM_loc =  map(x ->loc_map(x), JM[:,:])
+  JM_loc =  map(loc_map, JM[:,:])
 
   if !all(iszero(a))
     F_loc = free_module(RL,ngens(IX))

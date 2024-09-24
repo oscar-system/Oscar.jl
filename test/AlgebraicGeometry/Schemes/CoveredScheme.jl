@@ -1,6 +1,6 @@
 @testset "CoveredSchemes" begin
   @testset "Covered schemes 1" begin
-    R, (x,y) = polynomial_ring(QQ, ["x", "y"])
+    R, (x,y) = polynomial_ring(QQ, [:x, :y])
     X = subscheme(spec(R), [x^2+y^2])
     P = projective_space(X, 3)
     S = homogeneous_coordinate_ring(P)
@@ -33,7 +33,7 @@
   end
 
   @testset "standard_covering" begin
-    R, t = polynomial_ring(QQ,["t"])
+    R, t = polynomial_ring(QQ,[:t])
     T = Oscar.standard_spec(subscheme(spec(R),t))
     Pt= projective_space(T, 2)
     X = covered_scheme(Pt)
@@ -323,7 +323,7 @@
 
   @testset "normalization" begin
     # Example integral
-    R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+    R, (x, y, z) = grade(QQ[:x, :y, :z][1])
     I = ideal(R, z*x^2 + y^3)
     X = covered_scheme(proj(R, I))
     @test !is_normal(X; check=false)
@@ -338,7 +338,7 @@
     gluing_morphisms(Cnorm[3,3])
 
     # Example non-integral, this also tests the function `disjoint_union`
-    R, (x, y, z) = grade(QQ["x", "y", "z"][1])
+    R, (x, y, z) = grade(QQ[:x, :y, :z][1])
     I = ideal(R, (z*x^2 + y^3)*(x))
     X = covered_scheme(proj(R, I))
     @test !is_normal(X; check=false)
@@ -360,7 +360,7 @@
     gluing_morphisms(Cnorm[1,2])
 
     # Example non-reduced
-    R, (x, y) = polynomial_ring(rational_field(), ["x", "y"])
+    R, (x, y) = polynomial_ring(rational_field(), [:x, :y])
     I = ideal(R, x^2)
     X = covered_scheme(spec(R, I))
     @test !is_normal(X)

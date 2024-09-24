@@ -17,9 +17,9 @@ variables.
 # Examples
 
 ```jldoctest
-julia> QQt, t = QQ["t"];
+julia> QQt, t = QQ[:t];
 
-julia> R, (x1, x2, x0) = QQt["x1", "x2", "x0"];
+julia> R, (x1, x2, x0) = QQt[:x1, :x2, :x0];
 
 julia> F = [x2^2 - t*x0*x1 , x2^2 - t*x0*x2, x1^2 + x2^2 - x0^2];
 

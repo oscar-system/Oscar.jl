@@ -148,7 +148,7 @@ function divexact(a::T, b::T; check::Bool=false) where {T<:AffineSchemeOpenSubsc
 end
 
 function is_unit(a::AffineSchemeOpenSubschemeRingElem)
-  return all(x->is_unit(x), restrictions(a))
+  return all(is_unit, restrictions(a))
 end
 
 inv(a::AffineSchemeOpenSubschemeRingElem) = AffineSchemeOpenSubschemeRingElem(parent(a), [inv(f) for f in restrictions(a)], check=false)
@@ -206,9 +206,10 @@ function restriction_map(
   )
   Y = ambient_scheme(U)
 
+  
   # handle the shortcut
-  if any(x->(x===X), affine_patches(U))
-    i = findfirst(x->(x === X), affine_patches(U))
+  i = findfirst(x->(x === X), affine_patches(U))
+  if !isnothing(i)
     function mymap(f::AffineSchemeOpenSubschemeRingElem)
       return f[i]
     end

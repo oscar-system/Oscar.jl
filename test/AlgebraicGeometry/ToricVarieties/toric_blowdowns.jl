@@ -58,7 +58,7 @@
   J = IdealSheaf(P2, ideal(S, S[1]))
   pbJ = Oscar.total_transform(bl, J)
   pbJ_str = strict_transform(bl, J)
-  E = exceptional_divisor(bl)
+  E = exceptional_prime_divisor(bl)
   H = toric_divisor(domain(bl), [1, 2, 3, 4]) + E
   
   @testset "Strict, total transform and exceptional divisor for simple toric blowdown" begin
@@ -73,8 +73,8 @@
   II = IdealSheaf(P2, I)
   
   @testset "Properties of toric blowdown defined by ideal" begin
-    @test II == center(bl)
+    @test II == center_unnormalized(bl)
     @test bl2 isa Oscar.ToricBlowdownMorphism
-    @test center(bl2) == II
+    @test center_unnormalized(bl2) == II
   end
 end

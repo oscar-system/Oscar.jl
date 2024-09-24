@@ -41,7 +41,7 @@ Return the initial form of `f` with respect to the tropical semiring map `nu` an
 
 # Examples (trivial and $p$-adic valuation)
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> nu_0 = tropical_semiring_map(QQ,max);
 
@@ -65,7 +65,7 @@ julia> K,t = rational_function_field(GF(2),"t");
 
 julia> nu_t = tropical_semiring_map(K,t,max);
 
-julia> R,(x,y) = K["x", "y"];
+julia> R,(x,y) = K[:x, :y];
 
 julia> w = [1,1];
 
@@ -114,7 +114,7 @@ Return the initial ideal of `I` with respect to the tropical semiring map `nu` a
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y]);
 

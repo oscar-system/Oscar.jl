@@ -333,11 +333,11 @@ function _normalization_integral(
   data = NormalizationIntegralGluingData(G, X_1_norm_output, X_2_norm_output, check)
   X_1_norm = X_1_norm_output[1]
   X_2_norm = X_2_norm_output[1]
-  return LazyGluing(X_1_norm, X_2_norm, _compute_normalization_integral, data)
+  return LazyGluing(X_1_norm, X_2_norm, data)
 end
 
 # Warning: assume patches irreducible
-function _compute_normalization_integral(
+function _compute_gluing(
     data::NormalizationIntegralGluingData
   )
   # Initialize the variables

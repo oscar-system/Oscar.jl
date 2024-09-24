@@ -44,7 +44,7 @@ function toric_divisor(v::NormalToricVarietyType, coeffs::Vector{T}) where {T <:
     if sum(coeffs) != 1
         set_attribute!(td, :is_prime, false)
     else
-        set_attribute!(td, :is_prime, all(y -> (y == 1 || y == 0), coeffs))
+        set_attribute!(td, :is_prime, all(y -> is_zero(y) || is_one(y), coeffs))
     end
     
     # return the result
@@ -106,7 +106,8 @@ Base.:*(c::ZZRingElem, td::ToricDivisor) = toric_divisor(toric_variety(td), [c*x
 ######################s
 
 function Base.:(==)(td1::ToricDivisor, td2::ToricDivisor)
-    return toric_variety(td1) === toric_variety(td2) && coefficients(td1) == coefficients(td2)
+    @req toric_variety(td1) === toric_variety(td2) "The toric divisors must be defined on the same toric variety"
+    return coefficients(td1) == coefficients(td2)
 end
 
 function Base.hash(td::ToricDivisor, h::UInt)

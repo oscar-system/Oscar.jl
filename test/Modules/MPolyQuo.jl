@@ -1,5 +1,5 @@
 @testset "Modules over MPolyQuos" begin
-  P, (x, y) = QQ["x", "y"]
+  P, (x, y) = QQ[:x, :y]
   I = ideal(P, x)
   R, _ = quo(P, I)
   FR = FreeMod(R, 2, cached=false)
@@ -48,7 +48,7 @@ end
 end
 
 @testset "Issues in #1806 part 2" begin
-    R, (x,y) = QQ["x", "y"]
+    R, (x,y) = QQ[:x, :y]
     Q, phi = quo(R, ideal(R, x))
     F = FreeMod(R, 1)
     FF = FreeMod(Q, 1)
@@ -57,12 +57,12 @@ end
 end
 
 @testset "Issues in #1806 part 3" begin
-    R, (x,y) = QQ["x", "y"]
+    R, (x,y) = QQ[:x, :y]
     Q, phi = quo(R, ideal(R, x^2))
     F = FreeMod(R, 1)
     FQ = FreeMod(Q, 1)
     f = hom(F, FQ, gens(FQ), phi)
-    W, (t,) = polynomial_ring(QQ, ["t"])
+    W, (t,) = polynomial_ring(QQ, [:t])
     psi = hom(Q, W, [zero(W), W[1]])
     FW = FreeMod(W, 1)
     g = hom(FQ, FW, gens(FW), psi)
@@ -71,7 +71,7 @@ end
 end
 
 @testset "hom for modules over quotient rings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A, _ = quo(R, ideal(R, [x^2, y, z]))
   F = FreeMod(A, 2)
   N, _ = quo(F, (ideal(A, [x,y,z])*F)[1])
@@ -79,7 +79,7 @@ end
   @test !iszero(H)
   @test ngens(H) == 4
 
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A, _ = quo(R, ideal(R, [x^2, y, z]))
   W, _ = localization(A, complement_of_prime_ideal(ideal(R, [x,y,z])))
   F = FreeMod(W, 2)
@@ -90,7 +90,7 @@ end
 end
 
 @testset "free resolutions" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, x*(x-1)-y*z)
   A, _ = quo(R, I)
   A2 = FreeMod(A, 2)
@@ -101,7 +101,7 @@ end
 end
 
 @testset "free resolutions II" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, x)
   A, _ = quo(R, I)
   A1 = FreeMod(A, 1)
@@ -112,7 +112,7 @@ end
 
 @testset "kernels of FreeMod -> SubquoModule" begin
   # kernels of homomorphisms 
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A, _ = quo(R, ideal(R, [z]))
   F2 = FreeMod(A, 2)
   F1 = FreeMod(A, 1)

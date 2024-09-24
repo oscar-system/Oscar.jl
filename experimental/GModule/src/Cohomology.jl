@@ -348,7 +348,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   for s = gens(G)
     sigma = ra(s)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    @assert all(in(iU), u)
     im_q = []
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
@@ -358,7 +358,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
     s = inv(s)
     sigma = ra(s)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    @assert all(in(iU), u)
     im_q = []
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))

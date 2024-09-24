@@ -490,7 +490,7 @@ function update_caution_multi_charts!(f::Union{BlowUpSequence, MixedBlowUpSequen
   caution_multi_charts_new = Vector{Tuple{Int,Int}}
   E_last = ex_div[end]
   for i in 1:length(ex_div)-1
-    findfirst(a -> a == (i,length(ex_div)), f.dont_meet) !== nothing || continue
+    findfirst(==(i,length(ex_div)), f.dont_meet) !== nothing || continue
     if length(findall(V -> !is_one(ex_div[i](V)+E_last(V)+decomposition_info(cov_above_U)[V]), patches_above_U)) != 1
       push!(caution_multi_charts_new, (i,length(ex_div)))
     end
@@ -1216,7 +1216,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
   U = complement_of_point_ideal(R,a)
   RL, loc_map = localization(R,U)
   IX_loc = loc_map(IX)
-  JM_loc =  map(x ->loc_map(x), JM[:,:])
+  JM_loc =  map(loc_map, JM[:,:])
 
   if !all(iszero(a))
     F_loc = free_module(RL,ngens(IX))

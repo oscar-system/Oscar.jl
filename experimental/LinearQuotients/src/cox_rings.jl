@@ -627,7 +627,7 @@ function add_generators(
 
   new_gens_imgs = elem_type(R)[StoRold(x) for x in new_gens]
   imgs = append!(elem_type(R)[StoRold(x) for x in gens(Sold)], new_gens_imgs)
-  S, _ = polynomial_ring(K, "t" => 1:(ngens(Sold) + length(new_gens)))
+  S, _ = polynomial_ring(K, :t => 1:(ngens(Sold) + length(new_gens)))
   Sdeg, _ = grade(S, [degree(f) for f in imgs])
 
   AbG_degrees = append!(

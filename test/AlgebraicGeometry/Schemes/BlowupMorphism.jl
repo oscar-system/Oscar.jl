@@ -1,5 +1,5 @@
 @testset "basics about blowups" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   f = x^2 + y^3 + z^5
   X = spec(R, ideal(R, f))
   I = ideal(OO(X), [x, y, z])

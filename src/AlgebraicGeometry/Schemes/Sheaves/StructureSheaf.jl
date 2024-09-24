@@ -130,7 +130,7 @@ function produce_restriction_map(F::StructureSheafOfRings, V::AbsAffineScheme, W
   V in default_covering(X) || return false
   ambient_scheme(W) in default_covering(X) || return false
   if V === ambient_scheme(W)
-    return MapFromFunc(OV, OW, x->(OW(x)))
+    return MapFromFunc(OV, OW, OW)
   else
     G = default_covering(X)[V, ambient_scheme(W)]
     f, g = gluing_morphisms(G)
