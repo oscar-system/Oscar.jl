@@ -91,7 +91,7 @@ function WeilDivisor(I::AbsIdealSheaf, R::Ring; check::Bool=true)
   D = WeilDivisor(space(I), R)
   @check is_equidimensional(I) "ideal sheaf must be equidimensional"
   @check dim(space(I)) - dim(I) == 1 "components of a divisor must be of codimension one"
-  D[I] = one(R)
+  setindex!(D, one(R), I; check)
   return D
 end
 
