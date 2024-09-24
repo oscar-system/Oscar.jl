@@ -654,7 +654,7 @@ Return whether `I` is a radical ideal.
 Computes the radical.
 """
 @attr Bool function is_radical(I::MPolyIdeal)
-  has_attribute(I, :is_prime) && return is_prime(I)
+  has_attribute(I, :is_prime) && is_prime(I) && return true
   return is_subset(radical(I), I)
 end
 
