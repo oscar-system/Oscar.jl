@@ -1159,13 +1159,7 @@ function minimal_primes(
       end
       J = K
     end
-    # unique! seems to fail here. We have to do it manually.
-    pre_result = filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...))
-    result = typeof(I)[]
-    for p in pre_result
-      p in result && continue
-      push!(result, p)
-    end
+    result = unique!(filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...)))
 
     # The list might not consist of minimal primes only. We have to discard the embedded ones
     final_list = typeof(I)[]
@@ -2266,3 +2260,10 @@ function flag_pluecker_ideal(ring::MPolyRing{<: FieldElem}, dimensions::Vector{I
                    isReduced=true,
                    isGB=true))
 end
+
+# Since most ideals implement `==`, they have to implement the hash function.
+# See issue #4143 for problems entailed. This should fix it. 
+function hash(I::Ideal, c::UInt)
+  return UInt(0)
+end
+
