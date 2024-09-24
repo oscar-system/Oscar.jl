@@ -145,11 +145,11 @@ If `F` is bijective, return its inverse.
 
 # Examples
 ```jldoctest
-julia> D1, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> D1, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
-julia> C, (t,) = polynomial_ring(QQ, ["t"]);
+julia> C, (t,) = polynomial_ring(QQ, [:t]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 

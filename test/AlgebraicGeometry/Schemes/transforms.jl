@@ -36,7 +36,7 @@ end
 
 @testset "associated_points" begin
   # set up standard P2
-  S, _ = graded_polynomial_ring(QQ,["x","y","z"])
+  S, _ = graded_polynomial_ring(QQ,[:x,:y,:z])
   P2 = proj(S)
   X = covered_scheme(P2)
 

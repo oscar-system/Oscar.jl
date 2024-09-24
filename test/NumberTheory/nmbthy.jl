@@ -32,9 +32,9 @@ end
 end
 
 begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   k, a = number_field(x^2 - 18, "a")
-  kt, t = k["t"];
+  kt, t = k[:t];
   K, b = number_field(t^4 + (a + 6)*t^2 + 2a + 9, "b")
   G, m = automorphism_group(PermGroup, K)
   h = m(one(G))

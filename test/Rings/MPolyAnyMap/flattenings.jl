@@ -1,6 +1,6 @@
 @testset "kernels via flattenings" begin
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
-  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
+  S, _ = polynomial_ring(R, [:s, :t], cached=false)
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -15,7 +15,7 @@
   @test S(gen(R, 1) - gen(R, 2)) in K
 
   R, _ = quo(R, ideal(R, sum(gens(R))))
-  S, _ = polynomial_ring(R, ["s", "t"])
+  S, _ = polynomial_ring(R, [:s, :t])
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -32,7 +32,7 @@
   R = base_ring(R)
   U = powers_of_element(sum(gens(R)))
   R, _ = localization(R, U)
-  S, _ = polynomial_ring(R, ["s", "t"])
+  S, _ = polynomial_ring(R, [:s, :t])
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -49,7 +49,7 @@
  
   I = ideal(R, first(gens(R))^2)
   R, _ = quo(R, I)
-  S, _ = polynomial_ring(R, ["s", "t"])
+  S, _ = polynomial_ring(R, [:s, :t])
   phi = Oscar.flatten(S)
   @test vcat(phi.(gens(S)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(S)))) == gens(codomain(phi))
   @test gens(S) == inverse(phi).(phi.(gens(S)))
@@ -65,8 +65,8 @@
 end
 
 @testset "cross kernel computations" begin
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
-  S, (s, t) = polynomial_ring(R, ["s", "t"], cached=false)
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
+  S, (s, t) = polynomial_ring(R, [:s, :t], cached=false)
   
   f = hom(R, S, [s, s, t])
   @test x-y in kernel(f)
@@ -80,9 +80,9 @@ end
 end
 
 @testset "flattenings of quotient rings" begin
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
 
-  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
+  S, _ = polynomial_ring(R, [:s, :t], cached=false)
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q)
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -91,7 +91,7 @@ end
 
   U = powers_of_element(x)
   L, _ = localization(R, U)
-  S, _ = polynomial_ring(L, ["s", "t"])
+  S, _ = polynomial_ring(L, [:s, :t])
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q);
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -99,7 +99,7 @@ end
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
   
   A, _ = quo(R, ideal(R, y))
-  S, _ = polynomial_ring(A, ["s", "t"])
+  S, _ = polynomial_ring(A, [:s, :t])
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q);
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -107,7 +107,7 @@ end
   @test Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(R)) == phi.(Q.(S.(gens(R))))
 
   LA, _ = localization(A, U)
-  S, _ = polynomial_ring(LA, ["s", "t"])
+  S, _ = polynomial_ring(LA, [:s, :t])
   Q, _ = quo(S, ideal(S, S[1]))
   phi = Oscar.flatten(Q);
   @test vcat(phi.(gens(Q)), Oscar.map_from_coefficient_ring_to_flattening(phi).(gens(coefficient_ring(Q)))) == gens(codomain(phi))
@@ -299,8 +299,8 @@ end
 end
 
 @testset "garbage collection" begin
-  R, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"], cached=false)
-  S, _ = polynomial_ring(R, ["s", "t"], cached=false)
+  R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
+  S, _ = polynomial_ring(R, [:s, :t], cached=false)
   phi = Oscar.flatten(S)
   # julia might not consider `x^2+y^2` as being unused until the end of the scope
   # see https://github.com/JuliaLang/julia/issues/51818

@@ -160,7 +160,7 @@ end
   @testset "Polynomial for $F1" for F1 in [GF(3, 1), Nemo.Native.GF(3, 1)]
     p = characteristic(F1)
     K = algebraic_closure(F1)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(K(1)) == 2*K(1)
 
     r = roots(x^4 -1)

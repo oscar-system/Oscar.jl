@@ -259,7 +259,7 @@ function subfield(S::SubfieldLattice, bs::BlockSystem_t)
   # beta = 1/f'(alpha) sum b_i alpha^i
   # f(alpha)/(t-alpha) = sum g_i(alpha) t^i
   # Tr(beta * g_i(alpha)/f'(alpha)) = b_i (dual basis)
-  Kt, t = polynomial_ring(K, "t", cached = false)
+  Kt, t = polynomial_ring(K, :t, cached = false)
   Gk = divexact(map_coefficients(K, defining_polynomial(K), parent = Kt), t-gen(K))
   Qt = parent(defining_polynomial(K))
   Gt = [Qt(x) for x = coefficients(Gk)]

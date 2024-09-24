@@ -59,11 +59,11 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
  
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"] );
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A, _ = quo(R, ideal(R, [y-x^2, z-x^3]));
 
-julia> S, (s, t) = polynomial_ring(QQ, ["s", "t"]);
+julia> S, (s, t) = polynomial_ring(QQ, [:s, :t]);
 
 julia> F = hom(A, S, [s, s^2, s^3])
 Ring homomorphism

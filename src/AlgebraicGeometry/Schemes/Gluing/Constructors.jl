@@ -10,7 +10,7 @@ Glue two affine schemes ``X`` and ``Y`` along mutual isomorphisms
 
 # Examples
 ```jldoctest
-julia> P1, (x,y) = QQ["x", "y"]; P2, (u,v) = QQ["u", "v"];
+julia> P1, (x,y) = QQ[:x, :y]; P2, (u,v) = QQ[:u, :v];
 
 julia> U1 = spec(P1); U2 = spec(P2);
 

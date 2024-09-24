@@ -449,7 +449,7 @@ end
 eval_poly(n::Number, R) = R(n)
 
 # Example
-# julia> Qx, (x1, x2) = QQ["x1", "x2"];
+# julia> Qx, (x1, x2) = QQ[:x1, :x2];
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2

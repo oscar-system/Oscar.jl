@@ -592,7 +592,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     Etemp, btemp = number_field(chi; cached=false)
     @req is_maximal(equation_order(Etemp)) "For infinite isometries, the equation order of the associated number field must be maximal"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
-    Kt, t = K["t"]
+    Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)
   end
 

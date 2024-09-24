@@ -142,7 +142,7 @@ Given a smooth projective variety `X`, return a module whose sheafification is t
 # Examples
 
 ```
-julia> R, x = graded_polynomial_ring(QQ, "x" => (1:6));
+julia> R, x = graded_polynomial_ring(QQ, :x => (1:6));
 
 julia> I = ideal(R, [x[1]*x[6] - x[2]*x[5] + x[3]*x[4]]);
 
@@ -160,7 +160,7 @@ julia> degrees_of_generators(Omega)
 ```
 
 ```
-julia> R, (x, y, z) = graded_polynomial_ring(QQ,["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ,[:x, :y, :z]);
 
 julia> I = ideal(R, [y^2*z + x*y*z - x^3 - x*z^2 - z^3]);
 

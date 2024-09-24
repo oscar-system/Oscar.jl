@@ -25,7 +25,7 @@
 
         @testset "Tropical Hypersurfaces" begin
             T = tropical_semiring(min)
-            Txy,(x,y) = T["x","y"]
+            Txy,(x,y) = T[:x, :y]
             f = x + y^2
             Tf = tropical_hypersurface(f)
 

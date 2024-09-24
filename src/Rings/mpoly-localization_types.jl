@@ -25,7 +25,7 @@ abstract type AbsMPolyMultSet{BRT, BRET, RT, RET} <: AbsMultSet{RT, RET} end
 The set `S = { aᵏ : k ∈ ℕ₀ }` for some ``a ∈ R`` with ``R`` of type `BaseRingType`.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> powers_of_element(x)
 Multiplicative subset
@@ -85,7 +85,7 @@ The complement of a prime ideal ``P ⊂ 𝕜[x₁,…,xₙ]`` in a multivariate 
 with elements of type `RingElemType` over a base ring ``𝕜`` of type `BaseRingType`.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_prime_ideal(ideal([x]))
 Complement
@@ -144,7 +144,7 @@ end
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_point_ideal(R,[1,2])
 Complement
@@ -201,7 +201,7 @@ A finite product `T⋅U = { a⋅b : a ∈ T, b∈ U}` of arbitrary other
 multiplicative sets in a multivariate polynomial ring.
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> S = complement_of_point_ideal(R,[1,2]);
 

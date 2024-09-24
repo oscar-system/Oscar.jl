@@ -288,7 +288,7 @@ one, compute the corresponding subfields as a tower.
 
 # Examples
 ```jldoctest
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> G, C = galois_group(x^3-3*x+17)
 (Sym(3), Galois context for x^3 - 3*x + 17 and prime 7)
@@ -474,7 +474,7 @@ Supports `set_verbosity_level(:SolveRadical, i)` to obtain information.
 
 # Examples
 ```julia
-julia> Qx,x = QQ["x"];
+julia> Qx,x = QQ[:x];
 
 julia> K, r = solve(x^3+3*x+5)
 (Relative number field over with defining polynomial x^3 + (3*z_3 + 3//2)*a2 + 135//2

@@ -1,5 +1,5 @@
 @testset "Monomials of a given degree" begin
-  for R in [QQ["x", "y", "z"][1], graded_polynomial_ring(QQ, ["x", "y", "z"])[1]]
+  for R in [QQ[:x, :y, :z][1], graded_polynomial_ring(QQ, [:x, :y, :z])[1]]
     x, y, z = gens(R)
     @test collect(monomials_of_degree(R, 2)) == [x^2, x * y, x * z, y^2, y * z, z^2]
     @test collect(monomials_of_degree(R, 2, 1:3)) == [x^2, x * y, x * z, y^2, y * z, z^2]

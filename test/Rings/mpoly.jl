@@ -1,5 +1,5 @@
 @testset "Polynomial ring constructor" begin
-  R, x = @inferred polynomial_ring(QQ, "x" => 1:3)
+  R, x = @inferred polynomial_ring(QQ, :x => 1:3)
   @test length(x) == 3
   @test x isa Vector
   @test x == gens(R)
@@ -7,7 +7,7 @@
     @test sprint(show, "text/plain", x[i]) == "x[$i]"
   end
 
-  R, x = @inferred polynomial_ring(QQ, "x" => (1:3, 1:4))
+  R, x = @inferred polynomial_ring(QQ, :x => (1:3, 1:4))
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
@@ -19,7 +19,7 @@
     end
   end
 
-  R, x, y = @inferred polynomial_ring(QQ, "x" => (1:3, 1:4), "y" => 1:2)
+  R, x, y = @inferred polynomial_ring(QQ, :x => (1:3, 1:4), :y => 1:2)
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
@@ -37,9 +37,9 @@
   end
   @test Set(gens(R)) == union(Set(x), Set(y))
 
-  R, x, y, z = @inferred polynomial_ring(QQ, "x" => (1:3, 1:4),
-                                            "y" => 1:2,
-                                            "z" => (1:1, 1:1, 1:1))
+  R, x, y, z = @inferred polynomial_ring(QQ, :x => (1:3, 1:4),
+                                             :y => 1:2,
+                                             :z => (1:1, 1:1, 1:1))
   @test length(x) == 12
   @test x isa Matrix{<: Any}
   @test size(x) == (3, 4)
@@ -61,11 +61,11 @@
 end
 
 @testset "Polynomial homs" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I1 = x^2 + y^2
   I2 = x^2 * y^2
   I3 = x^3*y - x*y^3
-  S, (a,b,c) = polynomial_ring(QQ, ["a", "b", "c"])
+  S, (a,b,c) = polynomial_ring(QQ, [:a, :b, :c])
   h = hom(S, R, [I1, I2, I3])
   @test kernel(h) == ideal(S, [a^2*b - 4*b^2 - c^2])
   @test h(gen(S, 1)) == I1
@@ -74,7 +74,7 @@ end
 end
 
 @testset "Ideal operations" begin
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [x^2, y^2])
   J = ideal(R, [x*y^2, x^2])
   S = ideal(R, [x^2, y^2, x*y^2])
@@ -96,13 +96,13 @@ end
   RR, (xx, yy) = grade(R, [1, 1])
   @test_throws ErrorException ideal(R, [x]) == ideal(RR, [xx])
   @test is_subset(I, I)
-  RR, (xx, yy) = polynomial_ring(QQ, ["xx", "yy"])
+  RR, (xx, yy) = polynomial_ring(QQ, [:xx, :yy])
   @test_throws ErrorException is_subset(ideal(R, [x]), ideal(RR, [xx]))
 
   f = x^2 + y^2
   g = x^4*y - x*y^3
   I = [f, g]
-  S, (a, b, c) = polynomial_ring(QQ, ["a", "b", "c"])
+  S, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
   @test_throws ErrorException Oscar.check_base_rings(P, J)
   r1 = c^2-b
@@ -129,7 +129,7 @@ end
 @testset "Primary decomposition" begin
 
   # primary_decomposition
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = ideal(R, [x, y*z^2])
   for method in (:GTZ, :SY)
     j = ideal(R, [R(1)])
@@ -142,13 +142,13 @@ end
     @test j == i
   end
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [9, (a+3)*(b+3)])
   l = primary_decomposition(i)
   @test length(l) == 2
 
   # minimal_primes
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   i1 = ideal(R, [z^3+2, -z^2+y])
   i2 = ideal(R, [z^2+1, -z^2+y])
@@ -160,7 +160,7 @@ end
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [R(9), (a+3)*(b+3)])
   i1 = ideal(R, [R(3), a])
   i2 = ideal(R, [R(3), b])
@@ -169,7 +169,7 @@ end
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 
   # equidimensional_decomposition_weak
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = intersect(ideal(R, [z]), ideal(R, [x, y]),
                 ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   l = equidimensional_decomposition_weak(i)
@@ -179,19 +179,19 @@ end
   @test l[3] == ideal(R, [z])
 
  # equidimensional_decomposition_radical
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   l = equidimensional_decomposition_radical(i)
   @test length(l) == 1
   @test l[1] == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
   
   # equidimensional_hull
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = intersect(ideal(R, [z]), ideal(R, [x, y]),
                 ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   @test equidimensional_hull(i) == ideal(R, [z])
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = intersect(ideal(R, [R(9), a, b]),
                 ideal(R, [R(3), c]),
                 ideal(R, [R(11), 2*a, 7*b]),
@@ -201,17 +201,17 @@ end
   @test equidimensional_hull(i) == ideal(R, [R(3)])
 
   # equidimensional_hull_radical
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
   # absolute_primary_decomposition
-  R,(x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R,(x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
   I = ideal(R, [(z+1)*(z^2+1)*(z^3+2)^2, x-y*z^2])
   d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 3
 
-  R,(x,y,z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+  R,(x,y,z) = graded_polynomial_ring(QQ, [:x, :y, :z])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
   d = @inferred absolute_primary_decomposition(I)
   @test length(d) == 5
@@ -223,19 +223,19 @@ end
   @test isempty(d)
 
   # Issue 4039
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [x + 1, y + 1, y])
   d = @inferred absolute_primary_decomposition(I)
   @test isempty(d)
 
   # is_prime
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [one(R)])
   @test is_prime(I) == false
 end
 
 @testset "Groebner" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   I = ideal([x+y^2+4*z-5,x+y*z+5*z-2])
   @test gens(groebner_basis(I, ordering=lex(gens(R)))) == [y^2 - y*z - z - 3, x + y*z + 5*z - 2]
   @test gens(groebner_basis(I, ordering=degrevlex(gens(R)), complete_reduction = true)) == [x + y*z + 5*z - 2, x + y^2 + 4*z - 5, x*y - x*z - 5*x - 2*y - 4*z^2 - 20*z + 10, x^2 + x*z^2 + 10*x*z - 4*x + 4*z^3 + 20*z^2 - 20*z + 4]
@@ -245,7 +245,7 @@ end
   for Zn in [residue_ring(ZZ, 11)[1], residue_ring(ZZ, ZZRingElem(10)^50+151)[1], GF(11),
              GF(ZZRingElem(10)^50+151)]
     # Setting the internal_ordering is necessary for divrem to use the correct ordering
-    R, (x, y) = polynomial_ring(Zn, ["x", "y"], internal_ordering = :degrevlex)
+    R, (x, y) = polynomial_ring(Zn, [:x, :y], internal_ordering = :degrevlex)
     l = [x*y+x^3+1, x*y^2+x^2+1]
     g = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
     @test iszero(divrem(l[1] + l[2], g)[2])
@@ -253,14 +253,14 @@ end
 
   F, a = finite_field(11, 2, "a")
   # Setting the internal_ordering is necessary for divrem to use the correct ordering
-  R, (x, y, z) = polynomial_ring(F, ["x", "y", "z"], internal_ordering = :degrevlex)
+  R, (x, y, z) = polynomial_ring(F, [:x, :y, :z], internal_ordering = :degrevlex)
   l = [3*x^5 + a*x*y^2 + a^2*z^2, z^3*x^2 + 7*y^3 + z]
   gb = gens(groebner_basis(ideal(R, l); ordering = degrevlex(gens(R))))
   @test iszero(divrem(l[1] + l[2], gb)[2])
 end
 
 @testset "Primary decomposition" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   I = ideal(R, [x, y*z^2])
   J = ideal(R, [x, y^2])
   L = primary_decomposition(I)
@@ -279,31 +279,31 @@ end
 end
 
 @testset "#795" begin
-  R, = QQ["x", "y"]
+  R, = QQ[:x, :y]
   I = ideal(R, zero(R))
   @test issubset(I, I)
   @test I == I
 end
 
 @testset "#975" begin
-  A, t = polynomial_ring(QQ, ["t"])
-  R, (x,y,z) = polynomial_ring(A, ["x", "y", "z"])
+  A, t = polynomial_ring(QQ, [:t])
+  R, (x,y,z) = polynomial_ring(A, [:x, :y, :z])
   I = ideal(R, [x])
   @test x in I
 end
 
 @testset "#1668" begin
-  R, (x,) = polynomial_ring(QQ, ["x"])
+  R, (x,) = polynomial_ring(QQ, [:x])
   @test is_one(evaluate(x//x, [QQ(1)]))
 end
 
 @testset "Fraction fields over polynomial rings" begin
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, :x)
   F = fraction_field(R)
   @test gen(F) == F(x)
   @test gens(F) == elem_type(F)[ F(x) ]
 
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
   F = fraction_field(R)
   @test ngens(F) == 3
   @test gen(F, 2) == F(y)
@@ -312,7 +312,7 @@ end
 end
 
 @testset "Grassmann Plücker Relations" begin
-  R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], "x" => (1:2, 1:3))
+  R, x = graded_polynomial_ring(residue_ring(ZZ, 7)[1], :x => (1:2, 1:3))
   test_ideal =ideal([x[1, 2]*x[2, 2] + 6*x[2, 1]*x[1, 3] + x[1, 1]*x[2, 3]])
   @test grassmann_pluecker_ideal(R, 2, 4) == test_ideal
 
@@ -320,14 +320,14 @@ end
   I = grassmann_pluecker_ideal(2, 5)
   @test degree(I) == 5
   @test dim(I) == 7
-  R, x = graded_polynomial_ring(GF(7), 10, "x")
+  R, x = graded_polynomial_ring(GF(7), 10, :x)
   I = grassmann_pluecker_ideal(R, 2, 5)
   @test degree(I) == 5
   @test dim(I) == 7
 end
 
 @testset "IdealGens" begin
-   R, (x0, x1, x2) = polynomial_ring(QQ, ["x0", "x1", "x2"])
+   R, (x0, x1, x2) = polynomial_ring(QQ, [:x0, :x1, :x2])
    I = ideal([x0*x1,x2])
    g = generating_system(I)
    @test elements(g) == [x0*x1, x2]
@@ -342,9 +342,9 @@ end
 end
 
 @testset "NonSimpleField" begin
-  Qt, t = QQ["t"];
+  Qt, t = QQ[:t];
   K, (a1,a2) = number_field([t^2 - 2, t^2 - 3], "a");
-  R, (x,y) = polynomial_ring(K,["x","y"]);
+  R, (x,y) = polynomial_ring(K,[:x,:y]);
   I = ideal(R, [x^2-a1])
 
   #just to see it working...
@@ -402,10 +402,10 @@ end
 end
 
 @testset "primary decomposition in graded rings" begin
-  Pt, t = QQ["t"]
+  Pt, t = QQ[:t]
   f = t^2 + 1
   kk, i = number_field(f)
-  R, (x, y) = kk["x", "y"]
+  R, (x, y) = kk[:x, :y]
 
   S, _ = grade(R)
 
@@ -433,7 +433,7 @@ end
   kk, _ = number_field(f)
 
   # primary_decomposition
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = ideal(R, [x, y*z^2])
   for method in (:GTZ, :SY)
     j = ideal(R, [R(1)])
@@ -446,13 +446,13 @@ end
     @test j == i
   end
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [9, (a+3)*(b+3)])
   l = primary_decomposition(i)
   @test length(l) == 2
 
   # minimal_primes
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   l = minimal_primes(i)
   @test length(l) == 2
@@ -460,7 +460,7 @@ end
   l = minimal_primes(i, algorithm=:charSets)
   @test length(l) == 2
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [R(9), (a+3)*(b+3)])
   i1 = ideal(R, [R(3), a])
   i2 = ideal(R, [R(3), b])
@@ -469,7 +469,7 @@ end
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
 
   # equidimensional_decomposition_weak
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = intersect(ideal(R, [z]), ideal(R, [x, y]),
                 ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   l = equidimensional_decomposition_weak(i)
@@ -479,18 +479,18 @@ end
   @test l[3] == ideal(R, [z])
 
   # equidimensional_decomposition_radical
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   l = equidimensional_decomposition_radical(i)
   @test length(l) == 1
 
   # equidimensional_hull
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = intersect(ideal(R, [z]), ideal(R, [x, y]),
                 ideal(R, [x^2, z^2]), ideal(R, [x^5, y^5, z^5]))
   @test equidimensional_hull(i) == ideal(R, [z])
 
-  R, (a, b, c, d) = polynomial_ring(ZZ, ["a", "b", "c", "d"])
+  R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = intersect(ideal(R, [R(9), a, b]),
                 ideal(R, [R(3), c]),
                 ideal(R, [R(11), 2*a, 7*b]),
@@ -500,25 +500,25 @@ end
   @test equidimensional_hull(i) == ideal(R, [R(3)])
 
   # equidimensional_hull_radical
-  R, (x, y, z) = polynomial_ring(kk, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(kk, [:x, :y, :z])
   i = ideal(R, [(z^2+1)*(z^3+2)^2, y-z^2])
   @test equidimensional_hull_radical(i) == ideal(R, [z^2-y, y^2*z+z^3+2*z^2+2])
 
   # absolute_primary_decomposition
-  R,(x,y,z) = polynomial_ring(kk, ["x", "y", "z"])
+  R,(x,y,z) = polynomial_ring(kk, [:x, :y, :z])
   I = ideal(R, [x^2 + 1])
   d = absolute_primary_decomposition(I)
   @test length(d) == 1
 
   #= Tests disabled because of too long runtime
-  R,(x,y,z) = graded_polynomial_ring(kk, ["x", "y", "z"])
+  R,(x,y,z) = graded_polynomial_ring(kk, [:x, :y, :z])
   I = ideal(R, [(z+y)*(z^2+y^2)*(z^3+2*y^3)^2, x^3-y*z^2])
   d = absolute_primary_decomposition(I)
   @test length(d) == 5
   =#
 
   # is_prime
-  R, (x, y) = polynomial_ring(kk, ["x", "y"])
+  R, (x, y) = polynomial_ring(kk, [:x, :y])
   I = ideal(R, [one(R)])
   @test is_prime(I) == false
 end
@@ -526,7 +526,7 @@ end
 @testset "primary decomposition over AbsNonSimpleNumField" begin
   _, x = QQ[:x]
   K, a = number_field([x - 1, x - 2]);
-  Kt, t = K["t"];
+  Kt, t = K[:t];
   L, b = number_field(t - 1, "b");
   M, = number_field(t - 1, "b");
   Mx, = polynomial_ring(M, 2);
@@ -574,7 +574,7 @@ end
 end
 
 @testset "default ordering" begin
-  R, _ = QQ["x", "y", "z"]
+  R, _ = QQ[:x, :y, :z]
   S, _ = grade(R, [2, 1, 2])
   for T in [R, S]
     x, y, z = gens(T)

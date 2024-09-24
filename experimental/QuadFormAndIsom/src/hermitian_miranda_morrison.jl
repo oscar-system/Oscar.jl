@@ -770,7 +770,7 @@ function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   while true
-    Eabst, t = Eabs["t"]
+    Eabst, t = Eabs[:t]
     g = EabstoE\(E(-rand(K, -5:5)^2-1))
     nu = 2*valuation(Eabs(2), Pabs)-2*e+2
     nug = valuation(g, Pabs)

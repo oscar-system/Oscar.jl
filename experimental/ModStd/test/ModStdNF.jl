@@ -1,5 +1,5 @@
 @testset "Examples.ModStdNF" begin
-  Qx, x = polynomial_ring(QQ, ["x"])
+  Qx, x = polynomial_ring(QQ, [:x])
   I = ideal(Qx, [zero(Qx)])
   G, m = Oscar._compute_standard_basis_with_transform(I)
   @test length(G) == 0

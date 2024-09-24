@@ -1,11 +1,11 @@
 @testset "Number field" begin
 
-  Qx, x = FlintQQ["x"]
+  Qx, x = FlintQQ[:x]
   k, _ = number_field(x^2 + 1)
-  ku, u = k["u1", "u2"]
+  ku, u = k[:u1, :u2]
   Ik = ideal(ku, [u[1]^3 + u[2]^3 - 3, u[1]^5 + u[2]^5 - 5])
 
-  Qy, y = FlintQQ["y1", "y2"]
+  Qy, y = FlintQQ[:y1, :y2]
   IQ = ideal(Qy, [y[1]^3 + y[2]^3 - 3, y[1]^5 + y[2]^5 - 5])
 
   for (Bk, Pk, I) in [(k, ku, Ik), (FlintQQ, Qy, IQ)]
@@ -171,7 +171,7 @@
     b = @inferred K(gen(Pk, 1))
     @test parent(b) === K
 
-    PP, _x = Bk["x1", "x2", "x3"]
+    PP, _x = Bk[:x1, :x2, :x3]
     @test_throws ErrorException K(_x[1])
 
     for R in Any[Bk, Int, BigInt, ZZRingElem,

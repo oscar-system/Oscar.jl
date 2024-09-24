@@ -55,7 +55,7 @@
         @test B3 == [1,2,3,5]
     end
     
-    R, (x,y,z) = QQ["x", "y", "z"]
+    R, (x,y,z) = QQ[:x, :y, :z]
     f = 2*(x^2+y)^2*(x+y*z)^4
     
     @testset "poly_2_prime_divisors" begin

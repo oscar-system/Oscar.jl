@@ -28,7 +28,7 @@
 end
 
 @testset "modules over PBWAlgRing" begin
-    R, (x, y, z) = QQ["x", "y", "z"]
+    R, (x, y, z) = QQ[:x, :y, :z]
     L = [x*y, x*z, y*z + 1]
     REL = strictly_upper_triangular_matrix(L)
     A, (x, y, z) = pbw_algebra(R, REL, deglex(gens(R)))

@@ -84,7 +84,7 @@ If `task = :map`, additionally return the map which sends a tuple $(m_1,\dots, m
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
