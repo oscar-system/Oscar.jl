@@ -211,7 +211,7 @@
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
         "AlgebraicGeometry/ToricVarieties/ToricSchemes.md",
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
-        "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
+        "AlgebraicGeometry/ToricVarieties/BlowupMorphisms.md",
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",
