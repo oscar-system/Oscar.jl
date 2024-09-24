@@ -231,8 +231,7 @@ end
 
 
 """
-    is_invariant(f::GAPGroupHomomorphism, H::Group)
-    is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::T)
+    is_invariant(f::GAPGroupHomomorphism, H::GAPGroup)
 
 Return whether `f(H) == H` holds.
 An exception is thrown if `domain(f)` and `codomain(f)` are not equal
@@ -1351,11 +1350,11 @@ function inner_automorphism_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
-    is_invariant(f::GAPGroupElem{AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+    is_invariant(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
 
 Return whether `f`(`H`) == `H`.
 """
-function is_invariant(f::GAPGroupElem{AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+function is_invariant(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
   @assert GAPWrap.IsSubset(GapObj(parent(f).G), GapObj(H)) "Not a subgroup of the domain"
   return GAPWrap.Image(GapObj(f), GapObj(H)) == GapObj(H)
 end
@@ -1379,18 +1378,18 @@ end
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = induced_automorphism(f,hom(mH))
 
 """
-    restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+    restrict_automorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
 
 Return the restriction of `f` to `H` as an automorphism of `H`.
 An exception is thrown if `H` is not invariant under `f`.
 """
-function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{<: GAPGroup}}, H::GAPGroup, A=automorphism_group(H))
+function restrict_automorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup, A=automorphism_group(H))
   @assert is_invariant(f,H) "H is not invariant under f!"
   fh = hom(H, H, gens(H), [f(x) for x in gens(H)], check = false)
   return A(fh)
 end
 
-function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+function restrict_homomorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
   return restrict_homomorphism(hom(f),H)
 end
 
