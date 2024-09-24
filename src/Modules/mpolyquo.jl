@@ -10,6 +10,7 @@
            DomainType<:FreeMod{<:MPolyQuoRingElem},
            CodomainType<:FreeMod{<:MPolyQuoRingElem}
           }
+    @show "this kernel"
   R = base_ring(codomain(f))
   SR = singular_poly_ring(R)
   F = domain(f)
@@ -18,6 +19,7 @@
   MG = ModuleGens(img_gens, G)
   singular_assure(MG)
   sing_ker_gens = Singular.syz(singular_generators(MG))
+  @show "done with syzygy computations"
   KG = ModuleGens(F, sing_ker_gens)
   return sub(F, oscar_generators(KG))
 end
