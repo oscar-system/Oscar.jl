@@ -127,8 +127,6 @@ function __init__()
   # We want some GAP packages. (It is no error if they cannot be loaded.)
   for pkg in [
      "ferret",   # backtrack in permutation groups
-     "sotgrps",  # extend the small groups library
-     "sglppow",  # extend the small groups library
      ]
     GAP.Packages.load(pkg)
   end
