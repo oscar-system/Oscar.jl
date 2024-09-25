@@ -2589,7 +2589,7 @@ function point_on_generic_fiber_from_divisor(I::AbsIdealSheaf{<:EllipticSurface}
 end
 
 function point_on_generic_fiber_from_divisor(D::AbsWeilDivisor{<:EllipticSurface}; check::Bool=true)
-  X = scheme(D)
+  X = ambient_scheme(D)
   E = generic_fiber(X)
   ex, pt, F = irreducible_fiber(X)
   WF = weil_divisor(F)
@@ -2681,7 +2681,7 @@ function extract_mordell_weil_basis(phi::MorphismFromRationalFunctions{<:Ellipti
 end
 
 function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
-  X = scheme(D)
+  X = ambient_scheme(D)
   WX = weierstrass_chart_on_minimal_model(X)
   R = ambient_coordinate_ring(WX)
   I = first(components(D))

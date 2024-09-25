@@ -224,11 +224,12 @@ identifications given by the gluings in the `default_covering`.
                       #is_open_func=_is_open_for_modules(X)
                      )
     M = new{typeof(X), AbsAffineScheme, ModuleFP, Map}(MD, MG, OOX, Mpre, default_cov)
-    if check
+    @check begin
       # Check that all sheaves of modules are compatible on the overlaps.
       # TODO: eventually replace by a check that on every basic
       # affine patch, the ideal sheaf can be inferred from what is
       # given on one dense open subset.
+      true
     end
     return M
   end

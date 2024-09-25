@@ -276,6 +276,8 @@ export as_dictionary
 export as_gset
 export ascending_compositions
 export associahedron
+export associated_primes
+export associated_points
 export atlas_description
 export atlas_group
 export atlas_irrationality
@@ -711,7 +713,7 @@ export image_in_Oq
 export images
 export img_gens
 export immaculate_line_bundles
-export in_linear_system
+export is_in_linear_system
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
@@ -756,6 +758,7 @@ export invert_birational_map
 export inverted_set
 export invlex
 export irreducible_components
+export irreducible_decomposition
 export irreducible_secondary_invariants
 export irreducibles
 export irrelevant_ideal
@@ -1033,6 +1036,7 @@ export matroid_hex
 export max_GC_rank_polytope
 export maxes
 export maximal_abelian_quotient, has_maximal_abelian_quotient, set_maximal_abelian_quotient
+export maximal_associated_points
 export maximal_blocks
 export maximal_cells
 export maximal_cones
