@@ -145,12 +145,8 @@ end
 @doc raw"""
     cartier_divisor(E::EffectiveCartierDivisor) -> CartierDivisor
 
-Given an effective cartier divisor `E`, return the cartier divisor
-$1*E$.
-
-Mathematically both objects are the same, this function is a coercion method
-to see effective cartier divisors as irreducible cartier divisor with coefficient
-1.
+Convert an `EffectiveCartierDivisor` into a `CartierDivisor` with
+coefficient $1$ in the ring of integers.
 
 # Examples
 ```jldoctest
