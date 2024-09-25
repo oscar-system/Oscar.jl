@@ -1297,7 +1297,7 @@ end
 Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
 #Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
 
-function (A::AutomorphismGroup{<: GAPGroup})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
+function (A::AutomorphismGroup{S})(f::GAPGroupHomomorphism{T,T}) where S <: GAPGroup where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
    @assert is_bijective(f) "f not in A"
    return group_element(A, GapObj(f))
@@ -1350,11 +1350,11 @@ function inner_automorphism_group(A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
-    is_invariant(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+    is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup) where T <: GAPGroup
 
 Return whether `f`(`H`) == `H`.
 """
-function is_invariant(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+function is_invariant(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup) where T <: GAPGroup
   @assert GAPWrap.IsSubset(GapObj(parent(f).G), GapObj(H)) "Not a subgroup of the domain"
   return GAPWrap.Image(GapObj(f), GapObj(H)) == GapObj(H)
 end
@@ -1378,18 +1378,18 @@ end
 induced_automorphism(f::GAPGroupHomomorphism, mH::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = induced_automorphism(f,hom(mH))
 
 """
-    restrict_automorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+    restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup) where T <: GAPGroup
 
 Return the restriction of `f` to `H` as an automorphism of `H`.
 An exception is thrown if `H` is not invariant under `f`.
 """
-function restrict_automorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup, A=automorphism_group(H))
+function restrict_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup, A=automorphism_group(H)) where T <: GAPGroup
   @assert is_invariant(f,H) "H is not invariant under f!"
   fh = hom(H, H, gens(H), [f(x) for x in gens(H)], check = false)
   return A(fh)
 end
 
-function restrict_homomorphism(f::GAPGroupElem{<: AutomorphismGroup{<: GAPGroup}}, H::GAPGroup)
+function restrict_homomorphism(f::GAPGroupElem{AutomorphismGroup{T}}, H::GAPGroup) where T <: GAPGroup
   return restrict_homomorphism(hom(f),H)
 end
 
