@@ -113,7 +113,8 @@ true
 julia> D[II] # to get the coefficient
 1
 
-julia> P[I]
+julia> E[P]
+2
 ```
 """
 abstract type AbsWeilDivisor{CoveredSchemeType, CoefficientRingType} <: AbsAlgebraicCycle{CoveredSchemeType, CoefficientRingType} end
