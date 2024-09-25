@@ -35,7 +35,7 @@ $D_i \subseteq X$ integral, closed subschemes and the $a_i \in R$.
 Such a cycle is represented non-uniquely as a formal sum $E = \sum_l b_l \mathcal{I}_l$ 
 of equidimensional ideal sheaves $\mathcal{I}_l \subseteq \mathcal{O}_X$. 
 For an equidimensional ideal sheaf $\mathcal{I}$ its interpretation as a cycle is as follows:
-Let $V(\mathcal{I})=E_{1} \cup \dots E_{n}$ be the decomposition of the vanishing locus
+Let $V(\mathcal{I})=E_{1} \cup \dots \cup E_{n}$ be the decomposition of the vanishing locus
 of $\mathcal{I}$ into irreducible components $E_i=V(\mathcal{P}_i)$ with $\mathcal{P}_i$ prime. 
 Then $E$ corresponds to the cycle $D = \sum_{i=1}^{n} \mathrm{colength}_{\mathcal{P}_i}(\mathcal{I})E_i$.
 
