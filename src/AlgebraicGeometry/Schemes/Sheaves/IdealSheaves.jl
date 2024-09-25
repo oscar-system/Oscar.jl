@@ -1032,6 +1032,29 @@ function maximal_associated_points(
 end
 
 @doc raw"""
+    minimal_primes(I::AbsIdealSheaf; kwargs...)
+
+Return the minimal prime ideal sheaves of ``I``.
+
+These are the ideal sheaves of the maximal associated points of ``I``.
+
+See [`maximal_associated_points`](@ref) for possible keyword arguments.
+"""
+minimal_primes(I::AbsIdealSheaf; kwargs...) = maximal_associated_points(I; kwargs...)
+
+@doc raw"""
+    associated_primes(I::AbsIdealSheaf; kwargs...)
+
+Return the prime ideal sheaves associated to``I``.
+
+These are the ideal sheaves of the associated points of ``I``.
+
+See [`associated_points`](@ref) for possible keyword arguments.
+"""
+associated_primes(I::AbsIdealSheaf; kwargs...) = associated_points(I; kwargs...)
+  
+  
+@doc raw"""
     associated_points(I::AbsIdealSheaf)
 
 Return a `Vector` of `AbsIdealSheaf`s corresponding to the associated points of ``I`` on ``scheme(I)``.
@@ -1283,9 +1306,7 @@ function Base.show(io::IO, ::MIME"text/plain", I::SumIdealSheaf)
   io = pretty(io)
   print(io, "Sum of \n")
   print(io, Indent())
-  for J in summands(I)
-    print(io, J, "\n")
-  end
+  join(io, summands(I), "\n")
   print(io, Dedent())
 end
 
@@ -1293,30 +1314,18 @@ function Base.show(io::IO, ::MIME"text/plain", I::ProductIdealSheaf)
   io = pretty(io)
   print(io, "Product of \n")
   print(io, Indent())
-  for J in factors(I)
-    print(io, J, "\n")
-  end
+  join(io, factors(I), "\n")
   print(io, Dedent())
 end
 
 function Base.show(io::IO, I::SumIdealSheaf)
   io = pretty(io)
-  print(io, "Sum of \n")
-  print(io, Indent())
-  for J in summands(I)
-    print(io, J, "\n")
-  end
-  print(io, Dedent())
+  print(io, "Sum of $(length(summands(I))) ideal sheaves")
 end
 
 function Base.show(io::IO, I::ProductIdealSheaf)
   io = pretty(io)
-  print(io, "Product of \n")
-  print(io, Indent())
-  for J in factors(I)
-    print(io, J, "\n")
-  end
-  print(io, Dedent())
+  print(io, "Product of $(length(factors(I))) ideal sheaves")
 end
 
 function Base.show(io::IO, I::PrimeIdealSheafFromChart)

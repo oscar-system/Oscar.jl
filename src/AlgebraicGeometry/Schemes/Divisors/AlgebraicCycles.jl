@@ -201,8 +201,8 @@ algebraic_cycle(X::AbsCoveredScheme, R::Ring; check::Bool=true) = AlgebraicCycle
 @doc raw"""
     AlgebraicCycle(I::AbsIdealSheaf, R::Ring)
 
-Return the `AlgebraicCycle` ``D = colength(I) ⋅ V(I)`` with coefficients 
-in ``R`` for an equidimensional sheaf of ideals ``I``.
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``R`` for a sheaf of equidimensional ideals ``I``.
 """
 function AlgebraicCycle(I::AbsIdealSheaf, R::Ring; check::Bool=true)
   D = AlgebraicCycle(space(I), R; check)
@@ -213,8 +213,11 @@ end
 @doc raw"""
     algebraic_cycle(I::AbsIdealSheaf, R::Ring) -> AlgebraicCycle
 
-Return the `AlgebraicCycle` defined by the equidimensional ideal sheaf `I`. 
+Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
+in ``R`` for a sheaf of equidimensional ideals ``I``.
 
+Note that ``I`` must be equidimensional.
+  
 # Examples
 ```jldoctest
 julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
@@ -236,7 +239,7 @@ given as the formal sum of
 
 ```
 """
-algebraic_cycle(I::AbsIdealSheaf, R::Ring) = AlgebraicCycle(I, R)
+algebraic_cycle(I::AbsIdealSheaf, R::Ring; check::Bool=true) = AlgebraicCycle(I, R; check)
 
 @doc raw"""
     AlgebraicCycle(I::AbsIdealSheaf)
@@ -244,8 +247,8 @@ algebraic_cycle(I::AbsIdealSheaf, R::Ring) = AlgebraicCycle(I, R)
 Return the `AlgebraicCycle` ``D = 1 ⋅ I`` with coefficients
 in ``ℤ`` for a sheaf of equidimensional ideals ``I``.
 """
-function AlgebraicCycle(I::AbsIdealSheaf)
-  D = AlgebraicCycle(space(I), ZZ)
+function AlgebraicCycle(I::AbsIdealSheaf; check::Bool=true)
+  D = AlgebraicCycle(space(I), ZZ; check)
   D[I] = one(ZZ)
   return D
 end
@@ -276,7 +279,7 @@ given as the formal sum of
   1 * sheaf of ideals
 ```
 """
-algebraic_cycle(I::AbsIdealSheaf) = AlgebraicCycle(I)
+algebraic_cycle(I::AbsIdealSheaf; check::Bool=true) = AlgebraicCycle(I; check)
 
 ### copy constructor
 function copy(D::AlgebraicCycle) 

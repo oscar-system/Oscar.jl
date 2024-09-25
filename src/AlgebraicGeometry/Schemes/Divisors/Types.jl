@@ -31,7 +31,7 @@
       #is_separated(X) || error("scheme must be separated") # We need to test this somehow, but how?
       d = isempty(coefficients) ? 0 : dim(first(keys(coefficients)))
       for D in keys(coefficients)
-        (is_equidimensional(D) && dim(D) == d) || error("components of a cycle must be sheaves of equidimensional ideals")
+        (is_equidimensional(D) && dim(D) == d) || error("components of a cycle must be sheaves of equidimensional ideals of the same dimension")
       end
       true
     end
@@ -46,7 +46,7 @@ end
 @doc raw"""
     WeilDivisor <: AbsWeilDivisor
 
-A Weil divisor on an integral separated `AbsCoveredScheme` ``X``; 
+A Weil divisor on an integral `AbsCoveredScheme` ``X``; 
 stored as a formal linear combination over some ring ``R`` of 
 ideal sheaves on ``X``.
 """
@@ -114,10 +114,9 @@ end
 @doc raw""" 
     EffectiveCartierDivisor{CoveredSchemeType<:AbsCoveredScheme}
 
-An effective Cartier divisor on a scheme $X$ is a closed subscheme $D \subseteq S$ whose ideal sheaf $\mathcal{I}_D \subseteq \mathcal{O}_S$ is an invertible $\mathcal{O}_S$-module. In particular, $\mathcal{I}_D$ is locally principal.
+An effective Cartier divisor on a scheme $X$ is a closed subscheme $D \subseteq X$ whose ideal sheaf $\mathcal{I}_D \subseteq \mathcal{O}_X$ is an invertible $\mathcal{O}_X$-module. In particular, $\mathcal{I}_D$ is locally principal.
 
-
-See [`trivializing_covering(C::EffectiveCartierDivisor)`](@ref) for how to
+Internally, $C$ stores a [`trivializing_covering(C::EffectiveCartierDivisor)`](@ref).
 The scheme $X$ is of type `CoveredSchemeType`.
 """
 @attributes mutable struct EffectiveCartierDivisor{

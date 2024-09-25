@@ -268,12 +268,15 @@ end
 ### (specialized variant of associated_points, using pure codimension 1
 ###  and taking multiplicities into account)
 @doc raw"""
-    irreducible_decomposition(C::EffectiveCartierDivisor)
+    irreducible_decomposition(C::EffectiveCartierDivisor; check::Bool=true) -> AbsWeilDivisor
 
-Return a `Vector` of pairs ``(I,k)`` corresponding to the irreducible components of ``C``. More precisely,  each ``I`` is a prime  `AbsIdealSheaf` corresponding to an irreducible component of ``C`` and ``k``is the multiplicity of this component in ``C``.
+Return $C$ as a linear combination of prime Weil divisors.
+
+Assumes that the ambient scheme is integral and locally noetherian.
 """
-function irreducible_decomposition(C::EffectiveCartierDivisor)
+function irreducible_decomposition(C::EffectiveCartierDivisor; check::Bool=true)
   X = ambient_scheme(C)
+  @check is_integral(X) "ambient scheme must be integral"
   cov = default_covering(X)
   OOX = OO(X)
 
@@ -301,7 +304,8 @@ function irreducible_decomposition(C::EffectiveCartierDivisor)
       push!(associated_primes_temp, (I_sheaf_temp, saturation_index))
     end
   end
-  return(associated_primes_temp)
+  D = WeilDivisor(X, ZZ, IdDict(associated_primes_temp); check=false)
+  return D
 end
 
 ### Conversion into WeilDivisors

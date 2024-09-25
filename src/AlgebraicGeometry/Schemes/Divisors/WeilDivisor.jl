@@ -71,9 +71,9 @@ coefficients in the integer ring.
 ```jldoctest
 julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
-julia> I = ideal([x^3-y^2*z]);
-
 julia> Y = proj(P);
+
+julia> I = ideal([(x^3-y^2*z)]);
 
 julia> II = IdealSheaf(Y, I);
 
@@ -83,6 +83,23 @@ Effective weil divisor
 with coefficients in integer ring
 given as the formal sum of
   1 * sheaf of ideals
+  
+julia> JJ = II^2;
+
+julia> D = weil_divisor(JJ)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  1 * product of 2 ideal sheaves
+
+julia> irreducible_decomposition(D)
+Effective weil divisor
+  on scheme over QQ covered with 3 patches
+with coefficients in integer ring
+given as the formal sum of
+  2 * sheaf of prime ideals
+
 ```
 """
 weil_divisor(I::AbsIdealSheaf; check::Bool=true) = WeilDivisor(I, check=check)
