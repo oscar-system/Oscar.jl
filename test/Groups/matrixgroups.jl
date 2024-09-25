@@ -30,7 +30,7 @@
    @test Oscar.preimage_matrix(G.ring_iso, GAP.Globals.One(GAP.Globals.GL(3, codomain(G.ring_iso)))) == matrix(one(G))
    @test GAP.Globals.Order(map_entries(G.ring_iso, diagonal_matrix([z,z,one(F)]))) == 28
 
-   T,t = polynomial_ring(GF(3) ,"t")
+   T,t = polynomial_ring(GF(3) ,:t)
    F,z = finite_field(t^2+1,"z")
    G = GL(3,F)
    #@test isdefined(G,:X)
@@ -240,7 +240,7 @@ end
 
 #FIXME : this may change in future. It can be easily skipped.
 @testset "Fields assignment" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -494,7 +494,7 @@ end
 end
 
 @testset "Membership" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -545,7 +545,7 @@ end
 end
 
 @testset "Methods on elements" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -588,7 +588,7 @@ end
 end
 
 @testset "Subgroups" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -613,7 +613,7 @@ end
 end
 
 @testset "Cosets and conjugacy classes" begin
-   T,t=polynomial_ring(GF(3),"t")
+   T,t=polynomial_ring(GF(3),:t)
    F,z=finite_field(t^2+1,"z")
 
    G = GL(2,F)
@@ -656,7 +656,7 @@ end
 
 @testset "Jordan structure" begin
    F = GF(3, 1)
-   R,t = polynomial_ring(F,"t")
+   R,t = polynomial_ring(F,:t)
    G = GL(9,F)
 
    L_big = [
@@ -693,7 +693,7 @@ end
 
    F,z = finite_field(5,3,"z")
    G = GL(6,F)
-   R,t = polynomial_ring(F,"t")
+   R,t = polynomial_ring(F,:t)
    f = t^3+t*z+1
    x = generalized_jordan_block(f,2)
    @test generalized_jordan_block(f,2)==hvcat((2,2),companion_matrix(f),identity_matrix(F,3),zero_matrix(F,3,3),companion_matrix(f))
@@ -718,7 +718,7 @@ end
       L = Oscar._gens_for_GL(5,GF(2, 1))
       @test length(L)==2
       @test matrix_group(L...)==GL(5,GF(2, 1))
-      _,t = polynomial_ring(GF(3, 1),"t")
+      _,t = polynomial_ring(GF(3, 1),:t)
       f = t^2+t-1
       L = Oscar._gens_for_GL_matrix(f,2,GF(3, 1); D=2)
       @test length(L)==2
@@ -752,7 +752,7 @@ end
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 
-   Qx, x = polynomial_ring(FlintQQ, "x", cached = false)
+   Qx, x = polynomial_ring(FlintQQ, :x, cached = false)
    f = x^2-2;
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);

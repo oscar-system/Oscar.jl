@@ -148,7 +148,7 @@ If `skip_primary_decomposition==true`, will not decompose `I`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([(x^2+y)*(x+y^2)*(x+y)]);
 

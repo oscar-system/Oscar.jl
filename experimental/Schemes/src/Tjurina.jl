@@ -18,7 +18,7 @@
 Return the global Tjurina algebra of the affine hypersurface `V(f)`.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -43,7 +43,7 @@ Return the global Tjurina algebra of the affine scheme `X`, if `X` is a hypersur
 Throws an error otherwise.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> X = AffineScheme(quo(R, ideal(R, x^3-y^2))[1])
 Spectrum
@@ -74,7 +74,7 @@ By default computes the local Tjurina algebra (`k=0`) at `p`.
 Higher Tjurina algebras are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3-y^2;
 
@@ -110,7 +110,7 @@ By default computes the local Tjurina algebra (`k=0`) at `p`.
 Higher Tjurina algebras are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = GF(2)["x", "y"];
+julia> R,(x,y) = GF(2)[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -152,7 +152,7 @@ end
 Return the global Tjurina number of a polynomial `f`.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x*(x-1)*y;
 
@@ -172,7 +172,7 @@ end
 Return the global Tjurina number of the affine scheme `X`, if `X` is a hypersurface.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -202,7 +202,7 @@ By default computes the local Tjurina number (`k=0`) at `p`.
 Higher Tjurina numbers are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -228,7 +228,7 @@ By default computes the local Tjurina number (`k=0`) at `p`.
 Higher Tjurina numbers are of interest in positive characteristic. 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -262,7 +262,7 @@ end
 Return the order of the series expansion of an element of a local ring at the localized point.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L0,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -298,7 +298,7 @@ Return if 'f' is finitely determined with respect to ':right' or ':contact' equi
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -345,7 +345,7 @@ Return if the hypersurface germ 'X' is finitely determined with respect to ':rig
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^2 - y^2;
 
@@ -375,7 +375,7 @@ By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -427,7 +427,7 @@ By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5 + x^2*y^2;
 
@@ -460,7 +460,7 @@ some sharper determinacy bound than the function determinacy_bound.
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -522,7 +522,7 @@ some sharper determinacy bound than the function determinacy_bound.
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5;
 
@@ -644,7 +644,7 @@ Return if 'f' and 'g' are contact equivalent.
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
-julia> R, (x,y) = QQ["x", "y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -718,7 +718,7 @@ Return if the hypersurface germs 'X' and 'Y' are contact equivalent.
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
-julia> R, (x,y) = QQ["x", "y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^3+y^2))[1]), [0, 0]);
 

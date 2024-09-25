@@ -340,7 +340,7 @@ end
 
   @testset "Polynomial" begin
     K, z = abelian_closure(QQ)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(z(4)) == z(4)^2 + 1
   end
 

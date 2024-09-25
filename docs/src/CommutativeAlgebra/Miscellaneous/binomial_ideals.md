@@ -50,7 +50,7 @@ is_binomial(f::MPolyRingElem)
 is_binomial(I::MPolyIdeal)
 ```
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> f = 2*x+y

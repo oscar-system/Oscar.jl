@@ -208,7 +208,7 @@ end
 
 end
 @testset "Experimental LocalH2" begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   k, a = number_field(x^6+108, cached = false)
 
   G, mG = automorphism_group(k)

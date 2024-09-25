@@ -95,7 +95,7 @@ algorithm requires an elimination ordering, `o` might be ignored.
 
 # Example
 ```jldoctest withordering
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> f = x + y^2;
 
@@ -397,7 +397,7 @@ Return an ideal generating system with an associated monomial ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x0, x1, x2) = polynomial_ring(QQ, ["x0","x1","x2"]);
+julia> R, (x0, x1, x2) = polynomial_ring(QQ, [:x0,:x1,:x2]);
 
 julia> I = ideal([x0*x1, x2]);
 
@@ -815,7 +815,7 @@ Return the system of generators of `I`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ, [:x,:y]);
 
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 

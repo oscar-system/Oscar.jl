@@ -57,7 +57,7 @@
   pb_I = pullback(bl, I)
   pb_J = pullback(bl, J)
 
-  @testset "Toric blowdown morphism as morphism of covered schemes" begin
+  @testset "Toric blowup morphism as morphism of covered schemes" begin
     @test scheme(I) === IP2
     @test length(Oscar.maximal_associated_points(I)) == 2
     @test length(Oscar.maximal_associated_points(pb_I)) == 3

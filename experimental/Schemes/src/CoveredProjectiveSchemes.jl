@@ -307,7 +307,7 @@ empty covered scheme over `R`.
 
 # Example
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> Oscar.empty_covered_projective_scheme(R)
 Relative projective scheme
@@ -464,7 +464,7 @@ function blow_up_chart(W::AbsAffineScheme{<:Field, <:RingType}, I::Ideal;
 
   # It follows the generic Proj construction
   R = OO(W)
-  T, (t,) = polynomial_ring(R, ["t"])
+  T, (t,) = polynomial_ring(R, [:t])
   S, s = graded_polynomial_ring(R, [Symbol(var_name, i-1) for i in 1:ngens(I)])
   phi = hom(S, T, [t*g for g in gens(I)], check=false)
   K = kernel(phi)

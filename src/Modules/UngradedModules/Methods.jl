@@ -8,7 +8,7 @@ If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -540,7 +540,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns i
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -647,7 +647,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 

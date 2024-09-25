@@ -591,7 +591,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
 42
 
-julia> R, x = QQ["x"]
+julia> R, x = QQ[:x]
 (Univariate polynomial ring in x over QQ, x)
 
 julia> p = x^2 - x + 1

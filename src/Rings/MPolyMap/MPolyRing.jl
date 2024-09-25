@@ -49,7 +49,7 @@ to `S`, if such a homomorphism exists, and throw an error, otherwise.
 ```jldoctest; filter = r"\#\d+" => "#"
 julia> K, a = finite_field(2, 2, "a");
 
-julia> R, (x, y) = polynomial_ring(K, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(K, [:x, :y]);
 
 julia> F = hom(R, R, z -> z^2, [y, x])
 Ring homomorphism
@@ -67,7 +67,7 @@ julia> F(a * y)
 julia> Qi, i = quadratic_field(-1)
 (Imaginary quadratic field defined by x^2 + 1, sqrt(-1))
 
-julia> S, (x, y) = polynomial_ring(Qi, ["x", "y"]);
+julia> S, (x, y) = polynomial_ring(Qi, [:x, :y]);
 
 julia> G = hom(S, S, hom(Qi, Qi, -i), [x^2, y^2])
 Ring homomorphism
@@ -82,11 +82,11 @@ with map on coefficients
 julia> G(x+i*y)
 x^2 - sqrt(-1)*y^2
 
-julia> R, (x, y) = polynomial_ring(ZZ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(ZZ, [:x, :y]);
 
 julia> f = 3*x^2+2*x+1;
 
-julia> S, (x, y) = polynomial_ring(GF(2), ["x", "y"]);
+julia> S, (x, y) = polynomial_ring(GF(2), [:x, :y]);
 
 julia> H = hom(R, S, gens(S))
 Ring homomorphism

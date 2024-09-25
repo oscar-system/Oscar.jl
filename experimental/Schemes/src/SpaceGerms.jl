@@ -141,7 +141,7 @@ to `p. Then the representative `Y = Spec R/I` is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -200,7 +200,7 @@ Return the point `p` of a germ `(X,p)`, where p is specified
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -246,7 +246,7 @@ to `p. Then the ambient germ `Spec U^{-1}R` is returned.
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -281,7 +281,7 @@ Return the (fixed) defining element(s) of the ideal of `X` in the ring of the am
 Caution: This command is not exported and is only provided for convenience in programming.
 # Examples:
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
+julia> R, (x,y,z) = QQ[:x, :y, :z];
 
 julia> I = ideal(R, [(x-1)*(x^2 - y^2 + z^2)]);
 
@@ -318,7 +318,7 @@ exception results.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = QQ["x","y"]
+julia> R, (x, y) = QQ[:x, :y]
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> I = ideal(R, [x-1,y-3])

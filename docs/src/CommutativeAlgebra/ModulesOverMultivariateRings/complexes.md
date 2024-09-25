@@ -31,7 +31,7 @@ Given a complex `C`,
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -86,7 +86,7 @@ with maps multiplied by $(-1)^d$.
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -150,7 +150,7 @@ is_exact(C::ComplexOfMorphisms{ModuleFP})
 ##### Examples
 
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -162,7 +162,7 @@ julia> a = hom(A, B, [x^2*B[1]]);
 
 julia> b = hom(B, B, [x^2*B[1]]);
 
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> C = chain_complex([a, b]);
 

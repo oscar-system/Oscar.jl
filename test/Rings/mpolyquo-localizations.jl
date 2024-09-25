@@ -1,5 +1,5 @@
 @testset "mpolyquo-localizations.jl" begin
-  R, v = QQ["x", "y", "u", "v"]
+  R, v = QQ[:x, :y, :u, :v]
   x = v[1]
   y = v[2] 
   u = v[3]
@@ -16,7 +16,7 @@
   d = L(v)
   
   kk= QQ
-  R, v = kk["x", "y"]
+  R, v = kk[:x, :y]
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)
@@ -38,7 +38,7 @@
   #kk = GF(101)
   ⊂ = issubset
   kk = QQ
-  R, (x,y) = kk["x", "y"]
+  R, (x,y) = kk[:x, :y]
 
   f = x^2 + y^2-2
   S = Oscar.MPolyPowersOfElement(x-1)
@@ -110,7 +110,7 @@
 end
 
 @testset "prime ideals in quotient rings" begin
-  R, (x, y) = QQ["x", "y"]
+  R, (x, y) = QQ[:x, :y]
   I = ideal(R, [x^2-y^2])
   U = powers_of_element(y)
   A, = quo(R, I)
@@ -121,7 +121,7 @@ end
 end
 
 @testset "additional hom constructors" begin
-  R, (x, y) = ZZ["x", "y"]
+  R, (x, y) = ZZ[:x, :y]
   I = ideal(R, [x^2-y^2])
   U = powers_of_element(y)
   A, = quo(R, I)
@@ -130,7 +130,7 @@ end
 end
   
 @testset "fractions and divexact: Issue #1885" begin
-  R, (x, y) = ZZ["x", "y"]
+  R, (x, y) = ZZ[:x, :y]
   I = ideal(R, [x^2-y^2])
   U = powers_of_element(y)
   A, = quo(R, I)
@@ -143,7 +143,7 @@ end
 
 @testset "associated primes (quo and localized)" begin
   # define the rings
-  R,(x,y,z,w) = QQ["x","y","z","w"]
+  R,(x,y,z,w) = QQ[:x, :y, :z, :w]
   Q1 = ideal(R,[x^2+y^2-1])
   Q2 = ideal(R,[x*y-z*w])
   RQ1,phiQ1 = quo(R,Q1)
@@ -201,7 +201,7 @@ end
 
 @testset "saturation (quo and localization)" begin
   # define the rings
-  R,(x,y,z) = QQ["x","y","z"]
+  R,(x,y,z) = QQ[:x, :y, :z]
   Q1 = ideal(R,[x])
   Q2 = ideal(R,[z,x^2-y^2])
   RQ1,phiQ1 = quo(R,Q1)
@@ -268,7 +268,7 @@ end
 end
 
 @testset "algebras as vector spaces" begin
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   I = ideal(R, [x^3- 2, y^2+3*x])
   I = (x-8)^2*I
   L, _ = localization(R, powers_of_element(x-8))
@@ -282,7 +282,7 @@ end
   v = V[3] - 4*V[5]
   @test preimage(id, id(v)) == v
 
-  R, (x,y) = QQ["x", "y"]
+  R, (x,y) = QQ[:x, :y]
   I = ideal(R, [x^3, (y-1)^2+3*x])
   I = (x-8)^2*I
   L, _ = localization(R, complement_of_point_ideal(R, [0, 1]))
@@ -297,7 +297,7 @@ end
 end
 
 @testset "minimal and small generating sets" begin
-  R, (x,y,z) = QQ["x","y","z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   IQ = ideal(R,[x-z])
   U1 = Oscar.MPolyComplementOfKPointIdeal(R,[0,0,0])
   U2 = Oscar.MPolyComplementOfKPointIdeal(R,[1,1,1])
@@ -478,7 +478,7 @@ end
 end
 
 @testset "modulus - MPAnyQuoRing MPAnyNonQuoRing" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   I = ideal(R, [x+y+z])
   A, _ = quo(R,I)
   @test modulus(R) == ideal(R,[zero(R)])
@@ -504,7 +504,7 @@ end
 end
 
 @testset "MPolyAnyIdeal printing" begin
-  R, x = polynomial_ring(QQ, 100, "x")
+  R, x = polynomial_ring(QQ, 100, :x)
   @test Oscar._get_generators_string_one_line(ideal(R, [x[1]])) == "(x1)"
   @test Oscar._get_generators_string_one_line(ideal(R, [x[1], x[2]])) == "(x1, x2)"
   @test Oscar._get_generators_string_one_line(ideal(R, x)) == "with 100 generators"

@@ -1,5 +1,5 @@
 @testset "StandardWalk" begin
-    R1, (x,y,z) = polynomial_ring(QQ, ["x", "y", "z"])
+    R1, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z])
             
     I1 = ideal([x^2 + y*z, x*y + z^2]) 
     G1 = groebner_basis(I1)

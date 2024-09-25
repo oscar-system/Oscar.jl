@@ -18,7 +18,7 @@
     affine_hull(point)
   end
   s = simplex(f, 2)
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, :x)
   v = T[f(1), f(1)]
 
   # test that remove_zero_rows uses the correct epsilon

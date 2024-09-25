@@ -254,7 +254,7 @@ Something with 1 element of type Int64
 ### LaTeX output
 Some types support LaTeX output.
 ```
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> show(stdout, "text/latex", x^2 + 2x + x^10)
 x^{10} + x^{2} + 2 x

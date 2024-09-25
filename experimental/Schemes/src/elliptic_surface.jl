@@ -1659,7 +1659,7 @@ function transform_to_weierstrass(g::MPolyRingElem, x::MPolyRingElem, y::MPolyRi
     new_trans = MapFromFunc(F, F, f->begin
                                 switch_num = switch(numerator(f))
                                 switch_den = switch(denominator(f))
-                                interm_res = trans(F(switch_num))//trans(F(switch(den)))
+                                interm_res = trans(F(switch_num))//trans(F(switch_den))
                                 num = numerator(interm_res)
                                 den = denominator(interm_res)
                                 switch(num)//switch(den)

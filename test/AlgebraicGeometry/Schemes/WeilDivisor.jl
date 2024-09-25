@@ -2,7 +2,7 @@
   kk = GF(29)
 
   # Set up the base ℙ¹ with coordinates s and t
-  S, (s, t) = graded_polynomial_ring(kk, ["s", "t"])
+  S, (s, t) = graded_polynomial_ring(kk, [:s, :t])
 
   base_P1 = proj(S)
 
@@ -103,7 +103,7 @@ end
 
 @testset "orders on divisors" begin
   kk = QQ
-  R, (s,t) = polynomial_ring(kk, ["s", "t"])
+  R, (s,t) = polynomial_ring(kk, [:s, :t])
   X = spec(R)
   Xc = CoveredScheme(X)
   KK = VarietyFunctionField(Xc)

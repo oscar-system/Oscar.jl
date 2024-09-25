@@ -106,7 +106,7 @@ julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> f = blow_up(P3, [0, 2, 3])
-Toric blowdown morphism
+Toric blowup morphism
 
 julia> bP3 = domain(f)
 Normal toric variety
@@ -145,7 +145,7 @@ julia> v = normal_toric_variety(max_cones, rs)
 Normal toric variety
 
 julia> f = blow_up(v, [0, 1])
-Toric blowdown morphism
+Toric blowup morphism
 
 julia> center_unnormalized(f)
 Sheaf of ideals
@@ -161,20 +161,20 @@ function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUni
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   new_variety = normal_toric_variety(star_subdivision(v, new_ray))
   if is_smooth(v) == false
-    return ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
+    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
   end
   inx = _get_maximal_cones_containing_vector(polyhedral_fan(v), new_ray)
   old_rays = matrix(ZZ, rays(v))
   cone_generators = matrix(ZZ, [old_rays[i,:] for i in 1:nrows(old_rays) if ray_indices(maximal_cones(v))[inx[1], i]])
   powers = solve_non_negative(ZZMatrix, transpose(cone_generators), transpose(matrix(ZZ, [new_ray])))
   if nrows(powers) != 1
-    return ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
+    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
   end
   gens_S = gens(cox_ring(v))
   variables = [gens_S[i] for i in 1:nrows(old_rays) if ray_indices(maximal_cones(v))[inx[1], i]]
   list_of_gens = [variables[i]^powers[i] for i in 1:length(powers) if powers[i] != 0]
   center_unnormalized = ideal_sheaf(v, ideal([variables[i]^powers[i] for i in 1:length(powers) if powers[i] != 0]))
-  return ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
+  return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
 end
 
 @doc raw"""
@@ -194,7 +194,7 @@ julia> P3 = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> f = blow_up(P3, 5)
-Toric blowdown morphism
+Toric blowup morphism
 
 julia> bP3 = domain(f)
 Normal toric variety
@@ -215,7 +215,7 @@ function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{Strin
   new_variety = normal_toric_variety(star_subdivision(v, n))
   rays_of_variety = matrix(ZZ, rays(v))
   new_ray = vec(sum([rays_of_variety[i, :] for i in 1:number_of_rays(v) if cones(v)[n, i]]))
-  return ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
+  return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
 end
 
 
@@ -278,7 +278,7 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Unio
     new_ray = new_ray ./ gcd(new_ray)
     new_variety = normal_toric_variety(star_subdivision(v, new_ray))
     center_unnormalized = ideal_sheaf(v, I)
-    return ToricBlowdownMorphism(v, new_variety, coordinate_name, new_ray, I, center_unnormalized)
+    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, I, center_unnormalized)
   else
     return _generic_blow_up(v, I)
   end

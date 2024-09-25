@@ -142,7 +142,7 @@ function make_polynomial_ring(Bs::Vector{Vector{Int}}, B::Vector{Int},
                               F::AbstractAlgebra.Ring)
     
     MC = bases_matrix_coordinates(Bs, B)
-    R, x = polynomial_ring(F, :"x"=>MC; cached=false)
+    R, x = polynomial_ring(F, :x=>MC; cached=false)
     xdict = Dict{Vector{Int}, MPolyRingElem}([MC[i] => x[i] for i in 1:length(MC)])
     return R, x, xdict
 end
@@ -330,7 +330,7 @@ function realization_polynomial_ring(Bs::Vector{Vector{Int}}, A::Vector{Int},
     MC = realization_bases_coordinates(Bs, A)
     D = partial_matrix_max_rows(MC)
     MR = [x for x in MC if x[1] != D[x[2]]]
-    R, x = polynomial_ring(F, :"x"=>MR; cached=false)
+    R, x = polynomial_ring(F, :x=>MR; cached=false)
     xdict = Dict{Vector{Int}, MPolyRingElem}(MR[i] => x[i] for i in 1:length(MR))
     return R, x, xdict
 end
