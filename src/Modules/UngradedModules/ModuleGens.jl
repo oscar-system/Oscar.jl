@@ -267,11 +267,11 @@ function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   ctx = MPolyBuildCtx(Rx)
   
   # shortcut in order not to allocate the dictionary
-# if isone(length(s)) # TODO: length doesn't work!
-#   (i, e, c) = first(s)
-#   push_term!(ctx, R(c), e)
-#   return FreeModElem(sparse_row(Qx, [(i, finish(ctx))]))
-# end
+  if isone(length(s))
+    (i, e, c) = first(s)
+    push_term!(ctx, R(c), e)
+    return FreeModElem(sparse_row(Qx, [(i, finish(ctx))]))
+  end
 
   cache = IdDict{Int, typeof(ctx)}()
   for (i, e, c) in s
@@ -283,6 +283,9 @@ function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   return FreeModElem(sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache]), F)
 end
 
+# TODO: move this eventually
+length(s::Singular.svector) = Int(Singular.libSingular.pLength(s.ptr))
+
 function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
   Qx = base_ring(F)::MPolyQuoRing
   Rx = base_ring(Qx)::MPolyRing
@@ -290,11 +293,11 @@ function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
   ctx = MPolyBuildCtx(Rx)
 
   # shortcut in order not to allocate the dictionary
-# if isone(length(s)) # TODO: length doesn't work!
-#   (i, e, c) = first(s)
-#   push_term!(ctx, R(c), e)
-#   return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx)))]))
-# end
+  if isone(length(s))
+    (i, e, c) = first(s)
+    push_term!(ctx, R(c), e)
+    return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx)))]))
+  end
 
   cache = IdDict{Int, typeof(ctx)}()
   for (i, e, c) in s
