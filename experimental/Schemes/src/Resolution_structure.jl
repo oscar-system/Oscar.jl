@@ -265,7 +265,7 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   !isdefined(f,:exceptional_divisor) || return f.exceptional_divisor
 
   ex_div_list = exceptional_divisor_list(f)
-  C = WeilDivisor(ambient_scheme(ex_div_list[1]),ZZ)
+  C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
     dim(ex_div_list[i])== -1 && continue            # kick out empty ones
     C = C + weil_divisor(ex_div_list[i])
@@ -305,7 +305,7 @@ function exceptional_locus(f::MixedBlowUpSequence)
 
   ex_div_list = exceptional_divisor_list(f)         # these are IdealSheaves for MixedBlowUpSequences
                                                     # they might even have the wrong dimension
-  C = AlgebraicCycle(ambient_scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
+  C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
   for E in ex_div_list
     dim(E) != -1 || continue                        # kick out empty ones
     C = C + algebraic_cycle(E)
@@ -1238,7 +1238,11 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
   return vector_space_dimension(F1quo) == 1
 end
 
-function divisor_intersections_with_X(current_div, I_X)
+function divisor_intersections_with_X(current_div::Vector{<:EffectiveCartierDivisor}, I_X::AbsIdealSheaf)
+  return divisor_intersections_with_X(ideal_sheaf.(current_div), I_X)
+end
+  
+function divisor_intersections_with_X(current_div::Vector{<:AbsIdealSheaf}, I_X::AbsIdealSheaf)
   scheme(I_X) == scheme(current_div[1]) || error("underlying schemes do not match")
   n_max = dim(I_X)
 
@@ -1295,8 +1299,8 @@ end
 
 function non_snc_locus(divs::Vector{<:EffectiveCartierDivisor})
   is_empty(divs) && error("list of divisors must not be empty")
-  X = scheme(first(divs))
-  @assert all(d->scheme(d) === X, divs)
+  X = ambient_scheme(first(divs))
+  @assert all(d->ambient_scheme(d) === X, divs)
   @assert is_smooth(X)
   r = length(divs)
   triv_cov = trivializing_covering.(divs)
