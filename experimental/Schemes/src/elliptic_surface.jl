@@ -847,7 +847,7 @@ Output a list of tuples with each tuple as follows
 - gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
 function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
-  @hassert :EllipticSurface 2 all(is_prime(i) for i in f) "not a vector of prime divisors"
+  @hassert :EllipticSurface 2 all(is_prime(i) for i in f)
   f = copy(f)
   O = components(zero_section(S))[1]
   local f0
