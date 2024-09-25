@@ -16,7 +16,7 @@ function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
     return _rescale_primitive(ZZ.(eigenspace(Q, neg_ev)))
   else
     @req (v0*Q*transpose(v0))[1, 1] > 0 "v0 has non positive inner product"
-    @req isone(reduce(gcd, v)) "v0 is not primitive"
+    @req isone(reduce(gcd, v0)) "v0 is not primitive"
     return v0
   end
 end
