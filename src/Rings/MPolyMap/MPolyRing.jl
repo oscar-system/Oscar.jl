@@ -133,8 +133,9 @@ end
 ################################################################################
 
 # Some additional methods needed for the test in the constructor for MPolyAnyMap
-is_gen(x::MPolyQuoRingElem) = is_gen(lift(x))
-is_gen(x::MPolyDecRingElem) = is_gen(forget_grading(x))
+_is_gen(x::MPolyQuoRingElem) = _is_gen(lift(x))
+_is_gen(x::MPolyDecRingElem) = is_gen(forget_grading(x))
+_is_gen(x::MPolyRingElem) = is_gen(x)
 
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
   if isdefined(F, :variable_indices)
@@ -178,6 +179,24 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
   return simplify(A(v))
 end
 
+# The following assumes `p` to be in `S[x₁,…,xₙ]` where `S` is the 
+# actual codomain of the map.
+function _evaluate_with_build_ctx(p::MPolyRingElem, ind::Vector{Int})
+  cod_ring = coefficient_ring(parent(p))
+  r = ngens(cod_ring)
+  ctx = MPolyBuildCtx(cod_ring)
+  for (q, e) in zip(coefficients(p), exponents(p))
+    ee = [0 for _ in 1:r]
+    for (i, k) in enumerate(e)
+      ee[ind[i]] = k
+    end
+    for (c, d) in zip(coefficients(q), exponents(q))
+      push_term!(ctx, c, ee+d)
+    end
+  end
+  return finish(ctx)
+end
+
 function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
   if domain(F) === codomain(F) && coefficient_map(F) === nothing
     return evaluate(map_coefficients(coefficient_map(F), u,
@@ -190,38 +209,15 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
                                          parent = S), F.img_gens)
       else
         tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-        cod_ring = codomain(F)::MPolyRing
-        r = ngens(cod_ring)
-        ctx = MPolyBuildCtx(cod_ring)
-        for (p, e) in zip(coefficients(tmp_poly), exponents(tmp_poly))
-          ee = [0 for _ in 1:r]
-          for (i, k) in enumerate(e)
-            ee[F.variable_indices[i]] = k
-          end
-          p::MPolyRingElem
-          @assert parent(p) === cod_ring
-          for (c, d) in zip(coefficients(p), exponents(p))
-            push_term!(ctx, c, ee+d)
-          end
-        end
-        return finish(ctx)
+        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices)
       end
     else
       if !isdefined(F, :variable_indices)
         return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
       else
         tmp_poly = map_coefficients(coefficient_map(F), u)
-        cod_ring = codomain(F)::MPolyRing
-        r = ngens(cod_ring)
-        ctx = MPolyBuildCtx(cod_ring)
-        for (c, e) in zip(coefficients(tmp_poly), exponents(tmp_poly))
-          ee = [0 for _ in 1:r]
-          for (i, k) in enumerate(e)
-            ee[F.variable_indices[i]] = k
-          end
-          push_term!(ctx, c, ee)
-        end
-        return finish(ctx)
+        coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(tmp_poly, F.variable_indices)
+        return evaluate(tmp_poly, F.variable_indices)
       end
     end
   end
