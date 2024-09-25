@@ -99,7 +99,7 @@ end
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
-  Y === scheme(C) || error("divisor must be defined on the codomain of the map")
+  Y === ambient_scheme(C) || error("divisor must be defined on the codomain of the map")
   # The challenge is that phi has two coverings cov1 → cov2 on which it is defined. 
   # The covering cov3 on which C is principalized might be different from cov2. 
   # Thus, we need to first pass to a common refinement cov' of cov2 and cov3, 

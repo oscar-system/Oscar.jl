@@ -550,7 +550,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivis
 end
 
 function strict_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
-  X = scheme(C)
+  X = ambient_scheme(C)
   Y = domain(p)
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
   E = exceptional_divisor(p)
@@ -611,7 +611,7 @@ end
 function strict_transform(p::AbsSimpleBlowdownMorphism, C::CartierDivisor)
   X = codomain(p)
   Y = domain(p)
-  X === scheme(C) || error("cartier divisor not defined on the codomain of the map")
+  X === ambient_scheme(C) || error("cartier divisor not defined on the codomain of the map")
   kk = coefficient_ring(C)
   result = CartierDivisor(Y, kk)
   for c in components(C)
