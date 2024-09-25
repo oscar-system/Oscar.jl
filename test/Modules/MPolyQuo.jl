@@ -106,7 +106,7 @@ end
   A, _ = quo(R, I)
   A1 = FreeMod(A, 1)
   M, _ = quo(A1, [y*A1[1], z*A1[1]])
-  p = free_resolution(M)
+  p = free_resolution(M, length = 11)
   @test iszero(p[10])
 end
 
