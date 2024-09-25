@@ -462,7 +462,7 @@ eval_poly(n::Number, R) = R(n)
 
 _strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
 
-function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal)
+function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRingIdeal)
   center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
   if (ngens(ideal_in_cox_ring(II)) != 1) || (all(in(gens(base_ring(center_ideal))), gens(center_ideal)) == false)
     return strict_transform(bd, II)
@@ -487,7 +487,7 @@ function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCox
   return ideal_sheaf(domain(bd), strict_transform)
 end
 
-function _strict_transform(bd::ToricBlowdownMorphism, tate_poly::MPolyRingElem)
+function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
   _e = gen(S, index_of_new_ray(bd))
   g_list = string.(gens(S))

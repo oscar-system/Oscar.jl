@@ -1384,7 +1384,7 @@ function common_refinement(list::Vector{<:Covering}, def_cov::Covering)
                      )
 end
 
-function strict_transform(bl::AbsSimpleBlowdownMorphism, inc::ClosedEmbedding)
+function strict_transform(bl::AbsSimpleBlowupMorphism, inc::ClosedEmbedding)
   B = codomain(bl)
   @assert length(affine_charts(B)) == 1 && first(affine_charts(B)) === codomain(inc)
   inc_cov = CoveredClosedEmbedding(inc, codomain=B)

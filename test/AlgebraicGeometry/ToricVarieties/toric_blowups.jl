@@ -1,4 +1,4 @@
-@testset "Toric blowdowns" begin
+@testset "Toric blowups" begin
   
   P2 = projective_space(NormalToricVariety, 2)
   BP2 = domain(blow_up(P2, 1; coordinate_name = "e"))
@@ -38,7 +38,7 @@
   P2 = projective_space(NormalToricVariety, 2)
   bl = blow_up(P2, [1, 1])
   
-  @testset "Basic tests for simple toric blowdown" begin
+  @testset "Basic tests for simple toric blowup" begin
     @test torsion_free_rank(domain(grid_morphism(bl))) == 2
     @test torsion_free_rank(codomain(grid_morphism(bl))) == 2
     @test matrix(morphism_on_torusinvariant_weil_divisor_group(bl)) == matrix(ZZ, [1 0 0; 0 1 0; 0 0 1; 1 1 0])
@@ -61,7 +61,7 @@
   E = exceptional_prime_divisor(bl)
   H = toric_divisor(domain(bl), [1, 2, 3, 4]) + E
   
-  @testset "Strict, total transform and exceptional divisor for simple toric blowdown" begin
+  @testset "Strict, total transform and exceptional divisor for simple toric blowup" begin
     @test issubset(ideal_sheaf(H), ideal_sheaf(E))
     @test issubset(pbJ, pbJ_str)
     @test issubset(pbJ, ideal_sheaf(E))
@@ -72,9 +72,9 @@
   bl2 = blow_up(P2, I)
   II = IdealSheaf(P2, I)
   
-  @testset "Properties of toric blowdown defined by ideal" begin
+  @testset "Properties of toric blowup defined by ideal" begin
     @test II == center_unnormalized(bl)
-    @test bl2 isa Oscar.ToricBlowdownMorphism
+    @test bl2 isa Oscar.ToricBlowupMorphism
     @test center_unnormalized(bl2) == II
   end
 end
