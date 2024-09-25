@@ -265,7 +265,7 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   !isdefined(f,:exceptional_divisor) || return f.exceptional_divisor
 
   ex_div_list = exceptional_divisor_list(f)
-  C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
+  C = WeilDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
     dim(ex_div_list[i])== -1 && continue            # kick out empty ones
     C = C + weil_divisor(ex_div_list[i])
@@ -279,7 +279,7 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   !isdefined(f,:exceptional_divisor_on_X) || return f.exceptional_divisor_on_X
 
   ex_div_list = exceptional_divisor_list(f)
-  C = CartierDivisor(scheme(ex_div_list[1]),ZZ)
+  C = CartierDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
 # do we want to introduce is_empty for divisors?
     dim(ideal_sheaf(ex_div_list[i]))== -1 && continue          # kick out empty ones
@@ -305,7 +305,7 @@ function exceptional_locus(f::MixedBlowUpSequence)
 
   ex_div_list = exceptional_divisor_list(f)         # these are IdealSheaves for MixedBlowUpSequences
                                                     # they might even have the wrong dimension
-  C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
+  C = AlgebraicCycle(ambient_scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
   for E in ex_div_list
     dim(E) != -1 || continue                        # kick out empty ones
     C = C + algebraic_cycle(E)
