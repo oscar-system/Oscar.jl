@@ -40,12 +40,14 @@ Return a list of ideal sheaves such that `D` is a linear combination of
 the corresponding cycles.
 
 !!! note
-    The only guarantee on the ideal sheaves is that they are equidimensional. 
+    The order of the components may change in different julia sessions.
+    It is however consistent with the printing.
 
-See [`irreducible_decomposition(::AbsAlgebraicCycle)`](@ref)
-for the more conventional decomposition. 
+!!! note
+    The ideal sheaves are only guaranteed equidimensional and may carry multiplicities.
+    See [`irreducible_decomposition(::AbsAlgebraicCycle)`](@ref)
+    for the more conventional decomposition. 
 
-The order of the components may change in between julia sessions.
 """
 components(D::AbsAlgebraicCycle) = components(underlying_cycle(D))
 

@@ -82,7 +82,7 @@ end
 A Weil divisor with coefficients of type `CoefficientRingType` on a (locally) Noetherian integral scheme ``X``  of type `CoveredSchemeType`.
 
 # Examples
-```jldoctest
+```
 julia> P2 = projective_space(QQ,2); (s0,s1,s2) = homogeneous_coordinates(P2);
 
 julia> I = ideal((s0*s1)^2);
