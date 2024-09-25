@@ -697,7 +697,7 @@ function Base.show(io::IO, Bl::AbsSimpleBlowupMorphism)
   if is_terse(io)
     print(io, "Blowup morphism")
   else
-    print(io, "Blow-down: ", Lowercase(), domain(Bl))
+    print(io, "Blow-up: ", Lowercase(), domain(Bl))
     print(io, " -> ", Lowercase(), codomain(Bl))
   end
 end
