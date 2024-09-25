@@ -270,7 +270,7 @@ function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   if isone(length(s))
     (i, e, c) = first(s)
     push_term!(ctx, R(c), e)
-    return FreeModElem(sparse_row(Qx, [(i, finish(ctx))]))
+    return FreeModElem(sparse_row(Rx, [(i, finish(ctx))]))
   end
 
   cache = IdDict{Int, typeof(ctx)}()
