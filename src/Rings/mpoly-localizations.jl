@@ -143,7 +143,7 @@ function simplify_light(S::MPolyPowersOfElement)
 
   # Try to factor the denominators if this is deemed possible
   for a in new_denom
-    if total_degree(a) > 50 || length(a) > 10000
+    if total_degree(a) > 50 || length(a) > 10000 || coefficient_ring(R) isa Hecke.RelSimpleNumField{AbsSimpleNumFieldElem}
       push!(fac_denom, a)
     else
       for (b, _) in factor(a)
