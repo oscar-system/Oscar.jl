@@ -84,7 +84,7 @@
         "Hecke/manual/quad_forms/integer_lattices.md",
         "Hecke/manual/quad_forms/Zgenera.md",
         "Hecke/manual/quad_forms/discriminant_group.md",
-        "LinearAlgebra/vinberg.md",
+        "NumberTheory/vinberg.md",
      ],
   ],
 
