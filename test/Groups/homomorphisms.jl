@@ -656,69 +656,76 @@ end
    test_kernel(G,H,f)
 end
 
-@testset "Automorphism group of Sym(n)" begin
-   G=symmetric_group(4)
-   A=automorphism_group(G)
+@testset "Automorphism group of a perm. group or a (sub) pc group" begin
+   for T in [PermGroup, PcGroup, SubPcGroup]
+      G = small_group(T, 24, 12)
+      A = automorphism_group(G)
 
-   @test A isa AutomorphismGroup
-   @test A isa AutomorphismGroup{PermGroup}
-   @test A.G == G
-   @test is_isomorphic(G,A)
-   @test order(A) == 24
-   @test A==inner_automorphism_group(A)[1]
+      @test A isa AutomorphismGroup
+      @test A isa AutomorphismGroup{T}
+      @test A.G === G
+      @test is_isomorphic(G, A)
+      @test order(A) == 24
+      @test A == inner_automorphism_group(A)[1]
 
-   f = rand(A)
-   g = rand(A)
-   x = rand(G)
-   o = order(f)
-   fh = hom(f)
-   @test f isa Oscar.GAPGroupElem{typeof(A)}
-   @test fh isa Oscar.GAPGroupHomomorphism{PermGroup,PermGroup}
-   @test A(fh)==f
-   @test f(x)==x^f
-   @test f^o == one(A)
-   @test f*f^-1 == one(A)
-   @test (f*g)(x) == g(f(x))
-   @test comm(f,g) == f^-1*g^-1*f*g
-   @test f(G[1])==fh(G[1])
-   @test f(G[2])==fh(G[2])
-   alt = alternating_group(4)
-   N,e = sub(G,[alt[1],alt[2]])
-   @test e*f==e*fh
+      f = rand(A)
+      g = rand(A)
+      x = rand(G)
+      o = order(f)
+      fh = hom(f)
+      @test f isa Oscar.GAPGroupElem{typeof(A)}
+      @test fh isa Oscar.GAPGroupHomomorphism{T, T}
+      @test A(fh) == f
+      @test f(x) == x^f
+      @test f^o == one(A)
+      @test f*f^-1 == one(A)
+      @test (f*g)(x) == g(f(x))
+      @test comm(f, g) == f^-1*g^-1*f*g
+      @test f(G[1]) == fh(G[1])
+      @test f(G[2]) == fh(G[2])
+      H = derived_subgroup(G)[1]
+      N, e = sub(G, [H[1], H[2]])
+      @test e*f == e*fh
 
-   C=cyclic_group(2)
-   g = hom(G,C,x -> C[1]^((1-sign(x))÷2) )
-   @test f*g == fh*g
-   @test kernel(f*g)==kernel(g)
+      C = cyclic_group(2) # type is independent of `T`
+      oC = one(C)
+      gC = gen(C, 1)
+      g = hom(G, C, x -> x in H ? oC : gC)
+      @test f*g == fh*g
+      @test kernel(f*g) == kernel(g)
+      @test induced_automorphism(g, f) == induced_automorphism(g, fh)
 
-   @test is_inner_automorphism(f)
-   g1 = inner_automorphism(G(alt[1]))
-   @test !(g in A)
-   g1 = A(g1)
-   @test g1 in A
-   g2 = A(inner_automorphism(G(alt[2])))
-   AA,phi = sub(A,[g1,g2])
-   @test is_isomorphic(AA,alt)
-   @test index(A,AA)==2
-   @test is_normal_subgroup(AA, A)
-   @test is_normalized_by(AA, A)
-   @test phi(AA[1])==AA[1]
-   @test phi(AA[2])==AA[2]
-   @test order(quo(A,AA)[1])==2
-   @test is_invariant(f,alt)
+      @test is_inner_automorphism(f)
+      g1 = inner_automorphism(G(H[1]))
+      @test !(g in A)
+      g1 = A(g1)
+      @test g1 in A
+      g2 = A(inner_automorphism(G(H[2])))
+      AA, phi = sub(A, [g1, g2])
+      @test is_isomorphic(AA, H)
+      @test index(A, AA) == 2
+      @test is_normal_subgroup(AA, A)
+      @test is_normalized_by(AA, A)
+      @test phi(AA[1]) == AA[1]
+      @test phi(AA[2]) == AA[2]
+      @test order(quo(A, AA)[1]) == 2
+      @test is_invariant(f, H)
 
-   H = alternating_group(4)
-   x = cperm(G,[1,2,3])
-   f = A(hom(G,G,y->y^x))
-   fa = restrict_automorphism(f,H)
-   @test parent(fa)==automorphism_group(H)
-   @testset for g in gens(H)
-      @test fa(g)==H(f(g))
+      S = sylow_subgroup(G, 3)[1]
+      x = gen(S, 1)
+      f = A(hom(G, G, y -> y^x))
+      fHa = restrict_automorphism(f, H)
+      fHh = restrict_homomorphism(f, H)
+      @test parent(fHa) == automorphism_group(H)
+      @testset for g in gens(H)
+         @test fHa(g) == H(f(g))
+         @test fHh(g) == H(f(g))
+      end
+
+      V, _ = pcore(G, 2)
+      S, g = quo(G, V)
+      @test induced_automorphism(g, f) == automorphism_group(S)(inner_automorphism(g(x)))
    end
-
-   S = symmetric_group(3)
-   g = hom(G,S,[cperm([1,2,3,4]), cperm([1,2])], [cperm([1,3]), cperm([1,2])])
-   @test induced_automorphism(g,f)==automorphism_group(S)(inner_automorphism(cperm(S,[1,2,3])))
 end
 
 @testset "Other automorphisms groups" begin
