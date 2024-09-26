@@ -97,7 +97,7 @@ end
   v = [x*A2[1] + y*A2[2], z*A2[1] + (x-1)*A2[2]]
   M, _ = quo(A2, v)
   p = free_resolution(M, length = 11)
-  @test !iszero(p[10])
+  @test p[10] isa FreeMod
 end
 
 @testset "free resolutions II" begin
