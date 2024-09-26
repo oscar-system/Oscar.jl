@@ -289,10 +289,10 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
     possible_Vec = short_vectors_affine(Q, v0, QQ(n), k)
     for v in possible_Vec
-      if v in roots
-        continue
+      if !isone(reduce(gcd, v))
+        # v must be primitive.
+        continue 
       end
-      v = _rescale_primitive(v)
       mul!(Qv, Q, transpose(v))
       #Qv = Q*transpose(v)
       if !(divisibilities isa Nothing)
