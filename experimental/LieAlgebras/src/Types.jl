@@ -203,7 +203,7 @@ end
   R::Field
   n::Int  # the n of the gl_n this embeds into
   dim::Int
-  basis::Vector{MatElem{C}}
+  basis::Vector{<:MatElem{C}}
   s::Vector{Symbol}
 
   # only set if known
@@ -413,8 +413,9 @@ end
 #
 ###############################################################################
 
-@attributes mutable struct LieAlgebraModule{C<:FieldElem} <: AbstractAlgebra.Set
-  L::LieAlgebra{C}
+@attributes mutable struct LieAlgebraModule{C<:FieldElem,LieT<:LieAlgebraElem{C}} <:
+                           AbstractAlgebra.Set
+  L::LieAlgebra{C} # parent_type(LieT)
   dim::Int
   transformation_matrices::Vector{<:MatElem{C}} # Vector{dense_matrix_type(C)}
   s::Vector{Symbol}
@@ -430,7 +431,7 @@ end
     @req dim(L) == length(transformation_matrices) "Invalid number of transformation matrices."
     @req all(m -> size(m) == (dimV, dimV), transformation_matrices) "Invalid transformation matrix dimensions."
 
-    V = new{C}(L, dimV, transformation_matrices, s)
+    V = new{C,elem_type(L)}(L, dimV, transformation_matrices, s)
     if check
       @req all(m -> all(e -> parent(e) === coefficient_ring(V), m), transformation_matrices) "Invalid transformation matrix entries."
       for xi in basis(L), xj in basis(L), v in basis(V)
@@ -441,8 +442,8 @@ end
   end
 end
 
-struct LieAlgebraModuleElem{C<:FieldElem} <: AbstractAlgebra.SetElem
-  parent::LieAlgebraModule{C}
+struct LieAlgebraModuleElem{C<:FieldElem,LieT<:LieAlgebraElem{C}} <: AbstractAlgebra.SetElem
+  parent::LieAlgebraModule{C,LieT}
   mat::MatElem{C}
 end
 

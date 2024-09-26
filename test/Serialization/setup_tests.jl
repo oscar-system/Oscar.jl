@@ -4,9 +4,11 @@ using JSONSchema, Oscar.JSON
 
 # we only need to define this once
 
-if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
+if !isdefined(Main, :mrdi_schema)
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
+end
 
+if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
   function test_save_load_roundtrip(func, path, original::T;
                                     params=nothing, check_func=nothing, kw...) where {T}
     # save and load from a file
