@@ -584,8 +584,157 @@ Return the contraction morphism of ``X`` to its Weierstrass model.
 This triggers the computation of the `underlying_scheme` of ``X``
 as a blowup from its Weierstrass model. It may take a few minutes.
 """
-function weierstrass_contraction(X::EllipticSurface)
-  Y = X
+function weierstrass_contraction(X::EllipticSurface; algorithm::Symbol=:iterative)
+  if algorithm == :iterative
+    return weierstrass_contraction_iterative(X)
+  elseif algorithm == :simultaneous
+    return weierstrass_contraction_simultaneous(X)
+  else
+    error("algorithm not recognized")
+  end
+end
+
+function weierstrass_contraction_simultaneous(Y::EllipticSurface)
+  if isdefined(Y, :blowup)
+    return Y.blowup
+  end
+  S, inc_S = weierstrass_model(Y)
+  @assert has_attribute(S, :is_equidimensional) && get_attribute(S, :is_equidimensional) === true
+  
+  X0 = codomain(inc_S)
+  Y0 = S
+  set_attribute!(Y0, :is_reduced=>true)
+  set_attribute!(Y0, :is_irreducible=>true)
+  set_attribute!(Y0, :is_equidimensional=>true)
+  inc_Y0 = inc_S
+  I_sing_Y0 = AbsIdealSheaf[ideal_sheaf_of_singular_locus(Y0)]
+  #I_sing_Y0 = AbsIdealSheaf[simplify(ideal_sheaf_of_singular_locus(Y0))]
+  I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
+
+  # Prepare a covering which has a permanent weierstrass chart
+  U0 = X0[1][1]
+  disc = numerator(discriminant(generic_fiber(Y)))
+  U = PrincipalOpenSubset(U0, evaluate(disc, gens(OO(U0))[3]))
+  _find_chart(U, default_covering(X0))
+  Cref = Covering(vcat([U], affine_charts(X0)))
+  inherit_gluings!(Cref, X0[1])
+  push!(X0.coverings, Cref)
+  @assert has_decomposition_info(default_covering(X0))
+  inherit_decomposition_info!(X0, Cref)
+  @assert has_decomposition_info(Cref)
+  # Now we have an extra covering where each chart just contains a single singularity
+
+  ambient_exceptionals = EffectiveCartierDivisor[]
+  varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
+  projectionsX = BlowupMorphism[]
+  projectionsY = AbsCoveredSchemeMorphism[]
+  count = 0
+
+  @vprint :EllipticSurface 2 "Blowing up Weierstrass model\n"
+  while true
+    count = count+1
+    @vprint :EllipticSurface 1 "blowup number: $(count)\n"
+    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_X0))\n"
+    if length(I_sing_X0)==0
+      # stop if smooth
+      break
+    end
+    # make sure we have a Weierstrass chart kept.
+    if count == 1
+      cov = Cref
+    else
+      # the following leads to difficult bugs
+      #=
+      cov0 = simplified_covering(X0)
+      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
+      cov = _one_patch_per_component(cov1, I_sing_X0)
+      push!(X0.coverings, cov)
+      @assert has_decomposition_info(default_covering(X0))
+      inherit_decomposition_info!(X0, cov)
+      @assert has_decomposition_info(cov)
+      =#
+      cov = simplified_covering(X0)
+      #inherit_decomposition_info!(cov, X0)
+    end
+    # take the first singular point and blow it up
+    J = SimplifiedIdealSheaf(I_sing_X0[1])
+    pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    # Set the attribute so that the strict_transform does some extra work
+    isomorphism_on_open_subset(pr_X1)
+
+    X1 = domain(pr_X1)
+    @vprint :EllipticSurface 1 "$(X1)\n"
+    E1 = exceptional_divisor(pr_X1)
+
+    @vprint :EllipticSurface 2 "computing strict transforms\n"
+    # compute the exceptional divisors
+    ambient_exceptionals = EffectiveCartierDivisor[strict_transform(pr_X1, e) for e in ambient_exceptionals]
+    # move the divisors coming originally from S up to the next chart
+    push!(ambient_exceptionals, E1)
+
+    Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+    # Speed up the computation of singular loci
+    set_attribute!(Y1, :is_irreducible=> true)
+    set_attribute!(Y1, :is_reduced=>true)
+    set_attribute!(Y1, :is_integral=>true)
+    set_attribute!(Y1, :is_equidimensional=>true)
+
+    # transform the singular loci
+    I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
+
+    # Add eventual new components
+    @vprint :EllipticSurface 2 "computing singular locus\n"
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1; focus=pullback(inc_Y1, ideal_sheaf(E1)))
+    #I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    I_sing_new = pushforward(inc_Y1, I_sing_new)
+
+    @vprint :EllipticSurface 2 "decomposing singular locus\n"
+    I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
+
+    push!(projectionsX, pr_X1)
+    push!(projectionsY, pr_Y1)
+    simplify!(Y1)
+
+    # set up for the next iteration
+    Y0 = Y1
+    inc_Y0 = inc_Y1
+    X0 = X1
+    # Speed up the computation of singular loci
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(Y0, :is_equidimensional=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
+  end
+  Y.Y = Y0
+  Y.blowups = projectionsY
+
+  # We need to rewrap the last maps so that the domain is really Y
+  last_pr = pop!(projectionsY)
+  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+
+  push!(projectionsY, last_pr_wrap)
+  Y.ambient_blowups = projectionsX
+
+  Y.ambient_exceptionals = ambient_exceptionals
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
+  Y.blowup = piY
+
+  inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
+  Y.inc_Y = inc_Y0_wrap
+
+  set_attribute!(Y, :is_irreducible=> true)
+  set_attribute!(Y, :is_reduced=>true)
+  set_attribute!(Y, :is_integral=>true)
+  return piY
+end
+
+     
+function weierstrass_contraction_iterative(Y::EllipticSurface)
   if isdefined(Y, :blowup)
     return Y.blowup
   end
