@@ -1297,7 +1297,7 @@ end
 Base.:^(x::GAPGroupElem{T},f::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = apply_automorphism(f, x, true)
 #Base.:^(f::GAPGroupElem{AutomorphismGroup{T}},g::GAPGroupElem{AutomorphismGroup{T}}) where T <: GAPGroup = g^-1*f*g
 
-function (A::AutomorphismGroup{S})(f::GAPGroupHomomorphism{T,T}) where S <: GAPGroup where T <: GAPGroup
+function (A::AutomorphismGroup{<: GAPGroup})(f::GAPGroupHomomorphism{T,T}) where T <: GAPGroup
    @assert domain(f)==A.G && codomain(f)==A.G "f not in A"
    @assert is_bijective(f) "f not in A"
    return group_element(A, GapObj(f))
