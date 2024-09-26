@@ -25,6 +25,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
   inc_Y::CoveredClosedEmbedding # inclusion of Y in its ambient blown up projective bundle
   euler_characteristic::Int
+  resolution_strategy::Symbol
   # the following are temporary until we have a dedicated type for
   # iterated blow ups
   blowup::AbsCoveredSchemeMorphism
@@ -35,7 +36,12 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   fibration::AbsCoveredSchemeMorphism # the projection to IP^1
   fibration_weierstrass_model::AbsCoveredSchemeMorphism # the projection from the Weierstrass model
 
-  function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
+  function EllipticSurface(
+      generic_fiber::EllipticCurve{F}, 
+      euler_characteristic::Int, 
+      mwl_basis::Vector{<:EllipticCurvePoint};
+      resolution_strategy::Symbol=:iterative
+    ) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
     S = new{B,F}()
     S.E = generic_fiber
@@ -45,6 +51,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
     set_attribute!(S, :is_reduced=>true)
     set_attribute!(S, :is_integral=>true)
     set_attribute!(S, :is_equidimensional=>true)
+    S.resolution_strategy = resolution_strategy
     return S
   end
 
@@ -111,10 +118,11 @@ with generic fiber
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
                           euler_characteristic::Int,
                           mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];
+                          resolution_strategy::Symbol=:iterative,
                           is_basis::Bool=true) where {
                           BaseField <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
-  S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens)
+  S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens; resolution_strategy)
   if is_basis
     return S
   end
@@ -584,7 +592,8 @@ Return the contraction morphism of ``X`` to its Weierstrass model.
 This triggers the computation of the `underlying_scheme` of ``X``
 as a blowup from its Weierstrass model. It may take a few minutes.
 """
-function weierstrass_contraction(X::EllipticSurface; algorithm::Symbol=:iterative)
+function weierstrass_contraction(X::EllipticSurface)
+  algorithm = X.resolution_strategy
   if algorithm == :iterative
     return weierstrass_contraction_iterative(X)
   elseif algorithm == :simultaneous
@@ -622,7 +631,6 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   @assert has_decomposition_info(default_covering(X0))
   inherit_decomposition_info!(X0, Cref)
   @assert has_decomposition_info(Cref)
-  # Now we have an extra covering where each chart just contains a single singularity
 
   ambient_exceptionals = EffectiveCartierDivisor[]
   varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
@@ -643,25 +651,11 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
     if count == 1
       cov = Cref
     else
-      # the following leads to difficult bugs
-      #=
-      cov0 = simplified_covering(X0)
-      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
-      cov = _one_patch_per_component(cov1, I_sing_X0)
-      push!(X0.coverings, cov)
-      @assert has_decomposition_info(default_covering(X0))
-      inherit_decomposition_info!(X0, cov)
-      @assert has_decomposition_info(cov)
-      =#
       cov = simplified_covering(X0)
-      #inherit_decomposition_info!(cov, X0)
     end
-    # take the first singular point and blow it up
+    # take the first ideal sheaf and blow it up
     J = SimplifiedIdealSheaf(I_sing_X0[1])
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
-
-    # Set the attribute so that the strict_transform does some extra work
-    isomorphism_on_open_subset(pr_X1)
 
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
@@ -779,17 +773,7 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
       cov = Crefined
     else
       # the following leads to difficult bugs
-      #=
-      cov0 = simplified_covering(X0)
-      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
-      cov = _one_patch_per_component(cov1, I_sing_X0)
-      push!(X0.coverings, cov)
-      @assert has_decomposition_info(default_covering(X0))
-      inherit_decomposition_info!(X0, cov)
-      @assert has_decomposition_info(cov)
-      =#
       cov = simplified_covering(X0)
-      #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
     J = SimplifiedIdealSheaf(I_sing_X0[1])
@@ -1126,13 +1110,14 @@ function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors
   return fiber_components
 end
   
-@attr Any function exceptional_divisors(S::EllipticSurface)
+@attr Vector{<:AbsIdealSheaf} function exceptional_divisors(S::EllipticSurface)
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
-  for E in S.ambient_exceptionals
+  # If we have resolution_strategy=:simultaneous, then the following is a non-trivial preprocessing step.
+  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)))
+  for I in ambient_pts
     @vprintln :EllipticSurface 4 "decomposing divisor "
-    mp = maximal_associated_points(ideal_sheaf(pullback(S.inc_Y,E));
-                                   use_decomposition_info=true)
+    mp = maximal_associated_points(pullback(S.inc_Y, I); use_decomposition_info=true)
     append!(PP, mp)
   end 
   @vprintln :EllipticSurface 3 "done"
@@ -1778,7 +1763,10 @@ degree at most ``4`` to Weierstrass form, apply Tate's algorithm and
 return the corresponding relatively minimal elliptic surface 
 as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem}; minimize=true)
+function elliptic_surface(
+    g::MPolyRingElem, P::Vector{<:RingElem}; 
+    minimize::Bool=true, resolution_strategy::Symbol=:iterative
+  )
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
