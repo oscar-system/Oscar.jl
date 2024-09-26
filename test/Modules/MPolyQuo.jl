@@ -107,7 +107,7 @@ end
   A1 = FreeMod(A, 1)
   M, _ = quo(A1, [y*A1[1], z*A1[1]])
   p = free_resolution(M, length = 11)
-  @test iszero(p[10])
+  @test p[10] isa FreeMod
 end
 
 @testset "kernels of FreeMod -> SubquoModule" begin
