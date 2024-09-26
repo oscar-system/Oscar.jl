@@ -5,18 +5,22 @@
 @doc raw"""
     _check_v0(Q::ZZMatrix, v0::ZZMatrix) -> ZZMatrix
 
-Checks if the inner product of the given `v0` is positive or generates such a `v0` if none is given.
+Check if the inner product of the given `v0` is positive or generate such a `v0` if `v0==0`
 """
 function _check_v0(Q::ZZMatrix, v0::ZZMatrix)
   if iszero(v0) # generate `v0` by finding the negative eigenvalue `neg_ev` of `Q`. We set `v0` as a primitive generator of the eigenspace of `neg_ev`
-    ev = eigenvalues(QQ, Q)
-    pos_neg_ev = findfirst(is_negative, ev) # find the position `pos_neg_ev` of the negative eigenvalue `neg_ev` 
-    @req pos_neg_ev === nothing "Q is not of signature (1, n)"
-    neg_ev = ev[pos_neg_ev]
-    return _rescale_primitive(ZZ.(eigenspace(Q, neg_ev)))
+    V = quadratic_space(QQ,Q)
+    diag, trafo = diagonal_with_transform(V)
+    @req count(is_positive, diag) == 1 "Q must be of signature (1,n)"
+    @req count(is_zero, diag) == 0 "Q must be of signature (1,n)"
+    @req count(is_negative, diag) > 0 "Q must be of signature (1,n)"
+    i = findfirst(is_positive, diag)
+    v0 = trafo[i:i,:]
+    v0 = ZZ.(denominator(v0)*v0)
+    return _rescale_primitive(v0)
   else
     @req (v0*Q*transpose(v0))[1, 1] > 0 "v0 has non positive inner product"
-    @req isone(reduce(gcd, v0)) "v0 is not primitive"
+    v0 = _rescale_primitive(v0)
     return v0
   end
 end
@@ -27,11 +31,11 @@ end
 If the user does not want any specific root lengths, we take all of them.
 
 For `Q` the matrix representing the hyperbolic reflection lattice and `l` a length to check,
-it is necessary that `l` divides $2.i$ for `l` being a possible root length,  
+it is necessary that `l` divides $2 i$ for `l` being a possible root length,  
 with `i` being the level of `Q`, i.e. the last invariant (biggest entry) of the Smith normal form of `Q`.
-Prf: `r` being a root implies that $\frac{2.r.L}{r^2}$ is a subset of $\Z$
+Proof: `r` being a root implies that $\frac{2.r.L}{r^2}$ is a subset of $\Z$
      `r` being primitive implies that $2.i.\Z$ is a subset of $2.r.L$,
-     which is a subset of $(r^2).\Z$, what implies that $r^2$ divides $2.i$
+     which is a subset of $(r^2).\Z$, which implies that $r^2$ divides $2.i$
 """
 function _all_root_lengths(Q::ZZMatrix)
   l = nrows(Q)
@@ -76,8 +80,8 @@ function _distance_indices(upper_bound, root_lengths::Vector{ZZRingElem})
   result = Tuple{Int,ZZRingElem}[]
 
   for l in root_lengths
-    x0 = sqrt(big(abs(l * upper_bound))) # consider for the `upper_bound` $u$ $\frac{n^2}{l} < u \implies n < \sqrt{l*u}$
-    x = isqrt(x0 * upper_bound)
+    # consider for the `upper_bound` $u$ $\frac{n^2}{l} < u \implies n < \sqrt{l*u}$
+    x = isqrt(abs(l * upper_bound))
     for n in 1:x
       push!(result, (n, l))
     end
@@ -101,29 +105,51 @@ end
 @doc raw"""
     _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
 
-Check if reflection by `v` preserves the lattice, i.e. check if for `v` a row vector
+Check if the reflection by `v` preserves the lattice, i.e. check if for `v` a row vector
 $\frac{2.v.Q}{v^2}$ is an integer matrix. 
 """
 function _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
   A = Q * transpose(v)
   b = (v * A)[1, 1]
-  A = 2 * A
-  return all(iszero(mod(x, b)) for x in A)
+  return all(iszero(mod(2*x, b)) for x in A)
+end
+  
+@doc raw"""
+    _crystallographic_condition(Q::ZZMatrix, v::ZZMatrix)
+
+Check if the reflection by `v` preserves the lattice, i.e. check if for `v` a row vector
+$\frac{2 v Q}{vQv^t}$ is an integer matrix
+where `k` is $vQv^t$.
+"""
+@inline function _crystallographic_condition(Qv::ZZMatrix, k::ZZRingElem)
+  return all(iszero(mod(2*x, k)) for x in Qv)
 end
 
 @doc raw"""
     _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix, v0::ZZMatrix)
 
-First check whether `v` has non-obtuse angles with all roots `r` already found by checking that $v.r \geq 0$.
-Then also check the coorientation of `v` by checking that $v.v_0 \geq 0$.
+First check whether `v` has non-obtuse angles with all roots `r` already found, by checking that $v.r \geq 0$.
 """
-function _check_coorientation(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix, v0::ZZMatrix)
+function _has_non_obtuse_angles(Q::ZZMatrix, roots::Vector{ZZMatrix}, v::ZZMatrix)
   Qv = Q * transpose(v)
   for r in roots
     if (r * Qv)[1, 1] < 0
       return false
     end
   end
+  return true
+end
+
+# non-allocating version
+function _has_non_obtuse_angles!(tmp::ZZMatrix, Qv::ZZMatrix, roots::Vector{ZZMatrix})
+  for r in roots
+    #tmp = r*Qv
+    mul!(tmp, r, Qv)
+    if !is_zero_entry(tmp,1, 1) && !is_positive_entry(tmp, 1, 1)
+      return false
+    end
+  end
+  return true
 end
 
 @doc raw"""
@@ -150,9 +176,7 @@ function _distance_0(Q::ZZMatrix, v0::ZZMatrix, root_lengths::Vector{ZZRingElem}
     V = Hecke._short_vectors_gram(Hecke.LatEnumCtx, map_entries(QQ, QI), d, d, ZZRingElem) # `QI` positive 
     for (v_, _) in V
       v = matrix(ZZ, 1, nrows(bm), v_) * bm
-      if !_rescale_primitive(v)
-        continue
-      end
+      v = _rescale_primitive(v)
       if _crystallographic_condition(Q, v)
         push!(possible_vec, v)
       end
@@ -195,10 +219,9 @@ Return a `direction_vector` $v_1$ satisfying $(\~{v}, v_1) \neq 0$
 for all `possible_vec` $\~{v}$ with $(v_0, \~{v}) = 0$
 """
 function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
-  l = length(Q)[1]
-  v1 = zero_matrix(QQ, l, 1) # initializing `v1` that it survives the for loop
+  l = ncols(Q)
   signal = 1 # initializing a stopping condition
-  while signal in 1:100000000
+  while signal < 100000000
     if l < 4
       v1_ = rand(-30:30, l)
     elseif l < 10
@@ -249,8 +272,9 @@ next to `v0` will be computed.
 - 'root_lengths': the possible integer values of $r^2$
 - 'direction_vector': row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
 """
-function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=matrix(ZZ, 1, 1, [0])::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=matrix(ZZ, 1, 1, [0])::ZZMatrix)
+function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=ZZ[0;]::ZZMatrix)
   @req is_symmetric(Q) "Matrix is not symmetric"
+  
   v0 = _check_v0(Q, v0)
   if isempty(root_lengths)
     real_root_lengths = _all_root_lengths(Q)
@@ -259,6 +283,8 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=matrix(ZZ, 1, 1, [0])::Z
   end
   iteration = _distance_indices(upper_bound, real_root_lengths) # find the right order to iterate through $v.v_0$ and $v^2$
   roots = _distance_0(Q, v0, real_root_lengths, direction_vector) # special case $v.v_0 = 0$
+  Qv = zero_matrix(ZZ, ncols(Q), 1)
+  tmp2 = zero_matrix(ZZ, 1, 1)
   for (n, k) in iteration # search for vectors which solve $n = v.v_0$ and $k = v^2$
     @vprintln :Vinberg 1 "computing roots of squared length v^2=$(k) and v.v0 = $(n)"
     possible_Vec = short_vectors_affine(Q, v0, QQ(n), k)
@@ -267,10 +293,10 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=matrix(ZZ, 1, 1, [0])::Z
         continue
       end
       v = _rescale_primitive(v)
-      if _crystallographic_condition(Q, v)
-        if _check_coorientation(Q, roots, v, v0)
-          push!(roots, v)
-        end
+      mul!(Qv, Q, transpose(v))
+      #Qv = Q*transpose(v)
+      if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots)
+        push!(roots, v)
       end
     end
   end
@@ -283,11 +309,11 @@ end
 Return the fundamental roots `r` of a given hyperbolic reflection lattice `S` with standard basis with squared length contained 
 in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}, stopping at `upper_bound`.
 If `root_lengths` is not defined it takes all possible values of $r^2$.
-If `v0` lies on a root hyperplane and if there is no given `direction_vector` it is a random choice which reflection chamber
-next to `v0` will be computed.
+If `v0` lies on a root hyperplane and if there is no given `direction_vector`, 
+then it is a random choice which reflection chamber next to `v0` will be computed.
 
 # Arguments
-- 'S': a hyperbolic $\Z$-lattice
+- 'S': a hyperbolic $\Z$-lattice of signature $(1,0,n)$.
 - 'upper_bound': the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
 - 'v0': primitive row vector with $v_0^2 > 0$
 - 'root_lengths': the possible integer values of $r^2$
