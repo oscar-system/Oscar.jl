@@ -337,3 +337,13 @@ end
 function build_ctx(R::PBWAlgQuo)
   return OscarPair(R, MPolyBuildCtx(R.sring))
 end
+
+function length(x::PBWAlgQuoElem)
+  return length(x.data.sdata)
+end
+
+#orderings 
+
+function Oscar.degrevlex(R::PBWAlgQuo)
+  return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
+end

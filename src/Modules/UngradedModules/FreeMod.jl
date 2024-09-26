@@ -30,11 +30,11 @@ function FreeMod(R::PBWAlgRing, n::Int, name::VarName = :e; cached::Bool = false
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
-function FreeMod(R::PBWAlgQuo, names::Vector{String}; cached::Bool=false)
+function FreeMod(R::PBWAlgQuo, names::Vector{<:VarName}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
 end
 
-function FreeMod(R::PBWAlgRing, names::Vector{String}; cached::Bool=false)
+function FreeMod(R::PBWAlgRing, names::Vector{<:VarName}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
 end
 
