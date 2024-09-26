@@ -260,19 +260,19 @@ end
     vinberg_algorithm(Q::ZZMatrix, upper_bound; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
 Return the fundamental roots `r` of a given hyperbolic reflection lattice with standard basis represented by its corresponding Gram matrix `Q` with 
-squared length contained in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}, stopping at `upper_bound`.
+squared length contained in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}$, stopping at `upper_bound`.
 If `root_lengths` is not defined it takes all possible values of $r^2$.
 If `v0` lies on a root hyperplane and if there is no given `direction_vector` it is a random choice which reflection chamber
 next to `v0` will be computed.
 
 # Arguments
-- 'Q': symmetric $\Z$ matrix of signature (1, n) -- the corresponding Gram matrix
-- 'upper_bound': the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
-- 'v0': primitive row vector with $v_0^2 > 0$
-- 'root_lengths': the possible integer values of $r^2$
-- 'direction_vector': row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
+- `Q`: symmetric $\Z$ matrix of signature $(1, n)$ -- the corresponding Gram matrix
+- `upper_bound`: the upper bound of the value $\frac{(r.v_0^2}{r^2}$
+- `v0`: primitive row vector with $v_0^2 > 0$
+- `root_lengths`: the possible integer values of $r^2$
+- `direction_vector`: row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
 """
-function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=ZZ[0;]::ZZMatrix)
+function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=ZZ[0;]::ZZMatrix, divisibilities::Union{Nothing,Dict{ZZRingElem,Vector{ZZRingElem}}}=nothing)
   @req is_symmetric(Q) "Matrix is not symmetric"
   
   v0 = _check_v0(Q, v0)
@@ -295,6 +295,10 @@ function vinberg_algorithm(Q::ZZMatrix, upper_bound; v0=ZZ[0;]::ZZMatrix, root_l
       v = _rescale_primitive(v)
       mul!(Qv, Q, transpose(v))
       #Qv = Q*transpose(v)
+      if !(divisibilities isa Nothing)
+        # filter for divisibilities
+        reduce(gcd, Qv) in divisibilities[k] || continue
+      end
       if _crystallographic_condition(Qv, k) && _has_non_obtuse_angles!(tmp2, Qv, roots)
         push!(roots, v)
       end
@@ -307,29 +311,30 @@ end
     vinberg_algorithm(S::ZZLat, upper_bound; v0::ZZMatrix, root_lengths::Vector{ZZRingElem}, direction_vector::ZZMatrix) -> Vector{ZZMatrix}
 
 Return the fundamental roots `r` of a given hyperbolic reflection lattice `S` with standard basis with squared length contained 
-in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}, stopping at `upper_bound`.
+in `root_lengths` and by increasing order of the value $\frac{r.v_0)^2}{r^2}$, stopping at `upper_bound`.
 If `root_lengths` is not defined it takes all possible values of $r^2$.
 If `v0` lies on a root hyperplane and if there is no given `direction_vector`, 
 then it is a random choice which reflection chamber next to `v0` will be computed.
 
 # Arguments
-- 'S': a hyperbolic $\Z$-lattice of signature $(1,0,n)$.
-- 'upper_bound': the upper bound of the value $\frac{(r.v_0)^2}{r^2}$
-- 'v0': primitive row vector with $v_0^2 > 0$
-- 'root_lengths': the possible integer values of $r^2$
-- 'direction_vector': row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$
+- `S`: a hyperbolic $\Z$-lattice of signature $(1,0,n)$.
+- `upper_bound`: the upper bound of the value $\frac{(r.v_0^2}{r^2}$
+- `v0`: primitive row vector with $v_0^2 > 0$ given w.r.t. the ambient space
+- `root_lengths`: the possible integer values of $r^2$
+- `direction_vector`: row vector `v1` with $v_0.v_1 = 0$ and $v.v_1 \neq 0$ for all possible roots `v` with $v.v_0 = 0$, given w.r.t. the ambient space
+- `divisibilities`: a dictionary; The keys are the root lengths and the values are the divisibilities for the given root length. If given requires that a fundamental root $r$ has one of the specified divisibilities.
 """
-function vinberg_algorithm(S::ZZLat, upper_bound; v0=matrix(ZZ, 1, 1, [0])::ZZMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=matrix(ZZ, 1, 1, [0])::ZZMatrix)
+function vinberg_algorithm(S::ZZLat, upper_bound; v0=QQ[0;]::QQMatrix, root_lengths=ZZRingElem[]::Vector{ZZRingElem}, direction_vector=QQ[0;]::QQMatrix, divisibilities::Union{Nothing,Dict{ZZRingElem,Vector{ZZRingElem}}}=nothing)
   Q = gram_matrix(S)
   if !iszero(v0)
-    tmp = v0 * gram_matrix(ambient_space(S)) * transpose(basis_matrix(S))
-    v0 = solve(gram_matrix(S), tmp; side=:left)
+    v0 = solve(basis_matrix(S),v0; side=:left)
   end
   if !iszero(direction_vector)
-    tmp = direction_vector * gram_matrix(ambient_space(S)) * transpose(basis_matrix(S))
-    direction_vector = solve(gram_matrix(S), tmp; side=:left)
+    direction_vector = solve(basis_matrix(S),direction_vector; side=:left)
   end
-  roots = vinberg_algorithm(Q, upper_bound, v0, root_lengths, direction_vector)
+  _v0 = ZZ.(v0)
+  _check_direction_vector = ZZ.(direction_vector)
+  roots = vinberg_algorithm(Q, upper_bound; v0=_v0, root_lengths=root_lengths, direction_vector=_direction_vector, divisibilities)
   B = basis_matrix(S)
   return [r * B for r in roots]
 end
