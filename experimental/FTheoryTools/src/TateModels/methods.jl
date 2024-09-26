@@ -29,7 +29,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
   
   # Pick out the singular loci that are more singular than an I_1
   # Then keep only the locus and not the extra info about it
-  interesting_singular_loci = map(tup -> tup[1], filter(locus -> locus[2][3] > 1, sing_loc))
+  interesting_singular_loci = map(first, filter(locus -> locus[2][3] > 1, sing_loc))
   
   # This is a kludge to map polynomials on the base into the ambient space, and should be fixed once the ambient space constructors supply such a map
   base_coords = parent(gens(interesting_singular_loci[1])[1])
@@ -50,7 +50,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
     # Potential components of the fiber over this locus
     # For now, we only consider the associated prime ideal,
     # but we may later want to actually consider the primary ideals
-    potential_components = map(pair -> pair[2], primary_decomposition(strict_transform + res_ring_map(ungraded_locus)))
+    potential_components = map(last, primary_decomposition(strict_transform + res_ring_map(ungraded_locus)))
     
     # Filter out the trivial loci among the potential components
     components = filter(component -> _is_nontrivial(component, res_irr), potential_components)
@@ -59,7 +59,7 @@ function analyze_fibers(model::GlobalTateModel, centers::Vector{<:Vector{<:Integ
     intersections = Tuple{Tuple{Int64, Int64}, Vector{MPolyIdeal{QQMPolyRingElem}}}[]
     for i in 1:length(components) - 1
       for j in i + 1:length(components)
-        intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(pair -> pair[2], primary_decomposition(components[i] + components[j])))
+        intersection = filter(candidate_locus -> _is_nontrivial(candidate_locus, res_irr), map(last, primary_decomposition(components[i] + components[j])))
         push!(intersections, ((i, j), intersection))
       end
     end
@@ -163,7 +163,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   isempty(input_sections) && return t
   secs_names = collect(keys(explicit_model_sections(t)))
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
 
   # 0. Prepare for computation by setting up some information
   explicit_secs = deepcopy(explicit_model_sections(t))
@@ -220,7 +220,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   # 5. After removing some sections, we must go over the parametrization again and adjust the ring in which the parametrization is given.
   if !isempty(def_secs_param)
     naive_vars = string.(gens(parent(first(values(def_secs_param)))))
-    filtered_vars = filter(x -> x in keys(explicit_secs), naive_vars)
+    filtered_vars = filter(x -> haskey(explicit_secs, x), naive_vars)
     desired_ring, _ = polynomial_ring(QQ, filtered_vars, cached = false)
     for (key, value) in def_secs_param
       def_secs_param[key] = eval_poly(string(value), desired_ring)

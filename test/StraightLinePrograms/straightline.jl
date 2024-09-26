@@ -419,19 +419,19 @@ end
     q = SLProgram(Const(6))
     r = SLProgram(2)
 
-    @test p === SLP.addeq!(p, q)
+    @test p === add!(p, q)
     @test SLP.evaluate(p, [3]) == 9
     @test SLP.aslazyrec(p) == x+6
 
-    @test p === SLP.subeq!(p, r)
+    @test p === sub!(p, r)
     @test SLP.evaluate(p, [3, 2]) == 7
     @test SLP.aslazyrec(p) == x+6-y
 
-    @test p === SLP.subeq!(p)
+    @test p === neg!(p)
     @test SLP.evaluate(p, [3, 2]) == -7
     @test SLP.aslazyrec(p) == -(x+6-y)
 
-    @test p === SLP.muleq!(p, r)
+    @test p === mul!(p, r)
     @test SLP.evaluate(p, [3, 2]) == -14
     @test SLP.aslazyrec(p) == -(x+6-y)*y
 
@@ -445,19 +445,19 @@ end
     p = SLProgram{UInt8}(1)
     q = SLProgram(Const(2))
 
-    SLP.addeq!(p, q)
+    p = add!(p, q)
     @test p.cs[1] === 0x2
     @test SLP.aslazyrec(p) == x+2
 
-    SLP.muleq!(p, SLProgram(Const(3.0)))
+    p = mul!(p, SLProgram(Const(3.0)))
     @test p.cs[2] === 0x3
     @test SLP.aslazyrec(p) == (x+2)*3.0
 
-    SLP.subeq!(p, SLProgram(Const(big(4))))
+    p = sub!(p, SLProgram(Const(big(4))))
     @test p.cs[3] === 0x4
     @test SLP.aslazyrec(p) == (x+2)*3.0-big(4)
 
-    @test_throws InexactError SLP.addeq!(p, SLProgram(Const(1.2)))
+    @test_throws InexactError SLP.add!(p, SLProgram(Const(1.2)))
     # for julia 1.10 and older append! did resize before failing
     # https://github.com/JuliaLang/julia/pull/51903
     VERSION < v"1.11.0-DEV.884" && pop!(p.cs) # set back consistent state
@@ -469,7 +469,7 @@ end
     @test p2 == p
     @test p2.cs == p.cs
     @test p2.lines == p.lines
-    SLP.addeq!(p2, SLProgram(Const(1.2)))
+    SLP.add!(p2, SLProgram(Const(1.2)))
     @test p2.cs[4] == 1.2
     @test SLP.aslazyrec(p2) == ((((x + 2.0)*3.0) - 4.0) + 1.2)
 
@@ -477,7 +477,7 @@ end
     @test p3 == p
     @test p3.cs == p.cs
     @test p3.lines == p.lines
-    @test_throws InexactError SLP.addeq!(p3, SLProgram(Const(1.2)))
+    @test_throws InexactError SLP.add!(p3, SLProgram(Const(1.2)))
 
     # unary/binary ops
     p = SLProgram{BigInt}(1)
@@ -529,7 +529,7 @@ end
 
     # conversion LazyRec -> SLProgram
     @test SLProgram(x^2+y) isa SLProgram{Union{}}
-    p = SLP.muleq!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
+    p = mul!(SLProgram(Const(2)), SLProgram{Int}(x^2+y))
     @test p isa SLProgram{Int}
     @test SLP.evaluate(p, [2, 3]) == 14
     @test SLP.aslazyrec(p) == 2*(x^2 + y)

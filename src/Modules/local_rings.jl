@@ -20,7 +20,7 @@ end
   comp = Vector{elem_type(M)}()
   while !iszero(NtoM)
     g = gens(NtoM)
-    i = findfirst(x->!(iszero(x)), g)
+    i = findfirst(!is_zero, g)
     Msub, inc = sub(MM, [interp(g[i])(N[1])])
     push!(comp, preimage(p, inc(Msub[1])))
     MM, pp = quo(MM, Msub)

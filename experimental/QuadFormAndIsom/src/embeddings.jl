@@ -1671,7 +1671,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
   # Requirements for [BH23]
   same_ambient = ambient_space(lattice(A)) === ambient_space(lattice(B)) === ambient_space(lattice(C))
   if check
-    @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
+    @req all(is_integral, [A, B, C]) "Underlying lattices must be integral"
     chiA = minimal_polynomial(A)
     chiB = minimal_polynomial(parent(chiA), isometry(B))
     @req gcd(chiA, chiB) == 1 "Minimal irreducible polynomials must be relatively coprime"

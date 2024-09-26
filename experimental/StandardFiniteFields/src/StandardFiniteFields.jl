@@ -484,7 +484,7 @@ function standard_finite_field(p::IntegerUnion, n::IntegerUnion)
     d = divexact(nK, n1)
     b = element_from_steinitz_number(
       K,
-      p^(findfirst(x -> x == d, standard_monomial_degrees(nK)) - 1),
+      p^(findfirst(==(d), standard_monomial_degrees(nK)) - 1),
     )
 
     return _extension_with_tower_basis(K, m, c, b)

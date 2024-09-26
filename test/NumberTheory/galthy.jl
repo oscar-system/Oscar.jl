@@ -1,6 +1,6 @@
 @testset "galois_group" begin
 
-  Zx, x = ZZ["x"]
+  Zx, x = ZZ[:x]
   k, a = number_field(x^5-2)
   G, C = galois_group(k)
   @test transitive_group_identification(G) == (5, 3)
@@ -10,7 +10,7 @@
   @test degree(L) == order(G)
   @test length(roots(L, k.pol)) == 5
 
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, :x)
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
   g, C = galois_group(pol)
   @test order(g) == 18
@@ -20,7 +20,7 @@
   act = Oscar.GaloisGrp.action_on_blocks(g, [1, 2])
   @test order(image(act)[1]) == 2
 
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   G, C = galois_group((1//13)*x^2+2)
   @test order(G) == 2
 
@@ -88,7 +88,7 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   end
 
   let # Ehrhart polynomial problems
-    Qx, x = QQ["x"]
+    Qx, x = QQ[:x]
     f = 4//45*x^6 + 4//15*x^5 + 14//9*x^4 + 8//3*x^3 + 196//45*x^2 + 46//15*x + 1
     G, = galois_group(f)
     @test small_group_identification(G) == (4, 2)
@@ -97,9 +97,9 @@ end
 
 @testset "Galois group issue" begin
   # Contributed by "Lloyd" on slack
-  R, s = QQ["s"]
+  R, s = QQ[:s]
   K, q = number_field(s^2 - 2, "q")
-  Kw, w = polynomial_ring(K, "w")
+  Kw, w = polynomial_ring(K, :w)
   f = w^16 - 32*w^14 - 192*w^12 + 22720*w^10 + 23104*w^8 - 2580480*w^6 + 41287680*w^4 + 106168320*w^2 + 84934656
   g, s = galois_group(f)
   @test order(g) == 1536

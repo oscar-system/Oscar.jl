@@ -135,9 +135,26 @@ end
 #
 ###############################################################################
 
-# The following implementation needs direct sums of root systems, which
-# is not yet implemented.
-# has_root_system(D::DirectSumLieAlgebra) = all(has_root_system, D.summands)
+has_root_system(D::DirectSumLieAlgebra) = isdefined(D, :root_system)
+
+function root_system(D::DirectSumLieAlgebra)
+  assure_root_system(D)
+  return D.root_system
+end
+
+function chevalley_basis(D::DirectSumLieAlgebra)
+  assure_root_system(D)
+  return D.chevalley_basis::NTuple{3,Vector{elem_type(D)}}
+end
+
+function set_root_system_and_chevalley_basis!(
+  D::DirectSumLieAlgebra{C},
+  R::RootSystem,
+  chev::NTuple{3,Vector{DirectSumLieAlgebraElem{C}}},
+) where {C<:FieldElem}
+  D.root_system = R
+  D.chevalley_basis = chev
+end
 
 ###############################################################################
 #

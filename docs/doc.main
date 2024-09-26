@@ -173,6 +173,8 @@
         "AlgebraicGeometry/Schemes/ProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/MorphismsOfProjectiveSchemes.md",
         "AlgebraicGeometry/Schemes/RationalPointsProjective.md",
+        "AlgebraicGeometry/Schemes/Sheaves.md",
+        "AlgebraicGeometry/Schemes/Cycles.md",
      ],
      "Algebraic Sets" => [
         "AlgebraicGeometry/AlgebraicSets/AffineAlgebraicSet.md",
@@ -211,7 +213,7 @@
         "AlgebraicGeometry/ToricVarieties/ToricMorphisms.md",
         "AlgebraicGeometry/ToricVarieties/ToricSchemes.md",
         "AlgebraicGeometry/ToricVarieties/ToricIdealSheaves.md",
-        "AlgebraicGeometry/ToricVarieties/BlowdownMorphisms.md",
+        "AlgebraicGeometry/ToricVarieties/BlowupMorphisms.md",
      ],
      "Miscellaneous" => [
        "AlgebraicGeometry/Miscellaneous/miscellaneous.md",

@@ -3,76 +3,35 @@ export center
 export exceptional_divisor
 export projection
 
-@doc raw"""
-    AbsDesingMor{
-                                  DomainType<:AbsCoveredScheme,
-                                  CodomainType<:AbsCoveredScheme,
-                                  BlowdownMorphismType
-       } <: AbsCoveredSchemeMorphism{
-                                 DomainType,
-                                 CodomainType,
-                                 Nothing,
-                                 BlowdownMorphismType
-                                }
-Abstract type for desingularizations ``f : X -> Y `` of schemes where
 
-  * ``Y`` is the scheme of which the singularities are to be resolved
-  * ``f`` is a birational proper map 
-          may for instance be BlowUpSequence or Lipman-style combination of blow-ups and normalization
-  * ``Y`` is a regular scheme
-"""
-abstract type AbsDesingMor{
-                           DomainType<:AbsCoveredScheme,
-                           CodomainType<:AbsCoveredScheme,
-                           BlowdownMorphismType
-                          } <: AbsCoveredSchemeMorphism{
-                                                        DomainType,
-                                                        CodomainType,
-                                                        Nothing,
-                                                        BlowdownMorphismType
-                                                       }
-end
-
-########################################################################
-# An abstract type for blowdown morphisms.
-#
-# This should also comprise sequences of simple blowups leading
-# to a partial or full resolution of singularities. The interface
-# is specified below.
-########################################################################
-abstract type AbsBlowdownMorphism{DomainType<:AbsCoveredScheme,
-                                  CodomainType<:AbsCoveredScheme,
-                                  BlowdownMorphismType
-                                 } <: AbsDesingMor{DomainType, CodomainType, BlowdownMorphismType}
-end
 
 # The interface inherits all functionality from AbsCoveredSchemeMorphism.
 # This is extended by the following:
 @doc raw"""
-    exceptional_divisor(f::AbsBlowdownMorphism)
+    exceptional_divisor(f::AbsBlowupMorphism)
 
 Return a `CartierDivisor` on the `domain` of `f` which is the
 preimage of the vanishing locus of the `center` of `f`.
 
 !!! note If `f` is not a classical blowup, but, for instance, a small contraction, then the exceptional locus need not be a divisor. See `exceptional_locus` for such cases.
 """
-function exceptional_divisor(f::AbsBlowdownMorphism)
+function exceptional_divisor(f::AbsBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    exceptional_locus(f::AbsBlowdownMorphism)
+    exceptional_locus(f::AbsBlowupMorphism)
 
 Return an `AbsAlgebraicCycle` on the `domain` of `f` which is the preimage
 of the `center` of `f` in a reasonable sense. In particular, `f` is an isomorphism
 onto its image outside the support of its `exceptional_locus`. See also `exceptional_divisor`.
 """
-function exceptional_locus(f::AbsBlowdownMorphism)
+function exceptional_locus(f::AbsBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    center(f::AbsBlowdownMorphism)
+    center(f::AbsBlowupMorphism)
 
 Return an `AbsIdealSheaf` on the `codomain` of `f` such that on the complement
 of the vanishing locus of that ideal sheaf `f` is an isomorphism.
@@ -81,12 +40,12 @@ locus of the pullback of the `center`.
 
 !!! note For classical blowup constructions this will be the center which has been blown up. For more exotic blowups, however, this might be more special.
 """
-function center(f::AbsBlowdownMorphism)
+function center(f::AbsBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    strict_transform(f::AbsBlowdownMorphism, a::Any)
+    strict_transform(f::AbsBlowupMorphism, a::Any)
 
 Take the closure of the `pullback` of `a` along `f` on the complement
 of the `exceptional_locus` in a mathematically reasonable sense.
@@ -94,12 +53,12 @@ Depending on `a` this either returns the corresponding object on
 the `domain` of `f`, or a tuple consisting of the object and eventually
 induced maps.
 """
-function strict_transform(f::AbsBlowdownMorphism, a::Any)
+function strict_transform(f::AbsBlowupMorphism, a::Any)
   error("not implemented")
 end
 
 @doc raw"""
-    total_transform(f::AbsBlowdownMorphism, a::Any)
+    total_transform(f::AbsBlowupMorphism, a::Any)
 
 Take the `pullback` or preimage of `a` along `f` in a mathematically
 reasonable sense.
@@ -107,57 +66,42 @@ Depending on `a` this either returns the corresponding object on
 the `domain` of `f`, or a tuple consisting of the object and eventually
 induced maps.
 """
-function total_transform(f::AbsBlowdownMorphism, a::Any)
+function total_transform(f::AbsBlowupMorphism, a::Any)
   error("not implemented")
 end
 
-########################################################################
-# An abstract type for classical blowups of ideal sheaves.
-#
-# This can either be a BlowupMorphism as below, but also a special
-# toric morphism induced by fan subdivisions.
-########################################################################
-abstract type AbsSimpleBlowdownMorphism{DomainType<:AbsCoveredScheme,
-                                     CodomainType<:AbsCoveredScheme,
-                                     BlowdownMorphismType
-    } <: AbsBlowdownMorphism{
-                             DomainType,
-                             CodomainType,
-                             BlowdownMorphismType
-                            }
-end
 
 @doc raw"""
-    exceptional_divisor(f::AbsSimpleBlowdownMorphism)
+    exceptional_divisor(f::AbsSimpleBlowupMorphism)
 
 Return a `CartierDivisor` on the `domain` of `f` which coincides
 with the pullback of the `center` of `f`.
 """
-function exceptional_divisor(f::AbsSimpleBlowdownMorphism)
+function exceptional_divisor(f::AbsSimpleBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    exceptional_locus(f::AbsBlowdownMorphism)
+    exceptional_locus(f::AbsBlowupMorphism)
 
 Return the `WeilDivisor` of the `exceptional_divisor`.
 """
-function exceptional_locus(f::AbsSimpleBlowdownMorphism)
+function exceptional_locus(f::AbsSimpleBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    center(f::AbsSimpleBlowdownMorphism)
+    center(f::AbsSimpleBlowupMorphism)
 
 Return an `AbsIdealSheaf` on the `codomain` of `f` the blowup of which
 leads to `f`.
 """
-function center(f::AbsSimpleBlowdownMorphism)
+function center(f::AbsSimpleBlowupMorphism)
   error("not implemented")
 end
 
 @doc raw"""
-    strict_transform(f::AbsSimpleBlowdownMorphism, a::Any)
+    strict_transform(f::AbsSimpleBlowupMorphism, a::Any)
 
 Take the closure of the `pullback` of `a` along `f` on the complement
 of the `exceptional_divisor` in a mathematically reasonable sense.
@@ -166,12 +110,12 @@ Depending on `a` this either returns the corresponding object on
 the `domain` of `f`, or a tuple consisting of the object and eventually
 induced maps.
 """
-function strict_transform(f::AbsSimpleBlowdownMorphism, a::Any)
+function strict_transform(f::AbsSimpleBlowupMorphism, a::Any)
   error("not implemented")
 end
 
 @doc raw"""
-    total_transform(f::AbsSimpleBlowdownMorphism, a::Any)
+    total_transform(f::AbsSimpleBlowupMorphism, a::Any)
 
 Take the `pullback` or preimage of `a` along `f` in a mathematically
 reasonable sense.
@@ -180,12 +124,12 @@ Depending on `a` this either returns the corresponding object on
 the `domain` of `f`, or a tuple consisting of the object and eventually
 induced maps.
 """
-function total_transform(f::AbsSimpleBlowdownMorphism, a::Any)
+function total_transform(f::AbsSimpleBlowupMorphism, a::Any)
   error("not implemented")
 end
 
 @doc raw"""
-    controlled_transform(f::AbsSimpleBlowdownMorphism, a::Any, k::Int)
+    controlled_transform(f::AbsSimpleBlowupMorphism, a::Any, k::Int)
 
 Take the `pullback` or preimage of `a` along `f` saturated by `k` times
 the `exceptional_divisor` of `f` in a mathematically reasonable sense.
@@ -194,105 +138,11 @@ Depending on `a` this either returns the corresponding object on
 the `domain` of `f`, or a tuple consisting of the object and eventually
 induced maps.
 """
-function controlled_transform(f::AbsSimpleBlowdownMorphism, a::Any, k::Int)
+function controlled_transform(f::AbsSimpleBlowupMorphism, a::Any, k::Int)
   error("not implemented")
 end
 
-########################################################################
-# BlowupMorphism
-#
-# A datastructure to maintain all information necessary to effectively
-# handle blowups. This is work in progress and will one day serve as
-# a building block for sequences of blowups
-########################################################################
 
-@doc raw"""
-    BlowupMorphism
-
-A datastructure to encode blowups of covered schemes in some sheaves of ideals.
-
-It is described as a morphism from the new scheme to the blown-up scheme, with
-information about its center (i.e. the ideal sheaves blown-up in the bottom
-scheme) and its exceptional locus (i.e. the preimage of the center under the
-blowup).
-
-# Examples
-```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"];
-
-julia> A3 = spec(R)
-Spectrum
-  of multivariate polynomial ring in 3 variables x, y, z
-    over rational field
-
-julia> I = ideal(R, [x,y,z])
-Ideal generated by
-  x
-  y
-  z
-
-julia> bl = blow_up(A3, I)
-Blowup
-  of scheme over QQ covered with 1 patch
-    1b: [x, y, z]   affine 3-space
-  in sheaf of ideals with restriction
-    1b: Ideal (x, y, z)
-with domain
-  scheme over QQ covered with 3 patches
-    1a: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
-    2a: [(s0//s1), (s2//s1), y]   scheme(0, 0, 0)
-    3a: [(s0//s2), (s1//s2), z]   scheme(0, 0, 0)
-and exceptional divisor
-  effective cartier divisor defined by
-    sheaf of ideals with restrictions
-      1a: Ideal (x)
-      2a: Ideal (y)
-      3a: Ideal (z)
-
-julia> E = exceptional_divisor(bl)
-Effective cartier divisor
-  on scheme over QQ covered with 3 patches
-    1: [(s1//s0), (s2//s0), x]   scheme(0, 0, 0)
-    2: [(s0//s1), (s2//s1), y]   scheme(0, 0, 0)
-    3: [(s0//s2), (s1//s2), z]   scheme(0, 0, 0)
-defined by
-  sheaf of ideals with restrictions
-    1: Ideal (x)
-    2: Ideal (y)
-    3: Ideal (z)
-
-julia> Z = center(bl)
-Sheaf of ideals
-  on scheme over QQ covered with 1 patch
-    1: [x, y, z]   affine 3-space
-with restriction
-  1: Ideal (x, y, z)
-```
-"""
-@attributes mutable struct BlowupMorphism{
-     DomainType<:AbsCoveredScheme, # Not a concrete type in general because this is lazy
-     CodomainType<:AbsCoveredScheme,
-   } <: AbsSimpleBlowdownMorphism{
-                                  DomainType,
-                                  CodomainType,
-                                  BlowupMorphism{DomainType, CodomainType}
-                                 }
-  projective_bundle::CoveredProjectiveScheme
-  codomain::CodomainType   # in general a CoveredScheme
-  center::AbsIdealSheaf      # on codomain
-  projection::AbsCoveredSchemeMorphism
-  domain::AbsCoveredScheme # in general a CoveredScheme
-  exceptional_divisor::EffectiveCartierDivisor
-
-  function BlowupMorphism(
-      IP::CoveredProjectiveScheme,
-      I::AbsIdealSheaf
-    )
-    X = base_scheme(IP)
-    X === scheme(I) || error("ideal sheaf not compatible with blown up variety")
-    return new{AbsCoveredScheme, typeof(X)}(IP, X, I)
-  end
-end
 
 ### Forward the essential functionality
 underlying_morphism(phi::BlowupMorphism) = projection(phi)
@@ -347,7 +197,7 @@ For a `BlowupMorphism` ``p : Y → X`` and a `CoveredClosedEmbedding`
 return a triple ``(Z', j, π)`` containing the `CoveredClosedEmbedding`
 ``j : Z' ↪ Y`` and the induced projection ``π : Z' → Z``.
 """
-function strict_transform(p::AbsSimpleBlowdownMorphism, inc::CoveredClosedEmbedding)
+function strict_transform(p::AbsSimpleBlowupMorphism, inc::CoveredClosedEmbedding)
   Y = domain(p)
   X = codomain(p)
   Z = domain(inc)
@@ -428,7 +278,7 @@ end
 For a `BlowupMorphism`  ``p : Y → X`` and an `AbsIdealSheaf` ``I`` on ``X`` return the
 strict transform of ``I`` on ``Y``.
 """
-function strict_transform(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf)
+function strict_transform(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf)
   return StrictTransformIdealSheaf(p, I)
   Istrict,_ =_do_transform(p, I, -1)
   return Istrict
@@ -441,7 +291,7 @@ For a `BlowupMorphism`  ``p : Y → X`` and an `AbsIdealSheaf` ``I`` on ``X`` re
 weak transform ``J`` of ``I`` on ``Y``, i.e. an `AbsIdealSheaf` satisfying ``E^m J = p^*I`` with ``m``
 maximal and ``E`` the 'AbsIdealSheaf' of the exceptional divisor of ``p``.
 """
-function weak_transform(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf)
+function weak_transform(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf)
   Iweak,_ =_do_transform(p,I,0)
   return Iweak
 end
@@ -454,7 +304,7 @@ weak transform ``J`` of ``I`` on ``Y`` and the multiplicity ``m`` of the excepti
 the maximal ``m`` such that ``E^m J = p^*I``, where ``E`` denotes the `AbsIdealSheaf` of the exceptional
 divisor of ``p``.
 """
-function weak_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf)
+function weak_transform_with_multiplicity(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf)
   Iweak, multi = _do_transform(p,I,0)
   return Iweak,multi
 end
@@ -466,7 +316,7 @@ For a `BlowupMorphism`  ``p : Y → X`` and an `AbsIdealSheaf` ``I`` on ``X`` re
 controlled transform of ``I`` on ``Y`` with control ``b``,i.e. an `AbsIdealSheaf` ``J`` such that
 ``E^b J = p^*I`` where ``E``denotes the `AbsIdealSheaf` of the exceptional divisor.
 """
-function controlled_transform(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf, b::Int)
+function controlled_transform(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf, b::Int)
   Icontrol,_ = _do_transform(p,I,b)
   return Icontrol
 end
@@ -474,7 +324,7 @@ end
 ##########################################################################################################
 ## central internal method for strict, weak and controlled transforms of AbsIdealSheafs and subschemes
 ##########################################################################################################
-function _do_transform(p::AbsSimpleBlowdownMorphism, I::AbsIdealSheaf, method::Int=-1)
+function _do_transform(p::AbsSimpleBlowupMorphism, I::AbsIdealSheaf, method::Int=-1)
 ## method: -1  strict transform
 ##          0  weak transform
 ##         b>0  controlled transform with control b>0
@@ -545,12 +395,12 @@ end
 For a `BlowupMorphism`  ``p : Y → X`` and an `EffectiveCartierDivisor` ``C`` on ``X`` return the
 strict transform of ``C`` on ``Y``.
 """
-function strict_transform(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
+function strict_transform(p::AbsSimpleBlowupMorphism, C::EffectiveCartierDivisor)
   return strict_transform_with_multiplicity(p,C)[1]
 end
 
-function strict_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, C::EffectiveCartierDivisor)
-  X = scheme(C)
+function strict_transform_with_multiplicity(p::AbsSimpleBlowupMorphism, C::EffectiveCartierDivisor)
+  X = ambient_scheme(C)
   Y = domain(p)
   X === codomain(p) || error("cartier divisor is not defined on the codomain of the morphism")
   E = exceptional_divisor(p)
@@ -608,10 +458,10 @@ function strict_transform_with_multiplicity(p::AbsSimpleBlowdownMorphism, C::Eff
   return C_strict,multEInC
 end
 
-function strict_transform(p::AbsSimpleBlowdownMorphism, C::CartierDivisor)
+function strict_transform(p::AbsSimpleBlowupMorphism, C::CartierDivisor)
   X = codomain(p)
   Y = domain(p)
-  X === scheme(C) || error("cartier divisor not defined on the codomain of the map")
+  X === ambient_scheme(C) || error("cartier divisor not defined on the codomain of the map")
   kk = coefficient_ring(C)
   result = CartierDivisor(Y, kk)
   for c in components(C)
@@ -692,17 +542,17 @@ end
 ##############################################################################
 # show functions for Blowup morphisms
 ##############################################################################
-function Base.show(io::IO, Bl::AbsSimpleBlowdownMorphism)
+function Base.show(io::IO, Bl::AbsSimpleBlowupMorphism)
   io = pretty(io)
   if is_terse(io)
     print(io, "Blowup morphism")
   else
-    print(io, "Blow-down: ", Lowercase(), domain(Bl))
+    print(io, "Blow-up: ", Lowercase(), domain(Bl))
     print(io, " -> ", Lowercase(), codomain(Bl))
   end
 end
 
-function show(io::IO, ::MIME"text/plain", Bl::AbsSimpleBlowdownMorphism)
+function show(io::IO, ::MIME"text/plain", Bl::AbsSimpleBlowupMorphism)
   ## data of the original scheme
   X0 = codomain(Bl)
   C0 = get_attribute(X0, :simplified_covering, default_covering(X0))
@@ -820,77 +670,19 @@ end
   error("attribute not found; this needs to be set manually in general")
 end
 
-function compose(f::AbsSimpleBlowdownMorphism, g::AbsSimpleBlowdownMorphism)
+function compose(f::AbsSimpleBlowupMorphism, g::AbsSimpleBlowupMorphism)
   return composite_map(f, g)
 end
 
-function compose(f::AbsSimpleBlowdownMorphism, g::AbsCoveredSchemeMorphism)
+function compose(f::AbsSimpleBlowupMorphism, g::AbsCoveredSchemeMorphism)
   return composite_map(f, g)
 end
 
-function compose(f::AbsCoveredSchemeMorphism, g::AbsSimpleBlowdownMorphism)
+function compose(f::AbsCoveredSchemeMorphism, g::AbsSimpleBlowupMorphism)
   return composite_map(f, g)
 end
 
-########################################################################
-# Resolutions of singularities                                         #
-########################################################################
 
-@doc raw"""
-    BlowUpSequence{
-    DomainType<:AbsCoveredScheme,
-    CodomainType<:AbsCoveredScheme
-   } <: AbsDesingMor{
-                                 DomainType,
-                                 CodomainType,
-                                }
-
-
-"""
-@attributes mutable struct BlowUpSequence{
-                                          DomainType<:AbsCoveredScheme,
-                                          CodomainType<:AbsCoveredScheme
-                                         }<:AbsBlowdownMorphism{
-                                                                DomainType, CodomainType, 
-                                                                BlowUpSequence{DomainType, CodomainType}
-                                                               }
-  maps::Vector{<:BlowupMorphism}                 # count right to left:
-                                                 # original scheme is codomain of map 1
-  
-  embeddings::Vector{<:AbsCoveredSchemeMorphism} # if set,
-                                                 # assert codomain(maps[i])===codomain(embeddings[i]) 
-  # boolean flags
-  is_embedded::Bool                              # do not set embeddings, ex_mult, controlled_transform etc
-                                                 #     if is_embedded == false
-  resolves_sing::Bool                            # domain(maps[end]) smooth?
-  is_trivial::Bool                               # codomain already smooth?
-  transform_type::Symbol                         # can be :strict, :weak or :control
-                                                 #     only relevant for is_embedded == true
-
-  # fields for caching, may be filled during computation
-  ex_div::Vector{<:EffectiveCartierDivisor}      # list of exc. divisors arising from individual steps
-                                                 # lives in domain(maps[end])
-  control::Int                                   # value of control for controlled transform
-  ex_mult::Vector{Int}                           # multiplicities of exceptional divisors removed from
-                                                 # total transform, not set for is_embedded == false
-                                                 # or transform_type == strict
-  controlled_transform::AbsIdealSheaf            # holds weak or controlled transform according to transform_type
-
-  # fields for caching to be filled a posteriori (on demand, only if partial_res==false)
-  underlying_morphism::CompositeCoveredSchemeMorphism{DomainType, CodomainType}
-  exceptional_divisor::CartierDivisor            # exceptional divisor of composed_map
-  exceptional_locus::WeilDivisor                 # exceptional locus of composed map
-  exceptional_divisor_on_X::CartierDivisor          # exceptional divisor of composed_map
-                                                 # restricted to domain(embeddings[end])
-
-  function BlowUpSequence(maps::Vector{<:BlowupMorphism})
-    n = length(maps)
-    for i in 1:n-1
-      @assert domain(maps[i]) === codomain(maps[i+1]) "not a sequence of morphisms"
-    end
-    return new{typeof(domain(maps[end])),typeof(codomain(first(maps)))}(maps)
-  end
-end
 
 
 
@@ -903,35 +695,7 @@ function blow_up(m::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name = "e")
   return blow_up(I)
 end
 
-########################################################################
-# strict transforms of ideal sheaves                                   #
-########################################################################
 
-@attributes mutable struct StrictTransformIdealSheaf{SpaceType, OpenType, OutputType,
-                                                     RestrictionType
-                                                    } <: AbsIdealSheaf{
-                                                                       SpaceType, OpenType,
-                                                                       OutputType, RestrictionType
-                                                                      }
-  morphism::AbsSimpleBlowdownMorphism
-  orig::AbsIdealSheaf
-  underlying_presheaf::AbsPreSheaf
-
-  function StrictTransformIdealSheaf(
-      f::AbsSimpleBlowdownMorphism,
-      J::AbsIdealSheaf
-    )
-    @assert scheme(J) === codomain(f)
-    X = domain(f)
-    Ipre = PreSheafOnScheme(X,
-                      OpenType=AbsAffineScheme, OutputType=Ideal,
-                      RestrictionType=Map,
-                      is_open_func=_is_open_func_for_schemes_without_affine_scheme_open_subscheme(X)
-                     )
-    I = new{typeof(X), AbsAffineScheme, Ideal, Map}(f, J, Ipre)
-    return I
-  end
-end
 
 morphism(I::StrictTransformIdealSheaf) = I.morphism
 original_ideal_sheaf(I::StrictTransformIdealSheaf) = I.orig
@@ -943,7 +707,14 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   Y = codomain(f)
   J = original_ideal_sheaf(I)
   @assert any(x->x===U, affine_charts(X))
-  E = exceptional_divisor(f)
+  if f isa ToricBlowupMorphism
+    # This is not actually an exceptional divisor of a blowup along an ideal sheaf.
+    # This is the prime Weil divisor corresponding to the added/chosen ray.
+    # This is the exceptional divisor of a blowup along a certain Rees algebra.
+    E = exceptional_prime_divisor(f)
+  else
+    E = exceptional_divisor(f)
+  end
   IE = ideal_sheaf(E)
   # We assume that the covering morphism has the default_covering of X as its domain.
   @assert domain(covering_morphism(f)) === default_covering(X) "not implemented for this covering"

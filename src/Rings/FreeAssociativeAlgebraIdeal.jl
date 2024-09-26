@@ -133,7 +133,7 @@ function is_subset(I1::FreeAssociativeAlgebraIdeal, I2::FreeAssociativeAlgebraId
   I1 === I2 && return true
   gens(I1) == gens(I2) && return true
   isdefined(I1, :gb) && isdefined(I2, :gb) && I1.gb == I2.gb && return true
-  return all(x -> in(x, I2), gens(I1))
+  return all(in(I2), gens(I1))
 end
 
 function (R::Singular.LPRing)(a::FreeAssociativeAlgebraElem)

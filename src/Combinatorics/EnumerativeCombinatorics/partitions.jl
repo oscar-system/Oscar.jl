@@ -19,7 +19,7 @@ function _defines_partition(parts::Vector{<: IntegerUnion})
   if isempty(parts)
     return true
   end
-  return all(i -> parts[i] >= parts[i + 1], 1:length(parts) - 1) && is_positive(parts[end])
+  return issorted(parts; rev=true) && is_positive(parts[end])
 end
 
 @doc raw"""

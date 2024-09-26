@@ -2,7 +2,7 @@
 # TODO : in this file, some functions for matrices and vectors are defined just to make other files work,
 # such as forms.jl, transform_form.jl, linear_conjugate.jl and linear_centralizer.jl
 # TODO : functions in this file are only temporarily, and often inefficient.
-# TODO: once similar working methods are defined in other files or packages (e.g. Hecke), 
+# TODO: once similar working methods are defined in other files or packages (e.g. Hecke),
 # functions in this file are to be removed / moved / replaced
 # TODO: when this happens, files mentioned above need to be modified too.
 
@@ -37,12 +37,22 @@ end
     conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
 
 If the base ring of `x` is `GF(q^2)`, return the matrix `transpose( map ( y -> y^q, x) )`.
- An exception is thrown if the base ring does not have even degree.
+An exception is thrown if the base ring does not have even degree.
 """
 function conjugate_transpose(x::MatElem{T}) where T <: FinFieldElem
-   @req iseven(degree(base_ring(x))) "The base ring must have even degree"
-   e = div(degree(base_ring(x)),2)
-   return transpose(map(y -> frobenius(y,e),x))
+  e = degree(base_ring(x))
+  @req iseven(e) "The base ring must have even degree"
+  e = div(e, 2)
+
+  y = similar(x, ncols(x), nrows(x))
+  for i in 1:ncols(x), j in 1:nrows(x)
+    # This code could be *much* faster, by precomputing the Frobenius map
+    # once; see also FrobeniusCtx in Hecke (but that does not yet support all
+    # finite field types at the time this comment was written).
+    # If you need this function to be faster, talk to Claus or Max.
+    y[i,j] = frobenius(x[j,i],e)
+  end
+  return y
 end
 
 
@@ -124,14 +134,12 @@ Return `false` if `B` is not a square matrix, or the field has not even degree.
 """
 function is_hermitian(B::MatElem{T}) where T <: FinFieldElem
    n = nrows(B)
-   n==ncols(B) || return false
+   n == ncols(B) || return false
    e = degree(base_ring(B))
    iseven(e) ? e = div(e,2) : return false
 
-   for i in 1:n
-      for j in i:n
-         B[i,j]==frobenius(B[j,i],e) || return false
-      end
+   for i in 1:n, j in i:n
+      B[i,j] == frobenius(B[j,i],e) || return false
    end
 
    return true
@@ -151,7 +159,7 @@ function _is_scalar_multiple_mat(x::MatElem{T}, y::MatElem{T}) where T <: RingEl
          return y == h*x ? (true,h) : (false, nothing)
       end
    end
-  
+
    # at this point, x must be zero
    return y == 0 ? (true, F(1)) : (false, nothing)
 end

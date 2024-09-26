@@ -1,5 +1,5 @@
 @testset "PBWAlgebra.constructor" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
+  r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   @test elem_type(R) == PBWAlgElem{QQFieldElem, Singular.n_Q}
@@ -16,14 +16,14 @@
 
   3*x^2 + y*z == R([3, 1], [[2, 0, 0], [0, 1, 1]])
 
-  r, (x, y, z) = QQ["x", "y", "z"]
+  r, (x, y, z) = QQ[:x, :y, :z]
   @test_throws Exception pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], lex(r))
   R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z; 0 0 y*z+1; 0 0 0], deglex(r); check = false)
   @test (z*y)*x != z*(y*x)
 end
 
 @testset "PBWAlgebra.printing" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
+  r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   @test length(string(R)) > 2
@@ -32,7 +32,7 @@ end
 end
 
 @testset "PBWAlgebra.iteration" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
+  r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
 
   p = -((x*z*y)^6 - 1)
@@ -142,7 +142,7 @@ end
 end
 
 @testset "PBWAlgebra.ideals.multiplication" begin
-  r, (x, y, z) = QQ["x", "y", "z"]
+  r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y+y x*z+z+y; 0 0 y*z; 0 0 0], lex(r))
 
   e1 = y*z
@@ -164,7 +164,7 @@ end
 end
 
 @testset "PBWAlgebra.ideals.eliminate" begin
-  r, (e, f, h, a) = QQ["e", "f", "h", "a"]
+  r, (e, f, h, a) = QQ[:e, :f, :h, :a]
   rel = @pbw_relations(f*e == e*f-h, h*e == e*h+2*e, h*f == f*h-2*f)
   for o in [lex(r), deglex(r)]
     R, (e, f, h, a) = pbw_algebra(r, rel, o)
@@ -177,7 +177,7 @@ end
     @test_throws ErrorException eliminate(I, [h])
   end
 
-  r, (a, h, f, e) = QQ["a", "h", "f", "e"]
+  r, (a, h, f, e) = QQ[:a, :h, :f, :e]
   rel = @pbw_relations(e*f == f*e-h, e*h == h*e+2*e, f*h == h*f-2*f)
   for o in [invlex(r), deglex(r)]
     R, (a, h, f, e) = pbw_algebra(r, rel, o)
@@ -191,7 +191,7 @@ end
   end
 
   # forces the discovery of the weight [0,0,1,2]
-  r, (a, b, x, d) = QQ["a", "b", "x", "d"]
+  r, (a, b, x, d) = QQ[:a, :b, :x, :d]
   rel = @pbw_relations(b*a == a*b+3*a, d*a == a*d+3*x^2, x*b == b*x-x,
                        d*b == b*d+d, d*x == x*d+1)
   for o in [lex(r), deglex(r)]
@@ -211,7 +211,7 @@ end
   @test is_one(eliminate(left_ideal([x, 1-x]), [x, dx]))
 
   # two-sided example
-  R, (x, y, z) = QQ["x", "y", "z"];
+  R, (x, y, z) = QQ[:x, :y, :z];
   rel = @pbw_relations(y*x == -x*y, z*x == -x*z, z*y == -y*z)
   A, (x,y,z) = pbw_algebra(R, rel, lex(R))
   I = two_sided_ideal(A, [x^2+1, y^2+1, z^2+1, y*x+z, z*y+x, z*x-y])

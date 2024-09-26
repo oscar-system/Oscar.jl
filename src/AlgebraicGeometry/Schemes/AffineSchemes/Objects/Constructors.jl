@@ -37,7 +37,7 @@ This is the spectrum of the quotient ring ``R/I``.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -62,7 +62,7 @@ of the localized ring $U^{-1} R$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -90,7 +90,7 @@ localized ring $U^{-1} (R/I)$ is computed by this method.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -125,7 +125,7 @@ when in need to copy an affine spectrum.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 
@@ -176,7 +176,7 @@ with coordinates [y1, y2, y3, y4, y5]
 ```
 """
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached=false)
   return spec(R)
 end
 
@@ -207,17 +207,17 @@ with coordinates [x, y, z]
 ```
 """
 function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, var_names)
+  R, _ = polynomial_ring(kk, var_names; cached=false)
   return spec(R)
 end
 
 function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n])
+  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached=false)
   return variety(spec(R), check=false)
 end
 
 function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<:Field}
-  R, _ = polynomial_ring(kk, var_names)
+  R, _ = polynomial_ring(kk, var_names; cached=false)
   return variety(spec(R), check=false)
 end
 
@@ -247,7 +247,7 @@ Spectrum
       by ideal (0)
     at products of (1)
 
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> I = ideal(R, [x]);
 

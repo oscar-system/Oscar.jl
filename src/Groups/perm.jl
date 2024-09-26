@@ -486,12 +486,12 @@ struct CycleType <: AbstractVector{Pair{Int64, Int64}}
     for i = c
       _push_cycle!(s, i)
     end
-    sort!(s, by = x -> x[1])
+    sort!(s; by=first)
     return new(s)
   end
   function CycleType(v::Vector{Pair{Int, Int}}; sorted::Bool = false)
     sorted && return new(v)
-    return new(sort(v, by = x -> x[1]))
+    return new(sort(v; by=first))
 #TODO: check that each cycle length is specified at most once?
   end
 end
@@ -517,7 +517,7 @@ function _push_cycle!(s::Vector{Pair{Int, Int}}, i::Int, j::Int = 1)
   f = findfirst(x->x[1] == i, s)
   if f === nothing
     push!(s, i=>j)
-    sort!(s, by = x -> x[1])
+    sort!(s; by=first)
   else
     s[f] = s[f][1]=>s[f][2] + j
   end
@@ -563,7 +563,7 @@ julia> all(x -> degree(cycle_structure(x)) == degree(g), gens(g))
 true
 ```
 """
-degree(c::CycleType) = mapreduce(x->x[1]*x[2], +, c.s, init = 0)
+degree(c::CycleType) = sum(x->x[1]*x[2], c.s; init = 0)
 
 
 @doc raw"""

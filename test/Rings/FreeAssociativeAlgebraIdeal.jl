@@ -1,5 +1,5 @@
 @testset "FreeAssociativeAlgebraIdeal.basic" begin
-  Zt = polynomial_ring(ZZ, "t")[1]
+  Zt = polynomial_ring(ZZ, :t)[1]
   R, (x, y, z) = free_associative_algebra(Zt, ["x", "y", "z", "w"])
   I = ideal(R, [x*y*x, y*z^2])
   @test base_ring(I) == R

@@ -68,7 +68,7 @@ false
 """
 function is_subset(H::GAPGroup, G::GAPGroup)
    _check_compatible(H, G, error = false) || return false
-   return all(h -> h in G, gens(H))
+   return all(in(G), gens(H))
 end
 
 """

@@ -877,7 +877,7 @@ end
   @test coordinates(Int, chi) isa Vector{Int}
 
   orders = orders_class_representatives(t)
-  pos = findfirst(x -> x == 4, orders)
+  pos = findfirst(==(4), orders)
   chi = filter(x -> x[1] == 2, collect(t))[1]
   ev = multiplicities_eigenvalues(chi, pos)
   @test ev == [0, 1, 0, 1]

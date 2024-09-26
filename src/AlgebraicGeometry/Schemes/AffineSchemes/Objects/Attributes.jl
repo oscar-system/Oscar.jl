@@ -537,7 +537,7 @@ This command relies on [`radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
@@ -630,7 +630,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
@@ -715,7 +715,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])

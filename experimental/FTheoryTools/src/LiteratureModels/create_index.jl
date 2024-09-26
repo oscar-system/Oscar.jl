@@ -23,7 +23,7 @@
 function _create_literature_model_index()
   model_directory = joinpath(@__DIR__, "Models/")
   models = readdir(model_directory)
-  filter!(s -> startswith(s, "model"), models)
+  filter!(startswith("model"), models)
 
   index = Vector{Dict{String,Union{String,Vector{Any}}}}()
   model_indices = JSON.parsefile(joinpath(@__DIR__, "model_indices.json"))

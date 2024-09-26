@@ -10,15 +10,15 @@ Additionally one can provide names for the generators. If one does
 not provide names for the generators, the standard names e_i are used for 
 the standard unit vectors.
 """
-function FreeMod(R::Ring, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
+function FreeMod(R::AdmissibleModuleFPRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
   return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
 end
 
-function FreeMod(R::Ring, names::Vector{String}; cached::Bool=false)
+function FreeMod(R::AdmissibleModuleFPRing, names::Vector{String}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
 end
 
-function FreeMod(R::Ring, names::Vector{Symbol}; cached::Bool=false)
+function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=false)
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
@@ -34,7 +34,7 @@ The string `name` specifies how the basis vectors are printed.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> FR = free_module(R, 2)
 Free module of rank 2 over R
@@ -75,6 +75,8 @@ free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false) = Fr
 free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+
+#free_module(R::NCRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 
 #=XXX this cannot be as it is inherently ambiguous
   - free_module(R, n)
@@ -199,7 +201,7 @@ or else
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, [1,1,3,2]);
 

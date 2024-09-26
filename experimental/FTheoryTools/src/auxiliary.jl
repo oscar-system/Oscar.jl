@@ -149,7 +149,7 @@ _count_factors(poly::QQMPolyRingElem) = mapreduce(p -> p[end], +, absolute_prima
 
 _string_from_factor_count(poly::QQMPolyRingElem, string_list::Vector{String}) = string_list[_count_factors(poly)]
 
-function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, Int64, Int64}) where {T<:MPolyRingElem}
+function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64, Int64}, w::WeierstrassModel; rand_seed::Union{Int64, Nothing} = nothing)
   f_ord = ords[1]
   g_ord = ords[2]
   d_ord = ords[3]
@@ -169,50 +169,121 @@ function _kodaira_type(id::MPolyIdeal{T}, f::T, g::T, d::T, ords::Tuple{Int64, I
     kod_type = "II^*"
   elseif d_ord >= 12 && f_ord >= 4 && g_ord >= 6
     kod_type = "Non-minimal"
-  else
+  elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
+    # For type I_0^* singularities, we have to rely on the old method for now,
+    # which is not always dependable
+
+    f = weierstrass_section_f(w)
+    g = weierstrass_section_g(w)
+    d = discriminant(w)
+
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
     S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
     ring_map = hom(R, S, gens(S)[2:end])
     poly_f = ring_map(f)
     poly_g = ring_map(g)
-    poly_d = ring_map(d)
     locus = ring_map(gens(id)[1])
+
+    f_quotient = divrem(div(poly_f, locus^2), locus)[2]
+    g_quotient = divrem(div(poly_g, locus^3), locus)[2]
     
-    # Compute monodromy polynomial and check factorization for remaining cases
+    monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
+    kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+  else
+    # If the base is arbitrary, we tune the model over projective space of the
+    # appropriate dimension. This allows us to use the same algorithm for all
+    # cases. The choice of projective space here is an attempt to minimize the
+    # chances of accidental gauge enhancement
+    if !is_base_space_fully_specified(w)
+      # Build the new concrete base, and get the anticanonical and hyperplane
+      # bundles. We choose the hyperplane bundle for all gauge loci over the
+      # concrete base as an additional measure to avoid accidental gauge
+      # enhancement
+      concrete_base = projective_space(NormalToricVariety, dim(base_space(w)))
+      KBar = anticanonical_bundle(concrete_base)
+      hyperplane_bundle = toric_line_bundle(torusinvariant_prime_divisors(concrete_base)[1])
+
+      # Get the grading matrix and the coordinates of the arbitrary base
+      grading = weights(base_space(w))
+      base_coords = gens(coordinate_ring(base_space(w)))
+      @req (length(base_coords) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base cooordinates"
+
+      # Choose explicit sections for all parameters of the model,
+      # and then put the model over the concrete base using these data
+      concrete_data = merge(Dict(string(base_coords[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords)), Dict("base" => concrete_base))
+      w = put_over_concrete_base(w, concrete_data)
+
+      # We also need to determine the gauge locus over the new base
+      # by using the explicit forms of all of the sections chosen above
+      list_of_sections = [concrete_data[string(base_coords[i])] for i in eachindex(base_coords)]
+      id = ideal([evaluate(p, list_of_sections) for p in gens(id)])
+    end
+
+    f = weierstrass_section_f(w)
+    g = weierstrass_section_g(w)
+    d = discriminant(w)
+
+    # For now, we explicitly require that the gauge ideal is principal
+    @req (length(gens(id)) == 1) "Gauge ideal is not principal"
+
+    # Over concrete bases, we randomly reduce the polynomials defining the gauge
+    # divisor to only two variables so that the is_radical check is faster. This
+    # could give an incorrect result (radical or not), so we actually try this
+    # five times and see if we get agreement among all of the results
+    num_gens = length(gens(parent(f)))
+    gauge2s, f2s, g2s, d2s = [], [], [], []
+    if rand_seed != nothing
+      Random.seed!(rand_seed)
+    end
+    for _ in 1:5
+      coord_inds = randperm(num_gens)[1:end-2]
+      rand_ints = rand(-100:100, num_gens - 2)
+
+      push!(gauge2s, evaluate(forget_decoration(gens(id)[1]), coord_inds, rand_ints))
+      push!(f2s, evaluate(forget_decoration(f), coord_inds, rand_ints))
+      push!(g2s, evaluate(forget_decoration(g), coord_inds, rand_ints))
+      push!(d2s, evaluate(forget_decoration(d), coord_inds, rand_ints))
+    end
+
+    # Check monodromy conditions for remaining cases.
+    # Default to split when there is disagreement among the five attempts,
+    # because this approach seems to skew toward accidentally identifying
+    # a singularity as non-split
     if f_ord == 0 && g_ord == 0
-      g_quotient = divrem(9 * poly_g, locus)[2]
-      f_quotient = divrem(2 * poly_f, locus)[2]
-      quotient_val = div(g_quotient, f_quotient)
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([9 * g2s[i], gauge2s[i]]), ideal([2 * f2s[i], gauge2s[i]])))
+      end
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I_$d_ord", "Split I_$d_ord"])
+      kod_type = if all(is_radical, quotients) "Non-split I_$d_ord" else "Split I_$d_ord" end
     elseif d_ord == 4 && g_ord == 2 && f_ord >= 2
-      g_quotient = divrem(div(poly_g, locus^2), locus)[2]
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^2])) + ideal([gauge2s[i]]))
+      end
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV", "Split IV"])
-    elseif d_ord == 6 && f_ord >= 2 && g_ord >= 3
-      f_quotient = divrem(div(poly_f, locus^2), locus)[2]
-      g_quotient = divrem(div(poly_g, locus^3), locus)[2]
-      
-      monodromy_poly = _psi^3 + _psi * f_quotient + g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_0", "Semi-split I^*_0", "Split I^*_0"])
+      kod_type = if all(is_radical, quotients) "Non-split IV" else "Split IV" end
     elseif f_ord == 2 && g_ord == 3 && d_ord >= 7
-      d_quotient = div(poly_d, locus^d_ord)
-      f_quotient = div(2 * poly_f, locus^2)
-      g_quotient = div(9 * poly_g, locus^3)
-      num_quotient = divrem(d_quotient * f_quotient^(2 + d_ord % 2), locus)[2]
-      den_quotient = divrem(4 * g_quotient^(2 + d_ord % 2), locus)[2]
-      quotient_val = div(num_quotient, den_quotient)
+      quotients = []
+      if d_ord % 2 == 0
+        for i in eachindex(gauge2s)
+          push!(quotients, quotient(ideal([4 // 81 * (d2s[i] * f2s[i]^2) / gauge2s[i]^(d_ord + 4), gauge2s[i]]), ideal([g2s[i]^2 / gauge2s[i]^6, gauge2s[i]])))
+        end
+      else
+        for i in eachindex(gauge2s)
+          push!(quotients, quotient(ideal([2 // 729 * (d2s[i] * f2s[i]^3) / gauge2s[i]^(d_ord + 6), gauge2s[i]]), ideal([g2s[i]^3 / gauge2s[i]^9, gauge2s[i]])))
+        end
+      end
 
-      monodromy_poly = _psi^2 + quotient_val
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split I^*_$(d_ord - 6)", "Split I^*_$(d_ord - 6)"])
+      kod_type = if all(is_radical, quotients) "Non-split I^*_$(d_ord - 6)" else "Split I^*_$(d_ord - 6)" end
     elseif d_ord == 8 && g_ord == 4 && f_ord >= 3
-      g_quotient = divrem(div(poly_g, locus^4), locus)[2]
+      quotients = []
+      for i in eachindex(gauge2s)
+        push!(quotients, quotient(ideal([g2s[i]]), ideal([gauge2s[i]^4])) + ideal([gauge2s[i]]))
+      end
 
-      monodromy_poly = _psi^2 - g_quotient
-      kod_type = _string_from_factor_count(monodromy_poly, ["Non-split IV^*", "Split IV^*"])
+      kod_type = if all(is_radical, quotients) "Non-split IV^*" else "Split IV^*" end
     else
       kod_type = "Unrecognized"
     end
@@ -378,7 +449,7 @@ end
 eval_poly(n::Number, R) = R(n)
 
 # Example
-# julia> Qx, (x1, x2) = QQ["x1", "x2"];
+# julia> Qx, (x1, x2) = QQ[:x1, :x2];
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
@@ -389,18 +460,18 @@ eval_poly(n::Number, R) = R(n)
 ### 10 strict_transform helpers
 ##########################################
 
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf; coordinate_name = "e") = strict_transform(bd, II)
+_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
 
-function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCoxRingIdeal; coordinate_name = "e")
-  center_ideal = ideal_in_cox_ring(center(bd))
-  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(x -> x in gens(base_ring(center_ideal)), gens(center_ideal)) == false)
+function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRingIdeal)
+  center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
+  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(in(gens(base_ring(center_ideal))), gens(center_ideal)) == false)
     return strict_transform(bd, II)
   end
   S = cox_ring(domain(bd))
-  _e = eval_poly(coordinate_name, S)
+  _e = gen(S, index_of_new_ray(bd))
   images = MPolyRingElem[]
   g_list = gens(S)
-  g_center = [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   for v in g_list
     v == _e && continue
     if string(v) in g_center
@@ -416,11 +487,11 @@ function _strict_transform(bd::ToricBlowdownMorphism, II::ToricIdealSheafFromCox
   return ideal_sheaf(domain(bd), strict_transform)
 end
 
-function _strict_transform(bd::ToricBlowdownMorphism, tate_poly::MPolyRingElem; coordinate_name = "e")
+function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
-  _e = eval_poly(coordinate_name, S)
+  _e = gen(S, index_of_new_ray(bd))
   g_list = string.(gens(S))
-  g_center = [string(k) for k in gens(ideal_in_cox_ring(center(bd)))]
+  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
   pos_of_e = findfirst(==(string(_e)), g_list)
   C = MPolyBuildCtx(S)

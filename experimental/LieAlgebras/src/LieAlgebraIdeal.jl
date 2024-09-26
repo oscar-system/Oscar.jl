@@ -50,6 +50,8 @@ Return the dimension of the ideal `I`.
 """
 dim(I::LieAlgebraIdeal) = length(basis(I))
 
+coefficient_ring(I::LieAlgebraIdeal) = coefficient_ring(base_lie_algebra(I))
+
 ###############################################################################
 #
 #   String I/O
@@ -79,6 +81,55 @@ function Base.show(io::IO, I::LieAlgebraIdeal)
     print(io, LowercaseOff(), "Lie algebra ideal of dimension $(dim(I)) over ", Lowercase())
     print(terse(io), base_lie_algebra(I))
   end
+end
+
+###############################################################################
+#
+#   Parent object call overload
+#
+###############################################################################
+
+@doc raw"""
+    (I::LieAlgebraIdeal{C})() -> LieAlgebraElem{C}
+
+Return the zero element of the Lie algebra ideal `I`.
+"""
+function (I::LieAlgebraIdeal)()
+  return zero(base_lie_algebra(I))
+end
+
+@doc raw"""
+    (I::LieAlgebraIdeal{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+
+Return the element of `I` with coefficient vector `v`.
+Fail, if `Int` cannot be coerced into the base ring of `I`.
+"""
+function (I::LieAlgebraIdeal)(v::Vector{Int})
+  return I(coefficient_ring(I).(v))
+end
+
+@doc raw"""
+    (I::LieAlgebraIdeal{C})(v::Vector{C}) -> LieAlgebraElem{C}
+
+Return the element of `I` with coefficient vector `v`.
+"""
+function (I::LieAlgebraIdeal{C})(v::Vector{C}) where {C<:FieldElem}
+  @req length(v) == dim(I) "Length of vector does not match dimension."
+  mat = matrix(coefficient_ring(I), 1, length(v), v)
+  L = base_lie_algebra(I)
+  return elem_type(L)(L, mat * basis_matrix(I))
+end
+
+@doc raw"""
+    (I::LieAlgebraIdeal{C})(mat::MatElem{C}) -> LieAlgebraElem{C}
+
+Return the element of `I` with coefficient vector equivalent to
+the $1 \times \dim(I)$ matrix `mat`.
+"""
+function (I::LieAlgebraIdeal{C})(mat::MatElem{C}) where {C<:FieldElem}
+  @req size(mat) == (1, dim(I)) "Invalid matrix dimensions."
+  L = base_lie_algebra(I)
+  return elem_type(L)(L, mat * basis_matrix(I))
 end
 
 ###############################################################################
@@ -116,12 +167,26 @@ end
 ###############################################################################
 
 @doc raw"""
-    in(x::LieAlgebraElem, I::LieAlgebraIdeal) -> Bool
+    in(x::LieAlgebraElem{C}, I::LieAlgebraIdeal{C}) -> Bool
 
 Return `true` if `x` is in the ideal `I`, `false` otherwise.
 """
-function Base.in(x::LieAlgebraElem, I::LieAlgebraIdeal)
+function Base.in(x::LieAlgebraElem{C}, I::LieAlgebraIdeal{C}) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(I) "Incompatible Lie algebras"
   return can_solve(basis_matrix(I), _matrix(x); side=:left)
+end
+
+@doc raw"""
+    Oscar.LieAlgebras.coefficient_vector(x::LieAlgebraElem{C}, I::LieAlgebraIdeal{C}) -> Vector{C}
+
+Return the coefficient vector of `x` in the basis of `I`.
+This function will throw an error if `x` is not in `I`.
+"""
+function coefficient_vector(
+  x::LieAlgebraElem{C}, I::LieAlgebraIdeal{C}
+) where {C<:FieldElem}
+  @req parent(x) === base_lie_algebra(I) "Incompatible Lie algebras"
+  return solve(basis_matrix(I), _matrix(x); side=:left)
 end
 
 ###############################################################################

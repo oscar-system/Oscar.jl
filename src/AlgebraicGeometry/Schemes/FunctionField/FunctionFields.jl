@@ -1,10 +1,3 @@
-export function_field
-export representative
-export representative_field
-export representative_patch
-export variety
-
-
 ########################################################################
 # Check for emptyness                                                  #
 ########################################################################

@@ -416,7 +416,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   # fp[1, i] = # vectors v such that v has same length as b_i for all forms
   for i in 1:n
     cvl = gramB[i,i]
-    fp[1, i] = count(x->x==cvl, lengths)
+    fp[1, i] = count(==(cvl), lengths)
 
   end
 
@@ -1339,7 +1339,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     rep[l+i] = (i, s, true)
   end
   @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
-  sort!(rep, by=x->x[2])
+  sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)
   for (i,s,indualDeltaR) in rep
@@ -1914,14 +1914,13 @@ function ample_class(S::ZZLat)
   end
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
-  i = findfirst(x->x, [d>0 for d in diagonal(D)])
+  i = findfirst(>(0), diagonal(D))
   v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = polynomial_ring(QQ,"x")
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)
@@ -1931,21 +1930,19 @@ function ample_class(S::ZZLat)
       h = r
     else
       rv = (r*gram_matrix(S)*transpose(v))[1,1]
-      p = x^2*vsq + 2*x*rv + rsq
-      rp = roots(algebraic_closure(QQ), p)
-      a = rp[1]
-      b = rp[2]
-      if a > b
-        (a,b) = (b,a)
-      end
-      a = ZZRingElem(floor(a))
-      b = ZZRingElem(ceil(b))
+      p(x) = x^2*vsq + 2*x*rv + rsq
+      # find zeros of x^2*vsq + 2*x*rv + rsq
+      p0 = -rv / vsq
+      q0 = rsq / vsq
+      r0 = sqrt(QQBarFieldElem(p0^2 - q0))
+      a = floor(ZZRingElem, p0 - r0)
+      b = ceil(ZZRingElem, p0 + r0)
       if p(a) == 0  # catches the case of an integer root
-        a = a -1
+        a -= 1
         @assert p(a) > 0
       end
       if p(b) == 0
-        b = b + 1
+        b += 1
         @assert p(b) > 0
       end
       if abs(a) > abs(b)
@@ -2021,7 +2018,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
-    i = findfirst(x->x==1,g)
+    i = findfirst(is_one,g)
     s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else

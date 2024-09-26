@@ -195,7 +195,7 @@ end
 function tn_flag_variety(dims::Vector{Int}; weights = :int)
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks)
+  @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   function enum(i::Int, rest::Vector{Int})
     i == l && return [[rest]]

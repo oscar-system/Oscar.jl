@@ -13,9 +13,9 @@ struct ColoredPartition <: AbstractPartition
                               color_upper_points::Vector{Int},
                               color_lower_points::Vector{Int})
 
-        @req all(x -> x in (0, 1), color_upper_points) "upper coloring has to be binary in {0, 1}"
+        @req all(in((0, 1)), color_upper_points) "upper coloring has to be binary in {0, 1}"
         @req number_of_upper_points(partition) == length(color_upper_points) "upper coloring format does not match upper points format"
-        @req all(x -> x in (0, 1), color_lower_points) "lower coloring has to be binary in {0, 1}"
+        @req all(in((0, 1)), color_lower_points) "lower coloring has to be binary in {0, 1}"
         @req number_of_lower_points(partition) == length(color_lower_points) "lower coloring format does not match and lower points format"
 
         return new(partition, color_upper_points, color_lower_points)

@@ -115,7 +115,7 @@ function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
 
   if i < e
     S = abelian_group()
-    return S, x -> one(E), x -> id(S)
+    return S, _ -> one(E), _ -> id(S)
   end
 
   t = e-1
@@ -770,7 +770,7 @@ function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
   Pabs = EabstoE\P
   OEabs = order(Pabs)
   while true
-    Eabst, t = Eabs["t"]
+    Eabst, t = Eabs[:t]
     g = EabstoE\(E(-rand(K, -5:5)^2-1))
     nu = 2*valuation(Eabs(2), Pabs)-2*e+2
     nug = valuation(g, Pabs)

@@ -93,4 +93,25 @@
     @test !is_nilpotent(L)
     @test !is_solvable(L)
   end
+
+  @testset "adjoint_matrix" begin
+    @testset for n in 2:4, F in [QQ, GF(2), GF(3)]
+      L = general_linear_lie_algebra(F, n)
+      x = L(rand(-10:10, dim(L)))
+      y = L(rand(-10:10, dim(L)))
+      @test coefficients(x * y) == coefficients(y) * adjoint_matrix(x)
+    end
+  end
+
+  @testset "Killing matrix" begin
+    # Example from Hum72, Ch. 5.1
+    F = QQ
+    L = lie_algebra(
+      F,
+      2,
+      [matrix(F, [0 1; 0 0]), matrix(F, [1 0; 0 -1]), matrix(F, [0 0; 1 0])],
+      [:x, :h, :y],
+    )
+    @test killing_matrix(L) == matrix(F, [0 0 4; 0 8 0; 4 0 0])
+  end
 end

@@ -20,7 +20,7 @@
 end
 
 @testset "Oscar.blow_up_chart" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   M = R[x y z; y-1 z-2 x-3]
   I = ideal(R, minors(M, 2))
@@ -39,7 +39,7 @@ end
 end
 
 @testset "winter school presentation" begin
-  P, (x,y,z) = QQ["x", "y", "z"]
+  P, (x,y,z) = QQ[:x, :y, :z]
   IA3 = spec(P)
   f = x^2-y*z^2
   I = ideal(P, f)

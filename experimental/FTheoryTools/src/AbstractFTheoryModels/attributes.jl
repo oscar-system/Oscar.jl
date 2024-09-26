@@ -1040,6 +1040,28 @@ end
 
 
 @doc raw"""
+    zero_section_class(m::AbstractFTheoryModel)
+
+Return the zero section class of a model as a cohomology class in the toric ambient space.
+If no zero section class is known, an error is raised.
+This information is not typically available for
+Weierstrass and global Tate models, whose zero section classs are known.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> zero_section_class(qsm_model)
+Cohomology class on a normal toric variety given by x32 + 2*x33 + 3*x34 + x35 - x36
+```
+"""
+function zero_section_class(m::AbstractFTheoryModel)
+  @req has_zero_section_class(m) "No zero section class stored for this model"
+  return get_attribute(m, :zero_section_class)
+end
+
+
+@doc raw"""
     gauge_algebra(m::AbstractFTheoryModel)
 
 Return the gauge algebra of the given model.
@@ -1211,6 +1233,9 @@ error.
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
 Hypersurface model over a concrete base
+
+julia> h = euler_characteristic(qsm_model; check = false)
+378
 
 julia> h = euler_characteristic(qsm_model; check = false)
 378

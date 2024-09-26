@@ -269,7 +269,7 @@ one can also call `^` instead of `on_indeterminates`.
 julia> g = symmetric_group(3);  p = g[1]
 (1,2,3)
 
-julia> R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
+julia> R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
 
 julia> f = x[1]*x[2] + x[2]*x[3]
 x1*x2 + x2*x3

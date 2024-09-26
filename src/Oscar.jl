@@ -180,6 +180,7 @@ function __init__()
   add_verbosity_scope(:Vinberg)
 
   add_assertion_scope(:IdealSheaves)
+  add_verbosity_scope(:IdealSheaves)
 
   # Pkg.is_manifest_current() returns false if the manifest might be out of date
   # (but might return nothing when there is no project_hash)

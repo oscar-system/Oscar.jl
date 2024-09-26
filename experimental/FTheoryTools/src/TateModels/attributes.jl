@@ -397,7 +397,7 @@ we should find that the discriminant vanishes to order 3 on ``W = {w = 0}``, whi
 sections ``f`` and ``g`` vanish to orders 1 and 2, respectively. Let us verify this.
 
 ```jldoctest
-julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ["a10", "a21", "a32", "a43", "a65", "w"];
+julia> auxiliary_base_ring, (a11, a21, a31, a41, a62, w) = QQ[:a10, :a21, :a32, :a43, :a65, :w];
 
 julia> auxiliary_base_grading = [1 2 3 4 6 0; -1 -1 -1 -1 -2 1];
 

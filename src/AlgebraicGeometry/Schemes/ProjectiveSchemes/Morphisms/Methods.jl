@@ -231,7 +231,7 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
   G, inc_G = sub(FT, vcat(gT, relT))
   Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
   MT = cokernel(inc_Q)
-  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]); check=false)
+  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]), S; check=false)
   return MT, id
 end
 

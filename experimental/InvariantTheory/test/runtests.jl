@@ -1,5 +1,5 @@
 @testset "Invariant Theory of SL_m" begin
-    S, z = polynomial_ring(QQ, "z"=> (1:2, 1:2))
+    S, z = polynomial_ring(QQ, :z=> (1:2, 1:2))
     G = linearly_reductive_group(:SL,2,S)
     @test group_type(G) == :SL
     @test group_dim(G) == 2
@@ -33,7 +33,7 @@
     @test ncols(representation_matrix(T1)) == 9
 
     #ternary cubics
-    T, X = graded_polynomial_ring(QQ, "X"=>1:10)
+    T, X = graded_polynomial_ring(QQ, :X=>1:10)
     g = linearly_reductive_group(:SL, 3, QQ)
     rep3 = representation_on_forms(g, 3)
     R_rep3 = invariant_ring(T, rep3)
