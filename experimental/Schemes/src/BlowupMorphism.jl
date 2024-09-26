@@ -524,30 +524,26 @@ function restrict(f::AbsCoveredSchemeMorphism,
   inc_dom_cov = covering_morphism(inc_dom)
   inc_cod_cov = covering_morphism(inc_cod)
 
-  # We need to do the following.
-  # - Pass to a common refinement ref_cod in X that both
-  #   f and inc_cod can restrict to.
-  # - Pass to a common refinement in Y
-  ref_cod, a, b = _register!(common_refinement(codomain(f_cov), codomain(inc_cod_cov)), codomain(f))
-  inc_cod_ref = restrict(inc_cod, ref_cod)
-  f_res = restrict(f, ref_cod)
-  ref_dom, aa, bb = _register!(common_refinement(domain(f_res), codomain(inc_dom_cov)), domain(f))
-  inc_dom_ref = restrict(inc_dom, ref_dom)
-  inc_dom_ref = compose(inc_dom_ref, aa)
+  # Build up the common refinement 
+  success, dom_ref = is_refinement(codomain(inc_dom_cov), domain(f_cov))
+  @assert success "restriction not implemented for this constellation of refinements"
+  inc_dom_f = compose(compose(inc_dom_cov, dom_ref), f_cov)
+  success, cod_ref_map = is_refinement(codomain(f_cov), codomain(inc_cod_cov))
+  @assert success "restriction not implemented for this constellation of refinements"
+  inc_dom_f_ref = compose(inc_dom_f, cod_ref_map)
   # Collecting the maps for the restricted projection here
   map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
-  for U in patches(domain(inc_dom_ref))
-    q_res = compose(inc_dom_ref[U], f_res[codomain(inc_dom_ref[U])])
+  for U in patches(domain(inc_dom_f_ref))
+    q_res = inc_dom_f_ref[U]
     V = codomain(q_res)
-    g = maps_with_given_codomain(inc_cod_ref, V)
-    @show length(g)
+    g = maps_with_given_codomain(inc_cod_cov, V)
     if !isone(length(g))
       error()
     end
     pre_V = domain(first(g))
-    map_dict[U] = restrict(q_res, domain(q_res), pre_V, check=false)
+    map_dict[U] = restrict(q_res, domain(q_res), pre_V; check)
   end
-  psi = CoveringMorphism(domain(inc_dom_ref), domain(inc_cod_ref), map_dict, check=false)
+  psi = CoveringMorphism(domain(inc_dom_f_ref), domain(inc_cod_cov), map_dict; check)
   return CoveredSchemeMorphism(domain(inc_dom), domain(inc_cod), psi)
 end
 
