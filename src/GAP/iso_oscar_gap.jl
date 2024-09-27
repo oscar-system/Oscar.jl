@@ -64,7 +64,7 @@ function _make_prime_field_functions(FO, FG)
    e = GAPWrap.One(FG)
 
    f = function(x)
-     y = GAP.julia_to_gap(_ffe_to_int(x))::GapInt
+     y = GapObj(_ffe_to_int(x))::GapInt
      return y*e
    end
 
@@ -391,7 +391,7 @@ end
 
 # Assume that `FO` is a `QQAbField` and `FG` is `GAP.Globals.Cyclotomics`.
 function _iso_oscar_gap_abelian_closure_functions(FO::QQAbField, FG::GapObj)
-   return (GAP.julia_to_gap, QQAbFieldElem)
+   return (GapObj, QQAbFieldElem)
 end
 
 function _iso_oscar_gap(FO::QQAbField)
