@@ -179,7 +179,7 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
-    S, (_psi, _old_gens) = polynomial_ring(QQ, [:_psi; symbols(R)]; cached = false)
+    S, (_psi, _old_gens) = polynomial_ring(QQ, [:_psi], symbols(R); cached = false)
     ring_map = hom(R, S, _old_gens)
     poly_f = ring_map(f)
     poly_g = ring_map(g)
