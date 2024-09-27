@@ -64,7 +64,7 @@ end
 
 function rees_algebra(M::SubquoModule;
     check::Bool=true,
-    var_names::Vector{String}=[Symbol(:s, i) for i in 0:ngens(M)-1]
+    var_names::Vector{<:VarName}=[Symbol(:s, i) for i in 0:ngens(M)-1]
   )
   success, p, sigma = is_projective(M)
   if success

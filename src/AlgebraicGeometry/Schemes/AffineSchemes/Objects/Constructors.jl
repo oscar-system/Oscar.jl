@@ -169,7 +169,7 @@ Affine space of dimension 5
   over rational field
 with coordinates [x1, x2, x3, x4, x5]
 
-julia> affine_space(QQ,5,variable_name="y")
+julia> affine_space(QQ,5,variable_name="y#")
 Affine space of dimension 5
   over rational field
 with coordinates [y1, y2, y3, y4, y5]

@@ -362,7 +362,7 @@ end
 #  PW = projective_space(W, var_names)
 #  PWC = affine_cone(PW)
 #  prW = projection_to_base(PW)
-#  WA1, pW, pA = product(W, affine_space(base_ring(base_ring(OO(W))), 1, variable_name="t"))
+#  WA1, pW, pA = product(W, affine_space(base_ring(base_ring(OO(W))), 1, variable_name="t#"))
 #  t = pullback(pA)(OO(codomain(pA))(base_ring(OO(codomain(pA)))[1]))
 #  imgs = vcat((x->t*x).(pullback(pW).(gens(I))), pullback(pW).(gens(base_ring(OO(W)))))
 #  inner_phi = hom(base_ring(OO(PWC)), OO(WA1), imgs)
