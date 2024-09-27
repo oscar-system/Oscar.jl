@@ -18,7 +18,7 @@
 end
 
 @testset "strict transforms of cartier divisors" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
+  IP2 = projective_space(QQ, [:x, :y, :z])
   S = ambient_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, [x, y])
@@ -37,7 +37,7 @@ end
 end
 
 @testset "isomorphism on complement of center" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(S)
   II = IdealSheaf(P, [x, y])

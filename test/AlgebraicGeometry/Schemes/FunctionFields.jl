@@ -119,7 +119,7 @@ end
 end
 
 @testset "pullbacks for function fields" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   (x, y, z) = gens(homogeneous_coordinate_ring(P))
   Y = covered_scheme(P)
   II = ideal_sheaf(P, [x,y])
@@ -143,7 +143,7 @@ end
 end
 
 @testset "refinements" begin
-  P = projective_space(QQ, ["x", "y", "z"])
+  P = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(P)
   (x, y, z) = gens(S)
   Y = covered_scheme(P)
