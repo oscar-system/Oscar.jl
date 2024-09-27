@@ -71,7 +71,7 @@ end
 
   E = direct_sum([O4, O6, O1])
 
-  X_proj = projectivization(E, var_names=["x", "y", "z"])
+  X_proj = projectivization(E, var_names=[:x, :y, :z])
 
   X = covered_scheme(X_proj)
 

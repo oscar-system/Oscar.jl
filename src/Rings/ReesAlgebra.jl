@@ -13,9 +13,9 @@ module ``F`` this computes the Rees algebra of ``M`` according to
 [EHU03](@cite)[^2].
 
 !!! note If `check` is set to `true`, the method will check the sufficient
-criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
-Since no general criterion is known, this will abort with an error message
-in the non-affirmative case.
+         criterion "``fᵀ : F* → M*`` surjective" to verify that ``f`` is versal.
+         Since no general criterion is known, this will abort with an error message
+         in the non-affirmative case.
 
 [^1]: A morphism of ``M`` into a free module ``F`` as above is called versal if any other morphism ``g : M → F'`` from ``M`` to another free module ``F'`` factors through ``f``.
 
@@ -23,7 +23,7 @@ in the non-affirmative case.
 """
 function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
     check::Bool=true,
-    var_names::Vector{String}=["s$i" for i in 0:ngens(domain(f))-1]
+    var_names::Vector{String}=[Symbol(:s, i) for i in 0:ngens(domain(f))-1]
   )
   if check
     f_dual = dual(f)
@@ -53,7 +53,8 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
 end
 
 function rees_algebra(M::FreeMod;
-    var_names::Vector{String}=["s$i" for i in 0:ngens(M)-1]
+    check::Bool=true,
+    var_names::Vector{<:VarName}=[Symbol(:s, i) for i in 0:ngens(M)-1]
   )
   R = base_ring(M)
   r = rank(M)
@@ -62,8 +63,8 @@ function rees_algebra(M::FreeMod;
 end
 
 function rees_algebra(M::SubquoModule;
-    var_names::Vector{String}=["s$i" for i in 0:ngens(M)-1],
-    check::Bool=true
+    check::Bool=true,
+    var_names::Vector{String}=[Symbol(:s, i) for i in 0:ngens(M)-1]
   )
   success, p, sigma = is_projective(M)
   if success
