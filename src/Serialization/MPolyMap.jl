@@ -34,6 +34,7 @@ _check_whether_this_is_admissible_serialization(::Type{CMType}, ::Type{Serialize
 _check_whether_this_is_admissible_serialization(::Type{Nothing}, ::Type{SerializeParam}) where {SerializeParam <: OscarSerializer} = true
 # TODO This list can be extended for more types of coefficient maps if needed
 _check_whether_this_is_admissible_serialization(::Type{CMType}, ::Type{SerializeParam}) where {CMType, SerializeParam <: IPCSerializer} = true
+_check_whether_this_is_admissible_serialization(::Type{Nothing}, ::Type{SerializeParam}) where {SerializeParam <: IPCSerializer} = true
 
 function load_object(s::DeserializerState, ::Type{<:MPolyAnyMap},
     params::Tuple{<:Union{<:MPolyRing, <:MPolyQuoRing}, <:Ring}
