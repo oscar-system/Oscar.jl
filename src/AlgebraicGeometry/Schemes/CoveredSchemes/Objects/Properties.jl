@@ -242,6 +242,7 @@ function has_locally_constant_corank_parallel(
     #@show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
     U = powers_of_element(lifted_numerator(A[i, j]))
     focus = ideal(R, foc_eqns)
+    focus = ideal(R, small_generating_set(focus)) # keep the data small
     #@show is_one(focus)
     is_one(focus) && break
     Q, pr = quo(R, focus)
@@ -257,6 +258,7 @@ function has_locally_constant_corank_parallel(
     help_map = x->L(lifted_numerator(x), lifted_denominator(x); check=false)
     LA = map_entries(help_map, tmp)
     simplification && (LA = map_entries(simp_map, tmp2))
+    LA = map_entries(_simplify, LA) # keep the data to be sent small
     u = LA[i, j]
     #multiply_row!(LA, inv(LA[i, j]), i)
     for k in 1:m
@@ -299,6 +301,11 @@ function has_locally_constant_corank_parallel(
 end
 
 _helper_func(dat) = has_locally_constant_corank(dat[1]; upper_bound=dat[2], jacobian_cut_off=dat[3])
+_simplify(a::MPolyRingElem) = a
+_simplify(a::MPolyLocRingElem) = a
+_simplify(a::MPolyQuoRingElem) = simplify(a)
+_simplify(a::MPolyQuoLocRingElem) = parent(a)(lift(simplify(numerator(a))), lifted_denominator(a); check=false)
+
 
 function has_locally_constant_corank(
     A::MatrixElem;
@@ -426,7 +433,7 @@ function has_locally_constant_corank(
     push!(foc_eqns, A[i, j])
     A[i, j] = zero(R)
   end
-  return true, [(ideal(R, elem_type(R)[R(g) for g in gens(I)]), k) for (I, k) in full_list]
+  return true, [(ideal(R, elem_type(R)[R(g) for g in small_generating_set(I)]), k) for (I, k) in full_list]
 end
 
 _non_zero_indices(c::SRow) = c.pos
