@@ -16,7 +16,7 @@ h = hypersurface_model(B3, ambient_space_of_fiber, [D1, D2, D3], p; completeness
   @test dim(base_space(h)) == dim(B3)
   @test fiber_ambient_space(h) == ambient_space_of_fiber
   @test is_smooth(fiber_ambient_space(h)) == false
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["x", "y", "z"]
+  @test symbols(cox_ring(fiber_ambient_space(h))) == [:x, :y, :z]
   @test toric_variety(calabi_yau_hypersurface(h)) == ambient_space(h)
   @test is_base_space_fully_specified(h) == true
 end
@@ -102,7 +102,7 @@ end
   @test dim(base_space(h3)) == 2
   @test is_smooth(fiber_ambient_space(h3)) == false
   @test is_simplicial(fiber_ambient_space(h3)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h3)))] == ["u", "w", "v"]
+  @test symbols(cox_ring(fiber_ambient_space(h3))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h3) == true
   @test is_partially_resolved(h3) == false
 end
@@ -131,7 +131,7 @@ h4 = hypersurface_model(auxiliary_base_vars, auxiliary_base_grading, d, ambient_
   @test fiber_ambient_space(h4) == ambient_space_of_fiber_2
   @test is_smooth(fiber_ambient_space(h4)) == false
   @test is_simplicial(fiber_ambient_space(h4)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h4)))] == ["x", "y", "z"]
+  @test symbols(cox_ring(fiber_ambient_space(h4))) == [:x, :y, :z]
   @test is_base_space_fully_specified(h4) == false
   @test is_partially_resolved(h4) == false
 end
@@ -148,7 +148,7 @@ h5 = literature_model(arxiv_id = "1208.2695", equation = "B.5")
   @test dim(base_space(h5)) == 2
   @test is_smooth(fiber_ambient_space(h5)) == false
   @test is_simplicial(fiber_ambient_space(h5)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h5)))] == ["u", "w", "v"]
+  @test symbols(cox_ring(fiber_ambient_space(h5))) == [:u, :w, :v]
   @test is_base_space_fully_specified(h5) == false
   @test is_partially_resolved(h5) == false
 end

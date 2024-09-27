@@ -525,7 +525,7 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 
     # Extract base variable names
-    auxiliary_base_vars = [string(g) for g in gens(auxiliary_base_ring)]
+    auxiliary_base_vars = [string(g) for g in symbols(auxiliary_base_ring)]
 
     # Extract fiber ambient space
     rays = [[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_rays"]]

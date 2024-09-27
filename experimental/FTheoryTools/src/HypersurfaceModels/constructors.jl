@@ -53,8 +53,8 @@ end
 
 function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   # Consistency checks
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
+  gens_base_names = symbols(cox_ring(base))
+  gens_fiber_names = symbols(cox_ring(fiber_ambient_space))
   if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
