@@ -618,7 +618,7 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   inc_Y0 = inc_S
   I_sing_Y0 = AbsIdealSheaf[ideal_sheaf_of_singular_locus(Y0)]
   #I_sing_Y0 = AbsIdealSheaf[simplify(ideal_sheaf_of_singular_locus(Y0))]
-  I_sing_X0 = pushforward(inc_Y0).(I_sing_Y0)
+  I_sing_X0 = simplify.(pushforward(inc_Y0).(I_sing_Y0))
 
   # Prepare a covering which has a permanent weierstrass chart
   U0 = X0[1][1]
@@ -638,11 +638,11 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   projectionsY = AbsCoveredSchemeMorphism[]
   count = 0
 
-  @vprint :EllipticSurface 2 "Blowing up Weierstrass model\n"
+  @vprint :EllipticSurface 2 "Blowing up Weierstrass model simultaneously in all singular points\n"
   while true
     count = count+1
     @vprint :EllipticSurface 1 "blowup number: $(count)\n"
-    @vprint :EllipticSurface 1 "number of singular points: $(length(I_sing_X0))\n"
+    @vprint :EllipticSurface 1 "number of ideal sheaves to be blown up: $(length(I_sing_X0))\n"
     if length(I_sing_X0)==0
       # stop if smooth
       break
@@ -681,10 +681,10 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
     @vprint :EllipticSurface 2 "computing singular locus\n"
     I_sing_new = ideal_sheaf_of_singular_locus(Y1; focus=pullback(inc_Y1, ideal_sheaf(E1)))
     #I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
-    I_sing_new = pushforward(inc_Y1, I_sing_new)
+    I_sing_new = simplify(pushforward(inc_Y1, I_sing_new))
 
     @vprint :EllipticSurface 2 "decomposing singular locus\n"
-    I_sing_X0 = vcat(I_sing_X0, maximal_associated_points(I_sing_new))
+    !is_one(I_sing_new) && push!(I_sing_X0, I_sing_new)
 
     push!(projectionsX, pr_X1)
     push!(projectionsY, pr_Y1)
