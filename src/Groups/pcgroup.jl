@@ -365,3 +365,63 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+
+# Create an Oscar collector from a GAP collector.
+
+"""
+    collector([::Type{T} = ZZRingElem, ]G::PcGroup) where T <: IntegerUnion
+
+Return a collector object for `G`.
+
+# Examples
+```jldoctest
+julia> g = small_group(12, 3)
+Pc group of order 12
+
+julia> c = collector(g);
+
+julia> gc = pc_group(c)
+Pc group of order 12
+
+julia> is_isomorphic(g, gc)
+true
+```
+"""
+function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
+  Fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
+  GapC = GAP.getbangproperty(Fam, :rewritingSystem)::GapObj
+
+  n = GAP.getbangindex(GapC, 3)::Int
+  c = collector(n, T)
+
+  c.relorders = Vector{T}(GAP.getbangindex(GapC, 6)::GapObj)
+
+  Gap_powers = GAP.gap_to_julia(GAP.getbangindex(GapC, 7)::GapObj, recursive = false)
+  for i in 1:length(Gap_powers)
+    if Gap_powers[i] !== nothing
+      l = GAPWrap.ExtRepOfObj(Gap_powers[i])
+      c.powers[i] = Pair{Int,T}[l[k-1] => T(l[k]) for k in 2:2:length(l)]
+    end
+  end
+
+  Gap_conj = GAP.gap_to_julia(GAP.getbangindex(GapC, 8)::GapObj, recursive = false)
+  for i in 1:length(Gap_conj)
+    Gap_conj_i = GAP.gap_to_julia(Gap_conj[i]::GapObj, recursive = false)
+    for j in 1:length(Gap_conj_i)
+      if Gap_conj_i[j] !== nothing
+        l = GAPWrap.ExtRepOfObj(Gap_conj_i[j])
+        c.conjugates[j,i] = Pair{Int,T}[l[k-1] => T(l[k]) for k in 2:2:length(l)]
+      end
+    end
+  end
+
+# c.X = GapC
+# c.F = FPGroup(GAP.getbangproperty(GAP.getbangindex(GapC, 1)::GapObj, :freeGroup)::GapObj)
+#TODO: Set these known data.
+#      Currently this does not work because somehow `GroupByRws`
+#      requires a *mutable* GAP collector, and `GapC` is immutable.
+
+  return c
+end
+
+collector(G::PcGroup) = collector(ZZRingElem, G)
