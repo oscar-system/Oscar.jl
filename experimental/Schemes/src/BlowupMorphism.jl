@@ -240,7 +240,7 @@ function strict_transform(p::AbsSimpleBlowdownMorphism, inc::CoveredClosedEmbedd
   inc_cod_cov = covering_morphism(inc)
 
   Z_trans = domain(inc_Z_trans)
-  pr_res = restrict(projection(p), inc_Z_trans, inc)
+  pr_res = restrict(projection(p), inc_Z_trans, inc; check=false)
 
   if has_attribute(p, :isomorphism_on_open_subset) # will only happen when p is a BlowupMorphism
     OOX = OO(X)
