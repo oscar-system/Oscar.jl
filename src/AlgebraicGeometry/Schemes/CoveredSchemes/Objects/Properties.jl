@@ -189,6 +189,11 @@ function has_locally_constant_corank(
   is_zero(A) && return true, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
 
   R = base_ring(A)
+  if is_zero(ngens(R))
+    AA = map_entries(x->constant_coefficient(lifted_numerator(x))*inv(constant_coefficient(lifted_denominator(x))), A)
+    return true, [(ideal(R, elem_type(R)[]), ncols(A) - rank(AA))]
+  end
+
   if nrows(A) <= jacobian_cut_off || ncols(A) <= jacobian_cut_off
     for r in 1:jacobian_cut_off
       #@show r
@@ -249,10 +254,13 @@ function has_locally_constant_corank(
     #@show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
     U = powers_of_element(lifted_numerator(A[i, j]))
     focus = ideal(R, foc_eqns)
+    is_one(focus) && continue
     Q, pr = quo(R, focus)
     L, loc_map = localization(Q, U)
+    L_simp, simp_map, simp_map_inv = simplify(L)
     tmp = map_entries(pr, A)
-    LA = map_entries(loc_map, tmp)
+    tmp2 = map_entries(loc_map, tmp)
+    LA = map_entries(simp_map, tmp2)
     multiply_row!(LA, inv(LA[i, j]), i)
     for k in 1:m
       k == i && continue
@@ -263,7 +271,7 @@ function has_locally_constant_corank(
     res, list = has_locally_constant_corank(sub; upper_bound, jacobian_cut_off) 
     res || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
     for (J, k) in list
-      J_sat = saturated_ideal(J)
+      J_sat = saturated_ideal(simp_map_inv(J))
       caught = false
       for (K, r) in full_list
         !is_one(J_sat + K) && r != k && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
