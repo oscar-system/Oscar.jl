@@ -150,27 +150,27 @@ function is_smooth_parallel2(X::CoveredScheme)
 end
 
 function _is_smooth(U::AbsAffineScheme{<:Field, RT};
-    focus::Ideal
+    focus::Ideal = ideal(OO(U), elem_type(OO(U))[]),
+    jacobian_cut_off::Int=5
   ) where {RT <: MPolyRing}
   return true
 end
 
 function _is_smooth(U::AbsAffineScheme{<:Field, RT};
-    focus::Ideal
+    focus::Ideal = ideal(OO(U), elem_type(OO(U))[]),
+    jacobian_cut_off::Int=5
   ) where {RT <: MPolyLocRing}
   return true
 end
 
 function _is_smooth(U::AbsAffineScheme{<:Field, RT};
-    focus::Ideal = ideal(OO(U), elem_type(OO(U))[])
+    focus::Ideal = ideal(OO(U), elem_type(OO(U))[]),
+    jacobian_cut_off::Int=5
   ) where {RT <: Union{MPolyQuoRing, MPolyQuoLocRing}}
-  if is_known_to_be_irreducible(U) || true
-    g = gens(modulus(OO(U)))
-    Q, pr = quo(OO(U), focus)
-    A = map_entries(Q, jacobian_matrix(g))
-    return has_constant_rank(A)
-  end
-  return error("not implemented")
+  g = gens(modulus(OO(U)))
+  Q, pr = quo(OO(U), focus)
+  A = map_entries(Q, transpose(jacobian_matrix(g)))
+  return has_locally_constant_corank(A; jacobian_cut_off, upper_bound=dim(U))[1]
 end
 
 _complexity(a::RingElem) = 0
@@ -180,21 +180,42 @@ _complexity(a::MPolyLocRingElem) = length(numerator(a)) + length(denominator(a))
 _complexity(a::MPolyQuoLocRingElem) = length(lifted_numerator(a)) + length(lifted_denominator(a))
 
 
-function has_constant_rank(
-    A::MatrixElem
+function has_locally_constant_corank(
+    A::MatrixElem;
+    upper_bound::Union{Int, Nothing}=nothing,
+    jacobian_cut_off::Int=5
   )
-  @show size(A)
-  is_zero(A) && return true
+  #@show size(A)
+  is_zero(A) && return true, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
 
   R = base_ring(A)
-  bound = 3
-  if nrows(A) <= bound || ncols(A) <= bound
-    for r in 1:bound
-      @show r
+  if nrows(A) <= jacobian_cut_off || ncols(A) <= jacobian_cut_off
+    for r in 1:jacobian_cut_off
+      #@show r
+      #@show upper_bound
+      #@show ncols(A)
       I = ideal(R, minors(A, r))
+      if upper_bound !== nothing && ncols(A) - r + 1 > upper_bound 
+        is_one(I) || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+        continue
+      end
+      #@show is_one(I)
+      #@show is_zero(I)
       is_one(I) && continue
-      is_zero(I) && return true
-      return false
+      is_zero(I) && return true, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A) - r + 1)]
+      # It could still be the case that we have two disjoint components X and Y 
+      # on which A has different ranks. In this case, I will vanish on one of 
+      # the components, say X, while 0:I vanishes on Y. 
+      J = quotient(ideal(R, elem_type(R)[]), I)
+      is_one(I + J) || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]# components are not disjoint in this case
+      Q1, pr1 = quo(R, I)
+      res1, list1 = has_locally_constant_corank(map_entries(pr1, A); upper_bound, jacobian_cut_off)
+      res1 || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+
+      Q2, pr2 = quo(R, J)
+      res2, list2 = has_locally_constant_corank(map_entries(pr2, A); upper_bound, jacobian_cut_off)
+      return res2, vcat([(ideal(R, [preimage(pr1, g) for g in gens(I1)]) + I, k) for (I1, k) in list1],
+                        [(ideal(R, [preimage(pr2, g) for g in gens(I2)]) + J, k) for (I2, k) in list2])
     end
   end
       
@@ -202,17 +223,30 @@ function has_constant_rank(
   n = ncols(A)
   entry_list = elem_type(R)[A[i, j] for i in 1:m for j in 1:n]
   I = ideal(R, entry_list)
-  is_one(I) || return false
+  if !is_one(I) 
+    # It might still be the case that we have different ranks on different components; see above
+    J = quotient(ideal(R, elem_type(R)[]), I)
+    is_one(I + J) || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+    Q1, pr1 = quo(R, I)
+    res1, list1 = has_locally_constant_corank(map_entries(pr1, A); upper_bound, jacobian_cut_off)
+    res1 || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+
+    Q2, pr2 = quo(R, J)
+    res2, list2 = has_locally_constant_corank(map_entries(pr2, A); upper_bound, jacobian_cut_off)
+    return res2, vcat([(ideal(R, [R(g) for g in gens(saturated_ideal(I1))]) + I, k) for (I1, k) in list1],
+                      [(ideal(R, [R(g) for g in gens(saturated_ideal(I2))]) + J, k) for (I2, k) in list2])
+  end
   c = coordinates(one(R), I)
   ind = _non_zero_indices(c)
   ind_with_comp = [(k, _complexity(c[ind[k]])) for k in 1:length(ind)]
   sort!(ind_with_comp; by=p->p[2])
   ind = [ind[k] for k in first.(ind_with_comp)]
-  @show length(ind)
+  #@show length(ind)
   ind_pairs = [(div(k-1, n)+1, mod(k-1, n)+1) for k in ind]
   foc_eqns = elem_type(R)[]
+  full_list = Vector{Tuple{Ideal, Int}}()
   for (i, j) in ind_pairs
-    @show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
+    #@show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
     U = powers_of_element(lifted_numerator(A[i, j]))
     focus = ideal(R, foc_eqns)
     Q, pr = quo(R, focus)
@@ -226,11 +260,24 @@ function has_constant_rank(
     end
     sub = hcat(vcat(LA[1:i-1, 1:j-1], LA[i+1:m, 1:j-1]),
                vcat(LA[1:i-1, j+1:n], LA[i+1:m, j+1:n]))
-    @time res = has_constant_rank(sub) 
-    res || return false
+    res, list = has_locally_constant_corank(sub; upper_bound, jacobian_cut_off) 
+    res || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+    for (J, k) in list
+      J_sat = saturated_ideal(J)
+      caught = false
+      for (K, r) in full_list
+        !is_one(J_sat + K) && r != k && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+        if all(radical_membership(g, K) for g in gens(J_sat))
+          caught = true
+          break
+        end
+      end
+      !caught && push!(full_list, (J_sat, k))
+    end
     push!(foc_eqns, A[i, j])
+    A[i, j] = zero(R)
   end
-  return true
+  return true, [(ideal(R, elem_type(R)[R(g) for g in gens(I)]), k) for (I, k) in full_list]
 end
 
 _non_zero_indices(c::SRow) = c.pos
