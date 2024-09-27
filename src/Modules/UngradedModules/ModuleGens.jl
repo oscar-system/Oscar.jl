@@ -283,9 +283,6 @@ function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   return FreeModElem(sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache]), F)
 end
 
-# TODO: move this eventually
-length(s::Singular.svector) = Int(Singular.libSingular.pLength(s.ptr))
-
 function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
   Qx = base_ring(F)::MPolyQuoRing
   Rx = base_ring(Qx)::MPolyRing
