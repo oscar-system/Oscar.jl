@@ -23,7 +23,7 @@ module ``F`` this computes the Rees algebra of ``M`` according to
 """
 function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
     check::Bool=true,
-    var_names::Vector{String}=[Symbol(:s, i) for i in 0:ngens(domain(f))-1]
+    var_names::Vector{<:VarName}=[Symbol(:s, i) for i in 0:ngens(domain(f))-1]
   )
   if check
     f_dual = dual(f)

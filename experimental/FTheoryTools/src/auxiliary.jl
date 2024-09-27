@@ -179,7 +179,7 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
-    S, (_psi, _old_gens) = polynomial_ring(QQ, [:_psi], symbols(R); cached = false)
+    S, (_psi,), _old_gens = polynomial_ring(QQ, [:_psi], symbols(R); cached = false)
     ring_map = hom(R, S, _old_gens)
     poly_f = ring_map(f)
     poly_g = ring_map(g)
@@ -211,12 +211,12 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
       # Choose explicit sections for all parameters of the model,
       # and then put the model over the concrete base using these data
-      concrete_data = merge(Dict(base_coords_symbols[i] => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
+      concrete_data = merge(Dict(string(base_coords_symbols[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
       w = put_over_concrete_base(w, concrete_data)
 
       # We also need to determine the gauge locus over the new base
       # by using the explicit forms of all of the sections chosen above
-      list_of_sections = [concrete_data[base_coords_symbols[i]] for i in eachindex(base_coords_symbols)]
+      list_of_sections = [concrete_data[string(base_coords_symbols[i])] for i in eachindex(base_coords_symbols)]
       id = ideal([evaluate(p, list_of_sections) for p in gens(id)])
     end
 
@@ -490,8 +490,8 @@ end
 function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
   _e = gen(S, index_of_new_ray(bd))
-  g_list = symbols(S)
-  g_center = symbols(ideal_in_cox_ring(center_unnormalized(bd)))
+  g_list = string.(symbols(S))
+  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
   pos_of_e = findfirst(==(string(_e)), g_list)
   C = MPolyBuildCtx(S)
