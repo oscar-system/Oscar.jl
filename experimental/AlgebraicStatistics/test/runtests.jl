@@ -16,6 +16,7 @@ end
 @testset "Graphical Models tests" begin
 
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
+  group_based_components = [number_states, probability_ring, root_distribution, transition_matrices, fourier_ring, fourier_parameters, group_of_model]
 
   @testset "cavender_farris_neyman_model" begin
     model = cavender_farris_neyman_model(tree)         
@@ -43,8 +44,10 @@ end
     # serialization working? 
     mktempdir() do path 
       test_save_load_roundtrip(path, model) do loaded
-        @test model == loaded
-        @test probability_map(model) == probability_map(loaded) 
+        for component in group_based_components
+          @test component(model) == component(loaded)
+          @test incidence_matrix(graph(model)) == incidence_matrix(graph(loaded))
+        end
       end
     end
   end
@@ -76,8 +79,10 @@ end
     # serialization working? 
     mktempdir() do path 
       test_save_load_roundtrip(path, model) do loaded
-        @test model == loaded
-        @test probability_map(model) == probability_map(loaded) 
+        for component in group_based_components
+          @test component(model) == component(loaded)
+          @test incidence_matrix(graph(model)) == incidence_matrix(graph(loaded))
+        end
       end
     end
   end
@@ -109,8 +114,10 @@ end
     # serialization working? 
     mktempdir() do path 
       test_save_load_roundtrip(path, model) do loaded
-        @test model == loaded
-        @test probability_map(model) == probability_map(loaded) 
+        for component in group_based_components
+          @test component(model) == component(loaded)
+          @test incidence_matrix(graph(model)) == incidence_matrix(graph(loaded))
+        end
       end
     end
   end
@@ -142,8 +149,10 @@ end
     # serialization working? 
     mktempdir() do path 
       test_save_load_roundtrip(path, model) do loaded
-        @test model == loaded
-        @test probability_map(model) == probability_map(loaded) 
+        for component in group_based_components
+          @test component(model) == component(loaded)
+          @test incidence_matrix(graph(model)) == incidence_matrix(graph(loaded))
+        end
       end
     end
   end
@@ -166,10 +175,13 @@ end
     # generators of the polynomial ring
     @test length(gens(model.prob_ring)) == 148 
     # serialization working? 
+    gmm_components = [number_states, probability_ring, root_distribution, transition_matrices]
     mktempdir() do path 
       test_save_load_roundtrip(path, model) do loaded
-        @test model == loaded
-        @test probability_map(model) == probability_map(loaded) 
+        for component in gmm_components
+          @test component(model) == component(loaded)
+          @test incidence_matrix(graph(model)) == incidence_matrix(graph(loaded))
+        end
       end
     end
   end
