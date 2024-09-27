@@ -236,26 +236,37 @@ function has_locally_constant_corank_parallel(
   full_list = Vector{Tuple{Ideal, Int}}()
   data = Tuple[]
   maps = Tuple[]
+  simplification = false
   for (i, j) in ind_pairs
+    simplification = false
     #@show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
     U = powers_of_element(lifted_numerator(A[i, j]))
     focus = ideal(R, foc_eqns)
     #@show is_one(focus)
-    is_one(focus) && continue
+    is_one(focus) && break
     Q, pr = quo(R, focus)
     L, loc_map = localization(Q, U)
     L_simp, simp_map, simp_map_inv = simplify(L)
+    if ngens(L_simp) < ngens(L) 
+      simplification = true
+      push!(maps, (simp_map, simp_map_inv))
+    else
+      push!(maps, (nothing, nothing))
+    end
     tmp = map_entries(pr, A)
-    tmp2 = map_entries(loc_map, tmp)
-    LA = map_entries(simp_map, tmp2)
-    multiply_row!(LA, inv(LA[i, j]), i)
+    help_map = x->L(lifted_numerator(x), lifted_denominator(x); check=false)
+    LA = map_entries(help_map, tmp)
+    simplification && (LA = map_entries(simp_map, tmp2))
+    u = LA[i, j]
+    #multiply_row!(LA, inv(LA[i, j]), i)
     for k in 1:m
       k == i && continue
-      add_row!(LA, -LA[k, j], i, k)
+      c = -LA[k, j]
+      multiply_row!(LA, u, k)
+      add_row!(LA, c, i, k)
     end
     sub = hcat(vcat(LA[1:i-1, 1:j-1], LA[i+1:m, 1:j-1]),
                vcat(LA[1:i-1, j+1:n], LA[i+1:m, j+1:n]))
-    push!(maps, (simp_map, simp_map_inv))
     push!(data, (LA, upper_bound, jacobian_cut_off))
     push!(foc_eqns, A[i, j])
     A[i, j] = zero(R)
@@ -271,10 +282,11 @@ function has_locally_constant_corank_parallel(
     !success && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
     for (J, k) in list
       simp_map_inv = maps[i][2]
-      J_sat = saturated_ideal(simp_map_inv(J))
+      JJ = simp_map_inv !== nothing ? simp_map_inv(J) : J
+      J_sat = saturated_ideal(JJ)
       caught = false
       for (K, r) in full_list
-        !is_one(J_sat + K) && r != k && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+        r != k && !is_one(J_sat + K) && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
         if all(radical_membership(g, K) for g in gens(J_sat))
           caught = true
           break
@@ -294,7 +306,9 @@ function has_locally_constant_corank(
     jacobian_cut_off::Int=5
   )
   #@show size(A)
+  @show "checking for zero matrix..."
   is_zero(A) && return true, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+  @show "done checking for zero matrix"
 
   R = base_ring(A)
   if is_zero(ngens(R))
@@ -303,19 +317,27 @@ function has_locally_constant_corank(
   end
 
   if nrows(A) <= jacobian_cut_off || ncols(A) <= jacobian_cut_off
-    for r in 1:jacobian_cut_off
+    # use the jacobian criterion
+    r0 = upper_bound === nothing ? 1 : ncols(A) - upper_bound
+    for r in r0:jacobian_cut_off
       #@show r
       #@show upper_bound
       #@show ncols(A)
+      @show "computing minors..."
       I = ideal(R, minors(A, r))
+      @show "done computing minors"
       if upper_bound !== nothing && ncols(A) - r + 1 > upper_bound 
         is_one(I) || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
         continue
       end
       #@show is_one(I)
       #@show is_zero(I)
+      @show "checking triviality..."
       is_one(I) && continue
+      @show "done checking triviality"
+      @show "reducing generators..."
       is_zero(I) && return true, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A) - r + 1)]
+      @show "done reducing generators..."
       # It could still be the case that we have two disjoint components X and Y 
       # on which A has different ranks. In this case, I will vanish on one of 
       # the components, say X, while 0:I vanishes on Y. 
@@ -349,7 +371,9 @@ function has_locally_constant_corank(
     return res2, vcat([(ideal(R, [R(g) for g in gens(saturated_ideal(I1))]) + I, k) for (I1, k) in list1],
                       [(ideal(R, [R(g) for g in gens(saturated_ideal(I2))]) + J, k) for (I2, k) in list2])
   end
+  @show "computing coordinates..."
   c = coordinates(one(R), I)
+  @show "done computing coordinates"
   ind = _non_zero_indices(c)
   ind_with_comp = [(k, _complexity(c[ind[k]])) for k in 1:length(ind)]
   sort!(ind_with_comp; by=p->p[2])
@@ -358,17 +382,23 @@ function has_locally_constant_corank(
   ind_pairs = [(div(k-1, n)+1, mod(k-1, n)+1) for k in ind]
   foc_eqns = elem_type(R)[]
   full_list = Vector{Tuple{Ideal, Int}}()
+  simplification = false
   for (i, j) in ind_pairs
-    #@show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
+    simplification = false
+    @show "$(length(foc_eqns)+1)-th entry at ($i, $j) out of $(length(ind_pairs))"
     U = powers_of_element(lifted_numerator(A[i, j]))
     focus = ideal(R, foc_eqns)
-    is_one(focus) && continue
+    is_one(focus) && break
+    @show "preparing sub-matrix..."
     Q, pr = quo(R, focus)
     L, loc_map = localization(Q, U)
     L_simp, simp_map, simp_map_inv = simplify(L)
+    @show ngens(L_simp) < ngens(L)
+    ngens(L_simp) < ngens(L) && (simplification = true)
     tmp = map_entries(pr, A)
-    tmp2 = map_entries(loc_map, tmp)
-    LA = map_entries(simp_map, tmp2)
+    help_map = x->L(lifted_numerator(x), lifted_denominator(x); check=false)
+    LA = map_entries(help_map, tmp)
+    simplification && (LA = map_entries(simp_map, tmp2))
     multiply_row!(LA, inv(LA[i, j]), i)
     for k in 1:m
       k == i && continue
@@ -376,13 +406,16 @@ function has_locally_constant_corank(
     end
     sub = hcat(vcat(LA[1:i-1, 1:j-1], LA[i+1:m, 1:j-1]),
                vcat(LA[1:i-1, j+1:n], LA[i+1:m, j+1:n]))
+    @show "done preparing sub-matrix"
     res, list = has_locally_constant_corank(sub; upper_bound, jacobian_cut_off) 
+    @show "done with recursive call"
     res || return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
     for (J, k) in list
-      J_sat = saturated_ideal(simp_map_inv(J))
+      JJ = simplification ? simp_map_inv(J) : J
+      J_sat = saturated_ideal(JJ)
       caught = false
       for (K, r) in full_list
-        !is_one(J_sat + K) && r != k && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
+        r != k && !is_one(J_sat + K) && return false, [(ideal(base_ring(A), elem_type(base_ring(A))[]), ncols(A))]
         if all(radical_membership(g, K) for g in gens(J_sat))
           caught = true
           break
@@ -605,3 +638,38 @@ Return the boolean value whether a covered scheme `X` is irreducible.
   v=findall(!is_empty, affine_charts(X))  ## only check non-empty patches
   return all(is_irreducible(affine_charts(X)[v[i]]) for i in 1:length(v) )
 end
+
+# Overwrite computations of determinants as to avoid massive is_zero checks
+# and slow arithmetic.
+function det(A::MatrixElem{<:MPolyQuoRingElem})
+  AA = map_entries(lift, A)
+  @assert base_ring(AA) isa MPolyRing
+  res = det(AA)
+  return base_ring(A)(res; check=false)
+end
+
+function det(A::MatrixElem{<:MPolyQuoLocRingElem})
+  if all(is_one(lifted_denominator(x)) for x in A)
+    AAA = map_entries(lifted_numerator, A)
+    res = det(AAA)
+    return base_ring(A)(res; check=false)
+  end
+
+  AA = map_entries(fraction, A)
+  res = det(AA)
+  return base_ring(A)(res; check=false)
+end
+
+function det(A::MatrixElem{<:MPolyLocRingElem})
+  if all(is_one(denominator(x)) for x in A)
+    AAA = map_entries(numerator, A)
+    res = det(AAA)
+    return base_ring(A)(res; check=false)
+  end
+
+  AA = map_entries(fraction, A)
+  res = det(AA)
+  return base_ring(A)(res; check=false)
+end
+
+
