@@ -1146,7 +1146,7 @@ function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRE
 end
 
 function *(a::BRET, b::MPolyLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
-  return (parent(b))(a*numerator(b), denominator(b), check=false)
+  return (parent(b))(a*fraction(b), check=false)
 end
 
 function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}
