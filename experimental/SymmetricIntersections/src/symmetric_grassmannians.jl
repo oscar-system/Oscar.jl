@@ -92,7 +92,7 @@ function defining_ideal(M::IsotGrass)
     return defining_ideal(projective_space(F, binomial(n, t)-1))
   end
   t = cd[1]
-  S, _ = graded_polynomial_ring(F, String["x[$j]" for j in 0:binomial(n, t)-1])
+  S, _ = graded_polynomial_ring(F, :x => 0:binomial(n, t)-1)
   return grassmann_pluecker_ideal(S, t, n)
 end
 

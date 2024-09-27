@@ -244,7 +244,7 @@ function restriction_map(
   # the terms accordingly, we derive the desired expressions for the cᵢ's.
   #W = localized_ring(OO(Y))
   W = OO(Y)
-  S, t = polynomial_ring(W, ["t$i" for i in 1:r]; cached=false)
+  S, t = polynomial_ring(W, "t#" => 1:r; cached=false)
   ta = length(a) == 0 ? zero(S) : sum([t*a for (t, a) in zip(t, a)])
   function mysecondmap(f::AffineSchemeOpenSubschemeRingElem)
     sep = [pull_from_denominator(f[i], d[i]) for i in 1:r]

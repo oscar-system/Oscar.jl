@@ -156,7 +156,7 @@ Base.deepcopy_internal(X::AffineScheme, dict::IdDict) = AffineScheme(deepcopy_in
 ########################################################
 
 @doc raw"""
-    affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
+    affine_space(kk::BRT, n::Int; variable_name::VarName="x#") where {BRT<:Ring}
 
 The ``n``-dimensional affine space over a ring ``kk`` is created
 by this method. By default, the variable names are chosen as `x1`, `x2`
@@ -175,8 +175,8 @@ Affine space of dimension 5
 with coordinates [y1, y2, y3, y4, y5]
 ```
 """
-function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Ring}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached=false)
+function affine_space(kk::BRT, n::Int; variable_name::VarName="x#") where {BRT<:Ring}
+  R, _ = polynomial_ring(kk, variable_name => 1:n; cached=false)
   return spec(R)
 end
 
@@ -211,8 +211,8 @@ function affine_space(kk::BRT, var_names::AbstractVector{<:VarName}) where {BRT<
   return spec(R)
 end
 
-function affine_space(kk::BRT, n::Int; variable_name="x") where {BRT<:Field}
-  R, _ = polynomial_ring(kk, [variable_name * "$i" for i in 1:n]; cached=false)
+function affine_space(kk::BRT, n::Int; variable_name::VarName="x#") where {BRT<:Field}
+  R, _ = polynomial_ring(kk, variable_name => 1:n; cached=false)
   return variety(spec(R), check=false)
 end
 

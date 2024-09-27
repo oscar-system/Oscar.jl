@@ -348,8 +348,7 @@ function _extension_with_tower_basis(
   end
   push!(lcoeffs, one(K))
   pmat = identity_matrix(K, Int(deg))
-  vname = "x" * string(deg)
-  L, X = Native.finite_field(polynomial(K, lcoeffs), vname)
+  L, X = Native.finite_field(polynomial(K, lcoeffs), Symbol(:x, deg))
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 
@@ -439,8 +438,7 @@ function _extension_with_tower_basis(
   # Now p is the minimal polynomial over F
   # pmat gives the primitive powers in the tower basis for the new extension
 
-  vname = "x" * string(d)
-  L, X = Native.finite_field(polynomial(F, poly), vname)
+  L, X = Native.finite_field(polynomial(F, poly), Symbol(:x, d))
   set_standard_finite_field!(L)
   set_primitive_powers_in_tower_basis!(L, pmat)
 

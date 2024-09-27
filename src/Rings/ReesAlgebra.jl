@@ -40,7 +40,7 @@ function rees_algebra(f::ModuleFPHom{<:ModuleFP, <:FreeMod, Nothing};
   r = rank(FM)
   r == length(var_names) || error("wrong number of variable names given")
   sym_FM, s = polynomial_ring(R, Symbol.(var_names); cached = false)
-  sym_F, t = polynomial_ring(R, [Symbol("t$i") for i in 1:rank(F)]; cached = false)
+  sym_F, t = polynomial_ring(R, "t#" => 1:rank(F); cached = false)
   imgs = Vector{elem_type(sym_F)}()
   for v in gens(FM)
     w = coordinates(f(p(v)))

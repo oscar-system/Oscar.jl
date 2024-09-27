@@ -198,7 +198,7 @@ function multi_hilbert_series_parent(S::MPolyDecRing)
   if !isdefined(S, :multi_hilbert_series_parent)
     G = grading_group(S)
     m = ngens(G)
-    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : [Symbol("t[$i]") for i in 1:m]); cached=false)[1]
+    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : (:t => 1:m)); cached=false)[1]
   end
   return S.multi_hilbert_series_parent
 end

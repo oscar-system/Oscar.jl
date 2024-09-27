@@ -297,7 +297,7 @@ end
 
   @test custom == gcd == generator == cocoa == indeterminate
 
-  R, x = polynomial_ring(QQ, ["x$i" for i in 1:5])
+  R, x = polynomial_ring(QQ, :x => 1:5)
   P, _ = grade(R)
   I = ideal(P, [prod([x[i]^e[i] for i in 1:length(x)]) for e in g])
   Q, _ = quo(P, I)
@@ -306,7 +306,7 @@ end
   @test evaluate(sing[1], gens(parent(cocoa))[1]) == cocoa
 
   W = [1 1 1 1 1; 2 5 3 4 1; 9 2 -3 5 0]
-  S, _ = laurent_polynomial_ring(QQ, ["t₁", "t₂", "t₃"])
+  S, _ = laurent_polynomial_ring(QQ, :t => 1:3)
   custom = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :custom)
   gcd = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :gcd)
   generator = Oscar._hilbert_numerator_from_leading_exponents(g, W, S, :generator)
@@ -469,7 +469,7 @@ end
   # It is easy to honogenize a principal ideal: just homogenize the gen!
   # Do not really need lots of vars; just a "large" single polynomial
   LotsOfVars = 250;
-  Rbig, v = polynomial_ring(GF(32003), ["v$k"  for k in 1:LotsOfVars]);
+  Rbig, v = polynomial_ring(GF(32003), :v => 1:LotsOfVars);
   WW1 = ones(Int64, 1,LotsOfVars);                               # std graded
   WW2 = Matrix{Int64}(reshape(1:LotsOfVars, (1,LotsOfVars)));    # positive graded
   WW3 = Matrix{Int64}(reshape([(is_prime(k)) ? 0 : 1  for k in 1:LotsOfVars], (1,LotsOfVars))); # non-neg graded

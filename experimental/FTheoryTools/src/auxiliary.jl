@@ -179,8 +179,8 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
-    S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
-    ring_map = hom(R, S, gens(S)[2:end])
+    S, (_psi, _old_gens) = polynomial_ring(QQ, [:_psi; symbols(R)]; cached = false)
+    ring_map = hom(R, S, _old_gens)
     poly_f = ring_map(f)
     poly_g = ring_map(g)
     locus = ring_map(gens(id)[1])
@@ -315,7 +315,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
   lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
   
   # Create new base ring for the blown up ideal and a map between the rings
-  S, S_gens = polynomial_ring(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
+  S, S_gens = polynomial_ring(QQ, [Symbol("e_", index); [Symbol("b_", index, "_", i) for i in 1:center_size]; symbols(R)], cached = false)
   (_e, new_coords...) = S_gens[1:center_size + 1]
   ring_map = hom(R, S, S_gens[center_size + 2:end])
   
