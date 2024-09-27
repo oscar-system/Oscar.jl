@@ -2,12 +2,12 @@
     AbsDesingMor{
                                   DomainType<:AbsCoveredScheme,
                                   CodomainType<:AbsCoveredScheme,
-                                  BlowdownMorphismType
+                                  BlowupMorphismType
        } <: AbsCoveredSchemeMorphism{
                                  DomainType,
                                  CodomainType,
                                  Nothing,
-                                 BlowdownMorphismType
+                                 BlowupMorphismType
                                 }
 Abstract type for desingularizations ``f : X -> Y `` of schemes where
 
@@ -19,35 +19,35 @@ Abstract type for desingularizations ``f : X -> Y `` of schemes where
 abstract type AbsDesingMor{
                            DomainType<:AbsCoveredScheme,
                            CodomainType<:AbsCoveredScheme,
-                           BlowdownMorphismType
+                           BlowupMorphismType
                           } <: AbsCoveredSchemeMorphism{
                                                         DomainType,
                                                         CodomainType,
                                                         Nothing,
-                                                        BlowdownMorphismType
+                                                        BlowupMorphismType
                                                        }
 end
 
 ########################################################################
-# An abstract type for blowdown morphisms.
+# An abstract type for blowup morphisms.
 #
 # This should also comprise sequences of simple blowups leading
 # to a partial or full resolution of singularities. The interface
 # is specified below.
 ########################################################################
-abstract type AbsBlowdownMorphism{DomainType<:AbsCoveredScheme,
+abstract type AbsBlowupMorphism{DomainType<:AbsCoveredScheme,
                                   CodomainType<:AbsCoveredScheme,
-                                  BlowdownMorphismType
-                                 } <: AbsDesingMor{DomainType, CodomainType, BlowdownMorphismType}
+                                  BlowupMorphismType
+                                 } <: AbsDesingMor{DomainType, CodomainType, BlowupMorphismType}
 end
 
-abstract type AbsSimpleBlowdownMorphism{DomainType<:AbsCoveredScheme,
+abstract type AbsSimpleBlowupMorphism{DomainType<:AbsCoveredScheme,
                                      CodomainType<:AbsCoveredScheme,
-                                     BlowdownMorphismType
-    } <: AbsBlowdownMorphism{
+                                     BlowupMorphismType
+    } <: AbsBlowupMorphism{
                              DomainType,
                              CodomainType,
-                             BlowdownMorphismType
+                             BlowupMorphismType
                             }
 end
 
@@ -126,7 +126,7 @@ with restriction
 @attributes mutable struct BlowupMorphism{
      DomainType<:AbsCoveredScheme, # Not a concrete type in general because this is lazy
      CodomainType<:AbsCoveredScheme,
-   } <: AbsSimpleBlowdownMorphism{
+   } <: AbsSimpleBlowupMorphism{
                                   DomainType,
                                   CodomainType,
                                   BlowupMorphism{DomainType, CodomainType}
@@ -166,7 +166,7 @@ end
 @attributes mutable struct BlowUpSequence{
                                           DomainType<:AbsCoveredScheme,
                                           CodomainType<:AbsCoveredScheme
-                                         }<:AbsBlowdownMorphism{
+                                         }<:AbsBlowupMorphism{
                                                                 DomainType, CodomainType, 
                                                                 BlowUpSequence{DomainType, CodomainType}
                                                                }
@@ -224,12 +224,12 @@ end
                                                                        SpaceType, OpenType,
                                                                        OutputType, RestrictionType
                                                                       }
-  morphism::AbsSimpleBlowdownMorphism
+  morphism::AbsSimpleBlowupMorphism
   orig::AbsIdealSheaf
   underlying_presheaf::AbsPreSheaf
 
   function StrictTransformIdealSheaf(
-      f::AbsSimpleBlowdownMorphism,
+      f::AbsSimpleBlowupMorphism,
       J::AbsIdealSheaf
     )
     @assert scheme(J) === codomain(f)
