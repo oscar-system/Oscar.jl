@@ -66,23 +66,23 @@ blow_up(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_na
 ## Attributes
 
 ```@docs
-underlying_morphism(bl::ToricBlowdownMorphism)
-index_of_new_ray(bl::ToricBlowdownMorphism)
-center_data(bl::ToricBlowdownMorphism)
-center_unnormalized(bl::ToricBlowdownMorphism)
-exceptional_prime_divisor(bl::ToricBlowdownMorphism)
+underlying_morphism(bl::ToricBlowupMorphism)
+index_of_new_ray(bl::ToricBlowupMorphism)
+center_data(bl::ToricBlowupMorphism)
+center_unnormalized(bl::ToricBlowupMorphism)
+exceptional_prime_divisor(bl::ToricBlowupMorphism)
 ```
 Based on `underlying_morphism`, also the following attributes of toric
 morphisms are supported for toric blowups:
-- `grid_morphism(bl::ToricBlowdownMorphism)`,
-- `morphism_on_torusinvariant_weil_divisor_group(bl::ToricBlowdownMorphism)`,
-- `morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowdownMorphism)`,
-- `morphism_on_class_group(bl::ToricBlowdownMorphism)`,
-- `morphism_on_picard_group(bl::ToricBlowdownMorphism)`.
+- `grid_morphism(bl::ToricBlowupMorphism)`,
+- `morphism_on_torusinvariant_weil_divisor_group(bl::ToricBlowupMorphism)`,
+- `morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowupMorphism)`,
+- `morphism_on_class_group(bl::ToricBlowupMorphism)`,
+- `morphism_on_picard_group(bl::ToricBlowupMorphism)`.
 The total and strict transform of ideal sheaves along blowups, not
 necessarily toric, can be computed:
 ```@docs
-total_transform(f::AbsSimpleBlowdownMorphism, II::AbsIdealSheaf)
+total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
 ```
 
 

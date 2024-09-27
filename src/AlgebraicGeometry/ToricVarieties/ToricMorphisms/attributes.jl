@@ -174,7 +174,7 @@ end
 
 For a given toric morphism `tm`, we can compute the corresponding
 morphism of covered schemes. The following demonstrates this for the
-blow-down morphism of a blow-up of the projective space.
+blow-up morphism of a blow-up of the projective space.
 
 # Examples
 ```jldoctest
@@ -211,7 +211,7 @@ Covering
 ```
 """
 @attr CoveringMorphism function covering_morphism(f::ToricMorphism)
-  # TODO: If f is a blowdown morphism, we can simplify 
+  # TODO: If f is a blowup morphism, we can simplify 
   # the matchings of cones below.
   X = domain(f)
   Y = codomain(f)

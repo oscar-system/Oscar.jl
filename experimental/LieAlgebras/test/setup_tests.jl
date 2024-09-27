@@ -16,19 +16,20 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
       @test L isa parentT
       @test x isa elemT
 
-      @test parent_type(elemT) == parentT
-      @test elem_type(parentT) == elemT
+      @test (@inferred parent_type(elemT)) == parentT
+      @test (@inferred elem_type(parentT)) == elemT
 
-      @test parent(x) === L
+      @test (@inferred parent(x)) === L
 
-      @test coefficient_ring(x) === coefficient_ring(L)
-      @test elem_type(coefficient_ring(L)) == C
+      @test (@inferred coefficient_ring(x)) === (@inferred coefficient_ring(L))
+      @test (@inferred elem_type(coefficient_ring(L))) == C
 
-      @test characteristic(L) == characteristic(coefficient_ring(L))
+      @test (@inferred characteristic(L)) == characteristic(coefficient_ring(L))
 
       # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebras
-      @test dim(L) == ngens(L)
-      @test basis(L) == gens(L)
+      @test (@inferred dim(L)) == (@inferred ngens(L))
+      @test (@inferred basis(L)) == (@inferred gens(L))
+      dim(L) >= 1 && @test (@inferred basis(L, 1)) == (@inferred gen(L, 1))
       @test all(i -> basis(L, i) == gen(L, i), 1:dim(L))
 
       @test dim(L) == length(basis(L))
@@ -36,9 +37,10 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
       @test dim(L) == length(symbols(L))
 
-      @test iszero(zero(L))
+      z = @inferred zero(L)
+      @test @inferred iszero(z)
 
-      @test coefficients(x) == [coeff(x, i) for i in 1:dim(L)]
+      @test (@inferred coefficients(x)) == [@inferred coeff(x, i) for i in 1:dim(L)]
       @test all(i -> coeff(x, i) == x[i], 1:dim(L))
       @test sum(x[i] * basis(L, i) for i in 1:dim(L); init=zero(L)) == x
 
@@ -52,11 +54,11 @@ if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(L))
-        x1 = L(coeffs)
-        x2 = L(coefficient_ring(L).(coeffs))
-        x3 = L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
-        x4 = L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
-        x5 = L(x1)
+        x1 = @inferred L(coeffs)
+        x2 = @inferred L(coefficient_ring(L).(coeffs))
+        x3 = @inferred L(matrix(coefficient_ring(L), 1, dim(L), coeffs))
+        x4 = @inferred L(sparse_row(matrix(coefficient_ring(L), 1, dim(L), coeffs)))
+        x5 = @inferred L(x1)
         @test x1 == x2
         @test x1 == x3
         @test x1 == x4
@@ -190,8 +192,8 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
   function lie_algebra_module_conformance_test(
     L::LieAlgebra{C},
     V::LieAlgebraModule{C},
-    parentT::DataType=LieAlgebraModule{C},
-    elemT::DataType=LieAlgebraModuleElem{C};
+    parentT::DataType=LieAlgebraModule{C,elem_type(L)},
+    elemT::DataType=LieAlgebraModuleElem{C,elem_type(L)};
     num_random_tests::Int=10,
   ) where {C<:FieldElem}
     @testset "basic manipulation" begin
@@ -202,27 +204,29 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
       @test V isa parentT
       @test v isa elemT
 
-      @test parent_type(elemT) == parentT
-      @test elem_type(parentT) == elemT
+      @test (@inferred parent_type(elemT)) == parentT
+      @test (@inferred elem_type(parentT)) == elemT
 
-      @test parent(v) === V
+      @test (@inferred parent(v)) === V
 
-      @test coefficient_ring(v) === coefficient_ring(V)
-      @test elem_type(coefficient_ring(V)) == C
+      @test (@inferred coefficient_ring(v)) === (@inferred coefficient_ring(V))
+      @test (@inferred elem_type(coefficient_ring(V))) == C
 
-      @test base_lie_algebra(V) === L
+      @test (@inferred base_lie_algebra(V)) === L
 
       # this block stays only as long as `ngens` and `gens` are not specialized for Lie algebra modules
-      @test dim(V) == ngens(V)
-      @test basis(V) == gens(V)
+      @test (@inferred dim(V)) == (@inferred ngens(V))
+      @test (@inferred basis(V)) == (@inferred gens(V))
+      dim(V) >= 1 && @test (@inferred basis(V, 1)) == (@inferred gen(V, 1))
       @test all(i -> basis(V, i) == gen(V, i), 1:dim(V))
 
       @test dim(V) == length(basis(V))
       @test all(i -> basis(V, i) == basis(V)[i], 1:dim(V))
 
-      @test iszero(zero(V))
+      z = @inferred zero(V)
+      @test @inferred iszero(z)
 
-      @test coefficients(v) == [coeff(v, i) for i in 1:dim(V)]
+      @test (@inferred coefficients(v)) == [@inferred coeff(v, i) for i in 1:dim(V)]
       @test all(i -> coeff(v, i) == v[i], 1:dim(V))
       @test sum(v[i] * basis(V, i) for i in 1:dim(V); init=zero(V)) == v
 
@@ -236,11 +240,11 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
 
       for _ in 1:num_random_tests
         coeffs = rand(-10:10, dim(V))
-        v1 = V(coeffs)
-        v2 = V(coefficient_ring(V).(coeffs))
-        v3 = V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
-        v4 = V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
-        v5 = V(v1)
+        v1 = @inferred V(coeffs)
+        v2 = @inferred V(coefficient_ring(V).(coeffs))
+        v3 = @inferred V(matrix(coefficient_ring(V), 1, dim(V), coeffs))
+        v4 = @inferred V(sparse_row(matrix(coefficient_ring(V), 1, dim(V), coeffs)))
+        v5 = @inferred V(v1)
         @test v1 == v2
         @test v1 == v3
         @test v1 == v4

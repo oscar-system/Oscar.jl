@@ -2,7 +2,7 @@
 # Type definition                                                      #
 ########################################################################
 
-@attributes mutable struct ToricBlowdownMorphism{
+@attributes mutable struct ToricBlowupMorphism{
   DomainType <: NormalToricVarietyType, 
   CodomainType <: NormalToricVarietyType,
   CenterDataType <: Union{
@@ -15,7 +15,7 @@
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   },
-} <: AbsSimpleBlowdownMorphism{DomainType, CodomainType, ToricBlowdownMorphism}
+} <: AbsSimpleBlowupMorphism{DomainType, CodomainType, ToricBlowupMorphism}
 
   toric_morphism::ToricMorphism
   index_of_new_ray::Integer
@@ -23,7 +23,7 @@
   center_unnormalized::CenterUnnormalizedType
   exceptional_prime_divisor::ToricDivisor
 
-  function _toric_blowdown_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function _toric_blowup_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
@@ -57,13 +57,13 @@
     return bl_toric, position_new_ray, center_data
   end
   
-  function ToricBlowdownMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
+  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   }
-    bl_toric, position_new_ray, center_data = _toric_blowdown_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl_toric, position_new_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, new_ray, center_data)
     bl = new{
       typeof(domain(bl_toric)),
       typeof(codomain(bl_toric)),
@@ -73,13 +73,13 @@
     return bl
   end
   
-  function ToricBlowdownMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   }
-    bl_toric, position_new_ray, center_data = _toric_blowdown_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl_toric, position_new_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, new_ray, center_data)
     bl = new{
       typeof(domain(bl_toric)),
       typeof(codomain(bl_toric)),
@@ -93,56 +93,56 @@ end
 
 
 ########################################################################
-# Arithmetic for toric blowdown moprhism and toric morphisms           #
+# Arithmetic for toric blowup moprhism and toric morphisms           #
 ########################################################################
 
-function Base.:+(tm1::ToricBlowdownMorphism, tm2::ToricBlowdownMorphism)
+function Base.:+(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
   return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
 end
 
-function Base.:-(tm1::ToricBlowdownMorphism, tm2::ToricBlowdownMorphism)
+function Base.:-(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
   return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
 end
 
-function Base.:*(c::T, tm::ToricBlowdownMorphism) where T <: IntegerUnion
+function Base.:*(c::T, tm::ToricBlowupMorphism) where T <: IntegerUnion
 new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
 return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
 end
 
-Base.:+(tm1::ToricBlowdownMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) + tm2
-Base.:-(tm1::ToricBlowdownMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) - tm2
-Base.:+(tm1::ToricMorphism, tm2::ToricBlowdownMorphism) = tm1 + underlying_morphism(tm2)
-Base.:-(tm1::ToricMorphism, tm2::ToricBlowdownMorphism) = tm1 - underlying_morphism(tm2)
+Base.:+(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) + tm2
+Base.:-(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) - tm2
+Base.:+(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 + underlying_morphism(tm2)
+Base.:-(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 - underlying_morphism(tm2)
 
 
 
 ######################################################
-# Composition of toric blowdowns and toric morphisms #
+# Composition of toric blowups and toric morphisms #
 ######################################################
 
-function Base.:*(tm1::ToricBlowdownMorphism, tm2::ToricBlowdownMorphism)
+function Base.:*(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req codomain(tm1) === domain(tm2) "The codomain of the first morphism must be identically the same as the domain of the second morphism"
   return toric_morphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
 end
 
-Base.:*(tm1::ToricMorphism, tm2::ToricBlowdownMorphism) = tm1 * underlying_morphism(tm2)
-Base.:*(tm1::ToricBlowdownMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) * tm2
+Base.:*(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 * underlying_morphism(tm2)
+Base.:*(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) * tm2
 
 
 
 ####################################################
-# Equality and hash of toric blowdowns             #
+# Equality and hash of toric blowups             #
 ####################################################
 
-function Base.:(==)(tm1::ToricBlowdownMorphism, tm2::ToricBlowdownMorphism)
+function Base.:(==)(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
 end
 
-function Base.hash(tm::ToricBlowdownMorphism, h::UInt)
+function Base.hash(tm::ToricBlowupMorphism, h::UInt)
   b = 0x1a66f927cae2d409 % UInt
   h = hash(domain(tm), h)
   h = hash(codomain(tm), h)
@@ -156,5 +156,5 @@ end
 # Display            #
 ######################
 
-Base.show(io::IO, tbdm::ToricBlowdownMorphism) = print(io, "Toric blowdown morphism")
-Base.show(io::IO, ::MIME"text/plain", tbdm::ToricBlowdownMorphism) = Base.show(pretty(io), tbdm)
+Base.show(io::IO, tbdm::ToricBlowupMorphism) = print(io, "Toric blowup morphism")
+Base.show(io::IO, ::MIME"text/plain", tbdm::ToricBlowupMorphism) = Base.show(pretty(io), tbdm)
