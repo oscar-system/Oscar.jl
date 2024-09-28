@@ -7,7 +7,6 @@ include("CoveredProjectiveSchemes.jl")
 
 include("Auxiliary.jl")
 include("BlowupMorphism.jl")
-include("duValSing.jl")
 include("elliptic_surface.jl")
 include("critical_locus.jl")
 

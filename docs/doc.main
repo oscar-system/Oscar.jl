@@ -195,6 +195,7 @@
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+        "AlgebraicGeometry/Surfaces/duValSing.md",
      ],
      "Sheaf Cohomology" => [
         "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",
