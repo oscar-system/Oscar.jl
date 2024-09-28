@@ -289,17 +289,17 @@ end
 
 @register_serialization_type FracField uses_id uses_params
 
-const FracUnionTypes = Union{MPolyRing, PolyRing, UniversalPolyRing}
+const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
 # we use the union to prevent QQField from using this method
 type_params(K::FracField{T}) where T <: FracUnionTypes = base_ring(K)
 
-function save_object(s::SerializerState, K::AbstractAlgebra.Generic.FracField{<: FracUnionTypes})
+function save_object(s::SerializerState, K::FracField)
   save_data_dict(s) do
     save_object(s, base_ring(K), :base_ring)
   end
 end
 
-load_object(s::DeserializerState, ::Type{<: FracField}, params::Dict) = fraction_field(params[:base_ring], cached=false)
+load_object(s::DeserializerState, ::Type{<: FracField}, base::Ring) = fraction_field(base, cached=false)
 
 # elements
 
@@ -313,17 +313,14 @@ function save_object(s::SerializerState, f::FracElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FracElem}, parents::Vector)
-  parent_ring = parents[end]
+function load_object(s::DeserializerState, ::Type{<: FracElem}, parent_ring::Ring)
   load_node(s) do _
-    coeff_type = elem_type(base_ring(parent_ring))
-    loaded_num = load_node(s, 1) do _
-      load_object(s, coeff_type, parents[1:end - 1])
-    end
-    loaded_den = load_node(s, 2) do _
-      load_object(s, coeff_type, parents[1:end - 1])
-    end
-    return  parent_ring(loaded_num, loaded_den)
+    base = base_ring(parent_ring)
+    coeff_type = elem_type(base)
+    return parent_ring(
+      load_object(s, coeff_type, base, 1),
+      load_object(s, coeff_type, base, 2)
+    )
   end
 end
 
