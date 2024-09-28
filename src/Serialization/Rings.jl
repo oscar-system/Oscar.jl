@@ -65,6 +65,8 @@ end
 @register_serialization_type ZZModRingElem uses_params
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
+type_params(x::ModRingElemUnion) = parent(x)
+
 function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
 end
@@ -98,7 +100,7 @@ end
 
 function load_object(s::DeserializerState,
                      T::Type{<: PolyRingUnionType},
-                     params)
+                     params::Ring)
   symbols = load_object(s, Vector, Symbol, :symbols)
   if T <: PolyRing
     return polynomial_ring(params, symbols..., cached=false)[1]
@@ -204,7 +206,6 @@ function load_object(s::DeserializerState, ::Type{<: PolyRingElem},
     base = base_ring(parent_ring)
     loaded_terms = zeros(base, degree)
     coeff_type = elem_type(base)
-
     for (i, exponent) in enumerate(exponents)
       load_node(s, i) do _
         load_node(s, 2) do _

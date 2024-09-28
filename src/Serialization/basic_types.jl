@@ -32,7 +32,7 @@ end
 # QQFieldElem
 @register_serialization_type QQFieldElem
 
-function load_object(s::DeserializerState, ::Type{QQFieldElem}, QQField)
+function load_object(s::DeserializerState, ::Type{QQFieldElem}, ::QQField)
   # TODO: simplify the code below once https://github.com/Nemocas/Nemo.jl/pull/1375
   # is merged and in a Nemo release
   load_node(s) do q

@@ -149,7 +149,8 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
 end
 
 function save_typed_object(s::SerializerState, x::T) where T
-  if serialize_with_params(T)
+  if !isnothing(type_params(x))
+    # this should be cleaned up before merging
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   elseif Base.issingletontype(T)
@@ -173,7 +174,7 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
-type_params(obj::Any) = obj
+type_params(obj::Any) = nothing
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
@@ -184,7 +185,7 @@ function save_type_params(s::SerializerState, obj::T) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     params = type_params(obj)
-
+    
     if params isa Dict
       save_data_dict(s, :params) do 
         for (k, v) in params
@@ -224,28 +225,23 @@ end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
-  if Base.issingletontype(T) && return T()
-  elseif serialize_with_params(T)
-    if !isnothing(override_params)
-      if override_params isa Dict
-        error("Unsupported override type")
-      else
-        params = override_params
-      end
+  Base.issingletontype(T) && return T()
+  if !isnothing(override_params)
+    if override_params isa Dict
+      error("Unsupported override type")
     else
-      # depending on the type, :params is either an object to be loaded or a
-      # dict with keys and object values to be loaded
-      params = load_node(s, type_key) do _
-        load_params_node(s)
-      end
-    end
-    load_node(s, :data) do _
-      return load_object(s, T, params)
+      params = override_params
     end
   else
-    load_node(s, :data) do _
-      return load_object(s, T)
+    s.obj isa String && return load_ref(s)
+    s.obj[type_key] isa String && return load_object(s, T, :data)
+
+    params = load_node(s, type_key) do _
+      load_typed_object(s, :params)
     end
+  end
+  load_node(s, :data) do _
+    return load_object(s, T, params)
   end
 end
 
@@ -291,19 +287,6 @@ function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where 
     end
   end
   return T(fields...)
-end
-
-################################################################################
-# Utility functions for parent tree
-
-# loads parent tree
-function load_parents(s::DeserializerState, parent_ids::Vector)
-  loaded_parents = []
-  for id in parent_ids
-    loaded_parent = load_ref(s, id)
-    push!(loaded_parents, loaded_parent)
-  end
-  return loaded_parents
 end
 
 ################################################################################

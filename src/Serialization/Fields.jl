@@ -134,9 +134,9 @@ function save_object(s::SerializerState, K::SimpleNumField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, params::SimNumFieldTypeUnion)
+function load_object(s::DeserializerState, ::Type{<: SimpleNumField}, params::PolyRing)
   var = load_object(s, Symbol, :var)
-  def_pol = load_object(s, PolyRingElem, params)
+  def_pol = load_object(s, PolyRingElem, params, :def_pol)
   K, _ = number_field(def_pol, var, cached=false)
   return K
 end
@@ -186,10 +186,25 @@ end
 @register_serialization_type FqField uses_id uses_params
 @register_serialization_type FqFieldElem uses_params
 
-type_params(K::FqField) = absolute_degree(K) == 1 ? order(K) : defining_polynomial(K)
+type_params(K::FqField) = absolute_degree(K) == 1 ? nothing : type_params(defining_polynomial(K))
 
-load_object(s::DeserializerState, ::Type{<: FqField}, params::String) = finite_field(params)[1]
-load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRingElem) = finite_field(def_pol, cached=false)[1]
+function save_object(s::SerializerState, K::FqField)
+  save_data_dict(s) do
+    if absolute_degree(K) == 1
+      save_object(s, order(K), :order)
+    else
+      save_object(s, defining_polynomial(K), :def_pol)
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<: FqField}, params::PolyRing)
+  finite_field(load_object(s, PolyRingElem, params, :def_pol), cached=false)[1]
+end
+
+function load_object(s::DeserializerState, ::Type{<: FqField})
+  finite_field(load_object(s, ZZRingElem, ZZRing(), :order))[1]
+end
 
 # elements
 function save_object(s::SerializerState, k::FqFieldElem)
@@ -207,19 +222,12 @@ function save_object(s::SerializerState, k::FqFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, parents::Vector)
-  K = parents[end]
+function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, K::FqField)
   load_node(s) do _
-    K(load_object(s, PolyRingElem, parents[1:end - 1]))
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{<: FqFieldElem}, parent::FqField)
-  if absolute_degree(parent) != 1
-    return load_object(s, FqFieldElem, get_parents(parent))
-  end
-  load_node(s) do str
-    return parent(parse(ZZRingElem, str))
+    if absolute_degree(K) != 1
+      return K(load_object(s, PolyRingElem, parent(defining_polynomial(K))))
+    end
+    K(load_object(s, ZZRingElem, ZZRing()))
   end
 end
 
@@ -242,7 +250,7 @@ end
 function load_object(s::DeserializerState,
                      ::Type{<: NonSimFieldTypeUnion},
                      params::PolyRing)
-  def_pols = load_object(s, Vector{PolyRingElem}, params)
+  def_pols = load_object(s, Vector{PolyRingElem}, params, :def_pols)
   vars = load_node(s, :vars) do vars_data
     return map(Symbol, vars_data)
   end
@@ -283,13 +291,20 @@ end
 
 const FracUnionTypes = Union{MPolyRing, PolyRing, UniversalPolyRing}
 # we use the union to prevent QQField from using this method
-type_params(K::FracUnionTypes) = base_ring(K)
+type_params(K::FracField{T}) where T <: FracUnionTypes = base_ring(K)
+
+function save_object(s::SerializerState, K::AbstractAlgebra.Generic.FracField{<: FracUnionTypes})
+  save_data_dict(s) do
+    save_object(s, base_ring(K), :base_ring)
+  end
+end
 
 load_object(s::DeserializerState, ::Type{<: FracField}, params::Dict) = fraction_field(params[:base_ring], cached=false)
 
 # elements
 
 @register_serialization_type FracElem{<: FracUnionTypes} "FracElem" uses_params
+
 
 function save_object(s::SerializerState, f::FracElem)
   save_data_array(s) do
@@ -352,19 +367,17 @@ end
 
 function load_object(s::DeserializerState,
                      ::Type{<: AbstractAlgebra.Generic.RationalFunctionFieldElem},
-                     parents::Vector)
-  parent_ring = parents[end]
+                     parent_ring::AbstractAlgebra.Generic.RationalFunctionField)
   base = base_ring(AbstractAlgebra.Generic.fraction_field(parent_ring))
-  pushfirst!(parents, base)
   coeff_type = elem_type(base)
 
   return load_node(s) do _
     loaded_num = load_node(s, 1) do _
-      load_object(s, coeff_type, parents[1:end - 1])
+      load_object(s, coeff_type, base)
     end
 
     loaded_den = load_node(s, 2) do _
-      load_object(s, coeff_type, parents[1:end - 1])
+      load_object(s, coeff_type, base)
     end
     parent_ring(loaded_num, loaded_den)
   end
@@ -560,7 +573,7 @@ function save_object(s::SerializerState, q::QQBarFieldElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{QQBarFieldElem})
+function load_object(s::DeserializerState, ::Type{QQBarFieldElem}, ::QQBarField)
   Qx, x = polynomial_ring(QQ, :x; cached=false)
   min_poly = load_object(s, PolyRingElem{QQ}, Qx, :minpoly)
   precision = load_object(s, Int, :precision)
@@ -608,6 +621,6 @@ function save_object(s::SerializerState, obj::PadicFieldElem)
 end
 
 function load_object(s::DeserializerState, ::Type{PadicFieldElem}, parent_field::PadicField)
-  rational_rep = load_object(s, QQFieldElem)
+  rational_rep = load_object(s, QQFieldElem, QQField())
   return parent_field(rational_rep)
 end
