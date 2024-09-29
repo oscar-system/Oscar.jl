@@ -1,68 +1,14 @@
 ################################################################################
-# Utility functions for parent tree
-function get_parents(parent_ring::Field)
-  # we have reached the end of the parent references and the current ring
-  # can be found as the base_ring of the previous parent without ambiguity
-
-  # TropicalSemiring is a field apparently?
-  if parent_ring isa TropicalSemiring
-    return RingMatSpaceUnion[parent_ring]
-  elseif !serialize_with_id(parent_ring)
-    return RingMatSpaceUnion[]
-  end
-
-  if absolute_degree(parent_ring) == 1
-    return RingMatSpaceUnion[]
-  end
-  base = parent(defining_polynomial(parent_ring))
-  parents = get_parents(base)
-  push!(parents, parent_ring)
-  return parents
-end
-
-function get_parents(e::EmbeddedNumField)
-  base = number_field(e)
-  parents = get_parents(base)
-  push!(parents, e)
-  return parents
-end
-
-function get_parents(parent_ring::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField}
-  n = ngens(parent_ring)
-  base = polynomial_ring(base_field(parent_ring), n; cached=false)[1]
-  parents = get_parents(base)
-  push!(parents, parent_ring)
-  return parents
-end
-
-function get_parents(parent_ring::T) where T <: Union{FracField,
-                                                      AbstractAlgebra.Generic.RationalFunctionField,
-                                                      AbstractAlgebra.Generic.LaurentSeriesField}
-  # we have reached the end of the parent references and the current ring
-  # can be found as the base_ring of the previous parent without ambiguity
-  if !serialize_with_id(parent_ring)
-    return RingMatSpaceUnion[]
-  end
-
-  base = base_ring(parent_ring)
-  parents = get_parents(base)
-  push!(parents, parent_ring)
-  return parents
-end
-
-################################################################################
-# abstract Field load
-function load_object(s:: DeserializerState, ::Type{Field})
-  return load_typed_object(s)
-end
-
-################################################################################
 # floats
 @register_serialization_type AbstractAlgebra.Floats{Float64} "Floats"
 
 ################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
+type_params(::QQField) = nothing
+
+################################################################################
+# type_params for field extension types
 
 ################################################################################
 # non-ZZRingElem variant
@@ -290,8 +236,7 @@ end
 @register_serialization_type FracField uses_id uses_params
 
 const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
-# we use the union to prevent QQField from using this method
-type_params(K::FracField{T}) where T <: FracUnionTypes = base_ring(K)
+# we use the union to prevent QQField from using these save methods
 
 function save_object(s::SerializerState, K::FracField)
   save_data_dict(s) do
@@ -304,7 +249,6 @@ load_object(s::DeserializerState, ::Type{<: FracField}, base::Ring) = fraction_f
 # elements
 
 @register_serialization_type FracElem{<: FracUnionTypes} "FracElem" uses_params
-
 
 function save_object(s::SerializerState, f::FracElem)
   save_data_array(s) do
@@ -328,8 +272,6 @@ end
 # RationalFunctionField
 
 @register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id uses_params
-
-type_params(RF::AbstractAlgebra.Generic.RationalFunctionField) = base_ring(RF)
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)

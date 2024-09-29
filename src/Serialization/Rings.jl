@@ -1,18 +1,26 @@
 ################################################################################
 # Common union types
 
-# this will need a better name at some point
 const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
                                SMat, TropicalSemiringElem}
-
-# this union will also need a better name at some point
 const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
                                 FreeAssociativeAlgebra, TropicalSemiring}
+const ModRingUnion = Union{zzModRing, ZZModRing}
+
+const PolyRingUnionType = Union{UniversalPolyRing,
+                            MPolyRing,
+                            PolyRing,
+                            AbstractAlgebra.Generic.LaurentMPolyWrapRing}
+
 
 ################################################################################
-# Handling RingElem MatElem, FieldElem ... Params
+# type_params functions
 
 type_params(x::T) where T <: RingMatElemUnion = parent(x)
+type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
+type_params(::ZZRing) = nothing
+type_params(::T) where T <: ModRingUnion = nothing
+type_params(x::T) where T <: Ideal = base_ring(x)
 
 ################################################################################
 # ring of integers (singleton type)
@@ -22,7 +30,6 @@ type_params(x::T) where T <: RingMatElemUnion = parent(x)
 #  Mod Rings
 @register_serialization_type Nemo.zzModRing
 @register_serialization_type Nemo.ZZModRing
-const ModRingUnion = Union{zzModRing, ZZModRing}
 
 function save_object(s::SerializerState, R::T) where T <: ModRingUnion
   save_object(s, modulus(R))
@@ -60,12 +67,6 @@ end
 @register_serialization_type UniversalPolyRing uses_id uses_params
 @register_serialization_type MPolyDecRing uses_id uses_params
 @register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id uses_params
-
-const PolyRingUnionType = Union{UniversalPolyRing,
-                            MPolyRing,
-                            PolyRing,
-                            AbstractAlgebra.Generic.LaurentMPolyWrapRing}
-type_params(R::PolyRingUnionType) = base_ring(R)
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
   base = base_ring(R)
@@ -234,7 +235,6 @@ const IdealOrdUnionType = Union{MPolyIdeal,
                                 IdealGens,
                                 MonomialOrdering}
 
-type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
 
 function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
   save_object(s, gens(I))
@@ -375,14 +375,20 @@ end
 ################################################################################
 # Power Series
 @register_serialization_type SeriesRing uses_id
+const RelPowerSeriesUnionType = Union{ Generic.RelPowerSeriesRing,
+                                       QQRelPowerSeriesRing,
+                                       ZZRelPowerSeriesRing,
+                                       fqPolyRepRelPowerSeriesRing,
+                                       FqRelPowerSeriesRing,
+                                       zzModRelPowerSeriesRing}
+const AbsPowerSeriesUnionType = Union{ Generic.AbsPowerSeriesRing,
+                                       QQAbsPowerSeriesRing,
+                                       ZZAbsPowerSeriesRing,
+                                       FqAbsPowerSeriesRing,
+                                       fqPolyRepAbsPowerSeriesRing,
+                                       zzModAbsPowerSeriesRing}
 
-function save_object(s::SerializerState, R::Union{
-  Generic.RelPowerSeriesRing,
-  QQRelPowerSeriesRing,
-  ZZRelPowerSeriesRing,
-  fqPolyRepRelPowerSeriesRing,
-  FqRelPowerSeriesRing,
-  zzModRelPowerSeriesRing})
+function save_object(s::SerializerState, R::RelPowerSeriesUnionType)
   save_data_dict(s) do
     save_typed_object(s, base_ring(R), :base_ring)
     save_object(s, var(R), :var)
@@ -391,13 +397,7 @@ function save_object(s::SerializerState, R::Union{
   end
 end
 
-function save_object(s::SerializerState, R::Union{
-  Generic.AbsPowerSeriesRing,
-  QQAbsPowerSeriesRing,
-  ZZAbsPowerSeriesRing,
-  FqAbsPowerSeriesRing,
-  fqPolyRepAbsPowerSeriesRing,
-  zzModAbsPowerSeriesRing})
+function save_object(s::SerializerState, R::AbsPowerSeriesUnionType)
 
   save_data_dict(s) do
     save_typed_object(s, base_ring(R), :base_ring)
@@ -469,8 +469,8 @@ function save_object(s::SerializerState, r::AbsPowerSeriesRingElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem}, parents::Vector)
-  parent_ring = parents[end]
+function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
+                     parent_ring::RelPowerSeriesUnionType)
   valuation = load_object(s, Int, :valuation)
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
@@ -478,22 +478,10 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem}, par
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
   
-  load_node(s, :terms) do terms
-    for i in 1:length(terms)
-      load_node(s, i) do (exponent, _)
-        if serialize_with_params(coeff_type)
-          if length(parents) == 1
-            params = base
-          else
-            params = parents[1:end - 1]
-          end
-          c = load_object(s, coeff_type, params, 2)
-        else
-          c = load_object(s, coeff_type, 2)
-        end
-        e = parse(Int, exponent)
-        loaded_terms[e] = c
-      end
+  load_node(s, :terms) do _
+    load_array_node(s) do _
+      e = load_object(s, Int, 1)
+      loaded_terms[e] = load_object(s, coeff_type, base, 2)
     end
   end
   return parent_ring(loaded_terms, pol_length, precision, valuation)
@@ -507,23 +495,10 @@ function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem}, par
   loaded_terms = zeros(base, pol_length)
   coeff_type = elem_type(base)
 
-  load_node(s, :terms) do terms
-    for i in 1:length(terms)
-      load_node(s, i) do (exponent, _)
-        if serialize_with_params(coeff_type)
-          if length(parents) == 1
-            params = base
-          else
-            params = parents[1:end - 1]
-          end
-          c = load_object(s, coeff_type, params, 2)
-        else
-          c = load_object(s, coeff_type, 2)
-        end
-        e = parse(Int, exponent)
-        e += 1
-        loaded_terms[e] = c
-      end
+  load_node(s, :terms) do _
+    load_array_node(s) do _
+      e = load_object(s, Int, 1)
+      loaded_terms[e + 1] = load_object(s, coeff_type, base, 2)
     end
   end
   return parent_ring(loaded_terms, pol_length, precision)
@@ -534,11 +509,9 @@ end
 @register_serialization_type Generic.LaurentSeriesRing "LaurentSeriesRing" uses_id
 @register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
 @register_serialization_type ZZLaurentSeriesRing uses_id
+const LaurentUnionType = Union{ Generic.LaurentSeriesRing, Generic.LaurentSeriesField, ZZLaurentSeriesRing}
 
-function save_object(s::SerializerState, R::Union{
-  Generic.LaurentSeriesRing,
-  Generic.LaurentSeriesField,
-  ZZLaurentSeriesRing})
+function save_object(s::SerializerState, R::LaurentUnionType)
   save_data_dict(s) do
     save_typed_object(s, base_ring(R), :base_ring)
     save_object(s, var(R), :var)
@@ -547,10 +520,7 @@ function save_object(s::SerializerState, R::Union{
 end
 
 function load_object(s::DeserializerState,
-                     ::Type{<: Union{
-                       Generic.LaurentSeriesRing,
-                       Generic.LaurentSeriesField,
-                       ZZLaurentSeriesRing}})
+                     ::Type{<: LaurentUnionType})
   base_ring = load_typed_object(s, :base_ring)
   var = load_object(s, Symbol, :var)
   max_precision = load_object(s, Int, :max_precision)
@@ -591,9 +561,7 @@ end
 
 function load_object(s::DeserializerState,
                      ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
-                     parents::Vector)
-  parent_ring = parents[end]
-
+                     parent_ring::LaurentUnionType)
   terms = load_node(s, :terms) do terms_data
     exponents = []
     for i in 1:length(terms_data)
@@ -609,20 +577,8 @@ function load_object(s::DeserializerState,
     # account for index shift
     loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
-      load_node(s, i) do _
-        e -= lowest_degree - 1
-        if serialize_with_params(coeff_type)
-          if length(parents) == 1
-            params = base
-          else
-            params = parents[1:end - 1]
-          end
-          c = load_object(s, coeff_type, params, 2)
-        else
-          c = load_object(s, coeff_type, 2)
-        end
-        loaded_terms[e] = c
-      end
+      e -= lowest_degree - 1
+      loaded_terms[e] = load_object(s, coeff_type, base, i)
     end
     return loaded_terms
   end
