@@ -10,31 +10,9 @@ const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
                                 FreeAssociativeAlgebra, TropicalSemiring}
 
 ################################################################################
-# Utility functions for ring parent tree
-
-# builds parent tree
-function get_parents(parent_ring::T) where T <: RingMatSpaceUnion
-  # we have reached the end of the parent references and the current ring
-  # can be found as the base_ring of the previous parent without ambiguity
-  if !serialize_with_id(parent_ring) 
-    return RingMatSpaceUnion[]
-  end
-  base = base_ring(parent_ring)
-  parents = get_parents(base)
-  push!(parents, parent_ring)
-  return parents
-end
-
-################################################################################
 # Handling RingElem MatElem, FieldElem ... Params
 
 type_params(x::T) where T <: RingMatElemUnion = parent(x)
-
-# fix for polynomial cases
-#function load_object(s::DeserializerState, T::Type{<:RingMatElemUnion}, parent_ring::RingMatSpaceUnion)
-#
-#  return load_object(s, T, parent_ring)
-#end
 
 ################################################################################
 # ring of integers (singleton type)
@@ -64,8 +42,6 @@ end
 @register_serialization_type zzModRingElem uses_params
 @register_serialization_type ZZModRingElem uses_params
 const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
-
-type_params(x::ModRingElemUnion) = parent(x)
 
 function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
@@ -111,7 +87,7 @@ function load_object(s::DeserializerState,
   elseif T <: AbstractAlgebra.Generic.LaurentMPolyWrapRing
     return laurent_polynomial_ring(params, symbols, cached=false)[1]
   end
-  return polynomial_ring(base, params, cached=false)[1]
+  return polynomial_ring(params, symbols, cached=false)[1]
 end
 
 # with grading
@@ -229,7 +205,9 @@ function load_object(s::DeserializerState,
     for (i, e) in enumerate(exponents)
       load_node(s, i) do _
         c = load_object(s, coeff_type, base, 2)
-        e_int = [parse(Int, x) for x in e]
+        e_int = load_array_node(s, 1) do _
+          load_object(s, Int)
+        end
         push_term!(polynomial, c, e_int)
       end
     end
@@ -264,13 +242,8 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: IdealOrdUnionType}, parent_ring::RingMatSpaceUnion)
   gens = elem_type(parent_ring)[]
-  load_node(s) do gens_data
-    for i in 1:length(gens_data)
-      gen = load_node(s, i) do _
-        load_object(s, elem_type(parent_ring), parent_ring)
-      end
-      push!(gens, gen)
-    end
+  load_array_node(s) do _
+    push!(gens, load_object(s, elem_type(parent_ring), parent_ring))
   end
   return ideal(parent_ring, gens)
 end
@@ -684,7 +657,7 @@ end
 
 function save_object(s::SerializerState, o::MonomialOrdering)
   save_data_dict(s) do
-    save_typed_object(s, o.o, :internal_ordering) # TODO: Is there a getter for this?
+    save_object(s, o.o, :internal_ordering) # TODO: Is there a getter for this?
     if isdefined(o, :is_total)
       save_object(s, o.is_total, :is_total)
     end
@@ -692,7 +665,8 @@ function save_object(s::SerializerState, o::MonomialOrdering)
 end
 
 function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPolyRing)
-  ord = load_typed_object(s, :internal_ordering)
+  # this will need to be changed to include other orderings, see below
+  ord = load_object(s, Orderings.SymbOrdering, :internal_ordering)
   result = MonomialOrdering(ring, ord)
 
   if haskey(s, :is_total)
@@ -706,15 +680,13 @@ end
 
 function save_object(s::SerializerState, o::Orderings.SymbOrdering{S}) where {S}
   save_data_dict(s) do
-    save_typed_object(s, S, :ordering_symbol_as_type)
-    save_typed_object(s, o.vars, :vars) # TODO: Is there a getter?
+    save_object(s, S, :ordering_symbol_as_type)
+    save_object(s, o.vars, :vars) # TODO: Is there a getter?
   end
 end
 
 function load_object(s::DeserializerState, ::Type{Orderings.SymbOrdering})
-  S = load_typed_object(s, :ordering_symbol_as_type)
-  vars = load_typed_object(s, :vars)
+  S = load_object(s, Symbol, :ordering_symbol_as_type)
+  vars = load_object(s, Vector{Int}, :vars) # are these always Vector{Int} ?
   return Orderings.SymbOrdering(S, vars)
 end
-
-

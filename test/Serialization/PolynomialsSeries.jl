@@ -77,7 +77,7 @@ cases = [
         end
       end
 
-      @test_skip @testset "Multivariate Polynomial over $(case[4])"  begin
+      @testset "Multivariate Polynomial over $(case[4])"  begin
         R, (z, w) = polynomial_ring(case[1], ["z", "w"])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
