@@ -38,14 +38,14 @@ cases = [
 
 @testset "Serialization.Polynomials.and.Series" begin
   mktempdir() do path
-    @test_skip @testset "Empty Ideal" begin
+    @testset "Empty Ideal" begin
       i = Oscar.ideal(QQ[:x, :y][1], [])
       test_save_load_roundtrip(path, i) do loaded
         @test loaded == i
       end
     end
 
-    @test_skip @testset "Graded Ring" begin
+    @testset "Graded Ring" begin
       R, (x, y) = QQ[:x, :y]
       A = [1 3; 2 1]
       M, (m1, m2) = grade(R, A)
@@ -169,7 +169,7 @@ cases = [
         end
       end
 
-      @test_skip @testset "Series" begin
+      @testset "Series" begin
         @testset "Power Series over $(case[4])" begin
           rel_R, rel_z = power_series_ring(case[1], 10, "z")
           rel_p = rel_z^2 + case[2] * rel_z + case[3] * rel_z^3

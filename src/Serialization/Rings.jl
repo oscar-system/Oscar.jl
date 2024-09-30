@@ -6,12 +6,35 @@ const RingMatElemUnion = Union{RingElem, MatElem, FreeAssociativeAlgebraElem,
 const RingMatSpaceUnion = Union{Ring, MatSpace, SMatSpace,
                                 FreeAssociativeAlgebra, TropicalSemiring}
 const ModRingUnion = Union{zzModRing, ZZModRing}
+const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
 const PolyRingUnionType = Union{UniversalPolyRing,
                             MPolyRing,
                             PolyRing,
                             AbstractAlgebra.Generic.LaurentMPolyWrapRing}
 
+const IdealOrdUnionType = Union{MPolyIdeal,
+                                LaurentMPolyIdeal,
+                                FreeAssociativeAlgebraIdeal,
+                                IdealGens,
+                                MonomialOrdering}
+
+const RelPowerSeriesUnionType = Union{Generic.RelPowerSeriesRing,
+                                      QQRelPowerSeriesRing,
+                                      ZZRelPowerSeriesRing,
+                                      fqPolyRepRelPowerSeriesRing,
+                                      FqRelPowerSeriesRing,
+                                      zzModRelPowerSeriesRing}
+const AbsPowerSeriesUnionType = Union{Generic.AbsPowerSeriesRing,
+                                      QQAbsPowerSeriesRing,
+                                      ZZAbsPowerSeriesRing,
+                                      FqAbsPowerSeriesRing,
+                                      fqPolyRepAbsPowerSeriesRing,
+                                      zzModAbsPowerSeriesRing}
+
+const LaurentUnionType = Union{Generic.LaurentSeriesRing,
+                               Generic.LaurentSeriesField,
+                               ZZLaurentSeriesRing}
 
 ################################################################################
 # type_params functions
@@ -20,7 +43,7 @@ type_params(x::T) where T <: RingMatElemUnion = parent(x)
 type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
 type_params(::ZZRing) = nothing
 type_params(::T) where T <: ModRingUnion = nothing
-type_params(x::T) where T <: Ideal = base_ring(x)
+type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
 
 ################################################################################
 # ring of integers (singleton type)
@@ -48,7 +71,6 @@ end
 #elements
 @register_serialization_type zzModRingElem uses_params
 @register_serialization_type ZZModRingElem uses_params
-const ModRingElemUnion = Union{zzModRingElem, ZZModRingElem}
 
 function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
@@ -92,17 +114,19 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
+type_params(R::MPolyDecRing) = Dict(:grading_group => type_params(_grading(R)),
+                                    :base_ring => type_params(forget_grading(R)))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
-    save_typed_object(s, _grading(R), :grading)
-    save_typed_object(s, forget_grading(R), :ring)
+    save_object(s, _grading(R), :grading)
+    save_object(s, forget_grading(R), :ring)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyDecRing})
-  ring = load_typed_object(s, :ring)
-  grading = load_typed_object(s, :grading)
+function load_object(s::DeserializerState, ::Type{<:MPolyDecRing}, d::Dict)
+  ring = load_object(s, MPolyRing, d[:base_ring], :ring)
+  grading = load_object(s, elem_type(d[:grading_group]), d[:grading_group], :grading)
   return grade(ring, grading)[1]
 end
 
@@ -226,15 +250,6 @@ end
 
 @register_serialization_type MPolyIdeal uses_params
 @register_serialization_type LaurentMPolyIdeal uses_params
-
-# we should avoid this list getting too long and find a
-# way to abstract saving params soon
-const IdealOrdUnionType = Union{MPolyIdeal,
-                                LaurentMPolyIdeal,
-                                FreeAssociativeAlgebraIdeal,
-                                IdealGens,
-                                MonomialOrdering}
-
 
 function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
   save_object(s, gens(I))
@@ -375,22 +390,10 @@ end
 ################################################################################
 # Power Series
 @register_serialization_type SeriesRing uses_id
-const RelPowerSeriesUnionType = Union{ Generic.RelPowerSeriesRing,
-                                       QQRelPowerSeriesRing,
-                                       ZZRelPowerSeriesRing,
-                                       fqPolyRepRelPowerSeriesRing,
-                                       FqRelPowerSeriesRing,
-                                       zzModRelPowerSeriesRing}
-const AbsPowerSeriesUnionType = Union{ Generic.AbsPowerSeriesRing,
-                                       QQAbsPowerSeriesRing,
-                                       ZZAbsPowerSeriesRing,
-                                       FqAbsPowerSeriesRing,
-                                       fqPolyRepAbsPowerSeriesRing,
-                                       zzModAbsPowerSeriesRing}
+
 
 function save_object(s::SerializerState, R::RelPowerSeriesUnionType)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(R), :base_ring)
     save_object(s, var(R), :var)
     save_object(s, max_precision(R), :max_precision)
     save_object(s, :capped_relative, :model)
@@ -398,17 +401,14 @@ function save_object(s::SerializerState, R::RelPowerSeriesUnionType)
 end
 
 function save_object(s::SerializerState, R::AbsPowerSeriesUnionType)
-
   save_data_dict(s) do
-    save_typed_object(s, base_ring(R), :base_ring)
     save_object(s, var(R), :var)
     save_object(s, max_precision(R), :max_precision)
     save_object(s, :capped_absolute, :model)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: SeriesRing})
-  base_ring = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{<: SeriesRing}, base_ring::Ring)
   var = load_object(s, Symbol, :var)
   max_precision = load_object(s, Int, :max_precision)
   model = load_object(s, Symbol, :model)
@@ -487,8 +487,8 @@ function load_object(s::DeserializerState, ::Type{<:RelPowerSeriesRingElem},
   return parent_ring(loaded_terms, pol_length, precision, valuation)
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem}, parents::Vector)
-  parent_ring = parents[end]
+function load_object(s::DeserializerState, ::Type{<:AbsPowerSeriesRingElem},
+                     parent_ring::AbsPowerSeriesUnionType)
   pol_length = load_object(s, Int, :pol_length)
   precision = load_object(s, Int, :precision)
   base = base_ring(parent_ring)
@@ -509,19 +509,15 @@ end
 @register_serialization_type Generic.LaurentSeriesRing "LaurentSeriesRing" uses_id
 @register_serialization_type Generic.LaurentSeriesField "LaurentSeriesField" uses_id
 @register_serialization_type ZZLaurentSeriesRing uses_id
-const LaurentUnionType = Union{ Generic.LaurentSeriesRing, Generic.LaurentSeriesField, ZZLaurentSeriesRing}
 
 function save_object(s::SerializerState, R::LaurentUnionType)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(R), :base_ring)
     save_object(s, var(R), :var)
     save_object(s, max_precision(R), :max_precision)
   end
 end
 
-function load_object(s::DeserializerState,
-                     ::Type{<: LaurentUnionType})
-  base_ring = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{<: LaurentUnionType}, base_ring::Ring)
   var = load_object(s, Symbol, :var)
   max_precision = load_object(s, Int, :max_precision)
 
@@ -563,7 +559,9 @@ function load_object(s::DeserializerState,
                      ::Type{<: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem}},
                      parent_ring::LaurentUnionType)
   terms = load_node(s, :terms) do terms_data
-    exponents = []
+    # reading all exponents before ...
+    # might be more efficient way ...
+    exponents = Int[]
     for i in 1:length(terms_data)
       load_node(s, i) do _
         push!(exponents, load_object(s, Int, 1))
@@ -578,7 +576,9 @@ function load_object(s::DeserializerState,
     loaded_terms = zeros(base, highest_degree - lowest_degree + 1)
     for (i, e) in enumerate(exponents)
       e -= lowest_degree - 1
-      loaded_terms[e] = load_object(s, coeff_type, base, i)
+      load_node(s, i) do _
+        loaded_terms[e] = load_object(s, coeff_type, base, 2)
+      end
     end
     return loaded_terms
   end

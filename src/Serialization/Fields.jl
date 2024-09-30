@@ -6,6 +6,10 @@
 # field of rationals (singleton type)
 @register_serialization_type QQField
 type_params(::QQField) = nothing
+type_params(::fpField) = nothing
+type_params(::FpField) = nothing
+type_params(::QQBarField) = nothing
+type_params(::PadicField) = nothing
 
 ################################################################################
 # type_params for field extension types
@@ -132,7 +136,10 @@ end
 @register_serialization_type FqField uses_id uses_params
 @register_serialization_type FqFieldElem uses_params
 
-type_params(K::FqField) = absolute_degree(K) == 1 ? nothing : type_params(defining_polynomial(K))
+function type_params(K::FqField)
+  absolute_degree(K) == 1 && return nothing
+  return type_params(defining_polynomial(K))
+end
 
 function save_object(s::SerializerState, K::FqField)
   save_data_dict(s) do

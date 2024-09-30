@@ -216,8 +216,17 @@ end
 # parameters before loading it's data, if so a type tree is traversed
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
   load_node(s, key) do node
+    println(node)
     if node isa String && !isnothing(tryparse(UUID, node))
       return load_ref(s)
+    end
+    if node isa Union{JSON3.Object, Dict} && !haskey(node, type_key)
+      for k in keys(node)
+        println(k)
+        println(s.obj)
+        v = load_typed_object(s, Symbol(k); override_params=override_params)
+        println(typeof(v))
+      end
     end
     return load_typed_object(s; override_params=override_params)
   end
