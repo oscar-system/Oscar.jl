@@ -50,25 +50,19 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
   function MPolyAnyMap{D, C, U, V}(domain::D,
                                    codomain::C,
                                    coeff_map::U,
-                                   img_gens::Vector{V}) where {D, C, U, V}
-    @assert V === elem_type(C)
-    for g in img_gens
-      @assert parent(g) === codomain "elements does not have the correct parent"
-    end
-    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-  end
-  function MPolyAnyMap{D, C, U, V}(domain::D,
-                                   codomain::C,
-                                   coeff_map::U,
                                    img_gens::Vector{V};
                                    check_for_mapping_of_vars::Bool=true
-                                  ) where {D <: Union{<:MPolyRing, <:MPolyQuoRing}, 
-                                           C, U, V}
+                                  ) where {D, C, U, V}
     @assert V === elem_type(C)
     for g in img_gens
       @assert parent(g) === codomain "elements does not have the correct parent"
     end
     result = new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
+    # If it ever turned out that doing the checks within the following if-block
+    # is a bottleneck, consider passing on the `check_for_mapping_of_vars` kw 
+    # argument to the outer constructors or make the outer constructors 
+    # call the inner one with this argument set to `false`. This way the check 
+    # can safely be disabled.
     if check_for_mapping_of_vars && all(_is_gen, img_gens) && _allunique(img_gens)
       result.variable_indices = [findfirst(==(x), gens(codomain)) for x in img_gens]
     end
