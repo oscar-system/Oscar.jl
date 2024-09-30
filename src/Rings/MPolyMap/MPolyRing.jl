@@ -153,7 +153,6 @@ function _allunique(lst::Vector{T}) where {T<:RingElem}
 end
 
 function _build_poly(u::MPolyRingElem, indices::Vector{Int}, S::MPolyRing)
-  S = codomain(F)::MPolyRing
   kk = coefficient_ring(S)
   r = ngens(S)
   ctx = MPolyBuildCtx(S)
