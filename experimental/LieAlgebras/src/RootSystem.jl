@@ -115,6 +115,11 @@ Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system o
 This is a more efficient version for `coroots(R)[i]`.
 
 Also see: `coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function coroot(R::RootSystem, i::Int)
   if i <= n_positive_roots(R)
@@ -131,6 +136,11 @@ Returns the coroots of `R`, starting with the coroots of positive roots and then
 in the order of `positive_coroots` and `negative_coroots`.
 
 Also see: `coroot`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function coroots(R::RootSystem)
   return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
@@ -172,6 +182,11 @@ Returns the `i`-th negative root of `R`.
 This is a more efficient version for `negative_roots(R)[i]`.
 
 Also see: `negative_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_root(R::RootSystem, i::Int)
   return -(R.positive_roots::Vector{RootSpaceElem})[i]
@@ -183,6 +198,11 @@ end
 Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
 
 Also see: `negative_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
@@ -195,6 +215,11 @@ Returns the coroot corresponding to the `i`-th negative root of `R`
 This is a more efficient version for `negative_coroots(R)[i]`.
 
 Also see: `negative_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_coroot(R::RootSystem, i::Int)
   return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
@@ -206,6 +231,11 @@ end
 Returns the coroots corresponding to the negative roots of `R`
 
 Also see: `negative_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_coroots(R::RootSystem)
   return [-r for r in positive_coroots(R)]
@@ -251,6 +281,11 @@ Returns the `i`-th positive root of `R`.
 This is a more efficient version for `positive_roots(R)[i]`.
 
 Also see: `positive_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_root(R::RootSystem, i::Int)
   return (R.positive_roots::Vector{RootSpaceElem})[i]
@@ -263,6 +298,11 @@ Returns the positive roots of `R`, starting with the simple roots in the order o
 and then increasing in height.
 
 Also see: `positive_root`, `number_of_positive_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -275,6 +315,11 @@ Returns the coroot corresponding to the `i`-th positive root of `R`
 This is a more efficient version for `positive_coroots(R)[i]`.
 
 Also see: `positive_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_coroot(R::RootSystem, i::Int)
   return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
@@ -286,6 +331,11 @@ end
 Returns the coroots corresponding to the positive roots of `R`
 
 Also see: `positive_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_coroots(R::RootSystem)
   return R.positive_coroots::Vector{DualRootSpaceElem}
@@ -336,6 +386,11 @@ Returns the `i`-th root of `R`.
 This is a more efficient version for `roots(R)[i]`.
 
 Also see: `roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function root(R::RootSystem, i::Int)
   if i <= n_positive_roots(R)
@@ -352,6 +407,11 @@ Returns the roots of `R`, starting with the positive roots and then the negative
 in the order of `positive_roots` and `negative_roots`.
 
 Also see: `root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function roots(R::RootSystem)
   return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
@@ -364,6 +424,11 @@ Returns the `i`-th simple root of `R`.
 This is a more efficient version for `simple_roots(R)[i]`.
 
 Also see: `simple_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_root(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "Invalid index"
@@ -376,6 +441,11 @@ end
 Returns the simple roots of `R`.
 
 Also see: `simple_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
@@ -388,6 +458,11 @@ Returns the coroot corresponding to the `i`-th simple root of `R`
 This is a more efficient version for `simple_coroots(R)[i]`.
 
 Also see: `simple_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_coroot(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "Invalid index"
@@ -400,6 +475,11 @@ end
 Returns the coroots corresponding to the simple roots of `R`
 
 Also see: `simple_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_coroots(R::RootSystem)
   return positive_coroots(R)[1:rank(R)]
