@@ -227,6 +227,7 @@ end
   ) where {C<:FieldElem}
     @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
     @req length(s) == length(basis) "Invalid number of basis element names."
+    @req eltype(basis) == dense_matrix_type(R) "Invalid basis element type."
     L = new{C}(R, n, length(basis), basis, s)
     if check
       @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
