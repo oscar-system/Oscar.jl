@@ -616,7 +616,10 @@ end
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
   @req root_system(r1) === root_system(r2) "parent root system mismatch"
 
-  return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2))
+  # return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2)) # currently the below is faster
+  return only(
+    coefficients(r1) * _bilinear_form_QQ(root_system(r1)) * transpose(coefficients(r2))
+  )
 end
 
 @doc raw"""
@@ -1114,6 +1117,18 @@ end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
   return dot(r, w)
+end
+
+# computes the maximum `p` such that `beta - p*alpha` is still a root
+# beta is assumed to be a root
+function _root_string_length_down(alpha::RootSpaceElem, beta::RootSpaceElem)
+  p = 0
+  beta_sub_p_alpha = beta - alpha
+  while is_root(beta_sub_p_alpha)
+    p += 1
+    beta_sub_p_alpha = sub!(beta_sub_p_alpha, alpha)
+  end
+  return p
 end
 
 @doc raw"""
