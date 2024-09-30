@@ -152,22 +152,23 @@ function _allunique(lst::Vector{T}) where {T<:RingElem}
   return all(!(x in lst[i+1:end]) for (i, x) in enumerate(lst))
 end
 
-function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
-  if isdefined(F, :variable_indices)
-    S = codomain(F)::MPolyRing
-    kk = coefficient_ring(S)
-    r = ngens(S)
-    ctx = MPolyBuildCtx(S)
-    for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
-      ee = [0 for _ in 1:r]
-      for (i, k) in enumerate(e)
-        ee[F.variable_indices[i]] = k
-      end
-      push_term!(ctx, kk(c), ee)
+function _build_poly(u::MPolyRingElem, indices::Vector{Int}, S::MPolyRing)
+  S = codomain(F)::MPolyRing
+  kk = coefficient_ring(S)
+  r = ngens(S)
+  ctx = MPolyBuildCtx(S)
+  for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
+    ee = [0 for _ in 1:r]
+    for (i, k) in enumerate(e)
+      ee[indices[i]] = k
     end
-    return finish(ctx)
+    push_term!(ctx, kk(c), ee)
   end
+  return finish(ctx)
+end
 
+function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
+  isdefined(F, :variable_indices) && return _build_poly(u, F.variable_indices, codomain(F))
   return evaluate(u, F.img_gens)
 end
 
@@ -177,20 +178,9 @@ end
 
 # See the comment in MPolyQuo.jl
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyQuoRing}, u)
-  if isdefined(F, :variable_indices)
-    S = base_ring(codomain(F))::MPolyRing
-    r = ngens(S)
-    ctx = MPolyBuildCtx(S)
-    for (c, e) in zip(coefficients(u), exponents(u))
-      ee = [0 for _ in 1:r]
-      for (i, k) in enumerate(e)
-        ee[F.variable_indices[i]] = k
-      end
-      push_term!(ctx, c, ee)
-    end
-    return codomain(F)(finish(ctx))
-  end
   A = codomain(F)
+  R = base_ring(A)
+  isdefined(F, :variable_indices) && return A(_build_poly(u, F.variable_indices, R))
   v = evaluate(lift(u), lift.(_images(F)))
   return simplify(A(v))
 end
