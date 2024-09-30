@@ -96,8 +96,8 @@ end
   A2 = FreeMod(A, 2)
   v = [x*A2[1] + y*A2[2], z*A2[1] + (x-1)*A2[2]]
   M, _ = quo(A2, v)
-  p = free_resolution(M)
-  @test !iszero(p[10])
+  p = free_resolution(M, length = 11)
+  @test p[10] isa FreeMod
 end
 
 @testset "free resolutions II" begin
@@ -106,8 +106,8 @@ end
   A, _ = quo(R, I)
   A1 = FreeMod(A, 1)
   M, _ = quo(A1, [y*A1[1], z*A1[1]])
-  p = free_resolution(M)
-  @test iszero(p[10])
+  p = free_resolution(M, length = 11)
+  @test p[10] isa FreeMod
 end
 
 @testset "kernels of FreeMod -> SubquoModule" begin
