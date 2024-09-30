@@ -1308,3 +1308,11 @@ ErrorException("could not find elimination ordering")
 function eliminate(I::PBWAlgIdeal, sigmaC::Vector{<:PBWAlgElem}; ordering = nothing)
   return eliminate(I, [var_index(i) for i in sigmaC]; ordering = ordering)
 end
+
+function Oscar.degrevlex(R::PBWAlgRing)
+  return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
+end
+
+function singular_poly_ring(Rx::PBWAlgRing, ord::Singular.sordering) 
+  return Rx.sring
+end

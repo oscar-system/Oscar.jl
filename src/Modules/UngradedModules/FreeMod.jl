@@ -22,6 +22,22 @@ function FreeMod(R::AdmissibleModuleFPRing, names::Vector{Symbol}; cached::Bool=
   return FreeMod{elem_type(R)}(length(names), R, names)
 end
 
+function FreeMod(R::PBWAlgQuo, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
+  return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
+end
+
+function FreeMod(R::PBWAlgRing, n::Int, name::VarName = :e; cached::Bool = false) # TODO cached?
+  return FreeMod{elem_type(R)}(n, R, [Symbol("$name[$i]") for i=1:n])
+end
+
+function FreeMod(R::PBWAlgQuo, names::Vector{<:VarName}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
+end
+
+function FreeMod(R::PBWAlgRing, names::Vector{<:VarName}; cached::Bool=false)
+  return FreeMod{elem_type(R)}(length(names), R, Symbol.(names))
+end
+
 @doc raw"""
     free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false)
     free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false)
@@ -75,6 +91,8 @@ free_module(R::MPolyRing, p::Int, name::VarName = :e; cached::Bool = false) = Fr
 free_module(R::MPolyQuoRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 free_module(R::MPolyQuoLocRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
+free_module(R::PBWAlgQuo, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R,p,name,cached = cached)
+free_module(R::PBWAlgRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R,p,name,cached = cached)
 
 #free_module(R::NCRing, p::Int, name::VarName = :e; cached::Bool = false) = FreeMod(R, p, name, cached = cached)
 

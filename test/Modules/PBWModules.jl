@@ -3,6 +3,7 @@
     E,x = exterior_algebra(QQ, 3)
     M = FreeMod(E, 3)
     @test ngens(M) == 3
+    @test M[1] in M
     @test parent(M[1]) === M
     v = [x[1], x[1] + x[2], 5*x[1]*x[2]]
     @test M(2*v) == 2*M(v)
@@ -11,6 +12,9 @@
     N = Oscar.SubModuleOfFreeModule(M, gens(M)[1:2])
     @test gens(N) == gens(M)[1:2]
     @test N[1] in M
+    #Groebner basis of submodule
+    GB = standard_basis(N; ordering=degrevlex(E)*invlex(M))
+    @test length(GB.O) == 2
     #fails! #NEEDS A 'DEFAULT ORDERING' on the PBWAlgQuo ie on E
     #@test M(v) in N
 
@@ -24,7 +28,6 @@
     Q2 = SubquoModule(M, [x[2]*M[1]])
     #fail! #NEEDS A 'DEFAULT ORDERING' on the PBWAlgQuo ie on E
     #@test !is_canonically_isomorphic(Q2,Q1)
-    #simplify(Q[1])
 end
 
 @testset "modules over PBWAlgRing" begin
@@ -43,6 +46,9 @@ end
     N = Oscar.SubModuleOfFreeModule(M, gens(M)[1:2])
     @test gens(N) == gens(M)[1:2]
     @test N[1] in M
+    #Groebner basis of submodule
+    GB = standard_basis(N; ordering=degrevlex(A)*invlex(M))
+    @test length(GB.O) == 2
     #fails! #NEEDS A 'DEFAULT ORDERING' on the PBWAlgQuo ie on E
     #@test M(v) in N
 

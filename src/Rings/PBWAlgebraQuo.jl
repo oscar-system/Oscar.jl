@@ -316,3 +316,34 @@ end
 # function exterior_algebra(K::Ring, xs::AbstractVector{<:VarName})
 #   throw(NotImplementedError(:exterior_algebra, K, xs))
 # end
+
+#required to create PBWAlgQuoElem from Singular.svector
+
+function push_term!(M::OscarPair{<:PBWAlgQuo{T,S}, <:MPolyBuildCtx}, c, e::Vector{Int}) where {T, S}
+  c = coefficient_ring(M.first)(c)::T
+  c = base_ring(M.first.sring)(c)::S
+  push_term!(M.second, c, e)
+end
+
+function finish(M::OscarPair{<:PBWAlgQuo{T,S}, <:MPolyBuildCtx}) where {T, S}
+  tmp = PBWAlgElem(base_ring(M.first), finish(M.second))
+  return PBWAlgQuoElem(M.first, tmp)
+end
+
+function singular_poly_ring(Rx::PBWAlgQuo, ord::Singular.sordering) 
+  return Rx.sring
+end
+
+function build_ctx(R::PBWAlgQuo)
+  return OscarPair(R, MPolyBuildCtx(R.sring))
+end
+
+function length(x::PBWAlgQuoElem)
+  return length(x.data.sdata)
+end
+
+#orderings 
+
+function Oscar.degrevlex(R::PBWAlgQuo)
+  return MonomialOrdering(R, Oscar.Orderings.SymbOrdering(:degrevlex, 1:nvars(R)))
+end

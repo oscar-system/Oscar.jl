@@ -239,6 +239,18 @@ function default_ordering(F::FreeMod)
   return F.default_ordering::ModuleOrdering{typeof(F)}
 end
 
+function default_ordering(F::FreeMod{T}) where T <: Union{PBWAlgQuoElem, PBWAlgElem}
+  return 42
+end
+
+function default_ordering(R::Union{PBWAlgRing, PBWAlgQuo})
+  return 42 #lex(R)
+end
+
+function number_of_variables(R::Union{PBWAlgRing, PBWAlgQuo})
+  return ngens(R)
+end
+
 ##############################
 #TODO: move to Singular.jl ?
 
