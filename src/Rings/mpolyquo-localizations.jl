@@ -2735,22 +2735,9 @@ _is_gen(x::MPolyQuoLocRingElem) = is_one(lifted_denominator(x)) && _is_gen(lifte
 function _evaluate_plain(
     F::MPolyAnyMap{<:MPolyRing, CT}, u
   ) where {CT <: Union{<:MPolyLocRing, <:MPolyQuoLocRing}}
-  if isdefined(F, :variable_indices)
-    W = codomain(F)::MPolyLocRing
-    S = base_ring(W)
-    kk = coefficient_ring(S)
-    r = ngens(S)
-    ctx = MPolyBuildCtx(S)
-    for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
-      ee = [0 for _ in 1:r]
-      for (i, k) in enumerate(e)
-        ee[F.variable_indices[i]] = k
-      end
-      push_term!(ctx, kk(c), ee)
-    end
-    return W(finish(ctx))
-  end
-
+  W = codomain(F)::MPolyLocRing
+  S = base_ring(W)
+  isdefined(F, :variable_indices) && return W(_build_poly(u, F.variable_indices, S))
   return evaluate(u, F.img_gens)
 end
 
