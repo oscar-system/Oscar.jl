@@ -2757,33 +2757,28 @@ end
 function _evaluate_general(
     F::MPolyAnyMap{<:MPolyRing, CT}, u
   ) where {CT <: Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
-  if domain(F) === codomain(F) && coefficient_map(F) === nothing
-    return evaluate(map_coefficients(coefficient_map(F), u,
-                                     parent = domain(F)), F.img_gens)
-  else
-    S = temp_ring(F)
-    if S !== nothing
-      if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
-        return evaluate(map_coefficients(coefficient_map(F), u,
-                                         parent = S), F.img_gens)
-      else
-        tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
-      end
+  S = temp_ring(F)
+  if S !== nothing
+    if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+      return evaluate(map_coefficients(coefficient_map(F), u,
+                                       parent = S), F.img_gens)
     else
-      if !isdefined(F, :variable_indices)
-        return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
-      else
-        # For the case where we can recycle the method above, do so.
-        tmp_poly = map_coefficients(coefficient_map(F), u)
-        coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
-                   tmp_poly,
-                   F.variable_indices,
-                   codomain(F)
-                 )
-        # Otherwise default to the standard evaluation for the time being.
-        return evaluate(tmp_poly, F.img_gens)
-      end
+      tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
+      return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+    end
+  else
+    if !isdefined(F, :variable_indices)
+      return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
+    else
+      # For the case where we can recycle the method above, do so.
+      tmp_poly = map_coefficients(coefficient_map(F), u)
+      coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
+                                                                                            tmp_poly,
+                                                                                            F.variable_indices,
+                                                                                            codomain(F)
+                                                                                           )
+      # Otherwise default to the standard evaluation for the time being.
+      return evaluate(tmp_poly, F.img_gens)
     end
   end
 end
@@ -2809,6 +2804,9 @@ function _evaluate_with_build_ctx(
   return Q(finish(ctx))
 end
 
+# The following methods are only safe, because they are called 
+# exclusively in a setup where variables map to variables 
+# and no denominators are introduced. 
 _coefficients(x::MPolyRingElem) = coefficients(x)
 _coefficients(x::MPolyQuoRingElem) = coefficients(lift(x))
 _coefficients(x::MPolyLocRingElem) = coefficients(numerator(x))
