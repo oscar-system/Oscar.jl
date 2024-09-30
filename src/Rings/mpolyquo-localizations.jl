@@ -1166,6 +1166,39 @@ function compose(
   #return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
 end
 
+# overwrite some more methods for `compose` to assure reasonable results
+function compose(f::MPolyAnyMap, g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom, <:MPolyAnyMap})
+  if !_has_coefficient_map(f) && !_has_coefficient_map(g)
+    return hom(domain(f), codomain(g), g.(_images_of_generators(f)); check=false)
+  elseif _has_coefficient_map(f) && !_has_coefficient_map(g)
+    h = coefficient_map(f)
+    b = h(zero(domain(h)))
+    if parent(b) === domain(g)
+      new_h = compose(h, g)
+      return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
+    else
+      new_h = MapFromFunc(domain(h), codomain(g), x->g(domain(g)(h(x))))
+      return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
+    end
+  elseif !_has_coefficient_map(f) && _has_coefficient_map(g)
+    return hom(domain(f), codomain(g), coefficient_map(g), g.(_images_of_generators(f)); check=false)
+  else #_has_coefficient_map(f) && _has_coefficient_map(g)
+    cf = coefficient_map(f)
+    cg = coefficient_map(g)
+    b = cf(zero(domain(cf)))
+    if parent(b) === domain(cg)
+      ch = compose(cf, cg)
+      return hom(domain(f), codomain(g), ch, g.(_images_of_generators(f)); check=false)
+    elseif parent(b) === domain(g)
+      ch = compose(cf, g)
+      return hom(domain(f), codomain(g), ch, g.(_images_of_generators(f)); check=false)
+    else
+      ch = MapFromFunc(domain(h), codomain(g), x->g(domain(g)(h(x))))
+      return hom(domain(f), codomain(g), ch, g.(_images_of_generators(f)); check=false)
+    end
+  end
+end
+
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom) 
