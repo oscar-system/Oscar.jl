@@ -2717,3 +2717,105 @@ function dim(R::MPolyQuoLocRing)
   return dim(modulus(R))
 end
 
+### extra methods for speedup of mappings
+# See `src/Rings/MPolyMap/MPolyRing.jl` for the original implementation and 
+# the rationale. These methods make speedup available for quotient rings 
+# and localizations of polynomial rings.
+function _allunique(lst::Vector{T}) where {T<:MPolyLocRingElem}
+  return _allunique(numerator.(lst))
+end
+
+function _allunique(lst::Vector{T}) where {T<:MPolyQuoLocRingElem}
+  return _allunique(lifted_numerator.(lst))
+end
+
+_is_gen(x::MPolyLocRingElem) = is_one(denominator(x)) && _is_gen(numerator(x))
+_is_gen(x::MPolyQuoLocRingElem) = is_one(lifted_denominator(x)) && _is_gen(lifted_numerator(x))
+
+function _evaluate_plain(
+    F::MPolyAnyMap{<:MPolyRing, CT}, u
+  ) where {CT <: Union{<:MPolyLocRing, <:MPolyQuoLocRing}}
+  if isdefined(F, :variable_indices)
+    W = codomain(F)::MPolyLocRing
+    S = base_ring(W)
+    kk = coefficient_ring(S)
+    r = ngens(S)
+    ctx = MPolyBuildCtx(S)
+    for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
+      ee = [0 for _ in 1:r]
+      for (i, k) in enumerate(e)
+        ee[F.variable_indices[i]] = k
+      end
+      push_term!(ctx, kk(c), ee)
+    end
+    return W(finish(ctx))
+  end
+
+  return evaluate(u, F.img_gens)
+end
+
+function _evaluate_general(
+    F::MPolyAnyMap{<:MPolyRing, CT}, u
+  ) where {CT <: Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}}
+  if domain(F) === codomain(F) && coefficient_map(F) === nothing
+    return evaluate(map_coefficients(coefficient_map(F), u,
+                                     parent = domain(F)), F.img_gens)
+  else
+    S = temp_ring(F)
+    if S !== nothing
+      if !isdefined(F, :variable_indices) || coefficient_ring(S) !== codomain(F)
+        return evaluate(map_coefficients(coefficient_map(F), u,
+                                         parent = S), F.img_gens)
+      else
+        tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
+        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
+      end
+    else
+      if !isdefined(F, :variable_indices)
+        return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
+      else
+        # For the case where we can recycle the method above, do so.
+        tmp_poly = map_coefficients(coefficient_map(F), u)
+        coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
+                   tmp_poly,
+                   F.variable_indices,
+                   codomain(F)
+                 )
+        # Otherwise default to the standard evaluation for the time being.
+        return evaluate(tmp_poly, F.img_gens)
+      end
+    end
+  end
+end
+
+function _evaluate_with_build_ctx(
+    p::MPolyRingElem, ind::Vector{Int}, 
+    Q::Union{<:MPolyQuoRing, <:MPolyLocRing, <:MPolyQuoLocRing}
+  )
+  @assert Q === coefficient_ring(parent(p))
+  cod_ring = base_ring(Q)
+  r = ngens(cod_ring)
+  kk = coefficient_ring(cod_ring)
+  ctx = MPolyBuildCtx(cod_ring)
+  for (q, e) in zip(coefficients(p), exponents(p))
+    ee = [0 for _ in 1:r]
+    for (i, k) in enumerate(e)
+      ee[ind[i]] = k
+    end
+    for (c, d) in zip(_coefficients(q), _exponents(q))
+      push_term!(ctx, kk(c), ee+d)
+    end
+  end
+  return Q(finish(ctx))
+end
+
+_coefficients(x::MPolyRingElem) = coefficients(x)
+_coefficients(x::MPolyQuoRingElem) = coefficients(lift(x))
+_coefficients(x::MPolyLocRingElem) = coefficients(numerator(x))
+_coefficients(x::MPolyQuoLocRingElem) = coefficients(lifted_numerator(x))
+
+_exponents(x::MPolyRingElem) = exponents(x)
+_exponents(x::MPolyQuoRingElem) = exponents(lift(x))
+_exponents(x::MPolyLocRingElem) = exponents(numerator(x))
+_exponents(x::MPolyQuoLocRingElem) = exponents(lifted_numerator(x))
+
