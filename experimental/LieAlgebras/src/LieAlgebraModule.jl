@@ -53,7 +53,9 @@ Return the `i`-th basis element of the Lie algebra module `V`.
 function basis(V::LieAlgebraModule, i::Int)
   @req 1 <= i <= dim(V) "Index out of bounds."
   R = coefficient_ring(V)
-  return V([(j == i ? one(R) : zero(R)) for j in 1:dim(V)])
+  v = zero_matrix(R, 1, dim(V))
+  v[1, i] = one(R)
+  return V(v)
 end
 
 @doc raw"""
