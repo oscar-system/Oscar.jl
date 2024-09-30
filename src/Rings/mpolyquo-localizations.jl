@@ -1171,13 +1171,13 @@ function compose(f::MPolyAnyMap, g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLoc
   if !_has_coefficient_map(f) && !_has_coefficient_map(g)
     return hom(domain(f), codomain(g), g.(_images_of_generators(f)); check=false)
   elseif _has_coefficient_map(f) && !_has_coefficient_map(g)
-    h = coefficient_map(f)
+    cf = coefficient_map(f)
     b = cf(zero(coefficient_ring(domain(f))))
     if parent(b) === domain(g)
-      new_h = compose(h, g)
+      new_h = compose(cf, g)
       return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
     else
-      new_h = MapFromFunc(domain(h), codomain(g), x->g(domain(g)(h(x))))
+      new_h = MapFromFunc(domain(h), codomain(g), x->g(domain(g)(cf(x))))
       return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
     end
   elseif !_has_coefficient_map(f) && _has_coefficient_map(g)
