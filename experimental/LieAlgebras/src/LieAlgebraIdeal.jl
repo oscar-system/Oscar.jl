@@ -270,7 +270,7 @@ where `L` is the Lie algebra where `I` lives in.
 function lie_algebra(I::LieAlgebraIdeal)
   LI = lie_algebra(basis(I))
   L = base_lie_algebra(I)
-  emb = hom(LI, L, basis(I))
+  emb = hom(LI, L, basis(I); check=false)
   return LI, emb
 end
 
