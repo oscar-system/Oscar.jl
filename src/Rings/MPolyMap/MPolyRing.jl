@@ -139,11 +139,17 @@ _is_gen(x::MPolyRingElem) = is_gen(x)
 # default method; overwrite if you want this to work for your rings.
 _is_gen(x::NCRingElem) = false
 
-# In case there is a type of polynomials for which hashing is not implemented 
-# and throws an error, this gives the opportunity to overwrite the `allunique`
+# In case there is a type of ring elements for which hashing is correctly implemented 
+# and does not throw an error, this gives the opportunity to overwrite the `allunique`
 # to be used within the constructor for maps. 
-function _allunique(lst::Vector{T}) where {T<:RingElem}
+function _allunique(lst::Vector{T}) where {T<:MPolyRingElem}
   return allunique(lst)
+end
+
+# We have a lot of rings which do/can not implement correct hashing. 
+# So we make the following the default.
+function _allunique(lst::Vector{T}) where {T<:RingElem}
+  return all(!(x in lst[i+1:end]) for (i, x) in enumerate(lst))
 end
 
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
