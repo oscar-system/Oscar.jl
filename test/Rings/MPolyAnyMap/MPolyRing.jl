@@ -124,7 +124,7 @@
     Kxz, (z1, z2) = Kx[:z1, :z2];
     f = hom(Kxz, Kxz, hom(Kx, Kxz, [z1, z2]), [z2, z1])
     g = hom(Kxz, Kxz, hom(Kx, Kx, [y, x]), [z1 + 1, z2 + 1])
-    fg = @inferred f * g
+    fg = f * g
     @test fg(x) == g(f(x))
     @test fg(y) == g(f(y))
     @test fg(z1) == g(f(z1))
@@ -142,7 +142,7 @@
   Qix, (x, y) = Qi[:x, :y]
   f = hom(Qix, Qix, hom(Qi, Qi, -i), [x^2, y^2])
   g = hom(Qix, Qix, hom(Qi, Qi, -i), [x + 1, y + 1])
-  fg = @inferred f * g
+  fg = f * g
   @test fg(i) == g(f(i))
   @test fg(x) == g(f(x))
   @test fg(y) == g(f(y))
@@ -151,7 +151,7 @@
   Qix, (x, y) = Qi[:x, :y]
   f = hom(Qix, Qix, z -> z + 1, [x^2, y^2])
   g = hom(Qix, Qix, z -> z^2, [x + 1, y + 1])
-  fg = @inferred f * g
+  fg = f * g
   @test fg(i) == g(f(i))
   @test fg(x) == g(f(x))
   @test fg(y) == g(f(y))
