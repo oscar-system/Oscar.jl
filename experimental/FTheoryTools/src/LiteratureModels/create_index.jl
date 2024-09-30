@@ -31,7 +31,7 @@ function _create_literature_model_index()
     model_data = JSON.parsefile(model_directory * model)
     model_index = get(model_indices, model, "")
     if model_index == ""
-      model_index = string.(maximum([parse(Int, x) for x in collect(values(model_indices))]) + 1)
+      model_index = string.(maximum([parse(Int, x) for x in values(model_indices)]) + 1)
       model_indices[model] = model_index
     end
     

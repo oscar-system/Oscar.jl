@@ -1060,7 +1060,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
     # Replace `k` by an equivalent one that is coprime to `n`.
     n0 = 1
     n1 = n
-    for (p, exp) in collect(Oscar.factor(g))
+    for (p, exp) in Oscar.factor(g)
       while mod(n1, p) == 0
         n0 = n0*p
         n1 = div(n1, p )
@@ -1120,7 +1120,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
   cf = 1
   sqf = 1
-  for (p,e) in collect(factor(n))
+  for (p,e) in factor(n)
     cf = cf * p^div(e, 2)
     if e % 2 != 0
       sqf = sqf * p
@@ -1233,7 +1233,7 @@ function quadratic_irrationality_info(a::QQAbFieldElem)
     den = denominator(ysquarem)
     den_y = sqrt(den)
     m = sign(num)
-    for (p, e) in collect(factor(num))
+    for (p, e) in factor(num)
       if e % 2 == 1
         m = m * p
       end

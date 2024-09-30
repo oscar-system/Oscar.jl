@@ -481,7 +481,7 @@ function all_od_infos(L...)
 
   for (simpnam, nam) in names
     D = OD_data[simpnam][nam]
-    for char in sort!([parse(Int, x) for x in collect(keys(D))])
+    for char in sort!([parse(Int, x) for x in keys(D)])
       good_char = true
       if haskey(conditions, AbstractAlgebra.characteristic)
         characteristic = conditions[AbstractAlgebra.characteristic]

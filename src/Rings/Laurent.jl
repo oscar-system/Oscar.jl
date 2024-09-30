@@ -215,7 +215,7 @@ gens(I::LaurentMPolyIdeal) = I.gens
 @enable_all_show_via_expressify LaurentMPolyIdeal
 
 function AbstractAlgebra.expressify(a::LaurentMPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [AbstractAlgebra.expressify(g, context = context) for g in collect(gens(a))]...)
+  return Expr(:call, :ideal, [AbstractAlgebra.expressify(g, context = context) for g in gens(a)]...)
 end
 
 function ideal(R::LaurentMPolyRing, x::Vector)

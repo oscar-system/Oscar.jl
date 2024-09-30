@@ -989,7 +989,7 @@ function revlex_bases_matrix(r::Int64,n::Int64)
     return M
 end
 
-_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in collect(s)]
+_revlex_basis_to_vector(s::AbstractString) = Int[x=='*' ? 1 : 0 for x in s]
 _revlex_basis_from_vector(v::AbstractVector{<:Integer}) = join(isone(x) ? '*' : '0' for x in v)
 
 @doc raw"""

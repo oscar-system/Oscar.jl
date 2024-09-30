@@ -95,8 +95,8 @@ end
   @test dimension_representation(reph) == binomial(dimension_representation(rep) +1,2)
   @test character_representation(RR, representation_mapping(reph)) == symmetric_power(conj(chi), 2)
   ic = @inferred isotypical_components(reph)
-  inj = [v[1] for v in collect(values(ic))]
-  proj = [v[2] for v in collect(values(ic))]
+  inj = [v[1] for v in values(ic)]
+  proj = [v[2] for v in values(ic)]
   @test all(ii -> rank(ii) == nrows(ii), inj)
   @test all(pp -> rank(pp) == ncols(pp), proj)
   @test all(j -> isone(inj[j]*proj[j]), 1:length(inj))
