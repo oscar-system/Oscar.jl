@@ -1300,8 +1300,8 @@ end
 function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   rank, _ = size(cartan_matrix)
 
-  roots = [[l == s ? 1 : 0 for l in 1:rank] for s in 1:rank]
-  coroots = [[l == s ? 1 : 0 for l in 1:rank] for s in 1:rank]
+  roots = [[l == s ? one(ZZ) : zero(ZZ) for l in 1:rank] for s in 1:rank]
+  coroots = [[l == s ? one(ZZ) : zero(ZZ) for l in 1:rank] for s in 1:rank]
   rootidx = Dict(roots[s] => s for s in 1:rank)
   refl = Dict((s, s) => 0 for s in 1:rank)
 
@@ -1312,12 +1312,11 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
         continue
       end
 
-      pairing = let i = i
-        sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank; init=zero(ZZ))
-      end
-      copairing = let i = i
-        sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank; init=zero(ZZ))
-      end
+      # pairing = dot(roots[i], view(cartan_matrix, s, :)) # currently the below is faster
+      pairing = only(view(cartan_matrix, s:s, :) * roots[i])
+      # copairing = dot(coroots[i], view(cartan_matrix, :, s)) # currently the below is faster
+      copairing = only(coroots[i] * view(cartan_matrix, :, s:s))
+
       if pairing * copairing >= 4
         refl[s, i] = 0
         continue
