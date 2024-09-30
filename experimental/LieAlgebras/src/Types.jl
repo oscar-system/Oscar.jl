@@ -180,11 +180,19 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
       ) "Not anti-symmetric."
       @req all(
         iszero,
-        sum(
-          struct_consts[i, j][k] * struct_consts[k, l] +
-          struct_consts[j, l][k] * struct_consts[k, i] +
-          struct_consts[l, i][k] * struct_consts[k, j] for k in 1:dimL; init=sparse_row(R)
-        ) for i in 1:dimL, j in 1:dimL, l in 1:dimL
+        begin
+          row = sparse_row(R)
+          for (k, k_val) in struct_consts[i, j]
+            Hecke.add_scaled_row!(struct_consts[k, l], row, k_val)
+          end
+          for (k, k_val) in struct_consts[j, l]
+            Hecke.add_scaled_row!(struct_consts[k, i], row, k_val)
+          end
+          for (k, k_val) in struct_consts[l, i]
+            Hecke.add_scaled_row!(struct_consts[k, j], row, k_val)
+          end
+          row
+        end for i in 1:dimL, j in 1:dimL, l in 1:dimL
       ) "Jacobi identity does not hold."
     end
     return new{C}(R, dimL, struct_consts, s)
