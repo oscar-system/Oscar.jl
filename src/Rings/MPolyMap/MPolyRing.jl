@@ -136,6 +136,8 @@ end
 _is_gen(x::MPolyQuoRingElem) = _is_gen(lift(x))
 _is_gen(x::MPolyDecRingElem) = is_gen(forget_grading(x))
 _is_gen(x::MPolyRingElem) = is_gen(x)
+# default method; overwrite if you want this to work for your rings.
+_is_gen(x::NCRingElem) = false
 
 # In case there is a type of polynomials for which hashing is not implemented 
 # and throws an error, this gives the opportunity to overwrite the `allunique`
@@ -190,9 +192,9 @@ end
 # The following assumes `p` to be in `S[x₁,…,xₙ]` where `S` is the 
 # actual codomain of the map.
 function _evaluate_with_build_ctx(
-    p::MPolyRingElem, ind::Vector{Int}
+    p::MPolyRingElem, ind::Vector{Int}, cod_ring::MPolyRing
   )
-  cod_ring = coefficient_ring(parent(p))
+  @assert cod_ring === coefficient_ring(parent(p))
   r = ngens(cod_ring)
   kk = coefficient_ring(cod_ring)
   ctx = MPolyBuildCtx(cod_ring)
@@ -220,7 +222,7 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
                                          parent = S), F.img_gens)
       else
         tmp_poly = map_coefficients(coefficient_map(F), u, parent = S)
-        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices)
+        return _evaluate_with_build_ctx(tmp_poly, F.variable_indices, codomain(F))
       end
     else
       if !isdefined(F, :variable_indices)
@@ -230,7 +232,8 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
         tmp_poly = map_coefficients(coefficient_map(F), u)
         coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
                    tmp_poly,
-                   F.variable_indices
+                   F.variable_indices,
+                   codomain(F)
                  )
         # Otherwise default to the standard evaluation for the time being.
         return evaluate(tmp_poly, F.img_gens)
