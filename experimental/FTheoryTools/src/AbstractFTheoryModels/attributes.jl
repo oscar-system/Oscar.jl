@@ -1677,7 +1677,8 @@ julia> components_of_dual_graph(qsm_model)
  "C7"
  "C8"
  "C9"
- ⋮
+ "C13"
+ "C14"
  "C16"
  "C17"
  "C21"
