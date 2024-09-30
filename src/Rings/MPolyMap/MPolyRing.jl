@@ -137,9 +137,17 @@ _is_gen(x::MPolyQuoRingElem) = _is_gen(lift(x))
 _is_gen(x::MPolyDecRingElem) = is_gen(forget_grading(x))
 _is_gen(x::MPolyRingElem) = is_gen(x)
 
+# In case there is a type of polynomials for which hashing is not implemented 
+# and throws an error, this gives the opportunity to overwrite the `allunique`
+# to be used within the constructor for maps. 
+function _allunique(lst::Vector{T}) where {T<:RingElem}
+  return allunique(lst)
+end
+
 function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
   if isdefined(F, :variable_indices)
     S = codomain(F)::MPolyRing
+    kk = coefficient_ring(S)
     r = ngens(S)
     ctx = MPolyBuildCtx(S)
     for (c, e) in zip(AbstractAlgebra.coefficients(u), AbstractAlgebra.exponent_vectors(u))
@@ -147,7 +155,7 @@ function _evaluate_plain(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
       for (i, k) in enumerate(e)
         ee[F.variable_indices[i]] = k
       end
-      push_term!(ctx, c, ee)
+      push_term!(ctx, kk(c), ee)
     end
     return finish(ctx)
   end
@@ -181,9 +189,12 @@ end
 
 # The following assumes `p` to be in `S[x₁,…,xₙ]` where `S` is the 
 # actual codomain of the map.
-function _evaluate_with_build_ctx(p::MPolyRingElem, ind::Vector{Int})
+function _evaluate_with_build_ctx(
+    p::MPolyRingElem, ind::Vector{Int}
+  )
   cod_ring = coefficient_ring(parent(p))
   r = ngens(cod_ring)
+  kk = coefficient_ring(cod_ring)
   ctx = MPolyBuildCtx(cod_ring)
   for (q, e) in zip(coefficients(p), exponents(p))
     ee = [0 for _ in 1:r]
@@ -191,7 +202,7 @@ function _evaluate_with_build_ctx(p::MPolyRingElem, ind::Vector{Int})
       ee[ind[i]] = k
     end
     for (c, d) in zip(coefficients(q), exponents(q))
-      push_term!(ctx, c, ee+d)
+      push_term!(ctx, kk(c), ee+d)
     end
   end
   return finish(ctx)
@@ -215,9 +226,14 @@ function _evaluate_general(F::MPolyAnyMap{<:MPolyRing, <:MPolyRing}, u)
       if !isdefined(F, :variable_indices)
         return evaluate(map_coefficients(coefficient_map(F), u), F.img_gens)
       else
+        # For the case where we can recycle the method above, do so.
         tmp_poly = map_coefficients(coefficient_map(F), u)
-        coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(tmp_poly, F.variable_indices)
-        return evaluate(tmp_poly, F.variable_indices)
+        coefficient_ring(parent(tmp_poly)) === codomain(F) && return _evaluate_with_build_ctx(
+                   tmp_poly,
+                   F.variable_indices
+                 )
+        # Otherwise default to the standard evaluation for the time being.
+        return evaluate(tmp_poly, F.img_gens)
       end
     end
   end

@@ -60,7 +60,9 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
   function MPolyAnyMap{D, C, U, V}(domain::D,
                                    codomain::C,
                                    coeff_map::U,
-                                   img_gens::Vector{V}) where {D <: Union{<:MPolyRing, <:MPolyQuoRing}, 
+                                   img_gens::Vector{V};
+                                   check_for_mapping_of_vars::Bool=true
+                                  ) where {D <: Union{<:MPolyRing, <:MPolyQuoRing}, 
                                                                C <: Union{<:MPolyRing, <:MPolyQuoRing}, 
                                                                U, V}
     @assert V === elem_type(C)
@@ -68,7 +70,7 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
       @assert parent(g) === codomain "elements does not have the correct parent"
     end
     result = new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-    if all(_is_gen, img_gens) && allunique(img_gens)
+    if check_for_mapping_of_vars && all(_is_gen, img_gens) && _allunique(img_gens)
       result.variable_indices = [findfirst(==(x), gens(codomain)) for x in img_gens]
     end
     return result
