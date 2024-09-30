@@ -63,8 +63,7 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
                                    img_gens::Vector{V};
                                    check_for_mapping_of_vars::Bool=true
                                   ) where {D <: Union{<:MPolyRing, <:MPolyQuoRing}, 
-                                                               C <: Union{<:MPolyRing, <:MPolyQuoRing}, 
-                                                               U, V}
+                                           C, U, V}
     @assert V === elem_type(C)
     for g in img_gens
       @assert parent(g) === codomain "elements does not have the correct parent"
