@@ -524,6 +524,14 @@ function RootSpaceElem(w::WeightLatticeElem)
   return RootSpaceElem(root_system(w), w)
 end
 
+function zero(::Type{RootSpaceElem}, R::RootSystem)
+  return RootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
+end
+
+function zero(r::RootSpaceElem)
+  return zero(RootSpaceElem, root_system(r))
+end
+
 function Base.:*(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
@@ -542,6 +550,29 @@ end
 
 function Base.:-(r::RootSpaceElem)
   return RootSpaceElem(root_system(r), -r.vec)
+end
+
+function zero!(r::RootSpaceElem)
+  r.vec = zero!(r.vec)
+  return r
+end
+
+function add!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = add!(rr.vec, r1.vec, r2.vec)
+  return rr
+end
+
+function neg!(rr::RootSpaceElem, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = neg!(rr.vec, r.vec)
+  return rr
+end
+
+function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = sub!(rr.vec, r1.vec, r2.vec)
+  return rr
 end
 
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
@@ -682,6 +713,14 @@ function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion}
   return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
+function zero(::Type{DualRootSpaceElem}, R::RootSystem)
+  return DualRootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
+end
+
+function zero(r::DualRootSpaceElem)
+  return zero(DualRootSpaceElem, root_system(r))
+end
+
 function Base.:*(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
 end
@@ -700,6 +739,29 @@ end
 
 function Base.:-(r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), -r.vec)
+end
+
+function zero!(r::DualRootSpaceElem)
+  r.vec = zero!(r.vec)
+  return r
+end
+
+function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = add!(rr.vec, r1.vec, r2.vec)
+  return rr
+end
+
+function neg!(rr::DualRootSpaceElem, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = neg!(rr.vec, r.vec)
+  return rr
+end
+
+function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = sub!(rr.vec, r1.vec, r2.vec)
+  return rr
 end
 
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
@@ -839,18 +901,26 @@ function WeightLatticeElem(r::RootSpaceElem)
   return WeightLatticeElem(root_system(r), r)
 end
 
+function zero(::Type{WeightLatticeElem}, R::RootSystem)
+  return WeightLatticeElem(R, zero_matrix(ZZ, rank(R), 1))
+end
+
+function zero(r::WeightLatticeElem)
+  return zero(WeightLatticeElem, root_system(r))
+end
+
 function Base.:*(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)
 end
 
 function Base.:+(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
+  @req root_system(w) === root_system(w2) "parent root system mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:-(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
+  @req root_system(w) === root_system(w2) "parent root system mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec - w2.vec)
 end
@@ -859,24 +929,28 @@ function Base.:-(w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), -w.vec)
 end
 
-function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  add!(wr.vec, w1.vec, w2.vec)
-  return wr
-end
-
-add!(w1::WeightLatticeElem, w2::WeightLatticeElem) = add!(w1, w1, w2)
-
-function neg!(w::WeightLatticeElem)
-  neg!(w.vec)
+function zero!(w::WeightLatticeElem)
+  w.vec = zero!(w.vec)
   return w
 end
 
-function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  sub!(wr.vec, w1.vec, w2.vec)
+function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  wr.vec = add!(wr.vec, w1.vec, w2.vec)
   return wr
 end
 
-sub!(w1::WeightLatticeElem, w2::WeightLatticeElem) = sub!(w1, w1, w2)
+function neg!(wr::WeightLatticeElem, w::WeightLatticeElem)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = neg!(wr.vec, w.vec)
+  return wr
+end
+
+function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  wr.vec = sub!(wr.vec, w1.vec, w2.vec)
+  return wr
+end
 
 function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
   return w.root_system === w2.root_system && w.vec == w2.vec
@@ -983,7 +1057,7 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w1) === root_system(w2) "parent weight lattices mismatch"
+  @req root_system(w1) === root_system(w2) "parent root system mismatch"
   R = root_system(w1)
 
   return dot(

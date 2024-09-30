@@ -84,6 +84,7 @@ import ..Oscar:
   tensor_product,
   weyl_vector,
   word,
+  zero!,
   zero_map,
   ⊕,
   ⊗
