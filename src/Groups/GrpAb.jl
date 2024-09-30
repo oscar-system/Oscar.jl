@@ -232,7 +232,7 @@ function frattini_subgroup(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    subgens = FinGenAbGroupElem[]
    for x in gens(G)
-     for (p, e) in collect(factor(order(x)))
+     for (p, e) in factor(order(x))
        x = p*x
      end
      if !is_zero(x)
@@ -248,7 +248,7 @@ function socle(G::FinGenAbGroup)
    for x in gens(G)
      n = 1
      ord = order(x)
-     for (p, e) in collect(factor(ord))
+     for (p, e) in factor(ord)
        n = p*n
      end
      x = divexact(ord, n)*x
@@ -277,7 +277,7 @@ solvable_radical(G::FinGenAbGroup) = (G, identity_map(G))
 function sylow_system(G::FinGenAbGroup)
    @req is_finite(G) "G is not finite"
    result = FinGenAbGroup[]
-   for (p, e) in collect(factor(order(G)))
+   for (p, e) in factor(order(G))
      push!(result, sylow_subgroup(G, p)[1])
    end
    return result

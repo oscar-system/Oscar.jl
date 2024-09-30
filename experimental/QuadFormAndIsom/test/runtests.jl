@@ -252,7 +252,7 @@ end
   cc = conjugacy_classes(OA4)
 
   D = Oscar._test_isometry_enumeration(A4, 6)
-  for n in collect(keys(D))
+  for n in keys(D)
     @test length(D[n]) == length(filter(c -> order(representative(c)) == n, cc))
   end
   

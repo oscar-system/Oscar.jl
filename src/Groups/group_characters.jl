@@ -835,7 +835,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = GapObj(tbl)
     size = order(ZZRingElem, tbl)
-    primes = [x[1] for x in collect(factor(size))]
+    primes = [x[1] for x in factor(size)]
     sort!(primes)
 
     # Decide how to deal with irrationalities.

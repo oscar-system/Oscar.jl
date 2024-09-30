@@ -30,7 +30,7 @@ _pmset_to_indices(A::Polymake.Set{<:Integer}) = collect(Int, Polymake.to_one_bas
 _indices_to_gs(A::AbstractVector{<:AbstractVector{<:Integer}}, gs::AbstractVector) = [gs[S] for S in A]
 _indices_to_gs(A::AbstractVector{<:Integer}, gs::AbstractVector) = gs[A]
 
-_gs_to_indices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = type(collect(Int, gs2num[i] for i in collect(s)))
+_gs_to_indices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = type(collect(Int, gs2num[i] for i in s))
 _gs_to_pmindices(s::GroundsetType, gs2num::Dict; type::Type=Vector{Int}) = Polymake.to_zero_based_indexing(_gs_to_indices(s, gs2num; type=type))
 
 _property_to_gs(M::Matroid, p::Symbol) = _indices_to_gs(_pmset_to_indices(getproperty(pm_object(M), p)), M.groundset)

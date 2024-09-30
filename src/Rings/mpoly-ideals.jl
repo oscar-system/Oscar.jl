@@ -2136,7 +2136,7 @@ end
 ################################################################################
 
 function AbstractAlgebra.expressify(a::MPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [expressify(g, context = context) for g in collect(a.gens)]...)
+  return Expr(:call, :ideal, [expressify(g, context = context) for g in a.gens]...)
 end
 
 # See Rings/mpolyquo-localizations.jl for show functions

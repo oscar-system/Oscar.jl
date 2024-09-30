@@ -1384,7 +1384,7 @@ end
 #      end
 #    end
 #  end
-#  min = maximum([total_degree(a) for a in collect(B)])
+#  min = maximum([total_degree(a) for a in B])
 #  (k, l) = (0, 0)
 #  verbose && println("reducing matrix and selecting pivot...")
 #  for i in [a for a in 1:n if !(a in good[1])]
