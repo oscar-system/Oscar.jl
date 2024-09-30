@@ -532,7 +532,7 @@ function prune_with_map(M::ModuleFP)
   return N, b
 end
 
-function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # The case that can be handled by Singular
+function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
 
   # Singular presentation
   pm = presentation(M)
@@ -577,7 +577,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
 end
 
 function _presentation_minimal(SQ::ModuleFP{T};
-                               minimal_kernel::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
+                               minimal_kernel::Bool=true) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  R = base_ring(SQ)
 
   R = base_ring(SQ)
  

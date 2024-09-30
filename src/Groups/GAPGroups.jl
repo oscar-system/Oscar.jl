@@ -695,7 +695,7 @@ end
    end
 end
 
-GAP.julia_to_gap(obj::GAPGroupConjClass) = obj.CC
+GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S
 

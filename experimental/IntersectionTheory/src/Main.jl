@@ -1378,6 +1378,29 @@ basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 Return the Betti numbers of the Chow ring of `X`. Note that these are not
 necessarily equal to the usual Betti numbers, i.e., the dimensions of
 (co)homologies.
+
+# Examples
+```jldoctest
+julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
+AbstractVariety of dim 4
+
+julia> betti(P2xP2)
+5-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 2
+ 1
+
+julia> basis(P2xP2)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [l, k]
+ [l^2, k*l, k^2]
+ [k*l^2, k^2*l]
+ [k^2*l^2]
+
+```
 """
 betti(X::AbstractVariety) = length.(basis(X))
 

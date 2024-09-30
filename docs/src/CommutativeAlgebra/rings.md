@@ -27,7 +27,7 @@ The basic constructor below allows one to build multivariate polynomial rings:
 polynomial_ring(C::Ring, xs::AbstractVector{<:VarName}; cached::Bool = true)
 ```
 
-Given a ring `C` and a vector `xs` of  Strings, Symbols, or Characters, return 
+Given a ring `C` and a vector `xs` of  Symbols, Strings, or Characters, return 
 a tuple `R, vars`, say, which consists of a polynomial ring `R` with coefficient ring `C`
 and a vector `vars` of generators (variables) which print according to the entries of `xs`.
 
@@ -60,7 +60,7 @@ true
 ```jldoctest
 julia> R1, _ = polynomial_ring(ZZ, [:x, :y, :z]);
 
-julia> R2, _ = polynomial_ring(ZZ, [:x, :y, :z]);
+julia> R2, _ = polynomial_ring(ZZ, ["x", "y", "z"]);
 
 julia> R3, _ = polynomial_ring(ZZ, ['x', 'y', 'z']);
 

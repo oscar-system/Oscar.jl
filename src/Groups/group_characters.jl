@@ -835,7 +835,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = GapObj(tbl)
     size = order(ZZRingElem, tbl)
-    primes = [x[1] for x in collect(factor(size))]
+    primes = [x[1] for x in factor(size)]
     sort!(primes)
 
     # Decide how to deal with irrationalities.
@@ -1899,7 +1899,7 @@ GapObj(chi::GAPGroupClassFunction) = chi.values
 
 # The following is needed for recursive `GapObj` calls with arrays
 # of class functions.
-GAP.julia_to_gap(chi::GAPGroupClassFunction) = chi.values
+GAP.@install GapObj(chi::GAPGroupClassFunction) = chi.values
 
 parent(chi::GAPGroupClassFunction) = chi.table
 

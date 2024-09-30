@@ -629,12 +629,12 @@ function _local_hermitian_lifting(G::T, F::T, rho::Hecke.RelSimpleNumFieldElem, 
 
   l2 = 2*l+1
   if check
-    @hassert :ZZLatWithIsom 1 minimum(valuation(m, P) for m in collect(F-newF) if !iszero(m)) >= l+1
+    @hassert :ZZLatWithIsom 1 minimum(valuation(m, P) for m in (F-newF) if !iszero(m)) >= l+1
     R2 = G-newF*G*map_entries(s, transpose(newF))
     @hassert :ZZLatWithIsom 1 _scale_valuation(R2, P) >= l2-a
     @hassert :ZZLatWithIsom 1 _norm_valuation(R2, P) + valuation(rho, P) >= l2-a
     if split
-      @hassert :ZZLatWithIsom 1 minimum(valuation(m, P2) for m in collect(F-newF) if !iszero(m)) >= l+1
+      @hassert :ZZLatWithIsom 1 minimum(valuation(m, P2) for m in (F-newF) if !iszero(m)) >= l+1
       @hassert :ZZLatWithIsom 1 _scale_valuation(R2, P2) >= l2-a
       @hassert :ZZLatWithIsom 1 _norm_valuation(R2, P2) + valuation(rho, P2) >= l2-a
     end

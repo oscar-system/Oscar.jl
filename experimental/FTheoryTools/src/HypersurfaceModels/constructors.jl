@@ -68,7 +68,7 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   # Construct the model
   hypersurface_equation = eval_poly(p, cox_ring(ambient_space))
   @req is_homogeneous(hypersurface_equation) "Given hypersurface equation is not homogeneous"
-  ds = [x.coeff for x in collect(keys(homogeneous_components(hypersurface_equation)))]
+  ds = [x.coeff for x in keys(homogeneous_components(hypersurface_equation))]
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
