@@ -268,22 +268,25 @@ function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
 end
 
 function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
-  is_zero(s) && return zero(F) # `map_entries` throws for empty vectors
   Qx = base_ring(F)::MPolyQuoRing
   Rx = base_ring(Qx)::MPolyRing
-  row = _build_sparse_row(Rx, s)
-  return FreeModElem(map_entries(Qx, row), F)
+  row = _build_sparse_row(Rx, s; cast=Qx)
+  return FreeModElem(row, F)
 end
 
-function _build_sparse_row(Rx::Ring, s::Singular.svector)
+function _build_sparse_row(
+    Rx::MPolyRing, s::Singular.svector; 
+    cast::Ring=Rx
+  )
+  is_zero(length(s)) && return sparse_row(cast)
   R = coefficient_ring(Rx)
-  ctx = MPolyBuildCtx(Rx)
 
   # shortcuts in order not to allocate the dictionary
-  is_zero(length(s)) && return sparse_row(Rx)
+  ctx = MPolyBuildCtx(Rx)
   if isone(length(s))
     (i, e, c) = first(s)
     push_term!(ctx, R(c), e)
+    cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx)))])
     return sparse_row(Rx, [(i, finish(ctx))])
   end
 
@@ -300,6 +303,7 @@ function _build_sparse_row(Rx::Ring, s::Singular.svector)
     end
     push_term!(ctx, R(c), e)
   end
+  cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx))) for (i, ctx) in cache])
   return sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache])
 end
 
