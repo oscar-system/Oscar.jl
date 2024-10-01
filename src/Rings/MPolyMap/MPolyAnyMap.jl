@@ -29,35 +29,7 @@
 # - MPolyQuoRing
 # - MPolyDecRing
 
-const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
-
-@attributes mutable struct MPolyAnyMap{
-    D <: _DomainTypes,
-    C <: NCRing,
-    U,
-    V} <: Map{D, C, Map, MPolyAnyMap}
-
-  domain::D
-  codomain::C
-  coeff_map::U
-  img_gens::Vector{V}
-  temp_ring           # temporary ring used when evaluating maps
-
-  function MPolyAnyMap{D, C, U, V}(domain::D,
-                                codomain::C,
-                                coeff_map::U,
-                                img_gens::Vector{V}) where {D, C, U, V}
-      @assert V === elem_type(C)
-      for g in img_gens
-        @assert parent(g) === codomain "elements does not have the correct parent"
-      end
-    return new{D, C, U, V}(domain, codomain, coeff_map, img_gens)
-  end
-end
-
-function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D, C, U, V}
-  return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
-end
+### See `Types.jl` for the declaration of the type.
 
 ################################################################################
 #
@@ -237,6 +209,27 @@ function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, U}) where {D, C, 
   else
     return Generic.CompositeMap(F, G)
   end
+end
+
+# No coefficient maps in the second argument
+function compose(F::MPolyAnyMap{D, C, S}, G::MPolyAnyMap{C, E, Nothing}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  f = coefficient_map(F)
+  if typeof(codomain(f)) === typeof(coefficient_ring(domain(G)))
+    return hom(domain(F), codomain(G), f, G.(_images(F)), check=false)
+  elseif typeof(codomain(f)) === typeof(domain(G))
+    new_coeff_map = compose(f, G)
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
+  else
+    return Generic.CompositeMap(F, G)
+  end
+end
+
+# No coefficient maps in the first argument
+function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, S}) where {D, C, E, S <: Map}
+  @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
+  g = coefficient_map(G)
+  return hom(domain(F), codomain(G), g, G.(_images(F)), check=false)
 end
 
 # No coefficient maps in both maps
