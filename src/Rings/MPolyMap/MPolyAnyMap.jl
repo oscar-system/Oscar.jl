@@ -64,7 +64,8 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
     # call the inner one with this argument set to `false`. This way the check 
     # can safely be disabled.
     if check_for_mapping_of_vars && all(_is_gen, img_gens) && _allunique(img_gens)
-      result.variable_indices = [findfirst(==(x), gens(codomain)) for x in img_gens]
+      gens_codomain = gens(codomain)
+      result.variable_indices = [findfirst(==(x), gens_codomain) for x in img_gens]
     end
     return result
   end
