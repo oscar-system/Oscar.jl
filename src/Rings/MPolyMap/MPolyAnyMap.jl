@@ -229,7 +229,12 @@ end
 function compose(F::MPolyAnyMap{D, C, Nothing}, G::MPolyAnyMap{C, E, S}) where {D, C, E, S <: Map}
   @req codomain(F) === domain(G) "Incompatible (co)domain in composition"
   g = coefficient_map(G)
-  return hom(domain(F), codomain(G), g, G.(_images(F)), check=false)
+  if domain(g) === coefficient_ring(domain(F))
+    return hom(domain(F), codomain(G), g, G.(_images(F)), check=false)
+  else
+    new_coeff_map = MapFromFunc(coefficient_ring(domain(F)), codomain(g), x->g(domain(g)(x)))
+    return hom(domain(F), codomain(G), new_coeff_map, G.(_images(F)), check=false)
+  end
 end
 
 # No coefficient maps in both maps
