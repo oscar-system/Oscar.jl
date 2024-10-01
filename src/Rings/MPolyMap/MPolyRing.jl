@@ -193,12 +193,12 @@ function _evaluate_with_build_ctx(
   r = ngens(cod_ring)
   kk = coefficient_ring(cod_ring)
   ctx = MPolyBuildCtx(cod_ring)
-  for (q, e) in zip(coefficients(p), exponents(p))
+  for (q, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
     ee = [0 for _ in 1:r]
     for (i, k) in enumerate(e)
       ee[ind[i]] = k
     end
-    for (c, d) in zip(coefficients(q), exponents(q))
+    for (c, d) in zip(AbstractAlgebra.coefficients(q), AbstractAlgebra.exponent_vectors(q))
       push_term!(ctx, kk(c), ee+d)
     end
   end

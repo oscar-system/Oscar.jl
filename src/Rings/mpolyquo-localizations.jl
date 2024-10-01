@@ -620,7 +620,7 @@ function is_zero_divisor(f::MPolyQuoLocRingElem{<:Field})
   # once more functionality is working, it will actually do stuff and
   # the above signature can be widened.
   if is_constant(lifted_numerator(f)) && is_constant(lifted_denominator(f))
-    c = first(coefficients(lift(numerator(f))))
+    c = first(AbstractAlgebra.coefficients(lift(numerator(f))))
     return is_zero_divisor(c)
   end
   return !is_zero(quotient(ideal(parent(f), zero(f)), ideal(parent(f), f)))
@@ -1378,7 +1378,7 @@ end
   gb = groebner_basis(J, ordering=oo)
 
   # TODO: Speed up and use build context.
-  res_gens = elem_type(A)[f for f in gb if all(e -> is_zero(view(e, 1:(n+r))), exponents(f))]
+  res_gens = elem_type(A)[f for f in gb if all(e -> is_zero(view(e, 1:(n+r))), AbstractAlgebra.exponent_vectors(f))]
   img_gens2 = vcat([zero(R) for i in 1:(n+r)], gens(R))
   result = ideal(R, elem_type(R)[evaluate(g, img_gens2) for g in res_gens])
   return result
@@ -2779,7 +2779,7 @@ function _evaluate_with_build_ctx(
   r = ngens(cod_ring)
   kk = coefficient_ring(cod_ring)
   ctx = MPolyBuildCtx(cod_ring)
-  for (q, e) in zip(coefficients(p), exponents(p))
+  for (q, e) in zip(AbstractAlgebra.coefficients(p), AbstractAlgebra.exponent_vectors(p))
     ee = [0 for _ in 1:r]
     for (i, k) in enumerate(e)
       ee[ind[i]] = k
@@ -2794,13 +2794,13 @@ end
 # The following methods are only safe, because they are called 
 # exclusively in a setup where variables map to variables 
 # and no denominators are introduced. 
-_coefficients(x::MPolyRingElem) = coefficients(x)
-_coefficients(x::MPolyQuoRingElem) = coefficients(lift(x))
-_coefficients(x::MPolyLocRingElem) = coefficients(numerator(x))
-_coefficients(x::MPolyQuoLocRingElem) = coefficients(lifted_numerator(x))
+_coefficients(x::MPolyRingElem) = AbstractAlgebra.coefficients(x)
+_coefficients(x::MPolyQuoRingElem) = AbstractAlgebra.coefficients(lift(x))
+_coefficients(x::MPolyLocRingElem) = AbstractAlgebra.coefficients(numerator(x))
+_coefficients(x::MPolyQuoLocRingElem) = AbstractAlgebra.coefficients(lifted_numerator(x))
 
-_exponents(x::MPolyRingElem) = exponents(x)
-_exponents(x::MPolyQuoRingElem) = exponents(lift(x))
-_exponents(x::MPolyLocRingElem) = exponents(numerator(x))
-_exponents(x::MPolyQuoLocRingElem) = exponents(lifted_numerator(x))
+_exponents(x::MPolyRingElem) = AbstractAlgebra.exponent_vectors(x)
+_exponents(x::MPolyQuoRingElem) = AbstractAlgebra.exponent_vectors(lift(x))
+_exponents(x::MPolyLocRingElem) = AbstractAlgebra.exponent_vectors(numerator(x))
+_exponents(x::MPolyQuoLocRingElem) = AbstractAlgebra.exponent_vectors(lifted_numerator(x))
 
