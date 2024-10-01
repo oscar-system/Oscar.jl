@@ -1166,6 +1166,7 @@ function compose(
   #return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
 end
 
+#=
 # overwrite some more methods for `compose` to assure that we do not end up 
 # with `CompositeMap`s. 
 function compose(f::MPolyAnyMap, g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom, <:MPolyAnyMap})
@@ -1198,6 +1199,7 @@ function compose(f::MPolyAnyMap, g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLoc
     return hom(domain(f), codomain(g), ch, g.(_images_of_generators(f)); check=false)
   end
 end
+=#
 
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
