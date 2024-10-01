@@ -72,6 +72,7 @@ domain(f::CoveredSchemeMorphism) = f.X
 codomain(f::CoveredSchemeMorphism) = f.Y
 covering_morphism(f::CoveredSchemeMorphism) = f.f
 
+#=
 @doc raw"""
     isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
 
@@ -86,6 +87,7 @@ function isomorphism_on_open_subsets(f::AbsCoveredSchemeMorphism)
   end
   return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
 end
+=#
 
 @attr AbsCoveredSchemeMorphism function inverse(f::AbsCoveredSchemeMorphism)
   error("method not implemented")

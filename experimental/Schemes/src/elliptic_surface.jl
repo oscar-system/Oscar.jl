@@ -709,7 +709,7 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
   last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
   push!(projectionsY, last_pr_wrap)
   Y.ambient_blowups = projectionsX
@@ -780,7 +780,7 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
-    isomorphism_on_open_subset(pr_X1)
+    #isomorphism_on_open_subset(pr_X1)
 
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
@@ -834,7 +834,7 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
   # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
   last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
   push!(projectionsY, last_pr_wrap)
   Y.ambient_blowups = projectionsX

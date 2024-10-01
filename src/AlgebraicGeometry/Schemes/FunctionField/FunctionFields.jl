@@ -496,6 +496,7 @@ function is_regular(f::VarietyFunctionFieldElem, W::AffineSchemeOpenSubscheme)
   return all(U->is_regular(f, U), affine_patches(W))
 end
 
+#=
 function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   X = domain(f)
   Y = codomain(f)
@@ -511,6 +512,7 @@ function pushforward(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   #bb = fraction(num)//fraction(den)
   return function_field(Y)(lifted_numerator(num)*lifted_denominator(den), lifted_numerator(den)*lifted_denominator(num))
 end
+=#
 
 function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   fcov = covering_morphism(f)

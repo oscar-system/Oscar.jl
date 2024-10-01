@@ -303,6 +303,7 @@ end
 
 morphism_type(X::AbsAffineScheme, Y::AbsAffineScheme) = morphism_type(typeof(X), typeof(Y))
 
+#=
 @doc raw"""
     isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
 
@@ -317,4 +318,5 @@ function isomorphism_on_open_subsets(f::AbsAffineSchemeMor)
   end
   return get_attribute(f, :iso_on_open_subset)::AbsAffineSchemeMor
 end
+=#
 

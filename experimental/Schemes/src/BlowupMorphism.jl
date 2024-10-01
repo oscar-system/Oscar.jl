@@ -242,6 +242,7 @@ function strict_transform(p::AbsSimpleBlowupMorphism, inc::CoveredClosedEmbeddin
   Z_trans = domain(inc_Z_trans)
   pr_res = restrict(projection(p), inc_Z_trans, inc; check=false)
 
+  #=
   if has_attribute(p, :isomorphism_on_open_subset) # will only happen when p is a BlowupMorphism
     OOX = OO(X)
     OOY = OO(Y)
@@ -305,6 +306,7 @@ function strict_transform(p::AbsSimpleBlowupMorphism, inc::CoveredClosedEmbeddin
     #@assert is_isomorphism(result)
     set_attribute!(pr_res, :isomorphism_on_open_subset, result)
   end
+  =#
   return Z_trans, inc_Z_trans, pr_res
 end
 
@@ -657,6 +659,7 @@ end
   return p_res
 end
 
+#=
 ### Some functionality used by function fields
 
 # If set this attribute shall return some isomorphism on some open subsets of the domain
@@ -679,7 +682,9 @@ end
   set_attribute!(phi_inv, :inverse, phi)
   return phi
 end
+=#
 
+#=
 function pullback(f::BlowupMorphism, g::VarietyFunctionFieldElem)
   X = domain(projection(f))
   Y = codomain(projection(f))
@@ -711,6 +716,7 @@ end
 @attr AbsAffineSchemeMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
   error("attribute not found; this needs to be set manually in general")
 end
+=#
 
 function compose(f::AbsSimpleBlowupMorphism, g::AbsSimpleBlowupMorphism)
   return composite_map(f, g)
