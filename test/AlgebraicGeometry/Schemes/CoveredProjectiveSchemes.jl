@@ -57,7 +57,7 @@ end
   @test !is_empty(U[1])
   @test dim(U[1]) == 1
   @test dim(U[2]) == 0
-  B2 = blow_up(image_ideal(inc), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
+  B2 = blow_up(simplify(image_ideal(inc)), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
   Z = domain(B2)
   @test is_smooth(Z)
 end
