@@ -234,7 +234,7 @@ Affine scheme morphism
   from [x, y]  scheme(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
-  x -> 0
+  x -> x
   y -> y
 
 julia> inc == inclusion_morphism(Y, X)
