@@ -283,6 +283,12 @@ function strict_transform(p::AbsSimpleBlowupMorphism, inc::CoveredClosedEmbeddin
                  )
 
     pr_res_cov = covering_morphism(pr_res)
+    if domain(pr_res_cov) !== domain(inc_dom_cov)
+      success, ref_map = is_refinement(domain(inc_dom_cov), domain(pr_res_cov))
+      !success && @show is_refinement(domain(inc_dom_cov), domain(pr_res_cov))[1]
+      @assert success "building isomorphism on open subset not implemented in this case"
+      pr_res_cov = compose(ref_map, pr_res_cov)
+    end
     pr_sub = pr_res_cov[U_sub]
 
     V_sub = codomain(pr_sub)
