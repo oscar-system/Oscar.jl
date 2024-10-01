@@ -506,3 +506,7 @@ function Base.show(io::IO, ::MIME"text/plain", a::AffineSchemeOpenSubschemeRingE
   end
 end
 
+# overwrite a method for mapping of rings which would throw otherwise
+function _allunique(lst::Vector{T}) where {T<:MPolyQuoRingElem{<:MPolyRingElem{<:AffineSchemeOpenSubschemeRingElem}}}
+  return false
+end
