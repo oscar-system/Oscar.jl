@@ -527,10 +527,19 @@ function restrict(f::AbsCoveredSchemeMorphism,
   # Build up the common refinement 
   success, dom_ref = is_refinement(codomain(inc_dom_cov), domain(f_cov))
   @assert success "restriction not implemented for this constellation of refinements"
-  inc_dom_f = compose(compose(inc_dom_cov, dom_ref), f_cov)
-  success, cod_ref_map = is_refinement(codomain(f_cov), codomain(inc_cod_cov))
-  @assert success "restriction not implemented for this constellation of refinements"
-  inc_dom_f_ref = compose(inc_dom_f, cod_ref_map)
+  inc_dom_f = codomain(inc_dom_cov) === domain(f_cov) ? compose(inc_dom_cov, f_cov) : compose(compose(inc_dom_cov, dom_ref), f_cov)
+
+  success, cod_ref_map = is_refinement(codomain(inc_dom_f), codomain(inc_cod_cov))
+  inc_dom_f_ref = inc_dom_f # initialize the variable
+  if !success
+    success, cod_ref_map = is_refinement(codomain(inc_cod_cov), codomain(inc_dom_f))
+    @assert success "restriction not implemented for this constellation of refinements"
+    dom_ref2, to_inc_dom_f, to_inc_cod_cov = fiber_product(inc_dom_f, cod_ref_map)
+    inc_dom_f_ref = to_inc_cod_cov
+  else
+    inc_dom_f_ref = compose(inc_dom_f, cod_ref_map)
+  end
+
   # Collecting the maps for the restricted projection here
   map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
   for U in patches(domain(inc_dom_f_ref))
