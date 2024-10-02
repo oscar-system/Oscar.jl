@@ -49,7 +49,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       result = strip(result)
       result = replace(result, r"julia>$"s => "")
       # canonicalize numbered anonymous functions
-      result = replace(result, r"^\s*(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
+      result = replace(result, r"^\s*(?:#[a-z_]+#)?(?:#\d+)?(.* \(generic function with ).*\n"m => s"\1\n")
       # remove timings
       result = replace(result, r"^\s*[0-9\.]+ seconds \(.* allocations: .*\)$"m => "<timing>\n")
       # this removes the package version slug, filename and linenumber
@@ -120,6 +120,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       sym = Symbol("__", lstrip(string(gensym()), '#'))
       mockdule = Module(sym)
       # make it accessible from Main
+      @eval Main global $sym::Module
       setproperty!(Main, sym, mockdule)
       Core.eval(mockdule, :(eval(x) = Core.eval($(mockdule), x)))
       Core.eval(mockdule, :(include(x) = Base.include($(mockdule), abspath(x))))
@@ -182,6 +183,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     # add overlay project for plots
     custom_load_path = []
     old_load_path = []
+    oldrepl = isdefined(Base, :active_repl) ? Base.active_repl : nothing
     copy!(custom_load_path, LOAD_PATH)
     copy!(old_load_path, LOAD_PATH)
     curdir = pwd()
@@ -268,7 +270,7 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       end
     finally
       # restore some state
-      Main.REPL.activate(Main)
+      isnothing(oldrepl) || Main.REPL.activate(Main)
       Pkg.activate("$act_proj"; io=devnull)
       cd(curdir)
       copy!(LOAD_PATH, old_load_path)
