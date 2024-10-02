@@ -1016,7 +1016,7 @@ function iterate(F::ModuleGens, i::Int = 1)
     return F[i], i+1
   end
 end
-eltype(::ModuleGens{T}) where {T} = FreeModElem{T}
+Base.eltype(::Type{ModuleGens{T}}) where {T} = FreeModElem{T}
 
 #??? A scalar product....
 function *(a::FreeModElem, b::Vector{FreeModElem})

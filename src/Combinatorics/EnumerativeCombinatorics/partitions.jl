@@ -125,7 +125,7 @@ end
 
 base(P::Partitions) = P.n
 
-Base.eltype(::Partitions{T}) where T = Partition{T}
+Base.eltype(::Type{Partitions{T}}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::Partitions)
   print(pretty(io), "Iterator over the partitions of $(base(P))")
@@ -137,7 +137,7 @@ Base.length(P::Partitions) = BigInt(number_of_partitions(P.n))
 
 base(P::PartitionsFixedNumParts) = P.n
 
-Base.eltype(::PartitionsFixedNumParts{T}) where T = Partition{T}
+Base.eltype(::Type{PartitionsFixedNumParts{T}}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumParts)
   print(pretty(io), "Iterator over the partitions of $(base(P)) into ",
@@ -524,7 +524,7 @@ parts_max(P::PartitionsFixedValues) = P.kmax
 values(P::PartitionsFixedValues) = P.v
 multiplicities(P::PartitionsFixedValues) = P.mu
 
-Base.eltype(::PartitionsFixedValues{T}) where T = Partition{T}
+Base.eltype(::Type{PartitionsFixedValues{T}}) where T = Partition{T}
 Base.IteratorSize(::Type{PartitionsFixedValues{T}}) where T = Base.SizeUnknown()
 
 function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedValues)
@@ -562,7 +562,7 @@ parts(P::PartitionsFixedNumPartsAndValues) = P.k
 values(P::PartitionsFixedNumPartsAndValues) = P.v
 multiplicities(P::PartitionsFixedNumPartsAndValues) = P.mu
 
-Base.eltype(::PartitionsFixedNumPartsAndValues{T}) where T = Partition{T}
+Base.eltype(::Type{PartitionsFixedNumPartsAndValues{T}}) where T = Partition{T}
 
 function Base.show(io::IO, ::MIME"text/plain", P::PartitionsFixedNumPartsAndValues)
   print(pretty(io), "Iterator over the partitions of $(base(P)) into ",

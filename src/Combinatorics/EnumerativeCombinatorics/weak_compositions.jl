@@ -102,7 +102,7 @@ end
 base(W::WeakCompositions) = W.n
 parts(W::WeakCompositions) = W.k
 
-Base.eltype(W::WeakCompositions{T}) where T = WeakComposition{T}
+Base.eltype(::Type{WeakCompositions{T}}) where T = WeakComposition{T}
 
 @doc raw"""
     number_of_weak_compositions(n::IntegerUnion, k::IntegerUnion)

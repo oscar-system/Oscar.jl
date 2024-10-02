@@ -121,7 +121,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:FreeModElem{<:
   return coeff(a.elem[i], j), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients, T}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients, T}}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
   return C
 end
 
@@ -142,7 +142,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:
   return (coeff(a.elem[i], j), (exponent_vector(a.elem[i], j), i)), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, T}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients_and_exponents, T}}) where T <: FreeModElem{<:MPolyRingElem{C}} where C
   return Tuple{C, Tuple{Vector{Int}, Int}}
 end
 
@@ -164,7 +164,7 @@ function Base.iterate(a::GeneralPermutedIterator{:exponents, <:FreeModElem{<:MPo
   return (exponent_vector(a.elem[i], j), i), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:exponents, T}) where T <: FreeModElem{<:MPolyRingElem}
+function Base.eltype(::Type{<:GeneralPermutedIterator{:exponents, T}}) where T <: FreeModElem{<:MPolyRingElem}
   return Tuple{Vector{Int}, Int}
 end
 
@@ -184,7 +184,7 @@ function Base.iterate(a::GeneralPermutedIterator{:terms, <:FreeModElem{<:MPolyRi
   return FreeModElem(i, term(a.elem[i], j), parent(a.elem)), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: FreeModElem{<:MPolyRingElem}
+function Base.eltype(::Type{<:GeneralPermutedIterator{:terms, T}}) where T <: FreeModElem{<:MPolyRingElem}
   return T
 end
 
@@ -204,7 +204,7 @@ function Base.iterate(a::GeneralPermutedIterator{:monomials, <:FreeModElem{<:MPo
   return FreeModElem(i, monomial(a.elem[i], j), parent(a.elem)), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: FreeModElem{<:MPolyRingElem}
+function Base.eltype(::Type{<:GeneralPermutedIterator{:monomials, T}}) where T <: FreeModElem{<:MPolyRingElem}
   return T
 end
 
