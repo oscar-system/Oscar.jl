@@ -709,7 +709,6 @@ function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
   last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
   push!(projectionsY, last_pr_wrap)
   Y.ambient_blowups = projectionsX
