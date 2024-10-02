@@ -390,8 +390,7 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   )
 end
 
-Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
-# TODO: change this to Base.eltype(::Type{<:FinGroupInvarRingBasisIterator{FinGroupInvarRingT}}) where {FinGroupInvarRingT} = ...
+Base.eltype(::Type{<:FinGroupInvarRingBasisIterator{FinGroupInvarRingT, ReynoldsT, IteratorT, PolyRingElemT, MatrixT}}) where {FinGroupInvarRingT, ReynoldsT, IteratorT, PolyRingElemT, MatrixT} = PolyRingElemT
 
 Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
