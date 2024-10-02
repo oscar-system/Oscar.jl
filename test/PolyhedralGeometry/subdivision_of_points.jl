@@ -14,8 +14,8 @@
     SubdivisionOfPoints
 
   @testset "alternative inputs" begin
-    @test collect(maximal_cells(square_by_incidence)) ==
-      collect(maximal_cells(square_by_weights))
+    @test issetequal(collect(maximal_cells(square_by_incidence)),
+      collect(maximal_cells(square_by_weights)))
     @test min_weights(square_by_cells) == min_weights(square_by_weights)
   end
 
