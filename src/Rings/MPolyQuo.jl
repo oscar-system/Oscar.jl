@@ -546,10 +546,12 @@ end
   return is_prime(saturated_ideal(I))
 end
 
-@attr MPolyQuoIdeal function radical(I::MPolyQuoIdeal)
-  R = base_ring(I)
-  J = saturated_ideal(I)
-  return ideal(R, [g for g in R.(gens(radical(J))) if !iszero(g)])
+function radical(I::MPolyQuoIdeal; eliminate_variables::Bool=true)
+  get_attribute!(I, :radical) do
+    R = base_ring(I)
+    J = saturated_ideal(I)
+    return ideal(R, [g for g in R.(gens(radical(J; eliminate_variables))) if !iszero(g)])
+  end::typeof(I)
 end
 
 # The following is to streamline the programmer's

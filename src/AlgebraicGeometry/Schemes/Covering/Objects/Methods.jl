@@ -369,6 +369,18 @@ function has_ancestor_in(L::Vector, U::AbsAffineScheme)
 end
 
 function is_refinement(D::Covering, C::Covering)
+  # catch the case that `C` is a simplification of `D`
+  if all(x isa SimplifiedAffineScheme for x in patches(C)) && all(y->any(x->original(x)===y, patches(C)), patches(D))
+    map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
+    for U in patches(C)
+      f, g = identification_maps(U)
+      V = domain(g)
+      map_dict[V] = g
+    end
+    return true, CoveringMorphism(D, C, map_dict, check=false)
+    # TODO: Catch the more complicated case where `D` is a proper 
+    # refinement of the original covering for `C`.
+  end
   if !all(x->has_ancestor(u->any(y->(u===y), patches(C)), x), patches(D))
     return false, nothing
   end

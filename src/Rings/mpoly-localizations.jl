@@ -143,7 +143,7 @@ function simplify_light(S::MPolyPowersOfElement)
 
   # Try to factor the denominators if this is deemed possible
   for a in new_denom
-    if total_degree(a) > 50 || length(a) > 10000
+    if total_degree(a) > 50 || length(a) > 10000 || coefficient_ring(R) isa Hecke.RelSimpleNumField{AbsSimpleNumFieldElem}
       push!(fac_denom, a)
     else
       for (b, _) in factor(a)
@@ -1146,7 +1146,7 @@ function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::RET) where {BRT, BRE
 end
 
 function *(a::BRET, b::MPolyLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET <: RingElem, RT, RET, MST}
-  return (parent(b))(a*numerator(b), denominator(b), check=false)
+  return (parent(b))(a*fraction(b), check=false)
 end
 
 function *(a::MPolyLocRingElem{BRT, BRET, RT, RET, MST}, b::BRET) where {BRT, BRET <: RingElem, RT, RET, MST}

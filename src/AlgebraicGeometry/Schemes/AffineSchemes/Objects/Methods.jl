@@ -446,11 +446,14 @@ function _change_base_ring(phi::Any,
   )
   R = base_ring(W)
   P, Phi = _change_base_ring(phi, R)
+  @assert _has_coefficient_map(Phi)
   U = inverted_set(W)
   U_red = MPolyPowersOfElement(P, Phi.(denominators(U)))
   W_red, loc_map = localization(P, U_red)
-  res_map = hom(W, W_red, compose(Phi, loc_map), check=false)
-  #@assert _has_coefficient_map(res_map)
+  comp = hom(R, W_red, phi, gens(W_red); check=false)
+  @assert _has_coefficient_map(comp)
+  res_map = hom(W, W_red, comp, check=false)
+  @assert _has_coefficient_map(res_map)
   return W_red, res_map
 end
 
@@ -465,7 +468,8 @@ function _change_base_ring(phi::Any,
   I_red = ideal(W_red, Phi_W.(gens(I)))
   L_red, pr = quo(W_red, I_red)
   res = compose(restricted_map(Phi_W), pr)
+  @assert _has_coefficient_map(res)
   res_map = hom(L, L_red, res, check=false)
-  #@assert _has_coefficient_map(res_map)
+  @assert _has_coefficient_map(res_map)
   return L_red, res_map
 end

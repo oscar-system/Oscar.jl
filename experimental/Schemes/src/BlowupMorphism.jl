@@ -3,7 +3,18 @@ export center
 export exceptional_divisor
 export projection
 
+########################################################################
+# `AbsDesingMor` and `AbsBlowupMorphism`
+#
+# An abstract type for blowup morphisms.
+#
+# This should also comprise sequences of simple blowups leading
+# to a partial or full resolution of singularities. The interface
+# is specified below.
+########################################################################
 
+### See experimental/Schemes/src/BlowupMorphismTypes.jl for the definition of 
+# `AbsDesingMor` and `AbsBlowupMorphism`.
 
 # The interface inherits all functionality from AbsCoveredSchemeMorphism.
 # This is extended by the following:
@@ -70,6 +81,16 @@ function total_transform(f::AbsBlowupMorphism, a::Any)
   error("not implemented")
 end
 
+########################################################################
+# `AbsSimpleBlowupMorphism`
+# An abstract type for classical blowups of ideal sheaves.
+#
+# This can either be a BlowupMorphism as below, but also a special
+# toric morphism induced by fan subdivisions.
+########################################################################
+
+### See BlowupMorphismTypes.jl for the definition of 
+# `AbsSimpleBlowupMorphism`
 
 @doc raw"""
     exceptional_divisor(f::AbsSimpleBlowupMorphism)
@@ -142,7 +163,16 @@ function controlled_transform(f::AbsSimpleBlowupMorphism, a::Any, k::Int)
   error("not implemented")
 end
 
+########################################################################
+# `BlowupMorphism`
+#
+# A datastructure to maintain all information necessary to effectively
+# handle blowups. This is work in progress and will one day serve as
+# a building block for sequences of blowups
+########################################################################
 
+### See experimental/Schemes/src/BlowupMorphismTypes.jl for the concrete type 
+# `BlowupMorphism`.
 
 ### Forward the essential functionality
 underlying_morphism(phi::BlowupMorphism) = projection(phi)
@@ -210,65 +240,8 @@ function strict_transform(p::AbsSimpleBlowupMorphism, inc::CoveredClosedEmbeddin
   inc_cod_cov = covering_morphism(inc)
 
   Z_trans = domain(inc_Z_trans)
-  pr_res = restrict(projection(p), inc_Z_trans, inc)
+  pr_res = restrict(projection(p), inc_Z_trans, inc; check=false)
 
-  if has_attribute(p, :isomorphism_on_open_subset) # will only happen when p is a BlowupMorphism
-    OOX = OO(X)
-    OOY = OO(Y)
-    p_iso = isomorphism_on_open_subset(p)
-    U = domain(p_iso)::PrincipalOpenSubset
-    V = codomain(p_iso)::PrincipalOpenSubset
-    V_amb = ambient_scheme(V)
-    U_amb = ambient_scheme(U)
-
-    # We have the following diagram:
-    #             inc_dom
-    #     Z_trans    ↪     Y   ⊃ U_amb ⊃ U
-    #
-    #  pr_res↓             ↓ p           ↓ p_iso
-    #        Z       ↪     X   ⊃ V_amb ⊃ V
-    #             inc_cod
-    #
-    # Given all the refinements that potentially had to be done, we have
-    # to do the following.
-    #  1. Find a `patch` `U_sub` of the `domain` of `inc_dom_cov` for which
-    #    inc_dom : U_sub -> W has a codomain `W` which has `U_amb` as an
-    #    ancestor. Since `U_amb` is one of the `affine_charts` of `Y`, this will work.
-
-    k = findfirst(x->has_ancestor(y->y===U_amb, codomain(inc_dom_cov[x])), patches(domain(inc_dom_cov)))
-    U_sub = patches(domain(inc_dom_cov))[k]
-
-    #  2. pr_res : U_amb -> V_amb has some codomain such that there exists
-    #    an ancestor `VV` in the `domain` of `inc_dom_cov` such that
-    #    inc_dom : VV -> W' has a codomain with `V_amb` as an ancestor.
-    #  3. outside the `complement_equation`s of `U` and `V` the projection
-    #    was an isomorphism. Then the restriction of `pr_res` to those
-    #    complements in `U_sub` and `V_sub` also is.
-    U_sub_res = PrincipalOpenSubset(U_sub,
-                   pullback(inc_dom_cov[U_sub])(
-                       OOX(U_amb, codomain(inc_dom_cov[U_sub]))(
-                           complement_equation(U)
-                         )
-                     )
-                 )
-
-    pr_res_cov = covering_morphism(pr_res)
-    pr_sub = pr_res_cov[U_sub]
-
-    V_sub = codomain(pr_sub)
-    @assert has_ancestor(x->any(y->y===x, patches(domain(inc_cod_cov))), V_sub)
-    V_sub_inc, comp_eqns = _find_chart(V_sub, domain(inc_cod_cov))
-    OOZ = OO(Z)
-    dummy_dom = codomain(V_sub_inc)
-    dummy_map = inc_cod_cov[dummy_dom]
-    dummy_cod = codomain(dummy_map)
-    V_sub_res = PrincipalOpenSubset(V_sub,
-                                    OOZ(dummy_dom, V_sub)(pullback(dummy_map)(OOY(V_amb, dummy_cod)(complement_equation(V)))))
-    result = restrict(pr_sub, U_sub_res, V_sub_res)
-    # TODO: Obtain the inverse another way?
-    #@assert is_isomorphism(result)
-    set_attribute!(pr_res, :isomorphism_on_open_subset, result)
-  end
   return Z_trans, inc_Z_trans, pr_res
 end
 
@@ -494,29 +467,35 @@ function restrict(f::AbsCoveredSchemeMorphism,
   inc_dom_cov = covering_morphism(inc_dom)
   inc_cod_cov = covering_morphism(inc_cod)
 
-  # We need to do the following.
-  # - Pass to a common refinement ref_cod in X that both
-  #   f and inc_cod can restrict to.
-  # - Pass to a common refinement in Y
-  ref_cod, a, b = _register!(common_refinement(codomain(f_cov), codomain(inc_cod_cov)), codomain(f))
-  inc_cod_ref = restrict(inc_cod, ref_cod)
-  f_res = restrict(f, ref_cod)
-  ref_dom, aa, bb = _register!(common_refinement(domain(f_res), codomain(inc_dom_cov)), domain(f))
-  inc_dom_ref = restrict(inc_dom, ref_dom)
-  inc_dom_ref = compose(inc_dom_ref, aa)
+  # Build up the common refinement 
+  success, dom_ref = is_refinement(codomain(inc_dom_cov), domain(f_cov))
+  @assert success "restriction not implemented for this constellation of refinements"
+  inc_dom_f = codomain(inc_dom_cov) === domain(f_cov) ? compose(inc_dom_cov, f_cov) : compose(compose(inc_dom_cov, dom_ref), f_cov)
+
+  success, cod_ref_map = is_refinement(codomain(inc_dom_f), codomain(inc_cod_cov))
+  inc_dom_f_ref = inc_dom_f # initialize the variable
+  if !success
+    success, cod_ref_map = is_refinement(codomain(inc_cod_cov), codomain(inc_dom_f))
+    @assert success "restriction not implemented for this constellation of refinements"
+    dom_ref2, to_inc_dom_f, to_inc_cod_cov = fiber_product(inc_dom_f, cod_ref_map)
+    inc_dom_f_ref = to_inc_cod_cov
+  else
+    inc_dom_f_ref = compose(inc_dom_f, cod_ref_map)
+  end
+
   # Collecting the maps for the restricted projection here
   map_dict = IdDict{AbsAffineScheme, AbsAffineSchemeMor}()
-  for U in patches(domain(inc_dom_ref))
-    q_res = compose(inc_dom_ref[U], f_res[codomain(inc_dom_ref[U])])
+  for U in patches(domain(inc_dom_f_ref))
+    q_res = inc_dom_f_ref[U]
     V = codomain(q_res)
-    g = maps_with_given_codomain(inc_cod_ref, V)
+    g = maps_with_given_codomain(inc_cod_cov, V)
     if !isone(length(g))
       error()
     end
     pre_V = domain(first(g))
-    map_dict[U] = restrict(q_res, domain(q_res), pre_V, check=false)
+    map_dict[U] = restrict(q_res, domain(q_res), pre_V; check)
   end
-  psi = CoveringMorphism(domain(inc_dom_ref), domain(inc_cod_ref), map_dict, check=false)
+  psi = CoveringMorphism(domain(inc_dom_f_ref), domain(inc_cod_cov), map_dict; check)
   return CoveredSchemeMorphism(domain(inc_dom), domain(inc_cod), psi)
 end
 
@@ -615,61 +594,6 @@ end
   return p_res
 end
 
-### Some functionality used by function fields
-
-# If set this attribute shall return some isomorphism on some open subsets of the domain
-# and codomain of phi. If both are irreducible, this automatically implies that both are
-# dense, but we do not check for this.
-@attr AbsAffineSchemeMor function isomorphism_on_open_subset(f::BlowupMorphism)
-  X = domain(f)
-  Y = codomain(f)
-  iso_dict = get_attribute(f, :isos_on_complement_of_center)
-  pr_res = first(values(iso_dict))
-  U = domain(pr_res)
-  V = codomain(pr_res)
-  iso_U = _flatten_open_subscheme(U, default_covering(X))
-  U_flat = codomain(iso_U)
-  iso_V = _flatten_open_subscheme(V, default_covering(Y))
-  V_flat = codomain(iso_V)
-  phi = morphism(U_flat, V_flat, pullback(inverse(iso_U)).(pullback(pr_res).(pullback(iso_V).(gens(OO(V_flat))))), check=false)
-  phi_inv = morphism(V_flat, U_flat, pullback(inverse(iso_V)).(pullback(inverse(pr_res)).(pullback(iso_U).(gens(OO(U_flat))))), check=false)
-  set_attribute!(phi, :inverse, phi_inv)
-  set_attribute!(phi_inv, :inverse, phi)
-  return phi
-end
-
-function pullback(f::BlowupMorphism, g::VarietyFunctionFieldElem)
-  X = domain(projection(f))
-  Y = codomain(projection(f))
-  FX = function_field(X)
-  FY = function_field(Y)
-  phi = isomorphism_on_open_subset(f)
-  U = ambient_scheme(domain(phi))
-  V = ambient_scheme(codomain(phi))
-  parent(g) === FY || error("element does not belong to the correct field")
-  h = g[V]
-  pbg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
-  return FX.(pbg)
-end
-
-function pushforward(f::BlowupMorphism, g::VarietyFunctionFieldElem)
-  X = domain(projection(f))
-  Y = codomain(projection(f))
-  FX = function_field(X)
-  FY = function_field(Y)
-  phi = inverse(isomorphism_on_open_subset(f))
-  U = ambient_scheme(domain(phi))
-  V = ambient_scheme(codomain(phi))
-  parent(g) === FX || error("element does not belong to the correct field")
-  h = g[V]
-  pfg = fraction(pullback(phi)(OO(V)(numerator(h))))//fraction(pullback(phi)(OO(V)(denominator(h))))
-  return FY.(pfg)
-end
-
-@attr AbsAffineSchemeMor function isomorphism_on_open_subset(phi::AbsCoveredSchemeMorphism)
-  error("attribute not found; this needs to be set manually in general")
-end
-
 function compose(f::AbsSimpleBlowupMorphism, g::AbsSimpleBlowupMorphism)
   return composite_map(f, g)
 end
@@ -682,9 +606,7 @@ function compose(f::AbsCoveredSchemeMorphism, g::AbsSimpleBlowupMorphism)
   return composite_map(f, g)
 end
 
-
-
-
+### See experimental/Schemes/src/BlowupMorphismTypes.jl for declaration of `BlowUpSequence`.
 
 ########################################################################
 # Convenience method                                                   #
@@ -696,6 +618,7 @@ function blow_up(m::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name = "e")
 end
 
 
+### See experimental/Schemes/src/BlowupMorphismTypes.jl for the declaration of `StrictTransformIdealSheaf`.
 
 morphism(I::StrictTransformIdealSheaf) = I.morphism
 original_ideal_sheaf(I::StrictTransformIdealSheaf) = I.orig
