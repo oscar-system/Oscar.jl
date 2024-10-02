@@ -49,7 +49,9 @@ Return the `i`-th basis element of the Lie algebra `L`.
 function basis(L::LieAlgebra, i::Int)
   @req 1 <= i <= dim(L) "Index out of bounds."
   R = coefficient_ring(L)
-  return L([(j == i ? one(R) : zero(R)) for j in 1:dim(L)])
+  v = zero_matrix(R, 1, dim(L))
+  v[1, i] = one(R)
+  return L(v)
 end
 
 @doc raw"""
@@ -453,10 +455,12 @@ end
 
 function adjoint_matrix(x::LieAlgebraElem{C}) where {C<:FieldElem}
   L = parent(x)
-  return sum(
-    c * g for (c, g) in zip(coefficients(x), adjoint_matrices(L));
-    init=zero_matrix(coefficient_ring(L), dim(L), dim(L)),
-  )
+  mat = zero_matrix(coefficient_ring(L), dim(L), dim(L))
+  tmp = zero(mat)
+  for (c, g) in zip(coefficients(x), adjoint_matrices(L))
+    mat = addmul!(mat, g, c, tmp)
+  end
+  return mat
 end
 
 function _adjoint_matrix(S::LieSubalgebra{C}, x::LieAlgebraElem{C}) where {C<:FieldElem}

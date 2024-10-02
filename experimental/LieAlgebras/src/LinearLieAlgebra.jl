@@ -21,7 +21,7 @@ Return the basis `basis(L)` of the Lie algebra `L` in the underlying matrix
 representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:FieldElem}
-  return Vector{dense_matrix_type(C)}(L.basis)
+  return L.basis::Vector{dense_matrix_type(C)}
 end
 
 @doc raw"""
@@ -31,7 +31,7 @@ Return the `i`-th element of the basis `basis(L)` of the Lie algebra `L` in the
 underlying matrix representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:FieldElem}
-  return (L.basis[i])::dense_matrix_type(C)
+  return matrix_repr_basis(L)[i]
 end
 
 ###############################################################################
@@ -130,10 +130,12 @@ Return the Lie algebra element `x` in the underlying matrix representation.
 """
 function Generic.matrix_repr(x::LinearLieAlgebraElem)
   L = parent(x)
-  return sum(
-    c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(L));
-    init=zero_matrix(coefficient_ring(L), L.n, L.n),
-  )
+  mat = zero_matrix(coefficient_ring(L), L.n, L.n)
+  tmp = zero(mat)
+  for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
+    mat = addmul!(mat, b, c, tmp)
+  end
+  return mat
 end
 
 function bracket(

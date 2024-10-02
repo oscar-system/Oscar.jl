@@ -115,6 +115,11 @@ Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system o
 This is a more efficient version for `coroots(R)[i]`.
 
 Also see: `coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function coroot(R::RootSystem, i::Int)
   if i <= n_positive_roots(R)
@@ -131,6 +136,11 @@ Returns the coroots of `R`, starting with the coroots of positive roots and then
 in the order of `positive_coroots` and `negative_coroots`.
 
 Also see: `coroot`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function coroots(R::RootSystem)
   return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
@@ -172,6 +182,11 @@ Returns the `i`-th negative root of `R`.
 This is a more efficient version for `negative_roots(R)[i]`.
 
 Also see: `negative_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_root(R::RootSystem, i::Int)
   return -(R.positive_roots::Vector{RootSpaceElem})[i]
@@ -183,6 +198,11 @@ end
 Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
 
 Also see: `negative_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
@@ -195,6 +215,11 @@ Returns the coroot corresponding to the `i`-th negative root of `R`
 This is a more efficient version for `negative_coroots(R)[i]`.
 
 Also see: `negative_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_coroot(R::RootSystem, i::Int)
   return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
@@ -206,6 +231,11 @@ end
 Returns the coroots corresponding to the negative roots of `R`
 
 Also see: `negative_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function negative_coroots(R::RootSystem)
   return [-r for r in positive_coroots(R)]
@@ -251,6 +281,11 @@ Returns the `i`-th positive root of `R`.
 This is a more efficient version for `positive_roots(R)[i]`.
 
 Also see: `positive_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_root(R::RootSystem, i::Int)
   return (R.positive_roots::Vector{RootSpaceElem})[i]
@@ -263,6 +298,11 @@ Returns the positive roots of `R`, starting with the simple roots in the order o
 and then increasing in height.
 
 Also see: `positive_root`, `number_of_positive_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -275,6 +315,11 @@ Returns the coroot corresponding to the `i`-th positive root of `R`
 This is a more efficient version for `positive_coroots(R)[i]`.
 
 Also see: `positive_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_coroot(R::RootSystem, i::Int)
   return (R.positive_coroots::Vector{DualRootSpaceElem})[i]
@@ -286,6 +331,11 @@ end
 Returns the coroots corresponding to the positive roots of `R`
 
 Also see: `positive_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function positive_coroots(R::RootSystem)
   return R.positive_coroots::Vector{DualRootSpaceElem}
@@ -336,6 +386,11 @@ Returns the `i`-th root of `R`.
 This is a more efficient version for `roots(R)[i]`.
 
 Also see: `roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function root(R::RootSystem, i::Int)
   if i <= n_positive_roots(R)
@@ -352,6 +407,11 @@ Returns the roots of `R`, starting with the positive roots and then the negative
 in the order of `positive_roots` and `negative_roots`.
 
 Also see: `root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function roots(R::RootSystem)
   return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
@@ -364,6 +424,11 @@ Returns the `i`-th simple root of `R`.
 This is a more efficient version for `simple_roots(R)[i]`.
 
 Also see: `simple_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_root(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "Invalid index"
@@ -376,6 +441,11 @@ end
 Returns the simple roots of `R`.
 
 Also see: `simple_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_roots(R::RootSystem)
   return positive_roots(R)[1:rank(R)]
@@ -388,6 +458,11 @@ Returns the coroot corresponding to the `i`-th simple root of `R`
 This is a more efficient version for `simple_coroots(R)[i]`.
 
 Also see: `simple_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_coroot(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "Invalid index"
@@ -400,6 +475,11 @@ end
 Returns the coroots corresponding to the simple roots of `R`
 
 Also see: `simple_coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
 """
 function simple_coroots(R::RootSystem)
   return positive_coroots(R)[1:rank(R)]
@@ -444,6 +524,14 @@ function RootSpaceElem(w::WeightLatticeElem)
   return RootSpaceElem(root_system(w), w)
 end
 
+function zero(::Type{RootSpaceElem}, R::RootSystem)
+  return RootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
+end
+
+function zero(r::RootSpaceElem)
+  return zero(RootSpaceElem, root_system(r))
+end
+
 function Base.:*(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
@@ -462,6 +550,29 @@ end
 
 function Base.:-(r::RootSpaceElem)
   return RootSpaceElem(root_system(r), -r.vec)
+end
+
+function zero!(r::RootSpaceElem)
+  r.vec = zero!(r.vec)
+  return r
+end
+
+function add!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = add!(rr.vec, r1.vec, r2.vec)
+  return rr
+end
+
+function neg!(rr::RootSpaceElem, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = neg!(rr.vec, r.vec)
+  return rr
+end
+
+function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = sub!(rr.vec, r1.vec, r2.vec)
+  return rr
 end
 
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
@@ -505,7 +616,10 @@ end
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
   @req root_system(r1) === root_system(r2) "parent root system mismatch"
 
-  return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2))
+  # return dot(coefficients(r1) * _bilinear_form_QQ(root_system(r1)), coefficients(r2)) # currently the below is faster
+  return only(
+    coefficients(r1) * _bilinear_form_QQ(root_system(r1)) * transpose(coefficients(r2))
+  )
 end
 
 @doc raw"""
@@ -602,6 +716,14 @@ function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion}
   return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
+function zero(::Type{DualRootSpaceElem}, R::RootSystem)
+  return DualRootSpaceElem(R, zero_matrix(QQ, 1, rank(R)))
+end
+
+function zero(r::DualRootSpaceElem)
+  return zero(DualRootSpaceElem, root_system(r))
+end
+
 function Base.:*(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
 end
@@ -620,6 +742,29 @@ end
 
 function Base.:-(r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), -r.vec)
+end
+
+function zero!(r::DualRootSpaceElem)
+  r.vec = zero!(r.vec)
+  return r
+end
+
+function add!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = add!(rr.vec, r1.vec, r2.vec)
+  return rr
+end
+
+function neg!(rr::DualRootSpaceElem, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = neg!(rr.vec, r.vec)
+  return rr
+end
+
+function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r1) === root_system(r2) "parent root system mismatch"
+  rr.vec = sub!(rr.vec, r1.vec, r2.vec)
+  return rr
 end
 
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
@@ -759,18 +904,26 @@ function WeightLatticeElem(r::RootSpaceElem)
   return WeightLatticeElem(root_system(r), r)
 end
 
+function zero(::Type{WeightLatticeElem}, R::RootSystem)
+  return WeightLatticeElem(R, zero_matrix(ZZ, rank(R), 1))
+end
+
+function zero(r::WeightLatticeElem)
+  return zero(WeightLatticeElem, root_system(r))
+end
+
 function Base.:*(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)
 end
 
 function Base.:+(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
+  @req root_system(w) === root_system(w2) "parent root system mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec + w2.vec)
 end
 
 function Base.:-(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent weight lattics mismatch"
+  @req root_system(w) === root_system(w2) "parent root system mismatch"
 
   return WeightLatticeElem(root_system(w), w.vec - w2.vec)
 end
@@ -779,24 +932,28 @@ function Base.:-(w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), -w.vec)
 end
 
-function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  add!(wr.vec, w1.vec, w2.vec)
-  return wr
-end
-
-add!(w1::WeightLatticeElem, w2::WeightLatticeElem) = add!(w1, w1, w2)
-
-function neg!(w::WeightLatticeElem)
-  neg!(w.vec)
+function zero!(w::WeightLatticeElem)
+  w.vec = zero!(w.vec)
   return w
 end
 
-function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  sub!(wr.vec, w1.vec, w2.vec)
+function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  wr.vec = add!(wr.vec, w1.vec, w2.vec)
   return wr
 end
 
-sub!(w1::WeightLatticeElem, w2::WeightLatticeElem) = sub!(w1, w1, w2)
+function neg!(wr::WeightLatticeElem, w::WeightLatticeElem)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = neg!(wr.vec, w.vec)
+  return wr
+end
+
+function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
+  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  wr.vec = sub!(wr.vec, w1.vec, w2.vec)
+  return wr
+end
 
 function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
   return w.root_system === w2.root_system && w.vec == w2.vec
@@ -903,7 +1060,7 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w1) === root_system(w2) "parent weight lattices mismatch"
+  @req root_system(w1) === root_system(w2) "parent root system mismatch"
   R = root_system(w1)
 
   return dot(
@@ -960,6 +1117,18 @@ end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
   return dot(r, w)
+end
+
+# computes the maximum `p` such that `beta - p*alpha` is still a root
+# beta is assumed to be a root
+function _root_string_length_down(alpha::RootSpaceElem, beta::RootSpaceElem)
+  p = 0
+  beta_sub_p_alpha = beta - alpha
+  while is_root(beta_sub_p_alpha)
+    p += 1
+    beta_sub_p_alpha = sub!(beta_sub_p_alpha, alpha)
+  end
+  return p
 end
 
 @doc raw"""
@@ -1300,8 +1469,8 @@ end
 function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   rank, _ = size(cartan_matrix)
 
-  roots = [[l == s ? 1 : 0 for l in 1:rank] for s in 1:rank]
-  coroots = [[l == s ? 1 : 0 for l in 1:rank] for s in 1:rank]
+  roots = [[l == s ? one(ZZ) : zero(ZZ) for l in 1:rank] for s in 1:rank]
+  coroots = [[l == s ? one(ZZ) : zero(ZZ) for l in 1:rank] for s in 1:rank]
   rootidx = Dict(roots[s] => s for s in 1:rank)
   refl = Dict((s, s) => 0 for s in 1:rank)
 
@@ -1312,12 +1481,11 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
         continue
       end
 
-      pairing = let i = i
-        sum(roots[i][l] * cartan_matrix[s, l] for l in 1:rank; init=zero(ZZ))
-      end
-      copairing = let i = i
-        sum(coroots[i][l] * cartan_matrix[l, s] for l in 1:rank; init=zero(ZZ))
-      end
+      # pairing = dot(roots[i], view(cartan_matrix, s, :)) # currently the below is faster
+      pairing = only(view(cartan_matrix, s:s, :) * roots[i])
+      # copairing = dot(coroots[i], view(cartan_matrix, :, s)) # currently the below is faster
+      copairing = only(coroots[i] * view(cartan_matrix, :, s:s))
+
       if pairing * copairing >= 4
         refl[s, i] = 0
         continue
