@@ -1166,41 +1166,6 @@ function compose(
   #return MPolyQuoLocalizedRingHom(domain(f), codomain(g), hom(R, codomain(g), [g(f(x)) for x in gens(R)], check=false), check=false)
 end
 
-#=
-# overwrite some more methods for `compose` to assure that we do not end up 
-# with `CompositeMap`s. 
-function compose(f::MPolyAnyMap, g::Union{<:MPolyQuoLocalizedRingHom, <:MPolyLocalizedRingHom, <:MPolyAnyMap})
-  if !_has_coefficient_map(f) && !_has_coefficient_map(g)
-    return hom(domain(f), codomain(g), g.(_images_of_generators(f)); check=false)
-  elseif _has_coefficient_map(f) && !_has_coefficient_map(g)
-    cf = coefficient_map(f)
-    b = cf(zero(coefficient_ring(domain(f))))
-    if parent(b) === domain(g)
-      new_h = compose(cf, g)
-      return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
-    elseif parent(b) === coefficient_ring(domain(g))
-      # we can recycle the map in this case
-      return hom(domain(f), codomain(g), cf, g.(_images_of_generators(f)); check=false)
-    else
-      new_h = MapFromFunc(coefficient_ring(domain(f)), codomain(g), x->g(domain(g)(cf(x))))
-      return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
-    end
-  elseif !_has_coefficient_map(f) && _has_coefficient_map(g)
-    if coefficient_ring(domain(f)) === coefficient_ring(domain(g))
-      return hom(domain(f), codomain(g), coefficient_map(g), g.(_images_of_generators(f)); check=false)
-    else
-      b = coefficient_map(g)(zero(coefficient_ring(domain(g))))
-      new_h = MapFromFunc(coefficient_ring(domain(f)), parent(b), x->coefficient_map(g)(coefficient_ring(domain(g))(x)))
-      return hom(domain(f), codomain(g), new_h, g.(_images_of_generators(f)); check=false)
-    end
-  else #_has_coefficient_map(f) && _has_coefficient_map(g)
-    cf = coefficient_map(f)
-    ch = MapFromFunc(coefficient_ring(domain(f)), codomain(g), x->g(domain(g)(cf(x))))
-    return hom(domain(f), codomain(g), ch, g.(_images_of_generators(f)); check=false)
-  end
-end
-=#
-
 (f::MPolyQuoLocalizedRingHom)(I::Ideal) = ideal(codomain(f), f.(domain(f).(gens(I))))
 
 function ==(f::MPolyQuoLocalizedRingHom, g::MPolyQuoLocalizedRingHom) 
