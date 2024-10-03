@@ -18,7 +18,7 @@ function all_monomials(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
   return AllModuleMonomials(F, d)
 end
 
-Base.eltype(amm::AllModuleMonomials{T}) where {T} = elem_type(T)
+Base.eltype(::Type{AllModuleMonomials{T}}) where {T} = elem_type(T)
 
 function Base.length(amm::AllModuleMonomials)
   F = underlying_module(amm)
@@ -96,7 +96,7 @@ function all_exponents(F::FreeMod{T}, d::Int) where {T<:MPolyDecRingElem}
   return AllModuleExponents(F, d)
 end
 
-Base.eltype(amm::AllModuleExponents{T}) where {T} = Tuple{Vector{Int}, Int}
+Base.eltype(::Type{AllModuleExponents{T}}) where {T} = Tuple{Vector{Int}, Int}
 
 function Base.length(amm::AllModuleExponents)
   F = underlying_module(amm)

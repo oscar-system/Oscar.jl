@@ -155,7 +155,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyTerms})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyTerms}}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
@@ -179,7 +179,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyMonomials})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyMonomials}}) where {T, S}
    return PBWAlgElem{T, S}
 end
 
@@ -203,7 +203,7 @@ function Base.length(x::OscarPair{<:PBWAlgRing, <:Singular.SPolyCoeffs})
    return length(x.second)
 end
 
-function Base.eltype(x::OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}) where {T, S}
+function Base.eltype(::Type{<:OscarPair{<:PBWAlgRing{T, S}, <:Singular.SPolyCoeffs}}) where {T, S}
    return T
 end
 

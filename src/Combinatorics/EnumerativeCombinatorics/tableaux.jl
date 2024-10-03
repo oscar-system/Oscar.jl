@@ -356,7 +356,7 @@ end
 shape(S::SemiStandardTableaux) = S.shape
 maximal_value(S::SemiStandardTableaux) = S.max_val
 
-Base.eltype(S::SemiStandardTableaux{T}) where T = YoungTableau{T}
+Base.eltype(::Type{SemiStandardTableaux{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::SemiStandardTableaux)
   print(io, "Iterator over semistandard Young tableaux of shape $(shape(S))")
@@ -454,7 +454,7 @@ end
 box_num(S::SemiStandardTableauxFixedBoxNum) = S.box_num
 maximal_value(S::SemiStandardTableauxFixedBoxNum) = S.max_val
 
-Base.eltype(S::SemiStandardTableauxFixedBoxNum{T}) where T = YoungTableau{T}
+Base.eltype(::Type{SemiStandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::SemiStandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over semistandard Young tableaux with ",
@@ -503,7 +503,7 @@ end
 shape(S::SemiStandardTableauxFixedShapeAndWeight) = S.shape
 weight(S::SemiStandardTableauxFixedShapeAndWeight) = S.weight
 
-Base.eltype(S::SemiStandardTableauxFixedShapeAndWeight{T}) where T = YoungTableau{T}
+Base.eltype(::Type{SemiStandardTableauxFixedShapeAndWeight{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::SemiStandardTableauxFixedShapeAndWeight)
   print(pretty(io), "Iterator over semistandard Young tableaux of shape ",
@@ -767,7 +767,7 @@ end
 
 shape(S::StandardTableaux) = S.shape
 
-Base.eltype(S::StandardTableaux{T}) where T = YoungTableau{T}
+Base.eltype(::Type{StandardTableaux{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::StandardTableaux)
   print(io, "Iterator over standard Young tableaux of shape $(shape(S))")
@@ -874,7 +874,7 @@ end
 
 box_num(S::StandardTableauxFixedBoxNum) = S.box_num
 
-Base.eltype(S::StandardTableauxFixedBoxNum{T}) where T = YoungTableau{T}
+Base.eltype(::Type{StandardTableauxFixedBoxNum{T}}) where T = YoungTableau{T}
 
 function Base.show(io::IO, S::StandardTableauxFixedBoxNum)
   print(pretty(io), "Iterator over standard Young tableaux with ",

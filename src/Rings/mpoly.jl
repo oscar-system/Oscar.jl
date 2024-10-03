@@ -322,7 +322,7 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S
+Base.eltype(::Type{<:BiPolyArray{S}}) where S = S
 
 function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
   return A.gens[Val(:S), i]
@@ -355,7 +355,7 @@ function Base.iterate(A::IdealGens, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::IdealGens{S}) where S = S
+Base.eltype(::Type{IdealGens{S}}) where S = S
 
 function gens(I::IdealGens)
   return collect(I)
@@ -1074,7 +1074,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem}
   return coeff(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C}}) where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C}}}) where C
   return C
 end
 
@@ -1111,7 +1111,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:
   return (coeff(a.elem, a.perm[state]), exponent_vector(a.elem, a.perm[state])), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem{C}}) where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem{C}}}) where C
   return Tuple{C, Vector{Int}}
 end
 
@@ -1131,7 +1131,7 @@ function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem}, s
   return exponent_vector(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem})
+function Base.eltype(::Type{<:GeneralPermutedIterator{:exponents, <:MPolyRingElem}})
   return Vector{Int}
 end
 
@@ -1150,7 +1150,7 @@ function Base.iterate(a::GeneralPermutedIterator{:monomials, <:MPolyRingElem}, s
   return monomial(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: MPolyRingElem
+function Base.eltype(::Type{<:GeneralPermutedIterator{:monomials, T}}) where T <: MPolyRingElem
   return T
 end
 
@@ -1169,7 +1169,7 @@ function Base.iterate(a::GeneralPermutedIterator{:terms, <:MPolyRingElem}, state
   return term(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: MPolyRingElem
+function Base.eltype(::Type{<:GeneralPermutedIterator{:terms, T}}) where T <: MPolyRingElem
   return T
 end
 

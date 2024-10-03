@@ -190,7 +190,7 @@ function Base.iterate(C::Covering, s::Int=1)
   return U[s], s+1
 end
 
-Base.eltype(C::Covering) = AbsAffineScheme
+Base.eltype(::Type{<:Covering}) = AbsAffineScheme
 
 ########################################################################
 # Building a Covering                                                  #

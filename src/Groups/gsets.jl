@@ -583,7 +583,7 @@ function Base.iterate(Omega::GSetBySubgroupTransversal, state = 1)
   end
 end
 
-Base.eltype(Omega::GSetBySubgroupTransversal{T, S, E}) where {S, T, E} = GroupCoset{T, E}
+Base.eltype(::Type{GSetBySubgroupTransversal{T, S, E}}) where {S, T, E} = GroupCoset{T, E}
 
 function Base.getindex(Omega::GSetBySubgroupTransversal, i::Int)
   if Omega.side == :right
@@ -798,7 +798,7 @@ function Base.iterate(Omega::GSetByElements, state = 1)
   return (elms[state], state+1)
 end
 
-Base.eltype(Omega::GSetByElements) = eltype(Omega.seeds)
+Base.eltype(::Type{GSetByElements{T,S}}) where {T,S} = S
 
 Base.getindex(Omega::GSetByElements, i::Int) = elements(Omega)[i]
 
