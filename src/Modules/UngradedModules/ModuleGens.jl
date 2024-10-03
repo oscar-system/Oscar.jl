@@ -263,47 +263,48 @@ Convert a Singular vector to a free module element.
 """
 function (F::FreeMod{<:MPolyRingElem})(s::Singular.svector)
   Rx = base_ring(F)
-  R = coefficient_ring(Rx)
-  ctx = MPolyBuildCtx(Rx)
-  
-  # shortcut in order not to allocate the dictionary
-  if isone(length(s))
-    (i, e, c) = first(s)
-    push_term!(ctx, R(c), e)
-    return FreeModElem(sparse_row(Rx, [(i, finish(ctx))]), F)
-  end
-
-  cache = IdDict{Int, typeof(ctx)}()
-  for (i, e, c) in s
-    ctx = get!(cache, i) do
-      MPolyBuildCtx(Rx)
-    end
-    push_term!(ctx, R(c), e)
-  end
-  return FreeModElem(sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache]), F)
+  row = _build_sparse_row(Rx, s)
+  return FreeModElem(row, F)
 end
 
 function (F::FreeMod{<:MPolyQuoRingElem})(s::Singular.svector)
   Qx = base_ring(F)::MPolyQuoRing
   Rx = base_ring(Qx)::MPolyRing
-  R = coefficient_ring(Rx)
-  ctx = MPolyBuildCtx(Rx)
+  row = _build_sparse_row(Rx, s; cast=Qx)
+  return FreeModElem(row, F)
+end
 
-  # shortcut in order not to allocate the dictionary
+function _build_sparse_row(
+    Rx::MPolyRing, s::Singular.svector; 
+    cast::Ring=Rx
+  )
+  is_zero(length(s)) && return sparse_row(cast)
+  R = coefficient_ring(Rx)
+
+  # shortcuts in order not to allocate the dictionary
+  ctx = MPolyBuildCtx(Rx)
   if isone(length(s))
     (i, e, c) = first(s)
     push_term!(ctx, R(c), e)
-    return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx)))]), F)
+    cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx)))])
+    return sparse_row(Rx, [(i, finish(ctx))])
   end
 
   cache = IdDict{Int, typeof(ctx)}()
+  last_index = 0
   for (i, e, c) in s
+    if i == last_index
+      push_term!(ctx, R(c), e)
+      continue
+    end
+    last_index = i
     ctx = get!(cache, i) do
       MPolyBuildCtx(Rx)
     end
     push_term!(ctx, R(c), e)
   end
-  return FreeModElem(sparse_row(Qx, [(i, Qx(finish(ctx))) for (i, ctx) in cache]), F)
+  cast !== Rx && return sparse_row(cast, [(i, cast(finish(ctx))) for (i, ctx) in cache])
+  return sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache])
 end
 
 # After creating the required infrastruture in Singular,
