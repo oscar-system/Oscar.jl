@@ -1243,5 +1243,15 @@ end
   K, inc = kernel(phi)
 end
 
+@testset "ideal and quotient ring as module" begin
+  R, (x, y) = polynomial_ring(QQ,[:x, :y])
+  U = complement_of_point_ideal(R, [0, 0])
+  Rloc, _ = localization(R, U)
+  I = ideal(Rloc, [y^2-x^3-x^2])
+  II = ideal_as_module(I)
+  @test relations(II) == []
+  QI = quotient_ring_as_module(I)
+  @test rank(ambient_free_module(QI)) == 1
+end
 
 
