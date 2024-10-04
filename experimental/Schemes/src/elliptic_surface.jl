@@ -1213,7 +1213,7 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
   U = X0[1][1]
   (x,y,t) = coordinates(U)
   b = P
-  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
+  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
 end
 
 function _section(X::EllipticSurface, P::EllipticCurvePoint)
