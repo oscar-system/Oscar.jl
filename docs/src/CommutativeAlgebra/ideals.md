@@ -285,13 +285,6 @@ julia> DH(Ih) == I   # dehomogenization of Ih
 true
 ```
 
-
-## Ideals as Modules
-
-```@docs
-ideal_as_module(I::MPolyIdeal)
-```
-
 ## Generating Special Ideals
 
 ### Katsura-n

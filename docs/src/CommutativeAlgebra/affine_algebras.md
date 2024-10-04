@@ -672,9 +672,3 @@ multi_hilbert_series(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_series_reduced(A::MPolyQuoRing; algorithm::Symbol=:BayerStillmanA)
 multi_hilbert_function(A::MPolyQuoRing, g::FinGenAbGroupElem)
 ```
-
-## Affine Algebras as Modules
-
-```@docs
-quotient_ring_as_module(A::MPolyQuoRing)
-```

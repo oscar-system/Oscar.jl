@@ -1243,5 +1243,30 @@ end
   K, inc = kernel(phi)
 end
 
+@testset "ideal and quotient ring as module" begin
+  R, (x, y) = polynomial_ring(QQ,[:x, :y])
+  I = ideal(R, [y^2-x^3-x^2])
+  II = ideal_as_module(I)
+  M = quotient_ring_as_module(I)
+  Q, pr = quo(R, I)
+  J = ideal(Q, gens(Q))
+  ideal_as_module(J)
+  quotient_ring_as_module(J)
+  U = complement_of_point_ideal(R, [0, 0])
+  Rloc, _ = localization(R, U)
+  Iloc = ideal(Rloc, [y^2-x^3-x^2])
+  Mloc = ideal_as_module(Iloc)
+  @test is_empty(relations(Mloc))
+  QI = quotient_ring_as_module(I)
+  @test rank(ambient_free_module(QI)) == 1
+  Q, pr = quo(Rloc, Iloc)
+  J = ideal(Q, gens(Q))
+  ideal_as_module(J)
+  quotient_ring_as_module(J)
+end
+
+
+
+
 
 
