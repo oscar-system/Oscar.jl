@@ -250,7 +250,7 @@
     new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
     Oscar.inherit_gluings!(new_cov, orig_cov)
     Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
-    @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
+    @test Oscar.decomposition_info(new_cov)[V1] == [OO(V1)(x)]
   end
 
   @testset "fiber products of coverings" begin
