@@ -2,7 +2,7 @@
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
 
-@register_serialization_type NormalToricVariety uses_id [:cox_ring]
+@register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group]
 
 
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
