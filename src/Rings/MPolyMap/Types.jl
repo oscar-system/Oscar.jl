@@ -35,11 +35,14 @@ const _DomainTypes = Union{MPolyRing, MPolyQuoRing}
     # can safely be disabled.
     if check_for_mapping_of_vars && all(_is_gen, img_gens) && _allunique(img_gens)
       gens_codomain = gens(codomain)
-      result.variable_indices = [findfirst(==(x), gens_codomain) for x in img_gens]
+      result.variable_indices = [findfirst(_cmp_reps(x), gens_codomain) for x in img_gens]
     end
     return result
   end
 end
+
+# This can be overwritten in order to avoid making the above check a bottleneck.
+_cmp_reps(a) = ==(a)
 
 function MPolyAnyMap(d::D, c::C, cm::U, ig::Vector{V}) where {D, C, U, V}
   return MPolyAnyMap{D, C, U, V}(d, c, cm, ig)
