@@ -1,3 +1,105 @@
+# Updates to the QSM Database might be needed from time to time.
+# Currently, this data is added as tar.gz folder to the following release tag of OSCAR:
+# https://github.com/oscar-system/Oscar.jl/releases/tag/archive-tag-1
+# When updating, note that you must update Artifacts.toml in the OSCAR root folder with
+# the latest sha256 and git-tree-sha1, which can be computed as outlined here:
+# https://pkgdocs.julialang.org/v1/artifacts/
+# For recreating/updating the data, you could execute code like the following on the latest master branch of OSCAR:
+
+#=
+for k in 1:5000
+  try
+    qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => k))
+    equ = hypersurface_equation(qsm_model)
+    S = cox_ring(ambient_space(qsm_model))
+    my_ring_map = hom(parent(equ), S, gens(S))
+    println("Working on k = $k...")
+    var_names = symbols(parent(equ))
+    S.R.S = var_names
+    qsm_model.hypersurface_equation = my_ring_map(equ)
+    if is_empty(explicit_model_sections(qsm_model)) == false 
+      println("Problem with explicit model sections!")
+    end
+    if my_ring_map(equ) != hypersurface_equation(qsm_model)
+      println("Problem with mapping of hypersurface equation!")
+    end
+    if parent(degree(hypersurface_equation(qsm_model))) != class_group(ambient_space(qsm_model))
+      println("Problem with class group!")
+    end
+    if cox_ring(ambient_space(qsm_model)).D != class_group(ambient_space(qsm_model))
+      println("Inconsistency among grading group of cox ring and class group!")
+    end
+    if parent(hypersurface_equation(qsm_model)) != cox_ring(ambient_space(qsm_model))
+      println("Problem with parent of hypersurface equation!")
+    end
+    if is_calabi_yau(qsm_model, check = false) == false
+      println("Problem with is_calabi_yau!")
+    end
+    corresponding_qsm_model = QSMModel(
+      vertices(qsm_model),
+      polytope_index(qsm_model),
+      has_quick_triangulation(qsm_model),
+      max_lattice_pts_in_facet(qsm_model),
+      estimated_number_of_triangulations(qsm_model),
+      qsm_model,
+      kbar3(qsm_model),
+      hodge_h11(qsm_model),
+      hodge_h12(qsm_model),
+      hodge_h13(qsm_model),
+      hodge_h22(qsm_model),
+      genera_of_ci_curves(qsm_model),
+      degrees_of_kbar_restrictions_to_ci_curves(qsm_model),
+      topological_intersection_numbers_among_ci_curves(qsm_model),
+      indices_of_trivial_ci_curves(qsm_model),
+      topological_intersection_numbers_among_nontrivial_ci_curves(qsm_model),
+      dual_graph(qsm_model),
+      components_of_dual_graph(qsm_model),
+      degrees_of_kbar_restrictions_to_components_of_dual_graph(qsm_model),
+      genera_of_components_of_dual_graph(qsm_model),
+      simplified_dual_graph(qsm_model),
+      components_of_simplified_dual_graph(qsm_model),
+      degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph(qsm_model),
+      genera_of_components_of_simplified_dual_graph(qsm_model)
+    )
+    save("/YOUR_CHOSEN_PATH/$(k).mrdi", corresponding_qsm_model)
+    println("Saved...")
+    println("")
+  catch e
+    #println("Error for k = $k: $e. Skipping...")
+    continue
+  end
+end
+=#
+  
+# To verify, that the new data can be read, switch to your development branch and execute something like the following:
+  
+#=
+for k in 1:500
+  try
+    qsm_model = load("/YOUR_CHOSEN_PATH/$(k).mrdi")
+    println("Working on k = $k...")
+    hs_model = qsm_model.hs_model
+    set_attribute!(ambient_space(hs_model), :class_group, cox_ring(ambient_space(hs_model)).D)
+    if parent(degree(hypersurface_equation(hs_model))) != class_group(ambient_space(hs_model))
+      println("Problem with class group!")
+    end
+    if parent(hypersurface_equation(hs_model)) != cox_ring(ambient_space(hs_model))
+      println("Problem with parent of hypersurface equation!")
+    end
+    if is_calabi_yau(hs_model, check = false) == false
+      println("Problem with is_calabi_yau!")
+    end
+    println("Success for k = $k...")
+    println("")
+  catch e
+    #println("Error for k = $k: $e. Skipping...")
+    continue
+  end
+end
+=#
+
+# Do not forget to zip the new data and update https://pkgdocs.julialang.org/v1/artifacts/.
+
 @register_serialization_type QSMModel
 
 function save_object(s::SerializerState, qsm::QSMModel)
