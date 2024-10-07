@@ -11,7 +11,7 @@ In this chapter, we
 !!! note
     Making use of OSCAR, a first version of what we present here was written by Jeiao Song as a julia package.
     This package was "heavily inspired by the Macaulay2 package Schubert2 and the Sage library Chow. Some
-	functionalities from  [the Sage library] Schubert3 are also implemented."
+    functionalities from [the Sage library] Schubert3 are also implemented."
 
 !!! note
     Schubert2 was written by Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman
