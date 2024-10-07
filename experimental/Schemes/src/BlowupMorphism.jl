@@ -654,7 +654,7 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   # This used to be the following line. But we don't use the index, so we 
   # switch to the more performant version
   # result, _ = saturation_with_index(pullback(a)(tot), pullback(a)(IE_loc))
-  result = _iterative_saturation(pullback(a)(tot), [pullback(a)(u) for (u, _) in factor(lifted_numerator(first(gens(IE_loc))))])
+  result = _iterative_saturation(pullback(a)(tot), elem_type(OO(U_simp))[pullback(a)(u) for (u, _) in factor(lifted_numerator(first(gens(IE_loc))))])
   return pullback(b)(result)
 end
 
