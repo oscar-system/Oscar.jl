@@ -195,12 +195,12 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   V = groebner_basis(J)
 
   sect = x -> (y = reduce(BRtoR(x), gens(V));
-	      ans = elem_type(AR)[];
-	      for i in 1:g
-	        q = div(y, gs_lift[i])
-	        push!(ans, RtoAR(q))
-	        y -= q * gs_lift[i]
-	      end; ans)
+          ans = elem_type(AR)[];
+          for i in 1:g
+            q = div(y, gs_lift[i])
+            push!(ans, RtoAR(q))
+            y -= q * gs_lift[i]
+          end; ans)
 
   FM = free_module(R, g)
   gB = elem_type(FM)[FM(push!([j == i ? R(1) : R() for j in 1:g-1], -gs_lift[i])) for i in 1:g-1]
@@ -356,12 +356,12 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   RX = base_ring(X.ring)
   RPNtoRX = hom(base_ring(PN.ring), RX, pushfirst!(gens(RX), RX()))
   jₓ = x -> (xf = simplify(x).f;
-	     RX = base_ring(X.ring); ans = RBl();
-	     for k in rN-1:-1:0
-	       q = div(xf, ζ.f^k)
-	       ans += jₓgˣ(X(RPNtoRX(q))) * (-E[end])^k
-	       xf -= q * ζ.f^k
-	     end; Bl(ans))
+         RX = base_ring(X.ring); ans = RBl();
+         for k in rN-1:-1:0
+           q = div(xf, ζ.f^k)
+           ans += jₓgˣ(X(RPNtoRX(q))) * (-E[end])^k
+           xf -= q * ζ.f^k
+         end; Bl(ans))
   jₓ = map_from_func(jₓ, PN.ring, Bl.ring)
   j = AbstractVarietyMap(PN, Bl, jˣ, jₓ)
 
