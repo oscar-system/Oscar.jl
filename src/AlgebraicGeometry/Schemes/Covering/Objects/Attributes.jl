@@ -107,17 +107,17 @@ function inherit_decomposition_info!(
 
   for V in patches(orig_cov)
     # Collect the patches in `ref_cov` refining V
-    V_ref = [(U, (UV, h)) for (U, (UV, h)) in decomp_dict if UV === V]
-    _compl(a) = sum(length(lifted_numerator(b)) + length(lifted_denominator(b)) for b in a[2][2]; init=0)
+    V_ref = [(U, h) for (U, (UV, h)) in decomp_dict if UV === V]
+    _compl(a) = sum(length(lifted_numerator(b)) + length(lifted_denominator(b)) for b in a[2]; init=0)
     V_ref = sort!(V_ref, by=_compl)
     # Start out from the original decomposition info
     dec_inf = copy(decomposition_info(orig_cov)[V])
-    for (i, (U, (_, h))) in enumerate(V_ref)
+    for (i, (U, h)) in enumerate(V_ref)
       # Cast the already made decomposition info down to U
       tmp = elem_type(OO(U))[OX(V, U)(i) for i in dec_inf] # help the compiler
       # Append the equations for the previously covered patches
       for j in 1:i-1
-        (_, (_, hh)) = V_ref[j]
+        _, hh = V_ref[j]
         if is_empty(hh) # The patch for hh already covered everything; this one can hence be discarded.
           push!(tmp, one(OO(U)))
           break
