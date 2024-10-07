@@ -71,7 +71,7 @@ julia> I = ideal(R, [z^2-y^2*(y+1)]);
 
 julia> A, _ = quo(R, I);
 
-julia> B, (s,t) =  polynomial_ring(QQ, ["s", "t"]);
+julia> B, (s,t) =  polynomial_ring(QQ, [:s, :t]);
 
 julia> F = hom(A,B, [s, t^2-1, t*(t^2-1)])
 Ring homomorphism
