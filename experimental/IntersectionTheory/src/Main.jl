@@ -1373,18 +1373,19 @@ Return an additive basis of the Chow ring of `X` in codimension `k`.
 basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 
 @doc raw"""
-    betti(X::AbstractVariety)
+    betti_numbers(X::AbstractVariety)
 
-Return the Betti numbers of the Chow ring of `X`. Note that these are not
-necessarily equal to the usual Betti numbers, i.e., the dimensions of
-(co)homologies.
+Return the Betti numbers of the Chow ring of `X`. 
+
+!!! note
+    The Betti number of `X` in a given degree is the number of elements of `basis(X)` in that degree.
 
 # Examples
 ```jldoctest
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
 AbstractVariety of dim 4
 
-julia> betti(P2xP2)
+julia> betti_numbers(P2xP2)
 5-element Vector{Int64}:
  1
  2
@@ -1402,7 +1403,7 @@ julia> basis(P2xP2)
 
 ```
 """
-betti(X::AbstractVariety) = length.(basis(X))
+betti_numbers(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
     integral(x::MPolyDecRingElem)

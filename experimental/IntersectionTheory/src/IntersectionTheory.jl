@@ -3,7 +3,7 @@ using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
+import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import ..Oscar: pullback, pushforward, base, OO, product, compose
@@ -22,7 +22,7 @@ export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
-export betti
+export betti_numbers
 export blowup
 export blowup_points
 export bundles
@@ -100,7 +100,7 @@ export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
-export betti
+export betti_numbers
 export blowup
 export blowup_points
 export bundles
