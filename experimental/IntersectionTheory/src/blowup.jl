@@ -341,7 +341,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
 
   RBltoRY = hom(RBl, RY, vcat(repeat([RY()], ngs), gens(RY)))
   fₓ = x -> (xf = simplify(x).f;
-	     Y(RBltoRY(xf));)
+         Y(RBltoRY(xf));)
   fₓ = map_from_func(fₓ, Bl.ring, Y.ring)
   f = AbstractVarietyMap(Bl, Y, Bl.(y), fₓ)
   Bl.struct_map = f
