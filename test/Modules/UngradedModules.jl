@@ -377,7 +377,7 @@ end
   M = SubquoModule(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
   @test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
-  R, x = polynomial_ring(QQ, ["x_"*string(i) for i=1:4])
+  R, x = polynomial_ring(QQ, :x => 1:4)
   F = FreeMod(R, 1)
   lp = lex(gens(base_ring(F)))*lex(gens(F))
 

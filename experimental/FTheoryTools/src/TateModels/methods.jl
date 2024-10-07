@@ -184,7 +184,7 @@ function tune(t::GlobalTateModel, input_sections::Dict{String, <:Any}; completen
   if !isempty(parametrization_keys) && !isempty(secs_names)
     R = parent(def_secs_param[parametrization_keys[1]])
     S = parent(explicit_secs[secs_names[1]])
-    vars = [string(k) for k in gens(R)]
+    vars = [string(k) for k in symbols(R)]
     images = [k in secs_names ? explicit_secs[k] : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
     map = hom(R, S, images)
     for section in tate_sections

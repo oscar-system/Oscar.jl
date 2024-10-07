@@ -55,8 +55,8 @@ function weierstrass_model(base::NormalToricVariety,
   vs2 = collect(keys(defining_section_parametrization))
   @req all(in(("f", "g")), vs2) "Only the Weierstrass sections f, g must be parametrized"
 
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+  gens_base_names = symbols(cox_ring(base))
+  if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
@@ -125,7 +125,7 @@ Weierstrass model over a not fully specified base
 function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, weierstrass_f::MPolyRingElem, weierstrass_g::MPolyRingElem)
 
   # Execute consistency checks
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  gens_base_names = [string(g) for g in symbols(auxiliary_base_ring)]
   @req ((parent(weierstrass_f) == auxiliary_base_ring) && (parent(weierstrass_g) == auxiliary_base_ring)) "All Weierstrass sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
   if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
@@ -150,7 +150,7 @@ function weierstrass_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 
   # Compute defining_section_parametrization
   defining_section_parametrization = Dict{String, MPolyRingElem}()
-  vars_S = [string(k) for k in gens(S)]
+  vars_S = [string(k) for k in symbols(S)]
   if !("f" in vars_S) || (f != eval_poly("f", parent(f)))
     defining_section_parametrization["f"] = f
   end

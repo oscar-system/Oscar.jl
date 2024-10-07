@@ -187,7 +187,7 @@ Returns whether the scheme ``X`` is normal.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> X = spec(R);
 

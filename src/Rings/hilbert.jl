@@ -1033,7 +1033,7 @@ julia> I = ideal(R, [x*z+y^2,  y^6+x^3*z^3,  z^6, x^6]);
 
 julia> RmodI,_ = quo(R,I);
 
-julia> HSRing2,_ = polynomial_ring(ZZ, ["t[1]", "t[2]"]);
+julia> HSRing2,_ = polynomial_ring(ZZ, :t => 1:2);
 
 julia> Oscar.HSNum_abbott(RmodI, HSRing2)
 -t[1]^28*t[2]^28 + t[1]^24*t[2]^24 + t[1]^22*t[2]^10 - t[1]^18*t[2]^6 + t[1]^10*t[2]^22 - t[1]^6*t[2]^18 - t[1]^4*t[2]^4 + 1

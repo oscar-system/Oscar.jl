@@ -24,7 +24,7 @@
 end
 
 @testset "Issues in #1806 part 1" begin
-    R, (x, y, z) = polynomial_ring(QQ, ["x$i" for i in 1:3])
+    R, (x, y, z) = polynomial_ring(QQ, :x => 1:3)
 
     M = R[x y; y-1 z]
     f = det(M)

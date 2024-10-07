@@ -1295,7 +1295,7 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   λ = conjugate(λ)
   X = F.parent
   w = _wedge(sum(λ), chern_character(F))
-  S, ei = polynomial_ring(QQ, ["e$i" for i in 1:length(w)])
+  S, ei = polynomial_ring(QQ, "e#" => 1:length(w))
   e = i -> i < 0 ? S() : ei[i+1]
   M = [e(λ[i]-i+j) for i in 1:length(λ), j in 1:length(λ)]
   sch = det(matrix(S, M)) # Jacobi-Trudi

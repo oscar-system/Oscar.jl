@@ -434,7 +434,7 @@ function weierstrass_model(X::EllipticSurface)
 
   bundleE = direct_sum([O0, O4, O6])
 
-  P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
+  P_proj = projectivization(bundleE, var_names=[:z, :x, :y])
   P = covered_scheme(P_proj)
   pr = covered_projection_to_base(P_proj)
   @assert has_decomposition_info(default_covering(P))

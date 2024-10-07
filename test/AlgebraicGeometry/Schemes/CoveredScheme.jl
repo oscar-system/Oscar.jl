@@ -16,7 +16,7 @@
   end
 
   @testset "Covered schemes 2" begin
-    P = projective_space(QQ, ["x", "y", "z", "w"])
+    P = projective_space(QQ, [:x, :y, :z, :w])
     Pc = covered_scheme(P)
     S = homogeneous_coordinate_ring(P)
     (x,y,z,w) = gens(S)
@@ -118,7 +118,7 @@
   end
 
   @testset "closed embeddings and singular loci" begin
-    IP2 = projective_space(QQ, ["x", "y", "z"])
+    IP2 = projective_space(QQ, [:x, :y, :z])
     S = homogeneous_coordinate_ring(IP2)
     (x, y, z) = gens(S)
     f = x^2*z + y^3 - y^2*z

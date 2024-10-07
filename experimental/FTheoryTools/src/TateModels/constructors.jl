@@ -61,8 +61,8 @@ function global_tate_model(base::NormalToricVariety,
   vs2 = collect(keys(defining_section_parametrization))
   @req all(in(["a1", "a2", "a3", "a4", "a6"]), vs2) "Only the Tate sections a1, a2, a3, a4, a6 must be parametrized"
   
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  if ("x" in gens_base_names) || ("y" in gens_base_names) || ("z" in gens_base_names)
+  gens_base_names = symbols(cox_ring(base))
+  if (:x in gens_base_names) || (:y in gens_base_names) || (:z in gens_base_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   
@@ -144,7 +144,7 @@ Global Tate model over a not fully specified base
 function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_grading::Matrix{Int64}, d::Int, ais::Vector{T}) where {T<:MPolyRingElem}
   
   # Execute consistency checks
-  gens_base_names = [string(g) for g in gens(auxiliary_base_ring)]
+  gens_base_names = [string(g) for g in symbols(auxiliary_base_ring)]
   @req length(ais) == 5 "We expect exactly 5 Tate sections"
   @req all(k -> parent(k) == auxiliary_base_ring, ais) "All Tate sections must reside in the provided auxiliary base ring"
   @req d > 0 "The dimension of the base space must be positive"
@@ -170,7 +170,7 @@ function global_tate_model(auxiliary_base_ring::MPolyRing, auxiliary_base_gradin
 
   # Compute defining_section_parametrization
   defining_section_parametrization = Dict{String, MPolyRingElem}()
-  vars_S = [string(k) for k in gens(S)]
+  vars_S = [string(k) for k in symbols(S)]
   if !("a1" in vars_S) || (a1 != eval_poly("a1", parent(a1)))
     defining_section_parametrization["a1"] = a1
   end

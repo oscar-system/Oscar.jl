@@ -63,7 +63,7 @@ end
 end
 
 @testset "conversion of Cartier to Weil divisors" begin
-  IP2 = projective_space(QQ, ["x", "y", "z"])
+  IP2 = projective_space(QQ, [:x, :y, :z])
   S = homogeneous_coordinate_ring(IP2)
   (x,y,z) = gens(S)
   I = ideal(S, x^2*y^3*(x+y+z))
