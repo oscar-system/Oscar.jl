@@ -560,9 +560,13 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
-  fac = factor(f)
+  return _iterative_saturation(I, [u for (u, _) in factor(f)])
+end
+
+function _iterative_saturation(I::Ideal, f::Vector{T}) where{T<:RingElem}
+  @show f
   R = base_ring(I)
-  for (u, k) in fac
+  for u in f
     I = saturation(I, ideal(R, u))
   end
   return I
