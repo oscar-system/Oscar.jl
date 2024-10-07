@@ -72,11 +72,11 @@ function load_object(s::DeserializerState, ::Type{QSMModel})
     :genus_of_components_of_simplified_dual_graph
   )
 
-  h = hypersurface_equation(hs_model)
-  S = cox_ring(ambient_space(hs_model))
-  var_names = symbols(parent(h))
-  S.R.S = var_names
-  hs_model.hypersurface_equation = Oscar.eval_poly(string(h), S)
+  #h = hypersurface_equation(hs_model)
+  #S = cox_ring(ambient_space(hs_model))
+  #var_names = symbols(parent(h))
+  #S.R.S = var_names
+  #hs_model.hypersurface_equation = Oscar.eval_poly(string(h), S)
 
   return QSMModel(vertices,
                   poly_index,
