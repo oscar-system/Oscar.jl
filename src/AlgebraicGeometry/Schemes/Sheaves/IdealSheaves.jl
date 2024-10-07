@@ -1693,6 +1693,7 @@ function produce_object(
     algorithm::Symbol=:pullback # Either :pushforward or :pullback
                                    # This determines how to extend through the gluings.
   )
+  U2 === original_chart(F) && return F.P
   # Initialize some local variables
   X = scheme(F)
   OOX = OO(X)

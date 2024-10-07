@@ -1220,6 +1220,17 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
   weierstrass_contraction(X) # trigger required computations
   PX = _section_on_weierstrass_ambient_space(X, P)
+
+  if !is_zero(P)
+    WC = weierstrass_chart_on_minimal_model(X)
+    U = original_chart(PX)
+    @assert OO(U) === ambient_coordinate_ring(WC)
+    PY = PrimeIdealSheafFromChart(X, WC, ideal(OO(WC), PX(U)))
+    set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
+    set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
+    return WeilDivisor(PY, check=false)
+  end
+
   for f in X.ambient_blowups
     PX = strict_transform(f , PX)
   end
@@ -1313,7 +1324,10 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   eqns = vcat(eq1, eq2)
 
   # collect the equations as a matrix
+  @show first(eqns)
+  @show typeof(first(eqns))
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
+  @show cc
   M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
   K = kernel(M; side = :right)
@@ -1368,7 +1382,8 @@ function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
 
     I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
-    issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
+    # Test is disabled for the moment; should eventually be put behind @check!
+    #issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 
     @assert gcd(xn, xd)==1
     @assert gcd(yn, yd)==1
@@ -1414,7 +1429,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert scheme(parent(u)) === X
   pr = weierstrass_contraction(X)
   WX, _ = weierstrass_model(X)
-  # The following is a cheating version of the command u = pushforward(pr)(u)
+  # The following is a cheating version of the command u = pushforward(pr)(u) (the latter has now been deprecated!)
   u = function_field(WX)(u[weierstrass_chart_on_minimal_model(X)])
   @assert scheme(parent(u)) === weierstrass_model(X)[1]
 
@@ -1568,8 +1583,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert all(F4[i]>=0 for i in 1:length(basisNS))
   D = D + sum(ZZ(F4[i])*basisNS[i] for i in 1:length(basisNS))
   @assert D<=D1
-  l = Int(l)
-  return D1, D, P, l, c
+  return D1, D, P, Int(l), c
 end
 
 @doc raw"""
@@ -1662,6 +1676,15 @@ function reduction_to_pos_char(X::EllipticSurface, red_map::Map)
   end::Tuple{<:Map, <:Map}
 end
 
+function reduction_of_algebraic_lattice(X::EllipticSurface)
+  return get_attribute!(X, :reduction_of_algebraic_lattice) do
+    @assert has_attribute(X, :reduction_to_pos_char) "no reduction morphism specified"
+    red_map, bc = get_attribute(X, :reduction_to_pos_char)
+    basis_ambient, _, _= algebraic_lattice(X)
+    return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+  end::IdDict
+end
+
 @doc raw"""
     basis_representation(X::EllipticSurface, D::WeilDivisor)
 
@@ -1677,11 +1700,12 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   kk = base_ring(X)
   if iszero(characteristic(kk)) && has_attribute(X, :reduction_to_pos_char)
     red_map, bc = get_attribute(X, :reduction_to_pos_char)
-    for i in 1:n
-      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
-      
-      v[i] = intersect(base_change(red_map, basis_ambient[i]; scheme_base_change=bc), 
-                       base_change(red_map, D; scheme_base_change=bc))
+    red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+    #red_dict_inv = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>E for (E, D) in red_dict)
+    D_red = _reduce_as_prime_divisor(bc, D)
+    for (i, E) in enumerate(basis_ambient)
+      @vprintln :EllipticSurface 4 "intersecting in positive characteristic with $(i): $(basis_ambient[i])"
+      v[i] = intersect(red_dict[E], D_red)
     end
   else
     for i in 1:n
@@ -1692,6 +1716,36 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"
   return v*inv(G)
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::AbsWeilDivisor)
+  return WeilDivisor(domain(bc), coefficient_ring(D), 
+                     IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(
+                         _reduce_as_prime_divisor(bc, I) => c for (I, c) in coefficient_dict(D)
+                       )
+                    )
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::AbsIdealSheaf)
+  result = pullback(bc, I)
+  has_attribute(I, :_self_intersection) && set_attribute!(result, :_self_intersection=>
+                                                          (get_attribute(I, :_self_intersection)::Int))
+  return result
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::PrimeIdealSheafFromChart)
+  U = original_chart(I)
+  bc_cov = covering_morphism(bc)
+  V = __find_chart(U, codomain(bc_cov))
+  @show U
+  @show V
+  @show U == V
+  @show U === V
+  IV = I(V)
+  bc_loc = first(maps_with_given_codomain(bc_cov, V))
+  J = pullback(bc_loc)(IV)
+  set_attribute!(J, :is_prime=>true)
+  return PrimeIdealSheafFromChart(domain(bc), domain(bc_loc), J)
 end
 
 ################################################################################
