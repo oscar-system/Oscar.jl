@@ -1324,11 +1324,12 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
   eqns = vcat(eq1, eq2)
 
   # collect the equations as a matrix
-  @show first(eqns)
-  @show typeof(first(eqns))
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
-  @show cc
-  M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
+  mat = reduce(vcat,cc, init=elem_type(base)[])
+  @assert all(is_one(denominator(x)) for x in mat)
+  @assert all(is_constant(numerator(x)) for x in mat)
+  mat2 = [constant_coefficient(numerator(x)) for x in mat]
+  M = matrix(B, length(eqns), length(ab), mat2)
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
   K = kernel(M; side = :right)
   kerdim = ncols(K)
