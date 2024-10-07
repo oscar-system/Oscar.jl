@@ -66,16 +66,17 @@ end
 ##########################################
 
 function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::Tuple{NormalToricVariety, NormalToricVariety, NormalToricVariety, <:MPolyRing, <:MPolyRing})
-  base_space, ambient_space, fiber_ambient_space, R1, R2 = params
+  base_space, amb_space, fiber_ambient_space, R1, R2 = params
   defining_equation = load_object(s, MPolyRingElem, R1, :hypersurface_equation)
   defining_equation_parametrization = load_object(s, MPolyRingElem, R2, :hypersurface_equation_parametrization)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
-  model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, ambient_space, fiber_ambient_space)
+  model = HypersurfaceModel(explicit_model_sections, defining_equation_parametrization, defining_equation, base_space, amb_space, fiber_ambient_space)
   model.defining_classes = defining_classes
   attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
   for (key, value) in attrs_data
     set_attribute!(model, Symbol(key), value)
   end
+  @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
   return model
 end
