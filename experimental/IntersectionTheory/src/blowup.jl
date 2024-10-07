@@ -26,7 +26,7 @@ More precisely, return a tuple `(gs, PM, sect)`, say, where
     The function is implemented so that the last element of `gs` is `one(B)`.
 
 # Examples
-```
+```jldoctest
 julia> RA, (h,) = polynomial_ring(QQ, [:h]);
 
 julia> A, _ = quo(RA, ideal(RA, [h^9]));
