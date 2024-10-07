@@ -1738,10 +1738,6 @@ function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::PrimeIdealShe
   U = original_chart(I)
   bc_cov = covering_morphism(bc)
   V = __find_chart(U, codomain(bc_cov))
-  @show U
-  @show V
-  @show U == V
-  @show U === V
   IV = I(V)
   bc_loc = first(maps_with_given_codomain(bc_cov, V))
   J = pullback(bc_loc)(IV)
