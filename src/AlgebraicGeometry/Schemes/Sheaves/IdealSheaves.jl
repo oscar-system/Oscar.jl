@@ -345,7 +345,6 @@ end
 end
   
 @attr Bool function has_dimension_leq_zero(I::Ideal)
-  #is_one(I) && return true
   return dim(I) <= 0
 end
 
@@ -354,7 +353,6 @@ end
   P = base_ring(R)::MPolyRing
   J = ideal(P, numerator.(gens(I)))
   has_dimension_leq_zero(J) && return true
-  #is_one(I) && return true
   return dim(I) <= 0
 end
 
