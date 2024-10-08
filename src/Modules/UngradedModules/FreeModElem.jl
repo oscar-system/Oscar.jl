@@ -279,11 +279,11 @@ is_left(M::ModuleFP) = is_left(typeof(M))
 is_left(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
 is_left(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = true # Left multiplication is generically supported
 
-is_right(M::ModuleFP) = is_right_module(typeof(M))
+is_right(M::ModuleFP) = is_right(typeof(M))
 is_right(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
 is_right(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # Right multiplication is not supported by the generic code at the moment, but we plan to do so eventually. 
 
-is_two_sided(M::ModuleFP) = is_right_module(typeof(M))
+is_two_sided(M::ModuleFP) = is_two_sided(typeof(M))
 is_two_sided(::Type{T}) where {RET<:RingElem, T<:ModuleFP{RET}} = true
 is_two_sided(::Type{T}) where {RET<:AdmissibleModuleFPRingElem, T<:ModuleFP{RET}} = false # see above
 
