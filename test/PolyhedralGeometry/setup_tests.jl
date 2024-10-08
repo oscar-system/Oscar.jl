@@ -16,7 +16,12 @@ function _check_im_perm_rows(inc::IncidenceMatrix, o)
                Polymake.row.(Ref(oinc), 1:nr))
 end
 
-_matrix_from_property(b::SubObjectIterator{<:Union{Halfspace, Hyperplane}}) = permutedims(hcat([vcat(-negbias(be), normal_vector(be)) for be in b]...))
+_matrix_from_property(b::SubObjectIterator{<:Union{LinearHalfspace, LinearHyperplane}}) = permutedims(hcat([normal_vector(be) for be in b]...))
+
+_matrix_from_property(b::SubObjectIterator{<:Union{AffineHalfspace, AffineHyperplane}}) = permutedims(hcat([vcat(-negbias(be), normal_vector(be)) for be in b]...))
+
+# only used for cones that are linear halfspaces
+_matrix_from_property(b::SubObjectIterator{Cone{T}}) where T = _matrix_from_property(SubObjectIterator{LinearHalfspace{T}}(b.Obj, b.Acc, b.n))
 
 _matrix_from_property(b::SubObjectIterator) = permutedims(hcat(b...))
 
