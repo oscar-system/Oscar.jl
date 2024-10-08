@@ -1213,7 +1213,7 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
   U = X0[1][1]
   (x,y,t) = coordinates(U)
   b = P
-  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
+  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
 end
 
 function _section(X::EllipticSurface, P::EllipticCurvePoint)
@@ -1649,6 +1649,19 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
+# This function allows to store a reduction map to positive characteristic,
+# e.g. for computing intersection numbers.
+function reduction_to_pos_char(X::EllipticSurface, red_map::Map)
+  return get_attribute!(X, :reduction_to_pos_char) do
+    kk0 = base_ring(X)
+    @assert domain(red_map) === kk0
+    kkp = codomain(red_map)
+    @assert characteristic(kkp) > 0
+    _, result = base_change(red_map, X)
+    return red_map, result
+  end::Tuple{<:Map, <:Map}
+end
+
 @doc raw"""
     basis_representation(X::EllipticSurface, D::WeilDivisor)
 
@@ -1661,9 +1674,21 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   n = length(basis_ambient)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
-  for i in 1:n
-    @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
-    v[i] = intersect(basis_ambient[i], D)
+  kk = base_ring(X)
+  if iszero(characteristic(kk)) && has_attribute(X, :reduction_to_pos_char)
+    red_map, bc = get_attribute(X, :reduction_to_pos_char)
+    for i in 1:n
+      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
+      
+      v[i] = intersect(base_change(red_map, basis_ambient[i]; scheme_base_change=bc), 
+                       base_change(red_map, D; scheme_base_change=bc))
+    end
+  else
+    for i in 1:n
+      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
+
+      v[i] = intersect(basis_ambient[i], D)
+    end
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"
   return v*inv(G)

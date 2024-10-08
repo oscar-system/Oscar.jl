@@ -644,13 +644,17 @@ function produce_object_on_affine_chart(I::StrictTransformIdealSheaf, U::AbsAffi
   f_loc = covering_morphism(f)[U]
   V = codomain(f_loc)
   IE_loc = IE(U)
+  @assert isone(ngens(IE_loc)) "ideal sheaf of exceptional locus is not principal"
   tot = pullback(f_loc)(J(V))
   #return saturation_with_index(tot, IE_loc)
   # It is usually better to pass to the simplified covering to do the computations
   simp_cov = simplified_covering(X)
   U_simp = first([V for V in patches(simp_cov) if original(V) === U])
   a, b = identification_maps(U_simp)
-  result, _ = saturation_with_index(pullback(a)(tot), pullback(a)(IE_loc))
+  # This used to be the following line. But we don't use the index, so we 
+  # switch to the more performant version
+  # result, _ = saturation_with_index(pullback(a)(tot), pullback(a)(IE_loc))
+  result = _iterative_saturation(pullback(a)(tot), elem_type(OO(U_simp))[pullback(a)(u) for (u, _) in factor(lifted_numerator(first(gens(IE_loc))))])
   return pullback(b)(result)
 end
 
