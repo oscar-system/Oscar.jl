@@ -1664,23 +1664,39 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
-# This function allows to store a reduction map to positive characteristic,
-# e.g. for computing intersection numbers.
-function reduction_to_pos_char(X::EllipticSurface, red_map::Map)
-  return get_attribute!(X, :reduction_to_pos_char) do
-    kk0 = base_ring(X)
-    @assert domain(red_map) === kk0
-    kkp = codomain(red_map)
-    @assert characteristic(kkp) > 0
-    _, result = base_change(red_map, X)
-    return red_map, result
-  end::Tuple{<:Map, <:Map}
+########################################################################
+# Reduction to positive characteristic
+#
+# We allow to store a reduction of an elliptic surface `X` to positive
+# characteristic. The user needs to know what they're doing here! 
+#
+# The functionality can be made available by specifying a reduction 
+# map for the `base_ring` (actually a field) of `X` to a field of 
+# positive characteristic. This can then be stored in `X` via 
+# `set_good_reduction_map!`. The latter unlocks certain features such 
+# as computation of intersection numbers in positive characteristic.
+########################################################################
+function set_good_reduction_map!(X::EllipticSurface, red_map::Map)
+  has_attribute(X, :good_reduction_map) && error("reduction map has already been set")
+  kk0 = base_ring(X)
+  @assert domain(red_map) === kk0
+  kkp = codomain(red_map)
+  @assert characteristic(kkp) > 0
+  set_attribute!(X, :good_reduction_map=>red_map)
+end
+
+@attr AbsCoveredSchemeMorphism function good_reduction(X::EllipticSurface)
+  is_zero(characteristic(base_ring(X))) || error("reduction to positive characteristic is only possible from characteristic zero")
+  has_attribute(X, :good_reduction_map) || error("no reduction map is available; please set it manually via `set_good_reduction_map!`")
+  red_map = get_attribute(X, :good_reduction_map)::Map
+  _, result = base_change(red_map, X)
+  return red_map, result
 end
 
 function reduction_of_algebraic_lattice(X::EllipticSurface)
   return get_attribute!(X, :reduction_of_algebraic_lattice) do
     @assert has_attribute(X, :reduction_to_pos_char) "no reduction morphism specified"
-    red_map, bc = get_attribute(X, :reduction_to_pos_char)
+    red_map, bc = good_reduction(X)
     basis_ambient, _, _= algebraic_lattice(X)
     return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
   end::IdDict
@@ -1699,10 +1715,9 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   kk = base_ring(X)
-  if iszero(characteristic(kk)) && has_attribute(X, :reduction_to_pos_char)
-    red_map, bc = get_attribute(X, :reduction_to_pos_char)
+  if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
+    red_map, bc = good_reduction(X)
     red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
-    #red_dict_inv = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>E for (E, D) in red_dict)
     D_red = _reduce_as_prime_divisor(bc, D)
     for (i, E) in enumerate(basis_ambient)
       @vprintln :EllipticSurface 4 "intersecting in positive characteristic with $(i): $(basis_ambient[i])"
@@ -1719,6 +1734,10 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   return v*inv(G)
 end
 
+### Some functions to do custom pullback of divisors along reduction maps.
+# We assume that primeness is preserved along the reduction. In particular, the 
+# user is responsible for this to hold for all cases used! 
+# They specify the "good reduction" in the end. 
 function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::AbsWeilDivisor)
   return WeilDivisor(domain(bc), coefficient_ring(D), 
                      IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(
@@ -1744,12 +1763,6 @@ function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::PrimeIdealShe
   set_attribute!(J, :is_prime=>true)
   return PrimeIdealSheafFromChart(domain(bc), domain(bc_loc), J)
 end
-
-################################################################################
-#
-# patches for Oscar
-#
-################################################################################
 
 
 ########################################################################
