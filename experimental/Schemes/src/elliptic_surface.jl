@@ -243,7 +243,7 @@ Return $\chi(\mathcal{O}_X)$.
 euler_characteristic(X::EllipticSurface) = X.euler_characteristic
 
 @doc raw"""
-    algebraic_lattice(X) -> Vector{WeilDivisor}, ZZLat
+    algebraic_lattice(X) -> Vector{AbsWeilDivisor}, ZZLat
 
 Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
 torsion sections and the sections provided at the construction of ``X``.
@@ -935,7 +935,7 @@ Internal function. Returns a list consisting of:
 end
 
 @doc raw"""
-    trivial_lattice(X::EllipticSurface) -> Vector{WeilDivisor}, ZZMatrix
+    trivial_lattice(X::EllipticSurface) -> Vector{AbsWeilDivisor}, ZZMatrix
 
 Return a basis for the trivial lattice as well as its gram matrix.
 
@@ -968,7 +968,7 @@ end
 
 
 @doc raw"""
-    standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
+    standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
 
 Internal method. Used to prepare for [`reducible_fibers`](@ref).
 `f` must be the list of the components of the reducible fiber `F`.
@@ -978,7 +978,7 @@ Output a list of tuples with each tuple as follows
 - the irreducible components `[F0,...Fn]` of `F` sorted such that the first entry `F0` is the one intersecting the zero section. The others are sorted in some standard way
 - gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
-function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
+function standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
   @hassert :EllipticSurface 2 all(is_prime(i) for i in f)
   f = copy(f)
   O = components(zero_section(S))[1]
@@ -1078,7 +1078,7 @@ function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
 end
 
 @doc raw"""
-    fiber_components(S::EllipticSurface, P) -> Vector{<:WeilDivisor}
+    fiber_components(S::EllipticSurface, P) -> Vector{<:AbsWeilDivisor}
 
 Return the fiber components of the fiber over the point $P \in C$.
 """
@@ -1192,7 +1192,7 @@ end
     section(X::EllipticSurface, P::EllipticCurvePoint)
 
 Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \to C$,
-return its closure in $X$ as a `WeilDivisor`.
+return its closure in $X$ as a `AbsWeilDivisor`.
 """
 function section(X::EllipticSurface, P::EllipticCurvePoint)
   if iszero(P[1])&&iszero(P[3])
@@ -1247,7 +1247,7 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
 end
 
 @doc raw"""
-    zero_section(S::EllipticSurface) -> WeilDivisor
+    zero_section(S::EllipticSurface) -> AbsWeilDivisor
 
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
@@ -1483,7 +1483,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllipticCurvePoint
+    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> AbsWeilDivisor, EllipticCurvePoint
 
 Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
@@ -1603,14 +1603,14 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-    _elliptic_parameter(X::EllipticSurface, D::WeilDivisor, l, c)
+    _elliptic_parameter(X::EllipticSurface, D::AbsWeilDivisor, l, c)
 
 Compute the linear system of ``D = (n-1) O + P + V``.
 where V is vertical and `l` is the coefficient of the fiber class.
 Assumes `D` nef and `D^2=0`.
 Typically ``D`` is the output of `horizontal_decomposition`.
 """
-function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllipticCurvePoint, l::Int, c)
+function _elliptic_parameter(X::EllipticSurface, D1::AbsWeilDivisor, D::AbsWeilDivisor, P::EllipticCurvePoint, l::Int, c)
   S, piS = weierstrass_model(X);
   piX = weierstrass_contraction(X)
   c = function_field(X)(c)
@@ -1704,7 +1704,7 @@ function reduction_of_algebraic_lattice(X::EllipticSurface)
 end
 
 @doc raw"""
-    basis_representation(X::EllipticSurface, D::WeilDivisor)
+    basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
 
 Return the vector representing the numerical class of `D` 
 with respect to the basis of the ambient space of `algebraic_lattice(X)`.
@@ -2440,7 +2440,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     end
   end
 
-  res = WeilDivisor[result[D] for D in lat_X]
+  res = AbsWeilDivisor[result[D] for D in lat_X]
   for a in res
     set_attribute!(first(components(a)), :_self_intersection, -2)
   end
