@@ -1198,8 +1198,38 @@ function section(X::EllipticSurface, P::EllipticCurvePoint)
   if iszero(P[1])&&iszero(P[3])
     return zero_section(X)
   end
-  return _section(X, P)
+  return EllipticSurfaceSection(X, P)
 end
+
+@attributes mutable struct EllipticSurfaceSection{
+    CoveredSchemeType<:AbsCoveredScheme, 
+    CoefficientRingType<:AbstractAlgebra.Ring, 
+    CoefficientRingElemType<:AbstractAlgebra.RingElem
+   } <: AbsWeilDivisor{CoveredSchemeType, CoefficientRingType}
+  D::WeilDivisor{CoveredSchemeType, CoefficientRingType, CoefficientRingElemType}
+  P::EllipticCurvePoint
+
+  function EllipticSurfaceSection(X::EllipticSurface, P::EllipticCurvePoint; coefficient_ring::Ring=ZZ)
+    @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
+    weierstrass_contraction(X) # trigger required computations
+    PX = _section_on_weierstrass_ambient_space(X, P)
+    for f in X.ambient_blowups
+      PX = strict_transform(f , PX)
+    end
+    PY = pullback(X.inc_Y, PX)
+    set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
+    set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
+    W =  WeilDivisor(PY, check=false)
+    set_attribute!(W, :is_prime=>true)
+    I = first(components(W))
+    set_attribute!(I, :is_prime=>true)
+    return new{typeof(X), typeof(coefficient_ring), elem_type(coefficient_ring)}(W, P)
+  end
+end
+
+underlying_divisor(D::EllipticSurfaceSection) = D.D
+rational_point(D::EllipticSurfaceSection) = D.P
+
 
 function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCurvePoint)
   S0,incS0 = weierstrass_model(X)
@@ -1216,41 +1246,13 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
   return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
 end
 
-function _section(X::EllipticSurface, P::EllipticCurvePoint)
-  @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
-  weierstrass_contraction(X) # trigger required computations
-  PX = _section_on_weierstrass_ambient_space(X, P)
-
-  if !is_zero(P)
-    WC = weierstrass_chart_on_minimal_model(X)
-    U = original_chart(PX)
-    @assert OO(U) === ambient_coordinate_ring(WC)
-    PY = PrimeIdealSheafFromChart(X, WC, ideal(OO(WC), PX(U)))
-    set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
-    set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
-    return WeilDivisor(PY, check=false)
-  end
-
-  for f in X.ambient_blowups
-    PX = strict_transform(f , PX)
-  end
-  PY = pullback(X.inc_Y, PX)
-  set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
-  set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
-  W =  WeilDivisor(PY, check=false)
-  set_attribute!(W, :is_prime=>true)
-  I = first(components(W))
-  set_attribute!(I, :is_prime=>true)
-  return W
-end
-
 @doc raw"""
     zero_section(S::EllipticSurface) -> WeilDivisor
 
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr Any zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
+@attr Any zero_section(S::EllipticSurface) = EllipticSurfaceSection(S, generic_fiber(S)([0,1,0]))
 
 ################################################################################
 #
@@ -1383,8 +1385,7 @@ function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
 
     I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
-    # Test is disabled for the moment; should eventually be put behind @check!
-    #issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
+    @hassert :EllipticSurface 2 issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 
     @assert gcd(xn, xd)==1
     @assert gcd(yn, yd)==1
@@ -1685,7 +1686,7 @@ function set_good_reduction_map!(X::EllipticSurface, red_map::Map)
   set_attribute!(X, :good_reduction_map=>red_map)
 end
 
-@attr AbsCoveredSchemeMorphism function good_reduction(X::EllipticSurface)
+@attr Tuple{<:Map, <:AbsCoveredSchemeMorphism} function good_reduction(X::EllipticSurface)
   is_zero(characteristic(base_ring(X))) || error("reduction to positive characteristic is only possible from characteristic zero")
   has_attribute(X, :good_reduction_map) || error("no reduction map is available; please set it manually via `set_good_reduction_map!`")
   red_map = get_attribute(X, :good_reduction_map)::Map
@@ -1708,7 +1709,7 @@ end
 Return the vector representing the numerical class of `D` 
 with respect to the basis of the ambient space of `algebraic_lattice(X)`.
 """
-function basis_representation(X::EllipticSurface, D::WeilDivisor)
+function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
   basis_ambient,_, NS = algebraic_lattice(X)
   G = gram_matrix(ambient_space(NS))
   n = length(basis_ambient)
@@ -1743,6 +1744,28 @@ function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::AbsWeilDiviso
                      IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(
                          _reduce_as_prime_divisor(bc, I) => c for (I, c) in coefficient_dict(D)
                        )
+                    )
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::EllipticSurfaceSection)
+  P = rational_point(D)
+  @show is_infinite(P)
+  is_infinite(P) && return _reduce_as_prime_divisor(bc, underlying_divisor(D))
+  X = codomain(bc)
+  @assert parent(P) === generic_fiber(X)
+  W = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(W)
+  (x, y, t) = gens(R)
+  I = ideal(R, R.([evaluate(denominator(P[1]), t)*x-evaluate(numerator(P[1]), t),
+                           evaluate(denominator(P[2]), t)*y-evaluate(numerator(P[2]), t)])
+           )
+  bc_loc = first(maps_with_given_codomain(covering_morphism(bc), W))
+  bc_I = pullback(bc_loc)(I)
+  @assert is_one(dim(bc_I))
+  set_attribute!(bc_I, :is_prime=>true)
+  J = PrimeIdealSheafFromChart(domain(bc), domain(bc_loc), bc_I)
+  return WeilDivisor(domain(bc), coefficient_ring(D), 
+                     IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(J => one(coefficient_ring(D)))
                     )
 end
 
@@ -2433,7 +2456,7 @@ end
 =#
 function morphism_from_section(
     X::EllipticSurface, P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(X, P)
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(X, P)
   )
   U = weierstrass_chart_on_minimal_model(X)
   II = first(components(divisor))
@@ -2468,7 +2491,7 @@ end
 ########################################################################
 
 function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(X, P)
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(X, P)
   )
   E = generic_fiber(X)
   @assert parent(P) === E "point does not lay on the underlying elliptic curve"
@@ -2502,7 +2525,7 @@ end
 function _pushforward_section(
     phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}, 
     P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(domain(phi), P),
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(domain(phi), P),
     codomain_charts::Vector{<:AbsAffineScheme} = affine_charts(codomain(phi))
   )
   X = domain(phi)::EllipticSurface
