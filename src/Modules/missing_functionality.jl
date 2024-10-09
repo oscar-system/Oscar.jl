@@ -18,6 +18,14 @@ function coordinates(f::MPolyRingElem, I::MPolyIdeal)
   R = parent(f)
   R == base_ring(I) || error("polynomial does not belong to the base ring of the ideal")
   f in I || error("polynomial does not belong to the ideal")
+  if is_zero(ngens(R))
+    @assert coefficient_ring(R) isa Field "case of non-field coefficient rings not implemented"
+    c = constant_coefficient.(gens(I))
+    i = findfirst(!is_zero, c)
+    res = zero_matrix(R, 1, ngens(I))
+    res[1, i] = f*inv(c[i])
+    return res
+  end
   singular_assure(I)
   Rsing = I.gens.Sx
   fsing = Singular.Ideal(Rsing, [Rsing(f)])
