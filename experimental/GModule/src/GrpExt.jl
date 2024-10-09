@@ -27,6 +27,31 @@ function show(io::IO, G::GrpExt)
   print(io, "Extension via $(gmodule(G))")
 end
 
+"""
+The elements of the extension, given via a 2-co-chain.
+"""
+struct GrpExtElem{S, T} <: AbstractAlgebra.GroupElem
+  P::GrpExt{S, T} #parent
+  g::S            #the group bit
+  m::T            #the module bit
+  function GrpExtElem(P::GrpExt{A, B}, g::A, m::B) where A where B 
+    return new{A, B}(P, g, m)
+  end
+end
+
+function show(io::IO, g::GrpExtElem)
+  print(io, "($(g.g), $(g.m))")
+end
+
+Oscar.gmodule(P::GrpExt) = P.c.C
+Oscar.gmodule(P::GrpExtElem) = gmodule(parent(P))
+_module(P::GrpExt) = gmodule(P).M
+_group(P::GrpExt) = gmodule(P).G
+
+Oscar.parent(g::GrpExtElem) = g.P
+Oscar.elem_type(::Type{GrpExt{S, T}}) where {S, T} = GrpExtElem{S, T}
+
+
 function Oscar.extension(c::Oscar.GrpCoh.CoChain{2,<:Oscar.GAPGroupElem})
   return GrpExt(c)
 end
@@ -242,30 +267,6 @@ function isomorphism(::Type{PcGroup}, E::GrpExt)
   return Q, mfM*MtoQ, QtoG, GMtoQ
 end
 =#
-
-"""
-The elements of the extension, given via a 2-co-chain.
-"""
-struct GrpExtElem{S, T} <: AbstractAlgebra.GroupElem
-  P::GrpExt{S, T} #parent
-  g::S            #the group bit
-  m::T            #the module bit
-  function GrpExtElem(P::GrpExt{A, B}, g::A, m::B) where A where B 
-    return new{A, B}(P, g, m)
-  end
-end
-
-function show(io::IO, g::GrpExtElem)
-  print(io, "($(g.g), $(g.m))")
-end
-
-Oscar.gmodule(P::GrpExt) = P.c.C
-Oscar.gmodule(P::GrpExtElem) = gmodule(parent(P))
-_module(P::GrpExt) = gmodule(P).M
-_group(P::GrpExt) = gmodule(P).G
-
-Oscar.parent(g::GrpExtElem) = g.P
-Oscar.elem_type(::Type{GrpExt{S, T}}) where {S, T} = GrpExtElem{S, T}
 
 function one(G::GrpExt)
   return GrpExtElem(G, one(_group(G)), zero(_module(G)))
