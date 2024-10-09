@@ -4,6 +4,7 @@ using Oscar
 import Base: *, ==, one, rand, show, iterate
 export GrpExt, GrpExtElem
 export commutator_decomposition_map
+import Oscar.GAPWrap
 
 """
 A type representing the group extension by a 2-co-cycle.
@@ -48,11 +49,148 @@ _module(P::GrpExt) = gmodule(P).M
 _group(P::GrpExt) = gmodule(P).G
 
 Oscar.parent(g::GrpExtElem) = g.P
+Oscar.elem_type(::Type{GrpExt{S, T}}) where {S, T} = GrpExtElem{S, T}
+
+
+function Oscar.extension(c::Oscar.GrpCoh.CoChain{2,<:Oscar.GAPGroupElem})
+  return GrpExt(c)
+end
+
+#g in H 
+# -> g in G where the gens to be used in G are different
+function shiftgens(g::FPGroupElem, G, offset)
+  w = GapObj(g)
+  famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
+  if GAP.Globals.IsLetterAssocWordRep(w)
+    l = copy(GAP.Globals.LetterRepAssocWord(w))
+    for i in 1:length(l)
+      if l[i] > 0
+        l[i] = l[i] + offset
+      else
+        l[i] = l[i] - offset
+      end
+    end
+    ll = GAP.Globals.AssocWordByLetterRep(famG, l)
+  else
+    l = copy(GAPWrap.ExtRepOfObj(w))
+    for i in 1:2:length(l)
+      l[i] = l[i] + offset
+    end
+    ll = GAPWrap.ObjByExtRep(famG, l)
+  end
+  return FPGroupElem(G, ll)
+end
+
+function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
+  c = E.c
+  C = c.C
+  G = C.G
+  mGF = Oscar.isomorphism(FPGroup, G, on_gens=true) #G -> F
+  F = codomain(mGF)
+  M = C.M
+  ac = action(C)
+  mfM = inv(Oscar.isomorphism(FPGroup, M))
+  fM = domain(mfM)
+
+  N = free_group(ngens(G) + ngens(fM))
+
+  s = map(x->shiftgens(x, N, ngens(G)), relators(fM))
+  for R = relators(F)
+    t = map_word(R, gens(E)[1:ngens(G)])
+    push!(s, shiftgens(R, N, 0)*(shiftgens(preimage(mfM, t.m), N, ngens(G))))
+  end
+  for i=1:ngens(G)
+    for j=1:ngens(fM)
+      #g[i]*t = m[j]*g[i] = g[i] m[j]^g[i] = m[j] g[i] (cancellation in conj)
+      t = preimage(mfM, ac[i](gen(M, j)))
+      push!(s, gen(N, ngens(G)+j)*gen(N, i)*inv(shiftgens(t, N, ngens(G))) * inv(gen(N, i)))
+    end
+  end
+  Q, mQ = quo(N, s)
+  @assert ngens(Q) == ngens(N)
+  function EtoQ(x::GrpExtElem)
+    w = mGF(x.g)
+    ww = map_word(w, gens(E)[1:ngens(G)]) #this performs a collection
+                                          #and will transform x.g into
+                                          #canonical form
+    return mQ(shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(G)))
+
+  end
+  return MapFromFunc(E, Q, EtoQ, y->map_word(y, gens(E)))
+  #the projection will be   hom(Q, G, vcat(gens(G), ones(G, ???)
+  #the injection should be  hom(M, Q, gens(Q)[ngens(G)+1:end])
+  #both can/ should be handled by shiftgens (or sylable/ create)
+end
+
+function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  l = GAPWrap.ExtRepOfObj(GapObj(g))
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
+  c = E.c
+  C = c.C
+  G = C.G
+  @assert isa(G, PcGroup)
+  M = C.M
+  mMf = Oscar.isomorphism(PcGroup, M) # M -> PcGroup
+  fM = codomain(mMf)
+
+  cM = collector(fM)
+  cG = collector(G)
+  nG = ngens(G)
+  cE = collector(nG + ngens(fM))
+
+  set_relative_orders!(cE, vcat(cG.relorders, cM.relorders))
+
+  for i=1:ngens(fM)
+    set_power!(cE, i + nG, [g[1] + nG => g[2] for g = cM.powers[i]])
+  end
+  
+  for i=1:nG
+    x = E[i]^Int(cG.relorders[i])
+    t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+    set_power!(cE, i, t)
+  end
+
+  for i=1:nG
+    for j=i+1:nG+ngens(fM)
+      x = E[j]^E[i]
+      t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+      set_conjugate!(cE, j, i, t)
+    end
+  end
+
+  G = pc_group(cE)
+
+  function EtoG(x::GrpExtElem)
+    #need some inverse of syllables to make this efficient.
+    error("missing")
+    return shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(G))
+  end
+  return MapFromFunc(E, G, EtoG, y->map_word(y, gens(E)))
+end
 
 function one(G::GrpExt)
   return GrpExtElem(G, one(_group(G)), zero(_module(G)))
 end
 
+function Oscar.gen(G::GrpExt, i::Int)
+  i == 0 && return one(G)
+  i < 0 && return inv(gen(G, -i))
+  i > ngens(G) && error("index out of range")
+  gr = _group(G)
+  mo = _module(G)
+  if i <= ngens(gr)
+    return GrpExtElem(G, gen(gr, i), zero(mo))
+  end
+  return GrpExtElem(G, one(gr), gen(mo, i-ngens(gr)))
+end
+
+function Oscar.ngens(G::GrpExt)
+  return ngens(_group(G)) + ngens(_module(G))
+end
 function Oscar.gens(G::GrpExt)
   gr = _group(G)
   mo = _module(G)

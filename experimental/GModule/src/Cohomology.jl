@@ -1944,7 +1944,7 @@ the corresponding elt in the extension.
 If the gmodule is defined via a pc-group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
-function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
+function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
   F = codomain(isomorphism(FPGroup, G, on_gens=true))
