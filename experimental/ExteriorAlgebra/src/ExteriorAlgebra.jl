@@ -34,8 +34,8 @@ export exterior_algebra
     exterior_algebra(K::Ring, varnames::AbstractVector{<:VarName})
 
 Given a coefficient ring `K` and variable names, say `varnames = [:x1, :x2, ...]`,
-return a tuple `E, [x1, x2, ...] of the exterior algebra `E` over
-the polynomial ring `R[x1, x2, \dots]``, and its generators `x1, x2, \dots`.
+return a tuple `E, [x1, x2, ...]` consisting of the exterior algebra `E` over
+the polynomial ring `R[x1, x2, ...]` and its generators `x1, x2, ...`.
 
 If `K` is a field, this function will use a special implementation in Singular.
 
