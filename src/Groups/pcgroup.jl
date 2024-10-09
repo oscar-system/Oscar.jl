@@ -51,7 +51,7 @@ true
 collector(n::Int, ::Type{T} = ZZRingElem) where T <: IntegerUnion = GAP_Collector{T}(n)
 
 
-# Provide functions for entering data into the collector.
+# Provide functions for entering data into the collector and accessing data.
 
 # utility:
 # Convert a vector of pairs to a generator-exponent vector in GAP.
@@ -99,12 +99,32 @@ function set_relative_order!(c::Collector{T}, i::Int, relord::T) where T <: Inte
 end
 
 """
+    get_relative_order(c::Collector{T}, i::Int) where T <: IntegerUnion
+
+Get the relative order of the `i`-th generator of `c`.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> set_relative_order!(c, 1, 2)
+
+julia> get_relative_order(c, 1)
+2
+```
+"""
+function get_relative_order(c::Collector{T}, i::Int) where T <: IntegerUnion
+  @req (0 < i && i <= c.ngens) "the collector has only $(c.ngens) generators not $i"
+  return c.relorders[i]
+end
+
+"""
     set_relative_orders!(c::Collector{T}, relords::Vector{T})
 
 Set all relative orders of the generators of `c`,
 where the length of `relords` must be equal to the number of generators of
 `c`, and `relords[i]` denotes the relative order of the `i`-th generator.
-which must be either `0` (meaning infinite order) or a positive integer..
+which must be either `0` (meaning infinite order) or a positive integer.
 
 # Examples
 ```jldoctest
@@ -129,6 +149,26 @@ function set_relative_orders!(c::Collector{T}, relords::Vector{T}) where T <: In
       error("unknown GAP collector")
     end
   end
+end
+
+"""
+    get_relative_orders(c::Collector{T})
+
+Get the `Vector{T}` of all relative orders of the generators of `c`.
+
+# Examples
+```jldoctest
+julia> c = collector(2);
+
+julia> set_relative_orders!(c, ZZRingElem[2, 0])
+
+julia> get_relative_orders(c)
+2-element Vector{ZZRingElem}:
+ 2
+ 0
+"""
+function get_relative_orders(c::Collector{T}) where T <: IntegerUnion
+  return c.relorders
 end
 
 """
@@ -166,6 +206,32 @@ function set_power!(c::Collector{T}, i::Int, rhs::Vector{Pair{Int, T}}) where T 
 end
 
 """
+    get_power(c::Collector{T}, i::Int) where T <: IntegerUnion
+
+Get the `Vector{Pair{Int, T}}` that describes the `c.relorders[i]`-th power
+of the `i`-th generator of `c`.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> set_relative_order!(c, 1, 2)
+
+julia> set_relative_order!(c, 2, 3)
+
+julia> set_power!(c, 1, [2 => 1])
+
+julia> get_power(c, 1)
+1-element Vector{Pair{Int64, Int64}}:
+ 2 => 1
+```
+"""
+function get_power(c::Collector{T}, i::Int) where T <: IntegerUnion
+  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
+  return c.powers[i]
+end
+
+"""
     set_conjugate!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
 
 Set the value of the conjugate of the `j`-th generator of `c` by the
@@ -200,6 +266,31 @@ function set_conjugate!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T
 end
 
 """
+    get_conjugate(c::Collector{T}, j::Int, i::Int) where T <: IntegerUnion
+
+Get the `Vector{Pair{Int, T}}` that describes the conjugate of the `j`-th
+generator of `c` by the `i`-th generator of `c`, for `i < j`.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> set_relative_orders!(c, [2, 3])
+
+julia> set_conjugate!(c, 2, 1, [2 => 2])
+
+julia> get_conjugate(c, 2, 1)
+1-element Vector{Pair{Int64, Int64}}:
+ 2 => 2
+```
+"""
+function get_conjugate(c::Collector{T}, j::Int, i::Int) where T <: IntegerUnion
+  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
+  @req i < j "only for i < j, but i = $i, j = $j"
+  return c.conjugates[i,j]
+end
+
+"""
     set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
 
 Set the value of the commutator of the `i`-th and the `j`-th generator of `c`,
@@ -215,7 +306,7 @@ julia> set_commutator!(c, 2, 1, [2 => 1])
 ```
 """
 function set_commutator!(c::Collector{T}, j::Int, i::Int, rhs::Vector{Pair{Int, T}}) where T <: IntegerUnion
-  @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
+  @req 0 < j <= c.ngens "the collector has only $(c.ngens) generators not $j"
   @req i < j "only for i < j, but i = $i, j = $j"
   if length(rhs) > 0 && rhs[1].first == j
     # freely reduce
@@ -415,11 +506,15 @@ function collector(::Type{T}, G::PcGroup) where T <: IntegerUnion
     end
   end
 
+#TODO: deal also with the from-the-left-collector from the Polycyclic package
+
 # c.X = GapC
 # c.F = FPGroup(GAP.getbangproperty(GAP.getbangindex(GapC, 1)::GapObj, :freeGroup)::GapObj)
 #TODO: Set these known data.
 #      Currently this does not work because somehow `GroupByRws`
 #      requires a *mutable* GAP collector, and `GapC` is immutable.
+#      (Change `pc_group` to not call `GroupByRWS` in this case?
+#      Forbid `set_power!` etc. in this case?)
 
   return c
 end
