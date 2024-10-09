@@ -103,7 +103,7 @@ Return the `k`-th Chern class of `F`.
 
 # Examples
 ```jldoctest
-julia> T, (d,) = polynomial_ring(QQ, ["d"])
+julia> T, (d,) = polynomial_ring(QQ, [:d])
 (Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[d])
 
 julia> QT = fraction_field(T)
@@ -464,7 +464,7 @@ Return an abstract variety of dimension `n` with Chow ring `A`.
 
 # Examples
 ```jldoctest
-julia> R, (h,) = graded_polynomial_ring(QQ, ["h"])
+julia> R, (h,) = graded_polynomial_ring(QQ, [:h])
 (Graded multivariate polynomial ring in 1 variable over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[h])
 
 julia> A, _ = quo(R, ideal(R, [h^3]))
@@ -874,7 +874,7 @@ chi(p::Int, X::AbstractVariety) = chi(exterior_power(dual(X.T), p)) # generalize
 
 function todd_polynomial(n::Int)
   X = abstract_variety(n)
-  R, z = X.ring["z"]
+  R, z = X.ring[:z]
   sum(chi(p, X) * (z-1)^p for p in 0:n)
 end
 
@@ -988,7 +988,7 @@ function hilbert_polynomial(F::AbstractBundle)
   X, O1 = F.parent, F.parent.O1
   # extend the coefficient ring to QQ(t)
   # TODO should we use FunctionField here?
-  Qt, t = polynomial_ring(QQ, "t")
+  Qt, t = polynomial_ring(QQ, :t)
   @assert X.ring isa MPolyQuoRing
   R = parent(change_base_ring(Qt, base_ring(X.ring).R()))
   GR = grade(R, gradings(base_ring(X.ring)))[1]
@@ -1295,7 +1295,7 @@ function schur_functor(F::AbstractBundle, λ::Partition)
   λ = conjugate(λ)
   X = F.parent
   w = _wedge(sum(λ), chern_character(F))
-  S, ei = polynomial_ring(QQ, ["e$i" for i in 1:length(w)])
+  S, ei = polynomial_ring(QQ, "e#" => 1:length(w))
   e = i -> i < 0 ? S() : ei[i+1]
   M = [e(λ[i]-i+j) for i in 1:length(λ), j in 1:length(λ)]
   sch = det(matrix(S, M)) # Jacobi-Trudi
@@ -1373,13 +1373,37 @@ Return an additive basis of the Chow ring of `X` in codimension `k`.
 basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 
 @doc raw"""
-    betti(X::AbstractVariety)
+    betti_numbers(X::AbstractVariety)
 
-Return the Betti numbers of the Chow ring of `X`. Note that these are not
-necessarily equal to the usual Betti numbers, i.e., the dimensions of
-(co)homologies.
+Return the Betti numbers of the Chow ring of `X`. 
+
+!!! note
+    The Betti number of `X` in a given degree is the number of elements of `basis(X)` in that degree.
+
+# Examples
+```jldoctest
+julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
+AbstractVariety of dim 4
+
+julia> betti_numbers(P2xP2)
+5-element Vector{Int64}:
+ 1
+ 2
+ 3
+ 2
+ 1
+
+julia> basis(P2xP2)
+5-element Vector{Vector{MPolyQuoRingElem}}:
+ [1]
+ [l, k]
+ [l^2, k*l, k^2]
+ [k*l^2, k^2*l]
+ [k^2*l^2]
+
+```
 """
-betti(X::AbstractVariety) = length.(basis(X))
+betti_numbers(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
     integral(x::MPolyDecRingElem)
@@ -1593,7 +1617,7 @@ function _genus(x::MPolyDecRingOrQuoElem, taylor::Vector{})
   R = parent(x)
   iszero(x) && return R(1)
   n = get_attribute(R, :abstract_variety_dim)
-  R, (t,) = graded_polynomial_ring(QQ, ["t"])
+  R, (t,) = graded_polynomial_ring(QQ, [:t])
   set_attribute!(R, :abstract_variety_dim, n)
   lg = _logg(R(sum(taylor[i+1] * t^i for i in 0:n)))
   comps = lg[1:n]
@@ -1893,7 +1917,7 @@ Quotient
 ```
 """
 function abstract_point(; base::Ring=QQ)
-  R, (p,) = graded_polynomial_ring(base, ["p"])
+  R, (p,) = graded_polynomial_ring(base, [:p])
   I = ideal([p])
   pt = AbstractVariety(0, quo(R, I)[1])
   pt.point = pt(1)
@@ -1922,7 +1946,7 @@ Quotient
 ```
 
 ```jldoctest
-julia> T, (s,t) = polynomial_ring(QQ, ["s", "t"])
+julia> T, (s,t) = polynomial_ring(QQ, [:s, :t])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[s, t])
 
 julia> QT = fraction_field(T)
@@ -2211,7 +2235,7 @@ end
 function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks)
+  @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
   # FIXME ordering
@@ -2220,7 +2244,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
-  Rx, x = R.R["x"]
+  Rx, x = R.R[:x]
   g = sum(gi[i+1].f * x^(n-i) for i in 0:n)
   q = mod(x^n, g)
   rels = [R(coeff(q, i)) for i in 0:n-1]
@@ -2302,7 +2326,7 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   
   l = length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks) && dims[end] <= n
+  @assert all(>(0), ranks) && dims[end] <= n
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
     push!(ranks, n-dims[l])
@@ -2327,7 +2351,7 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   # compute the relations
   
   c = pushfirst!([1+sum(gens(R1)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R1)[1:dims[1]]))
-  Rx, x = R1["x"]
+  Rx, x = R1[:x]
   fi = pback(total_chern_class(F).f)[0:n]
   f = sum(fi[i+1].f * x^(n-i) for i in 0:n)
   gi = prod(c)[0:n]

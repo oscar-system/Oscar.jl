@@ -161,7 +161,7 @@ function weights_of_action(
   end
 
   to_eig = right_action(R, inv(V))
-  S, t = graded_polynomial_ring(K, ["t$i" for i in 1:ngens(R)], weights)
+  S, t = graded_polynomial_ring(K, "t#" => 1:ngens(R), weights)
   # The images of the generators of R are in general not homogeneous in S, so
   # we have to turn of the check, if we want to build this map...
   RtoS = hom(R, S, [to_eig(x)(t...) for x in gens(R)]; check=false)

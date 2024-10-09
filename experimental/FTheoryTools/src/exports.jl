@@ -81,6 +81,7 @@ export has_journal_link
 export has_journal_model_equation_number
 export has_journal_model_page
 export has_journal_model_section
+export has_journal_name
 export has_journal_pages
 export has_journal_report_numbers
 export has_journal_volume
@@ -101,6 +102,7 @@ export has_weighted_resolution_generating_sections
 export has_weighted_resolution_zero_sections
 export has_weighted_resolutions
 export has_zero_section
+export has_zero_section_class
 export hodge_h11
 export hodge_h12
 export hodge_h13
@@ -118,6 +120,7 @@ export journal_link
 export journal_model_equation_number
 export journal_model_page
 export journal_model_section
+export journal_name
 export journal_pages
 export journal_report_numbers
 export journal_volume
@@ -135,6 +138,8 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export passes_elementary_quantization_checks
+export passes_tadpole_cancellation_check
+export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
 export birational_literature_models
@@ -160,6 +165,7 @@ export set_journal_link
 export set_journal_model_equation_number
 export set_journal_model_page
 export set_journal_model_section
+export set_journal_name
 export set_journal_pages
 export set_journal_report_numbers
 export set_journal_volume
@@ -181,6 +187,7 @@ export set_weighted_resolution_generating_sections
 export set_weighted_resolution_zero_sections
 export set_weighted_resolutions
 export set_zero_section
+export set_zero_section_class
 export simplified_dual_graph
 export singular_loci
 export su5_tate_model_over_arbitrary_3d_base
@@ -208,3 +215,5 @@ export weighted_resolution_generating_sections
 export weighted_resolution_zero_sections
 export weighted_resolutions
 export weights
+export zero_section
+export zero_section_class

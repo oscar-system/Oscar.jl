@@ -136,3 +136,10 @@ Base.@deprecate_binding MPolyRingElemLoc MPolyLocRingElem
 
 # deprecated for 1.2
 Base.@deprecate_binding QQAbElem QQAbFieldElem
+
+Base.@deprecate_binding FreeAssAlgIdeal FreeAssociativeAlgebraIdeal
+
+Base.@deprecate_binding in_linear_system is_in_linear_system
+@deprecate scheme(W::AbsAlgebraicCycle) ambient_scheme(W)
+@deprecate scheme(W::CartierDivisor) ambient_scheme(W)
+@deprecate scheme(W::EffectiveCartierDivisor) ambient_scheme(W)

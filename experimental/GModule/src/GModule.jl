@@ -790,7 +790,7 @@ end
 
 gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) = C
 
-@attr function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
+@attr Any function _character(C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:AbstractAlgebra.FieldElem}})
   G = group(C)
   phi = epimorphism_from_free_group(G)
   ac = Oscar.GrpCoh.action(C)
@@ -813,15 +813,19 @@ gmodule(k::fpField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{fpFieldElem}}) 
 end
 
 """
-Return Z[G] and a function f that, when applied to a G-module M will return
-a map representing the action of Z[G] on M:
+    regular_gmodule(G::GAPGroup, R::Ring)
 
-f(C) yields the extension of g -> action(C, g)
-
-The third value returned is a Map between group elements and the index of the
-corresponding module generator.
+Return `(R[G], f, g)`, where
+- `R[G]` is the group ring of `G` over `R`, as a G-module object,
+- `f` is a function that, when applied to a `G`-module `M` over `R`,
+  will return a function `F` representing the action of `R[G]` on `M`
+  in the sense that for a vector `x` of length `order(G)` over `R`,
+  `F(x)` is the module homomorphism on `M` induced by the action of the
+  element of `R[G]` with coefficient vector `x`, and
+- `g` is a bijective map between the elements of `G` and the
+  indices of the corresponding module generators.
 """
-function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
+function regular_gmodule(G::Oscar.GAPGroup, R::Ring)
   M = free_module(R, Int(order(G)))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -830,7 +834,7 @@ function natural_gmodule(G::Oscar.GAPGroup, R::Ring)
              y->ge[Int(y)])
 end
 
-function natural_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
+function regular_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
   M = free_abelian_group(order(Int, G))
   ge = collect(G)
   ZG = gmodule(G, [hom(M, M, [M[findfirst(isequal(ge[i]*g), ge)] for i=1:length(ge)]) for g = gens(G)])
@@ -839,9 +843,35 @@ function natural_gmodule(::Type{FinGenAbGroup}, G::Oscar.GAPGroup, ::ZZRing)
              y->ge[Int(y)])
 end
 
+"""
+    natural_gmodule(G::PermGroup, R::Ring)
+
+Return the G-module of dimension `degree(G)` over `R`
+that is induced by the permutation action of `G` on the basis of the  module.
+"""
+function natural_gmodule(G::PermGroup, R::Ring)
+  M = free_module(R, degree(G))
+  return GModule(M, G, [hom(M, M, permutation_matrix(R, a)) for a in gens(G)])
+#TODO: We do not really want to write down these matrices.
+#      What is the appropriate way to construct a module homomorphism
+#      without storing a matrix?
+end
+
+"""
+    natural_gmodule(G::MatrixGroup)
+
+Return the G-module of dimension `degree(G)` over `base_ring(G)`
+that is induced by the action of `G` via right multiplication.
+"""
+function natural_gmodule(G::MatrixGroup)
+  R = base_ring(G)
+  M = free_module(R, degree(G))
+  return GModule(M, G, [hom(M, M, matrix(a)) for a in gens(G)])
+end
+
 Oscar.character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{QQFieldElem}}) = QQ
 
-@attr function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
+@attr Any function _character_field(C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsSimpleNumFieldElem}})
   val = _character(C)
   k, mkK = Hecke.subfield(base_ring(C), [x[2] for x = val])
   return k, mkK
@@ -916,11 +946,11 @@ function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
 end
 
 function Hecke.frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(y, degree(K)-i))
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(y, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -1147,7 +1177,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
       elseif isone(h)
         sigma[(g, h)] = (one(K))
       else
-        lf = findfirst(x->!iszero(x), X[g*h])
+        lf = findfirst(!is_zero, X[g*h])
         sigma[(g, h)] = (X[g*h][lf]//(map_entries(mA(h), X[g])*X[h])[lf])
 #        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
       end
@@ -1507,7 +1537,7 @@ A = abelian_group([3, 3])
 C = gmodule(G, [hom(A, A, [A[1], A[1]+A[2]])])
 is_consistent(C)
 
-zg, ac = Oscar.GModuleFromGap.natural_gmodule(G, ZZ)
+zg, ac = regular_gmodule(G, ZZ)
 zg = gmodule(FinGenAbGroup, zg)
 H, mH = Oscar.GModuleFromGap.ghom(zg, C)
 inj = hom(C.M, H.M, [preimage(mH, hom(zg.M, C.M, [ac(C)(g)(c) for g = gens(zg.M)])) for c = gens(C.M)])
@@ -1931,6 +1961,8 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
+export natural_gmodule
+export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 
@@ -1987,6 +2019,8 @@ export is_decomposable
 export is_G_hom
 export restriction_of_scalars
 export trivial_gmodule
+export natural_gmodule
+export regular_gmodule
 export gmodule_minimal_field
 export gmodule_over
 

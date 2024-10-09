@@ -121,8 +121,8 @@ function _adjoint_matrix(D::AbstractAlgebra.Generic.MatSpaceElem)
      R = base_ring(D)
      K = coefficient_ring(R)
      r = ncols(D)
-     P, _ = graded_polynomial_ring(K, :z => 1:r)
-     RP, _ = graded_polynomial_ring(K, vcat(symbols(R), symbols(P)))
+     P, _ = graded_polynomial_ring(K, :z => 1:r; cached=false)
+     RP, _ = graded_polynomial_ring(K, vcat(symbols(R), symbols(P)); cached=false)
      embRRP = hom(R, RP, gens(RP)[1:ngens(R)])    
      projRPP = hom(RP, P, vcat([zero(P) for i = 1:ngens(R)], gens(P)))
      M = map(embRRP, D)*matrix(gens(RP)[(ngens(R)+1):ngens(RP)])
@@ -142,7 +142,7 @@ Given a smooth projective variety `X`, return a module whose sheafification is t
 # Examples
 
 ```
-julia> R, x = graded_polynomial_ring(QQ, "x" => (1:6));
+julia> R, x = graded_polynomial_ring(QQ, :x => (1:6));
 
 julia> I = ideal(R, [x[1]*x[6] - x[2]*x[5] + x[3]*x[4]]);
 
@@ -160,7 +160,7 @@ julia> degrees_of_generators(Omega)
 ```
 
 ```
-julia> R, (x, y, z) = graded_polynomial_ring(QQ,["x", "y", "z"]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ,[:x, :y, :z]);
 
 julia> I = ideal(R, [y^2*z + x*y*z - x^3 - x*z^2 - z^3]);
 

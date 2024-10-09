@@ -7,7 +7,7 @@ process_ids = addprocs(1)
 @testset "Interprocess Serialization" begin
   channels = Oscar.params_channels(Union{Ring, MatSpace})
 
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   F, a = number_field(x^2 + x + 1)
   MR = matrix_space(F, 2, 2)
 

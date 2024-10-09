@@ -48,7 +48,7 @@ julia> is_partially_resolved(t2)
 true
 ```
 """
-is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)
+is_partially_resolved(m::AbstractFTheoryModel) = get_attribute(m, :partially_resolved)::Bool
 
 
 
@@ -69,6 +69,7 @@ has_journal_link(m::AbstractFTheoryModel) = has_attribute(m, :journal_link)
 has_journal_model_equation_number(m::AbstractFTheoryModel) = has_attribute(m, :journal_model_equation_number)
 has_journal_model_page(m::AbstractFTheoryModel) = has_attribute(m, :journal_model_page)
 has_journal_model_section(m::AbstractFTheoryModel) = has_attribute(m, :journal_model_section)
+has_journal_name(m::AbstractFTheoryModel) = has_attribute(m, :journal_name)
 has_journal_pages(m::AbstractFTheoryModel) = has_attribute(m, :journal_pages)
 has_journal_report_numbers(m::AbstractFTheoryModel) = has_attribute(m, :journal_report_numbers)
 has_journal_volume(m::AbstractFTheoryModel) = has_attribute(m, :journal_volume)
@@ -96,6 +97,7 @@ has_weighted_resolutions(m::AbstractFTheoryModel) = has_attribute(m, :weighted_r
 has_weighted_resolution_generating_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_generating_sections)
 has_weighted_resolution_zero_sections(m::AbstractFTheoryModel) = has_attribute(m, :weighted_resolution_zero_sections)
 has_zero_section(m::AbstractFTheoryModel) = has_attribute(m, :zero_section)
+has_zero_section_class(m::AbstractFTheoryModel) = has_attribute(m, :zero_section_class)
 has_gauge_algebra(m::AbstractFTheoryModel) = has_attribute(m, :gauge_algebra)
 has_global_gauge_quotients(m::AbstractFTheoryModel) = has_attribute(m, :global_gauge_quotients)
 
@@ -133,21 +135,16 @@ function verify_euler_characteristic_from_hodge_numbers(m::AbstractFTheoryModel;
   @req has_attribute(m, :h13) "Verification of Euler characteristic of F-theory model requires h13"
   @req has_attribute(m, :h22) "Verification of Euler characteristic of F-theory model requires h22"
 
-  # Check if the answer is known
-  if has_attribute(m, :verify_euler_characteristic_from_hodge_numbers)
-    return get_attribute(m, :verify_euler_characteristic_from_hodge_numbers)::Bool
-  end
+  return get_attribute!(m, :verify_euler_characteristic_from_hodge_numbers) do
+    # Computer Euler characteristic from integrating c4
+    ec = euler_characteristic(m, check = check)
 
-  # Computer Euler characteristic from integrating c4
-  ec = euler_characteristic(m, check = check)
+    # Compute Euler characteristic from adding Hodge numbers
+    ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
 
-  # Compute Euler characteristic from adding Hodge numbers
-  ec2 = 4 + 2 * hodge_h11(m) - 4 * hodge_h12(m) + 2 * hodge_h13(m) + hodge_h22(m)
-
-  # Compute result of verification
-  h = (ec == ec2)
-  set_attribute!(m, :verify_euler_characteristic_from_hodge_numbers, h)
-  return h
+    # Compute result of verification
+    return ec == ec2
+  end::Bool
 end
 
 
@@ -178,5 +175,5 @@ function is_calabi_yau(m::AbstractFTheoryModel; check::Bool = true)
   @req ambient_space(m) isa NormalToricVariety "Verification of Euler characteristic of F-theory model currently supported only for toric ambient space"
   return get_attribute!(m, :is_calabi_yau) do
     return is_trivial(chern_class(m, 1, check = check))
-  end
+  end::Bool
 end

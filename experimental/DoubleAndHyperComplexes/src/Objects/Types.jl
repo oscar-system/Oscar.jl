@@ -585,7 +585,7 @@ end
     ranges = [(k, u) for (k, u) in v if u isa UnitRange]
     d = length(ranges)
     all_ind = [k for (k, u) in v if u isa UnitRange]
-    @assert all(k->k in all_ind, 1:d) "matching of ranges is not unique"
+    @assert all(in(all_ind), 1:d) "matching of ranges is not unique"
 
     mapping_matrix = [0 for i in 1:dim(c), j in 1:d]
     new_ranges = Dict(v)

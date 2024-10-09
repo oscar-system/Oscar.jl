@@ -1,22 +1,36 @@
 @testset "constant sheaf of integers on AffineScheme" begin
-  R, x = QQ["x", "y", "z"]
+  R, x = QQ[:x, :y, :z]
   X = spec(R)
+  Xcov = covered_scheme(X)
 
-  is_open_func(U::AbsAffineScheme, V::AbsAffineScheme) = is_open_embedding(U, V)
+  mutable struct ZZConstantSheaf{SpaceType, OpenType, OutputType,
+                                 RestrictionType
+                                } <: AbsPreSheaf{
+                                                 SpaceType, OpenType,
+                                                 OutputType, RestrictionType
+                                                }
+    und::PreSheafOnScheme
+    function ZZConstantSheaf(und::PreSheafOnScheme{A, B, C, D}) where {A, B, C, D}
+      return new{A, B, C, D}(und)
+    end
+  end
 
-  function production_func(F::AbsPreSheaf, U::AbsAffineScheme)
+  Oscar.underlying_presheaf(F::ZZConstantSheaf) = F.und
+
+  function Oscar.produce_object(F::ZZConstantSheaf, U::AbsAffineScheme)
     return ZZ
   end
 
-  function restriction_func(F::AbsPreSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
+  function Oscar.produce_restriction_map(F::ZZConstantSheaf, V::AbsAffineScheme, U::AbsAffineScheme)
     return identity_map(ZZ)
   end
 
-  const_sheaf_ZZ= PreSheafOnScheme(X, production_func, restriction_func,
-                              OpenType=AbsAffineScheme, OutputType=typeof(ZZ),
-                              RestrictionType=typeof(identity_map(ZZ)),
-                              is_open_func=is_open_func
-                             )
+  und = PreSheafOnScheme(X, 
+                         OpenType=AbsAffineScheme, OutputType=typeof(ZZ),
+                         RestrictionType=typeof(identity_map(ZZ)),
+                         is_open_func=is_open_embedding
+                        )
+  const_sheaf_ZZ = ZZConstantSheaf(und)
 
   U = hypersurface_complement(X, [x[1]])
   G = const_sheaf_ZZ(U)

@@ -15,7 +15,7 @@ function ==(f::AbsProjectiveSchemeMorphism{<:AbsProjectiveScheme{<:Union{<:MPoly
   return map_on_affine_cones(f) == map_on_affine_cones(g)
 end
 
-@attr function covered_scheme_morphism(
+@attr Any function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism{<:Any, <:Any, <:Any, Nothing} # No map on base rings
   )
   PX = domain(f)
@@ -114,7 +114,7 @@ with default covering
     3: [(x//z), (y//z)]
 ```
 """
-@attr function covered_scheme_morphism(
+@attr Any function covered_scheme_morphism(
     f::AbsProjectiveSchemeMorphism
   ) # with map on the base rings
   PX = domain(f)
@@ -231,7 +231,7 @@ function pushforward(inc::ProjectiveClosedEmbedding, M::SubquoModule)
   G, inc_G = sub(FT, vcat(gT, relT))
   Q, inc_Q = sub(G, gens(G)[length(gT)+1:end])
   MT = cokernel(inc_Q)
-  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]); check=false)
+  id = hom(MT, M, vcat(gens(M), elem_type(M)[zero(M) for i in 1:length(relT)]), S; check=false)
   return MT, id
 end
 

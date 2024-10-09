@@ -19,7 +19,7 @@ function command_string(v::NormalToricVarietyType, c::Vector{ZZRingElem})
     # Add information about the Stanley-Reisner ideal to string_list
     current_coordinate_names = [string(x) for x in Hecke.gens(cox_ring(v))]
     new_coordinate_names = ["x$i" for i = 1:length(current_coordinate_names)]
-    new_ring, _ = polynomial_ring(coefficient_ring(v), new_coordinate_names, cached=false)
+    new_ring, _ = polynomial_ring(coefficient_ring(v), new_coordinate_names; cached=false)
     generators = [string(g) for g in gens(stanley_reisner_ideal(new_ring, v))]
     push!(string_list, "srideal [" * joincomma(generators) * "]")
     

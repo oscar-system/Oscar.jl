@@ -256,12 +256,12 @@ end
 @doc raw"""
     on_indeterminates(f::GapObj, p::PermGroupElem)
     on_indeterminates(f::MPolyRingElem, p::PermGroupElem)
-    on_indeterminates(f::FreeAssAlgElem, p::PermGroupElem)
+    on_indeterminates(f::FreeAssociativeAlgebraElem, p::PermGroupElem)
     on_indeterminates(f::MPolyIdeal, p::PermGroupElem)
 
 Return the image of `f` under `p` where `p` acts via permuting the indeterminates.
 
-For `MPolyRingElem`, `FreeAssAlgElem`, and `MPolyIdeal` objects,
+For `MPolyRingElem`, `FreeAssociativeAlgebraElem`, and `MPolyIdeal` objects,
 one can also call `^` instead of `on_indeterminates`.
 
 # Examples
@@ -269,7 +269,7 @@ one can also call `^` instead of `on_indeterminates`.
 julia> g = symmetric_group(3);  p = g[1]
 (1,2,3)
 
-julia> R, x = polynomial_ring(QQ, ["x1", "x2", "x3"]);
+julia> R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
 
 julia> f = x[1]*x[2] + x[2]*x[3]
 x1*x2 + x2*x3
@@ -303,7 +303,7 @@ function on_indeterminates(f::MPolyRingElem, s::PermGroupElem)
   return finish(g)
 end
 
-function on_indeterminates(f::FreeAssAlgElem{T}, s::PermGroupElem) where T
+function on_indeterminates(f::FreeAssociativeAlgebraElem{T}, s::PermGroupElem) where T
   G = parent(s)
   S = parent(f)
   @assert ngens(S) == degree(G)
@@ -374,7 +374,7 @@ end
 
 ^(f::MPolyRingElem, p::PermGroupElem) = on_indeterminates(f, p)
 
-^(f::FreeAssAlgElem, p::PermGroupElem) = on_indeterminates(f, p)
+^(f::FreeAssociativeAlgebraElem, p::PermGroupElem) = on_indeterminates(f, p)
 
 ^(f::MPolyRingElem{T}, p::MatrixGroupElem{T, S}) where T where S = on_indeterminates(f, p)
 

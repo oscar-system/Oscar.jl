@@ -157,18 +157,18 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   # Construct the new model
   if m isa GlobalTateModel
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
-      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m); coordinate_name)
+      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
-      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m); coordinate_name)
+      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
-      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m); coordinate_name)
+      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
-      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m); coordinate_name)
+      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
@@ -303,6 +303,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
   # Conduct elementary entry checks
   @req base_space(m) isa FamilyOfSpaces "The model must be defined over a family of spaces"
   @req haskey(concrete_data, "base") "The base space must be specified"
+  @req (concrete_data["base"] isa NormalToricVariety) "Currently, models over families of spaces can only be put over toric bases"
   @req ((m isa WeierstrassModel) || (m isa GlobalTateModel)) "Currently, only Tate or Weierstrass models can be put on a concrete base"
   
   # Work out the Weierstrass/Tate sections
@@ -332,8 +333,8 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
-      if any(x -> x != 0, all_appearing_exponents[k,:])
-        gen_name = string(gens(parent(polys[1]))[k])
+      if any(!is_zero, all_appearing_exponents[k,:])
+        gen_name = string(symbols(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
         @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
         new_model_secs[gen_name] = concrete_data[gen_name]
@@ -362,7 +363,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "g")
         new_sec = mapper(parametrization["g"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["g"] = new_sec
@@ -374,7 +375,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a1")
         new_sec = mapper(parametrization["a1"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"]))) "Degree mismatch"
         end
         new_model_secs["a1"] = new_sec
@@ -384,7 +385,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a2")
         new_sec = mapper(parametrization["a2"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^2)) "Degree mismatch"
         end
         new_model_secs["a2"] = new_sec
@@ -394,7 +395,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a3")
         new_sec = mapper(parametrization["a3"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^3)) "Degree mismatch"
         end
         new_model_secs["a3"] = new_sec
@@ -404,7 +405,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a4")
         new_sec = mapper(parametrization["a4"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^4)) "Degree mismatch"
         end
         new_model_secs["a4"] = new_sec
@@ -414,7 +415,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
 
       if haskey(parametrization, "a6")
         new_sec = mapper(parametrization["a6"])
-        if is_zero(new_sec) == false
+        if !is_zero(new_sec)
           @req degree(new_sec) == degree(generic_section(anticanonical_bundle(concrete_data["base"])^6)) "Degree mismatch"
         end
         new_model_secs["a6"] = new_sec
@@ -640,6 +641,15 @@ function set_zero_section(m::AbstractFTheoryModel, desired_value::Vector{String}
   set_attribute!(m, :zero_section => [f(eval_poly(l, R)) for l in desired_value])
 end
 
+function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
+  divs = torusinvariant_prime_divisors(ambient_space(m))
+  cohomology_ring(ambient_space(m); check=false)
+  cox_gens = string.(gens(cox_ring(ambient_space(m))))
+  @req desired_value in cox_gens "Specified zero section is invalid"
+  index = findfirst(==(desired_value), cox_gens)
+  set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
+end
+
 function set_gauge_algebra(m::AbstractFTheoryModel, algebras::Vector{String})
   C = algebraic_closure(QQ)
   function _construct(g::String)
@@ -830,7 +840,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
       # Compute strict transform of ideal sheaves appearing in blowup center
       exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
-      positions = [findfirst(x -> x == l, exceptionals) for l in exceptional_center]
+      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
       exceptional_divisors = [exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for l in positions]
       exceptional_ideal_sheafs = [ideal_sheaf(d) for d in exceptional_divisors]
       for l in 1:length(positions)

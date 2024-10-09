@@ -22,7 +22,7 @@
   Oscar.realize_on_patch(Phi, X[1][3])
   Oscar.realize(Phi)
 end
-#= FIXME: disabled due to random failures, see https://github.com/oscar-system/Oscar.jl/issues/3947
+
 @testset "The standard Cremona transformation" begin
   IP2_proj = projective_space(QQ, [:x, :y, :z])
   IP2 = covered_scheme(IP2_proj)
@@ -59,11 +59,11 @@ end
   E1, E2, E3 = weil_divisor.(components(E))
   set_attribute!(Phi, :is_isomorphism, true)
   pbE1 = pushforward(Phi)(E1)
-  @test any(x->x==pbE1, H)
+  @test any(==(pbE1), H)
   pbE2 = pushforward(Phi)(E2)
-  @test any(x->x==pbE2, H)
+  @test any(==(pbE2), H)
   pbE3 = pushforward(Phi)(E3)
-  @test any(x->x==pbE3, H)
+  @test any(==(pbE3), H)
 
   # Test the different versions of realization and their compatibility
   realizations = []
@@ -108,4 +108,3 @@ end
   # Call with check=true implitictly
   phi_cov = CoveringMorphism(dom_cov, cod_cov, mor_dict)
 end
-=#
