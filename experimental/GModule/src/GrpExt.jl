@@ -85,7 +85,7 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
   c = E.c
   C = c.C
   G = C.G
-  mGF = Oscar.isomorphism(FPGroup, G, on_gens=true)
+  mGF = Oscar.isomorphism(FPGroup, G, on_gens=true) #G -> F
   F = codomain(mGF)
   M = C.M
   ac = action(C)
@@ -97,13 +97,13 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
   s = map(x->shiftgens(x, N, ngens(G)), relators(fM))
   for R = relators(F)
     t = map_word(R, gens(E)[1:ngens(G)])
-    push!(s, shiftgens(R, N, 0)*(shiftgens(preimage(mfM, t.m), N, ngens(fM))))
+    push!(s, shiftgens(R, N, 0)*(shiftgens(preimage(mfM, t.m), N, ngens(G))))
   end
   for i=1:ngens(G)
     for j=1:ngens(fM)
       #g[i]*t = m[j]*g[i] = g[i] m[j]^g[i] = m[j] g[i] (cancellation in conj)
       t = preimage(mfM, ac[i](gen(M, j)))
-      push!(s, gen(N, ngens(G)+j)*gen(N, i)*inv(shiftgens(t, N, ngens(fM))) * inv(gen(N, i)))
+      push!(s, gen(N, ngens(G)+j)*gen(N, i)*inv(shiftgens(t, N, ngens(G))) * inv(gen(N, i)))
     end
   end
   Q, mQ = quo(N, s)
@@ -113,7 +113,7 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
     ww = map_word(w, gens(E)[1:ngens(G)]) #this performs a collection
                                           #and will transform x.g into
                                           #canonical form
-    return mQ(shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(fM)))
+    return mQ(shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(G)))
 
   end
   return MapFromFunc(E, Q, EtoQ, y->map_word(y, gens(E)))
@@ -122,151 +122,55 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
   #both can/ should be handled by shiftgens (or sylable/ create)
 end
 
-#=
-function isomorphism(::Type{PcGroup}, E::GrpExt)
+function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  l = GAPWrap.ExtRepOfObj(GapObj(g))
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   c = E.c
   C = c.C
-  G = Group(C)
+  G = C.G
   @assert isa(G, PcGroup)
-  M = Module(C)
-  ac = action(C)
-  iac = inv_action(C)
-  fM, mfM = pc_group_with_isomorphism(M)
+  M = C.M
+  mMf = Oscar.isomorphism(PcGroup, M) # M -> PcGroup
+  fM = codomain(mMf)
 
-  N = free_group(ngens(G) + ngens(fM))
-  Gp = GAP.Globals.Pcgs(GapObj(G))
-  @assert length(Gp) == ngens(G)
-#  @assert all(x->Gp[x] == GapObj(gen(G, x)), 1:ngens(G))
-  Go = GAP.Globals.RelativeOrders(Gp)
+  cM = collector(fM)
+  cG = collector(G)
+  nG = ngens(G)
+  cE = collector(nG + ngens(fM))
 
-  Mp = GAP.Globals.Pcgs(GapObj(fM))
-  @assert length(Mp) == ngens(fM) == ngens(M)
-#  @assert all(x->Mp[x] == GapObj(gen(fM, x)), 1:ngens(M))
-  #problem/ TODO: Z/100Z has a useful GAP-pc-group has 4 gens (of
-  #order 2, 2, 5, 5
-  #so need to switch GAP to the other Pc-Groups and/or drop this 
-  #assert
-  Mo = GAP.Globals.RelativeOrders(Mp)
-
-  CN = GAP.Globals.SingleCollector(GapObj(N), GAP.Globals.Concatenation(Go, Mo))
-  FN = GAP.Globals.FamilyObj(GapObj(N[1]))
+  set_relative_orders!(cE, vcat(cG.relorders, cM.relorders))
 
   for i=1:ngens(fM)
-    lp = deepcopy(GAPWrap.ExtRepOfObj(Mp[i]^Mo[i]))
-    for k=1:2:length(lp)
-      lp[k] += ngens(G)
-    end
-    m = GAP.Globals.ObjByExtRep(FN, lp)
-    GAP.Globals.SetPower(CN, i+ngens(G), m)
-    for j=i+1:ngens(fM)
-      p = Mp[j]^Mp[i]
-      @assert p == Mp[j]
-      lp = deepcopy(GAPWrap.ExtRepOfObj(p))
-      for k=1:2:length(lp)
-        lp[k] += ngens(G)
-      end
-      GAP.Globals.SetConjugate(CN, j+ngens(G), i+ngens(G), GAP.Globals.ObjByExtRep(FN, lp))
+    set_power!(cE, i + nG, [g[1] + nG => g[2] for g = cM.powers[i]])
+  end
+  
+  for i=1:nG
+    x = E[i]^Int(cG.relorders[i])
+    t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+    set_power!(cE, i, t)
+  end
+
+  for i=1:nG
+    for j=i+1:nG+ngens(fM)
+      x = E[j]^E[i]
+      t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+      set_conjugate!(cE, j, i, t)
     end
   end
 
-  fMtoN = function(x)
-    lp = deepcopy(GAPWrap.ExtRepOfObj(GapObj(x)))
-    for k=1:2:length(lp)
-      @assert lp[k] > 0
-      lp[k] += ngens(G)
-    end
-    return GAP.Globals.ObjByExtRep(FN, lp)
+  G = pc_group(cE)
+
+  function EtoG(x::GrpExtElem)
+    #need some inverse of syllables to make this efficient.
+    error("missing")
+    return shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(G))
   end
-
-  word = function(y)
-    z = GAPWrap.UnderlyingElement(y)
-    return map(Int, GAP.Globals.LetterRepAssocWord(z))
-  end
-
-  #for W = (w1, ... w_n) compute ((w1, 0), ..., (wn, 0))
-  #and return the tail only.
-  word_to_elem = function(W)
-    t = zero(M)
-    g = one(G)
-    r = one(N)
-    for w = W
-      if w > 0
-        t = ac[w](t) + c(g, gen(G, w))
-        g = g*gen(G, w)
-        r = r*gen(N, w)
-      else
-        t = iac[-w](t) + c(g, inv(gen(G, -w))) - c(gen(G, -w), inv(gen(G, -w)))
-        g = g*inv(gen(G, -w))
-        r = r*inv(gen(N, -w))
-      end
-    end
-    return t
-    return fMtoN(mfM(t))
-  end
-
-  #to lift the pc-relations:
-  # F^p = w (order relation)
-  #  compute (F, 0)^p = (?, t) = (?, 0)(1, t)
-  #  compute (w, 0)   = (?, s) = (?, 0)(1, s)
-  #  so (?, 0) = (w, 0)(1,s)^-1= (w, 0)(1,-s) if chain is normalized
-  #  thus (F, 0)^p = (?, 0)(1, t) = (w, 0)(1,-s)(1, t)
-  #  the ? should be identical, namely the collected version of w
-  #  then (F, 0)^p = (w, t-s) might be the answer
-  # F^G = w (conjugate relation): same
-  #  (F, 0)^(G, 0) = (?, t) = (?, 0)(1, t)
-  #  (w, 0)        = (?, s) = (?, 0)(1, s)
-  #  thus (F, 0)^(G, 0) = (w, t-s)
-  for i=1:ngens(G)
-    p = Gp[i]^Go[i]
-    pp = GAP.Globals.ObjByExtRep(FN, GAPWrap.ExtRepOfObj(p))
-    m = fMtoN(mfM(word_to_elem([i for k=1:Go[i]])-word_to_elem(word(p))))
-    GAP.Globals.SetPower(CN, i, pp*m)
-    for j=i+1:ngens(G)
-      p = Gp[j]^Gp[i]
-      m = fMtoN(mfM(word_to_elem([-i, j, i])-word_to_elem(word(p))))
-      pp = GAP.Globals.ObjByExtRep(FN, GAPWrap.ExtRepOfObj(p))
-      GAP.Globals.SetConjugate(CN, j, i, pp*m)
-    end
-    for j=1:ngens(fM)
-      m = fMtoN(mfM(action(C, gen(G, i), preimage(mfM, gen(fM, j)))))
-      GAP.Globals.SetConjugate(CN, j+ngens(G), i, m)
-    end
-  end
-
-#  l = GAP.Obj([])
-#  GAP.Globals.FinitePolycyclicCollector_IsConfluent(CN, l)
-#  @show l
-
-#  z = GAP.Globals.GroupByRwsNC(CN)
-#  s = GAP.Globals.GapInputPcGroup(z, GAP.Obj("Z"))
-#  @show GAP.gap_to_julia(s)
-  Q = PcGroup(GAP.Globals.GroupByRws(CN))
-  fQ = GAP.Globals.FamilyObj(GapObj(one(Q)))
-  mQ = hom(N, Q, gens(N), gens(Q); check = false)
-
-  @assert ngens(Q) == ngens(N)
-  MtoQ = hom(fM, Q, gens(fM), gens(Q)[ngens(G)+1:end]; check = false)
-  QtoG = hom(Q, G, gens(Q), vcat(gens(G), [one(G) for i=1:ngens(fM)]); check = false)
-  @assert domain(mfM) == M
-  @assert codomain(mfM) == fM
-#  @assert is_surjective(QtoG)
-#  @assert is_injective(MtoQ)
-
-  mfG = epimorphism_from_free_group(G)
-  mffM = epimorphism_from_free_group(fM)
-
-  function GMtoQ(wg, m)
-    wm = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(GapObj(preimage(mffM, mfM(m)))))
-    for i=1:2:length(wm)
-      push!(wg, wm[i]+ngens(G))
-      push!(wg, wm[i+1])
-    end
-    return mQ(FPGroupElem(N, GAP.Globals.ObjByExtRep(FN, GAP.Obj(wg))))
-  end
-
-  return Q, mfM*MtoQ, QtoG, GMtoQ
+  return MapFromFunc(E, G, EtoG, y->map_word(y, gens(E)))
 end
-=#
 
 function one(G::GrpExt)
   return GrpExtElem(G, one(_group(G)), zero(_module(G)))
