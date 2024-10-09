@@ -84,7 +84,7 @@ end
 end
 
 @testset "create collectors from polycyclic groups" begin
-  for i in rand(1:number_small_groups(96), 10)
+  for i in rand(1:number_of_small_groups(96), 10)
     g = small_group(96, i)
     c = collector(Int64, g)
     gc = pc_group(c)
