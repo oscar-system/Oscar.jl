@@ -8,7 +8,6 @@ function save_type_params(s::SerializerState, w::WeierstrassModel)
   save_data_dict(s) do
     save_object(s, encode_type(WeierstrassModel), :name)
     base, ambient, wp_ring = base_space(w), ambient_space(w), parent(weierstrass_polynomial(w))
-
     save_data_dict(s, :params) do
       for (obj, key) in [(base, :base_space), (ambient, :ambient_space), (wp_ring, :weierstrass_polynomial_ring)]
         if serialize_with_id(obj)
@@ -68,16 +67,17 @@ end
 #########################################
 
 function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::Tuple{NormalToricVariety, NormalToricVariety, MPolyDecRing})
-  base_space, ambient_space, wp_ring = params
+  base_space, amb_space, wp_ring = params
   pw = load_object(s, MPolyDecRingElem, wp_ring, :weierstrass_polynomial)
   explicit_model_sections = haskey(s, :explicit_model_sections) ? load_typed_object(s, :explicit_model_sections) : Dict{String, MPolyRingElem}()
   defining_section_parametrization = haskey(s, :defining_section_parametrization) ? load_typed_object(s, :defining_section_parametrization) : Dict{String, MPolyRingElem}()
   defining_classes = haskey(s, :defining_classes) ? load_typed_object(s, :defining_classes) : Dict{String, ToricDivisorClass}()
-  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base_space, ambient_space)
+  model = WeierstrassModel(explicit_model_sections, defining_section_parametrization, pw, base_space, amb_space)
   model.defining_classes = defining_classes
   attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
   for (key, value) in attrs_data
     set_attribute!(model, Symbol(key), value)
   end
+  @req cox_ring(ambient_space(model)) == parent(weierstrass_polynomial(model)) "Weierstrass polynomial not in Cox ring of toric ambient space"
   return model
 end
