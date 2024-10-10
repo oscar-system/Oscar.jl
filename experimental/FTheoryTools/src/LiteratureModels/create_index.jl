@@ -95,6 +95,6 @@ function _create_literature_model_index()
     JSON.print(file, index)
   end
   open(joinpath(@__DIR__,"model_indices.json"), "w") do file
-    JSON.print(file, sort(model_indices), 2)
+    JSON.print(file, model_indices, 2)
   end
 end

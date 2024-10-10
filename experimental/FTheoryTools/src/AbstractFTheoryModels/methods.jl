@@ -118,7 +118,7 @@ julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
 
 julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal (x_5_1, x_4_1, x_1_1)
    2: Ideal (1)
