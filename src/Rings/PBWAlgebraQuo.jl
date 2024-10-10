@@ -32,7 +32,7 @@ export PBWAlgQuo, PBWAlgQuoElem
 
 
 
-###### @attributes    ### DID NOT WORK -- alternative solution found (via have_special_impl, see ExteriorAlgebra.jl)
+###### @attributes    ### DID NOT WORK -- alternative solution found (via has_special_impl, see ExteriorAlgebra.jl)
 mutable struct PBWAlgQuo{T, S} <: NCRing
     I::PBWAlgIdeal{0, T, S}
     sring::Singular.PluralRing{S}  # For ExtAlg this is the Singular impl; o/w same as I.basering.sring
@@ -46,7 +46,7 @@ function PBWAlgQuo(I::PBWAlgIdeal{0, T, S})  where {T, S}
 end
 
 
-function have_special_impl(Q::PBWAlgQuo)
+function has_special_impl(Q::PBWAlgQuo)
     return (Q.sring != Q.I.basering.sring)
 end
 
@@ -96,7 +96,7 @@ end
 function expressify(Q::PBWAlgQuo; context = nothing)  # what about new sring data-field ???
     ## special printing if Q is an exterior algebra
 ######    if get_attribute(Q, :is_exterior_algebra) === :true
-    if have_special_impl(Q)
+    if has_special_impl(Q)
         a = Q.I.basering
         x = symbols(a)
         n = length(x)
@@ -137,7 +137,7 @@ function one(Q::PBWAlgQuo)
 end
 
 function simplify(a::PBWAlgQuoElem)
-    if have_special_impl(parent(a))
+    if has_special_impl(parent(a))
         return a   # short-cut for impls with reducing arithmetic (e.g. exterior algebras)
     end
     I = parent(a).I
@@ -152,7 +152,7 @@ function Base.hash(a::PBWAlgQuoElem, h::UInt)
 end
 
 function is_zero(a::PBWAlgQuoElem)
-    if !have_special_impl(parent(a))  # must reduce if not exterior algebras
+    if !has_special_impl(parent(a))  # must reduce if not exterior algebras
         simplify(a)  # see GitHub discussion #2014 -- is_zero can modify repr of its arg!
     end
     return is_zero(a.data.sdata)  # EQUIV  is_zero(a.data)
@@ -236,15 +236,13 @@ Map defined by a julia-function with inverse
     For reasons of efficiency, it is recommended to use the built-in constructor `exterior_algebra` when working with 
     exterior algebras in OSCAR.
 """
-function quo(Q::PBWAlgRing, I::PBWAlgIdeal; SpecialImpl::Union{Nothing, Singular.PluralRing} = nothing)
-  @assert (Q == base_ring(I));
-  ### No idea how to check whether SpecialImpl is sane!
-#??? Check if I is ideal of squares of gens then produce ExtAlg???
-##??if isnothing(SpecialImpl)  SpecialImpl = I.basering.sring;  end;
-  if isnothing(SpecialImpl)
+function quo(Q::PBWAlgRing, I::PBWAlgIdeal; special_impl::Union{Nothing, Singular.PluralRing} = nothing)
+  @assert Q == base_ring(I)
+  # we assume that special_impl is correct, if given
+  if isnothing(special_impl)
     q = PBWAlgQuo(I)
   else
-    q = PBWAlgQuo(I, SpecialImpl)
+    q = PBWAlgQuo(I, special_impl)
   end
   function im(a::PBWAlgElem)
     @assert parent(a) == Q
