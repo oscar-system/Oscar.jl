@@ -1,3 +1,11 @@
+include("UniformHypergraph.jl")
+include("PartialShift.jl")
+
+export PartialExtShift
+export UniformHypergraph
+
+export uniform_hypergraph
+
 function independent_columns(A::MatElem)
   col_indices = Int[]
   row_index = 1
@@ -12,117 +20,6 @@ function independent_columns(A::MatElem)
   return col_indices
 end
 
-# applies function on faces of equal dimension
-function apply_on_faces(f::Function, K::SimplicialComplex)
-  dim_K = dim(K)
-  K_facets = facets(K)
-  facet_dict = Dict(
-    (k => Set(filter(f -> length(f) == k + 1, K_facets)) for k in 1:dim_K )
-  )
-
-  # look into hasse diagram from polymake
-  
-  for facet in K_facets
-    dim_facet = length(facet) - 1
-    
-    for subset_size in 2:dim_facet
-      for subset in subsets(facet, subset_size)
-        push!(facet_dict[subset_size - 1], subset)
-      end
-    end
-  end
-
-  input_faces = Vector{Int}[]
-  for (dim_face, faces) in facet_dict
-    input_faces = vcat(input_faces, f((dim_face, collect.(faces))))
-  end
-  return input_faces
-end
-
-function shift_basis_ext(F::Field, K::SimplicialComplex)
-  n = n_vertices(K)
-  shifted_K = Oscar.delta_ext(F, K)
-  lambda, _ = exterior_algebra(F, n)
-  x = gens(lambda)
-  
-  ker_gens = [
-    reduce(*, lift.(
-      x[collect(f)]
-    )) for f in minimal_nonfaces(K)
-      ]
-
-  lift_ring = base_ring(lambda)
-  J = two_sided_ideal(lift_ring, (ker_gens))
-  A, _ = quo(lift_ring, J + modulus(lambda))
-  x = gens(A)
-  basis = [reduce(*, x[collect(s)]) for s in facets(shifted_K)]
-
-  return A, basis
-end
-
-@doc raw"""
-     exterior_shift(F::Field, K::SimplicialComplex)
-
-Returns the exterior shift of `K`
-"""
-function exterior_shift(F::Field, K::SimplicialComplex;
-                        change_of_basis::T = nothing) where T <: Union{Nothing, MatElem}
-  # the exterior shifting works in a different algebra that lends
-  # itself to an easier implementation 
-  n = n_vertices(K)
-  is_generic = false
-  if isnothing(change_of_basis)
-    is_generic = true
-    # generic change of basis
-    Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
-    change_of_basis = matrix(Fx, hcat(x))
-    matrix_base = Fx
-  else
-    matrix_base = base_ring(change_of_basis)
-    if matrix_base isa MPolyRing
-      is_generic = true
-    end
-  end
-
-  input_faces = apply_on_faces(K) do (dim_face, faces)
-    # is needed here since otherwise the sets are not
-    # in lex order, seubsets is being called from Hecke,
-    # maybe we should look into this and see if polymake's
-    # is preffered?
-    nCk = sort(subsets(n, dim_face + 1))
-    entry_type = elem_type(matrix_base)
-
-    sub_compound_matrix = Vector{entry_type}[]
-
-    for col_subset in nCk
-      row_minors = entry_type[]
-      for row_subset in faces
-        ri = collect(row_subset)
-        ci = collect(col_subset)
-        push!(row_minors, det(change_of_basis[ri, ci]))
-      end
-      push!(sub_compound_matrix, row_minors)
-    end
-    A = matrix(reduce(hcat, sub_compound_matrix))
-
-    if is_generic
-      Oscar.ModStdQt.ref_ff_rc!(A)
-    elseif matrix_base isa MPolyQuoRing
-      A_lift = lift.(A)
-      A = matrix_base.(Oscar.ModStdQt.ref_ff_rc!(A_lift))
-      simplify!.(A)
-    else
-      rref!(A)
-    end
-    delta_k = independent_columns(A)
-    return nCk[delta_k]
-  end
-
-  # add missing vertices
-  vertices_in_edges = reduce(union, input_faces)
-  missing_vertices = [[missing_v] for missing_v in symdiff(Set(1:n), vertices_in_edges)]
-  return simplicial_complex([input_faces..., missing_vertices...])
-end
 
 @doc raw"""
    symmetric_shift(F::Field, K::SimplicialComplex)
