@@ -9,9 +9,12 @@ function GAP.GapObj(obj::Vector{Int}; recursive::Bool = false)
 end
 
 function normal_form(o::Origami)
-    x = horizontal_perm(o)
-    y = vertical_perm(o)
     n = degree(o)
+    sym = symmetric_group(n)
+
+    x = sym(horizontal_perm(o))
+    y = sym(vertical_perm(o))
+    
 
     # TODO does this exists already? if not move to appropriate part of Oscar
     function cycle_length(sigma::PermGroupElem, i::Integer)
@@ -34,7 +37,7 @@ function normal_form(o::Origami)
     end
 
     G = PermGroupElem[]
-    sym = symmetric_group(n)
+    
 
     # TODO this can be completely refactored. this is the exact same as
     # normalform_conjugators apart from looping over different lists
