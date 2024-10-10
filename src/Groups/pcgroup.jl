@@ -287,6 +287,8 @@ julia> get_conjugate(c, 2, 1)
 function get_conjugate(c::Collector{T}, j::Int, i::Int) where T <: IntegerUnion
   @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
   @req i < j "only for i < j, but i = $i, j = $j"
+  #XXX: will crash if this pair is not defined as they commute...
+  #     needs thinking, is_assigned(c.com, i, j), ..., 
   return c.conjugates[i,j]
 end
 
