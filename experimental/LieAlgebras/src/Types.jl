@@ -138,6 +138,36 @@ end
 
 ###############################################################################
 #
+#   Kashiwara Crystals
+#
+###############################################################################
+
+abstract type KashiwaraCrystal <: AbstractAlgebra.Set end
+
+abstract type KashiwaraCrystalElem <: AbstractAlgebra.SetElem end
+
+struct LSPathModel
+  wt::WeightLatticeElem
+  ext::Dict{Vector{UInt8},ZZMatrix} # map from Weyl group elements to extremal weights
+
+  function LSPathModel(wt::WeightLatticeElem)
+    @req is_dominant(wt) "weight must be dominant"
+    return new(wt, Dict(UInt8[] => wt))
+  end
+end
+
+struct LSPathSegment
+  t::QQFieldElem
+  w::WeylGroupElem
+end
+
+struct LSPathModelElem <: KashiwaraCrystalElem
+  parent::LSPathModel
+  s::Vector{LSPathSegment}
+end
+
+###############################################################################
+#
 #   Lie algebras
 #
 ###############################################################################
