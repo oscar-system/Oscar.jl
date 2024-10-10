@@ -128,6 +128,26 @@ function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
   return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
 end
 
+# convert syllables in canonical form into exponent vector
+#Thomas
+function exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
+  res = zeros(ZZRingElem, n)
+  for pair in sylls
+    @assert res[pair.first] == 0 #just to make sure 
+    res[pair.first] = pair.second
+  end
+  return res
+end
+
+# convert syllables in canonical form into group element
+#Thomas
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
+  e = exponent_vector(sylls, ngens(G))
+  pcgs = Oscar.GAPWrap.FamilyPcgs(GapObj(G))
+  x = Oscar.GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  return Oscar.group_element(G, x)
+end
+
 function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   c = E.c
   C = c.C
@@ -135,6 +155,9 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   @assert isa(G, PcGroup)
   M = C.M
   mMf = Oscar.isomorphism(PcGroup, M) # M -> PcGroup
+  #TODO: this group is internal only. Should it be made available?
+  #TODO: this should be using the new syllable/ expo vector interface and
+  #      not do any group arithmetic
   fM = codomain(mMf)
 
   cM = collector(fM)
@@ -142,14 +165,18 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   nG = ngens(G)
   cE = collector(nG + ngens(fM))
 
-  set_relative_orders!(cE, vcat(cG.relorders, cM.relorders))
+  set_relative_orders!(cE, vcat(get_relative_orders(cG), get_relative_orders(cM)))
 
   for i=1:ngens(fM)
-    set_power!(cE, i + nG, [g[1] + nG => g[2] for g = cM.powers[i]])
+    set_power!(cE, i + nG, [g[1] + nG => g[2] for g = get_power(cM, i)])
   end
-  
+
+  #TODO: if all is well, then the tails used to compute H^2 will match exactly
+  #the data required here - thus no computation will be required  
+  #well for the conjugates the action on the module
   for i=1:nG
-    x = E[i]^Int(cG.relorders[i])
+    #XXX: only since we don't have GrpEltElem^ZZRingElem (yet)
+    x = E[i]^Int(get_relative_order(cG, i))
     t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
     set_power!(cE, i, t)
   end
@@ -162,16 +189,48 @@ function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
     end
   end
 
-  G = pc_group(cE)
+  Q = pc_group(cE)
 
-  function EtoG(x::GrpExtElem)
-    #need some inverse of syllables to make this efficient.
-    error("missing")
-    return shiftgens(w, N, 0)*shiftgens(preimage(mfM, x.m-ww.m), N, ngens(G))
+  function EtoQ(x::GrpExtElem)
+    @assert parent(x) == E
+    t = vcat(Oscar.syllables(x.g), [ g[1] + nG => g[2] for g = Oscar.syllables(mMf(x.m))])
+    return Q(t)
   end
-  return MapFromFunc(E, G, EtoG, y->map_word(y, gens(E)))
-end
 
+  function QtoE(x::PcGroupElem)
+    #implicitly assumes the syllables to be a normalized expo vector
+    #in particular the module part needs to be in the end
+    @assert parent(x) == Q
+    s = Oscar.syllables(x)
+    a = Pair{Int, ZZRingElem}[]
+    b = Pair{Int, ZZRingElem}[]
+    for i = s
+      if i[1] <= nG
+        push!(a, i)
+      else
+        push!(b, i[1]-nG => i[2])
+      end
+    end
+    return E(G(a), preimage(mMf, fM(b)))
+  end
+  #XXX: this is not yet good:
+  # - we use elt -> syllable
+  # - but create elt from exponent vector (well this is hidden)
+  # why is the collector using syllables
+  #
+  #the collector has a type parameter for the exponents. This is "ignored"
+  #here
+
+  return MapFromFunc(E, Q, EtoQ, QtoE) #y->map_word(y, gens(E)))
+end
+#=
+Thomas:
+Fuer die Umkehrabbildung kann man statt y -> map_word(y, gens(E))
+dann y in Syllables auspacken, an der richtigen Stelle in zwei Teile
+aufteilen und die mit Hilfe der Kollektoren cM und cG in Elemente
+verpacken, aus denen dann ein GrpExtElem gebaut wird.
+
+=#
 function one(G::GrpExt)
   return GrpExtElem(G, one(_group(G)), zero(_module(G)))
 end
@@ -215,6 +274,9 @@ end
 
 function ==(g::GrpExtElem, h::GrpExtElem)
   @assert g.P === h.P
+  #XXX: will this work for FPGroupElems? They may not be normalized
+  #     if the element is obtained through E(g, m)
+  #     if it comes from arithmetic, I think it will be fine
   return g.g == h.g && g.m == h.m
 end
 
@@ -260,13 +322,13 @@ function Oscar.is_stem_extension(P::GrpExt)
   G = _group(P)
   #  part of algo is explained in Cohomology.jl
   #
-  # a commutator (comm(X, Y)) does not depend on X,m and Y.m
+  # a commutator (comm(X, Y)) does not depend on X.m and Y.m
   # We need to check M <= P'
-  # in P, M ;ooks like (1, M)
+  # in P, M looks like (1, M)
   # any word evaluated in P will have the G part as the evaluation
   # only on the G part (the G part is the projection, hence a hom)
   # any word evaluated in P to get a (1, M) will be a relator of G'
-  # Writig such a relator as a word in commutators make the evaluation
+  # Writing such a relator as a word in commutators make the evaluation
   # depend only on the co-chain, not on other choices.
   E, mE = derived_subgroup(G)
   h = commutator_decomposition_map(mE)
