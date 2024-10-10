@@ -305,3 +305,112 @@ function origamis_in_h11(degree::Int)::Set{Origami}
     end
     return origamis
 end
+
+# so far only genus 2 & 3 supported
+# other strata may still be explored manually by using the read_cylinder_diagrams function
+function origamis(stratum::Vector{Int}, degree::Int)::Set{Origami}
+    file_name = ""
+    if stratum == [1, 1]
+        file_name = "h11.dat"
+    elseif stratum == [2]
+        file_name = "h2.dat"
+    elseif stratum == [1,1,1,1]
+        file_name = "h1111.dat"
+    elseif stratum == [4]
+        file_name = "h4.dat"
+    elseif stratum == [1, 1, 2] || stratum == [1, 2, 1] || stratum == [2, 1, 1]
+        file_name = "h112.dat"
+    elseif stratum == [2,2]
+        file_name = "h22.dat"
+    else
+        error("Stratum not supported!")
+    end
+
+    file_path = joinpath(dirname(@__FILE__), "..", "cylinder_diagrams", file_name)
+    diagrams::Vector{CylinderDiagram} = read_cylinder_diagrams(file_path)
+
+    origamis = Set{Origami}()
+    for c in diagrams
+        lengths_heights = possible_lengths_and_heights(c, degree)
+        for entry in lengths_heights
+            o = origami_from_cylinder_coordinates(c, entry[1], entry[2])
+            origamis = union!(origamis, o)
+        end
+    end
+    return origamis
+end
+
+function read_cylinder_diagrams(filename::String)
+    # Read the entire file content as a string
+    content = open(filename, "r") do io
+        read(io, String)
+    end
+    # Remove leading/trailing whitespace and outer brackets
+    content = strip(content)
+    if startswith(content, "[") && endswith(content, "]")
+        content = content[2:end-1]
+    else
+        error("File content must start with '[' and end with ']'")
+    end
+    # Split content into diagrams using commas not inside parentheses
+    diagrams = split_diagrams(content)
+    cylinders = Vector{CylinderDiagram}()
+    for diagram in diagrams
+        # Split diagram into permutations separated by spaces
+        permutations = split(strip(diagram))
+        bot_cycles = Vector{Vector{Int}}()
+        top_cycles = Vector{Vector{Int}}()
+        for permutation in permutations
+            # Split each permutation into bot and top parts
+            bot_str, top_str = split(permutation, "-", limit=2)
+            bot_cycle = parse_cycle(bot_str)
+            top_cycle = parse_cycle(top_str)
+            push!(bot_cycles, bot_cycle)
+            push!(top_cycles, top_cycle)
+        end
+        cd = CylinderDiagram(bot_cycles, top_cycles)
+        push!(cylinders, cd)
+    end
+    return cylinders
+end
+
+function split_diagrams(content::AbstractString)
+    diagrams = String[]
+    idx = 1
+    len_content = length(content)
+    while idx <= len_content
+        diagram = ""
+        depth = 0
+        while idx <= len_content
+            c = content[idx]
+            if c == '('
+                depth += 1
+            elseif c == ')'
+                depth -= 1
+            elseif c == ',' && depth == 0
+                idx += 1  # Skip the comma
+                break
+            end
+            diagram *= c
+            idx += 1
+        end
+        push!(diagrams, strip(diagram))
+    end
+    return diagrams
+end
+
+function parse_cycle(cycle_str::AbstractString)
+    # Parse a cycle string of the form "(numbers)"
+    cycle_str = strip(cycle_str)
+    if startswith(cycle_str, "(") && endswith(cycle_str, ")")
+        numbers_str = cycle_str[2:end-1]
+        numbers = split(numbers_str, ",")
+        if isempty(numbers_str)
+            return Int[]
+        else
+            return [parse(Int, strip(n)) for n in numbers]
+        end
+    else
+        error("Invalid cycle format: $cycle_str")
+    end
+end
