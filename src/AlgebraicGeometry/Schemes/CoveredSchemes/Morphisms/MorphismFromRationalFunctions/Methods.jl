@@ -574,7 +574,7 @@ function pushforward(Phi::MorphismFromRationalFunctions, D::AbsAlgebraicCycle)
   error("not implemented")
 end
 
-function pushforward(Phi::MorphismFromRationalFunctions, D::WeilDivisor)
+function pushforward(Phi::MorphismFromRationalFunctions, D::AbsWeilDivisor)
   is_isomorphism(Phi) || error("method not implemented unless for the case of an isomorphism")
   #is_proper(Phi) || error("morphism must be proper")
   all(is_prime, components(D)) || error("divisor must be given in terms of irreducible components")
