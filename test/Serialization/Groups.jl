@@ -2,6 +2,12 @@
   mktempdir() do path
     @testset "Permutation groups" begin
       G = symmetric_group(5)
+      is_finite(G)
+      is_abelian(G)
+      is_nilpotent(G)
+      is_perfect(G)
+      is_simple(G)
+      is_solvable(G)
 
       # single element
       x = gen(G, 1)
@@ -43,6 +49,14 @@
       Oscar.reset_global_serializer_state()
       loadedv = load(filenamev)
       @test parent(loadedv[1]) === loadedv[3]
+      loadedG = loadedv[3]
+      @test has_order(loadedG) && order(loadedG) == order(G)
+      @test has_is_finite(G) && is_finite(loadedG) == is_finite(G)
+      @test has_is_abelian(G) && is_abelian(loadedG) == is_abelian(G)
+      @test has_is_nilpotent(G) && is_nilpotent(loadedG) == is_nilpotent(G)
+      @test has_is_perfect(G) && is_perfect(loadedG) == is_perfect(G)
+      @test has_is_simple(G) && is_simple(loadedG) == is_simple(G)
+      @test has_is_solvable(G) && is_solvable(loadedG) == is_solvable(G)
 
       loadedw = load(filenamew)
       @test parent(loadedw[1]) === parent(loadedw[2])
@@ -172,6 +186,9 @@
       paras = [(1, 1), (5, 1), (24, 12)]
       for (n, i) in paras
         G = small_group(n, i)
+        order(G)
+#       center(G)
+#TODO: problem with cyclic references
 
         # single element
         x = rand(G)
@@ -212,9 +229,12 @@
         # simulate loading into a fresh Julia session
         Oscar.reset_global_serializer_state()
         loadedv = load(filenamev)
-        @test parent(loadedv[1]) === loadedv[3]
+        loadedG = loadedv[3]
+        @test parent(loadedv[1]) === loadedG
         @test parent(loadedv[2]) === loadedv[4]
-        @test is_subgroup(loadedv[4], loadedv[3])[1]
+        @test is_subgroup(loadedv[4], loadedG)[1]
+        @test has_order(loadedG)
+#       @test has_center(loadedG) && order(center(loadedG)[1]) == order(center(G)[1])
 
         loadedw = load(filenamew)
         @test parent(loadedv[1]) === parent(loadedw[2])

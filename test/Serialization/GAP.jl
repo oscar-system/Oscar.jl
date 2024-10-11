@@ -12,6 +12,38 @@
       @test_throws ErrorException Oscar.save(filenamex, x)
     end
 
+    @testset "IsPermGroup" begin
+      G = GAP.Globals.SymmetricGroup(6)
+      test_save_load_roundtrip(path, G) do loaded
+        @test G == loaded
+      end
+
+      # load into a new Julia session
+      filenameG = joinpath(path, "G")
+      Oscar.save(filenameG, G)
+      Oscar.reset_global_serializer_state()
+      loaded = Oscar.load(filenameG)
+      @test GAP.Globals.GeneratorsOfGroup(loaded) == GAP.Globals.GeneratorsOfGroup(G)
+      @test GAP.Globals.HasSize(G)  # attribute value
+
+      G = GAP.Globals.SymmetricGroup(20)
+      Oscar.save(filenameG, G)
+      Oscar.reset_global_serializer_state()
+      loaded = Oscar.load(filenameG)
+      @test GAP.Globals.GeneratorsOfGroup(loaded) == GAP.Globals.GeneratorsOfGroup(G)
+      @test GAP.Globals.HasSize(G)
+      @test !GAP.Globals.IsSmallIntRep(GAP.Globals.Size(G))
+
+      G = GAP.Globals.DihedralGroup(GAP.Globals.IsPermGroup, 8)
+      Z = GAP.Globals.Center(G)
+      @test GAP.Globals.HasCenter(G)
+      Oscar.save(filenameG, G)
+      Oscar.reset_global_serializer_state()
+      loaded = Oscar.load(filenameG)
+      @test GAP.Globals.HasCenter(loaded)
+      @test GAP.Globals.Center(loaded) == Z
+    end
+
     @testset "IsFreeGroup" begin
       wfilts = [:IsSyllableWordsFamily, :IsLetterWordsFamily]
       for wfilt in [getproperty(GAP.Globals, x) for x in wfilts]
@@ -67,6 +99,16 @@
         loaded = Oscar.load(filenamev)
         @test GAP.Globals.GeneratorsOfGroup(loaded[2])[1] in loaded[1]
         @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
+
+        # attributes
+        @test !GAP.Globals.HasSize(F)
+        GAP.Globals.Size(F)
+        @test GAP.Globals.HasSize(F)
+        Oscar.save(filenameF, F)
+        Oscar.reset_global_serializer_state()
+        loadedF = Oscar.load(filenameF)
+        @test GAP.Globals.HasSize(loadedF)
+        @test GAP.Globals.Size(loadedF) == GAP.Globals.Size(F)
       end
     end
 
