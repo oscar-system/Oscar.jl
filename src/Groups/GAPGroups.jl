@@ -373,7 +373,7 @@ end
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
 function ==(x::GAPGroup, y::GAPGroup)
-  _check_compatible(x, y; error = false) || throw(ArgumentError("x and y are not compatible"))
+  _check_compatible(x, y)
   return GapObj(x) == GapObj(y)
 end
 
@@ -382,7 +382,7 @@ end
 # in the sense of `_check_compatible`,
 # and compare the `GapObj`s if this is the case.
 function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
-  _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
+  _check_compatible(parent(x), parent(y))
   return GapObj(x) == GapObj(y)
 end
 
