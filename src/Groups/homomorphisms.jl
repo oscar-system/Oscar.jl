@@ -1259,7 +1259,7 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
-  domain(A::AutomorphismGroup) -> Group
+    domain(A::AutomorphismGroup) -> Group
 
 Return the domain of this group of automorphisms.
 """
