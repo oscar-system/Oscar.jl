@@ -60,6 +60,10 @@ include(joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conform
       @test g>h || g==h || g<h
       @test isequal(g,h) || isless(g,h) || isless(h,g)
       end
+
+      F = free_group(1)
+      @test_throws ArgumentError F == G
+      @test_throws ArgumentError gen(F, 1) == g
    end
 
    @testset "Group operations" begin
