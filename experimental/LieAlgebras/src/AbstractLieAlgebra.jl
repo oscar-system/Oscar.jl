@@ -218,9 +218,15 @@ end
 function lie_algebra(
   basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:FieldElem}
-  parent_L = parent(basis[1])
-  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
-  R = coefficient_ring(parent_L)
+  @req !isempty(basis) "Basis must not be empty, or provide the lie algebra as first argument"
+  return lie_algebra(parent(basis[1]), basis; check)
+end
+
+function lie_algebra(
+  L::AbstractLieAlgebra{C}, basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+) where {C<:FieldElem}
+  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  R = coefficient_ring(L)
   basis_matrix = if length(basis) == 0
     matrix(R, 0, dim(L), C[])
   else
