@@ -548,7 +548,7 @@ function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
   n = dim(L)
   A = adjoint_matrix(x)^n
   ker = kernel(A; side=:left)
-  basis = [L(ker[i, :]) for i in 1:nrows(ker)]
+  basis = L.(eachrow(ker))
   L0adx = sub(L, basis; is_basis=true)
   return L0adx
 end
@@ -610,7 +610,7 @@ function _root_system_and_chevalley_basis(
       for (f, k) in facs
         @assert k == 1 # TODO: is this always the case?
         ker = kernel((f^k)(A); side=:left)
-        basis = [B_j(ker[i, :]) for i in 1:nrows(ker)]
+        basis = B_j.(eachrow(ker))
         push!(B_new, sub(L, basis; is_basis=true))
       end
     end
