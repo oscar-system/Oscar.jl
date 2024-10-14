@@ -291,7 +291,7 @@ end
 Return the center of `L`, i.e. $\{x \in L \mid [x, L] = 0\}$
 """
 function center(L::LieAlgebra)
-  dim(L) == 0 && return ideal(L, [])
+  dim(L) == 0 && return ideal(L, elem_type(L)[])
 
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
   for (i, bi) in enumerate(basis(L))
@@ -300,9 +300,8 @@ function center(L::LieAlgebra)
     end
   end
 
-  c_basis = kernel(mat; side=:left)
-  c_dim = nrows(c_basis)
-  return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+  ker = kernel(mat; side=:left)
+  return ideal(L, L.(eachrow(ker)); is_basis=true)
 end
 
 @doc raw"""
