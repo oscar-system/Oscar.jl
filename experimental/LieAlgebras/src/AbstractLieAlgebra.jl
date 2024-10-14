@@ -370,9 +370,11 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       i < j || continue
       alpha_i_plus_beta_j = add!(alpha_i_plus_beta_j, alpha_i, beta_j)
       is_positive_root(alpha_i_plus_beta_j) || continue
-      l = findfirst(
-        l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
-      )::Int
+      l = let alpha_i_plus_beta_j = alpha_i_plus_beta_j # avoid closure capture
+        findfirst(
+          l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
+        )::Int
+      end
       l == i && continue # already extraspecial
       fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, l))
       @assert fl
