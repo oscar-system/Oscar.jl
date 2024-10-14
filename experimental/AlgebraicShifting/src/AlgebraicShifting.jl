@@ -1,9 +1,10 @@
 include("UniformHypergraph.jl")
 include("PartialShift.jl")
 
-export PartialExtShift
 export UniformHypergraph
 
+export compound_matrix
+export generic_unipotent_matrix
 export uniform_hypergraph
 
 function independent_columns(A::MatElem)

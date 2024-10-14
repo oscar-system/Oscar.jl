@@ -70,6 +70,8 @@ import ..Oscar:
   ngens,
   order,
   parent_type,
+  perm,
+  permutation_matrix,
   rank,
   root,
   roots,
@@ -315,6 +317,7 @@ export negative_roots
 export number_of_positive_roots, n_positive_roots  # alias lives in a submodule
 export number_of_roots, n_roots                    # alias lives in a submodule
 export number_of_simple_roots, n_simple_roots      # alias lives in a submodule
+export perm, permutation_matrix
 export positive_coroot
 export positive_coroots
 export positive_root

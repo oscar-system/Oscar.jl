@@ -8,6 +8,7 @@ const expdir = joinpath(@__DIR__, "../experimental")
 const orderedpkgs = [
   "LieAlgebras",
   "BasisLieHighestWeight",   # needs code from LieAlgebras
+  "AlgebraicShifting", # Needs code form Lie Algebras (Weyl Groups specifically)
   "SetPartitions",
   "PartitionedPermutations", # needs code from SetPartitions
   "Schemes",

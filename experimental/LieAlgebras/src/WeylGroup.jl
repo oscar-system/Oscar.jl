@@ -251,32 +251,32 @@ Returns whether `x` is smaller than `y` with respect to the Bruhat order,
 i.e., whether some (not necessarily connected) subexpression of a reduced
 decomposition of `y`, is a reduced decomposition of `x`.
 """
-function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
-  @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
-
-  if length(x) >= length(y)
-    return false
-  elseif isone(x)
-    return true
-  end
-
-  tx = deepcopy(x)
-  for i in 1:length(y)
-    b, j, _ = explain_lmul(tx, y[i])
-    if !b
-      deleteat!(word(tx), j)
-      if isone(tx)
-        return true
-      end
-    end
-
-    if length(tx) > length(y) - i
-      return false
-    end
-  end
-
-  return false
-end
+#function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
+#  @req parent(x) === parent(y) "$x, $y must belong to the same Weyl group"
+#
+#  if length(x) >= length(y)
+#    return false
+#  elseif isone(x)
+#    return true
+#  end
+#
+#  tx = deepcopy(x)
+#  for i in 1:length(y)
+#    b, j, _ = explain_lmul(tx, y[i])
+#    if !b
+#      deleteat!(word(tx), j)
+#      if isone(tx)
+#        return true
+#      end
+#    end
+#
+#    if length(tx) > length(y) - i
+#      return false
+#    end
+#  end
+#
+#  return false
+#end
 
 function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
   return parent(x) === parent(y) && word(x) == word(y)
@@ -648,4 +648,79 @@ function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
 
   (wt, _), state = it
   return deepcopy(wt), state
+end
+
+################################################################################
+# converting to permutations
+
+function perm(w::WeylGroupElem)
+  coxeter_type, n = root_system_type(root_system(parent(w)))[1]
+	@req coxeter_type == :A "Weyl group is not the symmetric group"
+	G = symmetric_group(n + 1)
+	return reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init = cperm(G))
+end
+
+function (W::WeylGroup)(p::PermGroupElem)
+  coxeter_type, n = root_system_type(root_system(W))[1]
+	@req coxeter_type == :A && degree(parent(p)) == n+1 "Weyl group is not Sym($(n+1))."
+  word = UInt8[]
+  for cycle in cycles(p)
+    transpositions = [
+      sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)]
+    for t in transpositions
+      word = reduce(vcat, [
+        [i for i in t[1]:t[2] - 1],
+        [i for i in reverse(t[1]:t[2] - 2)],
+        word])
+    end
+  end
+  return W(word)
+end
+
+permutation_matrix(R::Ring, w::WeylGroupElem) = permutation_matrix(R, perm(w))
+
+################################################################################
+# Bruhat Strong order
+
+# BJORNER, Brenti, Theorem 2.1.5
+function bruhat_leq(v::PermGroupElem, w::PermGroupElem)
+  @req parent(v) == parent(w) "Can only compare elements of symmetric group of same size."
+	n = degree(parent(v))
+
+	bracket = (u, i, j) -> count(true for a in 1:i if u(a) >= j)
+	return all(bracket(v, i, j) <= bracket(w, i, j) for i in 1:n for j in 1:n)
+end
+
+# not sure if we need to bring in these * functions
+function Base.:(*)(w::WeylGroupElem, m::MatElem)
+	return permutation_matrix(base_ring(m), w) * m
+end
+
+function Base.:(*)(m::MatElem, w::WeylGroupElem)
+	return m * permutation_matrix(base_ring(m), w)
+end
+
+# not sure if it's a good idea to make <= the strong order
+function Base.:(<=)(x::WeylGroupElem, y::WeylGroupElem)
+  coxeter_type_x, _ = root_system_type(root_system(parent(x)))[1]
+  coxeter_type_y, _ = root_system_type(root_system(parent(y)))[1]
+	if coxeter_type_x == coxeter_type_y == :A
+		return bruhat_leq(perm(x), perm(y))
+	else
+		error("unimplemented")
+	end
+end
+
+function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
+  coxeter_type_x, _ = root_system_type(root_system(parent(x)))[1]
+  coxeter_type_y, _ = root_system_type(root_system(parent(y)))[1]
+	if coxeter_type_x == coxeter_type_y == :A
+		return x != y && bruhat_leq(perm(x), perm(y))
+	else
+		error("unimplemented")
+	end
+end
+
+function isless(w::WeylGroupElem, v::WeylGroupElem)
+  return w < v
 end
