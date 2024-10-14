@@ -158,21 +158,21 @@ function (L::LieAlgebra)()
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+    (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
-function (L::LieAlgebra)(v::Vector{Int})
+function (L::LieAlgebra)(v::AbstractVector{Int})
   return L(coefficient_ring(L).(v))
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
+    (L::LieAlgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::Vector{C}) where {C<:FieldElem}
+function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)

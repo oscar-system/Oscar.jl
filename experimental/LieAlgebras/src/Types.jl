@@ -295,7 +295,7 @@ end
     L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
   ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
-    L::parent_type(LieT)
+    @req L isa parent_type(LieT) "Parent type mismatch."
     if is_basis
       basis_elems = gens
       basis_matrix = if length(gens) == 0
@@ -311,14 +311,14 @@ end
       while !isempty(left)
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for i in 1:nrows(basis_matrix)
-          push!(left, g * L(basis_matrix[i, :]))
+        for row in eachrow(basis_matrix)
+          push!(left, g * L(row))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -364,9 +364,9 @@ end
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
