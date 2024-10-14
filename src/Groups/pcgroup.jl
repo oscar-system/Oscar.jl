@@ -365,3 +365,28 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  l = GAPWrap.ExtRepOfObj(GapObj(g))
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+# Convert syllables in canonical form into exponent vector
+#Thomas
+function exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
+  res = zeros(ZZRingElem, n)
+  for pair in sylls
+    @assert res[pair.first] == 0 #just to make sure 
+    res[pair.first] = pair.second
+  end
+  return res
+end
+
+# Convert syllables in canonical form into group element
+#Thomas
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
+  e = exponent_vector(sylls, ngens(G))
+  pcgs = Oscar.GAPWrap.FamilyPcgs(GapObj(G))
+  x = Oscar.GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  return Oscar.group_element(G, x)
+end
