@@ -1,75 +1,51 @@
-
-#---------------------------------------
-#------------ preliminary definitions
-
-
-# definition of semigroup ring
+# definition of monoid algebra as quotient of polynomial ring
 S,(x,y,z) = graded_polynomial_ring(QQ,["x","y","z"]; weights = [[0,1],[1,1],[2,1]])
 J = ideal(S,[x*z-y^2])
 R_Q,phi = quo(S,J)
+x,y,z = gens(R_Q)
 
-##define all faces of Q as polyhedron using systems of linear inequalities 
-#F0 = cone{(0,0)}
-A0 = [1 0;-1 0;0 1;0 -1]
-b0 = [0,0,0,0]
-F0 = polyhedron(A0,b0)
+# get MonoidAlgebra
+kQ = get_monoid_algebra(R_Q)
 
-#F1 = cone{(0,1)}
-A1 = [1 0; -1 0; 0 -1]
-b1 = [0,0,0]
-F1 = polyhedron(A1,b1)
+# define ideal over monoid algebra
+I = ideal(kQ,[x^2*z,x^4*y])
 
-#F2 = cone{(2,1)}
-A2 = [1 -2; -1 2; -1 0; 0 -1]
-b2 = [0,0,0,0]
-F2 = polyhedron(A2,b2)
+# irreducible resolution of M = kQ/I
+M = quotient_ring_as_module(I)
+irr_res = irreducible_res(M)
 
-##define hyperplanes bounding Q as polyhedron
-#H_1 hyperplane bounding Q (intersects F1 non-trivially)
-A_H1 = [1 0;-1 0]
-b_H1 = [0,0]
-H1 = polyhedron(A_H1,b_H1)
+# minimal injective resolution of kQ/I up to cohomological degree 3
+inj_res = injective_res(I,3)
 
-#H_2 hyperplane bounding Q (intersects F2 non-trivially)
-A_H2 = [1 -2; -1 2]
-b_H2 = [0,0]
-H2 = polyhedron(A_H2,b_H2)
+inj_res.injMods[1].indecInjectives
+inj_res.injMods[2].indecInjectives
+inj_res.injMods[3].indecInjectives
+inj_res.injMods[4].indecInjectives
+inj_res.injMods[5].indecInjectives
+inj_res.injMods[6].indecInjectives
 
-F = [F1,F2] #faces bounding Q (facets)
-P_Q = convex_hull(F1,F2)
-h1 = FaceQ(ideal(R_Q,[zero(R_Q)]),H1,A_H1,b_H1)
-h2 = FaceQ(ideal(R_Q,[zero(R_Q)]),H2,A_H2,b_H2)
-H = [h1,h2] #hyperplanes bounding Q
-
-## define zonotope of Q
-R1 = convex_hull([0 0;0 1])
-R2 = convex_hull([0 0;2 1])
-G = R1 + R2 
+inj_res.cochainMaps[1]
+inj_res.cochainMaps[2]
+inj_res.cochainMaps[3]
+inj_res.cochainMaps[4]
+inj_res.cochainMaps[5]
+inj_res.cochainMaps[6]
 
 
-
-#-------------------------------------------------
-#--------- Example 1
-#-------------------------------------------------
-
-I = ideal(R_Q,[x^2*z,x^4*y])
-M0,_ = quotient_by_ideal(I)
-P = get_all_ass_primes(I)
-
-# compute irreducible resolution 
-res = irreducible_res(M0,P,P_Q,G,F,H)
-
-res.irrSums[1].components
-
-res.irrSums[2].components
-
-matrix(res.cochainMaps[1])
-
-matrix(res.cochainMaps[2])
+# irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
+irr_res_3 = inj_res.irrRes
 
 # check if irreducible resolution
-length(res.irrSums)
-image(res.cochainMaps[1])[1] == kernel(res.cochainMaps[2])[1]
-is_injective(res.inclusions[1])
-is_injective(res.inclusions[2])
-is_surjective(res.inclusions[2])
+length(irr_res_3.irrSums)
+image(irr_res_3.cochainMaps[1])[1] == kernel(irr_res_3.cochainMaps[2])[1]
+image(irr_res_3.cochainMaps[2])[1] == kernel(irr_res_3.cochainMaps[3])[1]
+image(irr_res_3.cochainMaps[3])[1] == kernel(irr_res_3.cochainMaps[4])[1]
+image(irr_res_3.cochainMaps[4])[1] == kernel(irr_res_3.cochainMaps[5])[1]
+image(irr_res_3.cochainMaps[5])[1] == kernel(irr_res_3.cochainMaps[6])[1]
+is_injective(irr_res_3.inclusions[1])
+is_injective(irr_res_3.inclusions[2])
+is_injective(irr_res_3.inclusions[3])
+is_injective(irr_res_3.inclusions[4])
+is_injective(irr_res_3.inclusions[5])
+is_injective(irr_res_3.inclusions[6])
+is_surjective(irr_res_3.inclusions[6])

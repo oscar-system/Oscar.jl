@@ -1,66 +1,36 @@
-#---------------------------------------
-#------------ preliminary definitions
-
 # definition of polynomial ring k[x,y]
 R_Q,(x,y) = graded_polynomial_ring(QQ,["x","y"];weights = [[1,0],[0,1]])
 
+# get MonoidAlgebra
+kQ = get_monoid_algebra(R_Q)
 
-## faces of Q as polyhedron
-# F1 = cone((1,0))
-A1 = [-1 0; 1 0;0 -1]
-b1 = [0,0,0]
-F1 = polyhedron(A1,b1)
+# define ideal over monoid algebra
+I = ideal(kQ,[x^4,x^2*y^2,y^4])
 
-# F2 = cone((0,1))
-A2 = [-1 0; 0 -1; 0 1]
-b2 = [0,0,0]
-F2 = polyhedron(A2,b2)
+# irreducible resolution of M = kQ/I
+M = quotient_ring_as_module(I)
+irr_res = irreducible_res(M)
 
-## hyperplanes bounding Q as polyhedron
-A_H1 = [-1 0;1 0]
-b_H1 = [0,0]
-H1 = polyhedron(A_H1,b_H1)
+# compute injective resolution up to cohomological degree 2
+inj_res = injective_res(I,2)
 
-A_H2 = [0 -1;0 1]
-b_H2 = [0,0]
-H2 = polyhedron(A_H2,b_H2)
+inj_res.injMods[1].indecInjectives
+inj_res.injMods[2].indecInjectives
+inj_res.injMods[3].indecInjectives
 
-F = [F1,F2] #faces bounding Q (facets)
-P_Q = convex_hull(F1,F2) # semigroup Q as polyhedron
-h1 = FaceQ(ideal(R_Q,[zero(R_Q)]),H1,A_H1,b_H1)
-h2 = FaceQ(ideal(R_Q,[zero(R_Q)]),H2,A_H2,b_H2)
-H = [h1,h2]
-
-### primitive integer vectors along rays of Q
-R1 = convex_hull([0 0;0 1])
-R2 = convex_hull([0 0;1 0])
-G = R1 + R2 # zonotope as im Lemma 3.10. (HM2004)
-c = [1,1] # ZZ^d degree of sum R1 + R2
+inj_res.cochainMaps[1]
+inj_res.cochainMaps[2]
+inj_res.cochainMaps[3]
 
 
-#-------------------------------------------------
-#--------- Example 1 (Example 11.3. in MS2005)
-#-------------------------------------------------
-
-I = ideal(R_Q,[x^4,x^2*y^2,y^4])
-M,_ = quotient_by_ideal(I)
-P = get_all_ass_primes(I) 
-
-#compute an irreducible resolution 
-res = irreducible_res(M,P,P_Q,G,F,H)
-
-res.irrSums[1].components
-
-res.irrSums[2].components
-
-matrix(res.cochainMaps[1])
-
-matrix(res.cochainMaps[2])
-
+## irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)
+irr_res_2 = inj_res.irrRes
 
 #check if irreducible resolution
-length(res.irrSums)
-image(res.cochainMaps[1])[1] == kernel(res.cochainMaps[2])[1]
-is_injective(res.inclusions[1])
-is_injective(res.inclusions[2])
-is_surjective(res.inclusions[2])
+length(irr_res_2.irrSums)
+image(irr_res_2.cochainMaps[1])[1] == kernel(irr_res_2.cochainMaps[2])[1]
+image(irr_res_2.cochainMaps[2])[1] == kernel(irr_res_2.cochainMaps[3])[1]
+is_injective(irr_res_2.inclusions[1])
+is_injective(irr_res_2.inclusions[2])
+is_injective(irr_res_2.inclusions[3])
+is_surjective(irr_res_2.inclusions[3])
