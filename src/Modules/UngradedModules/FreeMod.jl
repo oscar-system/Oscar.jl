@@ -308,3 +308,20 @@ end
 
 rels(F::FreeMod) = elem_type(F)[]
 
+function syzygy_generators(
+    g::Vector{T};
+    parent::Union{<:FreeMod, Nothing}=nothing
+  ) where {T<:FreeModElem}
+  isempty(g) && return Vector{T}()
+  F = Oscar.parent(first(g))
+  @assert all(Oscar.parent(x) === F for x in g) "parent mismatch"
+  R = base_ring(F)
+  m = length(g)
+  G = (parent === nothing ?  FreeMod(R, m) : parent)::typeof(F)
+  @assert ngens(G) == m "given parent does not have the correct number of generators"
+  phi = hom(G, F, g)
+  K, _ = kernel(phi)
+  return ambient_representatives_generators(K)
+end
+
+
