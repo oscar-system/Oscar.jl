@@ -48,7 +48,7 @@ Here are some illustrating examples:
 ##### Examples
 
 ```jldoctest
-julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
+julia> S, (w, x) = polynomial_ring(QQ, [:w, :x])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
@@ -58,7 +58,7 @@ julia> canonical_matrix(o)
 [1   0]
 [0   1]
 
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
@@ -314,7 +314,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
@@ -405,7 +405,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over R

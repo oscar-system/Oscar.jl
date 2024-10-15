@@ -42,7 +42,7 @@ The default algorithm is `:projective_jacobian` if the scheme is equidimensional
 
 # Examples
 ```jldoctest
-julia> A, (x, y, z) = grade(QQ["x", "y", "z"][1]);
+julia> A, (x, y, z) = grade(QQ[:x, :y, :z][1]);
 
 julia> B, _ = quo(A, ideal(A, [x^2 + y^2]));
 

@@ -304,7 +304,7 @@ function _ring_iso(f::SesquilinearForm)
   return f.ring_iso
 end
 
-function GAP.julia_to_gap(f::SesquilinearForm)
+GAP.@install function GapObj(f::SesquilinearForm)
   if !isdefined(f, :X)
     assign_from_description(f)
   end

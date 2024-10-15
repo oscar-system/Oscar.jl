@@ -124,7 +124,7 @@ function (fac::TotalComplexMapFactory)(c::AbsHyperComplex, p::Int, I::Tuple)
     for k in 1:dim(orig)
       target = collect(J) + (direction(orig, k) == :chain ? -1 : 1)*[(l == k ? 1 : 0) for l in 1:dim(orig)]
       T = Tuple(target)
-      index_in_cod = findfirst(t->t == T, index_cache(chain_fac)[next])
+      index_in_cod = findfirst(==(T), index_cache(chain_fac)[next])
       index_in_cod === nothing && continue
       phi = map(orig, k, J)
       @assert codomain(phi) === orig[T]
@@ -228,7 +228,7 @@ end
 function injection(tot::TotalComplex, i::Tuple)
   d = sum(i)
   v = indices_in_summand(tot, d)
-  k = findfirst(k->k==i, v)
+  k = findfirst(==(i), v)
   k === nothing && return nothing
   return injections_for_summand(tot, d)[k]
 end
@@ -236,7 +236,7 @@ end
 function projection(tot::TotalComplex, i::Tuple)
   d = sum(i)
   v = indices_in_summand(tot, d)
-  k = findfirst(k->k==i, v)
+  k = findfirst(==(i), v)
   k === nothing && return nothing
   return projections_for_summand(tot, d)[k]
 end

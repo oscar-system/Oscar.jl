@@ -60,7 +60,7 @@ end
     @test C == unique(C)
     for lambda in C
       @test sum(lambda) == n
-      @test all(i -> lambda[i] <= lambda[i + 1], 1:length(lambda) - 1)
+      @test issorted(lambda)
     end
   end
 end

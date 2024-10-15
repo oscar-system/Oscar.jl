@@ -191,7 +191,7 @@ Return a (free) presentation of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> Z = R(0)
 0
@@ -226,7 +226,7 @@ julia> PM2 = presentation(M, minimal = true)
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, [1,2,2]);
 
@@ -333,7 +333,7 @@ If `task = :only_morphism`, return only an isomorphism.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y];
 
@@ -361,7 +361,7 @@ by Submodule with 5 generators
 ```
 
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -434,7 +434,7 @@ If `task = :only_morphism`, return only an isomorphism.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
@@ -485,7 +485,7 @@ If `M` is not (positively) graded, the function still aims at reducing the numbe
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> Z = R(0)
 0
@@ -532,7 +532,7 @@ function prune_with_map(M::ModuleFP)
   return N, b
 end
 
-function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # The case that can be handled by Singular
+function prune_with_map(M::ModuleFP{T}) where {T<:Union{MPolyRingElem, MPolyQuoRingElem}} # The case that can be handled by Singular
 
   # Singular presentation
   pm = presentation(M)
@@ -554,8 +554,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
   new_rk = Singular.rank(s_mod_new)
 
   # find which generators were scratched
-  img_inds = [findlast(j -> j == i, p) for i in 1:new_rk]
-  @assert all(i -> !isnothing(i), img_inds) "something went wrong when trying to construct the map"
+  img_inds = [findlast(==(i), p) for i in 1:new_rk]
+  @assert all(!isnothing, img_inds) "something went wrong when trying to construct the map"
   phi2 = map(pm, 0)
   F2 = domain(phi2)
 
@@ -577,7 +577,8 @@ function prune_with_map(M::ModuleFP{T}) where {T<:MPolyRingElem{<:FieldElem}} # 
 end
 
 function _presentation_minimal(SQ::ModuleFP{T};
-                               minimal_kernel::Bool=true) where {T<:MPolyRingElem{<:FieldElem}}
+                               minimal_kernel::Bool=true) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
+  R = base_ring(SQ)
 
   R = base_ring(SQ)
  

@@ -36,7 +36,7 @@ modulo the two-sided ideal
 $\langle e_1^2,\dots, e_n^2\rangle.$
 
 ```@docs
-exterior_algebra
+exterior_algebra(::Ring, ::Vector{Symbol})
 ```
 
 ## Data Associated to Affine GR-Algebras
@@ -54,7 +54,7 @@ If `Q=A/I` is the quotient ring of a PBW-algebra `A` modulo a two-sided ideal `I
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 
@@ -102,7 +102,7 @@ with regard to the modulus $I$.
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> L = [-x*y, -x*z, -y*z];
 

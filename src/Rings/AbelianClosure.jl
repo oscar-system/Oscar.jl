@@ -34,9 +34,9 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
-                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
-                parent_type, promote_rule, root, root_of_unity, roots
+import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
+                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
+                parent_type, promote_rule, root, root_of_unity, roots, @req
 
 using Hecke
 import Hecke: conductor, data
@@ -625,14 +625,22 @@ end
 #
 ################################################################################
 
-function addeq!(c::QQAbFieldElem, a::QQAbFieldElem)
-  _c, _a = make_compatible(c, a)
-  addeq!(_c.data, _a.data)
-  return _c
+function add!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  b, c = make_compatible(b, c)
+  a, b = make_compatible(a, b)
+  c.data = add!(c.data, a.data, b.data)
+  return c
+end
+
+function add!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = add!(a.data, b.data)
+  return a
 end
 
 function neg!(a::QQAbFieldElem)
-  mul!(a.data,a.data,-1)
+  a.data = neg!(a.data)
   return a
 end
 
@@ -640,8 +648,14 @@ function mul!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   b, c = make_compatible(b, c)
   a, b = make_compatible(a, b)
-  mul!(c.data, a.data, b.data)
+  c.data = mul!(c.data, a.data, b.data)
   return c
+end
+
+function mul!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = mul!(a.data, b.data)
+  return a
 end
 
 ################################################################################
@@ -760,7 +774,7 @@ AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbF
 ###############################################################################
 
 function Oscar.root(a::QQAbFieldElem, n::Int)
-  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
+  @req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
@@ -1046,7 +1060,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
     # Replace `k` by an equivalent one that is coprime to `n`.
     n0 = 1
     n1 = n
-    for (p, exp) in collect(Oscar.factor(g))
+    for (p, exp) in Oscar.factor(g)
       while mod(n1, p) == 0
         n0 = n0*p
         n1 = div(n1, p )
@@ -1106,7 +1120,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
   cf = 1
   sqf = 1
-  for (p,e) in collect(factor(n))
+  for (p,e) in factor(n)
     cf = cf * p^div(e, 2)
     if e % 2 != 0
       sqf = sqf * p
@@ -1219,7 +1233,7 @@ function quadratic_irrationality_info(a::QQAbFieldElem)
     den = denominator(ysquarem)
     den_y = sqrt(den)
     m = sign(num)
-    for (p, e) in collect(factor(num))
+    for (p, e) in factor(num)
       if e % 2 == 1
         m = m * p
       end

@@ -95,7 +95,7 @@ algorithm requires an elimination ordering, `o` might be ignored.
 
 # Example
 ```jldoctest withordering
-julia> R, (x, y, z) = QQ["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> f = x + y^2;
 
@@ -322,7 +322,7 @@ function Base.iterate(A::BiPolyArray, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::BiPolyArray{S}) where S = S
+Base.eltype(::Type{<:BiPolyArray{S}}) where S = S
 
 function Base.getindex(A::IdealGens, ::Val{:S}, i::Int)
   return A.gens[Val(:S), i]
@@ -355,7 +355,7 @@ function Base.iterate(A::IdealGens, s::Int = 1)
   return A[Val(:O), s], s+1
 end
 
-Base.eltype(::IdealGens{S}) where S = S
+Base.eltype(::Type{IdealGens{S}}) where S = S
 
 function gens(I::IdealGens)
   return collect(I)
@@ -397,7 +397,7 @@ Return an ideal generating system with an associated monomial ordering.
 
 # Examples
 ```jldoctest
-julia> R, (x0, x1, x2) = polynomial_ring(QQ, ["x0","x1","x2"]);
+julia> R, (x0, x1, x2) = polynomial_ring(QQ, [:x0,:x1,:x2]);
 
 julia> I = ideal([x0*x1, x2]);
 
@@ -815,7 +815,7 @@ Return the system of generators of `I`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = polynomial_ring(QQ, ["x","y"]);
+julia> R,(x,y) = polynomial_ring(QQ, [:x,:y]);
 
 julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
@@ -841,7 +841,7 @@ function (F::Generic.FreeModule)(s::Singular.svector)
   Rx = base_ring(F)
   R = base_ring(Rx)
   for (i, e, c) = s
-    f = Base.findfirst(x->x==i, pos)
+    f = findfirst(==(i), pos)
     if f === nothing
       push!(values, MPolyBuildCtx(Rx))
       f = length(values)
@@ -950,7 +950,7 @@ mutable struct MPolyHom_vars{T1, T2}  <: Map{T1, T2, Hecke.HeckeMap, MPolyHom_va
     if type == :names
       i = Int[]
       for h = symbols(R)
-        push!(i, findfirst(x -> x == h, symbols(S)))
+        push!(i, findfirst(==(h), symbols(S)))
       end
       return MPolyHom_vars{T1, T2}(R, S, i)
     end
@@ -1074,7 +1074,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem}
   return coeff(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C}}) where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients, <:MPolyRingElem{C}}}) where C
   return C
 end
 
@@ -1111,7 +1111,7 @@ function Base.iterate(a::GeneralPermutedIterator{:coefficients_and_exponents, <:
   return (coeff(a.elem, a.perm[state]), exponent_vector(a.elem, a.perm[state])), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem{C}}) where C
+function Base.eltype(::Type{<:GeneralPermutedIterator{:coefficients_and_exponents, <:MPolyRingElem{C}}}) where C
   return Tuple{C, Vector{Int}}
 end
 
@@ -1131,7 +1131,7 @@ function Base.iterate(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem}, s
   return exponent_vector(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:exponents, <:MPolyRingElem})
+function Base.eltype(::Type{<:GeneralPermutedIterator{:exponents, <:MPolyRingElem}})
   return Vector{Int}
 end
 
@@ -1150,7 +1150,7 @@ function Base.iterate(a::GeneralPermutedIterator{:monomials, <:MPolyRingElem}, s
   return monomial(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:monomials, T}) where T <: MPolyRingElem
+function Base.eltype(::Type{<:GeneralPermutedIterator{:monomials, T}}) where T <: MPolyRingElem
   return T
 end
 
@@ -1169,7 +1169,7 @@ function Base.iterate(a::GeneralPermutedIterator{:terms, <:MPolyRingElem}, state
   return term(a.elem, a.perm[state]), state
 end
 
-function Base.eltype(a::GeneralPermutedIterator{:terms, T}) where T <: MPolyRingElem
+function Base.eltype(::Type{<:GeneralPermutedIterator{:terms, T}}) where T <: MPolyRingElem
   return T
 end
 

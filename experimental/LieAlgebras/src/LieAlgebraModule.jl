@@ -4,9 +4,12 @@
 #
 ###############################################################################
 
-parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:FieldElem} = LieAlgebraModule{C}
+parent_type(
+  ::Type{LieAlgebraModuleElem{C,LieT}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} = LieAlgebraModule{C,LieT}
 
-elem_type(::Type{LieAlgebraModule{C}}) where {C<:FieldElem} = LieAlgebraModuleElem{C}
+elem_type(::Type{LieAlgebraModule{C,LieT}}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} =
+  LieAlgebraModuleElem{C,LieT}
 
 parent(v::LieAlgebraModuleElem) = v.parent
 
@@ -19,7 +22,8 @@ coefficient_ring(v::LieAlgebraModuleElem) = coefficient_ring(parent(v))
 
 Return the Lie algebra `V` is a module over.
 """
-base_lie_algebra(V::LieAlgebraModule) = V.L
+base_lie_algebra(V::LieAlgebraModule{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} =
+  V.L::parent_type(LieT)
 
 number_of_generators(L::LieAlgebraModule) = dim(L)
 
@@ -49,7 +53,9 @@ Return the `i`-th basis element of the Lie algebra module `V`.
 function basis(V::LieAlgebraModule, i::Int)
   @req 1 <= i <= dim(V) "Index out of bounds."
   R = coefficient_ring(V)
-  return V([(j == i ? one(R) : zero(R)) for j in 1:dim(V)])
+  v = zero_matrix(R, 1, dim(V))
+  v[1, i] = one(R)
+  return V(v)
 end
 
 @doc raw"""
@@ -327,8 +333,8 @@ function (V::LieAlgebraModule{C})(
     return a[1]
   elseif ((fl, W) = _is_dual(V); fl)
     @req length(a) == 1 "Invalid input length."
-    @req W === parent(v) "Incompatible modules."
-    return V(coefficients(v))
+    @req W === parent(a) "Incompatible modules."
+    return V(coefficients(a))
   elseif ((fl, Vs) = _is_direct_sum(V); fl)
     @req length(a) == length(Vs) "Invalid input length."
     @req all(i -> parent(a[i]) === Vs[i], 1:length(a)) "Incompatible modules."
@@ -977,7 +983,7 @@ julia> L = special_linear_lie_algebra(QQ, 2);
 julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> E)
+(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> E)
 
 julia> E
 Exterior power module
@@ -988,7 +994,7 @@ Exterior power module
 over special linear Lie algebra of degree 2 over QQ
 
 julia> basis(E)
-3-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+3-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^2)^(v_1*v_2)
  (v_1^2)^(v_2^2)
  (v_1*v_2)^(v_2^2)
@@ -1106,7 +1112,7 @@ julia> L = special_linear_lie_algebra(QQ, 4);
 julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
 julia> S, map = symmetric_power(V, 2)
-(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> S)
+(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> S)
 
 julia> S
 Symmetric power module
@@ -1117,7 +1123,7 @@ Symmetric power module
 over special linear Lie algebra of degree 4 over QQ
 
 julia> basis(S)
-10-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+10-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^v_2^v_3)^2
  (v_1^v_2^v_3)*(v_1^v_2^v_4)
  (v_1^v_2^v_3)*(v_1^v_3^v_4)
@@ -1260,7 +1266,7 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
 julia> T, map = tensor_power(V, 2)
-(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> T)
+(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> T)
 
 julia> T
 Tensor power module
@@ -1271,7 +1277,7 @@ Tensor power module
 over special linear Lie algebra of degree 3 over QQ
 
 julia> basis(T)
-9-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+9-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^v_2)(x)(v_1^v_2)
  (v_1^v_2)(x)(v_1^v_3)
  (v_1^v_2)(x)(v_2^v_3)
@@ -1413,17 +1419,8 @@ julia> dim_of_simple_module(L, [1, 1, 1])
 ```
 """
 function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dim_of_simple_module(T, R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return T(
-      GAPWrap.DimensionOfHighestWeightModule(
-        codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
-      ),
-    )
-  end
+  R = root_system(L)
+  return dim_of_simple_module(T, R, hw)
 end
 
 function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1456,24 +1453,8 @@ julia> dominant_weights(L, [1, 0, 3])
 ```
 """
 function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dominant_weights(T, R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return first.(
-      sort!(
-        collect(
-          T(w) => d for (w, d) in
-          zip(
-            GAP.Globals.DominantWeights(
-              GAP.Globals.RootSystem(codomain(Oscar.iso_oscar_gap(L))),
-              GAP.Obj(hw; recursive=true),
-            )...,
-          )
-        ); by=last)
-    )
-  end
+  R = root_system(L)
+  return dominant_weights(T, R, hw)
 end
 
 function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1503,20 +1484,8 @@ Dict{Vector{Int64}, Int64} with 4 entries:
 ```
 """
 function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return dominant_character(R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    return Dict{Vector{Int},Int}(
-      Vector{Int}(w) => d for (w, d) in
-      zip(
-        GAPWrap.DominantCharacter(
-          codomain(Oscar.iso_oscar_gap(L)), GAP.Obj(hw; recursive=true)
-        )...,
-      )
-    )
-  end
+  R = root_system(L)
+  return dominant_character(R, hw)
 end
 
 @doc raw"""
@@ -1547,22 +1516,8 @@ Dict{Vector{Int64}, Int64} with 10 entries:
 ```
 """
 function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  if has_root_system(L)
-    R = root_system(L)
-    return character(R, hw)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw) "Not a dominant weight."
-    dc = dominant_character(L, hw)
-    c = Dict{Vector{Int},Int}()
-    W = GAPWrap.WeylGroup(GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L))))
-    for (w, d) in dc
-      it = GAPWrap.WeylOrbitIterator(W, GAP.Obj(w))
-      while !GAPWrap.IsDoneIterator(it)
-        push!(c, Vector{Int}(GAPWrap.NextIterator(it)) => d)
-      end
-    end
-    return c
-  end
+  R = root_system(L)
+  return character(R, hw)
 end
 
 @doc raw"""
@@ -1595,19 +1550,6 @@ MSet{Vector{Int64}} with 6 elements:
 function tensor_product_decomposition(
   L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
 )
-  if has_root_system(L)
-    R = root_system(L)
-    return tensor_product_decomposition(R, hw1, hw2)
-  else # TODO: remove branch once root system detection is implemented
-    @req is_dominant_weight(hw1) && is_dominant_weight(hw2) "Both weights must be dominant."
-    return multiset(
-      Tuple{Vector{Vector{Int}},Vector{Int}}(
-        GAPWrap.DecomposeTensorProduct(
-          codomain(Oscar.iso_oscar_gap(L)),
-          GAP.Obj(hw1; recursive=true),
-          GAP.Obj(hw2; recursive=true),
-        ),
-      )...,
-    )
-  end
+  R = root_system(L)
+  return tensor_product_decomposition(R, hw1, hw2)
 end

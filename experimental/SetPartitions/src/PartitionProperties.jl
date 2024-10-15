@@ -28,7 +28,7 @@ function is_pair(p::AbstractPartition)
             end
         end
     end
-    return all(i -> i == 2, values(block_to_size))
+    return all(==(2), values(block_to_size))
 end
 
 """

@@ -118,7 +118,7 @@ julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
 
 julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal (x_5_1, x_4_1, x_1_1)
    2: Ideal (1)
@@ -157,18 +157,18 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   # Construct the new model
   if m isa GlobalTateModel
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
-      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m); coordinate_name)
+      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
-      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m); coordinate_name)
+      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
-      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m); coordinate_name)
+      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
-      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m); coordinate_name)
+      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
@@ -333,8 +333,8 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     all_appearing_monomials = vcat([collect(monomials(p)) for p in polys]...)
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
-      if any(x -> x != 0, all_appearing_exponents[k,:])
-        gen_name = string(gens(parent(polys[1]))[k])
+      if any(!is_zero, all_appearing_exponents[k,:])
+        gen_name = string(symbols(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
         @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
         new_model_secs[gen_name] = concrete_data[gen_name]
@@ -646,7 +646,7 @@ function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
   cohomology_ring(ambient_space(m); check=false)
   cox_gens = string.(gens(cox_ring(ambient_space(m))))
   @req desired_value in cox_gens "Specified zero section is invalid"
-  index = findfirst(x -> x==desired_value, cox_gens)
+  index = findfirst(==(desired_value), cox_gens)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
 end
 
@@ -840,7 +840,7 @@ function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
       # Compute strict transform of ideal sheaves appearing in blowup center
       exceptional_center = [c for c in blow_up_center if (c in exceptionals)]
-      positions = [findfirst(x -> x == l, exceptionals) for l in exceptional_center]
+      positions = [findfirst(==(l), exceptionals) for l in exceptional_center]
       exceptional_divisors = [exceptional_divisor(get_attribute(blow_up_chain[l], :blow_down_morphism)) for l in positions]
       exceptional_ideal_sheafs = [ideal_sheaf(d) for d in exceptional_divisors]
       for l in 1:length(positions)

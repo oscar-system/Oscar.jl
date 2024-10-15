@@ -109,25 +109,58 @@ function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
   return load_typed_object(s)
 end
 
+
+#############################################################################
+# attributes handling
+const GAPGroup_attributes = [
+  :order, :is_abelian, :is_nilpotent, :is_perfect, :is_simple, :is_solvable
+]
+
+function save_attrs(s::SerializerState, G::T) where T <: GAPGroup
+  save_data_dict(s, :attrs) do 
+    for attr in attrs_list(s, T)
+      func = Symbol(string("has_", attr))
+      if @eval $func($G)
+        attr_value = @eval $attr($G)
+        save_typed_object(s, attr_value, attr)
+      end
+    end
+  end
+end
+
+function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
+  !with_attrs(s) && return
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    for attr in attrs_list(s, T)
+      if haskey(d, attr)
+        func = Symbol(string("set_", attr))
+        attr_value = load_typed_object(s, attr)
+        @eval $func($G, $attr_value)
+      end
+    end
+  end
+end
+
 ##############################################################################
 # PermGroup
 
-@register_serialization_type PermGroup uses_id
+@register_serialization_type PermGroup uses_id [GAPGroup_attributes;]
 
 function save_object(s::SerializerState, G::PermGroup)
   n = degree(G)
-
   save_data_dict(s) do
     save_object(s, n, :degree)
     save_object(s, [Vector{Int}(GAPWrap.ListPerm(GapObj(x))) for x in gens(G)], :gens)
+    save_attrs(s, G)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
   generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
-
-  return permutation_group(n, [perm(x) for x in generators])
+  G = permutation_group(n, [perm(x) for x in generators])
+  load_attrs(s, G)
+  return G
 end
 
 

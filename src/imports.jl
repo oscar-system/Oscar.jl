@@ -55,7 +55,6 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
-  addeq!,
   allow_unicode,
   base_ring,
   canonical_unit,

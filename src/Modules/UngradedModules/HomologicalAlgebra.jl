@@ -218,7 +218,7 @@ Return $\text{Tor}_i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> A = R[x; y];
 
@@ -357,7 +357,7 @@ If `C` is a cochain complex, return a chain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -415,7 +415,7 @@ If `C` is a cochain complex, return a cochain complex.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -471,7 +471,7 @@ Return the homology of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -519,7 +519,7 @@ Return the `i`-th homology module of `C`.
 
 # Examples
 ```jldoctest
-julia> R, (x,) = polynomial_ring(QQ, ["x"]);
+julia> R, (x,) = polynomial_ring(QQ, [:x]);
 
 julia> F = free_module(R, 1);
 
@@ -571,7 +571,7 @@ Return $\text{Ext}^i(M,N)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 1);
 

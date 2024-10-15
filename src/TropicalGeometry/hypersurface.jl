@@ -69,7 +69,7 @@ Return the tropical hypersurface of the tropical polynomial `f`.  If `weighted_p
 julia> T = tropical_semiring()
 Min tropical semiring
 
-julia> R,(x,y) = T["x","y"];
+julia> R,(x,y) = T[:x, :y];
 
 julia> f = x+y+1
 x + y + (1)
@@ -108,7 +108,7 @@ Return the tropical hypersurface of the tropical polynomial that is the image of
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> val = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
@@ -162,7 +162,7 @@ function tropical_hypersurface(Delta::SubdivisionOfPoints, minOrMax::Union{typeo
     # e.g., [0 0; 1 0; 0 1; 2 0] decomposed into [0 0; 1 0; 0 1] and [1 0; 0 1; 2 0] has min_weight [+1,0,0,0]
     # which is dual to the tropical hypersurface of min(+1, x, y, 2*x) or max(-1, x, y, 2*x)
     coeffs = TT.(coeffs; preserve_ordering=true)
-    _,x = polynomial_ring(TT,length(first(expvs)))
+    _,x = polynomial_ring(TT,length(first(expvs)); cached=false)
     tropf = sum([c*prod(x.^alpha) for (c,alpha) in zip(coeffs,expvs)])
     TropH = tropical_hypersurface(tropf)
 

@@ -14,7 +14,7 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
    X::GapObj               # GapObj(H*repr)
 end
 
-GAP.julia_to_gap(obj::GroupCoset) = obj.X
+GAP.@install GapObj(obj::GroupCoset) = obj.X
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
@@ -317,7 +317,7 @@ struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: Abst
    X::GapObj               # underlying *right* transversal in GAP
 end
 
-GAP.julia_to_gap(T::SubgroupTransversal, d::IdDict{Any,Any} = IdDict(); recursive::Bool = false) = T.X
+GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
   side = x.side === :left ? "Left" : "Right"
@@ -473,7 +473,7 @@ struct GroupDoubleCoset{T <: GAPGroup, S <: GAPGroupElem}
    end 
 end
 
-function GAP.julia_to_gap(C::GroupDoubleCoset)
+GAP.@install function GapObj(C::GroupDoubleCoset)
   if !isassigned(C.X)
     C.X[] = GAPWrap.DoubleCoset(GapObj(C.H), GapObj(representative(C)), GapObj(C.K))
   end

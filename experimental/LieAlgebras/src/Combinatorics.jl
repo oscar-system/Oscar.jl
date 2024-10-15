@@ -30,10 +30,11 @@ function combinations(v::AbstractVector{T}, k::Integer) where {T}
 end
 
 function multicombinations(n::Integer, k::Integer)
-  return sort(
-    map(
-      reverse ∘ Vector,
-      reduce(vcat, collect(partitions(i, k, 1, n)) for i in 0:(k * n); init=Vector{Int}[]),
+  return sort!(
+    reverse.(
+      Vector.(
+        reduce(vcat, collect(partitions(i, k, 1, n)) for i in 0:(k * n); init=Vector{Int}[])
+      )::Vector{Vector{Int}}
     ),
   )
 end
@@ -66,7 +67,7 @@ function multicombinations(v::AbstractVector{T}, k::Integer) where {T}
 end
 
 function permutations(n::Integer)
-  return map(p -> Vector{Int}(p), AbstractAlgebra.SymmetricGroup(n))
+  return map(Vector{Int}, AbstractAlgebra.SymmetricGroup(n))
 end
 
 @doc raw"""

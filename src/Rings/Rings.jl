@@ -12,6 +12,7 @@ include("FractionalIdeal.jl")
 
 include("special_ideals.jl")
 
+include("MPolyMap/Types.jl")
 include("MPolyMap/MPolyAnyMap.jl")
 include("MPolyMap/MPolyRing.jl")
 include("MPolyMap/MPolyQuo.jl")

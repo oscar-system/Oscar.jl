@@ -167,7 +167,7 @@ function assign_from_description(G::MatrixGroup)
       if G.deg==4 && order(G.ring)==2  # this is the only case SO(n,q) has more than one subgroup of index 2
          for y in L
             _ranks = [GAP.Globals.Rank(u) for u in GAPWrap.GeneratorsOfGroup(y)]
-            if all(r->iseven(r),_ranks)
+            if all(is_even, _ranks)
                G.X=y
                break
             end
@@ -219,7 +219,7 @@ function _ring_iso(G::MatrixGroup{T}) where T
   return G.ring_iso
 end
 
-function GAP.julia_to_gap(G::MatrixGroup)
+GAP.@install function GapObj(G::MatrixGroup)
   if !isdefined(G, :X)
     if isdefined(G, :descr)
       assign_from_description(G)
@@ -233,7 +233,7 @@ function GAP.julia_to_gap(G::MatrixGroup)
   return G.X
 end
 
-function GAP.julia_to_gap(x::MatrixGroupElem)
+GAP.@install function GapObj(x::MatrixGroupElem)
   if !isdefined(x, :X)
     x.X = map_entries(_ring_iso(x.parent), x.elm)
   end

@@ -8,7 +8,7 @@ If `task == :cache_morphism` the inverse map is also cached in `M` and `N`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -143,7 +143,7 @@ function transport(M::SubquoModule, v::SubquoModuleElem)
   N = parent(v)
   morphisms = find_sequence_of_morphisms(N, M)
 
-  return foldl((x,f) -> f(x), morphisms; init=v)
+  return foldl(|>, morphisms; init=v)
 end
 
 @doc raw"""
@@ -229,10 +229,14 @@ ring_map(f::SubQuoHom{<:AbstractFreeMod, <:ModuleFP, Nothing}) = nothing
 ring_map(f::SubQuoHom) = f.ring_map
 
 function default_ordering(F::FreeMod)
-  if iszero(F)
-    return default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+  if !isdefined(F, :default_ordering)
+    if iszero(F)
+      F.default_ordering = default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+    else
+      F.default_ordering = default_ordering(base_ring(F))*lex(gens(F))
+    end
   end
-  return default_ordering(base_ring(F))*lex(gens(F))
+  return F.default_ordering::ModuleOrdering{typeof(F)}
 end
 
 ##############################
@@ -374,7 +378,7 @@ function change_base_ring(S::Ring, F::FreeMod)
   R = base_ring(F)
   r = ngens(F)
   FS = FreeMod(S, F.S) # the symbols of F
-  map = hom(F, FS, gens(FS), MapFromFunc(R, S, x->S(x)))
+  map = hom(F, FS, gens(FS), MapFromFunc(R, S, S))
   return FS, map
 end
 
@@ -394,7 +398,7 @@ function change_base_ring(S::Ring, M::SubquoModule)
   g = ambient_representatives_generators(M)
   rels = relations(M)
   MS = SubquoModule(FS, mapF.(g), mapF.(rels))
-  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, x->S(x)); check=false)
+  map = SubQuoHom(M, MS, gens(MS), MapFromFunc(R, S, S); check=false)
   return MS, map
 end
 
@@ -536,7 +540,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns i
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 
@@ -643,7 +647,7 @@ If ``M`` happens to be finite-dimensional as a ``k``-vectorspace, this returns a
 
 # Examples:
 ```jldoctest
-julia> R,(x,y,z,w) = QQ["x","y","z","w"];
+julia> R,(x,y,z,w) = QQ[:x, :y, :z, :w];
 
 julia> F = free_module(R,2);
 

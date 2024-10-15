@@ -9,6 +9,6 @@ using Oscar.StraightLinePrograms: Const, Exp, Gen, Minus, Plus, LazyRec,
 using Oscar.StraightLinePrograms: pushline!, GAPStraightLine
 using Oscar.StraightLinePrograms: AtlasSLProgram, AtlasLine
 
-replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
+replstr(c) = sprint(show, MIME"text/plain"(), c)
 
 Oscar.StraightLinePrograms.order(x::AbstractAlgebra.GroupElem) = AbstractAlgebra.order(x)

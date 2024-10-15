@@ -82,7 +82,7 @@ Return `true` if the free resolution `fr` is complete, otherwise return `false`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -230,15 +230,15 @@ function _extend_free_resolution(cc::Hecke.ComplexOfMorphisms, idx::Int)
 end
 
 @doc raw"""
-    free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-        ordering::ModuleOrdering = default_ordering(M),
-        length::Int = 0, algorithm::Symbol = :fres
-      )
+    free_resolution(M::SubquoModule{T}; 
+        length::Int=0,
+        algorithm::Symbol = T <:MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
 Return a free resolution of `M`.
 
 If `length != 0`, the free resolution is only computed up to the `length`-th free module.
-Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
+Current options for `algorithm` are `:fres`, `:nres`, and `:mres` for modules over
+polynomial rings and `:sres` for modules over quotients of polynomial rings.
 
 !!! note
     The function first computes a presentation of `M`. It then successively computes
@@ -255,9 +255,13 @@ Current options for `algorithm` are `:fres`, `:nres`, and `:mres`.
     [EMSS16](@cite). Typically, this is more efficient than the approaches above, but the 
     resulting resolution is far from being minimal.
 
+!!! note
+    If `M` is a module over a quotient of a polynomial ring then the `length` keyword must
+    be set to a nonzero value.
+
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> A = R[x; y]
@@ -301,7 +305,7 @@ true
 ```
 
 ```
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> Z = R(0)
 0
@@ -392,15 +396,19 @@ julia> matrix(map(FM3, 1))
 
 ```
 
-**Note:** Over rings other than polynomial rings, the method will default to a lazy, 
+**Note:** Over rings other than polynomial rings or quotients of polynomial rings, the method will default to a lazy, 
 iterative kernel computation.
 """
-function free_resolution(M::SubquoModule{<:MPolyRingElem}; 
-                         ordering::ModuleOrdering = default_ordering(M),
-                         length::Int=0, algorithm::Symbol=:fres)
+function free_resolution(M::SubquoModule{T}; 
+                         length::Int=0,
+                         algorithm::Symbol = T <:MPolyRingElem ? :fres : :sres) where {T <: Union{MPolyRingElem, MPolyQuoRingElem}}
 
   coefficient_ring(base_ring(M)) isa AbstractAlgebra.Field ||
       error("Must be defined over a field.")
+
+  if T <: MPolyQuoRingElem
+    !iszero(length) || error("Specify a length up to which a free resolution should be computed")
+  end
 
   cc_complete = false
 
@@ -435,6 +443,9 @@ function free_resolution(M::SubquoModule{<:MPolyRingElem};
   elseif algorithm == :nres
     gbpres = singular_kernel_entry
     res = Singular.nres(gbpres, length)
+  elseif algorithm == :sres && T <: MPolyQuoRingElem
+    gbpres = Singular.std(singular_kernel_entry)
+    res = Singular.sres(gbpres, length)
   else
     error("Unsupported algorithm $algorithm")
   end
@@ -512,7 +523,7 @@ function free_resolution(M::SubquoModule{T}) where {T<:RingElem}
       end
 
       K, inc = kernel(map(C, i))
-      nz = findall(x->!iszero(x), gens(K))
+      nz = findall(!is_zero, gens(K))
       F = FreeMod(R, length(nz))
       phi = hom(F, C[i], iszero(length(nz)) ? elem_type(C[i])[] : inc.(gens(K)[nz]); check=false)
       pushfirst!(C.maps, phi)
@@ -538,7 +549,7 @@ function free_resolution_via_kernels(M::SubquoModule, limit::Int = -1)
   mp = [map(p, j) for j in Hecke.map_range(p)]  
   while true
     k, mk = kernel(mp[1])
-    nz = findall(x->!iszero(x), gens(k))
+    nz = findall(!is_zero, gens(k))
     if length(nz) == 0 
       if is_graded(domain(mp[1]))
         h = graded_map(domain(mp[1]), Vector{elem_type(domain(mp[1]))}(); check=false)

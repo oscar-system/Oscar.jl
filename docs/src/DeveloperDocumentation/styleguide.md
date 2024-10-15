@@ -30,13 +30,18 @@ deviate from them in some cases; in that case just do so.
   should be indicated in the function name, for example `automorphism_group` vs
   `automorphism_group_generators` vs `automorphism_list`.
 - Whenever functions expect a ring, field, algebra, etc. as input they should
-  be passed as the first argument, for example, `polynomial_ring(QQ, "x")`.
+  be passed as the first argument, for example, `polynomial_ring(QQ, :x)`.
 - Follow the mathematics. If your function needs a list of points, you should
   create a point-type (or use the one already there) and then use this.
   For user-facing functions, please do not use re-purposed lists, arrays,
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
+- All user-facing functions that expect some kind of indeterminant name etc.
+  (like `polynomial_ring(QQ, <indeterminant_name>)`) should accept a
+  `VarName = Union{Symbol, Char, String}`, and convert it to a symbol for internal
+  handling. Library and test code should (if possible) call such functions with
+  `Symbol` arguments, as this is the most efficient way.
 
 
 ## Naming conventions
@@ -235,7 +240,7 @@ polynomial of a matrix. You could do it as follows:
 ```julia
 function characteristic_polynomial(A::MatrixElem)
   kk = base_ring(A)
-  P, x = kk["x"]
+  P, x = kk[:x]
   AP = change_base_ring(P, A)
   return det(AP - x*one(AP))
 end

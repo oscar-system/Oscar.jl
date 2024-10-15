@@ -372,9 +372,26 @@ end
 
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
-==(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
+function ==(x::GAPGroup, y::GAPGroup)
+  _check_compatible(x, y)
+  return GapObj(x) == GapObj(y)
+end
 
-==(x::BasicGAPGroupElem, y::BasicGAPGroupElem ) = GapObj(x) == GapObj(y)
+# For two `BasicGAPGroupElem`s,
+# we allow the question for equality if their parents fit together
+# in the sense of `_check_compatible`,
+# and compare the `GapObj`s if this is the case.
+function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
+  _check_compatible(parent(x), parent(y))
+  return GapObj(x) == GapObj(y)
+end
+
+# For two `GAPGroupElem`s,
+# if no specialized method is applicable then no `==` comparison is allowed.
+function ==(x::GAPGroupElem, y::GAPGroupElem)
+  _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
+  throw(ArgumentError("== is not implemented for the given types"))
+end
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -695,7 +712,7 @@ end
    end
 end
 
-GAP.julia_to_gap(obj::GAPGroupConjClass) = obj.CC
+GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S
 
@@ -2342,7 +2359,7 @@ end
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
-   l_tor = filter(x -> x != 0, l)
+   l_tor = filter(!is_zero, l)
    free = length(l) - length(l_tor)
    res = length(l_tor) == 0 ? "" : "Z/" * join([string(x) for x in l_tor], " + Z/")
    return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )

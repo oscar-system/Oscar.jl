@@ -132,6 +132,79 @@
         )
       end
 
+      @testset "Mutating arithmetics for $T" for T in (
+        RootSpaceElem, DualRootSpaceElem, WeightLatticeElem
+      )
+        rk = rank(R)
+
+        x1 = T(R, rand(-10:10, rk))
+        x2 = T(R, rand(-10:10, rk))
+        x3 = T(R, rand(-10:10, rk))
+        x1c = deepcopy(x1)
+        x2c = deepcopy(x2)
+        x3c = deepcopy(x3)
+
+        for (f, f!) in ((zero, zero!),)
+          x1 = f!(x1)
+          @test x1 == f(x1c)
+          x1 = deepcopy(x1c)
+        end
+
+        for (f, f!) in ((-, neg!),)
+          x1 = f!(x1, x2)
+          @test x1 == f(x2c)
+          @test x2 == x2c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+
+          x1 = f!(x1)
+          @test x1 == f(x1c)
+          x1 = deepcopy(x1c)
+        end
+
+        for (f, f!) in ((+, add!), (-, sub!))
+          x1 = f!(x1, x2, x3)
+          @test x1 == f(x2c, x3c)
+          @test x2 == x2c
+          @test x3 == x3c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+          x3 = deepcopy(x3c)
+
+          x1 = f!(x1, x1, x2)
+          @test x1 == f(x1c, x2c)
+          @test x2 == x2c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+
+          x1 = f!(x1, x2, x1)
+          @test x1 == f(x2c, x1c)
+          @test x2 == x2c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+
+          x1 = f!(x1, x2, x2)
+          @test x1 == f(x2c, x2c)
+          @test x2 == x2c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+
+          x1 = f!(x1, x1, x1)
+          @test x1 == f(x1c, x1c)
+          x1 = deepcopy(x1c)
+
+          x1 = f!(x1, x2)
+          @test x1 == f(x1c, x2c)
+          @test x2 == x2c
+          x1 = deepcopy(x1c)
+          x2 = deepcopy(x2c)
+
+          x1 = f!(x1, x1)
+          @test x1 == f(x1c, x1c)
+          x1 = deepcopy(x1c)
+        end
+      end
+
       @testset "Serialization" begin
         mktempdir() do path
           test_save_load_roundtrip(path, R) do loaded

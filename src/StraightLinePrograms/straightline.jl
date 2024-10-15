@@ -536,16 +536,16 @@ end
 
 ## mutating ops
 
-addeq!(p::SLProgram, q::SLProgram) = combine!(plus, p, q)
+add!(p::SLProgram, q::SLProgram) = combine!(plus, p, q)
 
-subeq!(p::SLProgram, q::SLProgram) = combine!(minus, p, q)
+sub!(p::SLProgram, q::SLProgram) = combine!(minus, p, q)
 
-function subeq!(p::SLProgram)
+function neg!(p::SLProgram)
     combine!(uniminus, p)
     p
 end
 
-muleq!(p::SLProgram, q::SLProgram) = combine!(times, p, q)
+mul!(p::SLProgram, q::SLProgram) = combine!(times, p, q)
 
 function expeq!(p::SLProgram, e::Integer)
     combine!(exponentiate, p, e)
@@ -564,13 +564,13 @@ end
 copy_jointype(p::SLProgram, q::SLProgram) =
     copy_oftype(p, typejoin(constantstype(p), constantstype(q)))
 
-+(p::SLProgram, q::SLProgram) = addeq!(copy_jointype(p, q), q)
++(p::SLProgram, q::SLProgram) = add!(copy_jointype(p, q), q)
 
-*(p::SLProgram, q::SLProgram) = muleq!(copy_jointype(p, q), q)
+*(p::SLProgram, q::SLProgram) = mul!(copy_jointype(p, q), q)
 
--(p::SLProgram, q::SLProgram) = subeq!(copy_jointype(p, q), q)
+-(p::SLProgram, q::SLProgram) = sub!(copy_jointype(p, q), q)
 
--(p::SLProgram) = subeq!(copy(p))
+-(p::SLProgram) = neg!(copy(p))
 
 ^(p::SLProgram, e::Integer) = expeq!(copy(p), e)
 
@@ -708,7 +708,7 @@ retrieve(ints, cs, xs, res, i, conv::F=identity) where {F} =
 function evaluate!(res::Vector{S}, p::SLProgram{T}, xs::Vector{S},
                    conv::F=identity) where {S,T,F}
     # TODO: handle isempty(lines(p))
-    # TODO: use inplace (addeq!, mul!, ... ) when applicable
+    # TODO: use inplace (add!, mul!, ... ) when applicable
     # TODO: add permutation of input?
     empty!(res)
 
@@ -825,13 +825,13 @@ function compile!(p::SLProgram; isPoly::Bool = false)
                 mininput = max(mininput, idy)
                 if isplus(op)
                     if idx == 0 && isPoly
-                      :($rk = Nemo.addeq!($x, $y))
+                      :($rk = Nemo.add!($x, $y))
                     else
                       :($rk = $x + $y)
                     end
                 elseif isminus(op)
                     if idx == 0 && isPoly
-                      :($rk = Nemo.subeq!($x, $y))
+                      :($rk = Nemo.sub!($x, $y))
                     else
                       :($rk = $x - $y)
                     end

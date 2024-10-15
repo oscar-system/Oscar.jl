@@ -6,6 +6,9 @@ on:
       - master
       - 'release-*'
   pull_request:
+  schedule:
+      # Every day at 3:10 AM UTC
+      - cron: '10 3 * * *'
   workflow_dispatch:
 
 # needed to allow julia-actions/cache to delete old caches that it has created
@@ -56,6 +59,9 @@ jobs:
           - julia-version: '1.10'
             group: 'book'
             os: ubuntu-latest
+          - julia-version: 'nightly'
+            group: 'book'
+            os: ubuntu-latest
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -72,6 +78,7 @@ jobs:
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
+        id: setup-julia
         uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
@@ -93,6 +100,9 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
+      - name: "workaround libstdc++ issue for julia 1.6"
+        if: matrix.julia-version == '1.6' && runner.os == 'Linux'
+        run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
