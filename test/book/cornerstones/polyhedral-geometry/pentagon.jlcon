@@ -11,6 +11,7 @@ x_1 - 2*x_2 <= 1
 x_1 <= 1
 x_2 <= 1
 
+
 julia> f_vector(P)
 2-element Vector{ZZRingElem}:
  5

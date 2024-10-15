@@ -7,7 +7,7 @@ julia> degree(X)
 9
 
 julia> S = ambient_coordinate_ring(X)
-Multivariate polynomial ring in 5 variables over GF(31991) graded by 
+Multivariate polynomial ring in 5 variables over GF(31991) graded by
   x -> [1]
   y -> [1]
   z -> [1]
