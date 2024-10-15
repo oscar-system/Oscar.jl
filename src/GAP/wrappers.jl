@@ -92,6 +92,7 @@ GAP.@wrap EpimorphismSchurCover(x::GapObj)::GapObj
 GAP.@wrap ExponentsOfPcElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
+GAP.@wrap FactorCosetAction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
 GAP.@wrap FamilyPcgs(x::GAP.Obj)::GapObj
 GAP.@wrap Field(x::Any)::GapObj
@@ -342,6 +343,7 @@ GAP.@wrap SizesCentralizers(x::GapObj)::GapObj
 GAP.@wrap SizesConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
+GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
