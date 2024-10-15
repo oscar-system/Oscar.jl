@@ -353,14 +353,13 @@ function syzygy_generators(
   R = Oscar.parent(first(a))
   @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
   F = FreeMod(R, 1)
-  I, _ = sub(F, [x*F[1] for x in a])
-  return syzygy_generators(ambient_representatives_generators(I); parent)
+  return syzygy_generators(elem_type(F)[x*F[1] for x in a]; parent)
 end
 
 function syzygy_generators(
     a::Vector{T};
     parent::Union{FreeMod{T}, Nothing} = nothing
-  ) where {CT <: Union{<:FieldElem, ZZRingElem}, # Can be adjusted to whatever is digested by Singular
+  ) where {CT <: Union{<:FieldElem, ZZRingElem, QQPolyRingElem}, # Can be adjusted to whatever is digested by Singular
            T<:MPolyRingElem{CT}}
   isempty(a) && return Vector{FreeModElem{T}}()
   R = Oscar.parent(first(a))
