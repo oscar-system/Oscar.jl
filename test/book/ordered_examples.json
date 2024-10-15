@@ -2,21 +2,102 @@
   "_ns": {
     "Oscar": [
       "https://github.com/oscar-system/Oscar.jl",
-      "1.1.1"
+      "1.0.4"
     ]
   },
   "_type": {
     "name": "Dict",
     "params": {
       "key_type": "String",
-      "value_type": "Vector",
-      "value_params": {
+      "cornerstones/groups": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/boehm-breuer-git-fans": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/markwig-ristau-schleis-faithful-tropicalization": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "introduction/introduction": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/holt-ren-tropical-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/eder-mohr-ideal-theoretic": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/bies-turner-string-theory-applications": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/kuehne-schroeter-matroids": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/aga-boehm-hoffmann-markwig-traore": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/polyhedral-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/fang-fourier-monomial-bases": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/joswig-kastner-lorenz-confirmable-workflows": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/rose-sturmfels-telen-tropical-implicitization": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/brandhorst-zach-fibration-hopping": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/breuer-nebe-parker-orthogonal-discriminants": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/number-theory": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "cornerstones/algebraic-geometry": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/decker-schmitt-invariant-theory": {
+        "name": "Vector",
+        "params": "String"
+      },
+      "specialized/bies-kastner-toric-geometry": {
         "name": "Vector",
         "params": "String"
       }
     }
   },
   "data": {
+    "cornerstones/groups": [
+      "intro.jlcon",
+      "actions.jlcon",
+      "explSL25.jlcon",
+      "chars.jlcon",
+      "extensions.jlcon",
+      "cohomology.jlcon",
+      "reps.jlcon",
+      "genchar.jlcon"
+    ],
     "specialized/boehm-breuer-git-fans": [
       "explG25_1.jlcon",
       "explG25_2.jlcon",
@@ -35,6 +116,12 @@
       "vertices_P1.jlcon",
       "eliminate_xz.jlcon",
       "eliminate_yz.jlcon"
+    ],
+    "introduction/introduction": [
+      "julia.jlcon",
+      "julia-jit.jlcon",
+      "julia2.jlcon",
+      "julia3.jlcon"
     ],
     "specialized/holt-ren-tropical-geometry": [
       "semiring.jlcon",
@@ -56,50 +143,6 @@
       "intersection.jlcon",
       "grc.jlcon"
     ],
-    "specialized/bies-turner-string-theory-applications": [
-      "SU5.jlcon",
-      "SU5-2.jlcon"
-    ],
-    "specialized/aga-boehm-hoffmann-markwig-traore": [
-      "graphname.jlcon",
-      "Caterpillar3.jlcon"
-    ],
-    "specialized/joswig-kastner-lorenz-confirmable-workflows": [
-      "versioninfo.jlcon",
-      "polynomial-load.jlcon",
-      "snf.jlcon"
-    ],
-    "cornerstones/number-theory": [
-      "intro.jlcon",
-      "intro_plot_lattice.jlcon",
-      "unit_plot.jlcon",
-      "unit_log_plot.jlcon",
-      "general.jlcon",
-      "embeddings.jlcon",
-      "intro4.jlcon",
-      "sym.jlcon",
-      "sym_1.jlcon",
-      "cohenlenstra.jlcon",
-      "galoismod.jlcon",
-      "galoismod_1.jlcon",
-      "galoismod_2.jlcon"
-    ],
-    "cornerstones/groups": [
-      "intro.jlcon",
-      "actions.jlcon",
-      "explSL25.jlcon",
-      "chars.jlcon",
-      "extensions.jlcon",
-      "cohomology.jlcon",
-      "reps.jlcon",
-      "genchar.jlcon"
-    ],
-    "introduction/introduction": [
-      "julia.jlcon",
-      "julia-jit.jlcon",
-      "julia2.jlcon",
-      "julia3.jlcon"
-    ],
     "specialized/eder-mohr-ideal-theoretic": [
       "hilbert.jlcon",
       "gbeliminate.jlcon",
@@ -110,10 +153,18 @@
       "combinatorics.jlcon",
       "lcis.jlcon"
     ],
+    "specialized/bies-turner-string-theory-applications": [
+      "SU5.jlcon",
+      "SU5-2.jlcon"
+    ],
     "specialized/kuehne-schroeter-matroids": [
       "basics.jlcon",
       "realization_space.jlcon",
       "ChowRings.jlcon"
+    ],
+    "specialized/aga-boehm-hoffmann-markwig-traore": [
+      "graphname.jlcon",
+      "Caterpillar3.jlcon"
     ],
     "cornerstones/polyhedral-geometry": [
       "pentagon.jlcon",
@@ -139,16 +190,6 @@
       "GKZ_orbits.jlcon",
       "ch-benchmark.jlcon"
     ],
-    "specialized/rose-sturmfels-telen-tropical-implicitization": [
-      "gen_impl.jlcon",
-      "hyperdet.jlcon",
-      "get_hyperdet.jlcon",
-      "pol_from_surface.jlcon",
-      "coeffs_fin.jlcon",
-      "triang.jlcon",
-      "chow_fan.jlcon",
-      "chow_transl.jlcon"
-    ],
     "specialized/fang-fourier-monomial-bases": [
       "get-operators.jlcon",
       "basis.jlcon",
@@ -159,6 +200,21 @@
       "sl7-cases.jlcon",
       "oscar-vs-gap.jlcon",
       "gap.jlcon"
+    ],
+    "specialized/joswig-kastner-lorenz-confirmable-workflows": [
+      "versioninfo.jlcon",
+      "polynomial-load.jlcon",
+      "snf.jlcon"
+    ],
+    "specialized/rose-sturmfels-telen-tropical-implicitization": [
+      "gen_impl.jlcon",
+      "hyperdet.jlcon",
+      "get_hyperdet.jlcon",
+      "pol_from_surface.jlcon",
+      "coeffs_fin.jlcon",
+      "triang.jlcon",
+      "chow_fan.jlcon",
+      "chow_transl.jlcon"
     ],
     "specialized/brandhorst-zach-fibration-hopping": [
       "vinberg_1.jlcon",
@@ -175,6 +231,21 @@
       "expl_nongalois.jlcon",
       "expl_od_odd.jlcon",
       "expl_plusminus.jlcon"
+    ],
+    "cornerstones/number-theory": [
+      "intro.jlcon",
+      "intro_plot_lattice.jlcon",
+      "unit_plot.jlcon",
+      "unit_log_plot.jlcon",
+      "general.jlcon",
+      "embeddings.jlcon",
+      "intro4.jlcon",
+      "sym.jlcon",
+      "sym_1.jlcon",
+      "cohenlenstra.jlcon",
+      "galoismod.jlcon",
+      "galoismod_1.jlcon",
+      "galoismod_2.jlcon"
     ],
     "cornerstones/algebraic-geometry": [
       "ex11.jlcon",
