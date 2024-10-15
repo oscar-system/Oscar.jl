@@ -1,4 +1,4 @@
-julia> Oscar.randseed!(3371100);
+julia> Oscar.randseed!(7360734);
 
 julia> Qx, x = QQ["x"];
 
