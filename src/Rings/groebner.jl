@@ -506,22 +506,7 @@ function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 end
 
 # syzygies #######################################################
-# See src/Modules/UngradedModules/FreeMod.jl for the generic implementation.
-function syzygy_generators(
-    a::Vector{T};
-    parent::Union{FreeMod{T}, Nothing} = nothing
-  ) where {CT <: Union{<:FieldElem, ZZRingElem}, # Can be adjusted to whatever is digested by Singular
-           T<:MPolyRingElem{CT}}
-  isempty(a) && return Vector{FreeModElem{T}}()
-  R = Oscar.parent(first(a))
-  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
-  I = ideal(R, a)
-  s = Singular.syz(singular_generators(I))
-  F = (parent === nothing ? FreeMod(R, length(a)) : parent)::FreeMod{T}
-  @assert ngens(F) == length(a) "parent does not have the correct number of generators"
-  @assert rank(s) == length(a)
-  return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
-end
+# See src/Modules/UngradedModules/FreeMod.jl for the implementation. 
 
 # leading ideal #######################################################
 @doc raw"""
