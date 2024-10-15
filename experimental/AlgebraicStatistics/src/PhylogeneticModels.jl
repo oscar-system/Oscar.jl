@@ -6,7 +6,7 @@ struct PhylogeneticModel
   graph::Graph{Directed}
   n_states::Int
   prob_ring::MPolyRing{QQFieldElem}
-  root_distr::Vector{Any}
+  root_distr::Vector
   trans_matrices::Dict{Edge, MatElem{QQMPolyRingElem}}
 end
 
@@ -158,7 +158,7 @@ Return the distribution of the random variable at the root of the tree specifyin
 julia> pm = jukes_cantor_model(graph_from_edges(Directed,[[4,1],[4,2],[4,3]]));
 
 julia> root_distribution(pm)
-4-element Vector{Any}:
+4-element Vector{QQFieldElem}:
  1//4
  1//4
  1//4
@@ -247,7 +247,7 @@ function cavender_farris_neyman_model(graph::Graph{Directed})
   ne = n_edges(graph)
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
-  root_distr = repeat([1//ns], outer = ns)
+  root_distr = repeat([QQ(1,ns)], outer = ns)
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b 
@@ -288,7 +288,7 @@ function jukes_cantor_model(graph::Graph{Directed})
   ne = n_edges(graph)
   R, list_a, list_b = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne; cached=false)
   
-  root_distr = repeat([1//ns], outer = ns)
+  root_distr = repeat([QQ(1, ns)], outer = ns)
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b b b
@@ -332,7 +332,7 @@ function kimura2_model(graph::Graph{Directed})
   ne = n_edges(graph)
   R, list_a, list_b, list_c = polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne; cached=false)
   
-  root_distr = repeat([1//ns], outer = ns)
+  root_distr = repeat([QQ(1,ns)], outer = ns)
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c b
@@ -375,7 +375,7 @@ function kimura3_model(graph::Graph{Directed})
   ne = n_edges(graph)
   R, list_a, list_b , list_c, list_d= polynomial_ring(QQ, :a => 1:ne, :b => 1:ne, :c => 1:ne, :d => 1:ne; cached=false)
   
-  root_distr = repeat([1//ns], outer = ns)
+  root_distr = repeat([QQ(1,ns)], outer = ns)
   edgs = sort_edges(graph)
   matrices = Dict{Edge, MatElem}(e => matrix(R, [
     a b c d
