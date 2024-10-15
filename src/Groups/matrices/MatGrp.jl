@@ -537,9 +537,9 @@ end
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
       L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
-      G.gens = [MatrixGroupElem(G, a) for a in L]
+      G.gens = [MatrixGroupElem(G, a::GapObj) for a in L]
    end
-   return G.gens
+   return G.gens::Vector{elem_type(G)}
 end
 
 # Note that the `gen(G::GAPGroup, i::Int)` method cannot be used
