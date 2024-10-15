@@ -4,8 +4,7 @@ julia> f = x^5 + 10*x^4*y + 20*x^3*y^2 + 130*x^2*y^3 - 20*x*y^4 + 20*y^5 - 2*x^4
 
 julia> C = plane_curve(f)
 Projective plane curve
-  defined by 0 = x^5 + 10*x^4*y - 2*x^4*z + 20*x^3*y^2 - 40*x^3*y*z + x^3*z^2 + 130*x^2*y^3 - 150*x^2*y^2*z + 30*x^2*y*z^2 - 20*x*
-  y^4 - 90*x*y^3*z + 110*x*y^2*z^2 + 20*y^5 - 40*y^4*z + 20*y^3*z^2
+  defined by 0 = x^5 + 10*x^4*y - 2*x^4*z + 20*x^3*y^2 - 40*x^3*y*z + x^3*z^2 + 130*x^2*y^3 - 150*x^2*y^2*z + 30*x^2*y*z^2 - 20*x*y^4 - 90*x*y^3*z + 110*x*y^2*z^2 + 20*y^5 - 40*y^4*z + 20*y^3*z^2
 
 julia> conics = [x^2-x*z, y^2-y*z];
 

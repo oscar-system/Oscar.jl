@@ -31,7 +31,7 @@ julia> is_affine(v2)
 false
 
 julia> cox_ring(v2)
-Multivariate polynomial ring in 3 variables over QQ graded by
+Multivariate polynomial ring in 3 variables over QQ graded by 
   u1 -> [1]
   u2 -> [1]
   e -> [-2]
