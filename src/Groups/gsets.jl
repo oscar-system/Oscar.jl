@@ -455,7 +455,7 @@ If `check` is `false` then it is not checked whether `omega` is in `Omega`.
 julia> Omega = gset(symmetric_group(3));
 
 julia> stabilizer(Omega)
-(Permutation group of degree 3 and order 2, Hom: permutation group -> G)
+(Permutation group of degree 3 and order 2, Hom: permutation group -> Sym(3))
 ```
 """
 @attr Tuple{sub_type(T), Map{sub_type(T), T}} function stabilizer(Omega::GSet{T,S}) where {T,S}
