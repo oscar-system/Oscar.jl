@@ -506,39 +506,7 @@ function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 end
 
 # syzygies #######################################################
-@doc raw"""
-    syzygy_generators(
-        a::Vector{T};
-        parent::Union{FreeMod{T}, Nothing} = nothing
-      ) where {T<:RingElem}
-
-Return generators for the syzygies on the polynomials given as elements of `a`.
-The optional keyword argument can be used to specify the parent of the output.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
-(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
-
-julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-3-element Vector{FreeModElem{QQMPolyRingElem}}:
- (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
- (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
- (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
-```
-"""
-function syzygy_generators(
-    a::Vector{T};
-    parent::Union{FreeMod{T}, Nothing} = nothing
-  ) where {T<:RingElem}
-  isempty(a) && return Vector{FreeModElem{T}}()
-  R = Oscar.parent(first(a))
-  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
-  F = FreeMod(R, 1)
-  I, _ = sub(F, [x*F[1] for x in a])
-  return syzygy_generators(ambient_representatives_generators(I); parent)
-end
-
+# See src/Modules/UngradedModules/FreeMod.jl for the generic implementation.
 function syzygy_generators(
     a::Vector{T};
     parent::Union{FreeMod{T}, Nothing} = nothing
