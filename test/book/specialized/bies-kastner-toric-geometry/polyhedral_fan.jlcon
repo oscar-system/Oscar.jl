@@ -18,6 +18,5 @@ julia> maximal_cones(IncidenceMatrix, tv)
 [2, 3]
 [2, 4]
 
-
 julia> Sigma = polyhedral_fan(tv)
 Polyhedral fan in ambient dimension 2

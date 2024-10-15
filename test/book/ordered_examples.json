@@ -2,86 +2,15 @@
   "_ns": {
     "Oscar": [
       "https://github.com/oscar-system/Oscar.jl",
-      "1.0.0"
+      "1.1.1"
     ]
   },
   "_type": {
     "name": "Dict",
     "params": {
       "key_type": "String",
-      "specialized/boehm-breuer-git-fans": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/markwig-ristau-schleis-faithful-tropicalization": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/holt-ren-tropical-geometry": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/bies-turner-string-theory-applications": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/aga-boehm-hoffmann-markwig-traore": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/joswig-kastner-lorenz-confirmable-workflows": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "cornerstones/number-theory": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "cornerstones/groups": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "introduction/introduction": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/eder-mohr-ideal-theoretic": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/kuehne-schroeter-matroids": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "cornerstones/polyhedral-geometry": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/rose-sturmfels-telen-tropical-implicitization": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/fang-fourier-monomial-bases": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/brandhorst-zach-fibration-hopping": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/breuer-nebe-parker-orthogonal-discriminants": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "cornerstones/algebraic-geometry": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/decker-schmitt-invariant-theory": {
-        "name": "Vector",
-        "params": "String"
-      },
-      "specialized/bies-kastner-toric-geometry": {
+      "value_type": "Vector",
+      "value_params": {
         "name": "Vector",
         "params": "String"
       }
@@ -144,16 +73,16 @@
       "intro.jlcon",
       "intro_plot_lattice.jlcon",
       "unit_plot.jlcon",
-      "unit_log_plot.jl",
+      "unit_log_plot.jlcon",
       "general.jlcon",
       "embeddings.jlcon",
       "intro4.jlcon",
       "sym.jlcon",
-      "sym_1.jl",
+      "sym_1.jlcon",
       "cohenlenstra.jlcon",
       "galoismod.jlcon",
-      "galoismod_1.jl",
-      "galoismod_2.jl"
+      "galoismod_1.jlcon",
+      "galoismod_2.jlcon"
     ],
     "cornerstones/groups": [
       "intro.jlcon",
@@ -226,12 +155,14 @@
       "fflv.jlcon",
       "string.jlcon",
       "lusztig.jlcon",
-      "nz.jlcon"
+      "nz.jlcon",
+      "sl7-cases.jlcon",
+      "oscar-vs-gap.jlcon",
+      "gap.jlcon"
     ],
     "specialized/brandhorst-zach-fibration-hopping": [
       "vinberg_1.jlcon",
-      "vinberg_2.jlcon",
-      "vinberg_3.jlcon"
+      "vinberg_2.jlcon"
     ],
     "specialized/breuer-nebe-parker-orthogonal-discriminants": [
       "expl_order.jlcon",
