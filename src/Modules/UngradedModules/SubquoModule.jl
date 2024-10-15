@@ -754,7 +754,7 @@ function set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
   set_default_ordering!(M.sum, ord)
 end
 
-function standard_basis(M::SubquoModule; ordering::ModuleOrdering = default_ordering(M))
+function standard_basis(M::SubquoModule; ordering::Union{ModuleOrdering, Nothing} = nothing)
   error("standard basis computation is not supported for modules over rings of type $(typeof(base_ring(M)))")
 end
 
