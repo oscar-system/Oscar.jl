@@ -507,9 +507,13 @@ end
 
 # syzygies #######################################################
 @doc raw"""
-    syzygy_generators(G::Vector{<:MPolyRingElem})
+    syzygy_generators(
+        a::Vector{T};
+        parent::Union{FreeMod{T}, Nothing} = nothing
+      ) where {T<:RingElem}
 
-Return generators for the syzygies on the polynomials given as elements of `G`.
+Return generators for the syzygies on the polynomials given as elements of `a`.
+The optional keyword argument can be used to specify the parent of the output.
 
 # Examples
 ```jldoctest
@@ -523,12 +527,32 @@ julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
  (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
 ```
 """
-function syzygy_generators(a::Vector{<:MPolyRingElem})
-  I = ideal(a)
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {T<:RingElem}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  F = FreeMod(R, 1)
+  I, _ = sub(F, [x*F[1] for x in a])
+  return syzygy_generators(ambient_representatives_generators(I); parent)
+end
+
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {CT <: Union{<:FieldElem, ZZRingElem}, # Can be adjusted to whatever is digested by Singular
+           T<:MPolyRingElem{CT}}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  I = ideal(R, a)
   s = Singular.syz(singular_generators(I))
-  F = free_module(parent(a[1]), length(a))
+  F = (parent === nothing ? FreeMod(R, length(a)) : parent)::FreeMod{T}
+  @assert ngens(F) == length(a) "parent does not have the correct number of generators"
   @assert rank(s) == length(a)
-  return [F(s[i]) for i=1:Singular.ngens(s)]
+  return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
 end
 
 # leading ideal #######################################################
