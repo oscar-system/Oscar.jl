@@ -203,7 +203,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   if model_dict["arxiv_data"]["id"] == "1903.00009"
 
     # Read in the QSM-model form the database
-    model_dict["literature_identifier"] = "1903.00009"
+    model_dict["literature_identifier"] = "1903_00009"
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
@@ -276,6 +276,11 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
       @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
     end
     
+    # Add additional information that is always known for weierstrass/tate 
+    if (model_dict["model_descriptors"]["type"] == "weierstrass") || (model_dict["model_descriptors"]["type"] == "tate")
+      model_dict["model_data"]["zero_section_class"] = "z"
+    end
+
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
     @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
@@ -634,7 +639,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
   end
   
-  if haskey(model_dict["model_data"], "zero_section_class")
+  if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
     set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
   end
 

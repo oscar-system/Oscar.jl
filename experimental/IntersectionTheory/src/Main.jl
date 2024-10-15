@@ -24,13 +24,13 @@ Then, we show the constructor above at work.
 julia> P4 = abstract_projective_space(4)
 AbstractVariety of dim 4
 
-julia> A = 5*line_bundle(P4, 2)
+julia> A = 5*OO(P4, 2)
 AbstractBundle of rank 5 on AbstractVariety of dim 4
 
 julia> B = 2*exterior_power(cotangent_bundle(P4), 2)*OO(P4, 5)
 AbstractBundle of rank 12 on AbstractVariety of dim 4
 
-julia> C = 5*line_bundle(P4, 3)
+julia> C = 5*OO(P4, 3)
 AbstractBundle of rank 5 on AbstractVariety of dim 4
 
 julia> F = B-A-C
@@ -230,6 +230,25 @@ In case of an inclusion $i:X\hookrightarrow Y$ where the class of `X` is not
 present in the Chow ring of `Y`, use the argument `inclusion = true`. Then,
 a copy of `Y` will be created, with extra classes added so that one can
 pushforward all classes on `X`.
+
+# Examples
+
+```jldoctest
+julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
+AbstractVariety of dim 4
+
+julia> P8 = abstract_projective_space(8)
+AbstractVariety of dim 8
+
+julia> k, l = gens(P2xP2)
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ k
+ l
+
+julia> Se = hom(P2xP2, P8, [k+l]) # Segre embedding
+AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
+```
+
 """
 function hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
   AbstractVarietyMap(X, Y, fˣ, fₓ)
@@ -1063,8 +1082,8 @@ end
 
 Return the product $X\times Y$. Alternatively, use `*`.
 
-!!!note 
-   If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
+!!! note 
+    If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
@@ -1188,6 +1207,7 @@ end
     -(F::AbstractBundle)
     *(n::RingElement, F::AbstractBundle)
     +(F::AbstractBundle, G::AbstractBundle)
+    -(F::AbstractBundle, G::AbstractBundle)
     *(F::AbstractBundle, G::AbstractBundle)
     
 Return `-F`, the sum `F` $+ \dots +$ `F` of `n` copies of `F`, `F` $+$ `G`, `F` $-$ `G`, and the tensor product of `F` and `G`, respectively.
@@ -1412,7 +1432,7 @@ Given an element `x` of the Chow ring of an abstract variety `X`, say, return th
 
 !!! note
     If `X` has a (unique) point class, the integral will be a
-number (that is, a `QQFieldElem` or a function field element). Otherwise, the highests degree part of $x$ is returned
+number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest degree part of $x$ is returned
 (geometrically, this is the 0-dimensional part of $x$).
 
 # Examples
@@ -1443,7 +1463,7 @@ end
 @doc raw"""
     intersection_matrix(X::AbstractVariety)
 
-If `b = basis(X)`, return `matrix([integral(bi*bj) for bi in b, bj in b])`.
+If `b = vcat(basis(X)...)`, return `matrix([integral(bi*bj) for bi in b, bj in b])`.
     
     intersection_matrix(a::Vector, b::Vector)
 
@@ -1458,13 +1478,22 @@ As above, with `b = a`.
 julia> G = abstract_grassmannian(2,4)
 AbstractVariety of dim 4
 
-julia> b = basis(G)
+julia> basis(G)
 5-element Vector{Vector{MPolyQuoRingElem}}:
  [1]
  [c[1]]
  [c[2], c[1]^2]
  [c[1]*c[2]]
  [c[2]^2]
+
+julia> b = vcat(basis(G)...)
+6-element Vector{MPolyQuoRingElem}:
+ 1
+ c[1]
+ c[2]
+ c[1]^2
+ c[1]*c[2]
+ c[2]^2
 
 julia> intersection_matrix(G)
 [0   0   0   0   0   1]
@@ -1474,7 +1503,7 @@ julia> intersection_matrix(G)
 [0   1   0   0   0   0]
 [1   0   0   0   0   0]
 
-julia> integral(b[3][2]*b[3][2])
+julia> integral(b[4]*b[4])
 2
 
 ```
@@ -2018,16 +2047,16 @@ Quotient
     h -> [1]
   by ideal (h^3, z^2 + 3*z*h + 3*h^2)
 
+julia> [chern_class(T, i) for i = 1:2]
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ 3*h
+ 3*h^2
+
 julia> gens(PT)[1]
 z
 
 julia> gens(PT)[1] == hyperplane_class(PT)
 true
-
-julia> [chern_class(T, i) for i = 1:2]
-2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- 3*h
- 3*h^2
 
 ```
 

@@ -110,7 +110,7 @@ Weierstrass model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> weierstrass_ideal_sheaf(w)
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal with 1 generator
    2: Ideal with 1 generator

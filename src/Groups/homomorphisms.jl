@@ -1259,7 +1259,7 @@ function Base.show(io::IO, A::AutomorphismGroup{T}) where T <: GAPGroup
 end
 
 """
-  domain(A::AutomorphismGroup) -> Group
+    domain(A::AutomorphismGroup) -> Group
 
 Return the domain of this group of automorphisms.
 """
@@ -1311,6 +1311,11 @@ function apply_automorphism(f::GAPGroupElem{AutomorphismGroup{T}}, x::GAPGroupEl
   end
   return typeof(x)(G, GAPWrap.ImagesRepresentative(GapObj(f), GapObj(x)))
 end
+
+# According to the documentation, `hom(x) in A` shall return `false`
+# for an element `x` of `A`.
+# We install a method for that.
+Base.in(::GAPGroupHomomorphism, ::AutomorphismGroup{<: GAPGroup}) = false
 
 Base.:*(f::GAPGroupElem{AutomorphismGroup{T}}, g::GAPGroupHomomorphism) where T = hom(f)*g
 Base.:*(f::GAPGroupHomomorphism, g::GAPGroupElem{AutomorphismGroup{T}}) where T = f*hom(g)

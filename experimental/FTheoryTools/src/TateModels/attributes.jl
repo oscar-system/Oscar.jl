@@ -162,7 +162,7 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> tate_ideal_sheaf(t)
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal with 1 generator
    2: Ideal with 1 generator

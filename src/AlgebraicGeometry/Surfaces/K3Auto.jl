@@ -625,9 +625,11 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   gramW = gram_matrix(W)
   s = solve(bW, v*prW; side = :left) * gramW
   Q = gramW + transpose(s)*s*ch*cv^-2
+  
 
   @vprint :K3Auto 5 Q
   LQ = integer_lattice(gram=-Q*denominator(Q))
+  
 
   S = QQMatrix[]
   h = change_base_ring(QQ, h)

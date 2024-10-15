@@ -121,8 +121,6 @@ end
 end
 
 
-#=
-# These tests are disabled, because they are dependent on factorisation order...
 @testset "two neighbor steps" begin
   K = GF(7)
   Kt, t = polynomial_ring(K, :t)
@@ -144,11 +142,18 @@ end
                                                  [2   1   -1   -2   -3   -2   -1   0   -2   -1   -1   -2   -2   -2   -2   -2   -2   -1   0   1],
                                                  [2   1   0   0   0   0   0   0   0   -2   -2   -4   -4   -4   -4   -3   -2   -1   0   1]
                                                 ]]
+  NS = algebraic_lattice(X2)[3]
+  if !(fibers_in_X2[4] in NS)
+    # account for the order of the basis not being unique 
+    f = fibers_in_X2[4]
+    f[10:11] = reverse(f[10:11])
+    fibers_in_X2[4] = f 
+  end
   g4,_ = two_neighbor_step(X2, fibers_in_X2[4])  # this should be the 2-torsion case
   g5,_ = two_neighbor_step(X2, fibers_in_X2[5])  # the non-torsion case
   g6,_ = two_neighbor_step(X2, fibers_in_X2[6])  # the non-torsion case
 end
-=#
+
 
 #=
 # The following tests take roughly 10 minutes which is too much for the CI testsuite.

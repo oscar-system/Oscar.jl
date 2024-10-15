@@ -23,7 +23,12 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/manual/abelian/introduction.md",
+     "Abelian Groups" => [
+        "Introduction" => "Hecke/manual/abelian/introduction.md",
+        "Elements" => "Hecke/manual/abelian/elements.md",
+        "Morphisms" => "Hecke/manual/abelian/maps.md",
+        "Structural Computations" => "Hecke/manual/abelian/structural.md",
+     ],
      "Groups/group_characters.md",
      "Groups/recog.md",
      "Groups/tom.md",
