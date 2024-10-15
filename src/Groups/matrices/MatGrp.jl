@@ -214,7 +214,7 @@ function _ring_iso(G::MatrixGroup{T}) where T
                                y -> nf_to_QQBar(preimage(iso, y))
                                )
     else
-      G.ring_iso = iso_oscar_gap(base_ring(G))
+      G.ring_iso = iso_oscar_gap(base_ring(G))::MapFromFunc{parent_type(T), GapObj}
     end
   end
   return G.ring_iso::MapFromFunc{parent_type(T), GapObj}
@@ -251,7 +251,7 @@ function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
          assign_from_description(G)
       elseif isdefined(G,:gens)
          V = GapObj(gens(G); recursive=true)
-         G.X = isempty(V) ? GAP.Globals.Group(V, GapObj(one(G))) : GAP.Globals.Group(V)
+         G.X = isempty(V) ? GAPWrap.Group(V, GapObj(one(G))) : GAPWrap.Group(V)
       else
          error("Cannot determine underlying GAP object")
       end

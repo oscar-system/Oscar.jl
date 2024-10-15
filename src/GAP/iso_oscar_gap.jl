@@ -591,7 +591,7 @@ function AbstractAlgebra.map_entries(f::Map{T, GapObj}, a::MatrixElem{S}) where 
    @assert base_ring(a) === domain(f)
    rows = Vector{GapObj}(undef, nrows(a))
    for i in 1:nrows(a)
-      rows[i] = GapObj([f(a[i, j]) for j in 1:ncols(a)])
+      rows[i] = GapObj([f(a[i, j])::GAP.Obj for j in 1:ncols(a)])
    end
    return GAPWrap.ImmutableMatrix(codomain(f), GapObj(rows), true)
 end
