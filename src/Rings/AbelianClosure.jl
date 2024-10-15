@@ -1044,7 +1044,7 @@ end
 # Then $l = k a n_0 + b n_1$ is coprime to $n$ and has the properties
 # $l \equiv 1 \pmod{n_0}$ and $l \equiv k \pmod{n_1}$.
 
-mutable struct QQAbAutomorphism
+struct QQAbAutomorphism
   exp::Int
 end
 
@@ -1083,6 +1083,8 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
 end
 
 Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
+
+Base.isreal(elm::QQAbFieldElem) = conj(elm) == elm
 
 ###############################################################################
 #
