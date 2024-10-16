@@ -7,8 +7,8 @@ on:
       - 'release-*'
   pull_request:
   schedule:
-    # Every day at 3:10 AM UTC
-    - cron: '10 3 * * *'
+      # Every day at 3:10 AM UTC
+      - cron: '10 3 * * *'
   workflow_dispatch:
 
 # needed to allow julia-actions/cache to delete old caches that it has created
@@ -35,10 +35,10 @@ jobs:
           - '1.10'
           - '1.11-nightly'
           - 'nightly'
-        group: ['short', 'long']
+        group: [ 'short', 'long' ]
         os:
           - [Linux, RPTU]
-        depwarn: ['']
+        depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
@@ -52,16 +52,16 @@ jobs:
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
           - julia-version: '1.10'
             group: 'short'
-            os: [macOS, RPTU] # runs on self-hosted runner
+            os: [macOS, RPTU]  # runs on self-hosted runner
           - julia-version: '1.10'
             group: 'long'
-            os: [macOS, RPTU] # runs on self-hosted runner
+            os: [macOS, RPTU]  # runs on self-hosted runner
           - julia-version: '1.10'
             group: 'book'
-            os: [macOS, RPTU] # runs on self-hosted runner
+            os: [Linux, RPTU] # runs on self-hosted runner
           - julia-version: 'nightly'
             group: 'book'
-            os: [macOS, RPTU] # runs on self-hosted runner
+            os: [Linux, RPTU] # runs on self-hosted runner
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
@@ -136,7 +136,7 @@ jobs:
           - 'nightly'
         os:
           - [Linux, RPTU]
-        depwarn: ['']
+        depwarn: [ '' ]
         include:
           # Add a single job with deprecation errors on the most recent stable julia version
           - julia-version: '1.10'
