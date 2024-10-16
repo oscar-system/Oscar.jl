@@ -1310,6 +1310,6 @@ end
   @test s1 == s2
   s3 = syzygy_generators(ambient_representatives_generators(M))
   @test s3 != s2
-  @test_throws AssertionError syzygy_generators(ambient_representatives_generators(M); parent=F)
+  @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
 end
 

@@ -318,7 +318,7 @@ function syzygy_generators(
   R = base_ring(F)
   m = length(g)
   G = (parent === nothing ?  FreeMod(R, m) : parent)::typeof(F)
-  @assert ngens(G) == m "given parent does not have the correct number of generators"
+  @req ngens(G) == m "given parent does not have the correct number of generators"
   phi = hom(G, F, g)
   K, _ = kernel(phi)
   return ambient_representatives_generators(K)
@@ -367,7 +367,7 @@ function syzygy_generators(
   I = ideal(R, a)
   s = Singular.syz(singular_generators(I))
   F = (parent === nothing ? FreeMod(R, length(a)) : parent)::FreeMod{T}
-  @assert ngens(F) == length(a) "parent does not have the correct number of generators"
+  @req ngens(F) == length(a) "parent does not have the correct number of generators"
   @assert rank(s) == length(a)
   return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
 end
