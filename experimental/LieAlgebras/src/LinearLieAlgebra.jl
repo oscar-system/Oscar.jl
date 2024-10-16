@@ -202,7 +202,7 @@ end
 function lie_algebra(
   basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:FieldElem}
-  @req !isempty(basis) "Basis must not be empty, or provide the lie algebra as first argument"
+  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
   return lie_algebra(parent(basis[1]), basis; check)
 end
 

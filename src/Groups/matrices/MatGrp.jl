@@ -465,7 +465,7 @@ Return the underlying matrix of `x`.
 """
 function matrix(x::MatrixGroupElem)
   if !isdefined(x, :elm)
-    x.elm = preimage_matrix(_ring_iso(parent(x)), x.X)
+    x.elm = preimage_matrix(_ring_iso(parent(x)), GapObj(x))
   end
   return x.elm
 end
@@ -1035,7 +1035,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
 end
 
 function Base.rand(rng::Random.AbstractRNG, C::GroupConjClass{S,T}) where S<:MatrixGroup where T<:MatrixGroup
-   H = matrix_group(base_ring(C.X), degree(C.X))
+   H = matrix_group(base_ring(acting_group(C)), degree(acting_group(C)))
    H.X = GAP.Globals.Random(GAP.wrap_rng(rng), C.CC)::GapObj
    return H
 end
