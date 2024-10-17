@@ -82,3 +82,17 @@ end
   @test GAP.Globals.IsMutable(cgg)
   @test cgg !== c.X
 end
+
+@testset "generate letters from polycyclic group element" begin
+
+  # finite polycyclic groups
+  c = collector(2, Int);
+  set_relative_order!(c, 1, 2)
+  set_relative_order!(c, 2, 3)
+  set_power!(c, 1, [2 => 1])
+  gg = pc_group(c)
+  @test letters(gg[1]^5*gg[2]^-4) == [1, 2, 2]
+  @test letters(gg[1]^5*gg[2]^4) == [1, 2] # all positive exp
+  @test letters(gg[1]^-5*gg[2]^-7) == [1, 2, 2] # all negative exp
+  @test letters(gg[1]^2*gg[2]^3) == [] # both identity elements
+end
