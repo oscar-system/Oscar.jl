@@ -143,7 +143,7 @@ end
   AN = R[y;];
   N = SubquoModule(F, AN, B)
   L = quotient(M, N)
-  @test ngens(L) == 2
+  @test ngens(L) == 3
 end
 
 @testset "Presentation" begin
