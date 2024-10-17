@@ -128,6 +128,24 @@ end
   @test iszero(I)
 end
 
+@testset "module quotients" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+  F = free_module(R, 1);
+  V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+  N, _ = sub(F, V);
+  @test iszero(annihilator(N))
+  
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+  F = graded_free_module(R, 1);
+  B = R[x^2; y^3; z^4];
+  AM = R[x;];
+  M = SubquoModule(F, AM, B)
+  AN = R[y;];
+  N = SubquoModule(F, AN, B)
+  L = quotient(M, N)
+  @test ngens(L) == 3
+end
+
 @testset "Presentation" begin
   Oscar.set_seed!(235)
 
