@@ -6,9 +6,9 @@ import Polymake: IncidenceMatrix
 A matrix with boolean entries. Each row corresponds to a fixed element of a collection of mathematical objects and the same holds for the columns and a second (possibly equal) collection. A `1` at entry `(i, j)` is interpreted as an incidence between object `i` of the first collection and object `j` of the second one.
 
 # Examples
-Note that the input and print of an `IncidenceMatrix` lists the non-zero indices for each row.
+Note that the input of this example and the print of an `IncidenceMatrix` list the non-zero indices for each row.
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
@@ -26,6 +26,78 @@ julia> IM[:, 4]
 ```
 """
 IncidenceMatrix
+
+@doc raw"""
+    incidence_matrix(r::Base.Integer, c::Base.Integer)
+
+Return an `IncidenceMatrix` of size r x c whose entries are all `false`.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix(8, 5)
+8×5 IncidenceMatrix
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+[]
+
+```
+"""
+incidence_matrix(r::Base.Integer, c::Base.Integer) = IncidenceMatrix(undef, r, c)
+
+@doc raw"""
+    incidence_matrix(mat::AbstractMatrix)
+
+Convert `mat` to an `IncidenceMatrix`. Entries become `true` if and only if they are non-zero.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix([1 0 2 0 3 0; 0 4 0 5 0 6])
+2×6 IncidenceMatrix
+[1, 3, 5]
+[2, 4, 6]
+
+```
+"""
+incidence_matrix(mat::AbstractMatrix) = IncidenceMatrix(mat)
+
+@doc raw"""
+    incidence_matrix(r::Base.Integer, c::Base.Integer, incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
+
+Return an `IncidenceMatrix` of size r x c. The i-th element of `incidenceRows` lists the indices of the `true` entries of the i-th row.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
+3×4 IncidenceMatrix
+[2, 3]
+[1]
+[]
+
+```
+"""
+incidence_matrix(r::Base.Integer, c::Base.Integer, incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) = IncidenceMatrix(r, c, incidenceRows)
+
+@doc raw"""
+    incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
+
+Return an `IncidenceMatrix` where the i-th element of `incidenceRows` lists the indices of the `true` entries of the i-th row. The dimensions of the result are the smallest possible row and column count that can be deduced from the input.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
+3×4 IncidenceMatrix
+[2, 3]
+[1]
+[]
+
+```
+"""
+incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) = IncidenceMatrix(incidenceRows)
 
 number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
 number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
