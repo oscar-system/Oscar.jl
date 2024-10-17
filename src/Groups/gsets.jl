@@ -24,7 +24,7 @@ import Hecke.orbit
 
 
 """
-    GSetByElements{T,S} <: GSet{T}
+    GSetByElements{T,S} <: GSet{T,S}
 
 Objects of this type represent G-sets that are willing to write down
 orbits and elements lists as vectors.
@@ -440,6 +440,34 @@ julia> map(length, orbs)
 ```
 """
 @attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(gset(G))
+
+
+"""
+    stabilizer(Omega::GSet{T,S})
+    stabilizer(Omega::GSet{T,S}, omega::S = representative(Omega); check::Bool = true) where {T,S}
+
+Return the subgroup of `G = acting_group(Omega)` that fixes `omega`,
+together with the embedding of this subgroup into `G`.
+If `check` is `false` then it is not checked whether `omega` is in `Omega`.
+
+# Examples
+```jldoctest
+julia> Omega = gset(symmetric_group(3));
+
+julia> stabilizer(Omega)
+(Permutation group of degree 3 and order 2, Hom: permutation group -> Sym(3))
+```
+"""
+@attr Tuple{sub_type(T), Map{sub_type(T), T}} function stabilizer(Omega::GSet{T,S}) where {T,S}
+    return stabilizer(Omega, representative(Omega), check = false)
+end
+
+function stabilizer(Omega::GSet{T,S}, omega::S; check::Bool = true) where {T,S}
+    check && @req omega in Omega "omega must be an element of Omega"
+    G = acting_group(Omega)
+    gfun = action_function(Omega)
+    return stabilizer(G, omega, gfun)
+end
 
 
 #############################################################################
