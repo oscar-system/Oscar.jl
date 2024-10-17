@@ -623,12 +623,12 @@ function map_entries(f, G::MatrixGroup)
 end
 
 function map_entries(R::Ring, G::MatrixGroup)
-  imgs = [map_entries(R, matrix(x)) for x in gens(G)]
+  imgs = dense_matrix_type(R)[map_entries(R, matrix(x)) for x in gens(G)]
   return matrix_group(R, degree(G), imgs)
 end
 
 function map_entries(mp::Map, G::MatrixGroup)
-  imgs = [map_entries(mp, matrix(x)) for x in gens(G)]
+  imgs = dense_matrix_type(codomain(mp))[map_entries(mp, matrix(x)) for x in gens(G)]
   return matrix_group(codomain(mp), degree(G), imgs)
 end
 
