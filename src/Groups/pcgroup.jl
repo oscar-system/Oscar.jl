@@ -365,6 +365,35 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+"""
+    letters(g::PcGroupElem)
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> Oscar.set_relative_orders!(c, [2, 3])
+
+julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
+
+julia> gg = pc_group(c)
+Pc group of order 6
+
+julia> letters(gg[1]^5*gg[2]^-4)
+3-element Vector{Int64}:
+ 1
+ 2
+ 2
+```
+"""
+function letters(g::PcGroupElem)
+  w = GAPWrap.UnderlyingElement(GapObj(g))
+  return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+end 
+
 function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   @assert iseven(length(l))
