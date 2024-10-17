@@ -49,7 +49,7 @@
       if S == LinearHalfspace{T}
         @test issetequal(facets(S, Cone1), linear_halfspace.(Ref(f), [[-1, 0], [0, -1]]))
       else
-        # @test issetequal(facets(S, Cone1), cone_from_inequalities.(Ref(f), [[-1 0], [0 -1]]))
+        @test issetequal(facets(S, Cone1), positive_hull.(Ref(f), [[1 0], [0 1]]))
       end
       @test linear_inequality_matrix(facets(S, Cone1)) == _oscar_matrix_from_property(f, facets(S, Cone1))
       @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == _polymake_matrix_from_property(facets(S, Cone1))
