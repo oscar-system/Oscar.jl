@@ -1275,3 +1275,41 @@ end
   F = graded_free_module(Pn, 1)
   dualFIC = hom(FI.C, F)
 end
+
+@testset "issue 4203" begin
+  R, (x,y) = polynomial_ring(GF(2), ["x","y"]);
+  
+  g = [x+1, y+1]
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  A, _ = quo(R, ideal(R, [x^2+1, y^2+1]));
+  
+  g = A.([x+1, y+1])
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  F = free_module(A,2);
+  M,_ = sub(F, [F([A(x+1),A(y+1)])]);
+  FF = free_module(A, ngens(M)); 
+  phi = hom(FF, M, gens(M)); 
+  K, = kernel(phi); 
+  @test ambient_representatives_generators(K) == [(x*y + x + y + 1)*FF[1]]
+  @test_throws ErrorException standard_basis(K)
+  s1 = syzygy_generators(ambient_representatives_generators(M))
+  G = parent(first(s1))
+  s2 = syzygy_generators(ambient_representatives_generators(M); parent=G)
+  @test s1 == s2
+  s3 = syzygy_generators(ambient_representatives_generators(M))
+  @test s3 != s2
+  @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
+end
+

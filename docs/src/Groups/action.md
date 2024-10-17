@@ -70,5 +70,6 @@ orbits(Omega::T) where T <: GSetByElements{TG} where TG <: GAPGroup
 ## Stabilizers
 
 ```@docs
-stabilizer(G::Oscar.GAPGroup, pnt::Any, actfun::Function)
+stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
+stabilizer(Omega::GSet)
 ```

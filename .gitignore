@@ -6,7 +6,7 @@
 profile.pb.gz
 alloc-profile.pb.gz
 LocalPreferences.toml
-Manifest.toml
+Manifest*.toml
 .DS_Store
 *~
 *.swp

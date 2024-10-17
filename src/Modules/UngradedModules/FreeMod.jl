@@ -308,3 +308,67 @@ end
 
 rels(F::FreeMod) = elem_type(F)[]
 
+function syzygy_generators(
+    g::Vector{T};
+    parent::Union{<:FreeMod, Nothing}=nothing
+  ) where {T<:FreeModElem}
+  isempty(g) && return Vector{T}()
+  F = Oscar.parent(first(g))
+  @assert all(Oscar.parent(x) === F for x in g) "parent mismatch"
+  R = base_ring(F)
+  m = length(g)
+  G = (parent === nothing ?  FreeMod(R, m) : parent)::typeof(F)
+  @req ngens(G) == m "given parent does not have the correct number of generators"
+  phi = hom(G, F, g)
+  K, _ = kernel(phi)
+  return ambient_representatives_generators(K)
+end
+
+@doc raw"""
+    syzygy_generators(
+        a::Vector{T};
+        parent::Union{FreeMod{T}, Nothing} = nothing
+      ) where {T<:RingElem}
+
+Return generators for the syzygies on the polynomials given as elements of `a`.
+The optional keyword argument can be used to specify the parent of the output.
+
+# Examples
+```jldoctest
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
+(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
+
+julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
+3-element Vector{FreeModElem{QQMPolyRingElem}}:
+ (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
+ (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
+ (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
+```
+"""
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {T<:RingElem}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  F = FreeMod(R, 1)
+  return syzygy_generators(elem_type(F)[x*F[1] for x in a]; parent)
+end
+
+function syzygy_generators(
+    a::Vector{T};
+    parent::Union{FreeMod{T}, Nothing} = nothing
+  ) where {CT <: Union{<:FieldElem, ZZRingElem, QQPolyRingElem}, # Can be adjusted to whatever is digested by Singular
+           T<:MPolyRingElem{CT}}
+  isempty(a) && return Vector{FreeModElem{T}}()
+  R = Oscar.parent(first(a))
+  @assert all(Oscar.parent(x) === R for x in a) "parent mismatch"
+  I = ideal(R, a)
+  s = Singular.syz(singular_generators(I))
+  F = (parent === nothing ? FreeMod(R, length(a)) : parent)::FreeMod{T}
+  @req ngens(F) == length(a) "parent does not have the correct number of generators"
+  @assert rank(s) == length(a)
+  return elem_type(F)[F(s[i]) for i=1:Singular.ngens(s)]
+end
+

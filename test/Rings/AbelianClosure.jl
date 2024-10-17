@@ -276,6 +276,10 @@ end
     f = hom(K, K, 3)
     @test f(a) == a^3
     @test f(z(9)) == z(9)
+
+    @test isone(conj(a)*a)
+    @test !isreal(a)
+    @test isreal(a+conj(a))
   end
 
   @testset "Square roots" begin
