@@ -99,21 +99,21 @@ function (I::LieAlgebraIdeal)()
 end
 
 @doc raw"""
-    (I::LieAlgebraIdeal{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+    (I::LieAlgebraIdeal{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `I` with coefficient vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `I`.
 """
-function (I::LieAlgebraIdeal)(v::Vector{Int})
+function (I::LieAlgebraIdeal)(v::AbstractVector{Int})
   return I(coefficient_ring(I).(v))
 end
 
 @doc raw"""
-    (I::LieAlgebraIdeal{C})(v::Vector{C}) -> LieAlgebraElem{C}
+    (I::LieAlgebraIdeal{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
 
 Return the element of `I` with coefficient vector `v`.
 """
-function (I::LieAlgebraIdeal{C})(v::Vector{C}) where {C<:FieldElem}
+function (I::LieAlgebraIdeal{C})(v::AbstractVector{C}) where {C<:FieldElem}
   @req length(v) == dim(I) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(I), 1, length(v), v)
   L = base_lie_algebra(I)
@@ -268,8 +268,8 @@ Return `I` as a Lie algebra `LI`, together with an embedding `LI -> L`,
 where `L` is the Lie algebra where `I` lives in.
 """
 function lie_algebra(I::LieAlgebraIdeal)
-  LI = lie_algebra(basis(I))
   L = base_lie_algebra(I)
+  LI = lie_algebra(L, basis(I))
   emb = hom(LI, L, basis(I); check=false)
   return LI, emb
 end

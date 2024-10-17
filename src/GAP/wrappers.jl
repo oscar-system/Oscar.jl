@@ -107,6 +107,8 @@ GAP.@wrap GeneratorsOfGroup(x::GapObj)::GapObj
 GAP.@wrap GetFusionMap(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
 GAP.@wrap GF(x::Any, y::Any)::GapObj
+GAP.@wrap Group(x::GapObj)::GapObj
+GAP.@wrap Group(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
