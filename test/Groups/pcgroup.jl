@@ -95,4 +95,11 @@ end
   @test letters(gg[1]^5*gg[2]^4) == [1, 2] # all positive exp
   @test letters(gg[1]^-5*gg[2]^-7) == [1, 2, 2] # all negative exp
   @test letters(gg[1]^2*gg[2]^3) == [] # both identity elements
+
+  # finite polycyclic subgroup
+  gg = pc_group(symmetric_group(4))
+  G = derived_subgroup(gg)[1]
+  @test letters(G[1]^2) == [2, 2]
+  @test letters(G[1]^2*G[2]^3*G[3]^3) == [2, 2, 3, 4]
+  @test letters(G[1]^-2*G[2]^-3*G[3]^-3) == [2, 3, 4]
 end

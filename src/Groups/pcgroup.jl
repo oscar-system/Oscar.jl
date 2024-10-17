@@ -366,7 +366,7 @@ function pc_group(c::GAP_Collector)
 end
 
 """
-    letters(g::PcGroupElem)
+    letters(g::Union{PcGroupElem, SubPcGroupElem})
 
 Return the letters of `g` as a list of integers, each entry corresponding to
 a group generator.
@@ -389,7 +389,7 @@ julia> letters(gg[1]^5*gg[2]^-4)
  2
 ```
 """
-function letters(g::PcGroupElem)
+function letters(g::Union{PcGroupElem, SubPcGroupElem})
   w = GAPWrap.UnderlyingElement(GapObj(g))
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
 end 
