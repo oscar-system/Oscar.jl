@@ -77,9 +77,11 @@
           @test 5 * A == A
           @test fun(f, 5 * a) == A
           @test A == fun(f, 5 * a)
+          @test 5 * a == A
           @test -5 * A != A
           @test fun(f, -5 * a) != A
           @test A != fun(f, -5 * a)
+          @test A == 5 * a
         end
 
         if f != ENF
