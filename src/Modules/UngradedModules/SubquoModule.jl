@@ -754,7 +754,11 @@ function set_default_ordering!(M::SubquoModule, ord::ModuleOrdering)
   set_default_ordering!(M.sum, ord)
 end
 
-function standard_basis(M::SubquoModule; ordering::ModuleOrdering = default_ordering(M))
+function standard_basis(M::SubquoModule; ordering::Union{ModuleOrdering, Nothing} = nothing)
+  error("standard basis computation is not supported for modules over rings of type $(typeof(base_ring(M)))")
+end
+
+function standard_basis(M::SubquoModule{<:MPolyRingElem{T}}; ordering::ModuleOrdering = default_ordering(M)) where {T<:Union{<:FieldElem, ZZRingElem}}
   @req is_exact_type(elem_type(base_ring(M))) "This functionality is only supported over exact fields."
   if !haskey(M.groebner_basis, ordering)
     if isdefined(M, :quo)

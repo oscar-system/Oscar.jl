@@ -506,30 +506,7 @@ function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 end
 
 # syzygies #######################################################
-@doc raw"""
-    syzygy_generators(G::Vector{<:MPolyRingElem})
-
-Return generators for the syzygies on the polynomials given as elements of `G`.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
-(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
-
-julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-3-element Vector{FreeModElem{QQMPolyRingElem}}:
- (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
- (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
- (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
-```
-"""
-function syzygy_generators(a::Vector{<:MPolyRingElem})
-  I = ideal(a)
-  s = Singular.syz(singular_generators(I))
-  F = free_module(parent(a[1]), length(a))
-  @assert rank(s) == length(a)
-  return [F(s[i]) for i=1:Singular.ngens(s)]
-end
+# See src/Modules/UngradedModules/FreeMod.jl for the implementation. 
 
 # leading ideal #######################################################
 @doc raw"""
