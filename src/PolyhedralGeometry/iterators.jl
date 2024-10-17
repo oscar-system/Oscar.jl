@@ -104,8 +104,10 @@ end
 
 Base.:(==)(x::AbstractVector, y::RayVector) = y == x
 
-Base.:(==)(::PointVector, ::RayVector) = throw(ArgumentError("Cannot compare PointVector to RayVector"))
-Base.:(==)(::RayVector, ::PointVector) = throw(ArgumentError("Cannot compare PointVector to RayVector"))
+Base.:(==)(::PointVector, ::RayVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
+Base.:(==)(::RayVector, ::PointVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
 
 ################################################################################
 ######## Halfspaces and Hyperplanes
