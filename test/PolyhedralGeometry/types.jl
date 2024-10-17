@@ -59,7 +59,7 @@
           @test *(g(3), A) == 3 * a
 
           let Ao = other(g, a)
-            @test A != Ao
+            @test_throws ArgumentError A == Ao
           end
         end
 
@@ -77,6 +77,9 @@
           @test 5 * A == A
           @test fun(f, 5 * a) == A
           @test A == fun(f, 5 * a)
+          @test -5 * A != A
+          @test fun(f, -5 * a) != A
+          @test A != fun(f, -5 * a)
         end
 
         if f != ENF

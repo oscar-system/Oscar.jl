@@ -93,22 +93,19 @@ function Base.:(==)(x::RayVector, y::RayVector)
   ix == iy || return false
   isnothing(ix) && return true
   r = ay[iy]//ax[ix]
+  r < zero(r) && return false
   return (r .* ax == ay)
 end
 
 function Base.:(==)(x::RayVector, y::AbstractVector)
-  try
-    ry = ray_vector(coefficient_field(x), y)
-    return x == ry
-  catch
-    return false
-  end
+  ry = ray_vector(coefficient_field(x), y)
+  return x == ry
 end
 
 Base.:(==)(x::AbstractVector, y::RayVector) = y == x
 
-Base.:(==)(::PointVector, ::RayVector) = false
-Base.:(==)(::RayVector, ::PointVector) = false
+Base.:(==)(::PointVector, ::RayVector) = throw(ArgumentError("Cannot compare PointVector to RayVector"))
+Base.:(==)(::RayVector, ::PointVector) = throw(ArgumentError("Cannot compare PointVector to RayVector"))
 
 ################################################################################
 ######## Halfspaces and Hyperplanes
