@@ -394,7 +394,7 @@ function letters(g::Union{PcGroupElem, SubPcGroupElem})
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
 end 
 
-function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
+function syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   @assert iseven(length(l))
   return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
