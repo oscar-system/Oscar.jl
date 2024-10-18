@@ -122,7 +122,7 @@ julia> g, phi1 = two_neighbor_step(Y1, fibers[2][I]); g
 
 julia> kt2 = base_ring(parent(g)); P = kt2.([0,0]);
 
-julia> Y2, phi2 = elliptic_surface(g, P); Y2
+julia> Y2, phi2 = elliptic_surface(g, P; minimize=false); Y2
 Elliptic surface
   over rational field
 with generic fiber

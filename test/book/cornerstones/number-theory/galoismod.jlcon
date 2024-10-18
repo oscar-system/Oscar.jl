@@ -52,9 +52,9 @@ true
 
 julia> V, f = galois_module(K); OK = ring_of_integers(K); M = f(OK);
 
-julia> fl, c = is_free_with_basis(M); # the elements of c are a basis
+julia> fl, c = is_free_with_basis(M); # the elements of c form a basis
 
-julia> b = preimage(f, c[1]) # the element might different per session
+julia> b = preimage(f, c[1]) # the element may be different per session
 a^3
 
 julia> A, mA = automorphism_group(K);

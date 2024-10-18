@@ -1,63 +1,66 @@
-julia> T = genchartab("SL3.n1")
-Generic character table
+julia> T = generic_character_table("SL3.n1")
+Generic character table SL3.n1
   of order q^8 - q^6 - q^5 + q^3
   with 8 irreducible character types
   with 8 class types
   with parameters (a, b, m, n)
 
-julia> printval(T,char=4,class=4)
-Value of character type 4 on class type
-  4: (q + 1) * exp(2π𝑖(1//(q - 1)*a*n)) + (1) * exp(2π𝑖(-2//(q - 1)*a*n))
+julia> T[4,4]
+(q + 1)*exp(2π𝑖((a*n)//(q - 1))) + exp(2π𝑖((-2*a*n)//(q - 1)))
 
-julia> h = tensor!(T,2,2)
-9
+julia> h = T[2] * T[2];
 
-julia> scalar(T,4,h)
-(0, Set(ParameterException{QQPolyRingElem}[(2*n1)//(q - 1) ∈ ℤ]))
+julia> scalar_product(T[4], h)
+0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
 
-julia> print_decomposition(T, h)
-Decomposing character 9:
-  <1,9> = 1  
-  <2,9> = 2  
-  <3,9> = 2  
-  <4,9> = 0  with possible exceptions:
-    (2*n1)//(q - 1) ∈ ℤ
-  <5,9> = 0  with possible exceptions:
-    (2*n1)//(q - 1) ∈ ℤ
-  <6,9> = 0  with possible exceptions:
-    (m1 + n1)//(q - 1) ∈ ℤ
-    (2*m1 - n1)//(q - 1) ∈ ℤ
-    (m1)//(q - 1) ∈ ℤ
-    (n1)//(q - 1) ∈ ℤ
-    (m1 - n1)//(q - 1) ∈ ℤ
-    (m1 - 2*n1)//(q - 1) ∈ ℤ
-  <7,9> = 0  with possible exceptions:
-    (n1)//(q - 1) ∈ ℤ
-  <8,9> = 0  with possible exceptions:
-    ((q + 1)*n1)//(q^2 + q + 1) ∈ ℤ
-    (q*n1)//(q^2 + q + 1) ∈ ℤ
-    (n1)//(q^2 + q + 1) ∈ ℤ
-julia> chardeg(T, lincomb!(T,[1,2,2],[1,2,3]))
+julia> for i in 1:8 println("<$i, h> = ", scalar_product(T[i], h)) end
+<1, h> = 1
+<2, h> = 2
+<3, h> = 2
+<4, h> = 0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
+<5, h> = 0
+With exceptions:
+  2*n1 ∈ (q - 1)ℤ
+<6, h> = 0
+With exceptions:
+  2*m1 - n1 ∈ (q - 1)ℤ
+  m1 - 2*n1 ∈ (q - 1)ℤ
+  m1 + n1 ∈ (q - 1)ℤ
+  m1 ∈ (q - 1)ℤ
+  m1 - n1 ∈ (q - 1)ℤ
+  n1 ∈ (q - 1)ℤ
+<7, h> = 0
+With exceptions:
+  n1 ∈ (q - 1)ℤ
+<8, h> = 0
+With exceptions:
+  q*n1 ∈ (q^2 + q + 1)ℤ
+  n1 ∈ (q^2 + q + 1)ℤ
+  q*n1 + n1 ∈ (q^2 + q + 1)ℤ
+
+julia> degree(linear_combination([1,2,2],[T[1],T[2],T[3]]))
 2*q^3 + 2*q^2 + 2*q + 1
 
-julia> chardeg(T, h)
+julia> degree(h)
 q^4 + 2*q^3 + q^2
 
-julia> printcharparam(T,4)
-4	n ∈ {1,…, q - 1} except (n)//(q - 1) ∈ ℤ
+julia> parameters(T[4])
+n ∈ {1,…, q - 1} except n ∈ (q - 1)ℤ
 
-julia> T2 = setcongruence(T, (0,2));
+julia> T2 = set_congruence(T; remainder=0, modulus=2);
 
-julia> (q, (a, b, m, n)) = params(T2);
+julia> (q, (a, b, m, n)) = parameters(T2);
 
-julia> x = param(T2, "x");  # create an additional "free" variable
+julia> x = parameter(T2, "x");  # create an additional "free" variable
 
-julia> speccharparam!(T2, 6, m, -n + (q-1)*x)  # force m = -n (mod q-1)
+julia> s = specialize(T2[6], m, -n + (q-1)*x);  # force m = -n (mod q-1)
 
-julia> s, e = scalar(T2,6,h); s
+julia> scalar_product(s, T2(h))
 1
-
-julia> e
-Set{ParameterException{QQPolyRingElem}} with 2 elements:
-  (2*n1)//(q - 1) ∈ ℤ
-  (3*n1)//(q - 1) ∈ ℤ
+With exceptions:
+  3*n1 ∈ (q - 1)ℤ
+  2*n1 ∈ (q - 1)ℤ
