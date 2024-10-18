@@ -354,6 +354,14 @@ sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
+```@docs
+annihilator(N::SubquoModule{T}) where T
+```
+
+```@docs
+quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```
+
 ## Submodules and Quotients
 
 ```@docs
