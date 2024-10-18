@@ -85,6 +85,30 @@ Return a `RayVector` resembling a ray from the origin through the point whose co
 """
 ray_vector
 
+function Base.:(==)(x::RayVector, y::RayVector)
+  ax = collect(x)
+  ay = collect(y)
+  ix = findfirst(!is_zero, ax)
+  iy = findfirst(!is_zero, ay)
+  ix == iy || return false
+  isnothing(ix) && return true
+  r = ay[iy]//ax[ix]
+  r < zero(r) && return false
+  return (r .* ax == ay)
+end
+
+function Base.:(==)(x::RayVector, y::AbstractVector)
+  ry = ray_vector(coefficient_field(x), y)
+  return x == ry
+end
+
+Base.:(==)(x::AbstractVector, y::RayVector) = y == x
+
+Base.:(==)(::PointVector, ::RayVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
+Base.:(==)(::RayVector, ::PointVector) =
+  throw(ArgumentError("Cannot compare PointVector to RayVector"))
+
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################
