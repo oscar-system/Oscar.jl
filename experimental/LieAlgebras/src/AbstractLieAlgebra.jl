@@ -218,9 +218,15 @@ end
 function lie_algebra(
   basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:FieldElem}
-  parent_L = parent(basis[1])
-  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
-  R = coefficient_ring(parent_L)
+  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(basis[1]), basis; check)
+end
+
+function lie_algebra(
+  L::AbstractLieAlgebra{C}, basis::Vector{AbstractLieAlgebraElem{C}}; check::Bool=true
+) where {C<:FieldElem}
+  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  R = coefficient_ring(L)
   basis_matrix = if length(basis) == 0
     matrix(R, 0, dim(L), C[])
   else
@@ -370,9 +376,11 @@ function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
       i < j || continue
       alpha_i_plus_beta_j = add!(alpha_i_plus_beta_j, alpha_i, beta_j)
       is_positive_root(alpha_i_plus_beta_j) || continue
-      l = findfirst(
-        l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
-      )::Int
+      l = let alpha_i_plus_beta_j = alpha_i_plus_beta_j # avoid closure capture
+        findfirst(
+          l -> is_positive_root(alpha_i_plus_beta_j - simple_root(rs, l)), 1:nsimp
+        )::Int
+      end
       l == i && continue # already extraspecial
       fl, l_comp = is_positive_root_with_index(alpha_i_plus_beta_j - simple_root(rs, l))
       @assert fl

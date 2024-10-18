@@ -345,7 +345,7 @@ julia> length(orbit(Omega, 1))
 4
 ```
 """
-function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
+function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     G = acting_group(Omega)
     acts = GapObj(gens(G))
     gfun = GapObj(action_function(Omega))
@@ -353,7 +353,7 @@ function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
     # The following works only because GAP does not check
     # whether the given (dummy) group 'GapObj(G)' fits to the given generators,
     # or whether the elements of 'acts' are group elements.
-    orb = Vector{T}(GAP.Globals.Orbit(GapObj(G), omega, acts, acts, gfun)::GapObj)
+    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), omega, acts, acts, gfun)::GapObj)
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
@@ -413,7 +413,8 @@ julia> map(collect, orbs)
 """
 @attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
-  for p in Omega.seeds
+  for p_ in Omega.seeds
+    p = p_::S
     if all(o -> !(p in o), orbs)
       push!(orbs, orbit(Omega, p))
     end
