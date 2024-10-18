@@ -541,7 +541,7 @@ end
 
 function save_object(s::SerializerState, obj::SRow)
   save_data_array(s) do
-    for (i, v) in collect(obj)
+    for (i, v) in obj
       save_object(s, (i, v))
     end
   end

@@ -311,7 +311,7 @@ function Base.show(io::IO, ::MIME"text/plain", D::AlgebraicCycle)
   # Otherwise, we check whether X has a simplified covering. If not, we use the
   # default covering of X
   cov = Oscar._covering_for_printing(io, X)
-  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  eff = all(i >= 0 for i in values(D.coefficients))
   if length(components(D)) == 0
     print(io, "Zero algebraic cycle")
   else
@@ -354,7 +354,7 @@ end
 function Base.show(io::IO, D::AlgebraicCycle)
   io = pretty(io)
   X = ambient_scheme(D)
-  eff = all(i >= 0 for i in collect(values(D.coefficients)))
+  eff = all(i >= 0 for i in values(D.coefficients))
   if length(components(D)) == 1
     prim = D[components(D)[1]] == 1 ? true : false
   else

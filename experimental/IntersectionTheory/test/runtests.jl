@@ -12,7 +12,7 @@ let pushforward = IntersectionTheory.pushforward
     # trim!(C.ring)
     # @test Singular.dimension(C.ring.I) == 0
     # @test parent(c) == C.ring
-    # @test betti(C) == [1, 1]
+    # @test betti_numbers(C) == [1, 1]
     # @test basis(C) == [[C.ring(1)], [c]]
     # @test euler(C) == c
     # @test euler_characteristic(trivial_line_bundle(C)) == 1//2 * c
@@ -105,7 +105,7 @@ let pushforward = IntersectionTheory.pushforward
     # @test Y1 != Y
     # @test euler(Y1) == euler(Y)
     # @test (Y1 → Y).T.ch == 0
-    # @test betti(Y1)[3] == 2
+    # @test betti_numbers(Y1)[3] == 2
     # @test basis(2, Y1) == [h^2, p]
     # @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
 
@@ -155,7 +155,7 @@ let pushforward = IntersectionTheory.pushforward
     G = abstract_grassmannian(2, 4)
     S, Q = tautological_bundles(G)
     c1, c2 = gens(G.ring)
-    @test betti(G) == [1,1,2,1,1]
+    @test betti_numbers(G) == [1,1,2,1,1]
     @test euler(G) == 6
     @test chern_class(G, 1) == -4chern_class(S, 1)
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 27
@@ -182,7 +182,7 @@ let pushforward = IntersectionTheory.pushforward
     A, B, C = tautological_bundles(F)
     @test dim(F) == 3
     @test rank.(tautological_bundles(F)) == [1, 1, 1]
-    @test betti(F) == [1,2,2,1]
+    @test betti_numbers(F) == [1,2,2,1]
     @test euler(F) == 6
 
     # flag abstract_variety: TnVariety version
@@ -321,7 +321,7 @@ let pushforward = IntersectionTheory.pushforward
     Bl, E = blowup(structure_map(Z))
     @test dim(Bl) == 6
     @test euler(Bl) == 18
-    @test betti(Bl) == [1,2,4,4,4,2,1]
+    @test betti_numbers(Bl) == [1,2,4,4,4,2,1]
     @test [euler_characteristic(exterior_power(cotangent_bundle(Bl), i)) for i in 0:6] == [1,-2,4,-4,4,-2,1]
 
    end

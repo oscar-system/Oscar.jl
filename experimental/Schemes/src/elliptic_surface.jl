@@ -25,6 +25,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   inc_Weierstrass::CoveredClosedEmbedding # inclusion of the weierstrass chart in its ambient projective bundle
   inc_Y::CoveredClosedEmbedding # inclusion of Y in its ambient blown up projective bundle
   euler_characteristic::Int
+  resolution_strategy::Symbol
   # the following are temporary until we have a dedicated type for
   # iterated blow ups
   blowup::AbsCoveredSchemeMorphism
@@ -35,7 +36,12 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
   fibration::AbsCoveredSchemeMorphism # the projection to IP^1
   fibration_weierstrass_model::AbsCoveredSchemeMorphism # the projection from the Weierstrass model
 
-  function EllipticSurface(generic_fiber::EllipticCurve{F}, euler_characteristic::Int, mwl_basis::Vector{<:EllipticCurvePoint}) where F
+  function EllipticSurface(
+      generic_fiber::EllipticCurve{F}, 
+      euler_characteristic::Int, 
+      mwl_basis::Vector{<:EllipticCurvePoint};
+      resolution_strategy::Symbol=:iterative
+    ) where F
     B = typeof(coefficient_ring(base_ring(base_field(generic_fiber))))
     S = new{B,F}()
     S.E = generic_fiber
@@ -45,6 +51,7 @@ For now functionality is restricted to $C = \mathbb{P}^1$.
     set_attribute!(S, :is_reduced=>true)
     set_attribute!(S, :is_integral=>true)
     set_attribute!(S, :is_equidimensional=>true)
+    S.resolution_strategy = resolution_strategy
     return S
   end
 
@@ -111,10 +118,11 @@ with generic fiber
 function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
                           euler_characteristic::Int,
                           mwl_gens::Vector{<:EllipticCurvePoint}=EllipticCurvePoint[];
+                          resolution_strategy::Symbol=:iterative,
                           is_basis::Bool=true) where {
                           BaseField <: FracFieldElem{<:PolyRingElem{<:FieldElem}}}
   @req all(parent(i)==generic_fiber for i in mwl_gens) "not a vector of points on $(generic_fiber)"
-  S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens)
+  S = EllipticSurface(generic_fiber, euler_characteristic, mwl_gens; resolution_strategy)
   if is_basis
     return S
   end
@@ -283,7 +291,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
   tors = [section(X, h) for h in mordell_weil_torsion(X)]
   torsV = QQMatrix[]
   for T in tors
-    @vprint :EllipticSurface 2 "computing basis representation of $(T)\n"
+    @vprint :EllipticSurface 2 "computing basis representation of torsion point $(T)\n"
     vT = zero_matrix(QQ, 1, n)
     for i in 1:r
       if i== 2
@@ -426,7 +434,7 @@ function weierstrass_model(X::EllipticSurface)
 
   bundleE = direct_sum([O0, O4, O6])
 
-  P_proj = projectivization(bundleE, var_names=["z", "x", "y"])
+  P_proj = projectivization(bundleE, var_names=[:z, :x, :y])
   P = covered_scheme(P_proj)
   pr = covered_projection_to_base(P_proj)
   @assert has_decomposition_info(default_covering(P))
@@ -585,7 +593,141 @@ This triggers the computation of the `underlying_scheme` of ``X``
 as a blowup from its Weierstrass model. It may take a few minutes.
 """
 function weierstrass_contraction(X::EllipticSurface)
-  Y = X
+  algorithm = X.resolution_strategy
+  if algorithm == :iterative
+    return weierstrass_contraction_iterative(X)
+  elseif algorithm == :simultaneous
+    return weierstrass_contraction_simultaneous(X)
+  else
+    error("algorithm not recognized")
+  end
+end
+
+function weierstrass_contraction_simultaneous(Y::EllipticSurface)
+  if isdefined(Y, :blowup)
+    return Y.blowup
+  end
+  S, inc_S = weierstrass_model(Y)
+  @assert has_attribute(S, :is_equidimensional) && get_attribute(S, :is_equidimensional) === true
+  
+  X0 = codomain(inc_S)
+  Y0 = S
+  set_attribute!(Y0, :is_reduced=>true)
+  set_attribute!(Y0, :is_irreducible=>true)
+  set_attribute!(Y0, :is_equidimensional=>true)
+  inc_Y0 = inc_S
+  I_sing_Y0 = AbsIdealSheaf[ideal_sheaf_of_singular_locus(Y0)]
+  #I_sing_Y0 = AbsIdealSheaf[simplify(ideal_sheaf_of_singular_locus(Y0))]
+  I_sing_X0 = simplify.(pushforward(inc_Y0).(I_sing_Y0))
+
+  # Prepare a covering which has a permanent weierstrass chart
+  U0 = X0[1][1]
+  disc = numerator(discriminant(generic_fiber(Y)))
+  U = PrincipalOpenSubset(U0, evaluate(disc, gens(OO(U0))[3]))
+  _find_chart(U, default_covering(X0))
+  Cref = Covering(vcat([U], affine_charts(X0)))
+  inherit_gluings!(Cref, X0[1])
+  push!(X0.coverings, Cref)
+  @assert has_decomposition_info(default_covering(X0))
+  inherit_decomposition_info!(X0, Cref)
+  @assert has_decomposition_info(Cref)
+
+  ambient_exceptionals = EffectiveCartierDivisor[]
+  varnames = [:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o,:p,:q,:r,:u,:v,:w]
+  projectionsX = BlowupMorphism[]
+  projectionsY = AbsCoveredSchemeMorphism[]
+  count = 0
+
+  @vprint :EllipticSurface 2 "Blowing up Weierstrass model simultaneously in all singular points\n"
+  while true
+    count = count+1
+    @vprint :EllipticSurface 1 "blowup number: $(count)\n"
+    @vprint :EllipticSurface 1 "number of ideal sheaves to be blown up: $(length(I_sing_X0))\n"
+    if length(I_sing_X0)==0
+      # stop if smooth
+      break
+    end
+    # make sure we have a Weierstrass chart kept.
+    if count == 1
+      cov = Cref
+    else
+      cov = simplified_covering(X0)
+    end
+    # take the first ideal sheaf and blow it up
+    J = SimplifiedIdealSheaf(I_sing_X0[1])
+    pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
+
+    X1 = domain(pr_X1)
+    @vprint :EllipticSurface 1 "$(X1)\n"
+    E1 = exceptional_divisor(pr_X1)
+
+    @vprint :EllipticSurface 2 "computing strict transforms\n"
+    # compute the exceptional divisors
+    ambient_exceptionals = EffectiveCartierDivisor[strict_transform(pr_X1, e) for e in ambient_exceptionals]
+    # move the divisors coming originally from S up to the next chart
+    push!(ambient_exceptionals, E1)
+
+    Y1, inc_Y1, pr_Y1 = strict_transform(pr_X1, inc_Y0)
+    # Speed up the computation of singular loci
+    set_attribute!(Y1, :is_irreducible=> true)
+    set_attribute!(Y1, :is_reduced=>true)
+    set_attribute!(Y1, :is_integral=>true)
+    set_attribute!(Y1, :is_equidimensional=>true)
+
+    # transform the singular loci
+    I_sing_X0 = AbsIdealSheaf[pullback(pr_X1, J) for J in I_sing_X0[2:end]]
+
+    # Add eventual new components
+    @vprint :EllipticSurface 2 "computing singular locus\n"
+    I_sing_new = ideal_sheaf_of_singular_locus(Y1; focus=pullback(inc_Y1, ideal_sheaf(E1)))
+    #I_sing_new = pushforward(inc_Y1, I_sing_new) + ideal_sheaf(E1) # new components only along the exc. set
+    I_sing_new = simplify(pushforward(inc_Y1, I_sing_new))
+
+    @vprint :EllipticSurface 2 "decomposing singular locus\n"
+    !is_one(I_sing_new) && push!(I_sing_X0, I_sing_new)
+
+    push!(projectionsX, pr_X1)
+    push!(projectionsY, pr_Y1)
+    simplify!(Y1)
+
+    # set up for the next iteration
+    Y0 = Y1
+    inc_Y0 = inc_Y1
+    X0 = X1
+    # Speed up the computation of singular loci
+    set_attribute!(Y0, :is_irreducible=> true)
+    set_attribute!(Y0, :is_reduced=>true)
+    set_attribute!(Y0, :is_integral=>true)
+    set_attribute!(Y0, :is_equidimensional=>true)
+    set_attribute!(X0, :is_irreducible=> true)
+    set_attribute!(X0, :is_reduced=>true)
+    set_attribute!(X0, :is_integral=>true)
+  end
+  Y.Y = Y0
+  Y.blowups = projectionsY
+
+  # We need to rewrap the last maps so that the domain is really Y
+  last_pr = pop!(projectionsY)
+  last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
+
+  push!(projectionsY, last_pr_wrap)
+  Y.ambient_blowups = projectionsX
+
+  Y.ambient_exceptionals = ambient_exceptionals
+  piY = CompositeCoveredSchemeMorphism(reverse(projectionsY))
+  Y.blowup = piY
+
+  inc_Y0_wrap = CoveredClosedEmbedding(Y, codomain(inc_Y0), covering_morphism(inc_Y0), check=false)
+  Y.inc_Y = inc_Y0_wrap
+
+  set_attribute!(Y, :is_irreducible=> true)
+  set_attribute!(Y, :is_reduced=>true)
+  set_attribute!(Y, :is_integral=>true)
+  return piY
+end
+
+     
+function weierstrass_contraction_iterative(Y::EllipticSurface)
   if isdefined(Y, :blowup)
     return Y.blowup
   end
@@ -630,24 +772,14 @@ function weierstrass_contraction(X::EllipticSurface)
       cov = Crefined
     else
       # the following leads to difficult bugs
-      #=
-      cov0 = simplified_covering(X0)
-      cov1 = _separate_disjoint_components(I_sing_X0, covering=cov0)
-      cov = _one_patch_per_component(cov1, I_sing_X0)
-      push!(X0.coverings, cov)
-      @assert has_decomposition_info(default_covering(X0))
-      inherit_decomposition_info!(X0, cov)
-      @assert has_decomposition_info(cov)
-      =#
       cov = simplified_covering(X0)
-      #inherit_decomposition_info!(cov, X0)
     end
     # take the first singular point and blow it up
     J = SimplifiedIdealSheaf(I_sing_X0[1])
     pr_X1 = blow_up(J, covering=cov, var_name=varnames[1+mod(count, length(varnames))])
 
     # Set the attribute so that the strict_transform does some extra work
-    isomorphism_on_open_subset(pr_X1)
+    #isomorphism_on_open_subset(pr_X1)
 
     X1 = domain(pr_X1)
     @vprint :EllipticSurface 1 "$(X1)\n"
@@ -701,7 +833,7 @@ function weierstrass_contraction(X::EllipticSurface)
   # We need to rewrap the last maps so that the domain is really Y
   last_pr = pop!(projectionsY)
   last_pr_wrap = CoveredSchemeMorphism(Y, codomain(last_pr), covering_morphism(last_pr))
-  set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
+  #set_attribute!(last_pr_wrap, :isomorphism_on_open_subset, get_attribute(last_pr, :isomorphism_on_open_subset))
 
   push!(projectionsY, last_pr_wrap)
   Y.ambient_blowups = projectionsX
@@ -719,32 +851,13 @@ function weierstrass_contraction(X::EllipticSurface)
   return piY
 end
 
-#  global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
-#exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
-@doc raw"""
-    _trivial_lattice(S::EllipticSurface)
-
-Internal function. Returns a list consisting of:
-- basis of the trivial lattice
-- gram matrix
-- fiber_components without multiplicities
-"""
-@attr Any function _trivial_lattice(S::EllipticSurface)
-  #=
-  inc_Y = S.inc_Y
-  X = codomain(inc_Y)
-  exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
-  ExWeil = WeilDivisor.(exceptional_res)
-  tmp = []
-  ExWeil = reduce(append!, [components(i) for i in ExWeil], init= tmp)
-  =#
-  W = weierstrass_model(S)
-  d = numerator(discriminant(generic_fiber(S)))
-  j = j_invariant(generic_fiber(S))
+function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
+  E = generic_fiber(X)
+  j = j_invariant(E)
+  d = numerator(discriminant(E))
   kt = parent(d)
   k = coefficient_ring(kt)
-  # find the reducible fibers
-  sing = elem_type(k)[]
+  sing = Vector{elem_type(k)}[]
   for (p,v) in factor(d)
     if v == 1
       continue
@@ -758,48 +871,76 @@ Internal function. Returns a list consisting of:
     if v == 2
       # not a type II fiber
       if j!=0
-        push!(sing, rt)
+        push!(sing, [rt,k(1)])
       end
     end
     if v > 2
-      push!(sing, rt)
+      push!(sing, [rt,k(1)])
     end
   end
-  # the reducible fibers are over the points in sing
-  # and possibly the point at infinity
-  f = [[k.([i,1]), fiber_components(S,[i,k(1)])] for  i in sing]
-  if degree(d) <= 12*euler_characteristic(S) - 2
-    pt = k.([1, 0])
-    push!(f, [pt, fiber_components(S, pt)])
+  if sort
+    sort!(sing, by=x->by_total_order(x[1]))
   end
-
-  O = zero_section(S)
-  pt0, F = fiber(S)
-  set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
-
-
-  basisT = [F, O]
-
-  grams = [ZZ[0 1;1 -euler_characteristic(S)]]
-  fiber_componentsS = []
-  for (pt, ft) in f
-    @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
-    Ft0 = standardize_fiber(S, ft)
-    @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
-    append!(basisT , Ft0[3][2:end])
-    push!(grams,Ft0[4][2:end,2:end])
-    push!(fiber_componentsS, vcat([pt], collect(Ft0)))
+  # fiber over infinity is always last (if it is there)
+  if degree(d) <= 12*euler_characteristic(X) - 2
+    push!(sing, k.([1, 0]))
   end
-  G = block_diagonal_matrix(grams)
-  # make way for some more pretty printing
-  for (pt,root_type,_,comp) in fiber_componentsS
-    for (i,I) in enumerate(comp)
-      name = string(root_type[1], root_type[2])
-      set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
-      set_attribute!(components(I)[1], :_self_intersection, -2)
+  return sing
+end
+
+function by_total_order(x::FqFieldElem) 
+  return [lift(ZZ, i) for i in absolute_coordinates(x)]
+end
+  
+by_total_order(x::QQFieldElem) = x
+  
+function by_total_order(x::NumFieldElem)
+  return absolute_coordinates(x)
+end 
+
+# global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
+# exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
+@doc raw"""
+    _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
+  
+Internal function. Returns a list consisting of:
+- basis of the trivial lattice
+- gram matrix
+- fiber_components without multiplicities
+
+The keyword argument `reducible_singular_fibers_in_PP1` must be a list of vectors of length `2` over 
+the base field representing the points in projective space over which there are reducible fibers.
+Specify it to force this ordering of the basis vectors of the ambient space of the `algebraic_lattice`
+"""
+function _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
+  get_attribute!(S, :_trivial_lattice) do
+    O = zero_section(S)
+    pt0, F = fiber(S)
+    set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
+    basisT = [F, O]
+    grams = [ZZ[0 1;1 -euler_characteristic(S)]]
+    sing = reducible_singular_fibers_in_PP1
+    f = [[pt, fiber_components(S,pt)] for  pt in sing]
+    fiber_componentsS = []
+    for (pt, ft) in f
+      @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
+      Ft0 = standardize_fiber(S, ft)
+      @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
+      append!(basisT , Ft0[3][2:end])
+      push!(grams,Ft0[4][2:end,2:end])
+      push!(fiber_componentsS, vcat([pt], collect(Ft0)))
     end
+    G = block_diagonal_matrix(grams)
+    # make way for some more pretty printing
+    for (pt,root_type,_,comp) in fiber_componentsS
+      for (i,I) in enumerate(comp)
+        name = string(root_type[1], root_type[2])
+        set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
+        set_attribute!(components(I)[1], :_self_intersection, -2)
+      end
+    end
+    return basisT, G, fiber_componentsS
   end
-  return basisT, G, fiber_componentsS
 end
 
 @doc raw"""
@@ -847,7 +988,7 @@ Output a list of tuples with each tuple as follows
 - gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
 function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
-  @req all(is_prime(i) for i in f) "not a vector of prime divisors"
+  @hassert :EllipticSurface 2 all(is_prime(i) for i in f)
   f = copy(f)
   O = components(zero_section(S))[1]
   local f0
@@ -972,18 +1113,19 @@ function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors
   end
   F = pullback(S.inc_Y, F)
   F = weil_divisor(F, ZZ)
-  fiber_components = [weil_divisor(E, ZZ) for E in EP]
+  fiber_components = [weil_divisor(E, ZZ; check=false) for E in EP]
   push!(fiber_components, F)
   return fiber_components
 end
   
-@attr Any function exceptional_divisors(S::EllipticSurface)
+@attr Vector{<:AbsIdealSheaf} function exceptional_divisors(S::EllipticSurface)
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
-  for E in S.ambient_exceptionals
+  # If we have resolution_strategy=:simultaneous, then the following is a non-trivial preprocessing step.
+  ambient_pts = reduce(vcat, maximal_associated_points.(ideal_sheaf.(S.ambient_exceptionals)))
+  for I in ambient_pts
     @vprintln :EllipticSurface 4 "decomposing divisor "
-    mp = maximal_associated_points(ideal_sheaf(pullback(S.inc_Y,E));
-                                   use_decomposition_info=true)
+    mp = maximal_associated_points(pullback(S.inc_Y, I); use_decomposition_info=true)
     append!(PP, mp)
   end 
   @vprintln :EllipticSurface 3 "done"
@@ -1080,7 +1222,7 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
   U = X0[1][1]
   (x,y,t) = coordinates(U)
   b = P
-  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]])
+  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
 end
 
 function _section(X::EllipticSurface, P::EllipticCurvePoint)
@@ -1097,6 +1239,7 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   set_attribute!(W, :is_prime=>true)
   I = first(components(W))
   set_attribute!(I, :is_prime=>true)
+  set_attribute!(W, :point=>P)
   return W
 end
 
@@ -1358,35 +1501,10 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   rk_triv = nrows(trivial_lattice(X)[2])
   n = rank(NS)
   @assert degree(NS) == rank(NS)
-  P0 = sum([ZZ(F[i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
-  P0_div = section(X, P0)
-  @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
-  p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the QQ-trivial-lattice
-  if all(isone(denominator(i)) for i in F1)
-    # no torsion
-    P = P0
-    P_div = P0_div
-    F2 = F1
-  else
-    found = false
-    for (i,(T, tor)) in enumerate(tors)
-      d = F1 - _vec(tor)
-      if all(isone(denominator(i)) for i in d)
-        found = true
-        T0 = mordell_weil_torsion(X)[i]
-        P = P0 + T0
-        break
-      end
-    end
-    @assert found
-    P_div = section(X, P)
-    p = basis_representation(X, P_div)
-    F2 = F - p
-    @assert all( isone(denominator(i)) for i in F2)
-  end
+  p, P = _vertical_part(X,F)
+  D = section(X, P)
+  F2 = F - p
   @vprint :EllipticSurface 4 "F2 = $(F2)\n"
-  D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
   D1 = D
   F2 = ZZ.(F2); F2[2] = 0
@@ -1516,6 +1634,19 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
+# This function allows to store a reduction map to positive characteristic,
+# e.g. for computing intersection numbers.
+function reduction_to_pos_char(X::EllipticSurface, red_map::Map)
+  return get_attribute!(X, :reduction_to_pos_char) do
+    kk0 = base_ring(X)
+    @assert domain(red_map) === kk0
+    kkp = codomain(red_map)
+    @assert characteristic(kkp) > 0
+    _, result = base_change(red_map, X)
+    return red_map, result
+  end::Tuple{<:Map, <:Map}
+end
+
 @doc raw"""
     basis_representation(X::EllipticSurface, D::WeilDivisor)
 
@@ -1528,9 +1659,21 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   n = length(basis_ambient)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
-  for i in 1:n
-    @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
-    v[i] = intersect(basis_ambient[i], D)
+  kk = base_ring(X)
+  if iszero(characteristic(kk)) && has_attribute(X, :reduction_to_pos_char)
+    red_map, bc = get_attribute(X, :reduction_to_pos_char)
+    for i in 1:n
+      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
+      
+      v[i] = intersect(base_change(red_map, basis_ambient[i]; scheme_base_change=bc), 
+                       base_change(red_map, D; scheme_base_change=bc))
+    end
+  else
+    for i in 1:n
+      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
+
+      v[i] = intersect(basis_ambient[i], D)
+    end
   end
   @vprint :EllipticSurface 3 "done computing basis representation\n"
   return v*inv(G)
@@ -1629,7 +1772,10 @@ degree at most ``4`` to Weierstrass form, apply Tate's algorithm and
 return the corresponding relatively minimal elliptic surface 
 as well as the coordinate transformation.
 """
-function elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem}; minimize=true)
+function elliptic_surface(
+    g::MPolyRingElem, P::Vector{<:RingElem}; 
+    minimize::Bool=true, resolution_strategy::Symbol=:iterative
+  )
   R = parent(g)
   (x, y) = gens(R)
   P = base_ring(R).(P)
@@ -2744,4 +2890,95 @@ function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
   return weil_divisor(I)
 end
 
+# internal method used for two neighbor steps
+# in the horizontal_decomposition
+function _vertical_part(X::EllipticSurface, v::QQMatrix)
+  @req nrows(v)==1 "not a row vector"
+  _,tors, NS = algebraic_lattice(X)
+  E = generic_fiber(X)
+  @req ncols(v)==degree(NS) "vector of wrong size $(ncols(v))"
+  @req v in NS "not an element of the lattice"
+  mwl_rank = length(X.MWL)
+  rk_triv = rank(NS)-mwl_rank
+  n = rank(NS)
+  P = sum([ZZ(v[1,i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
+  p = zero_matrix(QQ, 1, rank(NS)) # the section part
+  p[1,end-mwl_rank+1:end] = v[1,end-mwl_rank+1:end]
+  p[1,2] = 1 - sum(p)  # assert p.F = 1 by adding a multiple of the zero section O
+  
+  # P meets exactly one fiber component per fiber 
+  # and that one must be simple, it can be the one meeting O or not
+  # assert this by adding fiber components under the additional condition that p stays in the algebraic lattice
+  simples = []
+  E = identity_matrix(QQ,rank(NS))
+  z = zero_matrix(QQ,1, rank(NS))
+  r = 2
+  for fiber in _trivial_lattice(X)[3]
+    fiber_type = fiber[2]
+    fiber_rk = fiber_type[2]
+    h = highest_root(fiber_type...)
+    simple_indices = [r+i for i in 1:ncols(h) if isone(h[1,i])]
+    simple_or_zero = [E[i:i,:] for i in simple_indices]
+    push!(simple_or_zero, z)
+    push!(simples,simple_or_zero)
+    r += fiber_rk
+  end
+  G = gram_matrix(ambient_space(NS))
+  pG = (p*G)[1:1,3:r]
+  T = Tuple(simples)
+  GF = G[3:r,3:r]
+  candidates = QQMatrix[]
+  for s in Base.Iterators.ProductIterator(T)
+    g = sum(s)[:,3:r]
+    y = (g - pG)
+    xx = solve(GF,y;side=:left)
+    x = zero_matrix(QQ,1, rank(NS))
+    x[:,3:r] = xx
+    if x in NS
+      push!(candidates,p+x)
+    end 
+  end
+  @assert length(candidates)>0
+  # Select the candidate congruent to v modulo Triv 
+  mwg = _mordell_weil_group(X)
+  vmwg = mwg(vec(collect(v)))
+  candidates2 = [mwg(vec(collect(x))) for x in candidates]
+  i = findfirst(==(vmwg), candidates2)
+  t = mwg(vec(collect(p - candidates[i])))
+  mwl_tors_gens = [mwg(vec(collect(i[2]))) for i in tors]
+  ag = abelian_group(zeros(ZZ,length(tors)))
+  mwlAb = abelian_group(mwg)
+  phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
+  a = preimage(phi, mwlAb(t))
+  for i in 1:ngens(ag)
+    P += a[i]*get_attribute(tors[i][1],:point)
+  end 
+  
+  p = candidates[i]
+  k = (p*G*transpose(p))[1,1]
+  # assert p^2 = -2
+  p[1,1] = -k/2-1
+  V = ambient_space(NS)
+  @hassert :EllipticSurface 1 inner_product(V, p, p)[1,1]== -2
+  @hassert :EllipticSurface 1 mwg(vec(collect(p))) == mwg(vec(collect(p)))
+  @hassert :EllipticSurface 3 basis_representation(X,section(X,P))==vec(collect(p))
+  return p, P
+end
+  
+function _vertical_part(X::EllipticSurface, v::Vector{QQFieldElem}) 
+  vv = matrix(QQ,1,length(v),v)
+  p, P = _vertical_part(X,vv)
+  pp = vec(collect(p))
+  return pp, P
+end
 
+# TODO: Instead return an abelian group A and two maps. 
+# algebraic_lattice -> A 
+# A -> MWL= E(k(t))
+function _mordell_weil_group(X)
+  N = algebraic_lattice(X)[3]
+  V = ambient_space(N)
+  t = nrows(trivial_lattice(X)[2])
+  Triv = lattice(V, identity_matrix(QQ,dim(V))[1:t,:])
+  return torsion_quadratic_module(N, Triv;modulus=1, modulus_qf=1, check=false)
+end 

@@ -168,7 +168,7 @@ Returns whether the scheme ``X`` is normal.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = rational_field()["x", "y", "z"];
+julia> R, (x, y, z) = QQ[:x, :y, :z];
 
 julia> X = covered_scheme(spec(R));
 
@@ -204,7 +204,7 @@ of non-integral schemes.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I = ideal(R, z*x^2 + y^3);
 

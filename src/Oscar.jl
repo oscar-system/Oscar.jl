@@ -176,6 +176,9 @@ function __init__()
   add_assertion_scope(:ZZLatWithIsom)
   add_verbosity_scope(:ZZLatWithIsom)
   
+  add_assertion_scope(:Vinberg)
+  add_verbosity_scope(:Vinberg)
+
   add_assertion_scope(:IdealSheaves)
   add_verbosity_scope(:IdealSheaves)
 
@@ -264,6 +267,7 @@ include("Modules/Modules.jl")
 include("Rings/ReesAlgebra.jl") # Needs ModuleFP
 
 include("NumberTheory/NmbThy.jl")
+include("NumberTheory/vinberg.jl")
 
 include("Combinatorics/Graphs/structs.jl")
 include("PolyhedralGeometry/PolyhedralGeometry.jl")

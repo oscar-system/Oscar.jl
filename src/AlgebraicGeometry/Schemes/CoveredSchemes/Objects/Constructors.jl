@@ -85,7 +85,7 @@ X_i \to X``, where ``X`` is the disjoint union of the covered schemes
 
 # Examples
 ```jldoctest
-julia> R_1, (x, y, z) = grade(rational_field()["x", "y", "z"][1]);
+julia> R_1, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> I_1 = ideal(R_1, z*x^2 + y^3);
 

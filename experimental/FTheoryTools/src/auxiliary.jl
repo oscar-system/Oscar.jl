@@ -9,13 +9,13 @@ function _ambient_space(base::NormalToricVariety, fiber_amb_space::NormalToricVa
   b_rays = matrix(ZZ, rays(base))
   b_cones = matrix(ZZ, ray_indices(maximal_cones(base)))
   b_grades = reduce(vcat, [elem.coeff for elem in cox_ring(base).d])
-  b_var_names = [string(k) for k in gens(cox_ring(base))]
+  b_var_names = symbols(cox_ring(base))
   
   # Extract information about the fiber ambient space
   f_rays = matrix(ZZ, rays(fiber_amb_space))
   f_cones = matrix(ZZ, ray_indices(maximal_cones(fiber_amb_space)))
   f_grades = reduce(vcat, [elem.coeff for elem in cox_ring(fiber_amb_space).d])
-  f_var_names = [string(k) for k in gens(cox_ring(fiber_amb_space))]
+  f_var_names = symbols(cox_ring(fiber_amb_space))
   
   # Extract coefficients of divisors D1, D2 and compute u_matrix
   fiber_twist_divisor_classes_coeffs = [divisor_class(D).coeff for D in fiber_twist_divisor_classes]
@@ -179,8 +179,8 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
     # Create new ring with auxiliary variable to construct the monodromy polynomial
     R = parent(f)
-    S, (_psi, ) = polynomial_ring(QQ, ["_psi"; [string(v) for v in gens(R)]], cached = false)
-    ring_map = hom(R, S, gens(S)[2:end])
+    S, (_psi,), _old_gens = polynomial_ring(QQ, [:_psi], symbols(R); cached = false)
+    ring_map = hom(R, S, _old_gens)
     poly_f = ring_map(f)
     poly_g = ring_map(g)
     locus = ring_map(gens(id)[1])
@@ -206,17 +206,17 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
 
       # Get the grading matrix and the coordinates of the arbitrary base
       grading = weights(base_space(w))
-      base_coords = gens(coordinate_ring(base_space(w)))
-      @req (length(base_coords) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base cooordinates"
+      base_coords_symbols = symbols(coordinate_ring(base_space(w)))
+      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base cooordinates"
 
       # Choose explicit sections for all parameters of the model,
       # and then put the model over the concrete base using these data
-      concrete_data = merge(Dict(string(base_coords[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords)), Dict("base" => concrete_base))
+      concrete_data = merge(Dict(string(base_coords_symbols[i]) => generic_section(KBar^grading[1, i] * prod(hyperplane_bundle^grading[j, i] for j in 2:length(grading[:, 1]))) for i in eachindex(base_coords_symbols)), Dict("base" => concrete_base))
       w = put_over_concrete_base(w, concrete_data)
 
       # We also need to determine the gauge locus over the new base
       # by using the explicit forms of all of the sections chosen above
-      list_of_sections = [concrete_data[string(base_coords[i])] for i in eachindex(base_coords)]
+      list_of_sections = [concrete_data[string(base_coords_symbols[i])] for i in eachindex(base_coords_symbols)]
       id = ideal([evaluate(p, list_of_sections) for p in gens(id)])
     end
 
@@ -315,7 +315,7 @@ function _blowup_global(id::MPolyIdeal{QQMPolyRingElem}, center::MPolyIdeal{QQMP
   lin = ideal(map(hom(base_ring(lin), R, collect(1:ngens(R))), gens(lin)))
   
   # Create new base ring for the blown up ideal and a map between the rings
-  S, S_gens = polynomial_ring(QQ, [string("e_", index); [string("b_", index, "_", i) for i in 1:center_size]; [string(v) for v in gens(R)]], cached = false)
+  S, S_gens = polynomial_ring(QQ, [Symbol("e_", index); [Symbol("b_", index, "_", i) for i in 1:center_size]; symbols(R)], cached = false)
   (_e, new_coords...) = S_gens[1:center_size + 1]
   ring_map = hom(R, S, S_gens[center_size + 2:end])
   
@@ -471,7 +471,7 @@ function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRi
   _e = gen(S, index_of_new_ray(bd))
   images = MPolyRingElem[]
   g_list = gens(S)
-  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
+  g_center = [string(k) for k in symbols(ideal_in_cox_ring(center_unnormalized(bd)))]
   for v in g_list
     v == _e && continue
     if string(v) in g_center
@@ -490,7 +490,7 @@ end
 function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
   _e = gen(S, index_of_new_ray(bd))
-  g_list = string.(gens(S))
+  g_list = string.(symbols(S))
   g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
   pos_of_e = findfirst(==(string(_e)), g_list)

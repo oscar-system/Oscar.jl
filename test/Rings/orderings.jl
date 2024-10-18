@@ -219,7 +219,7 @@ function test_opposite_ordering(a)
 end
 
 @testset "Polynomial Orderings sorting" begin
-   R, (x1, x2, x3, x4) = polynomial_ring(QQ, "x".*string.(1:4))
+   R, (x1, x2, x3, x4) = polynomial_ring(QQ, :x => 1:4)
    
    M = [x2^3, x1*x2^2, x1^2*x2, x2^2*x4, x2^2*x3, x2^2, x1^3,
         x1*x2*x4, x1*x2*x3, x1*x2, x1^2*x4, x1^2*x3, x1^2, x2*x4^2, x2*x3*x4,

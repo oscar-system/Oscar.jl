@@ -128,6 +128,24 @@ end
   @test iszero(I)
 end
 
+@testset "module quotients" begin
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
+  F = free_module(R, 1);
+  V = [x^2*F[1]; y^3*F[1]; z^4*F[1]];
+  N, _ = sub(F, V);
+  @test iszero(annihilator(N))
+  
+  R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
+  F = graded_free_module(R, 1);
+  B = R[x^2; y^3; z^4];
+  AM = R[x;];
+  M = SubquoModule(F, AM, B)
+  AN = R[y;];
+  N = SubquoModule(F, AN, B)
+  L = quotient(M, N)
+  @test ngens(L) == 3
+end
+
 @testset "Presentation" begin
   Oscar.set_seed!(235)
 
@@ -275,6 +293,14 @@ end
   @test relations(C) == [zero(F)]
   @test domain(isom) == F
   @test codomain(isom) == C
+
+  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  A, p = quo(R, ideal(R, x^5))
+  M1 = identity_matrix(A, 2)
+  M2 = A[-x-y 2*x^2+x; z^4 0; 0 z^4; 8*x^3*y - 4*x^3 - 4*x^2*y + 2*x^2 + 2*x*y - x - y x; x^4 0]
+  M = SubquoModule(M1, M2)
+  fr = free_resolution(M, length = 9)
+  @test all(iszero, homology(fr)[2:end])
 end
 
 @testset "Prune With Map" begin
@@ -369,7 +395,7 @@ end
   M = SubquoModule(F, [(x^2*y^2*F[1]+y*z*F[2]), x*z*F[1]+z^2*F[2]])
   @test leading_module(M,lp) == SubquoModule(F, [x*z*F[1], x*y^2*z^2*F[2], x^2*y^2*F[1]])
 
-  R, x = polynomial_ring(QQ, ["x_"*string(i) for i=1:4])
+  R, x = polynomial_ring(QQ, :x => 1:4)
   F = FreeMod(R, 1)
   lp = lex(gens(base_ring(F)))*lex(gens(F))
 
@@ -1267,3 +1293,41 @@ end
   F = graded_free_module(Pn, 1)
   dualFIC = hom(FI.C, F)
 end
+
+@testset "issue 4203" begin
+  R, (x,y) = polynomial_ring(GF(2), ["x","y"]);
+  
+  g = [x+1, y+1]
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  A, _ = quo(R, ideal(R, [x^2+1, y^2+1]));
+  
+  g = A.([x+1, y+1])
+  s = syzygy_generators(g)
+  F = parent(first(s))
+  s2 = syzygy_generators(g; parent=F)
+  @test s == s2
+  s3 = syzygy_generators(g)
+  @test s2 != s3
+  
+  F = free_module(A,2);
+  M,_ = sub(F, [F([A(x+1),A(y+1)])]);
+  FF = free_module(A, ngens(M)); 
+  phi = hom(FF, M, gens(M)); 
+  K, = kernel(phi); 
+  @test ambient_representatives_generators(K) == [(x*y + x + y + 1)*FF[1]]
+  @test_throws ErrorException standard_basis(K)
+  s1 = syzygy_generators(ambient_representatives_generators(M))
+  G = parent(first(s1))
+  s2 = syzygy_generators(ambient_representatives_generators(M); parent=G)
+  @test s1 == s2
+  s3 = syzygy_generators(ambient_representatives_generators(M))
+  @test s3 != s2
+  @test_throws ArgumentError syzygy_generators(ambient_representatives_generators(M); parent=F)
+end
+

@@ -857,7 +857,7 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]", "x[4]"], W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:4, W)
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
 julia> f = x[1]^4*x[2]+x[4]

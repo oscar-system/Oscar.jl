@@ -37,6 +37,11 @@ deviate from them in some cases; in that case just do so.
   matrices...
 - Input sanity checks should be enabled by default, they can then be disabled
   internally if they are known to be true, and manually by users.
+- All user-facing functions that expect some kind of indeterminant name etc.
+  (like `polynomial_ring(QQ, <indeterminant_name>)`) should accept a
+  `VarName = Union{Symbol, Char, String}`, and convert it to a symbol for internal
+  handling. Library and test code should (if possible) call such functions with
+  `Symbol` arguments, as this is the most efficient way.
 
 
 ## Naming conventions

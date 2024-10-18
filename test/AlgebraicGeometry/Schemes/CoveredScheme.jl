@@ -16,7 +16,7 @@
   end
 
   @testset "Covered schemes 2" begin
-    P = projective_space(QQ, ["x", "y", "z", "w"])
+    P = projective_space(QQ, [:x, :y, :z, :w])
     Pc = covered_scheme(P)
     S = homogeneous_coordinate_ring(P)
     (x,y,z,w) = gens(S)
@@ -118,7 +118,7 @@
   end
 
   @testset "closed embeddings and singular loci" begin
-    IP2 = projective_space(QQ, ["x", "y", "z"])
+    IP2 = projective_space(QQ, [:x, :y, :z])
     S = homogeneous_coordinate_ring(IP2)
     (x, y, z) = gens(S)
     f = x^2*z + y^3 - y^2*z
@@ -250,7 +250,7 @@
     new_cov = Covering(append!(AbsAffineScheme[V1, V2], patches(orig_cov)[2:end]))
     Oscar.inherit_gluings!(new_cov, orig_cov)
     Oscar.inherit_decomposition_info!(X, new_cov, orig_cov=orig_cov)
-    @test Oscar.decomposition_info(new_cov)[V2] == [OO(V2)(x-1)]
+    @test Oscar.decomposition_info(new_cov)[V1] == [OO(V1)(x)]
   end
 
   @testset "fiber products of coverings" begin

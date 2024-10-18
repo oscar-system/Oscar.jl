@@ -53,9 +53,9 @@ end
 
 function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::NormalToricVariety, fiber_twist_divisor_classes::Vector{ToricDivisorClass}, p::String; completeness_check::Bool = true)
   # Consistency checks
-  gens_base_names = [string(g) for g in gens(cox_ring(base))]
-  gens_fiber_names = [string(g) for g in gens(cox_ring(fiber_ambient_space))]
-  if intersect(Set(gens_base_names), Set(gens_fiber_names)) != Set()
+  gens_base_names = symbols(cox_ring(base))
+  gens_fiber_names = symbols(cox_ring(fiber_ambient_space))
+  if !isdisjoint(gens_base_names, gens_fiber_names)
     @vprint :FTheoryModelPrinter 0 "Variable names duplicated between base and fiber coordinates.\n"
   end
   if completeness_check
@@ -68,11 +68,11 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   # Construct the model
   hypersurface_equation = eval_poly(p, cox_ring(ambient_space))
   @req is_homogeneous(hypersurface_equation) "Given hypersurface equation is not homogeneous"
-  ds = [x.coeff for x in collect(keys(homogeneous_components(hypersurface_equation)))]
+  ds = [x.coeff for x in keys(homogeneous_components(hypersurface_equation))]
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
-  gens_S = gens(cox_ring(ambient_space))
+  gens_S = gens(cox_ring(base))
   for k in 1:length(gens_S)
     explicit_model_sections[string(gens_S[k])] = gens_S[k]
   end
@@ -183,7 +183,7 @@ function hypersurface_model(auxiliary_base_vars::Vector{String}, auxiliary_base_
   
   # Conduct simple consistency checks
   @req d > 0 "The dimension of the base space must be positive"
-  @req intersect(set_base_vars, set_fiber_vars) == Set() "Variable names duplicated between base and fiber coordinates."
+  @req isdisjoint(set_base_vars, set_fiber_vars) "Variable names duplicated between base and fiber coordinates."
   @req union(set_base_vars, set_fiber_vars) == set_p_vars "Variables names for polynomial p do not match variable choice for base and fiber"
   @req ncols(auxiliary_base_grading) == length(auxiliary_base_vars) "Number of base variables does not match the number of provided base gradings"
   

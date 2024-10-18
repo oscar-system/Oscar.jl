@@ -132,7 +132,7 @@ Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 
@@ -181,7 +181,7 @@ Affine scheme morphism
   from [x1, x2, x3]  scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> 0
+  x1 -> x1
   x2 -> x2
   x3 -> x3
 

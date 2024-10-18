@@ -118,7 +118,7 @@ julia> x1, x2, x3, x4, x, y, z = gens(cox_ring(ambient_space(t)))
 
 julia> blowup_center = ideal_sheaf(ambient_space(t), ideal([x, y, x1]))
 Sheaf of ideals
-  on normal toric variety
+  on normal, simplicial toric variety
 with restrictions
    1: Ideal (x_5_1, x_4_1, x_1_1)
    2: Ideal (1)
@@ -334,7 +334,7 @@ function put_over_concrete_base(m::AbstractFTheoryModel, concrete_data::Dict{Str
     all_appearing_exponents = hcat([collect(exponents(m))[1] for m in all_appearing_monomials]...)
     for k in 1:nrows(all_appearing_exponents)
       if any(!is_zero, all_appearing_exponents[k,:])
-        gen_name = string(gens(parent(polys[1]))[k])
+        gen_name = string(symbols(parent(polys[1]))[k])
         @req haskey(concrete_data, gen_name) "Required base section $gen_name not specified"
         @req parent(concrete_data[gen_name]) == cox_ring(concrete_data["base"]) "Specified sections must reside in Cox ring of given base"
         new_model_secs[gen_name] = concrete_data[gen_name]

@@ -345,7 +345,6 @@ end
 end
   
 @attr Bool function has_dimension_leq_zero(I::Ideal)
-  is_one(I) && return true
   return dim(I) <= 0
 end
 
@@ -354,14 +353,13 @@ end
   P = base_ring(R)::MPolyRing
   J = ideal(P, numerator.(gens(I)))
   has_dimension_leq_zero(J) && return true
-  is_one(I) && return true
   return dim(I) <= 0
 end
 
 @attr Bool function has_dimension_leq_zero(I::MPolyQuoLocalizedIdeal)
   R = base_ring(I)
   P = base_ring(R)::MPolyRing
-  J = ideal(P, lifted_numerator.(gens(I)))
+  J = pre_saturated_ideal(pre_image_ideal(I))
   has_dimension_leq_zero(J) && return true
   is_one(I) && return true
   return dim(I) <= 0
@@ -562,9 +560,12 @@ function extend!(
 end
 
 function _iterative_saturation(I::Ideal, f::RingElem)
-  fac = factor(f)
+  return _iterative_saturation(I, typeof(f)[u for (u, _) in factor(f)])
+end
+
+function _iterative_saturation(I::Ideal, f::Vector{T}) where{T<:RingElem}
   R = base_ring(I)
-  for (u, k) in fac
+  for u in f
     I = saturation(I, ideal(R, u))
   end
   return I

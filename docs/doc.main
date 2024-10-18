@@ -23,7 +23,12 @@
      "Groups/grouphom.md",
      "Groups/autgroup.md",
      "Groups/grouplib.md",
-     "Hecke/manual/abelian/introduction.md",
+     "Abelian Groups" => [
+        "Introduction" => "Hecke/manual/abelian/introduction.md",
+        "Elements" => "Hecke/manual/abelian/elements.md",
+        "Morphisms" => "Hecke/manual/abelian/maps.md",
+        "Structural Computations" => "Hecke/manual/abelian/structural.md",
+     ],
      "Groups/group_characters.md",
      "Groups/recog.md",
      "Groups/tom.md",
@@ -83,7 +88,8 @@
         "Hecke/manual/quad_forms/genusherm.md",
         "Hecke/manual/quad_forms/integer_lattices.md",
         "Hecke/manual/quad_forms/Zgenera.md",
-        "Hecke/manual/quad_forms/discriminant_group.md"
+        "Hecke/manual/quad_forms/discriminant_group.md",
+        "NumberTheory/vinberg.md",
      ],
   ],
 
@@ -132,6 +138,7 @@
         "CommutativeAlgebra/ModulesOverMultivariateRings/intro.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/free_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/subquotients.md",
+	"CommutativeAlgebra/ModulesOverMultivariateRings/ideals_quorings_as_modules.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/module_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/hom_operations.md",
         "CommutativeAlgebra/ModulesOverMultivariateRings/complexes.md",
@@ -194,6 +201,7 @@
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",
+        "AlgebraicGeometry/Surfaces/duValSing.md",
      ],
      "Sheaf Cohomology" => [
         "AlgebraicGeometry/SheafCohomology/sheaf_cohomology.md",

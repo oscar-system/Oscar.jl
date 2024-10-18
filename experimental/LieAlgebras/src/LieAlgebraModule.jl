@@ -4,9 +4,12 @@
 #
 ###############################################################################
 
-parent_type(::Type{LieAlgebraModuleElem{C}}) where {C<:FieldElem} = LieAlgebraModule{C}
+parent_type(
+  ::Type{LieAlgebraModuleElem{C,LieT}}
+) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} = LieAlgebraModule{C,LieT}
 
-elem_type(::Type{LieAlgebraModule{C}}) where {C<:FieldElem} = LieAlgebraModuleElem{C}
+elem_type(::Type{LieAlgebraModule{C,LieT}}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} =
+  LieAlgebraModuleElem{C,LieT}
 
 parent(v::LieAlgebraModuleElem) = v.parent
 
@@ -19,7 +22,8 @@ coefficient_ring(v::LieAlgebraModuleElem) = coefficient_ring(parent(v))
 
 Return the Lie algebra `V` is a module over.
 """
-base_lie_algebra(V::LieAlgebraModule) = V.L
+base_lie_algebra(V::LieAlgebraModule{C,LieT}) where {C<:FieldElem,LieT<:LieAlgebraElem{C}} =
+  V.L::parent_type(LieT)
 
 number_of_generators(L::LieAlgebraModule) = dim(L)
 
@@ -49,7 +53,9 @@ Return the `i`-th basis element of the Lie algebra module `V`.
 function basis(V::LieAlgebraModule, i::Int)
   @req 1 <= i <= dim(V) "Index out of bounds."
   R = coefficient_ring(V)
-  return V([(j == i ? one(R) : zero(R)) for j in 1:dim(V)])
+  v = zero_matrix(R, 1, dim(V))
+  v[1, i] = one(R)
+  return V(v)
 end
 
 @doc raw"""
@@ -246,21 +252,21 @@ function (V::LieAlgebraModule)()
 end
 
 @doc raw"""
-    (V::LieAlgebraModule{C})(v::Vector{Int}) -> LieAlgebraModuleElem{C}
+    (V::LieAlgebraModule{C})(v::AbstractVector{Int}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
 Fails, if `Int` cannot be coerced into the base ring of `L`.
 """
-function (V::LieAlgebraModule)(v::Vector{Int})
+function (V::LieAlgebraModule)(v::AbstractVector{Int})
   return V(coefficient_ring(V).(v))
 end
 
 @doc raw"""
-    (V::LieAlgebraModule{C})(v::Vector{C}) -> LieAlgebraModuleElem{C}
+    (V::LieAlgebraModule{C})(v::AbstractVector{C}) -> LieAlgebraModuleElem{C}
 
 Return the element of `V` with coefficient vector `v`.
 """
-function (V::LieAlgebraModule{C})(v::Vector{C}) where {C<:FieldElem}
+function (V::LieAlgebraModule{C})(v::AbstractVector{C}) where {C<:FieldElem}
   @req length(v) == dim(V) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(V), 1, length(v), v)
   return elem_type(V)(V, mat)
@@ -977,7 +983,7 @@ julia> L = special_linear_lie_algebra(QQ, 2);
 julia> V = symmetric_power(standard_module(L), 2)[1]; # some module
 
 julia> E, map = exterior_power(V, 2)
-(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> E)
+(Exterior power module of dimension 3 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> E)
 
 julia> E
 Exterior power module
@@ -988,7 +994,7 @@ Exterior power module
 over special linear Lie algebra of degree 2 over QQ
 
 julia> basis(E)
-3-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+3-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^2)^(v_1*v_2)
  (v_1^2)^(v_2^2)
  (v_1*v_2)^(v_2^2)
@@ -1106,7 +1112,7 @@ julia> L = special_linear_lie_algebra(QQ, 4);
 julia> V = exterior_power(standard_module(L), 3)[1]; # some module
 
 julia> S, map = symmetric_power(V, 2)
-(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> S)
+(Symmetric power module of dimension 10 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> S)
 
 julia> S
 Symmetric power module
@@ -1117,7 +1123,7 @@ Symmetric power module
 over special linear Lie algebra of degree 4 over QQ
 
 julia> basis(S)
-10-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+10-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^v_2^v_3)^2
  (v_1^v_2^v_3)*(v_1^v_2^v_4)
  (v_1^v_2^v_3)*(v_1^v_3^v_4)
@@ -1260,7 +1266,7 @@ julia> L = special_linear_lie_algebra(QQ, 3);
 julia> V = exterior_power(standard_module(L), 2)[1]; # some module
 
 julia> T, map = tensor_power(V, 2)
-(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem}, LieAlgebraModuleElem{QQFieldElem}} -> T)
+(Tensor power module of dimension 9 over L, Map: parent of tuples of type Tuple{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}, LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}} -> T)
 
 julia> T
 Tensor power module
@@ -1271,7 +1277,7 @@ Tensor power module
 over special linear Lie algebra of degree 3 over QQ
 
 julia> basis(T)
-9-element Vector{LieAlgebraModuleElem{QQFieldElem}}:
+9-element Vector{LieAlgebraModuleElem{QQFieldElem, LinearLieAlgebraElem{QQFieldElem}}}:
  (v_1^v_2)(x)(v_1^v_2)
  (v_1^v_2)(x)(v_1^v_3)
  (v_1^v_2)(x)(v_2^v_3)

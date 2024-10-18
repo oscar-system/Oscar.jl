@@ -65,10 +65,10 @@ end
 end
 
 @testset "PBWAlgebra.weyl_algebra" begin
-  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  R, (x, dx) = weyl_algebra(QQ, [:x])
   @test dx*x == 1 + x*dx
 
-  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  R, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
   @test dx*x == 1 + x*dx
   @test dy*y == 1 + y*dy
   @test dx*y == y*dx
@@ -77,7 +77,7 @@ end
 end
 
 @testset "PBWAlgebra.opposite_algebra" begin
-  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  R, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
   opR, M = opposite_algebra(R)
   @test M(dy*dx*x*y) == M(y)*M(x)*M(dx)*M(dy)
   @test inv(M)(M(x)) == x
@@ -91,7 +91,7 @@ end
 end
 
 @testset "PBWAlgebra.ideals" begin
-  R, (x, y, dx, dy) = weyl_algebra(QQ, ["x", "y"])
+  R, (x, y, dx, dy) = weyl_algebra(QQ, [:x, :y])
 
   I = left_ideal([x^2, y^2])
   @test length(string(I)) > 2
@@ -206,7 +206,7 @@ end
     @test eliminate(M.(I), M.([x, d])) == M.(left_ideal([a]))
   end
 
-  R, (x, dx) = weyl_algebra(QQ, ["x"])
+  R, (x, dx) = weyl_algebra(QQ, [:x])
   @test is_zero(eliminate(left_ideal([x*dx]), [x, dx]))
   @test is_one(eliminate(left_ideal([x, 1-x]), [x, dx]))
 

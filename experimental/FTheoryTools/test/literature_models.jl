@@ -363,7 +363,7 @@ h = literature_model(arxiv_id = "1507.05954", equation = "3.4")
   @test parent(hypersurface_equation(h)) == coordinate_ring(ambient_space(h))
   @test dim(base_space(h)) == 2
   @test is_smooth(fiber_ambient_space(h)) == true
-  @test [string(g) for g in gens(cox_ring(fiber_ambient_space(h)))] == ["u", "v", "w"]
+  @test symbols(cox_ring(fiber_ambient_space(h))) == [:u, :v, :w]
   @test is_base_space_fully_specified(h) == false
   @test is_partially_resolved(h) == false
   @test string.(zero_section(h)) == ["0", "-b1", "a1"]

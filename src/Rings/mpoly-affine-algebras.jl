@@ -523,7 +523,7 @@ Return the Hilbert series of the graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -715,7 +715,7 @@ Return the reduced Hilbert series of the positively graded affine algebra `A`.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -816,7 +816,7 @@ of $A$, and return the value $H(A, g)$ as above.
 ```jldoctest
 julia> W = [1 1 1; 0 0 -1];
 
-julia> R, x = graded_polynomial_ring(QQ, ["x[1]", "x[2]", "x[3]"], W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:3, W)
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3]])
 
 julia> I = ideal(R, [x[1]^3*x[2], x[2]*x[3]^2, x[2]^2*x[3], x[3]^4]);
@@ -1098,7 +1098,7 @@ function _subalgebra_membership_homogeneous_precomp(d::Int, v::Vector{PolyRingEl
   # of f suffices to check containment of f in J
   GJ = _groebner_basis(J, d, ordering = o)
 
-  S, _ = polynomial_ring(base_ring(R), [ "t$i" for i in 1:length(v) ]; cached=false)
+  S, _ = polynomial_ring(base_ring(R), "t#" => 1:length(v); cached=false)
   TtoS = hom(T, S, append!(zeros(S, ngens(R)), gens(S)))
 
   return RtoT, TtoS, GJ
@@ -1380,7 +1380,7 @@ function _conv_normalize_data(A::MPolyQuoRing, l, br)
   return [
     begin
       newSR = l[1][i][1]::Singular.PolyRing
-      newOR, _ = polynomial_ring(br, [string(x) for x in gens(newSR)])
+      newOR, _ = polynomial_ring(br, symbols(newSR))
       newA, newAmap = quo(newOR, ideal(newOR, newOR.(gens(l[1][i][2][:norid]))))
       set_attribute!(newA, :is_normal=>true)
       newgens = newOR.(gens(l[1][i][2][:normap]))

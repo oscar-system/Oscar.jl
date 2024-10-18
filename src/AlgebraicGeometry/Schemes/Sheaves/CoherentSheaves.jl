@@ -784,19 +784,6 @@ end
   return C
 end
 
-function inherit_decomposition_info!(C::Covering, X::AbsCoveredScheme)
-  D = default_covering(X)
-  OOX = OO(X)
-  if has_decomposition_info(D)
-    for U in patches(C)
-      V = __find_chart(U, D)
-      phi = OOX(V, U)
-      set_decomposition_info!(C, U, phi.(decomposition_info(D)[V]))
-    end
-  end
-  return C
-end
-
 @attr Covering function trivializing_covering(M::HomSheaf)
   X = scheme(M)
   OOX = OO(X)
@@ -1031,7 +1018,7 @@ rings can be provided with `var_names`.
 can be computed. The check for this can be turned off by setting `check=false`.
 """
 function projectivization(E::AbsCoherentSheaf;
-    var_names::Vector{String}=Vector{String}(),
+    var_names::Vector{<:VarName}=Vector{Symbol}(),
     check::Bool=true
   )
   X = scheme(E)
@@ -1049,7 +1036,7 @@ function projectivization(E::AbsCoherentSheaf;
       F isa FreeMod || error("modules must locally be free")
       r = (rank(F) > r ? rank(F) : r)
     end
-    var_names = ["s$i" for i in 0:r-1]
+    var_names = [Symbol(:s, i) for i in 0:r-1]
   end
 
   for U in patches(C)
@@ -1057,7 +1044,7 @@ function projectivization(E::AbsCoherentSheaf;
     F isa FreeMod || error("modules must locally be free")
     r = rank(F)
     length(var_names) >= r || error("number of names for the variables must greater or equal to the local rank of the module")
-    RU = rees_algebra(E(U), var_names=var_names[1:r])
+    RU = rees_algebra(E(U); var_names=var_names[1:r])
     algebras[U] = RU
     SU, _ = grade(RU)
     PU = proj(SU)

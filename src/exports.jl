@@ -264,6 +264,7 @@ export ambient_representatives_generators
 export ambient_scheme
 export ambient_space
 export ambient_type
+export annihilator
 export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
@@ -1580,6 +1581,7 @@ export vertexindices
 export vertical_connectivity
 export vertices
 export vertices_and_rays
+export vinberg_algorithm
 export visualize
 export volume
 export volume_form

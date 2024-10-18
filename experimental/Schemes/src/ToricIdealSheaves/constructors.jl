@@ -102,7 +102,7 @@ function IdealSheaf(X::NormalToricVarietyType, I::MPolyIdeal)
 
       # We first create the morphism \pi_s* from p. 224, l. 3.
       indices = [k for k in row(IM, k)]
-      help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+      help_ring, x_rho = polynomial_ring(QQ, "x#" => indices)
       imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
       phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 
@@ -205,7 +205,7 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
 
 #  # We first create the morphism \pi_s* from p. 224, l. 3.
 #  indices = [k for k in row(IM, k)]
-#  help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+#  help_ring, x_rho = polynomial_ring(QQ, "x#" => indices)
 #  imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
 #  phi_s_star = hom(cox_ring(X), help_ring, imgs_phi_star; check=false)
 # 
@@ -243,7 +243,7 @@ function _dehomogenize_to_chart(X::NormalToricVarietyType, I::MPolyIdeal, k::Int
 
   # Assemble the dehomogenization map phi_sigma^star.
   indices = [k for k in row(IM, k)]
-  help_ring, x_rho = polynomial_ring(QQ, ["x_$j" for j in indices])
+  help_ring, x_rho = polynomial_ring(QQ, "x#" => indices)
   imgs_phi_star = [j in indices ? x_rho[findfirst(==(j), indices)] : one(help_ring) for j in 1:n_rays(X)]
   phi_s_star = hom(S_loc, help_ring, imgs_phi_star; check=false)
 

@@ -457,7 +457,7 @@ function minimal_parts(I::MPolyIdeal, w::Vector{ZZRingElem})
   @assert nvars(R) == length(w)
 
   w1 = push!(copy(w), ZZRingElem(-1))
-  S, t = graded_polynomial_ring(K, ["t$i" for i in 1:(nvars(R) + 1)], w1)
+  S, t = graded_polynomial_ring(K, "t#" => 1:(nvars(R) + 1), w1)
 
   Ihom = homogenize_at_last_variable(I, S)
 
@@ -487,7 +487,7 @@ function g_homogeneous_ideal(I::MPolyIdeal, weights::Vector{ZZRingElem}, order::
   R = base_ring(I)
 
   w = push!(copy(weights), ZZRingElem(1))
-  S, t = graded_polynomial_ring(coefficient_ring(R), ["t$i" for i in 1:(nvars(R) + 1)], w)
+  S, t = graded_polynomial_ring(coefficient_ring(R), "t#" => 1:(nvars(R) + 1), w)
 
   Ihom = homogenize_at_last_variable(I, S)
 

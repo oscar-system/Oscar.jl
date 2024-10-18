@@ -57,7 +57,7 @@ function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
   return AllMonomials{typeof(R)}(R, d, vars)
 end
 
-Base.eltype(AM::AllMonomials) = elem_type(AM.R)
+Base.eltype(::Type{AllMonomials{PolyRingT}}) where {PolyRingT} = elem_type(PolyRingT)
 
 Base.length(AM::AllMonomials) = length(AM.weak_comp_iter)
 
@@ -390,7 +390,13 @@ function iterate_basis_linear_algebra(IR::FinGroupInvarRing, d::Int)
   )
 end
 
-Base.eltype(BI::FinGroupInvarRingBasisIterator) = elem_type(polynomial_ring(BI.R))
+Base.eltype(
+  ::Type{
+    <:FinGroupInvarRingBasisIterator{
+      FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT
+    },
+  },
+) where {FinGroupInvarRingT,ReynoldsT,IteratorT,PolyRingElemT,MatrixT} = PolyRingElemT
 
 Base.length(BI::FinGroupInvarRingBasisIterator) = BI.dim
 
@@ -553,7 +559,7 @@ vector_space_iterator(
 ) where {FieldT,IteratorT} = VectorSpaceIteratorRand(K, basis_iterator, bound)
 
 Base.eltype(
-  VSI::VectorSpaceIterator{FieldT,IteratorT,ElemT}
+  ::Type{<:VectorSpaceIterator{FieldT,IteratorT,ElemT}}
 ) where {FieldT,IteratorT,ElemT} = ElemT
 
 Base.length(VSI::VectorSpaceIteratorFiniteField) =
@@ -708,7 +714,7 @@ end
 
 iterate_partitions(M::MSet) = MSetPartitions(M)
 
-Base.eltype(MSP::MSetPartitions{T}) where {T} = Vector{MSet{T}}
+Base.eltype(::Type{MSetPartitions{T}}) where {T} = Vector{MSet{T}}
 
 function Base.iterate(MSP::MSetPartitions)
   if isempty(MSP.M)

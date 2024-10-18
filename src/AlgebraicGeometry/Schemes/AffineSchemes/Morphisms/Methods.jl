@@ -138,7 +138,7 @@ function _induced_map_to_fiber_product(
   W = domain(a)
   @check gens(OO(XxY)) == vcat(pullback(gg).(gens(OO(X))), pullback(ff).(gens(OO(Y)))) "variables must be pullbacks of variables on the factors"
 
-  img_gens = vcat(pullback(a).(gens(OO(X))), pullback(b).(gens(OO(Y))))
+  img_gens = vcat(_images_of_generators(pullback(a)), _images_of_generators(pullback(b)))
   return morphism(W, XxY, img_gens, check=check)
 end
 
@@ -155,8 +155,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   W = domain(a)
   Y = codomain(b)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 function _induced_map_to_fiber_product(
@@ -169,8 +168,7 @@ function _induced_map_to_fiber_product(
   XxY = fiber_product[1]
   X = domain(f)
   W = domain(a)
-  img_gens = pullback(a).(gens(OO(X)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(a)), check=check)
 end
 
 # additional method to remove ambiguity
@@ -184,18 +182,23 @@ function _induced_map_to_fiber_product(
   # XxY is a principal open subset of Y.
   XxY = fiber_product[1]
   Y = domain(g)
-  img_gens = pullback(b).(gens(OO(Y)))
-  return morphism(W, XxY, img_gens, check=check)
+  return morphism(W, XxY, _images_of_generators(pullback(b)), check=check)
 end
 
 ### Some helper functions
+
+_images_of_generators(f::Map) = f.(gens(domain(f)))
+_images_of_generators(f::MPolyAnyMap) = _images(f)
+_images_of_generators(f::MPolyLocalizedRingHom) = _images(restricted_map(f))
+_images_of_generators(f::MPolyQuoLocalizedRingHom) = _images(restricted_map(f))
+
 function _restrict_domain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check::Bool=true)
   D === domain(f) && return f
-  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), OO(D).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
+  !_has_coefficient_map(pullback(f)) && ambient_scheme(D) === domain(f) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))]; check=check)
 
   @check is_subscheme(D, domain(f)) "domain incompatible"
-  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
-  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(D, codomain(f), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
+  return morphism(D, codomain(f), coefficient_map(pullback(f)), [OO(D)(x; check) for x in _images_of_generators(pullback(f))], check=check)
 end
 
 function _restrict_domain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
@@ -208,12 +211,12 @@ function _restrict_codomain(f::AbsAffineSchemeMor, D::PrincipalOpenSubset; check
   D === codomain(f) && return f
   if ambient_scheme(D) === codomain(f)
     @check is_unit(pullback(f)(complement_equation(D))) "complement equation does not pull back to a unit"
-    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=false)
-    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=false)
+    !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
+    return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))], check=check)
   end
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D))
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check=check)
   return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
@@ -235,7 +238,7 @@ end
 function _restrict_codomain(f::AbsAffineSchemeMor, D::AbsAffineScheme; check::Bool=true)
   @check is_subscheme(D, codomain(f)) "codomain incompatible"
   @check is_subscheme(domain(f), preimage(f, D)) "new domain is not contained in preimage of codomain"
-  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, OO(domain(f)).(pullback(f).(gens(OO(codomain(f)))); check=false), check=check)
+  !_has_coefficient_map(pullback(f)) && return morphism(domain(f), D, [OO(domain(f))(x; check) for x in _images_of_generators(pullback(f))]; check)
   return morphism(domain(f), D, coefficient_map(pullback(f)), [OO(domain(f))(x; check) for x in pullback(f).(gens(OO(codomain(f))))], check=check)
 end
 
@@ -393,8 +396,7 @@ function ==(f::AffineSchemeMorType, g::AffineSchemeMorType) where {AffineSchemeM
   X = domain(f)
   X == domain(g) || return false
   codomain(f) == codomain(g) || return false
-  OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(f))))) == OO(X).(pullback(f).(gens(ambient_coordinate_ring(codomain(g))))) || return false
-  return true
+  return all(OO(X)(x) == OO(X)(y) for (x, y) in zip(_images_of_generators(pullback(f)), _images_of_generators(pullback(g))))
 end
 
 
