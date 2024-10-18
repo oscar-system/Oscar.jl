@@ -372,10 +372,15 @@ end
 
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
+
+isequal(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
+
 function ==(x::GAPGroup, y::GAPGroup)
   _check_compatible(x, y)
   return GapObj(x) == GapObj(y)
 end
+
+isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
 
 # For two `BasicGAPGroupElem`s,
 # we allow the question for equality if their parents fit together
