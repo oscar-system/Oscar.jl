@@ -56,6 +56,13 @@ function save_object(s::SerializerState, h::HypersurfaceModel)
         attrs_dict[key] = value
       end
     end
+    if has_resolutions(h)
+      res = resolutions(h)
+      resolution_loci = [k[1] for k in res]
+      exceptional_divisors = [k[2] for k in res]
+      attrs_dict[:resolution_loci] = resolution_loci
+      attrs_dict[:exceptional_divisors] = exceptional_divisors
+    end
     !isempty(attrs_dict) && save_typed_object(s, attrs_dict, :__attrs)
   end
 end
@@ -75,7 +82,15 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   model.defining_classes = defining_classes
   attrs_data = haskey(s, :__attrs) ? load_typed_object(s, :__attrs) : Dict{Symbol, Any}()
   for (key, value) in attrs_data
-    set_attribute!(model, Symbol(key), value)
+    if (key != :resolution_loci) && (key != :exceptional_divisors)
+      set_attribute!(model, Symbol(key), value)
+    end
+  end
+  if haskey(attrs_data, :resolution_loci)
+    resolution_loci = attrs_data[:resolution_loci]
+    exceptional_divisors = attrs_data[:exceptional_divisors]
+    @req length(exceptional_divisors) == length(exceptional_divisors) "Inconsistency upon loading resolutions"
+    set_attribute!(model, :resolutions, [[resolution_loci[i], exceptional_divisors[i]] for i in 1:length(resolution_loci)])
   end
   @req cox_ring(ambient_space(model)) == parent(hypersurface_equation(model)) "Hypersurface polynomial not in Cox ring of toric ambient space"
   return model
