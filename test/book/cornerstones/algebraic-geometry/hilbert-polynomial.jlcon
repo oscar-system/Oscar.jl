@@ -1,6 +1,6 @@
-julia> R, (w,x,y,z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> S, (w,x,y,z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
 
-julia> I = ideal(R, [x*w-y*z, y*w-(x-z)*(x-2*z)]);
+julia> I = ideal(S, [x*w-y*z, y*w-(x-z)*(x-2*z)]);
 
 julia> Q = projective_scheme(I);
 
