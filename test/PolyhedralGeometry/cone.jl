@@ -39,7 +39,10 @@
     @test vector_matrix(rays(Cone1)) == _oscar_matrix_from_property(f, rays(Cone1))
     if T == QQFieldElem
       @test matrix(QQ, rays(Cone1)) == _oscar_matrix_from_property(f, rays(Cone1))
-      @test matrix(ZZ, rays(Cone1)) == _oscar_matrix_from_property(ZZ, rays(Cone1))
+      let r = rays(Cone6)
+        m = matrix(ZZ, r[1] == [1//3, 1//2] ? [2 3; 2 5] : [2 5; 2 3])
+        @test matrix(ZZ, rays(Cone6)) == m
+      end
     end
     @test length(rays(Cone1)) == 2
     for S in [LinearHalfspace{T},
