@@ -86,15 +86,16 @@ Return a `RayVector` resembling a ray from the origin through the point whose co
 ray_vector
 
 function Base.:(==)(x::RayVector, y::RayVector)
-  ax = collect(x)
-  ay = collect(y)
-  ix = findfirst(!is_zero, ax)
-  iy = findfirst(!is_zero, ay)
+  ix = findfirst(!is_zero, x)
+  iy = findfirst(!is_zero, y)
   ix == iy || return false
   isnothing(ix) && return true
-  r = ay[iy]//ax[ix]
-  r < zero(r) && return false
-  return (r .* ax == ay)
+  r = y[iy]//x[ix]
+  is_negative(r) && return false
+  for i in 1:length(x)
+    r * x[i] == y[i] || return false
+  end
+  return true
 end
 
 function Base.:(==)(x::RayVector, y::AbstractVector)
