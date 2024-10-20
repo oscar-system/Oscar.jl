@@ -16,7 +16,7 @@
   @testset "alternative inputs" begin
     @test issetequal(maximal_cells(square_by_incidence),
                      maximal_cells(square_by_weights))
-    @test issetequal(min_weights(square_by_cells), min_weights(square_by_weights))
+    @test issetequal(square_max_cells, maximal_cells(subdivision_of_points(C,min_weights(square_by_cells))))
   end
 
   moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
