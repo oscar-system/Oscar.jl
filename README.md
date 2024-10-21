@@ -37,7 +37,7 @@ julia> using Oscar
  / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
 | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
 | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.0.4
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.0.5
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -120,7 +120,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.0.4,
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.0.5,
         The OSCAR Team, 2024. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, eds.
@@ -133,7 +133,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.0.4},
+                      Version 1.0.5},
       year         = {2024},
       url          = {https://www.oscar-system.org},
       }
