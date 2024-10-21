@@ -1,0 +1,2 @@
+L:= SimpleLieAlgebra("A", 4, Rationals);; 
+V:= HighestWeightModule(L, [1,3,2,1]);; 
