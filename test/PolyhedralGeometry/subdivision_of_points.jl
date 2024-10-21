@@ -14,9 +14,9 @@
     SubdivisionOfPoints
 
   @testset "alternative inputs" begin
-    @test issetequal(collect(maximal_cells(square_by_incidence)),
-      collect(maximal_cells(square_by_weights)))
-    @test min_weights(square_by_cells) == min_weights(square_by_weights)
+    @test issetequal(maximal_cells(square_by_incidence),
+                     maximal_cells(square_by_weights))
+    @test issetequal(square_max_cells, maximal_cells(subdivision_of_points(C,min_weights(square_by_cells))))
   end
 
   moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
@@ -45,10 +45,10 @@
     @test min_weights(SOP1) == [0, 0, 0, 1, 1, 1]
     @test dim(C1) == 6
     @test dim(CMOAE) == 4
-    @test moaeimnonreg0 == maximal_cells(IncidenceMatrix, MOAE)
+    @test _check_im_perm_rows(moaeimnonreg0, maximal_cells(IncidenceMatrix, MOAE))
     @test number_of_points(MOAE) == 6
     @test length(points(MOAE)) == 6
-    @test collect(points(MOAE))[3] == [0, 0, 4]
+    @test [0, 0, 4] in points(MOAE)
     @test gkz_vector(fulldim_MOAE) == [9, 9, 9, 7, 7, 7]
   end
 end
