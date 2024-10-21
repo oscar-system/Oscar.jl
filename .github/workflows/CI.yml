@@ -73,7 +73,8 @@ jobs:
           # be able to properly deal with PRs / merges
           fetch-depth: 2
       - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
+        id: setup-julia
+        uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/cache@v1
@@ -89,6 +90,9 @@ jobs:
       - name: "set test subgroup"
         if: ${{ matrix.group }} != ''
         run: echo "OSCAR_TEST_SUBSET=${{matrix.group}}" >> $GITHUB_ENV
+      - name: "workaround libstdc++ issue for julia 1.6"
+        if: matrix.julia-version == '1.6' && runner.os == 'Linux'
+        run: rm -f ${{ steps.setup-julia.outputs.julia-bindir }}/../lib/julia/libstdc++.so.6
       - name: "Run tests"
         uses: julia-actions/julia-runtest@latest
         with:
