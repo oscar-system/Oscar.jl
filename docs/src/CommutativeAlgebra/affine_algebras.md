@@ -187,10 +187,6 @@ Given an element `f` of an affine algebra `A`,
 
 - `parent(f)` refers to `A`.
 
-```@docs
-is_invertible_with_inverse(f::MPolyQuoRingElem)
-```
-
 In the graded case,  we also have:
 
 ```@docs
