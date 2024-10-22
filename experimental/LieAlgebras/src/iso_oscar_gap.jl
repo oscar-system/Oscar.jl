@@ -41,10 +41,10 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
     [
       [
         begin
-          pairs = filter(pair -> !iszero(last(pair)), collect(enumerate(_matrix(xi * xj))))
-          (map(first, pairs), GAP.Obj[coeffs_iso(c) for c in map(last, pairs)])
-        end for xj in basis(LO)
-      ] for xi in basis(LO)
+          pairs = collect(LO.struct_consts[i, j])
+          (first.(pairs), GAP.Obj[coeffs_iso(c) for c in last.(pairs)])
+        end for j in 1:dim(LO)
+      ] for i in 1:dim(LO)
     ]
     -1
     coeffs_iso(zero(coefficient_ring(LO)))
