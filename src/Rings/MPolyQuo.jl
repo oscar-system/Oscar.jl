@@ -1172,7 +1172,7 @@ c[1]^2 - c[1] - c[2] + 1
 
 julia> inv(f)
 c[1] + c[2] + c[3] + 1
-a
+
 ```
 """
 function inv(a::MPolyQuoRingElem)
