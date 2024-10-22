@@ -1,9 +1,13 @@
 include("UniformHypergraph.jl")
 include("PartialShift.jl")
+include("PartialShiftGraph.jl")
 
 export UniformHypergraph
 
 export compound_matrix
+export exterior_shift
+export partial_shift_graph_nodes
+export partial_shift_graph
 export generic_unipotent_matrix
 export uniform_hypergraph
 

@@ -1,3 +1,9 @@
+# this might not be necessary if we can use polymake hasse diagram functionality?
+function complex_faces(K :: SimplicialComplex, d :: Int) :: Vector{Vector{Int}}
+  return sort(union(subsets.(sort.(collect.(facets(K))), d+1)...))
+  # return union(subsets.(facets(K), d+1)...)
+end
+
 struct UniformHypergraph
   n_vertices :: Int
   k :: Int

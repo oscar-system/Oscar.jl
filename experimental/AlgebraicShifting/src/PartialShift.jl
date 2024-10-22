@@ -79,7 +79,7 @@ raw"""    exterior_shift(K::UniformHypergraph, g::MatElem)
     
 Computes the exterior shift ``\Delta_g(K)`` of ``K`` w.r.t. the invertible matrix ``g``.
 """
-function exterior_shift(K::UniformHypergraph, g::MatElem{})
+function exterior_shift(K::UniformHypergraph, g::MatElem)
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation 
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
@@ -101,12 +101,13 @@ end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem)
   return simplicial_complex([
-    (exterior_shift(faces(uniform_hypergraph(K, k), g)) for k in 1:dim(K)+1)...;
+    (faces(exterior_shift(uniform_hypergraph(K, k), g)) for k in 1:dim(K)+1)...;
     [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
   ])
 end
   
-raw"""    exterior_shift(K::ComplexOrHypergraph, w :: WeylGroupElem  = nothing;  field :: Field = QQ)
+raw"""    exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
+          exterior_shift(K::ComplexOrHypergraph, w::WeylGroupElem)
 
 Computes the (partial) generic exterior shift of ``K`` w.r.t. the Weyl group element ``w``. 
 
@@ -134,7 +135,7 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
 
   # set certain entries to zero, see B-invariance (probably needs a better name)
-  bool_mat = matrix(F, [is_zero_entry(K, (i, j) for i in 1:n, j in 1:n)])
+  bool_mat = matrix(F, [is_zero_entry(K, (i, j)) for i in 1:n, j in 1:n])
   M = bool_mat .* generic_unipotent_matrix(F, w)
   return exterior_shift(K,  M * permutation_matrix(F, perm(w)))
 end
