@@ -1114,15 +1114,15 @@ julia> R, c = grade(R, [1, 2, 3]);
 
 julia> I = ideal(R, [  -c[1]^3 + 2*c[1]*c[2] - c[3], c[1]^4 - 3*c[1]^2*c[2] + 2*c[1]*c[3] + c[2]^2,-c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]^2*c[3] - 3*c[1]*c[2]^2 + 2*c[2]*c[3]]);
 
-julia> A, _ = quo(R, I)
+julia> A, _ = quo(R, I);
 
 julia> f = A(c[1]^2 - c[1] - c[2] + 1)
 c[1]^2 - c[1] - c[2] + 1
 
-julia> inv(f)
-c[1] + c[2] + c[3] + 1
+julia> invf = is_invertible_with_inverse(f)
+(true, c[1] + c[2] + c[3] + 1)
 
-julia> f*inv(f)
+julia> f*invf[2]
 1
 
 ```
@@ -1153,6 +1153,28 @@ end
 
 is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
 
+@doc raw"""
+    inv(a::MPolyQuoRingElem)
+
+If `a` is invertible, return its inverse. Otherwise, throw an error.
+
+# Examples
+
+```jldoctest
+julia> R, c = polynomial_ring(QQ, :c => (1:3));
+
+julia> I = ideal(R, [  -c[1]^3 + 2*c[1]*c[2] - c[3], c[1]^4 - 3*c[1]^2*c[2] + 2*c[1]*c[3] + c[2]^2,-c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]^2*c[3] - 3*c[1]*c[2]^2 + 2*c[2]*c[3]]);
+
+julia> A, _ = quo(R, I);
+
+julia> f = A(c[1]^2 - c[1] - c[2] + 1)
+c[1]^2 - c[1] - c[2] + 1
+
+julia> inv(f)
+c[1] + c[2] + c[3] + 1
+a
+```
+"""
 function inv(a::MPolyQuoRingElem)
   fl, b = is_invertible_with_inverse(a)
   fl || error("Element not invertible")
