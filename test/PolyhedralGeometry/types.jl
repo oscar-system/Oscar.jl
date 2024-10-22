@@ -78,10 +78,12 @@
           @test fun(f, 5 * a) == A
           @test A == fun(f, 5 * a)
           @test 5 * a == A
+          @test vcat(a, a) != A
           @test -5 * A != A
           @test fun(f, -5 * a) != A
           @test A != fun(f, -5 * a)
           @test A == 5 * a
+          @test A != vcat(a, a)
         end
 
         if f != ENF

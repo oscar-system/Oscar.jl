@@ -90,12 +90,8 @@ function Base.:(==)(x::RayVector, y::RayVector)
   iy = findfirst(!is_zero, y)
   ix == iy || return false
   isnothing(ix) && return true
-  r = y[iy]//x[ix]
-  is_negative(r) && return false
-  for i in 1:length(x)
-    r * x[i] == y[i] || return false
-  end
-  return true
+  sign(x[ix]) == sign(y[iy]) || return false
+  return y[iy] * x.p == x[ix] * y.p
 end
 
 function Base.:(==)(x::RayVector, y::AbstractVector)
