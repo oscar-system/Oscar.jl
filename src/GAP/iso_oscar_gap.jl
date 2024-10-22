@@ -402,7 +402,7 @@ function _iso_oscar_gap(FO::QQAbField)
 end
 
 """
-    Oscar.iso_oscar_gap(R) -> Map{T, GapObj}
+    Oscar.iso_oscar_gap(R::T) -> Map{T, GapObj}
 
 Return an isomorphism `f` with domain `R`
 and `codomain` a GAP object `S`.
@@ -481,7 +481,7 @@ true
     structure is not fully supported in GAP will likely cause overhead
     at runtime.
 """
-@attr Map function iso_oscar_gap(F)
+@attr Map{T, GapObj} function iso_oscar_gap(F::T) where T
    return _iso_oscar_gap(F)
 end
 
