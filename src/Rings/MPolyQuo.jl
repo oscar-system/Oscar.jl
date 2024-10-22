@@ -1100,6 +1100,33 @@ end
 
 one(Q::MPolyQuoRing) = Q(1)
 
+@doc raw"""
+    is_invertible_with_inverse(a::MPolyQuoRingElem)
+
+If `a` is invertible with inverse `b`, say, return `(true, b)`. Otherwise, return `(false, a)`.
+
+# Examples
+
+```jldoctest
+julia> R, c = polynomial_ring(QQ, :c => (1:3));
+
+julia> R, c = grade(R, [1, 2, 3]);
+
+julia> I = ideal(R, [  -c[1]^3 + 2*c[1]*c[2] - c[3], c[1]^4 - 3*c[1]^2*c[2] + 2*c[1]*c[3] + c[2]^2,-c[1]^5 + 4*c[1]^3*c[2] - 3*c[1]^2*c[3] - 3*c[1]*c[2]^2 + 2*c[2]*c[3]]);
+
+julia> A, _ = quo(R, I)
+
+julia> f = A(c[1]^2 - c[1] - c[2] + 1)
+c[1]^2 - c[1] - c[2] + 1
+
+julia> inv(f)
+c[1] + c[2] + c[3] + 1
+
+julia> f*inv(f)
+1
+
+```
+"""
 function is_invertible_with_inverse(a::MPolyQuoRingElem)
   # TODO:
   # Eventually, the code below should be replaced
@@ -1109,8 +1136,14 @@ function is_invertible_with_inverse(a::MPolyQuoRingElem)
   # of the modulus of `parent(a)`.
 
   Q = parent(a)
+  R = base_ring(Q)
   J = oscar_groebner_basis(Q)
   J = vcat(J, [a.f])
+
+  if Q isa MPolyQuoRing{<:MPolyDecRingElem}
+     J = [x.f for x in J]
+  end
+
   j, T = standard_basis_with_transformation_matrix(ideal(J))
   if is_constant(j[1]) && is_unit(first(coefficients(j[1])))
     @assert ncols(T) == 1
