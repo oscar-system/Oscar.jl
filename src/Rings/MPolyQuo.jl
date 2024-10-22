@@ -1136,7 +1136,6 @@ function is_invertible_with_inverse(a::MPolyQuoRingElem)
   # of the modulus of `parent(a)`.
 
   Q = parent(a)
-  R = base_ring(Q)
   J = oscar_groebner_basis(Q)
   J = vcat(J, [a.f])
 
