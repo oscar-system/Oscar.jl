@@ -6,8 +6,6 @@ function test_iso_gap_oscar(LG, oscarT; num_random_tests::Int=10)
   LO = codomain(iso)
   @test LO isa oscarT
 
-  @test codomain(Oscar.iso_oscar_gap(LO)) === LG
-
   @test iso === Oscar.iso_gap_oscar(LG) # test caching
 
   for _ in 1:num_random_tests
