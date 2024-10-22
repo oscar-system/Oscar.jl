@@ -459,17 +459,17 @@ end
 
 function operators_by_index(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Int},
 )
   @req all(i -> 1 <= i <= number_of_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
 
-  return [chevalley_basis[1][i] for i in birational_sequence] # TODO: change to [2]
+  return [chevalley_basis_gap[1][i] for i in birational_sequence] # TODO: change to [2]
 end
 
 function operators_by_simple_roots(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Vector{Int}},
 )
   rs = root_system_gap(L)
@@ -486,16 +486,16 @@ function operators_by_simple_roots(
     push!(root_inds, root_ind)
   end
 
-  return operators_by_index(L, chevalley_basis, root_inds)
+  return operators_by_index(L, chevalley_basis_gap, root_inds)
 end
 
 function operators_lusztig(
   L::LieAlgebraStructure,
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}},
+  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
   reduced_expression::Vector{Int},
 )
   root_inds = operators_lusztig_indices(L, reduced_expression)
-  return operators_by_index(L, chevalley_basis, root_inds)
+  return operators_by_index(L, chevalley_basis_gap, root_inds)
 end
 
 function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})

@@ -18,8 +18,8 @@ julia> basis_lie_highest_weight_operators(:B, 2)
 """
 function basis_lie_highest_weight_operators(type::Symbol, rank::Int)
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = chevalley_basis[1]  # TODO: change to [2]
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = chevalley_basis__gap[1]  # TODO: change to [2]
   weights_alpha = [w_to_alpha(L, weight(L, op)) for op in operators]
   return collect(enumerate(weights_alpha))
 end
@@ -128,8 +128,8 @@ function basis_lie_highest_weight(
   type::Symbol, rank::Int, highest_weight::Vector{Int}; monomial_ordering::Symbol=:degrevlex
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = chevalley_basis[1] # TODO: change to [2]
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = chevalley_basis__gap[1] # TODO: change to [2]
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -141,8 +141,8 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, birational_sequence)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis__gap, birational_sequence)
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -154,8 +154,8 @@ function basis_lie_highest_weight(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_simple_roots(L, chevalley_basis__gap, birational_sequence)
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -206,8 +206,8 @@ function basis_lie_highest_weight_lusztig(
 )
   monomial_ordering = :wdegrevlex
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_lusztig(L, chevalley_basis, reduced_expression)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_lusztig(L, chevalley_basis__gap, reduced_expression)
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -277,8 +277,8 @@ function basis_lie_highest_weight_string(
 )
   monomial_ordering = :neglex
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, reduced_expression)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis__gap, reduced_expression)
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -317,8 +317,8 @@ over Lie algebra of type A3
 function basis_lie_highest_weight_ffl(type::Symbol, rank::Int, highest_weight::Vector{Int})
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = reverse(chevalley_basis[1]) # TODO: change to [2]
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = reverse(chevalley_basis__gap[1]) # TODO: change to [2]
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
@@ -390,8 +390,8 @@ function basis_lie_highest_weight_nz(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, reduced_expression)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis__gap, reduced_expression)
   return basis_lie_highest_weight_compute(L, highest_weight, operators, monomial_ordering)
 end
 
@@ -467,8 +467,8 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = chevalley_basis[1] # TODO: change to [2]
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = chevalley_basis__gap[1] # TODO: change to [2]
   return basis_coordinate_ring_kodaira_compute(
     L, highest_weight, degree, operators, monomial_ordering
   )
@@ -483,8 +483,8 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_index(L, chevalley_basis, birational_sequence)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_index(L, chevalley_basis__gap, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
     L, highest_weight, degree, operators, monomial_ordering
   )
@@ -499,8 +499,8 @@ function basis_coordinate_ring_kodaira(
   monomial_ordering::Symbol=:degrevlex,
 )
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = operators_by_simple_roots(L, chevalley_basis, birational_sequence)
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = operators_by_simple_roots(L, chevalley_basis__gap, birational_sequence)
   return basis_coordinate_ring_kodaira_compute(
     L, highest_weight, degree, operators, monomial_ordering
   )
@@ -565,8 +565,8 @@ function basis_coordinate_ring_kodaira_ffl(
 )
   monomial_ordering = :degrevlex
   L = lie_algebra(type, rank)
-  chevalley_basis = chevalley_basis_gap(L)
-  operators = reverse(chevalley_basis[1]) # TODO: change to [2]
+  chevalley_basis__gap = chevalley_basis_gap(L)
+  operators = reverse(chevalley_basis__gap[1]) # TODO: change to [2]
   # we reverse the order here to have simple roots at the right end, this is then a good ordering.
   # simple roots at the right end speed up the program very much
   return basis_coordinate_ring_kodaira_compute(

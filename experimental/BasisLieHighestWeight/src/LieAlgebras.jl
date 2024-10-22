@@ -2,14 +2,14 @@
   lie_type::Symbol
   rank::Int
   lie_algebra_gap::GAP.Obj
-  chevalley_basis::NTuple{3,Vector{GAP.Obj}}
+  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}}
 
   function LieAlgebraStructure(lie_type::Symbol, rank::Int)
     lie_algebra_gap = GAP.Globals.SimpleLieAlgebra(
       GAP.Obj(lie_type), rank, GAP.Globals.Rationals
     )
-    chevalley_basis = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(lie_algebra_gap))
-    return new(lie_type, rank, lie_algebra_gap, chevalley_basis)
+    chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(lie_algebra_gap))
+    return new(lie_type, rank, lie_algebra_gap, chevalley_basis_gap)
   end
 end
 
@@ -35,11 +35,11 @@ function lie_algebra(type::Symbol, rk::Int)
 end
 
 function chevalley_basis_gap(L::LieAlgebraStructure)
-  return L.chevalley_basis
+  return L.chevalley_basis_gap
 end
 
-function cartan_sub_basis(L::LieAlgebraStructure)
-  return L.chevalley_basis[3]
+function cartan_sub_basis_gap(L::LieAlgebraStructure)
+  return L.chevalley_basis_gap[3]
 end
 
 function root_system_gap(L::LieAlgebraStructure)
@@ -88,6 +88,6 @@ function weight(L::LieAlgebraStructure, operator::GAP.Obj)
   denom = GAPWrap.Coefficients(basis, operator)[basis_ind]
   return [
     ZZ(GAPWrap.Coefficients(basis, h * operator)[basis_ind]//denom) for
-    h in cartan_sub_basis(L)
+    h in cartan_sub_basis_gap(L)
   ]
 end
