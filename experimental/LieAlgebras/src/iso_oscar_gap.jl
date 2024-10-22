@@ -56,8 +56,8 @@ function _iso_oscar_gap(LO::AbstractLieAlgebra; set_attributes::Bool=true)
     coeffs_iso(zero(coefficient_ring(LO)))
   ]
 
-  LG = GAP.Globals.LieAlgebraByStructureConstants(
-    codomain(coeffs_iso), GAP.Obj(sc_table_G; recursive=true)
+  LG = GAPWrap.LieAlgebraByStructureConstants(
+    codomain(coeffs_iso), GapObj(sc_table_G; recursive=true)
   )
 
   f, finv = _iso_oscar_gap_lie_algebra_functions(LO, LG, coeffs_iso)
