@@ -245,7 +245,7 @@ end
 const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
 # we use the union to prevent QQField from using these save methods
 
-function save_object(s::SerializerState, K::FracField)
+function save_object(s::SerializerState, K::FracField{T}) where T <: FracUnionTypes
   save_data_dict(s) do
     save_object(s, base_ring(K), :base_ring)
   end

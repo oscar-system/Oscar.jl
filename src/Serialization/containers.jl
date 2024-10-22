@@ -7,18 +7,14 @@ const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
-    return T
+    return T, nothing
   end
 
-  if !(T <: MatVecType) && hasmethod(type_params, (T,))
-    params = type_params.(obj)
-    params_all_equal = all(map(x -> isequal(first(params), x), params))
-    @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  params = type_params.(obj)
+  params_all_equal = all(map(x -> isequal(first(params), x), params))
+  @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
 
-    return params[1]
-  else
-    return T
-  end
+  return T, params[1]
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
@@ -102,11 +98,7 @@ end
 function load_object(s::DeserializerState, ::Type{<: Vector}, params::Ring)
   T = elem_type(params)
   loaded_entries = load_array_node(s) do _
-    if serialize_with_params(T)
-      return load_object(s, T, params)
-    else
-      return  load_object(s, T)
-    end
+    load_object(s, T, params)
   end
   return Vector{T}(loaded_entries)
 end
