@@ -1101,9 +1101,9 @@ end
 one(Q::MPolyQuoRing) = Q(1)
 
 @doc raw"""
-    is_invertible_with_inverse(a::MPolyQuoRingElem)
+    is_invertible_with_inverse(f::MPolyQuoRingElem)
 
-If `a` is invertible with inverse `b`, say, return `(true, b)`. Otherwise, return `(false, a)`.
+If `f` is invertible with inverse `g`, say, return `(true, g)`. Otherwise, return `(false, f)`.
 
 # Examples
 
@@ -1119,10 +1119,10 @@ julia> A, _ = quo(R, I);
 julia> f = A(c[1]^2 - c[1] - c[2] + 1)
 c[1]^2 - c[1] - c[2] + 1
 
-julia> invf = is_invertible_with_inverse(f)
+julia> tt, g = is_invertible_with_inverse(f)
 (true, c[1] + c[2] + c[3] + 1)
 
-julia> f*invf[2]
+julia> f*g
 1
 
 ```
@@ -1154,9 +1154,9 @@ end
 is_unit(a::MPolyQuoRingElem) = is_invertible_with_inverse(a)[1]
 
 @doc raw"""
-    inv(a::MPolyQuoRingElem)
+    inv(f::MPolyQuoRingElem)
 
-If `a` is invertible, return its inverse. Otherwise, throw an error.
+If `f` is invertible, return its inverse. Otherwise, throw an error.
 
 # Examples
 
