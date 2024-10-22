@@ -250,8 +250,8 @@ function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatri
 end
 
 # needed to create sets of K3Chambers
-function Base.hash(C::K3Chamber)
-  return hash(C.weyl_vector[:,1:rank(C.data.S)])
+function Base.hash(C::K3Chamber, h::UInt)
+  return hash(view(C.weyl_vector,:,1:rank(C.data.S)), h)
 end
 
 # Two chambers are equal if and only if their Weyl vectors
@@ -260,7 +260,8 @@ end
 # by the first rank(S) coordinates.
 function Base.:(==)(C::K3Chamber, D::K3Chamber)
   @req C.data===D.data "K3Chambers do not have the same context"
-  return C.weyl_vector[:,1:rank(C.data.S)] == D.weyl_vector[:,1:rank(D.data.S)]
+  r = rank(C.data.S)
+  return view(C.weyl_vector, :, 1:r) == view(D.weyl_vector, :, 1:r)
 end
 
 @doc raw"""
@@ -318,7 +319,7 @@ end
 
 function Base.show(io::IO, c::K3Chamber)
   if isdefined(c,:walls)
-    print(IOContext(io, :compact => true), "Chamber  in dimension $(length(walls(c)[1])) with $(length(walls(c))) walls")
+    print(IOContext(io, :compact => true), "Chamber in dimension $(length(walls(c)[1])) with $(length(walls(c))) walls")
   else
     print(IOContext(io, :compact => true), "Chamber: $(c.weyl_vector[1,1:rank(c.data.S)])")
   end
@@ -415,7 +416,7 @@ function _fingerprint_backtrack!(D::K3Chamber)
   # fp[1, i] = # vectors v such that v has same length as b_i for all forms
   for i in 1:n
     cvl = gramB[i,i]
-    fp[1, i] = count(x->x==cvl, lengths)
+    fp[1, i] = count(==(cvl), lengths)
 
   end
 
@@ -624,9 +625,11 @@ function separating_hyperplanes(gram::QQMatrix, v::QQMatrix, h::QQMatrix, d)
   gramW = gram_matrix(W)
   s = solve(bW, v*prW; side = :left) * gramW
   Q = gramW + transpose(s)*s*ch*cv^-2
+  
 
   @vprint :K3Auto 5 Q
   LQ = integer_lattice(gram=-Q*denominator(Q))
+  
 
   S = QQMatrix[]
   h = change_base_ring(QQ, h)
@@ -801,7 +804,7 @@ function alg319(gram::MatrixElem, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatri
   return alg319(gram, basis, gram_basis, raysD, raysE, membership_test)
 end
 
-function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::QQMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
+function alg319(gram::MatrixElem, basis::ZZMatrix, gram_basis::ZZMatrix, raysD::Vector{ZZMatrix}, raysE::Vector{ZZMatrix}, membership_test)
   n = ncols(gram)
   partial_homs = [zero_matrix(ZZ, 0, n)]
   # breadth first search
@@ -1189,7 +1192,7 @@ end
 
 Return whether the ``L|S`` chamber defined by `w` is `S`-nondegenerate.
 
-This is the case if and only if $C = C(w) \cap S \otimes \RR$ has the
+This is the case if and only if $C = C(w) \cap S \otimes \mathbb{R}$ has the
 expected dimension `dim(S)`.
 """
 function is_S_nondegenerate(L::ZZLat, S::ZZLat, w::QQMatrix)
@@ -1338,7 +1341,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     rep[l+i] = (i, s, true)
   end
   @hassert :K3Auto 2 length(unique([r[2] for r in rep]))==length(rep)
-  sort!(rep, by=x->x[2])
+  sort!(rep; by=x->x[2])
   w = deepcopy(D.weyl_vector)
   tmp = zero_matrix(ZZ,ncols(w),1)
   for (i,s,indualDeltaR) in rep
@@ -1359,7 +1362,7 @@ function adjacent_chamber(D::K3Chamber, v::ZZMatrix)
     end
   end
   # both Weyl vectors should lie in the positive cone.
-  @assert ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0 "$(D.weyl_vector)    $v\n"
+  @hassert :K3Auto 2 ((D.weyl_vector)*D.data.gramL*transpose(w))[1,1]>0
   return chamber(D.data, w, v)
 end
 
@@ -1729,7 +1732,7 @@ function weyl_vector(L::ZZLat, U0::ZZLat)
       A = change_base_ring(ZZ, gram_matrix(R)*transpose(v))
       b = change_base_ring(GF(2), b)
       A = change_base_ring(GF(2), A)
-      x = lift(solve(A, b; side = :left))
+      x = map_entries(x->lift(ZZ,x),solve(A, b; side = :left))
       v = (v + 2*x)*basis_matrix(R)
       @hassert :K3Auto 1 mod(inner_product(V,v,v)[1,1], 8)==0
       u = basis_matrix(U)
@@ -1913,14 +1916,13 @@ function ample_class(S::ZZLat)
   end
   G = gram_matrix(S)
   D, B = Hecke._gram_schmidt(G,identity,true)
-  i = findfirst(x->x, [d>0 for d in diagonal(D)])
+  i = findfirst(>(0), diagonal(D))
   v = B[i:i,:]
   v = denominator(v)*v
   vsq = (v*gram_matrix(S)*transpose(v))[1,1]
   @assert vsq > 0
   # search ample
   ntry = 0
-  R,x = polynomial_ring(QQ,"x")
   while true
     ntry = ntry+1
     range = 10 + floor(ntry//100)
@@ -1930,21 +1932,19 @@ function ample_class(S::ZZLat)
       h = r
     else
       rv = (r*gram_matrix(S)*transpose(v))[1,1]
-      p = x^2*vsq + 2*x*rv + rsq
-      rp = roots(algebraic_closure(QQ), p)
-      a = rp[1]
-      b = rp[2]
-      if a > b
-        (a,b) = (b,a)
-      end
-      a = ZZRingElem(floor(a))
-      b = ZZRingElem(ceil(b))
+      p(x) = x^2*vsq + 2*x*rv + rsq
+      # find zeros of x^2*vsq + 2*x*rv + rsq
+      p0 = -rv / vsq
+      q0 = rsq / vsq
+      r0 = sqrt(QQBarFieldElem(p0^2 - q0))
+      a = floor(ZZRingElem, p0 - r0)
+      b = ceil(ZZRingElem, p0 + r0)
       if p(a) == 0  # catches the case of an integer root
-        a = a -1
+        a -= 1
         @assert p(a) > 0
       end
       if p(b) == 0
-        b = b + 1
+        b += 1
         @assert p(b) > 0
       end
       if abs(a) > abs(b)
@@ -2020,7 +2020,7 @@ function find_section(L::ZZLat, f::QQMatrix)
   @req inner_product(V, f, f)==0 "f must be isotropic"
   g = [abs(i) for i in vec(collect(inner_product(ambient_space(L),f,basis_matrix(L))))]
   if 1 in g
-    i = findfirst(x->x==1,g)
+    i = findfirst(is_one,g)
     s = basis_matrix(L)[i:i,:]
     s = sign(inner_product(ambient_space(L),f,s)[1,1])*s
   else

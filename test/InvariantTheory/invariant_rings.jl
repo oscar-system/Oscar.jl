@@ -9,7 +9,7 @@
   invariant_ring(K, [M1, M2])
   invariant_ring(matrix_group([M1, M2]))
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3); internal_ordering=:degrevlex)
+  R, _ = graded_polynomial_ring(K, 3, :x, ones(Int, 3); internal_ordering=:degrevlex)
   @test polynomial_ring(invariant_ring(R, [M1, M2])) === R
   @test polynomial_ring(invariant_ring(R, M1, M2)) === R
   @test polynomial_ring(invariant_ring(R, matrix_group(M1, M2))) === R
@@ -100,7 +100,7 @@
     ),
   )
   I = invariant_ring(G)
-  S, t = QQ["t"]
+  S, t = QQ[:t]
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t^2) * (1 - t^3) * (1 - t^4) * (1 - t^5))
 
@@ -134,7 +134,7 @@ end
   F3 = GF(3)
   RGM = invariant_ring(F3, G)  # char. p, modular
 
-  R, _ = graded_polynomial_ring(K, 3, "x", ones(Int, 3); internal_ordering=:degrevlex)
+  R, _ = graded_polynomial_ring(K, 3, :x, ones(Int, 3); internal_ordering=:degrevlex)
   @test polynomial_ring(invariant_ring(R, G)) === R
 
   @test coefficient_ring(RGQ) == QQ
@@ -190,7 +190,7 @@ end
 
   # S4 (natural permutation module in characteristic 5)
   s4 = symmetric_group(4)
-  S, t = QQ["t"]
+  S, t = QQ[:t]
   I = invariant_ring(GF(5), s4)
   m = @inferred molien_series(S, I)
   @test m == 1//((1 - t) * (1 - t^2) * (1 - t^3) * (1 - t^4))

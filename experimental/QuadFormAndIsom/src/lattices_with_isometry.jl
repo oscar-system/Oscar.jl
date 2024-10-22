@@ -1484,7 +1484,7 @@ julia> is_of_hermitian_type(coinvariant_lattice(Lf))
 true
 ```
 """
-@attr function is_of_hermitian_type(Lf::ZZLatWithIsom)
+@attr Bool function is_of_hermitian_type(Lf::ZZLatWithIsom)
   @req rank(Lf) > 0 "Underlying lattice must have positive rank"
   chi = minimal_polynomial(Lf)
   !is_irreducible(chi) && return false
@@ -1791,10 +1791,10 @@ function _real_kernel_signatures(L::ZZLat, M::MatElem)
   diag = Hecke._gram_schmidt(diag, C)[1]
   diag = diagonal(diag)
 
-  @hassert :ZZLatWithIsom 1 all(z -> isreal(z), diag)
-  @hassert :ZZLatWithIsom 1 all(z -> !iszero(z), diag)
+  @hassert :ZZLatWithIsom 1 all(isreal, diag)
+  @hassert :ZZLatWithIsom 1 all(!iszero, diag)
 
-  k1 = count(z -> z > 0, diag)
+  k1 = count(>(0), diag)
   k2 = length(diag) - k1
 
   return k1, k2
@@ -1881,7 +1881,7 @@ julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> Zx,x = ZZ["x"]
+julia> Zx,x = ZZ[:x]
 (Univariate polynomial ring in x over ZZ, x)
 
 julia> mf = minimal_polynomial(Lf)
@@ -2225,7 +2225,7 @@ julia> genus(invariant_lattice(Lf)) == t[1][1]
 true
 ```
 """
-@attr function type(Lf::ZZLatWithIsom)
+@attr Dict{Integer, Tuple} function type(Lf::ZZLatWithIsom)
   L = lattice(Lf)
   f = isometry(Lf)
   n = order_of_isometry(Lf)

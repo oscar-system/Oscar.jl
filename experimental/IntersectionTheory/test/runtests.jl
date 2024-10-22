@@ -12,7 +12,7 @@ let pushforward = IntersectionTheory.pushforward
     # trim!(C.ring)
     # @test Singular.dimension(C.ring.I) == 0
     # @test parent(c) == C.ring
-    # @test betti(C) == [1, 1]
+    # @test betti_numbers(C) == [1, 1]
     # @test basis(C) == [[C.ring(1)], [c]]
     # @test euler(C) == c
     # @test euler_characteristic(trivial_line_bundle(C)) == 1//2 * c
@@ -105,7 +105,7 @@ let pushforward = IntersectionTheory.pushforward
     # @test Y1 != Y
     # @test euler(Y1) == euler(Y)
     # @test (Y1 → Y).T.ch == 0
-    # @test betti(Y1)[3] == 2
+    # @test betti_numbers(Y1)[3] == 2
     # @test basis(2, Y1) == [h^2, p]
     # @test intersection_matrix([h^2, p]) == Nemo.matrix(QQ, [3 1; 1 3])
 
@@ -155,7 +155,7 @@ let pushforward = IntersectionTheory.pushforward
     G = abstract_grassmannian(2, 4)
     S, Q = tautological_bundles(G)
     c1, c2 = gens(G.ring)
-    @test betti(G) == [1,1,2,1,1]
+    @test betti_numbers(G) == [1,1,2,1,1]
     @test euler(G) == 6
     @test chern_class(G, 1) == -4chern_class(S, 1)
     @test integral(total_chern_class(symmetric_power(dual(S), 3))) == 27
@@ -182,7 +182,7 @@ let pushforward = IntersectionTheory.pushforward
     A, B, C = tautological_bundles(F)
     @test dim(F) == 3
     @test rank.(tautological_bundles(F)) == [1, 1, 1]
-    @test betti(F) == [1,2,2,1]
+    @test betti_numbers(F) == [1,2,2,1]
     @test euler(F) == 6
 
     # flag abstract_variety: TnVariety version
@@ -205,7 +205,7 @@ let pushforward = IntersectionTheory.pushforward
     
     # flag bundle
     X, (F,) = abstract_variety(2, [4=>"c"])
-    FlF = abstract_flag_variety(F, 2)
+    FlF = abstract_flag_bundle(F, 2)
     @test dim(FlF) == 6
     @test rank.(tautological_bundles(FlF)) == [2, 2]
     p = FlF.struct_map
@@ -218,8 +218,8 @@ let pushforward = IntersectionTheory.pushforward
   end
 
   # @testset "Pushfwd" begin
-  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["x","y","z","w"])[1], [3,3,3,3])
-  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["s","t"])[1], [1,1])
+  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:x,:y,:z,:w])[1], [3,3,3,3])
+  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:s,:t])[1], [1,1])
   #   s, t = gens(B)
   #   f = IntersectionTheory.ChAlgHom(A, B, [s^3,s^2*t,s*t^2,t^3]) # twisted cubic
   #   M, g, pf = IntersectionTheory._pushfwd(f)
@@ -227,8 +227,8 @@ let pushforward = IntersectionTheory.pushforward
   #   x = s^3 + 5s*t + t^20 # random element from B
   #   @test sum(g .* f.salg.(pf(x.f))) == x.f
      
-  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["x","y","z","w"])[1], [4,4,2,1])
-  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, ["s","t","u"])[1], [1,1,1])
+  #   A = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:x,:y,:z,:w])[1], [4,4,2,1])
+  #   B = IntersectionTheory.ChRing(polynomial_ring(Singular.QQ, [:s,:t,:u])[1], [1,1,1])
   #   s, t, u = gens(B)
   #   f = IntersectionTheory.ChAlgHom(A, B, [s^4+u^4,s*t^2*u,s^2-t^2-u^2,t]) # random morphism
   #   M, g, pf = IntersectionTheory._pushfwd(f)
@@ -282,7 +282,7 @@ let pushforward = IntersectionTheory.pushforward
     @test integral(quad^2 * cubic) == 1
     
     # blowup twisted cubic, with parameters
-    T, (r, s, t) =  polynomial_ring(QQ, ["r", "s", "t"])
+    T, (r, s, t) =  polynomial_ring(QQ, [:r, :s, :t])
     F = fraction_field(T)
     (r, s, t) = gens(F)
     P1 = abstract_projective_space(1, base = F)
@@ -303,7 +303,7 @@ let pushforward = IntersectionTheory.pushforward
     @test simplify(e^5) != 0
     
     # blowup space curve of degree d and genus g
-    T, (r,s,t,d,g) =  polynomial_ring(QQ, ["r", "s", "t", "d", "g"])
+    T, (r,s,t,d,g) =  polynomial_ring(QQ, [:r, :s, :t, :d, :g])
     F = fraction_field(T)
     (r, s, t, d, g) = gens(F)
     P2 = abstract_projective_space(2, base = F)  
@@ -321,7 +321,7 @@ let pushforward = IntersectionTheory.pushforward
     Bl, E = blowup(structure_map(Z))
     @test dim(Bl) == 6
     @test euler(Bl) == 18
-    @test betti(Bl) == [1,2,4,4,4,2,1]
+    @test betti_numbers(Bl) == [1,2,4,4,4,2,1]
     @test [euler_characteristic(exterior_power(cotangent_bundle(Bl), i)) for i in 0:6] == [1,-2,4,-4,4,-2,1]
 
    end

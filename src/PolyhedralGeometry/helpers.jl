@@ -238,7 +238,7 @@ Base.convert(
 ) where {T<:Union{Directed,Undirected}} = Oscar.pm_object(g)
 
 function remove_zero_rows(A::AbstractMatrix)
-  A[findall(x -> !iszero(x), collect(eachrow(A))), :]
+  A[findall(!iszero, collect(eachrow(A))), :]
 end
 function remove_zero_rows(A::AbstractMatrix{Float64})
   A[
@@ -294,8 +294,7 @@ homogenized_matrix(x::AbstractVector, val::Number) = permutedims(homogenize(x, v
 homogenized_matrix(x::AbstractVector{<:AbstractVector}, val::Number) =
   stack((homogenize(x[i], val) for i in 1:length(x))...)
 
-dehomogenize(vec::AbstractVector) = vec[2:end]
-dehomogenize(mat::AbstractMatrix) = mat[:, 2:end]
+dehomogenize(vm::AbstractVecOrMat) = Polymake.call_function(:polytope, :dehomogenize, vm)
 
 unhomogenized_matrix(x::AbstractVector) = assure_matrix_polymake(stack(x))
 unhomogenized_matrix(x::AbstractMatrix) = assure_matrix_polymake(x)

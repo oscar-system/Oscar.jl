@@ -1,5 +1,5 @@
 @testset "gluings" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   set_name!(A3, "𝔸³")
   f = (x*y-z^2)
@@ -9,16 +9,16 @@
   U = AffineSchemeOpenSubscheme(A3, [x,y,z])
   UX = intersect(X, U)
   d = Oscar.find_non_zero_divisor(UX)
-  S, (u,v) = QQ["u", "v"]
+  S, (u,v) = QQ[:u, :v]
   A2 = spec(S)
   set_name!(A2, "𝔸²")
   f = maximal_extension(X, A2, [x, z//y])
   a = Oscar.generic_fractions(f)
   @test maximal_extension(X, A2, a) == f
 
-  Sx, (yx, zx) = QQ["yx", "zx"]
-  Sy, (xy, zy) = QQ["xy", "zy"]
-  Sz, (xz, yz) = QQ["xz", "yz"]
+  Sx, (yx, zx) = QQ[:yx, :zx]
+  Sy, (xy, zy) = QQ[:xy, :zy]
+  Sz, (xz, yz) = QQ[:xz, :yz]
 
   Ax = spec(Sx)
   Ay = spec(Sy)
@@ -40,9 +40,9 @@
 end
 
 @testset "further gluings" begin
-  R, (x, y) = QQ["x", "y"]
-  S, (u, v) = QQ["u", "v"]
-  T, (a, b) = QQ["a", "b"]
+  R, (x, y) = QQ[:x, :y]
+  S, (u, v) = QQ[:u, :v]
+  T, (a, b) = QQ[:a, :b]
 
   X = spec(R)
   Y = spec(S)
@@ -130,32 +130,5 @@ end
   G = first(values(gluings(C)))
   GG = base_change(pr, G)
   @test underlying_gluing(GG) isa SimpleGluing
-end
-
-@testset "extra lazy gluing domains" begin
-  P3 = projective_space(QQ, 3)
-  S = homogeneous_coordinate_ring(P3)
-  (x, y, z, w) = gens(S)
-  I = ideal(S, [x*z - y*w, x^4 + y^4 + z^4 + w^4])
-  Y = covered_scheme(P3)
-  II = ideal_sheaf(P3, I)
-  pr = blow_up(II)
-  X = domain(pr)
-
-  for G in values(gluings(Oscar.simplified_covering(X)))
-    @test !isdefined(G, :G)
-    gluing_domains(G)
-    @test !isdefined(G, :G)
-    @test isdefined(G, :gluing_domains)
-  end
-
-  for G in values(gluings(Oscar.simplified_covering(X)))
-    @test !isdefined(G, :G)
-    underlying_gluing(G)
-    @test isdefined(G, :G)
-    @test isdefined(G, :gluing_domains)
-    @test (G.gluing_domains[1] === gluing_domains(underlying_gluing(G))[1])
-    @test (G.gluing_domains[2] === gluing_domains(underlying_gluing(G))[2])
-  end
 end
 

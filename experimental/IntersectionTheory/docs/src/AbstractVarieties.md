@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Varieties
@@ -47,7 +48,7 @@ abstract_hirzebruch_surface(n::Int)
 ```
 
 ```@docs
-abstract_flag_variety(F::AbstractBundle, dims::Int...; symbol::String = "c")
+abstract_flag_bundle(F::AbstractBundle, dims::Int...; symbol::String = "c")
 ```
 
 ```@docs
@@ -86,6 +87,10 @@ tangent_bundle(X::AbstractVariety)
 ```
 
 ```@docs
+hyperplane_class(X::AbstractVariety)
+```
+
+```@docs
 tautological_bundles(X::AbstractVariety)
 ```
 
@@ -118,6 +123,10 @@ canonical_bundle(X::AbstractVariety)
 
 ```@docs
 degree(X::AbstractVariety)
+```
+
+```@docs
+hilbert_polynomial(X::AbstractVariety)
 ```
 
 ```@docs

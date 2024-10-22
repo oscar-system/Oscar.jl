@@ -194,7 +194,7 @@ end
       c = rand_elem()
       aa = deepcopy(a)
       bb = deepcopy(b)
-      @test addeq!(a, b) == aa + bb
+      @test add!(a, b) == aa + bb
       @test b == bb
       aa = deepcopy(a)
       @test Oscar.AbelianClosure.neg!(a) == -aa
@@ -276,6 +276,10 @@ end
     f = hom(K, K, 3)
     @test f(a) == a^3
     @test f(z(9)) == z(9)
+
+    @test isone(conj(a)*a)
+    @test !isreal(a)
+    @test isreal(a+conj(a))
   end
 
   @testset "Square roots" begin
@@ -340,7 +344,7 @@ end
 
   @testset "Polynomial" begin
     K, z = abelian_closure(QQ)
-    Kx, x = K["x"]
+    Kx, x = K[:x]
     @test (x^2 + 1)(z(4)) == z(4)^2 + 1
   end
 

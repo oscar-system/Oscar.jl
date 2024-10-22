@@ -169,7 +169,7 @@ end
   L = arrangement_polynomial(A)
   x = gens(parent(L))
   @test L  == x[1]*x[2]*x[3]
-  R,y = polynomial_ring(QQ,["x", "y", "z"])
+  R,y = polynomial_ring(QQ,[:x, :y, :z])
   LL = arrangement_polynomial(R, A)
   @test  LL == y[1]*y[2]*y[3]
   A = identity_matrix(QQ, 2)

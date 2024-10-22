@@ -199,4 +199,12 @@ end
    g1 = codomain(isomorphism(FPGroup, L[1]))
    g2 = codomain(isomorphism(FPGroup, L[2]))
    @test_throws ArgumentError one(g1) * one(g2)
+
+   g = free_group(2)
+   x, y = gens(g)
+   f, epi = quo(g, [x, y^2])
+   @test free_group(g) === g
+   @test free_group(f) == g
+   @test underlying_word(x) === x
+   @test underlying_word(epi(x)) == x
 end

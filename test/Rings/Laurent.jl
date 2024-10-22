@@ -1,12 +1,12 @@
 @testset "Laurent" begin
   for K in [QQ, GF(5)]
-    Kx, x = laurent_polynomial_ring(K, 2, "x")
+    Kx, x = laurent_polynomial_ring(K, 2, :x)
     I = ideal(Kx, [x[1]])
     @test gens(I) == [x[1]]
     @test one(Kx) in I
     @test x[1]^-1 in I
     @test base_ring(I) === Kx
-    _Kx, _x = laurent_polynomial_ring(K, 3, "xx")
+    _Kx, _x = laurent_polynomial_ring(K, 3, :xx)
     @test !(_x[1] in I)
 
     f = hom(Kx, K, [K(2), K(3)])
@@ -16,7 +16,7 @@
 
     @test_throws ArgumentError hom(Kx, ZZ, [ZZ(2), ZZ(3)])
 
-    Ky, y = polynomial_ring(K, 2, "y")
+    Ky, y = polynomial_ring(K, 2, :y)
     f = hom(Ky, Kx, gens(Kx))
     @test f(y[1]) == x[1]
     @test preimage(f, I) == ideal(Ky, [one(Ky)])

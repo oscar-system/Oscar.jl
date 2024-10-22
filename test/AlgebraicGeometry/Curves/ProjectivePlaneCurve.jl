@@ -1,6 +1,6 @@
 @testset "ProjectivePlaneCurve" begin
   @testset "constructors" begin
-      T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+      T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
       F = y^3 * x^6 - y^6 * x^2 * z
       C = plane_curve(F)
 
@@ -13,7 +13,7 @@
   end
 
   @testset "reducible functions" begin
-      T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+      T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
       F = plane_curve(x^2 + y^2)
       P = F([0, 0, 1])
 
@@ -54,7 +54,7 @@
   end
 
   @testset "int_multiplicity functions" begin
-      T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+      T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
       F = ProjectivePlaneCurve((x^2 + y^2) * (x^2 + y^2 + 2 * y * z))
       G = ProjectivePlaneCurve((x^2 + y^2) * (y^3 * x^6 - y^6 * x^2 * z))
       PP = ambient_space(F)
@@ -67,7 +67,7 @@
   end
 
   @testset "singularity functions" begin
-      T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+      T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
       F = ProjectivePlaneCurve(x * z + y^2)
       PP = ambient_space(F)
       P = PP([1, 0, 0])
@@ -97,11 +97,11 @@
   end
 
   @testset "genus" begin
-    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
     C = plane_curve(y^2 * z - x^3 - x * z^2)
     @test arithmetic_genus(C) == 1
     @test geometric_genus(C) == 1
-    R, (a, b) = polynomial_ring(GF(7), ["a", "b"])
+    R, (a, b) = polynomial_ring(GF(7), [:a, :b])
     D = plane_curve(b^9 - a^2 * (a - 1)^9)
     @test geometric_genus(D) == 0
     @test arithmetic_genus(projective_closure(D)) == 45
@@ -111,7 +111,7 @@ end
 
 
 @testset "ParametrizePlaneCurve" begin
-    T, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"])
+    T, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
     C1 = ProjectivePlaneCurve(1//2*x^5+x^2*y*z^2+x^3*y*z+1//2*x*y^2*z^2-2*x*y^3*z+y^5)
     I1 = parametrization(C1)
     I2 = Oscar.adjoint_ideal(C1)

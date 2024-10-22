@@ -858,6 +858,8 @@ end
   @test sort!([order(center(chi)[1]) for chi in t]) == [1, 1, 4, 24, 24]
   @test all(i -> findfirst(==(t[i]), t) == i, 1:nrows(t))
 
+  @test all(chi -> chi * chi == tensor_product(chi, chi), t)
+
   scp = scalar_product(t[1], t[1])
   @test scp == 1
   @test scp isa QQFieldElem
@@ -875,7 +877,7 @@ end
   @test coordinates(Int, chi) isa Vector{Int}
 
   orders = orders_class_representatives(t)
-  pos = findfirst(x -> x == 4, orders)
+  pos = findfirst(==(4), orders)
   chi = filter(x -> x[1] == 2, collect(t))[1]
   ev = multiplicities_eigenvalues(chi, pos)
   @test ev == [0, 1, 0, 1]
@@ -1231,6 +1233,8 @@ end
     @test all(is_irreducible, tbl1)
     @test all(chi -> order(center(chi)[1]) == n, tbl1)
     @test all(chi -> is_subgroup(kernel(chi)[1], G1)[1], tbl1)
+
+    @test all(chi -> chi * chi == tensor_product(chi, chi), tbl1)
 
     scp = scalar_product(tbl1[1], tbl1[1])
     @test scp == 1

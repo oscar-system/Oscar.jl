@@ -1,36 +1,3 @@
-@attributes mutable struct LinearLieAlgebra{C<:FieldElem} <: LieAlgebra{C}
-  R::Field
-  n::Int  # the n of the gl_n this embeds into
-  dim::Int
-  basis::Vector{MatElem{C}}
-  s::Vector{Symbol}
-
-  function LinearLieAlgebra{C}(
-    R::Field,
-    n::Int,
-    basis::Vector{<:MatElem{C}},
-    s::Vector{Symbol};
-    check::Bool=true,
-  ) where {C<:FieldElem}
-    @req all(b -> size(b) == (n, n), basis) "Invalid basis element dimensions."
-    @req length(s) == length(basis) "Invalid number of basis element names."
-    L = new{C}(R, n, length(basis), basis, s)
-    if check
-      @req all(b -> all(e -> parent(e) === R, b), basis) "Invalid matrices."
-      # TODO: make work
-      # for xi in basis(L), xj in basis(L)
-      #   @req (xi * xj) in L
-      # end
-    end
-    return L
-  end
-end
-
-struct LinearLieAlgebraElem{C<:FieldElem} <: LieAlgebraElem{C}
-  parent::LinearLieAlgebra{C}
-  mat::MatElem{C}
-end
-
 ###############################################################################
 #
 #   Basic manipulation
@@ -54,7 +21,7 @@ Return the basis `basis(L)` of the Lie algebra `L` in the underlying matrix
 representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}) where {C<:FieldElem}
-  return Vector{dense_matrix_type(C)}(L.basis)
+  return L.basis::Vector{dense_matrix_type(C)}
 end
 
 @doc raw"""
@@ -64,7 +31,7 @@ Return the `i`-th element of the basis `basis(L)` of the Lie algebra `L` in the
 underlying matrix representation.
 """
 function matrix_repr_basis(L::LinearLieAlgebra{C}, i::Int) where {C<:FieldElem}
-  return (L.basis[i])::dense_matrix_type(C)
+  return matrix_repr_basis(L)[i]
 end
 
 ###############################################################################
@@ -163,10 +130,12 @@ Return the Lie algebra element `x` in the underlying matrix representation.
 """
 function Generic.matrix_repr(x::LinearLieAlgebraElem)
   L = parent(x)
-  return sum(
-    c * b for (c, b) in zip(_matrix(x), matrix_repr_basis(L));
-    init=zero_matrix(coefficient_ring(L), L.n, L.n),
-  )
+  mat = zero_matrix(coefficient_ring(L), L.n, L.n)
+  tmp = zero(mat)
+  for (c, b) in zip(coefficients(x), matrix_repr_basis(L))
+    mat = addmul!(mat, b, c, tmp)
+  end
+  return mat
 end
 
 function bracket(
@@ -177,6 +146,31 @@ function bracket(
   x_mat = matrix_repr(x)
   y_mat = matrix_repr(y)
   return coerce_to_lie_algebra_elem(L, x_mat * y_mat - y_mat * x_mat)
+end
+
+###############################################################################
+#
+#   Root system getters
+#
+###############################################################################
+
+has_root_system(L::LinearLieAlgebra) = isdefined(L, :root_system)
+
+function root_system(L::LinearLieAlgebra)
+  assure_root_system(L)
+  return L.root_system
+end
+
+function chevalley_basis(L::LinearLieAlgebra)
+  assure_root_system(L)
+  return L.chevalley_basis::NTuple{3,Vector{elem_type(L)}}
+end
+
+function set_root_system_and_chevalley_basis!(
+  L::LinearLieAlgebra{C}, R::RootSystem, chev::NTuple{3,Vector{LinearLieAlgebraElem{C}}}
+) where {C<:FieldElem}
+  L.root_system = R
+  L.chevalley_basis = chev
 end
 
 ###############################################################################
@@ -208,12 +202,17 @@ end
 function lie_algebra(
   basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
 ) where {C<:FieldElem}
-  parent_L = parent(basis[1])
-  @req all(parent(x) === parent_L for x in basis) "Elements not compatible."
-  R = coefficient_ring(parent_L)
-  n = parent_L.n
-  s = map(AbstractAlgebra.obj_to_string, basis)
-  return lie_algebra(R, n, matrix_repr.(basis), s; check)
+  @req !isempty(basis) "Basis must not be empty, or provide the Lie algebra as first argument"
+  return lie_algebra(parent(basis[1]), basis; check)
+end
+
+function lie_algebra(
+  L::LinearLieAlgebra{C}, basis::Vector{LinearLieAlgebraElem{C}}; check::Bool=true
+) where {C<:FieldElem}
+  @req all(parent(x) === L for x in basis) "Elements not compatible."
+  R = coefficient_ring(L)
+  s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
+  return lie_algebra(R, L.n, matrix_repr.(basis), s; check)
 end
 
 @doc raw"""

@@ -137,11 +137,11 @@
       # Create the same by filtering all partitions
       Q = @inferred collect(partitions(T(n), T(k), T(lb), T(ub)))
       @test Q isa Vector{Oscar.Partition{T}}
-      filter!( Q->Q==unique(Q), Q )
+      filter!(allunique, Q)
 
       # Check that P and Q coincide (up to reordering)
       @test length(P) == length(Q)
-      @test Set(P) == Set(Q)
+      @test issetequal(P, Q)
     end
   end
 

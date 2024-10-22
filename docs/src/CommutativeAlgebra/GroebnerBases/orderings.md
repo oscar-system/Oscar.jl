@@ -7,10 +7,10 @@ DocTestSetup = Oscar.doctestsetup()
 
 Given a coefficient ring $C$ as in the previous section, let $C[x]=C[x_1, \ldots, x_n]$
 be the polynomial ring over $C$ in the set of variables $x=\{x_1, \ldots, x_n\}$. Monomials
-in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \N^n$,
+in $x=\{x_1, \ldots, x_n\}$ are written using multi--indices: If $\alpha=(\alpha_1, \ldots, \alpha_n)\in \mathbb{N}^n$,
 set $x^\alpha=x_1^{\alpha_1}\cdots x_n^{\alpha_n}$ and
 
-$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \N^n\}.$
+$\text{Mon}_n(x) :=  \text{Mon}(x_1, \ldots, x_n) := \{x^\alpha \mid \alpha \in \mathbb{N}^n\}.$
 
 A *monomial ordering* on $\text{Mon}_n(x)$ is a total  ordering $>$ on $\text{Mon}_n(x)$ such that
 
@@ -24,10 +24,10 @@ A monomial ordering $>$ on $\text{Mon}_n(x)$ is called
 
 !!! note
     - A monomial ordering on $\text{Mon}_n(x)$ is global iff it is a well-ordering.
-    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \N^n$ such that
-       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \N^n.$
+    - To give a monomial ordering on $\text{Mon}_n(x)$ means to give a total ordering $>$ on $ \mathbb{N}^n$ such that
+       $\alpha > \beta$ implies $ \gamma + \alpha > \gamma  + \beta$ for all $\alpha , \beta, \gamma \in \mathbb{N}^n.$
        Rather than speaking of a monomial ordering on $\text{Mon}_n(x)$, we may, thus, also speak of a
-       (global, local, mixed) monomial ordering on $\N^n$.
+       (global, local, mixed) monomial ordering on $\mathbb{N}^n$.
 
 !!! note
     By a result of Robbiano, every monomial ordering can be realized as a matrix ordering.
@@ -48,7 +48,7 @@ Here are some illustrating examples:
 ##### Examples
 
 ```jldoctest
-julia> S, (w, x) = polynomial_ring(QQ, ["w", "x"])
+julia> S, (w, x) = polynomial_ring(QQ, [:w, :x])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[w, x])
 
 julia> o = lex([w, x])
@@ -58,7 +58,7 @@ julia> canonical_matrix(o)
 [1   0]
 [0   1]
 
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o1 = degrevlex([w, x])
@@ -314,7 +314,7 @@ In OSCAR, block orderings are obtained by the concatenation of individual  order
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"])
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z])
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[w, x, y, z])
 
 julia> o = degrevlex([w, x])*degrevlex([y, z])
@@ -405,7 +405,7 @@ basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the
 ##### Examples
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> F = free_module(R, 3)
 Free module of rank 3 over R

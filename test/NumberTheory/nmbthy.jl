@@ -32,12 +32,24 @@ end
 end
 
 begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   k, a = number_field(x^2 - 18, "a")
-  kt, t = k["t"];
+  kt, t = k[:t];
   K, b = number_field(t^4 + (a + 6)*t^2 + 2a + 9, "b")
   G, m = automorphism_group(PermGroup, K)
   h = m(one(G))
   @test h(b) == b && h(K(a)) == K(a)
   @test order(G) == 4 && is_cyclic(G)
+end
+
+@testset "norm equation non-max" begin
+  k, a = wildanger_field(3, 13)
+  zk = maximal_order(k)
+  b = zk(8*a^2 - 24*a - 1)
+  o = Order(k, 8 .* basis(zk))
+  @test length(norm_equation(zk, norm(b))) == 4
+  @test length(norm_equation(o, norm(b))) == 3
+
+  @test length(norm_equation(o, 8)) == 2
+  @test length(norm_equation(zk, 8)) == 1
 end

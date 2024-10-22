@@ -1,11 +1,11 @@
 @testset "MPolyAnyMap/MPolyRing" begin
   # Construction 
   Qsqrt2, = quadratic_field(-1)
-  Zx, _ = ZZ["x"]
-  Zxy, _ = ZZ["x", "y"]
+  Zx, _ = ZZ[:x]
+  Zxy, _ = ZZ[:x, :y]
   
   for K in [GF(2), GF(ZZRingElem(2)), GF(2, 2), GF(ZZRingElem(2), 2), ZZ, QQ, Qsqrt2, Zx, Zxy]
-    Kx, (x, y) = K["x", "y"]
+    Kx, (x, y) = K[:x, :y]
     h = @inferred hom(Kx, Kx, [y, x])
     @test h isa Oscar.morphism_type(Kx, Kx)
     @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kx))
@@ -33,7 +33,7 @@
     @test (@inferred h(x + y)) == Kx(2)
     @test (@inferred h(x + y)) == Kx(2)
 
-    Kh, (z1, z2) = K["z1", "z2"]
+    Kh, (z1, z2) = K[:z1, :z2]
     Kh, (zz1, zz2) = grade(Kh)
     h = @inferred hom(Kx, Kh, [z1 + z2, z2])
     @test h isa Oscar.morphism_type(Kx, Kh)
@@ -48,8 +48,8 @@
     @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kh))
   
     # julia-function  
-    R, (x, y) = K["x", "y"]
-    S, (u, v) = R["u", "v"]
+    R, (x, y) = K[:x, :y]
+    S, (u, v) = R[:u, :v]
     g = let S = S; a -> S(a^2); end
     h = hom(S, S, g, gens(S))
     @test h isa Oscar.morphism_type(S, S, g)
@@ -75,11 +75,11 @@
     @test (@inferred h(x*u)) == x^2 * u
     @test (@inferred h(x*u)) == x^2 * u
   
-    A, (x,y) = K["x", "y"]
+    A, (x,y) = K[:x, :y]
     f = hom(A, A, [2*x, 5*y])
     @test f isa Oscar.morphism_type(A, A)
     @test f isa Oscar.morphism_type(typeof(A), typeof(A))
-    R, (u, v) = A["u", "v"]
+    R, (u, v) = A[:u, :v]
     h = hom(R, R, f, [u+v, u*v])
     @test h isa Oscar.morphism_type(R, R, f)
     @test h isa Oscar.morphism_type(typeof(R), typeof(R), typeof(f))
@@ -88,7 +88,7 @@
 
     # Noncommutative image
     
-    A, (x, y) = K["x", "y"]
+    A, (x, y) = K[:x, :y]
     S = matrix_ring(K, 2)
     a = S([1 1; 0 1])
     b = S([0 1; 1 0])
@@ -107,8 +107,8 @@
     @test (h(x * y)) == a * b
 
     # another issue
-    R, (x, y) = K["x", "y"]
-    S, (u, v) = R["u", "v"]
+    R, (x, y) = K[:x, :y]
+    S, (u, v) = R[:u, :v]
     h = hom(S, S, a -> a^2, gens(S))
     @test (@inferred h(x)) == x^2
     @test (@inferred h(x)) == x^2
@@ -120,11 +120,11 @@
     #@test_throws ErrorException kernel(h)
 
     # composition
-    Kx, (x, y) = K["x", "y"];
-    Kxz, (z1, z2) = Kx["z1", "z2"];
+    Kx, (x, y) = K[:x, :y];
+    Kxz, (z1, z2) = Kx[:z1, :z2];
     f = hom(Kxz, Kxz, hom(Kx, Kxz, [z1, z2]), [z2, z1])
     g = hom(Kxz, Kxz, hom(Kx, Kx, [y, x]), [z1 + 1, z2 + 1])
-    fg = @inferred f * g
+    fg = f * g
     @test fg(x) == g(f(x))
     @test fg(y) == g(f(y))
     @test fg(z1) == g(f(z1))
@@ -139,19 +139,19 @@
 
   # composition with coefficient map
   Qi, i = quadratic_field(-1)
-  Qix, (x, y) = Qi["x", "y"]
+  Qix, (x, y) = Qi[:x, :y]
   f = hom(Qix, Qix, hom(Qi, Qi, -i), [x^2, y^2])
   g = hom(Qix, Qix, hom(Qi, Qi, -i), [x + 1, y + 1])
-  fg = @inferred f * g
+  fg = f * g
   @test fg(i) == g(f(i))
   @test fg(x) == g(f(x))
   @test fg(y) == g(f(y))
 
   Qi, i = quadratic_field(-1)
-  Qix, (x, y) = Qi["x", "y"]
+  Qix, (x, y) = Qi[:x, :y]
   f = hom(Qix, Qix, z -> z + 1, [x^2, y^2])
   g = hom(Qix, Qix, z -> z^2, [x + 1, y + 1])
-  fg = @inferred f * g
+  fg = f * g
   @test fg(i) == g(f(i))
   @test fg(x) == g(f(x))
   @test fg(y) == g(f(y))
@@ -164,9 +164,9 @@
   f = hom(Qix, Qi, h, [i, 0])
   fh = @inferred f * h
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
 end
 
 @testset "coefficient maps" begin

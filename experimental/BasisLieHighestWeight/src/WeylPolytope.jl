@@ -116,7 +116,7 @@ function compute_zero_coordinates(
   zero_coordinates = Int[]
   for c in n:-1:1
     length(non_zeros) == m && break
-    if !isempty(intersect(non_zeros, findall(!iszero, bir_sequence.weights_alpha[c])))
+    if !isdisjoint(non_zeros, findall(!iszero, bir_sequence.weights_alpha[c]))
       union!(non_zeros, findall(<(0), bir_sequence.weights_w[c]))
     else
       push!(zero_coordinates, c)

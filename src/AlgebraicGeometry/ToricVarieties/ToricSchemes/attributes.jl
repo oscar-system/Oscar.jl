@@ -127,7 +127,7 @@ struct ToricGluingData
 # j::Int
 end
 
-function _compute_toric_gluing(gd::ToricGluingData)
+function _compute_gluing(gd::ToricGluingData)
   X = gd.X
   U = gd.U
   V = gd.V
@@ -221,13 +221,13 @@ with default covering
     3: [x_1_3, x_2_3]
 ```
 """
-@attr function underlying_scheme(Z::NormalToricVariety)
+@attr Any function underlying_scheme(Z::NormalToricVariety)
   @req is_pure(polyhedral_fan(Z)) "underlying_scheme is currently only supported for toric varieties whose fan is pure"
   patch_list = affine_open_covering(Z)
   for (k, A) in enumerate(patch_list)
     C = cone(pm_object(A).WEIGHT_CONE)
     n = length(hilbert_basis(C))
-    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n], cached = false);
+    R, _ = polynomial_ring(QQ, ["x_$(i)_$(k)" for i in 1:n]; cached=false);
     set_attribute!(A, :toric_ideal, toric_ideal(R, A))
   end
   cov = Covering(patch_list)
@@ -237,7 +237,7 @@ with default covering
       X = patch_list[i]
       Y = patch_list[j]
       gd = ToricGluingData(Z, X, Y)
-      add_gluing!(cov, LazyGluing(X, Y, _compute_toric_gluing, gd))
+      add_gluing!(cov, LazyGluing(X, Y, gd))
       continue
       facet = intersect(cone(X), cone(Y))
       (dim(facet) == dim(cone(X)) - 1) || continue

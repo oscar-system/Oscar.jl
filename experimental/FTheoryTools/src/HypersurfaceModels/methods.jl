@@ -104,7 +104,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   isempty(input_sections) && return h
   secs_names = collect(keys(explicit_model_sections(h)))
   tuned_secs_names = collect(keys(input_sections))
-  @req all(x -> x in secs_names, tuned_secs_names) "Provided section name not recognized"
+  @req all(in(secs_names), tuned_secs_names) "Provided section name not recognized"
 
   # 1. Tune model sections
   explicit_secs = deepcopy(explicit_model_sections(h))
@@ -120,7 +120,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   # 2. Compute the new hypersurface equation
   parametrized_hypersurface_equation = hypersurface_equation_parametrization(h)
   R = parent(parametrized_hypersurface_equation)
-  vars = [string(k) for k in gens(R)]
+  vars = [string(k) for k in symbols(R)]
   S = cox_ring(ambient_space(h))
   images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
   map = hom(R, S, images; check=false)
