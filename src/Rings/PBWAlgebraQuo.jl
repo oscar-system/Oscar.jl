@@ -169,12 +169,12 @@ function Base.:(==)(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
 end
 
 function Base.:+(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  @assert parent(a) == parent(b)
+  check_parent(a, b)
   return PBWAlgQuoElem(parent(a), a.data + b.data)
 end
 
 function Base.:-(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  @assert parent(a) == parent(b)
+  check_parent(a, b)
   return PBWAlgQuoElem(parent(a), a.data - b.data)
 end
 
@@ -183,7 +183,8 @@ function Base.:-(a::PBWAlgQuoElem)
 end
 
 function Base.:*(a::PBWAlgQuoElem, b::PBWAlgQuoElem)
-  return PBWAlgQuoElem(parent(a), a.data*b.data)
+  check_parent(a, b)
+  return PBWAlgQuoElem(parent(a), a.data * b.data)
 end
 
 function Base.:^(a::PBWAlgQuoElem, b::Int)
