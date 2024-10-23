@@ -65,6 +65,7 @@ export is_finitely_determined
 export determinacy_bound
 export sharper_determinacy_bound
 export is_contact_equivalent
+export tjurina_module
 
 
 # Deprecated after 0.15
