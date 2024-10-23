@@ -1854,7 +1854,7 @@ end
     monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
 
 If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
-`K` at a point 'p', and `I` is an ideal of `L`, return a vector of monomials of `L`
+`K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space. 
 !!! note 
