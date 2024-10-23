@@ -510,7 +510,7 @@ julia> facets(Polyhedron, C)
  Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_1 <= 1
 x_1 <= 1
 -x_2 <= 1
@@ -593,7 +593,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_1 <= 1
 x_1 <= 1
 -x_2 <= 1
@@ -998,7 +998,7 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
+2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the hyperplanes of R^4 described by:
 x_3 = 2
 x_4 = 5
 ```
@@ -1831,7 +1831,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Halfspaces of R^$n described by:\n")
+    print(io, " over the halfspaces of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else
@@ -1854,7 +1854,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Hyperplanes of R^$n described by:\n")
+    print(io, " over the hyperplanes of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else
