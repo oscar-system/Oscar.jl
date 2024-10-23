@@ -1850,6 +1850,52 @@ function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
   return vector_space_dimension(quo(base_ring(R),ideal(base_ring(R),gens(LI)))[1])
 end
 
+@doc raw"""
+    monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+
+If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
+`K` at a point 'p', and `I` is an ideal of `L`, return a vector of monomials of `L`
+such that the residue classes of these monomials form a basis of `A` as a `K`-vector
+space. 
+!!! note 
+    The monomials are in the varibles $x_i - p_i$. Therefore in the example below $x*y - x - y + 1 = (x-1)*(y-1)$ is a monomial.
+!!! note
+    If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
+# Examples
+```jldoctest
+julia> R, (x,y) = QQ["x","y"];
+
+julia> L,_ = localization(R, complement_of_point_ideal(R, [1,1]));
+
+julia> Q,_ = quo(L, ideal(L, [(x-1)^2, (y-1)^2]));
+
+julia> Q
+Localization
+  of quotient
+    of multivariate polynomial ring in 2 variables x, y
+      over rational field
+    by ideal (x^2 - 2*x + 1, y^2 - 2*y + 1)
+  at complement of maximal ideal of point (1, 1)
+
+julia> monomial_basis(Q)
+4-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ x*y - x - y + 1
+ y - 1
+ x - 1
+ 1
+```
+"""
+function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  R = base_ring(A)
+  L = localized_ring(A)
+  G = numerator.(gens(modulus(A)))
+  shift, back_shift = base_ring_shifts(L)
+  G_0 = shift.(G)
+  S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
+  B = monomial_basis(quo(R, ideal(S))[1])
+  return L.(back_shift.(B))
+end
+
 function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)
   throw(NotImplementedError(:is_finite_dimensional_vector_space, R))
 end
