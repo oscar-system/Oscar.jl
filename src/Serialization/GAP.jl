@@ -29,9 +29,60 @@ end
 
 #############################################################################
 #
+# attributes handling
+#
+const GapObj_attributes = [
+  # boolean
+  :IsAbelian, :IsAlmostSimpleGroup, :IsCyclic, :IsElementaryAbelian,
+  :IsFinite, :IsNilpotentGroup, :IsPerfectGroup, :IsQuasisimpleGroup,
+  :IsSimpleGroup, :IsSolvableGroup, :IsSporadicSimpleGroup,
+  :IsSupersolvableGroup,
+  # numeric Int
+  :DerivedLength, :NilpotencyClassOfGroup, :NrConjugacyClasses, :NrMovedPoints,
+  # numeric ZZRingElem
+  :Exponent,
+  # numeric ZZRingElem or infinity
+  :Size,
+  # array of numeric
+# :AbelianInvariants, :IdGroup, :TransitiveIdentification,
+#TODO: GAP lists of integers
+  # more involved GapObj
+  :Center,
+# :DerivedSeriesOfGroup,
+#TODO: GAP lists of GAP objects
+]
+
+function save_attrs(s::SerializerState, G::T) where T <: GapObj
+  save_data_dict(s, :attrs) do
+    for attr in attrs_list(s, T)
+      testerfunc = getproperty(GAP.Globals, Symbol(string("Has", attr)))
+      if testerfunc(G)
+        getterfunc = getproperty(GAP.Globals, attr)
+        attr_value = getterfunc(G)
+        save_typed_object(s, attr_value, attr)
+      end
+    end
+  end
+end
+
+function load_attrs(s::DeserializerState, G::T) where T <: GapObj
+  !with_attrs(s) && return
+  haskey(s, :attrs) && load_node(s, :attrs) do d
+    for attr in attrs_list(s, T)
+      if haskey(d, attr)
+        func = getproperty(GAP.Globals, Symbol(string("Set", attr)))
+        attr_value = load_typed_object(s, attr)
+        func(G, attr_value)
+      end
+    end
+  end
+end
+
+#############################################################################
+#
 # the Oscar (de)serialization methods that delegate to GAP's method selection
 #
-@register_serialization_type GapObj uses_id
+@register_serialization_type GapObj uses_id [GapObj_attributes;]
 
 function save_object(s::SerializerState, X::GapObj)
   GAP.Globals.SerializeInOscar(X, s)
@@ -43,7 +94,9 @@ function load_object(s::DeserializerState, T::Type{GapObj})
     GAP_T = load_node(s, :GapType) do gap_type_data
       return GapObj(gap_type_data)
     end
-    return GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T)
+    X = GAP.Globals.DeserializeInOscar(GAPWrap.ValueGlobal(GAP_T), s, T)
+    load_attrs(s, X)
+    return X
   end
 end
 
@@ -71,6 +124,88 @@ install_GAP_serialization(:IsObject,
 install_GAP_serialization(:IsFamily,
   function(X::GapObj, s::SerializerState)
     error("serialization of GAP family object $X is deliberately not supported")
+  end)
+
+# - `IsInt`, `IsInfinity`, `IsNegInfinity`:
+#   used for large group orders (that are `GapObj`s)
+install_GAP_serialization(:IsInt,
+  function(X::GapObj, s::SerializerState)
+    save_data_dict(s) do
+      save_object(s, "IsInt", :GapType)
+      save_object(s, ZZRingElem(X), :int)
+    end
+  end)
+
+install_GAP_deserialization(
+  :IsInt,
+  function(filt::GapObj, s::DeserializerState, T)
+    val = load_object(s, ZZRingElem, :int)
+    return GapObj(val)
+  end)
+
+install_GAP_serialization(:IsInfinity,
+  function(X::GapObj, s::SerializerState)
+    save_data_dict(s) do
+      save_object(s, "IsInfinity", :GapType)
+    end
+  end)
+
+install_GAP_deserialization(
+  :IsInfinity,
+  function(filt::GapObj, s::DeserializerState, T)
+    return GAP.Globals.infinity
+  end)
+
+install_GAP_serialization(:IsNegInfinity,
+  function(X::GapObj, s::SerializerState)
+    save_data_dict(s) do
+      save_object(s, "IsNegInfinity", :GapType)
+    end
+  end)
+
+install_GAP_deserialization(
+  :IsNegInfinity,
+  function(filt::GapObj, s::DeserializerState, T)
+    return GAP.Globals.Ninfinity
+  end)
+
+# # - `IsList`:
+# #   used for lists of `GapObj`s
+# install_GAP_serialization(:IsList,
+#   function(X::GapObj, s::SerializerState)
+#     save_data_dict(s) do
+#       save_object(s, "IsList", :GapType)
+#       save_object(s, Vector{GAP.Obj}(X), :list)
+#     end
+#   end)
+#
+# install_GAP_deserialization(
+#   :IsList,
+#   function(filt::GapObj, s::DeserializerState, T)
+#     val = load_object(s, Vector{GAP.Obj}, :list)
+#     return GapObj(val)
+#   end)
+
+# - `IsPermGroup`:
+#   Just store generators as lists of images.
+install_GAP_serialization(:IsPermGroup,
+  function(X::GapObj, s::SerializerState)
+    save_data_dict(s) do
+      save_object(s, "IsPermGroup", :GapType)
+      # generators
+      save_object(s, [Vector{Int}(GAP.Globals.ListPerm(x))
+                      for x in GAP.Globals.GeneratorsOfGroup(X)], :gens)
+      save_attrs(s, X)
+    end
+  end)
+
+install_GAP_deserialization(
+  :IsPermGroup,
+  function(filt::GapObj, s::DeserializerState, T)
+    vgens = load_object(s, Vector, Vector{Int}, :gens)
+    length(vgens) == 0 && return GAP.Globals.TrivialGroup(GAP.Globals.IsPermGroup)
+    ggens = [GAP.Globals.PermList(GapObj(x)) for x in vgens]
+    return GAP.Globals.Group(GapObj(ggens))
   end)
 
 # - `IsFreeGroup`:
@@ -108,6 +243,7 @@ install_GAP_serialization(:IsFreeGroup,
           names = Vector{String}(Xnames)
         end
         save_object(s, names, :names)
+        save_attrs(s, X)
       end
     else
       # subgroup of a full free group: save the full group and generators
@@ -117,6 +253,7 @@ install_GAP_serialization(:IsFreeGroup,
         save_typed_object(s, F, :freeGroup)
         # store generators
         save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in GAPWrap.GeneratorsOfGroup(X)], :gens)
+        save_attrs(s, X)
       end
     end
   end)
@@ -179,6 +316,7 @@ install_GAP_serialization(:IsSubgroupFpGroup,
         # relators
         relators = GAP.getbangproperty(elfam, :relators)::GapObj
         save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in relators], :relators)
+        save_attrs(s, X)
       end
     else
       # subgroup of a full f.p. group: save the full group and generators
@@ -188,6 +326,7 @@ install_GAP_serialization(:IsSubgroupFpGroup,
         save_typed_object(s, F, :wholeGroup)
         # store generators
         save_object(s, [Vector{Int}(GAPWrap.ExtRepOfObj(x)) for x in GAPWrap.GeneratorsOfGroup(X)], :gens)
+        save_attrs(s, X)
       end
     end
   end)
@@ -275,6 +414,7 @@ install_GAP_serialization(:IsPcGroup,
           end
         end
         save_object(s, rels, :comm_rels)
+        save_attrs(s, X)
       end
     else
       # save full group and generators
@@ -284,6 +424,7 @@ install_GAP_serialization(:IsPcGroup,
         save_typed_object(s, G, :fullGroup)
         save_object(s, [Vector{Int}(GAP.Globals.ExponentsOfPcElement(fullpcgs, x)::GapObj)
                         for x in GAP.Globals.InducedPcgsWrtHomePcgs(X)::GapObj], :gens)
+        save_attrs(s, X)
       end
     end
   end)
