@@ -245,6 +245,9 @@ Hecke.restrict(::Hecke.NumFieldEmb, ::Map{QQField, AbsSimpleNumField}) = complex
 function relative_field(m::Map{<:AbstractAlgebra.Field, <:AbstractAlgebra.Field})
   k = domain(m)
   K = codomain(m)
+  if k == base_field(K)
+    return defining_polynomial(K), Hecke.coordinates, representation_matrix
+  end
   @assert base_field(k) == base_field(K)
   kt, t = polynomial_ring(k, cached = false)
   f = defining_polynomial(K)
