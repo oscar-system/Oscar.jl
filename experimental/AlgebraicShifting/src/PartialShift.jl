@@ -15,9 +15,9 @@ function is_zero_entry(K::SimplicialComplex, indices::Tuple{Int, Int})
   K_facets = Set{Set{Int}}(facets(K))
   for facet in K_facets
     # need a comment for this line
-    !(indices[1] in facet) && continue
+    !(indices[2] in facet) && continue
     # swap indices[1] with indices[2] in facet
-    S = push!(delete!(copy(facet), indices[1]), indices[2])
+    S = push!(delete!(copy(facet), indices[2]), indices[1])
     !any(is_subset(S, check_facet) for check_facet in K_facets) && return false
   end
   return true
