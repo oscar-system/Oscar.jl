@@ -543,7 +543,7 @@ julia> c = positive_hull([1 0 0; 0 1 0; 1 1 1])
 Polyhedral cone in ambient dimension 3
 
 julia> f = facets(Halfspace, c)
-3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+3-element SubObjectIterator{LinearHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_3 <= 0
 -x_1 + x_3 <= 0
 -x_2 + x_3 <= 0
@@ -616,7 +616,7 @@ $H = \{ (x_1, x_2, x_3) | x_3 = 0 \}$.
 julia> c = positive_hull([1 0 0; 0 1 0]);
 
 julia> linear_span(c)
-1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the Hyperplanes of R^3 described by:
+1-element SubObjectIterator{LinearHyperplane{QQFieldElem}} over the hyperplanes of R^3 described by:
 x_3 = 0
 ```
 """
