@@ -266,14 +266,17 @@ function one(R::PBWAlgRing)
 end
 
 function Base.:(==)(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return a.sdata == b.sdata
 end
 
 function Base.:+(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return PBWAlgElem(parent(a), a.sdata + b.sdata)
 end
 
 function Base.:-(a::PBWAlgElem, b::PBWAlgElem)
+  check_parent(a, b)
   return PBWAlgElem(parent(a), a.sdata - b.sdata)
 end
 
@@ -282,7 +285,8 @@ function Base.:-(a::PBWAlgElem)
 end
 
 function Base.:*(a::PBWAlgElem, b::PBWAlgElem)
-  return PBWAlgElem(parent(a), a.sdata*b.sdata)
+  check_parent(a, b)
+  return PBWAlgElem(parent(a), a.sdata * b.sdata)
 end
 
 function Base.:^(a::PBWAlgElem, b::Int)
