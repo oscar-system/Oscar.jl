@@ -90,6 +90,12 @@ AbstractBundle of rank 2 on AbstractVariety of dim 6
 julia> total_chern_class(Q)
 c[1]^2 - c[1] - c[2] + 1
 
+julia> chern_class(Q, 1)
+-c[1]
+
+julia> chern_class(Q, 2)
+c[1]^2 - c[2]
+
 ```
 """
 total_chern_class(F::AbstractBundle) = (
@@ -161,18 +167,37 @@ julia> top_chern_class(F)
 top_chern_class(F::AbstractBundle) = chern_class(F, F.rank)
 
 @doc raw"""
-    segre_class(F::AbstractBundle)
+    total_segre_class(F::AbstractBundle)
 
 Return the total Segre class of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> C = total_chern_class(Q)
+c[1]^2 - c[1] - c[2] + 1
+
+julia> S = total_segre_class(Q)
+c[1] + c[2] + c[3] + 1
+
+julia> C*S
+1
+
+```
 """
-segre_class(F::AbstractBundle) = inv(total_chern_class(F))
+total_segre_class(F::AbstractBundle) = inv(total_chern_class(F))
 
 @doc raw"""
     segre_class(F::AbstractBundle, k::Int)
 
-Retuen the `k`-th Segre class of `F`.
+Return the `k`-th Segre class of `F`.
 """
-segre_class(F::AbstractBundle, k::Int) = segre_class(F)[k]
+segre_class(F::AbstractBundle, k::Int) = total_segre_class(F)[k]
 
 @doc raw"""
     todd_class(F::AbstractBundle)
