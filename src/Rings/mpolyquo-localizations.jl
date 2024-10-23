@@ -1867,9 +1867,9 @@ julia> R, (x,y) = QQ["x","y"];
 
 julia> L,_ = localization(R, complement_of_point_ideal(R, [1,1]));
 
-julia> Q,_ = quo(L, ideal(L, [(x-1)^2, (y-1)^2]));
+julia> A,_ = quo(L, ideal(L, [(x-1)^2, (y-1)^2]));
 
-julia> Q
+julia> A
 Localization
   of quotient
     of multivariate polynomial ring in 2 variables x, y
@@ -1877,7 +1877,7 @@ Localization
     by ideal (x^2 - 2*x + 1, y^2 - 2*y + 1)
   at complement of maximal ideal of point (1, 1)
 
-julia> monomial_basis(Q)
+julia> monomial_basis(A)
 4-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
  x*y - x - y + 1
  y - 1
