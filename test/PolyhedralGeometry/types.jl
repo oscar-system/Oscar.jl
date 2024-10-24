@@ -7,6 +7,13 @@
     @test row(im, 1) == Set{Int}([1, 2, 3])
     @test column(im, 2) isa Set{Int}
     @test column(im, 2) == Set{Int}([1])
+
+    @testset "IncidenceMatrix constructions" begin
+      @test incidence_matrix([11 12 13 0 0 0; 0 0 0 14 15 16]) == im
+      @test incidence_matrix(4, 2) == incidence_matrix([0 0; 0 0; 0 0; 0 0])
+      @test incidence_matrix(im) == im
+      @test incidence_matrix(3, 8, [[1, 2, 3], [4, 5, 6]]) == incidence_matrix([1 1 1 0 0 0 0 0; 0 0 0 1 1 1 0 0; 0 0 0 0 0 0 0 0])
+    end
   end
 
   a = [1, 2, 3]
