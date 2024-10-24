@@ -68,12 +68,15 @@ function bracket(
 ) where {C<:FieldElem}
   check_parent(x, y)
   L = parent(x)
-  mat = sum(
-    cxi * cyj * _struct_consts(L)[i, j] for (i, cxi) in enumerate(coefficients(x)),
-    (j, cyj) in enumerate(coefficients(y));
-    init=sparse_row(coefficient_ring(L)),
-  )
-  return L(mat)
+  vec = sparse_row(coefficient_ring(L))
+  for (i, cxi) in enumerate(coefficients(x))
+    iszero(cxi) && continue
+    for (j, cyj) in enumerate(coefficients(y))
+      iszero(cyj) && continue
+      Hecke.add_scaled_row!(_struct_consts(L)[i, j], vec, cxi * cyj)
+    end
+  end
+  return L(vec)
 end
 
 ###############################################################################
