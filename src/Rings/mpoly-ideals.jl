@@ -1884,6 +1884,7 @@ julia> dim(I)
   if I.dim > -1
     return I.dim
   end
+  is_one(I) && return -1 # Catch a boundary case
   is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
   if is_f4_applicable(I, degrevlex(base_ring(I)))
     I.dim = AlgebraicSolving.dimension(AlgebraicSolving.Ideal(I.gens.O))
