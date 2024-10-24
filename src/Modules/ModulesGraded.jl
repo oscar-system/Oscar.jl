@@ -2092,8 +2092,9 @@ function show(io::IO, F::FreeMod_dec)
   @show_name(io, F)
   @show_special(io, F)
 
+  io = terse(io)
   print(io, "Decorated free module of rank $(rank(F)) over ")
-  print(IOContext(io, :compact =>true), base_ring(F))
+  print(IOContext(io, :compact => true), base_ring(F))
 
   i = 1
   while i < dim(F)

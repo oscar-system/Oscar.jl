@@ -26,6 +26,7 @@ function free_show(io::IO, C::ComplexOfMorphisms)
     push!(rank_mod, rank(M))
   end
 
+  io = terse(io)
   io = IOContext(io, :compact => true)
   N = get_attribute(C, :free_res)
   if N !== nothing

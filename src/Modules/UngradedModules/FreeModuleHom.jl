@@ -277,40 +277,42 @@ function morphism_type(
 end
 
 function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  # HACK
-  show(io, fmh)
+   println(terse(io), fmh)
+   io = pretty(io)
+   io_compact = IOContext(io, :compact => true)
+   println(io_compact, Indent(), "from ", Lowercase(), domain(fmh))
+   print(io_compact, "to ", Lowercase(), codomain(fmh), Dedent())
+
+  if is_graded(fmh)
+    println(io)
+    print(io, "defined by", Indent())
+    io = terse(io)
+    domain_gens = gens(domain(fmh))
+    for g in domain_gens
+      println(io)
+      print(io, g, " -> ", fmh(g))
+    end
+  end
 end
 
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
-  if is_graded(fmh)  
-    print(io_compact, domain(fmh))
-    print(io, " -> ")
-    print(io_compact, codomain(fmh))
-    if !compact
-      print(io, "\n")
-      for i in 1:ngens(domain(fmh))
-        print(io, domain(fmh)[i], " -> ")
-        print(io_compact, fmh(domain(fmh)[i]))
-        print(io, "\n")
-      end
+  if is_terse(io)
+    if is_graded(fmh)
       A = grading_group(fmh)
       if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
-        print(io, "\n")
+        print(io, "Graded module homomorphism of degree ", degree(fmh))
       end
+    else
+        print(io, "Module homomorphism")
     end
   else
-    println(io, "Map with following data")
-    println(io, "Domain:")
-    println(io, "=======")
-    println(io, domain(fmh))
-    println(io, "Codomain:")
-    println(io, "=========")
-    print(io, codomain(fmh))
+    io = pretty(io)
+    print(io, "Hom: ")
+    io = terse(io)
+    print(io, Lowercase(), domain(fmh), " -> ")
+    print(io, Lowercase(), codomain(fmh))
   end
 end
 
