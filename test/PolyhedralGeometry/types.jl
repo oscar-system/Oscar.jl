@@ -1,6 +1,6 @@
 @testset "types" begin
   @testset "IncidenceMatrix" begin
-    im = IncidenceMatrix([[1, 2, 3], [4, 5, 6]])
+    im = incidence_matrix([[1, 2, 3], [4, 5, 6]])
     @test nrows(im) == 2
     @test ncols(im) == 6
     @test row(im, 1) isa Set{Int}

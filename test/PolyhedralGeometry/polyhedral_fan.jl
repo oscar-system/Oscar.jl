@@ -10,8 +10,8 @@
   @test polyhedral_fan([Cone4, Cone5]) isa PolyhedralFan{T}
   F0 = polyhedral_fan([Cone4, Cone5])
   I3 = [1 0 0; 0 1 0; 0 0 1]
-  incidence1 = IncidenceMatrix([[1, 2], [2, 3]])
-  incidence2 = IncidenceMatrix([[1, 2]])
+  incidence1 = incidence_matrix([[1, 2], [2, 3]])
+  incidence2 = incidence_matrix([[1, 2]])
   @test polyhedral_fan(f, incidence1, I3) isa PolyhedralFan{T}
   F1 = polyhedral_fan(f, incidence1, I3)
   F1NR = polyhedral_fan(f, incidence1, I3; non_redundant=true)
@@ -138,7 +138,7 @@ end
 end
 
 @testset "Star Subdivision" begin
-  f = polyhedral_fan(IncidenceMatrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
+  f = polyhedral_fan(incidence_matrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
   @test is_pure(f)
   @test is_fulldimensional(f)
   v0 = [1; 0; 0]
@@ -151,7 +151,7 @@ end
   @test number_of_maximal_cones(sf1) == 3
   @test number_of_maximal_cones(sf2) == 4
 
-  ff = polyhedral_fan(IncidenceMatrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
+  ff = polyhedral_fan(incidence_matrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
   @test !is_fulldimensional(ff)
   w0 = [1; 0; 0]

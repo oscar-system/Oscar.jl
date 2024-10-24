@@ -118,7 +118,7 @@
                      convex_hull.(Ref(f), [[-1 -1; -1 1], [1 -1; 1 1], [-1 -1; 1 -1], [-1 1; 1 1]]))
     @test _check_im_perm_rows(vertex_indices(faces(square, 1)),
                               [[1, 3], [2, 4], [1, 2], [3, 4]])
-    @test ray_indices(faces(square, 1)) == IncidenceMatrix(4, 0)
+    @test ray_indices(faces(square, 1)) == incidence_matrix(4, 0)
     @test _check_im_perm_rows(vertex_and_ray_indices(faces(square, 1)),
                               [[2, 4], [1, 3], [1, 2], [3, 4]])
     @test _check_im_perm_rows(IncidenceMatrix(faces(square, 1)),
@@ -606,7 +606,7 @@
           @test affine_inequality_matrix(facets(S, D)) == matrix(R, hcat(-b, vcat(A...)))
           @test halfspace_matrix_pair(facets(S, D)) == (A=matrix(R, vcat(A...)), b=b)
 
-          @test ray_indices(facets(S, D)) == IncidenceMatrix(12, 0)
+          @test ray_indices(facets(S, D)) == incidence_matrix(12, 0)
           @test _check_im_perm_rows(vertex_indices(facets(S, D)), [
             [1, 3, 5, 9, 10],
             [1, 2, 3, 4, 6],
@@ -666,9 +666,9 @@
         [9, 10, 14, 17, 19],
         [15, 17, 18, 19, 20],
       ])
-      @test facet_indices(rays(D)) == IncidenceMatrix(0, 12)
-      @test IncidenceMatrix(rays(D)) == IncidenceMatrix(0, 12)
-      @test rays(IncidenceMatrix, D) == IncidenceMatrix(0, 12)
+      @test facet_indices(rays(D)) == incidence_matrix(0, 12)
+      @test IncidenceMatrix(rays(D)) == incidence_matrix(0, 12)
+      @test rays(IncidenceMatrix, D) == incidence_matrix(0, 12)
       @test _check_im_perm_rows(facet_indices(vertices(D)), [
         [1, 2, 3],
         [2, 3, 6],
