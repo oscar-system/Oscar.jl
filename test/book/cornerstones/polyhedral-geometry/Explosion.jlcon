@@ -1,4 +1,4 @@
-julia> IM = IncidenceMatrix(T);
+julia> IM = incidence_matrix(T);
 
 julia> V = matrix(QQ, vertices(C));
 

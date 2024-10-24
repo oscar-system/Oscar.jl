@@ -9,7 +9,7 @@ if !isdefined(Main, :_prepare_scalar_types)
 end
 
 function _check_im_perm_rows(inc::IncidenceMatrix, o)
-  oinc = IncidenceMatrix(o)
+  oinc = incidence_matrix(o)
   nr, nc = size(inc)
   (nr, nc) == size(oinc) &&
     issetequal(Polymake.row.(Ref(inc), 1:nr),

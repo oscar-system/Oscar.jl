@@ -324,6 +324,8 @@ function IncidenceMatrix(iter::SubObjectIterator)
   end
 end
 
+incidence_matrix(iter::SubObjectIterator) = IncidenceMatrix(iter)
+
 # primitive generators only for ray based iterators
 matrix(R::ZZRing, iter::SubObjectIterator{RayVector{QQFieldElem}}) =
   matrix(R, Polymake.common.primitive(matrix_for_polymake(iter)))

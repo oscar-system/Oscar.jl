@@ -159,7 +159,13 @@ Some methods will require input or return output in form of an `IncidenceMatrix`
 IncidenceMatrix
 ```
 
-From the example it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
+The unique nature of the `IncidenceMatrix` allows for different ways of construction:
+
+```@docs
+incidence_matrix
+```
+
+From the examples it can be seen that this type supports `julia`'s matrix functionality. There are also functions to retrieve specific rows or columns as a `Set` over the non-zero indices.
 
 ```@docs
 row(i::IncidenceMatrix, n::Int)

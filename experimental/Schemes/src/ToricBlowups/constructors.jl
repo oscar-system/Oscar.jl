@@ -137,7 +137,7 @@ julia> rs = [1 1; -1 1]
   1  1
  -1  1
 
-julia> max_cones = IncidenceMatrix([[1, 2]])
+julia> max_cones = incidence_matrix([[1, 2]])
 1×2 IncidenceMatrix
 [1, 2]
 

@@ -10,8 +10,8 @@
   @test polyhedral_fan([Cone4, Cone5]) isa PolyhedralFan{T}
   F0 = polyhedral_fan([Cone4, Cone5])
   I3 = [1 0 0; 0 1 0; 0 0 1]
-  incidence1 = IncidenceMatrix([[1, 2], [2, 3]])
-  incidence2 = IncidenceMatrix([[1, 2]])
+  incidence1 = incidence_matrix([[1, 2], [2, 3]])
+  incidence2 = incidence_matrix([[1, 2]])
   @test polyhedral_fan(f, incidence1, I3) isa PolyhedralFan{T}
   F1 = polyhedral_fan(f, incidence1, I3)
   F1NR = polyhedral_fan(f, incidence1, I3; non_redundant=true)
@@ -46,7 +46,7 @@
     @test maximal_cones(F1) isa SubObjectIterator{Cone{T}}
     @test dim.(maximal_cones(F1)) == [2, 2]
     @test _check_im_perm_rows(ray_indices(maximal_cones(F1)), incidence1)
-    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F1)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F1)), incidence1)
     @test _check_im_perm_rows(maximal_cones(IncidenceMatrix, F1), incidence1)
     @test number_of_maximal_cones(F1) == 2
     @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
@@ -60,7 +60,7 @@
     @test rays.(cones(F2, 2)) == [[], []]
     @test isnothing(cones(F2, 1))
     @test _check_im_perm_rows(ray_indices(cones(F1, 2)), incidence1)
-    @test _check_im_perm_rows(IncidenceMatrix(cones(F1, 2)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
 
     II = ray_indices(maximal_cones(NFsquare))
@@ -74,7 +74,7 @@
     @test f_vector(NFsquare) == [4, 4]
     @test rays(F1NR) == collect(eachrow(I3))
     @test _check_im_perm_rows(ray_indices(maximal_cones(F1NR)), incidence1)
-    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F1NR)), incidence1)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F1NR)), incidence1)
     @test n_rays(F2NR) == 0
     @test lineality_dim(F2NR) == 1
     RMLF2NR = rays_modulo_lineality(F2NR)
@@ -82,7 +82,7 @@
     @test RMLF2NR[:rays_modulo_lineality] == collect(eachrow(R))
     @test lineality_space(F2NR) == collect(eachrow(L))
     @test _check_im_perm_rows(ray_indices(maximal_cones(F2NR)), incidence2)
-    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F2NR)), incidence2)
+    @test _check_im_perm_rows(incidence_matrix(maximal_cones(F2NR)), incidence2)
 
     C = positive_hull(f, identity_matrix(ZZ, 0))
     pf = polyhedral_fan(C)
@@ -138,7 +138,7 @@ end
 end
 
 @testset "Star Subdivision" begin
-  f = polyhedral_fan(IncidenceMatrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
+  f = polyhedral_fan(incidence_matrix([[1, 2, 3, 4]]), [1 0 0; 1 1 0; 1 1 1; 1 0 1])
   @test is_pure(f)
   @test is_fulldimensional(f)
   v0 = [1; 0; 0]
@@ -151,7 +151,7 @@ end
   @test number_of_maximal_cones(sf1) == 3
   @test number_of_maximal_cones(sf2) == 4
 
-  ff = polyhedral_fan(IncidenceMatrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
+  ff = polyhedral_fan(incidence_matrix([[1], [2, 3]]), [1 0 0; -1 0 0; 0 1 0])
   @test !is_pure(ff)
   @test !is_fulldimensional(ff)
   w0 = [1; 0; 0]
