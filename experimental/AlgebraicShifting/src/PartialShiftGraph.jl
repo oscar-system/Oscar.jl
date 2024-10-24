@@ -1,5 +1,16 @@
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
+function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
+  S_diff = collect(symdiff(S1, S2))
+  set_cmp(a, b) = min(symdiff(a, b)...) in a
+
+  if isempty(S_diff)
+    return false
+  end
+  
+  return sort(S_diff;lt=set_cmp)[1] in S1
+end
+
 """
   Given two simplicial complexes `K1`, `K2` return true if
   `K1` is lexicographically less than `K2`
@@ -7,14 +18,7 @@ const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
   K1_facet_set = Set(facets(K1))
   K2_facet_set = Set(facets(K2))
-  S = collect(symdiff(K1_facet_set, K2_facet_set))
-  set_cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
-
-  if isempty(S)
-    return false
-  end
-  
-  return sort(S;lt=set_cmp)[1] in K1_facet_set
+  return isless_lex(K1_facet_set, K2_facet_set)
 end
 
 """
@@ -27,13 +31,12 @@ function partial_shift_graph_vertices(F::Field,
   visited_nodes = Set([current_node])
   
   function adjacent_shifts(K::SimplicialComplex)
-    shifts_of_K = [exterior_shift(F, K, w) for w in W]
+    unique_w = unique(w -> facets(exterior_shift(F, K, w)), W)
+
     # we do this so that we don't introduce an isequal for simplicial complexes
     # in oscar since there isn't a canonical definition of when two simplicial complexes
     # are equal
-    facets_adjacent_nodes = unique(
-      facets.(filter(x -> Set(facets(K)) != Set(facets(x)), shifts_of_K)))
-    return simplicial_complex.(facets_adjacent_nodes)
+    return sort([exterior_shift(F, K, w) for w in unique_w]; lt=isless_lex)
   end
   
   unvisited_nodes = adjacent_shifts(current_node)

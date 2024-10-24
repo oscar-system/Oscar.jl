@@ -59,6 +59,10 @@ function simplicial_complex(generators::Union{AbstractVector{<:AbstractVector{<:
   SimplicialComplex(K)
 end
 
+function simplicial_complex(generators::Union{Set{<:AbstractVector{<:Base.Integer}}, Set{<:AbstractSet{<:Base.Integer}}})
+  return simplicial_complex(collect(generators))
+end
+
 function simplicial_complex(generators::IncidenceMatrix)
   K = Polymake.@convert_to Array{Set} Polymake.common.rows(generators)
   simplicial_complex(K)
