@@ -125,8 +125,6 @@ end
   @test issubset(ideal(S, [a]), ideal(S, [a, b]))
   @test !issubset(ideal(S, [c]), ideal(S, [b]))
   @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
-
-
 end
 
 @testset "Primary decomposition" begin
