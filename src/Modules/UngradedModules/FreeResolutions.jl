@@ -97,14 +97,14 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
 Free resolution of M
@@ -276,14 +276,14 @@ julia> B = R[x^2; x*y; y^2; z^4]
 [z^4]
 
 julia> M = SubquoModule(A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 4 generators
-1 -> x^2*e[1]
-2 -> x*y*e[1]
-3 -> y^2*e[1]
-4 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 4 generators
+  1: x^2*e[1]
+  2: x*y*e[1]
+  3: y^2*e[1]
+  4: z^4*e[1]
 
 julia> fr = free_resolution(M, length=1)
 Free resolution of M
