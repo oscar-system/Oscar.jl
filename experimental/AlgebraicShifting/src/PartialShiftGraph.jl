@@ -31,12 +31,12 @@ function partial_shift_graph_vertices(F::Field,
   visited_nodes = Set([current_node])
   
   function adjacent_shifts(K::SimplicialComplex)
-    unique_w = unique(w -> facets(exterior_shift(F, K, w)), W)
-
     # we do this so that we don't introduce an isequal for simplicial complexes
     # in oscar since there isn't a canonical definition of when two simplicial complexes
     # are equal
-    return sort([exterior_shift(F, K, w) for w in unique_w]; lt=isless_lex)
+    unique_shift_facets = unique(sort(
+      [Set(facets(exterior_shift(F, K, w))) for w in W]; lt=isless_lex))
+    return simplicial_complex.(unique_shift_facets)
   end
   
   unvisited_nodes = adjacent_shifts(current_node)
@@ -46,10 +46,9 @@ function partial_shift_graph_vertices(F::Field,
     push!(visited_nodes, current_node)
     shifts = adjacent_shifts(current_node)
     # dont visit things twice
-    unvisited_nodes = union(
-      unvisited_nodes,
-      filter(x -> !(Set(facets(x)) in Set.(facets.(visited_nodes))),
-             shifts))
+    new_nodes = filter(x -> !(x in Set.(facets.(visited_nodes))), Set.(facets.(shifts)))
+    unvisited_nodes = simplicial_complex.(
+      union(Set.(facets.(unvisited_nodes)), Set.(new_nodes)))
   end
   return sort(collect(visited_nodes); lt=isless_lex)
 end

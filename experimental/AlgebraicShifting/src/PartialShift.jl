@@ -135,8 +135,8 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
 
   # set certain entries to zero, see B-invariance (probably needs a better name)
-  bool_mat = matrix(F, [is_zero_entry(K, (i, j)) for i in 1:n, j in 1:n])
-  M = bool_mat .* generic_unipotent_matrix(F, w)
+  #bool_mat = matrix(F, [is_zero_entry(K, (i, j)) for i in 1:n, j in 1:n])
+  M = generic_unipotent_matrix(F, w)
   return exterior_shift(K,  M * permutation_matrix(F, perm(w)))
 end
 
