@@ -1,6 +1,23 @@
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 """
+  Given two simplicial complexes `K1`, `K2` return true if
+  `K1` is lexicographically less than `K2`
+"""
+function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
+  K1_facet_set = Set(facets(K1))
+  K2_facet_set = Set(facets(K2))
+  S = collect(symdiff(K1_facet_set, K2_facet_set))
+  set_cmp(S1, S2) = min(symdiff(S1, S2)...) in S1
+
+  if isempty(S)
+    return false
+  end
+  
+  return sort(S;lt=set_cmp)[1] in K1_facet_set
+end
+
+"""
   Discovers the nodes of partial shift graph starting from `K`.
 """
 function partial_shift_graph_vertices(F::Field,
@@ -16,7 +33,7 @@ function partial_shift_graph_vertices(F::Field,
     # are equal
     facets_adjacent_nodes = unique(
       facets.(filter(x -> Set(facets(K)) != Set(facets(x)), shifts_of_K)))
-    return simplicial_complex.(adjacent_nodes)
+    return simplicial_complex.(facets_adjacent_nodes)
   end
   
   unvisited_nodes = adjacent_shifts(current_node)
@@ -31,7 +48,7 @@ function partial_shift_graph_vertices(F::Field,
       filter(x -> !(Set(facets(x)) in Set.(facets.(visited_nodes))),
              shifts))
   end
-  return sort(collect(visited_nodes); lt= (x, y) -> Set(facets(x)) < Set(facets(y)))
+  return sort(collect(visited_nodes); lt=isless_lex)
 end
 
 
