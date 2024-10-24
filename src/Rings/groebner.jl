@@ -328,6 +328,7 @@ end
 
 function is_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
   return (ordering == degrevlex(base_ring(I)) && !is_graded(base_ring(I))
+            && !is_zero(I)
             && ((coefficient_ring(I) isa FqField
                  && absolute_degree(coefficient_ring(I)) == 1
                  && characteristic(coefficient_ring(I)) < 2^31)
