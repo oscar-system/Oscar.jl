@@ -211,7 +211,7 @@ julia> coordinate_names(antv)
 """
 @attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
   if has_attribute(v, :cox_ring)
-    return string.(gens(cox_ring(v)))
+    return string.(symbols(cox_ring(v)))
   end
   return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
