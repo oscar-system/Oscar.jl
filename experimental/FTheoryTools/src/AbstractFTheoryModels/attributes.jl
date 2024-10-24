@@ -1052,7 +1052,7 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> zero_section_class(qsm_model)
-Cohomology class on a normal toric variety given by x32 + 2*x33 + 3*x34 + x35 - x36
+Cohomology class on a normal toric variety given by e2 + 2*u + 3*e4 + e1 - w
 ```
 """
 function zero_section_class(m::AbstractFTheoryModel)
