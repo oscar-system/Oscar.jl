@@ -112,7 +112,7 @@ Return the indices where the `n`-th row of `i` is `true`, as a `Set{Int}`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
@@ -134,7 +134,7 @@ Return the indices where the `n`-th column of `i` is `true`, as a `Set{Int}`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[4,5,6]])
+julia> IM = incidence_matrix([[1,2,3],[4,5,6]])
 2×6 IncidenceMatrix
 [1, 2, 3]
 [4, 5, 6]
