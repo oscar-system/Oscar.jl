@@ -365,3 +365,57 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+"""
+    letters(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> Oscar.set_relative_orders!(c, [2, 3])
+
+julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
+
+julia> gg = pc_group(c)
+Pc group of order 6
+
+julia> letters(gg[1]^5*gg[2]^-4)
+3-element Vector{Int64}:
+ 1
+ 2
+ 2
+```
+"""
+function letters(g::Union{PcGroupElem, SubPcGroupElem})
+  w = GAPWrap.UnderlyingElement(GapObj(g))
+  return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+end 
+
+function syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  l = GAPWrap.ExtRepOfObj(GapObj(g))
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+# Convert syllables in canonical form into exponent vector
+#Thomas
+function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
+  res = zeros(ZZRingElem, n)
+  for pair in sylls
+    @assert res[pair.first] == 0 #just to make sure 
+    res[pair.first] = pair.second
+  end
+  return res
+end
+
+# Convert syllables in canonical form into group element
+#Thomas
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
+  e = _exponent_vector(sylls, ngens(G))
+  pcgs = Oscar.GAPWrap.FamilyPcgs(GapObj(G))
+  x = Oscar.GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  return Oscar.group_element(G, x)
+end
