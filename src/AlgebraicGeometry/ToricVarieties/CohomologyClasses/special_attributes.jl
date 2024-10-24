@@ -214,3 +214,61 @@ function chern_classes(v::NormalToricVariety; check::Bool = true)
   end
   return [chern_class(v, k; check = check) for k in 0:dim(v)]
 end
+
+
+@doc raw"""
+    basis_of_h22(v::NormalToricVariety; check::Bool = true)
+
+Computes a basis of the cohomology class $H^{2,2}$. This method requires
+a toric variety whose dimension is at least 4. In addition, the variety in
+question must be both complete and simplicial. Since it can be computationally
+very demanding to verify completeness of toric varieties, the optional argument
+`check` can be set to `false` to skip those tests.
+
+# Examples
+```jldoctest
+julia> F3 = hirzebruch_surface(NormalToricVariety, 3)
+Normal toric variety
+
+julia> h22_basis = basis_of_h22(F3*F3, check = false);
+
+julia> length(h22_basis) == 10
+true
+```
+"""
+function basis_of_h22(v::NormalToricVariety; check::Bool = true)
+
+  # (3.0) Some initial checks
+  @req dim(v) >= 4 "Computation of basis of H22 is only supported for toric varieties of dimension 4"
+  if check
+    @req is_complete(v) "Computation of basis of H22 is currently only supported for complete toric varieties"
+    @req is_simplicial(v) "Computation of basis of H22 is currently only supported for simplicial toric varieties"
+  end
+  if has_attribute(v, :basis_of_h22)
+    return get_attribute(v, :basis_of_h22)
+  end
+
+  # (3.1) Prepare a basis of H^(1,1): Rule out variables by use of linear relations
+  R = cohomology_ring(v, check = check);
+  c_ds = [k.f for k in gens(R)];
+  my_mat = rref(matrix(QQ, transpose(matrix(ZZ, rays(v)))))[2]
+  bad_positions = [findfirst(!iszero, my_mat[k,:]) for k in 1:nrows(my_mat)]
+  good_positions = [k for k in 1:ngens(cox_ring(v)) if !(k in bad_positions)]
+  n_good_positions = length(good_positions)
+
+  # (3.2) Work out the basis of H^(2,2) and return it
+  g4_basis = Vector{CohomologyClass}()
+  mnf = _minimal_nonfaces(v)
+  ignored_sets = Set([Set(Vector{Int}(Polymake.row(mnf,i))) for i in 1:Polymake.nrows(mnf)])
+  for i in 1:n_good_positions
+    for j in i:n_good_positions
+      if Set([good_positions[i], good_positions[j]]) in ignored_sets
+        continue
+      end
+      push!(g4_basis, cohomology_class(v, MPolyQuoRingElem(c_ds[good_positions[i]]*c_ds[good_positions[j]], R)))
+    end
+  end
+  set_attribute!(v, :basis_of_h22, g4_basis)
+  return g4_basis
+
+end
