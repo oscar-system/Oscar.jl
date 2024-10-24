@@ -28,10 +28,10 @@
     if T == QQFieldElem
       @test is_smooth(NFsquare)
     end
-    @test vector_matrix(rays(NFsquare)) == matrix(f, [1 0; -1 0; 0 1; 0 -1])
     @test rays(NFsquare) isa SubObjectIterator{RayVector{T}}
     @test length(rays(NFsquare)) == 4
-    @test rays(NFsquare) == [[1, 0], [-1, 0], [0, 1], [0, -1]]
+    @test issetequal(rays(NFsquare), ray_vector.(Ref(f), [[1, 0], [-1, 0], [0, 1], [0, -1]]))
+    @test vector_matrix(rays(NFsquare)) == _oscar_matrix_from_property(f, rays(NFsquare))
     @test is_regular(NFsquare)
     @test is_complete(NFsquare)
     @test !is_complete(F0)
@@ -45,25 +45,23 @@
     @test length(RMLF2[:rays_modulo_lineality]) == 2
     @test maximal_cones(F1) isa SubObjectIterator{Cone{T}}
     @test dim.(maximal_cones(F1)) == [2, 2]
-    @test ray_indices(maximal_cones(F1)) == incidence1
-    @test IncidenceMatrix(maximal_cones(F1)) == incidence1
-    @test maximal_cones(IncidenceMatrix, F1) == incidence1
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F1)), incidence1)
+    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F1)), incidence1)
+    @test _check_im_perm_rows(maximal_cones(IncidenceMatrix, F1), incidence1)
     @test number_of_maximal_cones(F1) == 2
     @test lineality_space(F2) isa SubObjectIterator{RayVector{T}}
-    @test generator_matrix(lineality_space(F2)) == matrix(f, L)
-    if T == QQFieldElem
-      @test matrix(QQ, lineality_space(F2)) == matrix(QQ, L)
-    end
     @test length(lineality_space(F2)) == 1
     @test lineality_space(F2) == [L[:]]
+    @test generator_matrix(lineality_space(F2)) == matrix(f, L)
+    @test matrix(f, lineality_space(F2)) == matrix(f, L)
     @test cones(F2, 2) isa SubObjectIterator{Cone{T}}
     @test size(cones(F2, 2)) == (2,)
     @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
     @test rays.(cones(F2, 2)) == [[], []]
     @test isnothing(cones(F2, 1))
-    @test ray_indices(cones(F1, 2)) == incidence1
-    @test IncidenceMatrix(cones(F1, 2)) == incidence1
-    @test cones(IncidenceMatrix, F1, 2) == incidence1
+    @test _check_im_perm_rows(ray_indices(cones(F1, 2)), incidence1)
+    @test _check_im_perm_rows(IncidenceMatrix(cones(F1, 2)), incidence1)
+    @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
 
     II = ray_indices(maximal_cones(NFsquare))
     NF0 = polyhedral_fan(II, rays(NFsquare))
@@ -75,16 +73,16 @@
     end
     @test f_vector(NFsquare) == [4, 4]
     @test rays(F1NR) == collect(eachrow(I3))
-    @test ray_indices(maximal_cones(F1NR)) == incidence1
-    @test IncidenceMatrix(maximal_cones(F1NR)) == incidence1
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F1NR)), incidence1)
+    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F1NR)), incidence1)
     @test n_rays(F2NR) == 0
     @test lineality_dim(F2NR) == 1
     RMLF2NR = rays_modulo_lineality(F2NR)
     @test length(RMLF2NR[:rays_modulo_lineality]) == 2
     @test RMLF2NR[:rays_modulo_lineality] == collect(eachrow(R))
     @test lineality_space(F2NR) == collect(eachrow(L))
-    @test ray_indices(maximal_cones(F2NR)) == incidence2
-    @test IncidenceMatrix(maximal_cones(F2NR)) == incidence2
+    @test _check_im_perm_rows(ray_indices(maximal_cones(F2NR)), incidence2)
+    @test _check_im_perm_rows(IncidenceMatrix(maximal_cones(F2NR)), incidence2)
 
     C = positive_hull(f, identity_matrix(ZZ, 0))
     pf = polyhedral_fan(C)

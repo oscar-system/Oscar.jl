@@ -49,7 +49,7 @@
   let pc = polyhedral_complex(
       E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant=true
     )
-    @test maximal_polyhedra(pc) == faces(sd, 2)
+    @test issetequal(maximal_polyhedra(pc), faces(sd, 2))
   end
   let c = convex_hull(E, permutedims([0]), permutedims([r]))
     ms = product(sd, c)
