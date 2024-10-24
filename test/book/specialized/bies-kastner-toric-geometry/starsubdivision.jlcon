@@ -1,8 +1,8 @@
 julia> rs = [1 1; -1 1];
 
-julia> max_cones = IncidenceMatrix([[1,2]]);
+julia> max_cones = incidence_matrix([[1,2]]);
 
-julia> v = normal_toric_variety(IncidenceMatrix([[1,2]]), [1 1; -1 1]);
+julia> v = normal_toric_variety(incidence_matrix([[1,2]]), [1 1; -1 1]);
 
 julia> set_coordinate_names(v, ["u1", "u2"])
 
