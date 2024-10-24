@@ -105,6 +105,7 @@ end
   S, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c])
   J = ideal(S, [(c^2+1)*(c^3+2)^2, b-c^2])
   @test_throws ErrorException Oscar.check_base_rings(P, J)
+  @test dim(J) == 1
   r1 = c^2-b
   r2 = b^2*c+c^3+2*c^2+2
   L = gens(radical(J))
@@ -124,6 +125,8 @@ end
   @test issubset(ideal(S, [a]), ideal(S, [a, b]))
   @test !issubset(ideal(S, [c]), ideal(S, [b]))
   @test !issubset(ideal(S, [a, b, c]), ideal(S, [a*b*c]))
+
+
 end
 
 @testset "Primary decomposition" begin
