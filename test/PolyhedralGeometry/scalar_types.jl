@@ -47,7 +47,7 @@
   @test length(lattice_points(sd)) == 11
 
   let pc = polyhedral_complex(
-      E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant=true
+      E, incidence_matrix(facets(sd)), vertices(sd); non_redundant=true
     )
     @test issetequal(maximal_polyhedra(pc), faces(sd, 2))
   end

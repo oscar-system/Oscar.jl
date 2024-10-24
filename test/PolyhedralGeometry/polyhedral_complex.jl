@@ -86,7 +86,7 @@
     @test vertex_indices(maximal_polyhedra(PCFLN)) == I[:, 1:3]
     @test ray_indices(maximal_polyhedra(PCFLN)) == I[:, 4:4]
     @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
-    @test IncidenceMatrix(maximal_polyhedra(PCFLN)) == I
+    @test incidence_matrix(maximal_polyhedra(PCFLN)) == I
     @test maximal_polyhedra(IncidenceMatrix, PCFLN) == I
 
     @test polyhedral_complex(maximal_polyhedra(PCF)) isa PolyhedralComplex
