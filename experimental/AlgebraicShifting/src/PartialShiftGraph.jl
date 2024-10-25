@@ -13,7 +13,9 @@ end
   `K1` is lexicographically less than `K2`
 """
 function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
-  return isless_lex(Set(facets(K1)), Set(facets(K2)))
+  K1_facet_set = Set(facets(K1))
+  K2_facet_set = Set(facets(K2))
+  return isless_lex(K1_facet_set, K2_facet_set)
 end
 
 """
@@ -45,7 +47,6 @@ function partial_shift_graph_vertices(F::Field,
   return sort(collect(visited_nodes); lt=isless_lex)
 end
 
-
 """ Compute the multi edges, that is, for each complex K  compute which
     other complexes can be reached by applying the partial shifts `deltas`
     to K, and store the shift matrices that give rise to each edge."""
@@ -67,7 +68,6 @@ function multi_edges(F::Field,
     init=Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}()
   )
 end
-
 
 """    partial_shift_graph(complexes :: Vector{T} where T <: ComplexOrHypergraph; ...) :: Tuple{Graph{Directed}, EdgeLabels}
 
@@ -126,13 +126,12 @@ function partial_shift_graph(F::Field, complexes::Vector{T};
     map_function = pmap
   end
   
-  edge_labels =  multi_edges(F, W, collect(enumerate(complexes)), complex_labels)
-  # a progress bar here would be nice for the users, but this requires adding a dependency to Oscar
-  # Basically, the following does the same as the line above, but with a progress indicator:
+  # Basically, the following does the same as the following, but with a progress indicator:
   # edge_tuples = multi_edges(W, collect(enumerate(complexes)), complex_labels)
+  edge_labels =  multi_edges(F, W, collect(enumerate(complexes)), complex_labels)
   #edge_labels = reduce(
   #  (d1, d2) -> mergewith!(vcat, d1, d2),
-
+  #  # a progress bar here would be nice for the users, but this requires adding a dependency to Oscar
   #  # @showprogress map_function(
   #  map_function(
   #    Ks -> multi_edges(F, W, Ks, complex_labels), 
