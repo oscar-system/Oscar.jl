@@ -16,7 +16,7 @@
 #         ↑     ↑     ↑
 #         ⋮     ⋮     ⋮
 #
-#  which is quasi-isomorphic to C via some augmentation map 
+#  whose total complex is quasi-isomorphic to C via some augmentation map 
 #
 #    ε = (εᵢ : P₀ᵢ → Cᵢ)ᵢ
 #
@@ -173,73 +173,6 @@ function (fac::CEMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
     end
     error("execution should never reach this point")
   end
-
-    #=
-      C = cfac.c[(i,)]
-      B, pr_B = boundary(cfac.c, 1, (i-1,))
-      if cfac.is_exact
-        # use the kernel instead; we have to adjust the map
-        Z, inc_Z = kernel(cfac.c, 1, (i-1,))
-        B = Z
-        phi = map(cfac.c, 1, (i,))
-        img_gens = [preimage(inc_Z, phi(g)) for g in gens(C)]
-        pr_B = hom(C, B, img_gens; check=true) # TODO: Set to false
-      end
-      Z, inc_Z = kernel(cfac.c, 1, (i,))
-      @assert domain(pr_B) === C
-      @assert codomain(inc_Z) === C
-      if j == 1
-        img_gens = elem_type(C)[preimage(pr_B, g) for g in gens(B)]
-        img_gens = vcat(img_gens, elem_type(C)[inc_Z(g) for g in gens(Z)])
-        return hom(B_plus_Z, C, img_gens; check=true) # TODO: Set to false
-      else
-        # may assume j > 1
-        cod = self[(i, j-1)]
-        res_Z = getindex!(cfac.kernel_resolutions, i) do
-          Z, _ = kernel(fac.c, i)
-          return free_resolution(SimpleFreeResolution, Z)
-        end
-        b = map(res_Z, 1, (j,))
-        inc2 = canonical_injection(cod, 2)
-        @assert domain(inc2) === res_Z[j-1] === codomain(b)
-        @assert codomain(inc2) === cod
-        
-        if cfac.isexact
-          res_Z1 = getindex!(cfac.kernel_resolutions, i-1) do
-            Z, _ = kernel(cfac.c, i)
-            return free_resolution(SimpleFreeResolution, Z)
-          end
-          a = map(res_Z1, 1, (j,))
-          inc1 = canonical_injection(cod, 1)
-          @assert domain(inc1) === res_Z1[j-1] === codomain(a)
-          @assert codomain(inc1) === cod
-          img_gens = elem_type(cod)[inc1(a(g)) for g in gens(res_Z1[j])]
-          img_gens = vcat(img_gens, elem_type(cod)[inc2(b(g)) for g in gens(res_Z[j])])
-          return hom(B_plus_Z, cod, img_gens; check=true) # TODO: Set to false
-        else
-          res_B = getindex!(cfac.boundary_resolutions, i-1) do
-            B, _ = boundary(cfac.c, i)
-            return free_resolution(SimpleFreeResolution, B)
-          end
-          a = map(res_B, 1, (j,))
-          inc1 = canonical_injection(cod, 1)
-          @assert domain(inc1) === res_B[j-1] === codomain(a)
-          @assert codomain(inc1) === cod
-          img_gens = elem_type(cod)[inc1(a(g)) for g in gens(res_Z1[j])]
-          img_gens = vcat(img_gens, elem_type(cod)[inc2(b(g)) for g in gens(res_Z[j])])
-          return hom(B_plus_Z, cod, img_gens; check=true) # TODO: Set to false
-        end
-        error("execution should never reach this point")
-      end
-    else
-      res = getindex!(cfac.kernel_resolutions, i) do
-        Z, _ = kernel(fac.c, i)
-        return free_resolution(SimpleFreeResolution, Z)
-      end
-      return map(res, 1, (j,))
-    end
-  end
-  =#
   error("direction $p out of bounds")
 end
 
