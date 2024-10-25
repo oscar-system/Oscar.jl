@@ -343,7 +343,7 @@ function is_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
             && ((coefficient_ring(I) isa FqField
                  && absolute_degree(coefficient_ring(I)) == 1
                  && characteristic(coefficient_ring(I)) < 2^31)
-                || coefficient_ring(I) == QQ))
+                || base_ring(I) isa QQMPolyRing))
 end
 
 @doc raw"""
