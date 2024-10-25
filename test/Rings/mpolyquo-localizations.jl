@@ -510,3 +510,20 @@ end
   @test Oscar._get_generators_string_one_line(ideal(R, x)) == "with 100 generators"
   @test Oscar._get_generators_string_one_line(ideal(R, [sum(x)])) == "with 1 generator"
 end
+
+
+@testset "monomial_basis" begin
+  R, (x,y) = QQ["x", "y"]
+  L, _ = localization(R, complement_of_point_ideal(R, [0,0]))
+  Q1, _ = quo(L, ideal(L, L(1)))
+  Q2, _ = quo(L, ideal(L, L(x^2)))
+  Q3, _ = quo(L, ideal(L, L.([x^2, y^3])))
+  @test isempty(monomial_basis(Q1))
+  @test_throws InfiniteDimensionError() monomial_basis(Q2)
+  @test monomial_basis(Q3) == L.([x*y^2, y^2, x*y, y, x, 1])
+  L1, _ = localization(R, complement_of_point_ideal(R, [1,2]))
+  Q4, _ = quo(L1, ideal(L1, [(x-1)^2, (y-2)^2]))
+  @test monomial_basis(Q4) == L1.([(x-1)*(y-2), y-2, x-1, 1])  
+  Q5, _ = quo(L1, ideal(L1, L1.([x*y, x, y])))
+  @test isempty(monomial_basis(Q5))
+end
