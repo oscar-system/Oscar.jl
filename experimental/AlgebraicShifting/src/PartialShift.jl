@@ -10,14 +10,16 @@ function inversions(g::PermGroupElem)
   return [(i,j) for j in 2:degree(parent(g)) for i in 1:j-1 if g(i) > g(j)]
 end
 
-""" Given `K` checks if index can be set to zero (B- invariance)"""
+""" Given `K` checks if index can be set to zero B- invariance)"""
 function is_zero_entry(K::SimplicialComplex, indices::Tuple{Int, Int})
+  row, col = indices
+  row == col && return false
   K_facets = Set{Set{Int}}(facets(K))
   for facet in K_facets
     # need a comment for this line
-    !(indices[2] in facet) && continue
-    # swap indices[1] with indices[2] in facet
-    S = push!(delete!(copy(facet), indices[2]), indices[1])
+    !(col in facet) && continue
+    # replace index from row with index from col in facet
+    S = push!(delete!(copy(facet), col), row)
     !any(is_subset(S, check_facet) for check_facet in K_facets) && return false
   end
   return true
@@ -135,8 +137,8 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
 
   # set certain entries to zero, see B-invariance (probably needs a better name)
-  #bool_mat = matrix(F, [is_zero_entry(K, (i, j)) for i in 1:n, j in 1:n])
-  M = generic_unipotent_matrix(F, w)
+  bool_mat = matrix(F, [!is_zero_entry(K, (i, j)) for i in 1:n, j in 1:n])
+  M = bool_mat .* generic_unipotent_matrix(F, w)
   return exterior_shift(K,  M * permutation_matrix(F, perm(w)))
 end
 

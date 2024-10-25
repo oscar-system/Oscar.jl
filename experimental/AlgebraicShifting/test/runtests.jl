@@ -6,7 +6,7 @@
     W = weyl_group(:A, n - 1)
     s = gens(W)
     all_shifts = partial_shift_graph_vertices(QQ, K, W)
-    directed_graph, edge_labels = partial_shift_graph(QQ, vertices)
+    directed_graph, edge_labels = partial_shift_graph(QQ, all_shifts)
     @test collect(edges(directed_graph)) ==  [Edge(t...) for t in [[2, 1], [3, 1], [3, 2]]]
     @test word.(edge_labels[2, 1]) == word.([s[1], s[1] * s[2], s[1] * s[2] * s[1], s[2] * s[1]])
   end

@@ -2,12 +2,9 @@ const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
   S_diff = collect(symdiff(S1, S2))
+  isempty(S_diff) && return false
   set_cmp(a, b) = min(symdiff(a, b)...) in a
 
-  if isempty(S_diff)
-    return false
-  end
-  
   return sort(S_diff;lt=set_cmp)[1] in S1
 end
 
@@ -16,9 +13,7 @@ end
   `K1` is lexicographically less than `K2`
 """
 function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
-  K1_facet_set = Set(facets(K1))
-  K2_facet_set = Set(facets(K2))
-  return isless_lex(K1_facet_set, K2_facet_set)
+  return isless_lex(Set(facets(K1)), Set(facets(K2)))
 end
 
 """
@@ -29,22 +24,19 @@ function partial_shift_graph_vertices(F::Field,
                                       W::Union{WeylGroup, Vector{WeylGroupElem}};)
   current_node = K
   visited_nodes = Set([current_node])
-  
-  function adjacent_shifts(K::SimplicialComplex)
-    # we do this so that we don't introduce an isequal for simplicial complexes
-    # in oscar since there isn't a canonical definition of when two simplicial complexes
-    # are equal
-    unique_shift_facets = unique(sort(
-      [Set(facets(exterior_shift(F, K, w))) for w in W]; lt=isless_lex))
-    return simplicial_complex.(unique_shift_facets)
-  end
-  
-  unvisited_nodes = adjacent_shifts(current_node)
+  # by properties of algebraic shifting
+  # we know that K we be the last in this list since it is sorted
+  unvisited_nodes = unique(
+    x -> Set(facets(x)),
+    sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
 
   while(!isempty(unvisited_nodes))
     current_node = pop!(unvisited_nodes)
     push!(visited_nodes, current_node)
-    shifts = adjacent_shifts(current_node)
+    shifts = unique(
+      x -> Set(facets(x)),
+      sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
+
     # dont visit things twice
     new_nodes = filter(x -> !(x in Set.(facets.(visited_nodes))), Set.(facets.(shifts)))
     unvisited_nodes = simplicial_complex.(
@@ -134,12 +126,13 @@ function partial_shift_graph(F::Field, complexes::Vector{T};
     map_function = pmap
   end
   
-  # Basically, the following does the same as the following, but with a progress indicator:
-  # edge_tuples = multi_edges(W, collect(enumerate(complexes)), complex_labels)
   edge_labels =  multi_edges(F, W, collect(enumerate(complexes)), complex_labels)
+  # a progress bar here would be nice for the users, but this requires adding a dependency to Oscar
+  # Basically, the following does the same as the line above, but with a progress indicator:
+  # edge_tuples = multi_edges(W, collect(enumerate(complexes)), complex_labels)
   #edge_labels = reduce(
   #  (d1, d2) -> mergewith!(vcat, d1, d2),
-  #  # a progress bar here would be nice for the users, but this requires adding a dependency to Oscar
+
   #  # @showprogress map_function(
   #  map_function(
   #    Ks -> multi_edges(F, W, Ks, complex_labels), 
