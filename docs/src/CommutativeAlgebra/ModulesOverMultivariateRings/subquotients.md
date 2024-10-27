@@ -363,7 +363,7 @@ quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
 ```@docs
-quotient(M:: SubquoModule, J::Ideal)
+quotient(M::SubquoModule, J::Ideal)
 ```
 
 ```@docs
