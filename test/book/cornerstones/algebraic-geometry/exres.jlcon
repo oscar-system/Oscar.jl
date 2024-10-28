@@ -19,26 +19,32 @@ julia> FA[3]
 Graded free module S^1([-4]) + S^1([-5]) of rank 2 over S
 
 julia> map(FA,1)
-S^5 -> S^1
-e[1] -> (-w*z + y^2)*e[1]
-e[2] -> (x*y - z^2)*e[1]
-e[3] -> (-w*y + x^2)*e[1]
-e[4] -> (w*x - y*z)*e[1]
-e[5] -> (w^2 - x*z)*e[1]
 Homogeneous module homomorphism
+  from S^5
+  to S^1
+defined by
+  e[1] -> (-w*z + y^2)*e[1]
+  e[2] -> (x*y - z^2)*e[1]
+  e[3] -> (-w*y + x^2)*e[1]
+  e[4] -> (w*x - y*z)*e[1]
+  e[5] -> (w^2 - x*z)*e[1]
 
 julia> map(FA,2)
-S^6 -> S^5
-e[1] -> -x*e[1] + y*e[2] - z*e[4]
-e[2] -> w*e[1] - x*e[2] + y*e[3] + z*e[5]
-e[3] -> -w*e[3] + x*e[4] - y*e[5]
-e[4] -> z*e[1] - w*e[2] + y*e[4]
-e[5] -> z*e[3] - w*e[4] + x*e[5]
-e[6] -> (-w^2 + x*z)*e[1] + (-w*z + y^2)*e[5]
 Homogeneous module homomorphism
+  from S^6
+  to S^5
+defined by
+  e[1] -> -x*e[1] + y*e[2] - z*e[4]
+  e[2] -> w*e[1] - x*e[2] + y*e[3] + z*e[5]
+  e[3] -> -w*e[3] + x*e[4] - y*e[5]
+  e[4] -> z*e[1] - w*e[2] + y*e[4]
+  e[5] -> z*e[3] - w*e[4] + x*e[5]
+  e[6] -> (-w^2 + x*z)*e[1] + (-w*z + y^2)*e[5]
 
 julia> map(FA,3)
-S^2 -> S^6
-e[1] -> -w*e[2] - y*e[3] + x*e[4] - e[6]
-e[2] -> (-w^2 + x*z)*e[1] + y*z*e[2] + z^2*e[3] - w*y*e[4] + (w*z - y^2)*e[5] + x*e[6]
 Homogeneous module homomorphism
+  from S^2
+  to S^6
+defined by
+  e[1] -> -w*e[2] - y*e[3] + x*e[4] - e[6]
+  e[2] -> (-w^2 + x*z)*e[1] + y*z*e[2] + z^2*e[3] - w*y*e[4] + (w*z - y^2)*e[5] + x*e[6]
