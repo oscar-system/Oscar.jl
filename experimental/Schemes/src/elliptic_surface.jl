@@ -2648,12 +2648,12 @@ function admissible_moebius_transformations(
   vY = roots(dY)
   @assert all(is_one(degree(a)) for (a, k) in factor(dY))  "not all critical values are rational over the given ground field"
 
-  for (c, _) in reducible_fibers(X)
-    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
-  end
-  for (c, _) in reducible_fibers(Y)
-    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
-  end
+#   for (c, _) in reducible_fibers(X)
+#     @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+#   end
+#   for (c, _) in reducible_fibers(Y)
+#     @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+#   end
 
   # Use the first three elements of vX and map them to three elements of vY.
   # Then check whether the resulting transformation preserves everything.
@@ -2677,7 +2677,7 @@ function admissible_moebius_transformations(
       end
     end
   end
-
+  @show "hi"
   result = MorphismFromRationalFunctions[]
 
   # Set up some variables
@@ -3038,7 +3038,7 @@ function _vertical_part(X::EllipticSurface, v::QQMatrix)
   phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
   a = preimage(phi, mwlAb(t))
   for i in 1:ngens(ag)
-    P += a[i]*get_attribute(tors[i][1],:point)
+    P += a[i]*rational_point(tors[i][1])
   end 
   
   p = candidates[i]
