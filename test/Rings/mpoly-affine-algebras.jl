@@ -111,6 +111,9 @@ end
 
   A, _ = quo(R, ideal(R, [one(R)]))
   @test isempty(monomial_basis(A))
+
+  @test monomial_basis(R, ideal(R, [x, y^2])) == [y, 1]
+  @test_throws InfiniteDimensionError() monomial_basis(R, ideal(R, x*y))
 end
 
 @testset "Subalgebra membership" begin

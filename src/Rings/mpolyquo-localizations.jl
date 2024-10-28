@@ -1852,11 +1852,14 @@ end
 
 @doc raw"""
     monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+    monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
 
 If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
 `K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space. 
+!!! note 
+    The monomials are for readabilty in the varibles of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
 !!! note
     If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
 # Examples
@@ -1892,6 +1895,11 @@ function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPoly
   S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
   B = monomial_basis(quo(R, ideal(S))[1])
   return L.(B)
+end
+
+function monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
+  base_ring(I) == L || error("ideal does not belong to the correct ring")
+  return monomial_basis(quo(L,I)[1])
 end
 
 function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)
