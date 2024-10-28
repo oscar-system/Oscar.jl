@@ -253,7 +253,7 @@ function show(io::IO, ::MIME"text/plain", I::IdealGens)
     end
     print(io, " with elements", Indent())
     for (i, g) in enumerate(gens(I))
-        print(io, "\n", i, " -> ", OscarPair(g, I.ord))
+        print(io, "\n", i, ": ", OscarPair(g, I.ord))
     end
     print(io, Dedent())
     print(io, "\nwith respect to the ordering")
@@ -262,7 +262,7 @@ function show(io::IO, ::MIME"text/plain", I::IdealGens)
     print(io, "Ideal generating system with elements")
     print(io, Indent())
     for (i,g) in enumerate(gens(I))
-      print(io, "\n", i, " -> ", g)
+      print(io, "\n", i, ": ", g)
     end
     print(io, Dedent())
     if isdefined(I, :ord)
