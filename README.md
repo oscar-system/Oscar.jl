@@ -147,7 +147,6 @@ If you are using BibTeX, you can use the following BibTeX entries:
       volume = {32},
       edition = {1},
       url = {https://link.springer.com/book/9783031621260},
-      month = {8},
       issn = {1431-1550},
     }
 
