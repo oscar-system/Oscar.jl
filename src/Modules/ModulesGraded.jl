@@ -1531,27 +1531,33 @@ function Base.show(io::IO, b::BettiTable)
   if b.project === nothing
     for i in 1:ngens(parent(x[1][2]))
       ngens(parent(x[1][2])) > 1 && println(io, "Betti Table for component ", i)
+
+      # figure out width of first column
       L = sort(unique(collect(x[k][2][i] for k in 1:length(x))))
       mi = minimum(L)
       mx = maximum(L)
-      initial_padding = max(ndigits(mi) + mi < 0 ? 0 : 1, 7)-2
-      print(io, " "^initial_padding)
-      total_space_count = initial_padding
+      # 6 = length(degree); we take length of mi into account in case it is negative
+      first_column_width = max(6, ndigits(mi), ndigits(mx))
+
+      # header row
+      print(io, lpad("degree", first_column_width), ":")
+      total_space_count = first_column_width
       for j in min:step:maxv
         adjustment = j < 0 ? 1 : 0
+        if j == min
+          adjustment += 1
+        end
         space_count = max(0, column_widths[j] - ndigits(j) - adjustment)
         print(io, " "^(space_count))
         print(io, j)
-        total_space_count = total_space_count + space_count + ndigits(j) + adjustment
+        total_space_count += space_count + ndigits(j) + adjustment
       end
-      total_space_count = total_space_count
       print(io, "\n")
-      print(io, "-"^total_space_count)
-      print(io, "\n")
+      # separator row
+      println(io, "-"^total_space_count)
+      # print bulk of table
       for j in mi:mx
-        adjustment = j < 0 ? 1 : 0
-        print(io, j, " "^(5 - ndigits(j) - adjustment))
-        print(io, ":")
+        print(io, lpad(j, first_column_width), ":")
         for h in min:step:maxv
           sum_current = sum([getindex(T, x[k]) for k in 1:length(x) if x[k][1] == h && x[k][2][i] == j])
           @assert column_widths[h] - ndigits(sum_current) >= 2
@@ -1563,8 +1569,10 @@ function Base.show(io::IO, b::BettiTable)
         end
         print(io,"\n")
       end
-      print(io, "-" ^ total_space_count)
-      print(io, "\n", "total:")
+      # separator row
+      println(io, "-"^total_space_count)
+      # footer row
+      print(io, lpad("total", first_column_width), ":")
       for i_total in min:step:maxv
         sum_row = sum(getindex(T, x[j]) for j in 1:length(x) if x[j][1] == i_total)
         print(io, " ", sum_row)
