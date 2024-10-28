@@ -50,20 +50,44 @@ julia> IM = incidence_matrix(8, 5)
 incidence_matrix(r::Base.Integer, c::Base.Integer) = IncidenceMatrix(undef, r, c)
 
 @doc raw"""
-    incidence_matrix(mat::AbstractMatrix)
+    incidence_matrix(mat::Union{AbstractMatrix{Bool}, IncidenceMatrix})
 
-Convert `mat` to an `IncidenceMatrix`. Entries become `true` if and only if they are non-zero.
+Convert `mat` to an `IncidenceMatrix`.
 
 # Examples
 ```jldoctest
-julia> IM = incidence_matrix([1 0 2 0 3 0; 0 4 0 5 0 6])
+julia> IM = incidence_matrix([true false true false true false; false true false true false true])
 2×6 IncidenceMatrix
 [1, 3, 5]
 [2, 4, 6]
 
 ```
 """
-incidence_matrix(mat::AbstractMatrix) = IncidenceMatrix(mat)
+incidence_matrix(mat::Union{AbstractMatrix{Bool}, IncidenceMatrix}) = IncidenceMatrix(mat)
+
+@doc raw"""
+    incidence_matrix(mat::AbstractMatrix)
+
+Convert the `0`/`1` matrix `mat` to an `IncidenceMatrix`. Entries become `true` if the initial entry is `1` and `false` if the initial entry is `0`.
+
+# Examples
+```jldoctest
+julia> IM = incidence_matrix([1 0 1 0 1 0; 0 1 0 1 0 1])
+2×6 IncidenceMatrix
+[1, 3, 5]
+[2, 4, 6]
+
+```
+"""
+function incidence_matrix(mat::AbstractMatrix)
+  m, n = size(mat)
+  for i in 1:m
+    for j in 1:n
+      iszero(mat[i, j]) || isone(mat[i, j]) || throw(ArgumentError("incidence_matrix requires matrices with 0/1 or boolean entries."))
+    end
+  end
+  return IncidenceMatrix(mat)
+end
 
 @doc raw"""
     incidence_matrix(r::Base.Integer, c::Base.Integer, incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
@@ -89,11 +113,10 @@ Return an `IncidenceMatrix` where the i-th element of `incidenceRows` lists the 
 
 # Examples
 ```jldoctest
-julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
-3×4 IncidenceMatrix
+julia> IM = incidence_matrix([[2, 3], [1]])
+2×3 IncidenceMatrix
 [2, 3]
 [1]
-[]
 
 ```
 """
