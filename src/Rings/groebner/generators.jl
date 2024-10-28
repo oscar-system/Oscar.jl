@@ -24,9 +24,9 @@ julia> Oscar.groebner_assure(I, degrevlex(R));
 
 julia> I.gb[degrevlex(R)]
 Gröbner basis with elements
-  1 -> x*y - 3*x
-  2 -> y^3 - 6*x^2
-  3 -> 2*x^3 - 9*x
+  1: x*y - 3*x
+  2: y^3 - 6*x^2
+  3: 2*x^3 - 9*x
 with respect to the ordering
   degrevlex([x, y])
 ```

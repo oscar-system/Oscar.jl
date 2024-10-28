@@ -17,14 +17,14 @@ julia> R,(x,y) = polynomial_ring(QQ, [:x,:y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
-  1 -> x*y - 3*x
-  2 -> -2*x^2*y + y^3
+  1: x*y - 3*x
+  2: -2*x^2*y + y^3
 
 julia> B = Oscar._compute_standard_basis(A, degrevlex(R))
 Gröbner basis with elements
-  1 -> x*y - 3*x
-  2 -> y^3 - 6*x^2
-  3 -> 2*x^3 - 9*x
+  1: x*y - 3*x
+  2: y^3 - 6*x^2
+  3: 2*x^3 - 9*x
 with respect to the ordering
   degrevlex([x, y])
 ```
@@ -72,8 +72,8 @@ julia> I = ideal([x*(x+1), x^2-y^2+(x-2)*y]);
 
 julia> standard_basis(I, ordering = negdegrevlex(R))
 Standard basis with elements
-  1 -> x
-  2 -> y
+  1: x
+  2: y
 with respect to the ordering
   negdegrevlex([x, y])
 ```
@@ -176,9 +176,9 @@ julia> I = ideal(R, [y-x^2, z-x^3]);
 
 julia> G = groebner_basis(I)
 Gröbner basis with elements
-  1 -> y^2 - x*z
-  2 -> x*y - z
-  3 -> x^2 - y
+  1: y^2 - x*z
+  2: x*y - z
+  3: x^2 - y
 with respect to the ordering
   degrevlex([x, y, z])
 
@@ -193,10 +193,10 @@ true
 
 julia> groebner_basis(I, ordering = lex(R))
 Gröbner basis with elements
-  1 -> y^3 - z^2
-  2 -> x*z - y^2
-  3 -> x*y - z
-  4 -> x^2 - y
+  1: y^3 - z^2
+  2: x*z - y^2
+  3: x*y - z
+  4: x^2 - y
 with respect to the ordering
   lex([x, y, z])
 ```
@@ -207,10 +207,10 @@ julia> I = ideal(R, [x*y-3*x^4,y^3-2*x^6*y]);
 
 julia> groebner_basis(I)
 Gröbner basis with elements
-  1 -> 3*x^4 - x*y
-  2 -> 2*x^3*y^2 - 3*y^3
-  3 -> x*y^3
-  4 -> y^4
+  1: 3*x^4 - x*y
+  2: 2*x^3*y^2 - 3*y^3
+  3: x*y^3
+  4: y^4
 with respect to the ordering
   wdegrevlex([x, y], [1, 3])
 ```
