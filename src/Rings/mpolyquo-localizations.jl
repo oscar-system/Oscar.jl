@@ -1857,8 +1857,6 @@ If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring 
 `K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space. 
-!!! note 
-    The monomials are in the varibles $x_i - p_i$. Therefore in the example below $x*y - x - y + 1 = (x-1)*(y-1)$ is a monomial.
 !!! note
     If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
 # Examples
@@ -1879,9 +1877,9 @@ Localization
 
 julia> monomial_basis(A)
 4-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
- x*y - x - y + 1
- y - 1
- x - 1
+ x*y
+ y
+ x
  1
 ```
 """
@@ -1889,11 +1887,11 @@ function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPoly
   R = base_ring(A)
   L = localized_ring(A)
   G = numerator.(gens(modulus(A)))
-  shift, back_shift = base_ring_shifts(L)
+  shift,_ = base_ring_shifts(L)
   G_0 = shift.(G)
   S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
   B = monomial_basis(quo(R, ideal(S))[1])
-  return L.(back_shift.(B))
+  return L.(B)
 end
 
 function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)
