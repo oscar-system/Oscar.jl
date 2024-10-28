@@ -63,7 +63,7 @@ julia> IM = incidence_matrix([true false true false true false; false true false
 
 ```
 """
-incidence_matrix(mat::Union{AbstractMatrix{Bool}, IncidenceMatrix}) = IncidenceMatrix(mat)
+incidence_matrix(mat::Union{AbstractMatrix{Bool},IncidenceMatrix}) = IncidenceMatrix(mat)
 
 @doc raw"""
     incidence_matrix(mat::AbstractMatrix)
@@ -83,7 +83,10 @@ function incidence_matrix(mat::AbstractMatrix)
   m, n = size(mat)
   for i in 1:m
     for j in 1:n
-      iszero(mat[i, j]) || isone(mat[i, j]) || throw(ArgumentError("incidence_matrix requires matrices with 0/1 or boolean entries."))
+      iszero(mat[i, j]) || isone(mat[i, j]) ||
+        throw(
+          ArgumentError("incidence_matrix requires matrices with 0/1 or boolean entries.")
+        )
     end
   end
   return IncidenceMatrix(mat)
@@ -104,7 +107,11 @@ julia> IM = incidence_matrix(3, 4, [[2, 3], [1]])
 
 ```
 """
-incidence_matrix(r::Base.Integer, c::Base.Integer, incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) = IncidenceMatrix(r, c, incidenceRows)
+incidence_matrix(
+  r::Base.Integer,
+  c::Base.Integer,
+  incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}},
+) = IncidenceMatrix(r, c, incidenceRows)
 
 @doc raw"""
     incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}})
@@ -120,7 +127,8 @@ julia> IM = incidence_matrix([[2, 3], [1]])
 
 ```
 """
-incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) = IncidenceMatrix(incidenceRows)
+incidence_matrix(incidenceRows::AbstractVector{<:AbstractVector{<:Base.Integer}}) =
+  IncidenceMatrix(incidenceRows)
 
 number_of_rows(i::IncidenceMatrix) = Polymake.nrows(i)
 number_of_columns(i::IncidenceMatrix) = Polymake.ncols(i)
