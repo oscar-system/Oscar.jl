@@ -6,6 +6,7 @@ export UniformHypergraph
 
 export compound_matrix
 export exterior_shift
+export face_size
 export generic_unipotent_matrix
 export partial_shift_graph_vertices
 export partial_shift_graph

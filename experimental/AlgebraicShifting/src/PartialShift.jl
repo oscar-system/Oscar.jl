@@ -26,11 +26,6 @@ function generic_unipotent_matrix(R::MPolyRing)
   return u
 end
 
-function generic_unipotent_matrix(F::Field, n::Int)
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
-  return generic_unipotent_matrix(Fx)
-end
-
 @doc raw"""
      generic_unipotent_matrix(R::MPolyRing)
      generic_unipotent_matrix(F::Field, n::Int)
@@ -55,6 +50,10 @@ julia> generic_unipotent_matrix(GF(2), 2)
 [0         1]
 ```
 """
+function generic_unipotent_matrix(F::Field, n::Int)
+  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+  return generic_unipotent_matrix(Fx)
+end
 
 @doc raw"""
      rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
@@ -62,16 +61,34 @@ julia> generic_unipotent_matrix(GF(2), 2)
 For a base field `F` and a weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
 root system of the weyl group.
-We know that since `general_linear_group(n^2, R)` has a Bruhat decomposition, and element lies in some double coset $BwB$.
-The \emph{Rothe matrix} is a normal form for a the matrix on the left of a representative for the double coset corresponding to `w`.
-We use the name \emph{Rothe matrix} because of its resemblance with a \emph{Rothe diagram} (add ref?)
+We know that since `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies in some double coset $BwB$.
+The Rothe matrix is a normal form for the matrix on the left of a representative for the double coset corresponding to `w`.
+(this might need to be explained further and reference the preprint)
+We use the name Rothe matrix because of its resemblance with a Rothe diagram. (add ref?)
 
 # Examples
 ```jldoctest
+  julia> W = weyl_group(:A, 4)
+Weyl group for root system defined by Cartan matrix [2 -1 0 0; -1 2 -1 0; 0 -1 2 -1; 0 0 -1 2]
 
+julia> s = gens(W)
+4-element Vector{WeylGroupElem}:
+ s1
+ s2
+ s3
+ s4
+
+julia> w = s[2] * s[3] * s[4]
+s2 * s3 * s4
+
+julia> rothe_matrix(GF(2), w)
+[1         0         0         0   0]
+[0   x[2, 3]   x[2, 4]   x[2, 5]   1]
+[0         1         0         0   0]
+[0         0         1         0   0]
+[0         0         0         1   0]
 ```
 """
-
 function rothe_matrix(F::Field, w::WeylGroupElem)
   n = rank(root_system(parent(w)))+1
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
@@ -82,22 +99,66 @@ function rothe_matrix(F::Field, w::WeylGroupElem)
   return u * permutation_matrix(F, perm(w))
 end
 
-""" The `K`-indexed rows of the `k`th compound matrix of a square matrix `X`, where `K` is `k`-homogeneous. """
-function compound_matrix(m::MatElem, K::Vector{Vector{Int}})	
+@doc raw"""
+     compound_matrix(m::MatElem, k::Int)
+     compound_matrix(p::PermGroupElem, k::Int)
+     compound_matrix(w::WeylGroupElem, k::Int)
+     compound_matrix(m::MatElem, K::Vector{Vector{Int}})
+
+Given a matrix `m` return the matrix where each entry is a `k` minor of `m`.
+The entries of the compound matrix are ordered with respect to the lexicographic order on sets.
+When passed a `PermGroupElem` or `WeylGroupElem`, return the copound matrix for their
+permutation matrix representation.
+
+Alternatively, passing a `UniformHypergraph` `K` will return the compound matrix with entries the `face_size(K)` minors, and restrict the rows to the rows corresponding to `K`
+
+# Examples
+```jldoctest
+
+julia> M = generic_unipotent_matrix(QQ, 3)
+[1   x[1, 2]   x[1, 3]]
+[0         1   x[2, 3]]
+[0         0         1]
+
+julia> compound_matrix(M, 2)
+[1   x[2, 3]   x[1, 2]*x[2, 3] - x[1, 3]]
+[0         1                     x[1, 2]]
+[0         0                           1]
+
+julia> compound_matrix(perm([1, 3, 2]), 2)
+[0   1    0]
+[1   0    0]
+[0   0   -1]
+
+julia> W = weyl_group(:A, 2)
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+
+julia> compound_matrix(longest_element(W), 2)
+[ 0    0   -1]
+[ 0   -1    0]
+[-1    0    0]
+
+julia> K = uniform_hypergraph([[1, 2], [2, 3]])
+UniformHypergraph(3, 2, [[1, 2], [2, 3]])
+
+julia> compound_matrix(M, K)
+[1   x[2, 3]   x[1, 2]*x[2, 3] - x[1, 3]]
+[0         0                           1]
+```
+"""
+function compound_matrix(m::MatElem, K::UniformHypergraph)
 	@req size(m,1) == size(m,2) "Only valid for square matrices"
-	@req length(Set(map(length, K))) == 1 "All entries in K must have the same size."
 	n = size(m, 1)
-	k = collect(Set(map(length, K)))[1]
-	@req all(1 <= i <= n for s in K for i in s) "All entries in K must represent $k-element subsets of [n]."
+	k = face_size(K)
   nCk = sort(subsets(n, k))
-	return matrix(base_ring(m), [det(m[row, col]) for row in K, col in nCk])
+	return matrix(base_ring(m), [det(m[row, col]) for row in faces(K), col in nCk])
 end
 
-compound_matrix(m::MatElem, k::Int) = compound_matrix(m, sort(subsets(size(m, 1), k)))
+compound_matrix(m::MatElem, k::Int) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))))
 compound_matrix(p::PermGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, p), k)
 compound_matrix(w::WeylGroupElem, k::Int) = compound_matrix(perm(w), k)
 
-""" Given `K` checks if matrix entry can be set to zero zero """
+# this might be removed (currently is not used)
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
   row, col = indices
   row == col && return false
@@ -128,7 +189,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
   nCk = sort!(subsets(n_vertices(K), face_size(K)))
-  c = compound_matrix(g, faces(K))
+  c = compound_matrix(g, K)
   if matrix_base isa MPolyRing
     Oscar.ModStdQt.ref_ff_rc!(c)
   elseif matrix_base isa MPolyQuoRing
@@ -149,30 +210,60 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
 end
   
 @doc raw"""
-     exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
-     exterior_shift(K::ComplexOrHypergraph, w::WeylGroupElem)
-     exterior_shift(K::ComplexOrHypergraph)
+     exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
+     exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
+     exterior_shift(K::SimplicialComplex, w::WeylGroupElem)
+     exterior_shift(K::UniformHypergraph, w::WeylGroupElem)
+     exterior_shift(K::SimplicialComplex)
+     exterior_shift(K::UniformHypergraph)
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
 If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
 
-
-# Example
-Compute the exterior generic shift of the real projective plane:
-```
-julia> K = real_projective_plane()
+# Examples
+```jldoctest
 julia> is_shifted(K)
+false
+
 julia> L = exterior_shift(K)
+Abstract simplicial complex of dimension 2 on 6 vertices
+
+julia> facets(L)
+10-element Vector{Set{Int64}}:
+ Set([2, 3, 1])
+ Set([4, 2, 1])
+ Set([5, 2, 1])
+ Set([6, 2, 1])
+ Set([4, 3, 1])
+ Set([5, 3, 1])
+ Set([6, 3, 1])
+ Set([5, 4, 1])
+ Set([4, 6, 1])
+ Set([5, 6, 1])
+
 julia> is_shifted(L)
-julia> betti_numbers(K) == betti_numbers(L)
-```
-Apply the partial generic shift w.r.t. a permutation ``w``:
-```
-julia> W = weyl_group(:A, 5)
+true
+
+julia> betti_numbers(L) == betti_numbers(K)
+true
+
+julia> W = weyl_group(:A, n_vertices(K) - 1)
+Weyl group for root system defined by Cartan matrix [2 -1 0 0 0; -1 2 -1 0 0; 0 -1 2 -1 0; 0 0 -1 2 -1; 0 0 0 -1 2]
+
 julia> s = gens(W)
-julia> w = s[1] * s[2] * s[1]
-julia> L = exterior_shift(K, w)
+5-element Vector{WeylGroupElem}:
+ s1
+ s2
+ s3
+ s4
+ s5
+
+julia> w = s[2] * s[3] * s[4]
+s2 * s3 * s4
+
+julia> L = exterior_shift(GF(2), K, w)
+Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)

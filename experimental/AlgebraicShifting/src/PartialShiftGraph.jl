@@ -14,8 +14,36 @@ end
 """
 isless_lex(K1::SimplicialComplex, K2::SimplicialComplex) = isless_lex(Set(facets(K1)), Set(facets(K2)))
 
-"""
-  Discovers the nodes of partial shift graph starting from `K`.
+@doc raw"""
+     partial_shift_graph_vertices(F::Field,::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
+
+Given a field `F` discover the vertices of the partial shift graph starting from `K`
+using exterior partial shifts corresponding to elements in `W`.
+Returns a `Vector{SimplicialCompplex}` ordered lexicographically.
+
+#Example
+```jldoctest
+julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
+Abstract simplicial complex of dimension 1 on 4 vertices
+
+julia> shifts = partial_shift_graph_vertices(QQ, K, weyl_group(:A, 3))
+6-element Vector{SimplicialComplex}:
+ Abstract simplicial complex of dimension 1 on 4 vertices
+ Abstract simplicial complex of dimension 1 on 4 vertices
+ Abstract simplicial complex of dimension 1 on 4 vertices
+ Abstract simplicial complex of dimension 1 on 4 vertices
+ Abstract simplicial complex of dimension 1 on 4 vertices
+ Abstract simplicial complex of dimension 1 on 4 vertices
+
+julia> facets.(shifts)
+6-element Vector{Vector{Set{Int64}}}:
+ [Set([3, 1]), Set([4, 1]), Set([2, 1])]
+ [Set([3, 1]), Set([2, 3]), Set([2, 1]), Set([4])]
+ [Set([3, 1]), Set([4, 2]), Set([2, 1])]
+ [Set([4, 3]), Set([3, 1]), Set([2, 1])]
+ [Set([2, 1]), Set([2, 3]), Set([4, 2])]
+ [Set([2, 1]), Set([2, 3]), Set([4, 3])]
+```
 """
 function partial_shift_graph_vertices(F::Field,
                                       K::SimplicialComplex,
@@ -23,7 +51,7 @@ function partial_shift_graph_vertices(F::Field,
   current = K
   visited = [current]
   # by properties of algebraic shifting
-  # we know that K we be the last in this list since it is sorted
+  # we know that K we be the last in this sorted list
   unvisited = unique(
     x -> Set(facets(x)),
     sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
@@ -66,31 +94,36 @@ function multi_edges(F::Field,
 end
 
 @doc raw"""
-     partial_shift_graph(complexes::Vector{Simplicialcomplex})
-     partial_shift_graph(complexes::Vector{Uniformhypergraph})
+     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}; parallel=false)
+     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}; parallel=false)
+     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false)
+     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false)
+
 
 Constructs the partial shift graph on `complexes`.
 
 Returns a tuple `(G, D)`, where `G` is a directed graph whose vertices correspond to the `complexes`,
 such that there is an edge `K → L` if there exists a shift matrix `w` such that `L` is the partial generic shift of `K` by `w`.
-If `K` and `K` are the `i`th and `j`th entry of `complexes`, resp., 
+If `K` and `L` are the `i`th and `j`th entry of `complexes`, resp., 
 `D[i,j]` contains all `w ∈ W` such that `L` is the partial generic shift of `K` by `w`.
 
 # Arguments
 - `complexes`: A vector of simplicial complexes of uniform hypergraphs (all belonging to the same ``Γ(n, k, l)``).
-- `parallel :: Bool` (default: `false`) run the process in parrallel using the `Distributed` package; the setup is left to the user.
+- `parallel :: Bool` (default: `false`) run the process in parrallel using the `Distributed` package; make sure to do `@everywhere using Oscar`.
 - `W`: The user may provide a list `W` of Weyl group elements to be used to construct the shifts.
   `W` must be a subset the (same instance of the) symmetric group of the same order as the complexes.
   If `W` is not provided, the function will use the symmetric group of the same order as the complexes.
 
 # Examples
 ```
-julia> Γ(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
-julia> Ks = Γ(4,2,5)
-julia> G, D = construct_full_graph(Ks)
+julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
+
+julia> Ks = gamma(4,2,5)
+
+julia> G, D = partial_shift_graph(QQ, Ks)
 ```
 """
-function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{Nothing, WeylGroup, Vector{WeylGroupElem}} = nothing;
+function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup, Vector{WeylGroupElem}};
                              parallel::Bool = false) :: Tuple{Graph{Directed}, EdgeLabels}  where T <: ComplexOrHypergraph;
   # Deal with trivial case
   if length(complexes) <= 1
@@ -103,15 +136,10 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{Nothing, W
 
   # inverse lookup K → index of K in complexes
   complex_labels = Dict(Set(facets(K)) => index for (index, K) in enumerate(complexes))
-
-  # set the weyl group to be used to construct the shifts
-  if isnothing(W)
-     W = weyl_group(:A, n - 1);
-  else
-    W2 = only(unique(parent.(W)))
-    rs_type = root_system_type(root_system(W2))
-    @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
-  end
+  
+  W2 = only(unique(parent.(W)))
+  rs_type = root_system_type(root_system(W2))
+  @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
   
   task_size = 1
   map_function = map
@@ -141,3 +169,13 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{Nothing, W
   return (graph, edge_labels)
 end
 
+function partial_shift_graph(F::Field, complexes::Vector{T}; parallel=false) where T <: ComplexOrHypergraph
+  # Deal with trivial case
+  if length(complexes) <= 1
+    return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
+  end
+
+  n = n_vertices(complexes[1])
+  W = weyl_group(:A, n - 1)
+  return partial_shift_graph(F, complexes, W;parallel=parallel)
+end
