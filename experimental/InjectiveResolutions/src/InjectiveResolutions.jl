@@ -3,42 +3,46 @@ export get_monoid_algebra
 export irreducible_res
 export injective_res
 
-# export mod_quotient
-# export get_all_ass_primes
-# export quotient_by_ideal
-# export shifted_module
-# export compute_shift
-# export face_to_prime
-# export get_faces_of_polyhedral_cone
-# export get_bounding_hyperplanes
-# export get_prime_of_face
-# export get_polyhedral_cone
-# export get_zonotope
-# export mod_quotient_2
-# export ZF_basis
-# export coefficients_incl
-# export mod_saturate
-# export irreducible_hull
-# export generators_W_H
-# export rational_to_integer_vector
-# export get_hyperplane_H_presentation
+export get_monoid_algebra_module
+export mod_quotient
+export get_all_ass_primes
+export quotient_by_ideal
+export shifted_module
+export compute_shift
+export face_to_prime
+export get_faces_of_polyhedral_cone
+export get_bounding_hyperplanes
+export get_prime_of_face
+export get_polyhedral_cone
+export get_zonotope
+export mod_quotient_2
+export ZF_basis
+export coefficients_incl
+export mod_saturate
+export irreducible_hull
+export generators_W_H
+export rational_to_integer_vector
+export get_hyperplane_H_presentation
+export compute_bass_numbers
+export ideal_in_poly_ring
+export equal_mod_ZF
 
-# # Data 
-# export FaceQ 
-# export IrrSum
-# export IndecInj
-# export IrrSum
-# export MonoidAlgebra
-# export InjMod
-# export HyperplaneQ
-# export MonoidAlgebraModule
+# Data 
+export FaceQ 
+export IrrHull
+export IndecInj
+export IrrSum
+export MonoidAlgebra
+export InjMod
+export HyperplaneQ
+export MonoidAlgebraModule
 
 #########################
 # some composite types
 #########################
 
 struct FaceQ # face of semigroup  
-    prime::Ideal 
+    prime::Union{MPolyIdeal,MPolyQuoIdeal} 
     poly::Polyhedron  #face of Q corresponding to prime
 end
 
@@ -105,6 +109,7 @@ struct InjRes
     shift::Vector{Int}
 end
 
+
 # given a graded polynomial ring or a quotient, return the MonoidAlgebra if it is one
 # INPUT:    MpolyRing or MPolyQuoRing k_Q
 # OUTPUT:   MonoidAlgebra(...)
@@ -119,6 +124,11 @@ function get_monoid_algebra(k_Q::Union{MPolyRing, MPolyQuoRing})
     P_Q = polyhedron(C_Q) # C_Q as polyhedron
     G_Q,c = get_zonotope(P_Q)
     return MonoidAlgebra(k_Q,P_Q,get_faces_of_polyhedral_cone(k_Q,G_Q,P_Q),get_bounding_hyperplanes(P_Q),is_pointed(C_Q),(G_Q,c))
+end
+
+function get_monoid_algebra_module(kQ::MonoidAlgebra, M::SubquoModule)
+    @req base_ring(M) == kQ.algebra "Base rings do not match."
+    return MonoidAlgebraModule(kQ,M)
 end
 
 function ideal(kQ::MonoidAlgebra,gens::Vector{T}) where T <: Union{MPolyRingElem,MPolyQuoRingElem}
@@ -149,7 +159,6 @@ function get_prime_of_face(k_Q::Union{MPolyRing, MPolyQuoRing},G_Q::Polyhedron,F
     end
     return ideal(k_Q,gens_PF)
 end
-
 
 # given a QQ^d vector v, this function returns a vector w that lies on the ray through v and the origin
 # INPUT:    rational d-vector 
@@ -194,6 +203,18 @@ function get_bounding_hyperplanes(P::Polyhedron)
     return hyperplanes
 end
 
+# given a hyperplane, return the H-presentation of it
+# INPUT:    hyperplane h
+# OUTPUT:   matrix A, vector b corresponding to Ax \leq b which defines h
+function get_hyperplane_H_presentation(h::Polyhedron)
+    aff_hull = affine_hull(h).Obj.pm_polytope.AFFINE_HULL
+    _M = Matrix{Rational}(aff_hull)
+    M = hcat(map(row -> reshape(rational_to_integer_vector(row),1,:),eachrow(_M))...)
+    A = [M[:,2:n_columns(M)];-M[:,2:n_columns(M)]]
+    b = [M[:,1];-M[:1]]
+    return A,b
+end
+
 # given a polyhedral cone, return the zonotope as in Lemma 3.10 in [HM2004]
 # INPUT:    polyhedral cone C  
 # OUTPUT:   zonotope, sum of primitive integer vector ong rays of C 
@@ -208,18 +229,6 @@ function get_zonotope(P::Polyhedron)
         c = c + r
     end
     return zonotope,c
-end
-
-# given a hyperplane, return the H-presentation of it
-# INPUT:    hyperplane h
-# OUTPUT:   matrix A, vector b corresponding to Ax \leq b which defines h
-function get_hyperplane_H_presentation(h::Polyhedron)
-    aff_hull = affine_hull(h).Obj.pm_polytope.AFFINE_HULL
-    _M = Matrix{Rational}(aff_hull)
-    M = hcat(map(row -> reshape(rational_to_integer_vector(row),1,:),eachrow(_M))...)
-    A = [M[:,2:n_columns(M)];-M[:,2:n_columns(M)]]
-    b = [M[:,1];-M[:1]]
-    return A,b
 end
 
 # given an ideal of R and a ZZ^d-vector a, return the module R/I shifted by a
@@ -255,20 +264,11 @@ function generators_W_H(kQ::MonoidAlgebra, H::HyperplaneQ, a::Vector{Int})
     for d in D
         I = intersect(PaF,d) #(a + RR H)\cap RR_+D
         if dim(I) >= 0
-            push!(B,lattice_points(I + kQ.zonotope[1]))
+            B_d = [a for a in lattice_points(I + kQ.zonotope[1]) if (dim(intersect(convex_hull(a),PaF)) < 0)]
+            append!(B,B_d)
         end
     end
-
-    #eliminate lattice points on (a + \RR H)
-    B_red = []
-    if length(B) > 0
-        for b in B[1]
-            if dim(intersect(convex_hull(b),PaF)) < 0
-                push!(B_red,b)
-            end
-        end
-    end
-    return B_red
+    return B
 end
 
 @doc raw"
@@ -282,25 +282,17 @@ end
 "
 function compute_bass_numbers(I::Ideal,i::Int)
     R_Q = base_ring(I)
-    I_R = modulus(R_Q)
-    if is_zero(I_R) #R_Q polynomial ring
-        S = R_Q
-    else # R_Q quotient ring
-        S = base_ring(R_Q)
-    end
-
+    M = quotient_ring_as_module(I) # R/I as module
+ 
     # residue_field
-    I_m = ideal(S,gens(S))
-    R_k,_ = quotient_by_ideal(I_m)
-
-    # module R_Q/I as a subquotient of S^1
-    M_mod = quotient_ring_as_module(quo(R_Q,I)[1])
+    I_m = ideal(R_Q,gens(R_Q))
+    R_k = quotient_ring_as_module(I_m)
     
     D = Vector{Vector{Int}}()
     for j=0:i in 
         E = Nothing
         try 
-            E = ext(R_k,M_mod,j)
+            E = ext(R_k,M,j)
         catch e
             if isa(e,AssertionError)
                 E = Nothing
@@ -311,7 +303,7 @@ function compute_bass_numbers(I::Ideal,i::Int)
             end
         end
     end
-    return D
+    return unique(D) # filter duplicates
 end
 
 ##check if points lie in P_Q
@@ -348,28 +340,15 @@ end
 #           Ideal I
 #OUTPUT:    SubquoModule (0 :_M I)
 function mod_quotient(M::SubquoModule,I::Ideal)
-    M_I,_ = quotient_by_ideal(I) #base_ring(I)/I as module
-    m = M_I[1] #generator of M_I
-    H = hom(M_I,M)
-
-    Q_gens = [element_to_homomorphism(g)(m) for g in gens(H[1])]
-    return sub(M,Q_gens)
-end
-
-#same as mod_quotient except that the result is generated by non-zero elements
-function mod_quotient_2(M::SubquoModule,I::Ideal)
     T = elem_type(M)
-    M_I,_ = quotient_by_ideal(I) #base_ring(I)/I as module
-    m = M_I[1] #generator of M_I
-    H = hom(M_I,M)
+    R_I = quotient_ring_as_module(I)
+    m = R_I[1] #generator of R_I
+    H = hom(R_I,M)[1]
 
-    Q_gens = Vector{T}()
-    for g in gens(H[1])
-        h_g = element_to_homomorphism(g)
-        b_g = h_g(m)
-        if !is_zero(b_g) && !(-b_g in Q_gens)
-            push!(Q_gens,b_g)
-        end
+    if is_zero(H)
+        Q_gens = Vector{T}()
+    else
+        Q_gens = [element_to_homomorphism(g)(m) for g in gens(H)]
     end
     return sub(M,Q_gens)
 end
@@ -379,11 +358,13 @@ end
 #           Ideal I
 #OUTPUT:    SubquoModule (0 :_M I^{infty})
 function mod_saturate(M::SubquoModule,I::Ideal)
-    M_sat,_ = mod_quotient_2(M,I)
+    # M_sat,_ = mod_quotient_2(M,I)
+    M_sat,_ = mod_quotient(M,I)
     M_prev = M_sat #previous module quotient
     i = 2
     while true
-        M_q,_ = mod_quotient_2(M,I^i)
+        # M_q,_ = mod_quotient_2(M,I^i)
+        M_q,_ = mod_quotient(M,I^i)
         if M_prev == M_q
             break
         end
@@ -400,17 +381,19 @@ end
 #OUTPUT:    k[ZF]-basis of localization (0 :_M P_F)[ZF]
 function ZF_basis(M::SubquoModule,PF::Ideal)
     T = elem_type(M)
+
+    #initilalize
     N = M
     h_N = identity_map(N)
-    B = Vector{T}()
+    B = Vector{T}() # empty vector of k[ZF]-basis 
+
     for g in gens(M)
-        S = sub(N,[h_N(g)]) #submodule of N =(0 :_M P_F)/(y0,...,yn) generated by g
-        if annihilator(S[1]) == PF && !is_zero(S[1])
-        #if is_subset(PF,annihilator(S[1]))
+        N_g = sub(N,[h_N(g)])[1] #submodule of N =(0 :_M P_F)/(y0,...,yn) generated by g
+        if annihilator(N_g) == PF && !is_zero(N_g)
             push!(B,g)
         end
         M_B,_ = sub(M,B)
-        N,h_N = quo(M,M_B)
+        N,h_N = quo(M,M_B) # update N
         if is_zero(N)
             break
         end
@@ -448,11 +431,11 @@ function coefficients_incl(N::SubquoModule,Np::SubquoModule,incl_Np::SubQuoHom,B
                 a_yg = degree(b) - degree(g)
                 coeff_gb = coordinates(ambient_representative(b))[i] # coefficient of b on m_yg*g
                 if is_zero(coeff_gb)
-                    lambda_gb = 0*one(R_N)
+                    lambda_gb = zero(R_N)
                 else
                     lambda_gb = monomial_basis(parent(coeff_gb),degree(coeff_gb)-a_yg)[1]*one(R_N)
                 end
-            else
+            else # b is of the form monomial*g
                 for g_I in filter(!is_zero,gens(I_g)) 
                     b_m = monomial_basis(R_N,degree(b))[1]
                     g_I_m = monomial_basis(R_N,degree(g_I))[1]
@@ -461,6 +444,7 @@ function coefficients_incl(N::SubquoModule,Np::SubquoModule,incl_Np::SubQuoHom,B
                         m_yg = monomial_basis(R_poly,a_yg)[1] #monomial of degree a_yg
                         gg = preimage(incl_Np,m_yg*g) # m_yg*g as an element of Np !not unique
                         lambda_gb = m_g*coordinates(gg)[j] # coefficient of b on m_yg*g
+                        break
                     end
                 end
             end
@@ -471,6 +455,60 @@ function coefficients_incl(N::SubquoModule,Np::SubquoModule,incl_Np::SubQuoHom,B
         i = i + 1
     end
     return matrix(R_N,lambda_out) 
+end
+
+function coefficients(N::SubquoModule, p::FaceQ)
+    R_N = base_ring(N)
+    @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
+
+    T = elem_type(R_N)
+    Np,incl_Np = mod_quotient(N,p.prime) # quotient (0 :_N p.prime)
+    if is_zero(Np)
+        return Np,zeros(R_N,1,1)
+    end
+
+    # get socle degrees of indecomposable injectives kQ{a + F - Q}
+    Bp = ZF_basis(Np,p.prime)
+
+    #### new better version
+    lambda = Vector{Vector{T}}()
+    for b in Bp
+        lambda_b = []
+        for i=1:ngens(N)
+            m_g = monomial_basis(R_N,degree(N[i]))[1]*one(R_N)
+            m_bg = monomial_basis(R_N,degree(b)-degree(N[i]))[1]
+            if !is_zero(m_bg*N[i]) 
+                b_rest = zero(N)
+                for j = 1:ngens(N)
+                    if length(coordinates(incl_Np(b)-b_rest)) == 1
+                        break
+                    end 
+                    if j == i || is_zero(coordinates(ambient_representative(b))[j])
+                        continue
+                    end
+                    mu_j = coordinates(ambient_representative(b))[j]
+                    if !is_zero(mu_j)
+                        b_rest = b_rest + mu_j*N[j]
+                    end
+                end
+                Ni,incl_i = sub(N,[N[i]])
+                _b = Nothing
+                try
+                    _b = preimage(incl_i, incl_Np(b) - b_rest)
+                catch
+                end
+                if _b != Nothing
+                    push!(lambda_b,m_g*leading_coefficient(lift(coordinates(_b)[1])))
+                else
+                    push!(lambda_b, zero(R_N))
+                end
+            else
+                push!(lambda_b, zero(R_N))
+            end
+        end
+        push!(lambda,lambda_b)
+    end
+    return Bp, transpose(matrix(R_N,lambda))
 end
 
 #Returns ideal of underlying polynomial ring
@@ -488,18 +526,6 @@ function ideal_in_poly_ring(I::Ideal)
     end
 end
 
-#get quotient ring S/I as module (S quotient ring) 
-#alternative to quotient_ring_as_module(I), which gives wrong result when base_ring(I) = quotient ring 
-#INPUT:     ideal I 
-#OUTPUT:    quotient S/I as SubquoModule (S = base_ring(I))
-function quotient_by_ideal(I::Ideal)
-    R_I = base_ring(I)
-    F = graded_free_module(R_I,1)
-    f = F[1]
-    V = [g*f for g in gens(I)]
-    return quo(F,V)
-end
-
 
 @doc raw"""
     irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
@@ -510,27 +536,34 @@ end
                List of prime ideals corresponding to the faces of Q
     OUTPUT:    effective irreducible hull W_bar and effective vector set lambda
 """
-function irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
-    N = M
+function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ})
+    N = Mi
     W_F = Vector{FaceQ}()
     W_deg = Vector{Tuple{SubquoModuleElem,Vector{Int}}}()
     lambda = []
-    for p in P 
-        # Np,incl_Np = mod_quotient(N,p.prime) #compute quotient of N by p
-        Np,incl_Np = mod_quotient_2(N,p.prime)
-        if is_zero(Np)
-            continue
-        end
-        Bp = ZF_basis(Np,p.prime) #compute ZF-basis of quotient
-        Np,incl_Np_n = sub(Np,Bp)
-        incl = incl_Np_n*incl_Np
+    for p in filter(p -> !is_zero(p.prime),P) 
+        # Np,incl_Np = mod_quotient(N,p.prime) #compute quotient (0 :_N p.prime)
+        # # Np,incl_Np = mod_quotient_2(N,p.prime)
+        # if is_zero(Np)
+        #     continue
+        # end
+        # Bp = ZF_basis(Np,p.prime) #compute ZF-basis of quotient (0 :_N p.prime)
+        # Np,incl_Np_n = sub(Np,Bp)
+        # incl = incl_Np_n*incl_Np
+        # for b in Bp 
+        #     push!(W_F,p)
+        #     push!(W_deg,(b,degree(Vector{Int},b)))
+        # end
+
+        Bp,lambda_p = coefficients(N,p)
         for b in Bp 
             push!(W_F,p)
             push!(W_deg,(b,degree(Vector{Int},b)))
         end
-        lambda_p = coefficients_incl(N,Np,incl,Bp,p.prime)
+
+        # lambda_p = coefficients_incl(N,Np ,incl,Bp,p.prime)
         push!(lambda,lambda_p)
-        N,_ = quo(M,mod_saturate(M,p.prime)) #update N
+        N,_ = quo(Mi,mod_saturate(Mi,p.prime)) #update N
         if is_zero(N)
             break
         end
@@ -679,6 +712,17 @@ function equal_mod_ZF(a::RingElem,b::RingElem,p_F::Ideal)
     end
 end
 
+
+
+
+
+
+
+
+
+############################################################
+
+
 ##computes system of inequalities for polyhedron {r*a : r >= 0}, a \in ZZ^2
 ##INPUT:    vector a in ZZ^2
 ##OUTPUT:   matrix A, vector b such that Ax <= b for all x on hyperplane through a
@@ -751,4 +795,43 @@ function get_all_ass_primes(I)
 
     MP = minimal_primes(I) #only minimal primes...
     return [get_face_to_prime(I_m); [get_face_to_prime(mp) for mp in MP]]
+end
+
+# #get quotient ring S/I as module (S quotient ring) 
+# #alternative to quotient_ring_as_module(I), which gives wrong result when base_ring(I) = quotient ring 
+# #INPUT:     ideal I 
+# #OUTPUT:    quotient S/I as SubquoModule (S = base_ring(I))
+# function quotient_by_ideal(I::Ideal)
+#     R_I = base_ring(I)
+#     F = graded_free_module(R_I,1)
+#     f = F[1]
+#     V = [g*f for g in gens(I)]
+#     return quo(F,V)
+# end
+
+
+function quotient_ring_as_module(I::Union{MPolyIdeal, MPolyQuoIdeal})
+    R = base_ring(I)
+    F = is_graded(R) ? graded_free_module(R, 1) : free_module(R, 1)
+    e1 = F[1]
+    return quo_object(F, [x * e1 for x = gens(I)])
+    end
+
+
+    #same as mod_quotient except that the result is generated by non-zero elements
+function mod_quotient_2(M::SubquoModule,I::Ideal)
+    T = elem_type(M)
+    R_I = quotient_ring_as_module(I)
+    m = R_I[1] #generator of R_I
+    H = hom(R_I,M)[1]
+
+    Q_gens = Vector{T}()
+    for g in gens(H)
+        h_g = element_to_homomorphism(g)
+        b_g = h_g(m)
+        if !is_zero(b_g) && !(-b_g in Q_gens)
+            push!(Q_gens,b_g)
+        end
+    end
+    return sub(M,Q_gens)
 end
