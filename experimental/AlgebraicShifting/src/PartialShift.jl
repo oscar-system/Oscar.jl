@@ -34,19 +34,52 @@ end
 @doc raw"""
      generic_unipotent_matrix(R::MPolyRing)
      generic_unipotent_matrix(F::Field, n::Int)
-     generic_unipotent_matrix(F::Field, w::WeylGroupElem)
 
 Constructs a unipotent matrix with entries in a polynomial ring `R`.
-Alternatively one can provide a field `F` and a square integer `n`,
+One can also provide a field `F` and an integer `n`,
+then the entries of the unipotent matrix will lie in a multi variate
+polynomial ring over `F` with `n^2` variables.
+
+# Examples
+```jldoctest
+
+julia> R, x = polynomial_ring(QQ, :x=> (1:2, 1:2))
+(Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x[1, 1] x[1, 2]; x[2, 1] x[2, 2]])
+
+julia> generic_unipotent_matrix(R)
+[1   x[1, 2]]
+[0         1]
+
+julia> generic_unipotent_matrix(GF(2), 2)
+[1   x[1, 2]]
+[0         1]
+```
 """
-function generic_unipotent_matrix(F::Field, w::WeylGroupElem)
+
+@doc raw"""
+     rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
+
+For a base field `F` and a weyl group element `w` return the matrix with entries in the
+multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
+root system of the weyl group.
+We know that since `general_linear_group(n^2, R)` has a Bruhat decomposition, and element lies in some double coset $BwB$.
+The \emph{Rothe matrix} is a normal form for a the matrix on the left of a representative for the double coset corresponding to `w`.
+We use the name \emph{Rothe matrix} because of its resemblance with a \emph{Rothe diagram} (add ref?)
+
+# Examples
+```jldoctest
+
+```
+"""
+
+function rothe_matrix(F::Field, w::WeylGroupElem)
   n = rank(root_system(parent(w)))+1
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
   u = identity_matrix(Fx, n)
   for (i, j) in inversions(perm(w))
     u[i, j] = x[i, j]
   end
-  return u
+  return u * permutation_matrix(F, perm(w))
 end
 
 """ The `K`-indexed rows of the `k`th compound matrix of a square matrix `X`, where `K` is `k`-homogeneous. """
@@ -115,19 +148,22 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
   ])
 end
   
-raw"""    exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
-          exterior_shift(K::ComplexOrHypergraph, w::WeylGroupElem)
+@doc raw"""
+     exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
+     exterior_shift(K::ComplexOrHypergraph, w::WeylGroupElem)
+     exterior_shift(K::ComplexOrHypergraph)
 
-Computes the (partial) generic exterior shift of ``K`` w.r.t. the Weyl group element ``w``. 
+Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
+If the field is not given then `QQ` is used during the computation.
+If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
 
-With ``w = w_0`` the longest word in the Weyl group (default), this is the generic exterior shift of ``K``.
 
 # Example
 Compute the exterior generic shift of the real projective plane:
 ```
 julia> K = real_projective_plane()
 julia> is_shifted(K)
-julia> L = exterior_shift2(K)
+julia> L = exterior_shift(K)
 julia> is_shifted(L)
 julia> betti_numbers(K) == betti_numbers(L)
 ```
@@ -143,11 +179,13 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   n = n_vertices(K)
   @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
 
-  # set certain entries to zero, (pre-computation row reduction)
-  #bool_mat = matrix(F, [!set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
-  #M = bool_mat .* generic_unipotent_matrix(F, w)
-  M = generic_unipotent_matrix(F, w)
-  return exterior_shift(K,  M * permutation_matrix(F, perm(w)))
+  # in some cases this provides a speed up, not extremely important, we can chose to omit
+  # these lines
+  # handle some pre computation row reduction of compound matrix
+  #bool_mat = matrix(F, [!_set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
+  #M = (bool_mat * permutation_matrix(F, perm(w))) .* 
+  
+  return exterior_shift(K, rothe_matrix(F, w))
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph)
@@ -155,3 +193,5 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph)
   W = weyl_group(:A, n - 1)
   return exterior_shift(F, K, longest_element(W))
 end
+
+exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)

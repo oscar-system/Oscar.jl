@@ -6,9 +6,10 @@ export UniformHypergraph
 
 export compound_matrix
 export exterior_shift
+export generic_unipotent_matrix
 export partial_shift_graph_vertices
 export partial_shift_graph
-export generic_unipotent_matrix
+export rothe_matrix
 export uniform_hypergraph
 
 function independent_columns(A::MatElem)

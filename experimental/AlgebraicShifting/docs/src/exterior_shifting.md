@@ -9,4 +9,5 @@ DocTestSetup = Oscar.doctestsetup()
 
 ```@docs
 generic_unipotent_matrix
+rothe_matrix
 ```
