@@ -1892,8 +1892,8 @@ function monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyCom
   shift,_ = base_ring_shifts(L)
   G_0 = shift.(G) 
   R = base_ring(L)
-  S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
-  return L.(monomial_basis(R, ideal(S)))
+  LI = leading_ideal(ideal(R, G_0), ordering = negdeglex(R))
+  return L.(monomial_basis(R, LI))
 end
 
 function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})

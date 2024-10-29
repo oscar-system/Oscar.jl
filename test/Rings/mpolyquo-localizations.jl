@@ -520,6 +520,9 @@ end
   @test_throws InfiniteDimensionError() monomial_basis(Q2)
   Q3, _ = quo(L, ideal(L, L.([x^2, y^3])))  
   @test monomial_basis(Q3) == L.([x*y^2, y^2, x*y, y, x, 1])
+  Q4,_ = quo(L, ideal(L, [x^2-x, y^2-2*y]))   
+  @test monomial_basis(Q4) == [L(1)]          #test for difference in localized and non-localized case
+  @test monomial_basis(L, ideal(L, [x^3*(x-1), y*(y-1)*(y-2)])) == L.([x^2, x, 1])
   L1, _ = localization(R, complement_of_point_ideal(R, [1,2]))
   @test monomial_basis(L1, ideal(L1, [(x-1)^2, (y-2)^2])) == L1.([x*y, y, x, 1])  
   @test isempty(monomial_basis(L1, ideal(L1, L1.([x, y]))))
