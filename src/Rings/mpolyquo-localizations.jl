@@ -1886,20 +1886,18 @@ julia> monomial_basis(A)
  1
 ```
 """
-function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
-  R = base_ring(A)
-  L = localized_ring(A)
-  G = numerator.(gens(modulus(A)))
-  shift,_ = base_ring_shifts(L)
-  G_0 = shift.(G)
-  S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
-  B = monomial_basis(quo(R, ideal(S))[1])
-  return L.(B)
-end
-
 function monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
   base_ring(I) == L || error("ideal does not belong to the correct ring")
-  return monomial_basis(quo(L,I)[1])
+  G = numerator.(gens(I))
+  shift,_ = base_ring_shifts(L)
+  G_0 = shift.(G) 
+  R = base_ring(L)
+  S = standard_basis(ideal(R, G_0), ordering = negdeglex(R))
+  return L.(monomial_basis(R, ideal(S)))
+end
+
+function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
+  return monomial_basis(localized_ring(A), modulus(A))
 end
 
 function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)
