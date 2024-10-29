@@ -710,3 +710,7 @@ end
 function barycentric_subdivision(K::SimplicialComplex)
   return SimplicialComplex(Polymake.topaz.barycentric_subdivision(pm_object(K))) 
 end
+
+function is_shifted(K::SimplicialComplex)
+  return pm_object(K).SHIFTED
+end

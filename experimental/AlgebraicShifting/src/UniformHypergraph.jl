@@ -52,6 +52,8 @@ function Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph)
 end
 
 raw""" Alexander dual, seen as bijection ``\binom{[n]}{k} \to \binom{[n]}{n-k}`` """
-function alexander_dual(K :: UniformHypergraph)
+function alexander_dual(K::UniformHypergraph)
   return uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
 end
+
+is_shifted(K::UniformHypergraph) = is_shifted(simplicial_complex(K))

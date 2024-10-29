@@ -899,6 +899,7 @@ export is_right
 export is_semiregular
 export is_semisimple
 export is_semistandard
+export is_shifted
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
