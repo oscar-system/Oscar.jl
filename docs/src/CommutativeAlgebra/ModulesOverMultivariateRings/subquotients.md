@@ -363,8 +363,17 @@ quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
 ```
 
 ```@docs
-quotient(M::SubquoModule{T}, J::MPolyIdeal{T}) where T
+quotient(M::SubquoModule, J::Ideal)
 ```
+
+```@docs
+saturation(M:: SubquoModule, J::Ideal)
+```
+
+```@docs
+saturation_with_index(M:: SubquoModule, J::Ideal)
+```
+
 
 ## Submodules and Quotients
 
