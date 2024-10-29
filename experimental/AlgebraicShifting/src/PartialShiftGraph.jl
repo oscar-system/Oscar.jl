@@ -12,11 +12,7 @@ end
   Given two simplicial complexes `K1`, `K2` return true if
   `K1` is lexicographically less than `K2`
 """
-function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
-  K1_facet_set = Set(facets(K1))
-  K2_facet_set = Set(facets(K2))
-  return isless_lex(K1_facet_set, K2_facet_set)
-end
+isless_lex(K1::SimplicialComplex, K2::SimplicialComplex) = isless_lex(Set(facets(K1)), Set(facets(K2)))
 
 """
   Discovers the nodes of partial shift graph starting from `K`.
@@ -24,30 +20,30 @@ end
 function partial_shift_graph_vertices(F::Field,
                                       K::SimplicialComplex,
                                       W::Union{WeylGroup, Vector{WeylGroupElem}};)
-  current_node = K
-  visited_nodes = Set([current_node])
+  current = K
+  visited = [current]
   # by properties of algebraic shifting
   # we know that K we be the last in this list since it is sorted
-  unvisited_nodes = unique(
+  unvisited = unique(
     x -> Set(facets(x)),
     sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
 
-  while(!isempty(unvisited_nodes))
-    current_node = pop!(unvisited_nodes)
-    push!(visited_nodes, current_node)
+  while(!isempty(unvisited))
+    current = pop!(unvisited)
+    push!(visited, current)
     shifts = unique(
       x -> Set(facets(x)),
-      sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
+      sort([exterior_shift(F, current, w) for w in W]; lt=isless_lex))[1:end - 1]
 
     # dont visit things twice
-    new_nodes = filter(x -> !(x in Set.(facets.(visited_nodes))), Set.(facets.(shifts)))
-    unvisited_nodes = simplicial_complex.(
-      union(Set.(facets.(unvisited_nodes)), Set.(new_nodes)))
+    new_facets = filter(x -> !(x in Set.(facets.(visited))), Set.(facets.(shifts)))
+    unvisited = simplicial_complex.(
+      union(Set.(facets.(unvisited)), new_facets))
   end
-  return sort(collect(visited_nodes); lt=isless_lex)
+  return sort(collect(visited); lt=isless_lex)
 end
 
-""" Compute the multi edges, that is, for each complex K  compute which
+""" Compute the multi edges, that is, for each complex `K`  compute which
     other complexes can be reached by applying the partial shifts `deltas`
     to K, and store the shift matrices that give rise to each edge."""
 function multi_edges(F::Field,
@@ -69,7 +65,9 @@ function multi_edges(F::Field,
   )
 end
 
-"""    partial_shift_graph(complexes :: Vector{T} where T <: ComplexOrHypergraph; ...) :: Tuple{Graph{Directed}, EdgeLabels}
+@doc raw"""
+     partial_shift_graph(complexes::Vector{Simplicialcomplex})
+     partial_shift_graph(complexes::Vector{Uniformhypergraph})
 
 Constructs the partial shift graph on `complexes`.
 
@@ -92,8 +90,8 @@ julia> Ks = Γ(4,2,5)
 julia> G, D = construct_full_graph(Ks)
 ```
 """
-function partial_shift_graph(F::Field, complexes::Vector{T};
-                             parallel::Bool = false, W = nothing) :: Tuple{Graph{Directed}, EdgeLabels}  where T <: ComplexOrHypergraph;
+function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{Nothing, WeylGroup, Vector{WeylGroupElem}} = nothing;
+                             parallel::Bool = false) :: Tuple{Graph{Directed}, EdgeLabels}  where T <: ComplexOrHypergraph;
   # Deal with trivial case
   if length(complexes) <= 1
     return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
@@ -111,8 +109,8 @@ function partial_shift_graph(F::Field, complexes::Vector{T};
      W = weyl_group(:A, n - 1);
   else
     W2 = only(unique(parent.(W)))
-    sys_type = root_system_type(root_system(W2))
-    @req sys_type[1][1] == :A && sys_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
+    rs_type = root_system_type(root_system(W2))
+    @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
   end
   
   task_size = 1

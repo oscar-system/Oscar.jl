@@ -38,7 +38,6 @@ end
 
 Constructs a unipotent matrix with entries in a polynomial ring `R`.
 Alternatively one can provide a field `F` and a square integer `n`,
-
 """
 function generic_unipotent_matrix(F::Field, w::WeylGroupElem)
   n = rank(root_system(parent(w)))+1
@@ -64,6 +63,23 @@ end
 compound_matrix(m::MatElem, k::Int) = compound_matrix(m, sort(subsets(size(m, 1), k)))
 compound_matrix(p::PermGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, p), k)
 compound_matrix(w::WeylGroupElem, k::Int) = compound_matrix(perm(w), k)
+
+""" Given `K` checks if matrix entry can be set to zero zero """
+function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
+  row, col = indices
+  row == col && return false
+  K_facets = facets(K)
+  for facet in K_facets
+    # if column index is not in face there is nothing to do
+    !(col in facet) && continue
+    # replace index from row with index from col in facet
+    S = push!(delete!(copy(facet), col), row)
+    !any(is_subset(S, check_facet) for check_facet in K_facets) && return false
+  end
+  return true
+end
+
+_set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simplicial_complex(K), indices)
 
 ###############################################################################
 # Exterior shift 
@@ -127,6 +143,9 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   n = n_vertices(K)
   @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
 
+  # set certain entries to zero, (pre-computation row reduction)
+  #bool_mat = matrix(F, [!set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
+  #M = bool_mat .* generic_unipotent_matrix(F, w)
   M = generic_unipotent_matrix(F, w)
   return exterior_shift(K,  M * permutation_matrix(F, perm(w)))
 end
