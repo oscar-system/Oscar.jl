@@ -3,11 +3,12 @@ using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
+import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
-import..Oscar: pullback, pushforward, base, OO, product, compose
+import ..Oscar: pullback, pushforward, base, OO, product, compose
 import ..Oscar: trivial_line_bundle
+import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
 
 export a_hat_genus
@@ -21,7 +22,7 @@ export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
-export betti
+export betti_numbers
 export blowup
 export blowup_points
 export bundles
@@ -41,7 +42,6 @@ export euler
 export euler_pairing
 export graph
 export hyperplane_class
-export intersection_matrix
 export l_genus
 export linear_subspaces_on_hypersurface
 export line_bundle
@@ -55,6 +55,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export total_segre_class
 export segre_class
 export structure_map
 export tangent_bundle
@@ -100,7 +101,7 @@ export abstract_projective_bundle
 export abstract_projective_space
 export abstract_variety
 export base
-export betti
+export betti_numbers
 export blowup
 export blowup_points
 export bundles
@@ -134,6 +135,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export total_segre_class
 export segre_class
 export structure_map
 export tangent_bundle

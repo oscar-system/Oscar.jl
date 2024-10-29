@@ -67,7 +67,7 @@ If `F` is a free `R`-module, then
 ###### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -114,7 +114,7 @@ Alternatively, directly write the element as a linear combination of basis vecto
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 
@@ -138,7 +138,7 @@ Given an element `f`  of a free module `F` over a multivariate polynomial ring w
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 3);
 

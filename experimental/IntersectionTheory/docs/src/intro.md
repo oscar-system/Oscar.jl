@@ -6,20 +6,26 @@ CurrentModule = Oscar
 
 In this chapter, we
 - introduce OSCAR tools which support computations in intersection theory, and
-- give examples which illustrate how intersection theory is used to
-solve problems from enumerative geometry.
+- give examples which illustrate how intersection theory is used to solve problems from enumerative geometry.
 
 !!! note
-    Making use of OSCAR, a first version of what we present here was
-    written by Jeiao Song as a julia package.
-	
+    Making use of OSCAR, a first version of what we present here was written by Jeiao Song as a julia package.
+    This package was "heavily inspired by the Macaulay2 package Schubert2 and the Sage library Chow. Some
+    functionalities from [the Sage library] Schubert3 are also implemented."
+
+!!! note
+    Schubert2 was written by Daniel R. Grayson, Michael E. Stillman, Stein A. Strømme, David Eisenbud, and Charley Crissman
+    while Chow is due to Manfred Lehn and Christoph Sorger. Schubert3  as well as the Singular library schubert.lib were
+    written by Dang Tuan Hiep. The basis for all this work, including ours, is the Maple package Schubert written
+    by Sheldon Katz and Stein A. Strømme.
+
 Throughout the chapter, the varieties we consider are smooth projective varieties over the complex numbers.
 
 !!! note
     The Chow ring of a variety `X` is the group of cycles of `X` modulo an equivalence relation,
     together with the intersection pairing which defines the multiplication of the ring. Here,
     in contrast to most textbooks, we consider numerical equivalence classes of cycles rather than
-	rational equivalence classes.
+    rational equivalence classes.
 
 Our approach is abstract in the sense that we do not work with concrete varieties; that is,
 our varieties are not given by equations. Instead, we represent a variety by specifying its

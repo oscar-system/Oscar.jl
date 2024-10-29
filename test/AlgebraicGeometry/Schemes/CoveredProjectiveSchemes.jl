@@ -20,7 +20,7 @@
 end
 
 @testset "Oscar.blow_up_chart" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   A3 = spec(R)
   M = R[x y z; y-1 z-2 x-3]
   I = ideal(R, minors(M, 2))
@@ -39,7 +39,7 @@ end
 end
 
 @testset "winter school presentation" begin
-  P, (x,y,z) = QQ["x", "y", "z"]
+  P, (x,y,z) = QQ[:x, :y, :z]
   IA3 = spec(P)
   f = x^2-y*z^2
   I = ideal(P, f)
@@ -57,7 +57,7 @@ end
   @test !is_empty(U[1])
   @test dim(U[1]) == 1
   @test dim(U[2]) == 0
-  B2 = blow_up(image_ideal(inc), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
+  B2 = blow_up(simplify(image_ideal(inc)), var_name="t") # Use a different letter for the homogeneous variables in the 2nd blowup
   Z = domain(B2)
   @test is_smooth(Z)
 end
@@ -71,7 +71,7 @@ end
 
   E = direct_sum([O4, O6, O1])
 
-  X_proj = projectivization(E, var_names=["x", "y", "z"])
+  X_proj = projectivization(E, var_names=[:x, :y, :z])
 
   X = covered_scheme(X_proj)
 

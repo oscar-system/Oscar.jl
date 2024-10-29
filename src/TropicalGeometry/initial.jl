@@ -1,9 +1,39 @@
 ################################################################################
 #
 #  Initial forms and initial ideals
+#  ================================
 #
 ################################################################################
 
+
+
+################################################################################
+#
+#  Caching of polynomial rings over residue fields
+#
+################################################################################
+function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap)
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+
+    polynomialRingsForInitial = get_attribute!(R, :tropical_geometry_polynomial_rings_for_initial) do
+        return Dict{TropicalSemiringMap,MPolyRing}()
+    end::Dict{TropicalSemiringMap,MPolyRing}
+    return get!(polynomialRingsForInitial, nu, first(polynomial_ring(residue_field(nu),symbols(R); cached=false)))
+end
+
+# special function for trivial valuation to ensure reusing original ring
+function get_polynomial_ring_for_initial(R::MPolyRing, nu::TropicalSemiringMap{K,Nothing,minOrMax}) where {K<:Field, minOrMax<:Union{typeof(min),typeof(max)}}
+    @req coefficient_ring(R)==valued_field(nu) "coefficient ring is not valued field"
+    return R
+end
+
+
+
+################################################################################
+#
+#  Initial form
+#
+################################################################################
 @doc raw"""
     initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::Vector)
 
@@ -11,7 +41,7 @@ Return the initial form of `f` with respect to the tropical semiring map `nu` an
 
 # Examples (trivial and $p$-adic valuation)
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> nu_0 = tropical_semiring_map(QQ,max);
 
@@ -35,7 +65,7 @@ julia> K,t = rational_function_field(GF(2),"t");
 
 julia> nu_t = tropical_semiring_map(K,t,max);
 
-julia> R,(x,y) = K["x", "y"];
+julia> R,(x,y) = K[:x, :y];
 
 julia> w = [1,1];
 
@@ -62,7 +92,7 @@ function initial(f::MPolyRingElem, nu::TropicalSemiringMap, w::AbstractVector{<:
     ###
     # Construct the initial form
     ###
-    kx, _ = polynomial_ring(residue_field(nu),symbols(parent(f)))
+    kx = get_polynomial_ring_for_initial(parent(f),nu)
     initialForm = MPolyBuildCtx(kx)
     for (c,alpha) in zip(coeffs,expvs)
         push_term!(initialForm,initial(c,nu),alpha)
@@ -72,6 +102,11 @@ end
 
 
 
+################################################################################
+#
+#  Initial ideal
+#
+################################################################################
 @doc raw"""
     initial(I::MPolyIdeal, nu::TropicalSemiringMap, w::Vector; skip_groebner_basis_computation::Bool=false)
 
@@ -79,7 +114,7 @@ Return the initial ideal of `I` with respect to the tropical semiring map `nu` a
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([x^3-5*x^2*y,3*y^3-2*x^2*y]);
 

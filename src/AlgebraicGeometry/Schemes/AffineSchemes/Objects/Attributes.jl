@@ -234,7 +234,7 @@ Affine scheme morphism
   from [x, y]  scheme(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
-  x -> 0
+  x -> x
   y -> y
 
 julia> inc == inclusion_morphism(Y, X)
@@ -537,7 +537,7 @@ This command relies on [`radical`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"])
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 (Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
 
 julia> J = ideal(R,[(x-y)^2])
@@ -630,7 +630,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [x^2 - y^2 + z^2])
@@ -653,7 +653,7 @@ julia> singular_locus(A3)
 (scheme(1), Hom: scheme(1) -> affine 3-space)
 
 julia> singular_locus(X)
-(scheme(x^2 - y^2 + z^2, z, y, x), Hom: scheme(x^2 - y^2 + z^2, z, y, x) -> scheme(x^2 - y^2 + z^2))
+(scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z), Hom: scheme(x^2 - y^2 + z^2, 2*x, -2*y, 2*z) -> scheme(x^2 - y^2 + z^2))
 
 julia> U = complement_of_point_ideal(R, [0,0,0])
 Complement
@@ -715,7 +715,7 @@ See also [`is_smooth`](@ref).
 
 # Examples
 ```jldoctest
-julia> R, (x,y,z) = QQ["x", "y", "z"]
+julia> R, (x,y,z) = QQ[:x, :y, :z]
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> I = ideal(R, [(x^2 - y^2 + z^2)^2])

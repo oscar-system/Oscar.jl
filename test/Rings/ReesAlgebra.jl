@@ -1,5 +1,5 @@
 @testset "Rees algebras" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   F = FreeMod(R, 3)
   M, inc = sub(F, [a*g for a in gens(R) for g in gens(F)])
   Q, p = quo(F, [a*F[1] for a in gens(R)])

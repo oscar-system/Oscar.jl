@@ -212,7 +212,7 @@ end
 
 # Return `true` if all coefficients of `dtc` are positive, `false` otherwise.
 # """
-# is_effective(dtc::DivisorOnTropicalCurve) = all(e -> e>=0, coefficients(dtc))
+# is_effective(dtc::DivisorOnTropicalCurve) = all(>=(0), coefficients(dtc))
 
 
 # @doc raw"""

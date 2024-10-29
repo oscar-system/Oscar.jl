@@ -510,7 +510,7 @@ julia> facets(Polyhedron, C)
  Polytope in ambient dimension 3
 
 julia> facets(Halfspace, C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_1 <= 1
 x_1 <= 1
 -x_2 <= 1
@@ -593,7 +593,7 @@ We can retrieve the six facets of the 3-dimensional cube this way:
 julia> C = cube(3);
 
 julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 -x_1 <= 1
 x_1 <= 1
 -x_2 <= 1
@@ -998,7 +998,7 @@ $P = \{ (x_1, x_2, x_3, x_4) | x_3 = 2 ∧ x_4 = 5 \}$.
 julia> t = convex_hull([0 0 2 5; 1 0 2 5; 0 1 2 5]);
 
 julia> affine_hull(t)
-2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the Hyperplanes of R^4 described by:
+2-element SubObjectIterator{AffineHyperplane{QQFieldElem}} over the hyperplanes of R^4 described by:
 x_3 = 2
 x_4 = 5
 ```
@@ -1059,7 +1059,7 @@ julia> ehrhart_polynomial(c)
 ```
 """
 function ehrhart_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return ehrhart_polynomial(R, P)
 end
 
@@ -1070,7 +1070,7 @@ Compute the Ehrhart polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
@@ -1101,7 +1101,7 @@ x^3 + 23*x^2 + 23*x + 1
 ```
 """
 function h_star_polynomial(P::Polyhedron{QQFieldElem})
-  R, x = polynomial_ring(QQ, "x"; cached=false)
+  R, x = polynomial_ring(QQ, :x; cached=false)
   return h_star_polynomial(R, P)
 end
 
@@ -1112,7 +1112,7 @@ Compute the $h^*$ polynomial of `P` and return it as a polynomial in `R`.
 
 # Examples
 ```jldoctest
-julia> R, x = polynomial_ring(QQ, "x")
+julia> R, x = polynomial_ring(QQ, :x)
 (Univariate polynomial ring in x over QQ, x)
 
 julia> c = cube(3)
@@ -1483,7 +1483,7 @@ function _is_prismic_or_antiprismic(P::Polyhedron)
   # the amount of squares needs to be n or the amount of triangles needs to be 2n
   2n == n_vertices(P) && (5 - m) * n == nvfs[b][2] || return false
   dg = dual_graph(P)
-  ngon_is = findall(x -> x == n, nvf)
+  ngon_is = findall(==(n), nvf)
   has_edge(dg, ngon_is...) && return false
   rem_vertex!(dg, ngon_is[2])
   rem_vertex!(dg, ngon_is[1])
@@ -1831,7 +1831,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Halfspace})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Halfspaces of R^$n described by:\n")
+    print(io, " over the halfspaces of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else
@@ -1854,7 +1854,7 @@ function Base.show(io::IO, H::SubObjectIterator{<:Hyperplane})
   print(io, "$s-element $t")
   if !isempty(H)
     n = length(normal_vector(H[1]))
-    print(io, " over the Hyperplanes of R^$n described by:\n")
+    print(io, " over the hyperplanes of R^$n described by:\n")
     if s < d
       print_constraints(io, H)
     else

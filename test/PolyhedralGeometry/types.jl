@@ -14,7 +14,7 @@
 
   (ENF, _) = _prepare_scalar_types()[2]
 
-  @testset "$T" for (T, fun) in ((PointVector, point_vector), (RayVector, ray_vector))
+  @testset "$T" for (T, fun, other) in ((PointVector, point_vector, ray_vector), (RayVector, ray_vector, point_vector))
     @test fun(a) isa T{QQFieldElem}
 
     for f in (ZZ, QQ, ENF)
@@ -57,6 +57,10 @@
           @test *(g(3), A) isa T
 
           @test *(g(3), A) == 3 * a
+
+          let Ao = other(g, a)
+            @test_throws ArgumentError A == Ao
+          end
         end
 
         for op in [+, -]
@@ -68,6 +72,19 @@
         @test 3 * A isa T
         @test 3 * A isa T{U}
         @test 3 * A == 3 * a
+
+        if T == RayVector
+          @test 5 * A == A
+          @test fun(f, 5 * a) == A
+          @test A == fun(f, 5 * a)
+          @test 5 * a == A
+          @test vcat(a, a) != A
+          @test -5 * A != A
+          @test fun(f, -5 * a) != A
+          @test A != fun(f, -5 * a)
+          @test A == 5 * a
+          @test A != vcat(a, a)
+        end
 
         if f != ENF
           let h = Int

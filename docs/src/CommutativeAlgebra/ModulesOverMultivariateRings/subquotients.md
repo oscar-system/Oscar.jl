@@ -80,7 +80,7 @@ If `M` is a subquotient with ambient free `R`-module `F`, then
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -175,7 +175,7 @@ Alternatively, directly write the element as an $R$-linear combination of genera
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -231,7 +231,7 @@ If this is already clear, it may be convenient to omit the test (`check = false`
 ##### Examples
 
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> F = free_module(R, 1)
@@ -352,6 +352,18 @@ sum(M::SubquoModule{T},N::SubquoModule{T}) where T
 
 ```@docs
 intersect(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```
+
+```@docs
+annihilator(N::SubquoModule{T}) where T
+```
+
+```@docs
+quotient(M::SubquoModule{T}, N::SubquoModule{T}) where T
+```
+
+```@docs
+quotient(M::SubquoModule{T}, J::MPolyIdeal{T}) where T
 ```
 
 ## Submodules and Quotients

@@ -1,5 +1,5 @@
 @testset "FractionalIdeal" begin
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"])
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
 
   a = fractional_ideal(ideal(R, [x, y]), z)
 

@@ -17,7 +17,7 @@ Return the `i`-th Fitting ideal of `M`.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 2);
 
@@ -92,7 +92,7 @@ Return `true` if `M` is flat, `false` otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 2);
 
@@ -149,7 +149,7 @@ is non-flat iff the prime ideal contains the returned ideal.
 
 # Examples
 ```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, ["x", "y"]);
+julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = free_module(R, 2);
 
@@ -210,7 +210,7 @@ Return `false`, otherwise.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -284,7 +284,7 @@ module of the complex $K(f_1, \dots, f_r)\otimes_R M$, where $K(f_1, \dots, f_r)
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> F = free_module(R, 1);
 
@@ -319,7 +319,7 @@ by Submodule with 1 generator
 ```
 
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> TC = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 
@@ -434,7 +434,7 @@ Return the depth of `I` on `M`.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> TC = ideal(R, [x*z-y^2, w*z-x*y, w*y-x^2]);
 
@@ -459,13 +459,13 @@ julia> depth(I, M)
 ```
 
 ```jldoctest
-julia> S, x, y = polynomial_ring(QQ, "x" => 1:3, "y" => 1:5);
+julia> S, x, y = polynomial_ring(QQ, :x => 1:3, :y => 1:5);
 
 julia> W = [y[1]-x[1]^2,  y[2]-x[2]^2,   y[3]-x[3]^2, y[4]-x[2]*(x[1]-x[3]),  y[5]-(x[1]-x[2])*x[3]];
 
 julia> J = eliminate(ideal(S, W), x);
 
-julia> R, y = polynomial_ring(QQ, "y" => 1:5);
+julia> R, y = polynomial_ring(QQ, :y => 1:5);
 
 julia> W = append!(repeat([zero(R)], 3), gens(R))
 8-element Vector{QQMPolyRingElem}:
@@ -579,7 +579,7 @@ the `p`-th map of the Koszul complex $K(f_1, \dots, f_r)$.
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> V = gens(R)
 3-element Vector{QQMPolyRingElem}:
@@ -632,7 +632,7 @@ If $f_1, \dots, f_r$ are the entries of `V` in the given order, return the Koszu
 
 # Examples
 ```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> V = gens(R)
 3-element Vector{QQMPolyRingElem}:

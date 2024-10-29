@@ -1741,7 +1741,7 @@ end
 
 
 @doc raw"""
-    simplified dual_graph(m::AbstractFTheoryModel)
+    simplified_dual_graph(m::AbstractFTheoryModel)
 
 This method returns the simplified dual graph of the QSM model in question.
 Note that no labels are (currently) attached to the vertices/nodes or edges.

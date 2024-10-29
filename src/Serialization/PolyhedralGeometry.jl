@@ -94,7 +94,17 @@ function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   end
 end
 
+function save_object(s::SerializerState{<: LPSerializer}, lp::LinearProgram{QQFieldElem})
+  lp_filename = basepath(s.serializer) * "-$(objectid(lp)).lp"
+  save_lp(lp_filename, lp)
+
+  save_object(s, basename(lp_filename))
+end
+
 function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQField)
+  if s.obj isa String
+    error("Loading this file requires using the LPSerializer")
+  end
   coeff_type = elem_type(field)
   fr = load_object(s, Polyhedron, field, :feasible_region)
   conv = load_object(s, String, :convention)
@@ -111,6 +121,14 @@ function load_object(s::DeserializerState, ::Type{<:LinearProgram}, field::QQFie
   end
   lp = Polymake._lookup_multi(pm_object(fr), "LP", index-1)
   return LinearProgram{coeff_type}(fr, lp, Symbol(conv))
+end
+
+function load_object(s::DeserializerState{LPSerializer},
+                     ::Type{<:LinearProgram}, field::QQField)
+  load_node(s) do _
+    lp_filename = dirname(basepath(s.serializer)) * "/$(s.obj)"
+    pm_lp = load_lp(lp_filename)
+  end
 end
 
 ##############################################################################

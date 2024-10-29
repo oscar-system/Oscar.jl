@@ -319,9 +319,7 @@ end
 
 function embedding(k::T, K::AlgClosure{T}) where T <: FinField
   @req characteristic(k) == characteristic(K) "incompatible characteristics"
-  f = x::FinFieldElem -> K(x)
-  finv = x::AlgClosureElem{T} -> k(x)
-  return MapFromFunc(k, K, f, finv)
+  return MapFromFunc(k, K, K, k)
 end
 
 function has_preimage_with_preimage(mp::MapFromFunc{T, AlgClosure{S}}, elm::AlgClosureElem{S}) where T <: FinField where S <: FinField

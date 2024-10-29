@@ -4,15 +4,17 @@ using JSONSchema, Oscar.JSON
 
 # we only need to define this once
 
-if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
+if !isdefined(Main, :mrdi_schema)
   mrdi_schema = Schema(JSON.parsefile(joinpath(Oscar.oscardir, "data", "schema.json")))
+end
 
+if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
   function test_save_load_roundtrip(func, path, original::T;
                                     params=nothing, check_func=nothing, kw...) where {T}
     # save and load from a file
     filename = joinpath(path, "original.json")
     save(filename, original; kw...)
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, kw...)
     
     @test loaded isa T
     func(loaded)
@@ -21,7 +23,7 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     io = IOBuffer()
     save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; params=params)
+    loaded = load(io; params=params, kw...)
 
     @test loaded isa T
     func(loaded)
@@ -30,7 +32,7 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     io = IOBuffer()
     save(io, original; kw...)
     seekstart(io)
-    loaded = load(io; type=T, params=params)
+    loaded = load(io; type=T, params=params, kw...)
 
     @test loaded isa T
     func(loaded)
@@ -38,7 +40,7 @@ if !isdefined(Main, :test_save_load_roundtrip) || isinteractive()
     # test loading on a empty state
     save(filename, original; kw...)
     Oscar.reset_global_serializer_state()
-    loaded = load(filename; params=params)
+    loaded = load(filename; params=params, kw...)
     @test loaded isa T
 
     # test schema

@@ -1,5 +1,5 @@
 using Oscar 
-R, (t, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) = polynomial_ring(QQ, ["t","x1","x2", "x3", "x4", "x5", "x6", "x7", "x8", "x9", "x10" ])
+R, (t, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10) = polynomial_ring(QQ, [:t,:x1,:x2, :x3, :x4, :x5, :x6, :x7, :x8, :x9, :x10])
 
 f = 12223*x1 + 12224*x2 +36674*x3+61119*x4+85569*x5 -89643481
 

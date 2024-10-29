@@ -194,6 +194,7 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
 end
 
 function save_attrs(s::SerializerState, obj::T) where T
+  !with_attrs(s) && return 
   if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
     save_data_dict(s, :attrs) do
       for attr in attrs_list(s, T)
@@ -254,7 +255,7 @@ function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symb
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  !s.with_attrs && return
+  !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
@@ -356,10 +357,10 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
       if !($ex <: Union{Number, String, Bool, Symbol, Vector, Tuple, Matrix, NamedTuple, Dict, Set})
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
-          Oscar.save(s.io, obj; serializer_type=Oscar.IPCSerializer)
+          Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
         end
         function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
-          Oscar.load(s.io; serializer_type=Oscar.IPCSerializer)
+          Oscar.load(s.io; serializer=Oscar.IPCSerializer())
         end
       end
     end)
@@ -450,7 +451,9 @@ macro import_all_serialization_functions()
       save_typed_object,
       serialize_with_id,
       serialize_with_params,
-      set_key
+      set_key,
+      with_attrs,
+      type_attr_map
   end
 end
 
@@ -511,11 +514,9 @@ julia> load("/tmp/fourtitwo.mrdi")
 """
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
-              serializer_type::Type{<: OscarSerializer} = JSONSerializer) where T
-  
-  s = state(serializer_open(io, serializer_type,
-                            with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}()))
-  save_data_dict(s) do
+              serializer::OscarSerializer = JSONSerializer()) where T
+  s = serializer_open(io, serializer, with_attrs)
+  save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
 
@@ -528,21 +529,9 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
         global_serializer_state.id_to_obj[ref] = obj
       end
       save_object(s, string(ref), :id)
-
     end
 
-    # this should be handled by serializers in a later commit / PR
-    if !isempty(s.refs) && serializer_type == JSONSerializer
-      save_data_dict(s, refs_key) do
-        for id in s.refs
-          ref_obj = global_serializer_state.id_to_obj[id]
-          s.key = Symbol(id)
-          save_data_dict(s) do
-            save_typed_object(s, ref_obj)
-          end
-        end
-      end
-    end
+    handle_refs(s)
 
     if !isnothing(metadata)
       save_json(s, JSON3.write(metadata), :meta)
@@ -552,13 +541,19 @@ function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
   return nothing
 end
 
-function save(filename::String, obj::Any; metadata::Union{MetaData, Nothing}=nothing,
+function save(filename::String, obj::Any;
+              metadata::Union{MetaData, Nothing}=nothing,
+              serializer::OscarSerializer=JSONSerializer(),
               with_attrs::Bool=true)
   dir_name = dirname(filename)
   # julia dirname does not return "." for plain filenames without any slashes
   temp_file = tempname(isempty(dir_name) ? pwd() : dir_name)
+  
   open(temp_file, "w") do file
-    save(file, obj; metadata=metadata, with_attrs=with_attrs)
+    save(file, obj;
+         metadata=metadata,
+         with_attrs=with_attrs,
+         serializer=serializer)
   end
   Base.Filesystem.rename(temp_file, filename) # atomic "multi process safe"
   return nothing
@@ -596,7 +591,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
 42
 
-julia> R, x = QQ["x"]
+julia> R, x = QQ[:x]
 (Univariate polynomial ring in x over QQ, x)
 
 julia> p = x^2 - x + 1
@@ -622,8 +617,8 @@ true
 ```
 """
 function load(io::IO; params::Any = nothing, type::Any = nothing,
-              serializer_type=JSONSerializer, with_attrs::Bool=true)
-  s = state(deserializer_open(io, serializer_type, with_attrs))
+              serializer=JSONSerializer(), with_attrs::Bool=true)
+  s = deserializer_open(io, serializer, with_attrs)
   if haskey(s.obj, :id)
     id = s.obj[:id]
     if haskey(global_serializer_state.id_to_obj, UUID(id))
@@ -658,9 +653,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict = copy(s.obj)
     jsondict = upgrade(file_version, jsondict)
     jsondict_str = JSON3.write(jsondict)
-    s = state(deserializer_open(IOBuffer(jsondict_str),
-                                serializer_type,
-                                with_attrs))
+    s = deserializer_open(IOBuffer(jsondict_str),
+                                serializer,
+                                with_attrs)
   end
 
   try
@@ -704,7 +699,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     end
     return loaded
   catch e
-    if file_version > VERSION_NUMBER
+    if VersionNumber(replace(string(file_version), r"DEV.+" => "DEV")) > VERSION_NUMBER
       @warn """
       Attempted loading file stored with Oscar version $file_version
       using Oscar version $VERSION_NUMBER
@@ -720,8 +715,9 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 end
 
 function load(filename::String; params::Any = nothing,
-              type::Any = nothing, with_attrs::Bool=true)
+              type::Any = nothing, with_attrs::Bool=true,
+              serializer::OscarSerializer=JSONSerializer())
   open(filename) do file
-    return load(file; params=params, type=type)
+    return load(file; params=params, type=type, serializer=serializer)
   end
 end

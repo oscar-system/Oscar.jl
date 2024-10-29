@@ -50,7 +50,7 @@ include(
     @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
   end
 
-  @testset "WeylGroup Group conformace test for $(Gname)" for (Gname, G) in [
+  @testset "WeylGroup Group conformace test for $(Wname)" for (Wname, W) in [
     ("A1", weyl_group(:A, 1)),
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
@@ -87,8 +87,37 @@ include(
     ),
   ]
     # TODO: @felix-roehrich make this work
-    # test_Group_interface(G)
-    # test_GroupElem_interface(rand(G, 2)...)
+    # test_Group_interface(W)
+    # test_GroupElem_interface(rand(W, 2)...)
+
+    @testset "isomorphism(FPGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
+                                                                                     [
+      false, true
+    ]
+      G = fp_group(W; set_properties)
+      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+        @test is_finite(G) == is_finite(W)
+        is_finite(W) && @test order(G) == order(W)
+      end
+
+      iso = isomorphism(FPGroup, W; set_properties)
+      @test W == domain(iso)
+      G = codomain(iso)
+      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+        @test is_finite(G) == is_finite(W)
+        is_finite(W) && @test order(G) == order(W)
+        if ngens(W) < 10 #= for sane runtime =#
+          for _ in 1:5
+            if is_finite(W) # remove once rand(W) is implemented for infinite groups
+              w = rand(W)
+              @test w == inv(iso)(iso(w))
+            end
+            g = rand_pseudo(G)
+            @test g == iso(inv(iso)(g))
+          end
+        end
+      end
+    end
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin

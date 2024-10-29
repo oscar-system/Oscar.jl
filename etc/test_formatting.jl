@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(; temp=true)
 Pkg.add("Test")
-Pkg.add("JuliaFormatter")
+Pkg.add(name="JuliaFormatter", version="1")
 using Test
 using JuliaFormatter
 
@@ -65,8 +65,8 @@ result = 0
   failed = String[]
 
   for file in entire
-    is_enabled = !isnothing(findfirst(e -> occursin(e, file), enabled))
-    should_skip = !isnothing(findfirst(e -> occursin(e, file), skip))
+    is_enabled = !isnothing(findfirst(occursin(file), enabled))
+    should_skip = !isnothing(findfirst(occursin(file), skip))
     if is_enabled && !should_skip
       # Do not actually format file, only check whether format is ok.
       res = @test format(file; overwrite=false)

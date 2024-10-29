@@ -33,8 +33,7 @@ julia> H == alternating_group(4)
 true
 ```
 """
-function sub(G::GAPGroup, gens::AbstractVector{S}; check::Bool = true) where S <: GAPGroupElem
-  @assert elem_type(G) == S
+function sub(G::GAPGroup, gens::AbstractVector{<: GAPGroupElem}; check::Bool = true)
   if check
     @req all(x -> parent(x) === G || x in G, gens) "not all elements of gens lie in G"
   end
@@ -68,7 +67,7 @@ false
 """
 function is_subset(H::GAPGroup, G::GAPGroup)
    _check_compatible(H, G, error = false) || return false
-   return all(h -> h in G, gens(H))
+   return all(in(G), gens(H))
 end
 
 """
