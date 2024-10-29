@@ -15,8 +15,8 @@ julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
 
 julia> A = Oscar.IdealGens([x*y-3*x,y^3-2*x^2*y])
 Ideal generating system with elements
-  1 -> x*y - 3*x
-  2 -> -2*x^2*y + y^3
+  1: x*y - 3*x
+  2: -2*x^2*y + y^3
 
 julia> B,m = Oscar._compute_standard_basis_with_transform(A, degrevlex(R))
 (Ideal generating system with 3 elements with associated ordering degrevlex([x, y]), [1 2*x -2*x^2+y^2+3*y+9; 0 1 -x])

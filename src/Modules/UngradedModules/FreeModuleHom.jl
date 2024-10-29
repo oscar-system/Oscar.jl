@@ -113,13 +113,9 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]]
  z*e[2]
 
 julia> a = hom(F, G, V)
-Map with following data
-Domain:
-=======
-Free module of rank 3 over R
-Codomain:
-=========
-Free module of rank 2 over R
+Module homomorphism
+  from F
+  to G
 
 julia> a(F[2])
 x*e[1] + y*e[2]
@@ -130,13 +126,9 @@ julia> B = R[y 0; x y; 0 z]
 [0   z]
 
 julia> b = hom(F, G, B)
-Map with following data
-Domain:
-=======
-Free module of rank 3 over R
-Codomain:
-=========
-Free module of rank 2 over R
+Module homomorphism
+  from F
+  to G
 
 julia> a == b
 true
@@ -158,11 +150,13 @@ julia> V1 = [y*G1[1], (x+y)*G1[1]+y*G1[2], z*G1[2]]
  z*e[2]
 
 julia> a1 = hom(F1, G1, V1)
-F1 -> G1
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Graded module homomorphism of degree [1]
+  from F1
+  to G1
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> F2 = graded_free_module(Rg, [1,1,1])
 Graded free module Rg^3([-1]) of rank 3 over Rg
@@ -177,11 +171,13 @@ julia> V2 = [y*G2[1], (x+y)*G2[1]+y*G2[2], z*G2[2]]
  z*e[2]
 
 julia> a2 = hom(F2, G2, V2)
-F2 -> G2
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Homogeneous module homomorphism
+  from F2
+  to G2
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> B = Rg[y 0; x+y y; 0 z]
 [    y   0]
@@ -189,11 +185,13 @@ julia> B = Rg[y 0; x+y y; 0 z]
 [    0   z]
 
 julia> b = hom(F2, G2, B)
-F2 -> G2
-e[1] -> y*e[1]
-e[2] -> (x + y)*e[1] + y*e[2]
-e[3] -> z*e[2]
 Homogeneous module homomorphism
+  from F2
+  to G2
+defined by
+  e[1] -> y*e[1]
+  e[2] -> (x + y)*e[1] + y*e[2]
+  e[3] -> z*e[2]
 
 julia> a2 == b
 true
@@ -277,40 +275,42 @@ function morphism_type(
 end
 
 function Base.show(io::IO, ::MIME"text/plain", fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  # HACK
-  show(io, fmh)
+   println(terse(io), fmh)
+   io = pretty(io)
+   io_compact = IOContext(io, :compact => true)
+   println(io_compact, Indent(), "from ", Lowercase(), domain(fmh))
+   print(io_compact, "to ", Lowercase(), codomain(fmh), Dedent())
+
+  if is_graded(fmh)
+    println(io)
+    print(io, "defined by", Indent())
+    io = terse(io)
+    domain_gens = gens(domain(fmh))
+    for g in domain_gens
+      println(io)
+      print(io, g, " -> ", fmh(g))
+    end
+  end
 end
 
 function Base.show(io::IO, fmh::FreeModuleHom{T1, T2, RingMapType}) where {T1 <: AbstractFreeMod, T2 <: ModuleFP, RingMapType}
-  compact = get(io, :compact, false)
-  io_compact = IOContext(io, :compact => true)
-  if is_graded(fmh)  
-    print(io_compact, domain(fmh))
-    print(io, " -> ")
-    print(io_compact, codomain(fmh))
-    if !compact
-      print(io, "\n")
-      for i in 1:ngens(domain(fmh))
-        print(io, domain(fmh)[i], " -> ")
-        print(io_compact, fmh(domain(fmh)[i]))
-        print(io, "\n")
-      end
+  if is_terse(io)
+    if is_graded(fmh)
       A = grading_group(fmh)
       if degree(fmh) == A[0]
         print(io, "Homogeneous module homomorphism")
       else
-        print(io_compact, "Graded module homomorphism of degree ", degree(fmh))
-        print(io, "\n")
+        print(io, "Graded module homomorphism of degree ", degree(fmh))
       end
+    else
+        print(io, "Module homomorphism")
     end
   else
-    println(io, "Map with following data")
-    println(io, "Domain:")
-    println(io, "=======")
-    println(io, domain(fmh))
-    println(io, "Codomain:")
-    println(io, "=========")
-    print(io, codomain(fmh))
+    io = pretty(io)
+    print(io, "Hom: ")
+    io = terse(io)
+    print(io, Lowercase(), domain(fmh), " -> ")
+    print(io, Lowercase(), codomain(fmh))
   end
 end
 
@@ -335,13 +335,9 @@ julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
-Map with following data
-Domain:
-=======
-Free module of rank 3 over R
-Codomain:
-=========
-Free module of rank 2 over R
+Module homomorphism
+  from F1
+  to F2
 
 ```
 
@@ -358,11 +354,13 @@ julia> V, f = hom(F1, F2)
 (hom of (F1, F2), Map: V -> set of all homomorphisms from F1 to F2)
 
 julia> f(V[1])
-F1 -> F2
-e[1] -> e[1]
-e[2] -> 0
-e[3] -> 0
 Graded module homomorphism of degree [2]
+  from F1
+  to F2
+defined by
+  e[1] -> e[1]
+  e[2] -> 0
+  e[3] -> 0
 
 ```
 """
@@ -427,16 +425,10 @@ julia> a = hom(F, G, V);
 
 julia> kernel(a)
 (Submodule with 1 generator
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations., Map with following data
-Domain:
-=======
-Submodule with 1 generator
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations.
-Codomain:
-=========
-Free module of rank 3 over R)
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Hom: submodule with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> F)
 ```
 
 ```jldoctest
@@ -451,13 +443,11 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 julia> a = hom(F, G, V);
 
 julia> kernel(a)
-(Graded submodule of F
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations, Graded submodule of F
-1 -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-represented as subquotient with no relations -> F
-x*z*e[1] - y*z*e[2] + y^2*e[3] -> x*z*e[1] - y*z*e[2] + y^2*e[3]
-Homogeneous module homomorphism)
+(Graded submodule of F with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations, Hom: graded submodule of F with 1 generator
+  1: x*z*e[1] - y*z*e[2] + y^2*e[3]
+represented as subquotient with no relations -> F)
 
 ```
 """
@@ -560,20 +550,14 @@ julia> a = hom(F, G, V);
 
 julia> image(a)
 (Submodule with 3 generators
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations., Map with following data
-Domain:
-=======
-Submodule with 3 generators
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations.
-Codomain:
-=========
-Free module of rank 2 over R)
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations, Hom: submodule with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations -> G)
 ```
 
 ```jldoctest
@@ -588,19 +572,15 @@ julia> V = [y*G[1], x*G[1]+y*G[2], z*G[2]];
 julia> a = hom(F, G, V);
 
 julia> image(a)
-(Graded submodule of G
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations, Graded submodule of G
-1 -> y*e[1]
-2 -> x*e[1] + y*e[2]
-3 -> z*e[2]
-represented as subquotient with no relations -> G
-y*e[1] -> y*e[1]
-x*e[1] + y*e[2] -> x*e[1] + y*e[2]
-z*e[2] -> z*e[2]
-Homogeneous module homomorphism)
+(Graded submodule of G with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations, Hom: graded submodule of G with 3 generators
+  1: y*e[1]
+  2: x*e[1] + y*e[2]
+  3: z*e[2]
+represented as subquotient with no relations -> G)
 
 ```
 """

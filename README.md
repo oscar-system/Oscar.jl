@@ -70,34 +70,28 @@ Free module of rank 1 over R
 
 julia> s = sub(F, [f*F[1]])[1]
 Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
-represented as subquotient with no relations.
+  1: (x1^2 + x2)*e[1]
+represented as subquotient with no relations
 
 julia> H, mH = hom(s, quo(F, s)[1])
-(hom of (s, Subquotient of
-1 -> e[1]
-by
-1 -> (x1^2 + x2)*e[1]), Map: H -> set of all homomorphisms from s to subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1])
+(hom of (s, Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: (x1^2 + x2)*e[1]), Map: H -> set of all homomorphisms from s to subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: (x1^2 + x2)*e[1])
 
 julia> mH(H[1])
-Map with following data
-Domain:
-=======
-Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
-represented as subquotient with no relations.
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
+Module homomorphism
+  from s
+  to subquotient of submodule with 1 generator
+    1: e[1]
+  by submodule with 1 generator
+    1: (x1^2 + x2)*e[1]
 ```
 
-Of course, the cornerstones are also available directly:
+Of course, the cornerstones are also available directly. For example:
 
 ```
 julia> C = Polymake.polytope.cube(3);

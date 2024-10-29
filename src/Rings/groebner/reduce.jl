@@ -289,9 +289,9 @@ julia> I = ideal(R, [x*y, y^3]);
 
 julia> gb = groebner_basis(J)
 Gröbner basis with elements
-  1 -> x*y + 10*y^2
-  2 -> x^2
-  3 -> y^3
+  1: x*y + 10*y^2
+  2: x^2
+  3: y^3
 with respect to the ordering
   degrevlex([x, y, z])
 
@@ -593,8 +593,8 @@ false
 
 julia> standard_basis(I, ordering=neglex(R))
 Standard basis with elements
-  1 -> y
-  2 -> x^2
+  1: y
+  2: x^2
 with respect to the ordering
   neglex([x, y])
 
@@ -646,9 +646,9 @@ false
 
 julia> groebner_basis(I, ordering=lex(R))
 Gröbner basis with elements
-  1 -> y^2 + y
-  2 -> x*y - y
-  3 -> x^2 + y
+  1: y^2 + y
+  2: x*y - y
+  3: x^2 + y
 with respect to the ordering
   lex([x, y])
 

@@ -50,25 +50,15 @@ julia> range(C)
 5:-1:3
 
 julia> C[5]
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: x^4*e[1]
 
 julia> delta = map(C, 5)
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^4*e[1]
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> x^3*e[1]
+Module homomorphism
+  from A
+  to B
 
 julia> matrix(delta)
 [x^2]

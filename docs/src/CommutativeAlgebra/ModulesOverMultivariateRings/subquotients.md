@@ -96,13 +96,13 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> base_ring(M)
 Multivariate polynomial ring in 3 variables x, y, z
@@ -134,12 +134,12 @@ julia> relations(M)
  z^4*e[1]
 
 julia> ambient_module(M)
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 ```
 
 In the graded case, we also have:
@@ -191,13 +191,13 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> m = M(sparse_row(R, [(1,z),(2,one(R))]))
 (x*z + y)*e[1]
@@ -247,25 +247,25 @@ julia> B = R[x^2; y^3; z^4]
 [z^4]
 
 julia> M = SubquoModule(F, A, B)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> m = z*M[1] + M[2]
 (x*z + y)*e[1]
 
 julia> parent(m)
-Subquotient of Submodule with 2 generators
-1 -> x*e[1]
-2 -> y*e[1]
-by Submodule with 3 generators
-1 -> x^2*e[1]
-2 -> y^3*e[1]
-3 -> z^4*e[1]
+Subquotient of submodule with 2 generators
+  1: x*e[1]
+  2: y*e[1]
+by submodule with 3 generators
+  1: x^2*e[1]
+  2: y^3*e[1]
+  3: z^4*e[1]
 
 julia> coordinates(m)
 Sparse row with positions [1, 2] and values QQMPolyRingElem[z, 1]
