@@ -872,7 +872,7 @@ end
 function _find_good_representative_chart(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I)))
   # We assume that I is prime
   # TODO: Make this an hassert?
-  @assert is_prime(I)
+  @hassert :IdealSheaves 2 is_prime(I)
   X = scheme(I)
 
   # Some heuristics to choose a reasonably "easy" chart
