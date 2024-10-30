@@ -1671,21 +1671,99 @@ function set_good_reduction_map!(X::EllipticSurface, red_map::Map)
   set_attribute!(X, :good_reduction_map=>red_map)
 end
 
-@attr Tuple{<:Map, <:AbsCoveredSchemeMorphism} function raw_good_reduction(X::EllipticSurface)
+function get_good_reduction_map(X::EllipticSurface)
   is_zero(characteristic(base_ring(X))) || error("reduction to positive characteristic is only possible from characteristic zero")
   has_attribute(X, :good_reduction_map) || error("no reduction map is available; please set it manually via `set_good_reduction_map!`")
-  red_map = get_attribute(X, :good_reduction_map)::Map
-  _, result = base_change(red_map, X)
-  return red_map, result
+  return get_attribute(X, :good_reduction_map)::Map
 end
 
-function reduction_of_algebraic_lattice(X::EllipticSurface)
-  return get_attribute!(X, :reduction_of_algebraic_lattice) do
-    @assert has_attribute(X, :reduction_to_pos_char) "no reduction morphism specified"
-    red_map, bc = raw_good_reduction(X)
+@attr Tuple{<:AbsCoveredScheme, <:AbsCoveredSchemeMorphism} function raw_good_reduction(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  X_red, bc_map = base_change(red_map, X)
+  set_attribute!(X_red, :is_irreducible=>true)
+  set_attribute!(X_red, :is_reduced=>true)
+  set_attribute!(X_red, :is_integral=>true)
+  set_attribute!(X_red, :is_equidimensional=>true)
+  return X_red, bc_map
+end
+
+@attr Map function good_reduction_function_fields(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E = generic_fiber(X)
+  Ft = base_field(E)
+  Pt = base_ring(Ft)
+  kk = coefficient_ring(Pt)
+  kk_red = codomain(red_map)
+  Pt_red, _ = polynomial_ring(kk_red, first(symbols(Pt)); cached=false)
+  Ft_red = fraction_field(Pt_red)
+  Ft_to_Ft_red = map_from_func(fr->Ft_red(map_coefficients(red_map, numerator(fr); parent=Pt_red), map_coefficients(red_map, denominator(fr); parent=Pt_red)), Ft, Ft_red)
+  return Ft_to_Ft_red
+end
+
+@attr EllipticCurve function good_reduction_generic_fiber(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E = generic_fiber(X)
+  Ft_to_Ft_red = good_reduction_function_fields(X)
+  E_red = base_change(Ft_to_Ft_red, E)
+  return E_red
+end
+
+@attr Vector{<:EllipticCurvePoint} function good_reduction_rational_points(X::EllipticSurface)
+  red_map = good_reduction_function_fields(X)
+  result = Vector{EllipticCurvePoint}()
+  E_red = good_reduction_generic_fiber(X)
+  for P in X.MWL # TODO: Do we have a getter for this?
+    if is_infinite(P)
+      push!(result, infinity(E_red))
+      continue
+    end
+    push!(result, E_red([red_map(P[1]), red_map(P[2])]))
+  end
+  return result
+end
+
+@attr EllipticSurface function good_reduction(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E_red = good_reduction_generic_fiber(X)
+  mwl_red = good_reduction_rational_points(X)
+  X_red = EllipticSurface(E_red, 2, mwl_red; resolution_strategy=X.resolution_strategy)
+end
+
+@attr Tuple{<:MorphismFromRationalFunctions, <:MorphismFromRationalFunctions} function identifications_with_raw_good_reduction(X::EllipticSurface)
+  X_red = good_reduction(X)
+  W_red = weierstrass_chart_on_minimal_model(X_red)
+  X_red_raw, red_raw = raw_good_reduction(X)
+  red_raw_cov = covering_morphism(red_raw)
+  W_red_raw = domain(first(maps_with_given_codomain(red_raw_cov, weierstrass_chart_on_minimal_model(X))))
+  
+  R_red = ambient_coordinate_ring(W_red)
+  R_red_raw = ambient_coordinate_ring(W_red_raw)
+  raw_to_red = morphism_from_rational_functions(X_red_raw, X_red, W_red_raw, W_red, fraction_field(R_red_raw).(gens(R_red_raw)); check=false)
+  set_attribute!(raw_to_red, :is_isomorphism=>true)
+  red_to_raw = morphism_from_rational_functions(X_red, X_red_raw, W_red, W_red_raw, fraction_field(R_red).(gens(R_red)); check=false)
+  set_attribute!(red_to_raw, :is_isomorphism=>true)
+  return raw_to_red, red_to_raw
+end
+
+
+function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
+  return get_attribute!(X, :raw_reduction_of_algebraic_lattice) do
+    X_red_raw, bc = raw_good_reduction(X)
     basis_ambient, _, _= algebraic_lattice(X)
     return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
   end::IdDict
+end
+
+@attr ZZMatrix function good_reduction_algebraic_lattice(X::EllipticSurface)
+  div_red = raw_reduction_of_algebraic_lattice(X)
+  from, to = identifications_with_raw_good_reduction(X)
+  div_red_pf = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>pushforward(from, E) for (D, E) in div_red)
+  basis, _, _= algebraic_lattice(X)
+  X_red = good_reduction(X)
+  red_basis, _, _= algebraic_lattice(X_red)
+  result = matrix(ZZ, [div_red_pf[D] == E ? one(ZZ) : zero(ZZ) for D in basis, E in red_basis])
+  result[1, 1] = one(ZZ) # identify the generic fibers
+  return result
 end
 
 @doc raw"""
@@ -1702,7 +1780,7 @@ function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   kk = base_ring(X)
   if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
-    red_map, bc = raw_good_reduction(X)
+    X_red_raw, bc = raw_good_reduction(X)
     red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
     D_red = _reduce_as_prime_divisor(bc, D)
     for (i, E) in enumerate(basis_ambient)
