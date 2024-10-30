@@ -2046,7 +2046,7 @@ julia> R, (x,y) = graded_polynomial_ring(QQ, [:x, :y])
 (Graded multivariate polynomial ring in 2 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y])
 
 julia> free_module_dec(R,3)
-Decorated free module of rank 3 over RR^3([0])
+Decorated free module of rank 3 over R
 
 ```
 """
@@ -2107,23 +2107,9 @@ function show(io::IO, F::FreeMod_dec)
   @show_special(io, F)
 
   io = terse(io)
+  io = pretty(io)
   print(io, "Decorated free module of rank $(rank(F)) over ")
-  print(IOContext(io, :compact => true), base_ring(F))
-
-  i = 1
-  while i < dim(F)
-    d = F.d[i]
-    j = 1
-    while i+j <= dim(F) && d == F.d[i+j]
-      j += 1
-    end
-    print(IOContext(io, :compact => true), base_ring(F), "^$j")
-    print(IOContext(io, :compact => true), "(", -d, ")")
-    if i+j < dim(F)
-      print(io, " + ")
-    end
-    i += j
-  end
+  print(IOContext(io, :compact => true), Lowercase(), base_ring(F))
 end
 
 # Generic specialized show methods (formerly in Hecke)
