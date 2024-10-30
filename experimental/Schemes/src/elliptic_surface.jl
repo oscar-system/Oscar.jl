@@ -1766,6 +1766,30 @@ end
   return result
 end
 
+@attr MorphismFromRationalFunctions function good_reduction(
+    f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}
+  )
+  X = domain(f)
+  @assert X === codomain(f) "reduction to positive characteristic is only implemented for automorphisms"
+  W = weierstrass_chart_on_minimal_model(X)
+  @assert W === domain_chart(f) === codomain_chart(f) "morphism must be defined on the Weierstrass charts"
+  img_gens = coordinate_images(f)
+  red_map = get_good_reduction_map(X)
+
+  X_red = good_reduction(X)
+  W_red = weierstrass_chart_on_minimal_model(X_red)
+  R = ambient_coordinate_ring(W_red)
+  FR = fraction_field(R)
+  
+  psi = fr -> FR(map_coefficients(red_map, numerator(fr); parent=R), map_coefficients(red_map, denominator(fr); parent=R))
+
+  img_gens_red = psi.(img_gens)
+  result = morphism_from_rational_functions(X_red, X_red, W_red, W_red, img_gens_red; check=false)
+  has_attribute(f, :is_isomorphism) && get_attribute(f, :is_isomorphism)===true && set_attribute!(result, :is_isomorphism=>true)
+  return result
+end
+
+
 @doc raw"""
     basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
 
@@ -1812,7 +1836,6 @@ end
 
 function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::EllipticSurfaceSection)
   P = rational_point(D)
-  @show is_infinite(P)
   is_infinite(P) && return _reduce_as_prime_divisor(bc, underlying_divisor(D))
   X = codomain(bc)
   @assert parent(P) === generic_fiber(X)
@@ -2525,7 +2548,7 @@ function morphism_from_section(
   II = first(components(divisor))
 
   # For the zero section we can not use the Weierstrass chart
-  if P.is_infinite
+  if is_infinite(P)
     return identity_map(X)
   end
   @assert !is_one(II(U))
@@ -3190,3 +3213,4 @@ function _mordell_weil_group(X)
   Triv = lattice(V, identity_matrix(QQ,dim(V))[1:t,:])
   return torsion_quadratic_module(N, Triv;modulus=1, modulus_qf=1, check=false)
 end 
+
