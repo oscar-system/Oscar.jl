@@ -611,6 +611,10 @@ function _parent_or_coefficient_field(::Type{T}, x, y...) where {T<:scalar_types
   missing
 end
 
+function _parent_or_coefficient_field(::Type{T}, c::Tuple) where {T<:FieldElem}
+  return _parent_or_coefficient_field(T, c...)
+end
+
 function _determine_parent_and_scalar(f::Union{Field,ZZRing}, x...)
   _check_field_polyhedral(elem_type(f))
   return (f, elem_type(f))

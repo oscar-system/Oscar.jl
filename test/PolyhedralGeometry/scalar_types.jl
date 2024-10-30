@@ -96,6 +96,11 @@
       )
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
     end
+    let ng = n_gon(5)
+      (A,b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A,b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A,b)) == coefficient_field((ng))
+    end
   end
 
   @testset "Cross scalar operations" begin
