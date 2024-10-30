@@ -8,7 +8,7 @@
   # weight
   @test weight(young_tableau([[1,2,3],[1,2],[1]])) == [3,2,1]
   @test weight(young_tableau([[1,2,3,4,5]])) == [1,1,1,1,1]
-  @test weight(young_tableau([[1],[1],[1]])) == [3]
+  @test_throws  ArgumentError  weight(young_tableau([[1],[1],[1]]))
   @test weight(young_tableau(Array{Int,1}[])) == Int[]
 
   # is_standard
