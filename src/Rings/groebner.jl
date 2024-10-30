@@ -123,6 +123,7 @@ Return a standard basis of `I` with respect to `ordering`.
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:modular` (implementation of multi-modular approach, if applicable),
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*),
 - `:hc` (implementation of Buchberger's algorithm in *Singular* trying to first compute the highest corner modulo some prime), and
@@ -162,6 +163,16 @@ function standard_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
       I.gb[ordering] = _compute_standard_basis(I.gens, ordering, complete_reduction)
     elseif complete_reduction == true
       I.gb[ordering] = _compute_standard_basis(I.gb[ordering], ordering, complete_reduction)
+    end
+  elseif algorithm == :modular
+    if is_f4_applicable(I, ordering)
+      #  since msolve v0.7.0 is most of the time more efficient
+      #  to compute a reduced GB by default
+      groebner_basis_f4(I, complete_reduction=true)
+    elseif base_ring(I) isa QQMPolyRing
+      groebner_basis_modular(I, ordering=ordering)
+    else
+      error("Modular option not applicable in this setting.")
     end
   elseif algorithm == :fglm
     _compute_groebner_basis_using_fglm(I, ordering)
@@ -217,6 +228,7 @@ If `ordering` is global, return a Gröbner basis of `I` with respect to `orderin
 
 The keyword `algorithm` can be set to
 - `:buchberger` (implementation of Buchberger's algorithm in *Singular*),
+- `:modular` (implementation of multi-modular approach, if applicable),
 - `:hilbert` (implementation of a Hilbert driven Gröbner basis computation in *Singular*),
 - `:fglm` (implementation of the FGLM algorithm in *Singular*), and
 - `:f4` (implementation of Faugère's F4 algorithm in the *msolve* package).
@@ -331,7 +343,7 @@ function is_f4_applicable(I::MPolyIdeal, ordering::MonomialOrdering)
             && ((coefficient_ring(I) isa FqField
                  && absolute_degree(coefficient_ring(I)) == 1
                  && characteristic(coefficient_ring(I)) < 2^31)
-                || coefficient_ring(I) == QQ))
+                || base_ring(I) isa QQMPolyRing))
 end
 
 @doc raw"""
@@ -506,30 +518,7 @@ function groebner_basis_with_transformation_matrix(I::MPolyIdeal; ordering::Mono
 end
 
 # syzygies #######################################################
-@doc raw"""
-    syzygy_generators(G::Vector{<:MPolyRingElem})
-
-Return generators for the syzygies on the polynomials given as elements of `G`.
-
-# Examples
-```jldoctest
-julia> R, (x, y) = polynomial_ring(QQ, [:x, :y])
-(Multivariate polynomial ring in 2 variables over QQ, QQMPolyRingElem[x, y])
-
-julia> S = syzygy_generators([x^3+y+2,x*y^2-13*x^2,y-14])
-3-element Vector{FreeModElem{QQMPolyRingElem}}:
- (-y + 14)*e[2] + (-13*x^2 + x*y^2)*e[3]
- (-169*y + 2366)*e[1] + (-13*x*y + 182*x - 196*y + 2744)*e[2] + (13*x^2*y^2 - 2548*x^2 + 196*x*y^2 + 169*y + 338)*e[3]
- (-13*x^2 + 196*x)*e[1] + (-x^3 - 16)*e[2] + (x^4*y + 14*x^4 + 13*x^2 + 16*x*y + 28*x)*e[3]
-```
-"""
-function syzygy_generators(a::Vector{<:MPolyRingElem})
-  I = ideal(a)
-  s = Singular.syz(singular_generators(I))
-  F = free_module(parent(a[1]), length(a))
-  @assert rank(s) == length(a)
-  return [F(s[i]) for i=1:Singular.ngens(s)]
-end
+# See src/Modules/UngradedModules/FreeMod.jl for the implementation. 
 
 # leading ideal #######################################################
 @doc raw"""

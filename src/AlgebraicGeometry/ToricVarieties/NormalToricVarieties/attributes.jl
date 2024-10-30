@@ -210,7 +210,10 @@ julia> coordinate_names(antv)
 ```
 """
 @attr Vector{String} function coordinate_names(v::NormalToricVarietyType)
-    return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
+  if has_attribute(v, :cox_ring)
+    return string.(symbols(cox_ring(v)))
+  end
+  return ["x$(i)" for i in 1:torsion_free_rank(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -749,7 +752,14 @@ Map
 @attr FinGenAbGroupHom function map_from_torusinvariant_weil_divisor_group_to_class_group(v::NormalToricVarietyType)
     map1 = cokernel(map_from_character_lattice_to_torusinvariant_weil_divisor_group(v))[2]
     map2 = inv(snf(codomain(map1))[2])
-    return map1*map2
+    # we cannot call class_group unless the attribute exists
+    # but we need to make sure to have the correct codomain if it does exist
+    if has_attribute(v, :class_group)
+      cg = class_group(v)
+      return map1*map2*hom(codomain(map2), cg, gens(cg))
+    else
+      return map1*map2
+    end
 end
 
 

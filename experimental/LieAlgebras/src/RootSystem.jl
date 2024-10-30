@@ -1238,8 +1238,8 @@ function dominant_weights(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
 end
 
 function dominant_weights(
-  T::Type{<:Vector{<:IntegerUnion}}, R::RootSystem, hw::WeightLatticeElem
-)
+  ::Type{T}, R::RootSystem, hw::WeightLatticeElem
+) where {T<:Vector{<:IntegerUnion}}
   weights = dominant_weights(WeightLatticeElem, R, hw)
   return [T(_vec(coefficients(w))) for w in weights]
 end

@@ -82,7 +82,7 @@ julia> ray_generators = [[1,0], [0, 1], [-1, 5], [0, -1]]
  [-1, 5]
  [0, -1]
 
-julia> max_cones = IncidenceMatrix([[1, 2], [2, 3], [3, 4], [4, 1]])
+julia> max_cones = incidence_matrix([[1, 2], [2, 3], [3, 4], [4, 1]])
 4×4 IncidenceMatrix
 [1, 2]
 [2, 3]

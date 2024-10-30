@@ -24,7 +24,7 @@ import Hecke.orbit
 
 
 """
-    GSetByElements{T,S} <: GSet{T}
+    GSetByElements{T,S} <: GSet{T,S}
 
 Objects of this type represent G-sets that are willing to write down
 orbits and elements lists as vectors.
@@ -36,7 +36,7 @@ The fields are
 - the seeds (something iterable of eltype `S`) whose closure under the action is the G-set
 - the dictionary used to store attributes (orbits, elements, ...).
 """
-@attributes mutable struct GSetByElements{T,S} <: GSet{T}
+@attributes mutable struct GSetByElements{T,S} <: GSet{T,S}
     group::T
     action_function::Function
     seeds
@@ -229,7 +229,7 @@ end
 #TODO: Compute membership without writing down all elements,
 #      using what is called `RepresentativeAction` in GAP.
 
-function Base.in(omega, Omega::GSetByElements)
+function Base.in(omega::S, Omega::GSetByElements{T,S}) where {T,S}
     omega in Omega.seeds && return true
     return omega in elements(Omega)
 end
@@ -256,12 +256,12 @@ as_gset(G::T, Omega) where T<:Union{GAPGroup,FinGenAbGroup} = as_gset(G, ^, Omeg
 ##    not via the action function stored in the G-set,
 ##  - write something like `orbit(omega)`, `stabilizer(omega)`.
 
-struct ElementOfGSet
-    gset::GSet
-    obj::Any
+struct ElementOfGSet{T, S, G <: GSet{T, S}}
+    gset::G
+    obj::S
 end
 
-function (Omega::GSet)(obj::Any)
+function (Omega::GSet{T, S})(obj::S) where {T, S}
     return ElementOfGSet(Omega, obj)
 end
 
@@ -345,7 +345,7 @@ julia> length(orbit(Omega, 1))
 4
 ```
 """
-function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
+function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     G = acting_group(Omega)
     acts = GapObj(gens(G))
     gfun = GapObj(action_function(Omega))
@@ -353,7 +353,7 @@ function orbit(Omega::GSetByElements{<:GAPGroup}, omega::T) where T
     # The following works only because GAP does not check
     # whether the given (dummy) group 'GapObj(G)' fits to the given generators,
     # or whether the elements of 'acts' are group elements.
-    orb = Vector{T}(GAP.Globals.Orbit(GapObj(G), omega, acts, acts, gfun)::GapObj)
+    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), omega, acts, acts, gfun)::GapObj)
 
     res = as_gset(acting_group(Omega), action_function(Omega), orb)
     # We know that this G-set is transitive.
@@ -413,7 +413,8 @@ julia> map(collect, orbs)
 """
 @attr Vector{GSetByElements{T,S}} function orbits(Omega::GSetByElements{T,S}) where {T <: Union{GAPGroup, FinGenAbGroup},S}
   orbs = GSetByElements{T,S}[]
-  for p in Omega.seeds
+  for p_ in Omega.seeds
+    p = p_::S
     if all(o -> !(p in o), orbs)
       push!(orbs, orbit(Omega, p))
     end
@@ -440,6 +441,34 @@ julia> map(length, orbs)
 ```
 """
 @attr Vector{GSetByElements{PermGroup, Int}} orbits(G::PermGroup) = orbits(gset(G))
+
+
+"""
+    stabilizer(Omega::GSet{T,S})
+    stabilizer(Omega::GSet{T,S}, omega::S = representative(Omega); check::Bool = true) where {T,S}
+
+Return the subgroup of `G = acting_group(Omega)` that fixes `omega`,
+together with the embedding of this subgroup into `G`.
+If `check` is `false` then it is not checked whether `omega` is in `Omega`.
+
+# Examples
+```jldoctest
+julia> Omega = gset(symmetric_group(3));
+
+julia> stabilizer(Omega)
+(Permutation group of degree 3 and order 2, Hom: permutation group -> Sym(3))
+```
+"""
+@attr Tuple{sub_type(T), Map{sub_type(T), T}} function stabilizer(Omega::GSet{T,S}) where {T,S}
+    return stabilizer(Omega, representative(Omega), check = false)
+end
+
+function stabilizer(Omega::GSet{T,S}, omega::S; check::Bool = true) where {T,S}
+    check && @req omega in Omega "omega must be an element of Omega"
+    G = acting_group(Omega)
+    gfun = action_function(Omega)
+    return stabilizer(G, omega, gfun)
+end
 
 
 #############################################################################
@@ -509,7 +538,7 @@ The fields are
 - the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
 - the dictionary used to store attributes (orbits, elements, ...).
 """
-@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T}
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, E}}
     group::T
     subgroup::S
     side::Symbol

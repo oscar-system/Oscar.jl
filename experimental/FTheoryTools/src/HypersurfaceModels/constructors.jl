@@ -72,7 +72,7 @@ function hypersurface_model(base::NormalToricVariety, fiber_ambient_space::Norma
   @req length(ds) == 1 "Inconsistency in determining the degree of the hypersurface equation"
   @req ds[1] == divisor_class(anticanonical_divisor_class(ambient_space)).coeff "Degree of hypersurface equation differs from anticanonical bundle"
   explicit_model_sections = Dict{String, MPolyRingElem}()
-  gens_S = gens(cox_ring(ambient_space))
+  gens_S = gens(cox_ring(base))
   for k in 1:length(gens_S)
     explicit_model_sections[string(gens_S[k])] = gens_S[k]
   end
