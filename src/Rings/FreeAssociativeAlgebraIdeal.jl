@@ -173,10 +173,10 @@ julia> I = ideal([f1, f2]);
 
 julia> gb = groebner_basis(I, 3; protocol=false)
 Ideal generating system with elements
-  1 -> x*y + y*z
-  2 -> x^2 + y^2
-  3 -> y^3 + y*z^2
-  4 -> y^2*x + y*z*y
+  1: x*y + y*z
+  2: x^2 + y^2
+  3: y^3 + y*z^2
+  4: y^2*x + y*z*y
 ```
 """
 function groebner_basis(I::FreeAssociativeAlgebraIdeal,

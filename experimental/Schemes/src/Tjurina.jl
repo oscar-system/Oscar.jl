@@ -769,17 +769,17 @@ Spectrum
     at complement of maximal ideal of point (0, 0, 0)
 
 julia> T = tjurina_module(X)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 7 generators
-1 -> 2*x*e[1] + y*e[2]
-2 -> 2*y*e[1] + x*e[2]
-3 -> -2*z*e[1]
-4 -> (x^2 + y^2 - z^2)*e[1]
-5 -> (x^2 + y^2 - z^2)*e[2]
-6 -> x*y*e[1]
-7 -> x*y*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 7 generators
+  1: 2*x*e[1] + y*e[2]
+  2: 2*y*e[1] + x*e[2]
+  3: -2*z*e[1]
+  4: (x^2 + y^2 - z^2)*e[1]
+  5: (x^2 + y^2 - z^2)*e[2]
+  6: x*y*e[1]
+  7: x*y*e[2]
 
 julia> vector_space_basis(T)
 5-element Vector{Any}:
