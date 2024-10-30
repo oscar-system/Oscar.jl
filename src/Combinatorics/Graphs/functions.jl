@@ -1172,8 +1172,9 @@ end
 function graph_from_edges(::Type{T},
                           edges::Vector{Edge},
                           n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
-
-  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  isempty(edges) && return Graph{T}(n_vertices)
+  
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges];))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
   g = Graph{T}(max(n_needed, n_vertices))

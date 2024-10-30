@@ -7,4 +7,6 @@ DocTestSetup = Oscar.doctestsetup()
 
 ```@docs
 partial_shift_graph_vertices
+partial_shift_graph
+contracted_partial_shift_graph
 ```

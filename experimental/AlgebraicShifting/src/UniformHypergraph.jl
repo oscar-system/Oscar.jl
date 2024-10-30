@@ -68,7 +68,7 @@ n_vertices(K::UniformHypergraph) = K.n_vertices
 
 faces(K::UniformHypergraph) = K.faces
 # added for covenience when writting functions for Simplicial complex and Uniform Hypergraph
-facets(K::UniformHypergraph) = K.faces
+facets(K::UniformHypergraph) = Set.(K.faces)
 face_size(K::UniformHypergraph) = K.k
 
 function Base.hash(K :: UniformHypergraph, u :: UInt)
