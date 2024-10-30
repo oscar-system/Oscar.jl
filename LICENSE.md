@@ -1,6 +1,6 @@
 The Oscar.jl package is licensed under the GNU Public License, Version 3.0+:
 
-> Copyright (c) 2019 The OSCAR Development Team.
+> Copyright (c) 2019-2024 [The OSCAR Development Team](https://github.com/oscar-system/Oscar.jl/graphs/contributors)
 > This program is free software: you can redistribute it and/or modify
 > it under the terms of the GNU General Public License as published by
 > the Free Software Foundation, either version 3 of the License, or
