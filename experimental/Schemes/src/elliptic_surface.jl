@@ -1671,7 +1671,7 @@ function set_good_reduction_map!(X::EllipticSurface, red_map::Map)
   set_attribute!(X, :good_reduction_map=>red_map)
 end
 
-@attr Tuple{<:Map, <:AbsCoveredSchemeMorphism} function good_reduction(X::EllipticSurface)
+@attr Tuple{<:Map, <:AbsCoveredSchemeMorphism} function raw_good_reduction(X::EllipticSurface)
   is_zero(characteristic(base_ring(X))) || error("reduction to positive characteristic is only possible from characteristic zero")
   has_attribute(X, :good_reduction_map) || error("no reduction map is available; please set it manually via `set_good_reduction_map!`")
   red_map = get_attribute(X, :good_reduction_map)::Map
@@ -1682,7 +1682,7 @@ end
 function reduction_of_algebraic_lattice(X::EllipticSurface)
   return get_attribute!(X, :reduction_of_algebraic_lattice) do
     @assert has_attribute(X, :reduction_to_pos_char) "no reduction morphism specified"
-    red_map, bc = good_reduction(X)
+    red_map, bc = raw_good_reduction(X)
     basis_ambient, _, _= algebraic_lattice(X)
     return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
   end::IdDict
@@ -1702,7 +1702,7 @@ function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   kk = base_ring(X)
   if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
-    red_map, bc = good_reduction(X)
+    red_map, bc = raw_good_reduction(X)
     red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
     D_red = _reduce_as_prime_divisor(bc, D)
     for (i, E) in enumerate(basis_ambient)
