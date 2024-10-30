@@ -2631,6 +2631,28 @@ function admissible_moebius_transformations(
     X::EllipticSurface,
     Y::EllipticSurface
   )
+  result = MorphismFromRationalFunctions[]
+  for img_gens in  _admissible_moebius_transformations(X, Y; on_weierstrass_model=false)
+    push!(result, _moebius_to_morphism_from_rational_functions(X, Y, img_gens))
+  end
+  return result
+end
+
+function admissible_moebius_transformations_on_weierstrass_chart(
+    X::EllipticSurface,
+    Y::EllipticSurface
+  )
+  result = MapFromFunc[]
+  for img_gens in  _admissible_moebius_transformations(X, Y; on_weierstrass_model=true)
+    push!(result, _moebius_to_pullback_on_weierstrass_chart(X, Y, img_gens))
+  end
+  return result
+end
+
+function _admissible_moebius_transformations(
+    X::EllipticSurface,
+    Y::EllipticSurface; on_weierstrass_model=true
+  )
   EX = generic_fiber(X)
   EY = generic_fiber(Y)
 
@@ -2658,11 +2680,12 @@ function admissible_moebius_transformations(
   # Use the first three elements of vX and map them to three elements of vY.
   # Then check whether the resulting transformation preserves everything.
 
-  candidates = Function[]
+  candidates = []
 
   @assert length(vX) >= 3 "at least three reducible fibers are needed"
   length(vX) == length(vY) || return candidates # No moebius transformation is possible in this case
-
+  kkt = base_field(EX)
+  t = gen(kkt)
   p1 = vX[1:3]
   for i in vY
     for j in vY
@@ -2673,47 +2696,67 @@ function admissible_moebius_transformations(
         mt = find_moebius_transformation(p1, p2)
         any(is_zero(mt(x)[2]) for x in vX) && continue # reducible fibers over ∞ are not implemented at the moment.
         any(!(mt(x)[1]//mt(x)[2] in vY) for x in vX) && continue # the transformation does not preserve all admissible fibers in this case
-        push!(candidates, mt)
+        p, q = mt(t)
+        img_t = (p//q)::typeof(t)
+        EYbc = base_change(f->evaluate(f, img_t), EY)
+        is_isomorphic(EYbc, EX) || continue
+        iso_ell = isomorphism(EX, EYbc)
+        push!(candidates, _to_weierstrass_morphism(X, Y, mt, iso_ell; on_weierstrass_model))
       end
     end
   end
-  @show "hi"
-  result = MorphismFromRationalFunctions[]
-
+  return candidates
+end
+    
+function _to_weierstrass_morphism(X, Y, mt, iso_ell; on_weierstrass_model)
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
   # Set up some variables
   kkt = base_field(EX)
   t = gen(kkt)
-  WX = weierstrass_chart_on_minimal_model(X)
+  if on_weierstrass_model
+    WX = weierstrass_chart(X)
+    WY = weierstrass_chart(Y)
+  else 
+    WX = weierstrass_chart_on_minimal_model(X)
+    WY = weierstrass_chart_on_minimal_model(Y)
+  end 
   RX = ambient_coordinate_ring(WX)
   FRX = fraction_field(RX)
-  WY = weierstrass_chart_on_minimal_model(Y)
   RY = ambient_coordinate_ring(WY)
   FRY = fraction_field(RY)
 
-  # Go through the candidates again and for those which do indeed lead to isomorphic 
-  # surfaces, construct the isomorphism.
-  for mt in candidates
-    p, q = mt(t)
-    img_t = (p//q)::typeof(t)
-    EYbc = base_change(f->evaluate(f, img_t), EY)
-    is_isomorphic(EYbc, EX) || continue
-    # Construct the isomorphism of elliptic surfaces explicitly
-    iso_ell = isomorphism(EX, EYbc)
+  # Construct the isomorphism of elliptic surfaces explicitly
 
-    a, b, _ = rational_maps(iso_ell)
-    kkTxy = parent(a)
-    to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
-    A = to_FRX(a)
-    B = to_FRX(b)
-    P, Q = mt(FRX(RX[3]))
-    img_T = (P//Q)::elem_type(FRX)
-    img_gens = [A, B, img_T]
-    loc_res = morphism_from_rational_functions(X, Y, WX, WY, img_gens; check=true)
-    set_attribute!(loc_res, :is_isomorphism=>true)
-    push!(result, loc_res)
-  end
+  a, b, _ = rational_maps(iso_ell)
+  kkTxy = parent(a)
+  to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
+  A = to_FRX(a)
+  B = to_FRX(b)
+  P, Q = mt(FRX(RX[3]))
+  img_T = (P//Q)::elem_type(FRX)
+  img_gens = [A, B, img_T]
+  return img_gens
+end
 
-  return result
+function _moebius_to_pullback_on_weierstrass_chart(X, Y, img_gens)
+  WY = weierstrass_chart(Y)
+  WX = weierstrass_chart(X)
+  RX = ambient_coordinate_ring(WX)
+  FRX = fraction_field(RX)
+  RY = ambient_coordinate_ring(WY)
+  FRY = fraction_field(RY)
+  
+  return extend_domain_to_fraction_field(hom(RY, FRX, img_gens))
+end 
+
+function _moebius_to_morphism_from_rational_functions(X, Y, img_gens)
+  WY = weierstrass_chart_on_minimal_model(Y)
+  WX = weierstrass_chart_on_minimal_model(X)
+
+  loc_res = morphism_from_rational_functions(X, Y, WX, WY, img_gens; check=true)
+  set_attribute!(loc_res, :is_isomorphism=>true)
+  return loc_res
 end
 
 # An internal helper routine to verify that a given isomorphism of elliptic surfaces 
