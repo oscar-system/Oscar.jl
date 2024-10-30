@@ -11,7 +11,7 @@ export CliffordAlgebra,
   center,
   change_basis,
   change_basis!,
-  max_orth_elt
+  max_orth_elt,
 
 ################################################################################
 #
