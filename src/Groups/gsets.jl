@@ -41,8 +41,9 @@ The fields are
     action_function::Function
     seeds
 
-    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false) where {T<:Union{GAPGroup, FinGenAbGroup}}
-        @assert !isempty(seeds)
+    function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup}}
+        @req !isempty(seeds) "seeds for G-set must be nonempty"
+        check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
         Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
         closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
@@ -117,7 +118,7 @@ end
 ##  general method with explicit action function
 
 """
-    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false)
+    gset(G::Union{GAPGroup, FinGenAbGroup}[, fun::Function], seeds, closed::Bool = false, check::Bool = true)
 
 Return the G-set `Omega` that consists of the closure of the seeds `seeds`
 under the action of `G` defined by `fun`.
@@ -129,6 +130,9 @@ for `omega` in `seeds` and `g` in `G`.
 a reasonable default,
 for example, if `G` is a `PermGroup` and `seeds` is a `Vector{T}`
 where `T` is one of `Int`, `Set{Int}`, `Vector{Int}`.
+
+If `check` is set to `false` then it is *not* checked whether the entries
+of `seeds` are valid as the first argument of `fun`.
 
 If `closed` is set to `true` then `seeds` is assumed to be closed
 under the action of `G`.
@@ -151,8 +155,8 @@ julia> length(gset(G, on_sets, [[1, 2]]))  # action on unordered pairs
 6
 ```
 """
-function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false)
-  return GSetByElements(G, fun, seeds; closed = closed)
+function gset(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, seeds; closed::Bool = false, check::Bool = true)
+  return GSetByElements(G, fun, seeds; closed = closed, check = check)
 end
 
 
@@ -169,47 +173,47 @@ gset(G::T, seeds; closed::Bool = false) where T<:GAPGroup = gset_by_type(G, seed
 
 ## natural action of permutations on positive integers
 function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:IntegerUnion
-  return GSetByElements(G, ^, Omega; closed = closed)
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## action of permutations on sets of positive integers
 function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Set{T2} where T2<:IntegerUnion
-  return GSetByElements(G, on_sets, Omega; closed = closed)
+  return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
 ## action of permutations on vectors of positive integers
 function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Vector{T2} where T2<:IntegerUnion
-  return GSetByElements(G, on_tuples, Omega; closed = closed)
+  return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
 ## action of permutations on tuples of positive integers
 function gset_by_type(G::PermGroup, Omega, ::Type{T}; closed::Bool = false) where T<:Tuple{T2,Vararg{T2}} where T2<:IntegerUnion
-  return GSetByElements(G, on_tuples, Omega; closed = closed)
+  return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on vectors via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{AbstractAlgebra.Generic.FreeModuleElem{E}}; closed::Bool = false) where E where M
-  return GSetByElements(G, *, Omega; closed = closed)
+  return GSetByElements(G, *, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on sets of vectors via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Set{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
-  return GSetByElements(G, on_sets, Omega; closed = closed)
+  return GSetByElements(G, on_sets, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on vectors of vectors via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: Vector{AbstractAlgebra.Generic.FreeModuleElem{E}} where E where M
-  return GSetByElements(G, on_tuples, Omega; closed = closed)
+  return GSetByElements(G, on_tuples, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on subspaces via right multiplication
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: AbstractAlgebra.Generic.Submodule{E} where E where M
-  return GSetByElements(G, ^, Omega; closed = closed)
+  return GSetByElements(G, ^, Omega; closed = closed, check = false)
 end
 
 ## action of matrices on polynomials via `on_indeterminates`
 function gset_by_type(G::MatrixGroup{E, M}, Omega, ::Type{T}; closed::Bool = false) where T <: MPolyRingElem{E} where E where M
-  return GSetByElements(G, on_indeterminates, Omega; closed = closed)
+  return GSetByElements(G, on_indeterminates, Omega; closed = closed, check = false)
 end
 
 ## (add more such actions: on sets of sets, on sets of tuples, ...)
@@ -738,8 +742,8 @@ function action_homomorphism(G::PermGroup, Omega)
   return action_homomorphism(gset_by_type(G, Omega, eltype(Omega); closed = true))
 end
 
-function action_homomorphism(G::PermGroup, fun::Function, Omega)
-  return action_homomorphism(GSetByElements(G, fun, Omega, closed = true))
+function action_homomorphism(G::PermGroup, fun::Function, Omega; check = true)
+  return action_homomorphism(GSetByElements(G, fun, Omega, closed = true, check = check))
 end
 
 
