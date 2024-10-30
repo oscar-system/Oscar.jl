@@ -42,8 +42,8 @@ The fields are
     seeds
 
     function GSetByElements(G::T, fun::Function, seeds; closed::Bool = false, check::Bool = true) where {T<:Union{GAPGroup, FinGenAbGroup}}
-        @req !isempty(seeds) "seeds for g-set must be nonempty"
-        check && @req length(methods(fun, (typeof(first(seeds)), elem_type(T)))) != 0 "action function does not fit to seeds"
+        @req !isempty(seeds) "seeds for G-set must be nonempty"
+        check && @req hasmethod(fun, (typeof(first(seeds)), elem_type(T))) "action function does not fit to seeds"
         Omega = new{T,eltype(seeds)}(G, fun, seeds, Dict{Symbol,Any}())
         closed && set_attribute!(Omega, :elements => unique!(collect(seeds)))
         return Omega
