@@ -214,3 +214,55 @@ function chern_classes(v::NormalToricVariety; check::Bool = true)
   end
   return [chern_class(v, k; check = check) for k in 0:dim(v)]
 end
+
+
+@doc raw"""
+    basis_of_h4(v::NormalToricVariety; check::Bool = true)
+
+This method computes a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
+for a toric variety $X$. The algorithm employs Theorem 12.4.1 in [CLS11](@cite),
+i.e. truncates the cohomology ring to degree $2$. By virtue of this theorem,
+this approach is supported only for toric varieties that are both complete and
+simplicial. Since it can be computationally very demanding to verify completeness,
+the optional argument `check` can be set to `false` to skip the tests.
+
+# Examples
+```jldoctest
+julia> Y1 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia> Y2 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia> Y = Y1 * Y2
+Normal toric variety
+
+julia> h4_basis = basis_of_h4(Y)
+6-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by yx2^2
+ Cohomology class on a normal toric variety given by xx2*yx2
+ Cohomology class on a normal toric variety given by xx2*yt2
+ Cohomology class on a normal toric variety given by xx2^2
+ Cohomology class on a normal toric variety given by xt2*yx2
+ Cohomology class on a normal toric variety given by xt2*yt2
+
+julia> betti_number(Y, 4) == length(h4_basis)
+true
+```
+"""
+function basis_of_h4(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
+  if check
+    @req is_complete(v) "Computation of basis of H4(X, Q) is currently only supported for complete toric varieties"
+    @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
+  end
+  if dim(v) < 4
+    set_attribute!(v, :basis_of_h4, Vector{CohomologyClass}())
+  end
+  if has_attribute(v, :basis_of_h4)
+    return get_attribute(v, :basis_of_h4)
+  end
+  R = cohomology_ring(v, check = check)
+  basis_of_h4 = [cohomology_class(v, R(g)) for g in monomial_basis(R, [2])]
+  set_attribute!(v, :basis_of_h4, basis_of_h4)
+  return basis_of_h4
+end
