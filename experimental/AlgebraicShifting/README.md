@@ -2,12 +2,11 @@
 
 ## Aims
 
-This is an example for a file structure to set up a new package 
-in the experimental section. All files you find here are part of the 
-minimum requirements. See also the official Oscar documentation.
+This package grew out of a project of Antony della Vecchia, Michael Joswig and Fabian Lenzen on "Partial Algebraic Shifting".
+Part of this project is the development of new methods for algebraic shifting; these are implemented here.
 
 ## Status
 
-We plan to also provide a function to automatically copy this template 
-for you to start your own package. 
+Full and partial shifting in the exterior algebra fully functional.
+
 
