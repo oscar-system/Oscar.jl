@@ -1,14 +1,14 @@
 @testset "Number field" begin
 
-  Qx, x = FlintQQ[:x]
+  Qx, x = QQ[:x]
   k, _ = number_field(x^2 + 1)
   ku, u = k[:u1, :u2]
   Ik = ideal(ku, [u[1]^3 + u[2]^3 - 3, u[1]^5 + u[2]^5 - 5])
 
-  Qy, y = FlintQQ[:y1, :y2]
+  Qy, y = QQ[:y1, :y2]
   IQ = ideal(Qy, [y[1]^3 + y[2]^3 - 3, y[1]^5 + y[2]^5 - 5])
 
-  for (Bk, Pk, I) in [(k, ku, Ik), (FlintQQ, Qy, IQ)]
+  for (Bk, Pk, I) in [(k, ku, Ik), (QQ, Qy, IQ)]
     gg = gens(Pk)
     @test_throws ErrorException number_field(ideal([gg[1]]))
     K,  = @inferred number_field(I, [:a1, :a2])
@@ -180,7 +180,7 @@
     end
 
     # denominator
-    if Bk === FlintQQ
+    if Bk === QQ
       b = rand(K, -2:2)
       d = @inferred denominator(b)
       @test d isa ZZRingElem
@@ -203,7 +203,7 @@
     end
 
     # basis matrix
-    if Bk == FlintQQ
+    if Bk == QQ
       for i in 1:10
         BB = [rand(K, -2:2) for j in 1:rand(1:10)]
         M = @inferred basis_matrix(BB, Hecke.FakeFmpqMat)
@@ -226,7 +226,7 @@
         @test b * B[n] == sum(M[n, m] * B[m] for m in 1:length(B))
       end
 
-      if Bk == FlintQQ
+      if Bk == QQ
         M, d = @inferred representation_matrix_q(b)
         @test nrows(M) == degree(K)
         @test ncols(M) == degree(K)
@@ -243,7 +243,7 @@
           c = rand(-10:10)
         end
         b = b//c
-        MM = zero_matrix(FlintZZ, nrows(M), ncols(M))
+        MM = zero_matrix(ZZ, nrows(M), ncols(M))
         dd = ZZRingElem()
         j = rand(1:nrows(MM))
         Oscar.Hecke.elem_to_mat_row!(MM, j, dd, b)
@@ -318,7 +318,7 @@
     end
 
     # simple extension
-    if Bk == FlintQQ
+    if Bk == QQ
       Ks, KstoK = simple_extension(K, simplify = true)
     else
       Ks, KstoK = simple_extension(K)
@@ -332,7 +332,7 @@
       @test KstoK(b + c) == KstoK(b) + KstoK(c)
       @test KstoK(b * c) == KstoK(b) * KstoK(c)
 
-      if Bk == FlintQQ
+      if Bk == QQ
         @test KstoK\(KstoK(b)) == b
         b = rand(K, -10:10)
         c = rand(K, -10:10)
