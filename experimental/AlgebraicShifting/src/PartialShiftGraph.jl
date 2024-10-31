@@ -87,7 +87,7 @@ function multi_edges(F::Field,
   reduce(
   (d1, d2) -> mergewith!(vcat, d1, d2), 
   (
-    Dict((i, complex_labels[Set(facets(delta))]) => [w])
+    Dict((i, complex_labels[Set(facets(delta))]) => [p])
     for (i, K) in complexes
       for (p, delta) in ((p, exterior_shift(F, K, p)) for p in permutations)
         if Set(facets(delta)) != Set(facets(K)));
@@ -188,13 +188,12 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
   @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
 
   phi = isomorphism(PermGroup, parent(first(W)))
-  G = codomain(phi)
   task_size = 1
   if parallel
     # setup parallel parameters
     channels = Oscar.params_channels(Union{PermGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
     # setup parents needed to be sent to each process
-    Oscar.put_params(channels, G)
+    Oscar.put_params(channels, codomain(phi))
   end
 
   # edge_tuples = multi_edges(F, phi.(W), collect(enumerate(complexes)), complex_labels)

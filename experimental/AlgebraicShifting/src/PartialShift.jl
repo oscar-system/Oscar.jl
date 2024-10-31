@@ -209,7 +209,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   else
     rref!(c)
   end
-  return uniform_hypergraph(nCk[independent_columns(transpose(c))], n_vertices(K), face_size(K))
+  return uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
 end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem)
@@ -283,7 +283,7 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
   
-  return exterior_shift(F, K, rothe_matrix(F, p))
+  return exterior_shift(K, rothe_matrix(F, p))
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)

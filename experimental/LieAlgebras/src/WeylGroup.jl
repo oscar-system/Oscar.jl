@@ -695,7 +695,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup)
 
   isoinv = function (g::PermGroupElem)
     word = UInt8[]
-    for cycle in cycles(p)
+    for cycle in cycles(g)
       transpositions = [
         sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)]
       for t in transpositions
