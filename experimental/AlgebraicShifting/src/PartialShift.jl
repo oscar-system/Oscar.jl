@@ -32,7 +32,7 @@ end
 
 Constructs a unipotent matrix with entries in a polynomial ring `R`.
 One can also provide a field `F` and an integer `n`,
-then the entries of the unipotent matrix will lie in a multi variate
+then the entries of the unipotent matrix will lie in a multivariate
 polynomial ring over `F` with `n^2` variables.
 
 # Examples
@@ -58,17 +58,17 @@ end
 @doc raw"""
      rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
 
-For a base field `F` and a weyl group element `w` return the matrix with entries in the
+For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
-root system of the weyl group.
-We know that since `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies in some double coset $BwB$.
+root system of the Weyl group.
+As `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies in a unique double coset $BwB$, where $B$ is the Borel group of upper triangular matrices.
 The Rothe matrix is a normal form for the matrix on the left of a representative for the double coset corresponding to `w`.
-(this might need to be explained further and reference the preprint)
-We use the name Rothe matrix because of its resemblance with a Rothe diagram. (add ref?)
+This will be explained further once the corresponding preprint is on the arXiv.
+We use the name Rothe matrix because of its resemblance with a Rothe diagram. (add ref? Knuth?)
 
 # Examples
 ```jldoctest
-  julia> W = weyl_group(:A, 4)
+julia> W = weyl_group(:A, 4)
 Weyl group for root system defined by Cartan matrix [2 -1 0 0; -1 2 -1 0; 0 -1 2 -1; 0 0 -1 2]
 
 julia> s = gens(W)
@@ -105,12 +105,11 @@ end
      compound_matrix(w::WeylGroupElem, k::Int)
      compound_matrix(m::MatElem, K::Vector{Vector{Int}})
 
-Given a matrix `m` return the matrix where each entry is a `k` minor of `m`.
+Given a matrix `m`, return the matrix where each entry is a `k`$\times$`k`-minor of `m`.
 The entries of the compound matrix are ordered with respect to the lexicographic order on sets.
-When passed a `PermGroupElem` or `WeylGroupElem`, return the copound matrix for their
-permutation matrix representation.
+When passed a `PermGroupElem` or `WeylGroupElem`, return the compound matrix for their permutation matrix representation.
 
-Alternatively, passing a `UniformHypergraph` `K` will return the compound matrix with entries the `face_size(K)` minors, and restrict the rows to the rows corresponding to `K`
+Alternatively, passing a `UniformHypergraph` `K` will return the compound matrix with entries the `face_size(K)` minors, and restrict the rows to the rows corresponding to `K`.
 
 # Examples
 ```jldoctest
@@ -219,7 +218,7 @@ end
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
-If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
+If `w` is not given then `longest_element(Weyl_group(:A, n_vertices(K) - 1))` is used
 
 # Examples
 ```jldoctest
@@ -248,7 +247,7 @@ true
 julia> betti_numbers(L) == betti_numbers(K)
 true
 
-julia> W = weyl_group(:A, n_vertices(K) - 1)
+julia> W = Weyl_group(:A, n_vertices(K) - 1)
 Weyl group for root system defined by Cartan matrix [2 -1 0 0 0; -1 2 -1 0 0; 0 -1 2 -1 0; 0 0 -1 2 -1; 0 0 0 -1 2]
 
 julia> s = gens(W)

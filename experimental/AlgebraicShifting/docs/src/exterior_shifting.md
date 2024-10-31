@@ -10,7 +10,7 @@ DocTestSetup = Oscar.doctestsetup()
 uniform_hypergraph
 ```
 
-## Helpful Matrix constructions
+## Matrix Constructions
 
 ```@docs
 generic_unipotent_matrix
