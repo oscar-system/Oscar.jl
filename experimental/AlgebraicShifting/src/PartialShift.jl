@@ -190,7 +190,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
   nCk = sort!(subsets(n_vertices(K), face_size(K)))
-  c = compound_matrix(g, K)
+  c = transpose(compound_matrix(g, K))
   if matrix_base isa MPolyRing
     Oscar.ModStdQt.ref_ff_rc!(c)
   elseif matrix_base isa MPolyQuoRing
@@ -200,7 +200,7 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   else
     rref!(c)
   end
-  return uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
+  return uniform_hypergraph(nCk[independent_columns(transpose(c))], n_vertices(K), face_size(K))
 end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem)
