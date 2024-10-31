@@ -222,6 +222,9 @@ If `w` is not given then `longest_element(Weyl_group(:A, n_vertices(K) - 1))` is
 
 # Examples
 ```jldoctest
+julia> K = real_projective_plane()
+Abstract simplicial complex of dimension 2 on 6 vertices
+
 julia> is_shifted(K)
 false
 
