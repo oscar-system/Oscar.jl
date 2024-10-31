@@ -338,7 +338,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
         I = c1 + c2
         if !has_dimension_leq_zero(I) # potentially faster for localized ideals
           if c1 == c2
-            result = result + a1*a2*_self_intersection(c1)
+            result = result + a1*a2* (has_attribute(c1, :_self_intersection) ? _self_intersection(c1) : _self_intersection(c2))
           else
             error("self intersection unknown")
           end
