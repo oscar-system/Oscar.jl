@@ -74,6 +74,8 @@ import ..Oscar:
   ngens,
   order,
   parent_type,
+  perm,
+  permutation_matrix,
   rank,
   root,
   roots,
