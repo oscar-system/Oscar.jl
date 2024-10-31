@@ -698,15 +698,77 @@ function on_simplicial_complex(K::SimplicialComplex, g::PermGroupElem)
   simplicial_complex(collect(new_facets))
 end
 
+@doc raw"""
+     simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
+
+Given simplicial complexes `K1` and `K2` return their simplicial product.
+
+# Examples
+```jldoctest
+julia> K1 = simplicial_complex([[1, 2], [2, 3]])
+Abstract simplicial complex of dimension 1 on 3 vertices
+
+julia> K2 = simplicial_complex([[1, 2], [1, 3]])
+Abstract simplicial complex of dimension 1 on 3 vertices
+
+julia> facets(simplicial_product(K1, K2))
+8-element Vector{Set{Int64}}:
+ Set([5, 2, 1])
+ Set([5, 4, 1])
+ Set([2, 8, 1])
+ Set([7, 8, 1])
+ Set([6, 2, 3])
+ Set([5, 6, 2])
+ Set([2, 9, 3])
+ Set([2, 9, 8])
+```
+"""
 function simplicial_product(K1::SimplicialComplex, K2::SimplicialComplex)
   return SimplicialComplex(Polymake.topaz.simplicial_product(pm_object(K1), pm_object(K2)))
 end
 
+@doc raw"""
+     link_subcomplex(K::SimplicialComplex, f::Union{<:AbstractSet{Int},<:AbstractVector{Int}}))
+
+Given simplicial complex `K` and a face of `face` of `K` return the link of `face`.
+simplicial complex at the .
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
+Abstract simplicial complex of dimension 1 on 4 vertices
+
+julia> facets(link_subcomplex(K, [2]))
+2-element Vector{Set{Int64}}:
+ Set([1])
+ Set([2])
+```
+"""
 function link_subcomplex(K::SimplicialComplex, face::Union{<:AbstractSet{Int},<:AbstractVector{Int}})
   zero_based_face = Polymake.to_zero_based_indexing(face)
   return SimplicialComplex(Polymake.link_subcomplex(pm_object(K), zero_based_face))
 end
 
+@doc raw"""
+   barycentric_subdivision(K::SimplicialComplex)
+
+Given simplicial complex `K` returns its barycentric subdivision.
+
+# Examples
+```jldoctest
+julia> K = simplicial_complex([[1, 2, 3]])
+Abstract simplicial complex of dimension 2 on 3 vertices
+
+julia> facets(barycentric_subdivision(K))
+6-element Vector{Set{Int64}}:
+ Set([5, 2, 1])
+ Set([5, 3, 1])
+ Set([6, 2, 1])
+ Set([4, 6, 1])
+ Set([7, 3, 1])
+ Set([4, 7, 1])
+```
+"""
 function barycentric_subdivision(K::SimplicialComplex)
   return SimplicialComplex(Polymake.topaz.barycentric_subdivision(pm_object(K))) 
 end
