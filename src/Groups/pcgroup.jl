@@ -307,7 +307,6 @@ function _GAP_collector_from_the_left(c::GAP_Collector)
   return cGAP::GapObj
 end
 
-
 # Create the collector on the GAP side on demand
 function underlying_gap_object(c::GAP_Collector)
   if ! isdefined(c, :X)
@@ -413,7 +412,15 @@ end
 
 # Convert syllables in canonical form into group element
 #Thomas
-function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}, check::Bool=true)
+  # check if the syllables are in canonical form
+  if check
+    indices = map(p -> p.first, sylls)
+    unq_indices = unique(indices) # maintains order
+    @req length(indices) == length(unq_indices) "given syllables have repeating generators"
+    @req issorted(unq_indices) "given syllables must be in ascending order"
+  end
+
   e = _exponent_vector(sylls, ngens(G))
   pcgs = Oscar.GAPWrap.FamilyPcgs(GapObj(G))
   x = Oscar.GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
