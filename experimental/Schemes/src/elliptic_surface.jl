@@ -2430,6 +2430,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     end
 
     if dim(Q) == 0
+      @vprint :EllipticSurface 3 "image will be a fiber component\n"
       # find the fiber 
       if is_one(Q(UBY)) # fiber over infinity
         # collect all components
@@ -2439,24 +2440,31 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
             append!(comps, E[2:end])
           end
         end
+        @vprint :EllipticSurface 3 "found total of $(length(comps)) possible components\n"
 
         # collect all charts
         codomain_charts = AbsAffineScheme[]
         if is_empty(comps) # The fiber over infinity
+          @vprint :EllipticSurface 3 "the image must be the fiber over infinity"
           codomain_charts = affine_charts(Y) # TODO: How can we restrict the charts then?
         else
           codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
         end
+        @vprint :EllipticSurface 3 "found $(length(codomain_charts)) charts where these components are visible"
 
         if i > n - mwr # If D is a section
+          @vprint :EllipticSurface 3 "divisor to be mapped is a section\n"
           pt = X.MWL[i-(n-mwr)]
           res = _pushforward_section(step, pt; divisor=D, codomain_charts)
           result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
         else
+          @vprint :EllipticSurface 3 "divisor to be mapped is NOT a section\n"
           loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
 
           loc_map === nothing && error("pushforward preparation did not succeed")
+          @assert !is_one(I(domain(loc_map)))
           K = _local_pushforward(loc_map, I(domain(loc_map)))
+          @assert !is_one(K)
 
           JJ = ideal(OO(cod_chart), gens(K))
           res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
@@ -2465,6 +2473,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         end
         continue
       end
+      @vprint :EllipticSurface 3 "image will not be in the fiber over infinity\n"
 
       # fiber over some point ≂̸ ∞.
       t = first(gens(OO(UBY)))
@@ -2481,16 +2490,21 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
         break
       end
+      @vprint :EllipticSurface 3 "found $(length(codomain_charts)) charts where these components are visible\n"
 
       if i > n - mwr # If D is a section
+        @vprint :EllipticSurface 3 "divisor to be mapped is a section\n"
         pt = X.MWL[i-(n-mwr)]
         res = _pushforward_section(step, pt; divisor=D, codomain_charts)
         result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       else
+        @vprint :EllipticSurface 3 "divisor to be mapped is NOT a section\n"
         loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
         loc_map === nothing && error("preparation for pushforward did not succeed")
 
+        @assert !is_one(I(domain(loc_map)))
         K = _local_pushforward(loc_map, I(domain(loc_map)))
+        @assert !is_one(K)
         JJ = ideal(OO(cod_chart), gens(K))
         res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
