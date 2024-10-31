@@ -2531,7 +2531,9 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
           continue
         end
 
+        @assert !is_one(I(domain(loc_map)))
         K = _local_pushforward(loc_map, I(domain(loc_map)))
+        @assert !is_one(K)
         JJ = ideal(OO(cod_chart), gens(K))
         res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
