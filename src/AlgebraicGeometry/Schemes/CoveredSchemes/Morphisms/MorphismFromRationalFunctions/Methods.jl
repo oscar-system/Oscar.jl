@@ -308,9 +308,9 @@ This method is cheap in the sense that it simply inverts all representatives of
 the denominators occurring in the `realization_preview(Phi, U, V)`.
 """
 function cheap_realization(Phi::MorphismFromRationalFunctions, U::AbsAffineScheme, V::AbsAffineScheme)
-  if haskey(cheap_realizations(Phi), (U, V))
-    return cheap_realizations(Phi)[(U, V)]
-  end
+ #if haskey(cheap_realizations(Phi), (U, V))
+ #  return cheap_realizations(Phi)[(U, V)]
+ #end
   img_gens_frac = realization_preview(Phi, U, V)
   # Try to cancel the fractions heuristically; turns out it was too expensive in some applications due to slow divide
 # for (k, f) in enumerate(img_gens_frac)
@@ -905,6 +905,7 @@ function _prepare_pushforward_prime_divisor(
     domain_chart::AbsAffineScheme = _find_good_representative_chart(I),
     codomain_charts::Vector{<:AbsAffineScheme} = copy(patches(codomain_covering(phi)))
   )
+  @assert !is_one(I(domain_chart))
   U = domain_chart
   X = domain(phi)
   Y = codomain(phi)
