@@ -320,7 +320,7 @@ function save_object(s::SerializerState, W::WeylGroup)
 end
 
 function load_object(s::DeserializerState, ::Type{WeylGroup})
-  R = load_typed_object(s, :rootsystem)
+  R = load_typed_object(s, :root_system)
   return weyl_group(R)
 end
 
