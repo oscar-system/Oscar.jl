@@ -684,28 +684,36 @@ end
 ################################################################################
 # converting to permutations
 
-function perm(w::WeylGroupElem)
-  coxeter_type, n = root_system_type(root_system(parent(w)))[1]
+function isomorphism(::Type{PermGroup}, W::WeylGroup)
+  coxeter_type, n = root_system_type(root_system(W))[1]
   @req coxeter_type == :A "Weyl group is not the symmetric group"
   G = symmetric_group(n + 1)
-  return reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init = cperm(G))
-end
 
-function (W::WeylGroup)(p::PermGroupElem)
-  coxeter_type, n = root_system_type(root_system(W))[1]
-  @req coxeter_type == :A && degree(parent(p)) == n+1 "Weyl group is not Sym($(n+1))."
-  word = UInt8[]
-  for cycle in cycles(p)
-    transpositions = [
-      sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)]
-    for t in transpositions
-      word = reduce(vcat, [
-        [i for i in t[1]:t[2] - 1],
-        [i for i in reverse(t[1]:t[2] - 2)],
-        word])
-    end
+  iso = function (w::WeylGroupElem)
+    reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init=cperm(G))
   end
-  return W(word)
+
+  isoinv = function (g::PermGroupElem)
+    word = UInt8[]
+    for cycle in cycles(p)
+      transpositions = [
+        sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)]
+      for t in transpositions
+        word = reduce(
+          vcat,
+          [
+            [i for i in t[1]:(t[2] - 1)],
+            [i for i in reverse(t[1]:(t[2] - 2))],
+            word],
+        )
+      end
+    end
+    return W(word)
+  end
+
+  return MapFromFunc(W, G, iso, isoinv)
 end
 
-permutation_matrix(R::Ring, w::WeylGroupElem) = permutation_matrix(R, perm(w))
+function permutation_matrix(R::Ring, w::WeylGroupElem)
+  permutation_matrix(R, isomorphism(PermGroup, parent(w))(w))
+end
