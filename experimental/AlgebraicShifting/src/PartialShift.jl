@@ -87,18 +87,27 @@ julia> rothe_matrix(GF(2), w)
 [0         1         0         0   0]
 [0         0         1         0   0]
 [0         0         0         1   0]
+
+julia> rothe_matrix(QQ, perm([2, 3, 1]))
+[x[1, 3]   1   0]
+[x[2, 3]   0   1]
+[      1   0   0]
 ```
 """
 function rothe_matrix(F::Field, w::WeylGroupElem)
   W = parent(w)
-  n = rank(root_system(W)) + 1
+  phi = isomorphism(PermGroup, W)
+  return rothe_matrix(F, phi(w))
+end
+
+function rothe_matrix(F::Field, p::PermGroupElem)
+  n = degree(parent(p))
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
   u = identity_matrix(Fx, n)
-  phi = isomorphism(PermGroup, W)
-  for (i, j) in inversions(phi(w))
+  for (i, j) in inversions(p)
     u[i, j] = x[i, j]
   end
-  return u * permutation_matrix(F, w)
+  return u * permutation_matrix(F, p)
 end
 
 @doc raw"""
@@ -270,17 +279,17 @@ julia> L = exterior_shift(GF(2), K, w)
 Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
+function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+  n = n_vertices(K)
+  @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
+  
+  return exterior_shift(F, K, rothe_matrix(F, p))
+end
+
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
   n = n_vertices(K)
-  @req n == rank(root_system(parent(w))) + 1 "number of vertices - 1 should equal the rank of the root system"
-
-  # in some cases this provides a speed up, not extremely important, we can chose to omit
-  # these lines
-  # handle some pre computation row reduction of compound matrix
-  #bool_mat = matrix(F, [!_set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
-  #M = (bool_mat * permutation_matrix(F, perm(w))) .* 
-  
-  return exterior_shift(K, rothe_matrix(F, w))
+  phi = isomorphism(PermGroup, parent(w))
+  return exterior_shift(F, K, phi(w))
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph)

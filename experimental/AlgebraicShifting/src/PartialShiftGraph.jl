@@ -50,19 +50,20 @@ function partial_shift_graph_vertices(F::Field,
                                       W::Union{WeylGroup, Vector{WeylGroupElem}};)
   current = K
   visited = [current]
+  phi = isomorphism(PermGroup, parent(first(W)))
   # by properties of algebraic shifting
   # we know that K will be the last in this sorted list
   # sorting here should also speed up unique according to julia docs
   unvisited = unique(
     x -> Set(facets(x)),
-    sort([exterior_shift(F, K, w) for w in W]; lt=isless_lex))[1:end - 1]
+    sort([exterior_shift(F, K, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
 
   while(!isempty(unvisited))
     current = pop!(unvisited)
     push!(visited, current)
     shifts = unique(
       x -> Set(facets(x)),
-      sort([exterior_shift(F, current, w) for w in W]; lt=isless_lex))[1:end - 1]
+      sort([exterior_shift(F, current, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
 
     # dont visit things twice
     new_facets = filter(x -> !(x in Set.(facets.(visited))), Set.(facets.(shifts)))
@@ -76,10 +77,10 @@ end
     other complexes can be reached by applying the partial shifts `deltas`
     to K, and store the shift matrices that give rise to each edge."""
 function multi_edges(F::Field,
-                     W::WeylGroup,
+                     permutations::Vector{PermGroupElem},
                      complexes::Vector{Tuple{Int,T}},
                      complex_labels::Dict{Set{Set{Int}}, Int}
-) :: Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}  where T <: ComplexOrHypergraph;
+) :: Dict{Tuple{Int, Int}, Vector{PermGroupElem}}  where T <: ComplexOrHypergraph;
   # For each complex K with index i, compute the shifted complex delta of K by w for each w in W.
   # For nontrivial delta, place (i, delta) → w in a singleton dictionary, and eventually merge all dictionaries
   # to obtain a dictionary (i, delta) → [w that yield the shift K → delta]
@@ -88,9 +89,9 @@ function multi_edges(F::Field,
   (
     Dict((i, complex_labels[Set(facets(delta))]) => [w])
     for (i, K) in complexes
-      for (w, delta) in ((w, exterior_shift(F, K, w)) for w in W)
+      for (p, delta) in ((p, exterior_shift(F, K, p)) for p in permutations)
         if Set(facets(delta)) != Set(facets(K)));
-    init=Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}()
+    init=Dict{Tuple{Int, Int}, Vector{PermGroupElem}}()
   )
 end
 
@@ -185,24 +186,25 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
   W2 = only(unique(parent.(W)))
   rs_type = root_system_type(root_system(W2))
   @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
-  
+
+  phi = isomorphism(PermGroup, parent(first(W)))
+  G = codomain(phi)
   task_size = 1
   if parallel
     # setup parallel parameters
-    channels = Oscar.params_channels(Union{RootSystem, WeylGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
+    channels = Oscar.params_channels(Union{PermGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
     # setup parents needed to be sent to each process
-    Oscar.put_params(channels, root_system(W))
-    Oscar.put_params(channels, W)
+    Oscar.put_params(channels, G)
   end
 
-  # edge_tuples = multi_edges(F, W, collect(enumerate(complexes)), complex_labels)
+  # edge_tuples = multi_edges(F, phi.(W), collect(enumerate(complexes)), complex_labels)
   # Basically, the following does the same as the preceeding, but with a progress indicator:
   edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                        @showprogress pmap(
-                         Ks -> multi_edges(F, W, Ks, complex_labels), 
+                         Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
                          Iterators.partition(enumerate(complexes), task_size)))
   graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
-  return (graph, edge_labels, complexes)
+  return (graph, Dict(k => inv(phi).(v) for (k, v) in edge_labels), complexes)
 end
 
 function partial_shift_graph(F::Field, complexes::Vector{T}; parallel=false) where T <: ComplexOrHypergraph
