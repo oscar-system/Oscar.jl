@@ -90,13 +90,15 @@ julia> rothe_matrix(GF(2), w)
 ```
 """
 function rothe_matrix(F::Field, w::WeylGroupElem)
-  n = rank(root_system(parent(w)))+1
+  W = parent(w)
+  n = rank(root_system(W)) + 1
   Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
   u = identity_matrix(Fx, n)
-  for (i, j) in inversions(perm(w))
+  phi = isomorphism(PermGroup, W)
+  for (i, j) in inversions(phi(w))
     u[i, j] = x[i, j]
   end
-  return u * permutation_matrix(F, perm(w))
+  return u * permutation_matrix(F, w)
 end
 
 @doc raw"""
@@ -155,7 +157,7 @@ end
 
 compound_matrix(m::MatElem, k::Int) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))))
 compound_matrix(p::PermGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, p), k)
-compound_matrix(w::WeylGroupElem, k::Int) = compound_matrix(perm(w), k)
+compound_matrix(w::WeylGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, w), k)
 
 # this might be removed (currently is not used)
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
