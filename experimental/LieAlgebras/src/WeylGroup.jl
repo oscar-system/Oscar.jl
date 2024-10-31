@@ -713,7 +713,3 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup)
 
   return MapFromFunc(W, G, iso, isoinv)
 end
-
-function permutation_matrix(R::Ring, w::WeylGroupElem)
-  permutation_matrix(R, isomorphism(PermGroup, parent(w))(w))
-end
