@@ -10,7 +10,7 @@ Algebraic shifting is a widely applicable method for converting a uniform hyperg
 Often this is applied to simplicial complexes, where each layer of $(k-1)$-faces forms a $k$-uniform hypergraph.
 
 Here we focus on full and partial algebraic shifting in the exterior algebra.
-For some background on the subject we refer to [KAL02](@cite).
+For some background on the subject we refer to [Kal02](@cite).
 
 
 ## Status
