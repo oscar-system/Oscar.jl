@@ -103,3 +103,27 @@ end
   @test letters(G[1]^2*G[2]^3*G[3]^3) == [2, 2, 3, 4]
   @test letters(G[1]^-2*G[2]^-3*G[3]^-3) == [2, 3, 4]
 end
+
+@testset "create polycyclic group element from syllables" begin
+
+  # finite polycyclic groups
+  c = collector(2, Int);
+  set_relative_order!(c, 1, 2)
+  set_relative_order!(c, 2, 3)
+  set_power!(c, 1, [2 => 1])
+  gg = pc_group(c)
+
+  element = gg[1]^5*gg[2]^-4
+  sylls = syllables(element)
+  @test sylls == [1 => ZZ(1), 2 => ZZ(1)] # check general usage
+  @test gg(sylls) == element # this will pass the check
+
+  sylls = [1 => ZZ(1), 2 => ZZ(2), 1 => ZZ(3)]
+  @test_throws ArgumentError gg(sylls) # repeating generators
+
+  sylls = [2 => ZZ(1), 1 => ZZ(2)]
+  @test_throws ArgumentError gg(sylls) # not in ascending order
+
+  sylls = [2 => ZZ(1), 1 => ZZ(2), 1 => ZZ(3)] # both conditions
+  @test_throws ArgumentError gg(sylls)
+end
