@@ -1,5 +1,5 @@
 @testset "PolyhedralComplex{$T}" for (f, T) in _prepare_scalar_types()
-  I = IncidenceMatrix([[1, 2, 3], [2, 4]])
+  I = incidence_matrix([[1, 2, 3], [2, 4]])
   P = f.([0 0; 1 0; 0 1; 1 1])
   P2 = f.([0 0 0; 1 0 0; 0 1 0; 1 1 0])
   F = [4]
@@ -86,7 +86,7 @@
     @test vertex_indices(maximal_polyhedra(PCFLN)) == I[:, 1:3]
     @test ray_indices(maximal_polyhedra(PCFLN)) == I[:, 4:4]
     @test vertex_and_ray_indices(maximal_polyhedra(PCFLN)) == I
-    @test IncidenceMatrix(maximal_polyhedra(PCFLN)) == I
+    @test incidence_matrix(maximal_polyhedra(PCFLN)) == I
     @test maximal_polyhedra(IncidenceMatrix, PCFLN) == I
 
     @test polyhedral_complex(maximal_polyhedra(PCF)) isa PolyhedralComplex
@@ -109,7 +109,7 @@
   @testset "Fan conversion" begin
     F1 = normal_fan(cube(f, 2))
     F2 = normal_fan(convex_hull(f, [0 0; 1 0]))
-    IM = IncidenceMatrix([[1, 2], [2, 3], [4]])
+    IM = incidence_matrix([[1, 2], [2, 3], [4]])
     R = [0 1 0; 0 0 1; 0 -1 0; 0 -1 -1]
     F3 = polyhedral_fan(f, IM, R, [1 0 0])
     for F in [F1, F2, F3]

@@ -4,7 +4,7 @@
 
     sphere = simplicial_complex([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]])
 
-    sphere2 = simplicial_complex(IncidenceMatrix([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]))
+    sphere2 = simplicial_complex(incidence_matrix([[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]))
 
     not_known_to_be_a_ball = SimplicialComplex(Polymake.topaz.SimplicialComplex(FACETS=[[0,1]], BALL=nothing))
 

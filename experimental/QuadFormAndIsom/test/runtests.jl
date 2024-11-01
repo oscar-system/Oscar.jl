@@ -301,7 +301,7 @@ end
   ok, sv = primitive_embeddings(rescale(E8, 2), rescale(k, QQ(1//2)); check=false)
   @test !ok
   @test is_empty(sv)
-  @test_throws ArgumentError primitive_embeddings(rescale(E8, -1), k; check=false)
+  @test isempty(primitive_embeddings(rescale(E8, -1), k; check=false)[2])
 
   k = integer_lattice(; gram=matrix(QQ,1,1,[6]))
   E7 = root_lattice(:E, 7)

@@ -57,7 +57,7 @@
       @test linear_inequality_matrix(facets(S, Cone1)) == _oscar_matrix_from_property(f, facets(S, Cone1))
       @test Oscar.linear_matrix_for_polymake(facets(S, Cone1)) == _polymake_matrix_from_property(facets(S, Cone1))
       @test _check_im_perm_rows(ray_indices(facets(S, Cone1)), [[1], [2]])
-      @test _check_im_perm_rows(IncidenceMatrix(facets(S, Cone1)), [[1], [2]])
+      @test _check_im_perm_rows(incidence_matrix(facets(S, Cone1)), [[1], [2]])
     end
     @test _check_im_perm_rows(facets(IncidenceMatrix, Cone1), [[1], [2]])
     @test facets(Halfspace, Cone1) isa SubObjectIterator{LinearHalfspace{T}}
@@ -96,13 +96,13 @@
     @test length(faces(Cone4, 1)) == 2
     @test issetequal(faces(Cone2, 2), positive_hull.(Ref(f), [[1 0 0], [0 0 1]], [[0 1 0]]))
     @test _check_im_perm_rows(ray_indices(faces(Cone2, 2)), [[1], [2]])
-    @test _check_im_perm_rows(IncidenceMatrix(faces(Cone2, 2)), [[1], [2]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone2, 2)), [[1], [2]])
     @test _check_im_perm_rows(faces(IncidenceMatrix, Cone2, 2), [[1], [2]])
     @test issetequal(faces(Cone4, 1), positive_hull.(Ref(f), [[0 0 1], [1 0 0]]))
     @test _check_im_perm_rows(ray_indices(faces(Cone4, 1)), [[1], [2]])
-    @test _check_im_perm_rows(IncidenceMatrix(faces(Cone4, 1)), [[1], [2]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone4, 1)), [[1], [2]])
     @test _check_im_perm_rows(faces(IncidenceMatrix, Cone4, 1), [[1], [2]])
-    @test _check_im_perm_rows(IncidenceMatrix(faces(Cone5, 1)), [[1], [2], [3], [4]])
+    @test _check_im_perm_rows(incidence_matrix(faces(Cone5, 1)), [[1], [2], [3], [4]])
     @test isnothing(faces(Cone2, 1))
 
     @test f_vector(Cone5) == [4, 4]

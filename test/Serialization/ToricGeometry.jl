@@ -8,16 +8,19 @@
       test_save_load_roundtrip(path, pp; with_attrs=false, check_func=!check) do loaded
         @test rays(pp) == rays(loaded)
         @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
+        @test coordinate_names(pp) == coordinate_names(loaded)
       end
       
       test_save_load_roundtrip(path, pp; with_attrs=true, check_func=check) do loaded
         @test rays(pp) == rays(loaded)
         @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
+        @test coordinate_names(pp) == coordinate_names(loaded)
       end
 
       test_save_load_roundtrip(path, pp; check_func=check) do loaded
         @test rays(pp) == rays(loaded)
         @test ray_indices(maximal_cones(pp)) == ray_indices(maximal_cones(loaded))
+        @test coordinate_names(pp) == coordinate_names(loaded)
       end
     end
 

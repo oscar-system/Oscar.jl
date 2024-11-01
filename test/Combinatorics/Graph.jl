@@ -67,7 +67,7 @@
         @test n_vertices(egplc) == 2
         @test n_edges(egplc) == 1
 
-        @test incidence_matrix(egtriangle) == IncidenceMatrix([[1,2],[1,3],[2,3]])
+        @test incidence_matrix(egtriangle) == incidence_matrix([[1,2],[1,3],[2,3]])
 
         @test is_isomorphic(dual_graph(convex_hull([0 0 0; 1 0 0], nothing, [0 1 0])), Graph{Undirected}(2))
         @test is_isomorphic(dual_graph(convex_hull([0 0 0], [0 0 1; 0 1 0; 1 0 0])), complete_graph(3))

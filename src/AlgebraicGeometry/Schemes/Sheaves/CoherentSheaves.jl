@@ -264,10 +264,10 @@ Coherent sheaf of modules
     3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
     4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
-  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function twisting_sheaf(IP::AbsProjectiveScheme{<:Field}, d::Int)
@@ -325,10 +325,10 @@ Coherent sheaf of modules
     3: [(s0//s2), (s1//s2), (s3//s2)]   affine 3-space
     4: [(s0//s3), (s1//s3), (s2//s3)]   affine 3-space
 with restrictions
-  1: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  2: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  3: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
-  4: free module of rank 1 over Multivariate polynomial ring in 3 variables over QQ
+  1: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  2: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  3: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
+  4: free module of rank 1 over multivariate polynomial ring in 3 variables over QQ
 ```
 """
 function tautological_bundle(IP::AbsProjectiveScheme{<:Field})
