@@ -412,13 +412,12 @@ end
 
 # Convert syllables in canonical form into group element
 #Thomas
-function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}, check::Bool=true)
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}; check::Bool=true)
   # check if the syllables are in canonical form
   if check
     indices = map(p -> p.first, sylls)
-    unq_indices = unique(indices) # maintains order
-    @req length(indices) == length(unq_indices) "given syllables have repeating generators"
-    @req issorted(unq_indices) "given syllables must be in ascending order"
+    @req allunique(indices) "given syllables have repeating generators"
+    @req issorted(indices) "given syllables must be in ascending order"
   end
 
   e = _exponent_vector(sylls, ngens(G))
