@@ -287,13 +287,14 @@ export atlas_subgroup
 export augmented_chow_ring
 export aut
 export automorphism_group
+export barycentric_subdivision
 export base_ring
 export base_scheme
 export bases
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
-export barycentric_subdivision
+export basis_of_h4
 export bell
 export betti
 export betti_number

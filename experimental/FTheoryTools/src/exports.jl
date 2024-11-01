@@ -33,7 +33,9 @@ export arxiv_model_section
 export arxiv_version
 export associated_literature_models
 export base_space
+export basis_of_h22
 export blow_up
+export birational_literature_models
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
@@ -142,7 +144,6 @@ export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
-export birational_literature_models
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
