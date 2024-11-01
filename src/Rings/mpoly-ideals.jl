@@ -1138,12 +1138,6 @@ julia> L = minimal_primes(I)
 function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=true)
   has_attribute(I, :minimal_primes) && return get_attribute(I, :minimal_primes)::Vector{typeof(I)}
   R = base_ring(I)
-  if coefficient_ring(R) isa QQField && is_zero(dim(I))
-    L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
-    result = typeof(I)[ideal(R, q) for q in L]
-    cache && set_attribute!(I, :minimal_primes=>result)
-    return result
-  end
   if isa(base_ring(R), NumField) && !isa(base_ring(R), AbsSimpleNumField)
     A, mA = absolute_simple_field(base_ring(R))
     mp = minimal_primes(map_coefficients(pseudo_inv(mA), I); algorithm = algorithm)
@@ -1176,6 +1170,24 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=tru
   end
 
   return V
+end
+
+@doc raw"""
+    function minimal_primes_zero_dim(I::MPolyIdeal{QQPolyRingElem})
+    
+Return a vector containing the minimal associated prime ideals of `I`.
+
+Calls a specialized variant of `minimal_primes` for zero dimensional ideals 
+with coefficient ring over the rationals.
+
+No input checks. It is unclear if this variant is faster than just
+calling `minimal_primes` directly.
+"""
+function minimal_primes_zero_dim(I::MPolyIdeal{QQPolyRingElem})
+  L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
+  result = typeof(I)[ideal(R, q) for q in L]
+  cache && set_attribute!(I, :minimal_primes=>result)
+  return result
 end
 
 # rerouting the procedure for minimal primes this way leads to 
@@ -1903,6 +1915,11 @@ julia> dim(I)
   is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
   I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
   return I.dim
+end
+
+function is_known_to_be_zero_dimensional(I::MPolyIdeal)
+  has_attribute(I, :dim) || isdefined(I,:dim) || return false
+  return dim(I) == 0
 end
 
 #######################################################
