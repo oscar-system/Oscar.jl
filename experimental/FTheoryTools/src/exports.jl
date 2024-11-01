@@ -33,6 +33,7 @@ export arxiv_model_section
 export arxiv_version
 export associated_literature_models
 export base_space
+export basis_of_h22
 export blow_up
 export birational_literature_models
 export calabi_yau_hypersurface
