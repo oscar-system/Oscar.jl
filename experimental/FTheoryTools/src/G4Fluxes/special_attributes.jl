@@ -4,13 +4,13 @@
 By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
 basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
 by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^(2,2)(X, \mathbb{Q})$ by multiplying
+method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
 pairs of cohomology classes associated with toric coordinates.
 
-By definition, $H^(2,2)(X, \mathbb{Q})$ is a subset of $H^(4)(X, \mathbb{Q})$.
+By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
 However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^(p,q)(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^(2,2)(X, \mathbb{Q}) = H^(4)(X, \mathbb{Q})$ and the
+toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
+that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
 vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
 
 Note that it can be computationally very demanding to check if a toric variety
