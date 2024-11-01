@@ -96,10 +96,10 @@ function multi_edges(F::Field,
 end
 
 @doc raw"""
-     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}; parallel=false)
-     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}; parallel=false)
-     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false)
-     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false)
+     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}; parallel=false, show_progress=true)
+     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}; parallel=false, show_progress=true)
+     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
+     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
 
 
 Constructs the partial shift graph on `complexes`.
@@ -133,8 +133,7 @@ julia> Ks = gamma(4,2,5)
  UniformHypergraph(4, 2, [[1, 2], [1, 3], [1, 4], [2, 4], [3, 4]])
  UniformHypergraph(4, 2, [[1, 3], [1, 4], [2, 3], [2, 4], [3, 4]])
 
-julia> G, EL, VL = partial_shift_graph(QQ, Ks);
-Progress: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:00:00
+julia> G, EL, VL = partial_shift_graph(QQ, Ks; show_progress=false);
 
 julia> collect(edges(G))
 14-element Vector{Edge}:
@@ -167,7 +166,7 @@ julia> facets.(VL[[6, 5]])
 ```
 """
 function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup, Vector{WeylGroupElem}};
-                             parallel::Bool = false) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
+                             parallel::Bool = false, show_progress::Bool = true) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
   # Deal with trivial case
   if length(complexes) <= 1
     return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
@@ -196,17 +195,23 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
     Oscar.put_params(channels, codomain(phi))
   end
 
-  # edge_tuples = multi_edges(F, phi.(W), collect(enumerate(complexes)), complex_labels)
-  # Basically, the following does the same as the preceeding, but with a progress indicator:
-  edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                       @showprogress pmap(
-                         Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
-                         Iterators.partition(enumerate(complexes), task_size)))
+  if show_progress
+    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                         @showprogress pmap(
+                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
+                           Iterators.partition(enumerate(complexes), task_size)))
+  else
+    edge_labels = multi_edges(F,
+                              phi.(W),
+                              collect(enumerate(complexes)),
+                              complex_labels)
+  end
   graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
   return (graph, Dict(k => inv(phi).(v) for (k, v) in edge_labels), complexes)
 end
 
-function partial_shift_graph(F::Field, complexes::Vector{T}; parallel=false) where T <: ComplexOrHypergraph
+function partial_shift_graph(F::Field, complexes::Vector{T};
+                             kwargs...) where T <: ComplexOrHypergraph
   # Deal with trivial case
   if length(complexes) <= 1
     return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
@@ -214,7 +219,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T}; parallel=false) whe
 
   n = n_vertices(complexes[1])
   W = weyl_group(:A, n - 1)
-  return partial_shift_graph(F, complexes, W;parallel=parallel)
+  return partial_shift_graph(F, complexes, W; kwargs...)
 end
 
 @doc raw"""
@@ -241,7 +246,7 @@ julia> Ks = gamma(4,2,5)
  UniformHypergraph(4, 2, [[1, 3], [1, 4], [2, 3], [2, 4], [3, 4]])
 
 julia> G, EL, VL = partial_shift_graph(QQ, Ks);
-Progress: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:00:00
+
 
 julia> contracted_partial_shift_graph(G, EL)
 (Directed graph with 1 nodes and 0 edges, [1], [[5, 4, 6, 2, 3, 1]])

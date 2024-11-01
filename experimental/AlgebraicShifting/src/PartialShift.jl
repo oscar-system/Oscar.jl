@@ -229,7 +229,7 @@ end
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
-If `w` is not given then `longest_element(Weyl_group(:A, n_vertices(K) - 1))` is used
+If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
 
 # Examples
 ```jldoctest
@@ -261,7 +261,7 @@ true
 julia> betti_numbers(L) == betti_numbers(K)
 true
 
-julia> W = Weyl_group(:A, n_vertices(K) - 1)
+julia> W = weyl_group(:A, n_vertices(K) - 1)
 Weyl group for root system defined by Cartan matrix [2 -1 0 0 0; -1 2 -1 0 0; 0 -1 2 -1 0; 0 0 -1 2 -1; 0 0 0 -1 2]
 
 julia> s = gens(W)
