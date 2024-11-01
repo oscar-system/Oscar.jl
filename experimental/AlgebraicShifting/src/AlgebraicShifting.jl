@@ -14,7 +14,8 @@ export partial_shift_graph_vertices
 export rothe_matrix
 export uniform_hypergraph
 
-function independent_columns(A::MatElem)
+function lex_min_basis(A::MatElem)
+  rref!(A)
   col_indices = Int[]
   row_index = 1
   row_bound = nrows(A)
@@ -28,6 +29,51 @@ function independent_columns(A::MatElem)
   return col_indices
 end
 
+# greedily find lex min basis for column span
+function lex_min_basis(M::MatElem{<:MPolyRingElem})
+  basis_indices = Int[]
+  row_pivot_pos = 0
+  for j in 1:ncols(M)
+    # divide col by gcd of its entries
+    c = content(M[:, [j]])
+    if !isone(c)
+      M[:, j] = divexact(M[:, [j]], c)
+    end
+
+    best_i = 0
+    min_terms = typemax(Int)
+    # find best entry in the col for the pivot
+    # units are best, otherwise take entry with smallest number of terms
+    for i in row_pivot_pos + 1:nrows(M)
+      is_zero_entry(M, i, j) && continue
+      if is_unit(M[i, j])
+        # might not be best unit to take
+        best_i = i
+        break
+      end
+      # find row entry with smallest number of terms
+      if length(M[i, j]) < min_terms
+        min_terms = length(M[i, j])
+        best_i = i
+      end
+    end
+
+    best_i == 0 && break # column is lin comb of prev cols
+    row_pivot_pos += 1
+    push!(basis_indices, j)
+    row_pivot_pos > nrows(M) && break # found all pivots
+    M = swap_rows!(M, row_pivot_pos, best_i)
+    j == ncols(M) && break
+    for ii in 1:row_pivot_pos - 1
+      jj = basis_indices[ii]
+      _, a, b = gcd_with_cofactors(M[ii, j + 1], M[ii, jj])
+      M[:, j + 1] = b * M[:, [j + 1]] - a * M[:, [jj]]
+      M[:, j + 1] = divexact(M[:, [j + 1]], content(M[:, [j + 1]])) # divide col by gcd
+      println(M[:, j + 1])
+    end
+  end
+  return basis_indices
+end
 
 @doc raw"""
    symmetric_shift(F::Field, K::SimplicialComplex)

@@ -204,21 +204,12 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   matrix_base = base_ring(g)
   nCk = sort!(subsets(n_vertices(K), face_size(K)))
   c = compound_matrix(g, K)
-  if matrix_base isa MPolyRing
-    Oscar.ModStdQt.ref_ff_rc!(c)
-  elseif matrix_base isa MPolyQuoRing
-    lifted_c = lift.(c)
-    Oscar.ModStdQt.ref_ff_rc!(lifted_c)
-    c = simplify.(matrix_base.(lifted_c))
-  else
-    rref!(c)
-  end
-  return uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
+  return uniform_hypergraph(nCk[lex_min_basis(c)], n_vertices(K), face_size(K))
 end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem)
   return simplicial_complex([
-    (faces(exterior_shift(uniform_hypergraph(K, k), g)) for k in 1:dim(K)+1)...;
+    (faces(exterior_shift(uniform_hypergraph(K, k), g)) for k in 2:dim(K)+1)...;
     [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
   ])
 end
