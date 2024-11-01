@@ -839,7 +839,7 @@ function _pullback(phi::MorphismFromRationalFunctions, I::AbsIdealSheaf)
   error("ideal sheaf could not be pulled back")
 end
 
-function pullback(phi::MorphismFromRationalFunctions, D::WeilDivisor)
+function pullback(phi::MorphismFromRationalFunctions, D::AbsWeilDivisor)
   return WeilDivisor(pullback(phi)(underlying_cycle(D)), check=false) 
 end
 
