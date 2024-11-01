@@ -166,7 +166,11 @@ end
 
 compound_matrix(m::MatElem, k::Int) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))))
 compound_matrix(p::PermGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, p), k)
-compound_matrix(w::WeylGroupElem, k::Int) = compound_matrix(permutation_matrix(ZZ, w), k)
+
+function compound_matrix(w::WeylGroupElem, k::Int)
+  iso = isomorphism(PermGroup, parent(w))
+  return compound_matrix(permutation_matrix(ZZ, iso(w)), k)
+end
 
 # this might be removed (currently is not used)
 function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})

@@ -733,10 +733,3 @@ function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
   (wt, _), state = it
   return deepcopy(wt), state
 end
-
-################################################################################
-# converting to permutation matrices
-
-function permutation_matrix(R::Ring, w::WeylGroupElem)
-  permutation_matrix(R, isomorphism(PermGroup, parent(w))(w))
-end
