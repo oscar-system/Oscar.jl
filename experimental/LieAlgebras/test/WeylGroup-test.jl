@@ -112,9 +112,15 @@ include(
             if is_finite(W) # remove once rand(W) is implemented for infinite groups
               w = rand(W)
               @test w == inv(iso)(iso(w))
+              v = rand(W)
+              @test iso(v * w) == iso(v) * iso(w)
+              @test v * w == inv(iso)(iso(v) * iso(w))
             end
             g = rand_pseudo(G)
             @test g == iso(inv(iso)(g))
+            h = rand_pseudo(G)
+            @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+            @test h * g == iso(inv(iso)(h) * inv(iso)(g))
           end
         end
       end
@@ -144,9 +150,15 @@ include(
                 if is_finite(W) # remove once rand(W) is implemented for infinite groups
                   w = rand(W)
                   @test w == inv(iso)(iso(w))
+                  v = rand(W)
+                  @test iso(v * w) == iso(v) * iso(w)
+                  @test v * w == inv(iso)(iso(v) * iso(w))
                 end
                 g = rand_pseudo(G)
                 @test g == iso(inv(iso)(g))
+                h = rand_pseudo(G)
+                @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+                @test h * g == iso(inv(iso)(h) * inv(iso)(g))
               end
             end
           end
