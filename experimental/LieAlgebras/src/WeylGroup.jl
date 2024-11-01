@@ -735,37 +735,7 @@ function Base.iterate(iter::WeylOrbitIterator, state::WeylIteratorNoCopyState)
 end
 
 ################################################################################
-# converting to permutations
-
-function isomorphism(::Type{PermGroup}, W::WeylGroup)
-  coxeter_type, n = root_system_type(root_system(W))[1]
-  @req coxeter_type == :A "Weyl group is not the symmetric group"
-  G = symmetric_group(n + 1)
-
-  iso = function (w::WeylGroupElem)
-    reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init=cperm(G))
-  end
-
-  isoinv = function (g::PermGroupElem)
-    word = UInt8[]
-    for cycle in cycles(g)
-      transpositions = [
-        sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)]
-      for t in transpositions
-        word = reduce(
-          vcat,
-          [
-            [i for i in t[1]:(t[2] - 1)],
-            [i for i in reverse(t[1]:(t[2] - 2))],
-            word],
-        )
-      end
-    end
-    return W(word)
-  end
-
-  return MapFromFunc(W, G, iso, isoinv)
-end
+# converting to permutation matrices
 
 function permutation_matrix(R::Ring, w::WeylGroupElem)
   permutation_matrix(R, isomorphism(PermGroup, parent(w))(w))
