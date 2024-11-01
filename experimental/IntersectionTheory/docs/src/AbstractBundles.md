@@ -39,7 +39,7 @@ top_chern_class(F::AbstractBundle)
 ```
 
 ```@docs
-segre_class(F::AbstractBundle)
+total_segre_class(F::AbstractBundle)
 ```
 
 ```@docs

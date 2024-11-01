@@ -55,6 +55,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export total_segre_class
 export segre_class
 export structure_map
 export tangent_bundle
@@ -134,6 +135,7 @@ export pushforward
 export schubert_class
 export schubert_classes
 export schur_functor
+export total_segre_class
 export segre_class
 export structure_map
 export tangent_bundle

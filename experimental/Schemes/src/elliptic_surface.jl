@@ -291,7 +291,7 @@ function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurv
   tors = [section(X, h) for h in mordell_weil_torsion(X)]
   torsV = QQMatrix[]
   for T in tors
-    @vprint :EllipticSurface 2 "computing basis representation of $(T)\n"
+    @vprint :EllipticSurface 2 "computing basis representation of torsion point $(T)\n"
     vT = zero_matrix(QQ, 1, n)
     for i in 1:r
       if i== 2
@@ -851,32 +851,13 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
   return piY
 end
 
-#  global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
-#exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
-@doc raw"""
-    _trivial_lattice(S::EllipticSurface)
-
-Internal function. Returns a list consisting of:
-- basis of the trivial lattice
-- gram matrix
-- fiber_components without multiplicities
-"""
-@attr Any function _trivial_lattice(S::EllipticSurface)
-  #=
-  inc_Y = S.inc_Y
-  X = codomain(inc_Y)
-  exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
-  ExWeil = WeilDivisor.(exceptional_res)
-  tmp = []
-  ExWeil = reduce(append!, [components(i) for i in ExWeil], init= tmp)
-  =#
-  W = weierstrass_model(S)
-  d = numerator(discriminant(generic_fiber(S)))
-  j = j_invariant(generic_fiber(S))
+function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
+  E = generic_fiber(X)
+  j = j_invariant(E)
+  d = numerator(discriminant(E))
   kt = parent(d)
   k = coefficient_ring(kt)
-  # find the reducible fibers
-  sing = elem_type(k)[]
+  sing = Vector{elem_type(k)}[]
   for (p,v) in factor(d)
     if v == 1
       continue
@@ -890,48 +871,76 @@ Internal function. Returns a list consisting of:
     if v == 2
       # not a type II fiber
       if j!=0
-        push!(sing, rt)
+        push!(sing, [rt,k(1)])
       end
     end
     if v > 2
-      push!(sing, rt)
+      push!(sing, [rt,k(1)])
     end
   end
-  # the reducible fibers are over the points in sing
-  # and possibly the point at infinity
-  f = [[k.([i,1]), fiber_components(S,[i,k(1)])] for  i in sing]
-  if degree(d) <= 12*euler_characteristic(S) - 2
-    pt = k.([1, 0])
-    push!(f, [pt, fiber_components(S, pt)])
+  if sort
+    sort!(sing, by=x->by_total_order(x[1]))
   end
-
-  O = zero_section(S)
-  pt0, F = fiber(S)
-  set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
-
-
-  basisT = [F, O]
-
-  grams = [ZZ[0 1;1 -euler_characteristic(S)]]
-  fiber_componentsS = []
-  for (pt, ft) in f
-    @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
-    Ft0 = standardize_fiber(S, ft)
-    @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
-    append!(basisT , Ft0[3][2:end])
-    push!(grams,Ft0[4][2:end,2:end])
-    push!(fiber_componentsS, vcat([pt], collect(Ft0)))
+  # fiber over infinity is always last (if it is there)
+  if degree(d) <= 12*euler_characteristic(X) - 2
+    push!(sing, k.([1, 0]))
   end
-  G = block_diagonal_matrix(grams)
-  # make way for some more pretty printing
-  for (pt,root_type,_,comp) in fiber_componentsS
-    for (i,I) in enumerate(comp)
-      name = string(root_type[1], root_type[2])
-      set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
-      set_attribute!(components(I)[1], :_self_intersection, -2)
+  return sing
+end
+
+function by_total_order(x::FqFieldElem) 
+  return [lift(ZZ, i) for i in absolute_coordinates(x)]
+end
+  
+by_total_order(x::QQFieldElem) = x
+  
+function by_total_order(x::NumFieldElem)
+  return absolute_coordinates(x)
+end 
+
+# global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
+# exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
+@doc raw"""
+    _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
+  
+Internal function. Returns a list consisting of:
+- basis of the trivial lattice
+- gram matrix
+- fiber_components without multiplicities
+
+The keyword argument `reducible_singular_fibers_in_PP1` must be a list of vectors of length `2` over 
+the base field representing the points in projective space over which there are reducible fibers.
+Specify it to force this ordering of the basis vectors of the ambient space of the `algebraic_lattice`
+"""
+function _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
+  get_attribute!(S, :_trivial_lattice) do
+    O = zero_section(S)
+    pt0, F = fiber(S)
+    set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
+    basisT = [F, O]
+    grams = [ZZ[0 1;1 -euler_characteristic(S)]]
+    sing = reducible_singular_fibers_in_PP1
+    f = [[pt, fiber_components(S,pt)] for  pt in sing]
+    fiber_componentsS = []
+    for (pt, ft) in f
+      @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
+      Ft0 = standardize_fiber(S, ft)
+      @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
+      append!(basisT , Ft0[3][2:end])
+      push!(grams,Ft0[4][2:end,2:end])
+      push!(fiber_componentsS, vcat([pt], collect(Ft0)))
     end
+    G = block_diagonal_matrix(grams)
+    # make way for some more pretty printing
+    for (pt,root_type,_,comp) in fiber_componentsS
+      for (i,I) in enumerate(comp)
+        name = string(root_type[1], root_type[2])
+        set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
+        set_attribute!(components(I)[1], :_self_intersection, -2)
+      end
+    end
+    return basisT, G, fiber_componentsS
   end
-  return basisT, G, fiber_componentsS
 end
 
 @doc raw"""
@@ -1230,6 +1239,7 @@ function _section(X::EllipticSurface, P::EllipticCurvePoint)
   set_attribute!(W, :is_prime=>true)
   I = first(components(W))
   set_attribute!(I, :is_prime=>true)
+  set_attribute!(W, :point=>P)
   return W
 end
 
@@ -1491,35 +1501,10 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   rk_triv = nrows(trivial_lattice(X)[2])
   n = rank(NS)
   @assert degree(NS) == rank(NS)
-  P0 = sum([ZZ(F[i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
-  P0_div = section(X, P0)
-  @vprint :EllipticSurface 2 "Computing basis representation of $(P0)\n"
-  p0 = basis_representation(X, P0_div) # this could be done from theory alone
-  F1 = F - p0  # should be contained in the QQ-trivial-lattice
-  if all(isone(denominator(i)) for i in F1)
-    # no torsion
-    P = P0
-    P_div = P0_div
-    F2 = F1
-  else
-    found = false
-    for (i,(T, tor)) in enumerate(tors)
-      d = F1 - _vec(tor)
-      if all(isone(denominator(i)) for i in d)
-        found = true
-        T0 = mordell_weil_torsion(X)[i]
-        P = P0 + T0
-        break
-      end
-    end
-    @assert found
-    P_div = section(X, P)
-    p = basis_representation(X, P_div)
-    F2 = F - p
-    @assert all( isone(denominator(i)) for i in F2)
-  end
+  p, P = _vertical_part(X,F)
+  D = section(X, P)
+  F2 = F - p
   @vprint :EllipticSurface 4 "F2 = $(F2)\n"
-  D = P_div
   D = D + ZZ(F2[2])*zero_section(X)
   D1 = D
   F2 = ZZ.(F2); F2[2] = 0
@@ -2905,4 +2890,95 @@ function _prepare_section(D::AbsWeilDivisor{<:EllipticSurface})
   return weil_divisor(I)
 end
 
+# internal method used for two neighbor steps
+# in the horizontal_decomposition
+function _vertical_part(X::EllipticSurface, v::QQMatrix)
+  @req nrows(v)==1 "not a row vector"
+  _,tors, NS = algebraic_lattice(X)
+  E = generic_fiber(X)
+  @req ncols(v)==degree(NS) "vector of wrong size $(ncols(v))"
+  @req v in NS "not an element of the lattice"
+  mwl_rank = length(X.MWL)
+  rk_triv = rank(NS)-mwl_rank
+  n = rank(NS)
+  P = sum([ZZ(v[1,i])*X.MWL[i-rk_triv] for i in (rk_triv+1):n], init = E([0,1,0]))
+  p = zero_matrix(QQ, 1, rank(NS)) # the section part
+  p[1,end-mwl_rank+1:end] = v[1,end-mwl_rank+1:end]
+  p[1,2] = 1 - sum(p)  # assert p.F = 1 by adding a multiple of the zero section O
+  
+  # P meets exactly one fiber component per fiber 
+  # and that one must be simple, it can be the one meeting O or not
+  # assert this by adding fiber components under the additional condition that p stays in the algebraic lattice
+  simples = []
+  E = identity_matrix(QQ,rank(NS))
+  z = zero_matrix(QQ,1, rank(NS))
+  r = 2
+  for fiber in _trivial_lattice(X)[3]
+    fiber_type = fiber[2]
+    fiber_rk = fiber_type[2]
+    h = highest_root(fiber_type...)
+    simple_indices = [r+i for i in 1:ncols(h) if isone(h[1,i])]
+    simple_or_zero = [E[i:i,:] for i in simple_indices]
+    push!(simple_or_zero, z)
+    push!(simples,simple_or_zero)
+    r += fiber_rk
+  end
+  G = gram_matrix(ambient_space(NS))
+  pG = (p*G)[1:1,3:r]
+  T = Tuple(simples)
+  GF = G[3:r,3:r]
+  candidates = QQMatrix[]
+  for s in Base.Iterators.ProductIterator(T)
+    g = sum(s)[:,3:r]
+    y = (g - pG)
+    xx = solve(GF,y;side=:left)
+    x = zero_matrix(QQ,1, rank(NS))
+    x[:,3:r] = xx
+    if x in NS
+      push!(candidates,p+x)
+    end 
+  end
+  @assert length(candidates)>0
+  # Select the candidate congruent to v modulo Triv 
+  mwg = _mordell_weil_group(X)
+  vmwg = mwg(vec(collect(v)))
+  candidates2 = [mwg(vec(collect(x))) for x in candidates]
+  i = findfirst(==(vmwg), candidates2)
+  t = mwg(vec(collect(p - candidates[i])))
+  mwl_tors_gens = [mwg(vec(collect(i[2]))) for i in tors]
+  ag = abelian_group(zeros(ZZ,length(tors)))
+  mwlAb = abelian_group(mwg)
+  phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
+  a = preimage(phi, mwlAb(t))
+  for i in 1:ngens(ag)
+    P += a[i]*get_attribute(tors[i][1],:point)
+  end 
+  
+  p = candidates[i]
+  k = (p*G*transpose(p))[1,1]
+  # assert p^2 = -2
+  p[1,1] = -k/2-1
+  V = ambient_space(NS)
+  @hassert :EllipticSurface 1 inner_product(V, p, p)[1,1]== -2
+  @hassert :EllipticSurface 1 mwg(vec(collect(p))) == mwg(vec(collect(p)))
+  @hassert :EllipticSurface 3 basis_representation(X,section(X,P))==vec(collect(p))
+  return p, P
+end
+  
+function _vertical_part(X::EllipticSurface, v::Vector{QQFieldElem}) 
+  vv = matrix(QQ,1,length(v),v)
+  p, P = _vertical_part(X,vv)
+  pp = vec(collect(p))
+  return pp, P
+end
 
+# TODO: Instead return an abelian group A and two maps. 
+# algebraic_lattice -> A 
+# A -> MWL= E(k(t))
+function _mordell_weil_group(X)
+  N = algebraic_lattice(X)[3]
+  V = ambient_space(N)
+  t = nrows(trivial_lattice(X)[2])
+  Triv = lattice(V, identity_matrix(QQ,dim(V))[1:t,:])
+  return torsion_quadratic_module(N, Triv;modulus=1, modulus_qf=1, check=false)
+end 

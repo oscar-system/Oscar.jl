@@ -1,21 +1,5 @@
-export annihilator
+
 export is_projective
-
-
-function annihilator(M::SubquoModule)
-  R = base_ring(M)
-  F = FreeMod(R, 1)
-  I = ideal(R, [one(R)])
-  for v in gens(M)
-    h = hom(F, M, [v])
-    K, _ = kernel(h)
-    # this is a hack, because getindex is broken for K
-    g = Oscar.as_matrix(F, ambient_representatives_generators(K))
-    I = intersect(I, ideal(R, minors(g, 1)))
-  end
-  return I
-end
-
 @doc raw"""
     is_projective(M::SubquoModule)
 

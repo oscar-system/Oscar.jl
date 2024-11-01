@@ -478,7 +478,7 @@ end
 
 ################################################################################
 
-abstract type GSet{T} end
+abstract type GSet{T,S} end
 
 
 ################################################################################
@@ -493,7 +493,7 @@ abstract type GSet{T} end
 It can be either the conjugacy class of an element or of a subgroup of type `S`
 in a group `G` of type `T`.
 """
-abstract type GroupConjClass{T, S} <: GSet{T} end
+abstract type GroupConjClass{T,S} <: GSet{T,S} end
 
 
 ################################################################################

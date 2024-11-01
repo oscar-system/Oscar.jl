@@ -134,7 +134,7 @@ Given two ideals $I, J$ of a ring $R$, the saturation of $I$ with respect to $J$
 $I:J^{\infty} = \bigl\{ f \in R \:\big|\: f J^k \!\subset I {\text{ for some }}k\geq 1 \bigr\} = \textstyle{\bigcup\limits_{k=1}^{\infty} (I:J^k)}.$
 
 ```@docs
-saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
+saturation(I::MPolyIdeal{T}, J::MPolyIdeal{T}; iteration::Bool=false) where T
 saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T}) where T
 ```
 

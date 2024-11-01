@@ -45,7 +45,7 @@
     M = matroid_from_nonbases([[1, 2, 3, 4], [1, 2, 5, 6], [1, 3, 5, 7], [3, 4, 6, 8]], 8)
     GM = automorphism_group(M)
     @test is_trivial(GM)
-    IM = IncidenceMatrix(bases(M))
+    IM = incidence_matrix(bases(M))
     GIM = automorphism_group(IM)
     @test length(GIM) == 2
     @test haskey(GIM, :on_cols)
