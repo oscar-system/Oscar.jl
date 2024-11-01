@@ -306,11 +306,13 @@ is_commutative(C::CliffordAlgebra) = dim(C) == 1
 ################################################################################
 
 @doc raw"""
-    centroid(C::CliffordAlgebra) -> Tuple{CliffordAlgebraElem, CliffordAlgebraElem}
+    centroid(C::CliffordAlgebra) -> Union{Tuple{CliffordAlgebra}},
+    Tuple{CliffordAlgebraElem, CliffordAlgebraElem}}
 
-Returns the centroid of $C$. It is always two-dimensional, so it is returned as a tuple of
-length two, that contains the basis elements. The first one is the multiplicative identity
-of $C$. The square of the second basis element equals `quadratic_discriminant(C)`.
+Returns the centroid of $C$. Unless `dim(space(C)) = 0`, it is always two-dimensional,
+so it is returned as a tuple that contains the basis elements. The first one is the
+multiplicative identity of $C$. The square of the second basis element, if present,
+equals `quadratic_discriminant(C)`.
 """
 function centroid(C::CliffordAlgebra)
   if isdefined(C, :centroid)
@@ -318,6 +320,10 @@ function centroid(C::CliffordAlgebra)
   end
   T = orthogonal_basis(space(C))
   n = _dim_qf(C)
+  if n == 0
+    C.centroid = tuple(one(C))
+    return C.centroid
+  end
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
   C.disq = coeff(orth_elt^2)[1]
@@ -334,7 +340,11 @@ function quadratic_discriminant(C::CliffordAlgebra)
   if isdefined(C, :disq)
     return C.disq
   end
-  return coeff(centroid(C)[2]^2)[1]
+  if dim(space(C)) == 0
+    C.disq = one(base_ring(C))
+  else
+    C.disq = coeff(centroid(C)[2]^2)[1]
+  end
 end
 
 @doc raw"""
@@ -414,7 +424,7 @@ Base.:*(x::CliffordAlgebraElem{T}, elt::Union{Int,Rational{Int}}) where {T<:Fiel
 Base.:*(elt::Union{Int,Rational{Int}}, x::CliffordAlgebraElem{T}) where {T<:FieldElem} = x * elt
 
 @doc raw"""
-    divexact(x::CliffordAlgebraElem{T}, a::T) where {T<:FieldElem} -> CliffordAlgebraElem{T}
+    divexact(x::CliffordAlgebraElem, a::FieldElem) -> CliffordAlgebraElem
 
 Return the element 'y' in the given Clifford algebra such that $ay = x$,
 if it exists. Otherwise an error is raised.
@@ -422,9 +432,18 @@ if it exists. Otherwise an error is raised.
 divexact(x::CliffordAlgebraElem{T}, elt::T) where {T<:FieldElem} =
   parent(x)(divexact.(coeff(x), elt))
 
+divexact(x::CliffordAlgebraElem{T}, elt::QQFieldElem) where {T<:NumFieldElem} =
+  parent(x)(divexact.(coeff(x), elt))
+
+divexact(x::CliffordAlgebraElem{T}, elt::Rational{Int}) where {T<:FieldElem} =
+  parent(x)(divexact.(coeff(x), elt))
+
 divexact(x::CliffordAlgebraElem{T}, elt::Int) where {T<:FieldElem} =
   divexact(x, base_ring(parent(x))(elt))
 
+divexact(x::CliffordAlgebraElem{T}, elt::ZZRingElem) where {T<:FieldElem} =
+  divexact(x, base_ring(parent(x))(elt))
+  
 ################################################################################
 #
 #  equality and hash
