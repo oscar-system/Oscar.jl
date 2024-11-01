@@ -48,5 +48,15 @@
       end
     end
 
+    @testset "ToricDivisorClass" begin
+      pp = projective_space(NormalToricVariety, 2)
+      cc = volume_form(pp)
+      cc_list = [cc]
+      test_save_load_roundtrip(path, cc_list) do loaded
+        @test cc == loaded[1]
+        @test toric_variety(cc) === toric_variety(loaded[1])
+      end
+    end
+
   end
 end
