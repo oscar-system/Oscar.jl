@@ -1,31 +1,28 @@
 
 @testset "all tests" begin
-  coeffs, dim_qf, set_even_odd_coeffs!, mul_with_gen = Oscar.coeffs,
-  Oscar.dim_qf, Oscar.set_even_odd_coeffs!,
-  Oscar._mul_with_gen
+  coeff, _dim_qf, _set_even_odd_coeff!, mul_with_gen, center, centroid, disq,
+  quadratic_discriminant = Oscar.coeff, Oscar._dim_qf, Oscar._set_even_odd_coeff!,
+  Oscar._mul_with_gen, Oscar.center, Oscar.centroid, Oscar.disq, Oscar.quadratic_discriminant
 
   @testset "some corner cases" begin
-    ma = matrix_algebra(QQ, 2)
-    Gfail = matrix([basis(ma)[1] basis(ma)[2]; basis(ma)[2] basis(ma)[4]])
-    @test_throws ArgumentError clifford_algebra(Gfail)
-    G = identity_matrix(ZZ, 0) #Empty matrix
-    C = clifford_algebra(G)
-    zer = [ZZ(0)]
+    empty_qs = quadratic_space(QQ, identity_matrix(QQ, 0)) #zero-dim quad space over QQ
+    C = clifford_algebra(empty_qs)
+    QQzer = [QQ(0)]
     @test is_commutative(C)
     @testset "construction" begin
-      @test typeof(C) == AlgClf{typeof(base_ring(C)())}
-      @test elem_type(C) == AlgClfElem{typeof(base_ring(C)()),typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(empty_qs))}
+      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(C)), typeof(C)}
       @test elem_type(C) == typeof(C())
 
-      @test (base_ring(C), gram(C), dim_qf(C), dim(C)) == (ZZ, G, 0, 1)
+      @test (base_ring(C), space(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, empty_qs, identity_matrix(QQ,0), 0, 1)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeffs(C()) == zer
-      @test even_coeffs(C()) == zer && even_coeffs(C()) == odd_coeffs(C())
+      @test coeff(C()) == QQzer
+      @test even_coeff(C()) == QQzer && even_coeff(C()) == odd_coeff(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeffs(C(1)) == [ZZ(1)]
-      @test even_coeffs(C(1)) == [ZZ(1)] && odd_coeffs(C(1)) == zer
+      @test coeff(C(1)) == [QQ(1)]
+      @test even_coeff(C(1)) == [QQ(1)] && odd_coeff(C(1)) == QQzer
     end
     @testset "functions on elements" begin
       x = C([17])
@@ -35,68 +32,69 @@
 
       @test even_part(x) == C([17])
       @test odd_part(x) == C([0])
-      xeven, xodd = even_coeffs(x), odd_coeffs(x)
-      x.even_coeffs, x.odd_coeffs = zer, [ZZ(1)]
-      @test xeven != even_coeffs(x)
-      @test xodd != odd_coeffs(x)
-      set_even_odd_coeffs!(x)
-      @test xeven == even_coeffs(x) && xodd == odd_coeffs(x)
+      xeven, xodd = even_coeff(x), odd_coeff(x)
+      x.even_coeffs, x.odd_coeffs = QQzer, [QQ(1)]
+      @test xeven != even_coeff(x)
+      @test xodd != odd_coeff(x)
+      _set_even_odd_coeff!(x)
+      @test xeven == even_coeff(x) && xodd == odd_coeff(x)
 
       @test +x == x
       @test -x == C([-17])
-      @test_throws ArgumentError divexact(x, 2)
-      @test divexact(2 * x, 2) == x && divexact(2 * x, ZZ(2)) == x
+      @test divexact(2 * x, 2) == x && divexact(2 * x, QQ(2)) == x
       @test divexact(C(18), 2) == C(9)
     end
     @testset "defining relations" begin
       @test length(basis(C)) == 1
       @test basis(C, 1) == C(1)
       @test is_empty(gens(C))
-      a, b = rand(ZZ, -100:100), rand(ZZ, -100:100)
+      a, b = rand(QQ, -100:100), rand(QQ, -100:100)
       @test C(a) * C(b) == C(a * b)
       @test C(a) + C(b) == C(a + b)
       @test (C(a) + C(b)) * (C(a) - C(b)) == C(a)^2 - C(b)^2
     end
+    @testset "center and centroid" begin
+    @test center(C) == centroid(C)
+    @test center(C) == (one(C),)
+    @test disq(C) == quadratic_discriminant(C)
+    @test disq(C) == 1
+    end
   end
 
   @testset "ring_of_integers_sqrt(5)" begin
-    K, _ = quadratic_field(5)
-    OK = ring_of_integers(K)
-    a = Oscar.basis(OK)[2] #1//2 * (1 + sqrt(5))
-    G = OK[2*a 1; 1 2*(1 - a)]
-    C = clifford_algebra(G)
+    K, b = quadratic_field(5)
+    a = 1//2*(1 + b)
+    G = K[2*a 1; 1 2*(1 - a)]
+    qsK = quadratic_space(K, G)
+    C = clifford_algebra(qsK)
     @test !is_commutative(C)
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
-    zerOK = OK.([0, 0, 0, 0])
+    Kzer = K.([0, 0, 0, 0])
     @testset "construction" begin
-      @test typeof(C) == AlgClf{typeof(base_ring(C)())}
-      @test elem_type(C) == AlgClfElem{typeof(base_ring(C)()),typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qsK))}
+      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qsK)), typeof(C)}
       @test elem_type(C) == typeof(C())
 
-      Gfail1, Gfail2 = OK[2*a 5; 1 2*(1 - a)], OK[a 1; 1 (1-a)]
-      @test_throws ArgumentError clifford_algebra(Gfail1)
-      @test_throws ArgumentError clifford_algebra(Gfail2)
-
-      @test (base_ring(C), gram(C), dim_qf(C), dim(C)) == (OK, G, 2, 4)
+      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeffs(C()) == zerOK
-      @test even_coeffs(C()) == zerOK && even_coeffs(C()) == odd_coeffs(C())
+      @test coeff(C()) == Kzer
+      @test even_coeff(C()) == Kzer && even_coeff(C()) == odd_coeff(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeffs(C(1)) == OK.([1, 0, 0, 0])
-      @test even_coeffs(C(1)) == OK.([1, 0, 0, 0]) && odd_coeffs(C(1)) == zerOK
-      verr1, verr2 = OK.([1, 2, 3]), OK.([1, 2, 3, 4, 5])
+      @test coeff(C(1)) == K.([1, 0, 0, 0])
+      @test even_coeff(C(1)) == K.([1, 0, 0, 0]) && odd_coeff(C(1)) == Kzer
+      verr1, verr2 = K.([1, 2, 3]), K.([1, 2, 3, 4, 5])
       @test_throws ArgumentError C(verr1)
       @test_throws ArgumentError C(verr2)
       Ca = C(a)
       @test parent(Ca) == C
       @test Ca == C([a, 0, 0, 0])
-      @test Ca == C(OK.([a, 0, 0, 0]))
+      @test Ca == C(K.([a, 0, 0, 0]))
       @test 2 * Ca == C([2 * a, 0, 0, 0])
       @test Ca * 2 == 2 * Ca
       @test 2 * Ca == C(2 * a)
-      @test C(2) == C(OK(2))
+      @test C(2) == C(K(2))
     end
     @testset "functions on elements" begin
       x = C([-1, 1, a, a + 1])
@@ -106,16 +104,16 @@
 
       @test even_part(x) == C([-1, 0, 0, a + 1])
       @test odd_part(x) == C([0, 1, a, 0])
-      xeven, xodd = even_coeffs(x), odd_coeffs(x)
-      x.even_coeffs, x.odd_coeffs = zerOK, zerOK
-      @test xeven != even_coeffs(x) && xodd != odd_coeffs(x)
-      set_even_odd_coeffs!(x)
-      @test xeven == even_coeffs(x) && xodd == odd_coeffs(x)
+      xeven, xodd = even_coeff(x), odd_coeff(x)
+      x.even_coeffs, x.odd_coeffs = Kzer, Kzer
+      @test xeven != even_coeff(x) && xodd != odd_coeff(x)
+      _set_even_odd_coeff!(x)
+      @test xeven == even_coeff(x) && xodd == odd_coeff(x)
 
       @test +x == x
       @test -x == C([1, -1, -a, -(a + 1)])
-      @test_throws ArgumentError divexact(x, 2)
-      @test divexact(2 * x, 2) == x && divexact(2 * x, OK(2)) == x
+      @test divexact(x, 2) == C([-1//2, 1//2, a//2, (a+1)//2])
+      @test divexact(2 * x, 2) == x && divexact(2 * x, K(2)) == x
     end
     @testset "defining relations" begin
       @test e(1) == gens(C)[1]
@@ -131,7 +129,7 @@
       @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
       @test is_zero(C(1)^2 - C(1))
       @test e(1) * e(2) == basis(C, 4) && basis(C, 4) == C([0, 0, 0, 1])
-      @test e(2) * e(1) == C(gram(C)[1, 2]) - e(1) * e(2)
+      @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
     end
     @testset "some computations" begin
       x, y = C([-2, 1, -1, 2]), C([2, 4, 6, 8])
@@ -152,33 +150,40 @@
     end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coeffs(x), 1, gram(C)) == OK.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      @test mul_with_gen(coeffs(x), 2, gram(C)) ==
-        OK.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
+      @test mul_with_gen(coeff(x), 1, gram_matrix(C)) == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
+      @test mul_with_gen(coeff(x), 2, gram_matrix(C)) ==
+        K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
+    end
+    @testset "center and centroid" begin
+      orth = C([-1, 0, 0, 2])
+      @test center(C) == centroid(C)
+      @test centroid(C) == (one(C), orth)
+      @test disq(C) == quadratic_discriminant(C) && disq(C) == coeff(orth^2)[1]
     end
   end
 
   @testset "random quaternion alg over rationals" begin
     a, b = rand(QQ, -5:5), rand(QQ, -5:5)
     G = diagonal_matrix(2 * a, 2 * b)
-    C = clifford_algebra(G)
+    qs = quadratic_space(QQ, G)
+    C = clifford_algebra(qs)
     @test !is_commutative(C)
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
     zer = QQ.([0, 0, 0, 0])
     @testset "construction" begin
-      @test typeof(C) == AlgClf{typeof(base_ring(C)())}
-      @test elem_type(C) == AlgClfElem{typeof(base_ring(C)()),typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
+      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
       @test elem_type(C) == typeof(C())
 
-      @test (base_ring(C), gram(C), dim_qf(C), dim(C)) == (QQ, G, 2, 4)
+      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeffs(C()) == zer
-      @test even_coeffs(C()) == zer && even_coeffs(C()) == odd_coeffs(C())
+      @test coeff(C()) == zer
+      @test even_coeff(C()) == zer && even_coeff(C()) == odd_coeff(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeffs(C(1)) == QQ.([1, 0, 0, 0])
-      @test even_coeffs(C(1)) == QQ.([1, 0, 0, 0]) && odd_coeffs(C(1)) == zer
+      @test coeff(C(1)) == QQ.([1, 0, 0, 0])
+      @test even_coeff(C(1)) == QQ.([1, 0, 0, 0]) && odd_coeff(C(1)) == zer
     end
     @testset "defining relations" begin
       @test e(1) == gens(C)[1]
@@ -192,7 +197,7 @@
       @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
       @test is_zero(C(1)^2 - C(1))
       @test e(1) * e(2) == basis(C, 4) && basis(C, 4) == C([0, 0, 0, 1])
-      @test e(2) * e(1) == C(gram(C)[1, 2]) - e(1) * e(2)
+      @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
     end
     @testset "some computations" begin
       @test e(2) * (e(1) + e(2)) == C([b, 0, 0, -1])
@@ -215,13 +220,18 @@
         2 * (a^2 - b^2),
       ])
       @test x == +x
-      @test -x == C(-coeffs(x))
+      @test -x == C(-coeff(x))
       @test is_zero(x + -x)
     end
     @testset "mul_with_gen" begin
       x = C([1, 2, 3, 4])
-      @test mul_with_gen(coeffs(x), 1, gram(C)) == QQ.([2 * a, 1, -4 * a, -3])
-      @test mul_with_gen(coeffs(x), 2, gram(C)) == QQ.([3 * b, 4 * b, 1, 2])
+      @test mul_with_gen(coeff(x), 1, gram_matrix(C)) == QQ.([2 * a, 1, -4 * a, -3])
+      @test mul_with_gen(coeff(x), 2, gram_matrix(C)) == QQ.([3 * b, 4 * b, 1, 2])
+    end
+    @testset "center and centroid" begin
+      @test center(C) == centroid(C)
+      @test disq(C) == quadratic_discriminant(C) && disq(C) == -a*b
+      @test disq(C) == coeff(centroid(C)[2]^2)[1]
     end
   end
 
@@ -233,26 +243,27 @@
         G[i, j] = z^(abs(i - j))
       end
     end
-    C = clifford_algebra(G)
+    qs = quadratic_space(K, G)
+    C = clifford_algebra(qs)
     @test !is_commutative(C)
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
     zer = fill(K(), 2^5)
     ein = fill(K(), 2^5)
     ein[1] = K(1)
     @testset "construction" begin
-      @test typeof(C) == AlgClf{typeof(base_ring(C)())}
-      @test elem_type(C) == AlgClfElem{typeof(base_ring(C)()),typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
+      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
       @test elem_type(C) == typeof(C())
 
-      @test (base_ring(C), gram(C), dim_qf(C), dim(C)) == (K, G, 5, 32)
+      @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 5, 32)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeffs(C()) == zer
-      @test even_coeffs(C()) == zer && even_coeffs(C()) == odd_coeffs(C())
+      @test coeff(C()) == zer
+      @test even_coeff(C()) == zer && even_coeff(C()) == odd_coeff(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeffs(C(1)) == ein
-      @test even_coeffs(C(1)) == ein && odd_coeffs(C(1)) == zer
+      @test coeff(C(1)) == ein
+      @test even_coeff(C(1)) == ein && odd_coeff(C(1)) == zer
     end
     @testset "defining relations" begin
       for i in 1:5, j in 1:5
@@ -275,7 +286,7 @@
       @test typeof(x) == typeof(C())
 
       @test x^2 == C(sum(map(i -> i * z^(4 - i), 1:4))) #Easy by-hand computation
-      y = C(ZZ.(1:32))
+      y = C(QQ.(1:32))
       @test y^2 == C([
         -811 * z^3 - 4277 * z^2 - 4364 * z - 1654,
         -838 * z^3 - 4362 * z^2 - 4520 * z - 1772,
@@ -309,7 +320,18 @@
         424 * z^3 - 934 * z^2 - 1468 * z - 1344,
         4852 * z^3 + 7405 * z^2 + 4290 * z - 1248,
         4960 * z^3 + 7520 * z^2 + 4304 * z - 1312,
-      ]) #Magma
+      ]) #According to Magma
+    end
+    @testset "center and centroid" begin
+      @test center(C) == (one(C),)
+      orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2*z, -z^3,
+                0, 0, 2*z^2, 0, -2*z^3, -2*z^3 - 2*z^2 - 2*z - 2,
+                0, z^2, 0, 0, -2*z, 0, 2*z^2, -2*z^3, 0,
+                0, -2*z, 2*z^2, 0, -2*z, 0, 0, 4])
+      @test centroid(C) == (one(C), orth)
+      @test disq(C) == coeff(orth^2)[1]
+      @test disq(C) == quadratic_discriminant(C)
+      @test disq(C) == -3*z^3 - 19*z^2 - 3*z + 13
     end
   end
 
@@ -332,47 +354,43 @@
       @test getbasis_index(b) == bitvec_to_int(b) + 1
     end
     @testset "test getfirst and getlast" begin
-      #getfirst = Oscar._get_first
       getlast = Oscar._get_last
-      #@test getfirst(BitVector([0, 0, 0, 0, 0])) == 6
       @test getlast(BitVector([0, 0, 0, 0, 0])) == 0
 
-      #@test getfirst(BitVector([0, 1, 1, 0, 1, 0])) == 2
       @test getlast(BitVector([0, 1, 1, 0, 1, 0])) == 5
 
-      #@test getfirst(BitVector([1])) == 1
       @test getlast(BitVector([1])) == 1
     end
     @testset "test shift_entries!" begin
       shift_entries! = Oscar._shift_entries!
-      A3, s3 = ZZ.([1, 2, 3, 4, 5, 6]), 0
-      A4, s4 = ZZ.([1, 2, 3, 4, 5, 0]), 1
+      A3, s3 = QQ.([1, 2, 3, 4, 5, 6]), 0
+      A4, s4 = QQ.([1, 2, 3, 4, 5, 0]), 1
       A5, s5 = QQ.([1//4, -5//6, 13//2, 0, 0, 0, 0]), 3
       @test shift_entries!(A3, s3) == A3
-      @test shift_entries!(A4, s4) == ZZ.([0, 1, 2, 3, 4, 5])
+      @test shift_entries!(A4, s4) == QQ.([0, 1, 2, 3, 4, 5])
       @test shift_entries!(A5, s5) == QQ.([0, 0, 0, 1//4, -5//6, 13//2, 0])
     end
 
     @testset "test baseelt_with_gen" begin
       mul_baseelt_with_gen = Oscar._mul_baseelt_with_gen
       @testset "mul_baseelt_with_gen orthogonal" begin
-        gram1, gram2 = ZZ[4 0; 0 -6], QQ[1 0; 0 1]
-        @test mul_baseelt_with_gen(BitVector([0, 0]), 1, gram1) == ZZ.([0, 1, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([0, 0]), 2, gram1) == ZZ.([0, 0, 1, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, gram1) == ZZ.([2, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 2, gram1) == ZZ.([0, 0, 0, 1])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 1, gram1) == ZZ.([0, 0, 0, -1])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, gram1) == ZZ.([-3, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 1, gram1) == ZZ.([0, 0, -2, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 2, gram1) == ZZ.([0, -3, 0, 0])
+        gram1, gram2 = QQ[4 0; 0 -6], QQ[1 0; 0 1]
+        @test mul_baseelt_with_gen(BitVector([0, 0]), 1, gram1) == QQ.([0, 1, 0, 0])
+        @test mul_baseelt_with_gen(BitVector([0, 0]), 2, gram1) == QQ.([0, 0, 1, 0])
+        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, gram1) == QQ.([2, 0, 0, 0])
+        @test mul_baseelt_with_gen(BitVector([1, 0]), 2, gram1) == QQ.([0, 0, 0, 1])
+        @test mul_baseelt_with_gen(BitVector([0, 1]), 1, gram1) == QQ.([0, 0, 0, -1])
+        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, gram1) == QQ.([-3, 0, 0, 0])
+        @test mul_baseelt_with_gen(BitVector([1, 1]), 1, gram1) == QQ.([0, 0, -2, 0])
+        @test mul_baseelt_with_gen(BitVector([1, 1]), 2, gram1) == QQ.([0, -3, 0, 0])
 
         @test mul_baseelt_with_gen(BitVector([1, 1]), 1, gram2) == QQ.([0, 0, -1//2, 0])
         @test mul_baseelt_with_gen(BitVector([1, 1]), 2, gram2) == QQ.([0, 1//2, 0, 0])
       end
       @testset "mul_baseelt_with_gen non-orthogonal" begin
-        H2 = ZZ[0 1; 1 0]
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, H2) == ZZ.([0, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, H2) == ZZ.([0, 0, 0, 0])
+        H2 = QQ[0 1; 1 0]
+        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, H2) == QQ.([0, 0, 0, 0])
+        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, H2) == QQ.([0, 0, 0, 0])
 
         A3 = QQ[2 1 0; 1 2 1; 0 1 2]
         b101 = BitVector([1, 0, 1])
@@ -384,26 +402,26 @@
         @test mul_baseelt_with_gen(b011, 2, A3) == QQ.([0, 0, 1, 0, -1, 0, 0, 0])
         @test mul_baseelt_with_gen(b011, 3, A3) == QQ.([0, 0, 1, 0, 0, 0, 0, 0])
 
-        X = ZZ[2 -4 -1 -1; -4 4 -3 1; -1 -3 -2 3; -1 1 3 2]
+        X = QQ[2 -4 -1 -1; -4 4 -3 1; -1 -3 -2 3; -1 1 3 2]
         b1011 = BitVector([1, 0, 1, 1])
         @test mul_baseelt_with_gen(b1011, 1, X) ==
-          ZZ.([0, 0, 0, 0, 0, X[1, 4], 0, 0, 0, -X[1, 3], 0, 0, X[1, 1] / 2, 0, 0, 0])
+          QQ.([0, 0, 0, 0, 0, X[1, 4], 0, 0, 0, -X[1, 3], 0, 0, X[1, 1] / 2, 0, 0, 0])
         @test mul_baseelt_with_gen(b1011, 2, X) ==
-          ZZ.([0, 0, 0, 0, 0, X[2, 4], 0, 0, 0, -X[2, 3], 0, 0, 0, 0, 0, 1])
+          QQ.([0, 0, 0, 0, 0, X[2, 4], 0, 0, 0, -X[2, 3], 0, 0, 0, 0, 0, 1])
         @test mul_baseelt_with_gen(b1011, 3, X) ==
-          ZZ.([0, 0, 0, 0, 0, X[3, 4], 0, 0, 0, -X[3, 3] / 2, 0, 0, 0, 0, 0, 0])
+          QQ.([0, 0, 0, 0, 0, X[3, 4], 0, 0, 0, -X[3, 3] / 2, 0, 0, 0, 0, 0, 0])
         @test mul_baseelt_with_gen(b1011, 4, X) ==
-          ZZ.([0, 0, 0, 0, 0, X[4, 4] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+          QQ.([0, 0, 0, 0, 0, X[4, 4] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
         b1100 = BitVector([1, 1, 0, 0])
         @test mul_baseelt_with_gen(b1100, 1, X) ==
-          ZZ.([0, X[1, 2], -X[1, 1] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+          QQ.([0, X[1, 2], -X[1, 1] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         @test mul_baseelt_with_gen(b1100, 2, X) ==
-          ZZ.([0, X[2, 2] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+          QQ.([0, X[2, 2] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         @test mul_baseelt_with_gen(b1100, 3, X) ==
-          ZZ.([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+          QQ.([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
         @test mul_baseelt_with_gen(b1100, 4, X) ==
-          ZZ.([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+          QQ.([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 
         K, a = quadratic_field(3)
         G = K[1 a; a 1]
