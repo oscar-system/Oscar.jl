@@ -41,8 +41,7 @@ julia> betti_number(Y, 4) == length(h22_basis)
 true
 ```
 """
-function basis_of_h22(v::NormalToricVariety; check::Bool = true)
-#function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
+function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
 
   # (0) Some initial checks
   if check
