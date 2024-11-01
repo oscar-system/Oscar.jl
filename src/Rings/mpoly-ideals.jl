@@ -1917,11 +1917,6 @@ julia> dim(I)
   return I.dim
 end
 
-function is_known_to_be_zero_dimensional(I::MPolyIdeal)
-  has_attribute(I, :dim) || isdefined(I,:dim) || return false
-  return dim(I) == 0
-end
-
 #######################################################
 #######################################################
 @doc raw"""
