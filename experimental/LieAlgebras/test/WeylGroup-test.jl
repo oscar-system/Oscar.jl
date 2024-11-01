@@ -124,9 +124,9 @@ include(
       type, ordering = root_system_type_with_ordering(root_system(W))
       if length(type) == 1 && issorted(ordering) && only(type)[1] == :A # only implemented for A_n (yet)
         @testset "isomorphism(PermGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
-                                                                                          [
-            false, true
-          ]
+                                                                                           [
+          false, true
+        ]
           G = permutation_group(W; set_properties)
           if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
             @test is_finite(G) == is_finite(W)
@@ -153,7 +153,6 @@ include(
         end
       end
     end
-
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
