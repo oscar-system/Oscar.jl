@@ -391,8 +391,31 @@ julia> letters(gg[1]^5*gg[2]^-4)
 function letters(g::Union{PcGroupElem, SubPcGroupElem})
   w = GAPWrap.UnderlyingElement(GapObj(g))
   return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
-end 
+end
 
+"""
+    syllables(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
+a group generator and its exponent.
+
+# Examples
+```jldoctest
+julia> c = collector(2, Int);
+
+julia> Oscar.set_relative_orders!(c, [2, 3])
+
+julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
+
+julia> gg = pc_group(c)
+Pc group of order 6
+
+julia> syllables(gg[1]^5*gg[2]^-4)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 1
+ 2 => 2
+```
+"""
 function syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   @assert iseven(length(l))
