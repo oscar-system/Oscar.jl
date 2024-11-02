@@ -23,6 +23,7 @@ export add_weighted_resolution
 export add_weighted_resolution_generating_section
 export add_weighted_resolution_zero_section
 export ambient_space
+export ambient_space_models_of_g4_fluxes
 export analyze_fibers
 export arxiv_doi
 export arxiv_id
