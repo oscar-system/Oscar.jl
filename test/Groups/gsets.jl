@@ -50,6 +50,7 @@
   @test ! is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test_throws ArgumentError gset(G, permuted, omega)
 
   R, x = polynomial_ring(QQ, [:x1, :x2, :x3]);
   f = x[1]*x[2] + x[2]*x[3]

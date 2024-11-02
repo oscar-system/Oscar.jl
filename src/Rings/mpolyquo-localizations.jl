@@ -2807,4 +2807,5 @@ _exponents(x::MPolyQuoLocRingElem) = AbstractAlgebra.exponent_vectors(lifted_num
 # overwriting the comparison method to avoid computing saturations and groebner bases.
 _cmp_reps(a::MPolyLocRingElem) = y->(fraction(y) == fraction(a))
 _cmp_reps(a::MPolyQuoLocRingElem) = y->(fraction(y) == fraction(a))
+_cmp_reps(a::MPolyQuoRingElem) = y->(y.f == a.f)
 
