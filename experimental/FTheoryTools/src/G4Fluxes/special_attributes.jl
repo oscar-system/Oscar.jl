@@ -133,16 +133,17 @@ function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{Cohomol
 
   end
 
-  # (9) Convert relations into matrix
-  remaining_relations_matrix = matrix(QQ, remaining_relations)
-
-  # (10) Now identify those variables that we can remove with those remaining relations
-  r, new_mat = rref(remaining_relations_matrix)
-  @req r == nrows(remaining_relations_matrix) "Cannot remove a variable via linear relations - weird!"
-  new_bad_positions = [findfirst(!iszero, row) for row in eachrow(new_mat)]
-  new_good_positions = setdiff(1:N_filtered_quadratic_elements, new_bad_positions)
-
-  # (11) Return the basis elements in terms of cohomology classes
+  # (9) Identify variables that we can remove with the remaining relations
+  new_good_positions = 1:N_filtered_quadratic_elements
+  if length(remaining_relations) != 0
+    remaining_relations_matrix = matrix(QQ, remaining_relations)
+    r, new_mat = rref(remaining_relations_matrix)
+    @req r == nrows(remaining_relations_matrix) "Cannot remove a variable via linear relations - weird!"
+    new_bad_positions = [findfirst(!iszero, row) for row in eachrow(new_mat)]
+    new_good_positions = setdiff(1:N_filtered_quadratic_elements, new_bad_positions)
+  end
+  
+  # (10) Return the basis elements in terms of cohomology classes
   S = cohomology_ring(v, check = check)
   c_ds = [k.f for k in gens(S)]
   final_list_of_tuples = []
@@ -152,7 +153,7 @@ function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{Cohomol
     end
   end
   basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
-  set_attribute!(v, :basis_of_h22, basis_of_h22)
+  #set_attribute!(v, :basis_of_h22, basis_of_h22)
   return basis_of_h22
 
 end
@@ -173,6 +174,22 @@ to `false` to skip these tests.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> g4_amb_list = ambient_space_models_of_g4_fluxes(t)
+2-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by z^2
+ Cohomology class on a normal toric variety given by y^2
+
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
 Hypersurface model over a concrete base
 
