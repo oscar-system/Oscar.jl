@@ -59,7 +59,7 @@ Return `true` if `F` is equal to `G`, and `false` otherwise.
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
-AbstractVariety of dim 3
+AbstractVariety of dim 2
 
 julia> 3*OO(P2, 1) - OO(P2) == tangent_bundle(P2) # Euler sequence
 true
@@ -67,6 +67,10 @@ true
 ```
 """
 ==(F::AbstractBundle, G::AbstractBundle) = chern_character(F) == chern_character(G)
+
+function Base.hash(F::AbstractBundle, h::UInt)
+  return hash(chern_character(F), h)
+end
 
 @doc raw"""
     chern_character(F::AbstractBundle)
