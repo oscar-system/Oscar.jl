@@ -112,11 +112,16 @@ If `K` and `L` are the `i`th and `j`th entry of `VL`, resp.,
 
 # Arguments
 - `complexes`: A vector of simplicial complexes or uniform hypergraphs (all should have the same number of vertices).
-- `parallel :: Bool` (default: `false`) run the process in parrallel using the `Distributed` package; make sure to do `@everywhere using Oscar`.
 - `W`: The user may provide a list `W` of Weyl group elements to be used to construct the shifts.
   All elements of `W` should have the same parent.
   `W` must be a subset the (same instance of the) symmetric group of order equal to the number of vertices of a complex in complexes (they should all be equal).
   If `W` is not provided, the function will use the symmetric group of the same order as vertices in each complex complexes.
+- `parallel`: run the process in parrallel using the `Distributed` package; make sure to do `@everywhere using Oscar`.
+- `show_progress`: Set to `true` by default, can be used to suppress progress meter.
+- `task_size`: While running in parallel serialization might become a bottleneck,
+setting a higher task_size should increase performance if the processes are not running at maximum capacity
+
+
 
 # Examples
 ```jldoctest
@@ -167,7 +172,7 @@ julia> facets.(VL[[6, 5]])
 function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup, Vector{WeylGroupElem}};
                              parallel::Bool = false,
                              show_progress::Bool = true,
-                             task_size::Int=1) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
+                             task_size::Int=100) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
   # Deal with trivial case
   if length(complexes) <= 1
     return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
