@@ -15,7 +15,7 @@ end
 isless_lex(K1::ComplexOrHypergraph, K2::ComplexOrHypergraph) = isless_lex(Set(facets(K1)), Set(facets(K2)))
 
 @doc raw"""
-     partial_shift_graph_vertices(F::Field,::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
+    partial_shift_graph_vertices(F::Field,::SimplicialComplex, W::Union{WeylGroup, Vector{WeylGroupElem}};)
 
 Given a field `F` discover the vertices of the partial shift graph starting from `K`
 using exterior partial shifts corresponding to elements in `W`.
@@ -96,11 +96,10 @@ function multi_edges(F::Field,
 end
 
 @doc raw"""
-     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}; parallel=false, show_progress=true)
-     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}; parallel=false, show_progress=true)
-     partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
-     partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
-
+    partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}; parallel=false, show_progress=true)
+    partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}; parallel=false, show_progress=true)
+    partial_shift_graph(F::Field, complexes::Vector{Simplicialcomplex}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
+    partial_shift_graph(F::Field, complexes::Vector{Uniformhypergraph}, W::Union{WeylGroup, Vector{WeylGroupElem}}; parallel=false, show_progress=true)
 
 Constructs the partial shift graph on `complexes`.
 
@@ -120,7 +119,7 @@ If `K` and `L` are the `i`th and `j`th entry of `VL`, resp.,
   If `W` is not provided, the function will use the symmetric group of the same order as vertices in each complex complexes.
 
 # Examples
-```
+```jldoctest
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
 
@@ -223,7 +222,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T};
 end
 
 @doc raw"""
-     contracted_partial_shift_graph(G::Graph{Directed}, edge_labels::Dict{Tuple{Int, Int}, Vector{WeylGroupElem}})
+    contracted_partial_shift_graph(G::Graph{Directed}, edge_labels::Dict{Tuple{Int, Int}, Vector{WeylGroupElem}})
 
 Returns a triple `(CG, S, P)`, where `CG` is a graph that contains a vertex `v` for every vertex `S[v]` in `G`.
 `S` is a list of indices for the sinks in the original graph `G`.
@@ -231,7 +230,7 @@ A vertex `i` is in `P[s]` if there exists an edge from `i` to `s` in `G` with `w
 in this way `P` is a partition of the vertices of the orignal graph `G`.
 There is an edge from `s` to `t`  in `CG` whenever there is an edge from `i` to `j` in `G` and `i` in `P[s]` and `j` in `P[t]`.
 
-#Examples
+# Examples
 ```jldoctest
 julia> gamma(n,k,l) = uniform_hypergraph.(subsets(subsets(n, k), l), n)
 gamma (generic function with 1 method)
@@ -245,8 +244,7 @@ julia> Ks = gamma(4,2,5)
  UniformHypergraph(4, 2, [[1, 2], [1, 3], [1, 4], [2, 4], [3, 4]])
  UniformHypergraph(4, 2, [[1, 3], [1, 4], [2, 3], [2, 4], [3, 4]])
 
-julia> G, EL, VL = partial_shift_graph(QQ, Ks; show_progess=false);
-
+julia> G, EL, VL = partial_shift_graph(QQ, Ks; show_progress=false);
 
 julia> contracted_partial_shift_graph(G, EL)
 (Directed graph with 1 nodes and 0 edges, [1], [[5, 4, 6, 2, 3, 1]])

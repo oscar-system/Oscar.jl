@@ -27,8 +27,8 @@ function generic_unipotent_matrix(R::MPolyRing)
 end
 
 @doc raw"""
-     generic_unipotent_matrix(R::MPolyRing)
-     generic_unipotent_matrix(F::Field, n::Int)
+    generic_unipotent_matrix(R::MPolyRing)
+    generic_unipotent_matrix(F::Field, n::Int)
 
 Constructs a unipotent matrix with entries in a polynomial ring `R`.
 One can also provide a field `F` and an integer `n`,
@@ -37,7 +37,6 @@ polynomial ring over `F` with `n^2` variables.
 
 # Examples
 ```jldoctest
-
 julia> R, x = polynomial_ring(QQ, :x=> (1:2, 1:2))
 (Multivariate polynomial ring in 4 variables over QQ, QQMPolyRingElem[x[1, 1] x[1, 2]; x[2, 1] x[2, 2]])
 
@@ -56,7 +55,7 @@ function generic_unipotent_matrix(F::Field, n::Int)
 end
 
 @doc raw"""
-     rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
+    rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
 
 For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
@@ -111,10 +110,10 @@ function rothe_matrix(F::Field, p::PermGroupElem)
 end
 
 @doc raw"""
-     compound_matrix(m::MatElem, k::Int)
-     compound_matrix(p::PermGroupElem, k::Int)
-     compound_matrix(w::WeylGroupElem, k::Int)
-     compound_matrix(m::MatElem, K::Vector{Vector{Int}})
+    compound_matrix(m::MatElem, k::Int)
+    compound_matrix(p::PermGroupElem, k::Int)
+    compound_matrix(w::WeylGroupElem, k::Int)
+    compound_matrix(m::MatElem, K::Vector{Vector{Int}})
 
 Given a matrix `m`, return the matrix where each entry is a `k`$\times$`k`-minor of `m`.
 The entries of the compound matrix are ordered with respect to the lexicographic order on sets.
@@ -124,7 +123,6 @@ Alternatively, passing a `UniformHypergraph` `K` will return the compound matrix
 
 # Examples
 ```jldoctest
-
 julia> M = generic_unipotent_matrix(QQ, 3)
 [1   x[1, 2]   x[1, 3]]
 [0         1   x[2, 3]]
@@ -192,10 +190,6 @@ _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simp
 ###############################################################################
 # Exterior shift 
 ###############################################################################
-raw"""    exterior_shift(K::UniformHypergraph, g::MatElem)
-    
-Computes the exterior shift ``\Delta_g(K)`` of ``K`` w.r.t. the invertible matrix ``g``.
-"""
 function exterior_shift(K::UniformHypergraph, g::MatElem)
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation 
@@ -224,12 +218,12 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
 end
   
 @doc raw"""
-     exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
-     exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
-     exterior_shift(K::SimplicialComplex, w::WeylGroupElem)
-     exterior_shift(K::UniformHypergraph, w::WeylGroupElem)
-     exterior_shift(K::SimplicialComplex)
-     exterior_shift(K::UniformHypergraph)
+    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
+    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
+    exterior_shift(K::SimplicialComplex, w::WeylGroupElem)
+    exterior_shift(K::UniformHypergraph, w::WeylGroupElem)
+    exterior_shift(K::SimplicialComplex)
+    exterior_shift(K::UniformHypergraph)
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.

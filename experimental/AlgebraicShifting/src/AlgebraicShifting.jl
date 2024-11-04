@@ -29,8 +29,8 @@ function independent_columns(A::MatElem)
 end
 
 
-@doc raw"""
-   symmetric_shift(F::Field, K::SimplicialComplex)
+"""
+    symmetric_shift(F::Field, K::SimplicialComplex)
 
 Returns the symmetric shift of `K`
 
