@@ -178,10 +178,10 @@ function _set_to_zero(K::SimplicialComplex, indices::Tuple{Int, Int})
   row == col && return false
   K_facets = facets(K)
   for facet in K_facets
-    # if column index is not in face there is nothing to do
-    !(col in facet) && continue
+    # if row index is not in face there is nothing to do
+    !(row in facet) && continue
     # replace index from row with index from col in facet
-    S = push!(delete!(copy(facet), col), row)
+    S = push!(delete!(copy(facet), row), col)
     !any(is_subset(S, check_facet) for check_facet in K_facets) && return false
   end
   return true
