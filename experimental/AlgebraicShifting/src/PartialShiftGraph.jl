@@ -209,7 +209,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
                          @showprogress map_function(
                            Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
                            Iterators.partition(enumerate(complexes), task_size)))
-  elseif
+  else
     edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                          map_function(
                            Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
