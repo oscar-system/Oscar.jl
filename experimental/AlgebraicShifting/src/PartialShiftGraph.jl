@@ -165,7 +165,9 @@ julia> facets.(VL[[6, 5]])
 ```
 """
 function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup, Vector{WeylGroupElem}};
-                             parallel::Bool = false, show_progress::Bool = true) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
+                             parallel::Bool = false,
+                             show_progress::Bool = true,
+                             task_size::Int=1) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
   # Deal with trivial case
   if length(complexes) <= 1
     return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
@@ -186,24 +188,27 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
   @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
 
   phi = isomorphism(PermGroup, parent(first(W)))
-  task_size = 1
+  # oscar runs tests in parallel, which can make pmap run in parallel even if parallel=false
+  # next line fixes this issue 
+  map_function = map
   if parallel
     # setup parallel parameters
     channels = Oscar.params_channels(Union{PermGroup, Vector{SimplicialComplex}, Vector{UniformHypergraph}})
     # setup parents needed to be sent to each process
     Oscar.put_params(channels, codomain(phi))
+    map_function = pmap
   end
 
   if show_progress
     edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                         @showprogress pmap(
+                         @showprogress map_function(
                            Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
                            Iterators.partition(enumerate(complexes), task_size)))
-  else
-    edge_labels = multi_edges(F,
-                              phi.(W),
-                              collect(enumerate(complexes)),
-                              complex_labels)
+  elseif
+    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                         map_function(
+                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
+                           Iterators.partition(enumerate(complexes), task_size)))
   end
   graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
   return (graph, Dict(k => inv(phi).(v) for (k, v) in edge_labels), complexes)
