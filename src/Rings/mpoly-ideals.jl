@@ -1177,7 +1177,7 @@ end
     
 Return a vector containing the minimal associated prime ideals of `I`.
 
-Calls a specialized variant of `minimal_primes` for zero dimensional ideals 
+Calls a modular variant of `minimal_primes` for zero dimensional ideals over a polynomial ring
 with coefficient ring over the rationals.
 
 No input checks. It is unclear if there exists input where this variant is 
