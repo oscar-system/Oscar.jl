@@ -148,7 +148,7 @@ end
 
 function fundamental_weight(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, i .== 1:rank(R)))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
 end
 
 @doc raw"""
@@ -501,7 +501,7 @@ Return the Weyl vector $\rho$ of `R`, which is the sum of all fundamental weight
 or half the sum of all positive roots.
 """
 function weyl_vector(R::RootSystem)
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, fill(1, rank(R))))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), fill(1, rank(R))))
 end
 
 ###############################################################################
@@ -516,7 +516,7 @@ end
 
 function RootSpaceElem(R::RootSystem, w::WeightLatticeElem)
   @req root_system(w) === R "Root system mismatch"
-  coeffs = transpose!(cartan_matrix_inv(R) * coefficients(w))
+  coeffs = coefficients(w) * cartan_matrix_inv_tr(R)
   return RootSpaceElem(R, matrix(QQ, coeffs))
 end
 
@@ -890,12 +890,12 @@ end
 Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
 """
 function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))
 end
 
 function WeightLatticeElem(R::RootSystem, r::RootSpaceElem)
   @req root_system(r) === R "Root system mismatch"
-  coeffs = transpose!(coefficients(r) * cartan_matrix_tr(R))
+  coeffs = coefficients(r) * cartan_matrix_tr(R)
   @req all(is_integer, coeffs) "RootSpaceElem does not correspond to a weight"
   return WeightLatticeElem(R, matrix(ZZ, coeffs))
 end
@@ -905,7 +905,7 @@ function WeightLatticeElem(r::RootSpaceElem)
 end
 
 function zero(::Type{WeightLatticeElem}, R::RootSystem)
-  return WeightLatticeElem(R, zero_matrix(ZZ, rank(R), 1))
+  return WeightLatticeElem(R, zero_matrix(ZZ, 1, rank(R)))
 end
 
 function zero(r::WeightLatticeElem)
@@ -1065,7 +1065,7 @@ function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
 
   return dot(
     coefficients(w1),
-    cartan_matrix_inv_tr(R) * (_cartan_symmetrizer_mat(R) * coefficients(w2)),
+    (coefficients(w2) * _cartan_symmetrizer_mat(R)) * cartan_matrix_inv(R),
   )
 end
 
@@ -1097,7 +1097,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s:s), -w.vec[s])
+  addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s])
   return w
 end
 
@@ -1112,7 +1112,7 @@ function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
   R = root_system(r)
 
-  return dot(coefficients(r), _cartan_symmetrizer_mat(R), coefficients(w))
+  return dot(coefficients(r) * _cartan_symmetrizer_mat(R), coefficients(w))
 end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
@@ -1193,8 +1193,8 @@ julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
 7-element Vector{Vector{Int64}}:
  [3, 0, 1]
  [1, 1, 1]
- [2, 0, 1]
  [0, 0, 3]
+ [2, 0, 1]
  [0, 1, 1]
  [1, 0, 1]
  [0, 0, 1]
@@ -1248,10 +1248,8 @@ function _action_matrices_on_weights(W::WeylGroup)
   R = root_system(W)
   return map(1:rank(R)) do i
     x = gen(W, i)
-    transpose!(
-      matrix(
-        ZZ, reduce(hcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
-      ),
+    matrix(
+      ZZ, reduce(vcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
     )
   end
 end
@@ -1290,7 +1288,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
 
   pos_roots = positive_roots(R)
   pos_roots_w = WeightLatticeElem.(positive_roots(R))
-  pos_roots_w_coeffs = transpose.(coefficients.(pos_roots_w))
+  pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
   char = Dict(hw => T(1))
 
@@ -1309,7 +1307,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
         (
           WeightLatticeElem(
             R,
-            transpose(first(intersect(elements(o), pos_roots_w_coeffs))),
+            first(intersect(elements(o), pos_roots_w_coeffs)),
           ),
           length(o),
         ) for o in O
@@ -1366,9 +1364,9 @@ Dict{Vector{Int64}, Int64} with 8 entries:
   [0, 0, 1]   => 1
   [1, -1, 1]  => 1
   [-1, 0, 1]  => 1
-  [0, -1, 1]  => 1
-  [0, 0, -1]  => 1
   [1, 0, -1]  => 1
+  [0, 0, -1]  => 1
+  [0, -1, 1]  => 1
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)

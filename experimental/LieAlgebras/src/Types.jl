@@ -64,10 +64,10 @@ end
 
 mutable struct WeightLatticeElem
   root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
+  vec::ZZMatrix # the coordinate (row) vector with respect to the fundamental weights
 
   function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
-    @req size(vec) == (rank(root_system), 1) "Invalid dimension"
+    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
     return new(root_system, vec)
   end
 end
