@@ -245,7 +245,7 @@ julia> Ks = gamma(4,2,5)
  UniformHypergraph(4, 2, [[1, 2], [1, 3], [1, 4], [2, 4], [3, 4]])
  UniformHypergraph(4, 2, [[1, 3], [1, 4], [2, 3], [2, 4], [3, 4]])
 
-julia> G, EL, VL = partial_shift_graph(QQ, Ks);
+julia> G, EL, VL = partial_shift_graph(QQ, Ks; show_progess=false);
 
 
 julia> contracted_partial_shift_graph(G, EL)
