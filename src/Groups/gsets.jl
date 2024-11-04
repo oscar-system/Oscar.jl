@@ -457,9 +457,10 @@ julia> map(length, orbs)
 Return the subgroup of `G = acting_group(Omega)` that fixes `omega`,
 together with the embedding of this subgroup into `G`.
 
-If `omega` is a `Set` or a `Vector` or a `Tuple` of points in `Omega`
-then `stabilizer` means the setwise or pointwise stabilizer, respectively,
-of the entries in `omega`.
+If `omega` is a `Set` of points in `Omega`
+then `stabilizer` means the setwise stabilizer of the entries in `omega`.
+If `omega` is a `Vector` or a `Tuple` of points in `Omega`
+then `stabilizer` means the pointwise stabilizer of the entries in `omega`.
 
 If `check` is `false` then it is not checked whether `omega` is in `Omega`.
 
@@ -486,19 +487,21 @@ function stabilizer(Omega::GSet{T,S}, omega::S; check::Bool = true) where {T,S}
 end
 
 # support `stabilizer` under "derived" actions:
-# If the given point is a set, tuple, or vector of the element type of
-# the G-set then compute the setwise or pointwise stabilizer, respectively.
+# If the given point is a set of the element type of the G-set
+# then compute the setwise stabilizer.
+# If the given point is a tuple or vector of the element type of the G-set
+# then compute the pointwise stabilizer.
 
 function stabilizer(Omega::GSet{T,S}, omega::Set{S}; check::Bool = true) where {T,S}
-    check && @req all(x -> x in Omega, omega) "omega must be a set of elements of Omega"
+    check && @req all(in(Omega), omega) "omega must be a set of elements of Omega"
     G = acting_group(Omega)
     gfun = action_function(Omega)
-    derived_fun = function(x, g) return Set([gfun(y, g) for y in x]); end
+    derived_fun = function(x, g) return Set(gfun(y, g) for y in x); end
     return stabilizer(G, omega, derived_fun)
 end
 
 function stabilizer(Omega::GSet{T,S}, omega::Vector{S}; check::Bool = true) where {T,S}
-    check && @req all(x -> x in Omega, omega) "omega must be a vector of elements of Omega"
+    check && @req all(in(Omega), omega) "omega must be a vector of elements of Omega"
     G = acting_group(Omega)
     gfun = action_function(Omega)
     derived_fun = function(x, g) return [gfun(y, g) for y in x]; end
@@ -506,7 +509,7 @@ function stabilizer(Omega::GSet{T,S}, omega::Vector{S}; check::Bool = true) wher
 end
 
 function stabilizer(Omega::GSet{T,S}, omega::Tuple{Vararg{S}}; check::Bool = true) where {T,S}
-    check && @req all(x -> x in Omega, omega) "omega must be a tuple of elements of Omega"
+    check && @req all(in(Omega), omega) "omega must be a tuple of elements of Omega"
     G = acting_group(Omega)
     gfun = action_function(Omega)
     derived_fun = function(x, g) return Tuple([gfun(y, g) for y in x]); end
