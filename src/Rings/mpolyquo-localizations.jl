@@ -1851,8 +1851,27 @@ function vector_space_dimension(R::MPolyQuoLocRing{<:Field, <:Any,<:Any, <:Any,
 end
 
 @doc raw"""
+  _monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
+
+If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
+`K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
+such that the residue classes of these monomials form a basis of `A` as a `K`-vector
+space.
+!!! note 
+    This is an internal method for computing a monomial basis without creating the quotient. 
+"""
+function _monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
+  base_ring(I) == L || error("ideal does not belong to the correct ring")
+  G = numerator.(gens(I))
+  shift,_ = base_ring_shifts(L)
+  G_0 = shift.(G) 
+  R = base_ring(L)
+  LI = leading_ideal(ideal(R, G_0), ordering = negdeglex(R))
+  return L.(monomial_basis(R, LI))
+end
+
+@doc raw"""
     monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
-    monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
 
 If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring over a field
 `K` at a point `p`, and `I` is an ideal of `L`, return a vector of monomials of `L`
@@ -1866,38 +1885,46 @@ space.
 ```jldoctest
 julia> R, (x,y) = QQ["x","y"];
 
-julia> L,_ = localization(R, complement_of_point_ideal(R, [1,1]));
+julia> f = (x^2-y^3)*(y-1);   # 3 singularities, a cusp singularity and two node singularities
 
-julia> A,_ = quo(L, ideal(L, [(x-1)^2, (y-1)^2]));
-
-julia> A
-Localization
-  of quotient
-    of multivariate polynomial ring in 2 variables x, y
-      over rational field
-    by ideal (x^2 - 2*x + 1, y^2 - 2*y + 1)
-  at complement of maximal ideal of point (1, 1)
+julia> A = tjurina_algebra(f)
+Quotient
+  of multivariate polynomial ring in 2 variables x, y
+    over rational field
+  by ideal (x^2*y - x^2 - y^4 + y^3, 2*x*y - 2*x, x^2 - 4*y^3 + 3*y^2)
 
 julia> monomial_basis(A)
-4-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
- x*y
+4-element Vector{QQMPolyRingElem}:
+ y^2
  y
  x
  1
+
+julia> Aloc0,_ = localization(A, complement_of_point_ideal(R, [0,0]));
+
+julia> monomial_basis(Aloc0)
+2-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ y
+ 1
+
+julia> Aloc1,_ = localization(A, complement_of_point_ideal(R, [1,1]));
+
+julia> monomial_basis(Aloc1)
+1-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ 1
+
+julia> Aloc2,_ = localization(A, complement_of_point_ideal(R, [-1,1]));
+
+julia> monomial_basis(Aloc2)
+1-element Vector{Oscar.MPolyLocRingElem{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem, Oscar.MPolyComplementOfKPointIdeal{QQField, QQFieldElem, QQMPolyRing, QQMPolyRingElem}}}:
+ 1
+
+julia> vector_space_dimension(A) == vector_space_dimension(Aloc0) + vector_space_dimension(Aloc1) + vector_space_dimension(Aloc2)
+true
 ```
 """
-function monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal}, I::MPolyLocalizedIdeal)
-  base_ring(I) == L || error("ideal does not belong to the correct ring")
-  G = numerator.(gens(I))
-  shift,_ = base_ring_shifts(L)
-  G_0 = shift.(G) 
-  R = base_ring(L)
-  LI = leading_ideal(ideal(R, G_0), ordering = negdeglex(R))
-  return L.(monomial_basis(R, LI))
-end
-
 function monomial_basis(A::MPolyQuoLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyComplementOfKPointIdeal})
-  return monomial_basis(localized_ring(A), modulus(A))
+  return _monomial_basis(localized_ring(A), modulus(A))
 end
 
 function is_finite_dimensional_vector_space(R::MPolyQuoLocRing)

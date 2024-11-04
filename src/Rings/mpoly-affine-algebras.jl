@@ -108,7 +108,6 @@ end
 
 @doc raw"""
     monomial_basis(A::MPolyQuoRing)
-    monomial_basis(R::MPolyRing, I::MPolyIdeal)
 
 If, say, `A = R/I`, where `R` is a multivariate polynomial ring over a field
 `K`, and `I` is an ideal of `R`, return a vector of monomials of `R`
@@ -150,11 +149,6 @@ function monomial_basis(A::MPolyQuoRing)
   end
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
-end
-
-function monomial_basis(R::MPolyRing, I::MPolyIdeal)
-  base_ring(I) == R || error("ideal does not belong to the correct ring")
-  return monomial_basis(quo(R,I)[1])
 end
 
 @doc raw"""
