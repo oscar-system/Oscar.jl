@@ -351,16 +351,23 @@ function rank(R::RootSystem)
 end
 
 function root_system_type(R::RootSystem)
-  has_root_system_type(R) || error("Root system type not known and cannot be determined")
+  assure_root_system_type(R)
   return R.type
 end
 
 function root_system_type_with_ordering(R::RootSystem)
+  assure_root_system_type(R)
   return R.type, R.type_ordering
 end
 
 function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function assure_root_system_type(R::RootSystem)
+  has_root_system_type(R) && return nothing
+  @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
+  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
 end
 
 function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})

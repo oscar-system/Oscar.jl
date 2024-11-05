@@ -35,9 +35,7 @@
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 
-    detect_type &&
-      is_finite(weyl_group(R)) &&
-      set_root_system_type!(R, cartan_type_with_ordering(mat)...)
+    detect_type && is_finite(weyl_group(R)) && assure_root_system_type(R)
     return R
   end
 end
