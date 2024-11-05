@@ -153,7 +153,7 @@ function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{Cohomol
     end
   end
   basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
-  #set_attribute!(v, :basis_of_h22, basis_of_h22)
+  set_attribute!(v, :basis_of_h22, basis_of_h22)
   return basis_of_h22
 
 end
@@ -203,12 +203,17 @@ function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool 
 
   # Entry check
   @req base_space(m) isa NormalToricVariety "Base space must be a toric variety for computation of ambient space G4 candidates"
-  
+  if has_attribute(m, :ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :ambient_space_models_of_g4_fluxes)
+  end
+
+  # Execute entry tests in computation of basis_of_h22. If any of these fail, no need to proceed. Hence, do this first.
+  filtered_h22_basis = basis_of_h22(ambient_space(m), check = check)
+
   # Prepare data of the toric ambient space
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
-  filtered_h22_basis = basis_of_h22(ambient_space(m), check = check)
 
   # Filter out basis elements
   for a in length(filtered_h22_basis):-1:1
@@ -253,5 +258,7 @@ function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool 
 
   end
 
+  set_attribute!(m, :ambient_space_models_of_g4_fluxes, filtered_h22_basis)
   return filtered_h22_basis
+
 end
