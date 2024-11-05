@@ -45,6 +45,32 @@ end
 
 
 @doc raw"""
+    base_divisors(m::AbstractFTheoryModel)
+
+If the model is defined over a toric base, then this method returns
+the set of (the push-forward to the toric ambient space of) all toric
+base divisor. Otherwise, an error is raised.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 4))
+Hypersurface model over a concrete base
+
+julia> bds = base_divisors(qsm_model);
+
+julia> bds[1]
+Torus-invariant, prime divisor on a normal toric variety
+
+julia> length(bds)
+29
+```
+"""
+function base_divisors(m::AbstractFTheoryModel)
+  @req base_space(m) isa NormalToricVariety "Base divisors only supported for F-theory models over concrete toric base."
+  return torusinvariant_prime_divisors(ambient_space(m))[1:n_rays(base_space(m))]
+end
+
+
+@doc raw"""
     fiber_ambient_space(m::AbstractFTheoryModel)
 
 Return the fiber ambient space of an F-theory model.
