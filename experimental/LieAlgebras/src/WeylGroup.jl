@@ -204,26 +204,26 @@ function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-function Base.:(*)(x::WeylGroupElem, r::RootSpaceElem)
-  @req root_system(parent(x)) === root_system(r) "Incompatible root systems"
+function Base.:(*)(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  r2 = deepcopy(r)
+  rw2 = deepcopy(rw)
   for s in Iterators.reverse(word(x))
-    reflect!(r2, Int(s))
+    reflect!(rw2, Int(s))
   end
 
-  return r2
+  return rw2
 end
 
-function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
-  @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
+function Base.:(*)(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  w2 = deepcopy(w)
-  for s in Iterators.reverse(word(x))
-    reflect!(w2, Int(s))
+  rw2 = deepcopy(rw)
+  for s in word(x)
+    reflect!(rw2, Int(s))
   end
 
-  return w2
+  return rw2
 end
 
 # to be removed once GroupCore is supported

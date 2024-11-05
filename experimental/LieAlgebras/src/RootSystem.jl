@@ -696,9 +696,9 @@ function reflect(r::RootSpaceElem, s::Int)
 end
 
 function reflect!(r::RootSpaceElem, s::Int)
-  r.vec -=
-    dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
-    simple_root(root_system(r), s).vec
+  sub!(
+    Nemo.mat_entry_ptr(r.vec, 1, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec)
+  )
   return r
 end
 
@@ -1097,7 +1097,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s])
+  w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
   return w
 end
 
