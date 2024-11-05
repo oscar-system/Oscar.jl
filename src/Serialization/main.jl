@@ -202,8 +202,6 @@ function save_type_params(s::SerializerState, obj::T) where T
   end
 end
 
-load_type_params(s::DeserializerState, ::Type{<:T}) where T = load_typed_object(s)
-
 function save_attrs(s::SerializerState, obj::T) where T
   if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
     save_data_dict(s, :attrs) do
@@ -212,6 +210,18 @@ function save_attrs(s::SerializerState, obj::T) where T
       end
     end
   end
+end
+
+function load_type_params(s::DeserializerState)
+  T = decode_type(s)
+  if haskey(s, :params)
+    params = load_node(s, :params) do _
+      load_type_params(s)
+    end
+  else
+    params = load_typed_object(s)
+  end
+  return T, params
 end
 
 # The load mechanism first checks if the type needs to load necessary
@@ -242,9 +252,9 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   else
     s.obj isa String && return load_ref(s)
     s.obj[type_key] isa String && return load_object(s, T, :data)
-
+    
     params = load_node(s, type_key) do _
-      load_typed_object(s, :params)
+      load_type_params(s)
     end
   end
   load_node(s, :data) do _

@@ -17,19 +17,6 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   return T, params[1]
 end
 
-function load_type_params(s::DeserializerState, ::Type{<:MatVecType})
-  T = decode_type(s)
-  if serialize_with_params(T) && haskey(s, :params)
-    params = load_params_node(s)
-    return (T, params)
-  end
-  return T
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:MatVecType}, override_params::Any)
-  return (elem_type(override_params), override_params)
-end
-
 function save_object(s::SerializerState, x::Vector)
   save_data_array(s) do
     for elem in x
