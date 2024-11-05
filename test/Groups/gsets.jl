@@ -12,20 +12,34 @@
   @test ! is_semiregular(Omega)
   @test collect(Omega) == 1:6  # ordering is kept
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, 1)[1]) == 120
+  @test order(stabilizer(Omega, Set([1, 2]))[1]) == 48
+  @test order(stabilizer(Omega, [1, 2])[1]) == 24
+  @test order(stabilizer(Omega, (1, 2))[1]) == 24
 
   Omega = gset(G, [Set([1, 2])])  # action on unordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 15
-  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
+  @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, Set([1, 3]))[1]) == 48
+  @test order(stabilizer(Omega, Set([Set([1, 2]), Set([1, 3])]))[1]) == 12
+  @test order(stabilizer(Omega, [Set([1, 2]), Set([1, 3])])[1]) == 6
+  @test order(stabilizer(Omega, (Set([1, 2]), Set([1, 3])))[1]) == 6
+  @test_throws MethodError stabilizer(Omega, [1, 2])
 
   Omega = gset(G, [[1, 2]])  # action on ordered pairs
   @test isa(Omega, GSet)
   @test length(Omega) == 30
   @test order(stabilizer(Omega)[1]) * length(Omega) == order(G)
+  @test order(stabilizer(Omega, [1, 3])[1]) == 24
+  @test order(stabilizer(Omega, Set([[1, 2], [1, 3]]))[1]) == 12
+  @test order(stabilizer(Omega, [[1, 2], [1, 3]])[1]) == 6
+  @test order(stabilizer(Omega, ([1, 2], [1, 3]))[1]) == 6
+  @test_throws MethodError stabilizer(Omega, Set([1, 2]))
   @test length(orbits(Omega)) == 1
   @test is_transitive(Omega)
   @test ! is_regular(Omega)
@@ -46,6 +60,10 @@
   @test isa(Omega, GSet)
   @test length(Omega) == 740
   @test order(stabilizer(Omega, omega)[1]) * length(orbit(Omega, omega)) == order(G)
+  @test order(stabilizer(Omega, Set([omega, [1,0,0,1,0,1]]))[1]) == 8
+  @test order(stabilizer(Omega, [omega, [1,0,0,1,0,1]])[1]) == 4
+  @test order(stabilizer(Omega, (omega, [1,0,0,1,0,1]))[1]) == 4
+  @test_throws MethodError stabilizer(Omega, Set(omega))
   @test length(orbits(Omega)) == 2
   @test ! is_transitive(Omega)
   @test ! is_regular(Omega)
