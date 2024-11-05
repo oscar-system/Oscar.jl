@@ -34,10 +34,9 @@ julia> hasse_derivatives(f)
 function hasse_derivatives(f::MPolyRingElem)
   R = parent(f)
   n = ngens(R)
-  # define new ring with more variables: R[x1, ..., xn] -> R[x1, ..., xn, t1, ..., tn]
-  Rtemp, _ = polynomial_ring(R, "y" => 1:n, "t" => 1:n)
-  # replace f(x_i) -> f(y_i + t_i)
-  F = evaluate(f, gens(Rtemp)[1:n] + gens(Rtemp)[n+1:2n])
+  # define new ring with more variables: R[x1, ..., xn] -> R[y1, ..., yn, t1, ..., tn]
+	Rtemp, y, t = polynomial_ring(R, :y => 1:n, :t => 1:n)
+	F = evaluate(f, y + t)
   HasseDerivativesList = [[zeros(Int64, n), f]] # initializing with the zero'th HS derivative: f itself
   varR = vcat(gens(R), fill(base_ring(R)(1), n))
   # getting hasse derivs without extra attention on ordering
