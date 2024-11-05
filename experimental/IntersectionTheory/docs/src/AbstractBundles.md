@@ -66,7 +66,6 @@ euler_characteristic(F::AbstractBundle)
 hilbert_polynomial(F::AbstractBundle)
 ```
 
-
 ## Operations on Abstract Bundles
 
 ```@docs
@@ -87,4 +86,10 @@ exterior_power(F::AbstractBundle, k::Int)
 
 ```@docs
 symmetric_power(F::AbstractBundle, k::Int)
+```
+
+## Tests on Abstract Bundles
+
+```@docs
+==(F::AbstractBundle, G::AbstractBundle)
 ```
