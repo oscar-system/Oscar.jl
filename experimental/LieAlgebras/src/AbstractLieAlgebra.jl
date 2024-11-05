@@ -28,9 +28,19 @@ function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
   @show_special(io, mime, L)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
-  println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  print(io, "over ")
-  print(io, Lowercase(), coefficient_ring(L))
+  if has_root_system(L)
+    rs = root_system(L)
+    if has_root_system_type(rs)
+      type, ord = root_system_type_with_ordering(rs)
+      print(io, Indent(), "of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+      println(io, Dedent())
+    end
+  end
+  println(io, Indent(), "of dimension ", dim(L), Dedent())
+  print(io, "over ", Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::AbstractLieAlgebra)
@@ -40,8 +50,18 @@ function Base.show(io::IO, L::AbstractLieAlgebra)
     print(io, "Abstract Lie algebra")
   else
     io = pretty(io)
-    print(io, "Abstract Lie algebra over ", Lowercase())
-    print(terse(io), coefficient_ring(L))
+    print(io, "Abstract Lie algebra")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, " of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+      end
+    end
+    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
   end
 end
 

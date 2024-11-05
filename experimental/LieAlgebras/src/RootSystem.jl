@@ -95,9 +95,18 @@ function Base.show(io::IO, mime::MIME"text/plain", R::RootSystem)
   @show_name(io, R)
   @show_special(io, mime, R)
   io = pretty(io)
-  println(io, "Root system defined by Cartan matrix")
-  print(io, Indent())
-  show(io, mime, cartan_matrix(R))
+  print(io, "Root system")
+  print(io, " of rank ", rank(R))
+  println(io, Indent())
+  if has_root_system_type(R)
+    type, ord = root_system_type_with_ordering(R)
+    print(io, "of type ", _root_system_type_string(type))
+    if !issorted(ord)
+      print(io, " (with non-canonical ordering of simple roots)")
+    end
+  else
+    print(io, "of unknown type")
+  end
   print(io, Dedent())
 end
 
@@ -107,8 +116,25 @@ function Base.show(io::IO, R::RootSystem)
   if is_terse(io)
     print(io, "Root system")
   else
-    print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
+    print(io, "Root system")
+    if has_root_system_type(R) &&
+      ((type, ord) = root_system_type_with_ordering(R); !isempty(type))
+      type, ord = root_system_type_with_ordering(R)
+      print(io, " of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+    else
+      print(io, " of rank ", rank(R))
+    end
   end
+end
+
+function _root_system_type_string(type::Vector{Tuple{Symbol,Int}})
+  isempty(type) && return "[]"
+  return join(
+    [string(t[1]) * string(t[2]) for t in type], is_unicode_allowed() ? " × " : " x "
+  )
 end
 
 @attr ZZMatrix function bilinear_form(R::RootSystem)
@@ -466,10 +492,6 @@ function set_root_system_type!(
   return nothing
 end
 
-function root_system_type_string(R::RootSystem)
-  return join([string(t[1]) * string(t[2]) for t in root_system_type(R)], " x ")
-end
-
 @doc raw"""
     root(R::RootSystem, i::Int) -> RootSpaceElem
 
@@ -725,6 +747,23 @@ function dot(r1::RootSpaceElem, r2::RootSpaceElem)
   )
 end
 
+function expressify(r::RootSpaceElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(r, :α; context)
+  else
+    return expressify(r, :a; context)
+  end
+end
+
+function expressify(r::RootSpaceElem, s; context=nothing)
+  sum = Expr(:call, :+)
+  for i in 1:length(r.vec)
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+  end
+  return sum
+end
+@enable_all_show_via_expressify RootSpaceElem
+
 @doc raw"""
     height(r::RootSpaceElem) -> QQFieldElem
 
@@ -907,6 +946,23 @@ end
 function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
 end
+
+function expressify(r::DualRootSpaceElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(r, :α̌; context)
+  else
+    return expressify(r, Symbol("a^v"); context)
+  end
+end
+
+function expressify(r::DualRootSpaceElem, s; context=nothing)
+  sum = Expr(:call, :+)
+  for i in 1:length(r.vec)
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+  end
+  return sum
+end
+@enable_all_show_via_expressify DualRootSpaceElem
 
 @doc raw"""
     height(r::DualRootSpaceElem) -> QQFieldElem
@@ -1172,10 +1228,18 @@ function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
   )
 end
 
-function expressify(w::WeightLatticeElem, s=:w; context=nothing)
+function expressify(w::WeightLatticeElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(w, :ω; context)
+  else
+    return expressify(w, :w; context)
+  end
+end
+
+function expressify(w::WeightLatticeElem, s; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
-    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$s$i"))
+    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$(s)_$(i)"))
   end
   return sum
 end

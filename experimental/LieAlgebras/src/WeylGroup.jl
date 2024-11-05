@@ -92,10 +92,25 @@ function Base.one(W::WeylGroup)
   return W(UInt8[]; normalize=false)
 end
 
+function Base.show(io::IO, mime::MIME"text/plain", W::WeylGroup)
+  @show_name(io, W)
+  @show_special(io, mime, W)
+  io = pretty(io)
+  println(io, LowercaseOff(), "Weyl group")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, mime, root_system(W))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, LowercaseOff(), "Weyl group")
+  else
+    print(io, LowercaseOff(), "Weyl group of ", Lowercase(), root_system(W))
+  end
 end
 
 function coxeter_matrix(W::WeylGroup)

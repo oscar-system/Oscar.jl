@@ -44,28 +44,105 @@ function Base.show(io::IO, mime::MIME"text/plain", L::LinearLieAlgebra)
   @show_name(io, L)
   @show_special(io, mime, L)
   io = pretty(io)
-  println(io, _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n))
-  println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  print(io, "over ")
-  print(io, Lowercase(), coefficient_ring(L))
+  type_string = _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n)
+  if !isnothing(type_string)
+    println(io, type_string)
+  else
+    println(io, "Linear Lie algebra with $(L.n)x$(L.n) matrices")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, Indent(), "of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+        println(io, Dedent())
+      end
+    end
+  end
+  println(io, Indent(), "of dimension ", dim(L), Dedent())
+  print(io, "over ", Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::LinearLieAlgebra)
   @show_name(io, L)
   @show_special(io, L)
   if is_terse(io)
-    print(io, _lie_algebra_type_to_compact_string(get_attribute(L, :type, :unknown), L.n))
+    type_string_compact = _lie_algebra_type_to_compact_string(
+      get_attribute(L, :type, :unknown), L.n
+    )
+    if !isnothing(type_string_compact)
+      print(io, type_string_compact)
+    else
+      print(io, "Linear Lie algebra")
+    end
   else
     io = pretty(io)
-    print(
-      io,
-      _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n),
-      " over ",
-      Lowercase(),
-    )
-    print(terse(io), coefficient_ring(L))
+    type_string = _lie_algebra_type_to_string(get_attribute(L, :type, :unknown), L.n)
+    if !isnothing(type_string)
+      print(io, type_string)
+    else
+      print(io, "Linear Lie algebra with $(L.n)x$(L.n) matrices")
+      if has_root_system(L)
+        rs = root_system(L)
+        if has_root_system_type(rs)
+          type, ord = root_system_type_with_ordering(rs)
+          print(io, " of type ", _root_system_type_string(type))
+          if !issorted(ord)
+            print(io, " (non-canonical ordering)")
+          end
+        end
+      end
+    end
+    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
   end
 end
+
+#=
+function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, mime, L)
+  io = pretty(io)
+  println(io, "Abstract Lie algebra")
+  if has_root_system(L)
+    rs = root_system(L)
+    if has_root_system_type(rs)
+      type, ord = root_system_type_with_ordering(rs)
+      print(io, Indent(), "of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+      println(io, Dedent())
+    end
+  end
+  println(io, Indent(), "of dimension ", dim(L), Dedent())
+  print(io, "over ")
+  print(io, Lowercase(), coefficient_ring(L))
+end
+
+function Base.show(io::IO, L::AbstractLieAlgebra)
+  @show_name(io, L)
+  @show_special(io, L)
+  if is_terse(io)
+    print(io, "Abstract Lie algebra")
+  else
+    io = pretty(io)
+    print(io, "Abstract Lie algebra")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, " of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+      end
+    end
+    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
+  end
+end
+=#
 
 function _lie_algebra_type_to_string(type::Symbol, n::Int)
   if type == :general_linear
@@ -76,9 +153,8 @@ function _lie_algebra_type_to_string(type::Symbol, n::Int)
     return "Special orthogonal Lie algebra of degree $n"
   elseif type == :symplectic
     return "Symplectic Lie algebra of degree $n"
-  else
-    return "Linear Lie algebra with $(n)x$(n) matrices"
   end
+  return nothing
 end
 
 function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
@@ -88,9 +164,8 @@ function _lie_algebra_type_to_compact_string(type::Symbol, n::Int)
     return "sl_$n"
   elseif type == :special_orthogonal
     return "so_$n"
-  else
-    return "Linear Lie algebra"
   end
+  return nothing
 end
 
 function symbols(L::LinearLieAlgebra)
