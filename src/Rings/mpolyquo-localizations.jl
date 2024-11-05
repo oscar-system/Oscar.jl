@@ -1867,7 +1867,7 @@ function _monomial_basis(L::MPolyLocRing{<:Field, <:Any, <:Any, <:Any, <:MPolyCo
   G_0 = shift.(G) 
   R = base_ring(L)
   LI = leading_ideal(ideal(R, G_0), ordering = negdeglex(R))
-  return L.(monomial_basis(R, LI))
+  return L.(monomial_basis(quo(R, LI)[1]))
 end
 
 @doc raw"""
