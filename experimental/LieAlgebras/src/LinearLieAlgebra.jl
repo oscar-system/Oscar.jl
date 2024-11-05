@@ -188,6 +188,39 @@ given by `s`. The basis elements must be square matrices of size `n`.
 We require `basis` to be linearly independent, and to contain the Lie bracket of any
 two basis elements in its span (this is currently not checked).
 Setting `check=false` disables these checks (once they are in place).
+
+# Examples
+```jldoctest
+julia> e = matrix(QQ, [0 0 1; 0 0 0; 0 0 0]);
+
+julia> f = matrix(QQ, [0 0 0; 0 0 0; 1 0 0]);
+
+julia> h = matrix(QQ, [1 0 0; 0 0 0; 0 0 -1]);
+
+julia> L = lie_algebra(QQ, 3, [e, f, h], [:e, :f, :h])
+Linear Lie algebra with 3x3 matrices
+  of dimension 3
+over rational field
+
+julia> root_system(L);
+
+julia> L
+Linear Lie algebra with 3x3 matrices
+  of dimension 3
+over rational field
+
+julia> basis(L)
+3-element Vector{LinearLieAlgebraElem{QQFieldElem}}:
+ e
+ f
+ h
+
+julia> matrix_repr_basis(L)
+3-element Vector{QQMatrix}:
+ [0 0 1; 0 0 0; 0 0 0]
+ [0 0 0; 0 0 0; 1 0 0]
+ [1 0 0; 0 0 0; 0 0 -1]
+```
 """
 function lie_algebra(
   R::Field,
@@ -213,20 +246,6 @@ function lie_algebra(
   R = coefficient_ring(L)
   s = map(AbstractAlgebra.obj_to_string_wrt_times, basis)
   return lie_algebra(R, L.n, matrix_repr.(basis), s; check)
-end
-
-@doc raw"""
-    abelian_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
-    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
-
-Return the abelian Lie algebra of dimension `n` over the field `R`.
-The first argument can be optionally provided to specify the type of the returned
-Lie algebra.
-"""
-function abelian_lie_algebra(R::Field, n::Int)
-  @req n >= 0 "Dimension must be non-negative."
-  return abelian_lie_algebra(LinearLieAlgebra, R, n)
 end
 
 function abelian_lie_algebra(::Type{T}, R::Field, n::Int) where {T<:LinearLieAlgebra}

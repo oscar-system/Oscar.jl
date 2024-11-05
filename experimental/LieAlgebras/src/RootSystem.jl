@@ -11,6 +11,25 @@
 Construct the root system defined by the Cartan matrix.
 If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
 Passing `detect_type=false` will skip the detection of the root system type.
+
+# Examples
+```jldoctest
+julia> root_system([2 -1; -1 2])
+Root system defined by Cartan matrix
+  [ 2   -1]
+  [-1    2]
+
+julia> root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false)
+Root system defined by Cartan matrix
+  [ 2   -1]
+  [-1    2]
+
+julia> root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2]))
+Root system defined by Cartan matrix
+  [ 2   -1   -2]
+  [-1    2    0]
+  [-1    0    2]
+```
 """
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   return RootSystem(cartan_matrix; check, detect_type)
@@ -40,6 +59,27 @@ function root_system(fam::Symbol, rk::Int)
   return R
 end
 
+@doc raw"""
+    root_system(type::Vector{Tuple{Symbol,Int}}) -> RootSystem
+
+Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations of tuples.
+
+# Examples
+```jldoctest
+julia> root_system([(:A, 2), (:F, 4)])
+Root system defined by Cartan matrix
+  [ 2   -1    0    0    0    0]
+  [-1    2    0    0    0    0]
+  [ 0    0    2   -1    0    0]
+  [ 0    0   -1    2   -1    0]
+  [ 0    0    0   -2    2   -1]
+  [ 0    0    0    0   -1    2]
+
+julia> root_system(Tuple{Symbol,Int}[])
+Root system defined by Cartan matrix
+  0 by 0 empty matrix
+```
+"""
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
   R = root_system(cartan; check=false, detect_type=false)
@@ -155,6 +195,14 @@ end
     fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
 
 Return the fundamental weights corresponding to the `simple_roots` of `R`.
+
+# Examples
+```jldoctest
+julia> fundamental_weights(root_system(:A, 2))
+2-element Vector{WeightLatticeElem}:
+ w1
+ w2
+```
 """
 function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
@@ -203,6 +251,15 @@ Also see: `negative_root`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 0])
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 -1])
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 -1])
+```
 """
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
@@ -228,14 +285,23 @@ end
 @doc raw"""
     negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
-Returns the coroots corresponding to the negative roots of `R`
+Returns the negative coroots of `R`. The $i$-th element of the returned vector is the negative coroot corresponding to the $i$-th positive coroot.
 
-Also see: `negative_coroots`.
+Also see: `negative_coroot`.
 
 !!! note
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 0])
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 -1])
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 -1])
+```
 """
 function negative_coroots(R::RootSystem)
   return [-r for r in positive_coroots(R)]
@@ -303,6 +369,15 @@ Also see: `positive_root`, `number_of_positive_roots`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 0])
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 1])
+ RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 1])
+```
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -336,6 +411,15 @@ Also see: `positive_coroots`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 0])
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 1])
+ DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 1])
+```
 """
 function positive_coroots(R::RootSystem)
   return R.positive_coroots::Vector{DualRootSpaceElem}
@@ -496,6 +580,18 @@ end
     weyl_group(R::RootSystem) -> WeylGroup
 
 Return the Weyl group of `R`.
+
+# Examples
+```jldoctest
+julia> weyl_group(root_system([2 -1; -1 2]))
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+
+julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+
+julia> weyl_group(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
+Weyl group for root system defined by Cartan matrix [2 -1 -2; -1 2 0; -1 0 2]
+```
 """
 function weyl_group(R::RootSystem)
   return R.weyl_group::WeylGroup

@@ -256,6 +256,14 @@ via the kwarg `extraspecial_pair_signs::Vector{Bool}` to specify the concrete Li
 If $(\alpha,\beta)$ is the extraspecial pair for the non-simple root `root(rs, i)`,
 then $\varepsilon_{\alpha,\beta} = 1$ iff `extraspecial_pair_signs[i - n_simple_roots(rs)] = true`.
 For the used notation and the definition of extraspecial pairs, see [CMT04](@cite).
+
+# Examples
+```jldoctest
+julia> L = lie_algebra(QQ, root_system(:B, 4))
+Abstract Lie algebra
+  of dimension 36
+over rational field
+```
 """
 function lie_algebra(
   R::Field,
@@ -426,6 +434,14 @@ end
 Construct a simple Lie algebra over the field `R` with Dynkin type given by `fam` and `rk`.
 See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 The internally used basis of this Lie algebra is the Chevalley basis.
+
+# Examples
+```jldoctest
+julia> L = lie_algebra(QQ, :C, 4)
+Abstract Lie algebra
+  of dimension 36
+over rational field
+```
 """
 function lie_algebra(R::Field, S::Symbol, n::Int)
   rs = root_system(S, n)
