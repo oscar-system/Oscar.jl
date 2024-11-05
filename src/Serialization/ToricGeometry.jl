@@ -111,7 +111,7 @@ end
 
 function save_object(s::SerializerState, cc::CohomologyClass)
   save_data_dict(s) do
-    save_typed_object(s, polynomial(cc).f, :polynomial)
+    save_object(s, lift(polynomial(cc)), :polynomial)
   end
 end
 
