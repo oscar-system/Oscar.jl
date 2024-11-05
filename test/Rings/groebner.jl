@@ -11,6 +11,22 @@
     @test leading_ideal(I, ordering=degrevlex(gens(R))) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I) == ideal(R,[x*y^2, x^4, y^5])
     @test leading_ideal(I, ordering=lex(gens(R))) == ideal(R,[y^7, x*y^2, x^3])
+
+    # algorithm = :modular option
+    R = @polynomial_ring(QQ, [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    # uses f4 in msolve/AlgebraicSolving
+    groebner_basis(I, ordering=degrevlex(R), algorithm=:modular)
+    @test gens(I.gb[degrevlex(R)]) == QQMPolyRingElem[x + y^2, x*y - 1, x^2 + y]
+    # uses multi-modular implementation in Oscar applying Singular finite field
+    # computations
+    groebner_basis(I, ordering=lex(R), algorithm=:modular)
+    @test gens(I.gb[lex(R)]) == QQMPolyRingElem[y^3 + 1, x + y^2]
+    T = @polynomial_ring(QQ, :t)
+    R = @polynomial_ring(T, [:x, :y])
+    I = ideal(R, [x^2+y,y*x-1])
+    @test_throws ErrorException groebner_basis(I, ordering=lex(R), algorithm=:modular)
+
     # issue 3665
     kt,t = polynomial_ring(GF(2),:t)
     Ft = fraction_field(kt)

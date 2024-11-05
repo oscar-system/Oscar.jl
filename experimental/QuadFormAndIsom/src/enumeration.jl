@@ -347,7 +347,7 @@ function admissible_triples(G::ZZGenus, p::IntegerUnion; pA::Int = -1, nA::Int =
     elseif nA >= 0
       r1 >= nA || continue
     end
-    m = min(ep, r1)
+    m = Int(min(ep, r1))
     D = _find_D(dG, m, p)
     while !is_empty(D)
       d1, dp = pop!(D)
@@ -616,6 +616,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     append!(gene, hermitian_genera(E, rk, sign, dd; min_scale=inv(DE), max_scale=numerator(dd)*DE))
   end
   unique!(gene)
+  isempty(gene) && return reps
 
   # In the cyclotomic case, the Galois group of the fixed field K acts on the
   # set of genera by "change of fixed primitive root of unity".

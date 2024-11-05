@@ -25,12 +25,12 @@ julia> F = FreeMod(R, 2);
 julia> V = [x*F[1], y^2*F[2]];
 
 julia> M = quo_object(F, V)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y^2*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1]
+  2: y^2*e[2]
 
 julia> H = hom(M, M)[1]
 hom of (M, M)
@@ -374,12 +374,12 @@ julia> F = FreeMod(R, 2);
 julia> V = [x*F[1], y^2*F[2]];
 
 julia> M = quo_object(F, V)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y^2*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1]
+  2: y^2*e[2]
 
 julia> H = hom(M, M)[1];
 
@@ -396,23 +396,9 @@ julia> relations(H)
  y^2*(e[2] -> e[2])
 
 julia> a = element_to_homomorphism(H[1]+y*H[2])
-Map with following data
-Domain:
-=======
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y^2*e[2]
-Codomain:
-=========
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y^2*e[2]
+Module homomorphism
+  from M
+  to M
 
 julia> matrix(a)
 [1   0]
@@ -440,12 +426,12 @@ julia> F = FreeMod(R, 2);
 julia> V = [x*F[1], y^2*F[2]];
 
 julia> M = quo_object(F, V)
-Subquotient of Submodule with 2 generators
-1 -> e[1]
-2 -> e[2]
-by Submodule with 2 generators
-1 -> x*e[1]
-2 -> y^2*e[2]
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 2 generators
+  1: x*e[1]
+  2: y^2*e[2]
 
 julia> H = hom(M, M)[1];
 

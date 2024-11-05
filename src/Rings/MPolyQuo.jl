@@ -79,6 +79,14 @@ oscar_origin_ring(Q::MPolyQuoRing) = base_ring(Q)
 
 default_ordering(Q::MPolyQuoRing) = default_ordering(base_ring(Q))
 
+# Only for fields for now because of things like char(ZZ[x, y]/<2>) = 2
+function characteristic(Q::MPolyQuoRing{<:MPolyRingElem{T}}) where {T <: FieldElement}
+  if is_zero(one(Q))
+    return 1
+  end
+  return characteristic(coefficient_ring(Q))
+end
+
 ##############################################################################
 #
 # Quotient ring elements

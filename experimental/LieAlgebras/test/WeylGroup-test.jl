@@ -52,6 +52,7 @@ include(
 
   @testset "WeylGroup Group conformace test for $(Wname)" for (Wname, W) in [
     ("A1", weyl_group(:A, 1)),
+    ("A5", weyl_group(:A, 5)),
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
@@ -111,9 +112,55 @@ include(
             if is_finite(W) # remove once rand(W) is implemented for infinite groups
               w = rand(W)
               @test w == inv(iso)(iso(w))
+              v = rand(W)
+              @test iso(v * w) == iso(v) * iso(w)
+              @test v * w == inv(iso)(iso(v) * iso(w))
             end
             g = rand_pseudo(G)
             @test g == iso(inv(iso)(g))
+            h = rand_pseudo(G)
+            @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+            @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+          end
+        end
+      end
+    end
+
+    if has_root_system_type(root_system(W))
+      type, ordering = root_system_type_with_ordering(root_system(W))
+      if length(type) == 1 && issorted(ordering) && only(type)[1] == :A # only implemented for A_n (yet)
+        @testset "isomorphism(PermGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
+                                                                                           [
+          false, true
+        ]
+          G = permutation_group(W; set_properties)
+          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+            @test is_finite(G) == is_finite(W)
+            is_finite(W) && @test order(G) == order(W)
+          end
+
+          iso = isomorphism(PermGroup, W; set_properties)
+          @test W == domain(iso)
+          G = codomain(iso)
+          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+            @test is_finite(G) == is_finite(W)
+            is_finite(W) && @test order(G) == order(W)
+            if ngens(W) < 10 #= for sane runtime =#
+              for _ in 1:5
+                if is_finite(W) # remove once rand(W) is implemented for infinite groups
+                  w = rand(W)
+                  @test w == inv(iso)(iso(w))
+                  v = rand(W)
+                  @test iso(v * w) == iso(v) * iso(w)
+                  @test v * w == inv(iso)(iso(v) * iso(w))
+                end
+                g = rand_pseudo(G)
+                @test g == iso(inv(iso)(g))
+                h = rand_pseudo(G)
+                @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+                @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+              end
+            end
           end
         end
       end
