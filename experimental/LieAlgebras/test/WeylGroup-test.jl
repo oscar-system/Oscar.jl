@@ -288,9 +288,9 @@ include(
     @test ngens(weyl_group(:F, 4)) == 4
     @test ngens(weyl_group(:G, 2)) == 2
 
-    @test ngens(weyl_group((:A, 2), (:B, 4))) == 6
-    @test ngens(weyl_group((:C, 3), (:E, 7))) == 10
-    @test ngens(weyl_group((:F, 4), (:G, 2))) == 6
+    @test ngens(weyl_group((:A, 2), (:B, 4))) == 2 + 4
+    @test ngens(weyl_group((:C, 3), (:E, 7))) == 3 + 7
+    @test ngens(weyl_group((:F, 4), (:G, 2))) == 4 + 2
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
