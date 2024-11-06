@@ -281,6 +281,7 @@ For the used notation and the definition of extraspecial pairs, see [CMT04](@cit
 ```jldoctest
 julia> L = lie_algebra(QQ, root_system(:B, 4))
 Abstract Lie algebra
+  of type B4
   of dimension 36
 over rational field
 ```
@@ -459,6 +460,7 @@ The internally used basis of this Lie algebra is the Chevalley basis.
 ```jldoctest
 julia> L = lie_algebra(QQ, :C, 4)
 Abstract Lie algebra
+  of type C4
   of dimension 36
 over rational field
 ```

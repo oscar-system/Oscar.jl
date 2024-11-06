@@ -24,7 +24,9 @@ Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::In
 # Examples
 ```jldoctest
 julia> weyl_group(:A, 2)
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of type A2
 ```
 """
 function weyl_group(fam::Symbol, rk::Int)

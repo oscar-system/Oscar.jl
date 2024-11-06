@@ -15,20 +15,16 @@ Passing `detect_type=false` will skip the detection of the root system type.
 # Examples
 ```jldoctest
 julia> root_system([2 -1; -1 2])
-Root system defined by Cartan matrix
-  [ 2   -1]
-  [-1    2]
+Root system of rank 2
+  of type A2
 
 julia> root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false)
-Root system defined by Cartan matrix
-  [ 2   -1]
-  [-1    2]
+Root system of rank 2
+  of unknown type
 
 julia> root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2]))
-Root system defined by Cartan matrix
-  [ 2   -1   -2]
-  [-1    2    0]
-  [-1    0    2]
+Root system of rank 3
+  of type C3 (with non-canonical ordering of simple roots)
 ```
 """
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
@@ -47,9 +43,8 @@ Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk:
 # Examples
 ```jldoctest
 julia> root_system(:A, 2)
-Root system defined by Cartan matrix
-  [ 2   -1]
-  [-1    2]
+Root system of rank 2
+  of type A2
 ```
 """
 function root_system(fam::Symbol, rk::Int)
@@ -67,17 +62,12 @@ Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk:
 # Examples
 ```jldoctest
 julia> root_system([(:A, 2), (:F, 4)])
-Root system defined by Cartan matrix
-  [ 2   -1    0    0    0    0]
-  [-1    2    0    0    0    0]
-  [ 0    0    2   -1    0    0]
-  [ 0    0   -1    2   -1    0]
-  [ 0    0    0   -2    2   -1]
-  [ 0    0    0    0   -1    2]
+Root system of rank 6
+  of type A2 x F4
 
 julia> root_system(Tuple{Symbol,Int}[])
-Root system defined by Cartan matrix
-  0 by 0 empty matrix
+Root system of rank 0
+  of type []
 ```
 """
 function root_system(type::Vector{Tuple{Symbol,Int}})
@@ -226,8 +216,8 @@ Return the fundamental weights corresponding to the `simple_roots` of `R`.
 ```jldoctest
 julia> fundamental_weights(root_system(:A, 2))
 2-element Vector{WeightLatticeElem}:
- w1
- w2
+ w_1
+ w_2
 ```
 """
 function fundamental_weights(R::RootSystem)
@@ -282,9 +272,9 @@ Also see: `negative_root`.
 ```jldoctest
 julia> negative_roots(root_system(:A, 2))
 3-element Vector{RootSpaceElem}:
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 0])
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 -1])
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 -1])
+ -a_1
+ -a_2
+ -a_1 - a_2
 ```
 """
 function negative_roots(R::RootSystem)
@@ -324,9 +314,9 @@ Also see: `negative_coroot`.
 ```jldoctest
 julia> negative_coroots(root_system(:A, 2))
 3-element Vector{DualRootSpaceElem}:
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 0])
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 -1])
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [-1 -1])
+ -a^v_1
+ -a^v_2
+ -a^v_1 - a^v_2
 ```
 """
 function negative_coroots(R::RootSystem)
@@ -400,9 +390,9 @@ Also see: `positive_root`, `number_of_positive_roots`.
 ```jldoctest
 julia> positive_roots(root_system(:A, 2))
 3-element Vector{RootSpaceElem}:
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 0])
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 1])
- RootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 1])
+ a_1
+ a_2
+ a_1 + a_2
 ```
 """
 function positive_roots(R::RootSystem)
@@ -442,9 +432,9 @@ Also see: `positive_coroots`.
 ```jldoctest
 julia> positive_coroots(root_system(:A, 2))
 3-element Vector{DualRootSpaceElem}:
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 0])
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [0 1])
- DualRootSpaceElem(Root system defined by Cartan matrix [2 -1; -1 2], [1 1])
+ a^v_1
+ a^v_2
+ a^v_1 + a^v_2
 ```
 """
 function positive_coroots(R::RootSystem)
@@ -606,13 +596,19 @@ Return the Weyl group of `R`.
 # Examples
 ```jldoctest
 julia> weyl_group(root_system([2 -1; -1 2]))
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of type A2
 
 julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of unknown type
 
 julia> weyl_group(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
-Weyl group for root system defined by Cartan matrix [2 -1 -2; -1 2 0; -1 0 2]
+Weyl group
+  of root system of rank 3
+    of type C3 (with non-canonical ordering of simple roots)
 ```
 """
 function weyl_group(R::RootSystem)

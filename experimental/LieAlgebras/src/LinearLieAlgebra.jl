@@ -281,6 +281,7 @@ julia> root_system(L);
 
 julia> L
 Linear Lie algebra with 3x3 matrices
+  of type A1
   of dimension 3
 over rational field
 
