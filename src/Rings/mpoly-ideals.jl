@@ -1172,24 +1172,6 @@ function minimal_primes(I::MPolyIdeal; algorithm::Symbol = :GTZ, cache::Bool=tru
   return V
 end
 
-@doc raw"""
-    function minimal_primes_zero_dim(I::MPolyIdeal{QQPolyRingElem})
-    
-Return a vector containing the minimal associated prime ideals of `I`.
-
-Calls a specialized variant of `minimal_primes` for zero dimensional ideals 
-with coefficient ring over the rationals.
-
-No input checks. It is unclear if there exists input where this variant is 
-faster than just calling `minimal_primes` directly.
-"""
-function minimal_primes_zero_dim(I::MPolyIdeal{QQMPolyRingElem})
-  R = base_ring(I)
-  L = Singular.LibAssprimeszerodim.assPrimes(singular_generators(I))
-  result = typeof(I)[ideal(R, q) for q in L]
-  return result
-end
-
 # rerouting the procedure for minimal primes this way leads to 
 # much longer computations compared to the flattening of the coefficient
 # field implemented above.
