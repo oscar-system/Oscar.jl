@@ -700,9 +700,6 @@ julia> minimal_size_generating_set(symmetric_group(5))
    return res
 end
 
-# keep the perhaps misleading old name
-minimal_generating_set(G::GAPGroup) = minimal_size_generating_set(G)
-
 
 ################################################################################
 #
