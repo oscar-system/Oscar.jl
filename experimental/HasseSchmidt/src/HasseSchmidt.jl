@@ -29,32 +29,23 @@ julia> f = 5*x^2 + 3*y^5;
 
 julia> hasse_derivatives(f)
 8-element Vector{Vector{Any}}:
- [[0, 0], 5*x^2 + 3*y^5]
- [[0, 1], 15*y^4]
- [[0, 2], 30*y^3]
- [[0, 3], 30*y^2]
- [[0, 4], 15*y]
  [[0, 5], 3]
- [[1, 0], 10*x]
+ [[0, 4], 15*y]
+ [[0, 3], 30*y^2]
  [[2, 0], 5]
+ [[0, 2], 30*y^3]
+ [[1, 0], 10*x]
+ [[0, 1], 15*y^4]
+ [[0, 0], 5*x^2 + 3*y^5]
 ```
 """
 function hasse_derivatives(f::MPolyRingElem)
-  R = parent(f)
+	R = parent(f)
+	x = gens(R)
   n = ngens(R)
-  # define new ring with more variables: R[x1, ..., xn] -> R[y1, ..., yn, t1, ..., tn]
-	Rtemp, y, t = polynomial_ring(R, :y => 1:n, :t => 1:n)
-	F = evaluate(f, y + t)
-  HasseDerivativesList = [[zeros(Int64, n), f]] # initializing with the zero'th HS derivative: f itself
-  varR = vcat(gens(R), fill(base_ring(R)(1), n))
-  # getting hasse derivs without extra attention on ordering
-  for term in terms(F)
-    if sum(degrees(term)[n+1:2n]) != 0 # 
-      # hasse derivatives are the factors in front of the monomial in t
-      push!(HasseDerivativesList, [degrees(term)[n+1:2n], evaluate(term, varR)])
-    end
-  end
-  return HasseDerivativesList
+	Rtemp, t = polynomial_ring(R, :t => 1:n)
+	F = evaluate(f, x + t)
+	return [[degrees(monomial(term, 1)), coeff(term, 1)] for term in terms(F)]
 end
 
 function hasse_derivatives(f::MPolyQuoRingElem)
@@ -91,13 +82,13 @@ julia> RQ, phi = quo(R, I);
 
 julia> f = phi(2*y^4);
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 5-element Vector{Vector{Any}}:
- [[0, 0], 2*y^4]
- [[0, 1], 8*y^3]
- [[0, 2], 12*y^2]
- [[0, 3], 8*y]
  [[0, 4], 2]
+ [[0, 3], 8*y]
+ [[0, 2], 12*y^2]
+ [[0, 1], 8*y^3]
+ [[0, 0], 2*y^4]
 ```
 """
 function _hasse_derivatives(f::MPolyQuoRingElem)
@@ -122,14 +113,14 @@ julia> Rloc, phi = localization(R, U);
 
 julia> f = phi(2*z^5);
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 6-element Vector{Vector{Any}}:
- [[0, 0, 0], 2*z^5]
- [[0, 0, 1], 10*z^4]
- [[0, 0, 2], 20*z^3]
- [[0, 0, 3], 20*z^2]
- [[0, 0, 4], 10*z]
  [[0, 0, 5], 2]
+ [[0, 0, 4], 10*z]
+ [[0, 0, 3], 20*z^2]
+ [[0, 0, 2], 20*z^3]
+ [[0, 0, 1], 10*z^4]
+ [[0, 0, 0], 2*z^5]
 ```
 """
 function _hasse_derivatives(f::Oscar.MPolyLocRingElem)
@@ -158,12 +149,12 @@ julia> RQL, iota = localization(RQ, U);
 
 julia> f = iota(phi(4*y^3));
 
-julia> _hasse_derivatives(f)
+julia> Oscar._hasse_derivatives(f)
 4-element Vector{Vector{Any}}:
- [[0, 0, 0], 4*y^3]
- [[0, 1, 0], 12*y^2]
- [[0, 2, 0], 12*y]
  [[0, 3, 0], 4]
+ [[0, 2, 0], 12*y]
+ [[0, 1, 0], 12*y^2]
+ [[0, 0, 0], 4*y^3]
 ```
 """
 function _hasse_derivatives(f::Oscar.MPolyQuoLocRingElem)
