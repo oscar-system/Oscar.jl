@@ -2580,7 +2580,7 @@ end
 end
 
 @attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  dim(closure(spec(R)))
+  return dim(closure(spec(R)))
 end
 
 @attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
