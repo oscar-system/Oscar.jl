@@ -29,6 +29,7 @@ include("LiteratureModels/create_index.jl")
 include("G4Fluxes/constructors.jl")
 include("G4Fluxes/attributes.jl")
 include("G4Fluxes/properties.jl")
+include("G4Fluxes/special_attributes.jl")
 
 include("Serialization/tate_models.jl")
 include("Serialization/weierstrass_models.jl")

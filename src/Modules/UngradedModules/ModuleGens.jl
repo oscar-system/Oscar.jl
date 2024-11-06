@@ -127,7 +127,7 @@ function show(io::IO, F::ModuleGens)
     print(io, "Module generating system of length ", length(F))
     for i=1:length(F)
       if isassigned(F.O, i)
-        print(io, "\n", i, " -> ", F.O[i])
+        print(io, "\n", i, ": ", F.O[i])
       end
     end
   end
