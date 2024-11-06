@@ -129,7 +129,7 @@ norm_equation(R::AbsNumFieldOrder, k::Base.Integer; abs::Bool = false) = norm_eq
 function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
 
   @assert Hecke.is_maximal(R)
-  Ka, mKa, mkK = absolute_field(Hecke.nf(R))
+  Ka, mKa, mkK = Hecke.absolute_field(Hecke.nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)
   k = Hecke.nf(parent(a))
