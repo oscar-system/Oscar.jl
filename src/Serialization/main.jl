@@ -150,7 +150,6 @@ end
 
 function save_typed_object(s::SerializerState, x::T) where T
   if !isnothing(type_params(x))
-    # this should be cleaned up before merging
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   elseif Base.issingletontype(T)
@@ -186,17 +185,22 @@ function save_type_params(s::SerializerState, obj::T) where T
     save_object(s, encode_type(T), :name)
     params = type_params(obj)
 
-    save_data_dict(s, :params) do 
-      if params isa Dict
-        for (k, v) in params
-          save_typed_object(s, v, k)
+    if serialize_with_id(params)
+      # we pull this out here to catch the save_as_ref
+      save_typed_object(s, params, :params)
+    else
+      save_data_dict(s, :params) do 
+        if params isa Dict
+          for (k, v) in params
+            save_typed_object(s, v, k)
+          end
+        elseif params isa Tuple
+          entry_type, entry_params = params
+          save_object(s, encode_type(entry_type), :name)
+          !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
+        else
+          save_typed_object(s, params)
         end
-      elseif params isa Tuple
-        entry_type, entry_params = params
-        save_object(s, encode_type(entry_type), :name)
-        !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
-      else
-        save_typed_object(s, params)
       end
     end
   end
@@ -214,14 +218,19 @@ end
 
 function load_type_params(s::DeserializerState)
   T = decode_type(s)
+  println(haskey(s, :params))
   if haskey(s, :params)
-    params = load_node(s, :params) do _
+    subtype, params = load_node(s, :params) do _
       load_type_params(s)
     end
+    if T <: MatVecType
+      return T{subtype}, params
+    else
+      return T, params
+    end
   else
-    params = load_typed_object(s)
+    return T, load_typed_object(s)
   end
-  return T, params
 end
 
 # The load mechanism first checks if the type needs to load necessary
@@ -253,7 +262,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     s.obj isa String && return load_ref(s)
     s.obj[type_key] isa String && return load_object(s, T, :data)
     
-    params = load_node(s, type_key) do _
+    T, params = load_node(s, type_key) do _
       load_type_params(s)
     end
   end
@@ -450,7 +459,6 @@ macro import_all_serialization_functions()
       load_array_node,
       load_attrs,
       load_node,
-      load_params_node,
       load_ref,
       load_typed_object,
       save_as_ref,
@@ -679,13 +687,12 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       U = load_node(s, type_key) do _
         decode_type(s)
       end
+      
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
       if serialize_with_params(type)
         if isnothing(params)
-          params = load_node(s, type_key) do _
-            load_params_node(s)
-          end
+          _, params = load_type_params(s)
         end
 
         load_node(s, :data) do _

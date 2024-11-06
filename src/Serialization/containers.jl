@@ -63,31 +63,14 @@ function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where para
   end
 end
 
-# handles nested Vectors
-function load_object(s::DeserializerState, ::Type{<: Vector}, params::Tuple)
-  T = params[1]
+function load_object(s::DeserializerState, ::Type{<: Vector{T}}, R::Ring) where T
+  loaded_v = T[]
   load_node(s) do v
-    if isempty(v)
-      return T[]
-    else
-      loaded_v = []
-      len = length(v)
-      for i in 1:len
-        load_node(s, i) do _
-          push!(loaded_v, load_object(s, T, params[2]))
-        end
-      end
-      return Vector{typeof(loaded_v[1])}(loaded_v)
+    for (i, entry) in enumerate(v)
+      push!(loaded_v, load_object(s, T, R, i))
     end
   end
-end
-
-function load_object(s::DeserializerState, ::Type{<: Vector}, params::Ring)
-  T = elem_type(params)
-  loaded_entries = load_array_node(s) do _
-    load_object(s, T, params)
-  end
-  return Vector{T}(loaded_entries)
+  return loaded_v
 end
 
 ################################################################################

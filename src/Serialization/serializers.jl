@@ -233,6 +233,7 @@ end
 
 function haskey(s::DeserializerState, key::Symbol)
   load_node(s) do obj
+    println(typeof(keys(obj)))
     key in keys(obj)
   end
 end
@@ -261,13 +262,6 @@ function load_array_node(f::Function, s::DeserializerState,
                          key::Union{Symbol, Int, Nothing} = nothing)
   load_node(s, key) do array
     [load_node(x -> f((i, x)), s, i) for (i, _) in enumerate(array)]
-  end
-end
-
-function load_params_node(s::DeserializerState)
-  T = decode_type(s)
-  load_node(s, :params) do _
-    return load_type_params(s, T)
   end
 end
 
