@@ -159,7 +159,6 @@ end
   l = minimal_primes(i, algorithm=:charSets)
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
-  
   R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [R(9), (a+3)*(b+3)])
   i1 = ideal(R, [R(3), a])
