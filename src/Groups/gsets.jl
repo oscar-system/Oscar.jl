@@ -486,6 +486,13 @@ function stabilizer(Omega::GSet{T,S}, omega::S; check::Bool = true) where {T,S}
     return stabilizer(G, omega, gfun)
 end
 
+# Construct the arguments on the GAP side such that GAP's method selection
+# can choose the special method.
+function stabilizer(Omega::GSet{PermGroup,S}, omega::S; check::Bool = true) where S <: Oscar.IntegerUnion
+    check && @req omega in Omega "omega must be an element of Omega"
+    return stabilizer(acting_group(Omega), omega)
+end
+
 # support `stabilizer` under "derived" actions:
 # If the given point is a set of the element type of the G-set
 # then compute the setwise stabilizer.
@@ -515,6 +522,14 @@ function stabilizer(Omega::GSet{T,S}, omega::Tuple{Vararg{S}}; check::Bool = tru
     derived_fun = function(x, g) return Tuple([gfun(y, g) for y in x]); end
     return stabilizer(G, omega, derived_fun)
 end
+
+# Construct the arguments on the GAP side such that GAP's method selection
+# can choose the special method.
+function stabilizer(Omega::GSet{PermGroup,S}, omega::Union{Set{S}, Tuple{Vararg{S}}, Vector{S}}; check::Bool = true) where S <: Oscar.IntegerUnion
+    check && @req all(in(Omega), omega) "omega must be a set of elements of Omega"
+    return stabilizer(acting_group(Omega), omega)
+end
+
 
 #############################################################################
 ##
