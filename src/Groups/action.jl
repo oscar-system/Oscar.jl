@@ -501,7 +501,7 @@ function stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion
         GAP.Globals.OnPoints))  # Do not use GAPWrap.OnPoints!
 end
 
-function stabilizer(G::PermGroup, pnt::Union{Vector{T}, Tuple{Vararg{T}}}) where T <: Oscar.IntegerUnion
+function stabilizer(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T <: Oscar.IntegerUnion
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GapObj(pnt, recursive = true),
         GAP.Globals.OnTuples))  # Do not use GAPWrap.OnTuples!
