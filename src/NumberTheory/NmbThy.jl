@@ -89,7 +89,7 @@ function norm_equation_fac_elem(R::AbsNumFieldOrder, k::ZZRingElem; abs::Bool = 
   S = Tuple{Vector{Tuple{Hecke.ideal_type(R), Int}}, Vector{ZZMatrix}}[]
   for (p, k) = lp.fac
     P = prime_decomposition(R, p)
-    s = solve_non_negative(matrix(FlintZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(FlintZZ, 1, 1, [k]))
+    s = solve_non_negative(matrix(ZZ, 1, length(P), [degree(x[1]) for x = P]), matrix(ZZ, 1, 1, [k]))
     push!(S, (P, ZZMatrix[view(s, i:i, 1:ncols(s)) for i=1:nrows(s)]))
   end
   sol = FacElem{AbsSimpleNumFieldElem, AbsSimpleNumField}[]
@@ -144,10 +144,10 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   q, mms = snf(q)
   mq = mq*inv(mms)
 
-  C = vcat([matrix(FlintZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)])
+  C = vcat([matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)])
   
-  A = vcat([matrix(FlintZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)])
-  b = matrix(FlintZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
+  A = vcat([matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)])
+  b = matrix(ZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
 
   so = solve_mixed(A, b, C)
   u, mu = Hecke.unit_group_fac_elem(parent(a))
@@ -189,16 +189,16 @@ function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
   # if this is possible, then a is not irreducible as a
   # is then ms(Ax) * ms(Ay) and neither is trivial.
 
-  I = identity_matrix(FlintZZ, length(S))
+  I = identity_matrix(ZZ, length(S))
   A = hcat(I, I)
   #so A*(x|y) = x+y = sol is the  1. condition
   C = cat(V, V, dims=(1,2))
   # C(x|y) >=0 iff Cx >=0 and Cy >=0
   #Cx <> 0 iff (1,..1)*Cx >= 1
-  one = matrix(FlintZZ, 1, length(S), [1 for p = S])
-  zer = matrix(FlintZZ, 1, length(S), [0 for p = S])
+  one = matrix(ZZ, 1, length(S), [1 for p = S])
+  zer = matrix(ZZ, 1, length(S), [0 for p = S])
   C = vcat(C, hcat(one, zer), hcat(zer, one))
-  d = matrix(FlintZZ, 2*length(S)+2, 1, [0 for i = 1:2*length(S) + 2])
+  d = matrix(ZZ, 2*length(S)+2, 1, [0 for i = 1:2*length(S) + 2])
   d[end-1, 1] = 1
   d[end, 1] = 1
   pt = solve_mixed(A, sol, C, d)

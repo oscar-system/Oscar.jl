@@ -88,7 +88,7 @@ for analysis of the denominator and the infinite valuations
 function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   f = defining_polynomial(F)
   @assert is_monic(f)
-  Zxy, (x, y) = polynomial_ring(FlintZZ, 2, cached = false)
+  Zxy, (x, y) = polynomial_ring(ZZ, 2, cached = false)
   ff = Zxy()
   d = lcm(map(denominator, coefficients(f)))
   df = f*d
@@ -101,7 +101,7 @@ function _galois_init(F::Generic.FunctionField{QQFieldElem}; tStart::Int = -1)
   for i=0:degree(f)
     c = coeff(df, i)
     if !iszero(c)
-      ff += map_coefficients(FlintZZ, numerator(c))(y)*x^i
+      ff += map_coefficients(ZZ, numerator(c))(y)*x^i
     end
   end
   _subfields(F, ff, tStart = tStart)
