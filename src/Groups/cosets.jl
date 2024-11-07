@@ -33,14 +33,16 @@ end
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
 
-function ==(x::GroupCoset, y::GroupCoset)
-  (x.side == y.side && x.G == y.G && x.H == y.H ) || return false
-  if is_right(x)
+function ==(C1::GroupCoset, C2::GroupCoset)
+  H = C1.H
+  right = is_right(C1)
+  (right == is_right(C2) && C1.G == C2.G && H == C2.H ) || return false
+  if right
     # Hx == Hy if x/y in H
-    return representative(x) / representative(y) in x.H
+    return representative(C1) / representative(C2) in H
   else
     # xH == yH if x\y in H
-    return representative(x) \ representative(y) in x.H
+    return representative(C1) \ representative(C2) in H
   end
 end
 
