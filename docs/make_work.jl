@@ -4,7 +4,7 @@
 #
 module BuildDoc
 
-using Documenter, DocumenterCitations
+using Documenter, DocumenterCitations, JSON
 
 include("documenter_helpers.jl")
 include("citation_style.jl")
@@ -210,6 +210,43 @@ function doit(
     dstbase = normpath(Oscar.oscardir, "docs", "src", string(nameof(pkg)))
     rm(dstbase; recursive=true, force=true)
   end
+  
+  # postprocessing, for the search index
+  docspath = normpath(joinpath(Oscar.oscardir, "docs"))
+  @info "Patching search index."
+  # extract valid json from search_index.js
+  run(pipeline(`sed -n '2p;3q' $(joinpath(docspath, "build", "search_index.js"))`, stdout=(joinpath(docspath, "build", "search_index.json")))) # imperfect file, but JSON parses it
+  
+  # extract paths from doc.main
+  run(pipeline(pipeline(`cat $(joinpath(docspath, "doc.main"))`, `grep ".md"`, `sed "s/^.*=>//"`, `sed 's/^\s*"//'`, `sed 's/..$//'`, `sed 's/.md/.html/'`), stdout=joinpath(docspath, "filelist.txt")))
+    
+  # read these files
+  iosearchindex = open(joinpath(docspath, "build", "search_index.json"), "r")
+  searchindex = JSON.parse(iosearchindex)
+  close(iosearchindex)
+  iofilelist = open(joinpath(docspath, "filelist.txt"))
+  filelist = readlines(iofilelist)
+  close(iofilelist)
+  
+  newsearchindex = []
+  
+  for item in searchindex
+    if split(item["location"], "#")[1] in filelist
+      push!(newsearchindex, item)
+    end
+  end
+  
+  
+  # combine this to valid javascript again, and overwrite input
+  ionewsearchindex = open(joinpath(docspath, "build", "search_index.js"), "w")
+  write(ionewsearchindex, """var documenterSearchIndex = {"docs":\n""")
+  JSON.print(ionewsearchindex, newsearchindex)
+  write(ionewsearchindex, "\n}")
+  close(ionewsearchindex)
+
+  # clean up
+  rm(joinpath(docspath, "filelist.txt"))
+  rm(joinpath(docspath, "build", "search_index.json"))
 end
 
 end # module BuildDoc
