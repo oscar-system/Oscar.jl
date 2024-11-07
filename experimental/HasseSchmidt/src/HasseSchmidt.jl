@@ -2,7 +2,7 @@ export hasse_derivatives
 
 ### We consider Hasse-Schmidt derivatives of polynomials as seen in
 ###
-###   	[FKRS20](@cite) Fruehbis-Krueger, Ristau, Schober: 'Embedded desingularization for arithmetic surfaces -- toward a parallel implementation'
+###   	[FKRS21](@cite) Fruehbis-Krueger, Ristau, Schober: 'Embedded desingularization for arithmetic surfaces -- toward a parallel implementation'
 ###			
 ### This is a special case of a more general definition of a Hasse-Schmidt derivative. These more general and rigorous definitions can be found in the following sources:
 ###
@@ -18,7 +18,7 @@ export hasse_derivatives
 
 Return a list of Hasse-Schmidt derivatives of `f`, each with a multiindex `[a_1, ..., a_n]`, where `a_i` describes the number of times `f` was derived w.r.t. the `i`-th variable. 
 
-Hasse-Schmidt derivatives as seen in [FKRS20](@cite). 
+Hasse-Schmidt derivatives as seen in [FKRS21](@cite). 
 For more general and rigorous definition see [Cut04](@cite) or [Haze11](@cite).
 
 # Examples
