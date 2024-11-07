@@ -55,7 +55,7 @@ mutable struct CliffordAlgebraElem{T, S, P} <: Hecke.AbstractAssociativeAlgebraE
   CliffordAlgebraElem(C::CliffordAlgebra) = CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram), typeof(C)}(C)
 
   #Returns the element in the Clifford algebra C with coefficient vector coeff wrt. the canonical basis
-  function CliffordAlgebraElem{T, S, P}(C::CliffordAlgebra{T, S}, coeff::Vector{T}) where {T, S, P}
+  function CliffordAlgebraElem{T, S, P}(C::CliffordAlgebra{T, S}, coeff::Vector{R}) where {T, S, P, R<:FieldElem}
     @req length(coeff) == C.dim "invalid length of coefficient vector"
     newelt = new{T, S, CliffordAlgebra{T, S}}(C, coeff)
     _set_even_odd_coeff!(newelt)
@@ -65,6 +65,12 @@ mutable struct CliffordAlgebraElem{T, S, P} <: Hecke.AbstractAssociativeAlgebraE
   CliffordAlgebraElem(C::CliffordAlgebra{T, S}, coeff::Vector{T}) where {T, S} =
   CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram), typeof(C)}(C, coeff)
 
+  function CliffordAlgebraElem(C::CliffordAlgebra{T, S}, coeff::Vector{R}) where {T, S, R}
+    K = C.base_ring
+    @req __can_convert_coeff(coeff, K) "entries of coefficient vector are not contained in $(K)"
+    return CliffordAlgebraElem{elem_type(C.base_ring), typeof(C.gram), typeof(C)}(C, K.(coeff))
+  end
+
 end
 
 elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S, CliffordAlgebra{T, S}}
@@ -73,6 +79,51 @@ parent_type(::Type{CliffordAlgebraElem{T, S, P}}) where {T, S, P} = P
 
 base_ring_type(C::CliffordAlgebra{T, S}) where {T, S} = typeof(base_ring(C))
 
+################################################################################
+#
+#  Construction
+#
+################################################################################
+
+### Algebra ###
+
+@doc raw"""
+    clifford_algebra(qs::QuadSpace) -> CliffordAlgebra
+
+Return the Clifford algebra of the quadratic space 'qs'.
+"""
+clifford_algebra(qs::Hecke.QuadSpace) = CliffordAlgebra{elem_type(base_ring(qs)), typeof(gram_matrix(qs))}(qs)
+
+### Elements ###
+(C::CliffordAlgebra)() = CliffordAlgebraElem(C)
+
+function (C::CliffordAlgebra)(a::R) where {R <:RingElem}
+  res = fill(zero(a), dim(C))
+  res[1] = a
+  return CliffordAlgebraElem(C, res)
+end
+
+function (C::CliffordAlgebra)(a::R) where {R <:Number}
+  res = fill(zero(a), dim(C))
+  res[1] = a
+  return CliffordAlgebraElem(C, res)
+end
+
+(C::CliffordAlgebra)(coeff::Vector{R}) where {R} = CliffordAlgebraElem(C, coeff)
+
+#=
+(C::CliffordAlgebra{T})(a::ZZRingElem) where {T<:FieldElem} = C(base_ring(C)(a))
+
+(C::CliffordAlgebra{T})(a::Int) where {T<:FieldElem} = C(base_ring(C)(a))
+
+(C::CliffordAlgebra{T})(a::QQFieldElem) where {T<:NumFieldElem} = C(base_ring(C)(a))
+
+(C::CliffordAlgebra{T})(a::Rational{Int}) where {T<:FieldElem} = C(base_ring(C)(a))
+
+(C::CliffordAlgebra{T})(v::Vector{T}) where {T<:FieldElem} = CliffordAlgebraElem(C, v)
+
+(C::CliffordAlgebra)(v::Vector) = CliffordAlgebraElem(C, base_ring(C).(v))
+=#
 ################################################################################
 #
 #  Basic field access
@@ -124,18 +175,6 @@ canonical basis of its parent Clifford algebra.
 """
 coeff(x::CliffordAlgebraElem) = x.coeffs
 
-function _set_even_odd_coeff!(x::CliffordAlgebraElem)
-  x.even_coeffs = map(
-                      y -> if sum(digits(y - 1; base=2, pad=_dim_qf(x.parent))) % 2 == 0
-      x.coeffs[y]
-    else
-      x.parent.base_ring()
-    end, 1:(x.parent.dim)
-  )
-  x.odd_coeffs = x.coeffs - x.even_coeffs
-  return x
-end
-
 @doc raw"""
     even_coeff(x::CliffordAlgebraElem) -> Vector
 
@@ -169,36 +208,6 @@ function odd_coeff(x::CliffordAlgebraElem)
   _set_even_odd_coeff!(x)
   return x.odd_coeffs
 end
-
-################################################################################
-#
-#  Construction
-#
-################################################################################
-
-### Algebra ###
-
-@doc raw"""
-    clifford_algebra(qs::QuadSpace) -> CliffordAlgebra
-
-Return the Clifford algebra of the quadratic space 'qs'.
-"""
-clifford_algebra(qs::Hecke.QuadSpace) = CliffordAlgebra{elem_type(base_ring(qs)), typeof(gram_matrix(qs))}(qs)
-
-### Elements ###
-(C::CliffordAlgebra)() = CliffordAlgebraElem(C)
-
-(C::CliffordAlgebra{T})(a::ZZRingElem) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::Int) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::QQFieldElem) where {T<:NumFieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::Rational{Int}) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(v::Vector{T}) where {T<:FieldElem} = CliffordAlgebraElem(C, v)
-
-(C::CliffordAlgebra)(v::Vector) = CliffordAlgebraElem(C, base_ring(C).(v))
 
 ################################################################################
 #
@@ -270,7 +279,7 @@ quadratic module.
 function gen(C::CliffordAlgebra, i::Int)
   res = CliffordAlgebraElem(C)
   if i <= 0
-    res.coeffs[i]
+    res.coeffs[i] #Throws a BoundsError instead of a DomainError for consistency
   end
   res.coeffs[2^(i - 1) + 1] = base_ring(C)(1)
   _set_even_odd_coeff!(res)
@@ -297,7 +306,7 @@ gens(C::CliffordAlgebra) = map(i -> gen(C, i), 1:_dim_qf(C))
 
 Returns `true` if $C$ is commutative and `false` otherwise.
 """
-is_commutative(C::CliffordAlgebra) = dim(C) == 1
+is_commutative(C::CliffordAlgebra) = dim(C) ==  1 || dim(C) == 2
 
 ################################################################################
 #
@@ -372,14 +381,14 @@ end
     Tuple{CliffordAlgebraElem, CliffordAlgebraElem}}
 
 Returns the center of $C$. It equals `centroid(C)`, if and only if `dim(space(C))`
-is even. Otherwise it is one-dimensional and returned as a tuple of length one
+is odd. Otherwise it is one-dimensional and returned as a tuple of length one
 containing the multiplicative identity of $C$.
 """
 function center(C::CliffordAlgebra)
   if isdefined(C, :center)
     return C.center
   end
-  if is_even(dim(space(C)))
+  if is_odd(dim(space(C)))
     C.center = centroid(C)
   else 
     C.center = tuple(one(C))
@@ -424,7 +433,7 @@ Base.:*(x::CliffordAlgebraElem{T}, elt::Union{Int,Rational{Int}}) where {T<:Fiel
 Base.:*(elt::Union{Int,Rational{Int}}, x::CliffordAlgebraElem{T}) where {T<:FieldElem} = x * elt
 
 @doc raw"""
-    divexact(x::CliffordAlgebraElem, a::FieldElem) -> CliffordAlgebraElem
+    divexact(x::CliffordAlgebraElem, a::RingElem) -> CliffordAlgebraElem
 
 Return the element 'y' in the given Clifford algebra such that $ay = x$,
 if it exists. Otherwise an error is raised.
@@ -488,6 +497,29 @@ odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coeff(x))
 #
 ################################################################################
 
+function _set_even_odd_coeff!(x::CliffordAlgebraElem)
+  x.even_coeffs = map(
+                      y -> if sum(digits(y - 1; base=2, pad=_dim_qf(x.parent))) % 2 == 0
+      x.coeffs[y]
+    else
+      x.parent.base_ring()
+    end, 1:(x.parent.dim)
+  )
+  x.odd_coeffs = x.coeffs - x.even_coeffs
+  return x
+end
+
+function __can_convert_coeff(coeff::Vector{R}, K::Field) where {R}
+  if length(coeff) == 0
+    return true
+  end
+  try
+    K.(coeff)  # Try converting the coefficient vector to K
+      true
+  catch
+      false
+  end
+end
 
 _dim_qf(C::CliffordAlgebra) = ncols(C.gram)
 
@@ -528,17 +560,6 @@ end
 
 #Returns the index of e_I in the canonical basis of the Clifford algebra.
 _get_basis_index(x::BitVector) = _bitvec_to_int(x) + 1
-
-#=
-#Returns the index of the first non-zero entry
-function _get_first(x::BitVector)
-  res = findfirst(isone, x)
-  if res == nothing
-    return length(x) + 1
-  end
-  return res
-end
-=#
 
 #Returns the index of the last non-zero entry
 function _get_last(x::BitVector)

@@ -156,14 +156,17 @@
     end
     @testset "center and centroid" begin
       orth = C([-1, 0, 0, 2])
-      @test center(C) == centroid(C)
+      @test center(C) == (one(C),)
       @test centroid(C) == (one(C), orth)
       @test disq(C) == quadratic_discriminant(C) && disq(C) == coeff(orth^2)[1]
     end
   end
 
   @testset "random quaternion alg over rationals" begin
-    a, b = rand(QQ, -5:5), rand(QQ, -5:5)
+    a, b = QQ(0), QQ(0)
+    while is_zero(a*b)
+      a, b = rand(QQ, -5:5), rand(QQ, -5:5)
+    end
     G = diagonal_matrix(2 * a, 2 * b)
     qs = quadratic_space(QQ, G)
     C = clifford_algebra(qs)
@@ -229,7 +232,8 @@
       @test mul_with_gen(coeff(x), 2, gram_matrix(C)) == QQ.([3 * b, 4 * b, 1, 2])
     end
     @testset "center and centroid" begin
-      @test center(C) == centroid(C)
+      @test center(C) == (one(C),)
+      @test centroid(C) == (one(C), C(QQ.([0,0,0,1])))
       @test disq(C) == quadratic_discriminant(C) && disq(C) == -a*b
       @test disq(C) == coeff(centroid(C)[2]^2)[1]
     end
@@ -323,7 +327,7 @@
       ]) #According to Magma
     end
     @testset "center and centroid" begin
-      @test center(C) == (one(C),)
+      @test center(C) == centroid(C)
       orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2*z, -z^3,
                 0, 0, 2*z^2, 0, -2*z^3, -2*z^3 - 2*z^2 - 2*z - 2,
                 0, z^2, 0, 0, -2*z, 0, 2*z^2, -2*z^3, 0,
