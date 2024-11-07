@@ -393,7 +393,7 @@ function (Chi::PartialCharacter)(b::ZZMatrix)
 end
 
 function (Chi::PartialCharacter)(b::Vector{ZZRingElem})
-  return Chi(matrix(FlintZZ, 1, length(b), b))
+  return Chi(matrix(ZZ, 1, length(b), b))
 end
 
 function have_same_domain(P::PartialCharacter, Q::PartialCharacter)
@@ -482,7 +482,7 @@ function ideal_from_character(P::PartialCharacter, R::MPolyRing)
 
   @assert ncols(P.A) == nvars(R)
   #test if the domain of the partial character is the zero lattice
-  if isone(nrows(P.A)) && have_same_span(P.A, zero_matrix(FlintZZ, 1, ncols(P.A)))
+  if isone(nrows(P.A)) && have_same_span(P.A, zero_matrix(ZZ, 1, ncols(P.A)))
     return ideal(R, zero(R))
   end
 
@@ -582,7 +582,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
 
   Delta = cell[2]   #cell variables
   if isempty(Delta)
-    return partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QQAb)], Set{Int64}())
+    return partial_character(zero_matrix(ZZ, 1, nvars(R)), [one(QQAb)], Set{Int64}())
   end
 
   #now consider the case where Delta is not empty
@@ -598,12 +598,12 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
   end
   QQAbcl, = abelian_closure(QQ)
   if iszero(J)
-    return partial_character(zero_matrix(FlintZZ, 1, nvars(R)), [one(QQAbcl)], Set{Int64}())
+    return partial_character(zero_matrix(ZZ, 1, nvars(R)), [one(QQAbcl)], Set{Int64}())
   end
   #now case if J \neq 0
   #let ts be a list of minimal binomial generators for J
   gb = groebner_basis(J, complete_reduction = true)
-  vs = zero_matrix(FlintZZ, 0, nvars(R))
+  vs = zero_matrix(ZZ, 0, nvars(R))
   images = QQAbFieldElem{AbsSimpleNumFieldElem}[]
   for t in gb
     #TODO: Once tail will be available, use it.
@@ -612,7 +612,7 @@ function partial_character_from_ideal(I::MPolyIdeal, R::MPolyRing)
     u = exponent_vector(lm, 1)
     v = exponent_vector(tl, 1)
     #now test if we need the vector uv
-    uv = matrix(FlintZZ, 1, nvars(R), Int[u[j]-v[j] for j  =1:length(u)]) #this is the vector of u-v
+    uv = matrix(ZZ, 1, nvars(R), Int[u[j]-v[j] for j  =1:length(u)]) #this is the vector of u-v
     #TODO: It can be done better by saving the hnf...
     if !can_solve(vs, uv, side = :left)[1]
       push!(images, -QQAbcl(AbstractAlgebra.leading_coefficient(tl)))
@@ -1162,7 +1162,7 @@ function birth_death_ideal(m::Int, n::Int)
   R = Matrix{QQMPolyRingElem}(undef, m, n+1)
   D = Matrix{QQMPolyRingElem}(undef, m+1, m)
   L = Matrix{QQMPolyRingElem}(undef, m+1, n+1)
-  Qxy, gQxy = polynomial_ring(FlintQQ, length(U)+length(R)+length(D)+length(L); cached = false)
+  Qxy, gQxy = polynomial_ring(QQ, length(U)+length(R)+length(D)+length(L); cached = false)
   pols = Vector{elem_type(Qxy)}(undef, 4*n*m)
   ind = 1
   for i = 1:m+1

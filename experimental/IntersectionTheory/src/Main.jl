@@ -50,7 +50,27 @@ true
 abstract_bundle(X::AbstractVariety, ch::MPolyDecRingOrQuoElem) = AbstractBundle(X, ch)
 abstract_bundle(X::AbstractVariety, r::RingElement, c::MPolyDecRingOrQuoElem) = AbstractBundle(X, r, c)
 
+#######################################################
+@doc raw"""
+    ==(F::AbstractBundle, G::AbstractBundle)
+
+Return `true` if `F` is equal to `G`, and `false` otherwise.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> 3*OO(P2, 1) - OO(P2) == tangent_bundle(P2) # Euler sequence
+true
+
+```
+"""
 ==(F::AbstractBundle, G::AbstractBundle) = chern_character(F) == chern_character(G)
+
+function Base.hash(F::AbstractBundle, h::UInt)
+  return hash(chern_character(F), h)
+end
 
 @doc raw"""
     chern_character(F::AbstractBundle)
@@ -196,6 +216,28 @@ total_segre_class(F::AbstractBundle) = inv(total_chern_class(F))
     segre_class(F::AbstractBundle, k::Int)
 
 Return the `k`-th Segre class of `F`.
+
+# Examples
+```jldoctest
+julia> G = abstract_grassmannian(3,5)
+AbstractVariety of dim 6
+
+julia> Q = tautological_bundles(G)[2]
+AbstractBundle of rank 2 on AbstractVariety of dim 6
+
+julia> segre_class(Q,0)
+1
+
+julia> segre_class(Q,1)
+c[1]
+
+julia> segre_class(Q,2)
+c[2]
+
+julia> segre_class(Q,3)
+c[3]
+
+```
 """
 segre_class(F::AbstractBundle, k::Int) = total_segre_class(F)[k]
 
@@ -203,6 +245,33 @@ segre_class(F::AbstractBundle, k::Int) = total_segre_class(F)[k]
     todd_class(F::AbstractBundle)
 
 Return the Todd class of `F`.
+
+# Examples
+```jldoctest
+julia> P = abstract_projective_space(4, symbol = "H"); # Hartshorne, p. 433
+
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P,3);
+
+julia> G = OO(P, 1)+4*OO(P);
+
+julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
+AbstractVariety of dim 2
+
+julia> TZ = tangent_bundle(Z);
+
+julia> K = canonical_class(Z)
+z - H
+
+julia> chern_class(TZ, 1) == -K
+true
+
+julia> tc = todd_class(TZ)
+-1//2*z + 1//8*H^2 + 1//2*H + 1
+
+julia> tc == 1-1//2*K+1//12*(K^2+chern_class(TZ, 2))
+true
+
+```
 """
 todd_class(F::AbstractBundle) = _todd_class(chern_character(F))
 
@@ -231,6 +300,36 @@ pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 
 Return the holomorphic Euler characteristic $\chi(F)$ and the Euler pairing
 $\chi(F,G)$, respectively.
+
+# Examples
+```jldoctest
+julia> P = abstract_projective_space(4, symbol = "H"); # Hartshorne, p. 433
+
+julia> F = exterior_power(cotangent_bundle(P), 3)*OO(P,3);
+
+julia> G = OO(P, 1)+4*OO(P);
+
+julia> Z = degeneracy_locus(F, G, 3) # rational surface in P4
+AbstractVariety of dim 2
+
+julia> TZ = tangent_bundle(Z);
+
+julia> tc = todd_class(TZ)
+-1//2*z + 1//8*H^2 + 1//2*H + 1
+
+julia> K = canonical_class(Z)
+z - H
+
+julia> H = hyperplane_class(Z)
+H
+
+julia> ec = euler_characteristic(OO(Z, H))
+4
+
+julia> ec == integral(1//2*H*(H-K)+1//12*(K^2+chern_class(TZ, 2)))
+true
+
+```
 """
 Oscar.euler_characteristic(F::AbstractBundle) = integral(chern_character(F) * todd_class(F.parent)) # Hirzebruch-Riemann-Roch
 euler_pairing(F::AbstractBundle, G::AbstractBundle) = begin
@@ -757,7 +856,7 @@ structure_map(X::AbstractVariety) = X.struct_map
 
 @doc raw"""
     line_bundle(X::AbstractVariety, n::RingElement)
-    line_bundle(X::AbstractVariety, D::MPolyDecRingElem)
+    line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
 Return the line bundle $\mathcal O_X(n)$ on `X` if `X` has been given a
 hyperplane class, or a line bundle $\mathcal O_X(D)$ with first Chern class $D$.
@@ -771,13 +870,19 @@ AbstractVariety of dim 2
 julia> tautological_bundles(P2)[1] == OO(P2, -1)
 true
 
+julia> h = gens(P2)[1]
+h
+
+julia> OO(P2, h) == OO(P2, 1)
+true
+
 ```
 """
 line_bundle(X::AbstractVariety, n::RingElement) = AbstractBundle(X, 1, 1+n*X.O1)
-line_bundle(X::AbstractVariety, D::MPolyDecRingElem) = AbstractBundle(X, 1, 1+D[1])
+line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = AbstractBundle(X, 1, 1+D[1])
 
 (OO)(X::AbstractVariety, n::RingElement) = line_bundle(X, n)
-OO(X::AbstractVariety, D::MPolyDecRingElem) = line_bundle(X, D)
+OO(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem}) = line_bundle(X, D)
 
 @doc raw"""
     degree(X::AbstractVariety)
@@ -1451,7 +1556,7 @@ julia> basis(P2xP2)
 betti_numbers(X::AbstractVariety) = length.(basis(X))
 
 @doc raw"""
-    integral(x::MPolyDecRingElem)
+    integral(x:::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
 Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
 

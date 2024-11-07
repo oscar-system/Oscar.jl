@@ -9,7 +9,7 @@ function Base.show(io::IO, x::GAPGroupHomomorphism)
 end
 
 
-function ==(f::GAPGroupHomomorphism{S,T}, g::GAPGroupHomomorphism{S,T}) where S where T
+function ==(f::GAPGroupHomomorphism, g::GAPGroupHomomorphism)
   return GapObj(f) == GapObj(g)
 end
 
