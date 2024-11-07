@@ -345,6 +345,7 @@ end
 end
   
 @attr Bool function has_dimension_leq_zero(I::Ideal)
+  is_one(I) && return true
   return dim(I) <= 0
 end
 
@@ -353,6 +354,7 @@ end
   P = base_ring(R)::MPolyRing
   J = ideal(P, numerator.(gens(I)))
   has_dimension_leq_zero(J) && return true
+  is_one(I) && return true
   return dim(I) <= 0
 end
 
@@ -1691,6 +1693,7 @@ function produce_object(
     algorithm::Symbol=:pullback # Either :pushforward or :pullback
                                    # This determines how to extend through the gluings.
   )
+  U2 === original_chart(F) && return F.P
   # Initialize some local variables
   X = scheme(F)
   OOX = OO(X)

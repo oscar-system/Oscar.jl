@@ -474,6 +474,59 @@ function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   return MapFromFunc(W, G, iso, isoinv)
 end
 
+function permutation_group(W::WeylGroup; set_properties::Bool=true)
+  return codomain(isomorphism(PermGroup, W; set_properties))
+end
+
+function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
+  @req is_finite(W) "Weyl group is not finite"
+  R = root_system(W)
+  type, ordering = root_system_type_with_ordering(R)
+
+  if length(type) != 1
+    error("Not implemented (yet)")
+  end
+  if !issorted(ordering)
+    error("Not implemented (yet)")
+  end
+  coxeter_type, n = only(type)
+  if coxeter_type == :A
+    G = symmetric_group(n + 1)
+
+    iso = function (w::WeylGroupElem)
+      reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init=cperm(G))
+    end
+
+    isoinv = function (p::PermGroupElem)
+      word = UInt8[]
+      for cycle in cycles(p)
+        transpositions = [
+          sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)
+        ]
+        for t in transpositions
+          word = reduce(
+            vcat,
+            [
+              [i for i in t[1]:(t[2] - 1)],
+              [i for i in reverse(t[1]:(t[2] - 2))],
+              word,
+            ],
+          )
+        end
+      end
+      return W(word)
+    end
+  else
+    error("Not implemented (yet)")
+  end
+
+  if set_properties
+    set_order(G, order(W))
+  end
+
+  return MapFromFunc(W, G, iso, isoinv)
+end
+
 ###############################################################################
 # ReducedExpressionIterator
 

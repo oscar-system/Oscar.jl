@@ -11,20 +11,39 @@ struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
    H::GAPGroup             # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
-   X::GapObj               # GapObj(H*repr)
+   X::Ref{GapObj}          # GapObj(H*repr)
+
+   function GroupCoset(G::T, H::GAPGroup, representative::S, side::Symbol) where {T<: GAPGroup, S<:GAPGroupElem}
+     return new{T, S}(G, H, representative, side, Ref{GapObj}())
+   end
 end
 
-GAP.@install GapObj(obj::GroupCoset) = obj.X
+GAP.@install function GapObj(obj::GroupCoset)
+  if !isassigned(obj.X)
+    g = GapObj(representative(obj))
+    if is_right(obj)
+      obj.X[] = GAPWrap.RightCoset(GapObj(obj.H), g)
+    else
+      obj.X[] = GAPWrap.RightCoset(GAPWrap.ConjugateSubgroup(GapObj(obj.H), GAPWrap.Inverse(g)), g)
+    end
+  end
+  return obj.X[]
+end
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
 Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
 
-function _group_coset(G::GAPGroup, H::GAPGroup, repr::GAPGroupElem, side::Symbol, X::GapObj)
-  return GroupCoset{typeof(G), typeof(repr)}(G, H, repr, side, X)
-end
-
-function ==(x::GroupCoset, y::GroupCoset)
-   return GapObj(x) == GapObj(y) && x.side == y.side
+function ==(C1::GroupCoset, C2::GroupCoset)
+  H = C1.H
+  right = is_right(C1)
+  (right == is_right(C2) && C1.G == C2.G && H == C2.H ) || return false
+  if right
+    # Hx == Hy if x/y in H
+    return representative(C1) / representative(C2) in H
+  else
+    # xH == yH if x\y in H
+    return representative(C1) \ representative(C2) in H
+  end
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
@@ -73,8 +92,9 @@ Right coset of Sym(3)
 ```
 """
 function right_coset(H::GAPGroup, g::GAPGroupElem)
-   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(H)) "H is not a subgroup of parent(g)"
-   return _group_coset(parent(g), H, g, :right, GAPWrap.RightCoset(GapObj(H), GapObj(g)))
+   G = parent(g)
+   @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of parent(g)"
+   return GroupCoset(G, H, g, :right)
 end
 
 """
@@ -84,7 +104,7 @@ end
 Return the coset `gH`.
 !!! note
     Since GAP supports right cosets only, the underlying GAP object of
-    `left_coset(H,g)` is the right coset `H^(g^-1) * g`.
+    `left_coset(H,g)`, if assigned, is the right coset `H^(g^-1) * g`.
 
 # Examples
 ```jldoctest
@@ -101,8 +121,9 @@ Left coset of Sym(3)
 ```
 """
 function left_coset(H::GAPGroup, g::GAPGroupElem)
-   @req GAPWrap.IsSubset(GapObj(parent(g)), GapObj(H)) "H is not a subgroup of parent(g)"
-   return _group_coset(parent(g), H, g, :left, GAPWrap.RightCoset(GAPWrap.ConjugateSubgroup(GapObj(H), GAPWrap.Inverse(GapObj(g))), GapObj(g)))
+   G = parent(g)
+   @req GAPWrap.IsSubset(GapObj(G), GapObj(H)) "H is not a subgroup of parent(g)"
+   return GroupCoset(G, H, g, :left)
 end
 
 

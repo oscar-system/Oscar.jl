@@ -306,27 +306,29 @@ end
 function show(io::IO, M::SubModuleOfFreeModule)
   @show_name(io, M)
   @show_special(io, M)
-  io_compact = IOContext(io, :compact => true)
-  compact = get(io, :compact, false)
-  if !compact
+#  if !is_terse(io)
     if is_graded(M)
-      print(io_compact, "Graded submodule of ", M.F)
+      io_compact = IOContext(io, :compact => true)
+      print(terse(io_compact), "Graded submodule of ", M.F)
     else
       #Todo: Use again once the printing of rings is fixed
       #print(io_compact, "Submodule of ", M.F)
-      print(io_compact, "Submodule")
+      print(io, "Submodule")
     end
     if ngens(M) == 1
       print(io, " with ", ngens(M), " generator")
     else
       print(io, " with ", ngens(M), " generators")
     end
-  end
+#  end
+  io = pretty(io)
+  print(io, Indent())
   for i=1:ngens(M)
     if isassigned(M.gens.O, i)
-        print(io, "\n", i, " -> ", M[i])
+        print(io, "\n", i, ": ", M[i])
     end
   end
+  print(io, Dedent())
 end
 
 function length(M::SubModuleOfFreeModule)
