@@ -232,8 +232,8 @@ function load_ref(s::DeserializerState)
 end
 
 function haskey(s::DeserializerState, key::Symbol)
+  s.obj isa String && return false
   load_node(s) do obj
-    println(typeof(keys(obj)))
     key in keys(obj)
   end
 end

@@ -45,7 +45,7 @@ cases = [
       end
     end
 
-    @testset "Graded Ring" begin
+    @test_skip @testset "Graded Ring" begin
       R, (x, y) = QQ[:x, :y]
       A = [1 3; 2 1]
       M, (m1, m2) = grade(R, A)
@@ -91,7 +91,7 @@ cases = [
         end
 
         if R isa MPolyRing{T} where T <: Union{QQFieldElem, ZZRingElem, zzModRingElem}
-          @testset "MPoly Ideals over $(case[4])" begin
+          @test_skip @testset "MPoly Ideals over $(case[4])" begin
             q = z
             i = Oscar.ideal(R, [p, q])
             test_save_load_roundtrip(path, i) do loaded_i

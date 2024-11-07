@@ -184,7 +184,6 @@ function save_type_params(s::SerializerState, obj::T) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     params = type_params(obj)
-
     if serialize_with_id(params)
       # we pull this out here to catch the save_as_ref
       save_typed_object(s, params, :params)
@@ -218,7 +217,6 @@ end
 
 function load_type_params(s::DeserializerState)
   T = decode_type(s)
-  println(haskey(s, :params))
   if haskey(s, :params)
     subtype, params = load_node(s, :params) do _
       load_type_params(s)
@@ -256,6 +254,9 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     if override_params isa Dict
       error("Unsupported override type")
     else
+      T, _ = load_node(s, type_key) do _
+        load_type_params(s)
+      end
       params = override_params
     end
   else
@@ -692,9 +693,10 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
 
       if serialize_with_params(type)
         if isnothing(params)
-          _, params = load_type_params(s)
+          _, params = load_node(s, type_key) do _
+            load_type_params(s)
+          end
         end
-
         load_node(s, :data) do _
           loaded = load_object(s, type, params)
         end

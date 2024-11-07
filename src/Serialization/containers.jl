@@ -17,6 +17,18 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   return T, params[1]
 end
 
+function save_type_params(s::SerializerState, obj::T) where T <: MatVecType
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    params = type_params(obj)
+    save_data_dict(s, :params) do 
+      entry_type, entry_params = params
+      save_object(s, encode_type(entry_type), :name)
+      !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
+    end
+  end
+end
+
 function save_object(s::SerializerState, x::Vector)
   save_data_array(s) do
     for elem in x
@@ -64,35 +76,74 @@ function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where para
 end
 
 function load_object(s::DeserializerState, ::Type{<: Vector{T}}, R::Ring) where T
-  loaded_v = T[]
-  load_node(s) do v
-    for (i, entry) in enumerate(v)
-      push!(loaded_v, load_object(s, T, R, i))
+  load_array_node(s) do _
+    load_object(s, T, R)
+  end
+end
+
+################################################################################
+# Saving and loading matrices
+@register_serialization_type Matrix uses_params
+
+function save_object(s::SerializerState, mat::Matrix)
+  m, n = size(mat)
+  save_data_array(s) do
+    for i in 1:m
+      save_object(s, [mat[i, j] for j in 1:n])
     end
   end
-  return loaded_v
+end
+
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
+  load_node(s) do entries
+    if isempty(entries)
+      return Matrix{params}(undef, 0, 0)
+    end
+    len = length(entries)
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:len
+        ])
+    return Matrix{params}(m)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
+  load_node(s) do entries
+    if isempty(entries)
+      return Matrix{params[1]}(undef, 0, 0)
+    end
+
+    len = length(entries)
+    m = reduce(vcat, [
+      permutedims(load_object(s, Vector, params, i)) for i in 1:len
+        ])
+    return Matrix{params[1]}(m)
+  end
 end
 
 ################################################################################
 # Saving and loading Tuple
 @register_serialization_type Tuple uses_params
 
-function save_type_params(s::SerializerState, tup::T) where T <: Tuple
-  save_data_dict(s) do
-    save_object(s, encode_type(Tuple), :name)
-    n = fieldcount(T)
-    save_data_array(s, :params) do
-      for i in 1:n
-        U = fieldtype(T, i)
-        if serialize_with_params(U)
-          save_type_params(s, tup[i])
-        else
-          save_object(s, encode_type(U))
-        end
-      end
-    end
-  end
+function type_params(obj::T) where T <: Tuple
+  n = fieldcount(T)
+  return ([fieldtype(T, i) for i in 1:n], type_params.(obj))
 end
+
+#function save_type_params(s::SerializerState, obj::T) where T <: Tuple
+#  save_data_dict(s) do
+#    save_object(s, encode_type(T), :name)
+#    params = type_params(obj)
+#    save_data_dict(s, :params) do 
+#      entry_types, entry_params = params
+#      save_data_array(s) do
+#        
+#      end
+#      save_object(s, encode_type(entry_type), :name)
+#      !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
+#    end
+#  end
+#end
 
 function load_type_params(s::DeserializerState, ::Type{Tuple})
   loaded_params = Any[]
@@ -183,46 +234,6 @@ function load_object(s::DeserializerState, ::Type{<: NamedTuple}, params::Tuple)
   tuple = load_object(s, Tuple, tuple_params)
   keys = Symbol.(keys)
   return NamedTuple{Tuple(keys), typeof(tuple)}(tuple)
-end
-
-################################################################################
-# Saving and loading matrices
-@register_serialization_type Matrix uses_params
-
-function save_object(s::SerializerState, mat::Matrix)
-  m, n = size(mat)
-  save_data_array(s) do
-    for i in 1:m
-      save_object(s, [mat[i, j] for j in 1:n])
-    end
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Type)
-  load_node(s) do entries
-    if isempty(entries)
-      return Matrix{params}(undef, 0, 0)
-    end
-    len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector, params, i)) for i in 1:len
-        ])
-    return Matrix{params}(m)
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{<:Matrix}, params::Tuple)
-  load_node(s) do entries
-    if isempty(entries)
-      return Matrix{params[1]}(undef, 0, 0)
-    end
-
-    len = length(entries)
-    m = reduce(vcat, [
-      permutedims(load_object(s, Vector, params, i)) for i in 1:len
-        ])
-    return Matrix{params[1]}(m)
-  end
 end
 
 ################################################################################
