@@ -452,7 +452,7 @@ julia> map(length, orbs)
     stabilizer(Omega::GSet{T,S}, omega::S = representative(Omega); check::Bool = true) where {T,S}
     stabilizer(Omega::GSet{T,S}, omega::Set{S}; check::Bool = true) where {T,S}
     stabilizer(Omega::GSet{T,S}, omega::Vector{S}; check::Bool = true) where {T,S}
-    stabilizer(Omega::GSet{T,S}, omega::Tuple{Vararg{S}}; check::Bool = true) where {T,S}
+    stabilizer(Omega::GSet{T,S}, omega::Tuple{S,Vararg{S}}; check::Bool = true) where {T,S}
 
 Return the subgroup of `G = acting_group(Omega)` that fixes `omega`,
 together with the embedding of this subgroup into `G`.
@@ -486,6 +486,13 @@ function stabilizer(Omega::GSet{T,S}, omega::S; check::Bool = true) where {T,S}
     return stabilizer(G, omega, gfun)
 end
 
+# Construct the arguments on the GAP side such that GAP's method selection
+# can choose the special method.
+function stabilizer(Omega::GSet{PermGroup,S}, omega::S; check::Bool = true) where S <: Oscar.IntegerUnion
+    check && @req omega in Omega "omega must be an element of Omega"
+    return stabilizer(acting_group(Omega), omega)
+end
+
 # support `stabilizer` under "derived" actions:
 # If the given point is a set of the element type of the G-set
 # then compute the setwise stabilizer.
@@ -508,13 +515,21 @@ function stabilizer(Omega::GSet{T,S}, omega::Vector{S}; check::Bool = true) wher
     return stabilizer(G, omega, derived_fun)
 end
 
-function stabilizer(Omega::GSet{T,S}, omega::Tuple{Vararg{S}}; check::Bool = true) where {T,S}
+function stabilizer(Omega::GSet{T,S}, omega::Tuple{S,Vararg{S}}; check::Bool = true) where {T,S}
     check && @req all(in(Omega), omega) "omega must be a tuple of elements of Omega"
     G = acting_group(Omega)
     gfun = action_function(Omega)
     derived_fun = function(x, g) return Tuple([gfun(y, g) for y in x]); end
     return stabilizer(G, omega, derived_fun)
 end
+
+# Construct the arguments on the GAP side such that GAP's method selection
+# can choose the special method.
+function stabilizer(Omega::GSet{PermGroup,S}, omega::Union{Set{S}, Tuple{S,Vararg{S}}, Vector{S}}; check::Bool = true) where S <: Oscar.IntegerUnion
+    check && @req all(in(Omega), omega) "omega must be a set of elements of Omega"
+    return stabilizer(acting_group(Omega), omega)
+end
+
 
 #############################################################################
 ##
