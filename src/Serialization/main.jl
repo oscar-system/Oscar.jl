@@ -188,17 +188,37 @@ function save_type_params(s::SerializerState, obj::T) where T
       # we pull this out here to catch the save_as_ref
       save_typed_object(s, params, :params)
     else
-      save_data_dict(s, :params) do 
-        if params isa Dict
-          for (k, v) in params
-            save_typed_object(s, v, k)
+      if params isa Vector
+        save_data_array(s, :params) do
+          for (entry_type, entry_params) in params
+            if !isnothing(entry_params)
+              save_data_dict(s) do
+                save_object(s, encode_type(entry_type), :name)
+                save_typed_object(s, entry_params, :params)
+              end
+            else
+              save_object(s, encode_type(entry_type))
+            end
           end
-        elseif params isa Tuple
-          entry_type, entry_params = params
-          save_object(s, encode_type(entry_type), :name)
-          !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
-        else
-          save_typed_object(s, params)
+        end
+      else
+        save_data_dict(s, :params) do 
+          if params isa Dict
+            for (k, v) in params
+              save_typed_object(s, v, k)
+            end
+          elseif params isa Tuple
+            # obj has a vector of parameters
+            entry_type, entry_params = params
+            if !isnothing(entry_params)
+              save_object(s, encode_type(entry_type), :name)
+              save_typed_object(s, entry_params, :params)
+            else
+              save_object(s, encode_type(entry_type))
+            end
+          else
+            save_typed_object(s, params)
+          end
         end
       end
     end
@@ -218,11 +238,20 @@ end
 function load_type_params(s::DeserializerState)
   T = decode_type(s)
   if haskey(s, :params)
-    subtype, params = load_node(s, :params) do _
-      load_type_params(s)
+    subtype, params = load_node(s, :params) do obj
+      if typeof(obj) <: Union{JSON3.Array, Vector}
+        tuple_params = load_array_node(s) do _
+          load_type_params(s)
+        end
+        return collect(zip(tuple_params...))
+      else
+        load_type_params(s)
+      end
     end
     if T <: MatVecType
       return T{subtype}, params
+    elseif T <: Tuple
+      return T{subtype...}, collect(params)
     else
       return T, params
     end

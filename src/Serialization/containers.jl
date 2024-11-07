@@ -17,18 +17,6 @@ function type_params(obj::S) where {T, S <:MatVecType{T}}
   return T, params[1]
 end
 
-function save_type_params(s::SerializerState, obj::T) where T <: MatVecType
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    params = type_params(obj)
-    save_data_dict(s, :params) do 
-      entry_type, entry_params = params
-      save_object(s, encode_type(entry_type), :name)
-      !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
-    end
-  end
-end
-
 function save_object(s::SerializerState, x::Vector)
   save_data_array(s) do
     for elem in x
@@ -127,35 +115,7 @@ end
 
 function type_params(obj::T) where T <: Tuple
   n = fieldcount(T)
-  return ([fieldtype(T, i) for i in 1:n], type_params.(obj))
-end
-
-#function save_type_params(s::SerializerState, obj::T) where T <: Tuple
-#  save_data_dict(s) do
-#    save_object(s, encode_type(T), :name)
-#    params = type_params(obj)
-#    save_data_dict(s, :params) do 
-#      entry_types, entry_params = params
-#      save_data_array(s) do
-#        
-#      end
-#      save_object(s, encode_type(entry_type), :name)
-#      !isnothing(entry_params) && save_typed_object(s, entry_params, :params)
-#    end
-#  end
-#end
-
-function load_type_params(s::DeserializerState, ::Type{Tuple})
-  loaded_params = Any[]
-  load_array_node(s) do (_, param)
-    T = decode_type(s)
-    if serialize_with_params(T)
-      push!(loaded_params, (T, load_params_node(s)))
-    else
-      push!(loaded_params, T)
-    end
-  end
-  return loaded_params
+  return [(fieldtype(T, i), type_params(obj[i])) for i in 1:n]
 end
 
 function save_object(s::SerializerState, obj::Tuple)
