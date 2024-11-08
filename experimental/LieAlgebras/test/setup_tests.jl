@@ -4,6 +4,14 @@ if !isdefined(Main, :GAPWrap)
   import Oscar: GAPWrap
 end
 
+if !isdefined(Main, :test_mutating_op_like_zero)
+  include(
+    joinpath(
+      pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"
+    ),
+  )
+end
+
 if !isdefined(Main, :lie_algebra_conformance_test) || isinteractive()
   function lie_algebra_conformance_test(
     L::LieAlgebra{C}, parentT::DataType, elemT::DataType; num_random_tests::Int=10

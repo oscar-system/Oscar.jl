@@ -255,7 +255,7 @@ function save_object(s::SerializerState, R::RootSystem)
     if has_root_system_type(R)
       type, type_ordering = root_system_type_with_ordering(R)
       save_object(s, type, :type)
-      if type_ordering != 1:length(type_ordering) # don't save if it's the default
+      if !issorted(type_ordering) # don't save if it's the default
         save_object(s, type_ordering, :type_ordering)
       end
     end
