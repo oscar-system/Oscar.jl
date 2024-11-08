@@ -144,9 +144,9 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   q, mms = snf(q)
   mq = mq*inv(mms)
 
-  C = vcat([matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)])
+  C = vcat([matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)]...)
   
-  A = vcat([matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)])
+  A = vcat([matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)]...)
   b = matrix(ZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
 
   so = solve_mixed(A, b, C)
