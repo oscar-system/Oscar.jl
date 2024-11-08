@@ -673,26 +673,3 @@ function Base.iterate(G::GroupDoubleCoset, state)
   i = GAPWrap.NextIterator(state)::GapObj
   return group_element(G.G, i), state
 end
-
-"""
-    intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
-
-Return a vector containing all elements belonging to all groups and cosets
-in `V`.
-"""
-function Base.intersect(V::AbstractVector{Union{<: GAPGroup, GroupCoset, GroupDoubleCoset}})
-   if V[1] isa GAPGroup
-      G = V[1]
-   else
-      G = V[1].G
-   end
-   l = GAP.Obj(V; recursive = true)
-   ints = GAPWrap.Intersection(l)
-   L = Vector{eltype(G)}(undef, length(ints))
-   for i in 1:length(ints)
-      L[i] = group_element(G,ints[i])
-   end
-
-   return L
-end
-#TODO:  Can this method get called at all?
