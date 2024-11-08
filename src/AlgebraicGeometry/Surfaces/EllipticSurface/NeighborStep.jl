@@ -98,7 +98,7 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
 end
 
 @doc raw"""
-    linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64) -> LinearSystem
+    linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int) -> LinearSystem
 
 Compute the linear system ``|O + P + k F|`` on the elliptic surface ``X``.
 Here ``F`` is the class of the fiber over ``[0:1]``, ``O`` the zero section
@@ -106,7 +106,7 @@ and ``P`` any section given as a point on the generic fiber.
 
 The linear system is represented in terms of the Weierstrass coordinates.
 """
-function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
+function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int)
   euler_characteristic(X) == 2 || error("linear system implemented only for elliptic K3s")
   #FS = function_field(weierstrass_model(X)[1])
   FS = function_field(X)
@@ -144,16 +144,18 @@ end
 @doc raw"""
     two_neighbor_step(X::EllipticSurface, F1::Vector{QQFieldElem})
 
-Given an isotropic nef divisor ``F1`` with ``F1.F = 2``,
-compute the linear system ``|F1|`` and return the corresponding generic fiber
+Let ``F`` be the class of a fiber of the elliptic fibration on ``X``. 
+Given an isotropic nef divisor ``F_1`` with ``F_1.F = 2``,
+compute the linear system ``|F_1|`` and return the corresponding generic fiber
 as a double cover `C` of the projective line branched over four points.
 
 Input:
-``F1`` is represented as a vector in the `algebraic_lattice(X)`
+``F_1`` is represented as a vector in the `algebraic_lattice(X)`
+``X`` must be a K3 surface
 
 Output:
 A tuple `(C, (x1, y1, t1))` defined as follows.
-- `C` is given by a polynomial `y1^2 - q(x1)` in `k(t)[x1,y1]` with `q` of degree 3 or 4.
+- `C` is given by a polynomial ``y_1^2 - q(x_1)`` in ``k(t_1)[x_1,y_1]`` with ``q`` of degree ``3`` or ``4``.
 - (x1,y1,t1) are expressed as rational functions in terms of the weierstrass coordinates `(x,y,t)`.
 """
 function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})

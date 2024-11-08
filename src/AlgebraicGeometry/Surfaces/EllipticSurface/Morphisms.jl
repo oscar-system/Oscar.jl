@@ -255,7 +255,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   co_ring = coefficient_ring(zero_section(Y))
 
   n = length(lat_X)
-  mwr = rank(mordell_weil_lattice(X))
+  mwr = rank(section_lattice(X))
   for (i, D) in enumerate(lat_X)
     @vprint :EllipticSurface 2 "$((i, D, pre_select[D]))\n"
     # D is a non-section
@@ -417,13 +417,13 @@ function _pushforward_section(
   return JJ
 end
 
-@doc raw""""
+@doc raw"""
     pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}) -> QQMatrix
     
-Return the pushforward $f_*: V_1 \to V_2$ where $V_i$ is the ambient quadratic space of the `algebraic_lattice`.
+Return the pushforward ``f_*: V_1 \to V_2`` where ``V_i`` is the ambient quadratic space of the `algebraic_lattice`.
 
-This assumes that the image $f_*(V_1)$ is contained in $V_2$. If this is not the case, you will get  
-$f_*$ composed with the orthogonal projection to $V_2$. 
+This assumes that the image ``f_*(V_1)`` is contained in ``V_2``. If this is not the case, you will get  
+``f_*`` composed with the orthogonal projection to ``V_2``. 
 """
 function pushforward_on_algebraic_lattices(f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface})
   imgs_divs = _pushforward_lattice_along_isomorphism(f)
@@ -640,9 +640,12 @@ end
 # Translations by sections                                             #
 ########################################################################
 
-function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=EllipticSurfaceSection(X, P)
-  )
+@doc raw"""
+    translation_morphism(X::EllipticSurface, P::EllipticCurvePoint) -> MorphismFromRationalFunctions
+
+Return the automorphism of ``X`` defined by fiberwise translation by the section ``P``.
+"""
+function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint)
   E = generic_fiber(X)
   @assert parent(P) === E "point does not lay on the underlying elliptic curve"
   U = weierstrass_chart_on_minimal_model(X)
@@ -714,6 +717,24 @@ end
 # find all moebius transformation of the base which preserve the critical 
 # values of the projections, try to lift them to morphisms X -> Y and 
 # return the list of such morphisms for which the lift was successful.
+@doc raw"""
+    isomorphisms(X::EllipticSurface, Y::EllipticSurface) -> Vector{MorphismFromRationalFunctions}
+
+Given two elliptic surfaces `` X \to \mathbb{P}^1`` and `` Y \to \mathbb{P}^1`` return all 
+isomorphisms ``X \to Y`` such that there exists Möbius transformation ``\mathbb{P}^1 \to \mathbb{P}^1``
+fitting in the following commutative diagram.
+```math
+\begin{array}{ccc}
+  X & \to & Y \\
+  \downarrow & & \downarrow\\
+  \mathbb{P}^1 & \to &  \mathbb{P}^1
+\end{array}
+```
+"""
+isomorphisms(X::EllipticSurface, Y::EllipticSurface) = admissible_moebius_transformations(X, Y)
+
+isomorphisms_on_weierstrass_chart(X::EllipticSurface, Y::EllipticSurface) = admissible_moebius_transformations_on_weierstrass_chart(X, Y)
+
 function admissible_moebius_transformations(
     X::EllipticSurface,
     Y::EllipticSurface
@@ -878,6 +899,12 @@ function check_isomorphism_on_generic_fibers(phi::MorphismFromRationalFunctions{
   return divides(hX, numerator(hh))[1]
 end
 
+@doc raw"""
+    isomorphism_from_generic_fibers(X::EllipticSurface, Y::EllipticSurface, f::Hecke.EllCrvIso) -> MorphismFromRationalFunctions
+    
+Given an isomorphism ``f`` between the generic fibers of ``X`` and ``Y``, return the corresponding 
+isomorphism of ``X`` and ``Y`` over ``\mathbb{P}^1``. 
+"""
 function isomorphism_from_generic_fibers(
     X::EllipticSurface, Y::EllipticSurface, f::Hecke.EllCrvIso
   )
@@ -912,8 +939,12 @@ function isomorphism_from_generic_fibers(
   return m
 end
 
-# Given two elliptic surfaces X and Y with abstractly isomorphic generic 
-# fibers, construct the corresponding isomorphism X -> Y.
+@doc raw"""
+    isomorphism_from_generic_fibers(X::EllipticSurface, Y::EllipticSurface) -> MorphismFromRationalFunctions
+    
+Given given two elliptic surfaces ``X`` and ``Y`` whose generic fibers are isomorphic, 
+return the corresponding isomorphism of ``X`` and ``Y`` over ``\mathbb{P}^1``. 
+"""
 function isomorphism_from_generic_fibers(
     X::EllipticSurface, Y::EllipticSurface
   )

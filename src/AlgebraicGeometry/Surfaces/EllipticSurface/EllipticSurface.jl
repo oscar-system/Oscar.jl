@@ -1,29 +1,8 @@
-export elliptic_surface, trivial_lattice, weierstrass_model, weierstrass_chart, algebraic_lattice, zero_section, section, weierstrass_contraction, fiber_components, generic_fiber, reducible_fibers, fibration_type, mordell_weil_lattice, elliptic_parameter, set_mordell_weil_basis!, EllipticSurface, weierstrass_chart_on_minimal_model, transform_to_weierstrass
-
-
-base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
-
-@doc raw"""
-    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllipticCurvePoint})
-
-Set a basis for the Mordell-Weil lattice of ``X`` or at least of a sublattice.
-
-This invalidates previous computations depending on the generators of the
-Mordell Weil lattice such as the `algebraic_lattice`. Use with care.
-
-The points in `mwl_basis` must be linearly independent.
-"""
-function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
-  @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
-  X.MWL = mwl_basis
-  # clear old computations
-  if has_attribute(X, :algebraic_lattice)
-    delete!(X.__attrs, :algebraic_lattice)
-  end
-  if has_attribute(X, :mordell_weil_lattice)
-    delete!(X.__attrs, :mordell_weil_lattice)
-  end
-end
+###################################################################################################################
+#
+# Constructors
+#
+###################################################################################################################
 
 @doc raw"""
     elliptic_surface(generic_fiber::EllipticCurve,
@@ -40,8 +19,7 @@ Input:
 - `generic_fiber` -- an elliptic curve over a function field
 - `euler_characteristic` -- the Euler characteristic of the Kodaira-Néron model of ``E``.
 - `mwl_gens` -- a vector of rational points of the generic fiber
-- `is_basis` -- if set to `false` compute an LLL-reduced basis from `mwl_gens`
-
+- `is_basis` -- if set to `false` compute a reduced basis from `mwl_gens`
 
 # Examples
 ```jldoctest
@@ -75,31 +53,214 @@ function elliptic_surface(generic_fiber::EllipticCurve{BaseField},
 end
 
 @doc raw"""
-    update_mwl_basis!(S::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
-
-Compute a reduced basis of the sublattice of the Mordell-Weil lattice spanned
-by `mwl_gens` and set these as the new generators of the Mordell-Weil lattice of
-`S`.
+    kodaira_neron_model(E::EllipticCurve) -> EllipticSurface
+    
+Return the Kodaira-Neron model of the elliptic curve `E`.
 """
-function update_mwl_basis!(S::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
-  mwl, mwl_basis = _compute_mwl_basis(S, mwl_gens)
-  set_mordell_weil_basis!(S, mwl_basis)
+kodaira_neron_model(E::EllipticCurve) = elliptic_surface(E)
+
+@doc raw"""
+    elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
+
+Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
+degree at most ``4`` to Weierstrass form, apply Tate's algorithm and 
+return the corresponding relatively minimal elliptic surface 
+as well as the coordinate transformation.
+"""
+function elliptic_surface(
+    g::MPolyRingElem, P::Vector{<:RingElem}; 
+    minimize::Bool=true, resolution_strategy::Symbol=:iterative
+  )
+  R = parent(g)
+  (x, y) = gens(R)
+  P = base_ring(R).(P)
+  g2, phi2 = transform_to_weierstrass(g, x, y, P);
+  Y2, phi1 = _elliptic_surface_with_trafo(g2; minimize)
+  return Y2, phi2 * phi1  
 end
 
 @doc raw"""
-    algebraic_lattice_primitive_closure(S::EllipticSurface, p) -> Vector{<:EllipticCurvePoint}
+    fibration_on_weierstrass_model(X::EllipticSurface)
+    
+Return the elliptic fibration ``W \to \mathbb{P}^1`` where ``W`` is the Weierstrass model of ``X``.
+"""
+function fibration_on_weierstrass_model(X::EllipticSurface)
+  if !isdefined(X, :fibration_weierstrass_model)
+    weierstrass_model(X) # trigger caching
+  end
+  return X.fibration_weierstrass_model
+end
+
+@doc raw"""
+    fibration(X::EllipticSurface)
+    
+Return the elliptic fibration ``X \to \mathbb{P}^1``.
+"""
+function fibration(X::EllipticSurface)
+  if !isdefined(X, :fibration)
+    X.fibration = compose(weierstrass_contraction(X), fibration_on_weierstrass_model(X))
+  end
+  return X.fibration
+end
+
+###################################################################################################################
+#
+# Basic attributes, properties
+#
+###################################################################################################################
+  
+# Unlocks Scheme functionality
+function underlying_scheme(X::EllipticSurface)
+  S = X
+  if isdefined(S,:Y)
+    return S.Y
+  end
+  # trigger the computation
+  weierstrass_contraction(S)
+  return underlying_scheme(S)
+end
+
+base_ring(X::EllipticSurface) = coefficient_ring(base_ring(base_field(generic_fiber(X))))
+
+@doc raw"""
+    generic_fiber(X::EllipticSurface) -> EllipticCurve
+
+Return the generic fiber as an elliptic curve.
+"""
+generic_fiber(X::EllipticSurface) = X.E
+
+@doc raw"""
+    weierstrass_chart(X::EllipticSurface)
+
+Return the Weierstrass chart of ``X`` on its `weierstrass_model`.
+"""
+weierstrass_chart(X::EllipticSurface) = weierstrass_model(X)[1][1][1]
+
+@doc raw"""
+    euler_characteristic(X::EllipticSurface) -> Int
+
+Return the Euler characteristic ``\chi(\mathcal{O}_X)``.
+"""
+euler_characteristic(X::EllipticSurface) = X.euler_characteristic
+ 
+
+########################################################################################################
+#
+# Printing
+#
+########################################################################################################
+  
+function Base.show(io::IO, X::EllipticSurface)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Elliptic surface")
+  else
+    E = generic_fiber(X)
+    print(io, "Elliptic surface with generic fiber ", equation(E))
+  end
+end
+
+function Base.show(io::IO, ::MIME"text/plain", X::EllipticSurface)
+  io = pretty(io)
+  println(io, "Elliptic surface")
+  println(io, Indent(), "over ", Lowercase(), base_ring(X))
+  println(io, Dedent(), "with generic fiber")
+  print(io, Indent(), Lowercase(), equation(generic_fiber(X)), Dedent())
+  if isdefined(X, :Y)
+    println(io)
+    println(io, "and relatively minimal model")
+    print(io, Indent(), Lowercase(), X.Y, Dedent())
+  end
+  print(io, Dedent())
+end
+
+########################################################################################################
+#
+# Updating the Mordell-Weil generators.
+#
+########################################################################################################
+@doc raw"""
+    set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{EllipticCurvePoint})
+
+Set a basis for the Mordell-Weil sublattice of ``X`` or at least of a sublattice.
+
+This invalidates previous computations depending on the generators of the
+Mordell Weil lattice such as the `algebraic_lattice`. Use with care.
+
+The points in `mwl_basis` must be linearly independent.
+"""
+function set_mordell_weil_basis!(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
+  @req all(parent(P) == generic_fiber(X) for P in mwl_basis) "points must lie on the generic fiber"
+  X.MWL = mwl_basis
+  # clear old computations
+  if has_attribute(X, :algebraic_lattice)
+    delete!(X.__attrs, :algebraic_lattice)
+  end
+  if has_attribute(X, :mordell_weil_sublattice)
+    delete!(X.__attrs, :mordell_weil_sublattice)
+  end
+end
+  
+@doc raw"""
+    _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint}) -> ZZLat, Vector{<:EllipticCurvePoint}
+
+Return a tuple `(M, B)` where  `B` is an LLL-reduced basis of the sublattice `M` of the
+Mordell-Weil lattice of ``X`` generated by `mwl_gens`.
+"""
+function _compute_mwl_basis(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
+  # it would be good to have the height pairing implemented
+  basis,tors, SX = _algebraic_lattice(X, mwl_gens)
+  basisTriv, GTriv = trivial_lattice(X)
+  r = length(basisTriv)
+  l = length(mwl_gens)
+  V = ambient_space(SX)
+  rk = rank(V)
+  G = ZZ.(gram_matrix(V))
+  # project away from the trivial lattice
+  pr_mwl = orthogonal_projection(V,basis_matrix(SX)[1:r, :])
+  BMWL = pr_mwl.matrix[r+1:end, :]
+  GB = gram_matrix(V,BMWL)
+  @assert rank(GB) == rk-r
+  _, u = hnf_with_transform(ZZ.(denominator(GB) * GB))
+  B = u[1:rk-r,:] * BMWL
+
+  MWL = lll(lattice(V, B, isbasis=false))
+  u = solve(BMWL, basis_matrix(MWL); side=:left)
+  u = ZZ.(u)
+  mwl_basis = [sum(u[i,j] * mwl_gens[j] for j in 1:length(mwl_gens)) for i in 1:nrows(u)]
+  return MWL, mwl_basis
+end
+
+@doc raw"""
+    update_mwl_basis!(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
+
+Compute a reduced basis of the sublattice of the Mordell-Weil lattice spanned
+by `mwl_gens` and set these as the new generators of the Mordell-Weil lattice of
+``X``.
+"""
+function update_mwl_basis!(X::EllipticSurface, mwl_gens::Vector{<:EllipticCurvePoint})
+  mwl, mwl_basis = _compute_mwl_basis(X, mwl_gens)
+  set_mordell_weil_basis!(X, mwl_basis)
+end
+
+@doc raw"""
+    algebraic_lattice_primitive_closure(X::EllipticSurface, p) -> Vector{<:EllipticCurvePoint}
 
 Return sections ``P_1,\dots P_n`` of the generic fiber, such that together with
 the generators of the algebraic lattice ``A``, they generate
-``(1/p A \cap N)`` where ``N`` is the numerical lattice of ``S``.
+```math
+\frac{1}{p} A \cap N
+``` 
+where ``N`` is the numerical lattice of ``X``.
 
-This proceeds by computing division points in the Mordell-Weil group
+The algorithm proceeds by computing division points in the Mordell-Weil subgroup of `X`
 and using information coming from the discriminant group of the algebraic lattice
 to do so.
 """
-algebraic_lattice_primitive_closure(S::EllipticSurface, p) = algebraic_lattice_primitive_closure(S, ZZ(p))
+algebraic_lattice_primitive_closure(X::EllipticSurface, p) = algebraic_lattice_primitive_closure(X, ZZ(p))
 
-function algebraic_lattice_primitive_closure(S::EllipticSurface, p::ZZRingElem)
+function algebraic_lattice_primitive_closure(X::EllipticSurface, p::ZZRingElem)
+  S = X
   L = algebraic_lattice(S)[3]
   @req is_even(L) "not implemented"
   Ld  = intersect(dual(L) , (1//p * L))
@@ -114,21 +275,22 @@ function algebraic_lattice_primitive_closure(S::EllipticSurface, p::ZZRingElem)
   return [i[1] for i in pts if length(i)>0]
 end
 
-function algebraic_lattice_primitive_closure!(S::EllipticSurface, prime)
-  pts = algebraic_lattice_primitive_closure(S, prime)
-  update_mwl_basis!(S, vcat(pts, S.MWL))
+function algebraic_lattice_primitive_closure!(X::EllipticSurface, prime)
+  pts = algebraic_lattice_primitive_closure(X, prime)
+  update_mwl_basis!(X, vcat(pts, X.MWL))
   return pts
 end
 
 @doc raw"""
-    algebraic_lattice_primitive_closure!(S::EllipticSurface)
+    algebraic_lattice_primitive_closure!(X::EllipticSurface)
 
-Compute the primitive closure of the algebraic lattice of `S` inside its
+Compute the primitive closure of the algebraic lattice of ``X`` inside its
 numerical lattice and update the generators of its Mordell--Weil group accordingly.
 
 The algorithm works by computing suitable divison points in its Mordell Weil group.
 """
-function algebraic_lattice_primitive_closure!(S::EllipticSurface)
+function algebraic_lattice_primitive_closure!(X::EllipticSurface)
+  S = X
   L = algebraic_lattice(S)[3]
   for p in prime_divisors(ZZ(det(L)))
     while true
@@ -141,35 +303,14 @@ function algebraic_lattice_primitive_closure!(S::EllipticSurface)
   return S
 end
 
-@doc raw"""
-    kodaira_neron_model(E::EllipticCurve)
-    
-Return the Kodaira-Neron model of the elliptic curve `E`.
-"""
-kodaira_neron_model(E::EllipticCurve) = elliptic_surface(E)
 
-function underlying_scheme(S::EllipticSurface)
-  if isdefined(S,:Y)
-    return S.Y
-  end
-  # trigger the computation
-  weierstrass_contraction(S)
-  return underlying_scheme(S)
-end
+###################################################################################################################
+#
+# Kodaira-Néron Model
+#
+###################################################################################################################
 
-@doc raw"""
-    generic_fiber(S::EllipticSurface) -> EllipticCurve
 
-Return the generic fiber as an elliptic curve.
-"""
-generic_fiber(S::EllipticSurface) = S.E
-
-@doc raw"""
-    weierstrass_chart(X::EllipticSurface)
-
-Return the Weierstrass chart of ``X`` on its `weierstrass_model`.
-"""
-weierstrass_chart(X::EllipticSurface) = weierstrass_model(X)[1][1][1]
 
 @doc raw"""
     weierstrass_chart_on_minimal_model(X::EllipticSurface)
@@ -179,180 +320,21 @@ of ``X`` on its `weierstrass_model`, but with all singular fibers removed.
 
 More precisely, the affine coordinates of ``U`` are ``(x,y,t)`` and the chart is 
 constructed as the vanishing locus of
-``y^2 + a_1(t) xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6``
+```math
+y^2 + a_1(t) xy + a_3 y = x^3 + a_2 x^2 + a_4 x + a_6
+```
 minus the reducible singular fibers.
 """
 weierstrass_chart_on_minimal_model(X::EllipticSurface) = X[1][1]
 
 @doc raw"""
-    euler_characteristic(X::EllipticSurface) -> Int
-
-Return $\chi(\mathcal{O}_X)$.
-"""
-euler_characteristic(X::EllipticSurface) = X.euler_characteristic
-
-@doc raw"""
-    algebraic_lattice(X) -> Vector{AbsWeilDivisor}, ZZLat
-
-Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
-torsion sections and the sections provided at the construction of ``X``.
-
-The first return value is the basis of the ambient space of `L`.
-The second consists of additional generators for `L` coming from torsion sections.
-The third is ``L``.
-"""
-@attr Any function algebraic_lattice(X::EllipticSurface)
-  return _algebraic_lattice(X,X.MWL)
-end
-
-function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
-  basisTriv, GTriv = trivial_lattice(X)
-  r = length(basisTriv)
-  l = length(mwl_basis)
-  sections = [section(X, i) for i in mwl_basis]
-  n = l+r
-  GA = zero_matrix(ZZ, n, n)
-  GA[1:r,1:r] = GTriv
-  GA[r+1:n,r+1:n] = -euler_characteristic(X)*identity_matrix(ZZ, l)
-  basisA = vcat(basisTriv, sections)
-  @vprint :EllipticSurface 2 "computing intersection numbers\n"
-  for i in 1:n
-      @vprint :EllipticSurface 3 "\nrow $(i): \n"
-      for j in max(i + 1, r + 1):n
-      if i!=2 && i <= r
-        I = components(basisA[i])[1]
-        J = components(basisA[j])[1]
-        if isone(I+J)
-          ij = 0
-        else
-          ij = 1
-        end
-      else
-        @vprint :EllipticSurface 4 "$(j) "
-        ij = intersect(basisA[i],basisA[j])
-      end
-      GA[i,j] = ij
-      GA[j,i] = GA[i,j]
-    end
-  end
-  GA_QQ = change_base_ring(QQ,GA)
-  # primitive closure of the trivial lattice comes from torsion sections
-  tors = [section(X, h) for h in mordell_weil_torsion(X)]
-  torsV = QQMatrix[]
-  for T in tors
-    @vprint :EllipticSurface 2 "computing basis representation of torsion point $(T)\n"
-    vT = zero_matrix(QQ, 1, n)
-    for i in 1:r
-      if i== 2
-        vT[1,i] = intersect(basisA[i], T)
-      else
-        @assert length(components(basisTriv[i])) == 1
-        I = sum(components(basisA[i]))
-        J = components(T)[1]
-        if !isone(I+J)
-          @assert i!=2 # O does not meet any torsion section
-          vT[1,i] = 1
-        end
-      end
-    end
-    for i in r+1:n
-      vT[1,i] = intersect(T,basisA[i])
-    end
-    push!(torsV, solve(GA_QQ, vT; side=:left))
-  end
-  gen_tors = zip(tors, torsV)
-  push!(torsV, identity_matrix(QQ,n))
-  V = quadratic_space(QQ,GA)
-  L = lattice(V, reduce(vcat,torsV), isbasis=false)
-  return basisA, collect(gen_tors), L
-end
-
-@doc raw"""
-    mordell_weil_lattice(S::EllipticSurface) -> Vector{EllipticCurvePoint}, ZZLat
-
-Return the (sublattice) of the Mordell-Weil lattice of ``S``  spanned
-by the sections of ``S`` supplied at its construction.
-
-The Mordell Weil-Lattice is represented in the same vector space as the
-algebraic lattice (with quadratic form rescaled by ``-1``).
-"""
-@attr ZZLat function mordell_weil_lattice(S::EllipticSurface)
-  NS = algebraic_lattice(S)[3]
-  t = length(trivial_lattice(S)[1])
-  trivNS = basis_matrix(NS)[1:t,:]
-  R = basis_matrix(NS)[t+1:end,:]
-  V = ambient_space(NS)
-  P = orthogonal_projection(V, trivNS)
-  mwl = rescale(lattice(V,R*P.matrix),-1)
-  return mwl
-end
-
-@doc raw"""
-    mordell_weil_torsion(S::EllipticSurface) -> Vector{EllipticCurvePoint}
-
-Return the torsion part of the Mordell-Weil group of the generic fiber of ``S``.
-"""
-@attr Any function mordell_weil_torsion(S::EllipticSurface)
-  E = generic_fiber(S)
-  O = E([0,1,0])
-  N = trivial_lattice(S)[2]
-  tors = EllipticCurvePoint[]
-  d = det(N)
-  for p in prime_divisors(d)
-    if valuation(d, p) == 1
-      continue
-    end
-    r = 1
-    i = 0
-    dp = typeof(O)[]
-    while true
-      i = i+1
-      @vprint :EllipticSurface 2 "computing $(p^i)-torsion"
-      dp = division_points(O, p^i)
-      if length(dp) == r
-        break
-      end
-      r = length(dp)
-    end
-    for pt in dp
-      if pt != O
-        push!(tors, pt)
-      end
-    end
-  end
-  return tors
-end
-
-function Base.show(io::IO, S::EllipticSurface)
-  io = pretty(io)
-  if is_terse(io)
-    print(io, "Elliptic surface")
-  else
-    E = generic_fiber(S)
-    print(io, "Elliptic surface with generic fiber ", equation(E))
-  end
-end
-
-function Base.show(io::IO, ::MIME"text/plain", S::EllipticSurface)
-  io = pretty(io)
-  println(io, "Elliptic surface")
-  println(io, Indent(), "over ", Lowercase(), base_ring(S))
-  println(io, Dedent(), "with generic fiber")
-  print(io, Indent(), Lowercase(), equation(generic_fiber(S)), Dedent())
-  if isdefined(S, :Y)
-    println(io)
-    println(io, "and relatively minimal model")
-    print(io, Indent(), Lowercase(), S.Y, Dedent())
-  end
-  print(io, Dedent())
-end
-
-@doc raw"""
     weierstrass_model(X::EllipticSurface) -> CoveredScheme, CoveredClosedEmbedding
 
-Return the Weierstrass model ``S`` of ``X`` and the inclusion in
+Return the Weierstrass model ``W`` of ``X`` and the inclusion in
 its ambient projective bundle
-$$S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1}).$$
+```math
+S\subseteq \mathbb{P}( \mathcal{O}_{\mathbb{P}^1}(-2s) \oplus \mathcal{O}_{\mathbb{P}^1}(-3s) \oplus \mathcal{O}_{\mathbb{P}^1}).
+```
 """
 function weierstrass_model(X::EllipticSurface)
   if isdefined(X, :Weierstrassmodel)
@@ -412,14 +394,33 @@ function weierstrass_model(X::EllipticSurface)
   set_attribute!(Scov, :is_equidimensional=>true)
   return Scov, inc_S
 end
+  
+@doc raw"""
+    weierstrass_contraction(X::EllipticSurface) -> SchemeMor
+
+Return the contraction morphism of ``X`` to its Weierstrass model.
+
+This triggers the computation of the `underlying_scheme` of ``X``
+as a blowup from its Weierstrass model. It may take a few minutes.
+"""
+function weierstrass_contraction(X::EllipticSurface)
+  algorithm = X.resolution_strategy
+  if algorithm == :iterative
+    return weierstrass_contraction_iterative(X)
+  elseif algorithm == :simultaneous
+    return weierstrass_contraction_simultaneous(X)
+  else
+    error("algorithm not recognized")
+  end
+end
 
 @doc raw"""
     _separate_singularities!(X::EllipticSurface) -> Covering
 
-Create a covering of the ambient projective bundle $P$
-of the Weierstrass model $S$ of $X$ such that each chart
-(of $X$) contains at most one singular point of $S$.
-Append this covering to the list of coverings of $X$ and return it.
+Create a covering of the ambient projective bundle ``P``
+of the Weierstrass model ``W`` of ``X`` such that each chart
+(of ``X``) contains at most one singular point of ``W``.
+Append this covering to the list of coverings of ``X`` and return it.
 """
 function _separate_singularities!(X::EllipticSurface)
   S, inc_S = weierstrass_model(X)
@@ -533,24 +534,6 @@ function _separate_singularities!(X::EllipticSurface)
   return Cref
 end
 
-@doc raw"""
-    weierstrass_contraction(X::EllipticSurface) -> SchemeMor
-
-Return the contraction morphism of ``X`` to its Weierstrass model.
-
-This triggers the computation of the `underlying_scheme` of ``X``
-as a blowup from its Weierstrass model. It may take a few minutes.
-"""
-function weierstrass_contraction(X::EllipticSurface)
-  algorithm = X.resolution_strategy
-  if algorithm == :iterative
-    return weierstrass_contraction_iterative(X)
-  elseif algorithm == :simultaneous
-    return weierstrass_contraction_simultaneous(X)
-  else
-    error("algorithm not recognized")
-  end
-end
 
 function weierstrass_contraction_simultaneous(Y::EllipticSurface)
   if isdefined(Y, :blowup)
@@ -800,6 +783,288 @@ function weierstrass_contraction_iterative(Y::EllipticSurface)
   return piY
 end
 
+###################################################################################################################
+#
+# Intersection theory, Neron-Severi-lattice, Mordell-Weil lattice
+#
+###################################################################################################################
+
+@doc raw"""
+    algebraic_lattice(X) -> Vector{AbsWeilDivisor}, ZZLat
+
+Return the sublattice ``L`` of the numerical lattice spanned by fiber components,
+torsion sections and the sections provided at the construction of ``X``.
+
+The first return value is a list ``B`` of vectors corresponding to the standard basis of the ambient space of `L`.
+The second consists of generators ``T`` for the torsion part of the Mordell-Weil group. 
+Together ``B`` and ``L`` generate the algebraic lattice. However, they are linearly dependent.
+The third return value is the lattice ``L``.
+
+!!! warning 
+    The ordering of the fiber components is in general not canonical and may change in between sessions. 
+"""
+@attr Any function algebraic_lattice(X::EllipticSurface)
+  return _algebraic_lattice(X,X.MWL)
+end
+
+function _algebraic_lattice(X::EllipticSurface, mwl_basis::Vector{<:EllipticCurvePoint})
+  basisTriv, GTriv = trivial_lattice(X)
+  r = length(basisTriv)
+  l = length(mwl_basis)
+  sections = [section(X, i) for i in mwl_basis]
+  n = l+r
+  GA = zero_matrix(ZZ, n, n)
+  GA[1:r,1:r] = GTriv
+  GA[r+1:n,r+1:n] = -euler_characteristic(X)*identity_matrix(ZZ, l)
+  basisA = vcat(basisTriv, sections)
+  @vprint :EllipticSurface 2 "computing intersection numbers\n"
+  for i in 1:n
+      @vprint :EllipticSurface 3 "\nrow $(i): \n"
+      for j in max(i + 1, r + 1):n
+      if i!=2 && i <= r
+        I = components(basisA[i])[1]
+        J = components(basisA[j])[1]
+        if isone(I+J)
+          ij = 0
+        else
+          ij = 1
+        end
+      else
+        @vprint :EllipticSurface 4 "$(j) "
+        ij = intersect(basisA[i],basisA[j])
+      end
+      GA[i,j] = ij
+      GA[j,i] = GA[i,j]
+    end
+  end
+  GA_QQ = change_base_ring(QQ,GA)
+  # primitive closure of the trivial lattice comes from torsion sections
+  tors = [section(X, h) for h in mordell_weil_torsion(X)]
+  torsV = QQMatrix[]
+  for T in tors
+    @vprint :EllipticSurface 2 "computing basis representation of torsion point $(T)\n"
+    vT = zero_matrix(QQ, 1, n)
+    for i in 1:r
+      if i== 2
+        vT[1,i] = intersect(basisA[i], T)
+      else
+        @assert length(components(basisTriv[i])) == 1
+        I = sum(components(basisA[i]))
+        J = components(T)[1]
+        if !isone(I+J)
+          @assert i!=2 # O does not meet any torsion section
+          vT[1,i] = 1
+        end
+      end
+    end
+    for i in r+1:n
+      vT[1,i] = intersect(T,basisA[i])
+    end
+    push!(torsV, solve(GA_QQ, vT; side=:left))
+  end
+  gen_tors = zip(tors, torsV)
+  push!(torsV, identity_matrix(QQ,n))
+  V = quadratic_space(QQ,GA)
+  L = lattice(V, reduce(vcat,torsV), isbasis=false)
+  return basisA, collect(gen_tors), L
+end
+
+@doc raw"""
+    mordell_weil_sublattice(X::EllipticSurface) -> Vector{EllipticCurvePoint}, ZZLat
+
+Return the (sublattice) of the Mordell-Weil lattice of ``X``  spanned
+by the sections of ``X`` supplied at its construction.
+
+The Mordell-Weil lattice is represented in the same vector space as the
+algebraic lattice (with quadratic form rescaled by ``-1``).
+"""
+@attr ZZLat function mordell_weil_sublattice(X::EllipticSurface)
+  S = X
+  NS = algebraic_lattice(S)[3]
+  t = length(trivial_lattice(S)[1])
+  trivNS = basis_matrix(NS)[1:t,:]
+  R = basis_matrix(NS)[t+1:end,:]
+  V = ambient_space(NS)
+  P = orthogonal_projection(V, trivNS)
+  mwl = rescale(lattice(V,R*P.matrix),-1)
+  return mwl
+end
+
+@doc raw"""
+    mordell_weil_torsion(X::EllipticSurface) -> Vector{EllipticCurvePoint}
+
+Return the torsion part of the Mordell-Weil group of the generic fiber of ``X``.
+"""
+@attr Any function mordell_weil_torsion(X::EllipticSurface)
+  S = X
+  E = generic_fiber(S)
+  O = E([0,1,0])
+  N = trivial_lattice(S)[2]
+  tors = EllipticCurvePoint[]
+  d = det(N)
+  for p in prime_divisors(d)
+    if valuation(d, p) == 1
+      continue
+    end
+    r = 1
+    i = 0
+    dp = typeof(O)[]
+    while true
+      i = i+1
+      @vprint :EllipticSurface 2 "computing $(p^i)-torsion"
+      dp = division_points(O, p^i)
+      if length(dp) == r
+        break
+      end
+      r = length(dp)
+    end
+    for pt in dp
+      if pt != O
+        push!(tors, pt)
+      end
+    end
+  end
+  return tors
+end
+
+@doc raw"""
+    section(X::EllipticSurface, P::EllipticCurvePoint) -> EllipticSurfaceSection
+
+Given a rational point ``P\in E(C)`` of the generic fiber ``E/C`` of ``\pi\colon X \to C``,
+return its closure in ``X`` as a `AbsWeilDivisor`.
+"""
+function section(X::EllipticSurface, P::EllipticCurvePoint)
+  if iszero(P[1])&&iszero(P[3])
+    return zero_section(X)
+  end
+  return EllipticSurfaceSection(X, P)
+end
+
+
+function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCurvePoint)
+  S0,incS0 = weierstrass_model(X)
+  X0 = codomain(incS0)
+  if P[3] == 0
+    # zero section
+    V = X0[1][3]
+    (z,x,t) = coordinates(V)
+    return IdealSheaf(X0, V, [x,z])
+  end
+  U = X0[1][1]
+  (x,y,t) = coordinates(U)
+  b = P
+  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
+end
+
+
+@doc raw"""
+    zero_section(X::EllipticSurface) -> AbsWeilDivisor
+
+Return the zero section of the relatively minimal elliptic
+fibration ``\pi\colon X \to C``.
+"""
+@attr Any zero_section(X::EllipticSurface) = EllipticSurfaceSection(X, generic_fiber(X)([0,1,0]))
+
+
+@doc raw"""
+    basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
+
+Return the vector representing the numerical class of ``D``
+with respect to the basis of the ambient space of `algebraic_lattice(X)`.
+"""
+function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
+  basis_ambient,_, NS = algebraic_lattice(X)
+  G = gram_matrix(ambient_space(NS))
+  n = length(basis_ambient)
+  v = zeros(ZZRingElem, n)
+  @vprint :EllipticSurface 3 "computing basis representation of $D\n"
+  kk = base_ring(X)
+  if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
+    X_red_raw, bc = raw_good_reduction(X)
+    red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+    D_red = _reduce_as_prime_divisor(bc, D)
+    for (i, E) in enumerate(basis_ambient)
+      @vprintln :EllipticSurface 4 "intersecting in positive characteristic with $(i): $(basis_ambient[i])"
+      v[i] = intersect(red_dict[E], D_red)
+    end
+  else
+    for i in 1:n
+      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
+
+      v[i] = intersect(basis_ambient[i], D)
+    end
+  end
+  @vprint :EllipticSurface 3 "done computing basis representation\n"
+  return v*inv(G)
+end
+
+
+###################################################################################################################
+#
+# Fibers and trivial lattice
+#
+###################################################################################################################
+
+@doc raw"""
+    trivial_lattice(X::EllipticSurface) -> Vector{AbsWeilDivisor}, ZZMatrix
+
+Return a basis for the trivial lattice as well as its Gram matrix.
+
+The trivial lattice is the sublattice of the numerical lattice spanned by fiber components and
+the zero section of ``X``.
+
+!!! warning 
+    The ordering of the basis is in general not canonical and may change in between sessions. 
+"""
+function trivial_lattice(X::EllipticSurface)
+  T = _trivial_lattice(X)[1:2]
+  return T
+end
+
+@doc raw"""
+    _trivial_lattice(X::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
+  
+Internal function. Returns a list consisting of:
+- basis of the trivial lattice
+- gram matrix
+- fiber_components without multiplicities
+
+The keyword argument `reducible_singular_fibers_in_PP1` must be a list of vectors of length `2` over 
+the base field representing the points in projective space over which there are reducible fibers.
+Specify it to force this ordering of the basis vectors of the ambient space of the `algebraic_lattice`
+"""
+function _trivial_lattice(X::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(X))
+  S = X
+  get_attribute!(S, :_trivial_lattice) do
+    O = zero_section(S)
+    pt0, F = fiber(S)
+    set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
+    basisT = [F, O]
+    grams = [ZZ[0 1;1 -euler_characteristic(S)]]
+    sing = reducible_singular_fibers_in_PP1
+    f = [[pt, fiber_components(S,pt)] for  pt in sing]
+    fiber_componentsS = []
+    for (pt, ft) in f
+      @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
+      Ft0 = standardize_fiber(S, ft)
+      @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
+      append!(basisT , Ft0[3][2:end])
+      push!(grams,Ft0[4][2:end,2:end])
+      push!(fiber_componentsS, vcat([pt], collect(Ft0)))
+    end
+    G = block_diagonal_matrix(grams)
+    # make way for some more pretty printing
+    for (pt,root_type,_,comp) in fiber_componentsS
+      for (i,I) in enumerate(comp)
+        name = string(root_type[1], root_type[2])
+        set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
+        set_attribute!(components(I)[1], :_self_intersection, -2)
+      end
+    end
+    return basisT, G, fiber_componentsS
+  end
+end
+
 function _reducible_fibers_disc(X::EllipticSurface; sort::Bool=true)
   E = generic_fiber(X)
   j = j_invariant(E)
@@ -847,86 +1112,29 @@ function by_total_order(x::NumFieldElem)
   return absolute_coordinates(x)
 end 
 
-# global divisors0 = [strict_transform(pr_X1, e) for e in divisors0]
-# exceptionals_res = [pullback(inc_Y0)(e) for e in exceptionals]
-@doc raw"""
-    _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
-  
-Internal function. Returns a list consisting of:
-- basis of the trivial lattice
-- gram matrix
-- fiber_components without multiplicities
-
-The keyword argument `reducible_singular_fibers_in_PP1` must be a list of vectors of length `2` over 
-the base field representing the points in projective space over which there are reducible fibers.
-Specify it to force this ordering of the basis vectors of the ambient space of the `algebraic_lattice`
-"""
-function _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_reducible_fibers_disc(S))
-  get_attribute!(S, :_trivial_lattice) do
-    O = zero_section(S)
-    pt0, F = fiber(S)
-    set_attribute!(components(O)[1], :_self_intersection, -euler_characteristic(S))
-    basisT = [F, O]
-    grams = [ZZ[0 1;1 -euler_characteristic(S)]]
-    sing = reducible_singular_fibers_in_PP1
-    f = [[pt, fiber_components(S,pt)] for  pt in sing]
-    fiber_componentsS = []
-    for (pt, ft) in f
-      @vprint :EllipticSurface 2 "normalizing fiber: over $pt \n"
-      Ft0 = standardize_fiber(S, ft)
-      @vprint :EllipticSurface 2 "$(Ft0[1]) \n"
-      append!(basisT , Ft0[3][2:end])
-      push!(grams,Ft0[4][2:end,2:end])
-      push!(fiber_componentsS, vcat([pt], collect(Ft0)))
-    end
-    G = block_diagonal_matrix(grams)
-    # make way for some more pretty printing
-    for (pt,root_type,_,comp) in fiber_componentsS
-      for (i,I) in enumerate(comp)
-        name = string(root_type[1], root_type[2])
-        set_attribute!(components(I)[1], :name, string("Component ", name, "_", i-1," of fiber over ", Tuple(pt)))
-        set_attribute!(components(I)[1], :_self_intersection, -2)
-      end
-    end
-    return basisT, G, fiber_componentsS
-  end
-end
 
 @doc raw"""
-    trivial_lattice(X::EllipticSurface) -> Vector{AbsWeilDivisor}, ZZMatrix
+    reducible_fibers(X::EllipticSurface)
 
-Return a basis for the trivial lattice as well as its gram matrix.
-
-The trivial lattice is the lattice spanned by fiber components and
-the zero section of $X$.
-"""
-function trivial_lattice(X::EllipticSurface)
-  T = _trivial_lattice(X)[1:2]
-  return T
-end
-
-@doc raw"""
-    reducible_fibers(S::EllipticSurface)
-
-Return the reducible fibers of $S$.
+Return the reducible fibers of ``X``.
 
 The output format is the following:
 A list `[F1, ..., Fn]` where each entry `Fi` represents a reducible fiber.
 
-The list $F$ has the following entries:
-- A point $P \in \mathbb{P}^{1}$ such that $F = \pi^{-1}(P)$;
+The list ``F`` has the following entries:
+- A point ``P \in \mathbb{P}^{1}`` such that ``F = \pi^{-1}(P)``;
 - The ADE-type of the fiber;
-- The fiber $F$ as a Weil divisor, including its multiplicities;
+- The fiber ``F`` as a Weil divisor, including its multiplicities;
 - The irreducible components of the fiber. The first component intersects the zero section;
 - Their intersection matrix.
 """
-function reducible_fibers(S::EllipticSurface)
-  return _trivial_lattice(S)[3]
+function reducible_fibers(X::EllipticSurface)
+  return _trivial_lattice(X)[3]
 end
 
 
 @doc raw"""
-    standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
+    standardize_fiber(X::EllipticSurface, f::Vector{<:AbsWeilDivisor})
 
 Internal method. Used to prepare for [`reducible_fibers`](@ref).
 `f` must be the list of the components of the reducible fiber `F`.
@@ -936,7 +1144,8 @@ Output a list of tuples with each tuple as follows
 - the irreducible components `[F0,...Fn]` of `F` sorted such that the first entry `F0` is the one intersecting the zero section. The others are sorted in some standard way
 - gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
-function standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
+function standardize_fiber(X::EllipticSurface, f::Vector{<:AbsWeilDivisor})
+  S = X
   @hassert :EllipticSurface 2 all(is_prime(i) for i in f)
   f = copy(f)
   O = components(zero_section(S))[1]
@@ -980,11 +1189,12 @@ function standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
 end
 
 @doc raw"""
-    fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1])) -> EffectiveCartierDivisor
+    fiber_cartier(X::EllipticSurface, P::Vector = ZZ.([0,1])) -> EffectiveCartierDivisor
 
-Return the fiber of $\pi\colon X \to C$ over $P\in C$ as a Cartier divisor.
+Return the fiber of ``\pi\colon X \to C`` over ``P\in C`` as a Cartier divisor.
 """
-function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
+function fiber_cartier(X::EllipticSurface, P::Vector = ZZ.([0,1]))
+  S = X
   S0,_ = weierstrass_model(S)
   underlying_scheme(S) # cache stuff
   D = IdDict{AbsAffineScheme, RingElem}()
@@ -1036,11 +1246,12 @@ function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
 end
 
 @doc raw"""
-    fiber_components(S::EllipticSurface, P) -> Vector{<:AbsWeilDivisor}
+    fiber_components(X::EllipticSurface, P) -> Vector{<:AbsWeilDivisor}
 
-Return the fiber components of the fiber over the point $P \in C$.
+Return the fiber components of the fiber over the point ``P \in C``.
 """
-function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors)
+function fiber_components(X::EllipticSurface, P; algorithm=:exceptional_divisors)
+  S = X
   @vprint :EllipticSurface 2 "computing fiber components over $(P)\n"
   P = base_ring(S).(P)
   W = codomain(S.inc_Weierstrass)
@@ -1067,7 +1278,8 @@ function fiber_components(S::EllipticSurface, P; algorithm=:exceptional_divisors
   return fiber_components
 end
   
-@attr Vector{<:AbsIdealSheaf} function exceptional_divisors(S::EllipticSurface)
+@attr Vector{<:AbsIdealSheaf} function exceptional_divisors(X::EllipticSurface)
+  S = X
   PP = AbsIdealSheaf[]
   @vprintln :EllipticSurface 2 "computing exceptional divisors"
   # If we have resolution_strategy=:simultaneous, then the following is a non-trivial preprocessing step.
@@ -1100,7 +1312,7 @@ end
 
 
 @doc raw"""
-    irreducible_fiber(S::EllipticSurface) -> Bool, Point, EffectiveCartierDivisor
+    irreducible_fiber(X::EllipticSurface) -> Bool, Point, EffectiveCartierDivisor
 
 Return an irreducible fiber as a cartier divisor and whether it exists.
 
@@ -1110,7 +1322,8 @@ The return value is a triple `(b, pt, F)` where
 - `pt` the base point of the fiber
 - `F` the irreducible fiber which projects to `pt`
 """
-function irreducible_fiber(S::EllipticSurface)
+function irreducible_fiber(X::EllipticSurface)
+  S = X
   W = weierstrass_model(S)
   d = numerator(discriminant(generic_fiber(S)))
   kt = parent(d)
@@ -1145,111 +1358,3 @@ function irreducible_fiber(S::EllipticSurface)
   F = fiber_cartier(S, pt)
   return found, pt, F
 end
-
-@doc raw"""
-    section(X::EllipticSurface, P::EllipticCurvePoint)
-
-Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \to C$,
-return its closure in $X$ as a `AbsWeilDivisor`.
-"""
-function section(X::EllipticSurface, P::EllipticCurvePoint)
-  if iszero(P[1])&&iszero(P[3])
-    return zero_section(X)
-  end
-  return EllipticSurfaceSection(X, P)
-end
-
-
-
-function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCurvePoint)
-  S0,incS0 = weierstrass_model(X)
-  X0 = codomain(incS0)
-  if P[3] == 0
-    # zero section
-    V = X0[1][3]
-    (z,x,t) = coordinates(V)
-    return IdealSheaf(X0, V, [x,z])
-  end
-  U = X0[1][1]
-  (x,y,t) = coordinates(U)
-  b = P
-  return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
-end
-
-
-@doc raw"""
-    zero_section(S::EllipticSurface) -> AbsWeilDivisor
-
-Return the zero section of the relatively minimal elliptic
-fibration \pi\colon X \to C$.
-"""
-@attr Any zero_section(S::EllipticSurface) = EllipticSurfaceSection(S, generic_fiber(S)([0,1,0]))
-
-
-@doc raw"""
-    basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
-
-Return the vector representing the numerical class of `D` 
-with respect to the basis of the ambient space of `algebraic_lattice(X)`.
-"""
-function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
-  basis_ambient,_, NS = algebraic_lattice(X)
-  G = gram_matrix(ambient_space(NS))
-  n = length(basis_ambient)
-  v = zeros(ZZRingElem, n)
-  @vprint :EllipticSurface 3 "computing basis representation of $D\n"
-  kk = base_ring(X)
-  if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
-    X_red_raw, bc = raw_good_reduction(X)
-    red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
-    D_red = _reduce_as_prime_divisor(bc, D)
-    for (i, E) in enumerate(basis_ambient)
-      @vprintln :EllipticSurface 4 "intersecting in positive characteristic with $(i): $(basis_ambient[i])"
-      v[i] = intersect(red_dict[E], D_red)
-    end
-  else
-    for i in 1:n
-      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
-
-      v[i] = intersect(basis_ambient[i], D)
-    end
-  end
-  @vprint :EllipticSurface 3 "done computing basis representation\n"
-  return v*inv(G)
-end
-
-
-@doc raw"""
-    elliptic_surface(g::MPolyRingElem, P::Vector{<:RingElem})
-
-Transform a bivariate polynomial `g` of the form `y^2 - Q(x)` with `Q(x)` of
-degree at most ``4`` to Weierstrass form, apply Tate's algorithm and 
-return the corresponding relatively minimal elliptic surface 
-as well as the coordinate transformation.
-"""
-function elliptic_surface(
-    g::MPolyRingElem, P::Vector{<:RingElem}; 
-    minimize::Bool=true, resolution_strategy::Symbol=:iterative
-  )
-  R = parent(g)
-  (x, y) = gens(R)
-  P = base_ring(R).(P)
-  g2, phi2 = transform_to_weierstrass(g, x, y, P);
-  Y2, phi1 = _elliptic_surface_with_trafo(g2; minimize)
-  return Y2, phi2 * phi1  
-end
-
-function fibration_on_weierstrass_model(X::EllipticSurface)
-  if !isdefined(X, :fibration_weierstrass_model)
-    weierstrass_model(X) # trigger caching
-  end
-  return X.fibration_weierstrass_model
-end
-
-function fibration(X::EllipticSurface)
-  if !isdefined(X, :fibration)
-    X.fibration = compose(weierstrass_contraction(X), fibration_on_weierstrass_model(X))
-  end
-  return X.fibration
-end
-

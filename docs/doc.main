@@ -197,7 +197,7 @@
 	 "AlgebraicGeometry/Curves/ParametrizationPlaneCurves.md",
      ],
      "Surfaces" => [
-        "AlgebraicGeometry/Surfaces/K3Surfaces.md",
+        "AlgebraicGeometry/Surfaces/K3Surfaces.md",        "AlgebraicGeometry/Surfaces/EllipticSurface.md",
 	"AlgebraicGeometry/Surfaces/AdjunctionProcess.md",
 	"AlgebraicGeometry/Surfaces/ParametrizationSurfaces.md",
         "AlgebraicGeometry/Surfaces/SurfacesP4.md",

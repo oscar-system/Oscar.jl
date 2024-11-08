@@ -1,18 +1,25 @@
 @doc raw"""
     EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredScheme{BaseField}
 
-The type of a relatively minimal elliptic surface.
-
-A genus $1$-fibration is a proper map
-$\pi \colon X \to C$ to a curve $C$ whose fibers are curves of
-(arithmetic) genus $1$.
+A relatively minimal elliptic surface defined as follows.
+    
+A genus ``1``-fibration is a proper map
+```math
+\pi \colon X \to C
+```
+from a smooth projective surface ``X`` to a smooth projective curve ``C`` whose generic fiber is a curve of (arithmetic) genus ``1``.
 
 The fibration is relatively minimal if its fibers do not contain any ``(-1)``-curves.
-We call the fibration elliptic if it comes equipped with a section.
-This turns the generic fiber of $\pi$ into an elliptic curve $E/k(C)$ where
-$k(C)$ is the function field of the curve $C$.
+We call the fibration elliptic if it is relatively minimal and comes equipped with a section ``\sigma_0\colon \mathbb{P}^1 \to X``.
+This turns the generic fiber of ``\pi`` into an elliptic curve ``E/k(C)`` where
+``k(C)`` is the function field of the curve ``C``.
+  
+We further require that ``\pi`` has at least one singular fiber. 
 
-For now functionality is restricted to $C = \mathbb{P}^1$.
+For now functionality is restricted to ``C = \mathbb{P}^1``.
+
+This datatype stores a subgroup of the Mordell-Weil group ``E(k(C))``.
+It is referred to as the  Mordell-Weil subgroup of `X`.
 """
 @attributes mutable struct EllipticSurface{BaseField<:Field, BaseCurveFieldType} <: AbsCoveredSurface{BaseField}
   Y::CoveredScheme{BaseField}  # the underlying_scheme
