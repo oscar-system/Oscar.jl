@@ -895,7 +895,7 @@ end
 
 Return the torsion part of the Mordell-Weil group of the generic fiber of ``X``.
 """
-@attr Any function mordell_weil_torsion(X::EllipticSurface)
+@attr Vector{EllipticCurvePoint} function mordell_weil_torsion(X::EllipticSurface)
   S = X
   E = generic_fiber(S)
   O = E([0,1,0])
@@ -963,7 +963,7 @@ end
 Return the zero section of the relatively minimal elliptic
 fibration ``\pi\colon X \to C``.
 """
-@attr Any zero_section(X::EllipticSurface) = EllipticSurfaceSection(X, generic_fiber(X)([0,1,0]))
+@attr EllipticSurfaceSection zero_section(X::EllipticSurface) = EllipticSurfaceSection(X, generic_fiber(X)([0,1,0]))
 
 
 @doc raw"""

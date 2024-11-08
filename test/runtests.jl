@@ -113,7 +113,7 @@ test_large = [
               "experimental/GModule/test/runtests.jl",
               "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
               "test/Modules/ModulesGraded.jl",
-              "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
+              "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
              ]
 test_book = [
              "test/book/test.jl",

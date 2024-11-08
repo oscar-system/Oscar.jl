@@ -144,4 +144,4 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate scheme(W::CartierDivisor) ambient_scheme(W)
 @deprecate scheme(W::EffectiveCartierDivisor) ambient_scheme(W)
 
-@deprecate mordell_weil_sublattice(X::EllipticSurface) mordell_weil_lattice(X)
+@deprecate mordell_weil_lattice(X::EllipticSurface) mordell_weil_sublattice(X) 

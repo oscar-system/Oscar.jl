@@ -3,7 +3,7 @@ CurrentModule = Oscar
 ```
 
 # Elliptic Surfaces
-See [Schuett2019](@cite) for the theory of elliptic surfaces.
+See [SS19](@cite) for the theory of elliptic surfaces.
 
 ```@docs
 EllipticSurface
@@ -73,7 +73,7 @@ A K3 surface ``X`` may admit several elliptic fibrations
 \pi \colon X \to \mathbb{P}^1.
 ```
 Fibration hopping is a way to compute them. 
-See e.g. [BrandhorstElkies2023](@cite) and [BrandhorstZach23](@cite).
+See e.g. [BE23](@cite) and [BZ23](@cite).
 
 A divisor ``F`` on ``X`` is called elliptic if it is primitive, isotropic and nef. 
 The linear system ``|F|`` of an elliptic divisor ``F`` induces a genus one fibration on ``X``.

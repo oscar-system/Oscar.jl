@@ -14,7 +14,7 @@ We call the fibration elliptic if it is relatively minimal and comes equipped wi
 This turns the generic fiber of ``\pi`` into an elliptic curve ``E/k(C)`` where
 ``k(C)`` is the function field of the curve ``C``.
   
-We further require that ``\pi`` has at least one singular fiber. 
+We further require that ``\pi`` has at least one singular fiber and that the base field ``k`` is perfect. 
 
 For now functionality is restricted to ``C = \mathbb{P}^1``.
 

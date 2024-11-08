@@ -255,7 +255,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
   co_ring = coefficient_ring(zero_section(Y))
 
   n = length(lat_X)
-  mwr = rank(section_lattice(X))
+  mwr = rank(mordell_weil_sublattice(X))
   for (i, D) in enumerate(lat_X)
     @vprint :EllipticSurface 2 "$((i, D, pre_select[D]))\n"
     # D is a non-section
