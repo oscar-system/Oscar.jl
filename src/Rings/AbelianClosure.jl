@@ -945,9 +945,9 @@ function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
     return QQAbFieldElem(C1(x), 1)
   end
 
-  finv = function(x::QQAbFieldElem; check::Bool = false)
+  finv = function(x::QQAbFieldElem; throw_error::Bool = true)
     res = Hecke.force_coerce_cyclo(C1, data(x), Val(false))
-    !check && res === nothing && error("element has no preimage")
+    throw_error && res === nothing && error("element has no preimage")
     return res
   end
 
@@ -963,9 +963,9 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(x, n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
       res = Hecke.force_coerce_cyclo(F, data(x), Val(false))
-      !check && res === nothing && error("element has no preimage")
+      throw_error && res === nothing && error("element has no preimage")
       return res
     end
   else
@@ -982,13 +982,13 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(evaluate(R(z), x), n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
       # Write `x` w.r.t. the n-th cyclotomic field ...
       g = gcd(x.c, n)
       Kg, = AbelianClosure.cyclotomic_field(K, g)
       x = Hecke.force_coerce_cyclo(Kg, data(x), Val(false))
       if x === nothing
-        !check && error("element has no preimage")
+        throw_error && error("element has no preimage")
         return
       end
       x = Hecke.force_coerce_cyclo(Kn, x)
@@ -996,7 +996,7 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       a = Hecke.coefficients(x)
       fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
       if !fl
-        !check && error("element has no preimage")
+        throw_error && error("element has no preimage")
         return
       end
       b = transpose(sol)
@@ -1010,7 +1010,7 @@ end
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
 function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbFieldElem{AbsSimpleNumFieldElem})
-  pre = mp.g(x, check = true)
+  pre = mp.g(x, throw_error = false)
   if isnothing(pre)
     return false, zero(domain(mp))
   else
