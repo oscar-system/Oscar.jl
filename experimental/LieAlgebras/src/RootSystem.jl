@@ -635,14 +635,10 @@ function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
-function RootSpaceElem(R::RootSystem, w::WeightLatticeElem)
-  @req root_system(w) === R "Root system mismatch"
+function RootSpaceElem(w::WeightLatticeElem)
+  R = root_system(w)
   coeffs = coefficients(w) * cartan_matrix_inv_tr(R)
   return RootSpaceElem(R, matrix(QQ, coeffs))
-end
-
-function RootSpaceElem(w::WeightLatticeElem)
-  return RootSpaceElem(root_system(w), w)
 end
 
 function zero(::Type{RootSpaceElem}, R::RootSystem)
@@ -1048,15 +1044,11 @@ function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))
 end
 
-function WeightLatticeElem(R::RootSystem, r::RootSpaceElem)
-  @req root_system(r) === R "Root system mismatch"
+function WeightLatticeElem(r::RootSpaceElem)
+  R = root_system(r)
   coeffs = coefficients(r) * cartan_matrix_tr(R)
   @req all(is_integer, coeffs) "RootSpaceElem does not correspond to a weight"
   return WeightLatticeElem(R, matrix(ZZ, coeffs))
-end
-
-function WeightLatticeElem(r::RootSpaceElem)
-  return WeightLatticeElem(root_system(r), r)
 end
 
 function zero(::Type{WeightLatticeElem}, R::RootSystem)
