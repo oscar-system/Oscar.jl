@@ -8,7 +8,6 @@ DocTestSetup = Oscar.doctestsetup()
 ```@docs
 cartan_matrix(::Symbol, ::Int)
 cartan_matrix(::Vector{Tuple{Symbol,Int}})
-cartan_matrix(::Tuple{Symbol,Int}...)
 ```
 
 ```@docs
