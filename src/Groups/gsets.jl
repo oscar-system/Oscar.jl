@@ -332,6 +332,17 @@ orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
 orbit(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, omega) = GSetByElements(G, fun, [omega])
 
+# common code
+function gap_action_function(Omega::GSet)
+  f = action_function(Omega)
+  (f == ^) && return GAP.Globals.OnPoints
+  # f == on_tuples && return GAP.Globals.OnTuples
+  # f == on_sets && return GAP.Globals.OnSets
+  # etc.
+  return GapObj(f) # generic fallback
+end
+
+
 """
     orbit(Omega::GSet, omega)
 
@@ -351,8 +362,9 @@ julia> length(orbit(Omega, 1))
 """
 function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     G = acting_group(Omega)
-    acts = GapObj(gens(G))
-    gfun = GapObj(action_function(Omega))
+    acts = GapObj(gens(G); recursive=true)
+    gfun = gap_action_function(Omega)
+    # gfun = GapObj(action_function(Omega))
 
     # The following works only because GAP does not check
     # whether the given (dummy) group 'GapObj(G)' fits to the given generators,
