@@ -81,7 +81,7 @@ function Base.iterate(W::WeylGroup, state::WeylIteratorNoCopyState)
 end
 
 @doc raw"""
-    isfinite(W::WeylGroup) -> Bool
+    is_finite(W::WeylGroup) -> Bool
 """
 function is_finite(W::WeylGroup)
   return W.finite
@@ -146,6 +146,7 @@ end
     longest_element(W::WeylGroup) -> WeylGroupElem
 
 Returns the unique longest element of `W`.
+This only exists if `W` is finite.
 """
 function longest_element(W::WeylGroup)
   @req is_finite(W) "$W is not finite"
