@@ -653,6 +653,10 @@ function Base.:*(q::RationalUnion, r::RootSpaceElem)
   return RootSpaceElem(root_system(r), q * r.vec)
 end
 
+function Base.:*(r::RootSpaceElem, q::RationalUnion)
+  return RootSpaceElem(root_system(r), r.vec * q)
+end
+
 function Base.:+(r::RootSpaceElem, r2::RootSpaceElem)
   @req root_system(r) === root_system(r2) "parent root system mismatch"
 
@@ -863,6 +867,10 @@ function Base.:*(q::RationalUnion, r::DualRootSpaceElem)
   return DualRootSpaceElem(root_system(r), q * r.vec)
 end
 
+function Base.:*(r::DualRootSpaceElem, q::RationalUnion)
+  return DualRootSpaceElem(root_system(r), r.vec * q)
+end
+
 function Base.:+(r::DualRootSpaceElem, r2::DualRootSpaceElem)
   @req root_system(r) === root_system(r2) "parent root system mismatch"
 
@@ -1063,6 +1071,10 @@ end
 
 function Base.:*(n::IntegerUnion, w::WeightLatticeElem)
   return WeightLatticeElem(root_system(w), n * w.vec)
+end
+
+function Base.:*(w::WeightLatticeElem, n::IntegerUnion)
+  return WeightLatticeElem(root_system(w), w.vec * n)
 end
 
 function Base.:+(w::WeightLatticeElem, w2::WeightLatticeElem)
