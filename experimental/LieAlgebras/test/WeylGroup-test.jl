@@ -482,7 +482,7 @@ include(
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
+      dom_wt, conj = conjugate_dominant_weight_with_left_elem(wt)
       orb = Tuple{WeightLatticeElem,WeylGroupElem}[]
       for tup in WeylIteratorNoCopy(wt)
         push!(orb, deepcopy(tup))
@@ -518,7 +518,7 @@ include(
     ]
       R = root_system(type...)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
+      dom_wt, conj = conjugate_dominant_weight_with_left_elem(wt)
       orb = Tuple{WeightLatticeElem,WeylGroupElem}[]
       for tup in WeylIteratorNoCopy(wt)
         push!(orb, deepcopy(tup))
@@ -564,7 +564,6 @@ include(
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
       orb = collect(WeylOrbitIterator(wt))
 
       @test !isnothing(findfirst(==(wt), orb))

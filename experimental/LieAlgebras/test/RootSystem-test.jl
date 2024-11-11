@@ -1,5 +1,5 @@
 @testset "LieAlgebras.RootSystem" begin
-  @testset "conjugate_dominant_weight_with_elem(w::WeightLatticeElem)" begin
+  @testset "conjugate_dominant_weight_with_*_elem(w::WeightLatticeElem)" begin
     for (R, vec) in [
       (root_system(:A, 5), [1, -1, 2, 0, 2]),
       (root_system(:B, 3), [1, 1, 1]),
@@ -10,9 +10,13 @@
       (root_system(:G, 2), [-1, -1]),
     ]
       wt = WeightLatticeElem(R, vec)
-      d, x = conjugate_dominant_weight_with_elem(wt)
+      d, x = conjugate_dominant_weight_with_left_elem(wt)
       @test is_dominant(d)
       @test x * wt == d
+
+      d, x = conjugate_dominant_weight_with_right_elem(wt)
+      @test is_dominant(d)
+      @test wt * x == d
     end
   end
 

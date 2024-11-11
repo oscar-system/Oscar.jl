@@ -1199,16 +1199,18 @@ function conjugate_dominant_weight!(w::WeightLatticeElem)
 end
 
 @doc raw"""
-    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+    conjugate_dominant_weight_with_left_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
 
 Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
-such that `x*w == dom`.
+such that `x * w == dom`.
+
+See also: [`conjugate_dominant_weight_with_right_elem(::WeightLatticeElem)`](@ref).
 """
-function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
-  return conjugate_dominant_weight_with_elem!(deepcopy(w))
+function conjugate_dominant_weight_with_left_elem(w::WeightLatticeElem)
+  return conjugate_dominant_weight_with_left_elem!(deepcopy(w))
 end
 
-function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
+function conjugate_dominant_weight_with_left_elem!(w::WeightLatticeElem)
   R = root_system(w)
 
   # determine the Weyl group element taking w to the fundamental chamber
@@ -1228,6 +1230,23 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
   # reversing word means it is in short revlex normal form
   # and it is the element taking original w to new w
   return w, weyl_group(R)(reverse!(word); normalize=false)
+end
+
+@doc raw"""
+    conjugate_dominant_weight_with_right_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+
+Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
+such that `w * x == dom`.
+
+See also: [`conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)`](@ref).
+"""
+function conjugate_dominant_weight_with_right_elem(w::WeightLatticeElem)
+  return conjugate_dominant_weight_with_right_elem!(deepcopy(w))
+end
+
+function conjugate_dominant_weight_with_right_elem!(w::WeightLatticeElem)
+  w, x = conjugate_dominant_weight_with_left_elem!(w)
+  return w, inv(x)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
@@ -1623,7 +1642,7 @@ function tensor_product_decomposition(
   for (w_, m) in dominant_character(R, hw1)
     for w in weyl_orbit(WeightLatticeElem(R, w_))
       add!(w, hw2_plus_rho)
-      w_dom, x = conjugate_dominant_weight_with_elem!(w)
+      w_dom, x = conjugate_dominant_weight_with_left_elem!(w)
       if all(!iszero, coefficients(w_dom))
         sub!(w_dom, rho)
         coeff = m * (-1)^length(x)
