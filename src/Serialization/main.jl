@@ -180,49 +180,47 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, obj::T) where T
+function save_type_params(s::SerializerState, T::Type, params::Vector)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    params = type_params(obj)
-    if serialize_with_id(params)
-      # we pull this out here to catch the save_as_ref
-      save_typed_object(s, params, :params)
-    else
-      if params isa Vector
-        save_data_array(s, :params) do
-          for (entry_type, entry_params) in params
-            if !isnothing(entry_params)
-              save_data_dict(s) do
-                save_object(s, encode_type(entry_type), :name)
-                save_typed_object(s, entry_params, :params)
-              end
-            else
-              save_object(s, encode_type(entry_type))
-            end
-          end
-        end
-      else
-        save_data_dict(s, :params) do 
-          if params isa Dict
-            for (k, v) in params
-              save_typed_object(s, v, k)
-            end
-          elseif params isa Tuple
-            # obj has a vector of parameters
-            entry_type, entry_params = params
-            if !isnothing(entry_params)
-              save_object(s, encode_type(entry_type), :name)
-              save_typed_object(s, entry_params, :params)
-            else
-              save_object(s, encode_type(entry_type))
-            end
-          else
-            save_typed_object(s, params)
-          end
+    serialize_with_id(params) && return save_object(s, save_as_ref(s, params), :params)
+    
+    save_data_array(s) do
+      for param in params
+        if param isa DataType
+          save_object(s, encode_type(v))
+        else
+          save_typed_object(s, param)
         end
       end
     end
+  else
+    save_typed_object(s, params)
   end
+end
+
+
+function save_type_params(s::SerializerState, T::Type, params::Dict)
+  save_data_dict(s, :params) do 
+    for (k, v) in params
+      if k == :entry_type
+        save_object(s, encode_type(v), :name)
+      elseif k == :tuple_params
+        save_data_array(s) do
+          for param in v
+            save_type_params(s, param)
+          end
+        end
+      else
+        save_typed_object(s, v, k)
+      end
+    end
+  end
+end
+
+function save_type_params(s::SerializerState, obj::T) where T
+  params = type_params(obj)
+  save_type_params(s, T, params)
 end
 
 function save_attrs(s::SerializerState, obj::T) where T

@@ -191,7 +191,7 @@ end
 @register_serialization_type AbsNonSimpleNumField uses_id uses_params
 const NonSimFieldTypeUnion = Union{AbsNonSimpleNumField, RelNonSimpleNumField}
 
-type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = type_params(defining_polynomials(K))
+type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = type_params(defining_polynomials(K)[1])
 
 function save_object(s::SerializerState, K::NonSimFieldTypeUnion)
   save_data_dict(s) do

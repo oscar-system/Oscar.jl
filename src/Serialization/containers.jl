@@ -7,14 +7,21 @@ const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
-    return T, nothing
+    return nothing
   end
 
   params = type_params.(obj)
   params_all_equal = all(map(x -> isequal(first(params), x), params))
   @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
 
-  return T, params[1]
+  if isnothing(params[1])
+    return T
+  else
+    return Dict(
+      :entry_type => T,
+      :params => params[1]
+    )
+  end
 end
 
 function save_object(s::SerializerState, x::Vector)
@@ -111,11 +118,13 @@ end
 
 ################################################################################
 # Saving and loading Tuple
-@register_serialization_type Tuple uses_params
+@register_serialization_type Tuple
 
 function type_params(obj::T) where T <: Tuple
   n = fieldcount(T)
-  return [(fieldtype(T, i), type_params(obj[i])) for i in 1:n]
+  return [
+    isnothing(type_params(obj[i])) ? fieldtype(T, i) : type_params(obj[i])
+    for i in 1:n]
 end
 
 function save_object(s::SerializerState, obj::Tuple)
@@ -150,24 +159,29 @@ end
 # Saving and loading NamedTuple
 @register_serialization_type NamedTuple uses_params
 
-function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
-  save_data_dict(s) do
-    save_object(s, encode_type(NamedTuple), :name)
-    save_data_dict(s, :params) do
-      save_data_array(s, :tuple_params) do
-        for (i, value) in enumerate(values(obj))
-          U = fieldtype(T, i)
-          if serialize_with_params(U)
-            save_type_params(s, value)
-          else
-            save_object(s, encode_type(U))
-          end
-        end
-      end
-      save_object(s, keys(obj), :names)
-    end
-  end
+function type_params(obj::T) where T <: NamedTuple
+  return Dict(:tuple_params => type_params.(values(obj)),
+              :names => keys(obj))
 end
+
+#function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
+#  save_data_dict(s) do
+#    save_object(s, encode_type(NamedTuple), :name)
+#    save_data_dict(s, :params) do
+#      save_data_array(s, :tuple_params) do
+#        for (i, value) in enumerate(values(obj))
+#          U = fieldtype(T, i)
+#          if serialize_with_params(U)
+#            save_type_params(s, value)
+#          else
+#            save_object(s, encode_type(U))
+#          end
+#        end
+#      end
+#      save_object(s, keys(obj), :names)
+#    end
+#  end
+#end
 
 function save_object(s::SerializerState, obj::NamedTuple)
   save_object(s, values(obj))
