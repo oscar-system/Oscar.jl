@@ -706,15 +706,6 @@ function Base.deepcopy_internal(r::RootSpaceElem, dict::IdDict)
   return w2
 end
 
-@doc raw"""
-    getindex(r::RootSpaceElem, i::Int) -> QQRingElem
-
-Return the coefficient of the `i`-th simple root in `r`.
-"""
-function Base.getindex(r::RootSpaceElem, i::Int)
-  return coeff(r, i)
-end
-
 function Base.hash(r::RootSpaceElem, h::UInt)
   b = 0xbe7603eb38c985ad % UInt
   h = hash(r.root_system, h)
@@ -726,8 +717,18 @@ function coefficients(r::RootSpaceElem)
   return r.vec
 end
 
+@doc raw"""
+    coeff(r::RootSpaceElem, i::Int) -> QQRingElem
+
+Return the coefficient of the `i`-th simple root in `r`.
+This can be also accessed via `r[i]`.
+"""
 function coeff(r::RootSpaceElem, i::Int)
   return r.vec[i]
+end
+
+function Base.getindex(r::RootSpaceElem, i::Int)
+  return coeff(r, i)
 end
 
 function dot(r1::RootSpaceElem, r2::RootSpaceElem)
@@ -915,15 +916,6 @@ function Base.deepcopy_internal(r::DualRootSpaceElem, dict::IdDict)
   return w2
 end
 
-@doc raw"""
-    getindex(r::DualRootSpaceElem, i::Int) -> QQRingElem
-
-Returns the coefficient of the `i`-th simple root in `r`.
-"""
-function Base.getindex(r::DualRootSpaceElem, i::Int)
-  return coeff(r, i)
-end
-
 function Base.hash(r::DualRootSpaceElem, h::UInt)
   b = 0x721bec0418bdbe0f % UInt
   h = hash(r.root_system, h)
@@ -935,8 +927,18 @@ function coefficients(r::DualRootSpaceElem)
   return r.vec
 end
 
+@doc raw"""
+    coeff(r::DualRootSpaceElem, i::Int) -> QQRingElem
+
+Returns the coefficient of the `i`-th simple coroot in `r`.
+This can be also accessed via `r[i]`.
+"""
 function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
+end
+
+function Base.getindex(r::DualRootSpaceElem, i::Int)
+  return coeff(r, i)
 end
 
 function expressify(r::DualRootSpaceElem; context=nothing)
@@ -1116,15 +1118,6 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
   return w2
 end
 
-@doc raw"""
-    getindex(w::WeightLatticeElem, i::Int) -> ZZRingElem
-
-Return the coefficient of the `i`-th fundamental weight in `w`.
-"""
-function Base.getindex(w::WeightLatticeElem, i::Int)
-  return coeff(w, i)
-end
-
 function Base.hash(w::WeightLatticeElem, h::UInt)
   b = 0x7b2fefadacf46f4e % UInt
   h = hash(w.root_system, h)
@@ -1145,8 +1138,18 @@ function coefficients(w::WeightLatticeElem)
   return w.vec
 end
 
+@doc raw"""
+    coeff(w::WeightLatticeElem, i::Int) -> ZZRingElem
+
+Return the coefficient of the `i`-th fundamental weight in `w`.
+This can be also accessed via `w[i]`.
+"""
 function coeff(w::WeightLatticeElem, i::Int)
   return w.vec[i]
+end
+
+function Base.getindex(w::WeightLatticeElem, i::Int)
+  return coeff(w, i)
 end
 
 @doc raw"""

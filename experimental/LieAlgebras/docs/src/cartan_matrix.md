@@ -7,10 +7,21 @@ DocTestSetup = Oscar.doctestsetup()
 
 ```@docs
 cartan_matrix(::Symbol, ::Int)
+cartan_matrix(::Vector{Tuple{Symbol,Int}})
 cartan_matrix(::Tuple{Symbol,Int}...)
-is_cartan_matrix(::ZZMatrix; generalized::Bool)
-cartan_symmetrizer(::ZZMatrix; check::Bool)
-cartan_bilinear_form(::ZZMatrix; check::Bool)
-cartan_type(::ZZMatrix; check::Bool)
-cartan_type_with_ordering(::ZZMatrix; check::Bool)
+```
+
+```@docs
+is_cartan_matrix(::ZZMatrix)
+cartan_symmetrizer(::ZZMatrix)
+cartan_bilinear_form(::ZZMatrix)
+```
+
+```@docs
+cartan_type(::ZZMatrix)
+cartan_type_with_ordering(::ZZMatrix)
+```
+
+```@docs
+is_cartan_type(::Symbol, ::Int)
 ```
