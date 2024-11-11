@@ -158,6 +158,7 @@ coefficients(::WeightLatticeElem)
 
 ```@docs
 iszero(::WeightLatticeElem)
+is_dominant(::WeightLatticeElem)
 ```
 
 ```@docs
