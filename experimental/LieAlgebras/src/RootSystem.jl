@@ -164,66 +164,6 @@ end
   return diagonal_matrix(ZZ, cartan_symmetrizer(R))
 end
 
-@doc raw"""
-    coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system of `R`.
-This is a more efficient version for `coroots(R)[i]`.
-
-Also see: `coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function coroot(R::RootSystem, i::Int)
-  if i <= n_positive_roots(R)
-    return positive_coroot(R, i)
-  else
-    return negative_coroot(R, i - n_positive_roots(R))
-  end
-end
-
-@doc raw"""
-    coroots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the coroots of `R`, starting with the coroots of positive roots and then the negative roots,
-in the order of `positive_coroots` and `negative_coroots`.
-
-Also see: `coroot`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function coroots(R::RootSystem)
-  return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
-end
-
-function fundamental_weight(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
-end
-
-@doc raw"""
-    fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
-
-Return the fundamental weights corresponding to the `simple_roots` of `R`.
-
-# Examples
-```jldoctest
-julia> fundamental_weights(root_system(:A, 2))
-2-element Vector{WeightLatticeElem}:
- w_1
- w_2
-```
-"""
-function fundamental_weights(R::RootSystem)
-  return [fundamental_weight(R, i) for i in 1:rank(R)]
-end
-
 function Base.hash(R::RootSystem, h::UInt)
   # even though we don't have a == method for RootSystem, we add a hash method
   # to make hashing of RootSpaceElem and WeightLatticeElem more deterministic
@@ -237,90 +177,6 @@ function is_simple(R::RootSystem)
     return length(root_system_type(R)) == 1
   end
   error("Not implemented") # TODO: implement is_simple
-end
-
-@doc raw"""
-    negative_root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th negative root of `R`.
-This is a more efficient version for `negative_roots(R)[i]`.
-
-Also see: `negative_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function negative_root(R::RootSystem, i::Int)
-  return -(R.positive_roots::Vector{RootSpaceElem})[i]
-end
-
-@doc raw"""
-    negative_roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
-
-Also see: `negative_root`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> negative_roots(root_system(:A, 2))
-3-element Vector{RootSpaceElem}:
- -a_1
- -a_2
- -a_1 - a_2
-```
-"""
-function negative_roots(R::RootSystem)
-  return [-r for r in positive_roots(R)]
-end
-
-@doc raw"""
-    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the coroot corresponding to the `i`-th negative root of `R`
-This is a more efficient version for `negative_coroots(R)[i]`.
-
-Also see: `negative_coroots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function negative_coroot(R::RootSystem, i::Int)
-  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
-end
-
-@doc raw"""
-    negative_coroots(R::RootSystem) -> RootSpaceElem
-
-Returns the negative coroots of `R`. The $i$-th element of the returned vector is the negative coroot corresponding to the $i$-th positive coroot.
-
-Also see: `negative_coroot`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-
-# Examples
-```jldoctest
-julia> negative_coroots(root_system(:A, 2))
-3-element Vector{DualRootSpaceElem}:
- -a^v_1
- -a^v_2
- -a^v_1 - a^v_2
-```
-"""
-function negative_coroots(R::RootSystem)
-  return [-r for r in positive_coroots(R)]
 end
 
 @doc raw"""
@@ -354,6 +210,115 @@ Also see: `simple_roots`.
 """
 function number_of_simple_roots(R::RootSystem)
   return rank(R)
+end
+
+@doc raw"""
+    rank(R::RootSystem) -> Int
+
+Return the rank of `R`, i.e. the number of simple roots.
+"""
+function rank(R::RootSystem)
+  return nrows(cartan_matrix(R))
+end
+
+function root_system_type(R::RootSystem)
+  assure_root_system_type(R)
+  return R.type
+end
+
+function root_system_type_with_ordering(R::RootSystem)
+  assure_root_system_type(R)
+  return R.type, R.type_ordering
+end
+
+function has_root_system_type(R::RootSystem)
+  return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function assure_root_system_type(R::RootSystem)
+  has_root_system_type(R) && return nothing
+  @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
+  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
+end
+
+function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
+  return set_root_system_type!(R, type, 1:sum(t[2] for t in type; init=0))
+end
+
+function set_root_system_type!(
+  R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
+)
+  R.type = type
+  R.type_ordering = collect(ordering)
+  return nothing
+end
+
+@doc raw"""
+    weyl_group(R::RootSystem) -> WeylGroup
+
+Return the Weyl group of `R`.
+
+# Examples
+```jldoctest
+julia> weyl_group(root_system([2 -1; -1 2]))
+Weyl group
+  of root system of rank 2
+    of type A2
+
+julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+Weyl group
+  of root system of rank 2
+    of unknown type
+
+julia> weyl_group(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
+Weyl group
+  of root system of rank 3
+    of type C3 (with non-canonical ordering of simple roots)
+```
+"""
+function weyl_group(R::RootSystem)
+  return R.weyl_group::WeylGroup
+end
+
+###############################################################################
+# root constructors
+
+@doc raw"""
+    root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th root of `R`.
+This is a more efficient version for `roots(R)[i]`.
+
+Also see: `roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function root(R::RootSystem, i::Int)
+  if i <= n_positive_roots(R)
+    return positive_root(R, i)
+  else
+    return negative_root(R, i - n_positive_roots(R))
+  end
+end
+
+@doc raw"""
+    roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the roots of `R`, starting with the positive roots and then the negative roots,
+in the order of `positive_roots` and `negative_roots`.
+
+Also see: `root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function roots(R::RootSystem)
+  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
 end
 
 @doc raw"""
@@ -400,6 +365,123 @@ function positive_roots(R::RootSystem)
 end
 
 @doc raw"""
+    negative_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th negative root of `R`.
+This is a more efficient version for `negative_roots(R)[i]`.
+
+Also see: `negative_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function negative_root(R::RootSystem, i::Int)
+  return -(R.positive_roots::Vector{RootSpaceElem})[i]
+end
+
+@doc raw"""
+    negative_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the negative roots of `R`. The $i$-th element of the returned vector is the negative root corresponding to the $i$-th positive root.
+
+Also see: `negative_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ -a_1
+ -a_2
+ -a_1 - a_2
+```
+"""
+function negative_roots(R::RootSystem)
+  return [-r for r in positive_roots(R)]
+end
+
+@doc raw"""
+    simple_root(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th simple root of `R`.
+This is a more efficient version for `simple_roots(R)[i]`.
+
+Also see: `simple_roots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_root(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "Invalid index"
+  return positive_root(R, i)
+end
+
+@doc raw"""
+    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the simple roots of `R`.
+
+Also see: `simple_root`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function simple_roots(R::RootSystem)
+  return positive_roots(R)[1:rank(R)]
+end
+
+###############################################################################
+# coroot constructors
+
+@doc raw"""
+    coroot(R::RootSystem, i::Int) -> RootSpaceElem
+
+Returns the `i`-th coroot of `R`, i.e. the `i`-th root of the dual root system of `R`.
+This is a more efficient version for `coroots(R)[i]`.
+
+Also see: `coroots`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function coroot(R::RootSystem, i::Int)
+  if i <= n_positive_roots(R)
+    return positive_coroot(R, i)
+  else
+    return negative_coroot(R, i - n_positive_roots(R))
+  end
+end
+
+@doc raw"""
+    coroots(R::RootSystem) -> Vector{RootSpaceElem}
+
+Returns the coroots of `R`, starting with the coroots of positive roots and then the negative roots,
+in the order of `positive_coroots` and `negative_coroots`.
+
+Also see: `coroot`.
+
+!!! note
+    This function does not return a copy of the asked for object,
+    but the internal field of the root system.
+    Mutating the returned object will lead to undefined behavior.
+"""
+function coroots(R::RootSystem)
+  return [[r for r in positive_coroots(R)]; [-r for r in positive_coroots(R)]]
+end
+
+@doc raw"""
     positive_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
 Returns the coroot corresponding to the `i`-th positive root of `R`
@@ -442,116 +524,45 @@ function positive_coroots(R::RootSystem)
 end
 
 @doc raw"""
-    rank(R::RootSystem) -> Int
+    negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
-Return the rank of `R`, i.e. the number of simple roots.
-"""
-function rank(R::RootSystem)
-  return nrows(cartan_matrix(R))
-end
+Returns the coroot corresponding to the `i`-th negative root of `R`
+This is a more efficient version for `negative_coroots(R)[i]`.
 
-function root_system_type(R::RootSystem)
-  assure_root_system_type(R)
-  return R.type
-end
-
-function root_system_type_with_ordering(R::RootSystem)
-  assure_root_system_type(R)
-  return R.type, R.type_ordering
-end
-
-function has_root_system_type(R::RootSystem)
-  return isdefined(R, :type) && isdefined(R, :type_ordering)
-end
-
-function assure_root_system_type(R::RootSystem)
-  has_root_system_type(R) && return nothing
-  @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
-  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
-end
-
-function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
-  return set_root_system_type!(R, type, 1:sum(t[2] for t in type; init=0))
-end
-
-function set_root_system_type!(
-  R::RootSystem, type::Vector{Tuple{Symbol,Int}}, ordering::AbstractVector{Int}
-)
-  R.type = type
-  R.type_ordering = collect(ordering)
-  return nothing
-end
-
-@doc raw"""
-    root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th root of `R`.
-This is a more efficient version for `roots(R)[i]`.
-
-Also see: `roots`.
+Also see: `negative_coroots`.
 
 !!! note
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
 """
-function root(R::RootSystem, i::Int)
-  if i <= n_positive_roots(R)
-    return positive_root(R, i)
-  else
-    return negative_root(R, i - n_positive_roots(R))
-  end
+function negative_coroot(R::RootSystem, i::Int)
+  return -(R.positive_coroots::Vector{DualRootSpaceElem})[i]
 end
 
 @doc raw"""
-    roots(R::RootSystem) -> Vector{RootSpaceElem}
+    negative_coroots(R::RootSystem) -> RootSpaceElem
 
-Returns the roots of `R`, starting with the positive roots and then the negative roots,
-in the order of `positive_roots` and `negative_roots`.
+Returns the negative coroots of `R`. The $i$-th element of the returned vector is the negative coroot corresponding to the $i$-th positive coroot.
 
-Also see: `root`.
+Also see: `negative_coroot`.
 
 !!! note
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ -a^v_1
+ -a^v_2
+ -a^v_1 - a^v_2
+```
 """
-function roots(R::RootSystem)
-  return [[r for r in positive_roots(R)]; [-r for r in positive_roots(R)]]
-end
-
-@doc raw"""
-    simple_root(R::RootSystem, i::Int) -> RootSpaceElem
-
-Returns the `i`-th simple root of `R`.
-This is a more efficient version for `simple_roots(R)[i]`.
-
-Also see: `simple_roots`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_root(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "Invalid index"
-  return positive_root(R, i)
-end
-
-@doc raw"""
-    simple_roots(R::RootSystem) -> Vector{RootSpaceElem}
-
-Returns the simple roots of `R`.
-
-Also see: `simple_root`.
-
-!!! note
-    This function does not return a copy of the asked for object,
-    but the internal field of the root system.
-    Mutating the returned object will lead to undefined behavior.
-"""
-function simple_roots(R::RootSystem)
-  return positive_roots(R)[1:rank(R)]
+function negative_coroots(R::RootSystem)
+  return [-r for r in positive_coroots(R)]
 end
 
 @doc raw"""
@@ -588,31 +599,29 @@ function simple_coroots(R::RootSystem)
   return positive_coroots(R)[1:rank(R)]
 end
 
-@doc raw"""
-    weyl_group(R::RootSystem) -> WeylGroup
+###############################################################################
+# weight constructors
 
-Return the Weyl group of `R`.
+function fundamental_weight(R::RootSystem, i::Int)
+  @req 1 <= i <= rank(R) "invalid index"
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
+end
+
+@doc raw"""
+    fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
+
+Return the fundamental weights corresponding to the `simple_roots` of `R`.
 
 # Examples
 ```jldoctest
-julia> weyl_group(root_system([2 -1; -1 2]))
-Weyl group
-  of root system of rank 2
-    of type A2
-
-julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
-Weyl group
-  of root system of rank 2
-    of unknown type
-
-julia> weyl_group(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
-Weyl group
-  of root system of rank 3
-    of type C3 (with non-canonical ordering of simple roots)
+julia> fundamental_weights(root_system(:A, 2))
+2-element Vector{WeightLatticeElem}:
+ w_1
+ w_2
 ```
 """
-function weyl_group(R::RootSystem)
-  return R.weyl_group::WeylGroup
+function fundamental_weights(R::RootSystem)
+  return [fundamental_weight(R, i) for i in 1:rank(R)]
 end
 
 @doc raw"""
