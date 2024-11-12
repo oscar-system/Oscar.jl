@@ -8,7 +8,7 @@
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
     root_system(cartan_matrix::Matrix{<Integer}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
-Construct the root system defined by the given Cartan matrix.
+Construct the root system defined by the given (generalized) Cartan matrix.
 
 If `check=true` the function will verify that `cartan_matrix` is indeed a generalized Cartan matrix.
 Passing `detect_type=false` will skip the detection of the root system type.
