@@ -95,7 +95,14 @@ function get_lattice_points_of_weightspace(
     A[2m + n + j, i] = 1
     b[2m + n + j] = 0
   end
-  sol = Vector{ZZRingElem}.(lattice_points(polyhedron(A, b)))
+  println("Backtrace: ", Base.process_backtrace(Base.backtrace()))
+  println("START polyhedron")
+  p = polyhedron(A, b)
+  println("END polyhedron")
+  println("START lattice_points")
+  lat = lattice_points(p)
+  println("END lattice_points")
+  sol = Vector{ZZRingElem}.(lat)
   return sol
 end
 
