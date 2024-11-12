@@ -147,3 +147,6 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 @deprecate minimal_generating_set(G::GAPGroup) minimal_size_generating_set(G)
 @deprecate has_minimal_generating_set(G::GAPGroup) has_minimal_size_generating_set(G)
 @deprecate set_minimal_generating_set(G::GAPGroup, v) set_minimal_size_generating_set(G, v)
+
+@deprecate acting_domain(C::GroupCoset) acting_group(C)
+@deprecate acting_domain(Omega::GSet) acting_group(Omega)
