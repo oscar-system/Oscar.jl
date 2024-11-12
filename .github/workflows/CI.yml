@@ -31,45 +31,17 @@ jobs:
       fail-fast: false
       matrix:
         julia-version:
-          - '1.6'
           - '1.10'
-          - '1.11-nightly'
-          - 'nightly'
-        group: [ 'short', 'long' ]
+        group: [ 'long' ]
         os:
-          - ubuntu-latest
+          - [macOS, RPTU]
         depwarn: [ '' ]
-        include:
-          # Add a single job per group with deprecation errors on the most recent stable julia version
-          - julia-version: '1.10'
-            group: 'short'
-            os: ubuntu-latest
-            depwarn: 'depwarn=error'
-          - julia-version: '1.10'
-            group: 'long'
-            os: ubuntu-latest
-            depwarn: 'depwarn=error'
-          # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
-          - julia-version: '1.10'
-            group: 'short'
-            os: [macOS, RPTU]  # runs on self-hosted runner
-          - julia-version: '1.10'
-            group: 'long'
-            os: [macOS, RPTU]  # runs on self-hosted runner
-          - julia-version: '1.10'
-            group: 'book'
-            os: ubuntu-latest
-          - julia-version: 'nightly'
-            group: 'book'
-            os: ubuntu-latest
-          # nightly on macos is disabled for now since the macos jobs take too long
-          # with just 5 runners
-          #- julia-version: 'nightly'
-          #  group: 'short'
-          #  os: macOS-latest
-          #- julia-version: 'nightly'
-          #  group: 'long'
-          #  os: macOS-latest
+        counter:
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
 
     steps:
       - uses: actions/checkout@v4

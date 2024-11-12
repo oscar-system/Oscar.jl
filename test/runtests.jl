@@ -93,27 +93,7 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations
 test_large = [
-              "test/Aqua.jl",
-              "experimental/FTheoryTools/test/weierstrass.jl",
-              "test/PolyhedralGeometry/timing.jl",
-              "experimental/GITFans/test/runtests.jl",
-              "test/AlgebraicGeometry/ToricVarieties/toric_schemes.jl",
-              "test/AlgebraicGeometry/Schemes/WeilDivisor.jl",
-              "test/Rings/NumberField.jl",
-              "test/Serialization/PolynomialsSeries.jl",
-              "test/AlgebraicGeometry/Schemes/K3.jl",
-              "test/Groups/forms.jl",
-              "test/Modules/UngradedModules.jl",
-              "test/GAP/oscarinterface.jl",
-              "test/AlgebraicGeometry/Schemes/CoveredProjectiveSchemes.jl",
-              "test/AlgebraicGeometry/Schemes/CoveredScheme.jl",
-              "test/AlgebraicGeometry/Schemes/DerivedPushforward.jl",
-              "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
-              "experimental/QuadFormAndIsom/test/runtests.jl",
-              "experimental/GModule/test/runtests.jl",
-              "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
-              "test/Modules/ModulesGraded.jl",
-              "test/AlgebraicGeometry/Schemes/elliptic_surface.jl",
+              "experimental/BasisLieHighestWeight/test/runtests.jl",
              ]
 test_book = [
              "test/book/test.jl",
@@ -144,10 +124,6 @@ stats = Dict{String,NamedTuple}()
 # this needs to run here to make sure it runs on the main process
 # it is in the ignore list for the other tests
 # try running it first for now
-if numprocs == 1 && (test_subset == "long" || test_subset == "")
-  println("Starting tests for Serialization/IPC.jl")
-  push!(stats, Oscar._timed_include("Serialization/IPC.jl", Main))
-end
 
 # if many workers, distribute tasks across them
 # otherwise, is essentially a serial loop
