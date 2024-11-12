@@ -5,6 +5,9 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Weyl groups
 
+Weyl groups are represented by objects of type `WeylGroup <: Group`, and their elements by `WeylGroupElem <: GroupElement`.
+
+## Constructing Weyl groups
 ```@docs
 weyl_group(::RootSystem)
 weyl_group(::ZZMatrix)
@@ -12,7 +15,12 @@ weyl_group(::Symbol, ::Int)
 weyl_group(::Vector{Tuple{Symbol,Int}})
 ```
 
+## Basic properties
 TODO: add documentation about parent call syntax `W([1,2,2])`
+
+Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
+
+Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
 
 ```@docs
 is_finite(::WeylGroup)
@@ -22,28 +30,22 @@ gen(::WeylGroup, ::Int)
 gens(::WeylGroup)
 number_of_generators(::WeylGroup)
 order(::Type{T}, ::WeylGroup) where {T}
-longest_element(::WeylGroup)
 ```
 
 ```@docs
 root_system(::WeylGroup)
 ```
 
-Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
-
 ```@docs
-length(::WeylGroupElem)
 word(::WeylGroupElem)
+length(::WeylGroupElem)
+longest_element(::WeylGroup)
 ```
 
 ```@docs
 <(::WeylGroupElem, ::WeylGroupElem)
 ```
 
-```@docs
-*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
-*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
-```
 
 ## Conversion to other group types
 
@@ -56,5 +58,17 @@ fp_group(::WeylGroup)
 isomorphism(::Type{FPGroup}, ::WeylGroup)
 ```
 
+
 ## Reduced expressions
 TODO
+
+
+## Action on roots and weights
+
+```@docs
+*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
+*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
+```
+
+
+## Orbits

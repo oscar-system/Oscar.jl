@@ -5,6 +5,16 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Root systems
 
+Root systems in this module are meant to be abstract root systems, i.e. they are represented by a set of roots (vectors in an euclidean space).
+
+The relevant types around root systems are:
+- `RootSystem` for the root system itself,
+- `RootSpaceElem` for elements in the root space, i.e. roots and linear combinations thereof,
+- `DualRootSpaceElem` for elements in the dual root space, i.e. coroots and linear combinations thereof,
+- `WeightLatticeElem` for elements in the weight lattice, i.e. weights and linear combinations thereof.
+
+
+## Constructing root systems
 ```@docs
 root_system(::ZZMatrix)
 root_system(::Symbol, ::Int64)
@@ -28,10 +38,8 @@ root_system_type(::RootSystem)
 root_system_type_with_ordering(::RootSystem)
 ```
 
-```@docs
-fundamental_weight(::RootSystem, ::Int64)
-fundamental_weights(::RootSystem)
-```
+
+### Root getters
 
 ```@docs
 number_of_roots(::RootSystem)
@@ -39,6 +47,7 @@ number_of_positive_roots(::RootSystem)
 number_of_simple_roots(::RootSystem)
 ```
 
+The following functions return roots, see [Root space elements](@ref) for more information.
 ```@docs
 root(::RootSystem, ::Int64)
 roots(::RootSystem)
@@ -50,6 +59,10 @@ negative_root(::RootSystem, ::Int64)
 negative_roots(::RootSystem)
 ```
 
+
+### Coroot getters
+
+The following functions return coroots, see [Dual root space elements](@ref) for more information.
 ```@docs
 coroot(::RootSystem, ::Int64)
 coroots(::RootSystem)
@@ -59,6 +72,15 @@ positive_coroot(::RootSystem, ::Int64)
 positive_coroots(::RootSystem)
 negative_coroot(::RootSystem, ::Int64)
 negative_coroots(::RootSystem)
+```
+
+
+### Weight getters
+
+The following functions return weights, see [Weight lattice elements](@ref) for more information.
+```@docs
+fundamental_weight(::RootSystem, ::Int64)
+fundamental_weights(::RootSystem)
 ```
 
 
@@ -127,15 +149,16 @@ iszero(::DualRootSpaceElem)
 ```
 
 ```@docs
-is_coroot(::RootSpaceElem)
-is_coroot_with_index(::RootSpaceElem)
-is_simple_coroot(::RootSpaceElem)
-is_simple_coroot_with_index(::RootSpaceElem)
-is_positive_coroot(::RootSpaceElem)
-is_positive_coroot_with_index(::RootSpaceElem)
-is_negative_coroot(::RootSpaceElem)
-is_negative_coroot_with_index(::RootSpaceElem)
+is_coroot(::DualRootSpaceElem)
+is_coroot_with_index(::DualRootSpaceElem)
+is_simple_coroot(::DualRootSpaceElem)
+is_simple_coroot_with_index(::DualRootSpaceElem)
+is_positive_coroot(::DualRootSpaceElem)
+is_positive_coroot_with_index(::DualRootSpaceElem)
+is_negative_coroot(::DualRootSpaceElem)
+is_negative_coroot_with_index(::DualRootSpaceElem)
 ```
+
 
 ## Weight lattice elements
 

@@ -13,8 +13,6 @@ and `rk` is the rank of the associated the root system.
 
 The input must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
 
-The convention is $(a_{ij}) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
-
 # Examples
 ```jldoctest
 julia> cartan_matrix(:B, 2)
