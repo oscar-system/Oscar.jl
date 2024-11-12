@@ -23,8 +23,8 @@ root_system(::Vector{Tuple{Symbol, Int64}})
 
 ```@docs
 cartan_matrix(::RootSystem)
-weyl_group(::RootSystem)
 ```
+The Weyl group of the root system can be obtained with the function [`weyl_group(::RootSystem)`](@ref).
 
 ```@docs
 is_simple(::RootSystem)

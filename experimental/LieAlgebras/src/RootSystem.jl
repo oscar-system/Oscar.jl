@@ -237,16 +237,54 @@ function rank(R::RootSystem)
   return nrows(cartan_matrix(R))
 end
 
+@doc raw"""
+    root_system_type(R::RootSystem) -> Vector{Tuple{Symbol,Int}}
+
+Return the Cartan type of `R`.
+
+If the type is already known, it is returned directly.
+This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
+
+If the type is not known, it is determined and stored in `R`.
+
+See also: [`root_system_type_with_ordering(::RootSystem)`](@ref).
+
+!!! warn
+    This function will error if the type is not known yet and the Weyl group is infinite.
+"""
 function root_system_type(R::RootSystem)
   assure_root_system_type(R)
   return R.type
 end
 
+@doc raw"""
+    root_system_type_with_ordering(R::RootSystem) -> Vector{Tuple{Symbol,Int}}, Vector{Int}
+
+Return the Cartan type of `R`, together with the ordering of the simple roots.
+
+If the type is already known, it is returned directly.
+This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
+
+If the type is not known, it is determined and stored in `R`.
+
+See also: [`root_system_type(::RootSystem)`](@ref).
+
+!!! warn
+    This function will error if the type is not known yet and the Weyl group is infinite.
+"""
 function root_system_type_with_ordering(R::RootSystem)
   assure_root_system_type(R)
   return R.type, R.type_ordering
 end
 
+@doc raw"""
+    has_root_system_type(R::RootSystem) -> Bool
+
+Check if the root system `R` already knows its Cartan type.
+
+The type can then be queried with [`root_system_type(::RootSystem)`](@ref)
+and [`root_system_type_with_ordering(::RootSystem)`](@ref).
+"""
 function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
 end
