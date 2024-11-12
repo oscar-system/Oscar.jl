@@ -724,7 +724,7 @@ end
 @doc raw"""
     RootSpaceElem(R::RootSystem, vec::Vector{<:RationalUnion}) -> RootSpaceElem
 
-Construct a root space element in the root system `R` with the given coefficients.
+Construct a root space element in the root system `R` with the given coefficients w.r.t. the simple roots of `R`.
 """
 function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
@@ -1062,7 +1062,7 @@ end
 @doc raw"""
     DualRootSpaceElem(R::RootSystem, vec::Vector{<:RationalUnion}) -> DualRootSpaceElem
 
-Construct a dual root space element in the root system `R` with the given coefficients.
+Construct a dual root space element in the root system `R` with the given coefficients w.r.t. the simple coroots of `R`.
 """
 function DualRootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return DualRootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
@@ -1355,7 +1355,7 @@ end
 @doc raw"""
     WeightLatticeElem(R::RootSystem, vec::Vector{<:IntegerUnion}) -> WeightLatticeElem
 
-Construct a weight lattice element in the root system `R` with the given coefficients.
+Construct a weight lattice element in the root system `R` with the given coefficients w.r.t. the fundamental weights of `R`.
 """
 function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))

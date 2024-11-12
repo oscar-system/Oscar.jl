@@ -101,6 +101,7 @@ weyl_vector(::RootSystem)
 
 ```@docs
 RootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
+RootSpaceElem(::RootSystem, ::QQMatrix)
 RootSpaceElem(::WeightLatticeElem)
 zero(::Type{RootSpaceElem}, ::RootSystem)
 ```
@@ -144,6 +145,7 @@ reflect!(::RootSpaceElem, ::Int)
 
 ```@docs
 DualRootSpaceElem(::RootSystem, ::Vector{<:RationalUnion})
+DualRootSpaceElem(::RootSystem, ::QQMatrix)
 zero(::Type{DualRootSpaceElem}, ::RootSystem)
 ```
 
@@ -180,6 +182,7 @@ is_negative_coroot_with_index(::DualRootSpaceElem)
 
 ```@docs
 WeightLatticeElem(::RootSystem, ::Vector{<:IntegerUnion})
+WeightLatticeElem(::RootSystem, ::ZZMatrix)
 WeightLatticeElem(::RootSpaceElem)
 zero(::Type{WeightLatticeElem}, ::RootSystem)
 ```
