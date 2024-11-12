@@ -28,9 +28,19 @@ function Base.show(io::IO, mime::MIME"text/plain", L::AbstractLieAlgebra)
   @show_special(io, mime, L)
   io = pretty(io)
   println(io, "Abstract Lie algebra")
-  println(io, Indent(), "of dimension $(dim(L))", Dedent())
-  print(io, "over ")
-  print(io, Lowercase(), coefficient_ring(L))
+  if has_root_system(L)
+    rs = root_system(L)
+    if has_root_system_type(rs)
+      type, ord = root_system_type_with_ordering(rs)
+      print(io, Indent(), "of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+      println(io, Dedent())
+    end
+  end
+  println(io, Indent(), "of dimension ", dim(L), Dedent())
+  print(io, "over ", Lowercase(), coefficient_ring(L))
 end
 
 function Base.show(io::IO, L::AbstractLieAlgebra)
@@ -40,8 +50,18 @@ function Base.show(io::IO, L::AbstractLieAlgebra)
     print(io, "Abstract Lie algebra")
   else
     io = pretty(io)
-    print(io, "Abstract Lie algebra over ", Lowercase())
-    print(terse(io), coefficient_ring(L))
+    print(io, "Abstract Lie algebra")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, " of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+      end
+    end
+    print(terse(io), " over ", Lowercase(), coefficient_ring(L))
   end
 end
 
@@ -256,6 +276,15 @@ via the kwarg `extraspecial_pair_signs::Vector{Bool}` to specify the concrete Li
 If $(\alpha,\beta)$ is the extraspecial pair for the non-simple root `root(rs, i)`,
 then $\varepsilon_{\alpha,\beta} = 1$ iff `extraspecial_pair_signs[i - n_simple_roots(rs)] = true`.
 For the used notation and the definition of extraspecial pairs, see [CMT04](@cite).
+
+# Examples
+```jldoctest
+julia> L = lie_algebra(QQ, root_system(:B, 4))
+Abstract Lie algebra
+  of type B4
+  of dimension 36
+over rational field
+```
 """
 function lie_algebra(
   R::Field,
@@ -426,6 +455,15 @@ end
 Construct a simple Lie algebra over the field `R` with Dynkin type given by `fam` and `rk`.
 See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
 The internally used basis of this Lie algebra is the Chevalley basis.
+
+# Examples
+```jldoctest
+julia> L = lie_algebra(QQ, :C, 4)
+Abstract Lie algebra
+  of type C4
+  of dimension 36
+over rational field
+```
 """
 function lie_algebra(R::Field, S::Symbol, n::Int)
   rs = root_system(S, n)

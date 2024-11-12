@@ -2383,7 +2383,15 @@ julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3]);
 julia> cm_regularity(I)
 6
 
-julia> minimal_betti_table(I);
+julia> minimal_betti_table(I)
+degree: 0  1
+------------
+     3: 1  -
+     4: 1  -
+     5: -  -
+     6: -  1
+------------
+ total: 2  1
 ```
 """
 function cm_regularity(I::MPolyIdeal)

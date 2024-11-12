@@ -288,9 +288,9 @@ include(
     @test ngens(weyl_group(:F, 4)) == 4
     @test ngens(weyl_group(:G, 2)) == 2
 
-    @test ngens(weyl_group((:A, 2), (:B, 4))) == 6
-    @test ngens(weyl_group((:C, 3), (:E, 7))) == 10
-    @test ngens(weyl_group((:F, 4), (:G, 2))) == 6
+    @test ngens(weyl_group((:A, 2), (:B, 4))) == 2 + 4
+    @test ngens(weyl_group((:C, 3), (:E, 7))) == 3 + 7
+    @test ngens(weyl_group((:F, 4), (:G, 2))) == 4 + 2
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
@@ -347,18 +347,28 @@ include(
     @test w^-4 == inv(w) * inv(w) * inv(w) * inv(w)
   end
 
-  @testset "Base.:(*)(x::WeylGroupElem, w::RootSpaceElem)" begin
+  @testset "action on RootSpaceElem" begin
     let R = root_system(:A, 2)
       W = weyl_group(R)
 
       a = positive_root(R, n_positive_roots(R)) # highest root
       @test one(W) * a == a
+      @test a * one(W) == a
       @test W([1]) * a == simple_root(R, 2)
+      @test a * W([1]) == simple_root(R, 2)
       @test W([2]) * a == simple_root(R, 1)
+      @test a * W([2]) == simple_root(R, 1)
       @test longest_element(W) * a == -a
+      @test a * longest_element(W) == -a
+      @test W([1, 2]) * a == -simple_root(R, 1)
+      @test a * W([1, 2]) == -simple_root(R, 2)
+      @test W([1, 2]) * a != a * W([1, 2])
 
       a_copy = deepcopy(a)
       b = W([1]) * a
+      @test a != b
+      @test a == a_copy
+      b = a * W([1])
       @test a != b
       @test a == a_copy
       b = reflect(a, 1)
@@ -371,24 +381,42 @@ include(
 
       a = positive_root(R, n_positive_roots(R)) # highest (long) root
       @test one(W) * a == a
+      @test a * one(W) == a
       @test W([1]) * a == a
+      @test a * W([1]) == a
       @test W([2]) * a == simple_root(R, 1)
+      @test a * W([2]) == simple_root(R, 1)
       @test longest_element(W) * a == -a
+      @test a * longest_element(W) == -a
+      @test W([1, 2]) * a == -simple_root(R, 1)
+      @test a * W([1, 2]) == simple_root(R, 1)
+      @test W([1, 2]) * a != a * W([1, 2])
 
       a = simple_root(R, 1)
       @test one(W) * a == a
+      @test a * one(W) == a
       @test W([1]) * a == -a
+      @test a * W([1]) == -a
       @test W([2]) * a == positive_root(R, n_positive_roots(R))
+      @test a * W([2]) == positive_root(R, n_positive_roots(R))
       @test longest_element(W) * a == -a
+      @test a * longest_element(W) == -a
+      @test W([1, 2]) * a == positive_root(R, n_positive_roots(R))
+      @test a * W([1, 2]) == -positive_root(R, n_positive_roots(R))
+      @test W([1, 2]) * a != a * W([1, 2])
     end
   end
 
-  @testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
+  @testset "action on WeightLatticeElem" begin
     R = root_system(:A, 2)
     W = weyl_group(R)
 
     rho = weyl_vector(R)
     @test longest_element(W) * rho == -rho
+    @test rho * longest_element(W) == -rho
+
+    x = W([1, 2])
+    @test x * rho != rho * x
   end
 
   @testset "parent(::WeylGroupElem)" begin
