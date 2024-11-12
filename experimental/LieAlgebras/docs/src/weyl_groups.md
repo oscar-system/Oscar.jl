@@ -60,7 +60,10 @@ isomorphism(::Type{FPGroup}, ::WeylGroup)
 
 
 ## Reduced expressions
-TODO
+
+```@docs
+reduced_expressions(::WeylGroupElem)
+```
 
 
 ## Action on roots and weights

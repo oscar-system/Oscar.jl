@@ -480,7 +480,34 @@ function parent_type(::Type{WeylGroupElem})
   return WeylGroup
 end
 
-# rename to reduced decompositions ?
+@doc raw"""
+    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false) -> ReducedExpressionIterator
+
+Return an iterator over all reduced expressions of `x`.
+
+If `up_to_commutation` is `true`, the iterator will not return an expression that only
+differs from a previous one by a swap of two adjacent commuting simple reflections.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 3);
+
+julia> x = W([1,2,3,1]);
+
+julia> collect(reduced_expressions(x))
+3-element Vector{Vector{UInt8}}:
+ [0x01, 0x02, 0x03, 0x01]
+ [0x01, 0x02, 0x01, 0x03]
+ [0x02, 0x01, 0x02, 0x03]
+
+julia> collect(reduced_expressions(x; up_to_commutation=true))
+2-element Vector{Vector{UInt8}}:
+ [0x01, 0x02, 0x03, 0x01]
+ [0x02, 0x01, 0x02, 0x03]
+```
+The second expression of the first iterator is not contained in the second iterator
+because it only differs from the first expression by a swap of two the two commuting simple reflections `s1` and `s3`.
+"""
 function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
   return ReducedExpressionIterator(x, up_to_commutation)
 end

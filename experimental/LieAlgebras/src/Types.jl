@@ -111,9 +111,15 @@ end
 
 const WeylIteratorNoCopyState = Tuple{WeightLatticeElem,WeylGroupElem}
 
+@doc raw"""
+    ReducedExpressionIterator
+
+Iterator for reduced expressions of a Weyl group element.
+
+See [`reduced_expressions(::WeylGroupElem)`](@ref) for the constructor.
+"""
 struct ReducedExpressionIterator
   el::WeylGroupElem         # the Weyl group element for which we a searching reduced expressions
-  #letters::Vector{UInt8}   # letters are the simple reflections occuring in one (hence any) reduced expression of el
   up_to_commutation::Bool   # if true and say s1 and s3 commute, we only list s3*s1 and not s1*s3
 end
 
