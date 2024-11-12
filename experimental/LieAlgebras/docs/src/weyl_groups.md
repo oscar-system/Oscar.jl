@@ -7,6 +7,13 @@ DocTestSetup = Oscar.doctestsetup()
 
 Weyl groups are represented by objects of type `WeylGroup <: Group`, and their elements by `WeylGroupElem <: GroupElement`.
 
+## Table of contents
+
+```@contents
+Pages = ["weyl_groups.md"]
+Depth = 2:5
+```
+
 ## Constructing Weyl groups
 ```@docs
 weyl_group(::RootSystem)
@@ -16,8 +23,6 @@ weyl_group(::Vector{Tuple{Symbol,Int}})
 ```
 
 ## Basic properties
-TODO: add documentation about parent call syntax `W([1,2,2])`
-
 Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
 
 Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
@@ -36,12 +41,14 @@ order(::Type{T}, ::WeylGroup) where {T}
 root_system(::WeylGroup)
 ```
 
+### Words and length
 ```@docs
 word(::WeylGroupElem)
 length(::WeylGroupElem)
 longest_element(::WeylGroup)
 ```
 
+### Bruhat order
 ```@docs
 <(::WeylGroupElem, ::WeylGroupElem)
 ```
@@ -74,4 +81,5 @@ reduced_expressions(::WeylGroupElem)
 ```
 
 
-## Orbits
+### Orbits
+TODO

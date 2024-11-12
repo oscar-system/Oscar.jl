@@ -13,25 +13,40 @@ The relevant types around root systems are:
 - `DualRootSpaceElem` for elements in the dual root space, i.e. coroots and linear combinations thereof,
 - `WeightLatticeElem` for elements in the weight lattice, i.e. weights and linear combinations thereof.
 
+## Table of contents
+
+```@contents
+Pages = ["root_systems.md"]
+Depth = 2:5
+```
 
 ## Constructing root systems
+
 ```@docs
 root_system(::ZZMatrix)
 root_system(::Symbol, ::Int64)
 root_system(::Vector{Tuple{Symbol, Int64}})
 ```
 
-```@docs
-cartan_matrix(::RootSystem)
-```
-The Weyl group of the root system can be obtained with the function [`weyl_group(::RootSystem)`](@ref).
+
+## Properties of root systems
 
 ```@docs
 is_simple(::RootSystem)
 rank(::RootSystem)
-weyl_vector(::RootSystem)
 ```
 
+
+### Cartan matrix and Weyl group
+```@docs
+cartan_matrix(::RootSystem)
+```
+```@docs; canonical=false
+weyl_group(::RootSystem)
+```
+
+
+### Root system type
 ```@docs
 has_root_system_type(::RootSystem)
 root_system_type(::RootSystem)
@@ -40,7 +55,6 @@ root_system_type_with_ordering(::RootSystem)
 
 
 ### Root getters
-
 ```@docs
 number_of_roots(::RootSystem)
 number_of_positive_roots(::RootSystem)
@@ -61,7 +75,6 @@ negative_roots(::RootSystem)
 
 
 ### Coroot getters
-
 The following functions return coroots, see [Dual root space elements](@ref) for more information.
 ```@docs
 coroot(::RootSystem, ::Int64)
@@ -76,11 +89,11 @@ negative_coroots(::RootSystem)
 
 
 ### Weight getters
-
 The following functions return weights, see [Weight lattice elements](@ref) for more information.
 ```@docs
 fundamental_weight(::RootSystem, ::Int64)
 fundamental_weights(::RootSystem)
+weyl_vector(::RootSystem)
 ```
 
 
@@ -108,6 +121,7 @@ height(::RootSpaceElem)
 iszero(::RootSpaceElem)
 ```
 
+### Root testing
 ```@docs
 is_root(::RootSpaceElem)
 is_root_with_index(::RootSpaceElem)
@@ -119,6 +133,7 @@ is_negative_root(::RootSpaceElem)
 is_negative_root_with_index(::RootSpaceElem)
 ```
 
+### Reflections
 ```@docs
 reflect(::RootSpaceElem, ::Int)
 reflect!(::RootSpaceElem, ::Int)
@@ -148,6 +163,7 @@ height(::DualRootSpaceElem)
 iszero(::DualRootSpaceElem)
 ```
 
+### Coroot testing
 ```@docs
 is_coroot(::DualRootSpaceElem)
 is_coroot_with_index(::DualRootSpaceElem)
@@ -184,11 +200,13 @@ iszero(::WeightLatticeElem)
 is_dominant(::WeightLatticeElem)
 ```
 
+### Reflections
 ```@docs
 reflect(::WeightLatticeElem, ::Int)
 reflect!(::WeightLatticeElem, ::Int)
 ```
 
+### Conjugate dominant weight
 ```@docs
 conjugate_dominant_weight(::WeightLatticeElem)
 conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)
