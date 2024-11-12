@@ -147,7 +147,7 @@
         for _ in 1:10
           a = T(R, rand(-10:10, rk))
           b = T(R, rand(-10:10, rk))
-          c = T(R, rand(-10:10, rk))
+          n = rand(-10:10)
 
           test_mutating_op_like_zero(zero, zero!, a)
 
@@ -155,6 +155,16 @@
 
           test_mutating_op_like_add(+, add!, a, b)
           test_mutating_op_like_add(-, sub!, a, b)
+
+          test_mutating_op_like_add(*, mul!, a, n, T)
+          test_mutating_op_like_add(*, mul!, n, a, T)
+          test_mutating_op_like_add(*, mul!, a, ZZ(n), T)
+          test_mutating_op_like_add(*, mul!, ZZ(n), a, T)
+
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, n, T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, n, b, T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, ZZ(n), T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, ZZ(n), b, T)
         end
       end
 

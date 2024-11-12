@@ -801,6 +801,34 @@ function sub!(rr::RootSpaceElem, r1::RootSpaceElem, r2::RootSpaceElem)
   return rr
 end
 
+function mul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function mul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, q, r.vec)
+  return rr
+end
+
+function addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+addmul!(rr::RootSpaceElem, r::RootSpaceElem, q::RationalUnion, t) = addmul!(rr, r, q)
+addmul!(rr::RootSpaceElem, q::RationalUnion, r::RootSpaceElem, t) = addmul!(rr, q, r)
+
 function Base.:(==)(r::RootSpaceElem, r2::RootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
 end
@@ -1128,6 +1156,36 @@ function sub!(rr::DualRootSpaceElem, r1::DualRootSpaceElem, r2::DualRootSpaceEle
   return rr
 end
 
+function mul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function mul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = mul!(rr.vec, q, r.vec)
+  return rr
+end
+
+function addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, r.vec, q)
+  return rr
+end
+
+function addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem)
+  @req root_system(rr) === root_system(r) "parent root system mismatch"
+  rr.vec = addmul!(rr.vec, q, r.vec)
+  return rr
+end
+
+# ignore temp storage
+addmul!(rr::DualRootSpaceElem, r::DualRootSpaceElem, q::RationalUnion, t) =
+  addmul!(rr, r, q)
+addmul!(rr::DualRootSpaceElem, q::RationalUnion, r::DualRootSpaceElem, t) =
+  addmul!(rr, q, r)
+
 function Base.:(==)(r::DualRootSpaceElem, r2::DualRootSpaceElem)
   return r.root_system === r2.root_system && r.vec == r2.vec
 end
@@ -1432,6 +1490,34 @@ function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeEle
   wr.vec = sub!(wr.vec, w1.vec, w2.vec)
   return wr
 end
+
+function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = mul!(wr.vec, w.vec, n)
+  return wr
+end
+
+function mul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = mul!(wr.vec, n, w.vec)
+  return wr
+end
+
+function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = addmul!(wr.vec, w.vec, n)
+  return wr
+end
+
+function addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
+  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  wr.vec = addmul!(wr.vec, n, w.vec)
+  return wr
+end
+
+# ignore temp storage
+addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion, t) = addmul!(wr, w, n)
+addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem, t) = addmul!(wr, n, w)
 
 function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
   return w.root_system === w2.root_system && w.vec == w2.vec
