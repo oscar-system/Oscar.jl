@@ -60,7 +60,7 @@ function weyl_group(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
 end
 
 @doc raw"""
-    (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
+    (W::WeylGroup)(word::Vector{<:Integer}) -> WeylGroupElem
 
 Construct a Weyl group element from the given word.
 

@@ -116,7 +116,6 @@ function Base.show(io::IO, R::RootSystem)
     print(io, "Root system")
     if has_root_system_type(R) &&
       ((type, ord) = root_system_type_with_ordering(R); !isempty(type))
-      type, ord = root_system_type_with_ordering(R)
       print(io, " of type ", _root_system_type_string(type))
       if !issorted(ord)
         print(io, " (non-canonical ordering)")
@@ -255,7 +254,7 @@ end
 function assure_root_system_type(R::RootSystem)
   has_root_system_type(R) && return nothing
   @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
-  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
+  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R); check=false)...)
 end
 
 function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
