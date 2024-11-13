@@ -2573,10 +2573,15 @@ end
   error("Not implemented")
 end
 
-@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
   P = prime_ideal(inverted_set(R))
   I = saturated_ideal(modulus(R))
   return dim(I) - dim(P)
+end
+
+@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
+  I = saturated_ideal(modulus(R))
+  return dim(I)
 end
 
 @attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
