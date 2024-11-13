@@ -618,6 +618,10 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export get_conjugate
+export get_power
+export get_relative_order
+export get_relative_orders
 export getindex_safe
 export girth
 export gkz_vector
@@ -1054,7 +1058,8 @@ export min_weights
 export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
-export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
+export minimal_generating_set
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes

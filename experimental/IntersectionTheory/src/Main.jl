@@ -342,15 +342,15 @@ end
 # AbstractVarietyMap
 #
 @doc raw"""
-    hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+    map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
 
 Return an abstract variety map `X` $\rightarrow$ `Y` by specifying the pullbacks of
 the generators of the Chow ring of `Y`. 
 
 !!! note
-    The corresponding pushforward can be automatically computed in certain cases.
+    The corresponding pushforward will be automatically computed in certain cases.
 
-In case of an inclusion $i:X\hookrightarrow Y$ where the class of `X` is not
+In the case of an inclusion `X` $\hookrightarrow$ `Y` where the class of `X` is not
 present in the Chow ring of `Y`, use the argument `inclusion = true`. Then,
 a copy of `Y` will be created, with extra classes added so that one can
 pushforward all classes on `X`.
@@ -361,20 +361,29 @@ pushforward all classes on `X`.
 julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
 AbstractVariety of dim 4
 
-julia> P8 = abstract_projective_space(8)
-AbstractVariety of dim 8
-
 julia> k, l = gens(P2xP2)
 2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
  k
  l
 
-julia> Se = hom(P2xP2, P8, [k+l]) # Segre embedding
-AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
-```
+julia> P8 = abstract_projective_space(8)
+AbstractVariety of dim 8
 
+julia> h = gens(P8)[1]
+h
+
+julia> Se = map(P2xP2, P8, [k+l]) # Segre embedding
+AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
+
+julia> pullback(Se, h)
+k + l
+
+julia> pushforward(Se, k+l)
+6*h^5
+
+```
 """
-function hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+function map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
   AbstractVarietyMap(X, Y, fˣ, fₓ)
   # !inclusion && return AbstractVarietyMap(X, Y, fˣ, fₓ)
   # _inclusion(AbstractVarietyMap(X, Y, fˣ), symbol=symbol)
@@ -398,7 +407,7 @@ AbstractVariety of dim 5
 julia> h = gens(P2)[1]
 h
 
-julia> i = hom(P2, P5, [2*h])
+julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
 julia> dim(i)
@@ -425,13 +434,13 @@ AbstractBundle of rank 2 on AbstractVariety of dim 2
 julia> PT = abstract_projective_bundle(T)
 AbstractVariety of dim 3
 
-julia> pi = structure_map(PT)
+julia> pr = structure_map(PT)
 AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
 
-julia> PBT = pullback(pi, T)
+julia> PBT = pullback(pr, T)
 AbstractBundle of rank 2 on AbstractVariety of dim 3
 
-julia> PBT*OO(PT, 1) - OO(PT) == tangent_bundle(pi) # relative Euler sequence
+julia> PBT*OO(PT, 1) - OO(PT) == tangent_bundle(pr) # relative Euler sequence
 true
 
 ```
@@ -469,11 +478,11 @@ AbstractVariety of dim 5
 julia> h = gens(P2)[1]
 h
 
+julia> i = map(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
 julia> H = gens(P5)[1]
 H
-
-julia> i = hom(P2, P5, [2*h])
-AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
 julia> pullback(i, H)
 2*h
@@ -486,6 +495,29 @@ pullback(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pullback(x)
     pullback(f::AbstractVarietyMap, F::AbstractBundle)
 
 Return the pullback of `F` via `f`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P5 = abstract_projective_space(5, symbol = "H")
+AbstractVariety of dim 5
+
+julia> h = gens(P2)[1]
+h
+
+julia> i = map(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
+julia> E = pullback(i, OO(P2,1))
+AbstractBundle of rank 1 on AbstractVariety of dim 2
+
+julia> total_chern_class(E)
+2*h + 1
+
+```
 """
 pullback(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.domain, f.pullback(chern_character(F)))
 
@@ -506,7 +538,7 @@ AbstractVariety of dim 5
 julia> h = gens(P2)[1]
 h
 
-julia> i = hom(P2, P5, [2*h])
+julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
 julia> pushforward(i, h)
@@ -519,10 +551,38 @@ pushforward(f::AbstractVarietyMap, x::MPolyDecRingOrQuoElem) = f.pushforward(x)
     pushforward(f::AbstractVarietyMap, F::AbstractBundle)
 
 Return the pushforward of `F` via `f`, that is, return the alternating sum of all direct images of `F` via `f`.
+
+# Examples
+
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> P5 = abstract_projective_space(5, symbol = "H")
+AbstractVariety of dim 5
+
+julia> h = gens(P2)[1]
+h
+
+julia> i = map(P2, P5, [2*h])
+AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
+
+julia> E = pushforward(i, OO(P2,1))
+AbstractBundle of rank 0 on AbstractVariety of dim 5
+
+julia> total_chern_class(E)
+168*H^5 + 42*H^4 + 8*H^3 + 1
+
+```
 """
 pushforward(f::AbstractVarietyMap, F::AbstractBundle) = AbstractBundle(f.codomain, f.pushforward(chern_character(F) * todd_class(f))) # Grothendieck-Hirzebruch-Riemann-Roch
 
-function identity_hom(X::V) where V <: AbstractVarietyT
+@doc raw"""
+    identity_map(X::AbstractVariety)
+
+Return the identity map on `X`.
+"""
+function identity_map(X::AbstractVariety)
   AbstractVarietyMap(X, X, gens(X.ring), map_from_func(identity, X.ring, X.ring))
 end
 
@@ -1174,8 +1234,8 @@ julia> hilbert_polynomial(P2)
 hilbert_polynomial(X::AbstractVariety) = hilbert_polynomial(trivial_line_bundle(X))
 
 # find canonically defined morphism from X to Y
-function _hom(X::AbstractVariety, Y::AbstractVariety)
-  X == Y && return identity_hom(X)
+function _map(X::AbstractVariety, Y::AbstractVariety)
+  X == Y && return identity_map(X)
   # first handle the case where X is a (fibered) product
   projs = get_attribute(X, :projections)
   if projs !== nothing
@@ -1196,14 +1256,14 @@ end
 
 # morphisms for points are convenient, but are not desired when doing coercion
 @doc raw"""
-    hom(X::AbstractVariety, Y::AbstractVariety)
+    map(X::AbstractVariety, Y::AbstractVariety)
 
-Return a canonically defined morphism from `X` to `Y`.
+Return a canonically defined map from `X` to `Y`.
 """
-function hom(X::AbstractVariety, Y::AbstractVariety)
-  get_attribute(Y, :point) !== nothing && return hom(X, Y, [X(0)]) # Y is a point
-  get_attribute(X, :point) !== nothing && return hom(X, Y, repeat([X(0)], length(gens(Y.ring)))) # X is a point
-  _hom(X, Y)
+function map(X::AbstractVariety, Y::AbstractVariety)
+  get_attribute(Y, :point) !== nothing && return map(X, Y, [X(0)]) # Y is a point
+  get_attribute(X, :point) !== nothing && return map(X, Y, repeat([X(0)], length(gens(Y.ring)))) # X is a point
+  _map(X, Y)
 end
 
 # product abstract_variety
@@ -1281,7 +1341,7 @@ inclusion of the graph into the product.
 """
 function graph(f::AbstractVarietyMap)
   X, Y = f.domain, f.codomain
-  hom(X, X * Y, vcat(gens(X), f.pullback.image))
+  map(X, X * Y, vcat(gens(X), f.pullback.image))
 end
 
 ###############################################################################
@@ -1391,10 +1451,10 @@ function _coerce(F::AbstractBundle, G::AbstractBundle)
   X, Y = F.parent, G.parent
   X == Y && return F, G
   try
-    return F, pullback(_hom(X, Y), G)
+    return F, pullback(_map(X, Y), G)
   catch
     try
-      return pullback(_hom(Y, X), F), G
+      return pullback(_map(Y, X), F), G
     catch
       error("the sheaves are not on compatible varieties")
     end
@@ -2049,7 +2109,7 @@ function degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::B
   Gr = (m-k == 1) ? abstract_projective_bundle(F) : abstract_flag_bundle(F, m-k)
   S = Gr.bundles[1]
   D = zero_locus_section(dual(S) * G)
-  D.struct_map = hom(D, F.parent) # skip the flag abstract_variety
+  D.struct_map = map(D, F.parent) # skip the flag abstract_variety
   if isdefined(F.parent, :O1)
     D.O1 = pullback(D.struct_map, F.parent.O1)
   end
@@ -2147,7 +2207,7 @@ function abstract_projective_space(n::Int; base::Ring=QQ, symbol::String="h")
   S = AbstractBundle(P, 1, 1-h)
   Q = trivial_line_bundle(P)*(n+1) - S
   P.bundles = [S, Q]
-  P.struct_map = hom(P, abstract_point(base=base), [P(1)])
+  P.struct_map = map(P, abstract_point(base=base), [P(1)])
   set_attribute!(P, :description => "Projective space of dim $n")
   set_attribute!(P, :grassmannian => :absolute)
   set_attribute!(P, :alg => true)
@@ -2345,7 +2405,7 @@ function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String =
   Gr.point = Gr((-1)^d*c[end]^(n-k))
   Gr.T = dual(S) * Q
   Gr.bundles = [S, Q]
-  Gr.struct_map = hom(Gr, abstract_point(base=base), [Gr(1)])
+  Gr.struct_map = map(Gr, abstract_point(base=base), [Gr(1)])
   set_attribute!(Gr, :description => "Grassmannian Gr($k, $n)")
   set_attribute!(Gr, :grassmannian => :absolute)
   set_attribute!(Gr, :alg => true)
@@ -2414,7 +2474,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   Fl.O1 = simplify(sum((i-1)*chern_class(Fl.bundles[i], 1) for i in 1:l))
   Fl.point = prod(top_chern_class(E)^dims[i] for (i,E) in enumerate(Fl.bundles[2:end]))
   Fl.T = sum(dual(Fl.bundles[i]) * sum([Fl.bundles[j] for j in i+1:l]) for i in 1:l-1)
-  Fl.struct_map = hom(Fl, abstract_point(base=base), [Fl(1)])
+  Fl.struct_map = map(Fl, abstract_point(base=base), [Fl(1)])
   set_attribute!(Fl, :description => "Flag abstract_variety Flag$(tuple(dims...))")
   if l == 2 set_attribute!(Fl, :grassmannian => :absolute) end
   set_attribute!(Fl, :alg => true)

@@ -54,7 +54,18 @@
   @test ! is_regular(Omega)
   @test ! is_semiregular(Omega)
 
+  # larger examples
+  G = symmetric_group(100)
+  Omega = gset(G)
+  S1, _ = stabilizer(Omega, [1, 2, 3, 4, 5])
+  @test order(S1) == factorial(big(95))
+  S2, _ = stabilizer(Omega, (1, 2, 3, 4, 5))
+  @test S2 == S1
+  S3, _ = stabilizer(Omega, Set([1, 2, 3, 4, 5]))
+  @test order(S3) == order(S1) * factorial(big(5))
+
   # constructions by explicit action functions
+  G = symmetric_group(6)
   omega = [0,1,0,1,0,1]
   Omega = gset(G, permuted, [omega, [1,2,3,4,5,6]])
   @test isa(Omega, GSet)

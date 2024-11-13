@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Abstract Variety Maps
@@ -7,7 +8,11 @@ CurrentModule = Oscar
 ## Constructors
 
 ```@docs
-hom(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+map(X::AbstractVariety, Y::AbstractVariety, fˣ::Vector, fₓ = nothing; inclusion::Bool = false, symbol::String = "x")
+```
+
+```@docs
+identity_map(X::AbstractVariety)
 ```
 
 ## Underlying Data of an Abstract Variety Map
@@ -27,7 +32,7 @@ dim(f::AbstractVarietyMap)
 ```
 
 ```@docs
-pullback(f::AbstractVarietyMap, x::MPolyDecRingElem)
+pullback(f::AbstractVarietyMap, y::MPolyDecRingElem)
 ```
 
 ```@docs

@@ -493,11 +493,25 @@ function stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
 end
 
 # natural stabilizers in permutation groups
-stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, ^)
+# Construct the arguments on the GAP side such that GAP's method selection
+# can choose the special method.
+function stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion
+    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+        GapObj(pnt),
+        GAP.Globals.OnPoints))  # Do not use GAPWrap.OnPoints!
+end
 
-stabilizer(G::PermGroup, pnt::Vector{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_tuples)
+function stabilizer(G::PermGroup, pnt::Union{Vector{T}, Tuple{T, Vararg{T}}}) where T <: Oscar.IntegerUnion
+    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+        GapObj(pnt, recursive = true),
+        GAP.Globals.OnTuples))  # Do not use GAPWrap.OnTuples!
+end
 
-stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerUnion = stabilizer(G, pnt, on_sets)
+function stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerUnion
+    return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
+        GapObj(pnt, recursive = true),
+        GAP.Globals.OnSets))  # Do not use GAPWrap.OnSets!
+end
 
 # natural stabilizers in matrix groups
 stabilizer(G::MatrixGroup{ET,MT}, pnt::AbstractAlgebra.Generic.FreeModuleElem{ET}) where {ET,MT} = stabilizer(G, pnt, *)
