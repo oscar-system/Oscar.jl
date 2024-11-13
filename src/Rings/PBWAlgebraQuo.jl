@@ -88,7 +88,7 @@ function Base.deepcopy_internal(a::PBWAlgQuoElem, dict::IdDict)
 end
 
 function expressify(a::PBWAlgQuoElem; context = nothing)
-  return expressify(a.data; context=context)
+  return expressify(simplify(deepcopy(a)).data; context=context) # simplify only deepcopy to avoid mutating a during printing
 end
 
 @enable_all_show_via_expressify PBWAlgQuoElem

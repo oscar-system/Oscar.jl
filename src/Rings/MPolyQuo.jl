@@ -109,7 +109,7 @@ end
 @enable_all_show_via_expressify MPolyQuoRingElem
 
 function AbstractAlgebra.expressify(a::MPolyQuoRingElem; context = nothing)
-  return expressify(a.f, context = context)
+  return expressify(simplify(deepcopy(a)).f, context = context) # simplify only deepcopy to avoid mutating a during printing
 end
 
 function Base.deepcopy_internal(a::MPolyQuoRingElem, dict::IdDict)
