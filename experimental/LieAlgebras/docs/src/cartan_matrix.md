@@ -1,8 +1,6 @@
 ```@meta
 CurrentModule = Oscar
-DocTestSetup = quote
-using Oscar
-end
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Cartan Matrices
