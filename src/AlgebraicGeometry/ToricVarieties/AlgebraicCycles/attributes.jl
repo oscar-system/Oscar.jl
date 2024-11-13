@@ -141,7 +141,7 @@ julia> ac = rational_equivalence_class(d)
 Rational equivalence class on a normal toric variety represented by 6V(x3)+V(e1)+7V(e2)
 
 julia> ac*ac
-Rational equivalence class on a normal toric variety represented by 34V(x2,x3)
+Rational equivalence class on a normal toric variety represented by 34V(x3 - e1 + e2,x3)
 
 julia> representative(ac*ac)
 34*x2*x3

@@ -26,18 +26,18 @@ with default covering
   described by patches
     1: scheme((x//z), (y//z))
   in the coordinate(s)
-    1: [(x//z), (y//z)]
+    1: [0, 0]
 
 julia> identity_map(Xcov)
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z), (y//z))
+    1a: [0, 0]   scheme((x//z), (y//z))
   to scheme over QQ covered with 1 patch
-    1b: [(x//z), (y//z)]   scheme((x//z), (y//z))
+    1b: [0, 0]   scheme((x//z), (y//z))
 given by the pullback function
   1a -> 1b
-    (x//z) -> 0
-    (y//z) -> 0
+    0 -> 0
+    0 -> 0
 ```
 """
 @attr AbsCoveredSchemeMorphism function identity_map(X::AbsCoveredScheme)

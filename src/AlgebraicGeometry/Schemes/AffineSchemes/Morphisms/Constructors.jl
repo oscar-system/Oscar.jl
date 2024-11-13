@@ -129,10 +129,10 @@ Spectrum
 
 julia> f = inclusion_morphism(Y, X)
 Affine scheme morphism
-  from [x1, x2, x3]  scheme(x1)
+  from [0, x2, x3]   scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> x1
+  x1 -> 0
   x2 -> x2
   x3 -> x3
 
@@ -178,10 +178,10 @@ Spectrum
 
 julia> m1 = inclusion_morphism(Y, X)
 Affine scheme morphism
-  from [x1, x2, x3]  scheme(x1)
+  from [0, x2, x3]   scheme(x1)
   to   [x1, x2, x3]  affine 3-space over QQ
 given by the pullback function
-  x1 -> x1
+  x1 -> 0
   x2 -> x2
   x3 -> x3
 
@@ -196,10 +196,10 @@ given by the pullback function
 
 julia> m3 = identity_map(Y)
 Affine scheme morphism
-  from [x1, x2, x3]  scheme(x1)
-  to   [x1, x2, x3]  scheme(x1)
+  from [0, x2, x3]  scheme(x1)
+  to   [0, x2, x3]  scheme(x1)
 given by the pullback function
-  x1 -> 0
+  0 -> 0
   x2 -> x2
   x3 -> x3
 

@@ -30,7 +30,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> c = cohomology_class(P2, gens(cohomology_ring(P2))[1])
-Cohomology class on a normal toric variety given by x1
+Cohomology class on a normal toric variety given by x3
 ```
 """
 cohomology_class(v::NormalToricVarietyType, p::MPolyQuoRingElem) = CohomologyClass(v, p)

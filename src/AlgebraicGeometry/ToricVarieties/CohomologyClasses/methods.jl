@@ -16,8 +16,8 @@ Normal toric variety
 
 julia> (x1, x2, x3, e1, e2, e3) = gens(cohomology_ring(dP3))
 6-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- x1
- x2
+ x3 - e1 + e3
+ x3 - e1 + e2
  x3
  e1
  e2
@@ -34,8 +34,8 @@ Normal toric variety
 
 julia> (x1, x2, x3, x4) = gens(cohomology_ring(F3))
 4-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- t1
- x1
+ t2
+ -3*t2 + x2
  t2
  x2
 

@@ -31,8 +31,8 @@ Quotient
 
 julia> (x1, x2, x3) = gens(chow_ring(P2))
 3-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
- x1
- x2
+ x3
+ x3
  x3
 
 julia> rational_equivalence_class(P2, x1)
@@ -57,7 +57,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> rational_equivalence_class(P2, [6, 5, 4, 3, 2, 1])
-Rational equivalence class on a normal toric variety represented by 15V(x1,x3)+6V(x3)
+Rational equivalence class on a normal toric variety represented by 15V(x3,x3)+6V(x3)
 ```
 """
 function rational_equivalence_class(v::NormalToricVarietyType, coefficients::Vector{T}) where {T <: IntegerUnion}
@@ -152,12 +152,12 @@ Normal toric variety
 
 julia> (x1, x2, x3) = gens(cohomology_ring(P2))
 3-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
- x1
- x2
+ x3
+ x3
  x3
 
 julia> cc = CohomologyClass(P2, x1+x2)
-Cohomology class on a normal toric variety given by x1 + x2
+Cohomology class on a normal toric variety given by 2*x3
 
 julia> rational_equivalence_class(cc)
 Rational equivalence class on a normal toric variety represented by 2V(x3)

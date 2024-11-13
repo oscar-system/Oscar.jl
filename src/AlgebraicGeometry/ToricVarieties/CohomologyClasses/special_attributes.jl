@@ -126,7 +126,7 @@ julia> chern_class(F3, 0)
 Cohomology class on a normal toric variety given by 1
 
 julia> chern_class(F3, 1, check = false)
-Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
+Cohomology class on a normal toric variety given by -t2 + 2*x2
 
 julia> integrate(chern_class(F3, 2), check = false)
 4
@@ -201,7 +201,7 @@ Normal toric variety
 julia> cs = chern_classes(F3)
 3-element Vector{CohomologyClass}:
  Cohomology class on a normal toric variety given by 1
- Cohomology class on a normal toric variety given by t1 + x1 + t2 + x2
+ Cohomology class on a normal toric variety given by -t2 + 2*x2
  Cohomology class on a normal toric variety given by 4//3*x2^2
 
 julia> integrate(cs[3])

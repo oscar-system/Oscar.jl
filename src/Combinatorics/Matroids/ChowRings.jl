@@ -23,7 +23,7 @@ julia> M = fano_matroid();
 julia> R = chow_ring(M, extended=true);
 
 julia> f = R[22] + R[8] - R[29]
-x_{1,2,3} + h_{1,2,3} - h_{1,2,3,4,5,6,7}
+0
 
 julia> f==0
 true

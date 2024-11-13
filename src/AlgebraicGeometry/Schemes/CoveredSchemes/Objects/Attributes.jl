@@ -241,12 +241,12 @@ with default covering
   described by patches
     1: scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
   in the coordinate(s)
-    1: [(x//z), (y//z)]
+    1: [0, 0]
 
 julia> s
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [0, 0]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
   to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))

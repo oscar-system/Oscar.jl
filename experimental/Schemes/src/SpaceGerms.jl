@@ -1033,11 +1033,11 @@ Spectrum
 
 julia> incSL
 Affine scheme morphism
-  from [x1, x2, x3]  Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
+  from [0, 0, x3]    Spec of localization of quotient of multivariate polynomial ring at complement of maximal ideal
   to   [x1, x2, x3]  Spec of localization of Q at complement of maximal ideal
 given by the pullback function
-  x1 -> x1
-  x2 -> x2
+  x1 -> 0
+  x2 -> 0
   x3 -> x3
 
 ```

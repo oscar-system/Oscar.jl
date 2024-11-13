@@ -231,10 +231,10 @@ Spectrum
 
 julia> inc = ambient_embedding(Y)
 Affine scheme morphism
-  from [x, y]  scheme(x)
+  from [0, y]  scheme(x)
   to   [x, y]  affine 2-space over QQ
 given by the pullback function
-  x -> x
+  x -> 0
   y -> y
 
 julia> inc == inclusion_morphism(Y, X)
@@ -339,7 +339,7 @@ Spectrum
 
 julia> (xY, yY) = coordinates(Y)
 2-element Vector{MPolyQuoRingElem{QQMPolyRingElem}}:
- x
+ 0
  y
 
 julia> parent(xY) == coordinate_ring(Y)
