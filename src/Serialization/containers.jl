@@ -7,21 +7,13 @@ const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
-    return nothing
+    return S, nothing
   end
 
   params = type_params.(obj)
   params_all_equal = all(map(x -> isequal(first(params), x), params))
   @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
-
-  if isnothing(params[1])
-    return T
-  else
-    return Dict(
-      :entry_type => T,
-      :params => params[1]
-    )
-  end
+  return S, params[1]
 end
 
 function save_object(s::SerializerState, x::Vector)
@@ -122,7 +114,7 @@ end
 
 function type_params(obj::T) where T <: Tuple
   n = fieldcount(T)
-  return [
+  return T, [
     isnothing(type_params(obj[i])) ? fieldtype(T, i) : type_params(obj[i])
     for i in 1:n]
 end
@@ -140,16 +132,13 @@ function save_object(s::SerializerState, obj::Tuple)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:Tuple}, params::Vector)
+function load_object(s::DeserializerState, T::Type{<:Tuple}, params::Vector)
   entries = load_array_node(s) do (i, entry)
-    if params[i] isa Type
-      if serialize_with_id(params[i])
+    S = fieldtype(T, i)
+    if serialize_with_id(S)
         return load_ref(s)
-      else
-        return load_object(s, params[i])
-      end
     else
-      return load_object(s, params[i][1], params[i][2])
+      return load_object(s, S, params[i])
     end
   end
   return Tuple(entries)
@@ -157,50 +146,14 @@ end
 
 ################################################################################
 # Saving and loading NamedTuple
-@register_serialization_type NamedTuple uses_params
+@register_serialization_type NamedTuple
 
 function type_params(obj::T) where T <: NamedTuple
-  return Dict(:tuple_params => type_params.(values(obj)),
-              :names => keys(obj))
+  return T, NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
 end
-
-#function save_type_params(s::SerializerState, obj::T) where T <: NamedTuple
-#  save_data_dict(s) do
-#    save_object(s, encode_type(NamedTuple), :name)
-#    save_data_dict(s, :params) do
-#      save_data_array(s, :tuple_params) do
-#        for (i, value) in enumerate(values(obj))
-#          U = fieldtype(T, i)
-#          if serialize_with_params(U)
-#            save_type_params(s, value)
-#          else
-#            save_object(s, encode_type(U))
-#          end
-#        end
-#      end
-#      save_object(s, keys(obj), :names)
-#    end
-#  end
-#end
 
 function save_object(s::SerializerState, obj::NamedTuple)
   save_object(s, values(obj))
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:NamedTuple})
-  loaded_params = Any[]
-  load_array_node(s, :tuple_params) do (_, param)
-    if param isa String
-      push!(loaded_params, decode_type(s))
-    else
-      T = decode_type(s)
-      params = load_params_node(s)
-      push!(loaded_params, (T, params))
-    end
-  end
-  load_node(s, :names) do names
-    return (names, loaded_params)
-  end
 end
 
 function load_object(s::DeserializerState, ::Type{<: NamedTuple}, params::Tuple)

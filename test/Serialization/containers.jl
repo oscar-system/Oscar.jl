@@ -92,7 +92,7 @@
       end
     end
 
-    @test_skip @testset "Testing (de)serialization of Vector{$(T)}" for T in 
+    @testset "Testing (de)serialization of Vector{$(T)}" for T in 
       (
         UInt, UInt128, UInt16, UInt32, UInt64, UInt8,
         Int, Int128, Int16, Int32, Int64, Int8,
@@ -105,7 +105,7 @@
       end
     end
     
-    @test_skip @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
+    @testset "(de)serialization NamedTuple{$(S), $(T)}" for (S, T) in
       (
         (UInt, UInt128), (UInt16, UInt32), (UInt64, UInt8),
         (Int, Int128), (Int16, Int32), (Int64, Int8),

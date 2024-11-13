@@ -5,11 +5,12 @@
 ################################################################################
 # field of rationals (singleton type)
 @register_serialization_type QQField
-type_params(::QQField) = nothing
-type_params(::fpField) = nothing
-type_params(::FpField) = nothing
-type_params(::QQBarField) = nothing
-type_params(::PadicField) = nothing
+# exclude from ring union definition
+type_params(::QQField) = QQField, nothing
+type_params(::fpField) = fpField, nothing
+type_params(::FpField) = FpField, nothing
+type_params(::QQBarField) = QQBarField, nothing
+type_params(::PadicField) = PadicField, nothing
 
 ################################################################################
 # type_params for field extension types
@@ -29,7 +30,7 @@ function load_object(s::DeserializerState, ::Type{fpField})
 end
 
 # elements
-@register_serialization_type fpFieldElem uses_params
+@register_serialization_type fpFieldElem 
 
 function save_object(s::SerializerState, elem::fpFieldElem)
   save_data_basic(s, string(elem))
@@ -56,7 +57,7 @@ function load_object(s::DeserializerState, ::Type{FpField})
 end
 
 # elements
-@register_serialization_type FpFieldElem uses_params
+@register_serialization_type FpFieldElem
 
 function save_object(s::SerializerState, elem::FpFieldElem)
   save_data_basic(s, string(elem))
@@ -71,11 +72,11 @@ end
 ################################################################################
 # SimpleNumField
 
-@register_serialization_type Hecke.RelSimpleNumField uses_id uses_params
-@register_serialization_type AbsSimpleNumField uses_id uses_params
+@register_serialization_type Hecke.RelSimpleNumField uses_id
+@register_serialization_type AbsSimpleNumField uses_id
 const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
-type_params(obj::SimpleNumField) = type_params(defining_polynomial(obj))
+type_params(obj::T) where T <: SimpleNumField = T, type_params(defining_polynomial(obj))
 
 function save_object(s::SerializerState, K::SimpleNumField)
   save_data_dict(s) do
@@ -93,9 +94,9 @@ end
 
 ################################################################################
 # FqNmodfinitefield
-@register_serialization_type fqPolyRepField uses_id uses_params
+@register_serialization_type fqPolyRepField uses_id
 
-type_params(K::fqPolyRepField) = type_params(defining_polynomial(K))
+type_params(K::fqPolyRepField) = fqPolyRepField, type_params(defining_polynomial(K))
 
 function save_object(s::SerializerState, K::fqPolyRepField)
   save_object(s, defining_polynomial(K))
@@ -108,9 +109,9 @@ function load_object(s::DeserializerState, ::Type{<: fqPolyRepField}, params::Po
 end
 
 #elements
-@register_serialization_type fqPolyRepFieldElem uses_params
-@register_serialization_type AbsSimpleNumFieldElem uses_params
-@register_serialization_type Hecke.RelSimpleNumFieldElem uses_params
+@register_serialization_type fqPolyRepFieldElem
+@register_serialization_type AbsSimpleNumFieldElem
+@register_serialization_type Hecke.RelSimpleNumFieldElem
 const SimNumFieldElemTypeUnion = Union{AbsSimpleNumFieldElem, fqPolyRepFieldElem, Hecke.RelSimpleNumFieldElem}
 
 function save_object(s::SerializerState, k::SimNumFieldElemTypeUnion)
@@ -133,12 +134,12 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type FqField uses_id uses_params
-@register_serialization_type FqFieldElem uses_params
+@register_serialization_type FqField uses_id
+@register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
-  absolute_degree(K) == 1 && return nothing
-  return type_params(defining_polynomial(K))
+  absolute_degree(K) == 1 && return FqField, nothing
+  return FqField, type_params(defining_polynomial(K))
 end
 
 function save_object(s::SerializerState, K::FqField)
@@ -187,11 +188,11 @@ end
 ################################################################################
 # Non Simple Extension
 
-@register_serialization_type Hecke.RelNonSimpleNumField uses_id uses_params
-@register_serialization_type AbsNonSimpleNumField uses_id uses_params
+@register_serialization_type Hecke.RelNonSimpleNumField uses_id
+@register_serialization_type AbsNonSimpleNumField uses_id
 const NonSimFieldTypeUnion = Union{AbsNonSimpleNumField, RelNonSimpleNumField}
 
-type_params(K::Union{AbsNonSimpleNumField, RelNonSimpleNumField}) = type_params(defining_polynomials(K)[1])
+type_params(K::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField} = T, type_params(defining_polynomials(K)[1])
 
 function save_object(s::SerializerState, K::NonSimFieldTypeUnion)
   save_data_dict(s) do
@@ -214,8 +215,8 @@ function load_object(s::DeserializerState,
 end
 
 #elements
-@register_serialization_type Hecke.RelNonSimpleNumFieldElem uses_params
-@register_serialization_type AbsNonSimpleNumFieldElem uses_params
+@register_serialization_type Hecke.RelNonSimpleNumFieldElem
+@register_serialization_type AbsNonSimpleNumFieldElem
 
 function save_object(s::SerializerState, k::Union{AbsNonSimpleNumFieldElem, Hecke.RelNonSimpleNumFieldElem})
   polynomial = Oscar.Hecke.data(k)
@@ -240,7 +241,7 @@ end
 ################################################################################
 # FracField
 
-@register_serialization_type FracField uses_id uses_params
+@register_serialization_type FracField uses_id
 
 const FracUnionTypes = Union{MPolyRingElem, PolyRingElem, UniversalPolyRingElem}
 # we use the union to prevent QQField from using these save methods
@@ -255,7 +256,7 @@ load_object(s::DeserializerState, ::Type{<: FracField}, base::Ring) = fraction_f
 
 # elements
 
-@register_serialization_type FracElem{<: FracUnionTypes} "FracElem" uses_params
+@register_serialization_type FracElem{<: FracUnionTypes} "FracElem"
 
 function save_object(s::SerializerState, f::FracElem)
   save_data_array(s) do
@@ -278,7 +279,7 @@ end
 ################################################################################
 # RationalFunctionField
 
-@register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id uses_params
+@register_serialization_type AbstractAlgebra.Generic.RationalFunctionField "RationalFunctionField" uses_id
 
 function save_object(s::SerializerState,
                      RF::AbstractAlgebra.Generic.RationalFunctionField)
@@ -302,7 +303,7 @@ function load_object(s::DeserializerState,
 end
 
 #elements
-@register_serialization_type AbstractAlgebra.Generic.RationalFunctionFieldElem "RationalFunctionFieldElem" uses_params
+@register_serialization_type AbstractAlgebra.Generic.RationalFunctionFieldElem "RationalFunctionFieldElem"
 
 function save_object(s::SerializerState, f::AbstractAlgebra.Generic.RationalFunctionFieldElem)
   save_data_array(s) do
@@ -332,7 +333,7 @@ end
 ################################################################################
 # ArbField
 @register_serialization_type ArbField
-@register_serialization_type ArbFieldElem uses_params
+@register_serialization_type ArbFieldElem
 
 function save_object(s::SerializerState, RR::ArbField)
   save_object(s, precision(RR))
@@ -365,7 +366,7 @@ end
 ################################################################################
 # AcbField
 @register_serialization_type AcbField
-@register_serialization_type AcbFieldElem uses_params
+@register_serialization_type AcbFieldElem
 
 function save_object(s::SerializerState, CC::AcbField)
   save_object(s, precision(CC))
@@ -396,12 +397,12 @@ end
 
 const FieldEmbeddingTypes = Union{Hecke.AbsSimpleNumFieldEmbedding, Hecke.RelSimpleNumFieldEmbedding, Hecke.AbsNonSimpleNumFieldEmbedding, Hecke.RelNonSimpleNumFieldEmbedding}
 
-@register_serialization_type Hecke.AbsNonSimpleNumFieldEmbedding uses_id  uses_params
-@register_serialization_type Hecke.RelNonSimpleNumFieldEmbedding uses_id uses_params
-@register_serialization_type Hecke.AbsSimpleNumFieldEmbedding uses_id uses_params
-@register_serialization_type Hecke.RelSimpleNumFieldEmbedding uses_id uses_params
+@register_serialization_type Hecke.AbsNonSimpleNumFieldEmbedding uses_id 
+@register_serialization_type Hecke.RelNonSimpleNumFieldEmbedding uses_id
+@register_serialization_type Hecke.AbsSimpleNumFieldEmbedding uses_id
+@register_serialization_type Hecke.RelSimpleNumFieldEmbedding uses_id
 
-function type_params(E::FieldEmbeddingTypes)
+function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
   d = Dict(:num_field => type_params(K))
@@ -409,7 +410,7 @@ function type_params(E::FieldEmbeddingTypes)
   if !(base_field(K) isa QQField)
     d[:base_field_emb] = type_params(restrict(E, base_K))
   end
-  return d
+  return T, d
 end
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
@@ -450,9 +451,9 @@ function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, params
   end
 end
 
-@register_serialization_type EmbeddedNumField uses_id uses_params
+@register_serialization_type EmbeddedNumField uses_id
 
-type_params(E::EmbeddedNumField) = Dict(
+type_params(E::EmbeddedNumField) = EmbeddedNumField, Dict(
   :num_field_params => type_params(number_field(E)),
   :embedding_params => type_params(embedding(E))
 )
@@ -474,7 +475,7 @@ function load_object(s::DeserializerState, ::Type{EmbeddedNumField}, params::Dic
   return Hecke.embedded_field(K, e)[1]
 end
 
-@register_serialization_type EmbeddedNumFieldElem uses_params
+@register_serialization_type EmbeddedNumFieldElem
 
 function save_object(s::SerializerState, f::EmbeddedNumFieldElem)
   save_object(s, data(f))
@@ -559,7 +560,7 @@ function load_object(s::DeserializerState, ::Type{PadicField})
 end
 
 #elements
-@register_serialization_type PadicFieldElem uses_params
+@register_serialization_type PadicFieldElem
 
 function save_object(s::SerializerState, obj::PadicFieldElem)
   # currently it seems PadicFieldElems do not store the underlying polynomial

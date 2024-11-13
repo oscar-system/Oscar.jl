@@ -39,11 +39,13 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = parent(x)
-type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
-type_params(::ZZRing) = nothing
-type_params(::T) where T <: ModRingUnion = nothing
-type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
+type_params(x::T) where T <: RingMatElemUnion = T, parent(x)
+type_params(R::T) where T <: RingMatSpaceUnion = T, base_ring(R)
+type_params(x::T) where T <: IdealOrdUnionType = T, base_ring(x)
+# exclude from ring union
+type_params(::ZZRing) = ZZRing, nothing
+type_params(::T) where T <: ModRingUnion = T, nothing
+
 
 ################################################################################
 # ring of integers (singleton type)
@@ -114,8 +116,9 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
-type_params(R::MPolyDecRing) = Dict(:grading_group => type_params(_grading(R)),
-                                    :base_ring => type_params(forget_grading(R)))
+type_params(R::MPolyDecRing) = MPolyDecRing, Dict(
+  :grading_group => type_params(_grading(R)),
+  :base_ring => type_params(forget_grading(R)))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
