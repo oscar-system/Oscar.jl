@@ -126,10 +126,10 @@ end
 
 norm_equation(R::AbsNumFieldOrder, k::Base.Integer; abs::Bool = false) = norm_equation(R, ZZRingElem(k), abs = abs)
 
-function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsSimpleNumFieldOrderElem)
 
   @assert Hecke.is_maximal(R)
-  Ka, mKa, mkK = absolute_field(Hecke.nf(R))
+  Ka, mKa, mkK = collapse_top_layer(Hecke.nf(R))
   Ra = maximal_order(Ka)
   class_group(Ra)
   k = Hecke.nf(parent(a))
@@ -144,9 +144,9 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   q, mms = snf(q)
   mq = mq*inv(mms)
 
-  C = vcat([matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)])
+  C = reduce(vcat, (matrix(ZZ, 1, ngens(q), [valuation(mS(preimage(mq, q[i])), p) for i=1:ngens(q)]) for p = keys(lp)))
   
-  A = vcat([matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)])
+  A = reduce(vcat, (matrix(ZZ, 1, ngens(q), [valuation(norm(mkK, mS(preimage(mq, g))), p) for g in gens(q)]) for p = keys(la)))
   b = matrix(ZZ, length(la), 1, [valuation(a, p) for p = keys(la)])
 
   so = solve_mixed(A, b, C)
@@ -168,9 +168,9 @@ function norm_equation_fac_elem(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,
   return sol
 end
 
-norm_equation(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
+norm_equation(R::Hecke.RelNumFieldOrder{AbsSimpleNumFieldElem,Hecke.AbsSimpleNumFieldOrderFractionalIdeal}, a::AbsSimpleNumFieldOrderElem) = map(x -> R(evaluate(x)), norm_equation_fac_elem(R, a))
 
-function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function is_irreducible(a::AbsSimpleNumFieldOrderElem)
   if iszero(a)
     return false
   end
@@ -206,11 +206,11 @@ function is_irreducible(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
 end
 
 @doc raw"""
-    irreducibles(S::Vector{AbsNumFieldOrderIdeal{AbsSimpleNumField,AbsSimpleNumFieldElem}}) -> Vector{AbsNumFieldOrderElem}
+    irreducibles(S::Vector{AbsSimpleNumFieldOrderIdeal}) -> Vector{AbsNumFieldOrderElem}
 
 Return all irreducibles whose support is contained in $S$.
 """
-function irreducibles(S::Vector{AbsNumFieldOrderIdeal{AbsSimpleNumField,AbsSimpleNumFieldElem}})
+function irreducibles(S::Vector{AbsSimpleNumFieldOrderIdeal})
   if length(S) == 0
     return []
   end
@@ -268,11 +268,11 @@ end
 =#
 
 @doc raw"""
-    factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}) -> Vector{Fac{OrdElem}}
+    factorizations(a::AbsSimpleNumFieldOrderElem) -> Vector{Fac{OrdElem}}
 
 Return all factorizations of $a$ into irreducibles.
 """
-function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem})
+function factorizations(a::AbsSimpleNumFieldOrderElem)
   O = parent(a)
   S = collect(keys(factor(a*O)))
   if length(S) == 0
@@ -302,7 +302,7 @@ function factorizations(a::AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFi
     end
   end
   sol = solve_non_negative(A, b)
-  res = Fac{AbsNumFieldOrderElem{AbsSimpleNumField,AbsSimpleNumFieldElem}}[]
+  res = Fac{AbsSimpleNumFieldOrderElem}[]
   for j=1:nrows(sol)
     x = Dict{typeof(a), Int}()
     y = a
