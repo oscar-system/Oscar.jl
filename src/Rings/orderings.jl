@@ -2154,8 +2154,8 @@ function _try_singular_easy(Q::order_conversion_ctx, o::Orderings.ModOrdering)
   Q.has_c_or_C && return (false, Q.def)
   Q.has_c_or_C = true
   o.gens == 1:length(o.gens) || return (false, Q.def)
-  return o.ord == :lex    ? (true, Singular.ordering_C(length(o.gens))) :
-         o.ord == :invlex ? (true, Singular.ordering_c(length(o.gens))) :
+  return o.ord == :lex    ? (true, Singular.ordering_c(length(o.gens))) :
+         o.ord == :invlex ? (true, Singular.ordering_C(length(o.gens))) :
                             (false, Q.def)
 end
 
