@@ -496,7 +496,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # clear the q-th column
     for (i, b) in a_col_del
       #A[i] = A[i] - uinv*b*a_row # original operation, replaced by inplace arithmetic below
-      addmul!(A[i], a_row, -b*uinv)
+      addmul!(A[i], a_row, -uinv*b)
     end
 
     A[p] = sparse_row(R, [(q, u)])
