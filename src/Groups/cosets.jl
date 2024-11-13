@@ -1,6 +1,6 @@
 # T=type of the group, S=type of the element
 @doc raw"""
-    GroupCoset{T<: Group, S <: GAPGroupElem}
+    GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
 
 Type of right and left cosets of subgroups in groups.
 
@@ -21,15 +21,15 @@ and the set $gH = \{ gh; h \in H \}$ is a left coset of $H$ in $G$.
 Two cosets are equal if and only if they are both left or right, respectively,
 and they contain the same elements.
 """
-struct GroupCoset{T<: GAPGroup, S <: GAPGroupElem}
-   G::T                    # big group containing the subgroup and the element
-   H::GAPGroup             # subgroup (may have a different type)
+struct GroupCoset{TG <: GAPGroup, TH <: GAPGroup, S <: GAPGroupElem}
+   G::TG                   # big group containing the subgroup and the element
+   H::TH                   # subgroup (may have a different type)
    repr::S                 # element
    side::Symbol            # says if the coset is left or right
    X::Ref{GapObj}          # GapObj(H*repr)
 
-   function GroupCoset(G::T, H::GAPGroup, representative::S, side::Symbol) where {T<: GAPGroup, S<:GAPGroupElem}
-     return new{T, S}(G, H, representative, side, Ref{GapObj}())
+   function GroupCoset(G::TG, H::TH, representative::S, side::Symbol) where {TG <: GAPGroup, TH <: GAPGroup, S <:GAPGroupElem}
+     return new{TG, TH, S}(G, H, representative, side, Ref{GapObj}())
    end
 end
 
@@ -46,7 +46,7 @@ GAP.@install function GapObj(obj::GroupCoset)
 end
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
-Base.eltype(::Type{GroupCoset{T,S}}) where {T,S} = S
+Base.eltype(::Type{GroupCoset{TG, TH, S}}) where {TG, TH, S} = S
 
 function ==(C1::GroupCoset, C2::GroupCoset)
   H = C1.H
@@ -328,7 +328,7 @@ Right cosets of
   Sym(4)
 
 julia> collect(rc)
-4-element Vector{GroupCoset{PermGroup, PermGroupElem}}:
+4-element Vector{GroupCoset{PermGroup, PermGroup, PermGroupElem}}:
  Right coset of H with representative ()
  Right coset of H with representative (1,4)
  Right coset of H with representative (1,4,2)
@@ -336,7 +336,6 @@ julia> collect(rc)
 ```
 """
 function right_cosets(G::GAPGroup, H::GAPGroup; check::Bool=true)
-#T _check_compatible(G, H) ?
   return GSetBySubgroupTransversal(G, H, :right, check = check)
 end
 
@@ -683,7 +682,6 @@ function order(::Type{T}, C::GroupDoubleCoset) where T <: IntegerUnion
   return T(C.size[])
 end
 
-Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = order(C)
 
 """
     rand(rng::Random.AbstractRNG = Random.GLOBAL_RNG, C::Union{GroupCoset,GroupDoubleCoset})
@@ -797,6 +795,10 @@ true
 right_acting_group(C::GroupDoubleCoset) = C.K
 
 
+############################################################################
+#
+# iteration over cosets
+#
 function Base.in(g::GAPGroupElem, C::GroupCoset)
   if is_right(C)
     return g / representative(C) in acting_group(C)
@@ -811,7 +813,10 @@ function Base.in(g::GAPGroupElem, C::GroupDoubleCoset)
 # (GAP uses `RepresentativesContainedRightCosets`, `CanonicalRightCosetElement`)
 end
 
-Base.IteratorSize(::Type{<:GroupCoset}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{<:GroupCoset{TG, TH, S}}) where {TG, TH, S} = Base.IteratorSize(TH)
+
+# need this function just for the iterator
+Base.length(C::Union{GroupCoset,GroupDoubleCoset}) = order(Int, C)
 
 function Base.iterate(C::GroupCoset)
   return iterate(C, iterate(acting_group(C)))
@@ -829,6 +834,7 @@ function Base.iterate(C::GroupCoset, state)
 end
 
 Base.IteratorSize(::Type{<:GroupDoubleCoset}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{GroupDoubleCoset{PermGroup, PermGroupElem}}) = Base.HasLength()
 
 Base.iterate(G::GroupDoubleCoset) = iterate(G, GAPWrap.Iterator(GapObj(G)))
 
