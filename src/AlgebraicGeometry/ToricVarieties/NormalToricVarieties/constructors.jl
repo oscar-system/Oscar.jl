@@ -187,6 +187,12 @@ function Base.:(==)(tv1::NormalToricVariety, tv2::NormalToricVariety)
   error("Equality of normal toric varieties is computationally very demanding. More details in the documentation.")
 end
 
+function Base.hash(tv::NormalToricVariety, h::UInt)
+  b = 0x3f737124abf342f8 % UInt
+  h = hash(tv.polymakeNTV, h)
+  return xor(h, b)
+end
+
 
 
 ######################
