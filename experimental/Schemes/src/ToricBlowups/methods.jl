@@ -45,11 +45,70 @@ function total_transform(f::AbsBlowupMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
 
+@doc raw"""
+    _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:IntegerUnion})
+
+Given a ray $r$ inside the support of the simplicial fan $Σ$ of a normal toric variety~$X$, not coinciding with any ray in $Σ(1)$, return the unique cone $σ$ in $Σ$ such that $r$ is in the relative interior of $σ$.
+
+# Examples
+```jldoctest
+julia> X = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> r = [1, 1, 0]
+2-element Vector{Int64}:
+ 1
+ 1
+
+julia> Oscar._minimal_supercone(X, r)
+Polyhedral cone in ambient dimension 3
+
+julia> rays(c)
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [1, 0, 0]
+ [0, 1, 0]
+```
+"""
+function _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion, QQFieldElem}})
+  @assert is_orbifold(X) "Only implemented when fan is simplicial"
+  contained_in_support_of_fan = false
+  mcone = maximal_cones(X)[1]  # initialize `mcone`, fixing its type
+
+  mcones = maximal_cones(X)
+  while true
+    contained_in_subcone = false
+    for c in mcones
+      if r in c
+        contained_in_support_of_fan = true
+        contained_in_subcone = true
+        mcone = c
+      end
+    end
+    @assert contained_in_support_of_fan "Ray not contained in the support of the fan"
+    !contained_in_subcone && return mcone
+    n_rays(mcone) == 1 && return mcone
+
+    # set mcones to be the maximal subcones of mcone
+    mcones = [cone(setdiff(collect(rays(mcone)), [ray])) for ray in rays(mcone)]
+  end
+end
+
 function _cox_ring_homomorphism(f::ToricBlowupMorphism)
+  @assert is_normal(codomain(f))
+  @assert is_orbifold(codomain(f)) "Only implemented when fan is simplicial"
   Y = domain(f)
+  @assert !has_torusfactor(codomain(f)) "Only implemented when there are no torus factors"
+  @assert n_rays(Y) == n_rays(codomain(f)) + 1 "Only implemented when the blowup adds a ray"
   @assert grading_group(cox_ring(Y)) === class_group(Y)
   G = class_group(Y)
   n = number_of_generators(G)
+  new_ray = rays(domain(f))[index_of_new_ray(f)]
+  c = Oscar._minimal_supercone(Y, new_ray)
+  U = affine_normal_toric_variety(c)
+  d = order(class_group(U))
+  # TODO: finish this...
+
+
   new_var = cox_ring(Y)[index_of_new_ray(f)]
   M = generator_degrees(cox_ring(Y))
   @assert M[index_of_new_ray(f)][n] < 0 "Assuming the blowup adds a new column vector to `Oscar.generator_degrees(cox_ring(codomain(f)))`, the entry of that vector corresponding to the new ray should be negative. If not, multiply by -1."
