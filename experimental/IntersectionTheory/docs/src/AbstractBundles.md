@@ -90,7 +90,7 @@ symmetric_power(F::AbstractBundle, k::Int)
 ```
 
 ```@docs
- pullback(f::AbstractVarietyMap, F::AbstractBundle)
+pullback(f::AbstractVarietyMap, F::AbstractBundle)
 ```
 
 ```@docs
