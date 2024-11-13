@@ -6,7 +6,7 @@ import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_pow
 import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
-import ..Oscar: pullback, pushforward, base, OO, product, compose
+import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
 import ..Oscar: trivial_line_bundle
 import ..Oscar: intersection_matrix
 import ..Oscar: chern_class
@@ -41,10 +41,13 @@ export dual_basis
 export euler
 export euler_pairing
 export graph
+export hom
 export hyperplane_class
+export identity_map
 export l_genus
 export linear_subspaces_on_hypersurface
 export line_bundle
+export map
 export OO
 export point_class
 export pontryagin_class
@@ -120,11 +123,14 @@ export dual_basis
 export euler
 export euler_pairing
 export graph
+export hom
 export hyperplane_class
 export intersection_matrix
+export identity_map
 export l_genus
 export linear_subspaces_on_hypersurface
 export line_bundle
+export map
 export OO
 export point_class
 export pontryagin_class

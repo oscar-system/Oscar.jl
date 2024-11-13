@@ -244,7 +244,7 @@ h
 julia> H = gens(P5)[1]
 H
 
-julia> i = hom(P2, P5, [2*h])
+julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
 julia> Bl, E, j = blowup(i)
@@ -437,10 +437,10 @@ function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
   Bl = X
   P = abstract_point(base = X.base)
   for i in 1:n
-    Bl = blowup(hom(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
+    Bl = blowup(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
   end
   set_attribute!(Bl, :description => "Blowup of $X at $n points")
-  Bl.struct_map = hom(Bl, X)
+  Bl.struct_map = map(Bl, X)
   if get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
