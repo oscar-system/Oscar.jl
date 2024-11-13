@@ -188,9 +188,7 @@ function Base.:(==)(tv1::NormalToricVariety, tv2::NormalToricVariety)
 end
 
 function Base.hash(tv::NormalToricVariety, h::UInt)
-  b = 0x3f737124abf342f8 % UInt
-  h = hash(tv.polymakeNTV, h)
-  return xor(h, b)
+  return hash(objectid(tv), h)
 end
 
 
