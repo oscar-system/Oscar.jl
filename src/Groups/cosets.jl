@@ -47,7 +47,7 @@ function ==(C1::GroupCoset, C2::GroupCoset)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
-  side = x.side === :left ? "Left" : "Right"
+  side = is_left(x) ? "Left" : "Right"
   io = pretty(io)
   println(io, "$side coset of ", Lowercase(), x.H)
   print(io, Indent())
@@ -57,7 +57,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::GroupCoset)
 end
 
 function Base.show(io::IO, x::GroupCoset)
-  side = x.side === :left ? "Left" : "Right"
+  side = is_left(x) ? "Left" : "Right"
   if is_terse(io)
     print(io, "$side coset of a group")
   else
@@ -146,7 +146,7 @@ Base.:*(g::GAPGroupElem, H::GAPGroup) = left_coset(H,g)
 
 function Base.:*(c::GroupCoset, y::GAPGroupElem)
    @assert y in c.G "element not in the group"
-   if c.side == :right
+   if is_right(c)
       return right_coset(c.H, representative(c)*y)
    else
       return left_coset(c.H^y, representative(c)*y)
@@ -155,7 +155,7 @@ end
 
 function Base.:*(y::GAPGroupElem, c::GroupCoset)
    @assert y in c.G "element not in the group"
-   if c.side == :left
+   if is_left(c)
       return left_coset(c.H, y*representative(c))
    else
       return right_coset(c.H^(y^-1), y*representative(c))
@@ -163,7 +163,7 @@ function Base.:*(y::GAPGroupElem, c::GroupCoset)
 end
 
 function Base.:*(c::GroupCoset, d::GroupCoset)
-   @req (c.side == :right && d.side == :left) "Wrong input"
+   @req (is_right(c) && is_left(d)) "Wrong input"
    return double_coset(c.H, representative(c)*representative(d), d.H)
 end
 
@@ -325,11 +325,14 @@ end
     SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem}
 
 Type of left/right transversals of subgroups in groups.
-The elements are encoded via a right transversal object in GAP.
-(Note that GAP does not support left transversals.)
 
 Objects of this type are created by [`right_transversal`](@ref) and
 [`left_transversal`](@ref).
+
+# Note for developers
+
+The elements are encoded via a right transversal object in GAP.
+(Note that GAP does not support left transversals.)
 """
 struct SubgroupTransversal{T<: GAPGroup, S<: GAPGroup, E<: GAPGroupElem} <: AbstractVector{E}
    G::T                    # big group containing the subgroup
@@ -341,7 +344,7 @@ end
 GAP.@install GapObj(T::SubgroupTransversal) = T.X
 
 function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
-  side = x.side === :left ? "Left" : "Right"
+  side = is_left(x) ? "Left" : "Right"
   println(io, "$side transversal of length $(length(x)) of")
   io = pretty(io)
   print(io, Indent())
@@ -351,7 +354,7 @@ function Base.show(io::IO, ::MIME"text/plain", x::SubgroupTransversal)
 end
 
 function Base.show(io::IO, x::SubgroupTransversal)
-  side = x.side === :left ? "Left" : "Right"
+  side = is_left(x) ? "Left" : "Right"
   if is_terse(io)
     print(io, "$side transversal of groups")
   else
@@ -361,13 +364,17 @@ function Base.show(io::IO, x::SubgroupTransversal)
   end
 end
 
+is_left(x::SubgroupTransversal) = x.side == :left
+
+is_right(x::SubgroupTransversal) = x.side == :right
+
 Base.hash(x::SubgroupTransversal, h::UInt) = h # FIXME
 
 Base.length(T::SubgroupTransversal) = index(Int, T.G, T.H)
 
 function Base.getindex(T::SubgroupTransversal, i::Int)
   res = group_element(T.G, GapObj(T)[i])
-  if T.side === :left
+  if is_left(T)
     res = inv(res)
   end
   return res
