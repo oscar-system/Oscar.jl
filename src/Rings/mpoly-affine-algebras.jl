@@ -23,6 +23,16 @@ function dim(A::MPolyQuoRing)
   return dim(modulus(A))
 end
 
+function dim(A::zzModRing)
+  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
+  return 0
+end
+
+function dim(A::ZZModRing)
+  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
+  return 0
+end
+
 @doc raw"""
     is_finite_dimensional_vector_space(A::MPolyQuoRing)
 
