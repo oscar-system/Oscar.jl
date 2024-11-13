@@ -93,7 +93,7 @@ function bracket(
     iszero(cxi) && continue
     for (j, cyj) in enumerate(coefficients(y))
       iszero(cyj) && continue
-      Hecke.add_scaled_row!(_struct_consts(L)[i, j], vec, cxi * cyj)
+      vec = addmul!(vec, _struct_consts(L)[i, j], cxi * cyj)
     end
   end
   return L(vec)

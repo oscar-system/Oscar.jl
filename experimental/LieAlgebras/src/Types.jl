@@ -181,13 +181,13 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
         begin
           row = sparse_row(R)
           for (k, k_val) in struct_consts[i, j]
-            Hecke.add_scaled_row!(struct_consts[k, l], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, l])
           end
           for (k, k_val) in struct_consts[j, l]
-            Hecke.add_scaled_row!(struct_consts[k, i], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, i])
           end
           for (k, k_val) in struct_consts[l, i]
-            Hecke.add_scaled_row!(struct_consts[k, j], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, j])
           end
           row
         end for i in 1:dimL, j in 1:dimL, l in 1:dimL
