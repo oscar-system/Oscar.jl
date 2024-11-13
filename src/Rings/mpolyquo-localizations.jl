@@ -2585,12 +2585,12 @@ end
 end
 
 @attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  return dim(closure(spec(R)))
+  return dim(saturated_ideal(R))
 end
 
 @attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
   # zariski open subset of A^n
-  return dim(closure(spec(R)))
+  return dim(base_ring(R))
 end
 
 @attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
