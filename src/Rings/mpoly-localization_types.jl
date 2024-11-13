@@ -178,6 +178,7 @@ mutable struct MPolyComplementOfKPointIdeal{
     length(a) == ngens(R) || error("the number of variables in the ring does not coincide with the number of coordinates")
     n = length(a)
     kk = coefficient_ring(R)
+    @assert kk isa Field
     b = kk.(a) # fails if the input is not compatible
     S = new{typeof(kk), elem_type(kk), RingType, elem_type(R)}(R, b)
     return S
