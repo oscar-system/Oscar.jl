@@ -332,7 +332,7 @@ orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
 orbit(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, omega) = GSetByElements(G, fun, [omega])
 
-# common code
+
 function gap_action_function(Omega::GSet)
   f = action_function(Omega)
   (f == ^) && return GAP.Globals.OnPoints
