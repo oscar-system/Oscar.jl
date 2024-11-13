@@ -129,7 +129,7 @@ let pushforward = IntersectionTheory.pushforward
     @test S == line_bundle(P2, -1)
     @test Q == abstract_bundle(P2, 2, 1 + h + h^2)
     @test Q == abstract_bundle(P2, 2 + h - QQ(1//2)*h^2)
-    @test map(S, Q) == P2.T
+    @test hom(S, Q) == P2.T
     @test euler(P2) == 3
     @test total_chern_class(P2) == 1 + 3h + 3h^2
     @test chern_class(P2, 1) == 3h
