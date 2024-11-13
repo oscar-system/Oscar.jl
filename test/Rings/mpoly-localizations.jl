@@ -9,8 +9,9 @@ const rng = Oscar.get_seeded_rng()
   I = ideal(R, f)
   S = Oscar.MPolyComplementOfPrimeIdeal(I)
   V, _ = localization(S)
-  T = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)])
-  W, _ = localization(T)
+  # coefficient_ring is not a field and hence ideal is not maximal
+  # and thus not KPointIdeal
+  @test_throws ErrorException Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(1), ZZ(0)]
   
   k = QQ
   R, variab = k[:x, :y]
