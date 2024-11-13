@@ -618,6 +618,10 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export get_conjugate
+export get_power
+export get_relative_order
+export get_relative_orders
 export getindex_safe
 export girth
 export gkz_vector
