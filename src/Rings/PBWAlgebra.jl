@@ -85,28 +85,31 @@ end
 
 @enable_all_show_via_expressify PBWAlgElem
 
-function expressify(a::PBWAlgRing; context = nothing)
+function show(io::IO, a::PBWAlgRing)
+  @show_name(io, a)
+  @show_special(io, a)
   x = symbols(a)
   n = length(x)
-  # Next if stmt handles special printing for Weyl algebras
-  if get_attribute(a, :is_weyl_algebra) === :true
-      return Expr(:sequence, Expr(:text, "Weyl-algebra over "),
-                             expressify(coefficient_ring(a); context=context),
-                             Expr(:text, " in variables ("),
-                             Expr(:series, first(x,div(n,2))...),
-                             Expr(:text, ")"))
-  end
-  rel = [Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j]))
+  io = pretty(io)
+  rel = [AbstractAlgebra.PrettyPrinting.canonicalize(Expr(:call, :(==), Expr(:call, :*, x[j], x[i]), expressify(a.relations[i,j])))
          for i in 1:n-1 for j in i+1:n]
-  return Expr(:sequence, Expr(:text, "PBW-algebra over "),
-                         expressify(coefficient_ring(a); context=context),
-                         Expr(:text, " in "),
-                         Expr(:series, x...),
-                         Expr(:text, " with relations "),
-                         Expr(:series, rel...))
+  print(io, LowercaseOff(), "PBW-algebra over ", Lowercase(), coefficient_ring(a))
+  print(io, " in ")
+  join(io, x, ", ")
+  print(io, " with relations ")
+  AbstractAlgebra.show_obj(io, MIME("text/plain"), Expr(:series, rel...))
 end
 
-@enable_all_show_via_expressify PBWAlgRing
+# handles special printing for Weyl algebras
+function show_weyl_algebra(io::IO, a::PBWAlgRing)
+  x = symbols(a)
+  n = length(x)
+  io = pretty(io)
+  print(io, LowercaseOff(), "Weyl-algebra over ", Lowercase(), coefficient_ring(a))
+  print(io, " in variables (")
+  join(io, first(x, div(n, 2)), ", ")
+  print(io, ")")
+end
 
 #### AA prefix here because these all use the ordering in the parent
 
@@ -482,7 +485,8 @@ function weyl_algebra(K::Ring, xs::Vector{Symbol}, dxs::Vector{Symbol})
   r, v = polynomial_ring(K, vcat(xs, dxs); cached = false)
   rel = elem_type(r)[v[i]*v[j] + (j == i + n) for i in 1:2*n-1 for j in i+1:2*n]
   R,vars = pbw_algebra(r, strictly_upper_triangular_matrix(rel), default_ordering(r); check = false)
-  set_attribute!(R, :is_weyl_algebra, :true)  # to activate special printing for Weyl algebras
+  set_attribute!(R, :is_weyl_algebra, :true)
+  set_attribute!(R, :show, show_weyl_algebra) # to activate special printing for Weyl algebras
   return (R,vars)
 end
 
