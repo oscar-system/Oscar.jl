@@ -138,7 +138,7 @@ end
   Z = spec(R, S)
   @test dim(Z) == 4
 
-  S = complement_of_point_ideal(R, [1, 1, 1])
+  S = complement_of_prime_ideal(R, [x-1, x-1, x-1])
   I = ideal(R, [x-1, y-1])*ideal(R, z)
   L, _ = localization(R, S)
   W, _ = quo(L, L(I))
