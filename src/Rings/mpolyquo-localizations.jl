@@ -2565,10 +2565,6 @@ function small_generating_set(
   end::Vector{elem_type(base_ring(I))} 
 end
 
-@attr Int function dim(R::MPolyQuoLocRing)
-  error("Not implemented")
-end
-
 @attr Int function dim(R::MPolyLocRing)
   error("Not implemented")
 end
@@ -2585,7 +2581,7 @@ end
 end
 
 @attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
-  return dim(saturated_ideal(R))
+  return dim(saturated_ideal(modulus(R)))
 end
 
 @attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
@@ -2596,14 +2592,6 @@ end
 @attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
   P = prime_ideal(inverted_set(R))
   return codim(P)
-end
-
-@attr Int function dim(R::MPolyRing)
-  return dim(ideal(R, [zero(R)]))
-end
-
-@attr Int function dim(R::MPolyQuoRing)
-  return dim(modulus(R))
 end
 
 ########################################################################

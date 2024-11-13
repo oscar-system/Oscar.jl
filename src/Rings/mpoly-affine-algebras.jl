@@ -20,8 +20,7 @@ julia> dim(A)
 ```
 """
 function dim(A::MPolyQuoRing)
-  I = A.I
-  return dim(I)
+  return dim(modulus(A))
 end
 
 @doc raw"""
