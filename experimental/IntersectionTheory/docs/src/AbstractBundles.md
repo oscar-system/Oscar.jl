@@ -89,6 +89,14 @@ exterior_power(F::AbstractBundle, k::Int)
 symmetric_power(F::AbstractBundle, k::Int)
 ```
 
+```@docs
+pullback(f::AbstractVarietyMap, F::AbstractBundle)
+```
+
+```@docs
+pushforward(f::AbstractVarietyMap, F::AbstractBundle)
+```
+
 ## Tests on Abstract Bundles
 
 ```@docs
