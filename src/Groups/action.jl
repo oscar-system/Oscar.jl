@@ -490,7 +490,7 @@ julia> orb = orbit(G, on_echelon_form_mats, m);  length(orb)
 ```
 """
 function on_echelon_form_mats(m::MatElem{T}, x::MatrixGroupElem) where T <: FinFieldElem
-  return echelon_form(m * x)[2]
+  return echelon_form(m * x)
 end
 
 @doc raw"""
