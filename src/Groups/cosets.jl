@@ -42,7 +42,7 @@ GAP.@install function GapObj(obj::GroupCoset)
       obj.X[] = GAPWrap.RightCoset(GAPWrap.ConjugateSubgroup(GapObj(obj.H), GAPWrap.Inverse(g)), g)
     end
   end
-  return obj.X[]
+  return obj.X[]::GapObj
 end
 
 Base.hash(x::GroupCoset, h::UInt) = h # FIXME
@@ -552,7 +552,7 @@ GAP.@install function GapObj(C::GroupDoubleCoset)
   if !isassigned(C.X)
     C.X[] = GAPWrap.DoubleCoset(GapObj(C.H), GapObj(representative(C)), GapObj(C.K))
   end
-  return C.X[]
+  return C.X[]::GapObj
 end
 
 Base.hash(x::GroupDoubleCoset, h::UInt) = h # FIXME
@@ -679,7 +679,7 @@ function order(::Type{T}, C::GroupDoubleCoset) where T <: IntegerUnion
   if !isassigned(C.size)
     C.size[] = ZZRingElem(GAPWrap.Size(GapObj(C)))
   end
-  return T(C.size[])
+  return T(C.size[])::T
 end
 
 

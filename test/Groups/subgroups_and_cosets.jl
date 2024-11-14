@@ -223,6 +223,10 @@ end
       @test issubset(left_coset(K,x),dc)
       @test !is_bicoset(rc)
 
+      @inferred GapObj(rc)
+      @inferred GapObj(lc)
+      @inferred GapObj(dc)
+
       @test rc == H*x
       @test lc == x*H
       @test dc == H*x*K
