@@ -11,10 +11,9 @@ import Oscar: dim
 import Oscar: dim_of_simple_module
 import Oscar: monomial_ordering
 import Oscar: monomials
-import Oscar: number_of_positive_roots, n_positive_roots
 
 # temp imports until `LieAlgebraStructure` is abolished
-import Oscar: cartan_matrix
+import Oscar: cartan_matrix, root_system
 import Oscar.LieAlgebras: cartan_matrix_inv
 
 import Base: length

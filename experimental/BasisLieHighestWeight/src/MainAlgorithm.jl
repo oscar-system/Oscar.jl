@@ -462,7 +462,7 @@ function operators_by_index(
   chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Int},
 )
-  @req all(i -> 1 <= i <= number_of_positive_roots(L), birational_sequence) "Entry of birational_sequence out of bounds"
+  @req all(i -> 1 <= i <= number_of_positive_roots(root_system(L)), birational_sequence) "Entry of birational_sequence out of bounds"
 
   return [chevalley_basis_gap[1][i] for i in birational_sequence] # TODO: change to [2]
 end
@@ -472,17 +472,12 @@ function operators_by_simple_roots(
   chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
   birational_sequence::Vector{Vector{Int}},
 )
-  rs = root_system_gap(L)
-  simple_roots = Vector{Vector{Int}}(GAP.Globals.SimpleSystem(rs))
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-
+  R = root_system(L)
   root_inds = Int[]
   for whgt_alpha in birational_sequence
-    @req length(whgt_alpha) == rank(L) "Length mismatch"
-    @req all(>=(0), whgt_alpha) "Only positive roots are allowed as input"
-    root = sum(whgt_alpha .* simple_roots)
-    root_ind = findfirst(==(root), positive_roots)
-    @req !isnothing(root_ind) "$whgt_alpha is not a positive root"
+    root = RootSpaceElem(R, whgt_alpha)
+    fl, root_ind = is_positive_root_with_index(root)
+    @req fl "Only positive roots are allowed as input"
     push!(root_inds, root_ind)
   end
 
@@ -509,22 +504,13 @@ function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})
   # \beta_2 = \alpha_1 + \alpha_2
   # \beta_3 = \alpha_2
 
-  rs = root_system_gap(L)
-
-  simple_roots = GAP.Globals.SimpleSystem(rs)
-  positive_roots = Vector{Vector{Int}}(GAP.Globals.PositiveRoots(rs))
-  sparse_cartan_matrix = GAP.Globals.SparseCartanMatrix(GAPWrap.WeylGroup(rs))
-
+  R = root_system(L)
+  W = weyl_group(R)
   root_inds = Int[]
-
   for k in 1:length(word)
-    # Calculate betas by applying simple reflections step-by-step.
-    root = copy(simple_roots[word[k]])
-    for j in (k - 1):-1:1
-      GAP.Globals.ApplySimpleReflection(sparse_cartan_matrix, word[j], root)
-    end
-    root_ind = findfirst(==(Vector{Int}(root)), positive_roots)
-    @req !isnothing(root_ind) "$root is not a positive root"
+    root = W(word[1:k-1]) * simple_root(R, word[k])
+    fl, root_ind = is_positive_root_with_index(root)
+    @req fl "Only positive roots may occur here"
     push!(root_inds, root_ind)
   end
   return root_inds

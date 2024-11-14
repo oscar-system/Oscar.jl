@@ -38,12 +38,8 @@ function cartan_sub_basis_gap(L::LieAlgebraStructure)
   return L.chevalley_basis_gap[3]
 end
 
-function root_system_gap(L::LieAlgebraStructure)
-  return GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
-end
-
-function number_of_positive_roots(L::LieAlgebraStructure)
-  return length(GAP.Globals.PositiveRoots(root_system_gap(L)))
+function root_system(L::LieAlgebraStructure)
+  return root_system(L.lie_algebra)
 end
 
 function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
