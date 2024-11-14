@@ -2127,6 +2127,54 @@ function tensor_product_decomposition(
 end
 
 ###############################################################################
+#demazures charcter formula
+function _demazure_operator(alpha::RootSpaceElem, lambda::WeightLatticeElem)
+  fl, index_of_alpha = is_simple_root_with_index(alpha)
+  @req fl "not a simple root"
+  
+  d = dot(lambda, alpha)
+  list_of_occuring_weights = WeightLatticeElem[]
+  
+  refl = reflect(lambda, index_of_alpha)
+
+  
+  if d > -1
+    while lambda != refl
+      push!(list_of_occuring_weights, lambda)
+      lambda -= WeightLatticeElem(alpha)
+    end
+    push!(list_of_occuring_weights, lambda)
+    return 1, list_of_occuring_weights
+  elseif d < -1
+    lambda += WeightLatticeElem(alpha)
+    push!(list_of_occuring_weights, lambda)
+    while lambda != refl-WeightLatticeElem(alpha)
+      lambda +=  WeightLatticeElem(alpha)
+      push!(list_of_occuring_weights, lambda)
+    end
+    return -1, list_of_occuring_weights
+  else
+    return 0, list_of_occuring_weights
+  end
+end 
+
+function demazure_operator(alpha::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(alpha, Dict(w => 1))
+end
+
+function demazure_operator(alpha::RootSpaceElem, groupringelem::Dict{WeightLatticeElem, Int})
+  dict = Dict{WeightLatticeElem,Int}()
+  for (lambda, dim) in groupringelem
+    sign, weights = _demazure_operator(alpha, lambda)
+    for w in weights
+      dict[w] = get(dict, w, 0) + sign * dim
+    end
+  end
+  return dict
+end
+
+
+###############################################################################
 # internal helpers
 
 # cartan matrix in the format <a^v, b>
