@@ -201,6 +201,13 @@ function save_type_params(s::SerializerState, T::Type, params::Tuple{Type, S}) w
   end
 end
 
+function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_object(s, encode_type(S), :params)
+  end
+end
+
 function save_type_params(s::SerializerState, T::Type, params::Vector)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
@@ -212,27 +219,39 @@ function save_type_params(s::SerializerState, T::Type, params::Vector)
   end
 end
 
-function save_type_params(s::SerializerState, T::Type, params::Vector{<:Pair{S, U}}) where {U, S <: Union{String, Symbol, Int}}
+function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
+  save_type_params(s, T, collect(pairs(params)))
+end
+
+# Named Tuples need to preserve order so they are handled seperate from Dict
+function save_type_params(s::SerializerState, T::Type{<:NamedTuple}, params::Vector{<:Pair})
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      save_object(s, encode_type(S), :key_type)
-      for param in params
-        save_type_params(s, param.second..., param.first)
+      save_data_array(s, :names) do
+        for param in params
+          save_object(s, param.first)
+        end
+      end
+      save_data_array(s, :tuple_params) do
+        for param in params
+          save_type_params(s, param.second...)
+        end
       end
     end
   end
 end
 
-function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
-  save_type_params(s, T, collect(pairs(params)))
-end
+const BasicKeyTypes = Union{String, Symbol, Int}
 
-function save_attrs(s::SerializerState, obj::T) where T
-  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
-    save_data_dict(s, :attrs) do
-      for attr in attrs_list(s, T)
-        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair{S, V}}) where {U, V, S <: BasicKeyTypes}
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      save_object(s, encode_type(S), :key_type)
+      isempty(params) && save_object(s, encode_type(U), :value_type)
+      for param in params
+        save_type_params(s, param.second..., Symbol(param.first))
       end
     end
   end
@@ -247,6 +266,9 @@ end
 function load_type_params(s::DeserializerState)
   T = decode_type(s)
   if s.obj isa String
+    if !isnothing(tryparse(UUID, s.obj))
+      return T, load_ref(s)
+    end
     return T, nothing
   end
   
@@ -257,14 +279,44 @@ function load_type_params(s::DeserializerState)
           load_type_params(s)
         end
         return collect(zip(tuple_params...))
+      elseif haskey(s, :tuple_params)
+        tuple_params = load_array_node(s, :tuple_params) do _
+          load_type_params(s)
+        end
+        tuple_types, named_tuple_params = collect(zip(tuple_params...))
+        names = load_object(s, Vector{Symbol}, :names)
+        return (tuple(names...), Tuple{tuple_types...}), named_tuple_params
+      elseif haskey(s, :key_type)
+        S = load_node(s, :key_type) do _
+          decode_type(s)
+        end
+        params_dict = Dict{S, Any}()
+        if S <: Union{String, Symbol, Int}
+          value_types = Type[]
+          for (k, _) in s.obj
+            k == :key_type && continue
+            if k == :value_type
+              load_node(s, k) do _
+                push!(value_types, decode_type(s))
+              end
+              continue
+            end
+            key = S == Int ? parse(Int, string(k)) : S(k)
+            params_dict[key] = load_type_params(s, k)
+            push!(value_types, params_dict[key][1])
+          end
+          return (S, Union{value_types...}), params_dict
+        end
       else
         load_type_params(s)
       end
     end
     if T <: MatVecType
       return T{subtype}, params
-    elseif T <: Tuple
-      return T{subtype...}, collect(params)
+    elseif T <: Union{Tuple, NamedTuple}
+      return T{subtype...}, params
+    elseif T <: Dict
+      return Dict{subtype...}, params
     else
       return T, params
     end
@@ -309,6 +361,18 @@ end
 function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symbol, Int})
   load_node(s, key) do _
     load_object(s, T, params)
+  end
+end
+
+################################################################################
+# serializing attributes
+function save_attrs(s::SerializerState, obj::T) where T
+  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+    save_data_dict(s, :attrs) do
+      for attr in attrs_list(s, T)
+        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+      end
+    end
   end
 end
 

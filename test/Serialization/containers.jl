@@ -1,6 +1,6 @@
 @testset "Serialization.Containers" begin
   mktempdir() do path
-    @test_skip @testset "Empty Containers" begin
+    @testset "Empty Containers" begin
       v = Int[]
       test_save_load_roundtrip(path, v) do loaded
         v == loaded
@@ -17,7 +17,7 @@
       end
     end
   
-    @test_skip @testset "ids in containers" begin
+    @testset "ids in containers" begin
       R, x = QQ[:x]
       test_save_load_roundtrip(path, (x^2, x + 1, R)) do loaded
         @test loaded[3] == R
@@ -118,19 +118,19 @@
       end
     end
 
-    @test_skip @testset "(de)serialization Dict{$S, Any}" for (S, keys) in
+    @testset "(de)serialization Dict{$S, Any}" for (S, keys) in
       (
         (String, ["a", "b"]), (Int, [1, 2]), (Symbol, [:a, :b])
       )
       Qx, x = QQ[:x]
       p = x^2 + 1
-      original = Dict(keys[1] => cube(:2), keys[2] => p)
+      original = Dict{S, Union{PolyRingElem, Polyhedron}}(keys[1] => cube(2), keys[2] => p)
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
     end
 
-    @test_skip @testset "(de)serialization Dict{Symbol, T}" begin
+    @testset "(de)serialization Dict{Symbol, T}" begin
       Qx, x = QQ[:x]
       for (T, values) in ((Int, [1, 2]), (PolyRingElem, [x^2, x - 1]))
         original = Dict{Symbol, T}(:a => values[1], :b => values[2])
