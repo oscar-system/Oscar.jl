@@ -5,9 +5,7 @@
   chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}}
 
   function LieAlgebraStructure(lie_type::Symbol, rank::Int)
-    lie_algebra_gap = GAP.Globals.SimpleLieAlgebra(
-      GAP.Obj(lie_type), rank, GAP.Globals.Rationals
-    )
+    lie_algebra_gap = codomain(Oscar.iso_oscar_gap(Oscar.lie_algebra(QQ, lie_type, rank)))
     chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(lie_algebra_gap))
     return new(lie_type, rank, lie_algebra_gap, chevalley_basis_gap)
   end

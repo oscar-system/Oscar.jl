@@ -71,7 +71,7 @@ end
 #### Lie algebras
 
 function lieAlgebra(t::String, n::Int)
-  L = GAP.Globals.SimpleLieAlgebra(GAP.Obj(t), n, GAP.Globals.Rationals)
+  L = codomain(Oscar.iso_oscar_gap(Oscar.lie_algebra(QQ, Symbol(t), n)))
   return L, NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(L))
 end
 
