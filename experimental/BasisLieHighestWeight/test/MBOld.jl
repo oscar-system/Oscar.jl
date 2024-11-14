@@ -214,9 +214,10 @@ function compute(v0, mats, wts::Vector{Vector{Int}})
     newPos = length(monomials)
     deg = deg + 1
     newMons(deg)
-    for i in 1:m, di in deg:-1:1
+    # iteration in degrevlex ordering 
+    for i in m:-1:1, di in deg:-1:1
       for p in startPos:newPos
-        if !all(monomials[p][1:(i - 1)] .== 0)
+        if !all(monomials[p][(i+1):m] .== 0)
           continue
         end
 
