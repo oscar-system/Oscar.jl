@@ -171,6 +171,10 @@ simplify(f::MPolyQuoRingElem)
 ==(f::MPolyQuoRingElem{T}, g::MPolyQuoRingElem{T}) where T
 ```
 
+```@docs
+is_invertible_with_inverse(f::MPolyQuoRingElem)
+```
+
 In the graded case, we additionally have:
 
 ```@docs
@@ -292,7 +296,6 @@ minimal_generating_set(I::MPolyQuoIdeal{<:MPolyDecRingElem})
 
 ```@docs
 intersect(a::MPolyQuoIdeal{T}, bs::MPolyQuoIdeal{T}...) where T
-intersect(V::Vector{MPolyQuoIdeal{T}}) where T
 ```
 
 #### Ideal Quotients

@@ -92,6 +92,7 @@ GAP.@wrap EpimorphismSchurCover(x::GapObj)::GapObj
 GAP.@wrap ExponentsOfPcElement(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ExtRepOfObj(x::GapObj)::GapObj
 GAP.@wrap ExtRepPolynomialRatFun(x::GapObj)::GapObj
+GAP.@wrap FactorCosetAction(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
 GAP.@wrap FamilyPcgs(x::GAP.Obj)::GapObj
 GAP.@wrap Field(x::Any)::GapObj
@@ -106,6 +107,8 @@ GAP.@wrap GeneratorsOfGroup(x::GapObj)::GapObj
 GAP.@wrap GetFusionMap(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GF(x::Any)::GapObj
 GAP.@wrap GF(x::Any, y::Any)::GapObj
+GAP.@wrap Group(x::GapObj)::GapObj
+GAP.@wrap Group(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4)::GapObj
 GAP.@wrap GroupHomomorphismByFunction(x1, x2, x3, x4, x5)::GapObj
@@ -267,6 +270,7 @@ GAP.@wrap LargestMovedPoint(x::Any)::Int
 GAP.@wrap LeftActingDomain(x::GapObj)::GapObj
 GAP.@wrap LetterRepAssocWord(x::GapObj)::GapObj
 GAP.@wrap LibInfoCharacterTable(x::GapObj)::GapObj
+GAP.@wrap LieAlgebraByStructureConstants(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LinearCharacters(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ListPerm(x::GapObj)::GapObj
@@ -342,6 +346,8 @@ GAP.@wrap SizesCentralizers(x::GapObj)::GapObj
 GAP.@wrap SizesConjugacyClasses(x::GapObj)::GapObj
 GAP.@wrap Source(x::GapObj)::GapObj
 GAP.@wrap Sqrt(x::Int64)::GAP.Obj
+GAP.@wrap Stabilizer(x::GapObj, y::Any, z::GapObj)::GapObj
+GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj

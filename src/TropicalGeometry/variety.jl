@@ -46,7 +46,7 @@ Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplici
 
 # Examples
 ```jldoctest
-julia> Sigma = polyhedral_complex(IncidenceMatrix([[1],[2]]), [[0],[1]])
+julia> Sigma = polyhedral_complex(incidence_matrix([[1],[2]]), [[0],[1]])
 Polyhedral complex in ambient dimension 1
 
 julia> tropical_variety(Sigma)

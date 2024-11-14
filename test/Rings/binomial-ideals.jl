@@ -6,7 +6,7 @@
     @test is_binomial(f)
     J = ideal(R, [x^2-y^3, z^2])
     @test is_binomial(J)
-    Qxy, (x, y, z, t) = polynomial_ring(FlintQQ, 4)
+    Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
     @test Oscar.is_binomial(I)
     @test Oscar.is_unital(I)
@@ -24,7 +24,7 @@
     @test is_cellular(I)[1]
     I = ideal(R, [x[1]*x[4]^2-x[2]*x[5]^2, x[1]^3*x[3]^3-x[2]^4*x[4]^2, x[2]*x[4]^8-x[3]^3*x[5]^6])
     @test !is_cellular(I)[1]
-    Qxy, (x, y, z, t) = polynomial_ring(FlintQQ, 4)
+    Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
     @test !Oscar.is_cellular(I)[1]
     lI = Oscar.cellular_decomposition(I)
@@ -44,7 +44,7 @@
   end
 
   @testset "Binomial primary decomposition" begin
-    Qxy, (x, y, z, t) = polynomial_ring(FlintQQ, 4)
+    Qxy, (x, y, z, t) = polynomial_ring(QQ, 4)
     I = ideal(elem_type(Qxy)[x*y, z*t^2-t^3, z^2-y^2])
     lP = Oscar.binomial_primary_decomposition(I)
     

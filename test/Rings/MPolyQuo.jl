@@ -36,6 +36,12 @@
 
   B,q = quo(R, x^3+y,y^2; ordering=lex(R))
   @test A.I == B.I
+
+  @test characteristic(quo(R, ideal(x))[1]) == 0
+  @test characteristic(quo(R, ideal(R, 1))[1]) == 1
+
+  S, (s, t) = GF(5)[:s, :t]
+  @test characteristic(quo(S, ideal([s, t]))[1]) == 5
 end
 
 @testset "MpolyQuo.manipulation" begin

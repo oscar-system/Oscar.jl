@@ -618,7 +618,7 @@ julia> s = simplex(7)
 Polytope in ambient dimension 7
 
 julia> facets(s)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^7 described by:
 -x_1 <= 0
 -x_2 <= 0
 -x_3 <= 0
@@ -632,7 +632,7 @@ julia> t = simplex(7, 5)
 Polytope in ambient dimension 7
 
 julia> facets(t)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^7 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^7 described by:
 -x_1 <= 0
 -x_2 <= 0
 -x_3 <= 0
@@ -674,7 +674,7 @@ julia> C = cross_polytope(3)
 Polytope in ambient dimension 3
 
 julia> facets(C)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 x_1 + x_2 + x_3 <= 1
 -x_1 + x_2 + x_3 <= 1
 x_1 - x_2 + x_3 <= 1
@@ -688,7 +688,7 @@ julia> D = cross_polytope(3, 2)
 Polytope in ambient dimension 3
 
 julia> facets(D)
-8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^3 described by:
+8-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
 x_1 + x_2 + x_3 <= 2
 -x_1 + x_2 + x_3 <= 2
 x_1 - x_2 + x_3 <= 2
@@ -1408,7 +1408,7 @@ julia> vertices(A)
  [4, 1, 10, 6]
 
 julia> facets(A)
-5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 -x_1 <= -1
 -2*x_1 - 2*x_2 <= -10
 -x_2 <= -1
@@ -1637,14 +1637,14 @@ julia> G = hypersimplex(3,4,no_facets=true)
 Polytope in ambient dimension 4
 
 julia> facets(G)
-4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 x_4 <= 1
 x_3 <= 1
 -x_1 - x_3 - x_4 <= -2
 x_1 <= 1
 
 julia> facets(H)
-4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^4 described by:
+4-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^4 described by:
 x_4 <= 1
 x_3 <= 1
 -x_1 - x_3 - x_4 <= -2
@@ -2253,7 +2253,7 @@ julia> vertices(a)
  [0, 3, 4, 15, 16]
 
 julia> facets(a) 
-9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^5 described by:
+9-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^5 described by:
 x_1 - x_2 <= -1
 x_1 - x_3 <= -4
 x_1 - x_4 <= -9

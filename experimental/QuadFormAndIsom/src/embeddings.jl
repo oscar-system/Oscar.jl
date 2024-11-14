@@ -1286,24 +1286,26 @@ of $M$ into lattices in $G$.
 """
 function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :sub)
   @req is_integral(scale(G)) && is_integral(M) "Only available for integral lattices"
-  @req !iseven(G) || iseven(M) "Cannot embed an odd lattice into an even lattice"
   @req classification in Symbol[:none, :emb, :sub, :first] "Wrong symbol for classification"
+
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+
+  (iseven(G) && !iseven(M)) && return false, results
+  (rank(M) > rank(G)) && return false, results
 
   even = is_even(G)
   posL, _, negL = signature_tuple(G)
   posM, _, negM = signature_tuple(M)
   posN = posL - posM
   negN = negL - negM
-  @req (posN >= 0 && negN >= 0) "Incompatible signatures for the embeddings"
 
-  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+  (posN < 0 || negN < 0) && return false, results
+
   if rank(M) == rank(G)
     genus(M) != G && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
     return true, results
   end
-
-  @req rank(M) < rank(G) "The rank of M must be smaller or equal than the one of the lattices in G"
 
   if classification == :sub
     cs = :subsub
@@ -1666,7 +1668,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
                                                      p::IntegerUnion,
                                                      q::IntegerUnion = p; check::Bool = true)
   # p and q can be equal, and they will be most of the time
-  @req is_prime(p) && is_prime(q) "p and q must be a prime number"
+  @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
 
   # Requirements for [BH23]
   same_ambient = ambient_space(lattice(A)) === ambient_space(lattice(B)) === ambient_space(lattice(C))

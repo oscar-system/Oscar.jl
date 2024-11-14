@@ -236,3 +236,7 @@ function base_change(phi::Any, G::AbsGluing;
   return LazyGluing(domain(patch_change1), domain(patch_change2), gd)
 end
 
+function Base.hash(X::AbsGluing, u::UInt)
+  return u
+end
+

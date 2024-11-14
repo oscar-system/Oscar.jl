@@ -399,52 +399,14 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-dim(X::AbsAffineScheme)
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  # Spec (R / I)_P
-  R = OO(X)
-  P = prime_ideal(inverted_set(R))
-  I = saturated_ideal(modulus(R))
-  return dim(I) - dim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  # zariski open subset of A^n
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  P = prime_ideal(inverted_set(OO(X)))
-  return codim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
-  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
-  return dim(modulus(OO(X)))
-end
+dim(X::AbsAffineScheme) = dim(OO(X))
 
 @doc raw"""
     codim(X::AbsAffineScheme)
 
 Return the codimension of ``X`` in its ambient affine space.
 
-Throws and error if ``X`` does not have an ambient affine space.
+Throws an error if ``X`` does not have an ambient affine space.
 
 # Examples
 ```jldoctest

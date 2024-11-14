@@ -158,21 +158,21 @@ function (L::LieAlgebra)()
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::Vector{Int}) -> LieAlgebraElem{C}
+    (L::LieAlgebra{C})(v::AbstractVector{Int}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
 Fail, if `Int` cannot be coerced into the base ring of `L`.
 """
-function (L::LieAlgebra)(v::Vector{Int})
+function (L::LieAlgebra)(v::AbstractVector{Int})
   return L(coefficient_ring(L).(v))
 end
 
 @doc raw"""
-    (L::LieAlgebra{C})(v::Vector{C}) -> LieAlgebraElem{C}
+    (L::LieAlgebra{C})(v::AbstractVector{C}) -> LieAlgebraElem{C}
 
 Return the element of `L` with coefficient vector `v`.
 """
-function (L::LieAlgebra{C})(v::Vector{C}) where {C<:FieldElem}
+function (L::LieAlgebra{C})(v::AbstractVector{C}) where {C<:FieldElem}
   @req length(v) == dim(L) "Length of vector does not match dimension."
   mat = matrix(coefficient_ring(L), 1, length(v), v)
   return elem_type(L)(L, mat)
@@ -291,7 +291,7 @@ end
 Return the center of `L`, i.e. $\{x \in L \mid [x, L] = 0\}$
 """
 function center(L::LieAlgebra)
-  dim(L) == 0 && return ideal(L, [])
+  dim(L) == 0 && return ideal(L, elem_type(L)[])
 
   mat = zero_matrix(coefficient_ring(L), dim(L), dim(L)^2)
   for (i, bi) in enumerate(basis(L))
@@ -300,9 +300,8 @@ function center(L::LieAlgebra)
     end
   end
 
-  c_basis = kernel(mat; side=:left)
-  c_dim = nrows(c_basis)
-  return ideal(L, [L(c_basis[i, :]) for i in 1:c_dim]; is_basis=true)
+  ker = kernel(mat; side=:left)
+  return ideal(L, L.(eachrow(ker)); is_basis=true)
 end
 
 @doc raw"""
@@ -548,7 +547,7 @@ function engel_subalgebra(x::LieAlgebraElem{C}) where {C<:FieldElem}
   n = dim(L)
   A = adjoint_matrix(x)^n
   ker = kernel(A; side=:left)
-  basis = [L(ker[i, :]) for i in 1:nrows(ker)]
+  basis = L.(eachrow(ker))
   L0adx = sub(L, basis; is_basis=true)
   return L0adx
 end
@@ -610,7 +609,7 @@ function _root_system_and_chevalley_basis(
       for (f, k) in facs
         @assert k == 1 # TODO: is this always the case?
         ker = kernel((f^k)(A); side=:left)
-        basis = [B_j(ker[i, :]) for i in 1:nrows(ker)]
+        basis = B_j.(eachrow(ker))
         push!(B_new, sub(L, basis; is_basis=true))
       end
     end
@@ -832,6 +831,33 @@ end
 #   Constructor
 #
 ###############################################################################
+
+@doc raw"""
+    abelian_lie_algebra(R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{LinearLieAlgebra}, R::Field, n::Int) -> LinearLieAlgebra{elem_type(R)}
+    abelian_lie_algebra(::Type{AbstractLieAlgebra}, R::Field, n::Int) -> AbstractLieAlgebra{elem_type(R)}
+
+Return the abelian Lie algebra of dimension `n` over the field `R`.
+The first argument can be optionally provided to specify the type of the returned
+Lie algebra.
+
+# Example
+```jldoctest
+julia> abelian_lie_algebra(LinearLieAlgebra, QQ, 3)
+Linear Lie algebra with 3x3 matrices
+  of dimension 3
+over rational field
+
+julia> abelian_lie_algebra(AbstractLieAlgebra, QQ, 3)
+Abstract Lie algebra
+  of dimension 3
+over rational field
+```
+"""
+function abelian_lie_algebra(R::Field, n::Int)
+  @req n >= 0 "Dimension must be non-negative."
+  return abelian_lie_algebra(LinearLieAlgebra, R, n)
+end
 
 @doc raw"""
     lie_algebra(gapL::GapObj, s::Vector{<:VarName}) -> LieAlgebra{elem_type(R)}

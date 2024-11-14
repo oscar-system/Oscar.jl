@@ -5,7 +5,7 @@ Return the ambient dimension of `PC`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
 [1, 2, 3]
 [1, 3, 4]
@@ -41,7 +41,7 @@ Optional arguments for `as` include
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> V = [0 0; 1 0; 1 1; 0 1];
 
@@ -63,7 +63,7 @@ julia> matrix(QQ, vertices(PointVector, PC))
 ```
 The following complex has no vertices:
 ```
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
@@ -139,7 +139,7 @@ function is mainly a helper function for [`maximal_polyhedra`](@ref maximal_poly
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
@@ -193,7 +193,7 @@ See also [`rays`](@ref rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}) a
 ```jldoctest
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -259,7 +259,7 @@ See also [`vertices`](@ref vertices(as::Type{PointVector{T}}, PC::PolyhedralComp
 ```jldoctest
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -317,7 +317,7 @@ Optional arguments for `as` include
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
@@ -333,7 +333,7 @@ julia> matrix(QQ, rays(RayVector, PC))
 ```
 The following complex has no vertices:
 ```
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
@@ -398,7 +398,7 @@ refer to the output of [`vertices_and_rays`](@ref vertices_and_rays(PC::Polyhedr
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
 [1, 2, 3]
 [1, 3, 4]
@@ -435,7 +435,7 @@ Return the number of maximal polyhedra of `PC`
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]])
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]])
 2×4 IncidenceMatrix
 [1, 2, 3]
 [1, 3, 4]
@@ -464,7 +464,7 @@ Determine whether the polyhedral complex is simplicial.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
@@ -484,7 +484,7 @@ Determine whether the polyhedral complex is pure.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
@@ -504,7 +504,7 @@ Compute the dimension of the polyhedral complex.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
@@ -524,7 +524,7 @@ Return the polyhedra of a given dimension in the polyhedral complex `PC`.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> VR = [0 0; 1 0; 1 1; 0 1];
 
@@ -596,7 +596,7 @@ Return the lineality space of `PC`.
 ```jldoctest
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -636,7 +636,7 @@ Return the lineality dimension of `PC`.
 ```jldoctest
 julia> VR = [0 0 0; 1 0 0; 0 1 0; -1 0 0];
 
-julia> IM = IncidenceMatrix([[1,2,3],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,3],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -661,7 +661,7 @@ faces of $PC$ of dimension $i$.
 ```jldoctest
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -689,7 +689,7 @@ Return the number of rays of `PC`.
 ```jldoctest
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -711,7 +711,7 @@ Return the number of vertices of `PC`.
 ```jldoctest
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -733,7 +733,7 @@ Return the total number of polyhedra in the polyhedral complex `PC`.
 ```jldoctest
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2,4],[1,3,4]]);
+julia> IM = incidence_matrix([[1,2,4],[1,3,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -754,7 +754,7 @@ Compute the codimension of a polyhedral complex.
 ```
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+julia> IM = incidence_matrix([[1,2],[1,3],[1,4]]);
 
 julia> far_vertices = [2,3,4];
 
@@ -777,7 +777,7 @@ subset of some $\mathbb{R}^n$.
 ```jldoctest
 julia> VR = [0 0; 1 0; -1 0; 0 1];
 
-julia> IM = IncidenceMatrix([[1,2],[1,3],[1,4]]);
+julia> IM = incidence_matrix([[1,2],[1,3],[1,4]]);
 
 julia> PC = polyhedral_complex(IM, VR)
 Polyhedral complex in ambient dimension 2

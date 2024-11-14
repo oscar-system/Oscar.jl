@@ -19,10 +19,12 @@ julia> B = Rg[x^2; y^3; z^4];
 julia> M = SubquoModule(F, A, B);
 
 julia> is_equal_with_morphism(M, M)
-M -> M
-x*e[1] -> x*e[1]
-y*e[1] -> y*e[1]
 Homogeneous module homomorphism
+  from M
+  to M
+defined by
+  x*e[1] -> x*e[1]
+  y*e[1] -> y*e[1]
 ```
 """
 function is_equal_with_morphism(M::SubquoModule{T}, N::SubquoModule{T}, task::Symbol = :none) where {T}

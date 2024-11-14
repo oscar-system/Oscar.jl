@@ -40,7 +40,12 @@ function composition(parts::Vector{T}; check::Bool = true) where {T <: IntegerUn
 end
 
 function Base.show(io::IO, ::MIME"text/plain", C::Composition)
-  print(io, data(C))
+  c = data(C)
+  if isempty(c)
+    print(io, "Empty composition")
+    return
+  end
+  print(io, c)
 end
 
 ################################################################################

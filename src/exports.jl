@@ -264,6 +264,7 @@ export ambient_representatives_generators
 export ambient_scheme
 export ambient_space
 export ambient_type
+export annihilator
 export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
@@ -292,6 +293,7 @@ export bases
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
+export basis_of_h4
 export bell
 export betti
 export betti_number
@@ -616,6 +618,10 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export get_conjugate
+export get_power
+export get_relative_order
+export get_relative_orders
 export getindex_safe
 export girth
 export gkz_vector
@@ -1052,7 +1058,8 @@ export min_weights
 export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
-export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
+export minimal_generating_set
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes

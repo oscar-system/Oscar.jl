@@ -29,6 +29,14 @@
   @test order(H) == 645120
   @test K == stabilizer(H, 1)[1]
 
+  # larger examples
+  G = symmetric_group(100)
+  S1, _ = stabilizer(G, [1, 2, 3, 4, 5])
+  @test order(S1) == factorial(big(95))
+  S2, _ = stabilizer(G, (1, 2, 3, 4, 5))
+  @test S2 == S1
+  S3, _ = stabilizer(G, Set([1, 2, 3, 4, 5]))
+  @test order(S3) == order(S1) * factorial(5)
 end
 
 @testset "natural stabilizers in matrix groups" begin

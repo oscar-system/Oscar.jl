@@ -72,7 +72,12 @@ end
 data(P::Partition) = P.p
 
 function Base.show(io::IO, ::MIME"text/plain", P::Partition)
-  print(io, data(P))
+  p = data(P)
+  if isempty(p)
+    print(io, "Empty partition")
+    return
+  end
+  print(io, p)
 end
 
 ################################################################################
