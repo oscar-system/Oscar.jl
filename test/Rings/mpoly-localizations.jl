@@ -71,6 +71,7 @@ const rng = Oscar.get_seeded_rng()
   y = v[2] 
   f = (x^2 + y^2)^2
   T = Oscar.MPolyPowersOfElement(R, [f])
+  S = Oscar.MPolyComplementOfPrimeIdeal(ideal(R, [x, y]))
   U = Oscar.MPolyProductOfMultSets(R, [S, T])
   @test f in U
   @test (f*(x-1) in U)
