@@ -1,4 +1,3 @@
-# Use attribute :is_weyl_algebra to permit better printing (see expressify, below)
 @attributes mutable struct PBWAlgRing{T, S} <: NCRing
   sring::Singular.PluralRing{S}
   relations::Singular.smatrix{Singular.spoly{S}}
@@ -523,12 +522,10 @@ end
 
 ####
 
-function expressify(a::PBWAlgOppositeMap; context = nothing)
-  return Expr(:sequence, Expr(:text, "Map to opposite of "),
-                         expressify(a.source; context=context))
+function Base.show(io::IO, a::PBWAlgOppositeMap)
+  io = pretty(io)
+  print(io, "Map to opposite of ", Lowercase(), a.source)
 end
-
-@enable_all_show_via_expressify PBWAlgOppositeMap
 
 function _opposite(a::PBWAlgRing{T, S}) where {T, S}
   if !isdefined(a, :opposite)
