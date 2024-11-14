@@ -243,7 +243,7 @@ Return $\chi(\mathcal{O}_X)$.
 euler_characteristic(X::EllipticSurface) = X.euler_characteristic
 
 @doc raw"""
-    algebraic_lattice(X) -> Vector{WeilDivisor}, ZZLat
+    algebraic_lattice(X) -> Vector{AbsWeilDivisor}, ZZLat
 
 Return the sublattice `L` of ``Num(X)`` spanned by fiber components,
 torsion sections and the sections provided at the construction of ``X``.
@@ -944,7 +944,7 @@ function _trivial_lattice(S::EllipticSurface; reducible_singular_fibers_in_PP1=_
 end
 
 @doc raw"""
-    trivial_lattice(X::EllipticSurface) -> Vector{WeilDivisor}, ZZMatrix
+    trivial_lattice(X::EllipticSurface) -> Vector{AbsWeilDivisor}, ZZMatrix
 
 Return a basis for the trivial lattice as well as its gram matrix.
 
@@ -977,7 +977,7 @@ end
 
 
 @doc raw"""
-    standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
+    standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
 
 Internal method. Used to prepare for [`reducible_fibers`](@ref).
 `f` must be the list of the components of the reducible fiber `F`.
@@ -987,7 +987,7 @@ Output a list of tuples with each tuple as follows
 - the irreducible components `[F0,...Fn]` of `F` sorted such that the first entry `F0` is the one intersecting the zero section. The others are sorted in some standard way
 - gram matrix of the intersection of [F0,...,Fn], it is an extended ADE-lattice.
 """
-function standardize_fiber(S::EllipticSurface, f::Vector{<:WeilDivisor})
+function standardize_fiber(S::EllipticSurface, f::Vector{<:AbsWeilDivisor})
   @hassert :EllipticSurface 2 all(is_prime(i) for i in f)
   f = copy(f)
   O = components(zero_section(S))[1]
@@ -1087,7 +1087,7 @@ function fiber_cartier(S::EllipticSurface, P::Vector = ZZ.([0,1]))
 end
 
 @doc raw"""
-    fiber_components(S::EllipticSurface, P) -> Vector{<:WeilDivisor}
+    fiber_components(S::EllipticSurface, P) -> Vector{<:AbsWeilDivisor}
 
 Return the fiber components of the fiber over the point $P \in C$.
 """
@@ -1201,14 +1201,44 @@ end
     section(X::EllipticSurface, P::EllipticCurvePoint)
 
 Given a rational point $P\in E(C)$ of the generic fiber $E/C$ of $\pi\colon X \to C$,
-return its closure in $X$ as a `WeilDivisor`.
+return its closure in $X$ as a `AbsWeilDivisor`.
 """
 function section(X::EllipticSurface, P::EllipticCurvePoint)
   if iszero(P[1])&&iszero(P[3])
     return zero_section(X)
   end
-  return _section(X, P)
+  return EllipticSurfaceSection(X, P)
 end
+
+@attributes mutable struct EllipticSurfaceSection{
+    CoveredSchemeType<:AbsCoveredScheme, 
+    CoefficientRingType<:AbstractAlgebra.Ring, 
+    CoefficientRingElemType<:AbstractAlgebra.RingElem
+   } <: AbsWeilDivisor{CoveredSchemeType, CoefficientRingType}
+  D::WeilDivisor{CoveredSchemeType, CoefficientRingType, CoefficientRingElemType}
+  P::EllipticCurvePoint
+
+  function EllipticSurfaceSection(X::EllipticSurface, P::EllipticCurvePoint; coefficient_ring::Ring=ZZ)
+    @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
+    weierstrass_contraction(X) # trigger required computations
+    PX = _section_on_weierstrass_ambient_space(X, P)
+    for f in X.ambient_blowups
+      PX = strict_transform(f , PX)
+    end
+    PY = pullback(X.inc_Y, PX)
+    set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
+    set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
+    W =  WeilDivisor(PY, check=false)
+    set_attribute!(W, :is_prime=>true)
+    I = first(components(W))
+    set_attribute!(I, :is_prime=>true)
+    return new{typeof(X), typeof(coefficient_ring), elem_type(coefficient_ring)}(W, P)
+  end
+end
+
+underlying_divisor(D::EllipticSurfaceSection) = D.D
+rational_point(D::EllipticSurfaceSection) = D.P
+
 
 function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCurvePoint)
   S0,incS0 = weierstrass_model(X)
@@ -1225,31 +1255,14 @@ function _section_on_weierstrass_ambient_space(X::EllipticSurface, P::EllipticCu
   return ideal_sheaf(X0,U,[OO(U)(i) for i in [x*denominator(b[1])(t)-numerator(b[1])(t),y*denominator(b[2])(t)-numerator(b[2])(t)]]; check=false)
 end
 
-function _section(X::EllipticSurface, P::EllipticCurvePoint)
-  @vprint :EllipticSurface 3 "Computing a section from a point on the generic fiber\n"
-  weierstrass_contraction(X) # trigger required computations
-  PX = _section_on_weierstrass_ambient_space(X, P)
-  for f in X.ambient_blowups
-    PX = strict_transform(f , PX)
-  end
-  PY = pullback(X.inc_Y, PX)
-  set_attribute!(PY, :name, string("section: (",P[1]," : ",P[2]," : ",P[3],")"))
-  set_attribute!(PY, :_self_intersection, -euler_characteristic(X))
-  W =  WeilDivisor(PY, check=false)
-  set_attribute!(W, :is_prime=>true)
-  I = first(components(W))
-  set_attribute!(I, :is_prime=>true)
-  set_attribute!(W, :point=>P)
-  return W
-end
 
 @doc raw"""
-    zero_section(S::EllipticSurface) -> WeilDivisor
+    zero_section(S::EllipticSurface) -> AbsWeilDivisor
 
 Return the zero section of the relatively minimal elliptic
 fibration \pi\colon X \to C$.
 """
-@attr Any zero_section(S::EllipticSurface) = _section(S, generic_fiber(S)([0,1,0]))
+@attr Any zero_section(S::EllipticSurface) = EllipticSurfaceSection(S, generic_fiber(S)([0,1,0]))
 
 ################################################################################
 #
@@ -1324,7 +1337,11 @@ function _prop217(E::EllipticCurve, P::EllipticCurvePoint, k)
 
   # collect the equations as a matrix
   cc = [[coeff(j, abi) for abi in ab] for j in eqns]
-  M = matrix(B, length(eqns), length(ab), reduce(vcat,cc, init=elem_type(base)[]))
+  mat = reduce(vcat,cc, init=elem_type(base)[])
+  @assert all(is_one(denominator(x)) for x in mat)
+  @assert all(is_constant(numerator(x)) for x in mat)
+  mat2 = [constant_coefficient(numerator(x)) for x in mat]
+  M = matrix(B, length(eqns), length(ab), mat2)
   # @assert M == matrix(base, cc) # does not work if length(eqns)==0
   K = kernel(M; side = :right)
   kerdim = ncols(K)
@@ -1378,7 +1395,7 @@ function linear_system(X::EllipticSurface, P::EllipticCurvePoint, k::Int64)
 
     I = saturated_ideal(defining_ideal(U))
     IP = ideal([x*xd(t)-xn(t),y*yd(t)-yn(t)])
-    issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
+    @hassert :EllipticSurface 2 issubset(I, IP) || error("P does not define a point on the Weierstrasschart")
 
     @assert gcd(xn, xd)==1
     @assert gcd(yn, yd)==1
@@ -1424,7 +1441,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert scheme(parent(u)) === X
   pr = weierstrass_contraction(X)
   WX, _ = weierstrass_model(X)
-  # The following is a cheating version of the command u = pushforward(pr)(u)
+  # The following is a cheating version of the command u = pushforward(pr)(u) (the latter has now been deprecated!)
   u = function_field(WX)(u[weierstrass_chart_on_minimal_model(X)])
   @assert scheme(parent(u)) === weierstrass_model(X)[1]
 
@@ -1476,7 +1493,7 @@ function two_neighbor_step(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> WeilDivisor, EllipticCurvePoint
+    horizontal_decomposition(X::EllipticSurface, L::Vector{QQFieldElem}) -> AbsWeilDivisor, EllipticCurvePoint
 
 Given a divisor ``L`` as a vector in the `algebraic_lattice(X)`
 find a linearly equivalent divisor ``(n-1) O + P + V = D ~ L`` where
@@ -1553,8 +1570,7 @@ function horizontal_decomposition(X::EllipticSurface, F::Vector{QQFieldElem})
   @assert all(F4[i]>=0 for i in 1:length(basisNS))
   D = D + sum(ZZ(F4[i])*basisNS[i] for i in 1:length(basisNS))
   @assert D<=D1
-  l = Int(l)
-  return D1, D, P, l, c
+  return D1, D, P, Int(l), c
 end
 
 @doc raw"""
@@ -1572,14 +1588,14 @@ function elliptic_parameter(X::EllipticSurface, F::Vector{QQFieldElem})
 end
 
 @doc raw"""
-    _elliptic_parameter(X::EllipticSurface, D::WeilDivisor, l, c)
+    _elliptic_parameter(X::EllipticSurface, D::AbsWeilDivisor, l, c)
 
 Compute the linear system of ``D = (n-1) O + P + V``.
 where V is vertical and `l` is the coefficient of the fiber class.
 Assumes `D` nef and `D^2=0`.
 Typically ``D`` is the output of `horizontal_decomposition`.
 """
-function _elliptic_parameter(X::EllipticSurface, D1::WeilDivisor, D::WeilDivisor, P::EllipticCurvePoint, l::Int, c)
+function _elliptic_parameter(X::EllipticSurface, D1::AbsWeilDivisor, D::AbsWeilDivisor, P::EllipticCurvePoint, l::Int, c)
   S, piS = weierstrass_model(X);
   piX = weierstrass_contraction(X)
   c = function_field(X)(c)
@@ -1634,39 +1650,166 @@ function extended_ade(ADE::Symbol, n::Int)
   return -G, kernel(G; side = :left)
 end
 
-# This function allows to store a reduction map to positive characteristic,
-# e.g. for computing intersection numbers.
-function reduction_to_pos_char(X::EllipticSurface, red_map::Map)
-  return get_attribute!(X, :reduction_to_pos_char) do
-    kk0 = base_ring(X)
-    @assert domain(red_map) === kk0
-    kkp = codomain(red_map)
-    @assert characteristic(kkp) > 0
-    _, result = base_change(red_map, X)
-    return red_map, result
-  end::Tuple{<:Map, <:Map}
+########################################################################
+# Reduction to positive characteristic
+#
+# We allow to store a reduction of an elliptic surface `X` to positive
+# characteristic. The user needs to know what they're doing here! 
+#
+# The functionality can be made available by specifying a reduction 
+# map for the `base_ring` (actually a field) of `X` to a field of 
+# positive characteristic. This can then be stored in `X` via 
+# `set_good_reduction_map!`. The latter unlocks certain features such 
+# as computation of intersection numbers in positive characteristic.
+########################################################################
+function set_good_reduction_map!(X::EllipticSurface, red_map::Map)
+  has_attribute(X, :good_reduction_map) && error("reduction map has already been set")
+  kk0 = base_ring(X)
+  @assert domain(red_map) === kk0
+  kkp = codomain(red_map)
+  @assert characteristic(kkp) > 0
+  set_attribute!(X, :good_reduction_map=>red_map)
 end
 
+function get_good_reduction_map(X::EllipticSurface)
+  is_zero(characteristic(base_ring(X))) || error("reduction to positive characteristic is only possible from characteristic zero")
+  has_attribute(X, :good_reduction_map) || error("no reduction map is available; please set it manually via `set_good_reduction_map!`")
+  return get_attribute(X, :good_reduction_map)::Map
+end
+
+@attr Tuple{<:AbsCoveredScheme, <:AbsCoveredSchemeMorphism} function raw_good_reduction(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  X_red, bc_map = base_change(red_map, X)
+  set_attribute!(X_red, :is_irreducible=>true)
+  set_attribute!(X_red, :is_reduced=>true)
+  set_attribute!(X_red, :is_integral=>true)
+  set_attribute!(X_red, :is_equidimensional=>true)
+  return X_red, bc_map
+end
+
+@attr Map function good_reduction_function_fields(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E = generic_fiber(X)
+  Ft = base_field(E)
+  Pt = base_ring(Ft)
+  kk = coefficient_ring(Pt)
+  kk_red = codomain(red_map)
+  Pt_red, _ = polynomial_ring(kk_red, first(symbols(Pt)); cached=false)
+  Ft_red = fraction_field(Pt_red)
+  Ft_to_Ft_red = map_from_func(fr->Ft_red(map_coefficients(red_map, numerator(fr); parent=Pt_red), map_coefficients(red_map, denominator(fr); parent=Pt_red)), Ft, Ft_red)
+  return Ft_to_Ft_red
+end
+
+@attr EllipticCurve function good_reduction_generic_fiber(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E = generic_fiber(X)
+  Ft_to_Ft_red = good_reduction_function_fields(X)
+  E_red = base_change(Ft_to_Ft_red, E)
+  return E_red
+end
+
+@attr Vector{<:EllipticCurvePoint} function good_reduction_rational_points(X::EllipticSurface)
+  red_map = good_reduction_function_fields(X)
+  result = Vector{EllipticCurvePoint}()
+  E_red = good_reduction_generic_fiber(X)
+  for P in X.MWL # TODO: Do we have a getter for this?
+    if is_infinite(P)
+      push!(result, infinity(E_red))
+      continue
+    end
+    push!(result, E_red([red_map(P[1]), red_map(P[2])]))
+  end
+  return result
+end
+
+@attr EllipticSurface function good_reduction(X::EllipticSurface)
+  red_map = get_good_reduction_map(X)
+  E_red = good_reduction_generic_fiber(X)
+  mwl_red = good_reduction_rational_points(X)
+  X_red = EllipticSurface(E_red, 2, mwl_red; resolution_strategy=X.resolution_strategy)
+end
+
+@attr Tuple{<:MorphismFromRationalFunctions, <:MorphismFromRationalFunctions} function identifications_with_raw_good_reduction(X::EllipticSurface)
+  X_red = good_reduction(X)
+  W_red = weierstrass_chart_on_minimal_model(X_red)
+  X_red_raw, red_raw = raw_good_reduction(X)
+  red_raw_cov = covering_morphism(red_raw)
+  W_red_raw = domain(first(maps_with_given_codomain(red_raw_cov, weierstrass_chart_on_minimal_model(X))))
+  
+  R_red = ambient_coordinate_ring(W_red)
+  R_red_raw = ambient_coordinate_ring(W_red_raw)
+  raw_to_red = morphism_from_rational_functions(X_red_raw, X_red, W_red_raw, W_red, fraction_field(R_red_raw).(gens(R_red_raw)); check=false)
+  set_attribute!(raw_to_red, :is_isomorphism=>true)
+  red_to_raw = morphism_from_rational_functions(X_red, X_red_raw, W_red, W_red_raw, fraction_field(R_red).(gens(R_red)); check=false)
+  set_attribute!(red_to_raw, :is_isomorphism=>true)
+  return raw_to_red, red_to_raw
+end
+
+
+function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
+  return get_attribute!(X, :raw_reduction_of_algebraic_lattice) do
+    X_red_raw, bc = raw_good_reduction(X)
+    basis_ambient, _, _= algebraic_lattice(X)
+    return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+  end::IdDict
+end
+
+@attr ZZMatrix function good_reduction_algebraic_lattice(X::EllipticSurface)
+  div_red = raw_reduction_of_algebraic_lattice(X)
+  from, to = identifications_with_raw_good_reduction(X)
+  div_red_pf = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>pushforward(from, E) for (D, E) in div_red)
+  basis, _, _= algebraic_lattice(X)
+  X_red = good_reduction(X)
+  red_basis, _, _= algebraic_lattice(X_red)
+  result = matrix(ZZ, [div_red_pf[D] == E ? one(ZZ) : zero(ZZ) for D in basis, E in red_basis])
+  result[1, 1] = one(ZZ) # identify the generic fibers
+  return result
+end
+
+@attr MorphismFromRationalFunctions function good_reduction(
+    f::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}
+  )
+  X = domain(f)
+  @assert X === codomain(f) "reduction to positive characteristic is only implemented for automorphisms"
+  W = weierstrass_chart_on_minimal_model(X)
+  @assert W === domain_chart(f) === codomain_chart(f) "morphism must be defined on the Weierstrass charts"
+  img_gens = coordinate_images(f)
+  red_map = get_good_reduction_map(X)
+
+  X_red = good_reduction(X)
+  W_red = weierstrass_chart_on_minimal_model(X_red)
+  R = ambient_coordinate_ring(W_red)
+  FR = fraction_field(R)
+  
+  psi = fr -> FR(map_coefficients(red_map, numerator(fr); parent=R), map_coefficients(red_map, denominator(fr); parent=R))
+
+  img_gens_red = psi.(img_gens)
+  result = morphism_from_rational_functions(X_red, X_red, W_red, W_red, img_gens_red; check=false)
+  has_attribute(f, :is_isomorphism) && get_attribute(f, :is_isomorphism)===true && set_attribute!(result, :is_isomorphism=>true)
+  return result
+end
+
+
 @doc raw"""
-    basis_representation(X::EllipticSurface, D::WeilDivisor)
+    basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
 
 Return the vector representing the numerical class of `D` 
 with respect to the basis of the ambient space of `algebraic_lattice(X)`.
 """
-function basis_representation(X::EllipticSurface, D::WeilDivisor)
+function basis_representation(X::EllipticSurface, D::AbsWeilDivisor)
   basis_ambient,_, NS = algebraic_lattice(X)
   G = gram_matrix(ambient_space(NS))
   n = length(basis_ambient)
   v = zeros(ZZRingElem, n)
   @vprint :EllipticSurface 3 "computing basis representation of $D\n"
   kk = base_ring(X)
-  if iszero(characteristic(kk)) && has_attribute(X, :reduction_to_pos_char)
-    red_map, bc = get_attribute(X, :reduction_to_pos_char)
-    for i in 1:n
-      @vprintln :EllipticSurface 4 "intersecting with $(i): $(basis_ambient[i])"
-      
-      v[i] = intersect(base_change(red_map, basis_ambient[i]; scheme_base_change=bc), 
-                       base_change(red_map, D; scheme_base_change=bc))
+  if iszero(characteristic(kk)) && has_attribute(X, :good_reduction_map)
+    X_red_raw, bc = raw_good_reduction(X)
+    red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+    D_red = _reduce_as_prime_divisor(bc, D)
+    for (i, E) in enumerate(basis_ambient)
+      @vprintln :EllipticSurface 4 "intersecting in positive characteristic with $(i): $(basis_ambient[i])"
+      v[i] = intersect(red_dict[E], D_red)
     end
   else
     for i in 1:n
@@ -1679,11 +1822,56 @@ function basis_representation(X::EllipticSurface, D::WeilDivisor)
   return v*inv(G)
 end
 
-################################################################################
-#
-# patches for Oscar
-#
-################################################################################
+### Some functions to do custom pullback of divisors along reduction maps.
+# We assume that primeness is preserved along the reduction. In particular, the 
+# user is responsible for this to hold for all cases used! 
+# They specify the "good reduction" in the end. 
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::AbsWeilDivisor)
+  return WeilDivisor(domain(bc), coefficient_ring(D), 
+                     IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(
+                         _reduce_as_prime_divisor(bc, I) => c for (I, c) in coefficient_dict(D)
+                       )
+                    )
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, D::EllipticSurfaceSection)
+  P = rational_point(D)
+  is_infinite(P) && return _reduce_as_prime_divisor(bc, underlying_divisor(D))
+  X = codomain(bc)
+  @assert parent(P) === generic_fiber(X)
+  W = weierstrass_chart_on_minimal_model(X)
+  R = ambient_coordinate_ring(W)
+  (x, y, t) = gens(R)
+  I = ideal(R, R.([evaluate(denominator(P[1]), t)*x-evaluate(numerator(P[1]), t),
+                           evaluate(denominator(P[2]), t)*y-evaluate(numerator(P[2]), t)])
+           )
+  bc_loc = first(maps_with_given_codomain(covering_morphism(bc), W))
+  bc_I = pullback(bc_loc)(I)
+  @assert is_one(dim(bc_I))
+  set_attribute!(bc_I, :is_prime=>true)
+  J = PrimeIdealSheafFromChart(domain(bc), domain(bc_loc), bc_I)
+  return WeilDivisor(domain(bc), coefficient_ring(D), 
+                     IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}(J => one(coefficient_ring(D)))
+                    )
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::AbsIdealSheaf)
+  result = pullback(bc, I)
+  has_attribute(I, :_self_intersection) && set_attribute!(result, :_self_intersection=>
+                                                          (get_attribute(I, :_self_intersection)::Int))
+  return result
+end
+
+function _reduce_as_prime_divisor(bc::AbsCoveredSchemeMorphism, I::PrimeIdealSheafFromChart)
+  U = original_chart(I)
+  bc_cov = covering_morphism(bc)
+  V = __find_chart(U, codomain(bc_cov))
+  IV = I(V)
+  bc_loc = first(maps_with_given_codomain(bc_cov, V))
+  J = pullback(bc_loc)(IV)
+  set_attribute!(J, :is_prime=>true)
+  return PrimeIdealSheafFromChart(domain(bc), domain(bc_loc), J)
+end
 
 
 ########################################################################
@@ -2242,6 +2430,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     end
 
     if dim(Q) == 0
+      @vprint :EllipticSurface 3 "image will be a fiber component\n"
       # find the fiber 
       if is_one(Q(UBY)) # fiber over infinity
         # collect all components
@@ -2251,24 +2440,31 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
             append!(comps, E[2:end])
           end
         end
+        @vprint :EllipticSurface 3 "found total of $(length(comps)) possible components\n"
 
         # collect all charts
         codomain_charts = AbsAffineScheme[]
         if is_empty(comps) # The fiber over infinity
+          @vprint :EllipticSurface 3 "the image must be the fiber over infinity"
           codomain_charts = affine_charts(Y) # TODO: How can we restrict the charts then?
         else
           codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(D->!isone(first(components(D))(V)), comps)]
         end
+        @vprint :EllipticSurface 3 "found $(length(codomain_charts)) charts where these components are visible"
 
         if i > n - mwr # If D is a section
+          @vprint :EllipticSurface 3 "divisor to be mapped is a section\n"
           pt = X.MWL[i-(n-mwr)]
           res = _pushforward_section(step, pt; divisor=D, codomain_charts)
           result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
         else
+          @vprint :EllipticSurface 3 "divisor to be mapped is NOT a section\n"
           loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; domain_chart = dom_chart, codomain_charts)
 
           loc_map === nothing && error("pushforward preparation did not succeed")
+          @assert !is_one(I(domain(loc_map)))
           K = _local_pushforward(loc_map, I(domain(loc_map)))
+          @assert !is_one(K)
 
           JJ = ideal(OO(cod_chart), gens(K))
           res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
@@ -2277,6 +2473,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         end
         continue
       end
+      @vprint :EllipticSurface 3 "image will not be in the fiber over infinity\n"
 
       # fiber over some point ≂̸ ∞.
       t = first(gens(OO(UBY)))
@@ -2293,16 +2490,21 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
         codomain_charts = AbsAffineScheme[V for V in affine_charts(Y) if any(I->!isone(I(V)), components(F))]
         break
       end
+      @vprint :EllipticSurface 3 "found $(length(codomain_charts)) charts where these components are visible\n"
 
       if i > n - mwr # If D is a section
+        @vprint :EllipticSurface 3 "divisor to be mapped is a section\n"
         pt = X.MWL[i-(n-mwr)]
         res = _pushforward_section(step, pt; divisor=D, codomain_charts)
         result[D] = WeilDivisor(Y, co_ring, IdDict{AbsIdealSheaf, elem_type(co_ring)}(res::AbsIdealSheaf => one(co_ring)); check=false)
       else
+        @vprint :EllipticSurface 3 "divisor to be mapped is NOT a section\n"
         loc_map, dom_chart, cod_chart = _prepare_pushforward_prime_divisor(step, I; codomain_charts)
         loc_map === nothing && error("preparation for pushforward did not succeed")
 
+        @assert !is_one(I(domain(loc_map)))
         K = _local_pushforward(loc_map, I(domain(loc_map)))
+        @assert !is_one(K)
         JJ = ideal(OO(cod_chart), gens(K))
         res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
@@ -2329,7 +2531,9 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
           continue
         end
 
+        @assert !is_one(I(domain(loc_map)))
         K = _local_pushforward(loc_map, I(domain(loc_map)))
+        @assert !is_one(K)
         JJ = ideal(OO(cod_chart), gens(K))
         res = PrimeIdealSheafFromChart(Y, cod_chart, JJ)
 
@@ -2338,7 +2542,7 @@ function _pushforward_lattice_along_isomorphism(step::MorphismFromRationalFuncti
     end
   end
 
-  res = WeilDivisor[result[D] for D in lat_X]
+  res = AbsWeilDivisor[result[D] for D in lat_X]
   for a in res
     set_attribute!(first(components(a)), :_self_intersection, -2)
   end
@@ -2354,13 +2558,13 @@ end
 =#
 function morphism_from_section(
     X::EllipticSurface, P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(X, P)
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(X, P)
   )
   U = weierstrass_chart_on_minimal_model(X)
   II = first(components(divisor))
 
   # For the zero section we can not use the Weierstrass chart
-  if P.is_infinite
+  if is_infinite(P)
     return identity_map(X)
   end
   @assert !is_one(II(U))
@@ -2389,7 +2593,7 @@ end
 ########################################################################
 
 function translation_morphism(X::EllipticSurface, P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(X, P)
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(X, P)
   )
   E = generic_fiber(X)
   @assert parent(P) === E "point does not lay on the underlying elliptic curve"
@@ -2423,7 +2627,7 @@ end
 function _pushforward_section(
     phi::MorphismFromRationalFunctions{<:EllipticSurface, <:EllipticSurface}, 
     P::EllipticCurvePoint;
-    divisor::AbsWeilDivisor=_section(domain(phi), P),
+    divisor::AbsWeilDivisor=EllipticSurfaceSection(domain(phi), P),
     codomain_charts::Vector{<:AbsAffineScheme} = affine_charts(codomain(phi))
   )
   X = domain(phi)::EllipticSurface
@@ -2544,6 +2748,28 @@ function admissible_moebius_transformations(
     X::EllipticSurface,
     Y::EllipticSurface
   )
+  result = MorphismFromRationalFunctions[]
+  for img_gens in  _admissible_moebius_transformations(X, Y; on_weierstrass_model=false)
+    push!(result, _moebius_to_morphism_from_rational_functions(X, Y, img_gens))
+  end
+  return result
+end
+
+function admissible_moebius_transformations_on_weierstrass_chart(
+    X::EllipticSurface,
+    Y::EllipticSurface
+  )
+  result = MapFromFunc[]
+  for img_gens in  _admissible_moebius_transformations(X, Y; on_weierstrass_model=true)
+    push!(result, _moebius_to_pullback_on_weierstrass_chart(X, Y, img_gens))
+  end
+  return result
+end
+
+function _admissible_moebius_transformations(
+    X::EllipticSurface,
+    Y::EllipticSurface; on_weierstrass_model=true
+  )
   EX = generic_fiber(X)
   EY = generic_fiber(Y)
 
@@ -2561,21 +2787,22 @@ function admissible_moebius_transformations(
   vY = roots(dY)
   @assert all(is_one(degree(a)) for (a, k) in factor(dY))  "not all critical values are rational over the given ground field"
 
-  for (c, _) in reducible_fibers(X)
-    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
-  end
-  for (c, _) in reducible_fibers(Y)
-    @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
-  end
+#   for (c, _) in reducible_fibers(X)
+#     @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+#   end
+#   for (c, _) in reducible_fibers(Y)
+#     @assert !is_zero(c[2]) "the case of reducible fibers over the point at infinity is not implemented"
+#   end
 
   # Use the first three elements of vX and map them to three elements of vY.
   # Then check whether the resulting transformation preserves everything.
 
-  candidates = Function[]
+  candidates = []
 
   @assert length(vX) >= 3 "at least three reducible fibers are needed"
   length(vX) == length(vY) || return candidates # No moebius transformation is possible in this case
-
+  kkt = base_field(EX)
+  t = gen(kkt)
   p1 = vX[1:3]
   for i in vY
     for j in vY
@@ -2586,47 +2813,67 @@ function admissible_moebius_transformations(
         mt = find_moebius_transformation(p1, p2)
         any(is_zero(mt(x)[2]) for x in vX) && continue # reducible fibers over ∞ are not implemented at the moment.
         any(!(mt(x)[1]//mt(x)[2] in vY) for x in vX) && continue # the transformation does not preserve all admissible fibers in this case
-        push!(candidates, mt)
+        p, q = mt(t)
+        img_t = (p//q)::typeof(t)
+        EYbc = base_change(f->evaluate(f, img_t), EY)
+        is_isomorphic(EYbc, EX) || continue
+        iso_ell = isomorphism(EX, EYbc)
+        push!(candidates, _to_weierstrass_morphism(X, Y, mt, iso_ell; on_weierstrass_model))
       end
     end
   end
-
-  result = MorphismFromRationalFunctions[]
-
+  return candidates
+end
+    
+function _to_weierstrass_morphism(X, Y, mt, iso_ell; on_weierstrass_model)
+  EX = generic_fiber(X)
+  EY = generic_fiber(Y)
   # Set up some variables
   kkt = base_field(EX)
   t = gen(kkt)
-  WX = weierstrass_chart_on_minimal_model(X)
+  if on_weierstrass_model
+    WX = weierstrass_chart(X)
+    WY = weierstrass_chart(Y)
+  else 
+    WX = weierstrass_chart_on_minimal_model(X)
+    WY = weierstrass_chart_on_minimal_model(Y)
+  end 
   RX = ambient_coordinate_ring(WX)
   FRX = fraction_field(RX)
-  WY = weierstrass_chart_on_minimal_model(Y)
   RY = ambient_coordinate_ring(WY)
   FRY = fraction_field(RY)
 
-  # Go through the candidates again and for those which do indeed lead to isomorphic 
-  # surfaces, construct the isomorphism.
-  for mt in candidates
-    p, q = mt(t)
-    img_t = (p//q)::typeof(t)
-    EYbc = base_change(f->evaluate(f, img_t), EY)
-    is_isomorphic(EYbc, EX) || continue
-    # Construct the isomorphism of elliptic surfaces explicitly
-    iso_ell = isomorphism(EX, EYbc)
+  # Construct the isomorphism of elliptic surfaces explicitly
 
-    a, b, _ = rational_maps(iso_ell)
-    kkTxy = parent(a)
-    to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
-    A = to_FRX(a)
-    B = to_FRX(b)
-    P, Q = mt(FRX(RX[3]))
-    img_T = (P//Q)::elem_type(FRX)
-    img_gens = [A, B, img_T]
-    loc_res = morphism_from_rational_functions(X, Y, WX, WY, img_gens; check=true)
-    set_attribute!(loc_res, :is_isomorphism=>true)
-    push!(result, loc_res)
-  end
+  a, b, _ = rational_maps(iso_ell)
+  kkTxy = parent(a)
+  to_FRX = hom(kkTxy, FRX, x->evaluate(x, FRX(RX[3])), FRX.([RX[1], RX[2]]))
+  A = to_FRX(a)
+  B = to_FRX(b)
+  P, Q = mt(FRX(RX[3]))
+  img_T = (P//Q)::elem_type(FRX)
+  img_gens = [A, B, img_T]
+  return img_gens
+end
 
-  return result
+function _moebius_to_pullback_on_weierstrass_chart(X, Y, img_gens)
+  WY = weierstrass_chart(Y)
+  WX = weierstrass_chart(X)
+  RX = ambient_coordinate_ring(WX)
+  FRX = fraction_field(RX)
+  RY = ambient_coordinate_ring(WY)
+  FRY = fraction_field(RY)
+  
+  return extend_domain_to_fraction_field(hom(RY, FRX, img_gens))
+end 
+
+function _moebius_to_morphism_from_rational_functions(X, Y, img_gens)
+  WY = weierstrass_chart_on_minimal_model(Y)
+  WX = weierstrass_chart_on_minimal_model(X)
+
+  loc_res = morphism_from_rational_functions(X, Y, WX, WY, img_gens; check=true)
+  set_attribute!(loc_res, :is_isomorphism=>true)
+  return loc_res
 end
 
 # An internal helper routine to verify that a given isomorphism of elliptic surfaces 
@@ -2951,7 +3198,7 @@ function _vertical_part(X::EllipticSurface, v::QQMatrix)
   phi = hom(ag, mwlAb, mwlAb.(mwl_tors_gens))
   a = preimage(phi, mwlAb(t))
   for i in 1:ngens(ag)
-    P += a[i]*get_attribute(tors[i][1],:point)
+    P += a[i]*rational_point(tors[i][1])
   end 
   
   p = candidates[i]
@@ -2982,3 +3229,4 @@ function _mordell_weil_group(X)
   Triv = lattice(V, identity_matrix(QQ,dim(V))[1:t,:])
   return torsion_quadratic_module(N, Triv;modulus=1, modulus_qf=1, check=false)
 end 
+

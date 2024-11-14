@@ -35,9 +35,7 @@
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 
-    detect_type &&
-      is_finite(weyl_group(R)) &&
-      set_root_system_type!(R, cartan_type_with_ordering(mat)...)
+    detect_type && is_finite(weyl_group(R)) && assure_root_system_type(R)
     return R
   end
 end
@@ -64,10 +62,10 @@ end
 
 mutable struct WeightLatticeElem
   root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
+  vec::ZZMatrix # the coordinate (row) vector with respect to the fundamental weights
 
   function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
-    @req size(vec) == (rank(root_system), 1) "Invalid dimension"
+    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
     return new(root_system, vec)
   end
 end

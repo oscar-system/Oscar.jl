@@ -1059,11 +1059,9 @@ julia> matroid_hex(fano_matroid())
 function matroid_hex(M::Matroid)
   rvlx = min_revlex_basis_encoding(M)
   r,n = rank(M), length(M) 
+  v = zeros(Int, 4*ceil(Int, length(rvlx)/4))
+  v[length(v)-length(rvlx)+1:end] = _revlex_basis_to_vector(rvlx)
 
-  v = _revlex_basis_to_vector(rvlx)
-  for _ in 1:(4-length(v)%4)
-    pushfirst!(v,0)
-  end
   v = reshape(v,4,:)
   v = [string(parse(Int, join(v[:, j]), base=2), base=16) for j in 1:size(v)[2]]
 

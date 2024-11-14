@@ -2,7 +2,7 @@
   C = cube(2)
   square_weights = [0, 0, 1, 2]
   square_max_cells = [[1, 2, 3], [2, 3, 4]]
-  square_incidence = IncidenceMatrix(square_max_cells)
+  square_incidence = incidence_matrix(square_max_cells)
 
   square_by_weights = subdivision_of_points(C, square_weights)
   square_by_cells = subdivision_of_points(C, square_max_cells)
@@ -21,9 +21,9 @@
 
   moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
   fulldim_moaepts = moaepts[:, 2:3]
-  moaeimreg0 = IncidenceMatrix(1, 6)
+  moaeimreg0 = incidence_matrix(1, 6)
   moaeimreg0[1, :] = [1, 1, 1, 0, 0, 0]
-  moaeimnonreg0 = IncidenceMatrix([
+  moaeimnonreg0 = incidence_matrix([
     [4, 5, 6], [1, 4, 2], [2, 4, 5], [2, 3, 5], [3, 5, 6], [1, 3, 6], [1, 4, 6]
   ])
 

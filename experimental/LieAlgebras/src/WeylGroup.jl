@@ -24,7 +24,9 @@ Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::In
 # Examples
 ```jldoctest
 julia> weyl_group(:A, 2)
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of type A2
 ```
 """
 function weyl_group(fam::Symbol, rk::Int)
@@ -92,10 +94,25 @@ function Base.one(W::WeylGroup)
   return W(UInt8[]; normalize=false)
 end
 
+function Base.show(io::IO, mime::MIME"text/plain", W::WeylGroup)
+  @show_name(io, W)
+  @show_special(io, mime, W)
+  io = pretty(io)
+  println(io, LowercaseOff(), "Weyl group")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, mime, root_system(W))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, LowercaseOff(), "Weyl group")
+  else
+    print(io, LowercaseOff(), "Weyl group of ", Lowercase(), root_system(W))
+  end
 end
 
 function coxeter_matrix(W::WeylGroup)
@@ -204,26 +221,26 @@ function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-function Base.:(*)(x::WeylGroupElem, r::RootSpaceElem)
-  @req root_system(parent(x)) === root_system(r) "Incompatible root systems"
+function Base.:(*)(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  r2 = deepcopy(r)
+  rw2 = deepcopy(rw)
   for s in Iterators.reverse(word(x))
-    reflect!(r2, Int(s))
+    reflect!(rw2, Int(s))
   end
 
-  return r2
+  return rw2
 end
 
-function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
-  @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
+function Base.:(*)(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  w2 = deepcopy(w)
-  for s in Iterators.reverse(word(x))
-    reflect!(w2, Int(s))
+  rw2 = deepcopy(rw)
+  for s in word(x)
+    reflect!(rw2, Int(s))
   end
 
-  return w2
+  return rw2
 end
 
 # to be removed once GroupCore is supported
@@ -469,6 +486,59 @@ function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
 
   isoinv = function (g::FPGroupElem)
     return W(abs.(letters(g)))
+  end
+
+  return MapFromFunc(W, G, iso, isoinv)
+end
+
+function permutation_group(W::WeylGroup; set_properties::Bool=true)
+  return codomain(isomorphism(PermGroup, W; set_properties))
+end
+
+function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
+  @req is_finite(W) "Weyl group is not finite"
+  R = root_system(W)
+  type, ordering = root_system_type_with_ordering(R)
+
+  if length(type) != 1
+    error("Not implemented (yet)")
+  end
+  if !issorted(ordering)
+    error("Not implemented (yet)")
+  end
+  coxeter_type, n = only(type)
+  if coxeter_type == :A
+    G = symmetric_group(n + 1)
+
+    iso = function (w::WeylGroupElem)
+      reduce(*, [cperm(G, [i, i + 1]) for i in word(w)]; init=cperm(G))
+    end
+
+    isoinv = function (p::PermGroupElem)
+      word = UInt8[]
+      for cycle in cycles(p)
+        transpositions = [
+          sort([c, cycle[i + 1]]) for (i, c) in enumerate(cycle) if i < length(cycle)
+        ]
+        for t in transpositions
+          word = reduce(
+            vcat,
+            [
+              [i for i in t[1]:(t[2] - 1)],
+              [i for i in reverse(t[1]:(t[2] - 2))],
+              word,
+            ],
+          )
+        end
+      end
+      return W(word)
+    end
+  else
+    error("Not implemented (yet)")
+  end
+
+  if set_properties
+    set_order(G, order(W))
   end
 
   return MapFromFunc(W, G, iso, isoinv)

@@ -107,6 +107,9 @@ Get the relative order of the `i`-th generator of `c`.
 ```jldoctest
 julia> c = collector(2, Int);
 
+julia> get_relative_order(c, 1)
+0
+
 julia> set_relative_order!(c, 1, 2)
 
 julia> get_relative_order(c, 1)
@@ -159,6 +162,11 @@ Get the `Vector{T}` of all relative orders of the generators of `c`.
 # Examples
 ```jldoctest
 julia> c = collector(2);
+
+julia> get_relative_orders(c)
+2-element Vector{ZZRingElem}:
+ 0
+ 0
 
 julia> set_relative_orders!(c, ZZRingElem[2, 0])
 
@@ -219,6 +227,9 @@ julia> set_relative_order!(c, 1, 2)
 
 julia> set_relative_order!(c, 2, 3)
 
+julia> get_power(c, 1)
+Pair{Int64, Int64}[]
+
 julia> set_power!(c, 1, [2 => 1])
 
 julia> get_power(c, 1)
@@ -277,6 +288,10 @@ julia> c = collector(2, Int);
 
 julia> set_relative_orders!(c, [2, 3])
 
+julia> get_conjugate(c, 2, 1)
+1-element Vector{Pair{Int64, Int64}}:
+ 2 => 1
+
 julia> set_conjugate!(c, 2, 1, [2 => 2])
 
 julia> get_conjugate(c, 2, 1)
@@ -287,9 +302,8 @@ julia> get_conjugate(c, 2, 1)
 function get_conjugate(c::Collector{T}, j::Int, i::Int) where T <: IntegerUnion
   @req 0 < i <= c.ngens "the collector has only $(c.ngens) generators not $i"
   @req i < j "only for i < j, but i = $i, j = $j"
-  #XXX: will crash if this pair is not defined as they commute...
-  #     needs thinking, is_assigned(c.com, i, j), ..., 
-  return c.conjugates[i,j]
+  conj = c.conjugates
+  return isassigned(conj, i, j) ? conj[i, j] : [j => T(1)]
 end
 
 """

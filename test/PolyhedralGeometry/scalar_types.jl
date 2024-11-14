@@ -47,7 +47,7 @@
   @test length(lattice_points(sd)) == 11
 
   let pc = polyhedral_complex(
-      E, IncidenceMatrix(facets(sd)), vertices(sd); non_redundant=true
+      E, incidence_matrix(facets(sd)), vertices(sd); non_redundant=true
     )
     @test issetequal(maximal_polyhedra(pc), faces(sd, 2))
   end
@@ -95,6 +95,11 @@
         ),
       )
       @test number_field(coefficient_field(j)) == number_field(coefficient_field(jj))
+    end
+    let ng = n_gon(5)
+      (A,b) = halfspace_matrix_pair(facets(ng))
+      @test typeof(polyhedron(A,b)) == typeof(ng)
+      @test coefficient_field(polyhedron(A,b)) == coefficient_field((ng))
     end
   end
 

@@ -1203,17 +1203,27 @@ function minimal_primes(
 
   # This will in many cases lead to an easy simplification of the problem
   if factor_generators
-    J = typeof(I)[ideal(R, elem_type(R)[])]
+    J = [ideal(R, gens(I))] # A copy of I as initialization
     for g in gens(I)
       K = typeof(I)[]
       is_zero(g) && continue
       for (b, k) in factor(g)
+        # Split the already collected components with b
         for j in J
           push!(K, j + ideal(R, b))
         end
       end
       J = K
     end
+
+    unique_comp = typeof(I)[]
+    for q in J
+      is_one(q) && continue
+      q in unique_comp && continue
+      push!(unique_comp, q)
+    end
+    J = unique_comp
+    
     # unique! seems to fail here. We have to do it manually.
     pre_result = filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...))
     result = typeof(I)[]
@@ -2110,7 +2120,8 @@ function small_generating_set(
   computed_gb = IdealGens(ring, sing_gb, true)
   if !haskey(I.gb,computed_gb.ord)
   # if not yet present, store gb for later use
-    I.gb[computed_gb.ord] = computed_gb
+    I.gb[computed_gb.ord]      = computed_gb
+    I.gb[computed_gb.ord].isGB = true
   end
 
   # we do not have a notion of minimal generating set in this context!
@@ -2328,4 +2339,3 @@ end
 function hash(I::Ideal, c::UInt)
   return hash(base_ring(I), c)
 end
-

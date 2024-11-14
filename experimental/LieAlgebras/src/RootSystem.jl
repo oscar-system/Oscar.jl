@@ -11,6 +11,21 @@
 Construct the root system defined by the Cartan matrix.
 If `check` is `true`, checks that `cartan_matrix` is a generalized Cartan matrix.
 Passing `detect_type=false` will skip the detection of the root system type.
+
+# Examples
+```jldoctest
+julia> root_system([2 -1; -1 2])
+Root system of rank 2
+  of type A2
+
+julia> root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false)
+Root system of rank 2
+  of unknown type
+
+julia> root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2]))
+Root system of rank 3
+  of type C3 (with non-canonical ordering of simple roots)
+```
 """
 function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true)
   return RootSystem(cartan_matrix; check, detect_type)
@@ -28,9 +43,8 @@ Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk:
 # Examples
 ```jldoctest
 julia> root_system(:A, 2)
-Root system defined by Cartan matrix
-  [ 2   -1]
-  [-1    2]
+Root system of rank 2
+  of type A2
 ```
 """
 function root_system(fam::Symbol, rk::Int)
@@ -40,6 +54,22 @@ function root_system(fam::Symbol, rk::Int)
   return R
 end
 
+@doc raw"""
+    root_system(type::Vector{Tuple{Symbol,Int}}) -> RootSystem
+
+Construct the root system of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations of tuples.
+
+# Examples
+```jldoctest
+julia> root_system([(:A, 2), (:F, 4)])
+Root system of rank 6
+  of type A2 x F4
+
+julia> root_system(Tuple{Symbol,Int}[])
+Root system of rank 0
+  of type []
+```
+"""
 function root_system(type::Vector{Tuple{Symbol,Int}})
   cartan = cartan_matrix(type)
   R = root_system(cartan; check=false, detect_type=false)
@@ -55,9 +85,18 @@ function Base.show(io::IO, mime::MIME"text/plain", R::RootSystem)
   @show_name(io, R)
   @show_special(io, mime, R)
   io = pretty(io)
-  println(io, "Root system defined by Cartan matrix")
-  print(io, Indent())
-  show(io, mime, cartan_matrix(R))
+  print(io, "Root system")
+  print(io, " of rank ", rank(R))
+  println(io, Indent())
+  if has_root_system_type(R)
+    type, ord = root_system_type_with_ordering(R)
+    print(io, "of type ", _root_system_type_string(type))
+    if !issorted(ord)
+      print(io, " (with non-canonical ordering of simple roots)")
+    end
+  else
+    print(io, "of unknown type")
+  end
   print(io, Dedent())
 end
 
@@ -67,8 +106,25 @@ function Base.show(io::IO, R::RootSystem)
   if is_terse(io)
     print(io, "Root system")
   else
-    print(io, "Root system defined by Cartan matrix $(cartan_matrix(R))")
+    print(io, "Root system")
+    if has_root_system_type(R) &&
+      ((type, ord) = root_system_type_with_ordering(R); !isempty(type))
+      type, ord = root_system_type_with_ordering(R)
+      print(io, " of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+    else
+      print(io, " of rank ", rank(R))
+    end
   end
+end
+
+function _root_system_type_string(type::Vector{Tuple{Symbol,Int}})
+  isempty(type) && return "[]"
+  return join(
+    [string(t[1]) * string(t[2]) for t in type], is_unicode_allowed() ? " × " : " x "
+  )
 end
 
 @attr ZZMatrix function bilinear_form(R::RootSystem)
@@ -148,13 +204,21 @@ end
 
 function fundamental_weight(R::RootSystem, i::Int)
   @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, i .== 1:rank(R)))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
 end
 
 @doc raw"""
     fundamental_weights(R::RootSystem) -> Vector{WeightLatticeElem}
 
 Return the fundamental weights corresponding to the `simple_roots` of `R`.
+
+# Examples
+```jldoctest
+julia> fundamental_weights(root_system(:A, 2))
+2-element Vector{WeightLatticeElem}:
+ w_1
+ w_2
+```
 """
 function fundamental_weights(R::RootSystem)
   return [fundamental_weight(R, i) for i in 1:rank(R)]
@@ -203,6 +267,15 @@ Also see: `negative_root`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ -a_1
+ -a_2
+ -a_1 - a_2
+```
 """
 function negative_roots(R::RootSystem)
   return [-r for r in positive_roots(R)]
@@ -228,14 +301,23 @@ end
 @doc raw"""
     negative_coroot(R::RootSystem, i::Int) -> RootSpaceElem
 
-Returns the coroots corresponding to the negative roots of `R`
+Returns the negative coroots of `R`. The $i$-th element of the returned vector is the negative coroot corresponding to the $i$-th positive coroot.
 
-Also see: `negative_coroots`.
+Also see: `negative_coroot`.
 
 !!! note
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> negative_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ -a^v_1
+ -a^v_2
+ -a^v_1 - a^v_2
+```
 """
 function negative_coroots(R::RootSystem)
   return [-r for r in positive_coroots(R)]
@@ -303,6 +385,15 @@ Also see: `positive_root`, `number_of_positive_roots`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_roots(root_system(:A, 2))
+3-element Vector{RootSpaceElem}:
+ a_1
+ a_2
+ a_1 + a_2
+```
 """
 function positive_roots(R::RootSystem)
   return R.positive_roots::Vector{RootSpaceElem}
@@ -336,6 +427,15 @@ Also see: `positive_coroots`.
     This function does not return a copy of the asked for object,
     but the internal field of the root system.
     Mutating the returned object will lead to undefined behavior.
+
+# Examples
+```jldoctest
+julia> positive_coroots(root_system(:A, 2))
+3-element Vector{DualRootSpaceElem}:
+ a^v_1
+ a^v_2
+ a^v_1 + a^v_2
+```
 """
 function positive_coroots(R::RootSystem)
   return R.positive_coroots::Vector{DualRootSpaceElem}
@@ -351,16 +451,23 @@ function rank(R::RootSystem)
 end
 
 function root_system_type(R::RootSystem)
-  has_root_system_type(R) || error("Root system type not known and cannot be determined")
+  assure_root_system_type(R)
   return R.type
 end
 
 function root_system_type_with_ordering(R::RootSystem)
+  assure_root_system_type(R)
   return R.type, R.type_ordering
 end
 
 function has_root_system_type(R::RootSystem)
   return isdefined(R, :type) && isdefined(R, :type_ordering)
+end
+
+function assure_root_system_type(R::RootSystem)
+  has_root_system_type(R) && return nothing
+  @req is_finite(weyl_group(R)) "Root system type cannot be determined for infinite Weyl groups"
+  set_root_system_type!(R, cartan_type_with_ordering(cartan_matrix(R))...)
 end
 
 function set_root_system_type!(R::RootSystem, type::Vector{Tuple{Symbol,Int}})
@@ -373,10 +480,6 @@ function set_root_system_type!(
   R.type = type
   R.type_ordering = collect(ordering)
   return nothing
-end
-
-function root_system_type_string(R::RootSystem)
-  return join([string(t[1]) * string(t[2]) for t in root_system_type(R)], " x ")
 end
 
 @doc raw"""
@@ -489,6 +592,24 @@ end
     weyl_group(R::RootSystem) -> WeylGroup
 
 Return the Weyl group of `R`.
+
+# Examples
+```jldoctest
+julia> weyl_group(root_system([2 -1; -1 2]))
+Weyl group
+  of root system of rank 2
+    of type A2
+
+julia> weyl_group(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+Weyl group
+  of root system of rank 2
+    of unknown type
+
+julia> weyl_group(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
+Weyl group
+  of root system of rank 3
+    of type C3 (with non-canonical ordering of simple roots)
+```
 """
 function weyl_group(R::RootSystem)
   return R.weyl_group::WeylGroup
@@ -501,7 +622,7 @@ Return the Weyl vector $\rho$ of `R`, which is the sum of all fundamental weight
 or half the sum of all positive roots.
 """
 function weyl_vector(R::RootSystem)
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, fill(1, rank(R))))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), fill(1, rank(R))))
 end
 
 ###############################################################################
@@ -514,14 +635,10 @@ function RootSpaceElem(root_system::RootSystem, vec::Vector{<:RationalUnion})
   return RootSpaceElem(root_system, matrix(QQ, 1, length(vec), vec))
 end
 
-function RootSpaceElem(R::RootSystem, w::WeightLatticeElem)
-  @req root_system(w) === R "Root system mismatch"
-  coeffs = transpose!(cartan_matrix_inv(R) * coefficients(w))
-  return RootSpaceElem(R, matrix(QQ, coeffs))
-end
-
 function RootSpaceElem(w::WeightLatticeElem)
-  return RootSpaceElem(root_system(w), w)
+  R = root_system(w)
+  coeffs = coefficients(w) * cartan_matrix_inv_tr(R)
+  return RootSpaceElem(R, matrix(QQ, coeffs))
 end
 
 function zero(::Type{RootSpaceElem}, R::RootSystem)
@@ -622,6 +739,23 @@ function dot(r1::RootSpaceElem, r2::RootSpaceElem)
   )
 end
 
+function expressify(r::RootSpaceElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(r, :α; context)
+  else
+    return expressify(r, :a; context)
+  end
+end
+
+function expressify(r::RootSpaceElem, s; context=nothing)
+  sum = Expr(:call, :+)
+  for i in 1:length(r.vec)
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+  end
+  return sum
+end
+@enable_all_show_via_expressify RootSpaceElem
+
 @doc raw"""
     height(r::RootSpaceElem) -> QQFieldElem
 
@@ -696,9 +830,9 @@ function reflect(r::RootSpaceElem, s::Int)
 end
 
 function reflect!(r::RootSpaceElem, s::Int)
-  r.vec -=
-    dot(view(cartan_matrix(root_system(r)), s, :), r.vec) *
-    simple_root(root_system(r), s).vec
+  sub!(
+    Nemo.mat_entry_ptr(r.vec, 1, s), dot(view(cartan_matrix(root_system(r)), s, :), r.vec)
+  )
   return r
 end
 
@@ -805,6 +939,23 @@ function coeff(r::DualRootSpaceElem, i::Int)
   return r.vec[i]
 end
 
+function expressify(r::DualRootSpaceElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(r, :α̌; context)
+  else
+    return expressify(r, Symbol("a^v"); context)
+  end
+end
+
+function expressify(r::DualRootSpaceElem, s; context=nothing)
+  sum = Expr(:call, :+)
+  for i in 1:length(r.vec)
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+  end
+  return sum
+end
+@enable_all_show_via_expressify DualRootSpaceElem
+
 @doc raw"""
     height(r::DualRootSpaceElem) -> QQFieldElem
 
@@ -890,22 +1041,18 @@ end
 Return the weight defined by the coefficients `v` of the fundamental weights with respect to the root system `R`.
 """
 function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
-  return WeightLatticeElem(R, matrix(ZZ, rank(R), 1, v))
+  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))
 end
 
-function WeightLatticeElem(R::RootSystem, r::RootSpaceElem)
-  @req root_system(r) === R "Root system mismatch"
-  coeffs = transpose!(coefficients(r) * cartan_matrix_tr(R))
+function WeightLatticeElem(r::RootSpaceElem)
+  R = root_system(r)
+  coeffs = coefficients(r) * cartan_matrix_tr(R)
   @req all(is_integer, coeffs) "RootSpaceElem does not correspond to a weight"
   return WeightLatticeElem(R, matrix(ZZ, coeffs))
 end
 
-function WeightLatticeElem(r::RootSpaceElem)
-  return WeightLatticeElem(root_system(r), r)
-end
-
 function zero(::Type{WeightLatticeElem}, R::RootSystem)
-  return WeightLatticeElem(R, zero_matrix(ZZ, rank(R), 1))
+  return WeightLatticeElem(R, zero_matrix(ZZ, 1, rank(R)))
 end
 
 function zero(r::WeightLatticeElem)
@@ -1065,14 +1212,22 @@ function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
 
   return dot(
     coefficients(w1),
-    cartan_matrix_inv_tr(R) * (_cartan_symmetrizer_mat(R) * coefficients(w2)),
+    (coefficients(w2) * _cartan_symmetrizer_mat(R)) * cartan_matrix_inv(R),
   )
 end
 
-function expressify(w::WeightLatticeElem, s=:w; context=nothing)
+function expressify(w::WeightLatticeElem; context=nothing)
+  if is_unicode_allowed()
+    return expressify(w, :ω; context)
+  else
+    return expressify(w, :w; context)
+  end
+end
+
+function expressify(w::WeightLatticeElem, s; context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(w.vec)
-    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$s$i"))
+    push!(sum.args, Expr(:call, :*, expressify(w.vec[i]; context), "$(s)_$(i)"))
   end
   return sum
 end
@@ -1097,7 +1252,7 @@ end
 Reflects the `w` at the `s`-th simple root in place and returns `w`.
 """
 function reflect!(w::WeightLatticeElem, s::Int)
-  addmul!(w.vec, view(cartan_matrix(root_system(w)), :, s:s), -w.vec[s])
+  w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
   return w
 end
 
@@ -1112,7 +1267,7 @@ function dot(r::RootSpaceElem, w::WeightLatticeElem)
   @req root_system(r) === root_system(w) "parent root system mismatch"
   R = root_system(r)
 
-  return dot(coefficients(r), _cartan_symmetrizer_mat(R), coefficients(w))
+  return dot(coefficients(r) * _cartan_symmetrizer_mat(R), coefficients(w))
 end
 
 function dot(w::WeightLatticeElem, r::RootSpaceElem)
@@ -1193,8 +1348,8 @@ julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
 7-element Vector{Vector{Int64}}:
  [3, 0, 1]
  [1, 1, 1]
- [2, 0, 1]
  [0, 0, 3]
+ [2, 0, 1]
  [0, 1, 1]
  [1, 0, 1]
  [0, 0, 1]
@@ -1248,10 +1403,8 @@ function _action_matrices_on_weights(W::WeylGroup)
   R = root_system(W)
   return map(1:rank(R)) do i
     x = gen(W, i)
-    transpose!(
-      matrix(
-        ZZ, reduce(hcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
-      ),
+    matrix(
+      ZZ, reduce(vcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
     )
   end
 end
@@ -1290,7 +1443,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
 
   pos_roots = positive_roots(R)
   pos_roots_w = WeightLatticeElem.(positive_roots(R))
-  pos_roots_w_coeffs = transpose.(coefficients.(pos_roots_w))
+  pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
   char = Dict(hw => T(1))
 
@@ -1309,7 +1462,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
         (
           WeightLatticeElem(
             R,
-            transpose(first(intersect(elements(o), pos_roots_w_coeffs))),
+            first(intersect(elements(o), pos_roots_w_coeffs)),
           ),
           length(o),
         ) for o in O
@@ -1366,9 +1519,9 @@ Dict{Vector{Int64}, Int64} with 8 entries:
   [0, 0, 1]   => 1
   [1, -1, 1]  => 1
   [-1, 0, 1]  => 1
-  [0, -1, 1]  => 1
-  [0, 0, -1]  => 1
   [1, 0, -1]  => 1
+  [0, 0, -1]  => 1
+  [0, -1, 1]  => 1
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)

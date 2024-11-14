@@ -195,8 +195,8 @@
     @test_throws ArgumentError convex_hull(vertices(Pos_poly), collect(vertices(Pos_poly)))
     @test_throws ArgumentError positive_hull(collect(vertices(Pos_poly)))
 
-    @test_throws ArgumentError IncidenceMatrix(lineality_space(Pos_poly))
-    IM = IncidenceMatrix([[1]])
+    @test_throws ArgumentError incidence_matrix(lineality_space(Pos_poly))
+    IM = incidence_matrix([[1]])
     lincone = positive_hull([1 0 0], [0 1 0])
 
     @test positive_hull(rays_modulo_lineality(lincone)...) == lincone

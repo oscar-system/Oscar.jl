@@ -152,6 +152,11 @@ function _allunique(lst::Vector{T}) where {T<:RingElem}
   return all(!(x in lst[i+1:end]) for (i, x) in enumerate(lst))
 end
 
+function _allunique(lst::Vector{T}) where {T<:MPolyQuoRingElem}
+  rep_list = lift.(lst)
+  return _allunique(rep_list)
+end
+
 function _build_poly(u::MPolyRingElem, indices::Vector{Int}, S::MPolyRing)
   kk = coefficient_ring(S)
   r = ngens(S)
@@ -263,6 +268,7 @@ function _evaluate_help(F::MPolyAnyMap{<: MPolyRing}, g)
 end
 
 function (F::MPolyAnyMap{<: MPolyRing})(g)
+  parent(g) === domain(F) || return F(domain(F)(g))
   if g isa elem_type(domain(F))
     if coefficient_map(F) === nothing
       return _evaluate_plain(F, g)

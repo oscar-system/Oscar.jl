@@ -1445,8 +1445,8 @@ julia> dominant_weights(L, [1, 0, 3])
 7-element Vector{Vector{Int64}}:
  [1, 0, 3]
  [1, 1, 1]
- [2, 0, 1]
  [0, 0, 3]
+ [2, 0, 1]
  [0, 1, 1]
  [1, 0, 1]
  [0, 0, 1]
@@ -1509,10 +1509,10 @@ Dict{Vector{Int64}, Int64} with 10 entries:
   [-1, 1, -1] => 1
   [-2, 2, 0]  => 1
   [1, -1, 1]  => 1
-  [-1, 0, 1]  => 1
   [1, 0, -1]  => 1
-  [2, 0, 0]   => 1
+  [-1, 0, 1]  => 1
   [0, -1, 0]  => 1
+  [2, 0, 0]   => 1
 ```
 """
 function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})

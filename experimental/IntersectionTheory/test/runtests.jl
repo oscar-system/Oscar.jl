@@ -32,7 +32,7 @@ let pushforward = IntersectionTheory.pushforward
     @test schur_functor(A, [1,1]) == exterior_power(A, 2)
     @test schur_functor(A, [2]) == symmetric_power(A, 2)
     D = degeneracy_locus(A, B, 2)
-    @test pushforward(hom(D, X), D(1)) == degeneracy_locus(A, B, 2, class=true)
+    @test pushforward(map(D, X), D(1)) == degeneracy_locus(A, B, 2, class=true)
 
     # characteristic classes
     t = todd_class(2)
@@ -51,11 +51,11 @@ let pushforward = IntersectionTheory.pushforward
 
     p = abstract_point()
     P2 = abstract_projective_space(2)
-    i = hom(P2, P2)
+    i = map(P2, P2)
     @test i.domain == P2
     @test i.codomain == P2
 
-    i = hom(p, P2)
+    i = map(p, P2)
     @test pushforward(i, p(1)) == P2.point
     @test pullback(i, P2.O1) == 0
     @test i.T === tangent_bundle(i)
@@ -81,7 +81,7 @@ let pushforward = IntersectionTheory.pushforward
 
     P5 = abstract_projective_space(5, symbol="H")
     h, H = P2.O1, P5.O1
-    v = hom(P2, P5, [2h])
+    v = map(P2, P5, [2h])
     @test pullback(v, H) == 2h
     @test pullback(v, P5.point) == 0
     @test v.pushforward(h) == 2H^4
@@ -91,14 +91,14 @@ let pushforward = IntersectionTheory.pushforward
     # test that hom works for product
     P, Q = abstract_projective_space(1), abstract_projective_space(1)
     PxQ = P * Q
-    p, q = hom(PxQ, P), hom(PxQ, Q)
+    p, q = map(PxQ, P), map(PxQ, Q)
     @test pushforward(p, PxQ.point) == P.point
     @test integral(pullback(p, P.point) * pullback(q, Q.point)) == 1
 
     # # cubic containing a plane
     # P2 = abstract_projective_space(2)
     # Y = complete_intersection(abstract_projective_space(5), 3)
-    # i = hom(P2, Y, [P2.O1], inclusion=true)
+    # i = map(P2, Y, [P2.O1], inclusion=true)
     # Y1 = i.codomain
     # p = pushforward(i, P2(1))
     # h = Y1.O1
@@ -243,7 +243,7 @@ let pushforward = IntersectionTheory.pushforward
     # blowup Veronese
     P2 = abstract_projective_space(2)
     P5 = abstract_projective_space(5)
-    i = hom(P2, P5, [2P2.O1])
+    i = map(P2, P5, [2P2.O1])
     Bl, E, j = blowup(i)
     c = top_chern_class(tangent_bundle(Bl))
     @test integral(pushforward(structure_map(Bl), c)) == 12
@@ -257,7 +257,7 @@ let pushforward = IntersectionTheory.pushforward
     # blowup point in P2
     P2 = abstract_projective_space(2)
     P = abstract_point(base = P2.base)
-    Bl, E, j = blowup(hom(P, P2, [zero(P.ring)]))
+    Bl, E, j = blowup(map(P, P2, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test integral(e^2) == -1
     @test integral(pullback(j, e)) == -1
@@ -266,14 +266,14 @@ let pushforward = IntersectionTheory.pushforward
     # blowup point in P7
     P7 = abstract_projective_space(7)
     P = abstract_point(base = P2.base)
-    Bl, E, j = blowup(hom(P, P7, [zero(P.ring)]))
+    Bl, E, j = blowup(map(P, P7, [zero(P.ring)]))
     e = pushforward(j, E(1))
     @test euler(Bl) == 14
     
     # blowup twisted cubic
     P1 = abstract_projective_space(1)
     P3 = abstract_projective_space(3)
-    i = hom(P1, P3, [3P1.O1])
+    i = map(P1, P3, [3P1.O1])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     quad = pullback(structure_map(Bl), 2P3.O1) - e
@@ -287,7 +287,7 @@ let pushforward = IntersectionTheory.pushforward
     (r, s, t) = gens(F)
     P1 = abstract_projective_space(1, base = F)
     P3 = abstract_projective_space(3, base = F)
-    i = hom(P1, P3, [3P1.O1])
+    i = map(P1, P3, [3P1.O1])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]
@@ -295,7 +295,7 @@ let pushforward = IntersectionTheory.pushforward
 
     G = abstract_grassmannian(2, 5)
     P9 = abstract_projective_space(9)
-    i = hom(G, P9, [G.O1])
+    i = map(G, P9, [G.O1])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     quad = pullback(structure_map(Bl), 2P9.O1)-e
@@ -310,7 +310,7 @@ let pushforward = IntersectionTheory.pushforward
     P3 = abstract_projective_space(3, base = F)   
     C = zero_locus_section(OO(P2,d))
     C.point = 1//(2-2g) * chern_class(C, 1)
-    i = hom(C, P3, [d * C.point])
+    i = map(C, P3, [d * C.point])
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     rH, sH, tH = [pullback(structure_map(Bl), x * P3.O1) - e for x in [r,s,t]]

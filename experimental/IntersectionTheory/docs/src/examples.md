@@ -65,7 +65,7 @@ h
 julia> H = gens(P5)[1]
 H
 
-julia> i = hom(P2, P5, [2*h])
+julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
 julia> Bl, E, j = blowup(i)

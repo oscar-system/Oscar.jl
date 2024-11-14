@@ -156,7 +156,7 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ## Integrate Chow Ring Elements
 
 ```@julia
-integral(x::MPolyDecRingElem)
+integral(x::Union{MPolyDecRingElem, MPolyQuoRingElem})
 ```
 
 Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.

@@ -2,7 +2,7 @@
 # Toric varieties
 @register_serialization_type AffineNormalToricVariety uses_id
 
-@register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group]
+@register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group, :cohomology_ring]
 
 
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
@@ -92,4 +92,30 @@ function load_object(s::DeserializerState, ::Type{ToricDivisorClass}, tv::Normal
   end
   pmdiv = Polymake._lookup_multi(pm_object(tv), "DIVISOR", index-1)
   return toric_divisor_class(ToricDivisor(pmdiv, tv, coeffs))
+end
+
+################################################################################
+# Cohomology classes on toric varieties
+@register_serialization_type CohomologyClass uses_params
+
+function save_type_params(s::SerializerState, obj::CohomologyClass)
+  save_data_dict(s) do
+    save_object(s, encode_type(CohomologyClass), :name)
+    save_typed_object(s, obj.v, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{<:CohomologyClass})
+  return load_typed_object(s)
+end
+
+function save_object(s::SerializerState, cc::CohomologyClass)
+  save_data_dict(s) do
+    save_object(s, lift(polynomial(cc)), :polynomial)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{CohomologyClass}, tv::NormalToricVarietyType)
+  poly = load_object(s, MPolyDecRingElem, base_ring(cohomology_ring(tv)), :polynomial)
+  return cohomology_class(tv, MPolyQuoRingElem(poly, cohomology_ring(tv)))
 end

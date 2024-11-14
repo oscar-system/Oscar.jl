@@ -673,25 +673,25 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 end
 
 """
-    minimal_generating_set(G::GAPGroup)
+    minimal_size_generating_set(G::GAPGroup)
 
 Return a vector of minimal length of elements in `G` that generate `G`.
 
 # Examples
 ```jldoctest
-julia> length(minimal_generating_set(abelian_group(SubPcGroup, [2,3,4])))
+julia> length(minimal_size_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
-julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
+julia> length(minimal_size_generating_set(abelian_group(PermGroup, [2,3,4])))
 2
 
-julia> minimal_generating_set(symmetric_group(5))
+julia> minimal_size_generating_set(symmetric_group(5))
 2-element Vector{PermGroupElem}:
  (1,2,3,4,5)
  (1,2)
 ```
 """
-@gapattribute function minimal_generating_set(G::GAPGroup)
+@gapattribute function minimal_size_generating_set(G::GAPGroup)
    L = GAP.Globals.MinimalGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
@@ -1852,7 +1852,7 @@ end
 #  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
 #    return GAP.Globals.Rank(GapObj(G))::Int
 #  end
-#  has_is_finite(G) && is_finite(G) && return length(minimal_generating_set(G))
+#  has_is_finite(G) && is_finite(G) && return length(minimal_size_generating_set(G))
 #  error("not yet supported")
 #end
 

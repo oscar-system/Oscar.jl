@@ -5,12 +5,12 @@ underlying_cycle(D::AbsWeilDivisor) = underlying_cycle(underlying_divisor(D))
 underlying_cycle(D::WeilDivisor) = D.C
 
 ### type getters 
-scheme_type(D::WeilDivisor{S, U, V}) where{S, U, V} = S
-scheme_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = S
-coefficient_ring_type(D::WeilDivisor{S, U, V}) where{S, U, V} = U
-coefficient_ring_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = U
-coefficient_type(D::WeilDivisor{S, U, V}) where{S, U, V} = V
-coefficient_type(::Type{WeilDivisor{S, U, V}}) where{S, U, V} = V
+scheme_type(D::AbsWeilDivisor{S, U}) where{S, U} = S
+scheme_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = S
+coefficient_ring_type(D::AbsWeilDivisor{S, U}) where{S, U} = U
+coefficient_ring_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = U
+coefficient_type(D::AbsWeilDivisor{S, U}) where{S, U} = elem_type(U)
+coefficient_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = elem_type(U)
 
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)
@@ -338,7 +338,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
         I = c1 + c2
         if !has_dimension_leq_zero(I) # potentially faster for localized ideals
           if c1 == c2
-            result = result + a1*a2*_self_intersection(c1)
+            result = result + a1*a2* (has_attribute(c1, :_self_intersection) ? _self_intersection(c1) : _self_intersection(c2))
           else
             error("self intersection unknown")
           end
@@ -352,7 +352,7 @@ function intersect(D::AbsWeilDivisor, E::AbsWeilDivisor;
 end
 
 
-function pushforward(inc::CoveredClosedEmbedding, W::WeilDivisor)
+function pushforward(inc::CoveredClosedEmbedding, W::AbsWeilDivisor)
   X = domain(inc)
   Y = codomain(inc)
   X === ambient_scheme(W) || error("divisor not defined on the domain")
@@ -420,7 +420,7 @@ end
 
 
 @doc raw"""
-    is_in_linear_system(f::VarietyFunctionFieldElem, D::WeilDivisor; regular_on_complement::Bool=true, check::Bool=true) -> Bool
+    is_in_linear_system(f::VarietyFunctionFieldElem, D::AbsWeilDivisor; regular_on_complement::Bool=true, check::Bool=true) -> Bool
 
 Return whether the rational function `f` is in the linear system ``|D|``, i.e. if $(f) + D \geq 0$.
 
