@@ -1,165 +1,4 @@
 @doc raw"""
-    basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
-
-By virtue of Theorem 12.4.1 in [CLS11](@cite), one can compute a monomial
-basis of $H^4(X, \mathbb{Q})$ for a simplicial, complete toric variety $X$
-by truncating its cohomology ring to degree $2$. Inspired by this, this
-method identifies a basis of $H^{(2,2)}(X, \mathbb{Q})$ by multiplying
-pairs of cohomology classes associated with toric coordinates.
-
-By definition, $H^{(2,2)}(X, \mathbb{Q})$ is a subset of $H^{4}(X, \mathbb{Q})$.
-However, by Theorem 9.3.2 in [CLS11](@cite), for complete and simplicial
-toric varieties and $p \neq q$ it holds $H^{(p,q)}(X, \mathbb{Q}) = 0$. It follows
-that for such varieties $H^{(2,2)}(X, \mathbb{Q}) = H^4(X, \mathbb{Q})$ and the
-vector space dimension of those spaces agrees with the Betti number $b_4(X)$.
-
-Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
-to `false` to skip these tests.
-
-# Examples
-```jldoctest
-julia> Y1 = hirzebruch_surface(NormalToricVariety, 2)
-Normal toric variety
-
-julia> Y2 = hirzebruch_surface(NormalToricVariety, 2)
-Normal toric variety
-
-julia> Y = Y1 * Y2
-Normal toric variety
-
-julia> h22_basis = basis_of_h22(Y, check = false)
-6-element Vector{CohomologyClass}:
- Cohomology class on a normal toric variety given by xx2*yx2
- Cohomology class on a normal toric variety given by xt2*yt2
- Cohomology class on a normal toric variety given by xx2*yt2
- Cohomology class on a normal toric variety given by xt2*yx2
- Cohomology class on a normal toric variety given by yx2^2
- Cohomology class on a normal toric variety given by xx2^2
-
-julia> betti_number(Y, 4) == length(h22_basis)
-true
-```
-"""
-function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
-
-  # (0) Some initial checks
-  if check
-    @req is_complete(v) "Computation of basis of H22 is currently only supported for complete toric varieties"
-    @req is_simplicial(v) "Computation of basis of H22 is currently only supported for simplicial toric varieties"
-  end
-  if dim(v) < 4
-    set_attribute!(v, :basis_of_h22, Vector{CohomologyClass}())
-  end
-  if has_attribute(v, :basis_of_h22)
-    return get_attribute(v, :basis_of_h22)
-  end
-
-  # (1) Prepare some data of the variety
-  mnf = Oscar._minimal_nonfaces(v)
-  ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
-
-  # (2) Prepare the linear relations
-  N_lin_rel, my_mat = rref(transpose(matrix(QQ, rays(v))))
-  @req N_lin_rel == nrows(my_mat) "Cannot remove as many variables as there are linear relations - weird!"
-  bad_positions = [findfirst(!iszero, row) for row in eachrow(my_mat)]
-  lin_rels = Dict{Int, Vector{QQFieldElem}}()
-  for k in 1:nrows(my_mat)
-    my_relation = (-1) * my_mat[k, :]
-    my_relation[bad_positions[k]] = 0
-    @req all(k -> k == 0, my_relation[bad_positions]) "Inconsistency!"
-    lin_rels[bad_positions[k]] = my_relation
-  end
-
-  # (3) Prepare a list of those variables that we keep, a.k.a. a basis of H^(1,1)
-  good_positions = setdiff(1:n_rays(v), bad_positions)
-  n_good_positions = length(good_positions)
-
-  # (4) Make a list of all quadratic elements in the cohomology ring, which are not generators of the SR-ideal.
-  N_filtered_quadratic_elements = 0
-  dict_of_filtered_quadratic_elements = Dict{Tuple{Int64, Int64}, Int64}()
-  for k in 1:n_good_positions
-    for l in k:n_good_positions
-      my_tuple = (min(good_positions[k], good_positions[l]), max(good_positions[k], good_positions[l]))
-      if !(my_tuple in ignored_sets)
-        N_filtered_quadratic_elements += 1
-        dict_of_filtered_quadratic_elements[my_tuple] = N_filtered_quadratic_elements
-      end
-    end
-  end
-
-  # (5) We only care about the SR-ideal gens of degree 2. Above, we took care of all relations,
-  # (5) for which both variables are not replaced by one of the linear relations. So, let us identify
-  # (5) all remaining relations of the SR-ideal, and apply the linear relations to them.
-  remaining_relations = Vector{Vector{QQFieldElem}}()
-  for my_tuple in ignored_sets
-
-    # The generator must have degree 2 and at least one variable is to be replaced
-    if length(my_tuple) == 2 && (my_tuple[1] in bad_positions || my_tuple[2] in bad_positions)
-
-      # Represent first variable by list of coefficients, after plugging in the linear relation
-      var1 = zeros(QQ, ncols(my_mat))
-      var1[my_tuple[1]] = 1
-      if my_tuple[1] in bad_positions
-        var1 = lin_rels[my_tuple[1]]
-      end
-
-      # Represent second variable by list of coefficients, after plugging in the linear relation
-      var2 = zeros(QQ, ncols(my_mat))
-      var2[my_tuple[2]] = 1
-      if my_tuple[2] in bad_positions
-        var2 = lin_rels[my_tuple[2]]
-      end
-
-      # Compute the product of the two variables, which represents the new relation
-      prod = zeros(QQ, N_filtered_quadratic_elements)
-      for k in 1:length(var1)
-        if var1[k] != 0
-          for l in 1:length(var2)
-            if var2[l] != 0
-              my_tuple = (min(k, l), max(k, l))
-              if haskey(dict_of_filtered_quadratic_elements, my_tuple)
-                prod[dict_of_filtered_quadratic_elements[my_tuple]] += var1[k] * var2[l]
-              end
-            end
-          end
-        end
-      end
-
-      # Remember the result
-      push!(remaining_relations, prod)
-
-    end
-
-  end
-
-  # (9) Identify variables that we can remove with the remaining relations
-  new_good_positions = 1:N_filtered_quadratic_elements
-  if length(remaining_relations) != 0
-    remaining_relations_matrix = matrix(QQ, remaining_relations)
-    r, new_mat = rref(remaining_relations_matrix)
-    @req r == nrows(remaining_relations_matrix) "Cannot remove a variable via linear relations - weird!"
-    new_bad_positions = [findfirst(!iszero, row) for row in eachrow(new_mat)]
-    new_good_positions = setdiff(1:N_filtered_quadratic_elements, new_bad_positions)
-  end
-  
-  # (10) Return the basis elements in terms of cohomology classes
-  S = cohomology_ring(v, check = check)
-  c_ds = [k.f for k in gens(S)]
-  final_list_of_tuples = []
-  for (key, value) in dict_of_filtered_quadratic_elements
-    if value in new_good_positions
-      push!(final_list_of_tuples, key)
-    end
-  end
-  basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
-  set_attribute!(v, :basis_of_h22, basis_of_h22)
-  return basis_of_h22
-
-end
-
-
-@doc raw"""
     ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
@@ -260,5 +99,197 @@ function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool 
 
   set_attribute!(m, :ambient_space_models_of_g4_fluxes, filtered_h22_basis)
   return filtered_h22_basis
+
+end
+
+
+@doc raw"""
+    well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+
+Given an F-theory model $m$ defined as hypersurface in a simplicial and
+complete toric base, this method computes a basis of all well-quantized
+ambient space $G_4$-fluxes. The result of this operation is a tuple of two
+matrices. The columns of the first matrix specify those (rational) combinations
+of ambient space $G_4$-fluxes, of which one may only take $\mathbb{Z}$-linear
+combinations without violating flux quantization. The columns of the second
+matrix specify those (rational) combinations of ambient space $G_4$-fluxes, for
+which any rational linear combination satisfies the flux quantization condition.
+
+It can be computationally very demanding to check if a toric variety
+$X$ is complete (and simplicial). The optional argument `check` can be set
+to `false` to skip these tests.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> ambient_space_models_of_g4_fluxes(t, check = false);
+
+julia> res = well_quantized_ambient_space_models_of_g4_fluxes(t, check = false);
+
+julia> res[1]
+[1//4   -3//16]
+[   0   1//144]
+
+julia> res[2]
+2 by 0 empty matrix
+```
+"""
+function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+
+  # (1) Entry checks
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  if check
+    @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
+  end
+  if has_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
+  end
+
+
+  # (2) Compute data, that is frequently used by the sophisticated intersection product below
+  S = cox_ring(ambient_space(m))
+  gS = gens(cox_ring(ambient_space(m)))
+  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  scalings = [c.coeff for c in S.d]
+  mnf = Oscar._minimal_nonfaces(ambient_space(m))
+  sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
+  data = (
+    S = S,
+    gS = gS,
+    linear_relations = linear_relations,
+    scalings = scalings,
+    sr_ideal_pos = sr_ideal_pos
+  )
+
+
+  # (3) Are intersection numbers known?
+  inter_dict = Dict{NTuple{4, Int64}, QQFieldElem}()
+  s_inter_dict = Dict{String, QQFieldElem}()
+  if has_attribute(m, :inter_dict)
+    inter_dict = get_attribute(m, :inter_dict)
+  end
+  if has_attribute(m, :s_inter_dict)
+    s_inter_dict = get_attribute(m, :s_inter_dict)
+  end
+
+
+  # (4) Obtain critical information - this may take significant time!
+  ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisors_to_be_considered(m)
+
+
+  # (5) Work out the relevant intersection numbers and organize them in a constraint_matrix.
+  constraint_matrix = Vector{Vector{QQFieldElem}}()
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+
+    # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
+    for i in 1:length(ambient_space_flux_candidates_basis)
+      condition = Vector{ZZRingElem}()
+      idxs = findall(x -> x != 0, collect(exponents(polynomial(ambient_space_flux_candidates_basis[i]).f))[1])
+      if length(idxs) == 1
+        idxs = [idxs[1], idxs[1]]
+      end
+
+      for j in 1:length(list_of_divisor_pairs_to_be_considered)
+
+        my_tuple = Tuple(sort([idxs..., list_of_divisor_pairs_to_be_considered[j]...]))
+        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+
+      end
+      push!(constraint_matrix, condition)
+    end
+
+  else
+  
+    # Cover all other case with generic, but potentially painfully slow methodology.
+    tds = torusinvariant_prime_divisors(ambient_space(m))
+    cds = [cohomology_class(tds[i]) for i in 1:length(tds)]
+    pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
+    for i in 1:length(ambient_space_flux_candidates_basis)
+
+      condition = Vector{QQFieldElem}()
+
+      idxs = findall(x -> x != 0, collect(exponents(polynomial(ambient_space_flux_candidates_basis[i]).f))[1])
+      if length(idxs) == 1
+        idxs = [idxs[1], idxs[1]]
+      end
+
+      for j in 1:length(list_of_divisor_pairs_to_be_considered)
+
+        my_tuple = Tuple(sort([idxs..., list_of_divisor_pairs_to_be_considered[j]...]))
+        if !haskey(inter_dict, my_tuple)
+          class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
+          inter_dict[my_tuple] = integrate(class)
+        end
+        push!(condition, inter_dict[my_tuple])
+
+      end
+      push!(constraint_matrix, condition)
+    end
+
+  end
+  
+  # (6) Convert the intersection matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
+  # (6) Then compute its Smith normal form.
+  denom = lcm(unique(vcat([denominator.(k) for k in constraint_matrix]...)))
+  if denom != 1
+    constraint_matrix = denom * constraint_matrix
+  end
+  C = transpose(matrix(ZZ, constraint_matrix))
+  S, T, U = snf_with_transform(C)
+
+
+  # (7) Recall that we are seeking constraint_matrix * q = n, where q is a vector of rational numbers and n a vector of natural numbers.
+  # (7) Above, we multiplied the constraint matrix with the denominator if necessary. Thereby, this equation is equivalent to C * q = d * n.
+  # (7) Since T is an invertible matrix with integer entries, this system is equivalent to T * C * q = T * (d * n).
+  # (7) This in turn is equivalent to (T * C * U) * (U^-1 * q) = d * (T*n).
+  # (7) In other words, we have S * (U^(-1) * q) = d * (T*n).
+  # (7) Note that T*n are just other integers, which we may use to parametrize the space of solutions. Let us thus write:
+  # (7) So we have S * (U^-1) * q) = d * N, with N the newly chosen parametrization. Let tilde_q = U^(-1) * q.
+  r = rank(S)
+  @req all(k -> !is_zero(S[k,k]), 1:r) "Inconsistency in Smith normal form detected. Please inform the authors."
+  @req all(k -> is_zero(S[k,k]), r+1:min(nrows(S), ncols(S))) "Inconsistency in Smith normal form  detected. Please inform the authors."
+  # (7) S is diagonal, and has non-zero entries at diagonal position 1 to r: S = (l1, ..., lr, 0, ..., 0). Therefore, every q_tilde
+  # (7) which solves the above is of the form q_tilde = (1/l1 * d * N1, ..., 1/lr * d * N_r, tilde_q_(r+1), ..., ), where 
+  # (7) tilde_q_(r+1) etc. are unconstrained. We encode this solution in the following matrix.
+  S_prime = zero_matrix(QQ, ncols(S), ncols(S))
+  for k in 1:min(nrows(S), ncols(S))
+    if k <= r
+      S_prime[k,k] = denom//S[k,k]
+    else
+      S_prime[k,k] = 1
+    end
+  end
+  # (7) To extract the solutions q from these solutions tilde_q, we multiply with the matrix U from the left.
+  solution_matrix = U * S_prime
+
+
+  # (8) Overall, we are allowed to take any Z-linear combinations of the first r columns of solution_matrix together with any
+  # (8) rational combination of its remaining columns. Those are exactly the G4-fluxes which pass the elementary quantization tests.
+  # (8) Note that the set of vectors for which we can allow any rational combination is isomorphic to the kernel of constraint_matrix.
+  # (8) Indeed, only this ensures that upon multiplication with any rational number, the result remains an integer.
+  res = (solution_matrix[:,1:r], solution_matrix[:,r+1:ncols(solution_matrix)])
+
+
+  # (9) Remember computed data
+  set_attribute!(m, :well_quantized_ambient_space_models_of_g4_fluxes, res)
+  set_attribute!(m, :inter_dict, inter_dict)
+  set_attribute!(m, :s_inter_dict, s_inter_dict)
+
+
+  # (10) Finally, return the result
+  return res
 
 end
