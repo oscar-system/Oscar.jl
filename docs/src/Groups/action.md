@@ -40,7 +40,7 @@ on_sets
 permuted
 on_indeterminates
 on_lines
-on_rref_mats
+on_echelon_form_mats
 on_subgroups
 ```
 

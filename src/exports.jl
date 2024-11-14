@@ -1172,7 +1172,7 @@ export objective_function
 export omega_group
 export on_indeterminates
 export on_lines
-export on_rref_mats
+export on_echelon_form_mats
 export on_sets
 export on_sets_sets
 export on_simplicial_complex
