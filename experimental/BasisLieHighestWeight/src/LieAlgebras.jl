@@ -1,20 +1,20 @@
 @attributes mutable struct LieAlgebraStructure
   lie_type::Symbol
   rank::Int
-  lie_algebra_gap::GAP.Obj
+  lie_algebra::AbstractLieAlgebra{QQFieldElem}
   chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}}
 
   function LieAlgebraStructure(lie_type::Symbol, rank::Int)
-    lie_algebra_gap = codomain(Oscar.iso_oscar_gap(Oscar.lie_algebra(QQ, lie_type, rank)))
-    chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(lie_algebra_gap))
-    return new(lie_type, rank, lie_algebra_gap, chevalley_basis_gap)
+    lie_algebra = Oscar.lie_algebra(QQ, lie_type, rank)
+    chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(codomain(Oscar.iso_oscar_gap(lie_algebra))))
+    return new(lie_type, rank, lie_algebra, chevalley_basis_gap)
   end
 end
 
 rank(L::LieAlgebraStructure) = L.rank
 
 @attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
-  R = GAPWrap.RootSystem(L.lie_algebra_gap)
+  R = GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
   C = matrix(QQ, GAP.Globals.CartanMatrix(R))
   return C
 end
@@ -41,7 +41,7 @@ function cartan_sub_basis_gap(L::LieAlgebraStructure)
 end
 
 function root_system_gap(L::LieAlgebraStructure)
-  return GAPWrap.RootSystem(L.lie_algebra_gap)
+  return GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
 end
 
 function number_of_positive_roots(L::LieAlgebraStructure)
@@ -51,7 +51,7 @@ end
 function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
   hw_ = Int.(hw)
   @req Oscar.LieAlgebras.is_dominant_weight(hw_) "Not a dominant weight."
-  return T(GAPWrap.DimensionOfHighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(hw_))))
+  return T(GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L.lie_algebra)), GAP.Obj(Int.(hw_))))
 end
 
 function dim_of_simple_module(L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
@@ -62,7 +62,7 @@ function matrices_of_operators_gap(
   L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
 )
   # used in tensor_matrices_of_operators
-  M = GAP.Globals.HighestWeightModule(L.lie_algebra_gap, GAP.Obj(Int.(highest_weight)))
+  M = GAP.Globals.HighestWeightModule(codomain(Oscar.iso_oscar_gap(L.lie_algebra)), GAP.Obj(Int.(highest_weight)))
   matrices_of_operators = [
     sparse_matrix(matrix(QQ, GAP.Globals.MatrixOfAction(GAPWrap.Basis(M), o))) for
     o in operators
@@ -81,7 +81,7 @@ Calculate the weight of `operator` w.r.t. the fundamental weights w_i.
 """
 function weight(L::LieAlgebraStructure, operator::GAP.Obj)
   @req !iszero(operator) "Operators should be non-zero"
-  basis = GAPWrap.Basis(L.lie_algebra_gap)
+  basis = GAPWrap.Basis(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
   basis_ind = GAP.Globals.Position(basis, operator)
   denom = GAPWrap.Coefficients(basis, operator)[basis_ind]
   return [
