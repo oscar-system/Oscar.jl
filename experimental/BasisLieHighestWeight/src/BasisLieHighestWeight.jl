@@ -13,6 +13,10 @@ import Oscar: monomial_ordering
 import Oscar: monomials
 import Oscar: number_of_positive_roots, n_positive_roots
 
+# temp imports until `LieAlgebraStructure` is abolished
+import Oscar: cartan_matrix
+import Oscar.LieAlgebras: cartan_matrix_inv
+
 import Base: length
 
 # Long-term TODO's:

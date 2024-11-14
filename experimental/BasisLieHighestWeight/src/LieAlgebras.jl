@@ -13,14 +13,12 @@ end
 
 rank(L::LieAlgebraStructure) = L.rank
 
-@attr QQMatrix function cartan_matrix(L::LieAlgebraStructure)
-  R = GAPWrap.RootSystem(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
-  C = matrix(QQ, GAP.Globals.CartanMatrix(R))
-  return C
+function cartan_matrix(L::LieAlgebraStructure)
+  return cartan_matrix(L.lie_algebra)
 end
 
-@attr QQMatrix function inv_cartan_matrix(L::LieAlgebraStructure)
-  return inv(cartan_matrix(L))
+function cartan_matrix_inv(L::LieAlgebraStructure)
+  return cartan_matrix_inv(L.lie_algebra)
 end
 
 function Base.show(io::IO, L::LieAlgebraStructure)
