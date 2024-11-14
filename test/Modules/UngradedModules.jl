@@ -431,6 +431,29 @@ end
   @test_throws ArgumentError groebner_basis(M)
 end
 
+#issue 4303
+@testset "module ordering conversion to Singular" begin
+  R, (x,y) = polynomial_ring(QQ, [:x, :y])
+  F = free_module(R, 4)
+  g = F[1] + x*F[2] + x*F[3] + F[4]
+  M = SubquoModule(F, [g])
+  
+  ord = lex(F)*deglex(R)
+  @test leading_term(g, ordering=ord) == F[1]              #ordering is applied in Oscar
+  @test leading_module(M, ord) == SubquoModule(F, [F[1]])  #ordering is applied after conversion to Singular
+
+  ord = deglex(R)*lex(F)
+  @test leading_term(g, ordering=ord) == x*F[2]              
+  @test leading_module(M, ord) == SubquoModule(F, [x*F[2]])
+
+  ord = deglex(R)*invlex(F)
+  @test leading_term(g, ordering=ord) == x*F[3]              
+  @test leading_module(M, ord) == SubquoModule(F, [x*F[3]])
+  
+  ord = invlex(F)*deglex(R)
+  @test leading_term(g, ordering=ord) == F[4]              
+  @test leading_module(M, ord) == SubquoModule(F, [F[4]])
+end
 
 @testset "Test kernel" begin
   Oscar.set_seed!(235)
