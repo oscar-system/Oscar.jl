@@ -70,7 +70,6 @@ const rng = Oscar.get_seeded_rng()
   x = v[1]
   y = v[2] 
   f = (x^2 + y^2)^2
-  S = Oscar.MPolyComplementOfKPointIdeal(R, [ZZ(0), ZZ(0)])
   T = Oscar.MPolyPowersOfElement(R, [f])
   U = Oscar.MPolyProductOfMultSets(R, [S, T])
   @test f in U
@@ -239,7 +238,6 @@ end
 # d = Vector{elem_type(R)}()
 # d = [rand(R, 1:3, 0:4, 1:10)::elem_type(R) for i in 0:(abs(rand(Int))%3+1)]
 # S = Oscar.MPolyPowersOfElement(R, d)
-# T = Oscar.MPolyComplementOfKPointIdeal(R, [kk(125), kk(-45)])
 # U = Oscar.MPolyComplementOfPrimeIdeal(I)
 #
 # test_Ring_interface_recursive(localization(S)[1])
