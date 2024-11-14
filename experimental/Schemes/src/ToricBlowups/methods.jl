@@ -88,7 +88,7 @@ function _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{Int
     !contained_in_subcone && return mcone
     n_rays(mcone) == 1 && return mcone
 
-    # set mcones to be the maximal subcones of mcone
+    # set mcones to be the facets of mcone
     mcones = [cone(setdiff(collect(rays(mcone)), [ray])) for ray in rays(mcone)]
   end
 end
