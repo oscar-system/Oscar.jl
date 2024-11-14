@@ -13,6 +13,10 @@ The relevant types around root systems are:
 - `DualRootSpaceElem` for elements in the dual root space, i.e. coroots and linear combinations thereof,
 - `WeightLatticeElem` for elements in the weight lattice, i.e. weights and linear combinations thereof.
 
+!!! warn
+    Most functionality around root systems is currently only intended to be used with root systems of finite type.
+    For root systems of affine type, some documentation may be ill-phrased or incorrect, and some functions may not work as intended.
+
 ## Table of contents
 
 ```@contents
