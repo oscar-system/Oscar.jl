@@ -1,6 +1,6 @@
 @attributes mutable struct MonomialBasis
   lie_algebra::LieAlgebraStructure
-  highest_weight::Vector{Int}
+  highest_weight::WeightLatticeElem
   birational_sequence::BirationalSequence
   monomial_ordering::MonomialOrdering
   dimension::Int
@@ -9,14 +9,14 @@
 
   function MonomialBasis(
     lie_algebra::LieAlgebraStructure,
-    highest_weight::Vector{<:IntegerUnion},
+    highest_weight::WeightLatticeElem,
     birational_sequence::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   )
     return new(
       lie_algebra,
-      Int.(highest_weight),
+      highest_weight,
       birational_sequence,
       monomial_ordering,
       length(monomials),
@@ -42,7 +42,7 @@ birational_sequence(basis::MonomialBasis) = basis.birational_sequence
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   io = pretty(io)
   print(io, "Monomial basis of a highest weight module")
-  print(io, Indent(), "\nof highest weight $(highest_weight(basis))", Dedent())
+  print(io, Indent(), "\nof highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis)))))", Dedent())
   print(io, Indent(), "\nof dimension $(dim(basis))", Dedent())
   print(io, Indent(), "\nwith monomial ordering $(monomial_ordering(basis))", Dedent())
   print(io, "\nover ", Lowercase(), base_lie_algebra(basis))
@@ -54,7 +54,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       Indent(),
     )
     for weight in birational_sequence(basis).weights_alpha
-      print(io, '\n', Int.(weight))
+      print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
     end
     print(io, Dedent(), Dedent())
     print(
@@ -64,7 +64,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       Indent(),
     )
     for gen in get_attribute(basis, :minkowski_gens)
-      print(io, '\n', Int.(gen))
+      print(io, '\n', Int.(Oscar._vec(coefficients(gen))))
     end
     print(io, Dedent(), Dedent())
   elseif get_attribute(basis, :algorithm, nothing) === basis_coordinate_ring_kodaira_compute
@@ -75,7 +75,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       Indent(),
     )
     for weight in birational_sequence(basis).weights_alpha
-      print(io, '\n', Int.(weight))
+      print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
     end
     print(io, Dedent(), Dedent())
     print(
@@ -85,7 +85,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       Indent(),
     )
     for gen in get_attribute(basis, :minkowski_gens)
-      print(io, '\n', Int.(gen))
+      print(io, '\n', Int.(Oscar._vec(coefficients(gen))))
     end
     print(io, Dedent(), Dedent())
   end
@@ -98,7 +98,7 @@ function Base.show(io::IO, basis::MonomialBasis)
     io = pretty(io)
     print(
       io,
-      "Monomial basis of a highest weight module with highest weight $(highest_weight(basis)) over ",
+      "Monomial basis of a highest weight module with highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis))))) over ",
     )
     print(terse(io), Lowercase(), base_lie_algebra(basis))
   end

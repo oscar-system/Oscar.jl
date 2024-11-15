@@ -22,14 +22,14 @@ Note that the highest weight module with highest weight `highest_weight` is a su
 We use multiples of fundamentals to reduce the total dimension of the ambient space
 """
 function tensor_matrices_of_operators(
-  L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}
+  L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{GAP.Obj}
 )
   matrices_of_operators = [zero_matrix(SMat, ZZ, 1) for _ in operators]
-  for (i, highest_weight_i) in enumerate(Int.(highest_weight))
+  for (i, highest_weight_i) in enumerate(Int.(Oscar._vec(coefficients(highest_weight))))
     if highest_weight_i <= 0
       continue
     end
-    wi = ZZ.(1:length(highest_weight) .== i) # i-th fundamental weight
+    wi = Oscar._vec(coefficients(fundamental_weight(root_system(L), i)))
     matrices_of_operators = [
       _tensor_product(mat_temp, mat_wi) for (mat_temp, mat_wi) in zip(
         matrices_of_operators,

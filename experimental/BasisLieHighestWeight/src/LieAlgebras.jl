@@ -1,17 +1,16 @@
 @attributes mutable struct LieAlgebraStructure
   lie_type::Symbol
-  rank::Int
   lie_algebra::AbstractLieAlgebra{QQFieldElem}
   chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}}
 
   function LieAlgebraStructure(lie_type::Symbol, rank::Int)
     lie_algebra = Oscar.lie_algebra(QQ, lie_type, rank)
     chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(codomain(Oscar.iso_oscar_gap(lie_algebra))))
-    return new(lie_type, rank, lie_algebra, chevalley_basis_gap)
+    return new(lie_type, lie_algebra, chevalley_basis_gap)
   end
 end
 
-rank(L::LieAlgebraStructure) = L.rank
+rank(L::LieAlgebraStructure) = rank(root_system(L))
 
 function cartan_matrix(L::LieAlgebraStructure)
   return cartan_matrix(L.lie_algebra)
@@ -23,7 +22,7 @@ end
 
 function Base.show(io::IO, L::LieAlgebraStructure)
   io = pretty(io)
-  print(io, LowercaseOff(), "Lie algebra of type $(L.lie_type)$(L.rank)")
+  print(io, LowercaseOff(), "Lie algebra of type $(L.lie_type)$(rank(L))")
 end
 
 function lie_algebra(type::Symbol, rk::Int)
@@ -47,6 +46,14 @@ function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:Inte
 end
 
 function dim_of_simple_module(L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(Int, L, hw)
+end
+
+function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::WeightLatticeElem)
+  return dim_of_simple_module(T, L.lie_algebra, hw)
+end
+
+function dim_of_simple_module(L::LieAlgebraStructure, hw::WeightLatticeElem)
   return dim_of_simple_module(Int, L, hw)
 end
 

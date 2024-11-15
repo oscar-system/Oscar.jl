@@ -33,8 +33,9 @@ end
 
 @testset "Test BasisLieHighestWeight" begin
   @testset "is_fundamental" begin
-    @test BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(0)])
-    @test !BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(1)])
+    R = root_system(:B, 3)
+    @test BasisLieHighestWeight.is_fundamental(WeightLatticeElem(R, [ZZ(0), ZZ(1), ZZ(0)]))
+    @test !BasisLieHighestWeight.is_fundamental(WeightLatticeElem(R, [ZZ(0), ZZ(1), ZZ(1)]))
   end
 
   @testset "compute_sub_weights" begin

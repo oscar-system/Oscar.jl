@@ -1,8 +1,8 @@
 struct BirationalSequence
   operators::Vector{GAP.Obj}
   operators_vectors::Vector{Vector{Any}}
-  weights_w::Vector{Vector{ZZRingElem}}
-  weights_alpha::Vector{Vector{QQFieldElem}}
+  weights_w::Vector{WeightLatticeElem}
+  weights_alpha::Vector{RootSpaceElem}
 end
 
 function Base.show(io::IO, birational_sequence::BirationalSequence)

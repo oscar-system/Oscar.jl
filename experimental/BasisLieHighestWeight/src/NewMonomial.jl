@@ -1,4 +1,4 @@
-function weight(mon::ZZMPolyRingElem, weights_w::Vector{Vector{ZZRingElem}})
+function weight(mon::ZZMPolyRingElem, weights_w::Vector{WeightLatticeElem})
   @assert length(weights_w) == length(degrees(mon))
   return sum(exp * weight for (exp, weight) in zip(degrees(mon), weights_w))
 end

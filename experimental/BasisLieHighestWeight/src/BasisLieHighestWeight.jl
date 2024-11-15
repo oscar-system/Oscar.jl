@@ -12,10 +12,15 @@ import Oscar: monomial_ordering
 import Oscar: monomials
 
 # temp imports until `LieAlgebraStructure` is abolished
-import Oscar: cartan_matrix, dim_of_simple_module, root_system
+import Oscar: cartan_matrix, dim_of_simple_module, rank, root_system
 import Oscar.LieAlgebras: cartan_matrix_inv
 
 import Base: length
+
+# TODO: remove once https://github.com/Nemocas/AbstractAlgebra.jl/pull/1906 is available
+if !hasmethod(Base.keys, (MatElem,))
+  Base.keys(M::MatElem) = CartesianIndices(axes(M))
+end
 
 # Long-term TODO's:
 # - Use Oscar-Lie-Algebra type instead of LieAlgebraStructure
