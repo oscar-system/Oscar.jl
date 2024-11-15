@@ -14,7 +14,7 @@ function _tensor_power(A, k)
 end
 
 @doc raw"""
-    tensor_matrices_of_operators(L::LieAlgebraStructure, highest_weight::Vector{ZZRingElem}, operators::Vector{GAP.Obj}) -> Vector{SMat{ZZRingElem}}
+    tensor_matrices_of_operators(L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{RootSpaceElem}) -> Vector{SMat{ZZRingElem}}
 
 Calculates the action matrices of the operators in `operators` on
 the tensor product of multiples of the fundamental modules (with multiplicities in `highest_weight`).
@@ -22,8 +22,9 @@ Note that the highest weight module with highest weight `highest_weight` is a su
 We use multiples of fundamentals to reduce the total dimension of the ambient space
 """
 function tensor_matrices_of_operators(
-  L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{GAP.Obj}
+  L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{RootSpaceElem}
 )
+  R = root_system(L)
   matrices_of_operators = [zero_matrix(SMat, ZZ, 1) for _ in operators]
   for (i, highest_weight_i) in enumerate(Int.(Oscar._vec(coefficients(highest_weight))))
     if highest_weight_i <= 0
@@ -33,7 +34,7 @@ function tensor_matrices_of_operators(
     matrices_of_operators = [
       _tensor_product(mat_temp, mat_wi) for (mat_temp, mat_wi) in zip(
         matrices_of_operators,
-        matrices_of_operators_gap(L, highest_weight_i * wi, operators),
+        matrices_of_operators_gap(L, WeightLatticeElem(R, highest_weight_i * wi), operators),
       )
     ]
   end

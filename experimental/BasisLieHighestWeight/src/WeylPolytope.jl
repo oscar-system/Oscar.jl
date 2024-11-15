@@ -77,15 +77,15 @@ on the highest weight vector.
 function compute_zero_coordinates(
   bir_sequence::BirationalSequence, highest_weight::WeightLatticeElem
 )
-  n = length(bir_sequence.weights_alpha)
+  n = length(bir_sequence.operator_roots)
   m = rank(root_system(highest_weight))
   non_zeros = Set(findall(!iszero, coefficients(highest_weight)))
 
   zero_coordinates = Int[]
   for c in n:-1:1
     length(non_zeros) == m && break
-    if !isdisjoint(non_zeros, findall(!iszero, coefficients(bir_sequence.weights_alpha[c])))
-      union!(non_zeros, findall(<(0), coefficients(bir_sequence.weights_w[c])))
+    if !isdisjoint(non_zeros, findall(!iszero, coefficients(bir_sequence.operator_roots[c])))
+      union!(non_zeros, findall(<(0), coefficients(bir_sequence.operator_weights[c])))
     else
       push!(zero_coordinates, c)
     end

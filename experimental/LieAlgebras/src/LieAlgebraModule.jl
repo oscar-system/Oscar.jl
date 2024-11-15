@@ -1385,6 +1385,7 @@ end
 
 # TODO: add semisimplicity check once that is available
 
+# TODO: move to RootSystem.jl
 function is_dominant_weight(hw::Vector{<:IntegerUnion})
   return all(>=(0), hw)
 end

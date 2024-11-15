@@ -1,12 +1,10 @@
 struct BirationalSequence
-  operators::Vector{GAP.Obj}
-  operators_vectors::Vector{Vector{Any}}
-  weights_w::Vector{WeightLatticeElem}
-  weights_alpha::Vector{RootSpaceElem}
+  operator_roots::Vector{RootSpaceElem}
+  operator_weights::Vector{WeightLatticeElem}
 end
 
 function Base.show(io::IO, birational_sequence::BirationalSequence)
   println(io, "BirationalSequence")
-  println(io, "Operators: ", birational_sequence.operators)
-  print(io, "Weights in alpha_i:", birational_sequence.weights_alpha)
+  println(io, "Operators: ", birational_sequence.operator_roots)
+  print(io, "Operators as weights:", birational_sequence.operator_weights)
 end

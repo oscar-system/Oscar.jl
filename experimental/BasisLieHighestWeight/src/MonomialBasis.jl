@@ -53,7 +53,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       "\nwhere the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):",
       Indent(),
     )
-    for weight in birational_sequence(basis).weights_alpha
+    for weight in birational_sequence(basis).operator_roots
       print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
     end
     print(io, Dedent(), Dedent())
@@ -74,7 +74,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       "\nwhere the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):",
       Indent(),
     )
-    for weight in birational_sequence(basis).weights_alpha
+    for weight in birational_sequence(basis).operator_roots
       print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
     end
     print(io, Dedent(), Dedent())

@@ -1,7 +1,7 @@
 function basis_lie_highest_weight_compute(
   L::LieAlgebraStructure,
   highest_weight::Vector{Int},
-  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
 )
   # Pseudocode:
@@ -39,12 +39,11 @@ function basis_lie_highest_weight_compute(
   R = root_system(L)
   highest_weight = WeightLatticeElem(R, highest_weight)
 
-  weights_w = [WeightLatticeElem(R, weight(L, op)) for op in operators] # weights of the operators
-  weights_alpha = [RootSpaceElem(weight_w) for weight_w in weights_w]   # weights of the operators in simple roots
+  weights_w = [WeightLatticeElem(op) for op in operators] # weights of the operators
+  weights_alpha = operators   # weights of the operators in simple roots
 
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_alpha
+    weights_alpha, weights_w
   )
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
@@ -81,7 +80,7 @@ function basis_coordinate_ring_kodaira_compute(
   L::LieAlgebraStructure,
   highest_weight::Vector{Int},
   degree::Int,
-  operators::Vector{<:GAP.Obj},     # operators are represented by our monomials. x_i is connected to operators[i]
+  operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
 )
   # Pseudocode:
@@ -97,12 +96,11 @@ function basis_coordinate_ring_kodaira_compute(
   R = root_system(L)
   highest_weight = WeightLatticeElem(R, highest_weight)
 
-  weights_w = [WeightLatticeElem(R, weight(L, op)) for op in operators] # weights of the operators
-  weights_alpha = [RootSpaceElem(weight_w) for weight_w in weights_w]   # weights of the operators in simple roots
+  weights_w = [WeightLatticeElem(op) for op in operators] # weights of the operators
+  weights_alpha = operators   # weights of the operators in simple roots
 
-  asVec(v) = GAP.gap_to_julia(GAPWrap.ExtRepOfObj(v)) # TODO
   birational_sequence = BirationalSequence(
-    operators, [asVec(v) for v in operators], weights_w, weights_alpha
+    weights_alpha, weights_w
   )
 
   ZZx, _ = polynomial_ring(ZZ, length(operators)) # for our monomials
@@ -321,7 +319,7 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      birational_sequence.weights_alpha, RootSpaceElem(weight_w), zero_coordinates
+      birational_sequence.operator_roots, RootSpaceElem(weight_w), zero_coordinates
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -331,7 +329,7 @@ function add_new_monomials!(
 
   # check which monomials should get added to the basis
   i = 0
-  if weight_w == 0 # check if [0 0 ... 0] already in basis
+  if iszero(weight_w) # check if [0 0 ... 0] already in basis
     i += 1
   end
   number_mon_in_weightspace = length(monomials_in_weightspace[weight_w])
@@ -350,7 +348,7 @@ function add_new_monomials!(
         weightspaces,
         sum(
           exp * weight for (exp, weight) in
-          Iterators.drop(zip(degrees(mon), birational_sequence.weights_w), i)
+          Iterators.drop(zip(degrees(mon), birational_sequence.operator_weights), i)
         ),
       )
         cancel = true
@@ -392,10 +390,11 @@ function add_by_hand(
 
   # initialization
   # matrices g_i for (g_1^a_1 * ... * g_k^a_k)*v
+  R = root_system(L)
   matrices_of_operators = tensor_matrices_of_operators(
-    L, highest_weight, birational_sequence.operators
+    L, highest_weight, birational_sequence.operator_roots
   )
-  space = Dict(ZZ(0) * birational_sequence.weights_w[1] => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
+  space = Dict(zero(WeightLatticeElem, R) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(basis, ZZx(1))
@@ -407,7 +406,7 @@ function add_by_hand(
     monomials_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
   end
   for mon in basis
-    weight_w = weight(mon, birational_sequence.weights_w)
+    weight_w = weight(mon, birational_sequence.operator_weights)
     push!(monomials_in_weightspace[weight_w], mon)
   end
 
@@ -457,38 +456,35 @@ end
 
 function operators_by_index(
   L::LieAlgebraStructure,
-  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
+  positive_roots::Vector{RootSpaceElem},
   birational_sequence::Vector{Int},
 )
-  @req all(i -> 1 <= i <= number_of_positive_roots(root_system(L)), birational_sequence) "Entry of birational_sequence out of bounds"
-
-  return [chevalley_basis_gap[1][i] for i in birational_sequence] # TODO: change to [2]
+  return positive_roots[birational_sequence]
 end
 
 function operators_by_simple_roots(
   L::LieAlgebraStructure,
-  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
+  positive_roots::Vector{RootSpaceElem},
   birational_sequence::Vector{Vector{Int}},
 )
   R = root_system(L)
-  root_inds = Int[]
-  for whgt_alpha in birational_sequence
+  operators = map(birational_sequence) do whgt_alpha
     root = RootSpaceElem(R, whgt_alpha)
-    fl, root_ind = is_positive_root_with_index(root)
+    fl = is_positive_root(root)
     @req fl "Only positive roots are allowed as input"
-    push!(root_inds, root_ind)
+    root
   end
 
-  return operators_by_index(L, chevalley_basis_gap, root_inds)
+  return operators
 end
 
 function operators_lusztig(
   L::LieAlgebraStructure,
-  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}},
+  positive_roots::Vector{RootSpaceElem},
   reduced_expression::Vector{Int},
 )
   root_inds = operators_lusztig_indices(L, reduced_expression)
-  return operators_by_index(L, chevalley_basis_gap, root_inds)
+  return operators_by_index(L, positive_roots, root_inds)
 end
 
 function operators_lusztig_indices(L::LieAlgebraStructure, word::Vector{Int})
