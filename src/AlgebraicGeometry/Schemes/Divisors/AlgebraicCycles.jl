@@ -395,7 +395,7 @@ end
 # Note that we need one minimal concrete type for the return values, 
 # so the implementation can not be truly generic. 
 
-function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
+function +(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
   X = ambient_scheme(D)
   X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
