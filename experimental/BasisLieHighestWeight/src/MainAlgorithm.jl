@@ -210,20 +210,16 @@ function compute_monomials(
   else
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
-    i = 0
-    sub_weights_w = sub_weights_proper(highest_weight)
-    sort!(sub_weights_w; by=x -> sum(coefficients(x) .^ 2))
-    l = length(sub_weights_w)
-    # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all 
-    # partitions
-    while length(monomials) < dim && i < l
-      i += 1
-      lambda_1 = sub_weights_w[i]
-      lambda_2 = highest_weight - lambda_1
+    sub_weights = sub_weights_proper(highest_weight)
+    sort!(sub_weights; by=x -> sum(coefficients(x) .^ 2))
+    # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all partitions
+    for (ind_lambda_1, lambda_1) in enumerate(sub_weights)
+      length(monomials) >= dim && break
 
-      if Oscar._vec(coefficients(lambda_1)) > Oscar._vec(coefficients(lambda_2))
-        continue
-      end
+      lambda_2 = highest_weight - lambda_1
+      ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int 
+
+      ind_lambda_1 > ind_lambda_2 && continue
 
       mon_lambda_1 = compute_monomials(
         L,
@@ -245,8 +241,7 @@ function compute_monomials(
       )
       # Minkowski-sum: M_{lambda_1} + M_{lambda_2} \subseteq M_{highest_weight}, if monomials get identified with 
       # points in ZZ^n
-      monomials_minkowski_sum = Set([p * q for p in mon_lambda_1 for q in mon_lambda_2])
-      union!(monomials, monomials_minkowski_sum)
+      union!(monomials, (p * q for p in mon_lambda_1 for q in mon_lambda_2))
     end
     # check if we found enough monomials
 

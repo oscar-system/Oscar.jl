@@ -26,15 +26,13 @@ function tensor_matrices_of_operators(
 )
   R = root_system(L)
   mats = [zero_matrix(SMat, ZZ, 1) for _ in operators]
-  for (i, highest_weight_i) in enumerate(Int.(Oscar._vec(coefficients(highest_weight))))
-    if highest_weight_i <= 0
-      continue
-    end
-    wi = Oscar._vec(coefficients(fundamental_weight(root_system(L), i)))
+  for i in 1:rank(R)
+    highest_weight_i = highest_weight[i]
+    iszero(highest_weight_i) && continue
     mats = [
       _tensor_product(mat_temp, mat_wi) for (mat_temp, mat_wi) in zip(
         mats,
-        matrices_of_operators(L, WeightLatticeElem(R, highest_weight_i * wi), operators),
+        matrices_of_operators(L, highest_weight_i * fundamental_weight(R, i), operators),
       )
     ]
   end

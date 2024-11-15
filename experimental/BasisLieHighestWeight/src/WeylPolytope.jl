@@ -35,35 +35,30 @@ function get_lattice_points_of_weightspace(
   zero_coordinates::Vector{Int},
 )
   # calculate all integer solutions to the following linear program:
-  # [   |              |    ]       [   x   ]      
+  # [       |                 |       ]       [   x   ]      
   # [root_weights[1]...root_weights[k]]   *   [   |   ]   =   weight
-  # [   |              |    ]       [  res  ] 
-  # [   |              |    ]       [   |   ]
+  # [       |                 |       ]       [  res  ] 
+  # [       |                 |       ]       [   |   ]
   # where res[i] >= 0 for all i
   n = length(root_weights)
   m = rank(root_system(weight))
 
-  A = zero_matrix(QQ, 2m + n + length(zero_coordinates), n)
-  b = [zero(QQ) for _ in 1:(2m + n + length(zero_coordinates))]
-
   # equalities
+  A_eq = zero_matrix(QQ, m + length(zero_coordinates), n)
+  b_eq = [zero(QQ) for _ in 1:(m + length(zero_coordinates))]
   for i in 1:n
-    w = transpose(coefficients(root_weights[i]))
-    A[1:m, i] = w
-    A[(m + 1):(2m), i] = -w
+    A_eq[1:m, i] = transpose(coefficients(root_weights[i]))
   end
-
-  b[1:m] = Oscar._vec(coefficients(weight))
-  b[(m + 1):(2m)] = -Oscar._vec(coefficients(weight))
-  # non-negativity
-  for i in 1:n
-    A[2m + i, i] = -1
-  end
+  b_eq[1:m] = view(coefficients(weight), 1, :)
   for (j, i) in enumerate(zero_coordinates)
-    A[2m + n + j, i] = 1
-    b[2m + n + j] = 0
+    A_eq[m + j, i] = 1
   end
-  sol = Vector{ZZRingElem}.(lattice_points(polyhedron(A, b)))
+  
+  # non-negativity
+  A_ineq = -identity_matrix(QQ, n)
+  b_ineq = [zero(QQ) for _ in 1:n]
+
+  sol = Vector{ZZRingElem}.(lattice_points(polyhedron((A_ineq, b_ineq), (A_eq, b_eq))))
   return sol
 end
 
