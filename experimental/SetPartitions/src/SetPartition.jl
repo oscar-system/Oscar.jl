@@ -84,6 +84,7 @@ julia> lower_points(set_partition([2, 4], [4, 99]))
 2-element Vector{Int64}:
  2
  3
+```
 """
 function lower_points(p::SetPartition)
     return p.lower_points
