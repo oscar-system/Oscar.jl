@@ -1,7 +1,6 @@
 module BasisLieHighestWeight
 
 using ..Oscar
-using ..Oscar: GAPWrap
 using ..Oscar: IntegerUnion
 using ..Oscar: _is_weighted
 
@@ -34,7 +33,6 @@ end
 #   - convert_monomials_to_lattice_points
 #   - action_matrices_of_operators
 #   - weights_for_operators
-# - Data-Type for weights of Lie-Algebras? Two types, in alpha_i and w_i, conversion is defined in RootConversion
 # - the list of Minkowski gens contains too many elements, only include those that give us something new
 
 include("LieAlgebras.jl")
@@ -43,13 +41,13 @@ include("MonomialBasis.jl")
 include("NewMonomial.jl")
 include("TensorModels.jl")
 include("MonomialOrder.jl")
-include("RootConversion.jl")
 include("WeylPolytope.jl")
 include("MainAlgorithm.jl")
 include("UserFunctions.jl")
 
 export MonomialBasis
 
+export birational_sequence
 export basis_coordinate_ring_kodaira
 export basis_coordinate_ring_kodaira_ffl
 export basis_lie_highest_weight_operators
@@ -67,6 +65,7 @@ export BasisLieHighestWeight
 
 export MonomialBasis
 
+export birational_sequence
 export basis_coordinate_ring_kodaira
 export basis_coordinate_ring_kodaira_ffl
 export basis_lie_highest_weight_operators

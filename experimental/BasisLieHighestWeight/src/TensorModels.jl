@@ -25,18 +25,18 @@ function tensor_matrices_of_operators(
   L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{RootSpaceElem}
 )
   R = root_system(L)
-  matrices_of_operators = [zero_matrix(SMat, ZZ, 1) for _ in operators]
+  mats = [zero_matrix(SMat, ZZ, 1) for _ in operators]
   for (i, highest_weight_i) in enumerate(Int.(Oscar._vec(coefficients(highest_weight))))
     if highest_weight_i <= 0
       continue
     end
     wi = Oscar._vec(coefficients(fundamental_weight(root_system(L), i)))
-    matrices_of_operators = [
+    mats = [
       _tensor_product(mat_temp, mat_wi) for (mat_temp, mat_wi) in zip(
-        matrices_of_operators,
-        matrices_of_operators_gap(L, WeightLatticeElem(R, highest_weight_i * wi), operators),
+        mats,
+        matrices_of_operators(L, WeightLatticeElem(R, highest_weight_i * wi), operators),
       )
     ]
   end
-  return matrices_of_operators
+  return mats
 end

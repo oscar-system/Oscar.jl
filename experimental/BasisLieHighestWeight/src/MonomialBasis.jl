@@ -1,7 +1,7 @@
 @attributes mutable struct MonomialBasis
   lie_algebra::LieAlgebraStructure
   highest_weight::WeightLatticeElem
-  birational_sequence::BirationalSequence
+  birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
   dimension::Int
   monomials::Set{ZZMPolyRingElem}
@@ -10,14 +10,14 @@
   function MonomialBasis(
     lie_algebra::LieAlgebraStructure,
     highest_weight::WeightLatticeElem,
-    birational_sequence::BirationalSequence,
+    birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
     monomials::Set{ZZMPolyRingElem},
   )
     return new(
       lie_algebra,
       highest_weight,
-      birational_sequence,
+      birational_seq,
       monomial_ordering,
       length(monomials),
       monomials,
@@ -37,7 +37,7 @@ monomials(basis::MonomialBasis) = basis.monomials
 
 monomial_ordering(basis::MonomialBasis) = basis.monomial_ordering
 
-birational_sequence(basis::MonomialBasis) = basis.birational_sequence
+birational_sequence(basis::MonomialBasis) = basis.birational_seq
 
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   io = pretty(io)
@@ -53,8 +53,8 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       "\nwhere the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):",
       Indent(),
     )
-    for weight in birational_sequence(basis).operator_roots
-      print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
+    for root in operators_as_roots(birational_sequence(basis))
+      print(io, '\n', Int.(Oscar._vec(coefficients(root))))
     end
     print(io, Dedent(), Dedent())
     print(
@@ -74,8 +74,8 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
       "\nwhere the used birational sequence consists of the following roots (given as coefficients w.r.t. alpha_i):",
       Indent(),
     )
-    for weight in birational_sequence(basis).operator_roots
-      print(io, '\n', Int.(Oscar._vec(coefficients(weight))))
+    for root in operators_as_roots(birational_sequence(basis))
+      print(io, '\n', Int.(Oscar._vec(coefficients(root))))
     end
     print(io, Dedent(), Dedent())
     print(

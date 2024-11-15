@@ -7,7 +7,7 @@
   x = gens(ZZx)
   mon1 = ZZx(1)
   mon2 = x[1]^2 * x[2]
-  weights = [WeightLatticeElem(R, [ZZ(1), ZZ(1)]), WeightLatticeElem(R, [ZZ(2), ZZ(1)])]
+  birational_seq = birational_sequence([WeightLatticeElem(R, [ZZ(1), ZZ(1)]), WeightLatticeElem(R, [ZZ(2), ZZ(1)])])
   A = sparse_matrix(ZZ, 2, 2) # [0, 2; 1, 1]
   setindex!(A, sparse_row(ZZ, [2], [ZZ(2)]), 1)
   setindex!(A, sparse_row(ZZ, [1, 2], [ZZ(1), ZZ(1)]), 2)
@@ -20,8 +20,8 @@
   mon2_vec = sparse_row(ZZ, [1, 2], [2, 2])
 
   @testset "weight" begin
-    @test weight(mon1, weights) == WeightLatticeElem(R, [ZZ(0), ZZ(0)])
-    @test weight(mon2, weights) == WeightLatticeElem(R, [ZZ(4), ZZ(3)])
+    @test weight(mon1, birational_seq) == WeightLatticeElem(R, [ZZ(0), ZZ(0)])
+    @test weight(mon2, birational_seq) == WeightLatticeElem(R, [ZZ(4), ZZ(3)])
   end
 
   @testset "calc_vec" begin

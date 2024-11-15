@@ -1,12 +1,10 @@
 @attributes mutable struct LieAlgebraStructure
   lie_type::Symbol
   lie_algebra::AbstractLieAlgebra{QQFieldElem}
-  chevalley_basis_gap::NTuple{3,Vector{GAP.Obj}}
 
   function LieAlgebraStructure(lie_type::Symbol, rank::Int)
     lie_algebra = Oscar.lie_algebra(QQ, lie_type, rank)
-    chevalley_basis_gap = NTuple{3,Vector{GAP.Obj}}(GAP.Globals.ChevalleyBasis(codomain(Oscar.iso_oscar_gap(lie_algebra))))
-    return new(lie_type, lie_algebra, chevalley_basis_gap)
+    return new(lie_type, lie_algebra)
   end
 end
 
@@ -37,14 +35,6 @@ function lie_algebra(type::Symbol, rk::Int)
   return LieAlgebraStructure(type, rk)
 end
 
-function chevalley_basis_gap(L::LieAlgebraStructure)
-  return L.chevalley_basis_gap
-end
-
-function cartan_sub_basis_gap(L::LieAlgebraStructure)
-  return L.chevalley_basis_gap[3]
-end
-
 function root_system(L::LieAlgebraStructure)
   return root_system(L.lie_algebra)
 end
@@ -65,7 +55,7 @@ function dim_of_simple_module(L::LieAlgebraStructure, hw::WeightLatticeElem)
   return dim_of_simple_module(Int, L, hw)
 end
 
-function matrices_of_operators_gap(
+function matrices_of_operators(
   L::LieAlgebraStructure, highest_weight::WeightLatticeElem, operators::Vector{RootSpaceElem}
 )
   # used in tensor_matrices_of_operators
@@ -80,29 +70,8 @@ function matrices_of_operators_gap(
   matrices_of_operators = map(operators) do op
     fl, i = is_positive_root_with_index(op)
     @assert fl
-    transformation_matrices[i]
+    change_base_ring(ZZ, transformation_matrices[i])
   end
 
-  # TODO: clean up below
-  denominators = map(y -> denominator(y[2]), union(union(matrices_of_operators...)...))
-  common_denominator = lcm(denominators)# // 1
-  matrices_of_operators =
-    (A -> change_base_ring(ZZ, common_denominator * A)).(matrices_of_operators)
   return matrices_of_operators
-end
-
-@doc raw"""
-    weight(L::LieAlgebraStructure, operator::GAP.Obj) -> Vector{ZZRingElem}
-
-Calculate the weight of `operator` w.r.t. the fundamental weights w_i.
-"""
-function weight(L::LieAlgebraStructure, operator::GAP.Obj)
-  @req !iszero(operator) "Operators should be non-zero"
-  basis = GAPWrap.Basis(codomain(Oscar.iso_oscar_gap(L.lie_algebra)))
-  basis_ind = GAP.Globals.Position(basis, operator)
-  denom = GAPWrap.Coefficients(basis, operator)[basis_ind]
-  return [
-    ZZ(GAPWrap.Coefficients(basis, h * operator)[basis_ind]//denom) for
-    h in cartan_sub_basis_gap(L)
-  ]
 end
