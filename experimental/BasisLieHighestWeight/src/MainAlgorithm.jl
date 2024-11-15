@@ -211,7 +211,8 @@ function compute_monomials(
     # use Minkowski-Sum for recursion
     monomials = Set{ZZMPolyRingElem}()
     i = 0
-    sub_weights_w = compute_sub_weights(highest_weight)
+    sub_weights_w = sub_weights_proper(highest_weight)
+    sort!(sub_weights_w; by=x -> sum(coefficients(x) .^ 2))
     l = length(sub_weights_w)
     # go through all partitions lambda_1 + lambda_2 = highest_weight until we have enough monomials or used all 
     # partitions
@@ -508,25 +509,16 @@ function is_fundamental(highest_weight::WeightLatticeElem)
   return hasone
 end
 
-function compute_sub_weights(highest_weight::WeightLatticeElem)
-  R = root_system(highest_weight)
-  sub_weights = compute_sub_weights(Oscar._vec(coefficients(highest_weight)))
-  return [WeightLatticeElem(R, sub_weight) for sub_weight in sub_weights]
+function sub_weights(w::WeightLatticeElem)
+  # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise
+  @req is_dominant(w) "The input must be a dominant weight"
+  R = root_system(w)
+  map(AbstractAlgebra.ProductIterator([0:w[i] for i in 1:rank(R)])) do coeffs
+    WeightLatticeElem(R, coeffs)
+  end
 end
 
-function compute_sub_weights(highest_weight::Vector{ZZRingElem})
-  # returns list of weights w != 0, highest_weight with 0 <= w <= highest_weight elementwise, ordered by l_2-norm
-
-  sub_weights_w = []
-  foreach(Iterators.product((0:x for x in highest_weight)...)) do i
-    push!(sub_weights_w, [i...])
-  end
-  if isempty(sub_weights_w) || length(sub_weights_w) == 1 # case [] or [[0, ..., 0]]
-    return []
-  else
-    popfirst!(sub_weights_w) # [0, ..., 0]
-    pop!(sub_weights_w) # highest_weight
-    sort!(sub_weights_w; by=x -> sum((x) .^ 2))
-    return sub_weights_w
-  end
+function sub_weights_proper(w::WeightLatticeElem)
+  # returns list of weights v != 0, highest_weight with 0 <= v <= w elementwise, but neither 0 nor w
+  return filter(x -> !iszero(x) && x != w, sub_weights(w))
 end
