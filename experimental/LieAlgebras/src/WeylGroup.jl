@@ -529,8 +529,8 @@ end
 
 Construct a group of type `FPGroup` that is isomorphic to `W`.
 
-This is achieved by constructing a free group with the same rank as `W`,
-and adding relations corresponding to the Coxeter relations of `W`.
+The `FPGroup` will be the quotient of a free group with the same rank as `W`,
+where we have the natural 1-to-1 correspondence of generators, modulo the Coxeter relations of `W`.
 
 Also see: [`isomorphism(::Type{FPGroup}, ::WeylGroup)`](@ref).
 """
@@ -543,7 +543,7 @@ end
 
 Construct an isomorphism between `W` and a group of type `FPGroup`.
 
-The codomain of this isomorphism is [`fp_group(::WeylGroup)`](@ref).
+The properties of the codomain group and the isomorphism are described in [`fp_group(::WeylGroup)`](@ref).
 """
 function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   R = root_system(W)
