@@ -106,7 +106,7 @@ function dehomogenize_post_tropicalization(TropV::TropicalVarietySupertype)
                                      dehomogenizedLineality)
 
     TropVDehom = tropical_variety(SigmaDehom,multiplicities(TropV),convention(TropV))
-    # TropVDehom.__attrs = deepcopy(TropV.__attrs) # TODO: not working, how to copy all attributes?
+    copy_tropical_attributes!(TropVDehom,TropV)
     return TropVDehom
 
 end

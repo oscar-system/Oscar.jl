@@ -39,6 +39,32 @@ end
 #
 ################################################################################
 
+function copy_tropical_attributes!(TropVcopyTo::TropicalVarietySupertype, TropVcopyFrom::TropicalVarietySupertype)
+    inheritableAttributes =
+        [
+            # from all
+            :tropical_semiring_map,
+            # from tropical hypersurfaces
+            :tropical_polynomial,
+            :algebraic_polynomial,
+            :dual_subdivision,
+            # from tropical linear spaces
+            :polymake_object,
+            :pluecker_indices,
+            :tropical_pluecker_vector,
+            :tropical_matrix,
+            :algebraic_pluecker_vector,
+            :algebraic_matrix,
+            :algebraic_ideal
+            # from tropical varieties
+        ]
+    for attr in inheritableAttributes
+        if has_attribute(TropVcopyFrom,attr)
+            set_attribute!(TropVcopyTo,attr,get_attribute(TropVcopyFrom,attr))
+        end
+    end
+end
+
 @doc raw"""
     tropical_variety(Sigma::PolyhedralComplex, mult::Vector{ZZRingElem}, minOrMax::Union{typeof(min),typeof(max)}=min)
 
@@ -80,20 +106,13 @@ end
 
 function tropical_variety(TropH::TropicalHypersurface{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
     TropV = tropical_variety(polyhedral_complex(TropH),multiplicities(TropH), convention(TropH))
-
-    # copy all attributes
-    TropV.__attrs = deepcopy(TropH.__attrs)
-
+    copy_tropical_attributes!(TropV,TropH)
     return TropV
 end
 
-
 function tropical_variety(TropL::TropicalLinearSpace{minOrMax,true}) where {minOrMax<:Union{typeof(min),typeof(max)}}
     TropV = tropical_variety(polyhedral_complex(TropL),multiplicities(TropL), convention(TropL))
-
-    # copy all attributes
-    TropV.__attrs = deepcopy(TropL.__attrs)
-
+    copy_tropical_attributes!(TropV,TropL)
     return TropV
 end
 
