@@ -436,6 +436,7 @@ f1*f2^2
 
 julia> gg(s) == x
 true
+```
 """
 function syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
