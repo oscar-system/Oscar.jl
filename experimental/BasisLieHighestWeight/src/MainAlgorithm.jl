@@ -62,7 +62,10 @@ function basis_lie_highest_weight_compute(
     no_minkowski,
   )
   # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
-  minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))))
+  minkowski_gens = sort(
+    collect(no_minkowski);
+    by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
+  )
   # output
   mb = MonomialBasis(L, highest_weight, birational_seq, monomial_ordering, monomials)
   set_attribute!(
@@ -140,7 +143,10 @@ function basis_coordinate_ring_kodaira_compute(
       @vprintln :BasisLieHighestWeight "for $(Int.(i * highest_weight)) we added $(length(monomials_new)) monomials "
 
       # monomials = sort(collect(monomials); lt=((m1, m2) -> cmp(monomial_ordering, m1, m2) < 0))
-      minkowski_gens = sort(collect(no_minkowski); by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))))
+      minkowski_gens = sort(
+        collect(no_minkowski);
+        by=(gen -> (sum(coefficients(gen)), reverse(Oscar._vec(coefficients(gen))))),
+      )
     end
 
     mb = MonomialBasis(
@@ -217,7 +223,7 @@ function compute_monomials(
       length(monomials) >= dim && break
 
       lambda_2 = highest_weight - lambda_1
-      ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int 
+      ind_lambda_2 = findfirst(==(lambda_2), sub_weights)::Int
 
       ind_lambda_1 > ind_lambda_2 && continue
 
@@ -480,7 +486,7 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   R = root_system(L)
   W = weyl_group(R)
   operators = map(1:length(reduced_expression)) do k
-    root = W(reduced_expression[1:k-1]) * simple_root(R, reduced_expression[k])
+    root = W(reduced_expression[1:(k - 1)]) * simple_root(R, reduced_expression[k])
     fl = is_positive_root(root)
     @req fl "Only positive roots may occur here"
     root

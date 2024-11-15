@@ -4,12 +4,18 @@
 #
 ################################################################################
 
-function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra, weight::WeightLatticeElem)
+function lie_algebra_simple_module_struct_consts_gap(
+  L::LieAlgebra, weight::WeightLatticeElem
+)
   @req root_system(weight) == root_system(L) "Incompatible root systems"
-  return lie_algebra_simple_module_struct_consts_gap(L, Int.(Oscar._vec(coefficients(weight))))
+  return lie_algebra_simple_module_struct_consts_gap(
+    L, Int.(Oscar._vec(coefficients(weight)))
+  )
 end
 
-function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra{C}, weight::Vector{Int}) where {C <: FieldElem}
+function lie_algebra_simple_module_struct_consts_gap(
+  L::LieAlgebra{C}, weight::Vector{Int}
+) where {C<:FieldElem}
   R = coefficient_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 

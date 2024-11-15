@@ -42,7 +42,12 @@ birational_sequence(basis::MonomialBasis) = basis.birational_seq
 function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   io = pretty(io)
   print(io, "Monomial basis of a highest weight module")
-  print(io, Indent(), "\nof highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis)))))", Dedent())
+  print(
+    io,
+    Indent(),
+    "\nof highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis)))))",
+    Dedent(),
+  )
   print(io, Indent(), "\nof dimension $(dim(basis))", Dedent())
   print(io, Indent(), "\nwith monomial ordering $(monomial_ordering(basis))", Dedent())
   # TODO: use the following line instead of printing workaround below

@@ -1,6 +1,9 @@
 function weight(mon::ZZMPolyRingElem, birational_seq::BirationalSequence)
   @assert length(birational_seq) == nvars(parent(mon))
-  return sum(exp * weight for (exp, weight) in zip(degrees(mon), operators_as_weights(birational_seq)))
+  return sum(
+    exp * weight for
+    (exp, weight) in zip(degrees(mon), operators_as_weights(birational_seq))
+  )
 end
 
 function calc_vec(

@@ -2,13 +2,17 @@ struct BirationalSequence
   operator_roots::Vector{RootSpaceElem}
   operator_weights::Vector{WeightLatticeElem}
 
-  function BirationalSequence(operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem})
+  function BirationalSequence(
+    operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}
+  )
     @req length(operator_roots) == length(operator_weights) "Different lengths"
     return new(operator_roots, operator_weights)
   end
 end
 
-function birational_sequence(operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem})
+function birational_sequence(
+  operator_roots::Vector{RootSpaceElem}, operator_weights::Vector{WeightLatticeElem}
+)
   return BirationalSequence(operator_roots, operator_weights)
 end
 

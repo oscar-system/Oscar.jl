@@ -47,30 +47,32 @@ end
   @test isempty(sub_weights_proper(w_zero))
 
   w_231 = WeightLatticeElem(R, [2, 3, 1])
-  sub_weights_proper_231 = [WeightLatticeElem(R, coeffs) for coeffs in [
-    [0, 0, 1],
-    [0, 1, 0],
-    [0, 1, 1],
-    [0, 2, 0],
-    [0, 2, 1],
-    [0, 3, 0],
-    [0, 3, 1],
-    [1, 0, 0],
-    [1, 0, 1],
-    [1, 1, 0],
-    [1, 1, 1],
-    [1, 2, 0],
-    [1, 2, 1],
-    [1, 3, 0],
-    [1, 3, 1],
-    [2, 0, 0],
-    [2, 0, 1],
-    [2, 1, 0],
-    [2, 1, 1],
-    [2, 2, 0],
-    [2, 2, 1],
-    [2, 3, 0],
-  ]]
+  sub_weights_proper_231 = [
+    WeightLatticeElem(R, coeffs) for coeffs in [
+      [0, 0, 1],
+      [0, 1, 0],
+      [0, 1, 1],
+      [0, 2, 0],
+      [0, 2, 1],
+      [0, 3, 0],
+      [0, 3, 1],
+      [1, 0, 0],
+      [1, 0, 1],
+      [1, 1, 0],
+      [1, 1, 1],
+      [1, 2, 0],
+      [1, 2, 1],
+      [1, 3, 0],
+      [1, 3, 1],
+      [2, 0, 0],
+      [2, 0, 1],
+      [2, 1, 0],
+      [2, 1, 1],
+      [2, 2, 0],
+      [2, 2, 1],
+      [2, 3, 0],
+    ]
+  ]
   @test issetequal(sub_weights(w_231), [w_zero, w_231, sub_weights_proper_231...])
   @test issetequal(sub_weights_proper(w_231), sub_weights_proper_231)
 end

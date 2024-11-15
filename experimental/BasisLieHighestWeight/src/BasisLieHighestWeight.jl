@@ -4,7 +4,7 @@ using ..Oscar
 using ..Oscar: IntegerUnion
 using ..Oscar: _is_weighted
 
-using Oscar.LieAlgebras: 
+using Oscar.LieAlgebras:
   _root_system_type_string,
   lie_algebra_simple_module_struct_consts_gap
 

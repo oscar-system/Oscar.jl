@@ -53,7 +53,7 @@ function get_lattice_points_of_weightspace(
   for (j, i) in enumerate(zero_coordinates)
     A_eq[m + j, i] = 1
   end
-  
+
   # non-negativity
   A_ineq = -identity_matrix(QQ, n)
   b_ineq = [zero(QQ) for _ in 1:n]
@@ -79,7 +79,9 @@ function compute_zero_coordinates(
   zero_coordinates = Int[]
   for c in n:-1:1
     length(non_zeros) == m && break
-    if !isdisjoint(non_zeros, findall(!iszero, coefficients(operator_as_root(bir_sequence, c))))
+    if !isdisjoint(
+      non_zeros, findall(!iszero, coefficients(operator_as_root(bir_sequence, c)))
+    )
       union!(non_zeros, findall(<(0), coefficients(operator_as_weight(bir_sequence, c))))
     else
       push!(zero_coordinates, c)
