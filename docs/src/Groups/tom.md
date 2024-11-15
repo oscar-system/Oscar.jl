@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 # Tables of Marks
 
 The concept of a *Table of Marks* was introduced by W. Burnside in his book
-Theory  of Groups of Finite Order [Bur55](@cite).
+Theory  of Groups of Finite Order [Bur11](@cite).
 Therefore a table of marks is sometimes called a *Burnside matrix*.
 The table of marks of a finite group ``G`` is a matrix whose rows and columns
 are labelled by the conjugacy classes of subgroups of ``G`` and where for
