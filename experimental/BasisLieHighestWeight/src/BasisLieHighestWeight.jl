@@ -10,7 +10,9 @@ import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
 
-using Oscar.LieAlgebras: lie_algebra_simple_module_struct_consts_gap
+using Oscar.LieAlgebras: 
+  _root_system_type_string,
+  lie_algebra_simple_module_struct_consts_gap
 
 # temp imports until `LieAlgebraStructure` is abolished
 import Oscar: cartan_matrix, coefficient_ring, dim_of_simple_module, rank, root_system

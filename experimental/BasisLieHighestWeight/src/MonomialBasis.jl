@@ -45,7 +45,22 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   print(io, Indent(), "\nof highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis)))))", Dedent())
   print(io, Indent(), "\nof dimension $(dim(basis))", Dedent())
   print(io, Indent(), "\nwith monomial ordering $(monomial_ordering(basis))", Dedent())
-  print(io, "\nover ", Lowercase(), base_lie_algebra(basis))
+  # TODO: use the following line instead of printing workaround below
+  # print(io, "\nover ", Lowercase(), base_lie_algebra(basis))
+  # begin of workaround
+  L = base_lie_algebra(basis).lie_algebra
+  print(io, "\nover Lie algebra")
+  if has_root_system(L)
+    rs = root_system(L)
+    if has_root_system_type(rs)
+      type, ord = root_system_type_with_ordering(rs)
+      print(io, " of type ", _root_system_type_string(type))
+      if !issorted(ord)
+        print(io, " (non-canonical ordering)")
+      end
+    end
+  end
+  # end of workaround
   if get_attribute(basis, :algorithm, nothing) === basis_lie_highest_weight_compute
     print(
       io,
@@ -100,6 +115,21 @@ function Base.show(io::IO, basis::MonomialBasis)
       io,
       "Monomial basis of a highest weight module with highest weight $(Int.(Oscar._vec(coefficients(highest_weight(basis))))) over ",
     )
-    print(terse(io), Lowercase(), base_lie_algebra(basis))
+    # TODO: use the following line instead of printing workaround below
+    # print(terse(io), Lowercase(), base_lie_algebra(basis))
+    # begin of workaround
+    L = base_lie_algebra(basis).lie_algebra
+    print(io, "Lie algebra")
+    if has_root_system(L)
+      rs = root_system(L)
+      if has_root_system_type(rs)
+        type, ord = root_system_type_with_ordering(rs)
+        print(io, " of type ", _root_system_type_string(type))
+        if !issorted(ord)
+          print(io, " (non-canonical ordering)")
+        end
+      end
+    end
+    # end of workaround
   end
 end

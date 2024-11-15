@@ -27,8 +27,11 @@ function coefficient_ring(L::LieAlgebraStructure)
 end
 
 function Base.show(io::IO, L::LieAlgebraStructure)
-  io = pretty(io)
-  print(io, LowercaseOff(), "Lie algebra of type $(L.lie_type)$(rank(L))")
+  show(io, L.lie_algebra)
+end
+
+function Base.show(io::IO, mime::MIME, L::LieAlgebraStructure)
+  show(io, mime, L.lie_algebra)
 end
 
 function lie_algebra(type::Symbol, rk::Int)
