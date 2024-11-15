@@ -41,8 +41,6 @@ julia> hasse_derivatives(f)
 """
 function hasse_derivatives(f::MPolyRingElem)
   R = parent(f)
-  # x = gens(R)
-  # n = ngens(R)
   Rtemp, t = polynomial_ring(R, :t => 1:ngens(R))
   F = evaluate(f, gens(R) + t)
   return [[degrees(monomial(term, 1)), coeff(term, 1)] for term in terms(F)]
