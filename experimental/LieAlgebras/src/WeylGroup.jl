@@ -50,6 +50,7 @@ julia> weyl_group([(:G, 2), (:D, 4)])
 Weyl group
   of root system of rank 6
     of type G2 x D4
+```
 """
 function weyl_group(type::Vector{Tuple{Symbol,Int}})
   return weyl_group(root_system(type))
@@ -542,10 +543,7 @@ end
 
 Construct an isomorphism between `W` and a group of type `FPGroup`.
 
-This is achieved by constructing a free group with the same rank as `W`,
-and adding relations corresponding to the Coxeter relations of `W`.
-
-Also see: [`fp_group(::WeylGroup)`](@ref).
+The codomain of this isomorphism is [`fp_group(::WeylGroup)`](@ref).
 """
 function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   R = root_system(W)

@@ -6,7 +6,7 @@
 
 @doc raw"""
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{<Integer}; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
 Construct the root system defined by the given (generalized) Cartan matrix.
 
@@ -249,7 +249,7 @@ If the type is not known, it is determined and stored in `R`.
 
 See also: [`root_system_type_with_ordering(::RootSystem)`](@ref).
 
-!!! warn
+!!! warning
     This function will error if the type is not known yet and the Weyl group is infinite.
 """
 function root_system_type(R::RootSystem)
@@ -269,7 +269,7 @@ If the type is not known, it is determined and stored in `R`.
 
 See also: [`root_system_type(::RootSystem)`](@ref).
 
-!!! warn
+!!! warning
     This function will error if the type is not known yet and the Weyl group is infinite.
 """
 function root_system_type_with_ordering(R::RootSystem)
@@ -578,9 +578,9 @@ See also: [`positive_coroot(::RootSystem, ::Int)`](@ref).
 ```jldoctest
 julia> positive_coroots(root_system(:A, 2))
 3-element Vector{DualRootSpaceElem}:
- a^v_1
- a^v_2
- a^v_1 + a^v_2
+ a_1^v
+ a_2^v
+ a_1^v + a_2^v
 ```
 """
 function positive_coroots(R::RootSystem)
@@ -622,9 +622,9 @@ See also: [`negative_coroot(::RootSystem, ::Int)`](@ref).
 ```jldoctest
 julia> negative_coroots(root_system(:A, 2))
 3-element Vector{DualRootSpaceElem}:
- -a^v_1
- -a^v_2
- -a^v_1 - a^v_2
+ -a_1^v
+ -a_2^v
+ -a_1^v - a_2^v
 ```
 """
 function negative_coroots(R::RootSystem)
@@ -856,9 +856,10 @@ end
 Return the coefficients of the root space element `r`
 w.r.t. the simple roots as a row vector.
 
-The return type may not be relied on;
-we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
-that can be indexed with integers.
+!!! note
+    The return type may not be relied on;
+    we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
+    that can be indexed with integers.
 """
 function coefficients(r::RootSpaceElem)
   return r.vec
@@ -1213,9 +1214,10 @@ end
 Return the coefficients of the dual root space element `r`
 w.r.t. the simple coroots as a row vector.
 
-The return type may not be relied on;
-we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
-that can be indexed with integers.
+!!! note
+    The return type may not be relied on;
+    we only guarantee that it is a one-dimensional iterable with `eltype` `QQFieldElem`
+    that can be indexed with integers.
 """
 function coefficients(r::DualRootSpaceElem)
   return r.vec
@@ -1240,14 +1242,14 @@ function expressify(r::DualRootSpaceElem; context=nothing)
   if is_unicode_allowed()
     return expressify(r, :α̌; context)
   else
-    return expressify(r, Symbol("a^v"); context)
+    return expressify(r, :a, Symbol("^v"); context)
   end
 end
 
-function expressify(r::DualRootSpaceElem, s; context=nothing)
+function expressify(r::DualRootSpaceElem, s, s_suffix=Symbol(""); context=nothing)
   sum = Expr(:call, :+)
   for i in 1:length(r.vec)
-    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)"))
+    push!(sum.args, Expr(:call, :*, expressify(r.vec[i]; context), "$(s)_$(i)$(s_suffix)"))
   end
   return sum
 end
@@ -1555,9 +1557,10 @@ end
 Return the coefficients of the weight lattice element `w`
 w.r.t. the fundamental weights as a row vector.
 
-The return type may not be relied on;
-we only guarantee that it is a one-dimensional iterable with `eltype` `ZZRingElem`
-that can be indexed with integers.
+!!! note
+    The return type may not be relied on;
+    we only guarantee that it is a one-dimensional iterable with `eltype` `ZZRingElem`
+    that can be indexed with integers.
 """
 function coefficients(w::WeightLatticeElem)
   return w.vec
