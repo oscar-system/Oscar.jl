@@ -174,6 +174,7 @@ julia> get_relative_orders(c)
 2-element Vector{ZZRingElem}:
  2
  0
+```
 """
 function get_relative_orders(c::Collector{T}) where T <: IntegerUnion
   return c.relorders
