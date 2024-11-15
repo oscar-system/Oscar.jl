@@ -370,18 +370,37 @@ end
 Return the letters of `g` as a list of integers, each entry corresponding to
 a group generator.
 
-# Examples
+This method can produce letters represented by negative numbers. A negative number 
+indicates the inverse of the generator at the corresponding positive index.
+
+For example, as shown below, an output of -1 refers to the "inverse of the first generator".
+
+See also [`syllables`](@ref).
+
 ```jldoctest
-julia> c = collector(2, Int);
-
-julia> Oscar.set_relative_orders!(c, [2, 3])
-
-julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
-
-julia> gg = pc_group(c)
+julia> gg = small_group(6, 1)
 Pc group of order 6
 
-julia> letters(gg[1]^5*gg[2]^-4)
+julia> x = gg([1 => ZZ(-3)])
+f1^-3
+
+julia> letters(x)
+3-element Vector{Int64}:
+ -1
+ -1
+ -1
+```
+
+# Examples
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> letters(x)
 3-element Vector{Int64}:
  1
  2
@@ -401,20 +420,22 @@ a group generator and its exponent.
 
 # Examples
 ```jldoctest
-julia> c = collector(2, Int);
-
-julia> Oscar.set_relative_orders!(c, [2, 3])
-
-julia> Oscar.set_conjugate!(c, 2, 1, [2 => 2])
-
-julia> gg = pc_group(c)
+julia> gg = small_group(6, 1)
 Pc group of order 6
 
-julia> syllables(gg[1]^5*gg[2]^-4)
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> s = syllables(x)
 2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 1
  2 => 2
-```
+
+julia> gg(s)
+f1*f2^2
+
+julia> gg(s) == x
+true
 """
 function syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
@@ -423,7 +444,6 @@ function syllables(g::Union{PcGroupElem, SubPcGroupElem})
 end
 
 # Convert syllables in canonical form into exponent vector
-#Thomas
 function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
   res = zeros(ZZRingElem, n)
   for pair in sylls
@@ -434,7 +454,6 @@ function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
 end
 
 # Convert syllables in canonical form into group element
-#Thomas
 function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}; check::Bool=true)
   # check if the syllables are in canonical form
   if check
