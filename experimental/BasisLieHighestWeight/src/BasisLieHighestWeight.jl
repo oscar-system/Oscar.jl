@@ -8,12 +8,11 @@ using ..Oscar: _is_weighted
 using AbstractAlgebra.PrettyPrinting
 
 import Oscar: dim
-import Oscar: dim_of_simple_module
 import Oscar: monomial_ordering
 import Oscar: monomials
 
 # temp imports until `LieAlgebraStructure` is abolished
-import Oscar: cartan_matrix, root_system
+import Oscar: cartan_matrix, dim_of_simple_module, root_system
 import Oscar.LieAlgebras: cartan_matrix_inv
 
 import Base: length

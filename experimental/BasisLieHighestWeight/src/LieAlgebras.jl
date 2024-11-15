@@ -43,9 +43,7 @@ function root_system(L::LieAlgebraStructure)
 end
 
 function dim_of_simple_module(T::Type, L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
-  hw_ = Int.(hw)
-  @req Oscar.LieAlgebras.is_dominant_weight(hw_) "Not a dominant weight."
-  return T(GAPWrap.DimensionOfHighestWeightModule(codomain(Oscar.iso_oscar_gap(L.lie_algebra)), GAP.Obj(Int.(hw_))))
+  return dim_of_simple_module(T, L.lie_algebra, hw)
 end
 
 function dim_of_simple_module(L::LieAlgebraStructure, hw::Vector{<:IntegerUnion})
