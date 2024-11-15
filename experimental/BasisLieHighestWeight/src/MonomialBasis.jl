@@ -1,5 +1,5 @@
 @attributes mutable struct MonomialBasis
-  lie_algebra::LieAlgebraStructure
+  lie_algebra::AbstractLieAlgebra{QQFieldElem}
   highest_weight::WeightLatticeElem
   birational_seq::BirationalSequence
   monomial_ordering::MonomialOrdering
@@ -8,7 +8,7 @@
   monomials_parent::ZZMPolyRing
 
   function MonomialBasis(
-    lie_algebra::LieAlgebraStructure,
+    lie_algebra::AbstractLieAlgebra{QQFieldElem},
     highest_weight::WeightLatticeElem,
     birational_seq::BirationalSequence,
     monomial_ordering::MonomialOrdering,
@@ -48,7 +48,7 @@ function Base.show(io::IO, ::MIME"text/plain", basis::MonomialBasis)
   # TODO: use the following line instead of printing workaround below
   # print(io, "\nover ", Lowercase(), base_lie_algebra(basis))
   # begin of workaround
-  L = base_lie_algebra(basis).lie_algebra
+  L = base_lie_algebra(basis)
   print(io, "\nover Lie algebra")
   if has_root_system(L)
     rs = root_system(L)
@@ -118,7 +118,7 @@ function Base.show(io::IO, basis::MonomialBasis)
     # TODO: use the following line instead of printing workaround below
     # print(terse(io), Lowercase(), base_lie_algebra(basis))
     # begin of workaround
-    L = base_lie_algebra(basis).lie_algebra
+    L = base_lie_algebra(basis)
     print(io, "Lie algebra")
     if has_root_system(L)
       rs = root_system(L)

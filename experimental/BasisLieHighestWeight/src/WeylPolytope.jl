@@ -1,14 +1,14 @@
 
 @doc raw"""
-    get_dim_weightspace(L::LieAlgebraStructure, highest_weight::WeightLatticeElem) -> Dict{Vector{ZZRingElem},Int}
+    get_dim_weightspace(L::LieAlgebra, highest_weight::WeightLatticeElem) -> Dict{Vector{ZZRingElem},Int}
 
 Computes the dimension of the weight spaces of the Lie algebra `L` module with highest weight `highest_weight`.
 
 The weights are given as coefficients to the fundamental weights $\omega_i$.
 """
-function get_dim_weightspace(L::LieAlgebraStructure, highest_weight::WeightLatticeElem)
+function get_dim_weightspace(L::LieAlgebra, highest_weight::WeightLatticeElem)
   weightspaces = Dict{WeightLatticeElem,Int}()
-  for (weight, dim) in character(L.lie_algebra, highest_weight)
+  for (weight, dim) in character(L, highest_weight)
     weightspaces[highest_weight - WeightLatticeElem(root_system(L), weight)] = dim
   end
   return weightspaces

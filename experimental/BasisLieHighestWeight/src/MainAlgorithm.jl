@@ -1,5 +1,5 @@
 function basis_lie_highest_weight_compute(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
   monomial_ordering_symb::Symbol,
@@ -72,7 +72,7 @@ function basis_lie_highest_weight_compute(
 end
 
 function basis_coordinate_ring_kodaira_compute(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   highest_weight::Vector{Int},
   degree::Int,
   operators::Vector{RootSpaceElem},     # monomial x_i is corresponds to f_operators[i]
@@ -170,7 +170,7 @@ function basis_coordinate_ring_kodaira_compute(
 end
 
 function compute_monomials(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::WeightLatticeElem,
@@ -281,7 +281,7 @@ function add_known_monomials!(
 end
 
 function add_new_monomials!(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
   matrices_of_operators::Vector{<:SMat{ZZRingElem}},
@@ -364,7 +364,7 @@ function add_new_monomials!(
 end
 
 function add_by_hand(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   birational_seq::BirationalSequence,
   ZZx::ZZMPolyRing,
   highest_weight::WeightLatticeElem,
@@ -440,19 +440,19 @@ function add_by_hand(
   return basis
 end
 
-function operators_asc_height(L::LieAlgebraStructure)
+function operators_asc_height(L::LieAlgebra)
   return positive_roots(root_system(L))
 end
 
 function operators_by_index(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   birational_seq::Vector{Int},
 )
   return operators_asc_height(L)[birational_seq]
 end
 
 function operators_by_simple_roots(
-  L::LieAlgebraStructure,
+  L::LieAlgebra,
   birational_seq::Vector{Vector{Int}},
 )
   R = root_system(L)
@@ -466,7 +466,7 @@ function operators_by_simple_roots(
   return operators
 end
 
-function operators_lusztig(L::LieAlgebraStructure, reduced_expression::Vector{Int})
+function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   # Computes the operators for the lusztig polytopes for a longest weyl-word 
   # reduced_expression.
 

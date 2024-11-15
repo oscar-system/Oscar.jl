@@ -4,19 +4,15 @@ using ..Oscar
 using ..Oscar: IntegerUnion
 using ..Oscar: _is_weighted
 
+using Oscar.LieAlgebras: 
+  _root_system_type_string,
+  lie_algebra_simple_module_struct_consts_gap
+
 using AbstractAlgebra.PrettyPrinting
 
 import Oscar: dim
 import Oscar: monomial_ordering
 import Oscar: monomials
-
-using Oscar.LieAlgebras: 
-  _root_system_type_string,
-  lie_algebra_simple_module_struct_consts_gap
-
-# temp imports until `LieAlgebraStructure` is abolished
-import Oscar: cartan_matrix, coefficient_ring, dim_of_simple_module, rank, root_system
-import Oscar.LieAlgebras: cartan_matrix_inv
 
 import Base: length
 
@@ -26,7 +22,6 @@ if !hasmethod(Base.keys, (MatElem,))
 end
 
 # Long-term TODO's:
-# - Use Oscar-Lie-Algebra type instead of LieAlgebraStructure
 # - Test if ZZx should be a graded_polynomial_ring with weights_w as weights
 # - Maybe export and docstring: 
 #   - get_dim_weightspace
