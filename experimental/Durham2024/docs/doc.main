@@ -1,0 +1,7 @@
+# Additional functionality for intersection theory on schemes
+
+## Pushforward on algebraic cycles along proper morphisms
+```@docs
+    pushforward(p::BlowupMorphism, W::AbsAlgebraicCycle)
+```
+

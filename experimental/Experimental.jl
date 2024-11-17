@@ -13,6 +13,7 @@ const orderedpkgs = [
   "Schemes",
   "FTheoryTools",            # must be loaded after Schemes and LieAlgebras
   "IntersectionTheory",      # must be loaded after Schemes
+  "Durham2024",
 ]
 const exppkgs = filter(x->isdir(joinpath(expdir, x)) && !(x in orderedpkgs), readdir(expdir))
 append!(exppkgs, orderedpkgs)
