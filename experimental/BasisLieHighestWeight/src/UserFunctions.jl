@@ -406,7 +406,7 @@ with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type`
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
 of the bases of the lower degrees.
 
-!!! warn
+!!! warning
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
     This might change in a minor release.
     
@@ -515,7 +515,7 @@ with highest weight `highest_weight` for a simple Lie algebra $L$ of type `type`
 Furthermore, for each degree, return the monomials that are not contained in the Minkowski sum
 of the bases of the lower degrees.
 
-!!! warn
+!!! warning
     Currently, this function expects $-w_0(\lambda)$ instead of $\lambda$ as the `highest_weight` input.
     This might change in a minor release.
 
