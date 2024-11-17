@@ -1,3 +1,12 @@
+# this can be run from the command line with:
+# > julia --project=. -e 'using Oscar; include("etc/check_docstrings.jl")'
+#
+# it is also possible to test more packages at once (as long as Main.X exists)
+# > julia --project=. -e 'using Oscar; include("etc/check_docstrings.jl")' Nemo Singular Hecke Polymake GAP Oscar
+#
+# note: the @main function requires julia 1.11 or newer
+
+
 using Markdown
 
 admonition_types = string.((:note, :info, :tip, :danger, :warning, :compat, :todo, :details))
