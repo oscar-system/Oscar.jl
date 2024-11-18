@@ -777,6 +777,19 @@ function chevalley_basis(L::LieAlgebra) # to be implemented by subtypes
 end
 
 @doc raw"""
+    cartan_matrix(L::LieAlgebra) -> ZZMatrix
+
+Return the Cartan matrix of the root system of `L`.
+"""
+function cartan_matrix(L::LieAlgebra{C}) where {C<:FieldElem}
+  return cartan_matrix(root_system(L))
+end
+
+function cartan_matrix_inv(L::LieAlgebra{C}) where {C<:FieldElem}
+  return cartan_matrix_inv(root_system(L))
+end
+
+@doc raw"""
     cartan_subalgebra(L::LieAlgebra{C}) where {C<:FieldElem} -> LieSubalgebra{C,elem_type(L)}
 
 Return a Cartan subalgebra of `L`.
