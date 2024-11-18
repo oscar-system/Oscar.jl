@@ -598,7 +598,7 @@ The fields are
 - the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
 - the dictionary used to store attributes (orbits, elements, ...).
 """
-@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, E}}
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, S, E}}
     group::T
     subgroup::S
     side::Symbol
@@ -672,7 +672,7 @@ function Base.iterate(Omega::GSetBySubgroupTransversal, state = 1)
   end
 end
 
-Base.eltype(::Type{GSetBySubgroupTransversal{T, S, E}}) where {S, T, E} = GroupCoset{T, E}
+Base.eltype(::Type{GSetBySubgroupTransversal{T, S, E}}) where {S, T, E} = GroupCoset{T, S, E}
 
 function Base.getindex(Omega::GSetBySubgroupTransversal, i::Int)
   if Omega.side == :right
@@ -684,7 +684,7 @@ end
 
 is_transitive(Omega::GSetBySubgroupTransversal) = true
 
-function orbit(G::T, omega::GroupCoset{T, S}) where T <: GAPGroup where S
+function orbit(G::T, omega::GroupCoset{T, TH, S}) where {T <: GAPGroup, TH <: GAPGroup, S}
     @req G == omega.G "omega must be a left or right coset in G"
     return GSetBySubgroupTransversal(G, omega.H, omega.side, check = false)
 end
@@ -692,7 +692,7 @@ end
 # One problem would be that `omega` would not be a point in the orbit,
 # according to the definition of equality for cosets.
 
-function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
+function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, S, E}) where {T <: GAPGroup, S <: GAPGroup, E}
   @req (Omega.group == omega.G && Omega.subgroup == omega.H && Omega.side == omega.side) "omega is not in Omega"
   return Omega
 end
@@ -873,8 +873,6 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
 end
 
 ############################################################################
-
-acting_domain(Omega::GSet) = acting_group(Omega)
 
 Base.length(Omega::GSetByElements) = length(elements(Omega))
 Base.length(::Type{T}, Omega::GSetByElements) where T <: IntegerUnion = T(length(elements(Omega)))

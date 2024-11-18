@@ -201,7 +201,6 @@ export abelian_group
 export abelian_invariants
 export abelian_invariants_schur_multiplier
 export absolute_primary_decomposition
-export acting_domain
 export acting_group
 export acting_subgroup
 export action

@@ -167,6 +167,10 @@ end
    @test index(G, H) == 4
   
    C = right_coset(H, G[1])
+   @test group(C) == G
+   @test acting_group(C) == H
+   @test representative(C) in C
+   @test all(x -> x/G[1] in H, C)
    @test is_right(C)
    @test order(C) == length(collect(C))
    @test order(C) isa ZZRingElem
@@ -197,8 +201,8 @@ end
       @test rc==H*x
       @test lc==x*H
       @test dc==H*x*K
-      @test acting_domain(rc) == H
-      @test acting_domain(lc) == H
+      @test acting_group(rc) == H
+      @test acting_group(lc) == H
       @test left_acting_group(dc) == H
       @test right_acting_group(dc) == K
       @test representative(rc) == x
@@ -218,6 +222,10 @@ end
       @test issubset(rc,dc)
       @test issubset(left_coset(K,x),dc)
       @test !is_bicoset(rc)
+
+      @inferred GapObj(rc)
+      @inferred GapObj(lc)
+      @inferred GapObj(dc)
 
       @test rc == H*x
       @test lc == x*H
@@ -271,6 +279,7 @@ end
    x = G([2,3,4,5,1])
    dc = double_coset(H,x,K)
    dc1 = double_coset(H, H[1]*x, K)
+   @test group(dc) == G
    @test representative(dc) != representative(dc1)
    @test dc == dc1
    L = double_cosets(G,H,K)

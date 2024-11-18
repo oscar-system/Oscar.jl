@@ -103,7 +103,7 @@
   G = symmetric_group(6)
   Omega = gset(G, [Set([1, 2])])
   @test representative(Omega) in Omega
-  @test acting_domain(Omega) == G
+  @test acting_group(Omega) == G
 
   # wrapped elements of G-sets
   G = symmetric_group(4)
