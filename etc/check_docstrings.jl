@@ -43,7 +43,7 @@ function find_docstr_src(docs)
   res = docs.meta[:results]
   for i in 1:length(docs.content)
     msg = has_broken_doctest(docs.content[i])
-    if msg != nothing
+    if msg !== nothing
       file = res[i].data[:path]
       line = res[i].data[:linenumber]
       mod = res[i].data[:module]
@@ -81,7 +81,7 @@ function get_broken_docstrings(m::Module)
     elseif !isnothing(memberobj)
       docs = Base.Docs.doc(memberobj)
       if docs isa Markdown.MD
-        if has_broken_doctest(docs) != nothing && !(memberobj in broken)
+        if has_broken_doctest(docs) !== nothing && !(memberobj in broken)
           loc = find_docstr_src(docs)
           push!(broken, memberobj)
           # we could filter out docs from other packages via startswith(x, pkgdir(m))
