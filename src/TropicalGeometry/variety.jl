@@ -145,16 +145,18 @@ end
 ################################################################################
 
 @doc raw"""
-    tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, check::Bool=true)
 
 Return the tropicalization of `I` with respect to `nu`.
 If `nu==nothing`, will compute with respect to the trivial valuation and min convention.
 If `weighted_polyhedral_complex_only==true`, will not cache any additional information.
 
+If `check==true` and `I` is neither principal, binomial, nor affine linear, will check whether `I` is primary.
+
 !!! warning
     Experimental feature, only special cases supported:
     - any coefficient field and any valuation: `I` principal, binomial, or affine linear
-    - QQ and trivial / p-adic valuation only: `I` prime
+    - QQ and trivial / p-adic valuation only: `I` primary
 
 # Examples
 ```jldoctest
@@ -186,7 +188,8 @@ julia> vertices(TropI_2)
 
 ```
 """
-function tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false)
+function tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false, check::Bool=true)
+
     # initialize nu as trivial valuation if not given
     if isnothing(nu)
         nu = tropical_semiring_map(coefficient_ring(I))
@@ -205,6 +208,8 @@ function tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=
         return tropical_variety_affine_linear(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     end
 
+    @req !check || is_primary(I) "Only primary ideals supported."
+
     # I general
     return tropical_variety_prime(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
 end
@@ -212,4 +217,33 @@ end
 
 function tropical_variety(f::MPolyRingElem, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false)
     return tropical_variety(ideal(parent(f),[f]),nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+end
+
+
+@doc raw"""
+    tropical_varieties(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false)
+
+Compute the primary decomposition of `I` and the tropicalizations of each primary factor.
+
+# Examples
+```jldoctest
+julia> K,t = rational_function_field(GF(101),:t);
+
+julia> nu = tropical_semiring_map(K,t);
+
+julia> R,(x,y,z) = K["x","y","z"];
+
+julia> I = intersect(ideal([x+y+z+1,2*x+11*y+23*z+31]),ideal([t^3*x*y*z-1]));
+
+julia> TropVs = tropical_varieties(I,nu)
+2-element Vector{TropicalVariety{typeof(min), true}}:
+ Min tropical variety
+ Min tropical variety
+
+```
+"""
+function tropical_varieties(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    PQs = primary_decomposition(I)
+    Ps = first.(PQs)
+    return [tropical_variety(P,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only) for P in Ps]
 end
