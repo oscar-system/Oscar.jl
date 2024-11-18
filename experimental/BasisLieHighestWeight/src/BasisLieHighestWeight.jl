@@ -16,11 +16,6 @@ import Oscar: monomials
 
 import Base: length
 
-# TODO: remove once https://github.com/Nemocas/AbstractAlgebra.jl/pull/1906 is available
-if !hasmethod(Base.keys, (MatElem,))
-  Base.keys(M::MatElem) = CartesianIndices(axes(M))
-end
-
 # Long-term TODO's:
 # - Test if ZZx should be a graded_polynomial_ring with weights_w as weights
 # - Maybe export and docstring: 
