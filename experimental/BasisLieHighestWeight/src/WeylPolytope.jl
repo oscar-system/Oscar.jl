@@ -1,20 +1,3 @@
-
-@doc raw"""
-    get_dim_weightspace(L::LieAlgebra, highest_weight::WeightLatticeElem) -> Dict{Vector{ZZRingElem},Int}
-
-Computes the dimension of the weight spaces of the Lie algebra `L` module with highest weight `highest_weight`.
-
-The weights are given as coefficients to the fundamental weights $\omega_i$.
-"""
-function get_dim_weightspace(L::LieAlgebra, highest_weight::WeightLatticeElem)
-  R = root_system(L)
-  weightspaces = Dict{WeightLatticeElem,Int}()
-  for (weight, dim) in _character(R, highest_weight)
-    weightspaces[highest_weight - weight] = dim
-  end
-  return weightspaces
-end
-
 function convert_lattice_points_to_monomials(
   ZZx::ZZMPolyRing, lattice_points_weightspace::Vector{Vector{ZZRingElem}}
 )

@@ -20,7 +20,6 @@ import Base: length
 # Long-term TODO's:
 # - Test if ZZx should be a graded_polynomial_ring with weights_w as weights
 # - Maybe export and docstring: 
-#   - get_dim_weightspace
 #   - get_lattice_points_of_weightspace
 #   - convert_lattice_points_to_monomials
 #   - convert_monomials_to_lattice_points

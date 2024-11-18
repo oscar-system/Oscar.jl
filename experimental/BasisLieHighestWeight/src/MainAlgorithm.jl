@@ -269,6 +269,7 @@ function add_new_monomials!(
   weightspaces::Dict{WeightLatticeElem,Int},
   dim_weightspace::Int,
   weight_w::WeightLatticeElem,
+  highest_weight::WeightLatticeElem,
   monomials_in_weightspace::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
   space::Dict{WeightLatticeElem,<:SMat{QQFieldElem}},
   v0::SRow{ZZRingElem},
@@ -285,7 +286,8 @@ function add_new_monomials!(
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(
     ZZx,
     get_lattice_points_of_weightspace(
-      operators_as_roots(birational_seq), RootSpaceElem(weight_w), zero_coordinates
+      operators_as_roots(birational_seq), RootSpaceElem(highest_weight - weight_w),
+      zero_coordinates,
     ),
   )
   isempty(poss_mon_in_weightspace) && error("The input seems to be invalid.")
@@ -295,7 +297,7 @@ function add_new_monomials!(
 
   # check which monomials should get added to the basis
   i = 0
-  if iszero(weight_w) # check if [0 0 ... 0] already in basis
+  if highest_weight == weight_w # check if [0 0 ... 0] already in basis
     i += 1
   end
   number_mon_in_weightspace = length(monomials_in_weightspace[weight_w])
@@ -312,7 +314,7 @@ function add_new_monomials!(
     for i in 1:(nvars(ZZx) - 1)
       if !haskey(
         weightspaces,
-        sum(
+        highest_weight - sum(
           exp * weight for (exp, weight) in
           Iterators.drop(zip(degrees(mon), operators_as_weights(birational_seq)), i)
         ),
@@ -365,14 +367,14 @@ function add_by_hand(
 
   push!(basis, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = get_dim_weightspace(L, highest_weight)
+  weightspaces = _character(R, highest_weight)
   # sort the monomials from the minkowski-sum by their weightspaces
   monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
     monomials_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
   end
   for mon in basis
-    push!(monomials_in_weightspace[weight(mon, birational_seq)], mon)
+    push!(monomials_in_weightspace[highest_weight - weight(mon, birational_seq)], mon)
   end
 
   # only inspect weightspaces with missing monomials
@@ -412,6 +414,7 @@ function add_by_hand(
       weightspaces,
       dim_weightspace,
       weight_w,
+      highest_weight,
       monomials_in_weightspace,
       space,
       v0,
