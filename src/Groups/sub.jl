@@ -157,15 +157,7 @@ end
 
 # convert a GAP list of subgroups into a vector of Julia groups objects
 function _as_subgroups(G::T, subs::GapObj) where T <: GAPGroup
-  res = Vector{T}(undef, length(subs))
-  for i = 1:length(res)
-    res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
-  end
-  return res
-end
-
-function _as_subgroups(G::PcGroup, subs::GapObj)
-  res = Vector{SubPcGroup}(undef, length(subs))
+  res = Vector{sub_type(T)}(undef, length(subs))
   for i = 1:length(res)
     res[i] = _as_subgroup_bare(G, subs[i]::GapObj)
   end

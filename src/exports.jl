@@ -49,6 +49,7 @@ export AlgebraicCycle
 export AutomorphismGroup
 export AutomorphismGroupElem
 export BettiTable
+export BlowupMorphism
 export BorcherdsCtx
 export CartierDivisor
 export ClosedEmbedding
@@ -66,6 +67,7 @@ export DirectSumSheaf
 export Directed
 export Edge
 export EffectiveCartierDivisor
+export EllipticSurface
 export EmptyScheme
 export FPGroup
 export FPGroupElem
@@ -233,6 +235,7 @@ export affine_space
 export alexander_dual
 export algebraic_cycle
 export algebraic_ideal
+export algebraic_lattice
 export algebraic_matrix
 export algebraic_matroid
 export algebraic_pluecker_vector
@@ -264,6 +267,7 @@ export ambient_representatives_generators
 export ambient_scheme
 export ambient_space
 export ambient_type
+export annihilator
 export anti_symmetric_parts
 export anticanonical_bundle
 export anticanonical_divisor
@@ -276,8 +280,8 @@ export as_dictionary
 export as_gset
 export ascending_compositions
 export associahedron
-export associated_primes
 export associated_points
+export associated_primes
 export atlas_description
 export atlas_group
 export atlas_irrationality
@@ -292,6 +296,7 @@ export bases
 export basis_of_global_sections
 export basis_of_global_sections_via_homogeneous_component
 export basis_of_global_sections_via_rational_functions
+export basis_of_h4
 export bell
 export betti
 export betti_number
@@ -527,6 +532,8 @@ export elementary_abelian_group
 export elementary_symmetric
 export elements
 export eliminate
+export elliptic_parameter
+export elliptic_surface
 export embedding
 export embedding_orthogonal_group
 export epimorphism_from_free_group
@@ -536,6 +543,7 @@ export equidimensional_hull
 export equidimensional_hull_radical
 export euler_characteristic
 export euler_phi
+export exceptional_divisor
 export expand
 export explicit_zonotope
 export exponent, has_exponent, set_exponent
@@ -561,8 +569,10 @@ export fat_ideal
 export fat_scheme
 export feasible_region
 export fglm
+export fiber_components
 export fiber_product
 export fibonacci
+export fibration_type
 export filtrate
 export find_morphism
 export find_morphisms
@@ -609,6 +619,7 @@ export generalized_jordan_block
 export generalized_jordan_form
 export generating_system
 export generator_matrix
+export generic_fiber
 export generic_fraction
 export generic_fractions
 export generic_section
@@ -616,6 +627,10 @@ export gens, has_gens
 export gens_of_rational_equivalence_classes
 export geometric_genus
 export geometric_irreducible_components
+export get_conjugate
+export get_power
+export get_relative_order
+export get_relative_orders
 export getindex_safe
 export girth
 export gkz_vector
@@ -713,7 +728,6 @@ export image_in_Oq
 export images
 export img_gens
 export immaculate_line_bundles
-export is_in_linear_system
 export incidence_matrix
 export inclusion_morphism
 export independent_sets
@@ -831,6 +845,7 @@ export is_groebner_basis
 export is_homogeneous
 export is_identity_map
 export is_immaculate
+export is_in_linear_system
 export is_injective
 export is_inner_automorphism
 export is_integral
@@ -1052,7 +1067,8 @@ export min_weights
 export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
-export minimal_generating_set, has_minimal_generating_set, set_minimal_generating_set
+export minimal_generating_set
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
@@ -1068,6 +1084,7 @@ export monomial_basis
 export monomial_ordering
 export monomials
 export monomials_of_degree
+export mordell_weil_sublattice
 export mori_cone
 export morphism
 export morphism_from_cox_variety
@@ -1328,6 +1345,7 @@ export reduce_with_quotients_and_unit
 export reduced_characteristic_polynomial
 export reduced_groebner_basis
 export reduced_scheme
+export reducible_fibers
 export register_morphism!
 export regular_120_cell
 export regular_24_cell
@@ -1396,6 +1414,7 @@ export schur_polynomial
 export secondary_cone
 export secondary_invariants
 export secondary_polytope
+export section
 export sectional_genus
 export semi_invariants
 export semidirect_product
@@ -1408,6 +1427,7 @@ export set_conjugate!
 export set_coordinate_names
 export set_coordinate_names_of_torus
 export set_grading
+export set_mordell_weil_basis!
 export set_name!
 export set_ordering
 export set_power!
@@ -1524,6 +1544,7 @@ export torusinvariant_weil_divisor_group
 export total_degree
 export total_space
 export transform
+export transform_to_weierstrass
 export transitive_group
 export transitive_group_identification, has_transitive_group_identification
 export transitivity
@@ -1532,6 +1553,7 @@ export transportation_polytope
 export trivial_character
 export trivial_divisor
 export trivial_divisor_class
+export trivial_lattice
 export trivial_line_bundle
 export trivial_morphism
 export trivial_subgroup, has_trivial_subgroup, set_trivial_subgroup
@@ -1595,6 +1617,10 @@ export wedge
 export wedge_generator_decompose_function
 export wedge_multiplication_map
 export wedge_pure_function
+export weierstrass_chart
+export weierstrass_chart_on_minimal_model
+export weierstrass_contraction
+export weierstrass_model
 export weight
 export weight_cone
 export weight_ordering
@@ -1607,5 +1633,6 @@ export witt_index
 export wreath_product
 export write_as_full
 export young_tableau
+export zero_section
 export zonotope
 export zonotope_vertices_fukuda_matrix

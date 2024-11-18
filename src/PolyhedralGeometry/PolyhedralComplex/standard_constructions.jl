@@ -5,7 +5,7 @@ Return the common refinement of two polyhedral complexes.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3]])
+julia> IM = incidence_matrix([[1,2,3]])
 1×3 IncidenceMatrix
 [1, 2, 3]
 
@@ -51,7 +51,7 @@ Return the k-skeleton of a polyhedral complex.
 
 # Examples
 ```jldoctest
-julia> IM = IncidenceMatrix([[1,2,3]])
+julia> IM = incidence_matrix([[1,2,3]])
 1×3 IncidenceMatrix
 [1, 2, 3]
 

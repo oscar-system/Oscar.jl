@@ -1,29 +1,41 @@
 @testset "Subgroups" begin
+   S = symmetric_group(7)
+   Sx = cperm(S, [1, 2, 3, 4, 5, 6, 7])
+   Sy = cperm(S, [1, 2, 3])
+   Sz = cperm(S, [1, 2])
+
+   for T in [PermGroup, FPGroup]
+     iso = isomorphism(T, S)
+     G = codomain(iso)
+     x = iso(Sx)
+     y = iso(Sy)
+     z = iso(Sz)
+
+     H, f = sub(G, [x, y])
+     K, g = sub(x, y)
+     @test H isa Oscar.sub_type(T)
+     @test domain(f) == H
+     @test codomain(f) == G
+     @test [f(x) for x in gens(H)] == gens(H)
+     @test (H, f) == (K, g)
+     @test is_subset(K, G)
+     flag, emb = is_subgroup(K, G)
+     @test flag
+     @test g == emb
+     @test g == embedding(K, G)
+     @test K === domain(emb)
+     @test G === codomain(emb)
+     @test is_normal_subgroup(H, G)
+     H, f = sub(G, [x, z])
+     @test H == G
+     @test f == id_hom(G)
+   end
+
    G = symmetric_group(7)
-   x = cperm(G,[1,2,3,4,5,6,7])
-   y = cperm(G,[1,2,3])
-   z = cperm(G,[1,2])
-
-   H,f=sub(G,[x,y])
-   K,g=sub(x,y)
-   @test H isa PermGroup
-   @test H==alternating_group(7)
-   @test domain(f)==H
-   @test codomain(f)==G
-   @test [f(x) for x in gens(H)]==gens(H)
-   @test (H,f)==(K,g)
-   @test is_subset(K, G)
-   flag, emb = is_subgroup(K, G)
-   @test flag
-   @test g == emb
-   @test g == embedding(K, G)
-   @test K === domain(emb)
-   @test G === codomain(emb)
-   @test is_normal_subgroup(H, G)
-   H,f=sub(G,[x,z])
-   @test H==G
-   @test f==id_hom(G)
-
+   x = cperm(G, [1, 2, 3, 4, 5, 6, 7])
+   y = cperm(G, [1, 2, 3])
+   H, f = sub(G, [x, y])
+   @test H == alternating_group(7)
    @test !is_subset(symmetric_group(8), G)
    @test_throws ArgumentError embedding(symmetric_group(8), G)
 

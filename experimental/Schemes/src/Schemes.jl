@@ -3,12 +3,8 @@ include("CoveredScheme.jl")
 include("ProjectiveModules.jl")
 include("SpaceGerms.jl")
 include("Tjurina.jl")
-include("CoveredProjectiveSchemes.jl")
 
 include("Auxiliary.jl")
-include("BlowupMorphismTypes.jl")
-include("BlowupMorphism.jl")
-include("elliptic_surface.jl")
 include("critical_locus.jl")
 
 include("ToricIdealSheaves/auxiliary.jl")
@@ -65,6 +61,7 @@ export is_finitely_determined
 export determinacy_bound
 export sharper_determinacy_bound
 export is_contact_equivalent
+export tjurina_module
 
 
 # Deprecated after 0.15

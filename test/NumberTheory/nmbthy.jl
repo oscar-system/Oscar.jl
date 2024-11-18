@@ -4,7 +4,8 @@ using Test
 function evalu(x::Fac)
   return x.unit * prod(p*k for (p,k) = x.fac)
 end
-@testset "Polymake.factorizations" begin
+
+@testset "factorizations" begin
   k, a = quadratic_field(-5)
   zk = maximal_order(k)
   f = factorizations(zk(6))
@@ -12,10 +13,22 @@ end
   @test all(x -> evalu(x) == 6, f)
 end
 
-@testset "Polymake.norm_equation" begin
+@testset "norm_equation.absolute" begin
   k, a = wildanger_field(3, 13)
   zk = maximal_order(k)
   na = norm(rand(zk, 1:10))
+  s = norm_equation(zk, na)
+  @test all(x->norm(x) == na, s)
+end
+
+@testset "norm_equation.relative" begin
+  L, _ = quadratic_field(-1)
+  _, x = L[:x]
+  f = x^3 - 2;
+  k, _ = number_field(f)
+
+  zk = maximal_order(k)
+  na = norm(rand(zk, 10))
   s = norm_equation(zk, na)
   @test all(x->norm(x) == na, s)
 end

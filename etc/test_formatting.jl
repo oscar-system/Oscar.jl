@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(; temp=true)
 Pkg.add("Test")
-Pkg.add("JuliaFormatter")
+Pkg.add(name="JuliaFormatter", version="1")
 using Test
 using JuliaFormatter
 

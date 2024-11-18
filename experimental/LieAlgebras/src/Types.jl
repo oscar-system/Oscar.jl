@@ -35,9 +35,7 @@
     )
     R.weyl_group = WeylGroup(finite, refl, R)
 
-    detect_type &&
-      is_finite(weyl_group(R)) &&
-      set_root_system_type!(R, cartan_type_with_ordering(mat)...)
+    detect_type && is_finite(weyl_group(R)) && assure_root_system_type(R)
     return R
   end
 end
@@ -64,10 +62,10 @@ end
 
 mutable struct WeightLatticeElem
   root_system::RootSystem
-  vec::ZZMatrix # the coordinate (column) vector with respect to the fundamental weights
+  vec::ZZMatrix # the coordinate (row) vector with respect to the fundamental weights
 
   function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
-    @req size(vec) == (rank(root_system), 1) "Invalid dimension"
+    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
     return new(root_system, vec)
   end
 end
@@ -183,13 +181,13 @@ abstract type LieAlgebraElem{C<:FieldElem} <: AbstractAlgebra.SetElem end
         begin
           row = sparse_row(R)
           for (k, k_val) in struct_consts[i, j]
-            Hecke.add_scaled_row!(struct_consts[k, l], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, l])
           end
           for (k, k_val) in struct_consts[j, l]
-            Hecke.add_scaled_row!(struct_consts[k, i], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, i])
           end
           for (k, k_val) in struct_consts[l, i]
-            Hecke.add_scaled_row!(struct_consts[k, j], row, k_val)
+            row = addmul!(row, k_val, struct_consts[k, j])
           end
           row
         end for i in 1:dimL, j in 1:dimL, l in 1:dimL
@@ -295,7 +293,7 @@ end
     L::LieAlgebra{C}, gens::Vector{LieT}; is_basis::Bool=false
   ) where {C<:FieldElem,LieT<:LieAlgebraElem{C}}
     @req all(g -> parent(g) === L, gens) "Parent mismatch."
-    L::parent_type(LieT)
+    @req L isa parent_type(LieT) "Parent type mismatch."
     if is_basis
       basis_elems = gens
       basis_matrix = if length(gens) == 0
@@ -311,14 +309,14 @@ end
       while !isempty(left)
         g = pop!(left)
         can_solve(basis_matrix, _matrix(g); side=:left) && continue
-        for i in 1:nrows(basis_matrix)
-          push!(left, g * L(basis_matrix[i, :]))
+        for row in eachrow(basis_matrix)
+          push!(left, g * L(row))
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end
@@ -364,9 +362,9 @@ end
         end
         basis_matrix = vcat(basis_matrix, _matrix(g))
         rank = rref!(basis_matrix)
-        basis_matrix = basis_matrix[1:rank, :]
+        @assert rank == nrows(basis_matrix) # otherwise the continue above would've triggered
       end
-      basis_elems = [L(basis_matrix[i, :]) for i in 1:nrows(basis_matrix)]
+      basis_elems = L.(eachrow(basis_matrix))
       return new{C,LieT}(L, gens, basis_elems, basis_matrix)
     end
   end

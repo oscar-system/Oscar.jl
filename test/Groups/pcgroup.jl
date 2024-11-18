@@ -127,3 +127,13 @@ end
   sylls = [2 => ZZ(1), 1 => ZZ(2), 1 => ZZ(3)] # both conditions
   @test_throws ArgumentError gg(sylls)
 end
+  
+@testset "create collectors from polycyclic groups" begin
+  for i in rand(1:number_of_small_groups(96), 10)
+    g = small_group(96, i)
+    c = collector(Int64, g)
+    gc = pc_group(c)
+    f = hom(g, gc, gens(gc))
+    @test is_bijective(f)
+  end
+end

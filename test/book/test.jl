@@ -32,7 +32,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             #"specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+
+             # not a proper julia input file
+             "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
+             "specialized/fang-fourier-monomial-bases/gap.jlcon",
             ]
 
   dispsize = (40, 130)
@@ -166,7 +169,18 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     if jlcon_mode
       input_string = "\e[200~$s\e[201~"
     end
+    haderror = false
     REPL.activate(mockrepl.mockdule)
+    # this allows us to detect errors in the middle of non-jlcon files
+    if !jlcon_mode
+      od = Base.active_repl.interface.modes[1].on_done
+      Base.active_repl.interface.modes[1].on_done = function (x...)
+                if Base.active_repl.waserror
+                  haderror = true
+                end
+                od(x...)
+              end
+    end
     result = redirect_stdout(mockrepl.out_stream) do
       input_task = @async begin
         write(mockrepl.stdin_write, input_string)
@@ -175,8 +189,16 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
       wait(input_task)
       readuntil(mockrepl.output.out, "\nEND_BLOCK")
     end
+    if !jlcon_mode
+      # restore on-done
+      Base.active_repl.interface.modes[1].on_done=od
+    end
     REPL.activate(Main)
-    return sanitize_output(result)
+    output = sanitize_output(result)
+    if !jlcon_mode && haderror
+      error("ERROR in jl-mode:\n", output)
+    end
+    return output
   end
 
   function test_chapter(chapter::String="")

@@ -138,7 +138,7 @@ parent(a::NfNSGenElem) = a.parent
 
 Hecke.data(a::NfNSGenElem) = a.f
 
-base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = FlintQQ
+base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = QQ
 
 base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 
@@ -616,7 +616,7 @@ end
 function basis_matrix(v::Vector{NfNSGenElem{QQFieldElem, QQMPolyRingElem}},
                       ::Type{Hecke.FakeFmpqMat})
   d = degree(parent(v[1]))
-  z = zero_matrix(FlintQQ, length(v), d)
+  z = zero_matrix(QQ, length(v), d)
   for i in 1:length(v)
     elem_to_mat_row!(z, i, v[i])
   end
