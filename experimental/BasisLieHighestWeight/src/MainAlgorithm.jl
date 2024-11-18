@@ -23,13 +23,10 @@ function basis_lie_highest_weight_compute(
   #         return set_mon
 
   # add_by_hand(highest_weight, set_mon)
-  #     add_known_monomials(set_mon)
+  #     add all monomials from set_mon to basis
   #     go through all weightspaces that are not full
   #         add_new_monomials(weightspace, set_mon)
   #     return set_mon
-
-  # add_known_monomials(set_mon)
-  #     add all monomials from set_mon to basis
 
   # add_new_monomials(weightspace, set_mon)
   #     calculate monomials with weight in weightspace
@@ -263,29 +260,6 @@ function compute_monomials(
   end
 end
 
-function add_known_monomials!(
-  weight_w::WeightLatticeElem,
-  monomials_in_weightspace::Dict{WeightLatticeElem,Set{ZZMPolyRingElem}},
-  matrices_of_operators::Vector{<:SMat{ZZRingElem}},
-  space::Dict{WeightLatticeElem,<:SMat{QQFieldElem}},
-  v0::SRow{ZZRingElem},
-)
-  # By using the Minkowski-sum, we know that all monomials in monomials_in_weightspace are in our basis. Since we want to
-  # extend the weightspace with missing monomials, we need to calculate and add the vector of each monomial to our 
-  # basis.
-
-  for mon in monomials_in_weightspace[weight_w]
-    # calculate the vector vec associated with mon
-    vec = calc_vec(v0, mon, matrices_of_operators)
-
-    # check if vec extends the basis
-    if !haskey(space, weight_w)
-      space[weight_w] = sparse_matrix(QQ)
-    end
-    Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
-  end
-end
-
 function add_new_monomials!(
   L::LieAlgebra,
   birational_seq::BirationalSequence,
@@ -398,8 +372,7 @@ function add_by_hand(
     monomials_in_weightspace[weight_w] = Set{ZZMPolyRingElem}()
   end
   for mon in basis
-    weight_w = weight(mon, birational_seq)
-    push!(monomials_in_weightspace[weight_w], mon)
+    push!(monomials_in_weightspace[weight(mon, birational_seq)], mon)
   end
 
   # only inspect weightspaces with missing monomials
@@ -410,15 +383,18 @@ function add_by_hand(
     end
   end
 
-  # The weightspaces could be calculated completely indepent (except for
-  # the caching). This is not implemented, since I used the package Distributed.jl for this, which is not in the 
-  # Oscar dependendencies. But I plan to reimplement this. 
-  # insert known monomials into basis
-
+  # add all images from `monomials_in_weightspace` on `v0` to `space`
   for weight_w in weights_with_non_full_weightspace
-    add_known_monomials!(
-      weight_w, monomials_in_weightspace, matrices_of_operators, space, v0
-    )
+    for mon in monomials_in_weightspace[weight_w]
+      # calculate the vector vec associated with mon
+      vec = calc_vec(v0, mon, matrices_of_operators)
+
+      # check if vec extends the basis
+      if !haskey(space, weight_w)
+        space[weight_w] = sparse_matrix(QQ)
+      end
+      Hecke._add_row_to_rref!(space[weight_w], change_base_ring(QQ, vec))
+    end
   end
 
   # identify coordinates that are trivially zero because of the action on the generator
