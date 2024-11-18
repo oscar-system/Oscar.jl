@@ -7,9 +7,10 @@ Computes the dimension of the weight spaces of the Lie algebra `L` module with h
 The weights are given as coefficients to the fundamental weights $\omega_i$.
 """
 function get_dim_weightspace(L::LieAlgebra, highest_weight::WeightLatticeElem)
+  R = root_system(L)
   weightspaces = Dict{WeightLatticeElem,Int}()
-  for (weight, dim) in character(L, highest_weight)
-    weightspaces[highest_weight - WeightLatticeElem(root_system(L), weight)] = dim
+  for (weight, dim) in _character(R, highest_weight)
+    weightspaces[highest_weight - weight] = dim
   end
   return weightspaces
 end
