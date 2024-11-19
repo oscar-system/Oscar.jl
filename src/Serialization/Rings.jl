@@ -71,8 +71,8 @@ function load_object(s::DeserializerState, ::Type{ZZModRing})
 end
 
 #elements
-@register_serialization_type zzModRingElem uses_params
-@register_serialization_type ZZModRingElem uses_params
+@register_serialization_type zzModRingElem
+@register_serialization_type ZZModRingElem
 
 function save_object(s::SerializerState, x::ModRingElemUnion)
   save_data_basic(s, string(x))
@@ -86,11 +86,11 @@ end
 ################################################################################
 #  Polynomial Rings
 
-@register_serialization_type PolyRing uses_id  uses_params
-@register_serialization_type MPolyRing uses_id uses_params
-@register_serialization_type UniversalPolyRing uses_id uses_params
-@register_serialization_type MPolyDecRing uses_id uses_params
-@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id uses_params
+@register_serialization_type PolyRing uses_id 
+@register_serialization_type MPolyRing uses_id
+@register_serialization_type UniversalPolyRing uses_id
+@register_serialization_type MPolyDecRing uses_id
+@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrapRing uses_id
 
 function save_object(s::SerializerState, R::PolyRingUnionType)
   base = base_ring(R)
@@ -135,10 +135,10 @@ end
 
 ################################################################################
 #  Polynomial Ring Elem Types
-@register_serialization_type MPolyRingElem uses_params
-@register_serialization_type MPolyDecRingElem uses_params
-@register_serialization_type UniversalPolyRingElem uses_params
-@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap uses_params
+@register_serialization_type MPolyRingElem
+@register_serialization_type MPolyDecRingElem
+@register_serialization_type UniversalPolyRingElem
+@register_serialization_type AbstractAlgebra.Generic.LaurentMPolyWrap
 
 # elements
 function save_object(s::SerializerState, p::Union{UniversalPolyRingElem, MPolyRingElem})
@@ -171,7 +171,7 @@ end
 ################################################################################
 # Univariate Polynomials
 
-@register_serialization_type PolyRingElem uses_params
+@register_serialization_type PolyRingElem
 
 function save_object(s::SerializerState, p::PolyRingElem)
   coeffs = coefficients(p)
@@ -251,8 +251,8 @@ end
 ################################################################################
 # Polynomial Ideals
 
-@register_serialization_type MPolyIdeal uses_params
-@register_serialization_type LaurentMPolyIdeal uses_params
+@register_serialization_type MPolyIdeal
+@register_serialization_type LaurentMPolyIdeal
 
 function save_object(s::SerializerState, I::T) where T <: IdealOrdUnionType
   save_object(s, gens(I))
@@ -271,7 +271,7 @@ end
 
 # this will need adjustments to cover the NCRing case
 
-@register_serialization_type IdealGens uses_params
+@register_serialization_type IdealGens
 
 function save_object(s::SerializerState, obj::IdealGens)
   save_data_dict(s) do
@@ -298,9 +298,9 @@ end
 ################################################################################
 # Matrices
 @register_serialization_type MatSpace uses_id
-@register_serialization_type MatElem uses_params
+@register_serialization_type MatElem
 @register_serialization_type SMatSpace uses_id
-@register_serialization_type SMat uses_params
+@register_serialization_type SMat
 
 function save_object(s::SerializerState, obj::MatSpace)
   save_data_dict(s) do
@@ -420,8 +420,8 @@ function load_object(s::DeserializerState, ::Type{<: SeriesRing}, base_ring::Rin
 end
 
 # elements
-@register_serialization_type RelPowerSeriesRingElem uses_params
-@register_serialization_type AbsPowerSeriesRingElem uses_params
+@register_serialization_type RelPowerSeriesRingElem
+@register_serialization_type AbsPowerSeriesRingElem
 
 function save_object(s::SerializerState, r::RelPowerSeriesRingElem)
   v = valuation(r)
@@ -528,9 +528,9 @@ function load_object(s::DeserializerState, ::Type{<: LaurentUnionType}, base_rin
 end
 
 # elements
-@register_serialization_type Generic.LaurentSeriesFieldElem "LaurentSeriesFieldElem" uses_params
-@register_serialization_type Generic.LaurentSeriesRingElem "LaurentSeriesRingElem" uses_params
-@register_serialization_type ZZLaurentSeriesRingElem uses_params
+@register_serialization_type Generic.LaurentSeriesFieldElem "LaurentSeriesFieldElem"
+@register_serialization_type Generic.LaurentSeriesRingElem "LaurentSeriesRingElem"
+@register_serialization_type ZZLaurentSeriesRingElem
 
 function save_object(s::SerializerState, r:: Union{Generic.LaurentSeriesElem, ZZLaurentSeriesRingElem})
   v = valuation(r)
@@ -612,7 +612,7 @@ function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
 end
 
 ### Serialization of Monomial orderings
-@register_serialization_type MonomialOrdering uses_params
+@register_serialization_type MonomialOrdering
 
 function save_object(s::SerializerState, o::MonomialOrdering)
   save_data_dict(s) do

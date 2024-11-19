@@ -145,7 +145,7 @@
       end
     end
 
-    @test_skip @testset "Testing (de)serialization of Set" begin
+    @testset "Testing (de)serialization of Set" begin
       original = Set([Set([1, 2])])
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
@@ -164,7 +164,7 @@
       end
     end
 
-    @test_skip @testset "Test for backwards compatibility" begin
+    @testset "Test for backwards compatibility" begin
       loaded_container = load(joinpath(@__DIR__, "old-containers.json"))
       @test loaded_container == (r = QQFieldElem(1, 2), m = QQFieldElem[1//2 1; 0 1], t = (1, 2, 3))             
     end

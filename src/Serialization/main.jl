@@ -257,6 +257,34 @@ function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vec
   end
 end
 
+function save_type_params(s::SerializerState, T::Type,
+                          params::Vector{<:Pair{Symbol, S}}) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      for param in params
+        save_type_params(s, param.second..., Symbol(param.first))
+      end
+    end
+  end
+end
+
+#function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair}) where {S, U}
+#  save_data_dict(s) do
+#    save_object(s, encode_type(T), :name)
+#    save_data_dict(s, :params) do
+#      save_object(s, encode_type(S), :key_type)
+#      isempty(params) && save_object(s, encode_type(U), :value_type)
+#      save_data_array(s, :param_pairs) do
+#        for param in params
+#          println(param.first)
+#          println(param.second)
+#        end
+#      end
+#    end
+#  end
+#end
+
 function load_type_params(s::DeserializerState, key::Symbol)
   load_node(s, key) do _
     load_type_params(s)
@@ -311,7 +339,7 @@ function load_type_params(s::DeserializerState)
         load_type_params(s)
       end
     end
-    if T <: MatVecType
+    if T <: Union{MatVecType, Set}
       return T{subtype}, params
     elseif T <: Union{Tuple, NamedTuple}
       return T{subtype...}, params
@@ -766,7 +794,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict_str = JSON3.write(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                                 serializer,
-                                with_attrs)
+                          with_attrs)
   end
 
   try
