@@ -8,6 +8,7 @@
       "module_homs.md",
       "cartan_matrix.md",
       "root_systems.md",
+      "weight_lattices.md",
       "weyl_groups.md",
    ],
 ]
