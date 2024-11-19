@@ -60,7 +60,7 @@ julia> r = [1, 1, 0]
  1
  1
 
-julia> Oscar._minimal_supercone(X, r)
+julia> c = Oscar._minimal_supercone(X, r)
 Polyhedral cone in ambient dimension 3
 
 julia> rays(c)
@@ -74,6 +74,7 @@ function _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{Int
   contained_in_support_of_fan = false
   mcone = maximal_cones(X)[1]  # initialize `mcone`, fixing its type
 
+#   mcones = _get_maximal_cones_containing_vector(X, r)
   mcones = maximal_cones(X)
   while true
     contained_in_subcone = false
