@@ -1566,6 +1566,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_lifting
 export tutte_polynomial
 export twist
 export twisting_sheaf
