@@ -208,7 +208,7 @@ function tropical_variety(I::MPolyIdeal, nu::Union{TropicalSemiringMap,Nothing}=
         return tropical_variety_affine_linear(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
     end
 
-    @req !check || is_primary(I) "Only primary ideals supported."
+    @req !check || is_primary(I) "Input ideal not primary. See `tropical_varieties` for non-primary ideals or disable check."
 
     # I general
     return tropical_variety_prime(I,nu,weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
