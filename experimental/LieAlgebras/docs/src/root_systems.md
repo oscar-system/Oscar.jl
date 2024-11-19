@@ -45,6 +45,7 @@ rank(::RootSystem)
 cartan_matrix(::RootSystem)
 ```
 ```@docs; canonical=false
+weight_lattice(::RootSystem)
 weyl_group(::RootSystem)
 ```
 

@@ -14,7 +14,7 @@ export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSpaceElem
 export RootSystem
-export WeightLatticeElem
+export WeightLattice, WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
@@ -110,6 +110,7 @@ export tensor_power
 export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
+export weight_lattice
 export weyl_group
 export weyl_orbit
 export word

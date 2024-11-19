@@ -118,9 +118,9 @@
           is_fundamental_weight_with_index(w) == (true, i) for (i, w) in
           enumerate(fundamental_weights(R))
         )
-        @test !is_fundamental_weight(zero(WeightLatticeElem, R))
+        @test !is_fundamental_weight(zero(weight_lattice(R)))
         rk != 1 && @test !is_fundamental_weight(
-          sum(fundamental_weights(R); init=zero(WeightLatticeElem, R))
+          sum(fundamental_weights(R); init=zero(weight_lattice(R)))
         )
         @test all(
           dot(simple_root(R, i), fundamental_weight(R, j)) ==

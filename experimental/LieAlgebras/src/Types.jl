@@ -18,6 +18,7 @@ See [`root_system(::ZZMatrix)`](@ref) for the constructor.
   positive_coroots::Vector #::Vector{DualRootSpaceElem} (cyclic reference)
   positive_coroots_map::Dict{QQMatrix,Int}
   weyl_group::Any #::WeylGroup (cyclic reference)
+  weight_lattice::Any #::WeightLattice (cyclic reference)
 
   # optional:
   type::Vector{Tuple{Symbol,Int}}
@@ -41,6 +42,7 @@ See [`root_system(::ZZMatrix)`](@ref) for the constructor.
       (ind, root) in enumerate(R.positive_coroots::Vector{DualRootSpaceElem})
     )
     R.weyl_group = WeylGroup(finite, refl, R)
+    R.weight_lattice = WeightLattice(R)
 
     detect_type && is_finite(weyl_group(R)) && assure_root_system_type(R)
     return R
@@ -91,25 +93,44 @@ mutable struct DualRootSpaceElem
   end
 end
 
-@doc raw"""
-    WeightLatticeElem
+###############################################################################
+#
+#   Weight lattices
+#
+###############################################################################
 
-Type for weights and linear combinations thereof.
+@doc raw"""
+    WeightLattice <: AbstractAlgebra.AdditiveGroup
+
+Type for weight lattices, parent type of `WeightLatticeElem`.
 """
-mutable struct WeightLatticeElem
+@attributes mutable struct WeightLattice <: AbstractAlgebra.AdditiveGroup
   root_system::RootSystem
+
+  function WeightLattice(root_system::RootSystem)
+    return new(root_system)
+  end
+end
+
+@doc raw"""
+    WeightLatticeElem <: AbstractAlgebra.AdditiveGroupElem
+
+Type for weights and linear combinations thereof, elem type of `WeightLattice`.
+"""
+mutable struct WeightLatticeElem <: AbstractAlgebra.AdditiveGroupElem
+  parent_lat::WeightLattice
   vec::ZZMatrix # the coordinate (row) vector with respect to the fundamental weights
 
   @doc raw"""
-      WeightLatticeElem(R::RootSystem, vec::ZZMatrix) -> WeightLatticeElem
+      WeightLatticeElem(P::WeightLattice, vec::ZZMatrix) -> WeightLatticeElem
 
-  Construct a weight lattice element in the root system `R` with the given coefficient vector w.r.t. the fundamental weights of `R`.
+  Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of corresponding root system.
 
-  `vec` must be a row vector of the same length as the rank of `R`.
+  `vec` must be a row vector of the same length as the rank of `P`.
   """
-  function WeightLatticeElem(root_system::RootSystem, vec::ZZMatrix)
-    @req size(vec) == (1, rank(root_system)) "Invalid dimension"
-    return new(root_system, vec)
+  function WeightLatticeElem(P::WeightLattice, vec::ZZMatrix)
+    @req size(vec) == (1, rank(P)) "Invalid dimension"
+    return new(P, vec)
   end
 end
 

@@ -308,6 +308,33 @@ function set_root_system_type!(
 end
 
 @doc raw"""
+    weight_lattice(R::RootSystem) -> WeightLattice
+
+Return the weight lattice of `R`.
+
+# Examples
+```jldoctest
+julia> weight_lattice(root_system([2 -1; -1 2]))
+Weight lattice
+  of root system of rank 2
+    of type A2
+
+julia> weight_lattice(root_system(matrix(ZZ, 2, 2, [2, -1, -1, 2]); detect_type=false))
+Weight lattice
+  of root system of rank 2
+    of unknown type
+
+julia> weight_lattice(root_system(matrix(ZZ, [2 -1 -2; -1 2 0; -1 0 2])))
+Weight lattice
+  of root system of rank 3
+    of type C3 (with non-canonical ordering of simple roots)
+```
+"""
+function weight_lattice(R::RootSystem)
+  return R.weight_lattice::WeightLattice
+end
+
+@doc raw"""
     weyl_group(R::RootSystem) -> WeylGroup
 
 Return the Weyl group of `R`.
