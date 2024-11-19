@@ -534,3 +534,7 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
   return result
 end
 
+function Base.hash(X::AbsAlgebraicCycle, u::UInt)
+  return u
+end
+

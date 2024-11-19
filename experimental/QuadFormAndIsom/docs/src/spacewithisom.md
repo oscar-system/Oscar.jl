@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Quadratic spaces with isometry

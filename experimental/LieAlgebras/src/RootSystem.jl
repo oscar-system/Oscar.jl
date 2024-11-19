@@ -1433,6 +1433,15 @@ Dict{Vector{Int64}, Int64} with 4 entries:
 ```
 """
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
+  char = _dominant_character(R, hw)
+  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+end
+
+function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(R, WeightLatticeElem(R, hw))
+end
+
+function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   T = Int
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
@@ -1490,12 +1499,7 @@ function dominant_character(R::RootSystem, hw::WeightLatticeElem)
       end
     end
   end
-  # return char
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
-end
-
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
+  return char
 end
 
 @doc raw"""
@@ -1525,25 +1529,28 @@ Dict{Vector{Int64}, Int64} with 8 entries:
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)
-  T = Int
-  @req root_system(hw) === R "parent root system mismatch"
-  @req is_dominant(hw) "not a dominant weight"
-  dom_char = dominant_character(R, hw)
-  char = Dict{WeightLatticeElem,T}()
-
-  for (w_, m) in dom_char
-    w = WeightLatticeElem(R, w_)
-    for w_conj in weyl_orbit(w)
-      push!(char, w_conj => m)
-    end
-  end
-
-  # return char
+  char = _character(R, hw)
   return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
 end
 
 function character(R::RootSystem, hw::Vector{<:IntegerUnion})
   return character(R, WeightLatticeElem(R, hw))
+end
+
+function _character(R::RootSystem, hw::WeightLatticeElem)
+  T = Int
+  @req root_system(hw) === R "parent root system mismatch"
+  @req is_dominant(hw) "not a dominant weight"
+  dom_char = _dominant_character(R, hw)
+  char = Dict{WeightLatticeElem,T}()
+
+  for (w, m) in dom_char
+    for w_conj in weyl_orbit(w)
+      push!(char, w_conj => m)
+    end
+  end
+
+  return char
 end
 
 @doc raw"""

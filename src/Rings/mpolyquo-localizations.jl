@@ -2565,7 +2565,36 @@ function small_generating_set(
   end::Vector{elem_type(base_ring(I))} 
 end
 
-dim(R::MPolyQuoLocRing{<:Field, <:FieldElem, <:MPolyRing, <:MPolyRingElem, <:MPolyComplementOfPrimeIdeal}) = dim(saturated_ideal(modulus(R))) - dim(prime_ideal(inverted_set(R)))
+@attr Int function dim(R::MPolyLocRing)
+  error("Not implemented")
+end
+
+@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}})
+  P = prime_ideal(inverted_set(R))
+  I = saturated_ideal(modulus(R))
+  return dim(I) - dim(P)
+end
+
+@attr Int function dim(R::MPolyQuoLocRing{<:Any, <:Any, <:MPolyRing, <:MPolyRingElem, <:MPolyPowersOfElement})
+  return dim(saturated_ideal(modulus(R)))
+end
+
+@attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement})
+  # zariski open subset of A^n
+  return dim(base_ring(R))
+end
+
+@attr Int function dim(R::MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfPrimeIdeal})
+  P = prime_ideal(inverted_set(R))
+  return codim(P)
+end
+
+
+@attr Int function dim(R::MPolyLocRing{<:Field,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyComplementOfKPointIdeal})
+  # localization of a polynomial ring over a field at a maximal ideal does not change the dimension
+  # because all maximal ideals have the same dimension in this case. 
+  return dim(base_ring(R))
+end
 
 ########################################################################
 # Localizations of graded rings                                        #

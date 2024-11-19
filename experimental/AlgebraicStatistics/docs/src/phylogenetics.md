@@ -2,6 +2,7 @@
 CurrentModule = Oscar
 DocTestSetup = Oscar.doctestsetup()
 ```
+
 # Algebraic Phylogenetics
 
 The Algebraic Phylogenetics part of OSCAR provides functionality for

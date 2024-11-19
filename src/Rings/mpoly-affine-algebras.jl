@@ -20,8 +20,17 @@ julia> dim(A)
 ```
 """
 function dim(A::MPolyQuoRing)
-  I = A.I
-  return dim(I)
+  return dim(modulus(A))
+end
+
+function dim(A::zzModRing)
+  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
+  return 0
+end
+
+function dim(A::ZZModRing)
+  modulus(A) == 1 && error("Function `dim` gives wrong answers if the base ring is the zero ring.")
+  return 0
 end
 
 @doc raw"""

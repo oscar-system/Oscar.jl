@@ -4,7 +4,18 @@
 #
 ################################################################################
 
-function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra, weight::Vector{Int})
+function lie_algebra_simple_module_struct_consts_gap(
+  L::LieAlgebra, weight::WeightLatticeElem
+)
+  @req root_system(weight) == root_system(L) "Incompatible root systems"
+  return lie_algebra_simple_module_struct_consts_gap(
+    L, Int.(Oscar._vec(coefficients(weight)))
+  )
+end
+
+function lie_algebra_simple_module_struct_consts_gap(
+  L::LieAlgebra{C}, weight::Vector{Int}
+) where {C<:FieldElem}
   R = coefficient_ring(L)
   isoR = Oscar.iso_oscar_gap(R)
 
@@ -16,7 +27,7 @@ function lie_algebra_simple_module_struct_consts_gap(L::LieAlgebra, weight::Vect
   dimV = GAPWrap.Dimension(gapV)
   basisV = GAPWrap.Basis(gapV)
 
-  struct_consts = Matrix{sparse_row_type(R)}(undef, dimL, dimV)
+  struct_consts = Matrix{sparse_row_type(C)}(undef, dimL, dimV)
   for i in 1:dimL, j in 1:dimV
     struct_consts[i, j] = sparse_row(
       R,

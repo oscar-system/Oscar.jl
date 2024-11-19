@@ -1385,6 +1385,7 @@ end
 
 # TODO: add semisimplicity check once that is available
 
+# TODO: move to RootSystem.jl
 function is_dominant_weight(hw::Vector{<:IntegerUnion})
   return all(>=(0), hw)
 end
@@ -1405,6 +1406,7 @@ end
 
 @doc raw"""
     dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
+    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::WeightLatticeElem) -> T
 
 Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
 using Weyl's dimension formula.
@@ -1427,8 +1429,18 @@ function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dim_of_simple_module(Int, L, hw)
 end
 
+function dim_of_simple_module(T::Type, L::LieAlgebra, hw::WeightLatticeElem)
+  R = root_system(L)
+  return dim_of_simple_module(T, R, hw)
+end
+
+function dim_of_simple_module(L::LieAlgebra, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, L, hw)
+end
+
 @doc raw"""
     dominant_weights([T,] L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Vector{T}
+    dominant_weights([T,] L::LieAlgebra{C}, hw::WeightLatticeElem) -> Vector{T}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 sorted ascendingly by the total height of roots needed to reach them from `hw`.
@@ -1461,8 +1473,18 @@ function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dominant_weights(Vector{Int}, L, hw)
 end
 
+function dominant_weights(T::Type, L::LieAlgebra, hw::WeightLatticeElem)
+  R = root_system(L)
+  return dominant_weights(T, R, hw)
+end
+
+function dominant_weights(L::LieAlgebra, hw::WeightLatticeElem)
+  return dominant_weights(Vector{Int}, L, hw)
+end
+
 @doc raw"""
     dominant_character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
+    dominant_character(L::LieAlgebra{C}, hw::WeightLatticeElem) -> Dict{Vector{Int}, Int}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
@@ -1488,8 +1510,14 @@ function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return dominant_character(R, hw)
 end
 
+function dominant_character(L::LieAlgebra, hw::WeightLatticeElem)
+  R = root_system(L)
+  return dominant_character(R, hw)
+end
+
 @doc raw"""
     character(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}
+    character(L::LieAlgebra{C}, hw::WeightLatticeElem) -> Dict{Vector{Int}, Int}
 
 Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
 together with their multiplicities.
@@ -1520,8 +1548,14 @@ function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
   return character(R, hw)
 end
 
+function character(L::LieAlgebra, hw::WeightLatticeElem)
+  R = root_system(L)
+  return character(R, hw)
+end
+
 @doc raw"""
     tensor_product_decomposition(L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
+    tensor_product_decomposition(L::LieAlgebra, hw1::WeightLatticeElem, hw2::WeightLatticeElem) -> MSet{Vector{Int}}
 
 Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
 into simple modules with their multiplicities.
@@ -1549,6 +1583,13 @@ MSet{Vector{Int64}} with 6 elements:
 """
 function tensor_product_decomposition(
   L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
+)
+  R = root_system(L)
+  return tensor_product_decomposition(R, hw1, hw2)
+end
+
+function tensor_product_decomposition(
+  L::LieAlgebra, hw1::WeightLatticeElem, hw2::WeightLatticeElem
 )
   R = root_system(L)
   return tensor_product_decomposition(R, hw1, hw2)
