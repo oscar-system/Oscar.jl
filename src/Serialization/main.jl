@@ -75,7 +75,7 @@ const type_attr_map = Dict{String, Vector{Symbol}}()
 # (De|En)coding types
 
 # parameters of type should not matter here
-const reverse_type_map = Dict{String, Type}()
+const reverse_type_map = Dict{String, Union{Dict{String, Type}, Type}}()
 
 function encode_type(::Type{T}) where T
   error(
@@ -170,7 +170,11 @@ function save_typed_object(s::SerializerState, x::T) where T
   elseif Base.issingletontype(T)
     save_object(s, encode_type(T), type_key)
   else
-    save_object(s, encode_type(T), type_key)
+    type_encoding = encode_type(T)
+    if !(T == reverse_type_map[type_encoding] || T == reverse_type_map[type_encoding]["default"])
+      save_object(s, string(T), :_instance)
+    end
+    save_object(s, type_encoding, type_key)
     save_object(s, x, :data)
   end
 end
@@ -216,7 +220,14 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
-  T = decode_type(s)
+  if haskey(s.obj, :_instance)
+    # to be safe we need this check but I can't figure out how to get sending
+    # types to strings to behave properly
+    #s.obj["_instance"] in keys(reverse_type_map[s.obj[type_key]])
+    T = eval(Meta.parse(s.obj["_instance"]))
+  else
+    T = decode_type(s)
+  end
   if Base.issingletontype(T) && return T()
   elseif serialize_with_params(T)
     if !isnothing(override_params)
@@ -301,11 +312,19 @@ end
 
 ################################################################################
 # Type Registration
-function register_serialization_type(@nospecialize(T::Type), str::String)
-  if haskey(reverse_type_map, str) && reverse_type_map[str] != T
-    error("encoded type $str already registered for a different type: $T versus $(reverse_type_map[str])")
+function register_serialization_type(@nospecialize(T::Type), str::String, default=false)
+  @info T
+  if haskey(reverse_type_map, str) || default
+    init = get(reverse_type_map, str, Dict{String, Type}())
+    # promote the value to a dictionary if necessary
+    if init isa Type
+      init = Dict{String, Type}("$init" => init)
+    end
+    key = default ? "default" : "$T"
+    reverse_type_map[str] = merge(Dict{String, Type}(key => T), init)
+  else
+    reverse_type_map[str] = T
   end
-  reverse_type_map[str] = T
 end
 
 function register_attr_list(@nospecialize(T::Type),
@@ -328,10 +347,10 @@ serialize_with_params(::Type) = false
 
 
 function register_serialization_type(ex::Any, str::String, uses_id::Bool,
-                                     uses_params::Bool, attrs::Any)
+                                     uses_params::Bool, attrs::Any, default::Bool)
   return esc(
     quote
-      Oscar.register_serialization_type($ex, $str)
+      Oscar.register_serialization_type($ex, $str, $default)
       Oscar.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
@@ -391,6 +410,7 @@ indicates which attributes will be serialized when using save with `with_attrs=t
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
+  default = false
   str = nothing
   attrs = nothing
   for el in args
@@ -400,6 +420,8 @@ macro register_serialization_type(ex::Any, args...)
       uses_id = true
     elseif el == :uses_params
       uses_params = true
+    elseif el == :default
+      default = true
     else
       attrs = el
     end
@@ -408,7 +430,7 @@ macro register_serialization_type(ex::Any, args...)
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
+  return register_serialization_type(ex, str, uses_id, uses_params, attrs, default)
 end
 
 
