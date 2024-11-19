@@ -172,7 +172,7 @@ end
 
 function Base.hash(R::RootSystem, h::UInt)
   # even though we don't have a == method for RootSystem, we add a hash method
-  # to make hashing of RootSpaceElem and WeightLatticeElem more deterministic
+  # to make hashing of RootSpaceElem and WeightLattice more deterministic
   b = 0xeb5362118dea2a0e % UInt
   h = hash(cartan_matrix(R), h)
   return xor(b, h)
@@ -707,8 +707,7 @@ This is a more efficient version for `fundamental_weights(R)[i]`.
 See also: [`fundamental_weight(::RootSystem)`](@ref).
 """
 function fundamental_weight(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
+  return gen(weight_lattice(R), i)
 end
 
 @doc raw"""
@@ -728,7 +727,7 @@ julia> fundamental_weights(root_system(:A, 2))
 ```
 """
 function fundamental_weights(R::RootSystem)
-  return [fundamental_weight(R, i) for i in 1:rank(R)]
+  return gens(weight_lattice(R))
 end
 
 @doc raw"""
@@ -872,7 +871,7 @@ end
 
 function Base.hash(r::RootSpaceElem, h::UInt)
   b = 0xbe7603eb38c985ad % UInt
-  h = hash(r.root_system, h)
+  h = hash(root_system(r), h)
   h = hash(r.vec, h)
   return xor(b, h)
 end
@@ -1230,7 +1229,7 @@ end
 
 function Base.hash(r::DualRootSpaceElem, h::UInt)
   b = 0x721bec0418bdbe0f % UInt
-  h = hash(r.root_system, h)
+  h = hash(root_system(r), h)
   h = hash(r.vec, h)
   return xor(b, h)
 end
