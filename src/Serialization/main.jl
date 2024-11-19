@@ -313,7 +313,6 @@ end
 ################################################################################
 # Type Registration
 function register_serialization_type(@nospecialize(T::Type), str::String, default=false)
-  @info T
   if haskey(reverse_type_map, str) || default
     init = get(reverse_type_map, str, Dict{String, Type}())
     # promote the value to a dictionary if necessary
