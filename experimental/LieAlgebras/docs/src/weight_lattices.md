@@ -31,14 +31,16 @@ TODO
 ## Weight lattice elements
 
 ```@docs
+WeightLatticeElem(::WeightLattice, ::Vector{<:IntegerUnion})
 WeightLatticeElem(::RootSystem, ::Vector{<:IntegerUnion})
+WeightLatticeElem(::WeightLattice, ::ZZMatrix)
 WeightLatticeElem(::RootSystem, ::ZZMatrix)
 WeightLatticeElem(::RootSpaceElem)
-zero(::Type{WeightLatticeElem}, ::RootSystem)
+zero(::WeightLattice)
 ```
 
 ```@docs
-root_system(::WeightLatticeElem)
+parent(::WeightLatticeElem)
 ```
 
 Basic arithmetic operations like `zero`, `+`, `-`, `*` (with integer scalars), and `==` are supported.

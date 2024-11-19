@@ -1,8 +1,62 @@
 ###############################################################################
 #
+#   Weight lattices
+#
+###############################################################################
+
+function elem_type(::Type{WeightLattice})
+  return WeightLatticeElem
+end
+
+function rank(P::WeightLattice)
+  return rank(root_system(P))
+end
+
+function root_system(P::WeightLattice)
+  return P.root_system
+end
+
+function zero(P::WeightLattice)
+  return WeightLatticeElem(P, zero_matrix(ZZ, 1, rank(P)))
+end
+
+function Base.show(io::IO, mime::MIME"text/plain", P::WeightLattice)
+  @show_name(io, P)
+  @show_special(io, mime, P)
+  io = pretty(io)
+  println(io, "Weight lattice")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, mime, root_system(P))
+  print(io, Dedent())
+end
+
+function Base.show(io::IO, P::WeightLattice)
+  @show_name(io, P)
+  @show_special(io, P)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, "Weight lattice")
+  else
+    print(io, "Weight lattice of ", Lowercase(), root_system(P))
+  end
+end
+
+###############################################################################
+#
 #   Weight lattice elements
 #
 ###############################################################################
+
+@doc raw"""
+    WeightLatticeElem(R::RootSystem, vec::ZZMatrix) -> WeightLatticeElem
+
+Construct a weight lattice element in the root system `R` with the given coefficient vector w.r.t. the fundamental weights of `R`.
+
+`vec` must be a row vector of the same length as the rank of `R`.
+"""
+function WeightLatticeElem(R::RootSystem, vec::ZZMatrix)
+  return WeightLatticeElem(weight_lattice(R), vec)
+end
 
 @doc raw"""
     WeightLatticeElem(R::RootSystem, vec::Vector{<:IntegerUnion}) -> WeightLatticeElem
@@ -11,6 +65,15 @@ Construct a weight lattice element in the root system `R` with the given coeffic
 """
 function WeightLatticeElem(R::RootSystem, v::Vector{<:IntegerUnion})
   return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), v))
+end
+
+@doc raw"""
+    WeightLatticeElem(P::WeightLattice, vec::Vector{<:IntegerUnion}) -> WeightLatticeElem
+
+Construct a weight lattice element in `P` with the given coefficients w.r.t. the fundamental weights of corresponding root system.
+"""
+function WeightLatticeElem(P::WeightLattice, v::Vector{<:IntegerUnion})
+  return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), v))
 end
 
 @doc raw"""
@@ -25,41 +88,45 @@ function WeightLatticeElem(r::RootSpaceElem)
   return WeightLatticeElem(R, matrix(ZZ, coeffs))
 end
 
-@doc raw"""
-    zero(::Type{WeightLatticeElem}, R::RootSystem) -> WeightLatticeElem
-
-Return the neutral additive element in the weight lattice of `R`.
-"""
-function zero(::Type{WeightLatticeElem}, R::RootSystem)
-  return WeightLatticeElem(R, zero_matrix(ZZ, 1, rank(R)))
+function parent_type(::Type{WeightLatticeElem})
+  return WeightLattice
 end
 
-function zero(r::WeightLatticeElem)
-  return zero(WeightLatticeElem, root_system(r))
+function parent(w::WeightLatticeElem)
+  return w.parent_lat
+end
+
+function root_system(w::WeightLatticeElem)
+  return root_system(parent(w))
+end
+
+
+function zero(w::WeightLatticeElem)
+  return zero(parent(w))
 end
 
 function Base.:*(n::IntegerUnion, w::WeightLatticeElem)
-  return WeightLatticeElem(root_system(w), n * w.vec)
+  return WeightLatticeElem(parent(w), n * w.vec)
 end
 
 function Base.:*(w::WeightLatticeElem, n::IntegerUnion)
-  return WeightLatticeElem(root_system(w), w.vec * n)
+  return WeightLatticeElem(parent(w), w.vec * n)
 end
 
 function Base.:+(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent root system mismatch"
+  @req parent(w) === parent(w2) "parent mismatch"
 
-  return WeightLatticeElem(root_system(w), w.vec + w2.vec)
+  return WeightLatticeElem(parent(w), w.vec + w2.vec)
 end
 
 function Base.:-(w::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w) === root_system(w2) "parent root system mismatch"
+  @req parent(w) === parent(w2) "parent mismatch"
 
-  return WeightLatticeElem(root_system(w), w.vec - w2.vec)
+  return WeightLatticeElem(parent(w), w.vec - w2.vec)
 end
 
 function Base.:-(w::WeightLatticeElem)
-  return WeightLatticeElem(root_system(w), -w.vec)
+  return WeightLatticeElem(parent(w), -w.vec)
 end
 
 function zero!(w::WeightLatticeElem)
@@ -68,43 +135,43 @@ function zero!(w::WeightLatticeElem)
 end
 
 function add!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  @req parent(wr) === parent(w1) === parent(w2) "parent mismatch"
   wr.vec = add!(wr.vec, w1.vec, w2.vec)
   return wr
 end
 
 function neg!(wr::WeightLatticeElem, w::WeightLatticeElem)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = neg!(wr.vec, w.vec)
   return wr
 end
 
 function sub!(wr::WeightLatticeElem, w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(wr) === root_system(w1) === root_system(w2) "parent root system mismatch"
+  @req parent(wr) === parent(w1) === parent(w2) "parent mismatch"
   wr.vec = sub!(wr.vec, w1.vec, w2.vec)
   return wr
 end
 
 function mul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, w.vec, n)
   return wr
 end
 
 function mul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = mul!(wr.vec, n, w.vec)
   return wr
 end
 
 function addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, w.vec, n)
   return wr
 end
 
 function addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem)
-  @req root_system(wr) === root_system(w) "parent root system mismatch"
+  @req parent(wr) === parent(w) "parent mismatch"
   wr.vec = addmul!(wr.vec, n, w.vec)
   return wr
 end
@@ -113,8 +180,8 @@ end
 addmul!(wr::WeightLatticeElem, w::WeightLatticeElem, n::IntegerUnion, t) = addmul!(wr, w, n)
 addmul!(wr::WeightLatticeElem, n::IntegerUnion, w::WeightLatticeElem, t) = addmul!(wr, n, w)
 
-function Base.:(==)(w::WeightLatticeElem, w2::WeightLatticeElem)
-  return w.root_system === w2.root_system && w.vec == w2.vec
+function Base.:(==)(w1::WeightLatticeElem, w2::WeightLatticeElem)
+  return parent(w1) === parent(w2) && w1.vec == w2.vec
 end
 
 function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
@@ -122,14 +189,14 @@ function Base.deepcopy_internal(w::WeightLatticeElem, dict::IdDict)
     return dict[w]
   end
 
-  w2 = WeightLatticeElem(root_system(w), deepcopy_internal(w.vec, dict))
+  w2 = WeightLatticeElem(parent(w), deepcopy_internal(w.vec, dict))
   dict[w] = w2
   return w2
 end
 
 function Base.hash(w::WeightLatticeElem, h::UInt)
   b = 0x7b2fefadacf46f4e % UInt
-  h = hash(w.root_system, h)
+  h = hash(parent(w), h)
   h = hash(w.vec, h)
   return xor(b, h)
 end
@@ -188,7 +255,7 @@ function conjugate_dominant_weight!(w::WeightLatticeElem)
   # w will be dominant once all fundamental weights have a positive coefficient,
   # so search for negative coefficients and make them positive by applying the corresponding reflection.
   s = 1
-  while s <= rank(root_system(w))
+  while s <= rank(parent(w))
     if w[s] < 0
       reflect!(w, s)
       s = 1
@@ -213,13 +280,11 @@ function conjugate_dominant_weight_with_left_elem(w::WeightLatticeElem)
 end
 
 function conjugate_dominant_weight_with_left_elem!(w::WeightLatticeElem)
-  R = root_system(w)
-
   # determine the Weyl group element taking w to the fundamental chamber
   word = UInt8[]
   #sizehint!(word, count(<(0), coefficients(w))^2)
   s = 1
-  while s <= rank(R)
+  while s <= rank(parent(w))
     if w[s] < 0
       push!(word, UInt8(s))
       reflect!(w, s)
@@ -231,7 +296,7 @@ function conjugate_dominant_weight_with_left_elem!(w::WeightLatticeElem)
 
   # reversing word means it is in short revlex normal form
   # and it is the element taking original w to new w
-  return w, weyl_group(R)(reverse!(word); normalize=false)
+  return w, weyl_group(root_system(w))(reverse!(word); normalize=false)
 end
 
 @doc raw"""
@@ -252,7 +317,7 @@ function conjugate_dominant_weight_with_right_elem!(w::WeightLatticeElem)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
-  @req root_system(w1) === root_system(w2) "parent root system mismatch"
+  @req parent(w1) === parent(w2) "parent mismatch"
   R = root_system(w1)
 
   return dot(
@@ -345,13 +410,4 @@ This is a mutating version of [`reflect(::WeightLatticeElem, ::Int)`](@ref).
 function reflect!(w::WeightLatticeElem, s::Int)
   w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
   return w
-end
-
-@doc raw"""
-    root_system(w::WeightLatticeElem) -> RootSystem
-
-Return the root system `w` belongs to.
-"""
-function root_system(w::WeightLatticeElem)
-  return w.root_system
 end

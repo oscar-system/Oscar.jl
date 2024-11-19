@@ -36,7 +36,7 @@ end
   sub_weights_proper = BasisLieHighestWeight.sub_weights_proper
   R = root_system(:B, 3)
 
-  w_zero = zero(WeightLatticeElem, R)
+  w_zero = zero(weight_lattice(R))
   @test issetequal(sub_weights(w_zero), [w_zero])
   @test isempty(sub_weights_proper(w_zero))
 

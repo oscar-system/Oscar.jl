@@ -722,7 +722,6 @@ end
 
 function _iterate_nocopy(state::WeylIteratorNoCopyState)
   wt, path = state[1], word(state[2])
-  R = root_system(wt)
 
   ai = isempty(path) ? UInt8(0) : path[end]
   # compute next descendant index
@@ -748,7 +747,7 @@ end
 # based on [Ste01], 4.D
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
-    for j in (di + 1):rank(root_system(wt))
+    for j in (di + 1):rank(parent(wt))
       if !iszero(wt[j])
         return j
       end
@@ -762,7 +761,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
   end
 
-  for j in (max(ai, di) + 1):rank(root_system(wt))
+  for j in (max(ai, di) + 1):rank(parent(wt))
     if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
       continue
     end
