@@ -59,6 +59,7 @@ import ..Oscar:
   inv,
   is_abelian,
   is_finite,
+  is_gen,
   is_isomorphism,
   is_nilpotent,
   is_perfect,

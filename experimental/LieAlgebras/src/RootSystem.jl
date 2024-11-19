@@ -707,8 +707,7 @@ This is a more efficient version for `fundamental_weights(R)[i]`.
 See also: [`fundamental_weight(::RootSystem)`](@ref).
 """
 function fundamental_weight(R::RootSystem, i::Int)
-  @req 1 <= i <= rank(R) "invalid index"
-  return WeightLatticeElem(R, matrix(ZZ, 1, rank(R), i .== 1:rank(R)))
+  return gen(weight_lattice(R), i)
 end
 
 @doc raw"""
@@ -728,7 +727,7 @@ julia> fundamental_weights(root_system(:A, 2))
 ```
 """
 function fundamental_weights(R::RootSystem)
-  return [fundamental_weight(R, i) for i in 1:rank(R)]
+  return gens(weight_lattice(R))
 end
 
 @doc raw"""

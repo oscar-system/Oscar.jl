@@ -41,6 +41,28 @@ function Base.show(io::IO, P::WeightLattice)
   end
 end
 
+function number_of_generators(P::WeightLattice)
+  return rank(P)
+end
+
+function gen(P::WeightLattice, i::Int)
+  @req 1 <= i <= rank(P) "invalid index"
+  return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), i .== 1:rank(P)))
+end
+
+function gens(P::WeightLattice)
+  return [gen(P, i) for i in 1:rank(P)]
+end
+
+function is_abelian(P::WeightLattice)
+  return true
+end
+
+function is_finite(P::WeightLattice)
+  return iszero(rank(P))
+end
+
+
 ###############################################################################
 #
 #   Weight lattice elements
@@ -362,6 +384,10 @@ See also: [`is_fundamental_weight_with_index(::WeightLatticeElem)`](@ref).
 function is_fundamental_weight(w::WeightLatticeElem)
   fl, _ = is_fundamental_weight_with_index(w)
   return fl
+end
+
+function is_gen(w::WeightLatticeElem)
+  return is_fundamental_weight(w)
 end
 
 @doc raw"""
