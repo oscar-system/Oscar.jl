@@ -55,13 +55,13 @@
     end
     @testset "center and centroid" begin
     @test center(C) == centroid(C)
-    @test center(C) == (one(C),)
+    @test center(C) == [one(C)]
     @test disq(C) == quadratic_discriminant(C)
     @test disq(C) == 1
     end
   end
 
-  @testset "ring_of_integers_sqrt(5)" begin
+  @testset "quadratic_field_sqrt(5)" begin
     K, b = quadratic_field(5)
     a = 1//2*(1 + b)
     G = K[2*a 1; 1 2*(1 - a)]
@@ -156,8 +156,8 @@
     end
     @testset "center and centroid" begin
       orth = C([-1, 0, 0, 2])
-      @test center(C) == (one(C),)
-      @test centroid(C) == (one(C), orth)
+      @test center(C) == [one(C)]
+      @test centroid(C) == [one(C), orth]
       @test disq(C) == quadratic_discriminant(C) && disq(C) == coeff(orth^2)[1]
     end
   end
@@ -232,8 +232,8 @@
       @test mul_with_gen(coeff(x), 2, gram_matrix(C)) == QQ.([3 * b, 4 * b, 1, 2])
     end
     @testset "center and centroid" begin
-      @test center(C) == (one(C),)
-      @test centroid(C) == (one(C), C(QQ.([0,0,0,1])))
+      @test center(C) == [one(C)]
+      @test centroid(C) == [one(C), C(QQ.([0,0,0,1]))]
       @test disq(C) == quadratic_discriminant(C) && disq(C) == -a*b
       @test disq(C) == coeff(centroid(C)[2]^2)[1]
     end
@@ -332,7 +332,7 @@
                 0, 0, 2*z^2, 0, -2*z^3, -2*z^3 - 2*z^2 - 2*z - 2,
                 0, z^2, 0, 0, -2*z, 0, 2*z^2, -2*z^3, 0,
                 0, -2*z, 2*z^2, 0, -2*z, 0, 0, 4])
-      @test centroid(C) == (one(C), orth)
+      @test centroid(C) == [one(C), orth]
       @test disq(C) == coeff(orth^2)[1]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == -3*z^3 - 19*z^2 - 3*z + 13

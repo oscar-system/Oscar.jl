@@ -97,13 +97,13 @@ clifford_algebra(qs::Hecke.QuadSpace) = CliffordAlgebra{elem_type(base_ring(qs))
 ### Elements ###
 (C::CliffordAlgebra)() = CliffordAlgebraElem(C)
 
-function (C::CliffordAlgebra)(a::R) where {R <:RingElem}
+function (C::CliffordAlgebra)(a::R) where {R<:RingElem}
   res = fill(zero(a), dim(C))
   res[1] = a
   return CliffordAlgebraElem(C, res)
 end
 
-function (C::CliffordAlgebra)(a::R) where {R <:Number}
+function (C::CliffordAlgebra)(a::R) where {R<:Number}
   res = fill(zero(a), dim(C))
   res[1] = a
   return CliffordAlgebraElem(C, res)
@@ -111,19 +111,6 @@ end
 
 (C::CliffordAlgebra)(coeff::Vector{R}) where {R} = CliffordAlgebraElem(C, coeff)
 
-#=
-(C::CliffordAlgebra{T})(a::ZZRingElem) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::Int) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::QQFieldElem) where {T<:NumFieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(a::Rational{Int}) where {T<:FieldElem} = C(base_ring(C)(a))
-
-(C::CliffordAlgebra{T})(v::Vector{T}) where {T<:FieldElem} = CliffordAlgebraElem(C, v)
-
-(C::CliffordAlgebra)(v::Vector) = CliffordAlgebraElem(C, base_ring(C).(v))
-=#
 ################################################################################
 #
 #  Basic field access
@@ -228,9 +215,9 @@ Base.show(io::IO, C::CliffordAlgebra) = print(io, "Clifford algebra over $(base_
 
 ### Elements ###
 function Base.show(io::IO, x::CliffordAlgebraElem)
-  print(io, "(")
+  print(io, "[")
   foreach(y -> print(io, "$y "), coeff(x)[1:(end - 1)])
-  print(io, "$(coeff(x)[end]))")
+  print(io, "$(coeff(x)[end])]")
 end
 
 ################################################################################
@@ -310,16 +297,15 @@ is_commutative(C::CliffordAlgebra) = dim(C) ==  1 || dim(C) == 2
 
 ################################################################################
 #
-#  other functionality
+#  Other functionality
 #
 ################################################################################
 
 @doc raw"""
-    centroid(C::CliffordAlgebra) -> Union{Tuple{CliffordAlgebra}},
-    Tuple{CliffordAlgebraElem, CliffordAlgebraElem}}
+    centroid(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
 Returns the centroid of $C$. Unless `dim(space(C)) = 0`, it is always two-dimensional,
-so it is returned as a tuple that contains the basis elements. The first one is the
+so it is returned as a vector containing the basis elements. The first one is the
 multiplicative identity of $C$. The square of the second basis element, if present,
 equals `quadratic_discriminant(C)`.
 """
@@ -327,21 +313,20 @@ function centroid(C::CliffordAlgebra)
   if isdefined(C, :centroid)
     return C.centroid
   end
-  T = orthogonal_basis(space(C))
   n = _dim_qf(C)
   if n == 0
-    C.centroid = tuple(one(C))
+    C.centroid = [one(C)]
     return C.centroid
   end
+  T = orthogonal_basis(space(C))
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
   C.disq = coeff(orth_elt^2)[1]
-  C.centroid = (one(C), orth_elt)
+  C.centroid = [one(C), orth_elt]
 end
 
-
 @doc raw"""
-    disq(C::CliffordAlgebra) -> FieldElem
+    quadratic_discriminant(C::CliffordAlgebra) -> FieldElem
 
 Returns the quadratic discriminant of $C$ as an element of `base_ring(C)`.
 """
@@ -363,22 +348,8 @@ Alias for `quadratic_discriminant`.
 """
 disq(C::CliffordAlgebra) = quadratic_discriminant(C)
 
-#= Not needed anymore, but content might be useful later
-#
-function max_orth_elt(C::CliffordAlgebra{ZZRingElem})
-  T = orthogonal_basis(quadratic_space(QQ, gram_matrix(C)))
-  n = ncols(T)
-  for i in 2:n
-    T[i,:] *= denominator(T[i,:])
-  end
-  orth = prod(map(i -> sum(map(j -> gen(C, j) * ZZ(T[i, j]), 1:n)), 1:n))
-  return divexact(orth, gcd(coeff(orth)))
-end
-=#
-
 @doc raw"""
-    center(C::CliffordAlgebra) -> Union{Tuple{CliffordAlgebraElem}, 
-    Tuple{CliffordAlgebraElem, CliffordAlgebraElem}}
+    center(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
 Returns the center of $C$. It equals `centroid(C)`, if and only if `dim(space(C))`
 is odd. Otherwise it is one-dimensional and returned as a tuple of length one
@@ -391,8 +362,30 @@ function center(C::CliffordAlgebra)
   if is_odd(dim(space(C)))
     C.center = centroid(C)
   else 
-    C.center = tuple(one(C))
+    C.center = [one(C)]
   end
+end
+
+@doc raw"""
+    representation_matrix(x::CliffordAlgebraElem) -> MatElem
+
+Return the representation matrix of the element $x$ with respect to `basis(parent(x))`.
+"""
+function representation_matrix(x::CliffordAlgebraElem, action::Symbol = :left)
+  @req (action == :left) || (action == :right) "The action is either $(:left) or $(:right)."
+  C = parent(x)
+  n = dim(C)
+  res = zero_matrix(base_ring(C), n, n)
+  if action == :left
+    for i in 1:n
+      res[:, i] = coeff(x * basis(C, i))
+    end
+  elseif action == :right
+    for i in 1:n
+      res[:, i] = coeff(basis(C, i) * x)
+    end
+  end
+  return res
 end
 
 ################################################################################
@@ -424,14 +417,6 @@ function Base.:*(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<
   return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
 end
 
-#The implementation from AbsAlgElem should work already in this case!
-#Base.:*(x::CliffordAlgebraElem{T}, elt::T) where {T <: RingElem} = parent(x)(elt .* coeff(x))
-
-Base.:*(x::CliffordAlgebraElem{T}, elt::Union{Int,Rational{Int}}) where {T<:FieldElem} =
-  base_ring(parent(x))(elt) * x
-
-Base.:*(elt::Union{Int,Rational{Int}}, x::CliffordAlgebraElem{T}) where {T<:FieldElem} = x * elt
-
 @doc raw"""
     divexact(x::CliffordAlgebraElem, a::RingElem) -> CliffordAlgebraElem
 
@@ -455,7 +440,7 @@ divexact(x::CliffordAlgebraElem{T}, elt::ZZRingElem) where {T<:FieldElem} =
   
 ################################################################################
 #
-#  equality and hash
+#  Equality and hash
 #
 ################################################################################
 
