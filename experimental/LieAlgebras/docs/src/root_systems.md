@@ -205,6 +205,8 @@ coefficients(::WeightLatticeElem)
 ```@docs
 iszero(::WeightLatticeElem)
 is_dominant(::WeightLatticeElem)
+is_fundamental_weight(::WeightLatticeElem)
+is_fundamental_weight_with_index(::WeightLatticeElem)
 ```
 
 ### Reflections

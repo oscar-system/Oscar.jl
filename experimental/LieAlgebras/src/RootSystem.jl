@@ -1696,6 +1696,43 @@ function is_dominant(w::WeightLatticeElem)
 end
 
 @doc raw"""
+    is_fundamental_weight(w::WeightLatticeElem) -> Bool
+
+Check if `w` is a fundamental weight, i.e. exactly one coefficient is equal to 1 and all others are zero.
+
+See also: [`is_fundamental_weight_with_index(::WeightLatticeElem)`](@ref).
+"""
+function is_fundamental_weight(w::WeightLatticeElem)
+  fl, _ = is_fundamental_weight_with_index(w)
+  return fl
+end
+
+@doc raw"""
+    is_fundamental_weight_with_index(w::WeightLatticeElem) -> Bool, Int
+
+Check if `w` is a fundamental weight and return this together with the index of the fundamental weight in [`fundamental_weights(::RootSystem)`](@ref fundamental_weights(root_system(w))).
+
+If `w` is not a fundamental weight, the second return value is arbitrary.
+
+See also: [`is_fundamental_weight(::WeightLatticeElem)`](@ref).
+"""
+function is_fundamental_weight_with_index(w::WeightLatticeElem)
+  ind = 0
+  coeffs = coefficients(w)
+  for i in 1:size(coeffs, 2)
+    if is_zero_entry(coeffs, 1, i)
+      continue
+    elseif is_one(coeffs[1, i])
+      ind != 0 && return false, 0
+      ind = i
+    else
+      return false, 0
+    end
+  end
+  return ind != 0, ind
+end
+
+@doc raw"""
     reflect(w::WeightLatticeElem, s::Int) -> WeightLatticeElem
 
 Return the reflection of `w` in the hyperplane orthogonal to the `s`-th simple root.

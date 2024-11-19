@@ -56,7 +56,7 @@
         @test all(i -> negative_root(R, i) == negative_roots(R)[i], 1:npositive_roots)
         @test simple_roots(R) == positive_roots(R)[1:rk]
         @test all(is_root, roots(R))
-        n_roots(R) >= 1 && @test !is_root(root(R, 1) - root(R, 1))
+        @test !is_root(zero(RootSpaceElem, R))
         @test all(r -> !is_root(2 * r), roots(R))
         @test all(is_root_with_index(r) == (true, i) for (i, r) in enumerate(roots(R)))
         @test all(r -> is_positive_root(r) == is_positive_root_with_index(r)[1], roots(R))
@@ -94,7 +94,7 @@
         @test all(i -> negative_coroot(R, i) == negative_coroots(R)[i], 1:npositive_roots)
         @test simple_coroots(R) == positive_coroots(R)[1:rk]
         @test all(is_coroot, coroots(R))
-        n_roots(R) >= 1 && @test !is_coroot(coroot(R, 1) - coroot(R, 1))
+        @test !is_coroot(zero(DualRootSpaceElem, R))
         @test all(r -> !is_coroot(2 * r), coroots(R))
         @test all(is_coroot_with_index(r) == (true, i) for (i, r) in enumerate(coroots(R)))
         @test all(
@@ -134,6 +134,15 @@
         @test length(fundamental_weights(R)) == rank(R)
         @test all(i -> fundamental_weight(R, i) == fundamental_weights(R)[i], 1:rk)
         @test all(w -> w == WeightLatticeElem(RootSpaceElem(w)), fundamental_weights(R))
+        @test all(is_fundamental_weight, fundamental_weights(R))
+        @test all(
+          is_fundamental_weight_with_index(w) == (true, i) for (i, w) in
+          enumerate(fundamental_weights(R))
+        )
+        @test !is_fundamental_weight(zero(WeightLatticeElem, R))
+        rk != 1 && @test !is_fundamental_weight(
+          sum(fundamental_weights(R); init=zero(WeightLatticeElem, R))
+        )
         @test all(
           dot(simple_root(R, i), fundamental_weight(R, j)) ==
           (i == j ? cartan_symmetrizer(R)[i] : 0) for i in 1:rk, j in 1:rk

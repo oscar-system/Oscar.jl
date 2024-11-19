@@ -203,7 +203,7 @@ function compute_monomials(
   # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the basecase of 
   # the recursion.
   dim = dim_of_simple_module(L, highest_weight)
-  if is_zero(highest_weight) || is_fundamental(highest_weight)
+  if is_zero(highest_weight) || is_fundamental_weight(highest_weight)
     push!(no_minkowski, highest_weight)
     monomials = add_by_hand(
       L, birational_seq, ZZx, highest_weight, monomial_ordering, Set{ZZMPolyRingElem}()
@@ -471,22 +471,6 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
     root
   end
   return operators
-end
-
-# TODO: upstream to LieAlgebras/RootSystem.jl
-function is_fundamental(highest_weight::WeightLatticeElem)
-  hasone = false
-  for i in coefficients(highest_weight)
-    if iszero(i)
-      continue
-    elseif isone(i)
-      hasone && return false
-      hasone = true
-    else
-      return false
-    end
-  end
-  return hasone
 end
 
 function sub_weights(w::WeightLatticeElem)

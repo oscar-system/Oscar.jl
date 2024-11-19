@@ -56,6 +56,8 @@ export is_cartan_type
 export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_fundamental_weight
+export is_fundamental_weight_with_index
 export is_negative_coroot
 export is_negative_coroot_with_index
 export is_negative_root
