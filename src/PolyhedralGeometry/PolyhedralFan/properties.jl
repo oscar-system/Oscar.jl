@@ -216,11 +216,9 @@ function cones(PF::_FanLikeType, cone_dim::Int)
   (l < 0 || dim(PF) == -1) && return _empty_subobjectiterator(t, PF)
 
   if l == 0
-    if length(lineality_space(PF)) == 0
-      return SubObjectIterator{t}(
-        PF, (_, _, _) -> cone(zeros(Int, ambient_dim(PF))), 1, NamedTuple()
-      )
-    end
+    return SubObjectIterator{t}(
+      PF, (_, _, _) -> positive_hull(coefficient_field(PF), zeros(Int, ambient_dim(PF)), lineality_space(PF)), 1, NamedTuple()
+    )
   end
 
   # The function `lineality_space` returns a ray even in the case where
