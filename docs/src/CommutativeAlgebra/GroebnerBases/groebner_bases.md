@@ -153,7 +153,7 @@ julia> f = (5*x*y^2-y^10+3)*F[1]+(4*x^3+2*y) *F[2]+16*x*F[3]
 (5*x*y^2 - y^10 + 3)*e[1] + (4*x^3 + 2*y)*e[2] + 16*x*e[3]
 
 julia> default_ordering(F)
-degrevlex([x, y])*lex([gen(1), gen(2), gen(3)])
+degrevlex([x, y])*invlex([gen(1), gen(2), gen(3)])
 
 julia> collect(terms(f))
 6-element Vector{FreeModElem{QQMPolyRingElem}}:
