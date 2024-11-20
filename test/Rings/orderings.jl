@@ -360,14 +360,14 @@ end
    O5 = invlex(gens(K))*degrevlex(gens(R))
    @test monomial_ordering(R, singular(O5)) == degrevlex(gens(R))
    @test length(string(O5)) > 2
-   @test string(singular(O5)) == "ordering_c() * ordering_dp(5)"
+   @test string(singular(O5)) == "ordering_C() * ordering_dp(5)"
 
    a = matrix_ordering([x, y], matrix(ZZ, 2, 2, [1 2; 3 4]))
    b = wdeglex([s, t, u], [1, 2, 3])
    O6 = a * lex(gens(K)) * b
    @test monomial_ordering(R, singular(O6)) == a * b
    @test length(string(O6)) > 2
-   @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_C() * ordering_Wp([1, 2, 3])"
+   @test string(singular(O6)) == "ordering_M([1 2; 3 4]) * ordering_c() * ordering_Wp([1, 2, 3])"
 
    O7 = weight_ordering([-1,2,0,2,0], degrevlex(gens(R)))
    @test monomial_ordering(R, singular(O7)) == O7
