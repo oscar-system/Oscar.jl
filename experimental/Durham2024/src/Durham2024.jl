@@ -10,3 +10,5 @@ function pushforward(p::BlowupMorphism, W::AbsAlgebraicCycle)
   error("not implemented")
 end
 
+include("fixes.jl")
+
