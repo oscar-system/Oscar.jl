@@ -365,6 +365,17 @@ end
   f = x^2 + y
   orb = orbit(G, f)
   @test length(orb) == 3
+
+
+  K = algebraic_closure(QQ)
+  e = one(K)
+  s, c = sincospi(2 * e / 3)
+  mat_rot = matrix([c -s; s c])
+  G = matrix_group(mat_rot)
+  p = K.([1, 0])
+  orb = orbit(G, *, p)
+
+
 end
 
 @testset "G-sets by right transversals" begin
