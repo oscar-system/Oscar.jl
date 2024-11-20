@@ -172,7 +172,9 @@ function save_typed_object(s::SerializerState, x::T) where T
   else
     type_encoding = encode_type(T)
     if !(T == reverse_type_map[type_encoding] || T == reverse_type_map[type_encoding]["default"])
-      save_object(s, string(T), :_instance)
+      # here we get "$T" = "fpField"
+      # see comment in register_serialization_type
+      save_object(s, "$T", :_instance)
     end
     save_object(s, type_encoding, type_key)
     save_object(s, x, :data)
@@ -221,8 +223,8 @@ end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   if haskey(s.obj, :_instance)
-    # to be safe we need this check but I can't figure out how to get sending
-    # types to strings to behave properly
+    # to be safe we need this check but there are currently issues
+    # see register_serialization_type and construction of the reverse type map
     #s.obj["_instance"] in keys(reverse_type_map[s.obj[type_key]])
     T = eval(Meta.parse(s.obj["_instance"]))
   else
@@ -319,7 +321,10 @@ function register_serialization_type(@nospecialize(T::Type), str::String, defaul
     if init isa Type
       init = Dict{String, Type}("$init" => init)
     end
+    # here we have "$T" = "Nemo.fpField" for example
+    # see comment in save_typed_object
     key = default ? "default" : "$T"
+
     reverse_type_map[str] = merge(Dict{String, Type}(key => T), init)
   else
     reverse_type_map[str] = T
