@@ -233,9 +233,9 @@ ring_map(f::SubQuoHom) = f.ring_map
 function default_ordering(F::FreeMod)
   if !isdefined(F, :default_ordering)
     if iszero(F)
-      F.default_ordering = default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :lex))
+      F.default_ordering = default_ordering(base_ring(F))*ModuleOrdering(F, Orderings.ModOrdering(Vector{Int}(), :invlex))
     else
-      F.default_ordering = default_ordering(base_ring(F))*lex(gens(F))
+      F.default_ordering = default_ordering(base_ring(F))*invlex(gens(F))
     end
   end
   return F.default_ordering::ModuleOrdering{typeof(F)}
