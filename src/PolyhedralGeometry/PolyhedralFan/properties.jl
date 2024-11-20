@@ -221,9 +221,6 @@ function cones(PF::_FanLikeType, cone_dim::Int)
     )
   end
 
-  # The function `lineality_space` returns a ray even in the case where
-  # the lineality space is actually a line.
-  l == 0 && length(lineality_space(PF)) > 0 && return error("Not implemented.")
 
   return SubObjectIterator{t}(
     PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim=l,)
