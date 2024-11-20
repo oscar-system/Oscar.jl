@@ -28,7 +28,7 @@
     @test loaded isa Dict
   end
 
-  @testset "< 1.3.0 Upgrade" begin
+  @testset "< 1.2.1 Upgrade" begin
     load(joinpath(@__DIR__, "GF_2_2.json"));
     load(joinpath(@__DIR__, "GF_2.json"));
   end

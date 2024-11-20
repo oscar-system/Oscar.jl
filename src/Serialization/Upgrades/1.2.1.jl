@@ -9,5 +9,6 @@ push!(upgrade_scripts_set, UpgradeScript(
         end
       end
     end
+    return upgraded_dict
   end
 ))
