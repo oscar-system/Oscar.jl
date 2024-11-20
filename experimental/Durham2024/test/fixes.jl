@@ -7,5 +7,13 @@
   D = Oscar.underlying_cycle(EW)
   cc = first(components(AlgebraicCycle, D))
   @test EW[c] == D[cc]
+  
+  X = domain(bl0)
+  FX = function_field(X)
+  U = first(affine_charts(X))
+  x = first(gens(OO(U)))
+  f = FX(x)
+  D = weil_divisor(f)
+  @test 2*D == weil_divisor(f^2) 
 end
 
