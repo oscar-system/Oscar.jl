@@ -138,6 +138,11 @@
       @test x + y == C([0, 5, 5, 10])
       @test x - y == C([-4, -3, -7, -6])
       @test y - x == C([4, 3, 7, 6])
+      @test divexact(y, 2) == C([1, 2, 3, 4])
+      @test divexact(y, ZZ(2)) == C([1, 2, 3, 4])
+      @test divexact(y, 2//1) == C([1, 2, 3, 4])
+      @test divexact(y, QQ(2//1)) == C([1, 2, 3, 4])
+      @test divexact(y, 4) == C([2//4, 4//4, 6//4, 8//4])
 
       #Cross-checking with MAGMAs results
       @test x^2 == C([8, -2, 2, -4])
@@ -325,7 +330,12 @@
         4852 * z^3 + 7405 * z^2 + 4290 * z - 1248,
         4960 * z^3 + 7520 * z^2 + 4304 * z - 1312,
       ]) #According to Magma
+      @test divexact(y, z) == inv(z) * y
+      @test divexact(y, K(2)) == K(1//2) * y
+      @test divexact(y, 2) == QQ(1//2) * y
+      @test divexact(y, QQ(2)) == QQ(1//2) * y
     end
+
     @testset "center and centroid" begin
       @test center(C) == centroid(C)
       orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2*z, -z^3,
