@@ -34,14 +34,14 @@ mutable struct CliffordOrder{T, C} <: Hecke.AbstractAssociativeAlgebra{T}
   center::Any
 
   function CliffordOrder{T, C}(ls::QuadLat{S, M}) where {T, C, S<:NumField, M<:MatElem}
-    @req is_integral(fractional_ideal(base_ring(ls), base_field(ls)(1//2)) * norm(ls)) "The given lattice is not even!"
+    if !is_zero(rank(ls))
+      @req is_integral(fractional_ideal(base_ring(ls), base_field(ls)(1//2)) * norm(ls)) "The given lattice is not even!"
+    end
     qs = rational_span(ls)
     coeff_ids = _set_coefficient_ideals!(ls)
     return new{T, C}(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs), coeff_ids)
   end
-
 end
-
 
 mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
 
@@ -55,7 +55,9 @@ mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
   center::Any
 
   function ZZCliffordOrder(ls::ZZLat)
-    @req is_integral(1//2 * norm(ls)) "The given lattice is not even!"
+    if !is_zero(rank(ls))
+      @req is_integral(1//2 * norm(ls)) "The given lattice is not even!"
+    end
     qs = rational_span(ls) 
     return new(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs))
   end
