@@ -2,7 +2,7 @@
   "_ns": {
     "Oscar": [
       "https://github.com/oscar-system/Oscar.jl",
-      "1.3.0-DEV-aa41156e487a0dea7586827d9c40d7a24e4746d7"
+      "1.2.0"
     ]
   },
   "_type": "FqField",
