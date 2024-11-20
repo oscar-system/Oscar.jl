@@ -23,6 +23,7 @@ See [`root_system(::ZZMatrix)`](@ref) for the constructor.
   # optional:
   type::Vector{Tuple{Symbol,Int}}
   type_ordering::Vector{Int}
+  character_parent_ring::Any #::GroupAlgebra{ZZRingElem, WeightLattice, WeightLatticeElem}
 
   function RootSystem(mat::ZZMatrix; check::Bool=true, detect_type::Bool=true)
     check && @req is_cartan_matrix(mat) "Requires a generalized Cartan matrix"

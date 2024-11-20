@@ -5,7 +5,7 @@
 
     @test root_system(w) === R
   end
-  
+
   @testset "conjugate_dominant_weight_with_*_elem(w::WeightLatticeElem)" begin
     for (R, vec) in [
       (root_system(:A, 5), [1, -1, 2, 0, 2]),

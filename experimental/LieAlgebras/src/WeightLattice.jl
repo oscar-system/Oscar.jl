@@ -62,7 +62,6 @@ function is_finite(P::WeightLattice)
   return iszero(rank(P))
 end
 
-
 ###############################################################################
 #
 #   Weight lattice elements
@@ -121,7 +120,6 @@ end
 function root_system(w::WeightLatticeElem)
   return root_system(parent(w))
 end
-
 
 function zero(w::WeightLatticeElem)
   return zero(parent(w))

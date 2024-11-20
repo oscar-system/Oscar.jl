@@ -1454,14 +1454,14 @@ See [MP82](@cite) for details and the implemented algorithm.
 julia> L = lie_algebra(QQ, :B, 3);
 
 julia> dominant_weights(L, [1, 0, 3])
-7-element Vector{Vector{Int64}}:
- [1, 0, 3]
- [1, 1, 1]
- [0, 0, 3]
- [2, 0, 1]
- [0, 1, 1]
- [1, 0, 1]
- [0, 0, 1]
+7-element Vector{WeightLatticeElem}:
+ w_1 + 3*w_3
+ w_1 + w_2 + w_3
+ 3*w_3
+ 2*w_1 + w_3
+ w_2 + w_3
+ w_1 + w_3
+ w_3
 ```
 """
 function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1470,7 +1470,8 @@ function dominant_weights(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
 end
 
 function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dominant_weights(Vector{Int}, L, hw)
+  R = root_system(L)
+  return dominant_weights(R, hw)
 end
 
 function dominant_weights(T::Type, L::LieAlgebra, hw::WeightLatticeElem)
@@ -1479,7 +1480,8 @@ function dominant_weights(T::Type, L::LieAlgebra, hw::WeightLatticeElem)
 end
 
 function dominant_weights(L::LieAlgebra, hw::WeightLatticeElem)
-  return dominant_weights(Vector{Int}, L, hw)
+  R = root_system(L)
+  return dominant_weights(R, hw)
 end
 
 @doc raw"""
@@ -1498,11 +1500,7 @@ This function uses an optimized version of the Freudenthal formula, see [MP82](@
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> dominant_character(L, [2, 1, 0])
-Dict{Vector{Int64}, Int64} with 4 entries:
-  [2, 1, 0] => 1
-  [1, 0, 1] => 2
-  [0, 0, 0] => 3
-  [0, 2, 0] => 1
+3*e(0) + e(2*w_1 + w_2) + e(2*w_2) + 2*e(w_1 + w_3)
 ```
 """
 function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
@@ -1530,17 +1528,7 @@ The return type may change in the future.
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> character(L, [2, 0, 0])
-Dict{Vector{Int64}, Int64} with 10 entries:
-  [0, 1, 0]   => 1
-  [0, -2, 2]  => 1
-  [0, 0, -2]  => 1
-  [-1, 1, -1] => 1
-  [-2, 2, 0]  => 1
-  [1, -1, 1]  => 1
-  [1, 0, -1]  => 1
-  [-1, 0, 1]  => 1
-  [0, -1, 0]  => 1
-  [2, 0, 0]   => 1
+e(2*w_1) + e(w_2) + e(-2*w_1 + 2*w_2) + e(-2*w_2 + 2*w_3) + e(-2*w_3) + e(w_1 - w_2 + w_3) + e(-w_1 + w_3) + e(w_1 - w_3) + e(-w_1 + w_2 - w_3) + e(-w_2)
 ```
 """
 function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})

@@ -307,6 +307,15 @@ function set_root_system_type!(
   return nothing
 end
 
+function character_parent_ring(R::RootSystem)
+  if !isdefined(R, :character_parent_ring)
+    R.character_parent_ring = Hecke._group_algebra(
+      ZZ, weight_lattice(R); sparse=true, cached=false
+    )
+  end
+  return R.character_parent_ring::GroupAlgebra{ZZRingElem,WeightLattice,WeightLatticeElem}
+end
+
 @doc raw"""
     weight_lattice(R::RootSystem) -> WeightLattice
 
@@ -1516,15 +1525,15 @@ See [MP82](@cite) for details and the implemented algorithm.
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
-7-element Vector{Vector{Int64}}:
- [3, 0, 1]
- [1, 1, 1]
- [0, 0, 3]
- [2, 0, 1]
- [0, 1, 1]
- [1, 0, 1]
- [0, 0, 1]
+julia> dominant_weights(R, [3, 0, 1])
+7-element Vector{WeightLatticeElem}:
+ 3*w_1 + w_3
+ w_1 + w_2 + w_3
+ 2*w_1 + w_3
+ 3*w_3
+ w_2 + w_3
+ w_1 + w_3
+ w_3
 ```
 """
 function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
@@ -1597,16 +1606,11 @@ This function uses an optimized version of the Freudenthal formula, see [MP82](@
 julia> R = root_system(:B, 3);
 
 julia> dominant_character(R, [2, 0, 1])
-Dict{Vector{Int64}, Int64} with 4 entries:
-  [1, 0, 1] => 3
-  [0, 0, 1] => 6
-  [2, 0, 1] => 1
-  [0, 1, 1] => 1
+e(2*w_1 + w_3) + e(w_2 + w_3) + 3*e(w_1 + w_3) + 6*e(w_3)
 ```
 """
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  char = _dominant_character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return _dominant_character(R, hw)
 end
 
 function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
@@ -1626,13 +1630,14 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   pos_roots_w = WeightLatticeElem.(positive_roots(R))
   pos_roots_w_coeffs = coefficients.(pos_roots_w)
 
-  char = Dict(hw => T(1))
+  ZP = character_parent_ring(R)
+  char = ZP(hw)
 
   todo = dominant_weights(R, hw)
   all_orbs = Dict{Vector{Int},Vector{Tuple{WeightLatticeElem,Int}}}()
   action_matrices_on_weights = _action_matrices_on_weights(W)
 
-  for w in Iterators.drop(todo, 1)
+  for w in Iterators.drop(todo, 1) # drop hw as its multiplicity is 1
     stab_inds = [i for (i, ci) in enumerate(coefficients(w)) if iszero(ci)]
     orbs = get!(all_orbs, stab_inds) do
       gens = action_matrices_on_weights[stab_inds]
@@ -1657,7 +1662,7 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
         w_plus_i_rep = w + rep
         while true
           w_plus_i_rep_conj = conjugate_dominant_weight(w_plus_i_rep)
-          haskey(char, w_plus_i_rep_conj) || break
+          iszero(char[w_plus_i_rep_conj]) && break
           accum2 += char[w_plus_i_rep_conj] * dot(w_plus_i_rep, rep)
           add!(w_plus_i_rep, rep)
         end
@@ -1667,11 +1672,11 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
       w_plus_rho = w + rho
       denom = dot_how_plus_rho - dot(w_plus_rho, w_plus_rho)
       if !iszero(denom)
-        char[w] = T(ZZ(div(accum, denom)))
+        char += ZZ(div(accum, denom)) * ZP(w)
       end
     end
   end
-  return char
+  return char::elem_type(ZP)
 end
 
 @doc raw"""
@@ -1689,20 +1694,11 @@ The return type may change in the future.
 julia> R = root_system(:B, 3);
 
 julia> character(R, [0, 0, 1])
-Dict{Vector{Int64}, Int64} with 8 entries:
-  [0, 1, -1]  => 1
-  [-1, 1, -1] => 1
-  [0, 0, 1]   => 1
-  [1, -1, 1]  => 1
-  [-1, 0, 1]  => 1
-  [1, 0, -1]  => 1
-  [0, 0, -1]  => 1
-  [0, -1, 1]  => 1
+e(w_3) + e(w_2 - w_3) + e(w_1 - w_2 + w_3) + e(-w_1 + w_3) + e(w_1 - w_3) + e(-w_1 + w_2 - w_3) + e(-w_2 + w_3) + e(-w_3)
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)
-  char = _character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return _character(R, hw)
 end
 
 function character(R::RootSystem, hw::Vector{<:IntegerUnion})
@@ -1714,11 +1710,12 @@ function _character(R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   dom_char = _dominant_character(R, hw)
-  char = Dict{WeightLatticeElem,T}()
+  ZP = character_parent_ring(R)
+  char = zero(ZP)
 
   for (w, m) in dom_char
     for w_conj in weyl_orbit(w)
-      push!(char, w_conj => m)
+      char += m * ZP(w_conj)
     end
   end
 
@@ -1769,13 +1766,13 @@ function tensor_product_decomposition(
 
   mults = multiset(WeightLatticeElem)
   for (w_, m) in dominant_character(R, hw1)
-    for w in weyl_orbit(WeightLatticeElem(R, w_))
+    for w in weyl_orbit(w_)
       add!(w, hw2_plus_rho)
       w_dom, x = conjugate_dominant_weight_with_left_elem!(w)
       if all(!iszero, coefficients(w_dom))
         sub!(w_dom, rho)
         coeff = m * (-1)^length(x)
-        push!(mults, w_dom, coeff)
+        push!(mults, w_dom, Int(coeff))
       end
     end
   end
@@ -1854,4 +1851,26 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   end
 
   roots[perm], coroots[perm], table
+end
+
+# TODO: move to Hecke
+function Base.length(x::GroupAlgebraElem)
+  @assert Hecke._is_sparse(x)
+  return length(x.coeffs_sparse)
+end
+
+function Base.iterate(x::GroupAlgebraElem)
+  @assert Hecke._is_sparse(x)
+  next = iterate(x.coeffs_sparse)
+  isnothing(next) && return nothing
+  (i, c), st = next
+  return (parent(x).base_to_group[i], c), st
+end
+
+function Base.iterate(x::GroupAlgebraElem, st)
+  @assert Hecke._is_sparse(x)
+  next = iterate(x.coeffs_sparse, st)
+  isnothing(next) && return nothing
+  (i, c), st = next
+  return (parent(x).base_to_group[i], c), st
 end

@@ -367,7 +367,7 @@ function add_by_hand(
 
   push!(basis, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = _character(R, highest_weight)
+  weightspaces = Dict{WeightLatticeElem,Int}(_character(R, highest_weight))
   # sort the monomials from the minkowski-sum by their weightspaces
   monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
