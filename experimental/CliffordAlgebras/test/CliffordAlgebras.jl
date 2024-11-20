@@ -4,7 +4,7 @@
   quadratic_discriminant = Oscar.coeff, Oscar._dim_qf, Oscar._set_even_odd_coeff!,
   Oscar._mul_with_gen, Oscar.center, Oscar.centroid, Oscar.disq, Oscar.quadratic_discriminant
 
-  @testset "some corner cases" begin
+  @testset "zero-dimensional corner case" begin
     empty_qs = quadratic_space(QQ, identity_matrix(QQ, 0)) #zero-dim quad space over QQ
     C = clifford_algebra(empty_qs)
     QQzer = [QQ(0)]
@@ -13,6 +13,7 @@
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(empty_qs))}
       @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(C)), typeof(C)}
       @test elem_type(C) == typeof(C())
+      @test base_ring_type(C) == QQField
 
       @test (base_ring(C), space(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, empty_qs, identity_matrix(QQ,0), 0, 1)
       @test C() == C(0) && C() == zero(C)
@@ -54,10 +55,10 @@
       @test (C(a) + C(b)) * (C(a) - C(b)) == C(a)^2 - C(b)^2
     end
     @testset "center and centroid" begin
-    @test center(C) == centroid(C)
-    @test center(C) == [one(C)]
-    @test disq(C) == quadratic_discriminant(C)
-    @test disq(C) == 1
+      @test center(C) == centroid(C)
+      @test center(C) == [one(C)]
+      @test disq(C) == quadratic_discriminant(C)
+      @test disq(C) == 1
     end
   end
 
@@ -74,6 +75,7 @@
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qsK))}
       @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qsK)), typeof(C)}
       @test elem_type(C) == typeof(C())
+      @test base_ring_type(C) == typeof(K)
 
       @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
@@ -182,6 +184,7 @@
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
       @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
       @test elem_type(C) == typeof(C())
+      @test base_ring_type(C) == QQField
 
       @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
@@ -263,6 +266,7 @@
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
       @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
       @test elem_type(C) == typeof(C())
+      @test base_ring_type(C) == typeof(K)
 
       @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 5, 32)
       @test C() == C(0) && C() == zero(C)
