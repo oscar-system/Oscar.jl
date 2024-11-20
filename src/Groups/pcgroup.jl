@@ -481,9 +481,11 @@ a group generator.
 This method can produce letters represented by negative numbers. A negative number 
 indicates the inverse of the generator at the corresponding positive index.
 
-For example, as shown below, an output of -1 refers to the "inverse of the first generator".
+For example, as shown below, an output of `-1` refers to the "inverse of the first generator".
 
-See also [`syllables`](@ref).
+See also [`syllables(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
+# Examples
 
 ```jldoctest
 julia> gg = small_group(6, 1)
@@ -498,8 +500,6 @@ julia> letters(x)
  -1
  -1
 ```
-
-# Examples
 
 ```jldoctest
 julia> gg = small_group(6, 1)
@@ -527,6 +527,7 @@ Return the syllables of `g` as a list of pairs of integers, each entry correspon
 a group generator and its exponent.
 
 # Examples
+
 ```jldoctest
 julia> gg = small_group(6, 1)
 Pc group of order 6
