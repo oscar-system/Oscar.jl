@@ -213,7 +213,7 @@ julia> cones(PF, 2)
 function cones(PF::_FanLikeType, cone_dim::Int)
   l = cone_dim - length(lineality_space(PF))
   t = Cone{_get_scalar_type(PF)}
-  l < 0 && return _empty_subobjectiterator(t, PF)
+  (l < 0 || dim(PF) == -1) && return _empty_subobjectiterator(t, PF)
 
   if l == 0
     if length(lineality_space(PF)) == 0
