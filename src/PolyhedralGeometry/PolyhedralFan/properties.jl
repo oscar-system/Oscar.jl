@@ -212,8 +212,17 @@ julia> cones(PF, 2)
 """
 function cones(PF::_FanLikeType, cone_dim::Int)
   l = cone_dim - length(lineality_space(PF))
-  l < 1 && return nothing
-  return SubObjectIterator{Cone{_get_scalar_type(PF)}}(
+  t = Cone{_get_scalar_type(PF)}
+  l < 0 && return _empty_subobjectiterator(t, PF)
+  l == 0 && length(lineality_space(PF)) == 0 && return SubObjectIterator{t}(
+    PF, (_, _, _) -> cone(zeros(Int, ambient_dim(PF))), 1, NamedTuple()
+  )
+
+  # The function `lineality_space` returns a ray even in the case where
+  # the lineality space is actually a line.
+  l == 0 && length(lineality_space(PF)) > 0 && return error("Not implemented.")
+
+  return SubObjectIterator{t}(
     PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim=l,)
   )
 end
