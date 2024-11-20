@@ -70,7 +70,7 @@ julia> F = free_module(R, 2)
 Free module of rank 2 over R
 
 julia> default_ordering(F)
-degrevlex([x, y, z])*lex([gen(1), gen(2)])
+degrevlex([x, y, z])*invlex([gen(1), gen(2)])
 
 julia> S, _ = grade(R, [1, 2, 3])
 (Graded multivariate polynomial ring in 3 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x, y, z])
