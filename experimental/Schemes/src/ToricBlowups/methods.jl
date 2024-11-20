@@ -48,7 +48,7 @@ end
 @doc raw"""
     _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:IntegerUnion})
 
-Given a ray $r$ inside the support of the simplicial fan $Σ$ of a normal toric variety~$X$, not coinciding with any ray in $Σ(1)$, return the unique cone $σ$ in $Σ$ such that $r$ is in the relative interior of $σ$.
+Given a ray $r$ inside the support of the fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$ such that $r$ is in the relative interior of $σ$.
 
 # Examples
 ```jldoctest
@@ -70,28 +70,18 @@ julia> rays(c)
 ```
 """
 function _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion, QQFieldElem}})
-  @assert is_orbifold(X) "Only implemented when fan is simplicial"
-  contained_in_support_of_fan = false
-  mcone = maximal_cones(X)[1]  # initialize `mcone`, fixing its type
-
-#   mcones = _get_maximal_cones_containing_vector(X, r)
-  mcones = maximal_cones(X)
-  while true
-    contained_in_subcone = false
-    for c in mcones
-      if r in c
-        contained_in_support_of_fan = true
-        contained_in_subcone = true
-        mcone = c
-      end
-    end
-    @assert contained_in_support_of_fan "Ray not contained in the support of the fan"
-    !contained_in_subcone && return mcone
-    n_rays(mcone) == 1 && return mcone
-
-    # set mcones to be the facets of mcone
-    mcones = [cone(setdiff(collect(rays(mcone)), [ray])) for ray in rays(mcone)]
-  end
+  m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
+  @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
+  m_cones = [maximal_cones(X)[i] for i in m_cone_indices]
+  m_cone = intersect(m_cones)
+  m_fan = polyhedral_fan(m_cone)
+  
+  # By Proposition 1.2.8(c) in [CLS11](@cite), every proper face of a cone
+  # is the intersection of the facets containing it.
+  m_facets = cones(m_fan, dim(m_cone) - 1)
+  cs = [c for c in m_facets if r in c]
+  isempty(cs) && return m_cone
+  return intersect(cs)
 end
 
 function _cox_ring_homomorphism(f::ToricBlowupMorphism)
