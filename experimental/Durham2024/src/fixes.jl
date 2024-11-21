@@ -60,19 +60,21 @@ function weil_divisor(
     end
     for (_, P) in den_dec
       # If this component was already seen in another patch, skip it.
-      any(P == PP for PP in keys(ideal_dict)) && continue 
-      c = _colength_in_localization(num_ideal, P)
       new_comp = PrimeIdealSheafFromChart(X, U, P)
-      if !any(new_comp == P for P in keys(inc_dict))
+      any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      c = _colength_in_localization(num_ideal, P)
+      key_list = collect(keys(inc_dict))
+      k = findfirst(==(new_comp), key_list)
+      if k === nothing
         is_zero(c) && continue
         inc_dict[new_comp] = -c
       else
-        d = inc_dict[new_comp]
+        d = inc_dict[key_list[k]]
         if c == d
-          delete!(inc_dict, new_comp)
+          delete!(inc_dict, key_list[k])
           continue
         end
-        inc_dict[new_comp] = d - c
+        inc_dict[key_list[k]] = d - c
       end
     end
     for (pp, c) in inc_dict
@@ -97,9 +99,9 @@ function move_divisor(D::AbsWeilDivisor)
   g = sort!(g, by=total_degree)
   i = findfirst(f->(ideal(L, f) == LP), g)
   x = g[i]
-  FX = function_field(X)
-  f = FX(x)
-  return D - weil_divisor(f)
+  kk = base_ring(U)
+  f = function_field(X)(x)
+  return irreducible_decomposition(D - weil_divisor(f))
 end
 
 
