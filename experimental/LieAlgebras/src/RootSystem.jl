@@ -2137,19 +2137,19 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   
   refl = reflect(w, index_of_r)
 
-  
+  wlelem_r = WeightLatticeElem(r)
   if d > -1
     while w != refl
       push!(list_of_occuring_weights, w)
-      w -= WeightLatticeElem(r)
+      w -= wlelem_r
     end
     push!(list_of_occuring_weights, w)
     return 1, list_of_occuring_weights
   elseif d < -1
-    w += WeightLatticeElem(r)
+    w += wlelem_r
     push!(list_of_occuring_weights, w)
-    while w != refl-WeightLatticeElem(r)
-      w +=  WeightLatticeElem(r)
+    while w != refl-wlelem_r
+      w +=  wlelem_r
       push!(list_of_occuring_weights, w)
     end
     return -1, list_of_occuring_weights
@@ -2181,10 +2181,10 @@ function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeEl
 end
 
 function demazure_character(w::WeightLatticeElem, x::WeylGroupElem)
-  reduced_partition = word(x)
+  reduced_expression = word(x)
   character = Dict{WeightLatticeElem,Int}(w => 1)
-  for i in length(reduced_partition):-1:1
-    character = demazure_operator(simple_roots(w.root_system)[reduced_partition[i]], character)
+  for i in Iterators.reverse(reduced_expression)
+    character = demazure_operator(simple_root(root_system(w), Int(i)), character)
   end
   return Dict(Int.(_vec(coefficients(w_))) => m for (w_, m) in character)
 end
