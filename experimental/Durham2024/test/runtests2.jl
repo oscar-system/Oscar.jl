@@ -12,20 +12,18 @@ bl_IA3 = domain(pr1)
 E = exceptional_divisor(pr1) 
 bl_X, inc_bl_X, pr2 = strict_transform(pr1, inc_X) #bl_X is the blow up of X
 
-#the canonical divisor of bl_IA3
-bl_IA3_canonical_divisor = pullback(pr1, Oscar.canonical_divisor(IA3)) + (dim(IA3)-1)*E
+EX = pullback(inc_bl_X, E)
+EX_weil = weil_divisor(EX)
+EX_weil_decom = irreducible_decomposition(EX_weil)
+C1 = components(WeilDivisor, EX_weil_decom)[1]
+C2 = components(WeilDivisor, EX_weil_decom)[2]
 
-# the cartier divisor of IA3 that correspdonds to X
-X_ideal = image_ideal(inc_X)
-X_ideal_sheaf = ideal_sheaf(codomain(pr1),  IA3, X_ideal)
-X_divisor = EffectiveCartierDivisor(X_ideal_sheaf)
-
-#the cartier divisor of bl_IA3 that correspdonds to bl_X
-bl_X_divisor = strict_transform(pr1, X_divisor) 
-
-# the canonical divisor of bl_X
-div_sum = bl_IA3_canonical_divisor + bl_X_divisor
-#bl_X_canonical_divisor = pullback(inc_bl_X, div_sum)
+bl_X_canonical_divisor = weil_divisor(bl_X, ZZ) 
+Z11 = Oscar.self_intersection_via_adjunction(bl_X_canonical_divisor, C1, 0)
+Z22 = Oscar.self_intersection_via_adjunction(bl_X_canonical_divisor, C2, 0)
+Z12 = intersect(C1, C2)
+Z21 = intersect(C2, C1)
+Intersection_matrix = ZZ[Z11 Z12; Z21 Z22]
 end
 
 
