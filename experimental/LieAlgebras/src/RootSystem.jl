@@ -2128,29 +2128,29 @@ end
 
 ###############################################################################
 #demazures charcter formula
-function _demazure_operator(alpha::RootSpaceElem, lambda::WeightLatticeElem)
-  fl, index_of_alpha = is_simple_root_with_index(alpha)
+function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  fl, index_of_r = is_simple_root_with_index(r)
   @req fl "not a simple root"
   
-  d = 2*dot(lambda, alpha)//dot(alpha, alpha)
+  d = 2*dot(w, r)//dot(r, r)
   list_of_occuring_weights = WeightLatticeElem[]
   
-  refl = reflect(lambda, index_of_alpha)
+  refl = reflect(w, index_of_r)
 
   
   if d > -1
-    while lambda != refl
-      push!(list_of_occuring_weights, lambda)
-      lambda -= WeightLatticeElem(alpha)
+    while w != refl
+      push!(list_of_occuring_weights, w)
+      w -= WeightLatticeElem(r)
     end
-    push!(list_of_occuring_weights, lambda)
+    push!(list_of_occuring_weights, w)
     return 1, list_of_occuring_weights
   elseif d < -1
-    lambda += WeightLatticeElem(alpha)
-    push!(list_of_occuring_weights, lambda)
-    while lambda != refl-WeightLatticeElem(alpha)
-      lambda +=  WeightLatticeElem(alpha)
-      push!(list_of_occuring_weights, lambda)
+    w += WeightLatticeElem(r)
+    push!(list_of_occuring_weights, w)
+    while w != refl-WeightLatticeElem(r)
+      w +=  WeightLatticeElem(r)
+      push!(list_of_occuring_weights, w)
     end
     return -1, list_of_occuring_weights
   else
@@ -2158,28 +2158,31 @@ function _demazure_operator(alpha::RootSpaceElem, lambda::WeightLatticeElem)
   end
 end 
 
-function demazure_operator(alpha::RootSpaceElem, w::WeightLatticeElem)
-  return demazure_operator(alpha, Dict(w => 1))
+function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(r, Dict(w => 1))
 end
 
-function demazure_operator(alpha::RootSpaceElem, groupringelem::Dict{WeightLatticeElem, Int})
+function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem, Int})
   dict = Dict{WeightLatticeElem,Int}()
-  for (lambda, dim) in groupringelem
-    sign, weights = _demazure_operator(alpha, lambda)
+  for (w, dim) in groupringelem
+    sign, weights = _demazure_operator(r, w)
     for w in weights
-      dict[w] = get(dict, w, 0) + sign * dim
+      val = get(dict, w, 0) + sign * dim
+      if !is_zero(val)
+        dict[w] = val
+      end
     end
   end
   return dict
 end
 
-function demazure_character(lambda::WeightLatticeElem, x::WeylGroupElem)
+function demazure_character(w::WeightLatticeElem, x::WeylGroupElem)
   reduced_partition = word(x)
-  character = Dict{WeightLatticeElem,Int}(lambda => 1)
+  character = Dict{WeightLatticeElem,Int}(w => 1)
   for i in length(reduced_partition):-1:1
-    character = demazure_operator(simple_roots(lambda.root_system)[reduced_partition[i]], character)
+    character = demazure_operator(simple_roots(w.root_system)[reduced_partition[i]], character)
   end
-  return character
+  return Dict(Int.(_vec(coefficients(w_))) => m for (w_, m) in character)
 end
 
 function demazure_character(R::RootSystem, hw::Vector{<:IntegerUnion}, x::WeylGroupElem)
