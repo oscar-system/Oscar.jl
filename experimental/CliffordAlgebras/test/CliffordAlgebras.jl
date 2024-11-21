@@ -2,7 +2,8 @@
 @testset "all tests" begin
   coeff, _dim_qf, _set_even_odd_coeff!, mul_with_gen, center, centroid, disq,
   quadratic_discriminant = Oscar.coeff, Oscar._dim_qf, Oscar._set_even_odd_coeff!,
-  Oscar._mul_with_gen, Oscar.center, Oscar.centroid, Oscar.disq, Oscar.quadratic_discriminant
+  Oscar._mul_with_gen, Oscar.center, Oscar.centroid, Oscar.disq,
+  Oscar.quadratic_discriminant
 
   @testset "zero-dimensional corner case" begin
     empty_qs = quadratic_space(QQ, identity_matrix(QQ, 0)) #zero-dim quad space over QQ
@@ -10,12 +11,15 @@
     QQzer = [QQ(0)]
     @test is_commutative(C)
     @testset "construction" begin
-      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(empty_qs))}
-      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(C)), typeof(C)}
+      @test typeof(C) ==
+        CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(empty_qs))}
+      @test elem_type(C) ==
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(C)),typeof(C)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
-      @test (base_ring(C), space(C), gram_matrix(C), _dim_qf(C), dim(C)) == (QQ, empty_qs, identity_matrix(QQ,0), 0, 1)
+      @test (base_ring(C), space(C), gram_matrix(C), _dim_qf(C), dim(C)) ==
+        (QQ, empty_qs, identity_matrix(QQ, 0), 0, 1)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
       @test coeff(C()) == QQzer
@@ -64,7 +68,7 @@
 
   @testset "quadratic_field_sqrt(5)" begin
     K, b = quadratic_field(5)
-    a = 1//2*(1 + b)
+    a = 1//2 * (1 + b)
     G = K[2*a 1; 1 2*(1 - a)]
     qsK = quadratic_space(K, G)
     C = clifford_algebra(qsK)
@@ -72,8 +76,9 @@
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
     Kzer = K.([0, 0, 0, 0])
     @testset "construction" begin
-      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qsK))}
-      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qsK)), typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qsK))}
+      @test elem_type(C) ==
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qsK)),typeof(C)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 
@@ -114,7 +119,7 @@
 
       @test +x == x
       @test -x == C([1, -1, -a, -(a + 1)])
-      @test divexact(x, 2) == C([-1//2, 1//2, a//2, (a+1)//2])
+      @test divexact(x, 2) == C([-1//2, 1//2, a//2, (a + 1)//2])
       @test divexact(2 * x, 2) == x && divexact(2 * x, K(2)) == x
     end
     @testset "defining relations" begin
@@ -157,7 +162,8 @@
     end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coeff(x), 1, gram_matrix(C)) == K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
+      @test mul_with_gen(coeff(x), 1, gram_matrix(C)) ==
+        K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
       @test mul_with_gen(coeff(x), 2, gram_matrix(C)) ==
         K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
@@ -171,7 +177,7 @@
 
   @testset "random quaternion alg over rationals" begin
     a, b = QQ(0), QQ(0)
-    while is_zero(a*b)
+    while is_zero(a * b)
       a, b = rand(QQ, -5:5), rand(QQ, -5:5)
     end
     G = diagonal_matrix(2 * a, 2 * b)
@@ -181,8 +187,9 @@
     e(i::Int) = gen(C, i) #e(i) returns the i-th generator of C
     zer = QQ.([0, 0, 0, 0])
     @testset "construction" begin
-      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
-      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
+      @test elem_type(C) ==
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs)),typeof(C)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
@@ -241,8 +248,8 @@
     end
     @testset "center and centroid" begin
       @test center(C) == [one(C)]
-      @test centroid(C) == [one(C), C(QQ.([0,0,0,1]))]
-      @test disq(C) == quadratic_discriminant(C) && disq(C) == -a*b
+      @test centroid(C) == [one(C), C(QQ.([0, 0, 0, 1]))]
+      @test disq(C) == quadratic_discriminant(C) && disq(C) == -a * b
       @test disq(C) == coeff(centroid(C)[2]^2)[1]
     end
   end
@@ -263,8 +270,9 @@
     ein = fill(K(), 2^5)
     ein[1] = K(1)
     @testset "construction" begin
-      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()), typeof(gram_matrix(qs))}
-      @test elem_type(C) == CliffordAlgebraElem{typeof(base_ring(C)()), typeof(gram_matrix(qs)), typeof(C)}
+      @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
+      @test elem_type(C) ==
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs)),typeof(C)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 
@@ -342,14 +350,14 @@
 
     @testset "center and centroid" begin
       @test center(C) == centroid(C)
-      orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2*z, -z^3,
-                0, 0, 2*z^2, 0, -2*z^3, -2*z^3 - 2*z^2 - 2*z - 2,
-                0, z^2, 0, 0, -2*z, 0, 2*z^2, -2*z^3, 0,
-                0, -2*z, 2*z^2, 0, -2*z, 0, 0, 4])
+      orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2 * z, -z^3,
+        0, 0, 2 * z^2, 0, -2 * z^3, -2 * z^3 - 2 * z^2 - 2 * z - 2,
+        0, z^2, 0, 0, -2 * z, 0, 2 * z^2, -2 * z^3, 0,
+        0, -2 * z, 2 * z^2, 0, -2 * z, 0, 0, 4])
       @test centroid(C) == [one(C), orth]
       @test disq(C) == coeff(orth^2)[1]
       @test disq(C) == quadratic_discriminant(C)
-      @test disq(C) == -3*z^3 - 19*z^2 - 3*z + 13
+      @test disq(C) == -3 * z^3 - 19 * z^2 - 3 * z + 13
     end
   end
 
