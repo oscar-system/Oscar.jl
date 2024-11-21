@@ -24,7 +24,8 @@ X_divisor = EffectiveCartierDivisor(X_ideal_sheaf)
 bl_X_divisor = strict_transform(pr1, X_divisor) 
 
 # the canonical divisor of bl_X
-bl_X_canonical_divisor = pullback(inc_bl_X, bl_IA3_canonical_divisor + bl_X_divisor)
+div_sum = bl_IA3_canonical_divisor + bl_X_divisor
+#bl_X_canonical_divisor = pullback(inc_bl_X, div_sum)
 end
 
 
