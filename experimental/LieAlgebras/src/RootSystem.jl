@@ -2166,11 +2166,15 @@ function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeEl
   dict = Dict{WeightLatticeElem,Int}()
   for (w, dim) in groupringelem
     sign, weights = _demazure_operator(r, w)
-    for w in weights
-      val = get(dict, w, 0) + sign * dim
-      if !is_zero(val)
-        dict[w] = val
+    for w_ in weights
+      val = get(dict, w_, 0) + sign * dim
+      if is_zero(val)
+        delete!(dict, w_)
+      else
+        dict[w_] = val
+
       end
+
     end
   end
   return dict
