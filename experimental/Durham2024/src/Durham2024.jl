@@ -11,4 +11,5 @@ function pushforward(p::BlowupMorphism, W::AbsAlgebraicCycle)
 end
 
 include("fixes.jl")
+include("erroxefunctions.jl")
 
