@@ -3,6 +3,7 @@
     F = GF(7, 2)
     o = gen(F)
     Fyz, (y, z) = F[:x, :y]
+    load(joinpath(@__DIR__,"polynomial-example.mrdi");)
     loaded = load(joinpath(@__DIR__,"polynomial-example.mrdi"); params=Fyz)
     @test loaded == 2*y^3*z^4 + 5*o*y + (o + 3)*z^2 + 1
   end
