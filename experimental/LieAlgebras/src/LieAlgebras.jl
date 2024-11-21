@@ -37,6 +37,7 @@ import ..Oscar:
   coefficient_ring,
   coefficients,
   compose,
+  demazure_character,
   derived_series,
   dim,
   direct_sum,

@@ -2132,7 +2132,7 @@ function _demazure_operator(alpha::RootSpaceElem, lambda::WeightLatticeElem)
   fl, index_of_alpha = is_simple_root_with_index(alpha)
   @req fl "not a simple root"
   
-  d = dot(lambda, alpha)
+  d = 2*dot(lambda, alpha)//dot(alpha, alpha)
   list_of_occuring_weights = WeightLatticeElem[]
   
   refl = reflect(lambda, index_of_alpha)
@@ -2173,6 +2173,18 @@ function demazure_operator(alpha::RootSpaceElem, groupringelem::Dict{WeightLatti
   return dict
 end
 
+function demazure_character(lambda::WeightLatticeElem, x::WeylGroupElem)
+  reduced_partition = word(x)
+  character = Dict{WeightLatticeElem,Int}(lambda => 1)
+  for i in length(reduced_partition):-1:1
+    character = demazure_operator(simple_roots(lambda.root_system)[reduced_partition[i]], character)
+  end
+  return character
+end
+
+function demazure_character(R::RootSystem, hw::Vector{<:IntegerUnion}, x::WeylGroupElem)
+  return demazure_character(WeightLatticeElem(R, hw), x)
+end
 
 ###############################################################################
 # internal helpers
