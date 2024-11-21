@@ -132,13 +132,18 @@ function graph_curve(G::Graph; check::Bool=true)
     end
 
     R,_ = graded_polynomial_ring(QQ,Int(nv(G)//2+1))
-    EG = kernel(Oscar.edge_matrix(G);side=:right)
+    rowOfVariables = matrix(R,[gens(R)])
 
-    edgesG = Vector{Int}.(collect(edges(G)))
+    cycleMatrix = kernel(Oscar.edge_matrix(G); side=:right)
+    cycleMatrix = matrix(R,cycleMatrix) # converting to matrix over R for vcat below
+
+    edgesG = collect(edges(G)) # indexes all edges of G
+
     lineIdeals = MPolyIdeal[]
     for v in vertices(G)
-        EGv = matrix(R,EG[findall(edge->(v in edge),edgesG),:])
-        push!(lineIdeals,ideal(minors(vcat(EGv,matrix(R,[gens(R)])),3)))
+        edgesContainingV = findall(edge->(v in edge),edgesG)
+        cycleMatrix_v = cycleMatrix[edgesContainingV,:]
+        push!(lineIdeals,ideal(minors(vcat(cycleMatrix_v,rowOfVariables),3)))
     end
     graphCurveIdeal = reduce(intersect,lineIdeals)
 
