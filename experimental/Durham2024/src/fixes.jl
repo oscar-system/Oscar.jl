@@ -20,7 +20,9 @@ function canonical_divisor(X:: AbsAffineScheme{<:Field, <:MPolyRing})
   return CartierDivisor(covered_scheme(X), ZZ)
 end
 
-
+function self_intersection_via_adjunction(K_X::AbsWeilDivisor, C::AbsWeilDivisor, g::Int)
+ return 2g-2-intersect(K_X, C)
+end
 
 
 
