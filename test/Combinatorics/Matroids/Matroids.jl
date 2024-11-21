@@ -422,10 +422,17 @@
   @testset "matroid_hex" begin
     M = fano_matroid() 
     N = uniform_matroid(2, 4)
+    NN = uniform_matroid(1, 4)
 
     M1 = matroid_from_matroid_hex(matroid_hex(M)) 
     N1 = matroid_from_matroid_hex(matroid_hex(N))
+    NN1 = matroid_from_matroid_hex(matroid_hex(NN))
+
     @test is_isomorphic(M, M1)
     @test is_isomorphic(N, N1)
+
+    @test matroid_hex(NN) == "r1n4_f"
+    @test is_isomorphic(NN, NN1)
+
   end
 end

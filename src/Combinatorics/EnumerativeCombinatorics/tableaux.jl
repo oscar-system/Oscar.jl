@@ -48,7 +48,7 @@ young_tableau
 
 function young_tableau(::Type{T}, v::Vector{Vector{TT}}; check::Bool = true) where {T <: IntegerUnion, TT <: IntegerUnion}
   if check
-    @req _defines_partition(map(length, v)) "The input does not define a Young tableau"
+    @req _defines_partition(map(length, v)) "The input does not define a Young tableau: lengths of rows must be weakly decreasing"
   end
   return YoungTableau{T}(v)
 end
@@ -222,20 +222,24 @@ Return the shape of the tableau `tab`, i.e. the partition given by the lengths
 of the rows of the tableau.
 """
 function shape(tab::YoungTableau{T}) where T
-  return partition(T[ length(tab[i]) for i = 1:length(tab) ], check = false)
+  # Line below DOES NOT CHECK that the lengths of the rows are weakly decreasing
+  return partition(T[ length(tab[i]) for i = 1:length(tab) ]; check = false)
 end
 
 @doc raw"""
     weight(tab::YoungTableau)
 
-Return the weight of the tableau `tab` as an array whose `i`-th element gives
-the number of times the integer `i` appears in the tableau.
+Return the weight sequence of the tableau `tab` as an array whose `i`-th element
+gives the number of times the integer `i` appears in the tableau.
 """
 function weight(tab::YoungTableau)
+  @req  is_semistandard(tab)  "Tableau must be (semi-)standard"
+  
   if isempty(tab)
     return Int[]
   end
 
+  # Computation of max must be changed if we want to permit non-semi-standard YT
   max = 0
   for i = 1:length(tab)
     if max < tab[i][end]

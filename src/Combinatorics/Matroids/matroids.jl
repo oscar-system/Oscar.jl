@@ -278,9 +278,9 @@ function matroid_from_hyperplanes(hyperplanes::Union{AbstractVector{T},AbstractS
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem)
+    matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
 
-A matroid represented by the column vectors of a matrix `A`.
+A matroid represented by the column vectors of a matrix `A`. The value of `check` is currently ignored.
 
 See Section 1.1 of [Oxl11](@cite).
 
@@ -310,13 +310,13 @@ function matroid_from_matrix_columns(A::MatrixElem; check::Bool=true)
         end
     end
 
-    return matroid_from_bases(bases, ncols(A); check=check)
+    return matroid_from_bases(bases, ncols(A); check=false)
 end
 
 @doc raw"""
-    matroid_from_matrix_columns(A::MatrixElem)
+    matroid_from_matrix_rows(A::MatrixElem, check::Bool=true)
 
-A matroid represented by the row vectors of a matrix.
+A matroid represented by the row vectors of a matrix. The value of `check` is currently ignored.
 
 See Section 1.1 of [Oxl11](@cite).
 
