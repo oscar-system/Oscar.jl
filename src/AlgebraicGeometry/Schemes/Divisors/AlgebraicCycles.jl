@@ -454,7 +454,24 @@ Return a cycle ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ I�
 where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  all(is_prime, keys(coefficient_dict(D))) && return D
+  if all(is_prime, keys(coefficient_dict(D))) 
+    coeff_dict = copy(coefficient_dict(D))
+    for (P, c) in coeff_dict
+      for (Q, d) in coeff_dict
+        P === Q && continue
+        P != Q && continue
+        # P == Q from here onwards
+        if c == -d
+          delete!(coeff_dict, P)
+          delete!(coeff_dict, Q)
+        else
+          coefficient_dict(D)[P] = d + c
+          delete!(coeff_dict, Q)
+        end
+      end
+    end
+    return AlgebraicCycle(scheme(D), coefficient_ring(D), coeff_dict; check=false)
+  end
   result = zero(D)
   for (I, a) in coefficient_dict(D)
     next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
