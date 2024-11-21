@@ -183,7 +183,7 @@ end
 
 ################################################################################
 # FqField
-@register_serialization_type FqField "FiniteField" default uses_id
+@register_serialization_type FqField "FiniteField" uses_id
 @register_serialization_type FqFieldElem uses_params
 
 function save_object(s::SerializerState, K::FqField)

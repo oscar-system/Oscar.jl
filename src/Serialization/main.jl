@@ -171,7 +171,7 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_object(s, encode_type(T), type_key)
   else
     type_encoding = encode_type(T)
-    if !(T == reverse_type_map[type_encoding] || T == reverse_type_map[type_encoding]["default"])
+    if !(T == reverse_type_map[type_encoding])
       # here we get "$T" = "fpField"
       # see comment in register_serialization_type
       save_object(s, "$T", :_instance)
@@ -222,7 +222,7 @@ function load_typed_object(s::DeserializerState, key::Symbol; override_params::A
 end
 
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
-  if haskey(s.obj, :_instance)
+  if !(s.obj isa String) && haskey(s.obj, :_instance)
     # to be safe we need this check but there are currently issues
     # see register_serialization_type and construction of the reverse type map
     #s.obj["_instance"] in keys(reverse_type_map[s.obj[type_key]])
@@ -314,18 +314,16 @@ end
 
 ################################################################################
 # Type Registration
-function register_serialization_type(@nospecialize(T::Type), str::String, default=false)
-  if haskey(reverse_type_map, str) || default
-    init = get(reverse_type_map, str, Dict{String, Type}())
+function register_serialization_type(@nospecialize(T::Type), str::String)
+  if haskey(reverse_type_map, str) 
+    init = reverse_type_map[str]
     # promote the value to a dictionary if necessary
     if init isa Type
-      init = Dict{String, Type}("$init" => init)
+      init = Dict{String, Type}(string(init) => init)
     end
     # here we have "$T" = "Nemo.fpField" for example
     # see comment in save_typed_object
-    key = default ? "default" : "$T"
-
-    reverse_type_map[str] = merge(Dict{String, Type}(key => T), init)
+    reverse_type_map[str] = merge(Dict{String, Type}(string(T) => T), init)
   else
     reverse_type_map[str] = T
   end
@@ -349,12 +347,11 @@ serialize_with_id(::Type) = false
 serialize_with_id(obj::Any) = false
 serialize_with_params(::Type) = false
 
-
 function register_serialization_type(ex::Any, str::String, uses_id::Bool,
-                                     uses_params::Bool, attrs::Any, default::Bool)
+                                     uses_params::Bool, attrs::Any)
   return esc(
     quote
-      Oscar.register_serialization_type($ex, $str, $default)
+      Oscar.register_serialization_type($ex, $str)
       Oscar.encode_type(::Type{<:$ex}) = $str
       # There exist types where equality cannot be discerned from the serialization
       # these types require an id so that equalities can be forced upon load.
@@ -414,7 +411,6 @@ indicates which attributes will be serialized when using save with `with_attrs=t
 macro register_serialization_type(ex::Any, args...)
   uses_id = false
   uses_params = false
-  default = false
   str = nothing
   attrs = nothing
   for el in args
@@ -424,8 +420,6 @@ macro register_serialization_type(ex::Any, args...)
       uses_id = true
     elseif el == :uses_params
       uses_params = true
-    elseif el == :default
-      default = true
     else
       attrs = el
     end
@@ -434,7 +428,7 @@ macro register_serialization_type(ex::Any, args...)
     str = string(ex)
   end
 
-  return register_serialization_type(ex, str, uses_id, uses_params, attrs, default)
+  return register_serialization_type(ex, str, uses_id, uses_params, attrs)
 end
 
 
