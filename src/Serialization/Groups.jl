@@ -243,7 +243,7 @@ function save_object(s::SerializerState, G::FinGenAbGroup)
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
-  return abelian_group(load_object(s, Matrix, ZZRingElem))
+  return abelian_group(load_object(s, Matrix{ZZRingElem}))
 end
 
 # elems
@@ -254,5 +254,5 @@ function save_object(s::SerializerState, g::FinGenAbGroupElem)
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
-  return G(vec(load_object(s, Matrix, ZZRingElem)))
+  return G(vec(load_object(s, Matrix{ZZRingElem})))
 end

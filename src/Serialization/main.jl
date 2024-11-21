@@ -201,72 +201,8 @@ function save_type_params(s::SerializerState, T::Type, params::Tuple{Type, S}) w
   end
 end
 
-function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_object(s, encode_type(S), :params)
-  end
-end
-
-function save_type_params(s::SerializerState, T::Type, params::Vector)
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_array(s, :params) do
-      for param in params
-        save_type_params(s, param...)
-      end
-    end
-  end
-end
-
 function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
   save_type_params(s, T, collect(pairs(params)))
-end
-
-# Named Tuples need to preserve order so they are handled seperate from Dict
-function save_type_params(s::SerializerState, T::Type{<:NamedTuple}, params::Vector{<:Pair{Symbol, S}}) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_dict(s, :params) do
-      save_data_array(s, :names) do
-        for param in params
-          save_object(s, param.first)
-        end
-      end
-      save_data_array(s, :tuple_params) do
-        for param in params
-          save_type_params(s, param.second...)
-        end
-      end
-    end
-  end
-end
-
-function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair{S, V}}) where {U, V, S <: Union{Int, String}}
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_dict(s, :params) do
-      save_object(s, encode_type(S), :key_type)
-      isempty(params) && save_object(s, encode_type(U), :value_type)
-      for param in params
-        save_type_params(s, param.second..., Symbol(param.first))
-      end
-    end
-  end
-end
-
-# this function is exactly the same as above, it is here to distinguish from the function below
-function save_type_params(s::SerializerState, T::Type{<:Dict{Symbol, U}}, params::Vector{<:Pair{Symbol, V}}) where {U, V}
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_dict(s, :params) do
-      save_object(s, encode_type(Symbol), :key_type)
-      isempty(params) && save_object(s, encode_type(U), :value_type)
-      for param in params
-        save_type_params(s, param.second..., Symbol(param.first))
-      end
-    end
-  end
 end
 
 function save_type_params(s::SerializerState, T::Type,
@@ -312,73 +248,17 @@ function load_type_params(s::DeserializerState)
     end
     return T, nothing
   end
-
-  !haskey(s, :params) && return T, load_typed_object(s)
-  
-  return load_type_params(s, T)
-end
-
-function load_type_params(s::DeserializerState, T::Type{<: Union{MatVecType, Set}}) 
-  subtype, params = load_type_params(s, :params)
-  return T{subtype}, params
-end
-
-function load_type_params(s::DeserializerState, T::Type{Tuple}) 
-  subtype, params = load_node(s, :params) do _
-    tuple_params = load_array_node(s) do _
-      load_type_params(s)
-    end
-    return collect(zip(tuple_params...))
+  if haskey(s, :params)
+    return T, load_type_params(s, T)
+  else
+    return T, load_typed_object
   end
-  return T{subtype...}, params
 end
 
-function load_type_params(s::DeserializerState, T::Type{NamedTuple})
-  subtype, params = load_node(s, :params) do obj
-    tuple_params = load_array_node(s, :tuple_params) do _
-      load_type_params(s)
-    end
-    tuple_types, named_tuple_params = collect(zip(tuple_params...))
-    names = load_object(s, Vector{Symbol}, :names)
-    return (tuple(names...), Tuple{tuple_types...}), named_tuple_params
+function load_type_params(s::DeserializerState, T::Type)
+  load_node(s, :params) do obj
+    return load_type_params(s)
   end
-  return T{subtype...}, params
-end
-
-function load_type_params(s::DeserializerState, T::Type{Dict}) 
-  subtype, params = load_node(s, :params) do obj
-    S = load_node(s, :key_type) do _
-      decode_type(s)
-    end
-    params_dict = Dict{S, Any}()
-    if S <: Union{String, Symbol, Int}
-      value_types = Type[]
-      for (k, _) in obj
-        k == :key_type && continue
-        if k == :value_type
-          load_node(s, k) do _
-            push!(value_types, decode_type(s))
-          end
-          continue
-        end
-        key = S == Int ? parse(Int, string(k)) : S(k)
-        params_dict[key] = load_type_params(s, k)
-        push!(value_types, params_dict[key][1])
-      end
-      return (S, Union{value_types...}), params_dict
-    else
-      error{"not implented yet"}
-    end
-  end
-  
-  return Dict{subtype...}, params
-end
-
-function load_type_params(s::DeserializerState, T::Type) 
-  subtype, params = load_node(s, :params) do obj
-    load_type_params(s)
-  end
-  return T, params
 end
 
 function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
@@ -400,7 +280,7 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
       params = override_params
     end
   else
-    s.obj isa String && !isnothing(tryparse(UUID, node)) && return load_ref(s)
+    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, type_key) 
   end
   load_node(s, :data) do _
