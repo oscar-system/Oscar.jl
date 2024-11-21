@@ -37,7 +37,7 @@ julia> using Oscar
  / _ \ / ___| / ___|  / \  |  _ \   |  Combining ANTIC, GAP, Polymake, Singular
 | | | |\___ \| |     / _ \ | |_) |  |  Type "?Oscar" for more information
 | |_| | ___) | |___ / ___ \|  _ <   |  Manual: https://docs.oscar-system.org
- \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.2.0-DEV
+ \___/ |____/ \____/_/   \_\_| \_\  |  Version 1.3.0-DEV
 
 julia> k, a = quadratic_field(-5)
 (Imaginary quadratic field defined by x^2 + 5, sqrt(-5))
@@ -70,34 +70,28 @@ Free module of rank 1 over R
 
 julia> s = sub(F, [f*F[1]])[1]
 Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
-represented as subquotient with no relations.
+  1: (x1^2 + x2)*e[1]
+represented as subquotient with no relations
 
 julia> H, mH = hom(s, quo(F, s)[1])
-(hom of (s, Subquotient of
-1 -> e[1]
-by
-1 -> (x1^2 + x2)*e[1]), Map: H -> set of all homomorphisms from s to subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1])
+(hom of (s, Subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: (x1^2 + x2)*e[1]), Map: H -> set of all homomorphisms from s to subquotient of submodule with 1 generator
+  1: e[1]
+by submodule with 1 generator
+  1: (x1^2 + x2)*e[1])
 
 julia> mH(H[1])
-Map with following data
-Domain:
-=======
-Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
-represented as subquotient with no relations.
-Codomain:
-=========
-Subquotient of Submodule with 1 generator
-1 -> e[1]
-by Submodule with 1 generator
-1 -> (x1^2 + x2)*e[1]
+Module homomorphism
+  from s
+  to subquotient of submodule with 1 generator
+    1: e[1]
+  by submodule with 1 generator
+    1: (x1^2 + x2)*e[1]
 ```
 
-Of course, the cornerstones are also available directly:
+Of course, the cornerstones are also available directly. For example:
 
 ```
 julia> C = Polymake.polytope.cube(3);
@@ -120,7 +114,7 @@ pm::Array<topaz::HomologyGroup<pm::Integer> >
 If you have used OSCAR in the preparation of a paper please cite it as described below:
 
     [OSCAR]
-        OSCAR -- Open Source Computer Algebra Research system, Version 1.2.0-DEV,
+        OSCAR -- Open Source Computer Algebra Research system, Version 1.3.0-DEV,
         The OSCAR Team, 2024. (https://www.oscar-system.org)
     [OSCAR-book]
         Wolfram Decker, Christian Eder, Claus Fieker, Max Horn, Michael Joswig, eds.
@@ -133,7 +127,7 @@ If you are using BibTeX, you can use the following BibTeX entries:
       key          = {OSCAR},
       organization = {The OSCAR Team},
       title        = {OSCAR -- Open Source Computer Algebra Research system,
-                      Version 1.2.0-DEV},
+                      Version 1.3.0-DEV},
       year         = {2024},
       url          = {https://www.oscar-system.org},
       }
@@ -147,7 +141,6 @@ If you are using BibTeX, you can use the following BibTeX entries:
       volume = {32},
       edition = {1},
       url = {https://link.springer.com/book/9783031621260},
-      month = {8},
       issn = {1431-1550},
     }
 

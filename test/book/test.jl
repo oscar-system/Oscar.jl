@@ -32,7 +32,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
 
              # somewhat slow (~300s)
              "cornerstones/polyhedral-geometry/ch-benchmark.jlcon",
-             #"specialized/brandhorst-zach-fibration-hopping/vinberg_3.jlcon",
+
+             # not a proper julia input file
+             "specialized/fang-fourier-monomial-bases/sl7-cases.jlcon",
+             "specialized/fang-fourier-monomial-bases/gap.jlcon",
             ]
 
   dispsize = (40, 130)

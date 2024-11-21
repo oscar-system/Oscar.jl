@@ -159,7 +159,6 @@ end
   l = minimal_primes(i, algorithm=:charSets)
   @test length(l) == 2
   @test l[1] == i1 && l[2] == i2 || l[1] == i2 && l[2] == i1
-
   R, (a, b, c, d) = polynomial_ring(ZZ, [:a, :b, :c, :d])
   i = ideal(R, [R(9), (a+3)*(b+3)])
   i1 = ideal(R, [R(3), a])
@@ -232,6 +231,19 @@ end
   R, (x, y) = polynomial_ring(QQ, [:x, :y])
   I = ideal(R, [one(R)])
   @test is_prime(I) == false
+  
+  J = ideal(R, [x*(x-1), y*(y-1), x*y])
+  l = minimal_primes(J)
+  @test length(l) == 3
+  
+  QQt, t = QQ[:t]
+  kk, a = extension_field(t^2 + 1)
+  
+  R, (x, y) = kk[:x, :y]
+  J = ideal(R, [x^2 + 1, y^2 + 1, (x - a)*(y - a)])
+  l = minimal_primes(J)
+  @test length(l) == 3
+
 end
 
 @testset "Groebner" begin
@@ -601,4 +613,3 @@ end
   I = ideal(P, elem_type(P)[])
   @test !radical_membership(x, I)
 end
-

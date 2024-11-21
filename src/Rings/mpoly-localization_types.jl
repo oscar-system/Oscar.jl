@@ -143,6 +143,9 @@ end
 
 Complement of a maximal ideal ``𝔪 = ⟨x₁-a₁,…,xₙ-aₙ⟩⊂ 𝕜[x₁,…xₙ]`` with ``aᵢ∈ 𝕜``.
 
+!!! note 
+The coefficient ring is required to be a field.
+
 ```jldoctest
 julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
@@ -178,6 +181,7 @@ mutable struct MPolyComplementOfKPointIdeal{
     length(a) == ngens(R) || error("the number of variables in the ring does not coincide with the number of coordinates")
     n = length(a)
     kk = coefficient_ring(R)
+    @req kk isa Field "This localization is only available over fields"
     b = kk.(a) # fails if the input is not compatible
     S = new{typeof(kk), elem_type(kk), RingType, elem_type(R)}(R, b)
     return S

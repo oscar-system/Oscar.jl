@@ -4,7 +4,7 @@ julia> P = convex_hull(points)
 Polyhedron in ambient dimension 2
 
 julia> facets(P)
-5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the Halfspaces of R^2 described by:
+5-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^2 described by:
 -x_1 <= 1
 -x_1 + x_2 <= 1
 x_1 - 2*x_2 <= 1

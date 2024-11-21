@@ -530,3 +530,12 @@ function _show_semi_compact(io::IO, C::CartierDivisor, cov::Covering, n::String)
     print(io, Dedent())
   end
 end
+
+function Base.hash(X::CartierDivisor, u::UInt)
+  return u
+end
+
+function Base.hash(X::EffectiveCartierDivisor, u::UInt)
+  return u
+end
+

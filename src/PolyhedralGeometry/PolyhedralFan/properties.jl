@@ -50,7 +50,7 @@ julia> matrix(QQ, rays(NF))
 ```
 The following fan has no rays:
 ```
-julia> IM = IncidenceMatrix([[1,2],[2,3]]);
+julia> IM = incidence_matrix([[1,2],[2,3]]);
 
 julia> R = [1 0 0; 0 1 0; -1 0 0];
 
@@ -212,8 +212,21 @@ julia> cones(PF, 2)
 """
 function cones(PF::_FanLikeType, cone_dim::Int)
   l = cone_dim - length(lineality_space(PF))
-  l < 1 && return nothing
-  return SubObjectIterator{Cone{_get_scalar_type(PF)}}(
+  t = Cone{_get_scalar_type(PF)}
+  (l < 0 || dim(PF) == -1) && return _empty_subobjectiterator(t, PF)
+
+  if l == 0
+    return SubObjectIterator{t}(
+      PF,
+      (_, _, _) -> positive_hull(
+        coefficient_field(PF), zeros(Int, ambient_dim(PF)), lineality_space(PF)
+      ),
+      1,
+      NamedTuple(),
+    )
+  end
+
+  return SubObjectIterator{t}(
     PF, _cone_of_dim, size(Polymake.fan.cones_of_dim(pm_object(PF), l), 1), (c_dim=l,)
   )
 end
@@ -287,7 +300,7 @@ Return the dimension of `PF`.
 This fan in the plane contains a 2-dimensional cone and is thus 2-dimensional
 itself.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> dim(PF)
 2
@@ -304,7 +317,7 @@ Return the number of maximal cones of `PF`.
 The cones given in this construction are non-redundant. Thus there are two
 maximal cones.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> n_maximal_cones(PF)
 2
@@ -321,7 +334,7 @@ Return the number of cones of `PF`.
 The cones given in this construction are non-redundant. There are six
 cones in this fan.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> n_cones(PF)
@@ -441,7 +454,7 @@ This fan consists of two cones, one containing all the points with $y ≤ 0$ and
 one containing all the points with $y ≥ 0$. The fan's lineality is the common
 lineality of these two cones, i.e. in $x$-direction.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2, 3], [3, 4, 1]]), [1 0; 0 1; -1 0; 0 -1])
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2, 3], [3, 4, 1]]), [1 0; 0 1; -1 0; 0 -1])
 Polyhedral fan in ambient dimension 2
 
 julia> lineality_space(PF)
@@ -500,7 +513,7 @@ Determine whether `PF` is smooth.
 Even though the cones of this fan cover the positive orthant together, one of
 these und thus the whole fan is not smooth.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [2, 3]]), [0 1; 2 1; 1 0]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [2, 3]]), [0 1; 2 1; 1 0]);
 
 julia> is_smooth(PF)
 false
@@ -516,7 +529,7 @@ Determine whether `PF` is regular, i.e. the normal fan of a polytope.
 # Examples
 This fan is not complete and thus not regular.
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_regular(PF)
 false
@@ -531,7 +544,7 @@ Determine whether `PF` is pure, i.e. all maximal cones have the same dimension.
 
 # Examples
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_pure(PF)
 false
@@ -547,7 +560,7 @@ dimension.
 
 # Examples
 ```jldoctest
-julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
+julia> PF = polyhedral_fan(incidence_matrix([[1, 2], [3]]), [1 0; 0 1; -1 -1]);
 
 julia> is_fulldimensional(PF)
 true
