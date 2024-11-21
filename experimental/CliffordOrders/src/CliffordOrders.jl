@@ -150,7 +150,7 @@ parent_type(::Type{ZZCliffordOrderElem}) = ZZCliffordOrder
 
 base_ring_type(CO::CliffordOrder{T, C}) where {T, C} = typeof(base_ring(CO))
 
-base_ring_type(CO::ZZCliffordOrder) = ZZRingElem
+base_ring_type(CO::ZZCliffordOrder) = ZZRing
 
 #############################################################
 #
@@ -252,7 +252,7 @@ end
 Return true if the element $x$ is contained in the Clifford order $C$.
 """
 function Base.in(x::CliffordAlgebraElem, C::CliffordOrder)
-  if ambient_algebra(C) === parent(x)
+  if !(ambient_algebra(C) === parent(x))
     return false
   end
   coe, coeids = coeff(x), coefficient_ideals(C)
@@ -261,7 +261,7 @@ function Base.in(x::CliffordAlgebraElem, C::CliffordOrder)
       return false
     end
   end
-  true 
+  return true 
 end
 
 ### ZZ ###
@@ -484,7 +484,7 @@ function Base.show(io::IO, ::MIME"text/plain", C::CliffordOrder)
   print(io, "Clifford order of even lattice over $(base_ring(C)) with Gram matrix\n")
   print(io, Indent())
   show(io, "text/plain", gram_matrix(C))
-  print(io, Dedent(), "\nand coefficient ideals\n")
+  print(io, Dedent(), "\nand coefficient ideals of the lattice\n")
   print(io, Indent())
   show(io, "text/plain", _coefficient_ideals_of_lattice(lattice(C)))
   print(io, Dedent())
@@ -847,14 +847,14 @@ function divexact(x::CliffordOrderElem, elt::T) where {T<:RingElem}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), elt)
   @req res in parent(x) "Not an exact division"
-  return res
+  return parent(x)(res)
 end
 
 function divexact(x::CliffordOrderElem, elt::T) where {T<:Number}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), elt)
   @req res in parent(x) "Not an exact division"
-  return res
+  return parent(x)(res)
 end
 
 ### ZZ ###
@@ -890,14 +890,14 @@ function divexact(x::ZZCliffordOrderElem, a::T) where {T<:RingElem}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), a)
   @req res in parent(x) "Not an exact division"
-  return res
+  return parent(x)(res)
 end
 
 function divexact(x::ZZCliffordOrderElem, a::T) where {T<:Number}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), a)
   @req res in parent(x) "Not an exact division"
-  return res
+  return parent(x)(res)
 end
 
 ################################################################################
@@ -1000,34 +1000,34 @@ _coefficient_ideals_of_lattice(ls::QuadLat) = coefficient_ideals(ls)::Vector{<:N
 function _set_centroid_and_disq!(C::CliffordOrder)
   n = rank(lattice(C))
   if n == 0
-    pb1 = pseudo_basis(C,1)
+    pb1 = pseudo_basis(C, 1)
     C.centroid = pb1
-    C.disq = (coeff(pb1[1]), coefficient_ideals(pb1)[1])
-  end
+    C.disq = (coefficient_ideals(pb1)[1], disq(ambient_algebra(C)))
+  else 
+    br = base_ring(C)
+    z_elt = coeff(centroid(ambient_algebra(C))[2])
+    lambda_empt = z_elt[1]
   
-  br = base_ring(C)
-  z_elt = coeff(centroid(ambient_algebra(C))[2])
-  lambda_empt = z_elt[1]
+    #compute ideal intersection
+    ideal_array = map(i -> !is_zero(z_elt[i]) ? (z_elt[i])^(-1) * coefficient_ideals(C)[i] : fractional_ideal(br, zero(br)), 2:length(z_elt)) 
+    filter!(!is_zero, ideal_array)
+    len = length(ideal_array)
+    c_ideal = ideal_array[1]
+    for i in 2:len
+      c_ideal = lcm(c_ideal, ideal_array[i])
+    end
   
-  #compute ideal intersection
-  ideal_array = map(i -> !is_zero(z_elt[i]) ? (z_elt[i])^(-1) * coefficient_ideals(C)[i] : fractional_ideal(br, zero(br)), 2:length(z_elt)) 
-  filter!(!is_zero, ideal_array)
-  len = length(ideal_array)
-  c_ideal = ideal_array[1]
-  for i in 2:len
-    c_ideal = lcm(c_ideal, ideal_array[i])
-  end
-  
-  if is_zero(lambda_empt)
-    C.disq = tuple(disq(ambient_algebra(C)) * c_ideal^2, disq(ambient_algebra(C)))
-    C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), c_ideal])
-  else
-    z_elt = (2 * lambda_empt)^(-1) .* z_elt
-    c_ideal *= (2 * lambda_empt)
-    b_ideal = lcm(fractional_ideal(br, br(2)), c_ideal)
-    C.disq = tuple(disq(ambient_algebra(C)) * b_ideal^2, disq(ambient_algebra(C)))
-    z_elt[1] += base_ring(ambient_algebra(C))(1//2)
-    b_ideal = lcm(fractional_ideal(br, one(br)), c_ideal)
-    C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), b_ideal])
+    if is_zero(lambda_empt)
+      C.disq = tuple(disq(ambient_algebra(C)) * c_ideal^2, disq(ambient_algebra(C)))
+      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), c_ideal])
+    else
+      z_elt = (2 * lambda_empt)^(-1) .* z_elt
+      c_ideal *= (2 * lambda_empt)
+      b_ideal = lcm(fractional_ideal(br, br(2)), c_ideal)
+      C.disq = tuple(disq(ambient_algebra(C)) * b_ideal^2, disq(ambient_algebra(C)))
+      z_elt[1] += base_ring(ambient_algebra(C))(1//2)
+      b_ideal = lcm(fractional_ideal(br, one(br)), c_ideal)
+      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), b_ideal])
+    end
   end
 end
