@@ -88,15 +88,6 @@ Base.union(C::T, D::T) where T <: AbsProjectiveCurve = ProjectiveCurve(union(und
 
 
 
-function edge_matrix(G::Graph)
-    M = zero_matrix(ZZ, nv(G), ne(G))
-    for (i,e) in enumerate(edges(G))
-        M[src(e),i] = 1
-        M[dst(e),i] = -1
-    end
-    return M
-end
-
 @doc raw"""
     graph_curve(G::Graph)
 
@@ -134,7 +125,7 @@ function graph_curve(G::Graph; check::Bool=true)
     R,_ = graded_polynomial_ring(QQ,Int(nv(G)//2+1))
     rowOfVariables = matrix(R,[gens(R)])
 
-    cycleMatrix = kernel(Oscar.edge_matrix(G); side=:right)
+    cycleMatrix = kernel(matrix(QQ,signed_incidence_matrix(G)); side=:right)
     cycleMatrix = matrix(R,cycleMatrix) # converting to matrix over R for vcat below
 
     edgesG = collect(edges(G)) # indexes all edges of G
