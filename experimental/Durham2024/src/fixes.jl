@@ -82,3 +82,26 @@ function weil_divisor(
   return WeilDivisor(X, ring, ideal_dict; check=false)
 end
 
+function move_divisor(D::AbsWeilDivisor)
+  X = scheme(D)
+  is_zero(D) && return D
+  @assert is_prime(D) "divisor needs to be prime"
+  P = first(components(D))
+  i = findfirst(U->!isone(P(U)), affine_charts(X))
+  i === nothing && error("divisor is trivial")
+  U = affine_charts(X)[i]
+  I = P(U)
+  L, loc = localization(OO(U), complement_of_prime_ideal(I))
+  LP = loc(I)
+  g = gens(saturated_ideal(I))
+  g = sort!(g, by=total_degree)
+  i = findfirst(f->(ideal(L, f) == LP), g)
+  x = g[i]
+  FX = function_field(X)
+  f = FX(x)
+  return D - weil_divisor(f)
+end
+
+
+
+
