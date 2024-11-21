@@ -118,6 +118,11 @@ defined by ideal with 5 generators
 ```
 """
 function graph_curve(G::Graph; check::Bool=true)
+    C,_ = graph_curve_with_vertex_ideals(G; check=check)
+    return C
+end
+
+function graph_curve_with_vertex_ideals(G::Graph; check::Bool=true)
     if check
         @req all(isequal(3),degree(G)) "G is not trivalent"
     end
@@ -130,13 +135,20 @@ function graph_curve(G::Graph; check::Bool=true)
 
     edgesG = collect(edges(G)) # indexes all edges of G
 
-    lineIdeals = MPolyIdeal[]
+    vertexIdeals = MPolyIdeal[]
     for v in vertices(G)
         edgesContainingV = findall(edge->(v in edge),edgesG)
         cycleMatrix_v = cycleMatrix[edgesContainingV,:]
-        push!(lineIdeals,ideal(minors(vcat(cycleMatrix_v,rowOfVariables),3)))
+        push!(vertexIdeals,ideal(minors(vcat(cycleMatrix_v,rowOfVariables),3)))
     end
-    graphCurveIdeal = reduce(intersect,lineIdeals)
+    graphCurveIdeal = reduce(intersect,vertexIdeals)
+    graphCurve = projective_curve(graphCurveIdeal)
 
-    return projective_curve(graphCurveIdeal)
+    return graphCurve, vertexIdeals
+end
+
+function graph_curve_with_vertex_and_edge_ideals(G::Graph)
+    C, vertexIdeals = graph_curve_with_vertex_ideals(G)
+    edgeIdeals = [ vertexIdeals[src(e)] + vertexIdeals[dst(e)] for e in edges(G)]
+    return C, vertexIdeals, radical.(edgeIdeals)  # is radical really necessary?
 end
