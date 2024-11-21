@@ -16,3 +16,12 @@ function getindex(D::AbsAlgebraicCycle, C::AbsAlgebraicCycle)
   return D[first(comps)]
 end
 
+function canonical_divisor(X:: AbsAffineScheme{<:Field, <:MPolyRing}) 
+  return CartierDivisor(covered_scheme(X), ZZ)
+end
+
+
+
+
+
+
