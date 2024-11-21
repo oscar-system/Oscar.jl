@@ -31,6 +31,7 @@
   @testset "< 1.3.0 Upgrade" begin
     load(joinpath(@__DIR__, "GF_2_2.json"));
     load(joinpath(@__DIR__, "GF_2.json"));
+    Oscar.reset_global_serializer_state()
     load(joinpath(@__DIR__, "poly1.0.5.json"));
   end
 end
