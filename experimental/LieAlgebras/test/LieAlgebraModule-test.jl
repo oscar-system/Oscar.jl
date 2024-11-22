@@ -1133,6 +1133,10 @@
       dict = Dict(Int.(Oscar._vec(coefficients(w_))) => m for (w_, m) in dict)
       @test result == dict
     end
+    # The "correct" solution in the below tests has been computed using Magma V2.28-7.
+    # Note that Magma considers right actions of Weyl groups on weights,
+    # so to reproduce one needs to reverse all Weyl words when copying a test case to Magma.
+    
     @testset "Type A" begin
       for n in 2:5
         R = root_system(:A, n)
