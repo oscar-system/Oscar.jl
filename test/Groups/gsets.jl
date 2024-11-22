@@ -367,13 +367,13 @@ end
   @test length(orb) == 3
 
 
-  K = algebraic_closure(QQ)
-  e = one(K)
+  e = one(QQBar)
   s, c = sincospi(2 * e / 3)
   mat_rot = matrix([c -s; s c])
   G = matrix_group(mat_rot)
-  p = K.([1, 0])
+  p = QQBar.([1, 0])
   orb = orbit(G, *, p)
+  @test length(orb) == 3
 
 
 end
