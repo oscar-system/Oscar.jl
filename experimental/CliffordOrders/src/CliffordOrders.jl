@@ -1007,27 +1007,26 @@ function _set_centroid_and_disq!(C::CliffordOrder)
     br = base_ring(C)
     z_elt = coeff(centroid(ambient_algebra(C))[2])
     lambda_empt = z_elt[1]
-  
+
     #compute ideal intersection
     ideal_array = map(i -> !is_zero(z_elt[i]) ? (z_elt[i])^(-1) * coefficient_ideals(C)[i] : fractional_ideal(br, zero(br)), 2:length(z_elt)) 
     filter!(!is_zero, ideal_array)
     len = length(ideal_array)
     c_ideal = ideal_array[1]
     for i in 2:len
-      c_ideal = lcm(c_ideal, ideal_array[i])
+      c_ideal = simplify(lcm(c_ideal, ideal_array[i]))
     end
-  
     if is_zero(lambda_empt)
       C.disq = tuple(disq(ambient_algebra(C)) * c_ideal^2, disq(ambient_algebra(C)))
       C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), c_ideal])
     else
       z_elt = (2 * lambda_empt)^(-1) .* z_elt
       c_ideal *= (2 * lambda_empt)
-      b_ideal = lcm(fractional_ideal(br, br(2)), c_ideal)
-      C.disq = tuple(disq(ambient_algebra(C)) * b_ideal^2, disq(ambient_algebra(C)))
+      b_ideal = simplify(lcm(fractional_ideal(br, br(2)), c_ideal))
+      C.disq = tuple(simplify((2*lambda_empt)^(-2) * disq(ambient_algebra(C)) * b_ideal^2), disq(ambient_algebra(C)))
       z_elt[1] += base_ring(ambient_algebra(C))(1//2)
-      b_ideal = lcm(fractional_ideal(br, one(br)), c_ideal)
-      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), b_ideal])
+      b_ideal = simplify(lcm(fractional_ideal(br, one(br)), c_ideal))
+      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), ([fractional_ideal(br, one(br)), b_ideal]))
     end
   end
 end
