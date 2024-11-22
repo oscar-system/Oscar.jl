@@ -1224,9 +1224,13 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   n = degree(G)
   q = GAP.Obj(order(F))
   V = vector_space(F, n)
-  orbs = GAP.Globals.Orbits(GapObj(G), GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))
-  orbreps = [GAP.Globals.BasisVectors(GAPWrap.Basis(orb[1])) for orb in orbs]
-  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
+  # Note that GAP anyhow unpacks all subspaces.
+  l = GAP.Globals.AsSSortedList(GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))::GapObj
+  ll = GAP.Globals.List(l,
+         GAP.UnwrapJuliaFunc(x -> GAP.Globals.BasisVectors(GAP.Globals.CanonicalBasis(x))))
+  orbs = GAP.Globals.Orbits(GapObj(G), ll, GAP.Globals.OnSubspacesByCanonicalBasis)::GapObj
+  orbreps = [orb[1] for orb in orbs]
+  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
   orbreps1 = [[[F(x) for x in v] for v in bas] for bas in orbreps]::Vector{Vector{Vector{elem_type(F)}}}
   orbreps2 = [sub(V, [V(v) for v in bas])[1] for bas in orbreps1]
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]

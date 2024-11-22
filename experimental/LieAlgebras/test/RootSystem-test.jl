@@ -1,5 +1,5 @@
 @testset "LieAlgebras.RootSystem" begin
-  @testset "conjugate_dominant_weight_with_elem(w::WeightLatticeElem)" begin
+  @testset "conjugate_dominant_weight_with_*_elem(w::WeightLatticeElem)" begin
     for (R, vec) in [
       (root_system(:A, 5), [1, -1, 2, 0, 2]),
       (root_system(:B, 3), [1, 1, 1]),
@@ -10,9 +10,13 @@
       (root_system(:G, 2), [-1, -1]),
     ]
       wt = WeightLatticeElem(R, vec)
-      d, x = conjugate_dominant_weight_with_elem(wt)
+      d, x = conjugate_dominant_weight_with_left_elem(wt)
       @test is_dominant(d)
       @test x * wt == d
+
+      d, x = conjugate_dominant_weight_with_right_elem(wt)
+      @test is_dominant(d)
+      @test wt * x == d
     end
   end
 
@@ -52,7 +56,7 @@
         @test all(i -> negative_root(R, i) == negative_roots(R)[i], 1:npositive_roots)
         @test simple_roots(R) == positive_roots(R)[1:rk]
         @test all(is_root, roots(R))
-        n_roots(R) >= 1 && @test !is_root(root(R, 1) - root(R, 1))
+        @test !is_root(zero(RootSpaceElem, R))
         @test all(r -> !is_root(2 * r), roots(R))
         @test all(is_root_with_index(r) == (true, i) for (i, r) in enumerate(roots(R)))
         @test all(r -> is_positive_root(r) == is_positive_root_with_index(r)[1], roots(R))
@@ -90,7 +94,7 @@
         @test all(i -> negative_coroot(R, i) == negative_coroots(R)[i], 1:npositive_roots)
         @test simple_coroots(R) == positive_coroots(R)[1:rk]
         @test all(is_coroot, coroots(R))
-        n_roots(R) >= 1 && @test !is_coroot(coroot(R, 1) - coroot(R, 1))
+        @test !is_coroot(zero(DualRootSpaceElem, R))
         @test all(r -> !is_coroot(2 * r), coroots(R))
         @test all(is_coroot_with_index(r) == (true, i) for (i, r) in enumerate(coroots(R)))
         @test all(
@@ -130,6 +134,15 @@
         @test length(fundamental_weights(R)) == rank(R)
         @test all(i -> fundamental_weight(R, i) == fundamental_weights(R)[i], 1:rk)
         @test all(w -> w == WeightLatticeElem(RootSpaceElem(w)), fundamental_weights(R))
+        @test all(is_fundamental_weight, fundamental_weights(R))
+        @test all(
+          is_fundamental_weight_with_index(w) == (true, i) for (i, w) in
+          enumerate(fundamental_weights(R))
+        )
+        @test !is_fundamental_weight(zero(WeightLatticeElem, R))
+        rk != 1 && @test !is_fundamental_weight(
+          sum(fundamental_weights(R); init=zero(WeightLatticeElem, R))
+        )
         @test all(
           dot(simple_root(R, i), fundamental_weight(R, j)) ==
           (i == j ? cartan_symmetrizer(R)[i] : 0) for i in 1:rk, j in 1:rk
@@ -143,7 +156,7 @@
         for _ in 1:10
           a = T(R, rand(-10:10, rk))
           b = T(R, rand(-10:10, rk))
-          c = T(R, rand(-10:10, rk))
+          n = rand(-10:10)
 
           test_mutating_op_like_zero(zero, zero!, a)
 
@@ -151,6 +164,16 @@
 
           test_mutating_op_like_add(+, add!, a, b)
           test_mutating_op_like_add(-, sub!, a, b)
+
+          test_mutating_op_like_add(*, mul!, a, n, T)
+          test_mutating_op_like_add(*, mul!, n, a, T)
+          test_mutating_op_like_add(*, mul!, a, ZZ(n), T)
+          test_mutating_op_like_add(*, mul!, ZZ(n), a, T)
+
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, n, T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, n, b, T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, b, ZZ(n), T)
+          test_mutating_op_like_addmul((a, b, c) -> a + b * c, addmul!, a, ZZ(n), b, T)
         end
       end
 
