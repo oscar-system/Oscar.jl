@@ -207,7 +207,7 @@ function  present_finite_extension_ring(F::Oscar.AffAlgHom)
   gJ = elem_type(FM)[FM([j==i ? x : R() for j in 1:g]) for x in gens(V) for i in 1:g]
   U  = vcat(gB, gJ)
   S, _ = sub(FM, U)
-  P = groebner_basis(S, ordering = default_ordering(R)*lex(FM))
+  P = groebner_basis(S, ordering = default_ordering(R)*invlex(FM))
   Rw, _ = grade(R, vcat(repeat([1], b), repeat([0], a)))
   RtoRw = hom(R, Rw, gens(Rw))
   inA = x -> x == zero(Rw) ?  true : (degree(Int, leading_term(RtoRw(x)))) <= 0
