@@ -7,5 +7,7 @@
       "modules.md",
       "module_homs.md",
       "cartan_matrix.md",
+      "root_systems.md",
+      "weyl_groups.md",
    ],
 ]

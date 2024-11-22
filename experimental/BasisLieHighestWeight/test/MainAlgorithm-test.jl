@@ -31,12 +31,6 @@ function check_dimension(
   @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
 end
 
-@testset "is_fundamental" begin
-  R = root_system(:B, 3)
-  @test BasisLieHighestWeight.is_fundamental(WeightLatticeElem(R, [ZZ(0), ZZ(1), ZZ(0)]))
-  @test !BasisLieHighestWeight.is_fundamental(WeightLatticeElem(R, [ZZ(0), ZZ(1), ZZ(1)]))
-end
-
 @testset "sub_weights(_proper)" begin
   sub_weights = BasisLieHighestWeight.sub_weights
   sub_weights_proper = BasisLieHighestWeight.sub_weights_proper
