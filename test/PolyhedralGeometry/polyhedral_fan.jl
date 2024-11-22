@@ -58,10 +58,17 @@
     @test size(cones(F2, 2)) == (2,)
     @test lineality_space(cones(F2, 2)[1]) == [[0, 1, 0]]
     @test rays.(cones(F2, 2)) == [[], []]
-    @test isnothing(cones(F2, 1))
     @test _check_im_perm_rows(ray_indices(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(incidence_matrix(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
+
+    A3 = affine_space(NormalToricVariety, 3)
+    @test length(cones(A3, 1)) == 3
+    @test length(cones(A3, 0)) == 1
+    @test length(cones(A3, -1)) == 0
+    @test cones(A3, 1) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, 0) isa SubObjectIterator{Cone{QQFieldElem}}
+    @test cones(A3, -1) isa SubObjectIterator{Cone{QQFieldElem}}
 
     II = ray_indices(maximal_cones(NFsquare))
     NF0 = polyhedral_fan(II, rays(NFsquare))
