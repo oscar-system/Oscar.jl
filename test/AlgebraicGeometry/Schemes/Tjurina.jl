@@ -194,7 +194,7 @@ end
   @test is_contact_equivalent(L(x^5+y^4), L(x^5*y^4-3*x^5+y^5-y^4))
   @test is_contact_equivalent(L(x^5+y^4), L(x^5-y^4))
   @test is_contact_equivalent(L(x*y), L(x^2-y^2*(x-3)))
-  @test is_contact_equivalent(L(x^5+y^2), L(x^2-(x-y)^5))
+  @test is_contact_equivalent(L(x^5+y^2), L(x^2-(x-y)^5))     # if this test fails minimal_generating_set could be broken
   
   ## pos. char.
   R, (x,y) = GF(5)[:x, :y]
@@ -223,7 +223,7 @@ end
   R, (x,y,z) = QQ[:x, :y, :z]
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0, 0]))  
   @test is_contact_equivalent(zero(L), L(0//(x+1)))
-  @test is_contact_equivalent(L(x^2+y^2), L(y^2+z^2)) 
+  @test is_contact_equivalent(L(x^2+y^2), L(y^2+z^2))      # if this test fails minimal_generating_set is probably broken
   @test !is_contact_equivalent(L(z^2), L(x^2+y^2))
   @test !is_contact_equivalent(L(x^2+y^2), L(x^2+y^2-z^2))
 end
