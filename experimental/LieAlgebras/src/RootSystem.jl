@@ -2131,10 +2131,10 @@ end
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   fl, index_of_r = is_simple_root_with_index(r)
   @req fl "not a simple root"
-  
-  d = 2*dot(w, r)//dot(r, r)
+
+  d = 2 * dot(w, r)//dot(r, r)
   list_of_occuring_weights = WeightLatticeElem[]
-  
+
   refl = reflect(w, index_of_r)
 
   wlelem_r = WeightLatticeElem(r)
@@ -2148,21 +2148,21 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   elseif d < -1
     w += wlelem_r
     push!(list_of_occuring_weights, w)
-    while w != refl-wlelem_r
-      w +=  wlelem_r
+    while w != refl - wlelem_r
+      w += wlelem_r
       push!(list_of_occuring_weights, w)
     end
     return -1, list_of_occuring_weights
   else
     return 0, list_of_occuring_weights
   end
-end 
+end
 
 function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   return demazure_operator(r, Dict(w => 1))
 end
 
-function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem, Int})
+function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,Int})
   dict = Dict{WeightLatticeElem,Int}()
   for (w, dim) in groupringelem
     sign, weights = _demazure_operator(r, w)
@@ -2172,9 +2172,7 @@ function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeEl
         delete!(dict, w_)
       else
         dict[w_] = val
-
       end
-
     end
   end
   return dict

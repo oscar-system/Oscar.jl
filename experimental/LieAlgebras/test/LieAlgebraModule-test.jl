@@ -1136,16 +1136,16 @@
     # The "correct" solution in the below tests has been computed using Magma V2.28-7.
     # Note that Magma considers right actions of Weyl groups on weights,
     # so to reproduce one needs to reverse all Weyl words when copying a test case to Magma.
-    
+
     @testset "Type A" begin
       for n in 2:5
         R = root_system(:A, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
       R = root_system(:A, 2)
       W = weyl_group(R)
@@ -1162,14 +1162,14 @@
 
       #x = s[1]
       dict = Dict([-1, 1] => 1,
-                  [1, 0] => 1)
+        [1, 0] => 1)
       @test demazure_character(fundamental_weight(R, 1), W([1])) == dict
 
-      dict = Dict([0,1] => 1)
+      dict = Dict([0, 1] => 1)
       @test demazure_character(fundamental_weight(R, 2), W([1])) == dict
 
       dict = Dict([-1, 2] => 1,
-                  [1, 1] => 1)      
+        [1, 1] => 1)
       @test demazure_character(weyl_vector(R), W([1])) == dict
 
       #x = s[2]
@@ -1177,80 +1177,80 @@
       @test demazure_character(fundamental_weight(R, 1), W([2])) == dict
 
       dict = Dict([1, -1] => 1,
-                  [0, 1] => 1)
+        [0, 1] => 1)
       @test demazure_character(fundamental_weight(R, 2), W([2])) == dict
 
       dict = Dict([2, -1] => 1,
-                  [1, 1] => 1)
+        [1, 1] => 1)
       @test demazure_character(weyl_vector(R), W([2])) == dict
 
       #x = s[1]*s[2]
       dict = Dict([-1, 1] => 1,
-                  [1, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([1,2])) == dict
+        [1, 0] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([1, 2])) == dict
 
       dict = Dict([-1, 0] => 1,
-                  [1, -1] => 1,
-                  [0, 1] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([1,2])) == dict
+        [1, -1] => 1,
+        [0, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 2), W([1, 2])) == dict
 
       dict = Dict([-1, 2] => 1,
-                  [-2, 1] => 1,
-                  [2, -1] => 1,
-                  [0, 0] => 1,
-                  [1, 1] => 1)
-      @test demazure_character(weyl_vector(R), W([1,2])) == dict
-      
+        [-2, 1] => 1,
+        [2, -1] => 1,
+        [0, 0] => 1,
+        [1, 1] => 1)
+      @test demazure_character(weyl_vector(R), W([1, 2])) == dict
+
       #x = s[2]*s[1]
       dict = Dict([0, -1] => 1,
-                  [-1, 1] => 1,
-                  [1, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([2,1])) == dict
+        [-1, 1] => 1,
+        [1, 0] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([2, 1])) == dict
 
       dict = Dict([1, -1] => 1,
-                  [0, 1] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([2,1])) == dict
+        [0, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 2), W([2, 1])) == dict
 
       dict = Dict([2, -1] => 1,
-                  [1, -2] => 1,
-                  [-1, 2] => 1,
-                  [0, 0] => 1,
-                  [1, 1] => 1)
-      @test demazure_character(weyl_vector(R), W([2,1])) == dict
+        [1, -2] => 1,
+        [-1, 2] => 1,
+        [0, 0] => 1,
+        [1, 1] => 1)
+      @test demazure_character(weyl_vector(R), W([2, 1])) == dict
 
       #x = s[1]*s[2]*s[1]
       dict = Dict([-1, 1] => 1,
-                  [0, -1] => 1,
-                  [1, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([1,2,1])) == dict
+        [0, -1] => 1,
+        [1, 0] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([1, 2, 1])) == dict
 
       dict = Dict([-1, 0] => 1,
-                  [1, -1] => 1,
-                  [0, 1] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([1,2,1])) == dict
+        [1, -1] => 1,
+        [0, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 2), W([1, 2, 1])) == dict
 
       dict = Dict([-1, 2] => 1,
-                  [-2, 1] => 1,
-                  [2, -1] => 1,
-                  [1, -2] => 1,
-                  [-1, -1] => 1,
-                  [0, 0] => 2,
-                  [1, 1] => 1)
-      @test demazure_character(weyl_vector(R), W([1,2,1])) == dict
+        [-2, 1] => 1,
+        [2, -1] => 1,
+        [1, -2] => 1,
+        [-1, -1] => 1,
+        [0, 0] => 2,
+        [1, 1] => 1)
+      @test demazure_character(weyl_vector(R), W([1, 2, 1])) == dict
     end
     @testset "Type B" begin
       for n in 2:4
         R = root_system(:B, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
       R = root_system(:B, 3)
       W = weyl_group(R)
-      
+
       #x = epsilon
       dict = Dict([1, 0, 0] => 1)
       @test demazure_character(fundamental_weight(R, 1), one(W)) == dict
@@ -1266,7 +1266,7 @@
 
       #x = s[1]
       dict = Dict([-1, 1, 0] => 1,
-                  [1, 0, 0] => 1)
+        [1, 0, 0] => 1)
       @test demazure_character(fundamental_weight(R, 1), W([1])) == dict
 
       dict = Dict([0, 1, 0] => 1)
@@ -1276,22 +1276,22 @@
       @test demazure_character(fundamental_weight(R, 3), W([1])) == dict
 
       dict = Dict([-1, 2, 1] => 1,
-                  [1, 1, 1] => 1)
+        [1, 1, 1] => 1)
       @test demazure_character(weyl_vector(R), W([1])) == dict
-      
+
       #x = s[2]
       dict = Dict([1, 0, 0] => 1)
       @test demazure_character(fundamental_weight(R, 1), W([2])) == dict
 
       dict = Dict([1, -1, 2] => 1,
-                  [0, 1, 0] => 1)
+        [0, 1, 0] => 1)
       @test demazure_character(fundamental_weight(R, 2), W([2])) == dict
 
       dict = Dict([0, 0, 1] => 1)
       @test demazure_character(fundamental_weight(R, 3), W([2])) == dict
 
       dict = Dict([2, -1, 3] => 1,
-                  [1, 1, 1] => 1)
+        [1, 1, 1] => 1)
       @test demazure_character(weyl_vector(R), W([2])) == dict
 
       #x = s[3]
@@ -1302,110 +1302,113 @@
       @test demazure_character(fundamental_weight(R, 2), W([3])) == dict
 
       dict = Dict([0, 1, -1] => 1,
-                  [0, 0, 1] => 1)
+        [0, 0, 1] => 1)
       @test demazure_character(fundamental_weight(R, 3), W([3])) == dict
 
       dict = Dict([1, 2, -1] => 1,
-                  [1, 1, 1] => 1)
+        [1, 1, 1] => 1)
       @test demazure_character(weyl_vector(R), W([3])) == dict
 
       #x = s[1]*s[3]
       dict = Dict([-1, 1, 0] => 1,
-                  [1, 0, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([1,3])) == dict
+        [1, 0, 0] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([1, 3])) == dict
 
       dict = Dict([0, 1, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([1,3])) == dict
+      @test demazure_character(fundamental_weight(R, 2), W([1, 3])) == dict
 
       dict = Dict([0, 1, -1] => 1,
-                  [0, 0, 1] => 1)
-      @test demazure_character(fundamental_weight(R, 3), W([1,3])) == dict
+        [0, 0, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 3), W([1, 3])) == dict
 
       dict = Dict([1, 1, 1] => 1,
-                  [-1, 2, 1] => 1,
-                  [-1, 3, -1] => 1,
-                  [1, 2, -1] => 1)
-      @test demazure_character(weyl_vector(R), W([1,3])) == dict
+        [-1, 2, 1] => 1,
+        [-1, 3, -1] => 1,
+        [1, 2, -1] => 1)
+      @test demazure_character(weyl_vector(R), W([1, 3])) == dict
 
       #x=s[3]*s[2]*s[1]
       dict = Dict([0, 0, 0] => 1,
-                  [0, 1, -2] => 1,
-                  [-1, 1, 0] => 1,
-                  [1, 0, 0] => 1,
-                  [0, -1, 2] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([3,2,1])) == dict
+        [0, 1, -2] => 1,
+        [-1, 1, 0] => 1,
+        [1, 0, 0] => 1,
+        [0, -1, 2] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([3, 2, 1])) == dict
 
       dict = Dict([0, 1, 0] => 1,
-                  [1, -1, 2] => 1,
-                  [1, 0, 0] => 1,
-                  [1, 1, -2] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([3,2,1])) == dict
+        [1, -1, 2] => 1,
+        [1, 0, 0] => 1,
+        [1, 1, -2] => 1)
+      @test demazure_character(fundamental_weight(R, 2), W([3, 2, 1])) == dict
 
       dict = Dict([0, 1, -1] => 1,
-                  [0, 0, 1] => 1)                 
-      @test demazure_character(fundamental_weight(R, 3), W([3,2,1])) == dict
+        [0, 0, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 3), W([3, 2, 1])) == dict
 
       dict = Dict([2, 0, 1] => 1,
-                  [1, 2, -3] => 1,
-                  [1, 1, -1] => 1,
-                  [1, 1, 1] => 1,
-                  [0, 3, -3] => 1,
-                  [0, 1, 1] => 1,
-                  [-1, 3, -1] => 1,
-                  [2, -1, 3] => 1,
-                  [0, 0, 3] => 1,
-                  [1, -2, 5] => 1,
-                  [0, 2, -1] => 1,
-                  [-1, 2, 1] => 1,
-                  [1, -1, 3] => 1,
-                  [2, 2, -3] => 1,
-                  [1, 2, -1] => 1,
-                  [1, 0, 1] => 1,
-                  [1, 3, -5] => 1,
-                  [2, 1, -1] => 1)
-      @test demazure_character(weyl_vector(R), W([3,2,1])) == dict
+        [1, 2, -3] => 1,
+        [1, 1, -1] => 1,
+        [1, 1, 1] => 1,
+        [0, 3, -3] => 1,
+        [0, 1, 1] => 1,
+        [-1, 3, -1] => 1,
+        [2, -1, 3] => 1,
+        [0, 0, 3] => 1,
+        [1, -2, 5] => 1,
+        [0, 2, -1] => 1,
+        [-1, 2, 1] => 1,
+        [1, -1, 3] => 1,
+        [2, 2, -3] => 1,
+        [1, 2, -1] => 1,
+        [1, 0, 1] => 1,
+        [1, 3, -5] => 1,
+        [2, 1, -1] => 1)
+      @test demazure_character(weyl_vector(R), W([3, 2, 1])) == dict
 
       #x=s[3]*s[2]*s[3]*s[1]*s[2]*s[3]*s[1]*s[2]
       dict = Dict([1, 0, 0] => 1,
-                  [-1, 1, 0] => 1,
-                  [0, -1, 2] => 1,
-                  [0, 0, 0] => 1,
-                  [1, -1, 0] => 1,
-                  [0, 1, -2] => 1)
-      @test demazure_character(fundamental_weight(R, 1), W([3,2,3,1,2,3,1,2])) == dict
+        [-1, 1, 0] => 1,
+        [0, -1, 2] => 1,
+        [0, 0, 0] => 1,
+        [1, -1, 0] => 1,
+        [0, 1, -2] => 1)
+      @test demazure_character(fundamental_weight(R, 1), W([3, 2, 3, 1, 2, 3, 1, 2])) ==
+        dict
 
       dict = Dict([-1, 2, -2] => 1,
-                  [1, 1, -2] => 1,
-                  [-2, 1, 0] => 1,
-                  [2, -1, 0] => 1,
-                  [0, -1, 0] => 1,
-                  [-1, -1, 2] => 1,
-                  [-1, 1, 0] => 1,
-                  [1, -2, 2] => 1,
-                  [1, 0, 0] => 1,
-                  [-1, 0, 2] => 1,
-                  [1, -1, 0] => 1,
-                  [0, 1, 0] => 1,
-                  [0, 1, -2] => 1,
-                  [1, -1, 2] => 1,
-                  [-1, 1, -2] => 1,
-                  [0, -1, 2] => 1,
-                  [0, 0, 0] => 3,
-                  [1, 0, -2] => 1,
-                  [-1, 0, 0] => 1)
-      @test demazure_character(fundamental_weight(R, 2), W([3,2,3,1,2,3,1,2])) == dict
+        [1, 1, -2] => 1,
+        [-2, 1, 0] => 1,
+        [2, -1, 0] => 1,
+        [0, -1, 0] => 1,
+        [-1, -1, 2] => 1,
+        [-1, 1, 0] => 1,
+        [1, -2, 2] => 1,
+        [1, 0, 0] => 1,
+        [-1, 0, 2] => 1,
+        [1, -1, 0] => 1,
+        [0, 1, 0] => 1,
+        [0, 1, -2] => 1,
+        [1, -1, 2] => 1,
+        [-1, 1, -2] => 1,
+        [0, -1, 2] => 1,
+        [0, 0, 0] => 3,
+        [1, 0, -2] => 1,
+        [-1, 0, 0] => 1)
+      @test demazure_character(fundamental_weight(R, 2), W([3, 2, 3, 1, 2, 3, 1, 2])) ==
+        dict
 
       dict = Dict([0, -1, 1] => 1,
-                  [0, 0, 1] => 1,
-                  [1, 0, -1] => 1,
-                  [-1, 0, 1] => 1,
-                  [0, 0, -1] =>1,
-                  [-1, 1, -1] => 1,
-                  [0, 1, -1] => 1,
-                  [1, -1, 1] => 1)
-      @test demazure_character(fundamental_weight(R, 3), W([3,2,3,1,2,3,1,2])) == dict
+        [0, 0, 1] => 1,
+        [1, 0, -1] => 1,
+        [-1, 0, 1] => 1,
+        [0, 0, -1] => 1,
+        [-1, 1, -1] => 1,
+        [0, 1, -1] => 1,
+        [1, -1, 1] => 1)
+      @test demazure_character(fundamental_weight(R, 3), W([3, 2, 3, 1, 2, 3, 1, 2])) ==
+        dict
 
-      result = demazure_character(weyl_vector(R), W([3,2,3,1,2,3,1,2]))
+      result = demazure_character(weyl_vector(R), W([3, 2, 3, 1, 2, 3, 1, 2]))
       @test length(result) == 124
       @test result[[-3, 3, -3]] == 1
       @test result[[0, 2, -3]] == 7
@@ -1419,10 +1422,10 @@
         R = root_system(:C, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
     @testset "Type D" begin
@@ -1430,10 +1433,10 @@
         R = root_system(:D, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
     @testset "Type E" begin
@@ -1441,10 +1444,10 @@
         R = root_system(:E, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
-        #demazure_character_trivial_tests(R, weyl_vector(R))
-        #demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        #demazure_character_trivial_tests(R, weyl_vector(R)) #takes too long for CI
+        #demazure_character_trivial_tests(R, 2*weyl_vector(R)) #takes too long for CI
       end
     end
     @testset "Type F" begin
@@ -1452,10 +1455,10 @@
         R = root_system(:F, n)
         for i in 1:n
           w = fundamental_weight(R, i)
-          demazure_character_trivial_tests(R, w)          
+          demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        #demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        #demazure_character_trivial_tests(R, 2*weyl_vector(R)) #takes too long for CI
       end
     end
     @testset "Type G" begin
@@ -1466,7 +1469,7 @@
           demazure_character_trivial_tests(R, w)
         end
         demazure_character_trivial_tests(R, weyl_vector(R))
-        demazure_character_trivial_tests(R, 2*weyl_vector(R))
+        demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
   end
