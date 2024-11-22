@@ -157,15 +157,12 @@ end
 # Edge deformations
 #
 ################################################################################
-function edge_deformation(e::Edge,edgeIdeals,edgePairing,vertexIdeals::Vector{MPolyIdeal})
+function edge_deformation(graphCurve,deformationRing::MPolyRing,e::Edge,edgeIdeals,edgePairing,vertexIdeals::Vector{MPolyIdeal})
     v0 = src(e)
     v1 = dst(e)
     lineIdeal = intersect(vertexIdeals[v0], vertexIdeals[v1])
-    println("lineIdeal: ",gens(lineIdeal))
     quadraticGenerator = first(filter(g -> (total_degree(g) == 2), gens(lineIdeal)))
     edgePlane = edge_plane(e,vertexIdeals)
-    println("quadraticGenerator: ",quadraticGenerator)
-    println("edgePlane: ",groebner_basis(edgePlane))
     if length(groebner_basis(edgePlane))>0
         quadraticGenerator = reduce(quadraticGenerator,groebner_basis(edgePlane)) # why is reduce necessary?
     end
@@ -175,7 +172,24 @@ function edge_deformation(e::Edge,edgeIdeals,edgePairing,vertexIdeals::Vector{MP
         l12 = reduce(l12,groebner_basis(edgePlane)) # why is reduce necessary?
     end
     l12 = deformation_sign(quadraticGenerator,l12)*l12
-    return quadraticGenerator,l12
+
+    iota = hom(parent(l12),deformationRing,gens(deformationRing))
+    quadraticGenerator = iota(quadraticGenerator)
+    l12 = iota(l12)
+    edgePlane = iota(edgePlane)
+
+    D = coefficient_ring(deformationRing)
+    eps = first(filter(c->!isone(c),gens(D)))
+    quadraticGeneratorPerp = quadraticGenerator + eps*l12
+
+    hyperbola = edgePlane+ideal([quadraticGeneratorPerp])
+    graphCurveIdeal = vanishing_ideal(graphCurve)
+    graphCurveIdeal = iota(graphCurveIdeal)
+    # hyperbola = intersect(hyperbola,graphCurveIdeal)
+    # hyperbola = saturation(hyperbola,ideal(gens(deformationRing)))
+    hyperbola = hyperbola*graphCurveIdeal
+
+    return first(gens(hyperbola))
 end
 
 function edge_plane(e::Edge,vertexIdeals::Vector{MPolyIdeal})
