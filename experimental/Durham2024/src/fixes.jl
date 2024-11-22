@@ -43,6 +43,7 @@ function _colength_in_localization(I::MPolyIdeal, P::MPolyIdeal)
   U = MPolyComplementOfPrimeIdeal(P)
   L, loc = localization(R, U)
   I_loc = loc(I)
+  @assert !isone(I_loc)
   F = free_module(L, 1)
   IF, inc_IF = I_loc*F
   M = cokernel(inc_IF)
@@ -76,7 +77,7 @@ function weil_divisor(
       # If this component was already seen in another patch, skip it.
       new_comp = PrimeIdealSheafFromChart(X, U, P)
       any(new_comp == PP for PP in keys(ideal_dict)) && continue 
-      c = _colength_in_localization(num_ideal, P)
+      c = _colength_in_localization(den_ideal, P)
       key_list = collect(keys(inc_dict))
       k = findfirst(==(new_comp), key_list)
       if k === nothing
@@ -98,10 +99,15 @@ function weil_divisor(
   return WeilDivisor(X, ring, ideal_dict; check=false)
 end
 
-function move_divisor(D::AbsWeilDivisor)
+function move_divisor(D::AbsWeilDivisor; check::Bool=false)
   X = scheme(D)
   is_zero(D) && return D
-  @assert is_prime(D) "divisor needs to be prime"
+
+  if !is_prime(D)
+    R = coefficient_ring(D)
+    return sum(a*move_divisor(WeilDivisor(D, R; check=false)) for (D, a) in coefficient_dict(irreducible_decomposition(D)); init=WeilDivisor(X, R))
+  end
+
   P = first(components(D))
   i = findfirst(U->!isone(P(U)), affine_charts(X))
   i === nothing && error("divisor is trivial")
@@ -113,9 +119,56 @@ function move_divisor(D::AbsWeilDivisor)
   g = sort!(g, by=total_degree)
   i = findfirst(f->(ideal(L, f) == LP), g)
   x = g[i]
-  kk = base_ring(U)
-  f = function_field(X)(x)
+  f = function_field(X; check)(x)
   return irreducible_decomposition(D - weil_divisor(f))
 end
 
+function is_zero(D::AbsAlgebraicCycle)
+  return all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(D))
+end
 
+function intersect(C::CartierDivisor, D::AbsWeilDivisor)
+  X = scheme(C)
+  @assert X === scheme(D)
+  R = coefficient_ring(C)
+  @assert R === coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  for (E, c) in coefficient_dict(C)
+    result = result + c*intersect(E, D)
+  end
+  return result
+end
+
+function intersect(E::EffectiveCartierDivisor, D::AbsWeilDivisor; check::Bool=true)
+  X = scheme(E)
+  @assert X === scheme(D)
+  R = coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  DD = irreducible_decomposition(D)
+  for (P, a) in coefficient_dict(DD)
+    _, inc_P = sub(P)
+    if is_zero(pullback(inc_P, ideal_sheaf(E)))
+      P_moved = move_divisor(WeilDivisor(X, R, 
+        IdDict{AbsIdealSheaf, elem_type(R)}(
+          [P=>one(R)]); check=false); check=false)
+      result = result + a*intersect(E, P_moved)
+    else
+      result = result + a*AlgebraicCycle(X, R, 
+        IdDict{AbsIdealSheaf, elem_type(R)}(
+          [P + ideal_sheaf(E)=>one(R)]); check=false)
+    end
+  end
+  return result
+end
+
+function is_zero(II::AbsIdealSheaf)
+  return all(iszero(II(U)) for U in affine_charts(scheme(II)))
+end
+
+function +(C::CartierDivisor, E::EffectiveCartierDivisor)
+  return C + 1*E
+end
+
+function -(C::CartierDivisor, E::EffectiveCartierDivisor)
+  return C - 1*E
+end
