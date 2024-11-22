@@ -37,12 +37,34 @@ function _colength_in_localization(I::Ideal, P::Ideal)
   return _colength_in_localization(saturated_ideal(I), saturated_ideal(P))
 end
 
+function _find_principal_generator(I::MPolyLocalizedIdeal)
+  L = base_ring(I)
+  g = gens(I)
+  g = sort!(g, by=x->total_degree(lifted_numerator(x)))
+  for x in g
+    is_zero(x) && continue
+    ideal(L, x) == I && return x
+  end
+  error("no principal generator found")
+end
+
 function _colength_in_localization(I::MPolyIdeal, P::MPolyIdeal)
   R = base_ring(I)
   @assert R === base_ring(P)
   U = MPolyComplementOfPrimeIdeal(P)
   L, loc = localization(R, U)
   I_loc = loc(I)
+  P_loc = loc(P)
+  x = _find_principal_generator(P_loc)
+  y = one(L)
+  k = 0
+  while true
+    y in I && return k
+    y = y*x
+    k += 1
+  end
+    
+
   @assert !isone(I_loc)
   F = free_module(L, 1)
   IF, inc_IF = I_loc*F
