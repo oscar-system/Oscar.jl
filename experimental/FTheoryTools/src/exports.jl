@@ -219,3 +219,4 @@ export weighted_resolutions
 export weights
 export zero_section
 export zero_section_class
+export zero_section_index
