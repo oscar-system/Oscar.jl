@@ -1474,6 +1474,10 @@ julia> dim_of_simple_module(R, [1, 0])
 5
 ```
 """
+function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
+  return dim_of_simple_module(Int, R, hw)
+end
+
 function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
@@ -1493,22 +1497,16 @@ function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion}
 end
 
 function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(Int, R, hw)
-end
-
-function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
-  return dim_of_simple_module(Int, R, hw)
+  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
 end
 
 @doc raw"""
-    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
-    dominant_weights([T = WeightLatticeElem,] R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+    dominant_weights(R::RootSystem, hw::WeightLatticeElem) -> Vector{WeightLatticeElem}
+    dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{WeightLatticeElem}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`,
 sorted ascendingly by the total height of roots needed to reach them from `hw`.
-
-When supplying `T = Vector{Int}`, the weights are returned as vectors of integers.
 
 See [MP82](@cite) for details and the implemented algorithm.
 
@@ -1516,7 +1514,7 @@ See [MP82](@cite) for details and the implemented algorithm.
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
+julia> dominant_weights(R, [3, 0, 1])
 7-element Vector{Vector{Int64}}:
  [3, 0, 1]
  [1, 1, 1]
@@ -1528,14 +1526,6 @@ julia> dominant_weights(Vector{Int}, R, [3, 0, 1])
 ```
 """
 function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
-  return dominant_weights(WeightLatticeElem, R, hw)
-end
-
-function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(::Type{WeightLatticeElem}, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
 
@@ -1560,15 +1550,8 @@ function dominant_weights(::Type{WeightLatticeElem}, R::RootSystem, hw::WeightLa
   return first.(sort!(collect(ws_with_level); by=last)) # order by level needed for dominant_character
 end
 
-function dominant_weights(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(T, R, WeightLatticeElem(R, hw))
-end
-
-function dominant_weights(
-  ::Type{T}, R::RootSystem, hw::WeightLatticeElem
-) where {T<:Vector{<:IntegerUnion}}
-  weights = dominant_weights(WeightLatticeElem, R, hw)
-  return [T(_vec(coefficients(w))) for w in weights]
+function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_weights(R, WeightLatticeElem(R, hw))
 end
 
 function _action_matrices_on_weights(W::WeylGroup)
@@ -1582,13 +1565,11 @@ function _action_matrices_on_weights(W::WeylGroup)
 end
 
 @doc raw"""
-    dominant_character(R::RootSystem, hw::WeightLatticeElem) -> Dict{Vector{Int}, Int}
-    dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{Vector{Int}, Int}}
+    dominant_character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
+    dominant_character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`, together with their multiplicities.
-
-The return type may change in the future.
 
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
@@ -1605,16 +1586,10 @@ Dict{Vector{Int64}, Int64} with 4 entries:
 ```
 """
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  char = _dominant_character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return dominant_character(Int, R, hw)
 end
 
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
-end
-
-function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
-  T = Int
+function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
   W = weyl_group(R)
@@ -1632,7 +1607,7 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   all_orbs = Dict{Vector{Int},Vector{Tuple{WeightLatticeElem,Int}}}()
   action_matrices_on_weights = _action_matrices_on_weights(W)
 
-  for w in Iterators.drop(todo, 1)
+  for w in Iterators.drop(todo, 1) # drop hw as its multiplicity is already known
     stab_inds = [i for (i, ci) in enumerate(coefficients(w)) if iszero(ci)]
     orbs = get!(all_orbs, stab_inds) do
       gens = action_matrices_on_weights[stab_inds]
@@ -1674,9 +1649,17 @@ function _dominant_character(R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
+function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(R, WeightLatticeElem(R, hw))
+end
+
+function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(T, R, WeightLatticeElem(R, hw))
+end
+
 @doc raw"""
-    character(R::RootSystem, hw::WeightLatticeElem) -> Vector{T}
-    character(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{T}
+    character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
+    character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes all weights occurring in the simple module of the Lie algebra defined by the root system `R`
 with highest weight `hw`, together with their multiplicities.
@@ -1701,19 +1684,13 @@ Dict{Vector{Int64}, Int64} with 8 entries:
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)
-  char = _character(R, hw)
-  return Dict(Int.(_vec(coefficients(w))) => m for (w, m) in char)
+  return character(Int, R, hw)
 end
 
-function character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(R, WeightLatticeElem(R, hw))
-end
-
-function _character(R::RootSystem, hw::WeightLatticeElem)
-  T = Int
+function character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
-  dom_char = _dominant_character(R, hw)
+  dom_char = dominant_character(T, R, hw)
   char = Dict{WeightLatticeElem,T}()
 
   for (w, m) in dom_char
@@ -1723,6 +1700,14 @@ function _character(R::RootSystem, hw::WeightLatticeElem)
   end
 
   return char
+end
+
+function character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(R, WeightLatticeElem(R, hw))
+end
+
+function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(T, R, WeightLatticeElem(R, hw))
 end
 
 @doc raw"""
@@ -1769,7 +1754,7 @@ function tensor_product_decomposition(
 
   mults = multiset(WeightLatticeElem)
   for (w_, m) in dominant_character(R, hw1)
-    for w in weyl_orbit(WeightLatticeElem(R, w_))
+    for w in weyl_orbit(w_)
       add!(w, hw2_plus_rho)
       w_dom, x = conjugate_dominant_weight_with_left_elem!(w)
       if all(!iszero, coefficients(w_dom))
@@ -1795,7 +1780,7 @@ function tensor_product_decomposition(
 end
 
 ###############################################################################
-#demazures charcter formula
+# demazures charcter formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   fl, index_of_r = is_simple_root_with_index(r)
   @req fl "not a simple root"

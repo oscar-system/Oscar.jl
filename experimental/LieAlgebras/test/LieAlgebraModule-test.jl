@@ -1128,7 +1128,7 @@
       W = weyl_group(R)
 
       char = demazure_character(R, w, longest_element(W))
-      @test char == Oscar.LieAlgebras._character(R, w) # TODO: update me once #4344 is merged
+      @test char == character(R, w)
       @test char isa Dict{WeightLatticeElem,Int}
 
       char = demazure_character(R, w, one(W))
