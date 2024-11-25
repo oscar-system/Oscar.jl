@@ -667,6 +667,10 @@ function _find_principal_generator(I::Union{<:MPolyLocalizedIdeal, <:MPolyQuoLoc
 end
 
 # produce the principal divisor associated to a rational function
+function principal_divisor(::Type{WeilDivisor}, f::VarietyFunctionFieldElem; 
+    ring::Ring=ZZ, covering::Covering=default_covering(scheme(f))
+  ) = weil_divisor(f; ring; covering)
+  
 function weil_divisor(
     f::VarietyFunctionFieldElem; 
     ring::Ring=ZZ, covering::Covering=default_covering(scheme(f))
