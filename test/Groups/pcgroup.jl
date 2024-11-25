@@ -114,7 +114,7 @@ end
 
   x = G[1]^5*G[2]^-4
   sylls = syllables(x)
-  @test sylls == [1 => ZZ(1), 2 => ZZ(1)] # check general usage
+  @test sylls == [1 => ZZ(1), 2 => ZZ(2)] # check general usage
   @test G(sylls) == x # check if equivalent
 
   sylls = [1 => ZZ(1), 2 => ZZ(2), 1 => ZZ(3)]
