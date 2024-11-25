@@ -83,49 +83,56 @@ end
   @test cgg !== c.X
 end
 
-@testset "generate letters from polycyclic group element" begin
+@testset "create letters from polycyclic group elements" begin
 
   # finite polycyclic groups
-  c = collector(2, Int);
-  set_relative_order!(c, 1, 2)
-  set_relative_order!(c, 2, 3)
-  set_power!(c, 1, [2 => 1])
-  gg = pc_group(c)
-  @test letters(gg[1]^5*gg[2]^-4) == [1, 2]
-  @test letters(gg[1]^5*gg[2]^4) == [1] # all positive exp
-  @test letters(gg[1]^-5*gg[2]^-7) == [1, 2, 2] # all negative exp
-  @test letters(gg[1]^2*gg[2]^3) == [2] # both identity elements
+  G = small_group(6, 1)
+  @test letters(G[1]^5*G[2]^-4) == [1, 2, 2]
+  @test letters(G[1]^5*G[2]^4) == [1, 2] # all positive exp
+  @test letters(G[1]^-5*G[2]^-7) == [1, 2, 2] # all negative exp
+  @test letters(G[1]^2*G[2]^3) == [] # both identity elements
 
-  # finite polycyclic subgroup
-  gg = pc_group(symmetric_group(4))
-  G = derived_subgroup(gg)[1]
-  @test letters(G[1]^2) == [2, 2]
-  @test letters(G[1]^2*G[2]^3*G[3]^3) == [2, 2, 3, 4]
-  @test letters(G[1]^-2*G[2]^-3*G[3]^-3) == [2, 3, 4]
+  # finite polycyclic subgroups
+  G = pc_group(symmetric_group(4))
+  H = derived_subgroup(G)[1]
+  @test letters(H[1]^2) == [2, 2]
+  @test letters(H[1]^2*H[2]^3*H[3]^3) == [2, 2, 3, 4] # all positive exp
+  @test letters(H[1]^-2*H[2]^-3*H[3]^-3) == [2, 3, 4] # all negative exp
+  @test letters(H[1]^3*H[2]^4*H[3]^2) == [] # all identity elements
+
+  # infinite polycyclic groups
+  G = abelian_group(PcGroup, [5, 0])
+  @test letters(G[1]^3) == [1, 1, 1]
+  @test letters(G[1]^4*G[2]^3) == [1, 1, 1, 1, 2, 2, 2] # all positive exp
+  @test letters(G[1]^-2*G[2]^-5) == [1, 1, 1, -2, -2, -2, -2, -2] # all negative exp
+  @test letters(G[1]^5*G[2]^-3) == [-2, -2, -2] # one identity element
 end
 
 @testset "create polycyclic group element from syllables" begin
-
   # finite polycyclic groups
-  c = collector(2, Int);
-  set_relative_order!(c, 1, 2)
-  set_relative_order!(c, 2, 3)
-  set_power!(c, 1, [2 => 1])
-  gg = pc_group(c)
+  G = small_group(6, 1)
 
-  element = gg[1]^5*gg[2]^-4
-  sylls = syllables(element)
+  x = G[1]^5*G[2]^-4
+  sylls = syllables(x)
   @test sylls == [1 => ZZ(1), 2 => ZZ(1)] # check general usage
-  @test gg(sylls) == element # this will pass the check
+  @test G(sylls) == x # check if equivalent
 
   sylls = [1 => ZZ(1), 2 => ZZ(2), 1 => ZZ(3)]
-  @test_throws ArgumentError gg(sylls) # repeating generators
+  @test_throws ArgumentError G(sylls) # repeating generators
 
   sylls = [2 => ZZ(1), 1 => ZZ(2)]
-  @test_throws ArgumentError gg(sylls) # not in ascending order
+  @test_throws ArgumentError G(sylls) # not in ascending order
 
-  sylls = [2 => ZZ(1), 1 => ZZ(2), 1 => ZZ(3)] # both conditions
-  @test_throws ArgumentError gg(sylls)
+  sylls = [2 => ZZ(1), 1 => ZZ(2), 1 => ZZ(3)]
+  @test_throws ArgumentError G(sylls) # both conditions
+
+  # infinite polycyclic groups
+  G = abelian_group(PcGroup, [5, 0])
+
+  x = G[1]^3*G[2]^-5
+  sylls = syllables(x)
+  @test sylls == [1 => ZZ(3), 2 => ZZ(-5)] # check general usage
+  @test G(sylls) == x # check if equivalent
 end
   
 @testset "create collectors from polycyclic groups" begin
