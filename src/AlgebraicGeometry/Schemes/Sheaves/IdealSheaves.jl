@@ -2329,3 +2329,12 @@ function colength(I::AbsIdealSheaf; covering::Covering=default_covering(scheme(I
   end
   return result
 end
+
+function is_zero(II::AbsIdealSheaf)
+  return all(iszero(II(U)) for U in affine_charts(scheme(II)))
+end
+
+function is_zero(II::PrimeIdealSheafFromChart)
+  return is_zero(II(original_chart(II)))
+end
+

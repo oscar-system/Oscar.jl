@@ -88,6 +88,10 @@ function +(C::CartierDivisor, D::CartierDivisor)
   return CartierDivisor(ambient_scheme(C), coefficient_ring(C), coeff_dict)
 end
 
+function -(C::CartierDivisor, E::EffectiveCartierDivisor)
+  return C - 1*E
+end
+
 function +(C::CartierDivisor, D::EffectiveCartierDivisor) 
   return C + CartierDivisor(D)
 end

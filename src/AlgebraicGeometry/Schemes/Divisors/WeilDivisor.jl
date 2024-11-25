@@ -630,3 +630,208 @@ function order_of_vanishing(
   I = components(D)[1]
   return order_of_vanishing(f, I, check=false)
 end
+
+# Compute the colength of I_P in the localization R_P.
+# This assumes that R itself is a domain and that I is of height 1. 
+# Then there exists a regular 
+# point on Spec(R) and hence R_P is also regular and a UFD. 
+# Being of height 1, I_P must then be principal.
+function _colength_in_localization(I::Ideal, P::Ideal)
+  R = base_ring(I)
+  @assert R === base_ring(P)
+  U = MPolyComplementOfPrimeIdeal(saturated_ideal(P); check=false)
+  L, loc = localization(R, U)
+  I_loc = loc(I)
+  @assert base_ring(I_loc) === L
+  P_loc = loc(P)
+  x = _find_principal_generator(P_loc)
+  y = one(L)
+  k = 0
+  while true
+    (y in I_loc) && return k
+    y = y*x
+    k += 1
+  end
+    
+  return _colength_in_localization(saturated_ideal(I), saturated_ideal(P))
+end
+
+# same assumptions as above apply.
+function _find_principal_generator(I::Union{<:MPolyLocalizedIdeal, <:MPolyQuoLocalizedIdeal})
+  L = base_ring(I)
+  g = gens(I)
+  g = sort!(g, by=x->total_degree(lifted_numerator(x)))
+  for x in g
+    is_zero(x) && continue
+    ideal(L, x) == I && return x
+  end
+  error("no principal generator found")
+end
+
+# produce the principal divisor associated to a rational function
+function weil_divisor(
+    f::VarietyFunctionFieldElem; 
+    ring::Ring=ZZ, covering::Covering=default_covering(scheme(f))
+  )
+  @vprint :Divisors 4 "calculating principal divisor for $f\n"
+  X = scheme(f)
+  ideal_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
+  for U in patches(covering)
+    @vprint :Divisors 4 "doing patch $U\n"
+    inc_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
+    f_loc = f[U]
+    num = numerator(f_loc)
+    den = denominator(f_loc)
+    num_ideal = ideal(OO(U), num)
+    den_ideal = ideal(OO(U), den)
+    num_dec = primary_decomposition(num_ideal)
+    den_dec = primary_decomposition(den_ideal)
+    @vprint :Divisors 4 "  numerator:\n"
+    for (_, P) in num_dec
+      @vprint :Divisors 4 "    $P\n"
+      # If this component was already seen in another patch, skip it.
+      new_comp = PrimeIdealSheafFromChart(X, U, P)
+      @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
+      any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      c = _colength_in_localization(num_ideal, P)
+      @vprint :Divisors 4 "    multiplicity $c\n"
+      inc_dict[new_comp] = c
+    end
+    @vprint :Divisors 4 "  denominator:\n"
+    for (_, P) in den_dec
+      # If this component was already seen in another patch, skip it.
+      new_comp = PrimeIdealSheafFromChart(X, U, P)
+      @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
+      any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      c = _colength_in_localization(den_ideal, P)
+      @vprint :Divisors 4 "    multiplicity $c\n"
+      key_list = collect(keys(inc_dict))
+      k = findfirst(==(new_comp), key_list)
+      if k === nothing
+        is_zero(c) && continue
+        inc_dict[new_comp] = -c
+      else
+        d = inc_dict[key_list[k]]
+        if c == d
+          delete!(inc_dict, key_list[k])
+          continue
+        end
+        inc_dict[key_list[k]] = d - c
+      end
+    end
+    for (pp, c) in inc_dict
+      ideal_dict[pp] = c
+    end
+  end
+  return WeilDivisor(X, ring, ideal_dict; check=false)
+end
+
+@doc raw"""
+    move_divisor(D::AbsWeilDivisor; check::Bool=false)
+
+Given an `AbsWeilDivisor` `D` on a scheme `X`, create a principal divisor 
+`div(f)` for some rational function, so that `D - div(f)` is supported 
+away from the original support of `D`.
+
+Keyword arguments:
+  * `randomization`: By default, the choices made to create `f` keep it as simple as possible. However, one might encounter constellations where this will just swap two components of `D`. In order to avoid this, one can then switch on randomization here. 
+  * `is_prime`: Set this to `true` if you know your divisor `D` to already be prime and avoid expensive internal checks.
+"""
+function move_divisor(
+    D::AbsWeilDivisor; 
+    check::Bool=false,
+    randomization::Bool=false,
+    is_prime::Bool=false
+  )
+  X = scheme(D)
+  @check is_irreducible(X) && is_reduced(X) "scheme must be irreducible and reduced"
+  is_zero(D) && return D
+
+  if !is_prime && !Oscar.is_prime(D)
+    R = coefficient_ring(D)
+    return sum(a*move_divisor(WeilDivisor(D, R; check=false)) for (D, a) in coefficient_dict(irreducible_decomposition(D)); init=WeilDivisor(X, R))
+  end
+
+  # We may assume that `D` is prime.
+  P = first(components(D))
+  # find a chart where the support is visible
+  i = findfirst(U->!isone(P(U)), affine_charts(X))
+  i === nothing && error("divisor is trivial")
+  U = affine_charts(X)[i]
+  I = P(U)
+  L, loc = localization(OO(U), complement_of_prime_ideal(I))
+  LP = loc(I)
+  # Find a principal generator for the local ideal.
+  # This works, because we assume that `X` is irreducible and reduced.
+  # Then there is at least one smooth point on `U` and therefore `LP` 
+  # is regular. Regular domains are UFD and an ideal of height 1 is 
+  # principal there. 
+  g = gens(saturated_ideal(I))
+  g = sort!(g, by=total_degree)
+  i = findfirst(f->(ideal(L, f) == LP), g)
+  x = g[i]
+  f = function_field(X; check)(x)
+  if randomization
+    kk = base_ring(X)
+    R = ambient_coordinate_ring(U)
+    y = rand(kk, 1:10) + sum(rand(kk, 1:10)*a for a in gens(R); init=zero(R))
+    f = f*inv(parent(f)(y))
+  end
+  result = irreducible_decomposition(D - weil_divisor(f))
+  # Check whether the supports are really different
+  if any(any(P == Q for Q in components(D)) for P in components(result))
+    @show "switched component"
+    return move_divisor(D; randomization=true, check, is_prime)
+  end
+  return result
+end
+
+function is_zero(D::AbsAlgebraicCycle)
+  return all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(D))
+end
+
+# Internal method which performs an automated move of the second argument
+# if things are not in sufficiently general position. 
+# The problem is: We have no way to check whether a variety is proper over 
+# its base field. But the output is only valid if that is true. 
+# Therefore, we have no choice, but to hide it from the user for now.
+function _intersect(C::CartierDivisor, D::AbsWeilDivisor)
+  X = scheme(C)
+  @assert X === scheme(D)
+  R = coefficient_ring(C)
+  @assert R === coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  for (E, c) in coefficient_dict(C)
+    result = result + c*_intersect(E, D)
+  end
+  return result
+end
+
+function _intersect(E::EffectiveCartierDivisor, D::AbsWeilDivisor; check::Bool=true)
+  X = scheme(E)
+  @assert X === scheme(D)
+  R = coefficient_ring(D)
+  result = AlgebraicCycle(X, R)
+  cpcd = copy(coefficient_dict(D))
+  DD = irreducible_decomposition(D)
+  cpcd = copy(coefficient_dict(DD))
+  for (P, a) in coefficient_dict(DD)
+    _, inc_P = sub(P)
+    # WARNING: The heuristic implemented below might still run into an infinite loop!
+    # We have to think about how this can effectively be avoided. See the test file 
+    # for an example.
+    if is_zero(pullback(inc_P, ideal_sheaf(E)))
+      P_moved = move_divisor(WeilDivisor(X, R, 
+        IdDict{AbsIdealSheaf, elem_type(R)}(
+          [P=>one(R)]); check=false); check=false, randomization=true, is_prime=true)
+      result = result + a*_intersect(E, P_moved)
+    else
+      result = result + a*AlgebraicCycle(X, R, 
+        IdDict{AbsIdealSheaf, elem_type(R)}(
+          [P + ideal_sheaf(E)=>one(R)]); check=false)
+    end
+  end
+  return result
+end
+
+

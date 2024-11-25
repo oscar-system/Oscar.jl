@@ -86,9 +86,9 @@ integral(Int123);
 E2_sub, inc_E2 = sub(ideal_sheaf(E2_final))
 pb_E1 = pullback(inc_E2, E1_final)
 pb_E1_weil = weil_divisor(pb_E1)
-int1 = integral(intersect(pb_E1, pb_E1_weil))
+int1 = integral(Oscar._intersect(pb_E1, pb_E1_weil))
 move = Oscar.move_divisor(pb_E1_weil)
-int2 = integral(intersect(pb_E1, move))
+int2 = integral(Oscar._intersect(pb_E1, move))
 @test int1 == int2
 
 
