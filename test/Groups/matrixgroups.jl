@@ -622,7 +622,7 @@ end
    lc = x*H
    @test order(lc)==order(H)
    @test representative(lc)==x
-   @test acting_domain(lc)==H
+   @test acting_group(lc)==H
    @test x in lc
    C = centralizer(G,x)[1]
    @test order(C)==64

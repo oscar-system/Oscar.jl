@@ -577,3 +577,7 @@ function getindex(D::AbsAlgebraicCycle, C::AbsAlgebraicCycle)
   return D[first(comps)]
 end
 
+function Base.hash(X::AbsAlgebraicCycle, u::UInt)
+  return u
+end
+

@@ -10,7 +10,7 @@
 @doc raw"""
     weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
 
-Returns the Weyl group defined by a generalized Cartan matrix `cartan_matrix`.
+Construct the Weyl group defined by the given (generalized) Cartan matrix.
 """
 function weyl_group(cartan_matrix::ZZMatrix)
   return weyl_group(root_system(cartan_matrix))
@@ -19,7 +19,9 @@ end
 @doc raw"""
     weyl_group(fam::Symbol, rk::Int) -> WeylGroup
 
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+Construct the Weyl group of the given type.
+
+The input must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
 
 # Examples
 ```jldoctest
@@ -35,27 +37,40 @@ end
 
 @doc raw"""
     weyl_group(type::Vector{Tuple{Symbol,Int}}) -> WeylGroup
+    weyl_group(type::Tuple{Symbol,Int}...) -> WeylGroup
 
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
+Construct the Weyl group of the given type.
+
+Each element of `type` must be a valid Cartan type, see [`is_cartan_type(::Symbol, ::Int)`](@ref).
+The vararg version needs at least one element.
+
+# Examples
+```jldoctest
+julia> weyl_group([(:G, 2), (:D, 4)])
+Weyl group
+  of root system of rank 6
+    of type G2 x D4
+```
 """
 function weyl_group(type::Vector{Tuple{Symbol,Int}})
   return weyl_group(root_system(type))
 end
 
-@doc raw"""
-    weyl_group(type::Tuple{Symbol,Int}...) -> WeylGroup
-
-Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::Int)` for allowed combinations.
-"""
-function weyl_group(type::Tuple{Symbol,Int}...)
-  return weyl_group(root_system(collect(type)))
+function weyl_group(type1::Tuple{Symbol,Int}, type::Tuple{Symbol,Int}...)
+  return weyl_group(root_system([type1; type...]))
 end
 
 @doc raw"""
-    (W::WeylGroup)(word::Vector{Int}) -> WeylGroupElem
+    (W::WeylGroup)(word::Vector{<:Integer}) -> WeylGroupElem
+
+Construct a Weyl group element from the given word.
+
+The word must be a list of integers, where each integer is the index of a simple reflection.
+
+If the word is known to be in reduced form, the normalization can be skipped by setting `normalize=false`.
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
-  return WeylGroupElem(W, word; normalize=normalize)
+  return WeylGroupElem(W, word; normalize)
 end
 
 function Base.IteratorSize(::Type{WeylGroup})
@@ -81,7 +96,9 @@ function Base.iterate(W::WeylGroup, state::WeylIteratorNoCopyState)
 end
 
 @doc raw"""
-    isfinite(W::WeylGroup) -> Bool
+    is_finite(W::WeylGroup) -> Bool
+
+Return whether `W` is finite.
 """
 function is_finite(W::WeylGroup)
   return W.finite
@@ -89,6 +106,8 @@ end
 
 @doc raw"""
     one(W::WeylGroup) -> WeylGroupElem
+
+Return the identity element of `W`.
 """
 function Base.one(W::WeylGroup)
   return W(UInt8[]; normalize=false)
@@ -126,7 +145,7 @@ end
 @doc raw"""
     gen(W::WeylGroup, i::Int) -> WeylGroupElem
 
-Returns the `i`th simple reflection (with respect to the underlying root system) of `W`.
+Return the `i`-th simple reflection (with respect to the underlying root system) of `W`.
 """
 function gen(W::WeylGroup, i::Integer)
   @req 1 <= i <= ngens(W) "invalid index"
@@ -136,7 +155,7 @@ end
 @doc raw"""
     gens(W::WeylGroup) -> WeylGroupElem
 
-Returns the simple reflections (with respect to the underlying root system) of `W`.
+Return the simple reflections (with respect to the underlying root system) of `W`.
 """
 function gens(W::WeylGroup)
   return [gen(W, i) for i in 1:ngens(W)]
@@ -145,28 +164,32 @@ end
 @doc raw"""
     longest_element(W::WeylGroup) -> WeylGroupElem
 
-Returns the unique longest element of `W`.
+Return the unique longest element of `W`.
+This only exists if `W` is finite.
 """
 function longest_element(W::WeylGroup)
-  @req is_finite(W) "$W is not finite"
+  @req is_finite(W) "Weyl group is not finite"
 
-  _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
+  _, w0 = conjugate_dominant_weight_with_left_elem(-weyl_vector(root_system(W)))
   return w0
 end
 
 @doc raw"""
     number_of_generators(W::WeylGroup) -> Int
 
-Returns the number of generators of the `W`, i.e. the rank of the underyling root system.
+Return the number of generators of the `W`, i.e. the rank of the underyling root system.
 """
 function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
 end
 
 @doc raw"""
+    order(W::WeylGroup) -> ZZRingELem
     order(::Type{T}, W::WeylGroup) where {T} -> T
 
-Returns the order of `W`.
+Return the order of `W`.
+
+If `W` is infinite, an `InfiniteOrderError` exception will be thrown.
 """
 function order(::Type{T}, W::WeylGroup) where {T}
   if !is_finite(W)
@@ -202,7 +225,7 @@ end
 @doc raw"""
     root_system(W::WeylGroup) -> RootSystem
 
-Returns the underlying root system of `W`.
+Return the underlying root system of `W`.
 """
 function root_system(W::WeylGroup)
   return W.root_system
@@ -211,7 +234,7 @@ end
 ###############################################################################
 # Weyl group elements
 
-function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
+function Base.:*(x::WeylGroupElem, y::WeylGroupElem)
   @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
 
   p = deepcopy(y)
@@ -221,7 +244,15 @@ function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-function Base.:(*)(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
+@doc raw"""
+    *(x::WeylGroupElem, r::RootSpaceElem) -> RootSpaceElem
+    *(x::WeylGroupElem, w::WeightLatticeElem) -> WeightLatticeElem
+
+Return the result of acting with `x` **from the left** on `r` or `w`.
+
+See also: [`*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)`](@ref).
+"""
+function Base.:*(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
   @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
   rw2 = deepcopy(rw)
@@ -232,7 +263,15 @@ function Base.:(*)(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
   return rw2
 end
 
-function Base.:(*)(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
+@doc raw"""
+    *(r::RootSpaceElem, x::WeylGroupElem) -> RootSpaceElem
+    *(w::WeightLatticeElem, x::WeylGroupElem) -> WeightLatticeElem
+
+Return the result of acting with `x` **from the right** on `r` or `w`.
+
+See also: [`*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})`](@ref).
+"""
+function Base.:*(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
   @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
   rw2 = deepcopy(rw)
@@ -264,7 +303,7 @@ end
 @doc raw"""
     <(x::WeylGroupElem, y::WeylGroupElem) -> Bool
 
-Returns whether `x` is smaller than `y` with respect to the Bruhat order,
+Return whether `x` is smaller than `y` with respect to the Bruhat order,
 i.e., whether some (not necessarily connected) subexpression of a reduced
 decomposition of `y`, is a reduced decomposition of `x`.
 """
@@ -312,7 +351,7 @@ end
 @doc raw"""
     getindex(x::WeylGroupElem, i::Int) -> UInt8
 
-Returns the index of simple reflection at the `i`th position in the normal form of `x`.
+Return the index of simple reflection at the `i`-th position in the normal form of `x`.
 """
 function Base.getindex(x::WeylGroupElem, i::Int)
   return word(x)[i]
@@ -326,11 +365,6 @@ function Base.hash(x::WeylGroupElem, h::UInt)
   return xor(h, b)
 end
 
-@doc raw"""
-    inv(x::WeylGroupElem) -> WeylGroupElem
-
-Returns the inverse of `x`.
-"""
 function Base.inv(x::WeylGroupElem)
   y = parent(x)(sizehint!(UInt8[], length(x)); normalize=false)
   for s in word(x)
@@ -342,7 +376,7 @@ end
 @doc raw"""
     isone(x::WeylGroupElem) -> Bool
 
-Returns whether `x` is the identity.
+Return whether `x` is the identity element of its parent.
 """
 function Base.isone(x::WeylGroupElem)
   return isempty(word(x))
@@ -351,7 +385,7 @@ end
 @doc raw"""
     length(x::WeylGroupElem) -> Int
 
-Returns the length of `x`.
+Return the length of `x`.
 """
 function Base.length(x::WeylGroupElem)
   return length(word(x))
@@ -360,7 +394,7 @@ end
 @doc raw"""
     parent(x::WeylGroupElem) -> WeylGroup
 
-Returns the Weyl group that `x` is an element of.
+Return the Weyl group that `x` is an element of.
 """
 function Base.parent(x::WeylGroupElem)
   return x.parent
@@ -369,7 +403,7 @@ end
 @doc raw"""
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
-Returns a random element of the Weyl group. The elements are not uniformally distributed.
+Return a random element of the Weyl group. The elements are not uniformally distributed.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
@@ -389,7 +423,7 @@ end
 @doc raw"""
     lmul(x::WeylGroupElem, i::Integer) -> WeylGroupElem
 
-Returns the result of multiplying `x` from the left by the `i`th simple reflection.
+Return the result of multiplying `x` from the left by the `i`-th simple reflection.
 """
 function lmul(x::WeylGroupElem, i::Integer)
   return lmul!(deepcopy(x), i)
@@ -398,7 +432,7 @@ end
 @doc raw"""
     lmul!(x::WeylGroupElem, i::Integer) -> WeylGroupElem
 
-Returns the result of multiplying `x` in place from the left by the `i`th simple reflection.
+Multiply `x` in-place from the left by the `i`-th simple reflection, and return the result.
 """
 function lmul!(x::WeylGroupElem, i::Integer)
   b, j, r = explain_lmul(x, i)
@@ -412,7 +446,7 @@ function lmul!(x::WeylGroupElem, i::Integer)
 end
 
 # explains what multiplication of s_i from the left will do.
-# Returns a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
+# Return a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
 # the second entry is the position, and the third is the simple root.
 function explain_lmul(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
@@ -447,22 +481,70 @@ function parent_type(::Type{WeylGroupElem})
   return WeylGroup
 end
 
-# rename to reduced decompositions ?
+@doc raw"""
+    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false) -> ReducedExpressionIterator
+
+Return an iterator over all reduced expressions of `x`.
+
+If `up_to_commutation` is `true`, the iterator will not return an expression that only
+differs from a previous one by a swap of two adjacent commuting simple reflections.
+
+# Examples
+```jldoctest
+julia> W = weyl_group(:A, 3);
+
+julia> x = W([1,2,3,1]);
+
+julia> collect(reduced_expressions(x))
+3-element Vector{Vector{UInt8}}:
+ [0x01, 0x02, 0x03, 0x01]
+ [0x01, 0x02, 0x01, 0x03]
+ [0x02, 0x01, 0x02, 0x03]
+
+julia> collect(reduced_expressions(x; up_to_commutation=true))
+2-element Vector{Vector{UInt8}}:
+ [0x01, 0x02, 0x03, 0x01]
+ [0x02, 0x01, 0x02, 0x03]
+```
+The second expression of the first iterator is not contained in the second iterator
+because it only differs from the first expression by a swap of two the two commuting simple reflections `s1` and `s3`.
+"""
 function reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
   return ReducedExpressionIterator(x, up_to_commutation)
 end
 
 @doc raw"""
     word(x::WeylGroupElem) -> Vector{UInt8}
+
+Return `x` as a list of indices of simple reflections, in reduced form.
+
+This function is right inverse to calling `(W::WeylGroup)(word::Vector{<:Integer})`.
 """
 function word(x::WeylGroupElem)
   return x.word
 end
 
+@doc raw"""
+    fp_group(W::WeylGroup) -> FPGroup
+
+Construct a group of type `FPGroup` that is isomorphic to `W`.
+
+The `FPGroup` will be the quotient of a free group with the same rank as `W`,
+where we have the natural 1-to-1 correspondence of generators, modulo the Coxeter relations of `W`.
+
+Also see: [`isomorphism(::Type{FPGroup}, ::WeylGroup)`](@ref).
+"""
 function fp_group(W::WeylGroup; set_properties::Bool=true)
   return codomain(isomorphism(FPGroup, W; set_properties))
 end
 
+@doc raw"""
+    isomorphism(::Type{FPGroup}, W::WeylGroup) -> Map{WeylGroup, FPGroup}
+
+Construct an isomorphism between `W` and a group of type `FPGroup`.
+
+The properties of the codomain group and the isomorphism are described in [`fp_group(::WeylGroup)`](@ref).
+"""
 function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   R = root_system(W)
   F = free_group(rank(R))
@@ -612,7 +694,9 @@ end
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
 # The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
-# this choice is made to align with conjugate_dominant_weight_with_elem
+# this choice is made to align with conjugate_dominant_weight_with_left_elem
+
+# TODO: add a way to iterate aligned with conjugate_dominant_weight_with_right_elem
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
   return Base.SizeUnknown()
@@ -704,7 +788,7 @@ end
 @doc raw"""
     weyl_orbit(wt::WeightLatticeElem)
 
-Returns an iterator over the Weyl group orbit at the weight `wt`.
+Return an iterator over the Weyl group orbit at the weight `wt`.
 """
 function weyl_orbit(wt::WeightLatticeElem)
   return WeylOrbitIterator(wt)

@@ -534,7 +534,7 @@ is_fulldimensional(C::Cone) = pm_object(C).FULL_DIM::Bool
 Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspace`,
+* `Halfspace` (or its subtype `LinearHalfspace`),
 * `Cone`.
 
 # Examples

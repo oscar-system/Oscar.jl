@@ -84,14 +84,25 @@ function exterior_algebra(K::Ring, varnames::Vector{Symbol})
     ExtAlg_singular = Singular.create_ring_from_singular_ring(SINGULAR_PTR)
     # Create Quotient ring with special implementation:
     ExtAlg, _ = quo(PBW, I; special_impl=ExtAlg_singular)  # 2nd result is a QuoMap, apparently not needed
-    return ExtAlg, gens(ExtAlg)
+    generators = gens(ExtAlg)
   else
     ExtAlg, QuoMap = quo(PBW, I)
-    return ExtAlg, QuoMap.(PBW_indets)
+    generators = QuoMap.(PBW_indets)
   end
+  set_attribute!(ExtAlg, :show, show_exterior_algebra)
+  return ExtAlg, generators
 end
 
 AbstractAlgebra.@varnames_interface exterior_algebra(K::Ring, varnames) macros = :no
+
+function show_exterior_algebra(io::IO, E::PBWAlgQuo)
+  x = symbols(E)
+  io = pretty(io)
+  print(io, "Exterior algebra over ", Lowercase(), coefficient_ring(E))
+  print(io, " in (")
+  join(io, x, ", ")
+  print(io, ")")
+end
 
 # # BUGS/DEFICIENCIES (2023-02-13):
 # # (1)  Computations with elements DO NOT AUTOMATICALLY REDUCE
