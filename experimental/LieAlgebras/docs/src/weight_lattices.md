@@ -71,6 +71,5 @@ reflect!(::WeightLatticeElem, ::Int)
 ### Conjugate dominant weight
 ```@docs
 conjugate_dominant_weight(::WeightLatticeElem)
-conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)
-conjugate_dominant_weight_with_right_elem(::WeightLatticeElem)
+conjugate_dominant_weight_with_elem(::WeightLatticeElem)
 ```

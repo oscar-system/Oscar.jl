@@ -1758,7 +1758,7 @@ function tensor_product_decomposition(
   for (w_, m) in dominant_character(R, hw1)
     for w in weyl_orbit(w_)
       add!(w, hw2_plus_rho)
-      w_dom, x = conjugate_dominant_weight_with_left_elem!(w)
+      w_dom, x = conjugate_dominant_weight_with_elem!(w)
       if all(!iszero, coefficients(w_dom))
         sub!(w_dom, rho)
         coeff = m * (-1)^length(x)

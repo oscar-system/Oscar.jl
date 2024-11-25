@@ -34,8 +34,7 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
-export conjugate_dominant_weight_with_left_elem
-export conjugate_dominant_weight_with_right_elem
+export conjugate_dominant_weight_with_elem
 export coroot
 export coroots
 export coxeter_matrix

@@ -174,7 +174,7 @@ This only exists if `W` is finite.
 function longest_element(W::WeylGroup)
   @req is_finite(W) "Weyl group is not finite"
 
-  _, w0 = conjugate_dominant_weight_with_left_elem(-weyl_vector(root_system(W)))
+  _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
 end
 
@@ -698,9 +698,7 @@ end
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
 # The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
-# this choice is made to align with conjugate_dominant_weight_with_left_elem
-
-# TODO: add a way to iterate aligned with conjugate_dominant_weight_with_right_elem
+# this choice is made to align with conjugate_dominant_weight_with_elem
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
   return Base.SizeUnknown()

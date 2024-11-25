@@ -7,6 +7,12 @@ DocTestSetup = Oscar.doctestsetup()
 
 Weyl groups are represented by objects of type `WeylGroup <: Group`, and their elements by `WeylGroupElem <: GroupElement`.
 
+!!! warning
+    Weyl groups in OSCAR afford both left and right actions on roots and weights.
+    Note however, that **the left action** is the default (to align with the literature),
+    and all more complex functionality is defined with respect to the left action, e.g.
+    [`conjugate_dominant_weight_with_elem(::WeightLatticeElem)`](@ref).
+
 ## Table of contents
 
 ```@contents

@@ -311,7 +311,7 @@ end
 
 Return the unique dominant weight conjugate to `w`.
 
-See also: [`conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)`](@ref), [`conjugate_dominant_weight_with_right_elem(::WeightLatticeElem)`](@ref).
+See also: [`conjugate_dominant_weight_with_elem(::WeightLatticeElem)`](@ref).
 """
 function conjugate_dominant_weight(w::WeightLatticeElem)
   return conjugate_dominant_weight!(deepcopy(w))
@@ -334,18 +334,18 @@ function conjugate_dominant_weight!(w::WeightLatticeElem)
 end
 
 @doc raw"""
-    conjugate_dominant_weight_with_left_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
+    conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
 
 Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
 such that `x * w == dom`.
 
-See also: [`conjugate_dominant_weight_with_right_elem(::WeightLatticeElem)`](@ref).
+If one wants a group element that takes `w` to`dom` using a right action, one can use `inv(x)`.
 """
-function conjugate_dominant_weight_with_left_elem(w::WeightLatticeElem)
-  return conjugate_dominant_weight_with_left_elem!(deepcopy(w))
+function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
+  return conjugate_dominant_weight_with_elem!(deepcopy(w))
 end
 
-function conjugate_dominant_weight_with_left_elem!(w::WeightLatticeElem)
+function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
   # determine the Weyl group element taking w to the fundamental chamber
   word = UInt8[]
   #sizehint!(word, count(<(0), coefficients(w))^2)
@@ -363,23 +363,6 @@ function conjugate_dominant_weight_with_left_elem!(w::WeightLatticeElem)
   # reversing word means it is in short revlex normal form
   # and it is the element taking original w to new w
   return w, weyl_group(root_system(w))(reverse!(word); normalize=false)
-end
-
-@doc raw"""
-    conjugate_dominant_weight_with_right_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
-
-Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
-such that `w * x == dom`.
-
-See also: [`conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)`](@ref).
-"""
-function conjugate_dominant_weight_with_right_elem(w::WeightLatticeElem)
-  return conjugate_dominant_weight_with_right_elem!(deepcopy(w))
-end
-
-function conjugate_dominant_weight_with_right_elem!(w::WeightLatticeElem)
-  w, x = conjugate_dominant_weight_with_left_elem!(w)
-  return w, inv(x)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)

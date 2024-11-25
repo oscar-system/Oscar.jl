@@ -17,13 +17,10 @@
       (root_system(:G, 2), [-1, -1]),
     ]
       wt = WeightLatticeElem(R, vec)
-      d, x = conjugate_dominant_weight_with_left_elem(wt)
+      d, x = conjugate_dominant_weight_with_elem(wt)
       @test is_dominant(d)
       @test x * wt == d
-
-      d, x = conjugate_dominant_weight_with_right_elem(wt)
-      @test is_dominant(d)
-      @test wt * x == d
+      @test wt * inv(x) == d
     end
   end
 end
