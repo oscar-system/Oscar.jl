@@ -461,11 +461,11 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
     for P in keys(coefficient_dict(D))
       found = false
       for bucket in buckets
-	if P == first(bucket)
-	  push!(bucket, P)
-	  found = true
-	  break
-	end
+        if P == first(bucket)
+          push!(bucket, P)
+          found = true
+          break
+        end
       end
       !found && push!(buckets, [P])
     end
@@ -476,7 +476,7 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
       is_zero(c) && continue
       coeff_dict[first(bucket)] = c
     end
-    return AlgebraicCycle(scheme(D), coefficient_ring(D), coeff_dict; check=false)
+    return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), coeff_dict; check=false)
   end
   @vprint :Divisors 4 "  decomposing components"
   result = zero(D)

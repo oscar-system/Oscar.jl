@@ -20,6 +20,7 @@
   @test integral(Oscar._intersect(E, E_weil)) == -2
   mov = Oscar.move_divisor(E_weil)
   mov = Oscar.move_divisor(mov)
+  # The following line will also produce an infinite loop. TODO: Fix this!
   #mov = Oscar.move_divisor(Oscar.move_divisor(Oscar.move_divisor(E_weil)))
   @test integral(Oscar._intersect(E, mov)) == -2
 end

@@ -652,8 +652,6 @@ function _colength_in_localization(I::Ideal, P::Ideal)
     y = y*x
     k += 1
   end
-    
-  return _colength_in_localization(saturated_ideal(I), saturated_ideal(P))
 end
 
 # same assumptions as above apply.
@@ -780,14 +778,14 @@ function move_divisor(
   result = irreducible_decomposition(D - weil_divisor(f))
   # Check whether the supports are really different
   if any(any(P == Q for Q in components(D)) for P in components(result))
-    @show "switched component"
     return move_divisor(D; randomization=true, check, is_prime)
   end
   return result
 end
 
 function is_zero(D::AbsAlgebraicCycle)
-  return all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(D))
+  all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(D)) && return true
+  return all(is_zero(c) || is_one(I) for (I, c) in coefficient_dict(irreducible_decomposition(D))) && return true
 end
 
 # Internal method which performs an automated move of the second argument
