@@ -681,7 +681,7 @@ function weil_divisor(
   for U in patches(covering)
     # TODO: We compute the dimensions again and again. 
     # Instead we should store these things in some matured version of `decomposition_info`!
-    has_decomposition_info(covering) && dim(ideal(OO(U), decomposition_info(covering)[U])) <= dim(X) - 2 && continue
+    has_decomposition_info(covering) && (dim(ideal(OO(U), decomposition_info(covering)[U])) <= dim(X) - 2) && continue
 
     # covering to take a shortcut in the
     @vprint :Divisors 4 "doing patch $U\n"
