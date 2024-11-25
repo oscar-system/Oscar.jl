@@ -310,7 +310,9 @@ end
 @doc raw"""
     weight_lattice(R::RootSystem) -> WeightLattice
 
-Return the weight lattice of `R`.
+Return the weight lattice of `R`, i.e. the lattice spanned by the fundamental weights.
+
+This is the parent of all weights of `R`.
 
 # Examples
 ```jldoctest

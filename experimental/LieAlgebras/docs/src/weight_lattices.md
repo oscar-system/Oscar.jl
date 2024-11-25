@@ -5,7 +5,9 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Weight lattices
 
-TODO
+Weight lattices are represented by objects of type `WeightLattice <: AdditiveGroup`, and their elements by `WeightLatticeElem <: AdditiveGroupElement`.
+
+They are introduced to have a formal parent object of all weights that correspond to a common given root system.
 
 
 ## Table of contents
@@ -16,16 +18,24 @@ Depth = 2:5
 ```
 
 ## Constructing weight lattices
-
-TODO
-
+```@docs
+weight_lattice(::RootSystem)
+```
 
 
 ## Properties of weight lattices
 
-TODO
+```@docs
+rank(::WeightLattice)
+is_finite(::WeightLattice)
+zero(::WeightLattice)
+gen(::WeightLattice, ::Int)
+gens(::WeightLattice)
+```
 
-
+```@docs
+root_system(::WeightLattice)
+```
 
 
 ## Weight lattice elements
@@ -36,11 +46,6 @@ WeightLatticeElem(::RootSystem, ::Vector{<:IntegerUnion})
 WeightLatticeElem(::WeightLattice, ::ZZMatrix)
 WeightLatticeElem(::RootSystem, ::ZZMatrix)
 WeightLatticeElem(::RootSpaceElem)
-zero(::WeightLattice)
-```
-
-```@docs
-parent(::WeightLatticeElem)
 ```
 
 Basic arithmetic operations like `zero`, `+`, `-`, `*` (with integer scalars), and `==` are supported.

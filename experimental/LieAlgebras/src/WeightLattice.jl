@@ -8,14 +8,29 @@ function elem_type(::Type{WeightLattice})
   return WeightLatticeElem
 end
 
+@doc raw"""
+    rank(P::WeightLattice) -> Int
+
+Return the rank of the weight lattice `P`.
+"""
 function rank(P::WeightLattice)
   return rank(root_system(P))
 end
 
+@doc raw"""
+    root_system(P::WeightLattice) -> RootSystem
+
+Return the underlying root system of `P`.
+"""
 function root_system(P::WeightLattice)
   return P.root_system
 end
 
+@doc raw"""
+    zero(P::WeightLattice) -> WeightLatticeElem
+
+Return the neutral additive element in the weight lattice `P`.
+"""
 function zero(P::WeightLattice)
   return WeightLatticeElem(P, zero_matrix(ZZ, 1, rank(P)))
 end
@@ -45,11 +60,29 @@ function number_of_generators(P::WeightLattice)
   return rank(P)
 end
 
+@doc raw"""
+    gen(P::WeightLattice, i::Int) -> WeightLatticeElem
+
+Return the `i`-th generator of the weight lattice `P`,
+i.e. the `i`-th fundamental weight of the root system of `P`.
+
+This is a more efficient version for `gens(P)[i]`.
+
+See also: [`fundamental_weight(::RootSystem, ::Int)`](@ref).
+"""
 function gen(P::WeightLattice, i::Int)
   @req 1 <= i <= rank(P) "invalid index"
   return WeightLatticeElem(P, matrix(ZZ, 1, rank(P), i .== 1:rank(P)))
 end
 
+@doc raw"""
+    gens(P::WeightLattice) -> Vector{WeightLatticeElem}
+
+Return the generators of the weight lattice `P`,
+i.e. the fundamental weights of the root system of `P`.
+
+See also: [`gen(::WeightLattice, ::Int)`](@ref), [`fundamental_weights(::RootSystem)`](@ref).
+"""
 function gens(P::WeightLattice)
   return [gen(P, i) for i in 1:rank(P)]
 end
@@ -58,6 +91,11 @@ function is_abelian(P::WeightLattice)
   return true
 end
 
+@doc raw"""
+    is_finite(P::WeightLattice) -> Bool
+
+Check if the weight lattice `P` is finite, i.e. if it has rank 0.
+"""
 function is_finite(P::WeightLattice)
   return iszero(rank(P))
 end

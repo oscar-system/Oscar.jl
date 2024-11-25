@@ -146,6 +146,8 @@ end
     gen(W::WeylGroup, i::Int) -> WeylGroupElem
 
 Return the `i`-th simple reflection (with respect to the underlying root system) of `W`.
+
+This is a more efficient version for `gens(W)[i]`.
 """
 function gen(W::WeylGroup, i::Integer)
   @req 1 <= i <= ngens(W) "invalid index"
@@ -156,6 +158,8 @@ end
     gens(W::WeylGroup) -> WeylGroupElem
 
 Return the simple reflections (with respect to the underlying root system) of `W`.
+
+See also: [`gen(::WeylGroup, ::Int)`](@ref).
 """
 function gens(W::WeylGroup)
   return [gen(W, i) for i in 1:ngens(W)]
