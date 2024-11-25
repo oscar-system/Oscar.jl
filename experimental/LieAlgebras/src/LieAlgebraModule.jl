@@ -1450,14 +1450,14 @@ See [MP82](@cite) for details and the implemented algorithm.
 julia> L = lie_algebra(QQ, :B, 3);
 
 julia> dominant_weights(L, [1, 0, 3])
-7-element Vector{Vector{Int64}}:
- [1, 0, 3]
- [1, 1, 1]
- [0, 0, 3]
- [2, 0, 1]
- [0, 1, 1]
- [1, 0, 1]
- [0, 0, 1]
+7-element Vector{WeightLatticeElem}:
+ w_1 + 3*w_3
+ w_1 + w_2 + w_3
+ 2*w_1 + w_3
+ 3*w_3
+ w_2 + w_3
+ w_1 + w_3
+ w_3
 ```
 """
 function dominant_weights(L::LieAlgebra, hw::WeightLatticeElem)
@@ -1482,11 +1482,11 @@ This function uses an optimized version of the Freudenthal formula, see [MP82](@
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> dominant_character(L, [2, 1, 0])
-Dict{Vector{Int64}, Int64} with 4 entries:
-  [2, 1, 0] => 1
-  [1, 0, 1] => 2
-  [0, 0, 0] => 3
-  [0, 2, 0] => 1
+Dict{WeightLatticeElem, Int64} with 4 entries:
+  0           => 3
+  2*w_2       => 1
+  w_1 + w_3   => 2
+  2*w_1 + w_2 => 1
 ```
 """
 function dominant_character(L::LieAlgebra, hw::WeightLatticeElem)
@@ -1518,17 +1518,17 @@ This is achieved by acting with the Weyl group on the [`dominant_character`](@re
 julia> L = lie_algebra(QQ, :A, 3);
 
 julia> character(L, [2, 0, 0])
-Dict{Vector{Int64}, Int64} with 10 entries:
-  [0, 1, 0]   => 1
-  [0, -2, 2]  => 1
-  [0, 0, -2]  => 1
-  [-1, 1, -1] => 1
-  [-2, 2, 0]  => 1
-  [1, -1, 1]  => 1
-  [1, 0, -1]  => 1
-  [-1, 0, 1]  => 1
-  [0, -1, 0]  => 1
-  [2, 0, 0]   => 1
+Dict{WeightLatticeElem, Int64} with 10 entries:
+  -2*w_3           => 1
+  -2*w_2 + 2*w_3   => 1
+  2*w_1            => 1
+  -2*w_1 + 2*w_2   => 1
+  -w_1 + w_3       => 1
+  w_2              => 1
+  w_1 - w_2 + w_3  => 1
+  w_1 - w_3        => 1
+  -w_1 + w_2 - w_3 => 1
+  -w_2             => 1
 ```
 """
 function character(L::LieAlgebra, hw::WeightLatticeElem)
@@ -1605,11 +1605,11 @@ julia> L = lie_algebra(QQ, :A, 2);
 
 julia> demazure_character(L, [1, 1], [1, 2])
 Dict{WeightLatticeElem, Int64} with 5 entries:
-  -w_1 + 2*w_2 => 1
-  0            => 1
-  -2*w_1 + w_2 => 1
-  w_1 + w_2    => 1
   2*w_1 - w_2  => 1
+  w_1 + w_2    => 1
+  0            => 1
+  -w_1 + 2*w_2 => 1
+  -2*w_1 + w_2 => 1
 ```
 """
 function demazure_character(L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem)

@@ -1515,14 +1515,14 @@ See [MP82](@cite) for details and the implemented algorithm.
 julia> R = root_system(:B, 3);
 
 julia> dominant_weights(R, [3, 0, 1])
-7-element Vector{Vector{Int64}}:
- [3, 0, 1]
- [1, 1, 1]
- [0, 0, 3]
- [2, 0, 1]
- [0, 1, 1]
- [1, 0, 1]
- [0, 0, 1]
+7-element Vector{WeightLatticeElem}:
+ 3*w_1 + w_3
+ w_1 + w_2 + w_3
+ 2*w_1 + w_3
+ 3*w_3
+ w_2 + w_3
+ w_1 + w_3
+ w_3
 ```
 """
 function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
@@ -1578,11 +1578,11 @@ This function uses an optimized version of the Freudenthal formula, see [MP82](@
 julia> R = root_system(:B, 3);
 
 julia> dominant_character(R, [2, 0, 1])
-Dict{Vector{Int64}, Int64} with 4 entries:
-  [1, 0, 1] => 3
-  [0, 0, 1] => 6
-  [2, 0, 1] => 1
-  [0, 1, 1] => 1
+Dict{WeightLatticeElem, Int64} with 4 entries:
+  w_2 + w_3   => 1
+  2*w_1 + w_3 => 1
+  w_1 + w_3   => 3
+  w_3         => 6
 ```
 """
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
@@ -1672,15 +1672,15 @@ The return type may change in the future.
 julia> R = root_system(:B, 3);
 
 julia> character(R, [0, 0, 1])
-Dict{Vector{Int64}, Int64} with 8 entries:
-  [0, 1, -1]  => 1
-  [-1, 1, -1] => 1
-  [0, 0, 1]   => 1
-  [1, -1, 1]  => 1
-  [-1, 0, 1]  => 1
-  [1, 0, -1]  => 1
-  [0, 0, -1]  => 1
-  [0, -1, 1]  => 1
+Dict{WeightLatticeElem, Int64} with 8 entries:
+  -w_1 + w_2 - w_3 => 1
+  w_1 - w_3        => 1
+  -w_2 + w_3       => 1
+  w_3              => 1
+  w_2 - w_3        => 1
+  -w_3             => 1
+  w_1 - w_2 + w_3  => 1
+  -w_1 + w_3       => 1
 ```
 """
 function character(R::RootSystem, hw::WeightLatticeElem)
@@ -1851,10 +1851,10 @@ julia> R = root_system(:B, 3);
 
 julia> demazure_character(R, [0, 1, 0], [3, 2, 1])
 Dict{WeightLatticeElem, Int64} with 4 entries:
-  w_1               => 1
-  w_2               => 1
   w_1 + w_2 - 2*w_3 => 1
+  w_1               => 1
   w_1 - w_2 + 2*w_3 => 1
+  w_2               => 1
 ```
 """
 function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
