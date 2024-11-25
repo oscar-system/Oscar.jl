@@ -488,17 +488,19 @@ See also [`syllables(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
 # Examples
 
 ```jldoctest
-julia> gg = small_group(6, 1)
-Pc group of order 6
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
 
-julia> x = gg([1 => ZZ(-3)])
-f1^-3
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
 
 julia> letters(x)
-3-element Vector{Int64}:
+5-element Vector{Int64}:
  -1
  -1
  -1
+  2
+  2
 ```
 
 ```jldoctest
@@ -556,6 +558,25 @@ julia> gg(s)
 f1*f2^2
 
 julia> gg(s) == x
+true
+```
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [5, 0])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^2*g2^-3
+
+julia> s = syllables(x)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 2
+ 2 => -3
+
+julia> g(s)
+g1^2*g2^-3
+
+julia> g(s) == x
 true
 ```
 """
