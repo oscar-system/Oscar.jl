@@ -399,7 +399,15 @@ zero(W::AbsLocalizedRing) = W(zero(base_ring(W)))
 
 canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem} = one(parent(f))
 
-characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
+function characteristic(W::AbsLocalizedRing)
+  # It might happen that localization collapses the ring.
+  is_zero(one(W)) && return 1
+  # If the characteristic is prime, then it is preserved.
+  c = characteristic(base_ring(W))
+  (is_zero(c) || is_prime(c)) && return c
+  # All other cases have to be overwritten manually.
+  error("computation of characteristic not implemented")
+end
 
 function Base.show(io::IO, ::MIME"text/plain", W::AbsLocalizedRing)
   io = pretty(io)
