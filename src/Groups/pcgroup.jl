@@ -516,8 +516,20 @@ julia> letters(x)
 ```
 """
 function letters(g::Union{PcGroupElem, SubPcGroupElem})
-  w = GAPWrap.UnderlyingElement(GapObj(g))
-  return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    exp = GAPWrap.Exponents(GapObj(g))
+
+    # Should we check if the output is not larger than the
+    # amount of generators? Requires use of `parent`.
+    # @assert length(exp) == length(gens(parent(g)))
+
+    w = [sign(e) * i for (i, e) in enumerate(exp) for _ in 1:abs(e)]
+    return Vector{Int}(w)
+  else # finite PcGroup
+    w = GAPWrap.UnderlyingElement(GapObj(g))
+    return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+  end
 end
 
 """
@@ -548,7 +560,13 @@ true
 ```
 """
 function syllables(g::Union{PcGroupElem, SubPcGroupElem})
-  l = GAPWrap.ExtRepOfObj(GapObj(g))
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    l = GAPWrap.GenExpList(GapObj(g))
+  else # finite PcGroup
+    l = GAPWrap.ExtRepOfObj(GapObj(g))
+  end
+
   @assert iseven(length(l))
   return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
 end
@@ -573,8 +591,17 @@ function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}; check::Bool=true)
   end
 
   e = _exponent_vector(sylls, ngens(G))
-  pcgs = Oscar.GAPWrap.FamilyPcgs(GapObj(G))
-  x = Oscar.GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+
+  # check if G is an underlying PcpGroup
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    coll = GAPWrap.Collector(GG)
+    x = GAPWrap.PcpElementByExponentsNC(coll, GapObj(e, true))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GG)
+    x = GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  end
+  
   return Oscar.group_element(G, x)
 end
 
