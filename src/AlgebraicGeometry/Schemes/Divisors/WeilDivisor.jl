@@ -675,6 +675,11 @@ function weil_divisor(
   X = scheme(f)
   ideal_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
   for U in patches(covering)
+    # TODO: We compute the dimensions again and again. 
+    # Instead we should store these things in some matured version of `decomposition_info`!
+    has_decomposition_info(covering) && dim(ideal(OO(U), decomposition_info(covering)[U])) <= dim(X) - 2 && continue
+
+    # covering to take a shortcut in the
     @vprint :Divisors 4 "doing patch $U\n"
     inc_dict = IdDict{AbsIdealSheaf, elem_type(ring)}()
     f_loc = f[U]
@@ -729,7 +734,7 @@ end
 
 Given an `AbsWeilDivisor` `D` on a scheme `X`, create a principal divisor 
 `div(f)` for some rational function, so that `D - div(f)` is supported 
-away from the original support of `D`.
+in (non-closed) scheme-theoretic points which are different from those of `D`.
 
 Keyword arguments:
   * `randomization`: By default, the choices made to create `f` keep it as simple as possible. However, one might encounter constellations where this will just swap two components of `D`. In order to avoid this, one can then switch on randomization here. 
