@@ -243,8 +243,7 @@ julia> UV, VU = gluing_domains(glue);
 julia> II(U, VU) # transition functions are ring homomorphisms for ideal sheaves!
 Ring homomorphism
   from multivariate polynomial ring in 2 variables over GF(7)
-  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x
-  //y))
+  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x//y))
 defined by
   (y//x) -> 1/(x//y)
   (z//x) -> (z//y)/(x//y)
