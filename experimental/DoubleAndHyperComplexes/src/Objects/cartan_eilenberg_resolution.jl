@@ -45,7 +45,7 @@ struct CEChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   function CEChainFactory(c::AbsHyperComplex; is_exact::Bool=false)
     @assert dim(c) == 1 "complex must be 1-dimensional"
     #@assert has_lower_bound(c, 1) "complex must be bounded from below"
-    return new{chain_type(c)}(c, is_exact, Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplexMorphism}())
+    return new{FreeMod}(c, is_exact, Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplex}(), Dict{Int, AbsHyperComplexMorphism}())
   end
 end
 
@@ -198,12 +198,12 @@ end
     @assert has_lower_bound(c, 1) "complexes must be bounded from below"
     @assert direction(c, 1) == :chain "resolutions are only implemented for chain complexes"
     chain_fac = CEChainFactory(c; is_exact)
-    map_fac = CEMapFactory{MorphismType}() # TODO: Do proper type inference here!
+    map_fac = CEMapFactory{FreeModuleHom}() # TODO: Do proper type inference here!
 
     # Assuming d is the dimension of the new complex
     internal_complex = HyperComplex(2, chain_fac, map_fac, [:chain, :chain]; lower_bounds = Union{Int, Nothing}[0, lower_bound(c, 1)])
     # Assuming that ChainType and MorphismType are provided by the input
-    return new{ChainType, MorphismType}(internal_complex)
+    return new{FreeMod, FreeModuleHom}(internal_complex)
   end
 end
 
