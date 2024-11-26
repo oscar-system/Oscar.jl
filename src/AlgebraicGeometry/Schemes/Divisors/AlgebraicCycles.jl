@@ -451,7 +451,7 @@ end
     irreducible_decomposition(D::AbsAlgebraicCycle)
 
 Return a cycle ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
-where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
+where the `components` ``Iₖ`` of ``E`` are pairwise distinct sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
   @vprint :Divisors 4 "computing irreducible decomposition for $D"

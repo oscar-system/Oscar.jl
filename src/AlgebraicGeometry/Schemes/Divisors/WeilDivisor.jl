@@ -736,9 +736,15 @@ end
 @doc raw"""
     move_divisor(D::AbsWeilDivisor; check::Bool=false)
 
-Given an `AbsWeilDivisor` `D` on a scheme `X`, create a principal divisor 
-`div(f)` for some rational function, so that `D - div(f)` is supported 
-in (non-closed) scheme-theoretic points which are different from those of `D`.
+Given an `AbsWeilDivisor` `D` on a scheme `X`, apply a heuristic attempt 
+to create a principal divisor `div(f)` for some rational function, 
+so that the support of the divisor `D - div(f)` does not contain the 
+generic scheme-theoretic points in the support of `D`. 
+
+Note that `supp(D - div(f)) ∩ supp(D)` need not be empty! The point is that 
+the minimal associated primes of the support of `D - div(f)` should be different 
+from the minimal associated primes of `D`. This is experimental and might not 
+always succeed.
 
 Keyword arguments:
   * `randomization`: By default, the choices made to create `f` keep it as simple as possible. However, one might encounter constellations where this will just swap two components of `D`. In order to avoid this, one can then switch on randomization here. 
