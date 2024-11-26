@@ -1553,6 +1553,56 @@ function character(L::LieAlgebra, hw::WeightLatticeElem)
   return character(R, hw)
 end
 
+function demazure_character(L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem)
+  return demazure_character(root_system(L), w, x)
+end
+
+function demazure_character(
+  T::DataType, L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem
+)
+  return demazure_character(T, root_system(L), w, x)
+end
+
+function demazure_character(
+  L::LieAlgebra, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(root_system(L), w, reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  L::LieAlgebra,
+  w::WeightLatticeElem,
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  return demazure_character(T, root_system(L), w, reduced_expression)
+end
+
+function demazure_character(L::LieAlgebra, w::Vector{<:IntegerUnion}, x::WeylGroupElem)
+  return demazure_character(root_system(L), w, x)
+end
+
+function demazure_character(
+  T::DataType, L::LieAlgebra, w::Vector{<:IntegerUnion}, x::WeylGroupElem
+)
+  return demazure_character(T, root_system(L), w, x)
+end
+
+function demazure_character(
+  L::LieAlgebra, w::Vector{<:IntegerUnion}, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(root_system(L), w, reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  L::LieAlgebra,
+  w::Vector{<:IntegerUnion},
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  return demazure_character(T, root_system(L), w, reduced_expression)
+end
+
 @doc raw"""
     tensor_product_decomposition(L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
     tensor_product_decomposition(L::LieAlgebra, hw1::WeightLatticeElem, hw2::WeightLatticeElem) -> MSet{Vector{Int}}

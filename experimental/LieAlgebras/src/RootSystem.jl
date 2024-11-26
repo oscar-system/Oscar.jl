@@ -2178,17 +2178,62 @@ function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeEl
   return dict
 end
 
-function demazure_character(w::WeightLatticeElem, x::WeylGroupElem)
-  reduced_expression = word(x)
-  character = Dict{WeightLatticeElem,Int}(w => 1)
-  for i in Iterators.reverse(reduced_expression)
-    character = demazure_operator(simple_root(root_system(w), Int(i)), character)
-  end
-  return Dict(Int.(_vec(coefficients(w_))) => m for (w_, m) in character)
+function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return demazure_character(R, w, word(x))
 end
 
-function demazure_character(R::RootSystem, hw::Vector{<:IntegerUnion}, x::WeylGroupElem)
-  return demazure_character(WeightLatticeElem(R, hw), x)
+function demazure_character(
+  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
+)
+  @req root_system(parent(x)) === R "parent root system mismatch"
+  return demazure_character(T, R, w, word(x))
+end
+
+function demazure_character(
+  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(Int, R, w, reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  R::RootSystem,
+  w::WeightLatticeElem,
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  @req root_system(w) === R "parent root system mismatch"
+  @req is_dominant(w) "not a dominant weight"
+  char = Dict{WeightLatticeElem,T}(w => T(1))
+  for i in Iterators.reverse(reduced_expression)
+    char = demazure_operator(simple_root(root_system(w), Int(i)), char)
+  end
+  return char
+end
+
+function demazure_character(R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem)
+  return demazure_character(R, WeightLatticeElem(R, w), x)
+end
+
+function demazure_character(
+  T::DataType, R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem
+)
+  return demazure_character(T, R, WeightLatticeElem(R, w), x)
+end
+
+function demazure_character(
+  R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expression::Vector{<:IntegerUnion}
+)
+  return demazure_character(R, WeightLatticeElem(R, w), reduced_expression)
+end
+
+function demazure_character(
+  T::DataType,
+  R::RootSystem,
+  w::Vector{<:IntegerUnion},
+  reduced_expression::Vector{<:IntegerUnion},
+)
+  return demazure_character(T, R, WeightLatticeElem(R, w), reduced_expression)
 end
 
 ###############################################################################
