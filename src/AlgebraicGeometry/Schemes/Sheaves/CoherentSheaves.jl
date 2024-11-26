@@ -450,6 +450,62 @@ end
   in the constructor.
 =#
 
+@doc raw"""
+    HomSheaf
+    
+For two `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X` 
+this computes the sheaf associated to `U -> Hom(F(U), G(U))`.
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP2);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+  2: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+  3: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+  3: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+
+julia> T = Oscar.HomSheaf(Omega, F)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: hom of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate polynomial
+   ring in 2 variables over GF(7)^1)
+  2: hom of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate polynomial
+   ring in 2 variables over GF(7)^1)
+  3: hom of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate polynomial
+   ring in 2 variables over GF(7)^1)
+
+julia> typeof(T)
+Oscar.HomSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+
+```
+"""
 @attributes mutable struct HomSheaf{SpaceType, OpenType, OutputType,
                                     RestrictionType
                                    } <: AbsCoherentSheaf{
