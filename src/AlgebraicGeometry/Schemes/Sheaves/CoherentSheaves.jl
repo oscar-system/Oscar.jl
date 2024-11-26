@@ -462,7 +462,7 @@ Projective space of dimension 1
   over prime field of characteristic 7
 with homogeneous coordinates [x, y]
 
-julia> Y = covered_scheme(IP2);
+julia> Y = covered_scheme(IP1);
 
 julia> Omega = cotangent_sheaf(Y)
 Coherent sheaf of modules
@@ -557,7 +557,7 @@ Projective space of dimension 1
   over prime field of characteristic 7
 with homogeneous coordinates [x, y]
 
-julia> Y = covered_scheme(IP2);
+julia> Y = covered_scheme(IP1);
 
 julia> Omega = cotangent_sheaf(Y)
 Coherent sheaf of modules

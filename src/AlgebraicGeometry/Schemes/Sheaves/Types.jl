@@ -131,8 +131,7 @@ julia> y, z = gens(OOX(U))
 julia> pb = OOX(U, VU)
 Ring homomorphism
   from multivariate polynomial ring in 2 variables over GF(7)
-  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x
-  //y))
+  to localization of multivariate polynomial ring in 2 variables over GF(7) at products of ((x//y))
 defined by
   (y//x) -> 1/(x//y)
   (z//x) -> (z//y)/(x//y)
@@ -429,11 +428,9 @@ julia> PP2 = Oscar.PrimeIdealSheafFromChart(X, V, P2)
 Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((x//y)) on Affine 2-space
 
 julia> II = PP1 + PP2
-Sum of 
-  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 
-  6*(z//x)) on affine 2-space
-  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) o
-  n affine 2-space
+Sum of
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 6*(z//x)) on affine 2-space
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) on affine 2-space
 
 julia> typeof(II)
 Oscar.SumIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
@@ -510,11 +507,9 @@ julia> PP2 = Oscar.PrimeIdealSheafFromChart(X, V, P2)
 Prime ideal sheaf on Scheme over GF(7) covered with 3 patches extended from Ideal ((x//y)) on Affine 2-space
 
 julia> II = PP1 * PP2
-Product of 
-  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 
-  6*(z//x)) on affine 2-space
-  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) o
-  n affine 2-space
+Product of
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((y//x) + 6*(z//x)) on affine 2-space
+  Prime ideal sheaf on scheme over GF(7) covered with 3 patches extended from ideal ((x//y)) on affine 2-space
 
 julia> typeof(II)
 Oscar.ProductIdealSheaf{CoveredScheme{FqField}, AbsAffineScheme, Ideal, Map}
