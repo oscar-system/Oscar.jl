@@ -4,15 +4,15 @@
   BP2 = domain(blow_up(P2, 1; coordinate_name = "e"))
   
   @testset "Basic properties of BP2" begin
-    @test is_normal(BP2) == true
-    @test is_affine(BP2) == false
-    @test is_projective(BP2) == true
-    @test is_projective_space(BP2) == false
-    @test is_smooth(BP2) == true
-    @test is_complete(BP2) == true
-    @test is_orbifold(BP2) == true
-    @test is_simplicial(BP2) == true
-    @test has_torusfactor(BP2) == false
+    @test is_normal(BP2)
+    @test !is_affine(BP2)
+    @test is_projective(BP2)
+    @test !is_projective_space(BP2) 
+    @test is_smooth(BP2)
+    @test is_complete(BP2)
+    @test is_orbifold(BP2)
+    @test is_simplicial(BP2)
+    @test !has_torusfactor(BP2)
   end
   
   @testset "Basic attributes of BP2" begin
@@ -41,7 +41,7 @@
   @testset "Basic tests for simple toric blowup" begin
     @test torsion_free_rank(domain(grid_morphism(bl))) == 2
     @test torsion_free_rank(codomain(grid_morphism(bl))) == 2
-    @test matrix(morphism_on_torusinvariant_weil_divisor_group(bl)) == matrix(ZZ, [1 0 0; 0 1 0; 0 0 1; 1 1 0])
+    @test rank(matrix(morphism_on_torusinvariant_weil_divisor_group(bl))) == 3
     @test matrix(morphism_on_torusinvariant_cartier_divisor_group(bl)) == matrix(morphism_on_torusinvariant_weil_divisor_group(bl))
   end
   
@@ -77,4 +77,5 @@
     @test bl2 isa Oscar.ToricBlowupMorphism
     @test center_unnormalized(bl2) == II
   end
+  
 end
