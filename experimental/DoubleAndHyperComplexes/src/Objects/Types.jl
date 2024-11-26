@@ -93,7 +93,7 @@ end
       upper_bounds::Vector=[nothing for i in 1:d],
       lower_bounds::Vector=[nothing for i in 1:d]
     ) where {ChainType, MorphismType}
-    @assert d > 0 "can not create zero or negative dimensional hypercomplex"
+    @assert d >= 0 "can not create negative dimensional hypercomplex"
     chains = Dict{Tuple, ChainType}()
     morphisms = Dict{Tuple, Dict{Int, <:MorphismType}}()
     return new{ChainType, MorphismType}(d, chains, morphisms, 
