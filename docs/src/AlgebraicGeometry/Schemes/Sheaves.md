@@ -22,6 +22,13 @@ StructureSheafOfRings
 AbsIdealSheaf
 IdealSheaf
 PrimeIdealSheafFromChart
+SumIdealSheaf
+ProductIdealSheaf
+SimplifiedIdealSheaf
+PullbackIdealSheaf
+RadicalOfIdealSheaf
+ToricIdealSheafFromCoxRingIdeal
+SingularLocusIdealSheaf
 ```
 
 ## Coherent sheaves of modules 
