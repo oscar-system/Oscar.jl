@@ -13,6 +13,24 @@
 # Graph curves
 #
 ################################################################################
+"""
+TODO: Move check functions to src/Combinatorics/Graphs/functions.jl file
+"""
+function check_i_valency(G::Graph, i::Int)
+  return all(v -> degree(G, v) == i, vertices(G))
+end
+
+function check_i_connectivity(G::Graph, i::Int)
+  for combination in AbstractAlgebra.combinations(collect(edges(G)),i-1)
+    G1 =deepcopy(G)
+    rem_edge!.(Ref(G1),combination)
+    if !is_connected(G1)
+      return false
+    end
+  end
+  return true
+end
+
 @doc raw"""
     graph_curve(G::Graph)
 
@@ -42,24 +60,6 @@ defined by ideal with 5 generators
 
 ```
 """
-"""
-TODO: Move check functions to src/Combinatorics/Graphs/functions.jl file
-"""
-function check_i_valency(G::Graph, i::int)
-  return all(v -> degree(G, v) == i, vertices(G))
-end
-
-function check_i_connectivity(G::Graph, i::int)
-  for combination in AbstractAlgebra.combinations(collect(edges(G)),i-1)
-    G1 =deepcopy(G)
-    rem_edge!.(Ref(G1),combination)
-    if !is_connected(G1)
-      return false 
-    end
-  end
-  return true 
-end
-
 function graph_curve(G::Graph; check::Bool=true)
     C,_ = graph_curve_with_vertex_ideals(G; check=check)
     return C
