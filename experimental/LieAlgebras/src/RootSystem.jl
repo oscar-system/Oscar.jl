@@ -2178,6 +2178,30 @@ function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeEl
   return dict
 end
 
+@doc raw"""
+    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+
+Computes all weights occurring in the Demazure module of the Lie algebra defined by the root system `R`
+with extremal weight `x*w`, together with their multiplicities.
+
+Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
+This function may return arbitrary results if the provided expression is not reduced.
+
+# Example
+```jldoctest
+julia> R = root_system(:B, 3);
+
+julia> demazure_character(R, [0, 1, 0], [3, 2, 1])
+Dict{WeightLatticeElem, Int64} with 4 entries:
+  w_1               => 1
+  w_2               => 1
+  w_1 + w_2 - 2*w_3 => 1
+  w_1 - w_2 + 2*w_3 => 1
+```
+"""
 function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
   @req root_system(parent(x)) === R "parent root system mismatch"
   return demazure_character(R, w, word(x))
