@@ -1116,4 +1116,7 @@ function projectivization(E::AbsCoherentSheaf;
   return CoveredProjectiveScheme(X, C, on_patches, projective_gluings, check=false)
 end
 
+function Base.hash(X::AbsCoherentSheaf, u::UInt)
+  return u
+end
 

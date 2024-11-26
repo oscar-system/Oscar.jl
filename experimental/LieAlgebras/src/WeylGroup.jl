@@ -24,7 +24,9 @@ Returns the Weyl group of the given type. See `cartan_matrix(fam::Symbol, rk::In
 # Examples
 ```jldoctest
 julia> weyl_group(:A, 2)
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of type A2
 ```
 """
 function weyl_group(fam::Symbol, rk::Int)
@@ -92,10 +94,25 @@ function Base.one(W::WeylGroup)
   return W(UInt8[]; normalize=false)
 end
 
+function Base.show(io::IO, mime::MIME"text/plain", W::WeylGroup)
+  @show_name(io, W)
+  @show_special(io, mime, W)
+  io = pretty(io)
+  println(io, LowercaseOff(), "Weyl group")
+  print(io, Indent(), "of ", Lowercase())
+  show(io, mime, root_system(W))
+  print(io, Dedent())
+end
+
 function Base.show(io::IO, W::WeylGroup)
   @show_name(io, W)
   @show_special(io, W)
-  print(pretty(io), LowercaseOff(), "Weyl group for ", Lowercase(), W.root_system)
+  io = pretty(io)
+  if is_terse(io)
+    print(io, LowercaseOff(), "Weyl group")
+  else
+    print(io, LowercaseOff(), "Weyl group of ", Lowercase(), root_system(W))
+  end
 end
 
 function coxeter_matrix(W::WeylGroup)
@@ -204,26 +221,26 @@ function Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-function Base.:(*)(x::WeylGroupElem, r::RootSpaceElem)
-  @req root_system(parent(x)) === root_system(r) "Incompatible root systems"
+function Base.:(*)(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  r2 = deepcopy(r)
+  rw2 = deepcopy(rw)
   for s in Iterators.reverse(word(x))
-    reflect!(r2, Int(s))
+    reflect!(rw2, Int(s))
   end
 
-  return r2
+  return rw2
 end
 
-function Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)
-  @req root_system(parent(x)) === root_system(w) "Incompatible root systems"
+function Base.:(*)(rw::Union{RootSpaceElem,WeightLatticeElem}, x::WeylGroupElem)
+  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
 
-  w2 = deepcopy(w)
-  for s in Iterators.reverse(word(x))
-    reflect!(w2, Int(s))
+  rw2 = deepcopy(rw)
+  for s in word(x)
+    reflect!(rw2, Int(s))
   end
 
-  return w2
+  return rw2
 end
 
 # to be removed once GroupCore is supported

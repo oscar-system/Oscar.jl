@@ -1239,7 +1239,7 @@ function monomial_basis(W::MPolyDecRing, d::FinGenAbGroupElem)
      k, im = kernel(h)
      #need the positive elements in there...
      #Ax = b, Cx >= 0
-     C = identity_matrix(FlintZZ, ngens(W))
+     C = identity_matrix(ZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
      k = solve_mixed(transpose(A), transpose(d.coeff), C)
      for ee = 1:nrows(k)
@@ -2383,7 +2383,15 @@ julia> I = ideal(R, [y^2*z − x^2*w, z^4 − x*w^3]);
 julia> cm_regularity(I)
 6
 
-julia> minimal_betti_table(I);
+julia> minimal_betti_table(I)
+degree: 0  1
+------------
+     3: 1  -
+     4: 1  -
+     5: -  -
+     6: -  1
+------------
+ total: 2  1
 ```
 """
 function cm_regularity(I::MPolyIdeal)

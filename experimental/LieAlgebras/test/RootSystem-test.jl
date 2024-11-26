@@ -30,6 +30,10 @@
   end
 
   @testset "property tests" begin
+    Main.equality(a::RootSpaceElem, b::RootSpaceElem) = a == b
+    Main.equality(a::DualRootSpaceElem, b::DualRootSpaceElem) = a == b
+    Main.equality(a::WeightLatticeElem, b::WeightLatticeElem) = a == b
+
     function root_system_property_tests(R::RootSystem, rk::Int, npositive_roots::Int)
       W = weyl_group(R)
 
@@ -136,72 +140,17 @@
         RootSpaceElem, DualRootSpaceElem, WeightLatticeElem
       )
         rk = rank(R)
+        for _ in 1:10
+          a = T(R, rand(-10:10, rk))
+          b = T(R, rand(-10:10, rk))
+          c = T(R, rand(-10:10, rk))
 
-        x1 = T(R, rand(-10:10, rk))
-        x2 = T(R, rand(-10:10, rk))
-        x3 = T(R, rand(-10:10, rk))
-        x1c = deepcopy(x1)
-        x2c = deepcopy(x2)
-        x3c = deepcopy(x3)
+          test_mutating_op_like_zero(zero, zero!, a)
 
-        for (f, f!) in ((zero, zero!),)
-          x1 = f!(x1)
-          @test x1 == f(x1c)
-          x1 = deepcopy(x1c)
-        end
+          test_mutating_op_like_neg(-, neg!, a)
 
-        for (f, f!) in ((-, neg!),)
-          x1 = f!(x1, x2)
-          @test x1 == f(x2c)
-          @test x2 == x2c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-
-          x1 = f!(x1)
-          @test x1 == f(x1c)
-          x1 = deepcopy(x1c)
-        end
-
-        for (f, f!) in ((+, add!), (-, sub!))
-          x1 = f!(x1, x2, x3)
-          @test x1 == f(x2c, x3c)
-          @test x2 == x2c
-          @test x3 == x3c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-          x3 = deepcopy(x3c)
-
-          x1 = f!(x1, x1, x2)
-          @test x1 == f(x1c, x2c)
-          @test x2 == x2c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-
-          x1 = f!(x1, x2, x1)
-          @test x1 == f(x2c, x1c)
-          @test x2 == x2c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-
-          x1 = f!(x1, x2, x2)
-          @test x1 == f(x2c, x2c)
-          @test x2 == x2c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-
-          x1 = f!(x1, x1, x1)
-          @test x1 == f(x1c, x1c)
-          x1 = deepcopy(x1c)
-
-          x1 = f!(x1, x2)
-          @test x1 == f(x1c, x2c)
-          @test x2 == x2c
-          x1 = deepcopy(x1c)
-          x2 = deepcopy(x2c)
-
-          x1 = f!(x1, x1)
-          @test x1 == f(x1c, x1c)
-          x1 = deepcopy(x1c)
+          test_mutating_op_like_add(+, add!, a, b)
+          test_mutating_op_like_add(-, sub!, a, b)
         end
       end
 

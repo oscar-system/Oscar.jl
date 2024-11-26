@@ -933,25 +933,22 @@ end
 
 # Construct the map from `F` to an abelian closure `K` such that `gen(F)`
 # is mapped to `x`.
-# If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
-# is mapped to `QQAbFieldElem(gen(F), N)`.
+# If `F` has conductor `N` then assume that `x.c == N` holds.
+# If `F` is a cyclotomic field with conductor `N` then assume that
+# `x == QQAbFieldElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
 function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
                     x::QQAbFieldElem{AbsSimpleNumFieldElem})
-  C1, z = cyclotomic_field(1)
+  C1, _ = cyclotomic_field(1)
 
   f = function(x::QQFieldElem)
     return QQAbFieldElem(C1(x), 1)
   end
 
-  finv = function(x::QQAbFieldElem; check::Bool = false)
-    if conductor(x) == 1
-      return Hecke.force_coerce_cyclo(C1, data(x))
-    elseif check
-      return
-    else
-      error("element has no preimage")
-    end
+  finv = function(x::QQAbFieldElem; throw_error::Bool = true)
+    res = Hecke.force_coerce_cyclo(C1, data(x), Val(false))
+    throw_error && res === nothing && error("element has no preimage")
+    return res
   end
 
   return MapFromFunc(F, K, f, finv)
@@ -966,18 +963,14 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(x, n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
-      if n % conductor(x) == 0
-        return Hecke.force_coerce_cyclo(F, data(x))
-      elseif check
-        return
-      else
-        error("element has no preimage")
-      end
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
+      res = Hecke.force_coerce_cyclo(F, data(x), Val(false))
+      throw_error && res === nothing && error("element has no preimage")
+      return res
     end
   else
     # `F` is expected to be a proper subfield of a cyclotomic field.
-    n = conductor(x)
+    n = x.c
     x = data(x)
     Kn, = AbelianClosure.cyclotomic_field(K, n)
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
@@ -989,25 +982,26 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(evaluate(R(z), x), n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
-      n % conductor(x) == 0 || return false, zero(F)
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
       # Write `x` w.r.t. the n-th cyclotomic field ...
       g = gcd(x.c, n)
       Kg, = AbelianClosure.cyclotomic_field(K, g)
-      x = Hecke.force_coerce_cyclo(Kg, data(x))
+      x = Hecke.force_coerce_cyclo(Kg, data(x), Val(false))
+      if x === nothing
+        throw_error && error("element has no preimage")
+        return
+      end
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
       fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
-      if fl
-        b = transpose(sol)
-        b = [b[i] for i in 1:length(b)]
-        return F(b)
-      elseif check
+      if !fl
+        throw_error && error("element has no preimage")
         return
-      else
-        error("element has no preimage")
       end
+      b = transpose(sol)
+      b = [b[i] for i in 1:length(b)]
+      return F(b)
     end
   end
   return MapFromFunc(F, K, f, finv)
@@ -1016,7 +1010,7 @@ end
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
 function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbFieldElem{AbsSimpleNumFieldElem})
-  pre = mp.g(x, check = true)
+  pre = mp.g(x, throw_error = false)
   if isnothing(pre)
     return false, zero(domain(mp))
   else

@@ -96,9 +96,9 @@ like `cyclotomic_polynomial`
 ```
 module Globals
   using Hecke
-  const Qx, _ = polynomial_ring(FlintQQ, :x, cached = false)
-  const Zx, _ = polynomial_ring(FlintZZ, :x, cached = false)
-  const Zxy, _ = polynomial_ring(FlintZZ, [:x, :y], cached = false)
+  const Qx, _ = polynomial_ring(QQ, :x, cached = false)
+  const Zx, _ = polynomial_ring(ZZ, :x, cached = false)
+  const Zxy, _ = polynomial_ring(ZZ, [:x, :y], cached = false)
 end
 ```
 You can use these in your own code as well, or imitate this pattern if convenient.

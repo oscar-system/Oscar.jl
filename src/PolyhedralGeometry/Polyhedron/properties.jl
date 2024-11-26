@@ -491,7 +491,7 @@ end
 Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
-* `Halfspace`,
+* `Halfspace` (or its subtype `AffineHalfspace`),
 * `Polyhedron`,
 * `Pair`.
 

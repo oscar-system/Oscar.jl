@@ -622,7 +622,7 @@ end
    lc = x*H
    @test order(lc)==order(H)
    @test representative(lc)==x
-   @test acting_domain(lc)==H
+   @test acting_group(lc)==H
    @test x in lc
    C = centralizer(G,x)[1]
    @test order(C)==64
@@ -752,7 +752,7 @@ end
    # L = lattice(q, QQ[0 0; 0 0], isbasis=false)
    # @test order(isometry_group(L)) == 1
 
-   Qx, x = polynomial_ring(FlintQQ, :x, cached = false)
+   Qx, x = polynomial_ring(QQ, :x, cached = false)
    f = x^2-2;
    K, a = number_field(f)
    D = matrix(K, 3, 3, [2, 0, 0, 0, 1, 0, 0, 0, 7436]);

@@ -934,9 +934,9 @@ end
 #  # Transpose while converting:
 #  ncols = length(W);
 #  nrows = length(W[1]);
-#  A = zero_matrix(FlintZZ, nrows,ncols);
+#  A = zero_matrix(ZZ, nrows,ncols);
 #  for i in 1:nrows  for j in 1:ncols  A[i,j] = W[j][i];  end; end;
-#  b = zero_matrix(FlintZZ, nrows,1);
+#  b = zero_matrix(ZZ, nrows,1);
 #  try
 #    solve_non_negative(A, b); # any non-zero soln gives rise to infinitely many, which triggers an exception
 #  catch e

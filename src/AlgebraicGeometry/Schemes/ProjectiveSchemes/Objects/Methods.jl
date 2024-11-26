@@ -433,5 +433,8 @@ function Base.union(comp::Vector{<:AbsProjectiveScheme})
   return result
 end
 
+function Base.hash(X::AbsProjectiveScheme, u::UInt)
+  return u
+end
 
 
