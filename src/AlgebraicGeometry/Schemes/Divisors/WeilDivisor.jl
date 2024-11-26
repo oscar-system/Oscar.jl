@@ -750,7 +750,7 @@ function move_divisor(
     randomization::Bool=false,
     is_prime::Bool=false
   )
-  X = scheme(D)
+  X = ambient_scheme(D)
   @check is_irreducible(X) && is_reduced(X) "scheme must be irreducible and reduced"
   is_zero(D) && return D
 
@@ -803,8 +803,8 @@ end
 # its base field. But the output is only valid if that is true. 
 # Therefore, we have no choice, but to hide it from the user for now.
 function _intersect(C::CartierDivisor, D::AbsWeilDivisor)
-  X = scheme(C)
-  @assert X === scheme(D)
+  X = ambient_scheme(C)
+  @assert X === ambient_scheme(D)
   R = coefficient_ring(C)
   @assert R === coefficient_ring(D)
   result = AlgebraicCycle(X, R)
@@ -815,8 +815,8 @@ function _intersect(C::CartierDivisor, D::AbsWeilDivisor)
 end
 
 function _intersect(E::EffectiveCartierDivisor, D::AbsWeilDivisor; check::Bool=true)
-  X = scheme(E)
-  @assert X === scheme(D)
+  X = ambient_scheme(E)
+  @assert X === ambient_scheme(D)
   R = coefficient_ring(D)
   result = AlgebraicCycle(X, R)
   cpcd = copy(coefficient_dict(D))
