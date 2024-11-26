@@ -488,6 +488,62 @@ codomain(M::HomSheaf) = M.codomain
 ########################################################################
 # Sheaves of direct sums                                               #
 ########################################################################
+@doc raw"""
+    DirectSumSheaf
+
+Given two or more `AbsCoherentSheaf`s `F` and `G` on an `AbsCoveredScheme` `X`, 
+this holds the sheaf associated to the direct sum of `F` and `G`
+
+# Examples
+```jldoctest
+julia> IP1 = projective_space(GF(7), [:x, :y])
+Projective space of dimension 1
+  over prime field of characteristic 7
+with homogeneous coordinates [x, y]
+
+julia> Y = covered_scheme(IP2);
+
+julia> Omega = cotangent_sheaf(Y)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+  2: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+  3: free module of rank 2 over multivariate polynomial ring in 2 variables over GF(7)
+
+julia> F = free_module(OO(Y), 1)
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+  2: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+  3: free module of rank 1 over multivariate polynomial ring in 2 variables over GF(7)
+
+julia> W = Oscar.DirectSumSheaf(Y, [Omega, F])
+Coherent sheaf of modules
+  on scheme over GF(7) covered with 3 patches
+    1: [(y//x), (z//x)]   affine 2-space
+    2: [(x//y), (z//y)]   affine 2-space
+    3: [(x//z), (y//z)]   affine 2-space
+with restrictions
+  1: direct sum of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate pol
+  ynomial ring in 2 variables over GF(7)^1)
+  2: direct sum of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate pol
+  ynomial ring in 2 variables over GF(7)^1)
+  3: direct sum of (Multivariate polynomial ring in 2 variables over GF(7)^2, Multivariate pol
+  ynomial ring in 2 variables over GF(7)^1)
+
+julia> typeof(W)
+DirectSumSheaf{CoveredScheme{FqField}, AbsAffineScheme, ModuleFP, Map}
+
+```
+"""
 @attributes mutable struct DirectSumSheaf{SpaceType, OpenType, OutputType,
                                           RestrictionType
                                          } <: AbsCoherentSheaf{
