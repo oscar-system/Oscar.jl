@@ -1667,8 +1667,6 @@ Computes all weights occurring in the simple module of the Lie algebra defined b
 with highest weight `hw`, together with their multiplicities.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
 
-The return type may change in the future.
-
 # Example
 ```jldoctest
 julia> R = root_system(:B, 3);
