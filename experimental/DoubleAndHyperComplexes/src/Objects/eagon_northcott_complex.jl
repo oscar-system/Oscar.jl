@@ -85,7 +85,7 @@ function (fac::ENCMapFactory)(self::AbsHyperComplex, p::Int, I::Tuple)
       is_zero(e) && continue
       beta = copy(alpha)
       beta[k] -= 1
-      aa = cod_sym_power[findfirst(gamma==beta for gamma in cfac.exps[i-1])]
+      aa = cod_sym_power[findfirst(==(beta), cfac.exps[i-1])]
       bb = _contract(b, A[k, :]; parent=cod_ext_power)
       img_gen = img_gen + tensor_pure_function(cod)((aa, bb))
     end
