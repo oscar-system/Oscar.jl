@@ -5,4 +5,5 @@
   G = grading_group(S)
   F = graded_free_module(S, [zero(G), G[1], 3*G[2]])
   @test length(collect(Oscar.all_monomials(F, 7*G[2]+3*G[1]))) == 76
+  @test length(collect(Oscar.all_exponents(F, 7*G[2]+3*G[1]))) == 76
 end
