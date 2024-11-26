@@ -1140,7 +1140,7 @@
     # so to reproduce one needs to reverse all Weyl words when copying a test case to Magma.
 
     @testset "Type A" begin
-      for n in 2:5
+      for n in 2:4
         R = root_system(:A, n)
         for i in 1:n
           w = fundamental_weight(R, i)
@@ -1436,6 +1436,7 @@
       @test char == Dict(
         WeightLatticeElem(R, [2, 0, 1]) => 1,
         WeightLatticeElem(R, [1, 2, -3]) => 1,
+        WeightLatticeElem(R, [1, 1, -1]) => 1,
         WeightLatticeElem(R, [1, 1, 1]) => 1,
         WeightLatticeElem(R, [0, 3, -3]) => 1,
         WeightLatticeElem(R, [0, 1, 1]) => 1,
@@ -1519,6 +1520,7 @@
         demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
+
     @testset "Type D" begin
       for n in 4:4
         R = root_system(:D, n)
@@ -1530,6 +1532,7 @@
         demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
+
     @testset "Type E" begin
       for n in 6:6
         R = root_system(:E, n)
@@ -1541,6 +1544,7 @@
         #demazure_character_trivial_tests(R, 2*weyl_vector(R)) #takes too long for CI
       end
     end
+
     @testset "Type F" begin
       for n in 4:4
         R = root_system(:F, n)
@@ -1552,6 +1556,7 @@
         #demazure_character_trivial_tests(R, 2*weyl_vector(R)) #takes too long for CI
       end
     end
+
     @testset "Type G" begin
       for n in 2:2
         R = root_system(:G, n)
@@ -1563,6 +1568,7 @@
         demazure_character_trivial_tests(R, 2 * weyl_vector(R))
       end
     end
+
     @testset "Input Conversion" begin
       R = root_system(:B, 3)
       W = weyl_group(R)

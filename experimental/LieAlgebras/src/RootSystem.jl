@@ -2162,8 +2162,10 @@ function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   return demazure_operator(r, Dict(w => 1))
 end
 
-function demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,Int})
-  dict = Dict{WeightLatticeElem,Int}()
+function demazure_operator(
+  r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
+)
+  dict = empty(groupringelem)
   for (w, dim) in groupringelem
     sign, weights = _demazure_operator(r, w)
     for w_ in weights
