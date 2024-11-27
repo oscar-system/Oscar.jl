@@ -2057,8 +2057,7 @@ julia> invs
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
+  if ngens(G) == 0
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
@@ -2107,7 +2106,10 @@ x*y^4
 ```
 """
 function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  length(gens(parent(g))) == 0 && return init
+  if ngens(parent(g)) == 0
+    @req init !== nothing "use '; init =...' if there are no generators"
+    return init
+  end
   l = _exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
