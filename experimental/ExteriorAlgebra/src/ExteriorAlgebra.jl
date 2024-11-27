@@ -508,7 +508,7 @@ end
 function (F_p::FreeMod{T})(a::Vector{FreeModElem{ExtAlgElem{T}}}; check::Bool=true) where {T}
   @check is_homogeneous(v) "elements must be homogeneous for conversion"
   isempty(a) && return elem_type(F_p)[]
-  j = findfirst(!iszero(v) for v in a)
+  j = findfirst(!iszero, a)
   j === nothing && return [zero(F_p) for i in 1:length(a)]
   p = Int(degree(a[j]; check=false)[1])
   F = parent(first(a))
