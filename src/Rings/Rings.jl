@@ -39,6 +39,3 @@ include("FreeAssociativeAlgebraIdeal.jl")
 include("hilbert.jl")
 include("primary_decomposition_helpers.jl")
 include("resultant.jl")
-
-include("generic_exterior_algebra/ExteriorAlgebra.jl")
-
