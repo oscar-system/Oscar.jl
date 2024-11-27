@@ -767,8 +767,11 @@ end
 end
 
 function singular_poly_ring(R::MPolyDecRing; keep_ordering::Bool = false)
+  @show "richtig verfolgt 1"
   if !keep_ordering
-    return singular_poly_ring(forget_decoration(R), default_ordering(R))
+    @show "richtig verfolgt 2"
+    return singular_poly_ring(forget_decoration(R), 
+    singular(default_ordering(R))*Singular.ordering_c())
   end
   return singular_poly_ring(forget_decoration(R); keep_ordering)
 end

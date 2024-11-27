@@ -617,11 +617,13 @@ function singular_poly_ring(Rx::MPolyRing{T}; keep_ordering::Bool = false) where
   if keep_ordering
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = internal_ordering(Rx),
+              ordering = internal_ordering(Rx),              
+              ordering2 = :comp1max,
               cached = false)[1]
   else
     return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
+              ordering2 = :comp1max,
               cached = false)[1]
   end
 end
@@ -629,7 +631,8 @@ end
 function singular_poly_ring(Rx::MPolyRing{T}, ord::Symbol) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = ord,
+              ordering = ord,              
+              ordering2 = :comp1max,
               cached = false)[1]
 end
 
@@ -643,7 +646,7 @@ end
 function singular_poly_ring(Rx::MPolyRing{T}, ord::MonomialOrdering) where {T <: RingElem}
   return Singular.polynomial_ring(singular_coeff_ring(base_ring(Rx)),
               _variables_for_singular(symbols(Rx)),
-              ordering = singular(ord),
+              ordering = singular(ord)*Singular.ordering_c(),
               cached = false)[1]
 end
 
