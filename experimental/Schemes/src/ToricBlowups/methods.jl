@@ -45,90 +45,66 @@ function total_transform(f::AbsBlowupMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
 
-@doc raw"""
-    _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:IntegerUnion})
+function cox_ring_group_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingElem{QQFieldElem, QQMPolyRingElem})
+  @req parent(g) === cox_ring(codomain(f)) "g must be an element of the Cox ring of the codomain of f"
+  d, phi_exponents = _cox_ring_group_homomorphism_data(f)
+  S = cox_ring(domain(f))
+  new_var = S[index_of_new_ray(f)]
 
-Given a ray $r$ inside the support of the fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$ such that $r$ is in the relative interior of $σ$.
-
-# Examples
-```jldoctest
-julia> X = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> r = [1, 1, 0]
-2-element Vector{Int64}:
- 1
- 1
-
-julia> c = Oscar._minimal_supercone(X, r)
-Polyhedral cone in ambient dimension 3
-
-julia> rays(c)
-2-element SubObjectIterator{RayVector{QQFieldElem}}:
- [1, 0, 0]
- [0, 1, 0]
-```
-"""
-function _minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion, QQFieldElem}})
-  m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
-  @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
-  m_cones = [maximal_cones(X)[i] for i in m_cone_indices]
-  m_cone = intersect(m_cones)
-  m_fan = polyhedral_fan(m_cone)
-  
-  # By Proposition 1.2.8(c) in [CLS11](@cite), every proper face of a cone
-  # is the intersection of the facets containing it.
-  m_facets = cones(m_fan, dim(m_cone) - 1)
-  cs = [c for c in m_facets if r in c]
-  isempty(cs) && return m_cone
-  return intersect(cs)
+  # Assuming the i-th variable of `cox_ring(X)` is the i-th variable of `cox_ring(Y)`
+  S_vars = [S[i] for i in 1:nvars(S)]
+  coeff_exps = collect(zip(coefficients(g), exponents(g)))
+  make_S_term(c, exps) = c*prod(map(^, S_vars, exps))
+  h = S(0)
+  for (c, exps) in coeff_exps
+    new_exp = div(sum(phi_exponents.*exps), d)
+    sum(phi_exponents.*exps) != d && (new_exp += 1)
+    h += new_var^new_exp * make_S_term(c, exps)
+  end
+  return h
 end
 
-function _cox_ring_homomorphism(f::ToricBlowupMorphism)
-  @assert is_normal(codomain(f))
-  @assert is_orbifold(codomain(f)) "Only implemented when fan is simplicial"
+@attr Tuple{ZZRingElem, Vector{ZZRingElem}} function _cox_ring_group_homomorphism_data(f::ToricBlowupMorphism)
+  # f: Y -> X
+  X = codomain(f)
   Y = domain(f)
-  @assert !has_torusfactor(codomain(f)) "Only implemented when there are no torus factors"
-  @assert n_rays(Y) == n_rays(codomain(f)) + 1 "Only implemented when the blowup adds a ray"
-  @assert grading_group(cox_ring(Y)) === class_group(Y)
-  G = class_group(Y)
-  n = number_of_generators(G)
+  @req is_normal(X) "Only implemented when the variety is normal"
+  @req is_orbifold(X) "Only implemented when the fan is simplicial"
+  @req !has_torusfactor(X) "Only implemented when there are no torus factors"
+  @req n_rays(Y) == n_rays(X) + 1 "Only implemented when the blowup adds a ray"
   new_ray = rays(domain(f))[index_of_new_ray(f)]
-  c = Oscar._minimal_supercone(Y, new_ray)
+  c = minimal_supercone(X, new_ray)
   U = affine_normal_toric_variety(c)
   d = order(class_group(U))
-  # TODO: finish this...
+  A = transpose(matrix(ZZ, rays(c)))
+  C = identity_matrix(ZZ, n_rays(c))
 
+  # Making `new_ray` into a singleton SubObjectIterator similar to `rays(c)`
+  b_iterator = rays(positive_hull(new_ray))
 
-  new_var = cox_ring(Y)[index_of_new_ray(f)]
-  M = generator_degrees(cox_ring(Y))
-  @assert M[index_of_new_ray(f)][n] < 0 "Assuming the blowup adds a new column vector to `Oscar.generator_degrees(cox_ring(codomain(f)))`, the entry of that vector corresponding to the new ray should be negative. If not, multiply by -1."
-  ind = Int64(abs(M[index_of_new_ray(f)][n]))
-  for i in 1:n_rays(Y)
-    i == index_of_new_ray(f) || @assert M[i][n] >= 0 "Assuming the blowup adds a new column vector to `Oscar.generator_degrees(cox_ring(codomain(f)))` for which the entry corresponding to the new ray is negative, the entries corresponding to all the other rays should be nonnegative. If not, add integer multiples of the other columns until it is."
-  end
-  if ind == 1
-    S = cox_ring(Y)
-    inj = hom(S, S, gens(S))
-  elseif ind > 1
-    # Change grading so that the negative entry would be -1
-    xs = ZZRingElem[]
-    for i in 1:n-1
-      push!(xs, M[index_of_new_ray(f)][i])
+  # Making `new_ray` into a column vector
+  b = transpose(matrix(ZZ, b_iterator))
+
+  # Multiplying by `d` to assure that a solution exists
+  b *= d
+
+  vs = solve_mixed(A, b, C)
+  n = nvars(cox_ring(X))
+  phi_exponents = zeros(ZZRingElem, n)
+  for i in 1:n
+    ray = Oscar._ray_variable_correspondence(X)[cox_ring(X)[i]]
+    j = findfirst(isequal(ray), rays(c))
+    if isnothing(j)
+      phi_exponents[i] = ZZRingElem(0)
+    else
+      phi_exponents[i] = ZZRingElem(vs[j])
     end
-    push!(xs, ZZRingElem(-1))
-    M_new = deepcopy(M)
-    M_new[index_of_new_ray(f)] = G(xs)
-    S_ungraded = forget_grading(cox_ring(Y))
-    S = grade(S_ungraded, M_new)[1]
-    inj = hom(cox_ring(Y), S, gens(S))
   end
-  F = hom(cox_ring(codomain(f)), S, [inj(new_var^(M[i][n])*S[i]) for i in 1:n_rays(Y) if i != index_of_new_ray(f)])
-  return (F, ind)
+  return d, phi_exponents
 end
 
 function strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
-  F, ind = _cox_ring_homomorphism(f)
+  F, ind = _cox_ring_group_homomorphism(f)
   Y = domain(f)
   S = cox_ring(Y)
   new_var = S[index_of_new_ray(f)]

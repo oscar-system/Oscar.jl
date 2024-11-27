@@ -1068,6 +1068,7 @@ export minimal_block_reps
 export minimal_faces
 export minimal_generating_set
 export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
+export minimal_supercone
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes

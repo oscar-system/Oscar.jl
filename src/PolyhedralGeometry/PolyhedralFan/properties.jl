@@ -281,6 +281,46 @@ function cones(PF::_FanLikeType)
   return IncidenceMatrix([Vector{Int}(x) for x in cones])
 end
 
+@doc raw"""
+    minimal_supercone(X::NormalToricVariety, p::AbstractVector{<:IntegerUnion})
+    -> safksjafld
+
+Given an point $p$ with integer coordinates inside the support of the fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$ such that $p$ is in the relative interior of $σ$.
+
+# Examples
+```jldoctest
+julia> X = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> p = [1, 1, 0]
+2-element Vector{Int64}:
+ 1
+ 1
+
+julia> c = minimal_supercone(X, p)
+Polyhedral cone in ambient dimension 3
+
+julia> rays(c)
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion, QQFieldElem}})
+  m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
+  @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
+  m_cones = [maximal_cones(X)[i] for i in m_cone_indices]
+  m_cone = intersect(m_cones)
+  m_fan = polyhedral_fan(m_cone)
+
+  # By Proposition 1.2.8(c) in [CLS11](@cite), every proper face of a cone
+  # is the intersection of the facets containing it.
+  m_facets = cones(m_fan, dim(m_cone) - 1)
+  cs = [c for c in m_facets if r in c]
+  isempty(cs) && return m_cone
+  return intersect(cs)
+end
+
 ###############################################################################
 ###############################################################################
 ### Access properties
