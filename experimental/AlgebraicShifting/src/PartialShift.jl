@@ -265,7 +265,9 @@ julia> betti_numbers(L) == betti_numbers(K)
 true
 
 julia> W = weyl_group(:A, n_vertices(K) - 1)
-Weyl group for root system defined by Cartan matrix [2 -1 0 0 0; -1 2 -1 0 0; 0 -1 2 -1 0; 0 0 -1 2 -1; 0 0 0 -1 2]
+Weyl group
+  of root system of rank 5
+    of type A5
 
 julia> s = gens(W)
 5-element Vector{WeylGroupElem}:
