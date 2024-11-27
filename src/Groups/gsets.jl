@@ -361,9 +361,11 @@ julia> length(orbit(Omega, 1))
 ```
 """
 function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
+    # In this generic function, we delegate the loop to GAP, but we act
+    # with Julia group elements on Julia objects via Julia functions.
     G = acting_group(Omega)
     acts = GapObj(gens(G))
-    gfun = gap_action_function(Omega)
+    gfun = GapObj(action_function(Omega))
 
     # The following works only because GAP does not check
     # whether the given (dummy) group 'GapObj(G)' fits to the given generators,
@@ -377,7 +379,8 @@ function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
 end
 #T check whether omega lies in Omega?
 
-# special cases where we convert the objects to GAP,
+# special cases where we convert the objects to GAP
+# (the group elements as well as the objects they act on),
 # in order to use better methods on the GAP side:
 # - orbit of a perm. group on integers
 # - orbit of a perm. group on vectors of integers
