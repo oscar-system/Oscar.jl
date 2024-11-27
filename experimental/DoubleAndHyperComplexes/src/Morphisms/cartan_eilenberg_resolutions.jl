@@ -1,22 +1,4 @@
-mutable struct MapLifter{MorphismType} <: HyperComplexMorphismFactory{MorphismType}
-  dom::AbsHyperComplex
-  cod::AbsHyperComplex
-  orig_map::Map
-  start_index::Int
-  offset::Int
-  check::Bool
-
-  function MapLifter(::Type{MorphismType}, dom::AbsHyperComplex, cod::AbsHyperComplex, phi::Map; 
-      start_index::Int=0, offset::Int=0, check::Bool=true
-    ) where {MorphismType}
-    @assert dim(dom) == 1 && dim(cod) == 1 "lifting of maps is only implemented in dimension one"
-    @assert (is_chain_complex(dom) && is_chain_complex(cod)) || (is_cochain_complex(dom) && is_cochain_complex(cod))
-    @assert domain(phi) === dom[start_index]
-    @assert codomain(phi) === cod[start_index + offset]
-    return new{MorphismType}(dom, cod, phi, start_index, offset)
-  end
-end
-
+### Lifting maps through projective resolutions
 is_chain_complex(c::AbsHyperComplex) = (dim(c) == 1 ? direction(c, 1) == (:chain) : error("complex is not one-dimensional"))
 is_cochain_complex(c::AbsHyperComplex) = (dim(c) == 1 ? direction(c, 1) == (:cochain) : error("complex is not one-dimensional"))
 
@@ -57,3 +39,6 @@ function lift_map(dom::AbsHyperComplex{DomChainType}, cod::AbsHyperComplex{CodCh
 end
   
 morphism_type(::Type{T1}, ::Type{T2}) where {T1<:ModuleFP, T2<:ModuleFP} = ModuleFPHom{<:T1, <:T2}
+
+### Cartan Eilenberg resolutions
+
