@@ -1,7 +1,7 @@
 @doc raw"""
     common_refinement(PC1::PolyhedralComplex{T},PC2::PolyhedralComplex{T}) where T<:scalar_types
 
-Return the common refinement of two polyhedral complexes. 
+Return the common refinement of two polyhedral complexes.
 
 # Examples
 ```jldoctest
@@ -74,3 +74,68 @@ function k_skeleton(PC::PolyhedralComplex{T}, k::Int) where {T<:scalar_types}
   )
   return PolyhedralComplex{T}(ksk, coefficient_field(PC))
 end
+
+
+###############################################################################
+## Scalar product
+###############################################################################
+
+function *(c::QQFieldElem, Sigma::PolyhedralComplex)
+    # if scalar is zero, return polyhedral complex consisting only of the origin
+    if iszero(c)
+        return polyhedral_complex(convex_hull(zero_matrix(QQ,1,ambient_dim(Sigma))))
+    end
+
+    # if scalar is non-zero, multiple all vertices and rays by said scalar
+    SigmaVertsAndRays = vertices_and_rays(Sigma)
+    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+    SigmaLineality = lineality_space(Sigma)
+    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
+    return polyhedral_complex(SigmaIncidence, multiply_by_nonzero_scalar.(SigmaVertsAndRays,c), SigmaRayIndices, SigmaLineality)
+end
+*(c::Union{ZZRingElem,Rational,Int}, Sigma::PolyhedralComplex) = QQ(c)*Sigma
+*(Sigma::PolyhedralComplex, c::Union{QQFieldElem,ZZRingElem,Rational,Int}) = c*Sigma
+
+
+###############################################################################
+## Negation
+###############################################################################
+
+function -(Sigma::PolyhedralComplex)
+    SigmaVertsAndRays = vertices_and_rays(Sigma)
+    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+    SigmaLineality = lineality_space(Sigma)
+    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
+    return polyhedral_complex(SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality)
+end
+
+###############################################################################
+## Translation
+###############################################################################
+
+function translate_by_vector(u::PointVector{QQFieldElem}, v::Vector{QQFieldElem})
+    return u .+ v
+end
+function translate_by_vector(u::RayVector{QQFieldElem}, ::Vector{QQFieldElem})
+    return u
+end
+function +(v::Vector{QQFieldElem}, Sigma::PolyhedralComplex)
+    @req length(v)==ambient_dim(Sigma) "ambient dimension mismatch"
+    SigmaVertsAndRays = vertices_and_rays(Sigma)
+    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+    SigmaLineality = lineality_space(Sigma)
+    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
+    return polyhedral_complex(SigmaIncidence, translate_by_vector.(SigmaVertsAndRays,Ref(v)), SigmaRayIndices, SigmaLineality)
+end
++(v::Vector{ZZRingElem}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
++(v::Vector{Rational}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
++(v::Vector{Int}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
+
++(Sigma::PolyhedralComplex, v::Vector{QQFieldElem}) = v+Sigma
++(Sigma::PolyhedralComplex, v::Vector{ZZRingElem}) = QQ.(v)+Sigma
++(Sigma::PolyhedralComplex, v::Vector{Rational}) = QQ.(v)+Sigma
++(Sigma::PolyhedralComplex, v::Vector{Int}) = QQ.(v)+Sigma
+
+# Vector addition for polyhedral fans
++(Sigma::PolyhedralFan, v::Vector) = polyhedral_complex(Sigma)+v
++(v::Vector, Sigma::PolyhedralFan) = v+polyhedral_complex(Sigma)

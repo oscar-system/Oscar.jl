@@ -220,6 +220,15 @@ end
   sff1 = star_subdivision(ff, w1)
   @test number_of_maximal_cones(sff0) == 2
   @test number_of_maximal_cones(sff1) == 3
+
+  f = normal_fan(cube(2))
+  fMinus = -f
+  @test n_rays(fMinus) == n_rays(f)
+  @test n_maximal_cones(fMinus) == n_maximal_cones(f)
+
+  fMinus = -1*f
+  @test n_rays(fMinus) == n_rays(f)
+  @test n_maximal_cones(fMinus) == n_maximal_cones(f)
 end
 
 @testset "Defining polynomial of hyperplane arrangement from matrix" begin
