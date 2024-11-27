@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ['${{ matrix.os }}', 'high-memory']
+    runs-on: ['${{ matrix.os }}', '${{ matrix.group == "short" && "high-memory" || ""}}', '${{ matrix.hosted}}']
     timeout-minutes: 150
     strategy:
       fail-fast: false
