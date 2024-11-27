@@ -1257,6 +1257,7 @@ export polyhedron
 export polynomial
 export polynomial_ring
 export positive_hull
+export positive_tropical_variety
 export possible_class_fusions
 export power_sum
 export powers_of_element
