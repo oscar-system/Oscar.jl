@@ -1319,6 +1319,7 @@ export positive_coroots
 export positive_hull
 export positive_root
 export positive_roots
+export positive_tropical_variety
 export possible_class_fusions
 export power_sum
 export powers_of_element
