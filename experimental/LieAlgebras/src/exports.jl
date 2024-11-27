@@ -39,6 +39,8 @@ export conjugate_dominant_weight_with_right_elem
 export coroot
 export coroots
 export coxeter_matrix
+export demazure_character
+export demazure_operator
 export derived_algebra
 export dim_of_simple_module
 export dominant_character
