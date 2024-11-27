@@ -365,6 +365,30 @@ function tropical_linear_space(I::MPolyIdeal, nu::Union{Nothing,TropicalSemiring
 end
 
 
+@doc raw"""
+    tropical_linear_space(G::Graph, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
+
+Return the Bergman fan of the graphic matroid of `G` as a tropical linear space, the tropical semiring map `nu` is used to fix the convention.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+
+# Examples
+```jldoctest
+julia> G = complete_graph(4)
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
+
+julia> tropical_linear_space(G)
+Min tropical linear space
+
+```
+"""
+function tropical_linear_space(G::Graph, nu::Union{Nothing,TropicalSemiringMap}=nothing; weighted_polyhedral_complex_only::Bool=false)
+    M = signed_incidence_matrix(G)
+    TropG = tropical_linear_space(M,nu;weighted_polyhedral_complex_only=weighted_polyhedral_complex_only)
+    if !weighted_polyhedral_complex_only
+        set_attribute!(TropG,:graph,G)
+    end
+    return TropG
+end
 
 ###############################################################################
 #
