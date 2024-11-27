@@ -43,7 +43,7 @@ function basis_lie_highest_weight_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(WeightLatticeElem, R) => Set([ZZx(1)])
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
   no_minkowski = Set{WeightLatticeElem}()
@@ -98,7 +98,7 @@ function basis_coordinate_ring_kodaira_compute(
 
   # save computations from recursions
   calc_highest_weight = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}(
-    zero(WeightLatticeElem, R) => Set([ZZx(1)])
+    zero(weight_lattice(R)) => Set([ZZx(1)])
   )
 
   # save all highest weights, for which the Minkowski-sum did not suffice to gain all monomials
@@ -362,12 +362,12 @@ function add_by_hand(
   matrices_of_operators = tensor_matrices_of_operators(
     L, highest_weight, operators_as_roots(birational_seq)
   )
-  space = Dict(zero(WeightLatticeElem, R) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
+  space = Dict(zero(weight_lattice(R)) => sparse_matrix(QQ)) # span of basis vectors to keep track of the basis
   v0 = sparse_row(ZZ, [(1, 1)])  # starting vector v
 
   push!(basis, ZZx(1))
   # required monomials of each weightspace
-  weightspaces = _character(R, highest_weight)
+  weightspaces = character(R, highest_weight)
   # sort the monomials from the minkowski-sum by their weightspaces
   monomials_in_weightspace = Dict{WeightLatticeElem,Set{ZZMPolyRingElem}}()
   for (weight_w, _) in weightspaces
