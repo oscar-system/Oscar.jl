@@ -362,7 +362,7 @@ julia> length(orbit(Omega, 1))
 """
 function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     G = acting_group(Omega)
-    acts = GapObj(gens(G); recursive=true)
+    acts = GapObj(gens(G))
     gfun = gap_action_function(Omega)
 
     # The following works only because GAP does not check
@@ -376,6 +376,22 @@ function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     return res
 end
 #T check whether omega lies in Omega?
+
+# special cases where we convert the objects to GAP,
+# in order to use better methods on the GAP side:
+# - orbit of a perm. group on integers
+# - orbit of a perm. group on vectors of integers
+# - orbit of a perm. group on sets of integers
+function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: Union{IntegerUnion, Vector{<: IntegerUnion}, Set{<: IntegerUnion}}
+    G = acting_group(Omega)
+    gfun = gap_action_function(Omega)
+    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), GapObj(omega), gfun)::GapObj)
+
+    res = as_gset(acting_group(Omega), action_function(Omega), orb)
+    # We know that this G-set is transitive.
+    set_attribute!(res, :orbits => [orb])
+    return res
+end
 
 function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
     return orbit_via_Julia(Omega, omega)
