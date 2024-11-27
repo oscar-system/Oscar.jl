@@ -18,6 +18,7 @@ In addition to converting from `TropicalVariety`, objects of type `TropicalLinea
 4. matrices over a field and a tropical semiring map.
     - if matrix over `QQ` and tropical semiring map is trivial, uses an implementation of Rincon's algorithm [Rin13](@cite) in `polymake`
     - for general input, computes minors and uses constructor (2.)
+5. graphs
 ```@docs
 tropical_linear_space
 ```
