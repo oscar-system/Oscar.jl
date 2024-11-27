@@ -738,8 +738,7 @@ end
 
 Given an `AbsWeilDivisor` `D` on a scheme `X`, apply a heuristic attempt 
 to create a principal divisor `div(f)` for some rational function, 
-so that the support of the divisor `D - div(f)` does not contain the 
-generic scheme-theoretic points in the support of `D`. 
+so that `supp(D - div(f)) ∩ supp(D)` has codimension greater or equal to `2`. In other words: We try to move `D` away from its original position as much as possible within its rational equivalence class.
 
 Note that `supp(D - div(f)) ∩ supp(D)` need not be empty! The point is that 
 the minimal associated primes of the support of `D - div(f)` should be different 
