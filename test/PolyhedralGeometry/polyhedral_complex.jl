@@ -142,4 +142,27 @@
       @test n_maximal_polyhedra(vrep) == n_maximal_polyhedra(hrep)
     end
   end
+
+  @testset "Binary operations" begin
+    PCshifted = PC + [1, 1]
+    @test dim(PCshifted) == dim(PC)
+    @test ambient_dim(PCshifted) == ambient_dim(PC)
+    @test lineality_dim(PCshifted) == lineality_dim(PC)
+    @test issetequal(rays(PCshifted), rays(PC))
+    @test n_maximal_cones(PCshifted) == n_maximal_polyhedra(PC)
+
+    PCscaled = 2*PC
+    @test dim(PCscaled) == dim(PC)
+    @test ambient_dim(PCscaled) == ambient_dim(PC)
+    @test lineality_dim(PCscaled) == lineality_dim(PC)
+    @test issetequal(rays(PCscaled), rays(PC))
+    @test n_maximal_cones(PCscaled) == n_maximal_polyhedra(PC)
+
+    PCnegated = -PC
+    @test dim(PCnegated) == dim(PC)
+    @test ambient_dim(PCnegated) == ambient_dim(PC)
+    @test lineality_dim(PCnegated) == lineality_dim(PC)
+    @test issetequal(rays(PCnegated), rays(PC))
+    @test n_maximal_cones(PCnegated) == n_maximal_polyhedra(PC)
+  end
 end
