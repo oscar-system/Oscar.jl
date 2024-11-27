@@ -68,7 +68,9 @@ We use the name Rothe matrix because of its resemblance with a Rothe diagram. (a
 # Examples
 ```jldoctest
 julia> W = weyl_group(:A, 4)
-Weyl group for root system defined by Cartan matrix [2 -1 0 0; -1 2 -1 0; 0 -1 2 -1; 0 0 -1 2]
+Weyl group
+  of root system of rank 4
+    of type A4
 
 julia> s = gens(W)
 4-element Vector{WeylGroupElem}:
@@ -139,7 +141,10 @@ julia> compound_matrix(perm([1, 3, 2]), 2)
 [0   0   -1]
 
 julia> W = weyl_group(:A, 2)
-Weyl group for root system defined by Cartan matrix [2 -1; -1 2]
+Weyl group
+  of root system of rank 2
+    of type A2
+
 
 julia> compound_matrix(longest_element(W), 2)
 [ 0    0   -1]
