@@ -2206,17 +2206,17 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 julia> F = @free_group(:F1, :F2);
 
 julia> syllables(F1^5*F2^-3)
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 
 julia> syllables(one(F))
-Pair{Int64, Int64}[]
+Pair{Int64, ZZRingElem}[]
 
 julia> G, epi = quo(F, [F1^10, F2^10]);
 
 julia> syllables(epi(F1^5*F2^-3))
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 ```
