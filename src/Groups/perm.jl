@@ -742,7 +742,7 @@ julia> cycle_length(g, 4)
 ```
 """
 function cycle_length(g::PermGroupElem, i::IntegerUnion)
-  return GAPWrap.CYCLE_LENGTH_PERM_INT(GapObj(g), i)
+  return GAPWrap.CYCLE_LENGTH_PERM_INT(GapObj(g), GapObj(i))
 end
 
 ################################################################################
