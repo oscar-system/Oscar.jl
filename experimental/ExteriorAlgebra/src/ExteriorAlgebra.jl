@@ -894,7 +894,7 @@ end
 @attr ExteriorAlgebra{T} function _exterior_algebra(S::MPolyDecRing{T}) where {T}
   @assert is_z_graded(S)
   R = base_ring(S)
-  new_symb = Symbol.([string(s)*" ̌" for s in symbols(S)])
+  new_symb = Symbol.([string(s)*(is_unicode_allowed() ? " ̌" : "'") for s in symbols(S)])
   return ExteriorAlgebra(R, new_symb)
 end
 
