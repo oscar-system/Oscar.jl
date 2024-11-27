@@ -65,7 +65,14 @@
 
   # the generic direct image complex
   coh = Oscar._derived_pushforward(tot, gens(irr));
-
+  
+  @test [ngens(coh.original_complex[i]) for i in -4:10] == [0, 169, 1817, 8412, 22848, 40967, 51448, 46849, 31338, 15027, 4749, 830, 54, 0, 0]
+  
+  #= The code below takes too long for the CI.
+  # It is kept here for the purpose of reproducibility of the paper's results. 
+  
+  @test [ngens(coh[i]) for i in 11:-1:-2] == [0, 0, 0, 0, 0, 0, 0, 1, 9, 16, 9, 1, 0, 0]
+  
   # We substitute for a specific function.
   R, (x, y, z, w) = QQ[:x, :y, :z, :w]
   k = 5
@@ -83,8 +90,15 @@
   subs = hom(P, R, vcat(R.(l), gens(R)))
   subs_coh, _ = change_base_ring(subs, coh);
   @test all(is_zero(homology(subs_coh, i)[1]) for i in 0:5)
+  
+  =#
 end
 
+#= The following tests are disabled to cut down on cost for CI.
+# 
+# We keep them here to test against regression and for the purpose of 
+# accessibility of code for reproduction of the paper's results 
+# in accordance with the MarDi principles.
 @testset "Example 5.2" begin
   # All steps similar to the above.
   P, v = QQ[vcat(["a_{$(i), $j}" for i in 1:2 for j in 1:2], ["b_{$(i), $j}" for i in 1:2 for j in 1:2], ["c"], [:x, :y, :z, :w])...]
@@ -161,4 +175,5 @@ end
   @time H0, _ = simplify(homology(subs_coh, 0)[1]);
   @test vector_space_dimension(H0) == 2
 end
+=#
 
