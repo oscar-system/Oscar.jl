@@ -50,7 +50,7 @@
     @test length(Oscar.mordell_weil_torsion(X)) == 1
     alg = algebraic_lattice(X)
     @test det(alg[3]) == -192
-    @test det(mordell_weil_lattice(X)) == 3
+    @test det(mordell_weil_sublattice(X)) == 3
     
     X1 = elliptic_surface(short_weierstrass_model(E)[1],2)
     Oscar.isomorphism_from_generic_fibers(X,X1)

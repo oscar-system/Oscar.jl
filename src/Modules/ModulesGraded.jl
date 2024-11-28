@@ -414,7 +414,7 @@ function set_grading!(M::FreeMod, W::Vector{<:IntegerUnion})
   M.d = [W[i] * A[1] for i in 1:length(W)]
 end
 
-function degrees(M::FreeMod)
+function degrees(M::FreeMod; check::Bool=true)
   @assert is_graded(M)
   return M.d::Vector{FinGenAbGroupElem}
 end
@@ -437,8 +437,8 @@ julia> degrees_of_generators(F)
  [0]
 ```
 """
-function degrees_of_generators(F::FreeMod)
-  return degrees(F)
+function degrees_of_generators(F::FreeMod; check::Bool=true)
+  return degrees(F; check)
 end
 
 ###############################################################################

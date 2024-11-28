@@ -711,7 +711,7 @@ end
     isomorphism(::Type{T}, A::FinGenAbGroup) where T <: Union{GAPGroup, FinGenAbGroup}
 
 Return an isomorphism from `A` to a group of type `T`.
-An exception is thrown if no such isomorphism exists or if `A` is not finite.
+An exception is thrown if no such isomorphism exists.
 """
 function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
@@ -729,15 +729,16 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
      A_to_A2 = inv(A2_to_A)
      # Create an isomorphic GAP group whose `GAPWrap.GeneratorsOfGroup`
      # consists of independent elements of the orders in `exponents`.
-     # (We cannot guarantee that these generators form a pcgs in the case
-     # `T == PcGroup`, hence we cannot call `abelian_group(T, exponents)`.)
      if T == PcGroup
+       # We cannot guarantee that these generators form a pcgs in the case
+       # `T == PcGroup`, hence we cannot call `abelian_group(T, exponents)`.
        if 0 in exponents
          GapG = GAP.Globals.AbelianPcpGroup(length(exponents), GapObj(exponents; recursive = true))
+         G = PcGroup(GapG)
        else
          GapG = GAP.Globals.AbelianGroup(GAP.Globals.IsPcGroup, GapObj(exponents; recursive = true))
+         G = PcGroup(GAP.Globals.SubgroupNC(GapG, GAP.Globals.FamilyPcgs(GapG)))
        end
-       G = PcGroup(GAP.Globals.SubgroupNC(GapG, GAP.Globals.FamilyPcgs(GapG)))
      else
        G = abelian_group(T, exponents)
        GapG = GapObj(G)
@@ -771,7 +772,9 @@ function isomorphism(::Type{T}, A::FinGenAbGroup) where T <: GAPGroup
        Ggens = newGgens
      end
      gensindep = GAP.Globals.IndependentGeneratorsOfAbelianGroup(GapG)::GapObj
-     Aindep = abelian_group(ZZRingElem[GAPWrap.Order(g) for g in gensindep])
+     orders = [GAPWrap.Order(g) for g in gensindep]
+     exps = map(x -> x == GAP.Globals.infinity ? ZZRingElem(0) : ZZRingElem(x), orders)
+     Aindep = abelian_group(exps)
      imgs = [Vector{ZZRingElem}(GAPWrap.IndependentGeneratorExponents(GapG, a)) for a in Ggens]
      A2_to_Aindep = hom(A2, Aindep, elem_type(Aindep)[Aindep(e) for e in imgs])
      Aindep_to_A = compose(inv(A2_to_Aindep), A2_to_A)

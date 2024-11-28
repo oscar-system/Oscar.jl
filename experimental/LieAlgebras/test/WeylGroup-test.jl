@@ -564,7 +564,6 @@ include(
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
       orb = collect(WeylOrbitIterator(wt))
 
       @test !isnothing(findfirst(==(wt), orb))

@@ -496,7 +496,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # clear the q-th column
     for (i, b) in a_col_del
       #A[i] = A[i] - uinv*b*a_row # original operation, replaced by inplace arithmetic below
-      Hecke.add_scaled_row!(a_row, A[i], -uinv*b)
+      addmul!(A[i], a_row, -uinv*b)
     end
 
     A[p] = sparse_row(R, [(q, u)])
@@ -505,7 +505,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     v = S[p]
     for (i, b) in a_col_del
       #S[i] = S[i] - uinv*b*v # original operation, replaced by inplace arithmetic below
-      Hecke.add_scaled_row!(v, S[i], -uinv*b)
+      addmul!(S[i], v, -uinv*b)
     end
 
     # Adjust Sinv_transp
@@ -513,23 +513,23 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     inc_row = sparse_row(R)
     for (i, a) in a_col_del
       #is_zero(Sinv_transp[i]) && continue # can not be true since S is invertible
-      Hecke.add_scaled_row!(Sinv_transp[i], inc_row, a)
+      addmul!(inc_row, Sinv_transp[i], a)
     end
-    Hecke.add_scaled_row!(inc_row, Sinv_transp[p], uinv)
+    addmul!(Sinv_transp[p], inc_row, uinv)
 
     # Adjust T
     #T[q] = T[q] + sum(uinv*a*T[i] for (i, a) in a_row_del; init=sparse_row(R))
     inc_row = sparse_row(R)
     for (i, a) in a_row_del
       # is_zero(T[i]) && continue # can not be true since T is invertible
-      Hecke.add_scaled_row!(T[i], inc_row, a)
+      addmul!(inc_row, T[i], a)
     end
-    Hecke.add_scaled_row!(inc_row, T[q], uinv)
+    addmul!(T[q], inc_row, uinv)
 
     # Adjust Tinv_transp
     v = deepcopy(Tinv_transp[q])
     for (j, b) in a_row_del
-      Hecke.add_scaled_row!(v, Tinv_transp[j], -uinv*b)
+      addmul!(Tinv_transp[j], v, -uinv*b)
     end
 
     # Kept here for debugging. These must be true:

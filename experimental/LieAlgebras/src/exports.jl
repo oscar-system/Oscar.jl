@@ -14,7 +14,7 @@ export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSpaceElem
 export RootSystem
-export WeightLatticeElem
+export WeightLattice, WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
@@ -38,6 +38,8 @@ export conjugate_dominant_weight_with_elem
 export coroot
 export coroots
 export coxeter_matrix
+export demazure_character
+export demazure_operator
 export derived_algebra
 export dim_of_simple_module
 export dominant_character
@@ -55,6 +57,8 @@ export is_cartan_type
 export is_coroot
 export is_coroot_with_index
 export is_dominant
+export is_fundamental_weight
+export is_fundamental_weight_with_index
 export is_negative_coroot
 export is_negative_coroot_with_index
 export is_negative_root
@@ -107,6 +111,7 @@ export tensor_power
 export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
+export weight_lattice
 export weyl_group
 export weyl_orbit
 export word
