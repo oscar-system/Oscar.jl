@@ -146,6 +146,8 @@ end
     gen(W::WeylGroup, i::Int) -> WeylGroupElem
 
 Return the `i`-th simple reflection (with respect to the underlying root system) of `W`.
+
+This is a more efficient version for `gens(W)[i]`.
 """
 function gen(W::WeylGroup, i::Integer)
   @req 1 <= i <= ngens(W) "invalid index"
@@ -156,6 +158,8 @@ end
     gens(W::WeylGroup) -> WeylGroupElem
 
 Return the simple reflections (with respect to the underlying root system) of `W`.
+
+See also: [`gen(::WeylGroup, ::Int)`](@ref).
 """
 function gens(W::WeylGroup)
   return [gen(W, i) for i in 1:ngens(W)]
@@ -170,7 +174,7 @@ This only exists if `W` is finite.
 function longest_element(W::WeylGroup)
   @req is_finite(W) "Weyl group is not finite"
 
-  _, w0 = conjugate_dominant_weight_with_left_elem(-weyl_vector(root_system(W)))
+  _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
 end
 
@@ -694,9 +698,7 @@ end
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
 # The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
-# this choice is made to align with conjugate_dominant_weight_with_left_elem
-
-# TODO: add a way to iterate aligned with conjugate_dominant_weight_with_right_elem
+# this choice is made to align with conjugate_dominant_weight_with_elem
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
   return Base.SizeUnknown()
@@ -722,7 +724,6 @@ end
 
 function _iterate_nocopy(state::WeylIteratorNoCopyState)
   wt, path = state[1], word(state[2])
-  R = root_system(wt)
 
   ai = isempty(path) ? UInt8(0) : path[end]
   # compute next descendant index
@@ -748,7 +749,7 @@ end
 # based on [Ste01], 4.D
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
-    for j in (di + 1):rank(root_system(wt))
+    for j in (di + 1):rank(parent(wt))
       if !iszero(wt[j])
         return j
       end
@@ -762,7 +763,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
   end
 
-  for j in (max(ai, di) + 1):rank(root_system(wt))
+  for j in (max(ai, di) + 1):rank(parent(wt))
     if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
       continue
     end
