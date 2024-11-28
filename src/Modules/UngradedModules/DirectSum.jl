@@ -15,7 +15,7 @@ Additionally, return
 function direct_product(M::FreeMod{T}, Ms::FreeMod{T}...; task::Symbol = :prod) where T
   return direct_product([M, Ms...]; task)
 end
-function direct_product(M::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
+function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   R = base_ring(F[1])
   G = FreeMod(R, sum([rank(f) for f = F]))
   all_graded = all(is_graded, F)
