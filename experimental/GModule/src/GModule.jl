@@ -948,6 +948,15 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
   return D, hom(D, M, f)
 end
 
+function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
+  @assert codomain(f) == M.M
+  S = domain(f)
+  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  D = gmodule(S, M.G, Sac)
+  return D, hom(D, M, f)
+end
+
+
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   @assert absolute_degree(k) == 1
   F = free_module(k, dim(C)*absolute_degree(base_ring(C)))

@@ -84,10 +84,10 @@ function (A::GModuleHom)(a::GModuleElem)
 end
 
 function kernel(A::GModuleHom)
-  return sub(A, kernel(A.module_map)[2])
+  return sub(domain(A), kernel(A.module_map)[2])
 end
 
 function image(A::GModuleHom)
-  return sub(A, image(A.module_map)[2])
+  return sub(codomain(A), image(A.module_map)[2])
 end
 
