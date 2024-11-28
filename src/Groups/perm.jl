@@ -724,6 +724,27 @@ function cycles(g::PermGroupElem)
   return cycles
 end
 
+@doc raw"""
+    cycle_length(g::PermGroupElem, i::IntegerUnion)
+
+Return the length of the cycle of `i` under the action of the permutation `g`.
+
+# Examples
+```jldoctest
+julia> g = cperm(1:3, 6:7, 8:10, 11:15)
+(1,2,3)(6,7)(8,9,10)(11,12,13,14,15)
+
+julia> cycle_length(g, 1)
+3
+
+julia> cycle_length(g, 4)
+1
+```
+"""
+function cycle_length(g::PermGroupElem, i::IntegerUnion)
+  return GAPWrap.CYCLE_LENGTH_PERM_INT(GapObj(g), GapObj(i))
+end
+
 ################################################################################
 #
 #   _perm_helper
