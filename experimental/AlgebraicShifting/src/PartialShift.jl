@@ -287,7 +287,9 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-  
+  # might want to reintroduce these lines at some point
+  #bool_mat = matrix(F, [!Oscar._set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
+  #M = (bool_mat * permutation_matrix(F, p)) .* rothe_matrix(F, p)
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
@@ -304,3 +306,92 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph)
 end
 
 exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)
+
+################################################################################
+# Las Vegas Partial Shifting
+
+# returns a random invertible matrices of the given sample size
+function random_invertible_matrices(n::Int; range::Int = 100, sample_size::Int=100, F::Field=QQ)
+  n_samples = 0
+  samples = Set{MatElem}()
+  n_non_inv = 0
+  while (n_samples < sample_size)
+    a = matrix(F, round.(Integer, range .* rand(n,n)) .- range // 2)
+    if iszero(det(a))
+      n_non_inv += 1
+      continue
+    end
+    push!(samples, a)
+    n_samples = length(samples)
+  end
+  # @info "probability of non invertible matrix" n_non_inv / (n_non_inv + sample_size)
+  return collect(samples)
+end
+
+function random_unipotent_matrix(F::Field, n::Int)
+  char = characteristic(F)
+  range = char == 0 ? 100 : char
+  upper_triangular_matrix(
+    reduce(vcat, [
+      [F(1); F.(round.(Integer, range .* rand(i)) .- (range // 2))] for i in reverse(0:n-1)
+        ]))
+end
+
+function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem;)
+  n = n_vertices(K)
+  exterior_shift(K, random_unipotent_matrix(F, n) * permutation_matrix(F, p))
+end
+
+random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
+
+# returns true if the dst is the partial shift of src with respect to w
+function check_shifted(F::Field, w::WeylGroupElem,
+                       src::UniformHypergraph, dst::UniformHypergraph)
+  dst_faces = faces(dst)
+  if length(dst_faces) == 1
+    max_face = dst_faces[1]
+  else
+    max_face = max(dst_faces...)
+  end
+  num_rows = length(dst_faces)
+  n = n_vertices(src)
+  k = face_size(src)
+  nCk = sort(subsets(n, k))
+  max_face_index = findfirst(x -> x == max_face, nCk)
+  cols = nCk[1:max_face_index - 1]
+  r = rothe_matrix(F, w)
+  
+  if max_face_index > num_rows 
+    M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
+    Oscar.ModStdQt.ref_ff_rc!(M)
+    nCk[independent_columns(M)] == dst_faces && return false
+  end
+  return true
+end
+
+function check_shifted(F::Field, w::WeylGroupElem,
+                       src::SimplicialComplex, dst::SimplicialComplex)
+  n = n_vertices(src)
+  f_vec = f_vector(src)
+  k = length(f_vec)
+
+  while k > 1
+    uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
+    uhg_dst = uniform_hypergraph(complex_faces(dst, k - 1), n)
+    !check_shifted(F, w, uhg_src, uhg_dst) && return false
+    k -= 1
+  end
+  return true
+end
+
+function partial_ext_shift_lv(F::Field, w::WeylGroupElem, K::ComplexOrHypergraph)
+  sample_size = characteristic(F) == 0 ? 10 : 100
+  W = parent(w)
+  phi = isomorphism(PermGroup, W)
+
+  shift = partialsort!([random_shift(F, K, phi(w)) for _ in 1:sample_size], 1;
+                      lt=isless_lex)
+  check_shifted(F, w, K, shift) && return shift
+  return nothing # partial_ext_shift_lv(F, w, K)
+end
+
