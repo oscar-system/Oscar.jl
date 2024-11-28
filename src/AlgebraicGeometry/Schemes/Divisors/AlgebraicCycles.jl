@@ -580,7 +580,7 @@ end
 
 function getindex(D::AbsAlgebraicCycle, C::AbsAlgebraicCycle)
   comps = components(C)
-  @assert isone(length(comps))
+  @req isone(length(comps)) "$(C) must consist of a single component only"
   return D[first(comps)]
 end
 
