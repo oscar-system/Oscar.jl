@@ -445,7 +445,7 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
 end
 
 function Oscar.tensor_product(C::U, Cs::U...; task::Symbol = :map) where {S <: Oscar.GAPGroup, U <: GModule{S, <:AbstractAlgebra.FPModule{<:Any}}}
-  return Oscar.tensor_product([C, Cs...])
+  return Oscar.tensor_product([C, Cs...]; task)
 end
 function Oscar.tensor_product(C::Vector{U}; task::Symbol = :map) where {S <: Oscar.GAPGroup, U <: GModule{S, <:AbstractAlgebra.FPModule{<:Any}}}
   @assert all(x->x.G == C[1].G, C)
@@ -467,7 +467,7 @@ import Hecke.⊗
 
 
 function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}, Fs::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
-  return Oscar.tensor_product([F, Fs...])
+  return Oscar.tensor_product([F, Fs...]; task)
 end
 function Oscar.tensor_product(F::Vector{AbstractAlgebra.FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
