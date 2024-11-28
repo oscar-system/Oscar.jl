@@ -774,15 +774,17 @@ function move_divisor(
     D::AbsWeilDivisor; 
     check::Bool=false,
     randomization::Bool=false,
-    is_prime::Bool=false
+    is_prime::Bool=false,
+    rec_depth::Int=0
   )
+  rec_depth > 5 && error("the current constellation seems to lead to infinite loops for the current implementation")
   X = ambient_scheme(D)
   @check is_irreducible(X) && is_reduced(X) "scheme must be irreducible and reduced"
   is_zero(D) && return D
 
   if !is_prime && !Oscar.is_prime(D)
     R = coefficient_ring(D)
-    return sum(a*move_divisor(WeilDivisor(D, R; check=false)) for (D, a) in coefficient_dict(irreducible_decomposition(D)); init=WeilDivisor(X, R))
+    return sum(a*move_divisor(WeilDivisor(D, R; check=false); rec_depth) for (D, a) in coefficient_dict(irreducible_decomposition(D)); init=WeilDivisor(X, R))
   end
 
   # We may assume that `D` is prime.
@@ -801,19 +803,28 @@ function move_divisor(
   # principal there. 
   g = gens(saturated_ideal(I))
   g = sort!(g, by=total_degree)
-  i = findfirst(f->(ideal(L, f) == LP), g)
-  x = g[i]
+  x = zero(base_ring(I))
+  kk = base_ring(X)
+  RP = ambient_coordinate_ring(U)
+  if randomization
+    x = sum(rand(kk, 1:10)*x for x in g; init=zero(RP))
+    while !(ideal(L, x) == LP)
+      # try again.
+      x = sum(rand(kk, 1:10)*x for x in g; init=zero(RP))
+    end
+  else
+    i = findfirst(f->(ideal(L, f) == LP), g)
+    x = g[i]
+  end
   f = function_field(X; check)(x)
   if randomization
-    kk = base_ring(X)
-    R = ambient_coordinate_ring(U)
-    y = rand(kk, 1:10) + sum(rand(kk, 1:10)*a for a in gens(R); init=zero(R))
+    y = rand(kk, 1:10) + sum(rand(kk, 1:10)*a for a in gens(RP); init=zero(RP))
     f = f*inv(parent(f)(y))
   end
   result = irreducible_decomposition(D - weil_divisor(f))
   # Check whether the supports are really different
   if any(any(P == Q for Q in components(D)) for P in components(result))
-    return move_divisor(D; randomization=true, check, is_prime)
+    return move_divisor(D; randomization=true, check, is_prime, rec_depth=rec_depth+1)
   end
   return result
 end
@@ -854,14 +865,10 @@ function _intersect(E::EffectiveCartierDivisor, D::AbsWeilDivisor; check::Bool=t
     # We have to think about how this can effectively be avoided. See the test file 
     # for an example.
     if is_zero(pullback(inc_P, ideal_sheaf(E)))
-      P_moved = move_divisor(WeilDivisor(X, R, 
-        IdDict{AbsIdealSheaf, elem_type(R)}(
-          [P=>one(R)]); check=false); check=false, randomization=true, is_prime=true)
+      P_moved = move_divisor(weil_divisor(P, R; check=false); randomization=false, is_prime=true)
       result = result + a*_intersect(E, P_moved)
     else
-      result = result + a*AlgebraicCycle(X, R, 
-        IdDict{AbsIdealSheaf, elem_type(R)}(
-          [P + ideal_sheaf(E)=>one(R)]); check=false)
+      result = result + a*algebraic_cycle(P + ideal_sheaf(E), R; check=false)
     end
   end
   return result
