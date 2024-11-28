@@ -307,7 +307,9 @@ julia> rays(c)
  [1, 0, 0]
 ```
 """
-function minimal_supercone(X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion, QQFieldElem}})
+function minimal_supercone(
+  X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion,QQFieldElem}}
+)
   m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
   @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
   m_cones = [maximal_cones(X)[i] for i in m_cone_indices]
