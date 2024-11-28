@@ -444,7 +444,10 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup
+function Oscar.tensor_product(C::U, Cs::U...; task::Symbol = :map) where {S <: Oscar.GAPGroup, U <: GModule{S, <:AbstractAlgebra.FPModule{<:Any}}}
+  return Oscar.tensor_product([C, Cs...])
+end
+function Oscar.tensor_product(C::Vector{U}; task::Symbol = :map) where {S <: Oscar.GAPGroup, U <: GModule{S, <:AbstractAlgebra.FPModule{<:Any}}}
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -463,7 +466,10 @@ import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
 
 
-function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
+function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}, Fs::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
+  return Oscar.tensor_product([F, Fs...])
+end
+function Oscar.tensor_product(F::Vector{AbstractAlgebra.FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
   d = prod(dim(x) for x = F)
   G = free_module(base_ring(F[1]), d)
