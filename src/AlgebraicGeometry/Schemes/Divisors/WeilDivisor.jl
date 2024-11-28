@@ -681,7 +681,9 @@ function weil_divisor(
   for U in patches(covering)
     # TODO: We compute the dimensions again and again. 
     # Instead we should store these things in some matured version of `decomposition_info`!
-    has_decomposition_info(covering) && (dim(ideal(OO(U), decomposition_info(covering)[U])) <= dim(X) - 2) && continue
+    has_dec_inf = has_decomposition_info(covering)
+    dec_inf_id = has_dec_inf ? ideal(OO(U), decomposition_info(covering)[U]) : ideal(OO(U), elem_type(OO(U))[])
+    has_dec_inf && (dim(dec_inf_id) <= dim(X) - 2) && continue
 
     # covering to take a shortcut in the
     @vprint :Divisors 4 "doing patch $U\n"
@@ -689,27 +691,46 @@ function weil_divisor(
     f_loc = f[U]
     num = numerator(f_loc)
     den = denominator(f_loc)
+
+    # If present, we can exploit the decomposition info here, too.
+    # The point is the following: In a new chart, we only need to 
+    # deal with scheme theoretic points (of codimension 1) which 
+    # are not visible in the other charts. Algebraically this means 
+    # that we can add the local generators of the decomposition 
+    # info to the numerator- and denominator ideals and only work 
+    # with the minimal associated primes (of codimension one) of 
+    # those ideals.
     num_ideal = ideal(OO(U), num)
     den_ideal = ideal(OO(U), den)
-    num_dec = primary_decomposition(num_ideal)
-    den_dec = primary_decomposition(den_ideal)
+
+    if has_dec_inf
+      num_ideal = num_ideal + dec_inf_id
+      den_ideal = den_ideal + dec_inf_id
+    end
+
+    num_dec = minimal_primes(num_ideal)
+    den_dec = minimal_primes(den_ideal)
     @vprint :Divisors 4 "  numerator:\n"
-    for (_, P) in num_dec
+    for P in num_dec
+      # In case of use of decomposition info, we need to discard primes of 
+      has_dec_inf && (dim(P) < dim(X) - 1) && continue
       @vprint :Divisors 4 "    $P\n"
       # If this component was already seen in another patch, skip it.
       new_comp = PrimeIdealSheafFromChart(X, U, P)
       @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
-      any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      !has_dec_inf && any(new_comp == PP for PP in keys(ideal_dict)) && continue 
       c = _colength_in_localization(num_ideal, P)
       @vprint :Divisors 4 "    multiplicity $c\n"
       inc_dict[new_comp] = c
     end
     @vprint :Divisors 4 "  denominator:\n"
-    for (_, P) in den_dec
+    for P in den_dec
+      # In case of use of decomposition info, we need to discard primes of 
+      has_dec_inf && (dim(P) < dim(X) - 1) && continue
       # If this component was already seen in another patch, skip it.
       new_comp = PrimeIdealSheafFromChart(X, U, P)
       @vprint :Divisors 4 "    $(any(new_comp == PP for PP in keys(ideal_dict)) ? "already found" : "new component")\n"
-      any(new_comp == PP for PP in keys(ideal_dict)) && continue 
+      !has_dec_inf && any(new_comp == PP for PP in keys(ideal_dict)) && continue 
       c = _colength_in_localization(den_ideal, P)
       @vprint :Divisors 4 "    multiplicity $c\n"
       key_list = collect(keys(inc_dict))
