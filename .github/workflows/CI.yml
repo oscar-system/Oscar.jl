@@ -39,36 +39,29 @@ jobs:
         os: [Linux]
         hosted: [RPTU]
         depwarn: [ '' ]
-        #include:
+        include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
-          # TODO UNCOMMENT ME LATER
-          #- julia-version: '1.10'
-          #  group: 'short'
-          #  os: [Linux, RPTU, high-memory]
-          #  depwarn: 'depwarn=error'
-          #- julia-version: '1.10'
-          #  group: 'long'
-          #  os: [Linux, RPTU]
-          #  depwarn: 'depwarn=error'
+          - julia-version: '1.10'
+            group: 'short'
+            os: [Linux, RPTU, high-memory]
+            depwarn: 'depwarn=error'
+          - julia-version: '1.10'
+            group: 'long'
+            os: [Linux, RPTU, normal-memory]
+            depwarn: 'depwarn=error'
           # Add a few macOS jobs (not too many, the number we can run in parallel is limited)
-          # TODO FIX ME
-          # remove MacOS runners for this PR
-          # We know the MacOS runners run fine
-          # there is no point generating more work for them
-          # while we trial-and-error our way to a working CI.yml
-          #- julia-version: '1.10'
-          #  group: 'short'
-          #  os: [macOS, RPTU]  # runs on self-hosted runner
-          #- julia-version: '1.10'
-          #  group: 'long'
-          #  os: [macOS, RPTU]  # runs on self-hosted runner
-          # TODO UNCOMMENT ME LATER
-          #- julia-version: '1.10'
-          #  group: 'book'
-          #  os: [Linux, RPTU] # runs on self-hosted runner
-          #- julia-version: 'nightly'
-          #  group: 'book'
-          #  os: [Linux, RPTU] # runs on self-hosted runner
+          - julia-version: '1.10'
+            group: 'short'
+            os: [macOS, RPTU]  # runs on self-hosted runner
+          - julia-version: '1.10'
+            group: 'long'
+            os: [macOS, RPTU]  # runs on self-hosted runner
+          - julia-version: '1.10'
+            group: 'book'
+            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
+          - julia-version: 'nightly'
+            group: 'book'
+            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           # nightly on macos is disabled for now since the macos jobs take too long
           # with just 5 runners
           #- julia-version: 'nightly'
