@@ -52,6 +52,8 @@ export milnor_number
 export point
 export rational_point_coordinates
 export standard_covering
+export strict_transform
+export strict_transform_with_index
 export total_transform
 export two_neighbor_step
 
