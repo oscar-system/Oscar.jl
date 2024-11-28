@@ -366,12 +366,12 @@ end
   orb = orbit(G, f)
   @test length(orb) == 3
 
-
-  e = one(QQBar)
+  F = QQBarField()
+  e = one(F)
   s, c = sincospi(2 * e / 3)
   mat_rot = matrix([c -s; s c])
   G = matrix_group(mat_rot)
-  p = QQBar.([1, 0])
+  p = F.([1, 0])
   orb = orbit(G, *, p)
   @test length(orb) == 3
 
