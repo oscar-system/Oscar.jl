@@ -226,14 +226,10 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
 
 
   # (3) Are intersection numbers known?
-  inter_dict = if has_attribute(m, :inter_dict)
-    get_attribute(m, :inter_dict)
-  else
+  inter_dict = get_attribute!(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
-  s_inter_dict = if has_attribute(m, :s_inter_dict)
-    get_attribute(m, :s_inter_dict)
-  else
+  s_inter_dict = get_attribute!(m, :s_inter_dict) do
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
 
@@ -270,11 +266,10 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
       condition = Vector{ZZRingElem}()
       for j in 1:length(list_of_divisor_pairs_to_be_considered)
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        if !haskey(inter_dict, my_tuple)
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
       end
       push!(constraint_matrix, condition)
     end
@@ -528,11 +523,10 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
       # Compute against pairs of base divisors
       for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
-        if !haskey(inter_dict, my_tuple)
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[list_of_base_divisor_pairs_to_be_considered[j][1]] * cds[list_of_base_divisor_pairs_to_be_considered[j][2]] * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
       end
 
       # Compute against zero section and base divisor
@@ -541,11 +535,10 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
       @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
       for j in 1:n_rays(base_space(m))
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
-        if !haskey(inter_dict, my_tuple)  
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[j] * zsc * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
 
       end
 
@@ -592,11 +585,10 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
       condition = Vector{ZZRingElem}()
       for j in 1:length(list_of_divisor_pairs_to_be_considered)
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        if !haskey(inter_dict, my_tuple)
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
       end
       push!(quant_constraint_matrix, condition)
     end
@@ -872,11 +864,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
       # Compute against pairs of base divisors
       for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
-        if !haskey(inter_dict, my_tuple)
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[list_of_base_divisor_pairs_to_be_considered[j][1]] * cds[list_of_base_divisor_pairs_to_be_considered[j][2]] * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
       end
 
       # Compute against zero section and base divisor
@@ -885,11 +876,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
       @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
       for j in 1:n_rays(base_space(m))
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
-        if !haskey(inter_dict, my_tuple)  
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[j] * zsc * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
 
       end
 
@@ -897,12 +887,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
       for j in 1:n_rays(base_space(m))
         for k in 1:length(exceptional_divisor_positions)
           my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
-          if !haskey(inter_dict, my_tuple)
+          push!(condition, get!(inter_dict, my_tuple) do
             class = ambient_space_flux_candidates_basis[i] * cds[j] * cds[exceptional_divisor_positions[k]] * pt_class
-            inter_dict[my_tuple] = ZZ(integrate(class))
-          end
-          push!(condition, inter_dict[my_tuple])
-
+            return ZZ(integrate(class))
+          end)
         end
       end
 
@@ -950,11 +938,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
       condition = Vector{ZZRingElem}()
       for j in 1:length(list_of_divisor_pairs_to_be_considered)
         my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
-        if !haskey(inter_dict, my_tuple)
+        push!(condition, get!(inter_dict, my_tuple) do
           class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
-          inter_dict[my_tuple] = ZZ(integrate(class))
-        end
-        push!(condition, inter_dict[my_tuple])
+          return ZZ(integrate(class))
+        end)
       end
       push!(quant_constraint_matrix, condition)
     end

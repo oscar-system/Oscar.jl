@@ -325,13 +325,9 @@ function Base.:(==)(x::WeylGroupElem, y::WeylGroupElem)
 end
 
 function Base.deepcopy_internal(x::WeylGroupElem, dict::IdDict)
-  if haskey(dict, x)
-    return dict[x]
+  return get!(dict, x) do
+    parent(x)(deepcopy_internal(word(x), dict); normalize=false)
   end
-
-  y = parent(x)(deepcopy_internal(word(x), dict); normalize=false)
-  dict[x] = y
-  return y
 end
 
 @doc raw"""

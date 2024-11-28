@@ -50,23 +50,21 @@ struct CEChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
 end
 
 function kernel_resolution(fac::CEChainFactory, i::Int)
-  if !haskey(fac.kernel_resolutions, i)
+  return get!(fac.kernel_resolutions, i) do
     Z, _ = kernel(fac.c, i)
-    fac.kernel_resolutions[i] = free_resolution(SimpleFreeResolution, Z)[1]
+    return free_resolution(SimpleFreeResolution, Z)[1]
   end
-  return fac.kernel_resolutions[i]
 end
 
 function boundary_resolution(fac::CEChainFactory, i::Int)
-  if !haskey(fac.boundary_resolutions, i)
+  return get!(fac.boundary_resolutions, i) do
     Z, _ = boundary(fac.c, i)
-    fac.boundary_resolutions[i] = free_resolution(SimpleFreeResolution, Z)[1]
+    return free_resolution(SimpleFreeResolution, Z)[1]
   end
-  return fac.boundary_resolutions[i]
 end
 
 function induced_map(fac::CEChainFactory, i::Int)
-  if !haskey(fac.induced_maps, i)
+  return get!(fac.induced_maps, i) do
     Z, inc = kernel(fac.c, i)
     B, pr = boundary(fac.c, i)
     @assert ambient_free_module(Z) === ambient_free_module(B)
@@ -81,9 +79,8 @@ function induced_map(fac::CEChainFactory, i::Int)
     psi = hom(res_B[0], res_Z[0], img_gens; check=true) # TODO: Set to false
     @assert domain(psi) === boundary_resolution(fac, i)[0]
     @assert codomain(psi) === kernel_resolution(fac, i)[0]
-    fac.induced_maps[i] = lift_map(boundary_resolution(fac, i), kernel_resolution(fac, i), psi; start_index=0)
+    return lift_map(boundary_resolution(fac, i), kernel_resolution(fac, i), psi; start_index=0)
   end
-  return fac.induced_maps[i]
 end
 
 function (fac::CEChainFactory)(self::AbsHyperComplex, I::Tuple)
