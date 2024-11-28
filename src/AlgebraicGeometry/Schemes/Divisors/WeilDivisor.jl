@@ -703,13 +703,8 @@ function weil_divisor(
     num_ideal = ideal(OO(U), num)
     den_ideal = ideal(OO(U), den)
 
-    if has_dec_inf
-      num_ideal = num_ideal + dec_inf_id
-      den_ideal = den_ideal + dec_inf_id
-    end
-
-    num_dec = minimal_primes(num_ideal)
-    den_dec = minimal_primes(den_ideal)
+    num_dec = minimal_primes(num_ideal + dec_inf_id)
+    den_dec = minimal_primes(den_ideal + dec_inf_id)
     @vprint :Divisors 4 "  numerator:\n"
     for P in num_dec
       # In case of use of decomposition info, we need to discard primes of 
