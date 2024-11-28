@@ -27,20 +27,18 @@ end
   Y = domain(f)
   S = cox_ring(Y)
   x_, y_, u = gens(S)
+  
+  ## Curve
   I = ideal(R, [x + y^3])
-  @test strict_transform_with_index(f, I) == (
-    ideal(S, [x_ + y_^3*u]), 1
-  )
-  @test (
-    ideal_sheaf(domain(f), strict_transform(f, I))
-    == strict_transform(f, ideal_sheaf(codomain(f), I))
-  )
-  I = ideal(R, [x + y^3, x - y^5])
-  @test strict_transform_with_index(f, I) == (
-    ideal(S, [x_^2 - x_*y_, x_*y_^2 - y_^3, x_ + y_^3*u]), 2
-  )
-  @test (
-    ideal_sheaf(domain(f), strict_transform(f, I))
-    == strict_transform(f, ideal_sheaf(codomain(f), I))
-  )
+  J, k = strict_transform_with_index(f, I)
+  @test J == ideal(S, [x_ + y_^3*u])
+  @test k == 1
+  @test ideal_sheaf(Y, J) == strict_transform(f, ideal_sheaf(X, I))
+  
+  ## Zero-dimensional scheme, topologically three points
+  I = ideal(R, [x - y^3, x - y^5])
+  J, k = strict_transform_with_index(f, I)
+  @test J == ideal(S, [x_^2 - x_*y_, x_*y_^2 - y_^3, -x_ + y_^3*u])
+  @test k == k
+  @test ideal_sheaf(Y, J) == strict_transform(f, ideal_sheaf(X, I))
 end
