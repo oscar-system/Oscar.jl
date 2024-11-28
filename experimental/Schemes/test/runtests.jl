@@ -28,14 +28,14 @@ end
   S = cox_ring(Y)
   x_, y_, u = gens(S)
 
-  ## Curve
+  ## Subscheme is a curve
   I = ideal(R, [x + y^3])
   J, k = strict_transform_with_index(f, I)
   @test J == ideal(S, [x_ + y_^3*u])
   @test k == 1
   @test ideal_sheaf(Y, J) == strict_transform(f, ideal_sheaf(X, I))
 
-  ## Zero-dimensional scheme, topologically three points
+  ## Subscheme is a zero-dimensional scheme, topologically three points
   I = ideal(R, [x - y^3, x - y^5])
   J, k = strict_transform_with_index(f, I)
   @test J == ideal(S, [x_^2 - x_*y_, x_*y_^2 - y_^3, -x_ + y_^3*u])
