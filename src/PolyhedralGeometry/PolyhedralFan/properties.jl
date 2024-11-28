@@ -293,9 +293,10 @@ julia> X = projective_space(NormalToricVariety, 3)
 Normal toric variety
 
 julia> p = [1, 1, 0]
-2-element Vector{Int64}:
+3-element Vector{Int64}:
  1
  1
+ 0
 
 julia> c = minimal_supercone(X, p)
 Polyhedral cone in ambient dimension 3
