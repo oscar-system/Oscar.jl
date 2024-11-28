@@ -37,19 +37,9 @@ function positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
     TropL = tropical_linear_space(I,nu)
 
     # find maximal polyhedra belonging to the positive part
-    positivePolyhedra = Polyhedron{QQFieldElem}[]
-    for sigma in maximal_polyhedra(TropL)
-        # compute a reduce Groebner basis with respect to a relative interior point
-        w = relative_interior_point(sigma)
-        inI = initial(I,nu,w)
-        G = groebner_basis(inI; complete_reduction=true)
-
-        # the Groebner basis is binomial, check binomials have alternating signs
-        @req all(isequal(2), length.(G)) "initial ideal is not binomial"
-        if all(isequal(-1),[prod([sign(c) for c in coefficients(g)]) for g in G])
-            push!(positivePolyhedra,sigma)
-        end
-    end
+    # we check containment in the positive part
+    # by testing the initial ideal w.r.t. a relative interior point
+    positivePolyhedra = Polyhedron{QQFieldElem}[sigma for sigma in maximal_polyhedra(TropL) if is_initial_positive(I,nu,relative_interior_point(sigma))]
 
     if isempty(positivePolyhedra)
         # if there are no positive polyhedra,
@@ -61,4 +51,12 @@ function positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
     mult = ones(ZZRingElem, n_maximal_polyhedra(Sigma))
     minOrMax = convention(nu)
     return tropical_variety(Sigma,mult,minOrMax)
+end
+
+function is_initial_positive(I::MPolyIdeal, nu::TropicalSemiringMap, w::AbstractVector)
+    inI = initial(I,nu,w)
+    G = groebner_basis(inI; complete_reduction=true)
+
+    # the Groebner basis is binomial, check binomials have alternating signs
+    return all(isequal(-1),[prod([sign(c) for c in coefficients(g)]) for g in G])
 end
