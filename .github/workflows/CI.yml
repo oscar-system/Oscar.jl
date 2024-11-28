@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", "${{ matrix.hosted }}"]
+    runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", RPTU]
     timeout-minutes: 150
     strategy:
       fail-fast: false
@@ -37,7 +37,6 @@ jobs:
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
-        hosted: [RPTU]
         depwarn: [ '' ]
         include:
           # Add a single job per group with deprecation errors on the most recent stable julia version
