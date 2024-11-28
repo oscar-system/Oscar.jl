@@ -148,10 +148,10 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+function direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
   return direct_sum([M, Ms...]; task)
 end
-function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :prod) where T
+function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :sum) where T
   res = direct_product(M...; task)
   if task == :sum || task == :prod
     ds, f = res
