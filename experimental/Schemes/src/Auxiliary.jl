@@ -128,12 +128,11 @@ end
 
 function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
   R = coefficient_ring(C)
-  C = CartierDivisor(domain(f), R)
-  pb = pullback(f)
-  for (c,D) in coefficient_dict(C)
-    C += c*pb(C)
+  result = CartierDivisor(domain(f), R)
+  for (D, c) in coefficient_dict(C)
+    result += c*pullback(f, D)
   end
-  return C
+  return result
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)

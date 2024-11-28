@@ -757,7 +757,7 @@ is_locally_prime(I::PrimeIdealSheafFromChart) = true
 
 function is_equidimensional(I::AbsIdealSheaf; covering=default_covering(scheme(I)))
   has_attribute(I, :is_equidimensional) && return get_attribute(I, :is_equidimensional)::Bool
-  has_attribute(I, :is_prime) && return get_attribute(I, :is_prime)::Bool
+  has_attribute(I, :is_prime) && get_attribute(I, :is_prime)::Bool && return true
   local_dims = [dim(I(U)) for U in patches(covering) if !isone(I(U))]
   length(local_dims) == 0 && return true # This only happens if I == OO(X)
   d = first(local_dims)

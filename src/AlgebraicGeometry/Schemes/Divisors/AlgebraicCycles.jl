@@ -395,7 +395,7 @@ end
 # Note that we need one minimal concrete type for the return values, 
 # so the implementation can not be truly generic. 
 
-function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
+function +(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
   X = ambient_scheme(D)
   X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
@@ -454,7 +454,31 @@ Return a cycle ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ I�
 where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  all(is_prime, keys(coefficient_dict(D))) && return D
+  @vprint :Divisors 4 "computing irreducible decomposition for $D"
+  if all(is_prime, keys(coefficient_dict(D))) 
+    @vprint :Divisors 4 "  all components are already prime, cleaning up..."
+    buckets = Vector{Vector{AbsIdealSheaf}}()
+    for P in keys(coefficient_dict(D))
+      found = false
+      for bucket in buckets
+	if P == first(bucket)
+	  push!(bucket, P)
+	  found = true
+	  break
+	end
+      end
+      !found && push!(buckets, [P])
+    end
+    R = coefficient_ring(D)
+    coeff_dict = IdDict{AbsIdealSheaf, elem_type(R)}()
+    for bucket in buckets
+      c = sum(D[P] for P in bucket; init=zero(R))
+      is_zero(c) && continue
+      coeff_dict[first(bucket)] = c
+    end
+    return AlgebraicCycle(scheme(D), coefficient_ring(D), coeff_dict; check=false)
+  end
+  @vprint :Divisors 4 "  decomposing components"
   result = zero(D)
   for (I, a) in coefficient_dict(D)
     next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
