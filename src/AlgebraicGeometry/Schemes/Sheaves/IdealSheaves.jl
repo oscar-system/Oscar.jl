@@ -588,6 +588,7 @@ function ==(I::AbsIdealSheaf, J::AbsIdealSheaf)
 end
 
 function Base.hash(I::AbsIdealSheaf, h::UInt)
+  h = hash(scheme(I), h)
   return h
 end
 
