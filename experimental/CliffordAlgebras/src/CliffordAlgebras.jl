@@ -1,15 +1,11 @@
 export CliffordAlgebra,
   CliffordAlgebraElem,
   clifford_algebra,
-  space,
-  dim,
   even_coeff,
   odd_coeff,
   even_part,
   odd_part,
-  coeff,
   centroid,
-  center,
   quadratic_discriminant,
   disq
 
