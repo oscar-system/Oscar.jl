@@ -89,7 +89,7 @@ function multi_edges(F::Field,
     Dict((i, complex_labels[Set(facets(delta))]) => [p])
     for (i, K) in complexes
       for (p, delta) in ((p, exterior_shift(F, K, p)) for p in permutations)
-        if !issetequal(Set(facets(delta)), Set(facets(K))));
+        if !issetequal(facets(delta), facets(K)));
     init=Dict{Tuple{Int, Int}, Vector{PermGroupElem}}()
   ) :: Dict{Tuple{Int, Int}, Vector{PermGroupElem}}
 end
