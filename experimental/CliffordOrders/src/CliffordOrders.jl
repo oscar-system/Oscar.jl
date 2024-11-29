@@ -689,7 +689,7 @@ function centroid(C::CliffordOrder)
 end
 
 @doc raw"""
-    quadratic_discriminant(C::CliffordOrder) -> Tuple{NumFieldElem, NumFieldOrderFractionalIdeal}
+    quadratic_discriminant(C::CliffordOrder) -> Tuple{NumFieldOrderFractionalIdeal, NumFieldElem}
 
 Return the quadratic discriminant of $C$.
 """
@@ -702,7 +702,7 @@ function quadratic_discriminant(C::CliffordOrder)
 end
 
 @doc raw"""
-    disq(C::CliffordOrder) -> Tuple{NumFieldElem, NumFieldOrderFractionalIdeal}
+    disq(C::CliffordOrder) -> Tuple{NumFieldOrderFractionalIdeal, NumFieldElem}
 
 Alias for `quadratic_discriminant`.
 """
