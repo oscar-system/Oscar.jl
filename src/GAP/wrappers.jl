@@ -13,6 +13,8 @@ module GAPWrap
 using GAP
 
 # the following list is intended to be sorted according to `LC_COLLATE=C sort -f`, i.e. ignoring case
+GAP.@wrap AbelianGroup(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap AbelianPcpGroup(x::GAP.Obj, y::GapObj)::GapObj
 GAP.@wrap AlgebraicExtension(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap AlgExtElm(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap AntiSymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
@@ -137,6 +139,7 @@ GAP.@wrap ImagesRepresentative(x::GapObj, y::Any)::GAP.Obj
 GAP.@wrap ImagesSource(x::GapObj)::GapObj
 GAP.@wrap ImmutableMatrix(x::GapObj, y::GapObj, z::Bool)::GapObj
 GAP.@wrap IndependentGeneratorExponents(x::Any, y::Any)::GapObj
+GAP.@wrap IndependentGeneratorsOfAbelianGroup(x::GapObj)::GapObj
 GAP.@wrap Indeterminate(x::GapObj)::GapObj
 GAP.@wrap Indeterminate(x::GapObj, y::GAP.Obj)::GapObj
 GAP.@wrap IndeterminateNumberOfUnivariateRationalFunction(x::GapObj)::Int
@@ -277,6 +280,7 @@ GAP.@wrap LibInfoCharacterTable(x::GapObj)::GapObj
 GAP.@wrap LieAlgebraByStructureConstants(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap LinearCharacters(x::GapObj)::GapObj
 GAP.@wrap LinearCombination(x::GapObj, y::GapObj)::GapObj
+GAP.@wrap LinearCombinationPcgs(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap ListPerm(x::GapObj)::GapObj
 GAP.@wrap MarksTom(x::GapObj)::GapObj
 GAP.@wrap MatScalarProducts(x::GapObj, y::GapObj, z::GapObj)::GapObj
@@ -310,6 +314,7 @@ GAP.@wrap OrthogonalComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap PcElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PcpElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap Pcgs(x::GapObj)::GapObj
+GAP.@wrap PcpElementByExponentsNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap PcpGroupByCollectorNC(x::GapObj)::GapObj
 GAP.@wrap PCore(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap PermList(x::GapObj)::GapObj
@@ -329,6 +334,7 @@ GAP.@wrap Random(x::GapObj, y::GapObj)::GAP.Obj
 GAP.@wrap Range(x::GapObj)::GapObj
 GAP.@wrap RecognizeGroup(x::GapObj)::GapObj
 GAP.@wrap ReduceCoeffs(x::GapObj, y::GapObj)
+GAP.@wrap RelativeOrders(x::GapObj)::GapObj
 GAP.@wrap RelatorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap Representative(x::GapObj)::GAP.Obj
 GAP.@wrap RepresentativeTom(x::GapObj, y::Int)::GapObj
@@ -356,6 +362,7 @@ GAP.@wrap Stabilizer(v::GapObj, w::Any, x::GapObj, y::GapObj, z::GapObj)::GapObj
 GAP.@wrap StringViewObj(x::Any)::GapObj
 GAP.@wrap StructureConstantsTable(x::GapObj)::GapObj
 GAP.@wrap StructureDescription(x::GapObj)::GapObj
+GAP.@wrap SubgroupNC(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap SubsTom(x::GapObj)::GapObj
 GAP.@wrap SylowSubgroup(x::GapObj, y::GapInt)::GapObj
 GAP.@wrap SymmetricParts(x::GapObj, y::GapObj, z::GapInt)::GapObj
