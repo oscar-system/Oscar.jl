@@ -1,9 +1,8 @@
 
 @testset "all tests" begin
-  coeff, _dim_qf, _set_even_odd_coeff!, mul_with_gen, center, centroid, disq,
-  quadratic_discriminant = Oscar.coeff, Oscar._dim_qf, Oscar._set_even_odd_coeff!,
-  Oscar._mul_with_gen, Oscar.center, Oscar.centroid, Oscar.disq,
-  Oscar.quadratic_discriminant
+  _dim_qf = Oscar._dim_qf
+  _set_even_odd_coeff! = Oscar._set_even_odd_coeff! 
+  mul_with_gen = Oscar._mul_with_gen 
 
   @testset "zero-dimensional corner case" begin
     empty_qs = quadratic_space(QQ, identity_matrix(QQ, 0)) #zero-dim quad space over QQ

@@ -1,6 +1,7 @@
 
 @testset "alltest" begin
-  _set_even_odd_coeff!, mul_with_gen = Oscar._set_even_odd_coeff!, Oscar._mul_with_gen
+  _set_even_odd_coeff! = Oscar._set_even_odd_coeff!
+  mul_with_gen = Oscar._mul_with_gen
   @testset "failing constructions" begin
     @testset "CliffordOrder" begin
       K, a = quadratic_field(-5)
