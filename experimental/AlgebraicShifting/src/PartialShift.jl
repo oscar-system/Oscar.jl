@@ -55,15 +55,18 @@ function generic_unipotent_matrix(F::Field, n::Int)
 end
 
 @doc raw"""
-    rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
-
+    rothe_matrix(F::Field, w::WeylGroupElem)
+    rothe_matrix(F::Field, p::PermGroupElem)
+    rothe_matrix(R::MPolyRing, w::WeylGroupElem)
+    rothe_matrix(R::MPolyRing, p::PermGroupElem)
 For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
 root system of the Weyl group.
 As `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies in a unique double coset $BwB$, where $B$ is the Borel group of upper triangular matrices.
 The Rothe matrix is a normal form for the matrix on the left of a representative for the double coset corresponding to `w`.
+There is also the possibility to pass the underlying polynomial ring `R` instead.
 This will be explained further once the corresponding preprint is on the arXiv.
-We use the name Rothe matrix because of its resemblance with a Rothe diagram. (add ref? Knuth?)
+We use the name Rothe matrix because of its resemblance with a Rothe diagram.
 
 # Examples
 ```jldoctest
@@ -93,6 +96,23 @@ julia> rothe_matrix(QQ, perm([2, 3, 1]))
 [x[1, 3]   1   0]
 [x[2, 3]   0   1]
 [      1   0   0]
+
+julia> Fx, x = polynomial_ring(GF(2), :x => (1:5, 1:5))
+(Multivariate polynomial ring in 25 variables over F, FqMPolyRingElem[x[1, 1] x[1, 2] … x[1, 4] x[1, 5]; x[2, 1] x[2, 2] … x[2, 4] x[2, 5]; … ; x[4, 1] x[4, 2] … x[4, 4] x[4, 5]; x[5, 1] x[5, 2] … x[5, 4] x[5, 5]])
+
+julia> rothe_matrix(Fx, w)
+[1         0         0         0   0]
+[0   x[2, 3]   x[2, 4]   x[2, 5]   1]
+[0         1         0         0   0]
+[0         0         1         0   0]
+[0         0         0         1   0]
+
+julia> rothe_matrix(Fx, perm([1, 3, 2, 5, 4]))
+[1         0   0         0   0]
+[0   x[2, 3]   1         0   0]
+[0         1   0         0   0]
+[0         0   0   x[4, 5]   1]
+[0         0   0         1   0]
 ```
 """
 function rothe_matrix(F::Field, w::WeylGroupElem)
@@ -103,12 +123,25 @@ end
 
 function rothe_matrix(F::Field, p::PermGroupElem)
   n = degree(parent(p))
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
-  u = identity_matrix(Fx, n)
+  Fx, _ = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
+  return rothe_matrix(Fx, p)
+end
+
+function rothe_matrix(R::MPolyRing{T}, w::WeylGroupElem) where T
+  W = parent(w)
+  phi = isomorphism(PermGroup, W)
+  return rothe_matrix(R, phi(w))
+end
+
+function rothe_matrix(R::MPolyRing{T}, p::PermGroupElem) where T
+  n = degree(parent(p))
+  @req ngens(R) == n^2 "The number of generators of the ring should match the square of the degree of the permutation group"
+  u = identity_matrix(R, n)
+  x = reshape(gens(R), n, n)
   for (i, j) in inversions(p)
     u[i, j] = x[i, j]
   end
-  return u * permutation_matrix(F, p)
+  return u * permutation_matrix(R, p)
 end
 
 @doc raw"""
