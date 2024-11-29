@@ -98,7 +98,7 @@ julia> rothe_matrix(QQ, perm([2, 3, 1]))
 [      1   0   0]
 
 julia> Fx, x = polynomial_ring(GF(2), :x => (1:5, 1:5))
-(Multivariate polynomial ring in 25 variables over F, FqMPolyRingElem[x[1, 1] x[1, 2] … x[1, 4] x[1, 5]; x[2, 1] x[2, 2] … x[2, 4] x[2, 5]; … ; x[4, 1] x[4, 2] … x[4, 4] x[4, 5]; x[5, 1] x[5, 2] … x[5, 4] x[5, 5]])
+(Multivariate polynomial ring in 25 variables over GF(2), FqMPolyRingElem[x[1, 1] x[1, 2] … x[1, 4] x[1, 5]; x[2, 1] x[2, 2] … x[2, 4] x[2, 5]; … ; x[4, 1] x[4, 2] … x[4, 4] x[4, 5]; x[5, 1] x[5, 2] … x[5, 4] x[5, 5]])
 
 julia> rothe_matrix(Fx, w)
 [1         0         0         0   0]
