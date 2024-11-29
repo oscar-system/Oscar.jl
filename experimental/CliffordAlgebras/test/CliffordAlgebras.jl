@@ -58,6 +58,12 @@
       @test C(a) + C(b) == C(a + b)
       @test (C(a) + C(b)) * (C(a) - C(b)) == C(a)^2 - C(b)^2
     end
+    @testset "getindex" begin
+      @test C(17)[1] == QQ(17)
+      @test C()[1] == QQ()
+      @test_throws BoundsError C()[0]
+      @test_throws BoundsError C()[2]
+    end
     @testset "center and centroid" begin
       @test center(C) == centroid(C)
       @test center(C) == [one(C)]
@@ -69,7 +75,7 @@
   @testset "quadratic_field_sqrt(5)" begin
     K, b = quadratic_field(5)
     a = 1//2 * (1 + b)
-    G = K[2*a 1; 1 2*(1 - a)]
+    G = K[2 * a 1; 1 2 * (1 - a)]
     qsK = quadratic_space(K, G)
     C = clifford_algebra(qsK)
     @test !is_commutative(C)
@@ -160,6 +166,15 @@
       @test (x + y)^2 == x^2 + x * y + y * x + y^2
       @test (x + y) * (x - y) == x^2 - x * y + y * x - y^2
     end
+    @testset "getindex" begin
+      x = C([a, 2 * a, 3 * a, 4 * a])
+      @test x[1] == a
+      @test x[2] == 2 * a
+      @test x[3] == 3 * a
+      @test x[4] == 4 * a
+      @test_throws BoundsError x[0]
+      @test_throws BoundsError x[5]
+    end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
       @test mul_with_gen(coeff(x), 1, gram_matrix(C)) ==
@@ -240,6 +255,15 @@
       @test x == +x
       @test -x == C(-coeff(x))
       @test is_zero(x + -x)
+    end
+    @testset "getindex" begin
+      x = C([a, b, a + b, a - b])
+      @test x[1] == a
+      @test x[2] == b
+      @test x[3] == a + b
+      @test x[4] == a - b
+      @test_throws BoundsError x[0]
+      @test_throws BoundsError x[5]
     end
     @testset "mul_with_gen" begin
       x = C([1, 2, 3, 4])
@@ -347,7 +371,16 @@
       @test divexact(y, 2) == QQ(1//2) * y
       @test divexact(y, QQ(2)) == QQ(1//2) * y
     end
-
+    @testset "getindex" begin
+      x = C(QQ.(1:32))
+      @test typeof(x) == typeof(C())
+      for i in 1:32
+        @test x[i] == i
+      end
+      @test_throws BoundsError x[0]
+      @test_throws BoundsError x[33]
+      @test_throws BoundsError x[rand(33:500)]
+    end
     @testset "center and centroid" begin
       @test center(C) == centroid(C)
       orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2 * z, -z^3,
