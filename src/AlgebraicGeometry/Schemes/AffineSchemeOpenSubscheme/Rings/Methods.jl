@@ -138,6 +138,14 @@ function ==(a::T, b::T) where {T<:AffineSchemeOpenSubschemeRingElem}
   return true
 end
 
+function Base.hash(a::AffineSchemeOpenSubschemeRingElem, h::UInt)
+  h = hash(parent(a), h)
+  for f in restrictions(a)
+    h = hash(f, h)
+  end
+  return h
+end
+
 function ^(a::AffineSchemeOpenSubschemeRingElem, i::Int64)
   return AffineSchemeOpenSubschemeRingElem(parent(a), [a[k]^i for k in 1:length(restrictions(a))])
 end
