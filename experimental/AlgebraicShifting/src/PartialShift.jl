@@ -148,7 +148,7 @@ end
     compound_matrix(m::MatElem, k::Int)
     compound_matrix(p::PermGroupElem, k::Int)
     compound_matrix(w::WeylGroupElem, k::Int)
-    compound_matrix(m::MatElem, K::Vector{Vector{Int}})
+    compound_matrix(m::MatElem, K::UniformHypergraph)
 
 Given a matrix `m`, return the matrix where each entry is a `k`$\times$`k`-minor of `m`.
 The entries of the compound matrix are ordered with respect to the lexicographic order on sets.
