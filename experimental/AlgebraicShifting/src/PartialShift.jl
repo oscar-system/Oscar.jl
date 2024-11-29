@@ -50,7 +50,7 @@ julia> generic_unipotent_matrix(GF(2), 2)
 ```
 """
 function generic_unipotent_matrix(F::Field, n::Int)
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+  Fx, x = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
   return generic_unipotent_matrix(Fx)
 end
 
@@ -103,7 +103,7 @@ end
 
 function rothe_matrix(F::Field, p::PermGroupElem)
   n = degree(parent(p))
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+  Fx, x = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
   u = identity_matrix(Fx, n)
   for (i, j) in inversions(p)
     u[i, j] = x[i, j]
@@ -326,7 +326,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex;
   if isnothing(change_of_basis)
     is_generic = true
     # generic change of basis
-    Fy, y = polynomial_ring(F, :y => (1:n, 1:n))
+    Fy, y = polynomial_ring(F, :y => (1:n, 1:n); cached=false)
     change_of_basis = matrix(Fy, hcat(y))
     matrix_base = Fy
   else
@@ -336,14 +336,14 @@ function symmetric_shift(F::Field, K::SimplicialComplex;
     end
   end
 
-  Rx, x = polynomial_ring(matrix_base, n)  
+  Rx, x = polynomial_ring(matrix_base, n) ; cached=false 
   # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
   R_K, _ = stanley_reisner_ring(Rx, K)
 
   # the computation is a over the field of fractions Fyx
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
   # but we want to avoid using fraction field of Ry during row reduction 
-  mb_ring, z = graded_polynomial_ring(F, n)
+  mb_ring, z = graded_polynomial_ring(F, n; cached=false)
 
 
   input_faces = apply_on_faces(K) do (dim_face, faces)
