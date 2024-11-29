@@ -119,7 +119,7 @@ If `K` and `L` are the `i`th and `j`th entry of `VL`, resp.,
 - `show_progress`: Set to `true` by default, can be used to suppress progress meter.
 - `task_size`: While running in parallel serialization might become a bottleneck,
 setting a higher task_size should increase performance if the processes are not running at maximum capacity
-
+See [D-VJL24](@cite) for background.
 
 
 # Examples
@@ -251,6 +251,7 @@ Returns a triple `(CG, S, P)`, where `CG` is a graph that contains a vertex `v` 
 A vertex `i` is in `P[s]` if there exists an edge from `i` to `s` in `G` with `w0` in its edge label,
 in this way `P` is a partition of the vertices of the orignal graph `G`.
 There is an edge from `s` to `t`  in `CG` whenever there is an edge from `i` to `j` in `G` and `i` in `P[s]` and `j` in `P[t]`.
+See [D-VJL24](@cite) for background.
 
 # Examples
 ```jldoctest
