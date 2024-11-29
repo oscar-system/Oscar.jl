@@ -66,7 +66,7 @@ As `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies i
 The Rothe matrix is a normal form for the matrix on the left of a representative for the double coset corresponding to `w`.
 There is also the possibility to pass the underlying polynomial ring `R` instead.
 This will be explained further once the corresponding preprint is on the arXiv.
-We use the name Rothe matrix because of its resemblance with a Rothe diagram.
+We use the name Rothe matrix because of its resemblance with a Rothe diagram, see [Knu98](@cite).
 
 # Examples
 ```jldoctest

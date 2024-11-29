@@ -58,7 +58,7 @@ function partial_shift_graph_vertices(F::Field,
     x -> Set(facets(x)),
     sort([exterior_shift(F, K, phi(w)) for w in W]; lt=isless_lex))[1:end - 1]
 
-  while(!isempty(unvisited))
+  while !isempty(unvisited)
     current = pop!(unvisited)
     push!(visited, current)
     shifts = unique(
@@ -80,19 +80,18 @@ function multi_edges(F::Field,
                      permutations::Vector{PermGroupElem},
                      complexes::Vector{Tuple{Int,T}},
                      complex_labels::Dict{Set{Set{Int}}, Int}
-) :: Dict{Tuple{Int, Int}, Vector{PermGroupElem}}  where T <: ComplexOrHypergraph;
+) where T <: ComplexOrHypergraph;
   # For each complex K with index i, compute the shifted complex delta of K by w for each w in W.
   # For nontrivial delta, place (i, delta) → w in a singleton dictionary, and eventually merge all dictionaries
   # to obtain a dictionary (i, delta) → [w that yield the shift K → delta]
-  reduce(
-  (d1, d2) -> mergewith!(vcat, d1, d2),
-  (
+  return reduce(
+  (d1, d2) -> mergewith!(vcat, d1, d2), (
     Dict((i, complex_labels[Set(facets(delta))]) => [p])
     for (i, K) in complexes
       for (p, delta) in ((p, exterior_shift(F, K, p)) for p in permutations)
-        if Set(facets(delta)) != Set(facets(K)));
+        if !issetequal(Set(facets(delta)), Set(facets(K))));
     init=Dict{Tuple{Int, Int}, Vector{PermGroupElem}}()
-  )
+  ) :: Dict{Tuple{Int, Int}, Vector{PermGroupElem}}
 end
 
 @doc raw"""

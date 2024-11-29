@@ -8,11 +8,15 @@ struct UniformHypergraph
   n_vertices::Int
   k::Int
   faces::Vector{Vector{Int}}
+
+  function UniformHypergraph(n_vertices::Int, k::Int, faces::Vector{Vector{Int}})
+    @req all(length(f) == k && 1 <= minimum(f) && maximum(f) <= n_vertices for f in faces) "Parameters don't define a uniform hypergraph."
+    return new(n_vertices, k, faces)
+  end
 end
 
 function uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int)
   faces = sort(collect(Set(sort.(collect.(Set.(faces))))))
-  @req all(length(f) == k && 1 <= minimum(f) && maximum(f) <= n for f in faces) "Parameters don't define a uniform hypergraph."
   return UniformHypergraph(n, k, faces)
 end
 
@@ -34,7 +38,7 @@ Create a uniform hypergraph using `faces`, the size of each face should be `k` a
 One can also create a `UniformHypergraph` for the `k` faces of a `SimplicialComplex` `K`.
 
 #Examples
-```jldoctext
+```jldoctest
 julia> U = uniform_hypergraph([[1, 2], [2, 3]], 4)
 UniformHypergraph(4, 2, [[1, 2], [2, 3]])
 
@@ -79,7 +83,20 @@ function Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph)
   return K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
 end
 
-raw""" Alexander dual, seen as bijection ``\binom{[n]}{k} \to \binom{[n]}{n-k}`` """
+@doc raw"""
+     alexander_dual(K::UniformHypergraph)
+
+Given a `UniformHypergraph` return the Alexander dual, seen as bijection ``\binom{[n]}{k} \to \binom{[n]}{n-k}``
+
+# Examples
+```jldoctest
+julia> K = uniform_hypergraph([[1, 2], [2, 3], [3, 4]])
+UniformHypergraph(4, 2, [[1, 2], [2, 3], [3, 4]])
+
+julia> alexander_dual(K)
+UniformHypergraph(4, 2, [[1, 3], [2, 3], [2, 4]])
+```
+"""
 function alexander_dual(K::UniformHypergraph)
   return uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
 end
