@@ -659,6 +659,16 @@ is_commutative(C::ZZCliffordOrder) = rank(C) == 1 || rank(C) == 2
 
 ################################################################################
 #
+#  Element access
+#
+################################################################################
+
+getindex(x::CliffordOrderElem, i::Int64) = coeff(x)[i]
+
+getindex(x::ZZCliffordOrderElem, i::Int64) = coeff(x)[i]
+
+################################################################################
+#
 #  Other functionality
 #
 ################################################################################
@@ -746,7 +756,7 @@ function centroid(C::ZZCliffordOrder)
   z_elt = 1//2*ambient_algebra(C)(1 + orth_elt)
   
   if z_elt in C 
-    C.centroid = [one(C), z_elt]
+    C.centroid = [one(C), C(z_elt)]
   else
     C.centroid = [one(C), orth_elt]
   end
