@@ -168,15 +168,20 @@ julia> facets.(VL[[6, 5]])
  [Set([2, 1]), Set([4, 1]), Set([2, 3]), Set([4, 2]), Set([4, 3])]
 ```
 """
-function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup, Vector{WeylGroupElem}};
+function partial_shift_graph(F::Field, complexes::Vector{T},
+                             W::Union{WeylGroup, Vector{WeylGroupElem}};
                              parallel::Bool = false,
                              show_progress::Bool = true,
-                             task_size::Int=100) :: Tuple{Graph{Directed}, EdgeLabels, Vector{ComplexOrHypergraph}}  where T <: ComplexOrHypergraph;
+                             task_size::Int=100) where T <: ComplexOrHypergraph
   # Deal with trivial case
-  if length(complexes) <= 1
-    return (graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))), EdgeLabels())
+  if length(complexes) == 1
+    @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
+    return (
+      graph_from_adjacency_matrix(Directed, zeros(length(complexes),length(complexes))),
+      EdgeLabels(),
+      complexes) :: Tuple{Graph{Directed}, EdgeLabels, Vector{T}}
   end
-
+  
   # maybe we provide a flag to skip if the complexes are already sorted?
   complexes = sort(complexes;lt=Oscar.isless_lex)
 
@@ -202,20 +207,28 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
     Oscar.put_params(channels, codomain(phi))
     map_function = pmap
   end
-
-  if show_progress
-    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                         @showprogress map_function(
-                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
-                           Iterators.partition(enumerate(complexes), task_size)))
-  else
-    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                         map_function(
-                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
-                           Iterators.partition(enumerate(complexes), task_size)))
+  try 
+    if show_progress
+      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                           @showprogress map_function(
+                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Iterators.partition(enumerate(complexes), task_size)))
+    else
+      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                           map_function(
+                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
+                             Iterators.partition(enumerate(complexes), task_size)))
+    end
+    graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
+    return (graph,
+            Dict(k => inv(phi).(v) for (k, v) in edge_labels),
+            complexes) :: Tuple{Graph{Directed}, EdgeLabels, Vector{T}}
+  catch e
+    if e isa KeyError
+      error("The list of complexes should be closed under shifting by elements of W")
+    end
+    rethrow(e)
   end
-  graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
-  return (graph, Dict(k => inv(phi).(v) for (k, v) in edge_labels), complexes)
 end
 
 function partial_shift_graph(F::Field, complexes::Vector{T};
