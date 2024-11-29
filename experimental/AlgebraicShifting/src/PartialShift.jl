@@ -16,7 +16,7 @@ function generic_unipotent_matrix(R::MPolyRing)
   @req is_square(n_vars) "indeterminants should come from a square matrix"
   n = Int(sqrt(n_vars))
   x = matrix(R, reshape(x, n, n))
-  u = identity_matrix(R, n) 
+  u = identity_matrix(R, n)
   # make unipotent matrix
   for i in 1:n
     for j in i + 1:n
@@ -178,7 +178,6 @@ Weyl group
   of root system of rank 2
     of type A2
 
-
 julia> compound_matrix(longest_element(W), 2)
 [ 0    0   -1]
 [ 0   -1    0]
@@ -226,11 +225,11 @@ end
 _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simplicial_complex(K), indices)
 
 ###############################################################################
-# Exterior shift 
+# Exterior shift
 ###############################################################################
 function exterior_shift(K::UniformHypergraph, g::MatElem)
   # the exterior shifting works in a different algebra that lends
-  # itself to an easier implementation 
+  # itself to an easier implementation
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
@@ -254,7 +253,7 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
     [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
   ])
 end
-  
+
 @doc raw"""
     exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
     exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
@@ -320,7 +319,7 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-  
+
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
@@ -340,7 +339,7 @@ exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)
 
 
 ###############################################################################
-# Symmetric shift 
+# Symmetric shift
 ###############################################################################
 
 """
@@ -369,13 +368,13 @@ function symmetric_shift(F::Field, K::SimplicialComplex;
     end
   end
 
-  Rx, x = polynomial_ring(matrix_base, n) ; cached=false 
+  Rx, x = polynomial_ring(matrix_base, n) ; cached=false
   # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
   R_K, _ = stanley_reisner_ring(Rx, K)
 
   # the computation is a over the field of fractions Fyx
   # we use a different ring to generate monomial_basis, coefficients need to be a field,
-  # but we want to avoid using fraction field of Ry during row reduction 
+  # but we want to avoid using fraction field of Ry during row reduction
   mb_ring, z = graded_polynomial_ring(F, n; cached=false)
 
 
@@ -401,7 +400,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex;
 
       push!(A, col)
     end
-    
+
     C = matrix(matrix_base, reduce(hcat, A))
 
     if is_generic
@@ -409,7 +408,7 @@ function symmetric_shift(F::Field, K::SimplicialComplex;
     else
       rref!(C)
     end
-    
+
     smallest_basis_el = z[r]^r
     smallest_index = findfirst(a -> a == smallest_basis_el, mb)
     col_indices = filter(x -> x >= smallest_index, independent_columns(C))

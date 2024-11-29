@@ -21,7 +21,7 @@ Given a field `F` discover the vertices of the partial shift graph starting from
 using exterior partial shifts corresponding to elements in `W`.
 Returns a `Vector{SimplicialCompplex}` ordered lexicographically.
 
-#Example
+# Examples
 ```jldoctest
 julia> K = simplicial_complex([[1, 2], [2, 3], [3, 4]])
 Abstract simplicial complex of dimension 1 on 4 vertices
@@ -47,7 +47,7 @@ julia> facets.(shifts)
 """
 function partial_shift_graph_vertices(F::Field,
                                       K::SimplicialComplex,
-                                      W::Union{WeylGroup, Vector{WeylGroupElem}};)
+                                      W::Union{WeylGroup, Vector{WeylGroupElem}})
   current = K
   visited = [current]
   phi = isomorphism(PermGroup, parent(first(W)))
@@ -85,7 +85,7 @@ function multi_edges(F::Field,
   # For nontrivial delta, place (i, delta) → w in a singleton dictionary, and eventually merge all dictionaries
   # to obtain a dictionary (i, delta) → [w that yield the shift K → delta]
   reduce(
-  (d1, d2) -> mergewith!(vcat, d1, d2), 
+  (d1, d2) -> mergewith!(vcat, d1, d2),
   (
     Dict((i, complex_labels[Set(facets(delta))]) => [p])
     for (i, K) in complexes
@@ -107,7 +107,7 @@ Returns a tuple `(G, EL, VL)`, where `G` is a `Graph{Directed}`, `EL` is a `Dict
 `VL` is a lexicographically sorted `complexes`, hence is either a `Vector{SimplicialComplex}` or `Vector{Uniformhypergraph}`.
 `EL` are the edges labels and `VL` are the vertex labels.
 There is an edge from the vertex labelled `K` to the vertex labelled `L` if `L` is the partial shift of `K` by some `w` in `W`.
-If `K` and `L` are the `i`th and `j`th entry of `VL`, resp., 
+If `K` and `L` are the `i`th and `j`th entry of `VL`, resp.,
 `EL[i,j]` contains all `w` in `W` such that `L` is the partial generic shift of `K` by `w`.
 
 # Arguments
@@ -184,17 +184,17 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
   ns_vertices = Set(n_vertices.(complexes))
   @req length(ns_vertices) == 1 "All complexes are required to have the same number of vertices."
   n = collect(ns_vertices)[1]
-  
+
   # inverse lookup K → index of K in complexes
   complex_labels = Dict(Set(facets(K)) => index for (index, K) in enumerate(complexes))
-  
+
   W2 = only(unique(parent.(W)))
   rs_type = root_system_type(root_system(W2))
   @req rs_type[1][1] == :A && rs_type[1][2] == n - 1 "Only Weyl groups type A_$(n-1) are currently support and received type $(T[1])."
 
   phi = isomorphism(PermGroup, parent(first(W)))
   # oscar runs tests in parallel, which can make pmap run in parallel even if parallel=false
-  # next line fixes this issue 
+  # next line fixes this issue
   map_function = map
   if parallel
     # setup parallel parameters
@@ -207,12 +207,12 @@ function partial_shift_graph(F::Field, complexes::Vector{T}, W::Union{WeylGroup,
   if show_progress
     edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                          @showprogress map_function(
-                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
+                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
                            Iterators.partition(enumerate(complexes), task_size)))
   else
     edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
                          map_function(
-                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels), 
+                           Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
                            Iterators.partition(enumerate(complexes), task_size)))
   end
   graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
@@ -270,7 +270,7 @@ function contracted_partial_shift_graph(G::Graph{Directed}, edge_labels::Dict{Tu
 
   sinks = findall(iszero, degree(G))
   sinks_indices = Dict(s => i for (i,s) in enumerate(sinks))
-  for i in 1:n 
+  for i in 1:n
     if !haskey(w0_action, i)
       @req i in sinks "Vertex $i is not a sink, but has no outbound edge with w0 in its edge label."
       w0_action[i] = i
@@ -283,7 +283,7 @@ function contracted_partial_shift_graph(G::Graph{Directed}, edge_labels::Dict{Tu
   end
 
   return (
-    graph_from_edges(Directed, [ 
+    graph_from_edges(Directed, [
       [sinks_indices[s],sinks_indices[t]]
       for (s,t) in (
         (w0_action[i], (haskey(w0_action, j) ? w0_action[j] : j))

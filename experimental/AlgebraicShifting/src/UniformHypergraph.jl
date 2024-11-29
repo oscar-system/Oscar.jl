@@ -64,7 +64,7 @@ function simplicial_complex(K::UniformHypergraph)
   return simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
 end
 
-n_vertices(K::UniformHypergraph) = K.n_vertices  
+n_vertices(K::UniformHypergraph) = K.n_vertices
 
 faces(K::UniformHypergraph) = K.faces
 # added for covenience when writting functions for Simplicial complex and Uniform Hypergraph
