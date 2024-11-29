@@ -6,6 +6,12 @@ function ==(R::AffineSchemeOpenSubschemeRing, S::AffineSchemeOpenSubschemeRing)
   return scheme(R)==scheme(S) && domain(R)==domain(S)
 end
 
+function Base.hash(R::AffineSchemeOpenSubschemeRing, h::UInt)
+  h = hash(scheme(R), h)
+  h = hash(domain(R), h)
+  return h
+end
+
 ########################################################################
 # Methods for AffineSchemeOpenSubschemeRingElem                                         #
 ########################################################################
