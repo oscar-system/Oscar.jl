@@ -311,22 +311,6 @@ GAP.@install function GapObj(f::SesquilinearForm)
   return f.X
 end
 
-function Base.getproperty(f::SesquilinearForm, sym::Symbol)
-
-   if isdefined(f,sym) return getfield(f,sym) end
-
-   if sym == :X
-      if !isdefined(f, :X)
-         assign_from_description(f)
-      end
-
-   end
-
-   return getfield(f, sym)
-
-end
-
-
 
 ########################################################################
 #

@@ -517,3 +517,6 @@ function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
   end
 end
 
+scheme(f::VarietyFunctionFieldElem) = scheme(parent(f))
+variety(f::VarietyFunctionFieldElem) = variety(parent(f))
+
