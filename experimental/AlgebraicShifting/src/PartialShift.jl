@@ -160,11 +160,11 @@ julia> compound_matrix(M, K)
 ```
 """
 function compound_matrix(m::MatElem, K::UniformHypergraph)
-	@req size(m,1) == size(m,2) "Only valid for square matrices"
-	n = size(m, 1)
-	k = face_size(K)
+  @req size(m,1) == size(m,2) "Only valid for square matrices"
+  n = size(m, 1)
+  k = face_size(K)
   nCk = sort(subsets(n, k))
-	return matrix(base_ring(m), [det(m[row, col]) for row in faces(K), col in nCk])
+  return matrix(base_ring(m), [det(m[row, col]) for row in faces(K), col in nCk])
 end
 
 compound_matrix(m::MatElem, k::Int) = compound_matrix(m, uniform_hypergraph(sort(subsets(size(m, 1), k))))

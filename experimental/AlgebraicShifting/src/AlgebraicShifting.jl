@@ -28,7 +28,6 @@ function independent_columns(A::MatElem)
   return col_indices
 end
 
-
 """
     symmetric_shift(F::Field, K::SimplicialComplex)
 
