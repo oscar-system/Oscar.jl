@@ -11,7 +11,7 @@ end
 # exported items: experimental/GraphicalModels/src/GraphicalModels.jl
 # TODOs:
 # * how to check e.g. collect(values(compute_equivalent_classes(probability_map(model)))) against something hardcoded? (Marina)
-# * specialized (inverse) fourier transform, two fuctions still as comments (Christiane)
+# * specialized (inverse) fourier transform, two functions still as comments (Christiane)
 
 @testset "Graphical Models tests" begin
 
@@ -25,7 +25,7 @@ end
     @test Oscar.number_states(model) == 2
     #root distribution
     @test model.phylo_model.root_distr == [1//2,1//2]
-    #transition matricies
+    #transition matrices
     tr_mat = Oscar.transition_matrices(model)
     @test tr_mat[Edge(4, 2)][1,1] == tr_mat[Edge(4, 2)][2,2]
     @test tr_mat[Edge(4, 2)][1,2] == tr_mat[Edge(4, 2)][2,1]
@@ -50,7 +50,7 @@ end
     @test Oscar.number_states(model) == 4
     #root distribution
     model.phylo_model.root_distr == [1//4,1//4,1//4,1//4]
-    #transition matricies
+    #transition matrices
     tr_mat = Oscar.transition_matrices(model)
     for i in 1:4, j in 1:4
       @test tr_mat[Edge(4, 2)][1, i == j ? 1 : 2] == tr_mat[Edge(4, 2)][i, j] #
@@ -76,7 +76,7 @@ end
     @test Oscar.number_states(model) == 4
     # root distribution
     @test model.phylo_model.root_distr == [1//4,1//4,1//4,1//4]
-    # transition matricies
+    # transition matrices
     tr_mat = Oscar.transition_matrices(model)
     for i in 1:4, j in 1:4
       @test tr_mat[Edge(4, 2)][1, (i == j ? 1 : (isodd(i+j) ? 2 : 3))] == tr_mat[Edge(4, 2)][i, j]
@@ -236,7 +236,7 @@ end
       @test H(q_eqclasses.parametrization[2,2,1]) == x[3, 1]*x[1, 2]*x[2, 2]
       @test H(q_eqclasses.parametrization[2,3,4]) == x[1, 2]*x[2, 2]*x[3, 2]
 
-      # Thest that the keys for one class are the expected ones
+      # Test that the keys for one class are the expected ones
       @test setdiff(q_eqclasses.classes[2,3,4],  [(2,3,4),(2,4,3),(3,2,4),(3,4,2),(4,2,3),(4,3,2)]) == []
     end
   end

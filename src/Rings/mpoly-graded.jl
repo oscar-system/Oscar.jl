@@ -1620,7 +1620,7 @@ end
 
 
 struct Homogenizer
-  P::MPolyRing              # orignal poly ring (?not graded?)
+  P::MPolyRing              # original poly ring (?not graded?)
   P_homog::MPolyDecRing     # graded poly ring: same vars as P, plus g extra homogenizing vars
   VarMap::Vector{Int}       # var[k] in P embeds to var[VarMap[k]] in P_homog
   HVars::Vector{Int}        # the homogenizing vars in p_homog are var[k] with k in HVars

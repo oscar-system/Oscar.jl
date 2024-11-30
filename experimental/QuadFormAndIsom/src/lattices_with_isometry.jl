@@ -1714,7 +1714,7 @@ julia> order(G)
     return sub(OqL, unique!(UL))
   elseif is_of_hermitian_type(Lf)
     if is_definite(L) || rank(L) == 2
-      # If L is definite or of rank 2 and we use the correspondance between
+      # If L is definite or of rank 2 and we use the correspondence between
       # O(L, f) and O(L, h) via the trace equivalence, where (L, h) is the
       # hermitian structure on (L, f). Preferable choice than computing O(L, f)
       # directly because the rank of the hermitian structure is a strict divisor
