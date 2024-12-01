@@ -405,3 +405,8 @@ function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
 
   return simplicial_complex(input_faces)
 end
+
+function symmetric_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
+  iso = isomorphism(PermGroup, parent(w))
+  return symmetric_shift(F, K, iso(w))
+end
