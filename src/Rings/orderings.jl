@@ -1863,9 +1863,9 @@ function _cmp_vector_monomials(
   n::Int, g::MPolyRingElem, l::Int,
   o::ModOrdering)
 
-  if o.ord == :lex
+  if o.ord == :invlex
     return m < n ? 1 : m > n ? -1 : 0
-  elseif o.ord == :invlex
+  elseif o.ord == :lex
     return m > n ? 1 : m < n ? -1 : 0
   else
     error("oops")
