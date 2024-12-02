@@ -18,7 +18,7 @@ from any Oscar code and should rely solely on `julia` core
 functionality so to avoid conflicts with any future Oscar code
 deprecations.
 
-# Example
+# Examples
 ```
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.13.0",

@@ -1468,7 +1468,7 @@ Compute the dimension of the simple module of the Lie algebra defined by the roo
 with highest weight `hw` using Weyl's dimension formula.
 The return value is of type `T`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1512,7 +1512,7 @@ sorted ascendingly by the total height of roots needed to reach them from `hw`.
 
 See [MP82](@cite) for details and the implemented algorithm.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1575,7 +1575,7 @@ with highest weight `hw`, together with their multiplicities.
 
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1667,7 +1667,7 @@ Computes all weights occurring in the simple module of the Lie algebra defined b
 with highest weight `hw`, together with their multiplicities.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1720,7 +1720,7 @@ This function uses Klymik's formula.
 
 The return type may change in the future.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1845,7 +1845,7 @@ with extremal weight `x*w`, together with their multiplicities.
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 

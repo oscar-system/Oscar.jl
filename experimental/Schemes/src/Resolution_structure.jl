@@ -55,7 +55,7 @@ end
 Return a `CartierDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
@@ -90,7 +90,7 @@ end
 Return a `WeilDivisor` on the `domain` of `f` which is the
 exceptional divisor of the sequence of blow-ups `f`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y) = polynomial_ring(QQ,2);
 
