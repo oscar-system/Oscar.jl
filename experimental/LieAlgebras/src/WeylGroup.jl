@@ -248,23 +248,8 @@ function Base.:*(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-@doc raw"""
-    *(x::WeylGroupElem, r::RootSpaceElem) -> RootSpaceElem
-    *(x::WeylGroupElem, w::WeightLatticeElem) -> WeightLatticeElem
-
-Return the result of acting with `x` **from the left** on `r` or `w`.
-
-See also: [`*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)`](@ref).
-"""
-function Base.:*(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
-  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
-
-  rw2 = deepcopy(rw)
-  for s in Iterators.reverse(word(x))
-    reflect!(rw2, Int(s))
-  end
-
-  return rw2
+function Base.:*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
+  error("OSCAR only supports the right action of Weyl groups")
 end
 
 @doc raw"""

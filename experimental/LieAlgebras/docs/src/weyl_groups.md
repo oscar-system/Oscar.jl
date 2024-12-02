@@ -82,7 +82,6 @@ reduced_expressions(::WeylGroupElem)
 ## Action on roots and weights
 
 ```@docs
-*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
 *(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
 ```
 
