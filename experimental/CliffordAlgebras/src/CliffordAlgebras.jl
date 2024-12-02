@@ -401,7 +401,6 @@ end
 #
 ################################################################################
 
-Base.:+(x::CliffordAlgebraElem) = x
 
 Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coeff(x)))
 
