@@ -587,6 +587,11 @@ function ==(I::AbsIdealSheaf, J::AbsIdealSheaf)
   return true
 end
 
+function Base.hash(I::AbsIdealSheaf, h::UInt)
+  h = hash(scheme(I), h)
+  return h
+end
+
 function is_subset(I::AbsIdealSheaf, J::AbsIdealSheaf)
   X = space(I)
   X === space(J) || return false
