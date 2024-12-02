@@ -1,6 +1,6 @@
 # standard packages
 using Pkg
-using ProgressMeter
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs

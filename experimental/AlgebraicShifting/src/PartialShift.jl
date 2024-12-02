@@ -16,7 +16,7 @@ function generic_unipotent_matrix(R::MPolyRing)
   @req is_square(n_vars) "indeterminants should come from a square matrix"
   n = Int(sqrt(n_vars))
   x = matrix(R, reshape(x, n, n))
-  u = identity_matrix(R, n) 
+  u = identity_matrix(R, n)
   # make unipotent matrix
   for i in 1:n
     for j in i + 1:n
@@ -50,20 +50,23 @@ julia> generic_unipotent_matrix(GF(2), 2)
 ```
 """
 function generic_unipotent_matrix(F::Field, n::Int)
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
+  Fx, x = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
   return generic_unipotent_matrix(Fx)
 end
 
 @doc raw"""
-    rothe_matrix(F::Field, w::WeylGroupElem; K::Union{SimplicialComplex, Nothing} = nothing)
-
+    rothe_matrix(F::Field, w::WeylGroupElem)
+    rothe_matrix(F::Field, p::PermGroupElem)
+    rothe_matrix(R::MPolyRing, w::WeylGroupElem)
+    rothe_matrix(R::MPolyRing, p::PermGroupElem)
 For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
 root system of the Weyl group.
 As `general_linear_group(n^2, R)` has a Bruhat decomposition, any element lies in a unique double coset $BwB$, where $B$ is the Borel group of upper triangular matrices.
 The Rothe matrix is a normal form for the matrix on the left of a representative for the double coset corresponding to `w`.
+There is also the possibility to pass the underlying polynomial ring `R` instead.
 This will be explained further once the corresponding preprint is on the arXiv.
-We use the name Rothe matrix because of its resemblance with a Rothe diagram. (add ref? Knuth?)
+We use the name Rothe matrix because of its resemblance with a Rothe diagram, see [Knu98](@cite).
 
 # Examples
 ```jldoctest
@@ -93,6 +96,23 @@ julia> rothe_matrix(QQ, perm([2, 3, 1]))
 [x[1, 3]   1   0]
 [x[2, 3]   0   1]
 [      1   0   0]
+
+julia> Fx, x = polynomial_ring(GF(2), :x => (1:5, 1:5))
+(Multivariate polynomial ring in 25 variables over GF(2), FqMPolyRingElem[x[1, 1] x[1, 2] … x[1, 4] x[1, 5]; x[2, 1] x[2, 2] … x[2, 4] x[2, 5]; … ; x[4, 1] x[4, 2] … x[4, 4] x[4, 5]; x[5, 1] x[5, 2] … x[5, 4] x[5, 5]])
+
+julia> rothe_matrix(Fx, w)
+[1         0         0         0   0]
+[0   x[2, 3]   x[2, 4]   x[2, 5]   1]
+[0         1         0         0   0]
+[0         0         1         0   0]
+[0         0         0         1   0]
+
+julia> rothe_matrix(Fx, perm([1, 3, 2, 5, 4]))
+[1         0   0         0   0]
+[0   x[2, 3]   1         0   0]
+[0         1   0         0   0]
+[0         0   0   x[4, 5]   1]
+[0         0   0         1   0]
 ```
 """
 function rothe_matrix(F::Field, w::WeylGroupElem)
@@ -103,19 +123,32 @@ end
 
 function rothe_matrix(F::Field, p::PermGroupElem)
   n = degree(parent(p))
-  Fx, x = polynomial_ring(F, :x => (1:n, 1:n))
-  u = identity_matrix(Fx, n)
+  Fx, _ = polynomial_ring(F, :x => (1:n, 1:n); cached=false)
+  return rothe_matrix(Fx, p)
+end
+
+function rothe_matrix(R::MPolyRing{T}, w::WeylGroupElem) where T
+  W = parent(w)
+  phi = isomorphism(PermGroup, W)
+  return rothe_matrix(R, phi(w))
+end
+
+function rothe_matrix(R::MPolyRing{T}, p::PermGroupElem) where T
+  n = degree(parent(p))
+  @req ngens(R) == n^2 "The number of generators of the ring should match the square of the degree of the permutation group"
+  u = identity_matrix(R, n)
+  x = reshape(gens(R), n, n)
   for (i, j) in inversions(p)
     u[i, j] = x[i, j]
   end
-  return u * permutation_matrix(F, p)
+  return u * permutation_matrix(R, p)
 end
 
 @doc raw"""
     compound_matrix(m::MatElem, k::Int)
     compound_matrix(p::PermGroupElem, k::Int)
     compound_matrix(w::WeylGroupElem, k::Int)
-    compound_matrix(m::MatElem, K::Vector{Vector{Int}})
+    compound_matrix(m::MatElem, K::UniformHypergraph)
 
 Given a matrix `m`, return the matrix where each entry is a `k`$\times$`k`-minor of `m`.
 The entries of the compound matrix are ordered with respect to the lexicographic order on sets.
@@ -144,7 +177,6 @@ julia> W = weyl_group(:A, 2)
 Weyl group
   of root system of rank 2
     of type A2
-
 
 julia> compound_matrix(longest_element(W), 2)
 [ 0    0   -1]
@@ -193,11 +225,11 @@ end
 _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simplicial_complex(K), indices)
 
 ###############################################################################
-# Exterior shift 
+# Exterior shift
 ###############################################################################
 function exterior_shift(K::UniformHypergraph, g::MatElem)
   # the exterior shifting works in a different algebra that lends
-  # itself to an easier implementation 
+  # itself to an easier implementation
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
   @req size(g, 1) == n_vertices(K) "Matrix size does not match K."
   matrix_base = base_ring(g)
@@ -221,7 +253,7 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
     [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
   ])
 end
-  
+
 @doc raw"""
     exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
     exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
@@ -287,9 +319,6 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-  # might want to reintroduce these lines at some point
-  #bool_mat = matrix(F, [!Oscar._set_to_zero(K, (i, j)) for i in 1:n, j in 1:n])
-  #M = (bool_mat * permutation_matrix(F, p)) .* rothe_matrix(F, p)
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
@@ -393,5 +422,78 @@ function partial_ext_shift_lv(F::Field, w::WeylGroupElem, K::ComplexOrHypergraph
                       lt=isless_lex)
   check_shifted(F, w, K, shift) && return shift
   return nothing # partial_ext_shift_lv(F, w, K)
+end
+
+###############################################################################
+# Symmetric shift
+###############################################################################
+
+"""
+    symmetric_shift(F::Field, K::SimplicialComplex)
+
+Returns the symmetric shift of `K`
+
+TODO: add more docs and and expose for users
+"""
+function symmetric_shift(F::Field, K::SimplicialComplex, p::PermGroupElem)
+  n = n_vertices(K)
+  Fy, y = polynomial_ring(F, :y => (1:n, 1:n); cached=false)
+  change_of_basis = rothe_matrix(Fy, p) * permutation_matrix(ZZ, p) * generic_unipotent_matrix(Fy)
+  
+  Rx, x = polynomial_ring(Fy, n)
+  # the generators of the stanley reisner ideal are combinations of [x_1, ..., x_n]
+  R_K, _ = stanley_reisner_ring(Rx, K)
+
+  # the computation is a over the field of fractions Fyx
+  # we use a different ring to generate monomial_basis, coefficients need to be a field,
+  # but we want to avoid using fraction field of Ry during row reduction
+  mb_ring, z = graded_polynomial_ring(F, n; cached=false)
+  input_faces = Vector{Int}[]
+  for r in 2:dim(K) + 1
+    mb = reverse(monomial_basis(mb_ring, r))
+    A = Vector{elem_type(Fy)}[]
+    mb_exponents = first.(collect.(exponents.(mb))) # gets monomial exponents
+
+    for b in mb
+      # need to compare with some alternatives
+      transformed_monomial = evaluate(b, change_of_basis * gens(R_K))
+
+      # we need to iterate through exponents here since the functions terms, coefficients or exponents
+      # do not return 0 terms and we need to make sure the generic col aligns with the others
+      # this is needed for the case when the field has finite characteristic
+      # we use the lift because currently there is no function to get the coeff of
+      # a MPolyQuoRingElem, which means we also need to check if it's zero before adding the coefficient
+      col = [
+        !is_zero(R_K(monomial(Rx, e))) ? coeff(lift(transformed_monomial), e) : Fy(0)
+        for e in mb_exponents]
+      push!(A, col)
+    end
+    C = matrix(Fy, reduce(hcat, A))
+    Oscar.ModStdQt.ref_ff_rc!(C)
+    smallest_basis_el = z[r]^r
+    smallest_index = findfirst(a -> a == smallest_basis_el, mb)
+    col_indices = filter(x -> x >= smallest_index, independent_columns(C))
+    monomial_exponents = first.(exponents.(mb[col_indices]))
+
+    # adjustment to convert monomial to simplex
+    for me in monomial_exponents
+      shifted_set = Int[]
+      index_count = 1
+      for (i, e) in enumerate(me)
+        for j in 1:e
+          push!(shifted_set, i - (r - index_count))
+          index_count += 1
+        end
+      end
+      push!(input_faces, shifted_set)
+    end
+  end
+
+  return simplicial_complex(input_faces)
+end
+
+function symmetric_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
+  iso = isomorphism(PermGroup, parent(w))
+  return symmetric_shift(F, K, iso(w))
 end
 

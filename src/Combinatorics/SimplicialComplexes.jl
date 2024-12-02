@@ -730,8 +730,7 @@ end
 @doc raw"""
      link_subcomplex(K::SimplicialComplex, f::Union{<:AbstractSet{Int},<:AbstractVector{Int}}))
 
-Given simplicial complex `K` and a face of `face` of `K` return the link of `face`.
-simplicial complex at the .
+Given simplicial complex `K` and a face `f` of `K` return the link of `f`.
 
 # Examples
 ```jldoctest
