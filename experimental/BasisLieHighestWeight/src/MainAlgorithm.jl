@@ -200,7 +200,7 @@ function compute_monomials(
   end
   # calculation required
   # dim is number of monomials that we need to find, i.e. |M_{highest_weight}|.
-  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the basecase of 
+  # if highest_weight is not a fundamental weight, partition into smaller summands is possible. This is the base case of
   # the recursion.
   dim = dim_of_simple_module(L, highest_weight)
   if is_zero(highest_weight) || is_fundamental_weight(highest_weight)
@@ -280,7 +280,7 @@ function add_new_monomials!(
   # monomials in the order monomial_ordering and calculate the corresponding vector. If it extends the basis, we add it 
   # to the result and else we try the next one. We know, that all monomials that work lay in the weyl-polytope. 
   # Therefore, we only inspect the monomials that lie both in the weyl-polytope and the weightspace. Since the weyl-
-  # polytope is bounded these are finitely many and we can sort them and then go trough them, until we found enough. 
+  # polytope is bounded these are finitely many and we can sort them and then go through them, until we found enough.
 
   # get monomials that are in the weightspace, sorted by monomial_ordering
   poss_mon_in_weightspace = convert_lattice_points_to_monomials(

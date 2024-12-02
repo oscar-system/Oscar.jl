@@ -559,7 +559,7 @@ end
 
 Return the coroots of `R` in the order of [`roots(::RootSystem)`](@ref roots),
 i.e. starting with the coroots of positive roots and then those of negative roots,
-each in the order of [`positive_coroots(::RootSystem)`](@ref positive_coroots) and [`negative_coroots(::RootSystem)`](@ref negative_coroots), repectively.
+each in the order of [`positive_coroots(::RootSystem)`](@ref positive_coroots) and [`negative_coroots(::RootSystem)`](@ref negative_coroots), respectively.
 
 See also: [`coroot(::RootSystem, ::Int)`](@ref).
 
@@ -1780,7 +1780,7 @@ function tensor_product_decomposition(
 end
 
 ###############################################################################
-# demazures charcter formula
+# demazures character formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   fl, index_of_r = is_simple_root_with_index(r)
   @req fl "not a simple root"

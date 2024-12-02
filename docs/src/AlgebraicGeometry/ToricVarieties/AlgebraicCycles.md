@@ -5,7 +5,7 @@ CurrentModule = Oscar
 # The Chow ring
 
 Algebraic cycles are formal linear sum of irreducible
-subvarieies over the integers. Perse, algebraic cycles
+subvarieties over the integers. Perse, algebraic cycles
 do not admit a well-defined intersection product.
 
 To see this, think of intersecting a non-trivial algebraic
@@ -31,7 +31,7 @@ For complete and simplicial toric varieties, many things are
 known about the Chow ring and algebraic cycles (cf. section 12.5
 in [CLS11](@cite):
 
-  * By therorem 12.5.3 of [CLS11](@cite), there is an isomorphism
+  * By theorem 12.5.3 of [CLS11](@cite), there is an isomorphism
     among the Chow ring and the cohomology ring. Note that the
     cohomology ring is naturally graded (cf. last paragraph
     on page 593 in [CLS11](@cite)). However, the Chow ring
@@ -40,7 +40,7 @@ in [CLS11](@cite):
     for matroids in OSCAR, the toric Chow ring is constructed as a
     non-graded ring.
 
-  * By therorem 12.5.3 of [CLS11](@cite), the Chow ring is isomorphic
+  * By theorem 12.5.3 of [CLS11](@cite), the Chow ring is isomorphic
     to the quotient of the non-graded Cox ring and a certain ideal.
     Specifically, the ideal in question is the sum of the ideal of
     linear relations and the Stanley-Reisner ideal.
@@ -49,7 +49,7 @@ in [CLS11](@cite):
     homogeneous with respect to the class group grading of the Cox ring.
     In order to construct the cohomology ring, one can introduce a
     $\mathbb{Z}$-grading on the Cox ring such that the ideal of linear
-    relations and the Stanley-Reißner ideal are homogeneous.
+    relations and the Stanley-Reisner ideal are homogeneous.
 
   * Finally, by lemma 12.5.1 of [CLS11](@cite), generators of the
     rational equivalence classes of algebraic cycles are one-to-one to

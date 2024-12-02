@@ -1999,7 +1999,7 @@ end
 @doc raw"""
     index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
 
-Return the index of the leading term of `f` with repsect to the order `ord`. The
+Return the index of the leading term of `f` with respect to the order `ord`. The
 returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)

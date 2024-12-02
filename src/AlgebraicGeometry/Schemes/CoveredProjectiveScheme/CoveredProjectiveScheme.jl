@@ -47,7 +47,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGluing)
   io = pretty(io)
   f = gluing_morphisms(PG)[1]
-  PX, PY = pacthes(PG)
+  PX, PY = patches(PG)
   PU, PV = gluing_domains(PG)
   println(io, "Gluing")
   println(io, Indent(), "of  ", Lowercase(), PX)

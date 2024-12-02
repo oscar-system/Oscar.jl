@@ -388,7 +388,7 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
 end
 
 ### Take a complex of graded modules and twist all 
-# modules so that the (co-)boundary maps become homogenous 
+# modules so that the (co-)boundary maps become homogeneous
 # of degree zero. 
 function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])
