@@ -1,8 +1,8 @@
 export CliffordAlgebra,
   CliffordAlgebraElem,
   clifford_algebra,
-  even_coeff,
-  odd_coeff,
+  even_coefficients,
+  odd_coefficients,
   even_part,
   odd_part,
   centroid,
@@ -42,7 +42,7 @@ mutable struct CliffordAlgebraElem{T,S,P} <: Hecke.AbstractAssociativeAlgebraEle
   #Return the 0-element of the Clifford algebra C
   function CliffordAlgebraElem{T,S,P}(C::CliffordAlgebra{T,S}) where {T,S,P}
     newelt = new{T,S,CliffordAlgebra{T,S}}(C, fill(C.base_ring(), C.dim))
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
@@ -55,7 +55,7 @@ mutable struct CliffordAlgebraElem{T,S,P} <: Hecke.AbstractAssociativeAlgebraEle
   ) where {T,S,P,R<:FieldElem}
     @req length(coeff) == C.dim "invalid length of coefficient vector"
     newelt = new{T,S,CliffordAlgebra{T,S}}(C, coeff)
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
@@ -64,7 +64,7 @@ mutable struct CliffordAlgebraElem{T,S,P} <: Hecke.AbstractAssociativeAlgebraEle
 
   function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
     K = C.base_ring
-    @req __can_convert_coeff(coeff, K) "entries of coefficient vector are not contained in $(K)"
+    @req __can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
     return CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram),typeof(C)}(
       C, K.(coeff)
     )
@@ -155,15 +155,15 @@ Return the Clifford algebra containing $x$.
 parent(x::CliffordAlgebraElem) = x.parent
 
 @doc raw"""
-  coeff(x::CliffordAlgebraElem) -> Vector
+    coefficients(x::CliffordAlgebraElem) -> Vector
 
 Return the coefficient vector of $x$ wrt the
 canonical basis of its parent Clifford algebra.  
 """
-coeff(x::CliffordAlgebraElem) = x.coeffs
+coefficients(x::CliffordAlgebraElem) = x.coeffs
 
 @doc raw"""
-    even_coeff(x::CliffordAlgebraElem) -> Vector
+    even_coefficients(x::CliffordAlgebraElem) -> Vector
 
 Return the coefficient vector of $x$ wrt the
 canonical basis of its parent Clifford algebra,
@@ -171,16 +171,16 @@ but all coefficients corresponding to basis elements
 with odd grading are set to zero. This also updates
 the field `x.even_coeffs`.
 """
-function even_coeff(x::CliffordAlgebraElem)
+function even_coefficients(x::CliffordAlgebraElem)
   if isdefined(x, :even_coeffs)
     return x.even_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.even_coeffs
 end
 
 @doc raw"""
-    odd_coeff(x::CliffordAlgebraElem) -> Vector
+    odd_coefficients(x::CliffordAlgebraElem) -> Vector
 
 Return the coefficient vector of $x$ wrt the
 canonical basis of its parent Clifford algebra,
@@ -188,11 +188,11 @@ but all coefficients corresponding to basis elements
 with even grading are set to zero. This also updates
 the field `x.odd_coeffs`.
 """
-function odd_coeff(x::CliffordAlgebraElem)
+function odd_coefficients(x::CliffordAlgebraElem)
   if isdefined(x, :odd_coeffs)
     return x.odd_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.odd_coeffs
 end
 
@@ -216,8 +216,8 @@ Base.show(io::IO, C::CliffordAlgebra) = print(io, "Clifford algebra over $(base_
 ### Elements ###
 function Base.show(io::IO, x::CliffordAlgebraElem)
   print(io, "[")
-  foreach(y -> print(io, "$y "), coeff(x)[1:(end - 1)])
-  print(io, "$(coeff(x)[end])]")
+  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
+  print(io, "$(coefficients(x)[end])]")
 end
 
 ################################################################################
@@ -252,7 +252,7 @@ Return the $i$-th canonical basis vector of the Clifford algebra $C$.
 function basis(C::CliffordAlgebra, i::Int)
   res = CliffordAlgebraElem(C)
   res.coeffs[i] = base_ring(C)(1)
-  _set_even_odd_coeff!(res)
+  _set_even_odd_coefficients!(res)
   return res
 end
 
@@ -269,7 +269,7 @@ function gen(C::CliffordAlgebra, i::Int)
     res.coeffs[i] #Throws a BoundsError instead of a DomainError for consistency
   end
   res.coeffs[2^(i - 1) + 1] = base_ring(C)(1)
-  _set_even_odd_coeff!(res)
+  _set_even_odd_coefficients!(res)
   return res
 end
 
@@ -299,8 +299,14 @@ is_commutative(C::CliffordAlgebra) = dim(C) == 1 || dim(C) == 2
 #  Element Access
 #
 ################################################################################
+@doc raw"""
+    coeff(x::CliffordAlgebraElem, i::Int) -> FieldElem
 
-getindex(x::CliffordAlgebraElem, i::Int64) = coeff(x)[i]
+Return the `i`-th coefficient of the element `x`.
+"""
+coeff(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
+
+getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 
 ################################################################################
 #
@@ -328,7 +334,7 @@ function centroid(C::CliffordAlgebra)
   T = orthogonal_basis(space(C))
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
-  C.disq = coeff(orth_elt^2)[1]
+  C.disq = coefficients(orth_elt^2)[1]
   C.centroid = [one(C), orth_elt]
 end
 
@@ -344,7 +350,7 @@ function quadratic_discriminant(C::CliffordAlgebra)
   if dim(space(C)) == 0
     C.disq = one(base_ring(C))
   else
-    C.disq = coeff(centroid(C)[2]^2)[1]
+    C.disq = coefficients(centroid(C)[2]^2)[1]
   end
 end
 
@@ -385,11 +391,11 @@ function representation_matrix(x::CliffordAlgebraElem, action::Symbol=:left)
   res = zero_matrix(base_ring(C), n, n)
   if action == :left
     for i in 1:n
-      res[:, i] = coeff(x * basis(C, i))
+      res[:, i] = coefficients(x * basis(C, i))
     end
   elseif action == :right
     for i in 1:n
-      res[:, i] = coeff(basis(C, i) * x)
+      res[:, i] = coefficients(basis(C, i) * x)
     end
   end
   return res
@@ -402,7 +408,7 @@ end
 ################################################################################
 
 
-Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coeff(x)))
+Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 
 ################################################################################
 #
@@ -412,14 +418,14 @@ Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coeff(x)))
 
 function Base.:+(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  return parent(x)(coeff(x) .+ coeff(y))
+  return parent(x)(coefficients(x) .+ coefficients(y))
 end
 
 Base.:-(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem} = x + -y
 
 function Base.:*(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  xcoeffs, ycoeffs = copy(coeff(x)), copy(coeff(y))
+  xcoeffs, ycoeffs = copy(coefficients(x)), copy(coefficients(y))
   return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
 end
 
@@ -430,9 +436,9 @@ Return the element `y` in the Clifford algebra containing $x$ such that $ay = x$
 if it exists. Otherwise an error is raised.
 """
 divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElem} =
-  parent(x)(divexact.(coeff(x), a))
+  parent(x)(divexact.(coefficients(x), a))
 
-divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(coeff(x), a))
+divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(coefficients(x), a))
 
 ################################################################################
 #
@@ -442,13 +448,13 @@ divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(c
 
 function Base.:(==)(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  return coeff(x) == coeff(y)
+  return coefficients(x) == coefficients(y)
 end
 
 function Base.hash(x::CliffordAlgebraElem, h::UInt)
   b = 0x1c4629b4de23b24c % UInt
   h = hash(parent(x), h)
-  h = hash(coeff(x), h)
+  h = hash(coefficients(x), h)
   return xor(h, b)
 end
 
@@ -463,14 +469,14 @@ end
 
 Return the projection of $x$ onto the even Clifford algebra
 """
-even_part(x::CliffordAlgebraElem) = parent(x)(even_coeff(x))
+even_part(x::CliffordAlgebraElem) = parent(x)(even_coefficients(x))
 
 @doc raw"""
     odd_part(x::CliffordAlgebraElem) -> CliffordAlgebraElem
 
 Return the projection of $x$ onto the odd Clifford algebra.
 """
-odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coeff(x))
+odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coefficients(x))
 
 ################################################################################
 #
@@ -478,7 +484,7 @@ odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coeff(x))
 #
 ################################################################################
 
-function _set_even_odd_coeff!(x::CliffordAlgebraElem)
+function _set_even_odd_coefficients!(x::CliffordAlgebraElem)
   x.even_coeffs = map(
     y -> if sum(digits(y - 1; base=2, pad=_dim_qf(x.parent))) % 2 == 0
       x.coeffs[y]
@@ -490,7 +496,7 @@ function _set_even_odd_coeff!(x::CliffordAlgebraElem)
   return x
 end
 
-function __can_convert_coeff(coeff::Vector{R}, K::Field) where {R}
+function __can_convert_coefficients(coeff::Vector{R}, K::Field) where {R}
   if length(coeff) == 0
     return true
   end

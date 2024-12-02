@@ -1,6 +1,6 @@
 
 @testset "alltest" begin
-  _set_even_odd_coeff! = Oscar._set_even_odd_coeff!
+  _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
   mul_with_gen = Oscar._mul_with_gen
   @testset "failing constructions" begin
     @testset "CliffordOrder" begin
@@ -40,12 +40,12 @@
         @test (base_ring(C), rank(C), lattice(C), gram_matrix(C), coefficient_ideals(C)) == (OK, 1, ls, idzero, [fractional_ideal(OK, OK(1))])
         @test C() == C(0) && C() == zero(C)
         @test is_zero(C())
-        @test coeff(C()) == Kzer
-        @test even_coeff(C()) == Kzer && even_coeff(C()) == odd_coeff(C())
+        @test coefficients(C()) == Kzer
+        @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
         @test C(1) == one(C)
         @test is_one(C(1))
-        @test coeff(C(1)) == [K(1)]
-        @test even_coeff(C(1)) == [K(1)] && odd_coeff(C(1)) == Kzer
+        @test coefficients(C(1)) == [K(1)]
+        @test even_coefficients(C(1)) == [K(1)] && odd_coefficients(C(1)) == Kzer
       end
       @testset "functions on elements" begin
         x = C([17])
@@ -55,12 +55,12 @@
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coeff(x), odd_coeff(x)
+        xeven, xodd = even_coefficients(x), odd_coefficients(x)
         x.even_coeffs, x.odd_coeffs = Kzer, [K(1)]
-        @test xeven != even_coeff(x)
-        @test xodd != odd_coeff(x)
-        _set_even_odd_coeff!(x)
-        @test xeven == even_coeff(x) && xodd == odd_coeff(x)
+        @test xeven != x.even_coeffs
+        @test xodd != x.odd_coeffs
+        _set_even_odd_coefficients!(x)
+        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
         @test +x == x
         @test -x == C([-17])
@@ -90,9 +90,13 @@
       end
        @testset "getindex" begin
         @test C(17)[1] == K(17)
+        @test coeff(C(17), 1) == K(17)
         @test C()[1] == K()
+        @test coeff(C(), 1) == K()
         @test_throws BoundsError C()[0]
+        @test_throws BoundsError coeff(C(), 0)
         @test_throws BoundsError C()[2]
+        @test_throws BoundsError coeff(C(), 2)
       end
       @testset "center and centroid" begin
         @test center(C) == centroid(C)
@@ -118,12 +122,12 @@
         @test (base_ring(C), rank(C), lattice(C), gram_matrix(C)) == (ZZ, 1, ls, idzero)
         @test C() == C(0) && C() == zero(C)
         @test is_zero(C())
-        @test coeff(C()) == QQzer
-        @test even_coeff(C()) == QQzer && even_coeff(C()) == odd_coeff(C())
+        @test coefficients(C()) == QQzer
+        @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
         @test C(1) == one(C)
         @test is_one(C(1))
-        @test coeff(C(1)) == [QQ(1)]
-        @test even_coeff(C(1)) == [QQ(1)] && odd_coeff(C(1)) == QQzer
+        @test coefficients(C(1)) == [QQ(1)]
+        @test even_coefficients(C(1)) == [QQ(1)] && odd_coefficients(C(1)) == QQzer
       end
       @testset "functions on elements" begin
         x = C([17])
@@ -133,12 +137,12 @@
 
         @test even_part(x) == C([17])
         @test odd_part(x) == C([0])
-        xeven, xodd = even_coeff(x), odd_coeff(x)
+        xeven, xodd = even_coefficients(x), odd_coefficients(x)
         x.even_coeffs, x.odd_coeffs = QQzer, [QQ(1)]
-        @test xeven != even_coeff(x)
-        @test xodd != odd_coeff(x)
-        _set_even_odd_coeff!(x)
-        @test xeven == even_coeff(x) && xodd == odd_coeff(x)
+        @test xeven != even_coefficients(x)
+        @test xodd != odd_coefficients(x)
+        _set_even_odd_coefficients!(x)
+        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
         @test +x == x
         @test -x == C([-17])
@@ -168,9 +172,13 @@
       end
       @testset "getindex" begin
         @test C(17)[1] == QQ(17)
+        @test coeff(C(17), 1) == QQ(17)
         @test C()[1] == QQ()
+        @test coeff(C(), 1) == QQ()
         @test_throws BoundsError C()[0]
+        @test_throws BoundsError coeff(C(), 0)
         @test_throws BoundsError C()[2]
+        @test_throws BoundsError coeff(C(), 2)
       end
       @testset "center and centroid" begin
         @test center(C) == centroid(C)
@@ -205,12 +213,12 @@
       @test (base_ring(C), gram_matrix(C), lattice(C), rank(C), coefficient_ideals(C)) == (O, G, lsK, 4, [ide, ide, ide, ide])
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeff(C()) == Kzer
-      @test even_coeff(C()) == Kzer && even_coeff(C()) == odd_coeff(C())
+      @test coefficients(C()) == Kzer
+      @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeff(C(1)) == K.([1, 0, 0, 0])
-      @test even_coeff(C(1)) == K.([1, 0, 0, 0]) && odd_coeff(C(1)) == Kzer
+      @test coefficients(C(1)) == K.([1, 0, 0, 0])
+      @test even_coefficients(C(1)) == K.([1, 0, 0, 0]) && odd_coefficients(C(1)) == Kzer
       verr1, verr2 = K.([1, 2, 3]), K.([1, 2, 3, 4, 5])
       @test_throws ArgumentError C(verr1)
       @test_throws ArgumentError C(verr2)
@@ -231,11 +239,11 @@
 
       @test even_part(x) == C([-1, 0, 0, a + 1])
       @test odd_part(x) == C([0, 1, a, 0])
-      xeven, xodd = even_coeff(x), odd_coeff(x)
+      xeven, xodd = even_coefficients(x), odd_coefficients(x)
       x.even_coeffs, x.odd_coeffs = Kzer, Kzer
-      @test xeven != even_coeff(x) && xodd != odd_coeff(x)
-      _set_even_odd_coeff!(x)
-      @test xeven == even_coeff(x) && xodd == odd_coeff(x)
+      @test xeven != x.even_coeffs && xodd != x.odd_coeffs
+      _set_even_odd_coefficients!(x)
+      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       @test +x == x
       @test -x == C([1, -1, -a, -(a + 1)])
@@ -293,17 +301,23 @@
     @testset "getindex" begin
       x = C([a, 2 * a, 3 * a, 4 * a])
       @test x[1] == a
+      @test coeff(x, 1) == a
       @test x[2] == 2 * a
+      @test coeff(x, 2) == 2 * a
       @test x[3] == 3 * a
+      @test coeff(x, 3) == 3 * a
       @test x[4] == 4 * a
+      @test coeff(x, 4) == 4 * a
       @test_throws BoundsError x[0]
+      @test_throws BoundsError coeff(x, 0)
       @test_throws BoundsError x[5]
+      @test_throws BoundsError coeff(x, 5)
     end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
-      @test mul_with_gen(coeff(x), 1, gram_matrix(C)) ==
+      @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) ==
         K.([3 * a + 4, -(a^2 + 1), a, -(a + 4)])
-      @test mul_with_gen(coeff(x), 2, gram_matrix(C)) ==
+      @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) ==
         K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
     @testset "center and centroid" begin
@@ -332,12 +346,12 @@
       @test (base_ring(C), rank(C), lattice(C), gram_matrix(C)) == (ZZ, 2^6, e6, gram_matrix(e6))
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeff(C()) == QQzer
-      @test even_coeff(C()) == QQzer && even_coeff(C()) == odd_coeff(C())
+      @test coefficients(C()) == QQzer
+      @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeff(C(1)) == QQone
-      @test even_coeff(C(1)) == QQone && odd_coeff(C(1)) == QQzer
+      @test coefficients(C(1)) == QQone
+      @test even_coefficients(C(1)) == QQone && odd_coefficients(C(1)) == QQzer
     end
     @testset "functions on elements" begin
       x = gen(C, 1) * gen(C, 2)
@@ -348,12 +362,12 @@
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coeff(x), odd_coeff(x)
+      xeven, xodd = even_coefficients(x), odd_coefficients(x)
       x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coeff(x)
-      @test xodd != odd_coeff(x)
-      _set_even_odd_coeff!(x)
-      @test xeven == even_coeff(x) && xodd == odd_coeff(x)
+      @test xeven != even_coefficients(x)
+      @test xodd != odd_coefficients(x)
+      _set_even_odd_coefficients!(x)
+      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1
@@ -402,10 +416,13 @@
       x = C(QQ.(1:64))
       @test typeof(x) == typeof(C())
       for i in 1:64
+        @test coeff(x, i) == i
         @test x[i] == i
       end
       @test_throws BoundsError x[0]
+      @test_throws BoundsError coeff(x, 0)
       @test_throws BoundsError x[65]
+      @test_throws BoundsError coeff(x, 65)
       @test_throws BoundsError x[rand(65:500)]
     end
     @testset "center and centroid" begin
@@ -424,7 +441,7 @@
       @test is_zero(z_elt^2 - z_elt + one(C))
       orth = 2 * z_elt - one(C)
       @test disq(C) == quadratic_discriminant(C)
-      @test disq(C) == ZZ(coeff(orth^2)[1])
+      @test disq(C) == ZZ(coefficients(orth^2)[1])
       @test disq(C) == ZZ(-3)
     end
   end
@@ -445,12 +462,12 @@
       @test (base_ring(C), rank(C), lattice(C), gram_matrix(C)) == (ZZ, 2^5, a5, gram_matrix(a5))
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
-      @test coeff(C()) == QQzer
-      @test even_coeff(C()) == QQzer && even_coeff(C()) == odd_coeff(C())
+      @test coefficients(C()) == QQzer
+      @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)
       @test is_one(C(1))
-      @test coeff(C(1)) == QQone
-      @test even_coeff(C(1)) == QQone && odd_coeff(C(1)) == QQzer
+      @test coefficients(C(1)) == QQone
+      @test even_coefficients(C(1)) == QQone && odd_coefficients(C(1)) == QQzer
     end
     @testset "functions on elements" begin
       x = gen(C, 1) * gen(C, 2)
@@ -461,12 +478,12 @@
 
       @test even_part(x) == x
       @test odd_part(x) == zero(C)
-      xeven, xodd = even_coeff(x), odd_coeff(x)
+      xeven, xodd = even_coefficients(x), odd_coefficients(x)
       x.even_coeffs, x.odd_coeffs = QQzer, QQone
-      @test xeven != even_coeff(x)
-      @test xodd != odd_coeff(x)
-      _set_even_odd_coeff!(x)
-      @test xeven == even_coeff(x) && xodd == odd_coeff(x)
+      @test xeven != even_coefficients(x)
+      @test xodd != odd_coefficients(x)
+      _set_even_odd_coefficients!(x)
+      @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
 
       ngtv = copy(QQzer)
       ngtv[4] = -1
@@ -535,7 +552,7 @@
       @test odd_part(z_elt) == z_elt
       @test centroid(C) == [one(C), z_elt]
       @test disq(C) == quadratic_discriminant(C)
-      @test disq(C) == ZZ(coeff(z_elt^2)[1])
+      @test disq(C) == ZZ(coefficients(z_elt^2)[1])
       @test disq(C) == ZZ(3)
     end
   end

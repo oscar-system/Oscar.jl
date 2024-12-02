@@ -6,8 +6,8 @@ export
   clifford_order,
   ambient_algebra,
   coefficient_ideals,
-  even_coeff,
-  odd_coeff,
+  even_coefficients,
+  odd_coefficients,
   even_part,
   odd_part,
   center,
@@ -75,7 +75,7 @@ mutable struct CliffordOrderElem{T, C, P} <: Hecke.AbstractAssociativeAlgebraEle
   function CliffordOrderElem{T, C, P}(CO::CliffordOrder{T, C}) where {T, C, P}
     ambalg = CO.ambient_algebra
     newelt = new{T, C, P}(CO, fill(ambalg.base_ring(), CO.rank))
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
@@ -90,13 +90,13 @@ mutable struct CliffordOrderElem{T, C, P} <: Hecke.AbstractAssociativeAlgebraEle
     end
 
     newelt = new{T, C, CliffordOrder{T, C}}(CO, coeff)
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S}
     K = CO.ambient_algebra.base_ring
-    @req _can_convert_coeff(coeff, K) "entries of coefficient vector are not contained in $(K)"
+    @req _can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
     return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.ambient_algebra), typeof(CO)}(CO, K.(coeff))
   end
 
@@ -112,7 +112,7 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
   #Return the 0-element of the Clifford order C
   function ZZCliffordOrderElem(CO::ZZCliffordOrder)
     newelt = new(CO, fill(QQ(), CO.rank))
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
@@ -123,12 +123,12 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
       @req is_integer(coeff[i]) "The element does not lie in the Clifford order."
     end
     newelt = new(CO, coeff)
-    _set_even_odd_coeff!(newelt)
+    _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
   function ZZCliffordOrderElem(CO::ZZCliffordOrder, coeff::Vector{S}) where {S}
-    @req _can_convert_coeff(coeff, QQ) "entries of coefficient vector are not contained in $(QQField)"
+    @req _can_convert_coefficients(coeff, QQ) "entries of coefficient vector are not contained in $(QQField)"
     return ZZCliffordOrderElem(CO, QQ.(coeff))
   end
 
@@ -218,26 +218,26 @@ function (C::CliffordAlgebra)(elt::CliffordOrderElem)
   @req C === ambient_algebra(parent(elt)) "The Clifford algebra provided and the
     ambient algebra of the Clifford order containing the element provided are not
     identical."
-  return C(coeff(elt))
+  return C(coefficients(elt))
 end
 
 function (C::CliffordOrder)(elt::CliffordAlgebraElem)
   @req ambient_algebra(C) === parent(elt) "The ambient algebra of the Clifford order
     provided and the parent object of the element provided are not identical."
-    return C(coeff(elt))
+    return C(coefficients(elt))
 end
 
 function (C::CliffordAlgebra)(elt::ZZCliffordOrderElem)
   @req C === ambient_algebra(parent(elt)) "The Clifford algebra provided and the
     ambient algebra of the Clifford order containing the element provided are not
     identical."
-  return C(coeff(elt))
+  return C(coefficients(elt))
 end
 
 function (C::ZZCliffordOrder)(elt::CliffordAlgebraElem)
   @req ambient_algebra(C) === parent(elt) "The ambient algebra of the Clifford order
     provided and the parent object of the element provided are not identical."
-    return C(coeff(elt))
+    return C(coefficients(elt))
 end
 
 ################################################################################
@@ -255,7 +255,7 @@ function Base.in(x::CliffordAlgebraElem, C::CliffordOrder)
   if !(ambient_algebra(C) === parent(x))
     return false
   end
-  coe, coeids = coeff(x), coefficient_ideals(C)
+  coe, coeids = coefficients(x), coefficient_ideals(C)
   for i in 1:rank(C)
     if !(coe[i] in coeids[i])
       return false
@@ -275,7 +275,7 @@ function Base.in(x::CliffordAlgebraElem, C::ZZCliffordOrder)
   if !(ambient_algebra(C) === parent(x))
     return false
   end
-  coe = coeff(x)
+  coe = coefficients(x)
   for i in 1:rank(C)
     if !(is_integral(coe[i]))
       return false
@@ -380,15 +380,15 @@ Return the Clifford order containing $x$.
 parent(x::CliffordOrderElem) = x.parent
 
 @doc raw"""
-  coeff(x::CliffordOrderElem) -> Vector
+  coefficients(x::CliffordOrderElem) -> Vector
 
 Return the coefficient vector of $x$ with respect to the
 canonical pseudo-basis of its parent Clifford order.
 """
-coeff(x::CliffordOrderElem) = x.coeffs
+coefficients(x::CliffordOrderElem) = x.coeffs
 
 @doc raw"""
-    even_coeff(x::CliffordOrderElem) -> Vector
+    even_coefficients(x::CliffordOrderElem) -> Vector
 
 Return the coefficient vector of $x$ wrt the
 canonical pseudo-basis of its parent Clifford order,
@@ -396,16 +396,16 @@ but all coefficients corresponding to basis elements
 with odd grading are set to zero. This also updates
 the field `x.even_coeffs`.
 """
-function even_coeff(x::CliffordOrderElem)
-  if isdefined(x, :even_coeffs)
+function even_coefficients(x::CliffordOrderElem)
+  if isdefined(x, :even_coefficientss)
     return x.even_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.even_coeffs
 end
 
 @doc raw"""
-    odd_coeff(x::CliffordOrderElem) -> Vector
+    odd_coefficients(x::CliffordOrderElem) -> Vector
 
 Return the coefficient vector of $x$ wrt the
 canonical pseudo-basis of its parent Clifford order,
@@ -413,11 +413,11 @@ but all coefficients corresponding to basis elements
 with even grading are set to zero. This also updates
 the field `x.odd_coeffs`.
 """
-function odd_coeff(x::CliffordOrderElem)
+function odd_coefficients(x::CliffordOrderElem)
   if isdefined(x, :odd_coeffs)
     return x.odd_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.odd_coeffs
 end
 
@@ -431,15 +431,15 @@ Return the Clifford order containing $x$.
 parent(x::ZZCliffordOrderElem) = x.parent
 
 @doc raw"""
-  coeff(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
+  coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
 
 Return the coefficient vector of $x$ with respect to the
 canonical basis of its parent Clifford order.
 """
-coeff(x::ZZCliffordOrderElem) = x.coeffs
+coefficients(x::ZZCliffordOrderElem) = x.coeffs
 
 @doc raw"""
-    even_coeff(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
+    even_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
 
 Return the coefficient vector of $x$ with respect to the
 canonical basis of its parent Clifford order,
@@ -447,16 +447,16 @@ but all coefficients corresponding to basis elements
 with odd grading are set to zero. This also updates
 the field `x.even_coeffs`.
 """
-function even_coeff(x::ZZCliffordOrderElem)
+function even_coefficients(x::ZZCliffordOrderElem)
   if isdefined(x, :even_coeffs)
     return x.even_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.even_coeffs
 end
 
 @doc raw"""
-    odd_coeff(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
+    odd_coefficients(x::ZZCliffordOrderElem) -> Vector{QQFieldElem}
 
 Return the coefficient vector of $x$ with respect to the
 canonical basis of its parent Clifford order,
@@ -464,11 +464,11 @@ but all coefficients corresponding to basis elements
 with even grading are set to zero. This also updates
 the field `x.odd_coeffs`.
 """
-function odd_coeff(x::ZZCliffordOrderElem)
+function odd_coefficients(x::ZZCliffordOrderElem)
   if isdefined(x, :odd_coeffs)
     return x.odd_coeffs
   end
-  _set_even_odd_coeff!(x)
+  _set_even_odd_coefficients!(x)
   return x.odd_coeffs
 end
 
@@ -505,8 +505,8 @@ Base.show(io::IO, C::Union{ZZCliffordOrder, CliffordOrder}) = print(io, "Cliffor
 ### Elements ###
 function Base.show(io::IO, x::Union{ZZCliffordOrderElem, CliffordOrderElem})
   print(io, "[")
-  foreach(y -> print(io, "$y "), coeff(x)[1:(end - 1)])
-  print(io, "$(coeff(x)[end])]")
+  foreach(y -> print(io, "$y "), coefficients(x)[1:(end - 1)])
+  print(io, "$(coefficients(x)[end])]")
 end
 
 ################################################################################
@@ -663,9 +663,23 @@ is_commutative(C::ZZCliffordOrder) = rank(C) == 1 || rank(C) == 2
 #
 ################################################################################
 
-getindex(x::CliffordOrderElem, i::Int64) = coeff(x)[i]
+@doc raw"""
+    coeff(x::CliffordOrderElem, i::Int) -> RingElem
 
-getindex(x::ZZCliffordOrderElem, i::Int64) = coeff(x)[i]
+Return the `i`-th coefficient of the element `x`.
+"""
+coeff(x::CliffordOrderElem, i::Int) = coefficients(x)[i]
+
+getindex(x::CliffordOrderElem, i::Int) = coefficients(x)[i]
+
+@doc raw"""
+    coeff(x::ZZCliffordOrderElem, i::Int) -> ZZRingElem
+
+Return the `i`-th coefficient of the element `x`.
+"""
+coeff(x::ZZCliffordOrderElem, i::Int64) = coefficients(x)[i]
+
+getindex(x::ZZCliffordOrderElem, i::Int64) = coefficients(x)[i]
 
 ################################################################################
 #
@@ -751,8 +765,8 @@ function centroid(C::ZZCliffordOrder)
   end
 
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
-  orth_elt *= 1//gcd(coeff(orth_elt))
-  C.disq = ZZ(coeff(orth_elt^2)[1])
+  orth_elt *= 1//gcd(coefficients(orth_elt))
+  C.disq = ZZ(coefficients(orth_elt^2)[1])
   z_elt = 1//2*ambient_algebra(C)(1 + orth_elt)
   
   if z_elt in C 
@@ -775,7 +789,7 @@ function quadratic_discriminant(C::ZZCliffordOrder)
   if rank(lattice(C)) == 0
     C.disq = one(base_ring(C))
   else
-    C.disq = ZZ(coeff(centroid(C)[2]^2)[1])
+    C.disq = ZZ(coefficients(centroid(C)[2]^2)[1])
   end
 end
 
@@ -811,11 +825,11 @@ end
 
 Base.:+(x::CliffordOrderElem) = x
 
-Base.:-(x::CliffordOrderElem) = parent(x)(map(y -> -1 * y, coeff(x)))
+Base.:-(x::CliffordOrderElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 
 Base.:+(x::ZZCliffordOrderElem) = x
 
-Base.:-(x::ZZCliffordOrderElem) = parent(x)(map(y -> -1 * y, coeff(x)))
+Base.:-(x::ZZCliffordOrderElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 
 ################################################################################
 #
@@ -826,7 +840,7 @@ Base.:-(x::ZZCliffordOrderElem) = parent(x)(map(y -> -1 * y, coeff(x)))
 function Base.:+(x::CliffordOrderElem{T, CliffordAlgebra{U, V}},
                   y::CliffordOrderElem{T, CliffordAlgebra{U, V}}) where {T, U<:NumFieldElem, V}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  return parent(x)(coeff(x) .+ coeff(y))
+  return parent(x)(coefficients(x) .+ coefficients(y))
 end
 
 Base.:-(x::CliffordOrderElem{T, CliffordAlgebra{U, V}},
@@ -835,7 +849,7 @@ Base.:-(x::CliffordOrderElem{T, CliffordAlgebra{U, V}},
 function Base.:*(x::CliffordOrderElem{T, CliffordAlgebra{U, V}},
                   y::CliffordOrderElem{T, CliffordAlgebra{U, V}}) where {T, U<:NumFieldElem, V}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  xcoeffs, ycoeffs = copy(coeff(x)), copy(coeff(y))
+  xcoeffs, ycoeffs = copy(coefficients(x)), copy(coefficients(y))
   return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
 end
 
@@ -843,9 +857,9 @@ Base.:*(x::CliffordOrderElem{T, CliffordAlgebra{U,V}}, a::W) where {T, U<:NumFie
 
 Base.:*(a::W, x::CliffordOrderElem{T, CliffordAlgebra{U,V}}) where {T, U<:NumFieldElem, V, W<:FieldElem} = parent(x)(a * ambient_algebra(parent(x))(x))
 
-Base.:*(x::CliffordOrderElem{T, CliffordAlgebra{U,V}}, a::Rational{Int}) where {T, U<:NumFieldElem, V} = parent(x)(a .* coeff(x))
+Base.:*(x::CliffordOrderElem{T, CliffordAlgebra{U,V}}, a::Rational{Int}) where {T, U<:NumFieldElem, V} = parent(x)(a .* coefficients(x))
 
-Base.:*(a::Rational{Int}, x::CliffordOrderElem{T, CliffordAlgebra{U,V}}) where {T, U<:NumFieldElem, V} = parent(x)(a .* coeff(x))
+Base.:*(a::Rational{Int}, x::CliffordOrderElem{T, CliffordAlgebra{U,V}}) where {T, U<:NumFieldElem, V} = parent(x)(a .* coefficients(x))
 
 @doc raw"""
     divexact(x::CliffordOrderElem, a::T) where {T<:Union{RingElem, Number}} -> CliffordOrderElem
@@ -871,24 +885,24 @@ end
 
 function Base.:+(x::ZZCliffordOrderElem, y::ZZCliffordOrderElem)
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  return parent(x)(coeff(x) .+ coeff(y))
+  return parent(x)(coefficients(x) .+ coefficients(y))
 end
 
 Base.:-(x::ZZCliffordOrderElem, y::ZZCliffordOrderElem) = x + -y
 
 function Base.:*(x::ZZCliffordOrderElem, y::ZZCliffordOrderElem)
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  xcoeffs, ycoeffs = copy(coeff(x)), copy(coeff(y))
+  xcoeffs, ycoeffs = copy(coefficients(x)), copy(coefficients(y))
   return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
 end
 
-Base.:*(x::ZZCliffordOrderElem, a::QQFieldElem) = parent(x)(a .* coeff(x))
+Base.:*(x::ZZCliffordOrderElem, a::QQFieldElem) = parent(x)(a .* coefficients(x))
 
-Base.:*(a::QQFieldElem, x::ZZCliffordOrderElem) = parent(x)(a .* coeff(x))
+Base.:*(a::QQFieldElem, x::ZZCliffordOrderElem) = parent(x)(a .* coefficients(x))
 
-Base.:*(x::ZZCliffordOrderElem, a::Rational{Int}) = parent(x)(a .* coeff(x))
+Base.:*(x::ZZCliffordOrderElem, a::Rational{Int}) = parent(x)(a .* coefficients(x))
 
-Base.:*(a::Rational{Int}, x::ZZCliffordOrderElem) = parent(x)(a .* coeff(x))
+Base.:*(a::Rational{Int}, x::ZZCliffordOrderElem) = parent(x)(a .* coefficients(x))
 
 @doc raw"""
     divexact(x::ZZCliffordOrderElem, a::RingElem) -> ZZCliffordOrderElem
@@ -918,13 +932,13 @@ end
 
 function Base.:(==)(x::CliffordOrderElem{T}, y::CliffordOrderElem{T}) where {T}
   @req parent(x) === parent(y) "The inputs must lie in the same Clifford order."
-  return coeff(x) == coeff(y)
+  return coefficients(x) == coefficients(y)
 end
 
 function Base.hash(x::CliffordOrderElem, h::UInt)
   b = 0x8f3a7c2b1d4e5f6a % UInt
   h = hash(parent(x), h)
-  h = hash(coeff(x), h)
+  h = hash(coefficients(x), h)
   return xor(h, b)
 end
 
@@ -939,28 +953,28 @@ end
 
 Return the projection of $x$ onto the even Clifford order.
 """
-even_part(x::CliffordOrderElem) = parent(x)(even_coeff(x))
+even_part(x::CliffordOrderElem) = parent(x)(even_coefficients(x))
 
 @doc raw"""
     odd_part(x::CliffordOrderElem) -> CliffordOrderElem
 
 Return the projection of $x$ onto the odd Clifford order.
 """
-odd_part(x::CliffordOrderElem) = parent(x)(odd_coeff(x))
+odd_part(x::CliffordOrderElem) = parent(x)(odd_coefficients(x))
 
 @doc raw"""
     even_part(x::ZZCliffordOrderElem) -> ZZCliffordOrderElem
 
 Return the projection of $x$ onto the even Clifford order.
 """
-even_part(x::ZZCliffordOrderElem) = parent(x)(even_coeff(x))
+even_part(x::ZZCliffordOrderElem) = parent(x)(even_coefficients(x))
 
 @doc raw"""
     odd_part(x::ZZCliffordOrderElem) -> ZZCliffordOrderElem
 
 Return the projection of $x$ onto the odd Clifford order.
 """
-odd_part(x::ZZCliffordOrderElem) = parent(x)(odd_coeff(x))
+odd_part(x::ZZCliffordOrderElem) = parent(x)(odd_coefficients(x))
 
 #############################################################
 #
@@ -980,7 +994,7 @@ function _set_coefficient_ideals!(ls::QuadLat)
   return res
 end
 
-function _set_even_odd_coeff!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
+function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
   x.even_coeffs = map(
                       y -> if sum(digits(y - 1; base=2, pad=rank(x.parent.lattice))) % 2 == 0
       x.coeffs[y]
@@ -992,7 +1006,7 @@ function _set_even_odd_coeff!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
   return x
 end
 
-function _can_convert_coeff(coeff::Vector{S}, K::Field) where {S}
+function _can_convert_coefficients(coeff::Vector{S}, K::Field) where {S}
   if length(coeff) == 0
     return true
   end
@@ -1015,7 +1029,7 @@ function _set_centroid_and_disq!(C::CliffordOrder)
     C.disq = (coefficient_ideals(pb1)[1], disq(ambient_algebra(C)))
   else 
     br = base_ring(C)
-    z_elt = coeff(centroid(ambient_algebra(C))[2])
+    z_elt = coefficients(centroid(ambient_algebra(C))[2])
     lambda_empt = z_elt[1]
 
     #compute ideal intersection
@@ -1028,7 +1042,7 @@ function _set_centroid_and_disq!(C::CliffordOrder)
     end
     if is_zero(lambda_empt)
       C.disq = tuple(disq(ambient_algebra(C)) * c_ideal^2, disq(ambient_algebra(C)))
-      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), [fractional_ideal(br, one(br)), c_ideal])
+      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coefficients(one(C)), z_elt)), [fractional_ideal(br, one(br)), c_ideal])
     else
       z_elt = (2 * lambda_empt)^(-1) .* z_elt
       c_ideal *= (2 * lambda_empt)
@@ -1036,7 +1050,7 @@ function _set_centroid_and_disq!(C::CliffordOrder)
       C.disq = tuple(simplify((2*lambda_empt)^(-2) * disq(ambient_algebra(C)) * b_ideal^2), disq(ambient_algebra(C)))
       z_elt[1] += base_ring(ambient_algebra(C))(1//2)
       b_ideal = simplify(lcm(fractional_ideal(br, one(br)), c_ideal))
-      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coeff(one(C)), z_elt)), ([fractional_ideal(br, one(br)), b_ideal]))
+      C.centroid = pseudo_matrix(matrix(base_ring(ambient_algebra(C)), 2, 2^n, vcat(coefficients(one(C)), z_elt)), ([fractional_ideal(br, one(br)), b_ideal]))
     end
   end
 end
