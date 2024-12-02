@@ -470,7 +470,7 @@ end
 
 function Base.show(io::IO, a::AffineSchemeOpenSubschemeRingElem)
   if is_terse(io)
-    print(io, "Reguler function")
+    print(io, "Regular function")
   else
     io = pretty(io)
     print(io, "Regular function on ", Lowercase(), domain(parent(a)))

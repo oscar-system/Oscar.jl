@@ -10,7 +10,7 @@
   @test PosInf() == tjurina_number(AffineScheme(quo(R, ideal(R, zero(R)))[1]))
 end
 
-@testset "lokal Tjurina number" begin
+@testset "local Tjurina number" begin
   R, (x, y) = QQ[:x, :y];  
   L,_  = localization(R, complement_of_point_ideal(R, [0, 0]))
   @test 1 == tjurina_number(L((y^2 - x^2)*(x-1)))
@@ -183,7 +183,7 @@ end
   @test is_contact_equivalent(L(x^3-x^2), L(x^2))
   @test is_contact_equivalent(L(x^6+x^2*y^3-y^4), L((x^6+x^2*y^3-y^4)*(y^3-x*y+x-1)))
   @test is_contact_equivalent(L(x^3+x*y^2+y^4), L((x^3+x*y^2+y^4)//(x^7-x*y^3+y-1)))
-  ## diferent determinancy bound
+  ## different determinancy bound
   @test !is_contact_equivalent(L(x^5+x*y^2), L(x^3+y^4))
   @test !is_contact_equivalent(L(x^6+x*y^2), L(x^3+x*y^3))
   @test !is_contact_equivalent(L(x^7+x*y^2), L(x^3+y^5))

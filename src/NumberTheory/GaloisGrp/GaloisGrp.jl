@@ -1360,10 +1360,10 @@ end
 
 """
 Maps elements of the base ring into the completion (the splitting field).
-FOr computations over QQ this does not matter as QQ just coerces into
+For computations over QQ this does not matter as QQ just coerces into
 any q/p-adic field.
 
-FOr computations over number fields this is not true, here an explciti map
+For computations over number fields this is not true, here an explicit map
 is needed.
 
 TODO: check and add a precision parameter
@@ -1785,7 +1785,7 @@ function order_from_shape(ct::Set{CycleType}, n)
            init = ZZRingElem(1))
   #Lemma 16:         
   for p = PrimesSet(1, n)
-    #find cycletypes that would correpond to elt of order a multiple of p
+    #find cycletypes that would correspond to elt of order a multiple of p
     #the exact order is lcm(x) for x in ct
     ct_p = [x for x = ct if any(t->t[1] % p == 0, x)]
     #so ct_t contains all cycle types belonging to elements where the

@@ -9,12 +9,12 @@
 """
     UpgradeScript(version::VersionNumber, script::Function)
 
-Any upgrade scripts schould be created using the `UpgradeScript`
+Any upgrade scripts should be created using the `UpgradeScript`
 constructor and then pushed to the `upgrade_scripts_set`. The
 name of the function is not particularly important however one
 should be assigned so that it can be used for recursion if
-necessary for upgrade. The upgrde script should be independent
-from any Oscar code and should relie solely on `julia` core
+necessary for upgrade. The upgrade script should be independent
+from any Oscar code and should rely solely on `julia` core
 functionality so to avoid conflicts with any future Oscar code
 deprecations.
 

@@ -543,7 +543,7 @@ representatives_of_hermitian_type(L::ZZLat, m::Int, fix_root::Bool = false; firs
 Given a non-empty genus of integer lattices $G$ and a polynomial $chi$ irreducible
 over $\mathbb Q$, such that the equation order of the associated number field is
 maximal, return a list of representatives of isomorphism classes of pairs $(M, g)$
-consiting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
+consisting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
 $chi$.
 
 One can also provide a representative $L$ of $G$ instead.

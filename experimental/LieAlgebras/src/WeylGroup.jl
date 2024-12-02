@@ -181,7 +181,7 @@ end
 @doc raw"""
     number_of_generators(W::WeylGroup) -> Int
 
-Return the number of generators of the `W`, i.e. the rank of the underyling root system.
+Return the number of generators of the `W`, i.e. the rank of the underlying root system.
 """
 function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
@@ -407,7 +407,7 @@ end
 @doc raw"""
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
-Return a random element of the Weyl group. The elements are not uniformally distributed.
+Return a random element of the Weyl group. The elements are not uniformly distributed.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]

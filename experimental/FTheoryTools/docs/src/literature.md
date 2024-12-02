@@ -175,7 +175,7 @@ graph. In the case at hand, this is rather simple.
 
 The Ci-curves turn into the irreducible components of the nodel curve. Certainly, we only need
 to focus on the non-trivial Ci-curves. A non-trivial Ci-curve can split into multiple irreducible
-components. This is taken into acccount when the nodes/vertices of the dual graph are constructed.
+components. This is taken into account when the nodes/vertices of the dual graph are constructed.
 
 The topological intersection numbers among the Ci-curves (or rather, their irreducible components)
 tells us how many nodal singularities link the Ci-curves (or rather, their irreducible components)
