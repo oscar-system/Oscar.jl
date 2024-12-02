@@ -6,6 +6,10 @@ include(
 )
 
 @testset "LieAlgebras.WeylGroup" begin
+  function is_in_normal_form(x::WeylGroupElem)
+    return word(parent(x)(word(x))) == word(x)
+  end
+
   b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
   b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
   f4_w0 = UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
@@ -237,6 +241,7 @@ include(
       W = weyl_group(fam, rk)
       for x in W
         ix = inv(x)
+        @test is_in_normal_form(ix)
         @test length(ix) == length(x)
         @test isone(ix * x) == isone(x * ix) == true
       end
@@ -250,33 +255,46 @@ include(
       elems = collect(W)
       @test allunique(elems)
       @test length(elems) == order(W)
+      @test all(is_in_normal_form, W)
     end
   end
 
   @testset "longest_element(W::WeylGroup)" begin
     # A1
     W = weyl_group(:A, 1)
-    @test longest_element(W) == gen(W, 1)
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test w0 == gen(W, 1)
 
     # A2
     W = weyl_group(:A, 2)
-    @test word(longest_element(W)) == UInt8[1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[1, 2, 1]
 
     # B2
     W = weyl_group(:B, 2)
-    @test word(longest_element(W)) == UInt8[2, 1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[2, 1, 2, 1]
 
     # B3
     W = weyl_group(:B, 3)
-    @test word(longest_element(W)) == b3_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == b3_w0
 
     # F4
     W = weyl_group(:F, 4)
-    @test word(longest_element(W)) == f4_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == f4_w0
 
     # G2
     W = weyl_group(:G, 2)
-    @test word(longest_element(W)) == g2_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == g2_w0
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -491,6 +509,7 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
+        @test is_in_normal_form(x)
         @test x * ow == dom_wt
       end
 
@@ -527,6 +546,7 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
+        @test is_in_normal_form(x)
         @test x * ow == dom_wt
       end
 
