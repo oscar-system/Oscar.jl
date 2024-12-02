@@ -1594,7 +1594,7 @@ end
     demazure_character([T = Int], L::LieAlgebra, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes all weights occurring in the Demazure module of the Lie algebra `L``
-with extremal weight `x*w`, together with their multiplicities.
+with extremal weight `w * x`, together with their multiplicities.
 
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
@@ -1603,7 +1603,7 @@ This function may return arbitrary results if the provided expression is not red
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 2);
 
-julia> demazure_character(L, [1, 1], [1, 2])
+julia> demazure_character(L, [1, 1], [2, 1])
 Dict{WeightLatticeElem, Int64} with 5 entries:
   2*w_1 - w_2  => 1
   w_1 + w_2    => 1

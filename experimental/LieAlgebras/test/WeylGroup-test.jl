@@ -199,11 +199,11 @@ include(
         return true
       end
 
-      wt = x * weyl_vector(root_system(parent(x)))
+      wt = weyl_vector(root_system(parent(x))) * x
       j = length(x)
-      for i in 1:length(y)
-        if wt[Int(y[i])] < 0
-          reflect!(wt, Int(y[i]))
+      for y_i in Iterators.reverse(word(y))
+        if wt[Int(y_i)] < 0
+          reflect!(wt, Int(y_i))
 
           j -= 1
           if j == 0
@@ -370,22 +370,13 @@ include(
       W = weyl_group(R)
 
       a = positive_root(R, n_positive_roots(R)) # highest root
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == simple_root(R, 2)
       @test a * W([1]) == simple_root(R, 2)
-      @test W([2]) * a == simple_root(R, 1)
       @test a * W([2]) == simple_root(R, 1)
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == -simple_root(R, 1)
       @test a * W([1, 2]) == -simple_root(R, 2)
-      @test W([1, 2]) * a != a * W([1, 2])
 
       a_copy = deepcopy(a)
-      b = W([1]) * a
-      @test a != b
-      @test a == a_copy
       b = a * W([1])
       @test a != b
       @test a == a_copy
@@ -398,30 +389,18 @@ include(
       W = weyl_group(R)
 
       a = positive_root(R, n_positive_roots(R)) # highest (long) root
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == a
       @test a * W([1]) == a
-      @test W([2]) * a == simple_root(R, 1)
       @test a * W([2]) == simple_root(R, 1)
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == -simple_root(R, 1)
       @test a * W([1, 2]) == simple_root(R, 1)
-      @test W([1, 2]) * a != a * W([1, 2])
 
       a = simple_root(R, 1)
-      @test one(W) * a == a
       @test a * one(W) == a
-      @test W([1]) * a == -a
       @test a * W([1]) == -a
-      @test W([2]) * a == positive_root(R, n_positive_roots(R))
       @test a * W([2]) == positive_root(R, n_positive_roots(R))
-      @test longest_element(W) * a == -a
       @test a * longest_element(W) == -a
-      @test W([1, 2]) * a == positive_root(R, n_positive_roots(R))
       @test a * W([1, 2]) == -positive_root(R, n_positive_roots(R))
-      @test W([1, 2]) * a != a * W([1, 2])
     end
   end
 
@@ -430,11 +409,7 @@ include(
     W = weyl_group(R)
 
     rho = weyl_vector(R)
-    @test longest_element(W) * rho == -rho
     @test rho * longest_element(W) == -rho
-
-    x = W([1, 2])
-    @test x * rho != rho * x
   end
 
   @testset "parent(::WeylGroupElem)" begin
@@ -510,7 +485,7 @@ include(
       @test allunique(first.(orb))
       for (ow, x) in orb
         @test is_in_normal_form(x)
-        @test x * ow == dom_wt
+        @test ow * x == dom_wt
       end
 
       gap_num = 0
@@ -547,7 +522,7 @@ include(
       @test allunique(first.(orb))
       for (ow, x) in orb
         @test is_in_normal_form(x)
-        @test x * ow == dom_wt
+        @test ow * x == dom_wt
       end
 
       gap_num = 0

@@ -24,8 +24,7 @@
       d, x = conjugate_dominant_weight_with_elem(wt)
       @test is_dominant(d)
       @test is_in_normal_form(x)
-      @test x * wt == d
-      @test wt * inv(x) == d
+      @test wt * x == d
     end
   end
 end

@@ -1235,22 +1235,22 @@
       #x = s[1]*s[2]
       char = demazure_character(R, fundamental_weight(R, 1), W([1, 2]))
       @test char == Dict(
+        WeightLatticeElem(R, [0, -1]) => 1,
         WeightLatticeElem(R, [-1, 1]) => 1,
         WeightLatticeElem(R, [1, 0]) => 1,
       )
 
       char = demazure_character(R, fundamental_weight(R, 2), W([1, 2]))
       @test char == Dict(
-        WeightLatticeElem(R, [-1, 0]) => 1,
         WeightLatticeElem(R, [1, -1]) => 1,
         WeightLatticeElem(R, [0, 1]) => 1,
       )
 
       char = demazure_character(R, weyl_vector(R), W([1, 2]))
       @test char == Dict(
-        WeightLatticeElem(R, [-1, 2]) => 1,
-        WeightLatticeElem(R, [-2, 1]) => 1,
         WeightLatticeElem(R, [2, -1]) => 1,
+        WeightLatticeElem(R, [1, -2]) => 1,
+        WeightLatticeElem(R, [-1, 2]) => 1,
         WeightLatticeElem(R, [0, 0]) => 1,
         WeightLatticeElem(R, [1, 1]) => 1,
       )
@@ -1258,22 +1258,22 @@
       #x = s[2]*s[1]
       char = demazure_character(R, fundamental_weight(R, 1), W([2, 1]))
       @test char == Dict(
-        WeightLatticeElem(R, [0, -1]) => 1,
         WeightLatticeElem(R, [-1, 1]) => 1,
         WeightLatticeElem(R, [1, 0]) => 1,
       )
 
       char = demazure_character(R, fundamental_weight(R, 2), W([2, 1]))
       @test char == Dict(
+        WeightLatticeElem(R, [-1, 0]) => 1,
         WeightLatticeElem(R, [1, -1]) => 1,
         WeightLatticeElem(R, [0, 1]) => 1,
       )
 
       char = demazure_character(R, weyl_vector(R), W([2, 1]))
       @test char == Dict(
-        WeightLatticeElem(R, [2, -1]) => 1,
-        WeightLatticeElem(R, [1, -2]) => 1,
         WeightLatticeElem(R, [-1, 2]) => 1,
+        WeightLatticeElem(R, [-2, 1]) => 1,
+        WeightLatticeElem(R, [2, -1]) => 1,
         WeightLatticeElem(R, [0, 0]) => 1,
         WeightLatticeElem(R, [1, 1]) => 1,
       )
@@ -1435,8 +1435,8 @@
         WeightLatticeElem(R, [1, 2, -1]) => 1,
       )
 
-      #x=s[3]*s[2]*s[1]
-      char = demazure_character(R, fundamental_weight(R, 1), W([3, 2, 1]))
+      #x=s[1]*s[2]*s[3]
+      char = demazure_character(R, fundamental_weight(R, 1), W([1, 2, 3]))
       @test char == Dict(
         WeightLatticeElem(R, [0, 0, 0]) => 1,
         WeightLatticeElem(R, [0, 1, -2]) => 1,
@@ -1445,7 +1445,7 @@
         WeightLatticeElem(R, [0, -1, 2]) => 1,
       )
 
-      char = demazure_character(R, fundamental_weight(R, 2), W([3, 2, 1]))
+      char = demazure_character(R, fundamental_weight(R, 2), W([1, 2, 3]))
       @test char == Dict(
         WeightLatticeElem(R, [0, 1, 0]) => 1,
         WeightLatticeElem(R, [1, -1, 2]) => 1,
@@ -1453,13 +1453,13 @@
         WeightLatticeElem(R, [1, 1, -2]) => 1,
       )
 
-      char = demazure_character(R, fundamental_weight(R, 3), W([3, 2, 1]))
+      char = demazure_character(R, fundamental_weight(R, 3), W([1, 2, 3]))
       @test char == Dict(
         WeightLatticeElem(R, [0, 1, -1]) => 1,
         WeightLatticeElem(R, [0, 0, 1]) => 1,
       )
 
-      char = demazure_character(R, weyl_vector(R), W([3, 2, 1]))
+      char = demazure_character(R, weyl_vector(R), W([1, 2, 3]))
       @test char == Dict(
         WeightLatticeElem(R, [2, 0, 1]) => 1,
         WeightLatticeElem(R, [1, 2, -3]) => 1,
@@ -1602,7 +1602,7 @@
       L = lie_algebra(QQ, R)
       w_int = [0, 1, 0]
       w_weight = WeightLatticeElem(R, w_int)
-      x = W([3, 2, 1])
+      x = W([1, 2, 3])
       reduced_expression = word(x)
       result = Dict(
         WeightLatticeElem(R, [0, 1, 0]) => 1,
