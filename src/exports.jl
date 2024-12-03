@@ -289,6 +289,7 @@ export atlas_subgroup
 export augmented_chow_ring
 export aut
 export automorphism_group
+export barycentric_subdivision
 export base_ring
 export base_scheme
 export bases
@@ -912,6 +913,7 @@ export is_right
 export is_semiregular
 export is_semisimple
 export is_semistandard
+export is_shifted
 export is_simple, has_is_simple, set_is_simple
 export is_simplicial
 export is_singular
@@ -1448,6 +1450,7 @@ export signed_incidence_matrix
 export signed_permutahedron
 export simplex
 export simplicial_complex
+export simplicial_product
 export simplified_fp_group
 export simplify
 export simplify!
