@@ -59,6 +59,7 @@ end
     rothe_matrix(F::Field, p::PermGroupElem)
     rothe_matrix(R::MPolyRing, w::WeylGroupElem)
     rothe_matrix(R::MPolyRing, p::PermGroupElem)
+
 For a base field `F` and a Weyl group element `w` return the matrix with entries in the
 multivariate polynomial ring `R` with `n^2` many indeterminants where `n - 1` is the rank of the
 root system of the Weyl group.
