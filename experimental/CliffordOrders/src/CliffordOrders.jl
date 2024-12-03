@@ -56,7 +56,7 @@ mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
 
   function ZZCliffordOrder(ls::ZZLat)
     if !is_zero(rank(ls))
-      @req is_integral(1//2 * norm(ls)) "The given lattice is not even!"
+      @req is_even(ls) "The given lattice is not even!"
     end
     qs = rational_span(ls) 
     return new(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs))
@@ -148,9 +148,9 @@ parent_type(::Type{CliffordOrderElem{T, C, P}}) where {T, C, P} = P
 
 parent_type(::Type{ZZCliffordOrderElem}) = ZZCliffordOrder
 
-base_ring_type(CO::CliffordOrder{T, C}) where {T, C} = typeof(base_ring(CO))
+base_ring_type(::Type{CliffordOrder{T, C}}) where {T, C} = parent_type(T)
 
-base_ring_type(CO::ZZCliffordOrder) = ZZRing
+base_ring_type(::Type{ZZCliffordOrder}) = ZZRing
 
 #############################################################
 #
@@ -296,7 +296,7 @@ end
 
 Return the base ring of the Clifford order $C$.
 """
-base_ring(C::CliffordOrder) = C.base_ring
+base_ring(C::CliffordOrder) = C.base_ring::base_ring_type(typeof(C))
 
 @doc raw"""
     ambient_algebra(C::CliffordOrder) -> CliffordAlgebra
@@ -340,7 +340,7 @@ coefficient_ideals(C::CliffordOrder) = C.coefficient_ideals
 
 Return the base ring of the Clifford order $C$.
 """
-base_ring(C::ZZCliffordOrder) = C.base_ring
+base_ring(C::ZZCliffordOrder) = C.base_ring::ZZRing
 
 @doc raw"""
     ambient_algebra(C::ZZCliffordOrder) -> CliffordAlgebra
@@ -862,25 +862,25 @@ Base.:*(x::CliffordOrderElem{T, CliffordAlgebra{U,V}}, a::Rational{Int}) where {
 Base.:*(a::Rational{Int}, x::CliffordOrderElem{T, CliffordAlgebra{U,V}}) where {T, U<:NumFieldElem, V} = parent(x)(a .* coefficients(x))
 
 @doc raw"""
-    divexact(x::CliffordOrderElem, a::T) where {T<:Union{RingElem, Number}} -> CliffordOrderElem
+    divexact(x::CliffordOrderElem, a::T) where {T<:RingElement} -> CliffordOrderElem
 
 Return the element `y` in the Clifford order containing $x$ such that $ay = x$,
 if it exists. Otherwise an error is raised.
 """
-function divexact(x::CliffordOrderElem, elt::T) where {T<:RingElem}
+function divexact(x::CliffordOrderElem, elt::T) where {T<:RingElement}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), elt)
   @req res in parent(x) "Not an exact division"
   return parent(x)(res)
 end
-
+#=
 function divexact(x::CliffordOrderElem, elt::T) where {T<:Number}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), elt)
   @req res in parent(x) "Not an exact division"
   return parent(x)(res)
 end
-
+=#
 ### ZZ ###
 
 function Base.:+(x::ZZCliffordOrderElem, y::ZZCliffordOrderElem)
@@ -905,25 +905,25 @@ Base.:*(x::ZZCliffordOrderElem, a::Rational{Int}) = parent(x)(a .* coefficients(
 Base.:*(a::Rational{Int}, x::ZZCliffordOrderElem) = parent(x)(a .* coefficients(x))
 
 @doc raw"""
-    divexact(x::ZZCliffordOrderElem, a::RingElem) -> ZZCliffordOrderElem
+    divexact(x::ZZCliffordOrderElem, a::RingElement) -> ZZCliffordOrderElem
 
 Return the element `y` in the Clifford order containing $x$ such that $ay = x$,
 if it exists. Otherwise an error is raised.
 """
-function divexact(x::ZZCliffordOrderElem, a::T) where {T<:RingElem}
+function divexact(x::ZZCliffordOrderElem, a::T) where {T<:RingElement}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), a)
   @req res in parent(x) "Not an exact division"
   return parent(x)(res)
 end
-
+#=
 function divexact(x::ZZCliffordOrderElem, a::T) where {T<:Number}
   ambalg = ambient_algebra(parent(x))
   res = divexact(ambalg(x), a)
   @req res in parent(x) "Not an exact division"
   return parent(x)(res)
 end
-
+=#
 ################################################################################
 #
 #  Equality and hash

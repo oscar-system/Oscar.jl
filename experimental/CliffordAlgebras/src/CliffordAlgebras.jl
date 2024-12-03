@@ -71,12 +71,12 @@ mutable struct CliffordAlgebraElem{T,S,P} <: Hecke.AbstractAssociativeAlgebraEle
   end
 end
 
-elem_type(::Type{CliffordAlgebra{T,S}}) where {T,S} =
-  CliffordAlgebraElem{T,S,CliffordAlgebra{T,S}}
+elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} =
+  CliffordAlgebraElem{T,S,CliffordAlgebra{T, S}}
 
-parent_type(::Type{CliffordAlgebraElem{T,S,P}}) where {T,S,P} = P
+parent_type(::Type{CliffordAlgebraElem{T, S, P}}) where {T, S, P} = P
 
-base_ring_type(C::CliffordAlgebra{T,S}) where {T,S} = typeof(base_ring(C))
+base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
 
 ################################################################################
 #
@@ -119,18 +119,18 @@ end
 
 ### Algebra ###
 @doc raw"""
-    base_ring(C::CliffordAlgebra) -> Ring
+    base_ring(C::CliffordAlgebra) -> NumField
 
 Return the base ring of the Clifford algebra $C$.
 """
-base_ring(C::CliffordAlgebra) = C.base_ring
+base_ring(C::CliffordAlgebra) = C.base_ring::base_ring_type(typeof(C))
 
 @doc raw"""
     space(C::CliffordAlgebra) -> QuadSpace
 
 Return the underlying quadratic space of the Clifford algebra $C$.
 """
-space(C::CliffordAlgebra{T,S}) where {T,S} = C.space::Hecke.QuadSpace{parent_type(T),S}
+space(C::CliffordAlgebra{T, S}) where {T, S} = C.space::Hecke.QuadSpace{parent_type(T), S}
 
 @doc raw"""
     gram_matrix(C::CliffordAlgebra) -> MatElem
@@ -430,15 +430,15 @@ function Base.:*(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<
 end
 
 @doc raw"""
-    divexact(x::CliffordAlgebraElem, a::T) where {T<:Union{RingElem, Number}} -> CliffordAlgebraElem
+    divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} -> CliffordAlgebraElem
 
 Return the element `y` in the Clifford algebra containing $x$ such that $ay = x$,
 if it exists. Otherwise an error is raised.
 """
-divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElem} =
+divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} =
   parent(x)(divexact.(coefficients(x), a))
 
-divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(coefficients(x), a))
+#divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(coefficients(x), a))
 
 ################################################################################
 #
