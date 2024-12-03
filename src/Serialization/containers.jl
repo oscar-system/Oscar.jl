@@ -34,8 +34,11 @@ function save_type_params(s::SerializerState, T::Type, params::Vector)
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{<: Union{MatVecType, Set}}) 
-  subtype, params = load_type_params(s, :params)
+function load_type_params(s::DeserializerState, T::Type{<: Union{MatVecType, Set}})
+  subtype, params = load_node(s, :params) do _
+    U = decode_type(s)
+    subtype, params = load_type_params(s, U)
+  end
   return T{subtype}, params
 end
 
@@ -145,7 +148,8 @@ end
 function load_type_params(s::DeserializerState, T::Type{Tuple}) 
   subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s) do _
-      load_type_params(s)
+      U = decode_type(s)
+      load_type_params(s, U)
     end
     return collect(zip(tuple_params...))
   end
@@ -208,7 +212,8 @@ end
 function load_type_params(s::DeserializerState, T::Type{NamedTuple})
   subtype, params = load_node(s, :params) do obj
     tuple_params = load_array_node(s, :tuple_params) do _
-      load_type_params(s)
+      U = decode_type(s)
+      load_type_params(s, U)
     end
     tuple_types, named_tuple_params = collect(zip(tuple_params...))
     names = load_object(s, Vector{Symbol}, :names)
@@ -276,7 +281,10 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
           continue
         end
         key = S == Int ? parse(Int, string(k)) : S(k)
-        params_dict[key] = load_type_params(s, k)
+        params_dict[key] = load_node(s, k) do _
+          value_type = decode_type(s)
+          return load_type_params(s, value_type)
+        end
         push!(value_types, params_dict[key][1])
       end
       return (S, Union{value_types...}), params_dict

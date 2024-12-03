@@ -234,14 +234,13 @@ end
 #  end
 #end
 
-function load_type_params(s::DeserializerState, key::Symbol)
+function load_type_params(s::DeserializerState, T::Type, key::Symbol)
   load_node(s, key) do _
-    load_type_params(s)
+    load_type_params(s, T)
   end
 end
 
-function load_type_params(s::DeserializerState)
-  T = decode_type(s)
+function load_type_params(s::DeserializerState, T::Type)
   if s.obj isa String
     if !isnothing(tryparse(UUID, s.obj))
       return T, load_ref(s)
@@ -249,15 +248,14 @@ function load_type_params(s::DeserializerState)
     return T, nothing
   end
   if haskey(s, :params)
-    return T, load_type_params(s, T)
+    load_node(s, :params) do obj
+      U = decode_type(s)
+      # all types where the type T should be updated with a subtype i.e. T -> T{U}
+      # need to implement their own method, see for example containers
+      return T, load_type_params(s, U)[2]
+    end
   else
-    return T, load_typed_object
-  end
-end
-
-function load_type_params(s::DeserializerState, T::Type)
-  load_node(s, :params) do obj
-    return load_type_params(s)
+    return T, load_typed_object(s)
   end
 end
 
@@ -276,12 +274,12 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     if override_params isa Dict
       error("Unsupported override type")
     else
-      T, _ = load_type_params(s, type_key)
+      T, _ = load_type_params(s, T, type_key)
       params = override_params
     end
   else
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
-    T, params = load_type_params(s, type_key) 
+    T, params = load_type_params(s, T, type_key)
   end
   load_node(s, :data) do _
     return load_object(s, T, params)
@@ -722,7 +720,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       Base.issingletontype(type) && return type()
       if isnothing(params)
         _, params = load_node(s, type_key) do _
-          load_type_params(s)
+          load_type_params(s, U)
         end
       end
       load_node(s, :data) do _

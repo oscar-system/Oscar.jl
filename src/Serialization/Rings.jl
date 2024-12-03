@@ -46,7 +46,6 @@ type_params(x::T) where T <: IdealOrdUnionType = T, base_ring(x)
 type_params(::ZZRing) = ZZRing, nothing
 type_params(::T) where T <: ModRingUnion = T, nothing
 
-
 ################################################################################
 # ring of integers (singleton type)
 @register_serialization_type ZZRing
