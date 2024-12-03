@@ -405,7 +405,7 @@ const FieldEmbeddingTypes = Union{Hecke.AbsSimpleNumFieldEmbedding, Hecke.RelSim
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  d = Dict(:num_field => type_params(K))
+  d = Dict{Symbol, Any}(:num_field => type_params(K))
 
   if !(base_field(K) isa QQField)
     d[:base_field_emb] = type_params(restrict(E, base_K))
@@ -437,8 +437,7 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
 end
 
 function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, params::Dict)
-  K = params(s, :num_field)
-
+  K = params[:num_field]
   load_node(s) do data
     if !is_simple(K)
       data = collect(data)
