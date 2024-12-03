@@ -456,7 +456,13 @@ end
        @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
        @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
 
-       @test is_bijective(isomorphism(FPGroup, symmetric_group(1), on_gens = true))
+       G = symmetric_group(1)
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
+       @test is_bijective(iso)
+       G = sub(G, [one(G)])[1]
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
 
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)
