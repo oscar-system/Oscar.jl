@@ -854,7 +854,7 @@ Return the abelian Lie algebra of dimension `n` over the field `R`.
 The first argument can be optionally provided to specify the type of the returned
 Lie algebra.
 
-# Example
+# Examples
 ```jldoctest
 julia> abelian_lie_algebra(LinearLieAlgebra, QQ, 3)
 Linear Lie algebra with 3x3 matrices

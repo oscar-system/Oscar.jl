@@ -19,7 +19,7 @@ Return a tuple `M`, `v`, `M2`, `m` where
 !!! note
   The intersection matrix referred to in textbooks is `M2`, as these usually restrict to the case of algebraically closed fields, but computations are usually performed over suitable subfields, e.g. `QQ` instead of `CC`. 
 
-# Example
+# Examples
 ```jldoctest
 julia> R,(x,y,z) = polynomial_ring(QQ,3);
 

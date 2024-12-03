@@ -132,7 +132,7 @@ end
 Given a ring `R`, return the empty relative projective scheme over the
 empty covered scheme over `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x, :y, :z];
 

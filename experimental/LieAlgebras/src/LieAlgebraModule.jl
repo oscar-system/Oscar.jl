@@ -1412,7 +1412,7 @@ Compute the dimension of the simple module of the Lie algebra `L` with highest w
 using Weyl's dimension formula.
 The return value is of type `T`.
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 3);
 
@@ -1445,7 +1445,7 @@ sorted ascendingly by the total height of roots needed to reach them from `hw`.
 
 See [MP82](@cite) for details and the implemented algorithm.
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :B, 3);
 
@@ -1477,7 +1477,7 @@ together with their multiplicities.
 
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 3);
 
@@ -1513,7 +1513,7 @@ Computes all weights occurring in the simple module of the Lie algebra `L` with 
 together with their multiplicities.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::Vector{<:IntegerUnion})).
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 3);
 
@@ -1557,7 +1557,7 @@ This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
 
 The return type may change in the future.
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 2);
 
@@ -1599,7 +1599,7 @@ with extremal weight `x*w`, together with their multiplicities.
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
 
-# Example
+# Examples
 ```jldoctest
 julia> L = lie_algebra(QQ, :A, 2);
 
