@@ -266,7 +266,7 @@ end
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
 If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used.
-Setting `las_vegas=true` will run the algorithm with a random change of basis matrix and repeat the algorithm untill
+Setting `las_vegas=true` will run the algorithm with a random change of basis matrix and repeat the algorithm until the shift is found.
 
 # Examples
 ```jldoctest
@@ -351,7 +351,6 @@ function random_rothe_matrix(F::Field, p::PermGroupElem)
   for (i, j) in inversions(p)
     u[i, j] = F.(round.(Integer, range .* rand(i)) .- (range // 2)) 
   end
-
   return u * permutation_matrix(F, p)
 end
 
