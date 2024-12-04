@@ -256,16 +256,17 @@ function exterior_shift(K::SimplicialComplex, g::MatElem)
 end
 
 @doc raw"""
-    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem)
-    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem)
-    exterior_shift(K::SimplicialComplex, w::WeylGroupElem)
-    exterior_shift(K::UniformHypergraph, w::WeylGroupElem)
-    exterior_shift(K::SimplicialComplex)
-    exterior_shift(K::UniformHypergraph)
+    exterior_shift(F::Field, K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(F::Field, K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::SimplicialComplex, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::UniformHypergraph, w::WeylGroupElem; las_vegas=false)
+    exterior_shift(K::SimplicialComplex; las_vegas=false)
+    exterior_shift(K::UniformHypergraph; las_vegas=false)
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the Weyl group element `w` and the field `F`.
 If the field is not given then `QQ` is used during the computation.
-If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used
+If `w` is not given then `longest_element(weyl_group(:A, n_vertices(K) - 1))` is used.
+Setting `las_vegas=true` will run the algorithm with a random change of basis matrix and repeat the algorithm untill
 
 # Examples
 ```jldoctest
@@ -317,27 +318,101 @@ julia> L = exterior_shift(GF(2), K, w)
 Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
-function exterior_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+function exterior_shift(F::Field, K::ComplexOrHypergraph,
+                        p::PermGroupElem; las_vegas::Bool=false)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-
+  las_vegas && return exterior_shift_lv(F, K, p)
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
-function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem)
+function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem; kw...)
   n = n_vertices(K)
   phi = isomorphism(PermGroup, parent(w))
-  return exterior_shift(F, K, phi(w))
+  return exterior_shift(F, K, phi(w); kw)
 end
 
-function exterior_shift(F::Field, K::ComplexOrHypergraph)
+function exterior_shift(F::Field, K::ComplexOrHypergraph; kw...)
   n = n_vertices(K)
   W = weyl_group(:A, n - 1)
-  return exterior_shift(F, K, longest_element(W))
+  return exterior_shift(F, K, longest_element(W); kw)
 end
 
-exterior_shift(K::ComplexOrHypergraph) = exterior_shift(QQ, K)
+exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw)
 
+################################################################################
+# Las Vegas Partial Shifting
+
+function random_rothe_matrix(F::Field, p::PermGroupElem)
+  char = characteristic(F)
+  range = char == 0 ? 100 : char
+  u = identity_matrix(F, n)
+  n = degree(parent(p))
+  for (i, j) in inversions(p)
+    u[i, j] = F.(round.(Integer, range .* rand(i)) .- (range // 2)) 
+  end
+
+  return u * permutation_matrix(F, p)
+end
+
+function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem;)
+  n = n_vertices(K)
+  exterior_shift(K, random_rothe_matrix(F, p))
+end
+
+random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
+
+# returns true if the dst is the partial shift of src with respect to w
+function check_shifted(F::Field,
+                       src::UniformHypergraph,
+                       dst::UniformHypergraph,
+                       p::PermGroupElem)
+  dst_faces = faces(dst)
+  if length(dst_faces) == 1
+    max_face = dst_faces[1]
+  else
+    max_face = max(dst_faces...)
+  end
+  num_rows = length(dst_faces)
+  n = n_vertices(src)
+  k = face_size(src)
+  nCk = sort(subsets(n, k))
+  max_face_index = findfirst(x -> x == max_face, nCk)
+  cols = nCk[1:max_face_index - 1]
+  r = rothe_matrix(F, p)
+  
+  if max_face_index > num_rows 
+    M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
+    Oscar.ModStdQt.ref_ff_rc!(M)
+    nCk[independent_columns(M)] == dst_faces && return false
+  end
+  return true
+end
+
+function check_shifted(F::Field, 
+                       src::SimplicialComplex,
+                       dst::SimplicialComplex,
+                       p::PermGroupElem)
+  n = n_vertices(src)
+  f_vec = f_vector(src)
+  k = length(f_vec)
+
+  while k > 1
+    uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
+    uhg_dst = uniform_hypergraph(complex_faces(dst, k - 1), n)
+    !check_shifted(F, uhg_src, uhg_dst, p) && return false
+    k -= 1
+  end
+  return true
+end
+
+function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+  sample_size = characteristic(F) == 0 ? 10 : 100
+  shift = partialsort!([random_shift(F, K, p) for _ in 1:sample_size], 1;
+                      lt=isless_lex)
+  check_shifted(F, K, shift, p) && return shift
+  return exterior_shift_lv(F, K, p)
+end
 
 ###############################################################################
 # Symmetric shift
