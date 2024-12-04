@@ -556,7 +556,7 @@ function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   end
 
   isoinv = function (g::FPGroupElem)
-    return W(abs.(letters(g)))
+    return W(abs.(letters(g))) # TODO: check if normalize=false can be added here (probably not)
   end
 
   return MapFromFunc(W, G, iso, isoinv)
@@ -602,7 +602,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
           )
         end
       end
-      return W(word)
+      return W(word) # TODO: check if normalize=false can be added here
     end
   else
     error("Not implemented (yet)")

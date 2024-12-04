@@ -121,6 +121,7 @@ include(
               @test v * w == inv(iso)(iso(v) * iso(w))
             end
             g = rand_pseudo(G)
+            @test is_in_normal_form(inv(iso)(g))
             @test g == iso(inv(iso)(g))
             h = rand_pseudo(G)
             @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
@@ -159,6 +160,7 @@ include(
                   @test v * w == inv(iso)(iso(v) * iso(w))
                 end
                 g = rand_pseudo(G)
+                @test is_in_normal_form(inv(iso)(g))
                 @test g == iso(inv(iso)(g))
                 h = rand_pseudo(G)
                 @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
