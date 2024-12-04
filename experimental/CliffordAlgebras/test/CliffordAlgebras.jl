@@ -68,8 +68,8 @@
       @test_throws BoundsError coeff(C(), 2)
     end
     @testset "center and centroid" begin
-      @test center(C) == centroid(C)
-      @test center(C) == [one(C)]
+      @test basis_of_center(C) == basis_of_centroid(C)
+      @test basis_of_center(C) == [one(C)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == 1
     end
@@ -187,8 +187,8 @@
     end
     @testset "center and centroid" begin
       orth = C([-1, 0, 0, 2])
-      @test center(C) == [one(C)]
-      @test centroid(C) == [one(C), orth]
+      @test basis_of_center(C) == [one(C)]
+      @test basis_of_centroid(C) == [one(C), orth]
       @test disq(C) == quadratic_discriminant(C) && disq(C) == coefficients(orth^2)[1]
     end
   end
@@ -274,10 +274,10 @@
       @test mul_with_gen(coefficients(x), 2, gram_matrix(C)) == QQ.([3 * b, 4 * b, 1, 2])
     end
     @testset "center and centroid" begin
-      @test center(C) == [one(C)]
-      @test centroid(C) == [one(C), C(QQ.([0, 0, 0, 1]))]
+      @test basis_of_center(C) == [one(C)]
+      @test basis_of_centroid(C) == [one(C), C(QQ.([0, 0, 0, 1]))]
       @test disq(C) == quadratic_discriminant(C) && disq(C) == -a * b
-      @test disq(C) == coefficients(centroid(C)[2]^2)[1]
+      @test disq(C) == coefficients(basis_of_centroid(C)[2]^2)[1]
     end
   end
 
@@ -386,12 +386,12 @@
       @test_throws BoundsError x[rand(33:500)]
     end
     @testset "center and centroid" begin
-      @test center(C) == centroid(C)
+      @test basis_of_center(C) == basis_of_centroid(C)
       orth = C([0, z^2, -z^3, 0, z^2, 0, 0, -2 * z, -z^3,
         0, 0, 2 * z^2, 0, -2 * z^3, -2 * z^3 - 2 * z^2 - 2 * z - 2,
         0, z^2, 0, 0, -2 * z, 0, 2 * z^2, -2 * z^3, 0,
         0, -2 * z, 2 * z^2, 0, -2 * z, 0, 0, 4])
-      @test centroid(C) == [one(C), orth]
+      @test basis_of_centroid(C) == [one(C), orth]
       @test disq(C) == coefficients(orth^2)[1]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == -3 * z^3 - 19 * z^2 - 3 * z + 13

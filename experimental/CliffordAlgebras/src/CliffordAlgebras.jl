@@ -5,7 +5,8 @@ export CliffordAlgebra,
   odd_coefficients,
   even_part,
   odd_part,
-  centroid,
+  basis_of_center,
+  basis_of_centroid,
   quadratic_discriminant,
   disq
 
@@ -21,9 +22,9 @@ mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
   space::Hecke.QuadSpace{K,S} where {K}
   gram::S
   dim::Int
-  centroid::Any
+  basis_of_centroid::Any
   disq::T
-  center::Any
+  basis_of_center::Any
 
   #Return the Clifford algebra of the quadratic space 'qs' 
   function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
@@ -239,9 +240,9 @@ zero(C::CliffordAlgebra) = C()
 Return the multiplicative identity of the Clifford algebra $C$.
 """
 function one(C::CliffordAlgebra)
-  v = fill(base_ring(C)(), dim(C))
-  v[1] = base_ring(C)(1)
-  return C(v)
+  res = C()
+  res[1] = base_ring(C)(1)
+  return res
 end
 
 @doc raw"""
@@ -250,26 +251,25 @@ end
 Return the $i$-th canonical basis vector of the Clifford algebra $C$.
 """
 function basis(C::CliffordAlgebra, i::Int)
-  res = CliffordAlgebraElem(C)
-  res.coeffs[i] = base_ring(C)(1)
-  _set_even_odd_coefficients!(res)
+  res = C()
+  res[i] = base_ring(C)(1)
   return res
 end
 
 @doc raw"""
     gen(C::CliffordAlgebra, i::Int) -> CliffordAlgebraElem
 
-Return the $i$-th canonical multiplicative generator of the Clifford
-algebra $C$. This is just the $i$-th basis vector of the underlying
-quadratic module.
+Return the $i$-th canonical algebra generator of the Clifford
+algebra $C$. This is just the image of the $i$-th basis vector
+of the underlying quadratic space under the canonical embedding
+into the Clifford algebra.
 """
 function gen(C::CliffordAlgebra, i::Int)
-  res = CliffordAlgebraElem(C)
+  res = C()
   if i <= 0
-    res.coeffs[i] #Throws a BoundsError instead of a DomainError for consistency
+    res[0] #Throws a BoundsError instead of a DomainError for consistency
   end
-  res.coeffs[2^(i - 1) + 1] = base_ring(C)(1)
-  _set_even_odd_coefficients!(res)
+  res[2^(i - 1) + 1] = base_ring(C)(1)
   return res
 end
 
@@ -283,7 +283,10 @@ basis(C::CliffordAlgebra) = map(i -> basis(C, i), 1:dim(C))
 @doc raw"""
     gens(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return the vector of canonical multiplicative generators of the Clifford algebra $C$.
+Return the vector of canonical algebra generators of the Clifford algebra $C$, i.e.,
+if `gram_matrix(C)` is the Gram matrix of the underlying quadratic space with respect
+to the basis (e_1,...,e_n) then the vector of images under the canonical embedding into
+the Clifford algebra is returned.
 """
 gens(C::CliffordAlgebra) = map(i -> gen(C, i), 1:_dim_qf(C))
 
@@ -299,6 +302,7 @@ is_commutative(C::CliffordAlgebra) = dim(C) == 1 || dim(C) == 2
 #  Element Access
 #
 ################################################################################
+
 @doc raw"""
     coeff(x::CliffordAlgebraElem, i::Int) -> FieldElem
 
@@ -308,6 +312,9 @@ coeff(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 
 getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 
+function setindex!(x::CliffordAlgebraElem, newentry::RingElement, i::Int64) 
+  coefficients(x)[i] = newentry
+end
 ################################################################################
 #
 #  Other functionality
@@ -315,27 +322,26 @@ getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 ################################################################################
 
 @doc raw"""
-    centroid(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
+    basis_of_centroid(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return the centroid of $C$. Unless `dim(space(C)) = 0`, it is always two-dimensional,
-so it is returned as a vector containing the basis elements. The first one is the
-multiplicative identity of $C$. The square of the second basis element, if present,
-equals `quadratic_discriminant(C)`.
+Return a basis of the centroid of $C$. Unless `dim(space(C)) = 0`, it consists of
+two elements. The first one is the multiplicative identity of $C$. The square of
+the second basis element, if present, equals `quadratic_discriminant(C)`.
 """
-function centroid(C::CliffordAlgebra)
-  if isdefined(C, :centroid)
-    return C.centroid
+function basis_of_centroid(C::CliffordAlgebra)
+  if isdefined(C, :basis_of_centroid)
+    return C.basis_of_centroid
   end
   n = _dim_qf(C)
   if n == 0
-    C.centroid = [one(C)]
-    return C.centroid
+    C.basis_of_centroid = [one(C)]
+    return C.basis_of_centroid
   end
   T = orthogonal_basis(space(C))
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
-  C.disq = coefficients(orth_elt^2)[1]
-  C.centroid = [one(C), orth_elt]
+  C.disq = (orth_elt^2)[1]
+  C.basis_of_centroid = [one(C), orth_elt]
 end
 
 @doc raw"""
@@ -350,7 +356,7 @@ function quadratic_discriminant(C::CliffordAlgebra)
   if dim(space(C)) == 0
     C.disq = one(base_ring(C))
   else
-    C.disq = coefficients(centroid(C)[2]^2)[1]
+    C.disq = (basis_of_centroid(C)[2]^2)[1]
   end
 end
 
@@ -362,20 +368,20 @@ Alias for `quadratic_discriminant`.
 disq(C::CliffordAlgebra) = quadratic_discriminant(C)
 
 @doc raw"""
-    center(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
+    basis_of_center(C::CliffordAlgebra) -> Vector{CliffordAlgebraElem}
 
-Return the center of $C$. It equals `centroid(C)`, if and only if `dim(space(C))`
-is odd. Otherwise it is one-dimensional and returned as a tuple of length one
-containing the multiplicative identity of $C$.
+Return a basis of the center of $C$. It equals `basis_of_centroid(C)`, if and only
+if `dim(space(C))` is odd. Otherwise it contains only the
+multiplicative identity of $C$.
 """
-function center(C::CliffordAlgebra)
-  if isdefined(C, :center)
-    return C.center
+function basis_of_center(C::CliffordAlgebra)
+  if isdefined(C, :basis_of_center)
+    return C.basis_of_center
   end
   if is_odd(dim(space(C)))
-    C.center = centroid(C)
+    C.basis_of_center = basis_of_centroid(C)
   else
-    C.center = [one(C)]
+    C.basis_of_center = [one(C)]
   end
 end
 
@@ -406,7 +412,6 @@ end
 #  unary operators
 #
 ################################################################################
-
 
 Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 

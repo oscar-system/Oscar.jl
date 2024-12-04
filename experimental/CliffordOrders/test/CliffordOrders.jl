@@ -31,8 +31,8 @@
       C = clifford_order(ls)
       @test is_commutative(C)
       @testset "Construction" begin
-        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
-        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C)), typeof(C)}
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(OK)
         @test base_ring_type(C) == typeof(base_ring(C))
@@ -72,7 +72,7 @@
         @test_throws ArgumentError divexact(x, OK(2))
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = ambient_algebra(C)
+        CA = algebra(C)
         x = C(a)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -80,9 +80,10 @@
         @test !(1//2 * CA(x) in C) 
       end
       @testset "defining relations" begin
-        @test length(coefficient_ideals(pseudo_basis(C))) == 1
-        @test pseudo_basis(C, 1) == pseudo_matrix(identity_matrix(K, 1), [fractional_ideal(OK, one(OK))])
-        @test is_empty(gens(C))
+        @test length(pseudo_basis(C)) == 1
+        @test pseudo_basis(C, 1) == (one(C), fractional_ideal(OK, one(OK)))
+        @test is_empty(pseudo_gens(C))
+        @test_throws BoundsError pseudo_gen(C, 1)
         a, b = rand(ZZ, -100:100), rand(ZZ, -100:100)
         @test C(a) * C(b) == C(a * b)
         @test C(a) + C(b) == C(a + b)
@@ -99,8 +100,8 @@
         @test_throws BoundsError coeff(C(), 2)
       end
       @testset "center and centroid" begin
-        @test center(C) == centroid(C)
-        @test center(C) == pseudo_matrix(identity_matrix(K, 1), [fractional_ideal(OK, one(OK))])
+        @test pseudo_basis_of_center(C) == pseudo_basis_of_centroid(C)
+        @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == (fractional_ideal(OK, one(OK)), K(1))
       end
@@ -154,7 +155,7 @@
         @test_throws ArgumentError divexact(x, 2//1)
       end
       @testset "conversion to ambient algebra and vice versa" begin
-        CA = ambient_algebra(C)
+        CA = algebra(C)
         x = C(17)
         @test x == C(CA(x))
         @test CA(x) == CA(C(CA(x)))
@@ -180,9 +181,18 @@
         @test_throws BoundsError C()[2]
         @test_throws BoundsError coeff(C(), 2)
       end
+      @testset "setindex!" begin
+        x = C()
+        x[1] = QQ(1)
+        @test x == C(1)
+        x[1] = QQ()
+        @test x == C()
+        @test_throws BoundsError x[0] = QQ()
+        @test_throws BoundsError x[2] = QQ()
+      end
       @testset "center and centroid" begin
-        @test center(C) == centroid(C)
-        @test center(C) == [one(C)]
+        @test basis_of_center(C) == basis_of_centroid(C)
+        @test basis_of_center(C) == [one(C)]
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == ZZ(1)
       end
@@ -199,14 +209,14 @@
     lsK = lattice(qsK)
     C = clifford_order(lsK)
     Kzer = K.([0, 0, 0, 0])
-    e(i::Int) = C(matrix(gen(C, i))[1,:])
+    e(i::Int) = pseudo_gen(C, i)[1]
     
     @test !is_commutative(C)
     
     @testset "construction" begin
-      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(ambient_algebra(C))}
+      @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
       @test elem_type(C) ==
-      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(ambient_algebra(C)), typeof(C)}
+      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -252,7 +262,7 @@
       @test divexact(2 * x, K(2)) == x
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = ambient_algebra(C)
+      CA = algebra(C)
       x = C([1, a, 1+a, 0])
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -260,10 +270,11 @@
       @test !(1//2 * CA(x) in C) 
     end
     @testset "defining relations" begin
-      @test e(1) == C(matrix(gens(C))[1, :])
-      @test e(2) == C(matrix(gens(C))[2, :])
-      @test_throws BoundsError gen(C, 0)
-      @test_throws BoundsError gen(C, 3)
+      @test length(pseudo_gens(C)) == 2
+      @test e(1) == pseudo_gens(C)[1][1]
+      @test e(2) == pseudo_gens(C)[2][1]
+      @test_throws BoundsError pseudo_gen(C, 0)
+      @test_throws BoundsError pseudo_gen(C, 3)
 
       @test e(1)^2 == (e(1) * e(1)) && e(1)^2 == C(a)
       @test e(2)^2 == (e(2) * e(2)) && e(2)^2 == C(1 - a)
@@ -272,7 +283,7 @@
       @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
       @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
       @test is_zero(C(1)^2 - C(1))
-      @test e(1) * e(2) == C(matrix(pseudo_basis(C, 4))[1,:])
+      @test e(1) * e(2) == pseudo_basis(C, 4)[1]
       @test e(1) * e(2) == C([0, 0, 0, 1])
       @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
     end
@@ -313,6 +324,13 @@
       @test_throws BoundsError x[5]
       @test_throws BoundsError coeff(x, 5)
     end
+    @testset "setindex!" begin
+      x = C([a, 2 * a, 3 * a, 4 * a])
+      for i in 1:4
+        x[i] = K()
+      end
+      x == C()
+    end
     @testset "mul_with_gen" begin
       x = C([-a^2, 2, a + 4, -1])
       @test mul_with_gen(coefficients(x), 1, gram_matrix(C)) ==
@@ -322,8 +340,8 @@
     end
     @testset "center and centroid" begin
       orth = C([-1, 0, 0, 2])
-      @test center(C) == pseudo_matrix(K[1 0 0 0], [ide])
-      @test centroid(C) == pseudo_matrix(K[1 0 0 0; 1 0 0 -1], [ide, ide])
+      @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
+      @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
     end
@@ -381,7 +399,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = ambient_algebra(C)
+      CA = algebra(C)
       x = C(QQ.(1:64))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -426,7 +444,7 @@
       @test_throws BoundsError x[rand(65:500)]
     end
     @testset "center and centroid" begin
-      @test center(C) == [one(C)]
+      @test basis_of_center(C) == [one(C)]
       z_elt = copy(QQzer)
       for i in [1, 4, 25, 34, 37, 49]
         z_elt[i] = QQ(1)
@@ -437,7 +455,7 @@
       z_elt[64] = QQ(4)
       z_elt = C(z_elt)
       @test even_part(z_elt) == z_elt
-      @test centroid(C) == [one(C), z_elt]
+      @test basis_of_centroid(C) == [one(C), z_elt]
       @test is_zero(z_elt^2 - z_elt + one(C))
       orth = 2 * z_elt - one(C)
       @test disq(C) == quadratic_discriminant(C)
@@ -497,7 +515,7 @@
       @test_throws ArgumentError divexact(x, 2//1)
     end
     @testset "conversion to ambient algebra and vice versa" begin
-      CA = ambient_algebra(C)
+      CA = algebra(C)
       x = C(QQ.(1:32))
       @test x == C(CA(x))
       @test CA(x) == CA(C(CA(x)))
@@ -539,7 +557,7 @@
       @test_throws BoundsError x[rand(33:500)]
     end     
     @testset "center and centroid" begin
-      @test center(C) == centroid(C)
+      @test basis_of_center(C) == basis_of_centroid(C)
       z_elt = copy(QQzer)
       for i in [2, 5, 17]
         z_elt[i] = QQ(1)
@@ -550,7 +568,7 @@
       z_elt[32] = QQ(4)
       z_elt = C(z_elt)
       @test odd_part(z_elt) == z_elt
-      @test centroid(C) == [one(C), z_elt]
+      @test basis_of_centroid(C) == [one(C), z_elt]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == ZZ(coefficients(z_elt^2)[1])
       @test disq(C) == ZZ(3)
