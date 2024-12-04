@@ -1661,9 +1661,14 @@ false
 ```
 """
 function ideal_membership(f::T, I::MPolyIdeal{T}; ordering::MonomialOrdering = default_ordering(base_ring(I))) where T
+  if is_zero(ngens(parent(f))) 
+    @assert coefficient_ring(parent(f)) isa Field "ideal membership not implemented in this case"
+    return (!is_unit(constant_coefficient(f)) || any(is_unit, gens(I)))
+  end
   Sx = singular_polynomial_ring(I, ordering)
   return Singular.iszero(Singular.reduce(Sx(f), singular_groebner_generators(I, ordering)))
 end
+
 Base.:in(f::MPolyRingElem, I::MPolyIdeal) = ideal_membership(f,I)
 #######################################################
 @doc raw"""
