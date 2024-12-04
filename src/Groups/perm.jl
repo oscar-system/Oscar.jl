@@ -242,8 +242,7 @@ However this incurs non-trivial overhead and so it is generally better
 to provide `G` explicitly.
 
 An exception is thrown if $x$ is not contained in `G`,
-if one of the given vectors is empty or contains duplicates, or
-if the cycles are not disjoint.
+or one of the given vectors is empty or contains duplicates.
 
 See also [`perm`](@ref) and [`@perm`](@ref) for other ways to create
 permutations.
@@ -253,8 +252,8 @@ permutations.
 julia> cperm([1,2,3],4:7)
 (1,2,3)(4,5,6,7)
 
-julia> cperm([1,2],[2,3])
-ERROR: ArgumentError: cycles are not disjoint
+julia> cperm([1,2],[2,3])  # cycles may overlap
+(1,3,2)
 
 julia> cperm()
 ()
@@ -269,21 +268,21 @@ julia> degree(p)
 Two permutations coincide if, and only if, they move the same points and their
 parent groups have the same degree.
 ```jldoctest
-julia> G=symmetric_group(5);
+julia> G = symmetric_group(5);
 
-julia> A=alternating_group(5);
+julia> A = alternating_group(5);
 
-julia> x=cperm(G,[1,2,3]);
+julia> x = cperm(G, [1,2,3]);
 
-julia> y=cperm(A,[1,2,3]);
+julia> y = cperm(A, [1,2,3]);
 
-julia> z=cperm([1,2,3]); parent(z)
+julia> z = cperm([1,2,3]); parent(z)
 Sym(3)
 
-julia> x==y
+julia> x == y
 true
 
-julia> x==z
+julia> x == z
 false
 ```
 In the example above, `x` and `y` are equal because both act on a set of
@@ -328,12 +327,24 @@ function _cperm(g::PermGroup, L)
     prev = last(y)
     for i in y
       @req 1 <= prev <= deg "the element does not embed in the group"
-      @req l[prev] == prev "cycles are not disjoint"
+      if l[prev] != prev
+        # cycles are not disjoint, fall back to generic but slower code
+        return _cperm_slow(g, L)
+      end
       l[prev] = i
       prev = i
     end
   end
   return perm(g, l)
+end
+
+# fallback in case there are overlapping cycles -- we
+# then resort to multiplication, which is slower but gets the job done
+function _cperm_slow(g::PermGroup, L)
+  h = symmetric_group(degree(g))
+  x = prod(y -> cperm(h, y), L)
+  @req x in g "the element does not embed in the group"
+  return PermGroupElem(g, GapObj(x))
 end
 
 @doc raw"""
