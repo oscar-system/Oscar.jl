@@ -7,6 +7,11 @@ DocTestSetup = Oscar.doctestsetup()
 
 Weyl groups are represented by objects of type `WeylGroup <: Group`, and their elements by `WeylGroupElem <: GroupElement`.
 
+!!! warning
+    Weyl groups in OSCAR only afford **right** actions on roots and weights.
+    Note however, that this may differ from the literature, but is to stay
+    consistent with the conventions in the rest of OSCAR.
+
 ## Table of contents
 
 ```@contents
@@ -76,7 +81,6 @@ reduced_expressions(::WeylGroupElem)
 ## Action on roots and weights
 
 ```@docs
-*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
 *(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)
 ```
 

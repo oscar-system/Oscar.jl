@@ -516,7 +516,7 @@ function Oscar.gmodule(K::Hecke.LocalField, k::Union{Hecke.LocalField, PadicFiel
   if prime(k) == 2
     #we need val(p^k) > 1/(p-1)
     #val(p) = 1 and the only critical one is p=2, where k>1 is
-    #neccessary
+    #necessary
     ex = 2
   else
     ex = 1

@@ -37,6 +37,7 @@ import ..Oscar:
   coefficient_ring,
   coefficients,
   compose,
+  demazure_character,
   derived_series,
   dim,
   direct_sum,
@@ -59,6 +60,7 @@ import ..Oscar:
   inv,
   is_abelian,
   is_finite,
+  is_gen,
   is_isomorphism,
   is_nilpotent,
   is_perfect,
@@ -124,6 +126,7 @@ include("Util.jl")
 include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
+include("WeightLattice.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 

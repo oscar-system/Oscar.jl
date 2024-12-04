@@ -743,17 +743,17 @@ AbstractAlgebra.exponent(a::MPolyDecRingElem, i::Int, j::Int, ::Type{T}) where T
 
 function has_weighted_ordering(R::MPolyDecRing)
   grading_to_ordering = false
-  w_ord = degrevlex(gens(R)) # dummy, not used
+  w_ord = degrevlex(R) # dummy, not used
   # This is not meant to be exhaustive, there a probably more gradings which one
   # can meaningfully translate into a monomial ordering
   # However, we want to stick to global orderings.
   if is_z_graded(R)
     w = Int[ R.d[i].coeff[1] for i = 1:ngens(R) ]
     if all(isone, w)
-      w_ord = degrevlex(gens(R))
+      w_ord = degrevlex(R)
       grading_to_ordering = true
     elseif all(>(0), w)
-      w_ord = wdegrevlex(gens(R), w)
+      w_ord = wdegrevlex(R, w)
       grading_to_ordering = true
     end
   end
@@ -1620,7 +1620,7 @@ end
 
 
 struct Homogenizer
-  P::MPolyRing              # orignal poly ring (?not graded?)
+  P::MPolyRing              # original poly ring (?not graded?)
   P_homog::MPolyDecRing     # graded poly ring: same vars as P, plus g extra homogenizing vars
   VarMap::Vector{Int}       # var[k] in P embeds to var[VarMap[k]] in P_homog
   HVars::Vector{Int}        # the homogenizing vars in p_homog are var[k] with k in HVars

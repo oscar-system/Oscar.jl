@@ -131,6 +131,13 @@ changes in the bibliography. If so, this test fails and indicates that the
 is not required that this test is passed. Still, please feel encouraged to fix
 this failure by running `bibtool` locally as explained above.
 
+!!! note "bibtool produces changes in unrelated parts of oscar_references.bib"
+    Sometimes `bibtool` will produce many changes when run locally. This can be
+    caused by a version difference. The version used in our github actions is
+    2.68. Check your version by running `bibtool -V`. When running this
+    command, please also pay attention whether any "Special configuration
+    options" are set.
+
 Please follow the additional guidelines below, that are not checked by bibtool:
 
 - Do not escape special characters like umlauts or accented characters. Instead, use the unicode character directly.

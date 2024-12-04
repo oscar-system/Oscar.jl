@@ -10,8 +10,7 @@ Root systems in this module are meant to be abstract root systems, i.e. they are
 The relevant types around root systems are:
 - `RootSystem` for the root system itself,
 - `RootSpaceElem` for elements in the root space, i.e. roots and linear combinations thereof,
-- `DualRootSpaceElem` for elements in the dual root space, i.e. coroots and linear combinations thereof,
-- `WeightLatticeElem` for elements in the weight lattice, i.e. weights and linear combinations thereof.
+- `DualRootSpaceElem` for elements in the dual root space, i.e. coroots and linear combinations thereof.
 
 !!! warning
     Most functionality around root systems is currently only intended to be used with root systems of finite type.
@@ -46,6 +45,7 @@ rank(::RootSystem)
 cartan_matrix(::RootSystem)
 ```
 ```@docs; canonical=false
+weight_lattice(::RootSystem)
 weyl_group(::RootSystem)
 ```
 
@@ -179,45 +179,4 @@ is_positive_coroot(::DualRootSpaceElem)
 is_positive_coroot_with_index(::DualRootSpaceElem)
 is_negative_coroot(::DualRootSpaceElem)
 is_negative_coroot_with_index(::DualRootSpaceElem)
-```
-
-
-## Weight lattice elements
-
-```@docs
-WeightLatticeElem(::RootSystem, ::Vector{<:IntegerUnion})
-WeightLatticeElem(::RootSystem, ::ZZMatrix)
-WeightLatticeElem(::RootSpaceElem)
-zero(::Type{WeightLatticeElem}, ::RootSystem)
-```
-
-```@docs
-root_system(::WeightLatticeElem)
-```
-
-Basic arithmetic operations like `zero`, `+`, `-`, `*` (with integer scalars), and `==` are supported.
-
-```@docs
-coeff(::WeightLatticeElem, ::Int)
-coefficients(::WeightLatticeElem)
-```
-
-```@docs
-iszero(::WeightLatticeElem)
-is_dominant(::WeightLatticeElem)
-is_fundamental_weight(::WeightLatticeElem)
-is_fundamental_weight_with_index(::WeightLatticeElem)
-```
-
-### Reflections
-```@docs
-reflect(::WeightLatticeElem, ::Int)
-reflect!(::WeightLatticeElem, ::Int)
-```
-
-### Conjugate dominant weight
-```@docs
-conjugate_dominant_weight(::WeightLatticeElem)
-conjugate_dominant_weight_with_left_elem(::WeightLatticeElem)
-conjugate_dominant_weight_with_right_elem(::WeightLatticeElem)
 ```

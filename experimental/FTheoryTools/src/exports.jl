@@ -217,5 +217,8 @@ export weighted_resolution_generating_sections
 export weighted_resolution_zero_sections
 export weighted_resolutions
 export weights
+export well_quantized_ambient_space_models_of_g4_fluxes
+export well_quantized_and_vertical_ambient_space_models_of_g4_fluxes
 export zero_section
 export zero_section_class
+export zero_section_index

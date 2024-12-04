@@ -59,7 +59,7 @@ polynomial_rings_for_initial(nu::TropicalSemiringMap) = nu.polynomial_rings_for_
 
 Return a map `nu` from `K` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=one(T)` for `c` non-zero.  In other words, `nu` extends the trivial valuation on `K`.
 
-# Example
+# Examples
 ```jldoctest
 julia> nu = tropical_semiring_map(QQ) # arbitrary rings possible
 Map into Min tropical semiring encoding the trivial valuation on Rational field
@@ -122,7 +122,7 @@ end
 
 Return a map `nu` from `QQ` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `p`-adic valuation.  Requires `p` to be a prime.
 
-# Example
+# Examples
 ```jldoctest
 julia> nu_2 = tropical_semiring_map(QQ,2)
 Map into Min tropical semiring encoding the 2-adic valuation on Rational field
@@ -192,7 +192,7 @@ end
 
 Return a map `nu` from rational function field `Kt` to the min (default) or max tropical semiring `T` such that `nu(0)=zero(T)` and `nu(c)=+/-val(c)` for `c` non-zero, where `val` denotes the `t`-adic valuation with uniformizer `t`.  Requires `t` to be non-constant and have denominator `1`.
 
-# Example
+# Examples
 ```jldoctest
 julia> Kt,t = rational_function_field(QQ,"t");
 

@@ -487,7 +487,7 @@ end
 """
     join(p::SetPartition, q::SetPartition)
 
-Return the join of `p` and `q`. This is the unqiue set partition, where two elements are in the same block of the partition
+Return the join of `p` and `q`. This is the unique set partition, where two elements are in the same block of the partition
 iff this is the case in `p` or `q`.
 
 # Examples

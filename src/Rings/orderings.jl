@@ -1581,7 +1581,7 @@ julia> cmp(lex([x,y,z]), z, one(R))
 julia> F = free_module(R, 2)
 Free module of rank 2 over R
 
-julia> cmp(lex(R)*invlex(F), F[1], F[2])
+julia> cmp(lex(R)*lex(F), F[1], F[2])
 -1
 ```
 """
@@ -1863,9 +1863,9 @@ function _cmp_vector_monomials(
   n::Int, g::MPolyRingElem, l::Int,
   o::ModOrdering)
 
-  if o.ord == :lex
+  if o.ord == :invlex
     return m < n ? 1 : m > n ? -1 : 0
-  elseif o.ord == :invlex
+  elseif o.ord == :lex
     return m > n ? 1 : m < n ? -1 : 0
   else
     error("oops")
@@ -1999,7 +1999,7 @@ end
 @doc raw"""
     index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
 
-Return the index of the leading term of `f` with repsect to the order `ord`. The
+Return the index of the leading term of `f` with respect to the order `ord`. The
 returned index is itself relative to the ordering in `AbstractAlgebra.terms(f)`.
 """
 function index_of_leading_term(f::MPolyRingElem, ord::MonomialOrdering)
