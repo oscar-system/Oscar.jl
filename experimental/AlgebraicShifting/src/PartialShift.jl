@@ -329,16 +329,16 @@ end
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem; kw...)
   n = n_vertices(K)
   phi = isomorphism(PermGroup, parent(w))
-  return exterior_shift(F, K, phi(w); kw)
+  return exterior_shift(F, K, phi(w); kw...)
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph; kw...)
   n = n_vertices(K)
   W = weyl_group(:A, n - 1)
-  return exterior_shift(F, K, longest_element(W); kw)
+  return exterior_shift(F, K, longest_element(W); kw...)
 end
 
-exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw)
+exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 
 ################################################################################
 # Las Vegas Partial Shifting
