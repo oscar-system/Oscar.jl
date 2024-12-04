@@ -364,9 +364,11 @@ random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
 # returns true if the target is the partial shift of src with respect to p
 function check_shifted(F::Field, src::UniformHypergraph,
                        target::UniformHypergraph, p::PermGroupElem)
-  target_faces = faces(target)
+  target_faces = sort(faces(target))
   max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
-  num_rows = length(target_faces)
+  # currently number of faces of src and target are the same
+  # this may change in the future
+  num_rows = length(faces(src)) 
   n = n_vertices(src)
   k = face_size(src)
   nCk = sort(subsets(n, k))
@@ -378,7 +380,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
   if max_face_index > num_rows
     M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
     Oscar.ModStdQt.ref_ff_rc!(M)
-    nCk[independent_columns(M)] != target_faces && return false
+    nCk[independent_columns(M)] != target_faces[1:end - 1] && return false
   end
   return true
 end
@@ -402,7 +404,7 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   shift = partialsort!([random_shift(F, K, p) for _ in 1:sample_size], 1;
                       lt=isless_lex)
   check_shifted(F, K, shift, p) && return shift
-  return exterior_shift_lv(F, K, p)
+  return nothing #exterior_shift_lv(F, K, p)
 end
 
 ###############################################################################

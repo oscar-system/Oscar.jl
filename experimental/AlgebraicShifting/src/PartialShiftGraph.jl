@@ -1,3 +1,4 @@
+# TODO: change Vector -> Set
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
@@ -181,6 +182,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
                              parallel::Bool = false,
                              show_progress::Bool = true,
                              task_size::Int=100) where T <: ComplexOrHypergraph
+  # see TODO above about changing EdgeLabels type
   # Deal with trivial case
   if length(complexes) == 1
     @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
