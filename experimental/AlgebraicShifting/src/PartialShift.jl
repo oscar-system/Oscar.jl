@@ -346,10 +346,10 @@ exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 function random_rothe_matrix(F::Field, p::PermGroupElem)
   char = characteristic(F)
   range = char == 0 ? 100 : char
-  u = identity_matrix(F, n)
   n = degree(parent(p))
+  u = identity_matrix(F, n)
   for (i, j) in inversions(p)
-    u[i, j] = F.(round.(Integer, range .* rand(i)) .- (range // 2)) 
+    u[i, j] = F.(round.(Integer, range .* rand()) .- (range // 2))
   end
   return u * permutation_matrix(F, p)
 end
@@ -361,45 +361,37 @@ end
 
 random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
 
-# returns true if the dst is the partial shift of src with respect to w
-function check_shifted(F::Field,
-                       src::UniformHypergraph,
-                       dst::UniformHypergraph,
-                       p::PermGroupElem)
-  dst_faces = faces(dst)
-  if length(dst_faces) == 1
-    max_face = dst_faces[1]
-  else
-    max_face = max(dst_faces...)
-  end
-  num_rows = length(dst_faces)
+# returns true if the target is the partial shift of src with respect to p
+function check_shifted(F::Field, src::UniformHypergraph,
+                       target::UniformHypergraph, p::PermGroupElem)
+  target_faces = faces(target)
+  max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
+  num_rows = length(target_faces)
   n = n_vertices(src)
   k = face_size(src)
   nCk = sort(subsets(n, k))
   max_face_index = findfirst(x -> x == max_face, nCk)
+  # limits the columns by the max face of source
   cols = nCk[1:max_face_index - 1]
   r = rothe_matrix(F, p)
-  
-  if max_face_index > num_rows 
+
+  if max_face_index > num_rows
     M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
     Oscar.ModStdQt.ref_ff_rc!(M)
-    nCk[independent_columns(M)] == dst_faces && return false
+    nCk[independent_columns(M)] != target_faces && return false
   end
   return true
 end
 
-function check_shifted(F::Field, 
-                       src::SimplicialComplex,
-                       dst::SimplicialComplex,
-                       p::PermGroupElem)
+function check_shifted(F::Field, src::SimplicialComplex,
+                       target::SimplicialComplex, p::PermGroupElem)
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = length(f_vec)
-
   while k > 1
     uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
-    uhg_dst = uniform_hypergraph(complex_faces(dst, k - 1), n)
-    !check_shifted(F, uhg_src, uhg_dst, p) && return false
+    uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
+    !check_shifted(F, uhg_src, uhg_target, p) && return false
     k -= 1
   end
   return true
