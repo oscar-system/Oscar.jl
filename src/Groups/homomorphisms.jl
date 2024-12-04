@@ -570,13 +570,7 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
    # Known isomorphisms are cached in the attribute `:isomorphisms`.
    isos = get_attribute!(Dict{Tuple{Type, Bool}, Any}, G, :isomorphisms)::Dict{Tuple{Type, Bool}, Any}
    return get!(isos, (FPGroup, on_gens)) do
-     if is_trivial(G)
-# TODO: remove this special treatment as soon as the change from
-#       https://github.com/gap-system/gap/pull/5700 is available in Oscar
-#       (not yet in GAP 4.13.0)
-       f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), GAP.Globals.FreeGroup(0), GAP.Obj([]), GAP.Obj([]))
-       GAP.Globals.SetIsBijective(f, true)
-     elseif on_gens
+     if on_gens
        Ggens = GAPWrap.GeneratorsOfGroup(GapObj(G))
        # The computations are easy if `Ggens` is a pcgs,
        # otherwise GAP will call `CoKernel`.

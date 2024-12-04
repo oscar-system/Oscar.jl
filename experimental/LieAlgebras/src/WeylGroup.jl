@@ -248,23 +248,8 @@ function Base.:*(x::WeylGroupElem, y::WeylGroupElem)
   return p
 end
 
-@doc raw"""
-    *(x::WeylGroupElem, r::RootSpaceElem) -> RootSpaceElem
-    *(x::WeylGroupElem, w::WeightLatticeElem) -> WeightLatticeElem
-
-Return the result of acting with `x` **from the left** on `r` or `w`.
-
-See also: [`*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)`](@ref).
-"""
-function Base.:*(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
-  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
-
-  rw2 = deepcopy(rw)
-  for s in Iterators.reverse(word(x))
-    reflect!(rw2, Int(s))
-  end
-
-  return rw2
+function Base.:*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
+  error("OSCAR only supports the right action of Weyl groups")
 end
 
 @doc raw"""
@@ -697,7 +682,7 @@ end
 
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
-# The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
+# The iterator returns a tuple (wt, x), such that wt*x == iter.weight;
 # this choice is made to align with conjugate_dominant_weight_with_elem
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
@@ -719,7 +704,10 @@ function Base.iterate(iter::WeylIteratorNoCopy, state::WeylIteratorNoCopyState)
   if isnothing(state)
     return nothing
   end
-  return state, state
+  # return state, state
+  # TODO: change internals of iterator to return (wt, x) with wt*x == iter.weight instead of the hack below
+  wt, x = state
+  return (wt, inv(x)), state
 end
 
 function _iterate_nocopy(state::WeylIteratorNoCopyState)

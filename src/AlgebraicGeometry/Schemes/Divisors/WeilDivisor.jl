@@ -67,7 +67,7 @@ end
 Given an ideal sheaf `I` of pure codimension ``1``, return the weil divisor $D = 1 ⋅ I$ with
 coefficients in the integer ring.
 
-# Example
+# Examples
 ```jldoctest
 julia> P, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
