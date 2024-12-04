@@ -5,15 +5,16 @@ function random_origami(d::Integer)
     perm_group = permutation_group(d, [h, v])
     while !(transitivity(perm_group) > 0)
         v = rand(symm_group)
+        perm_group = permutation_group(d, [h, v])
     end
     return origami_disconnected(h, v, d)
 end
 
 function staircase_origami(length::Integer, height::Integer, steps::Integer)
-    h = @perm ()
-    v = @perm ()
     sum_l_h = length + height
     G = symmetric_group(steps * sum_l_h)
+    h = one(G)
+    v = one(G)
 
     for step in 1:(steps - 1)
         h_start = (step - 1) * (sum_l_h) + 1
@@ -37,11 +38,12 @@ function staircase_origami(length::Integer, height::Integer, steps::Integer)
 end
 
 function x_origami(half_degree::Integer)
-    sigma_h = cperm(1:2*half_degree)
-    sigma_v = cperm()
+    G = symmetric_group(2*half_degree)
+    sigma_h = cperm(G, 1:2*half_degree)
+    sigma_v = one(G)
 
     for tile in 1:half_degree
-        sigma_v = sigma_v * @perm (2 * tile - 1, 2 * tile)
+        sigma_v = sigma_v * cperm(G, [2 * tile - 1, 2 * tile])
     end
 
     return normal_form(origami(sigma_h, sigma_v))

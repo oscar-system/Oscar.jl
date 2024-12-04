@@ -3,10 +3,9 @@ function symplectic_basis_of_homology(O::Origami)
 end
 
 function has_spin_structure(O::Origami)
-    return GAP.Globals.HasSpinStructure(GapObj(O))
+    return GAP.Globals.HasSpinStructure(GapObj(O))::Bool
 end
 
 function spin_parity(O::Origami)
-    return GAP.Globals.SpinParity(GapObj(O))
+    return GAP.Globals.SpinParity(GapObj(O))::Int
 end
-

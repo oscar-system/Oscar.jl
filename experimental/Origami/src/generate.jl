@@ -181,7 +181,7 @@ function origami_from_cylinder_coordinates(cyl_diagram::CylinderDiagram, lengths
     end
     lx = perm([x + 1 for x in lx])
 
-    ly::Vector{Int} = []
+    ly = Int[]
     for i in 1:cyl_diagram.cycles_count
         append!(ly, (v[i]+widths[i]):(v[i+1]-1))
         append!(ly, zeros(Int64, widths[i]))
@@ -269,18 +269,14 @@ end
 function possible_lengths_and_heights(cyl_diagram::CylinderDiagram, degree::Int)
     potential_heights = partition_degree(cyl_diagram.cycles_count, degree)
     potential_lengths = realizable_lengths_of_cylinder_diagram(cyl_diagram, degree)
-    result::Vector{Vector{Vector{Int}}} = []
+    result = Vector{Vector{Vector{Int}}}()
     cyls = cylinders(cyl_diagram)
     for h in potential_heights
         for l in potential_lengths
 
             square_count = 0
             for i in 1:cyl_diagram.cycles_count
-                cycle_length = length(cyls[i][1])
-                length_sum = 0
-                for j in 1:cycle_length
-                    length_sum += l[cyls[i][1][j]+1]
-                end
+                length_sum = sum(l[j+1] for j in cyls[i][1])
                 square_count += length_sum * h[i]
             end
 
