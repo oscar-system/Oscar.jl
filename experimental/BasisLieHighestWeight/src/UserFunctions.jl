@@ -162,7 +162,7 @@ for a simple Lie algebra $L$ of type `type_rank`.
 
 Let $\omega_0 = s_{i_1} \cdots s_{i_N}$ be a reduced expression of the longest element in the Weyl group of $L$
 given as indices $[i_1, \dots, i_N]$ in `reduced_expression`.
-Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\beta_1 := \alpha_{i_1}$ and \beta_k := s_{i_1} \cdots s_{i_{k-1}} \alpha_{i_k}$ for $k = 2, \dots, N$.
+Then the birational sequence used consists of $\beta_1, \dots, \beta_N$ where $\beta_1 := \alpha_{i_1}$ and \beta_k := \alpha_{i_k} s_{i_{k-1}} \cdots s_{i_1}$ for $k = 2, \dots, N$.
 
 The monomial ordering is fixed to `wdegrevlex` (weighted degree reverse lexicographic order).
 
