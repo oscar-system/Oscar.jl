@@ -215,7 +215,7 @@ end
   n = nvars(cox_ring(X))
   phi_exponents = zeros(ZZ, n)
   for i in 1:n
-    ray = Oscar._ray_variable_correspondence(X)[cox_ring(X)[i]]
+    ray = _ray_variable_correspondence(X)[cox_ring(X)[i]]
     j = findfirst(isequal(ray), rays(c))
     if isnothing(j)
       phi_exponents[i] = ZZ(0)
