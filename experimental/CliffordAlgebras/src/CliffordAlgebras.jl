@@ -545,7 +545,7 @@ function _mul_baseelt_with_gen(char::Int, i::Int, gram::MatElem)
     res[char + 2^(i - 1)] = R(1)
     return res
   end
-  j = floor(Int, log2(char - 1)) + 1
+  j = 8 * sizeof(Int) - leading_zeros(char - 1)
   if j < i
     res[char + 2^(i - 1)] = R(1)
     return res
