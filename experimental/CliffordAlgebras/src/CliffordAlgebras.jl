@@ -490,13 +490,9 @@ odd_part(x::CliffordAlgebraElem) = parent(x)(odd_coefficients(x))
 ################################################################################
 
 function _set_even_odd_coefficients!(x::CliffordAlgebraElem)
-  x.even_coeffs = map(
-    y -> if sum(digits(y - 1; base=2, pad=_dim_qf(x.parent))) % 2 == 0
-      x.coeffs[y]
-    else
-      x.parent.base_ring()
-    end, 1:(x.parent.dim)
-  )
+  R = base_ring(parent(x))
+  d = dim(parent(x))
+  x.even_coeffs = [ iseven(count_ones(y - 1)) ? x.coeffs[y] : R() for y in 1:d]
   x.odd_coeffs = x.coeffs - x.even_coeffs
   return x
 end
