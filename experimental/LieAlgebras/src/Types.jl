@@ -177,8 +177,8 @@ struct WeylGroupElem <: AbstractAlgebra.GroupElem
 
     @req all(1 <= i <= ngens(W) for i in word) "word contains invalid generators"
     x = new(W, sizehint!(UInt8[], length(word)))
-    for s in Iterators.reverse(word)
-      lmul!(x, s)
+    for s in word
+      rmul!(x, s)
     end
 
     return x

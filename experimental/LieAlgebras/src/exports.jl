@@ -76,7 +76,6 @@ export is_simple_root
 export is_simple_root_with_index
 export killing_matrix
 export lie_algebra
-export lmul, lmul!
 export longest_element
 export lower_central_series
 export matrix_repr_basis
@@ -93,6 +92,7 @@ export positive_root
 export positive_roots
 export reduced_expressions
 export reflect, reflect!
+export rmul, rmul!
 export root_system, has_root_system
 export root_system_type, has_root_system_type
 export root_system_type_with_ordering
