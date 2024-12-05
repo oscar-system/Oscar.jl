@@ -998,7 +998,7 @@ function _set_coefficient_ideals!(ls::QuadLat)
   end
   return res
 end
-
+#=
 function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
   x.even_coeffs = map(
                       y -> if sum(digits(y - 1; base=2, pad=rank(x.parent.lattice))) % 2 == 0
@@ -1010,6 +1010,15 @@ function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrder
   x.odd_coeffs = x.coeffs - x.even_coeffs
   return x
 end
+=#
+function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
+  R = base_ring(algebra(parent(x)))
+  d = rank(parent(x))
+  x.even_coeffs = [ iseven(count_ones(y - 1)) ? x.coeffs[y] : R() for y in 1:d]
+  x.odd_coeffs = x.coeffs - x.even_coeffs
+  return x
+end
+
 
 function _can_convert_coefficients(coeff::Vector{S}, K::Field) where {S}
   if length(coeff) == 0
