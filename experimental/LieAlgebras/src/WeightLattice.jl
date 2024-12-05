@@ -463,10 +463,24 @@ function reflect!(w::WeightLatticeElem, s::Int)
   return w
 end
 
+@doc raw"""
+    reflect(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+  
+Return the reflection of `w` in the hyperplane orthogonal to root `beta`.
+
+See also: [`reflect!(::WeightLatticeElem, ::RootSpaceElem)`](@ref).
+"""
 function reflect(w::WeightLatticeElem, beta::RootSpaceElem)
   return reflect!(deepcopy(w), beta)
 end
 
+@doc raw"""
+    reflect!(w::WeightLatticeElem, beta::RootSpaceElem) -> RootSpaceElem
+
+Reflect `w` in the hyperplane orthogonal to the root `beta`, and return it.
+
+This is a mutating version of [`reflect(::WeightLatticeElem, ::RootSpaceElem)`](@ref).
+"""
 function reflect!(w::WeightLatticeElem, beta::RootSpaceElem)
   @req root_system(w) === root_system(beta) "Incompatible root systems"
   for s in word(reflection(beta))
