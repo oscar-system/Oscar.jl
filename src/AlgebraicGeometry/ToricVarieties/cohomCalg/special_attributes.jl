@@ -7,14 +7,14 @@
 
 Compute the vanishing sets of an abstract toric variety `v` by use of the cohomCalg algorithm.
 """
-@attr function vanishing_sets(variety::NormalToricVarietyType)
+@attr Vector{ToricVanishingSet} function vanishing_sets(variety::NormalToricVarietyType)
     denominator_contributions = contributing_denominators(variety)
     vs = ToricVanishingSet[]
     for i in 1:length(denominator_contributions)
         list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions[i]]
         push!(vs, ToricVanishingSet(variety, list_of_polyhedra, [i-1]))
     end
-    return vs::Vector{ToricVanishingSet}
+    return vs
 end
 
 
@@ -56,7 +56,7 @@ x_1 - x_2 <= -2
 x_1 <= -3
 ```
 """
-@attr function immaculate_line_bundles(variety::NormalToricVarietyType)
+@attr Any function immaculate_line_bundles(variety::NormalToricVarietyType)
     denominator_contributions = reduce(vcat, contributing_denominators(variety))
     list_of_polyhedra = Polyhedron{QQFieldElem}[turn_denominator_into_polyhedron(variety, m) for m in denominator_contributions]
     return ToricVanishingSet(variety, list_of_polyhedra, collect(0:dim(variety)))
@@ -184,7 +184,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # read out the result
         stdout = read(out, String)
-        result = [ZZRingElem(parse(Int, c)) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
+        result = [parse(ZZRingElem, c) for c in split(chop(chop(split(stdout, "{" )[4])), ",")]
         
         # consistency check
         if length(result) != dim(v)+1
@@ -193,7 +193,7 @@ function all_cohomologies(l::ToricLineBundle)
         
         # return result
         return result
-    end
+    end::Vector{ZZRingElem}
 end
 
 

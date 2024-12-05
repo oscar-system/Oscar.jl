@@ -1,5 +1,5 @@
 @testset "Hilbert series" begin
-  P, x = graded_polynomial_ring(QQ, 5, "x", [1 1 1 1 1; 1 -2 3 -4 5]);
+  P, x = graded_polynomial_ring(QQ, 5, :x, [1 1 1 1 1; 1 -2 3 -4 5]);
   G =
   [
    x[1]^30*x[2]^16*x[3]^7*x[4]^72*x[5]^31,
@@ -61,54 +61,54 @@
   (num2,_), (_,_) = multi_hilbert_series(PmodI; parent=S, backend=:Zach);
   @test num2 == num1
 
-  P2, x = graded_polynomial_ring(QQ, 5, "x", [1 1 1 1 1])
+  P2, x = graded_polynomial_ring(QQ, 5, :x, [1 1 1 1 1])
   G = P2.(G);
 
   I = ideal(P2,G);
   PmodI, _ = quo(P2,I);
   num1, _ = hilbert_series(PmodI);
-  L, q = laurent_polynomial_ring(ZZ, "q");
+  L, q = laurent_polynomial_ring(ZZ, :q);
   num2, _ = hilbert_series(PmodI; parent=L);
   @test num2 == evaluate(num1, q)
 end
 
 @testset "second round of Hilbert series" begin
   # Standard graded
-  R, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+  R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
   J = ideal(R, [y-x^2, z-x^3]);
   H = homogenizer(R, "w")
   I = H(J)
   A, _ = quo(base_ring(I), I);
   numer1, denom1 = hilbert_series(A);
-  S, t = laurent_polynomial_ring(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, :t);
   numer2, denom2 = hilbert_series(A; parent=S);
-  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  Smult, (T,) = polynomial_ring(ZZ, [:t]);
   numer3, denom3 = hilbert_series(A; parent=Smult);
   @test numer3 == evaluate(numer1, T)
   @test numer2 == evaluate(numer1, t)
 
   # Negative grading
-  RR, (X, Y) = graded_polynomial_ring(QQ, ["X", "Y"], [-1, -1])
+  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y], [-1, -1])
   JJ = ideal(RR, X^2 - Y^2);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), _ = multi_hilbert_series(A);
-  S, t = laurent_polynomial_ring(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, :t);
   (numer2, denom2), _ = multi_hilbert_series(A; parent=S);
-  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  Smult, (T,) = polynomial_ring(ZZ, [:t]);
   @test_throws  DomainError  multi_hilbert_series(A; parent=Smult)
 
   # Graded by commutative group
   G = free_abelian_group(2);
   G, _ = quo(G, [G[1]-3*G[2]]);
-  RR, (X, Y) = graded_polynomial_ring(QQ, ["X", "Y"], [G[1], G[2]]);
+  RR, (X, Y) = graded_polynomial_ring(QQ, [:X, :Y], [G[1], G[2]]);
   JJ = ideal(RR, X^2 - Y^6);
   A, _ = quo(base_ring(JJ), JJ);
   (numer1, denom1), (H, iso) = multi_hilbert_series(A);
   @test is_free(H) && isone(torsion_free_rank(H))
-  S, t = laurent_polynomial_ring(ZZ, "t");
+  S, t = laurent_polynomial_ring(ZZ, :t);
   (numer2, denom2), (H, iso) = multi_hilbert_series(A; parent=S);
   @test is_free(H) && isone(torsion_free_rank(H))
-  Smult, (T,) = polynomial_ring(ZZ, ["t"]);
+  Smult, (T,) = polynomial_ring(ZZ, [:t]);
   (numer3, denom3), (H, iso) = multi_hilbert_series(A; parent=Smult);
   @test is_free(H) && isone(torsion_free_rank(H))
   @test numer1 == evaluate(numer2, T)
@@ -116,7 +116,7 @@ end
 end
 
 @testset "Hilbert series part 3" begin
-  R, (x, y) = graded_polynomial_ring(QQ, ["x", "y"], [1, -1]);
+  R, (x, y) = graded_polynomial_ring(QQ, [:x, :y], [1, -1]);
   I = ideal(R, [x]);
   RmodI, _ = quo(R, I);
   @test_throws ArgumentError  hilbert_series(RmodI);  # weights must be non-neg
@@ -126,7 +126,7 @@ end
 @testset "Hilbert series part 4" begin
   # This test verifies that an intermediate overflow that was reported in
   # https://github.com/oscar-system/Oscar.jl/issues/2411 is fixed.
-  A, x = graded_polynomial_ring(QQ, ["x$i" for i in 1:37])
+  A, x = graded_polynomial_ring(QQ, :x => 1:37)
   I = ideal([2*x[11] - 2*x[17] - 2*x[24] + 2*x[32] - 111916*x[37], 2*x[4] - 2*x[8] - 2*x[26] + 2*x[34] - 41216*x[37], 2*x[2] - 2*x[9] - 2*x[20] + 2*x[35] + 37974*x[37], x[28] - x[36], x[21] - x[36], x[27] - x[28] + x[33] + x[36], x[26] - x[27] - x[33] + x[34], x[20] - x[21] + x[35] + x[36], x[15] - x[21] - x[28] + x[36], x[10] - x[36], x[25] - x[28] + x[31] + x[36], x[24] - x[25] - x[26] + x[27] - x[31] + x[32] + x[33] - x[34], -x[14] + x[15] + x[18] - x[21] + x[25] - x[28] + x[31] + x[36], x[13] - x[14] + x[18] - x[19] - 2*x[20] + 2*x[21] - x[26] + x[27] + x[33] - x[34] - 2*x[35] - 2*x[36], x[9] - x[10] + x[35] + x[36], x[6] - x[10] - x[28] + x[36], x[19] - x[21] + x[30] + x[36], -x[18] + x[19] + x[23] - x[25] - x[27] + x[28] + x[30] - x[31] - x[33] - x[36], x[17] - x[19] - x[30] + x[32], x[12] - x[14] - x[17] + x[18] - x[27] + x[28] + x[31] - x[32] - x[33] - x[36], x[8] - x[10] + x[34] + x[36], x[5] - x[6] - x[8] + x[10] - x[27] + x[28] - x[34] - x[36], x[3] - x[10] - x[21] + x[36], -x[18] + x[19] + x[20] - x[21] + x[29] + x[30] + x[35] + x[36], x[22] + x[23] + x[24] - x[25] - x[29] - x[30] - x[31] + x[32], x[16] + x[17] + x[18] - x[19] - x[22] - x[23] - x[24] + x[25], x[11] + x[12] + x[13] - x[14] - x[16] - x[17] - x[18] + x[19] + x[22] + x[23] + x[24] - x[25] + x[29] + x[30] + x[31] - x[32], x[7] + x[8] + x[9] - x[10] - x[33] + x[34] + x[35] + x[36], x[4] + x[5] + x[9] - x[10] + x[26] - x[27] + x[35] + x[36], x[2] + x[3] + x[9] - x[10] + x[20] - x[21] + x[35] + x[36], x[1] - x[3] - x[6] + x[10] - x[15] + x[21] + x[28] - x[36], -x[27]*x[36] + x[34]*x[35], -x[25]*x[36] + x[32]*x[35], x[14]*x[36] + x[19]*x[35] + x[25]*x[36] + x[27]*x[36] - x[32]*x[35] - x[34]*x[35], -x[19]*x[36] - x[25]*x[36] + x[32]*x[34] + x[32]*x[35], -x[19]*x[35] - x[19]*x[36] + x[25]*x[34] - x[25]*x[36] + x[32]*x[34] + x[32]*x[35], x[14]*x[36] - x[19]*x[35] + x[25]*x[34] + x[27]*x[32], x[14]*x[35] - x[14]*x[36] + x[19]*x[35] - x[19]*x[36] + x[25]*x[27] - x[25]*x[34] - x[27]*x[32] + x[32]*x[34], x[14]*x[34] + x[19]*x[27] - 2*x[19]*x[35] + 2*x[25]*x[34] - x[25]*x[36] + x[32]*x[35], x[14]*x[32] - 2*x[14]*x[36] + x[19]*x[25] - 2*x[19]*x[35] - x[27]*x[36] + x[34]*x[35]])
   Q, _ = quo(A, I)
   h = hilbert_polynomial(Q)

@@ -122,7 +122,7 @@ function is_finite(F::AffAlgHom)
   b = falses(n)
   for f in gb
     exp = exponent_vector(leading_monomial(f, ordering = o), 1)
-    inds = findall(x -> x != 0, exp)
+    inds = findall(!is_zero, exp)
     if length(inds) > 1 || inds[1] > n
       continue
     end
@@ -145,11 +145,11 @@ If `F` is bijective, return its inverse.
 
 # Examples
 ```jldoctest
-julia> D1, (x, y, z) = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> D1, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> D, _ = quo(D1, [y-x^2, z-x^3]);
 
-julia> C, (t,) = polynomial_ring(QQ, ["t"]);
+julia> C, (t,) = polynomial_ring(QQ, [:t]);
 
 julia> F = hom(D, C, [t, t^2, t^3]);
 
@@ -259,19 +259,19 @@ end
 function _groebner_data(F::AffAlgHom)
   R = domain(F)
   S = codomain(F)
+  K = coefficient_ring(R)
+  @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
   S2 = base_ring(modulus(S))
   m = ngens(R)
   n = ngens(S)
   J = get_attribute!(F, :groebner_data) do
-    K = coefficient_ring(R)
-    @req K === coefficient_ring(S) "Coefficient rings of domain and codomain must coincide"
     T, _ = polynomial_ring(K, m + n; cached = false)
 
     S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
 
     fs = map(lift, _images(F))
     return S2toT(modulus(S)) + ideal(T, [ gen(T, n + i) - S2toT(fs[i]) for i in 1:m ])
-  end
+  end::MPolyIdeal{mpoly_type(K)}
   T = base_ring(J)
   S2toT = hom(S2, T, [ gen(T, i) for i in 1:n ])
   TtoR = hom(T, R, append!(zeros(R, n), gens(R)))

@@ -18,7 +18,7 @@
 Return the global Tjurina algebra of the affine hypersurface `V(f)`.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -43,7 +43,7 @@ Return the global Tjurina algebra of the affine scheme `X`, if `X` is a hypersur
 Throws an error otherwise.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> X = AffineScheme(quo(R, ideal(R, x^3-y^2))[1])
 Spectrum
@@ -74,7 +74,7 @@ By default computes the local Tjurina algebra (`k=0`) at `p`.
 Higher Tjurina algebras are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3-y^2;
 
@@ -110,7 +110,7 @@ By default computes the local Tjurina algebra (`k=0`) at `p`.
 Higher Tjurina algebras are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = GF(2)["x", "y"];
+julia> R,(x,y) = GF(2)[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -152,7 +152,7 @@ end
 Return the global Tjurina number of a polynomial `f`.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x*(x-1)*y;
 
@@ -172,7 +172,7 @@ end
 Return the global Tjurina number of the affine scheme `X`, if `X` is a hypersurface.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -202,7 +202,7 @@ By default computes the local Tjurina number (`k=0`) at `p`.
 Higher Tjurina numbers are of interest in positive characteristic.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^3 - y^2;
 
@@ -228,7 +228,7 @@ By default computes the local Tjurina number (`k=0`) at `p`.
 Higher Tjurina numbers are of interest in positive characteristic. 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -262,7 +262,7 @@ end
 Return the order of the series expansion of an element of a local ring at the localized point.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L0,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -298,7 +298,7 @@ Return if 'f' is finitely determined with respect to ':right' or ':contact' equi
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -345,7 +345,7 @@ Return if the hypersurface germ 'X' is finitely determined with respect to ':rig
 By default computes with respect to contact equivalence.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^2 - y^2;
 
@@ -375,7 +375,7 @@ By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -427,7 +427,7 @@ By default computes with respect to contact equivalence.
 This computation is based on the Milnor number respectively Tjurina number.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5 + x^2*y^2;
 
@@ -460,7 +460,7 @@ some sharper determinacy bound than the function determinacy_bound.
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -522,7 +522,7 @@ some sharper determinacy bound than the function determinacy_bound.
 In characteristic 0 the computed bound is the determinacy or the determinacy plus one.
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x", "y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> f = x^5 + y^5;
 
@@ -644,7 +644,7 @@ Return if 'f' and 'g' are contact equivalent.
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
-julia> R, (x,y) = QQ["x", "y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> L,_  = localization(R, complement_of_point_ideal(R, [0, 0]));
 
@@ -718,7 +718,7 @@ Return if the hypersurface germs 'X' and 'Y' are contact equivalent.
 Throws an error if method was unable to determine contact equivalence.
 # Examples
 ```jldoctest
-julia> R, (x,y) = QQ["x", "y"];
+julia> R, (x,y) = QQ[:x, :y];
 
 julia> X = HypersurfaceGerm(AffineScheme(quo(R, ideal(R, x^3+y^2))[1]), [0, 0]);
 
@@ -738,3 +738,96 @@ function is_contact_equivalent(X::HypersurfaceGerm, Y::HypersurfaceGerm)
   g = defining_ideal(Y)[1]
   return is_contact_equivalent(f, g)
 end
+
+
+
+
+################################################################################
+
+#####                           Tjurina module                             #####
+
+################################################################################
+
+
+@doc raw"""
+    tjurina_module(X::CompleteIntersectionGerm) 
+
+Return the Tjurina module of the complete intersection germ `(X,p)` at the point `p`.
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x","y","z"];
+
+julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
+
+julia> X = CompleteIntersectionGerm(spec(quo(R, I)[1]), [0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal (x^2 + y^2 - z^2, x*y)
+    at complement of maximal ideal of point (0, 0, 0)
+
+julia> T = tjurina_module(X)
+Subquotient of submodule with 2 generators
+  1: e[1]
+  2: e[2]
+by submodule with 7 generators
+  1: 2*x*e[1] + y*e[2]
+  2: 2*y*e[1] + x*e[2]
+  3: -2*z*e[1]
+  4: (x^2 + y^2 - z^2)*e[1]
+  5: (x^2 + y^2 - z^2)*e[2]
+  6: x*y*e[1]
+  7: x*y*e[2]
+
+julia> vector_space_basis(T)
+5-element Vector{Any}:
+ e[1]
+ e[2]
+ y*e[1]
+ y*e[2]
+ z*e[2]
+```
+"""
+function tjurina_module(X::CompleteIntersectionGerm) 
+  I = defining_ideal(X)
+  k = ngens(I)
+  R = base_ring(I)
+  M = free_module(R, k)
+  J = jacobian_matrix(gens(I))
+  S = sub(M,J)[1] + (I*M)[1]
+  return quo(M, S)[1]
+end
+
+
+
+@doc raw"""
+    tjurina_number(X::CompleteIntersectionGerm)
+
+Return Tjurina number of the complete intersection germ `(X,p)` at the point `p`. 
+# Examples
+```jldoctest
+julia> R, (x,y,z) = QQ["x","y","z"];
+
+julia> I = ideal(R, [x^2+y^2-z^2, x*y]);
+
+julia> X = CompleteIntersectionGerm(spec(quo(R, I)[1]), [0,0,0])
+Spectrum
+  of localization
+    of quotient
+      of multivariate polynomial ring in 3 variables x, y, z
+        over rational field
+      by ideal (x^2 + y^2 - z^2, x*y)
+    at complement of maximal ideal of point (0, 0, 0)
+
+julia> tjurina_number(X)
+5
+```
+"""
+function tjurina_number(X::CompleteIntersectionGerm)
+  d = vector_space_dimension(tjurina_module(X))
+  return d == -1 ? PosInf() : d
+end
+
+

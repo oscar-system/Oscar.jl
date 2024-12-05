@@ -6,10 +6,14 @@ include(
 )
 
 @testset "LieAlgebras.WeylGroup" begin
-  b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
-  b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
-  f4_w0 = UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
-  g2_w0 = UInt8[2, 1, 2, 1, 2, 1]
+  function is_in_normal_form(x::WeylGroupElem)
+    return word(parent(x)(word(x))) == word(x)
+  end
+
+  b3_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3]
+  b4_w0 = UInt8[1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 4, 3, 4]
+  f4_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4]
+  g2_w0 = UInt8[1, 2, 1, 2, 1, 2]
 
   @testset "weyl_group(::ZZMatrix)" begin
     W = weyl_group(cartan_matrix(:A, 2))
@@ -50,8 +54,9 @@ include(
     @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
   end
 
-  @testset "WeylGroup Group conformace test for $(Gname)" for (Gname, G) in [
+  @testset "WeylGroup Group conformace test for $(Wname)" for (Wname, W) in [
     ("A1", weyl_group(:A, 1)),
+    ("A5", weyl_group(:A, 5)),
     ("B4", weyl_group(root_system(:B, 4))),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
@@ -87,8 +92,85 @@ include(
     ),
   ]
     # TODO: @felix-roehrich make this work
-    # test_Group_interface(G)
-    # test_GroupElem_interface(rand(G, 2)...)
+    # test_Group_interface(W)
+    # test_GroupElem_interface(rand(W, 2)...)
+
+    @testset "isomorphism(FPGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
+                                                                                     [
+      false, true
+    ]
+      G = fp_group(W; set_properties)
+      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+        @test is_finite(G) == is_finite(W)
+        is_finite(W) && @test order(G) == order(W)
+      end
+
+      iso = isomorphism(FPGroup, W; set_properties)
+      @test W == domain(iso)
+      G = codomain(iso)
+      if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+        @test is_finite(G) == is_finite(W)
+        is_finite(W) && @test order(G) == order(W)
+        if ngens(W) < 10 #= for sane runtime =#
+          for _ in 1:5
+            if is_finite(W) # remove once rand(W) is implemented for infinite groups
+              w = rand(W)
+              @test w == inv(iso)(iso(w))
+              v = rand(W)
+              @test iso(v * w) == iso(v) * iso(w)
+              @test v * w == inv(iso)(iso(v) * iso(w))
+            end
+            g = rand_pseudo(G)
+            @test is_in_normal_form(inv(iso)(g))
+            @test g == iso(inv(iso)(g))
+            h = rand_pseudo(G)
+            @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+            @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+          end
+        end
+      end
+    end
+
+    if has_root_system_type(root_system(W))
+      type, ordering = root_system_type_with_ordering(root_system(W))
+      if length(type) == 1 && issorted(ordering) && only(type)[1] == :A # only implemented for A_n (yet)
+        @testset "isomorphism(PermGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
+                                                                                           [
+          false, true
+        ]
+          G = permutation_group(W; set_properties)
+          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+            @test is_finite(G) == is_finite(W)
+            is_finite(W) && @test order(G) == order(W)
+          end
+
+          iso = isomorphism(PermGroup, W; set_properties)
+          @test W == domain(iso)
+          G = codomain(iso)
+          if (is_finite(W) && ngens(W) < 6) || set_properties #= for sane runtime =#
+            @test is_finite(G) == is_finite(W)
+            is_finite(W) && @test order(G) == order(W)
+            if ngens(W) < 10 #= for sane runtime =#
+              for _ in 1:5
+                if is_finite(W) # remove once rand(W) is implemented for infinite groups
+                  w = rand(W)
+                  @test w == inv(iso)(iso(w))
+                  v = rand(W)
+                  @test iso(v * w) == iso(v) * iso(w)
+                  @test v * w == inv(iso)(iso(v) * iso(w))
+                end
+                g = rand_pseudo(G)
+                @test is_in_normal_form(inv(iso)(g))
+                @test g == iso(inv(iso)(g))
+                h = rand_pseudo(G)
+                @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
+                @test h * g == iso(inv(iso)(h) * inv(iso)(g))
+              end
+            end
+          end
+        end
+      end
+    end
   end
 
   @testset "<(x::WeylGroupElem, y::WeylGroupElem)" begin
@@ -119,11 +201,11 @@ include(
         return true
       end
 
-      wt = x * weyl_vector(root_system(parent(x)))
+      wt = weyl_vector(root_system(parent(x))) * x
       j = length(x)
-      for i in 1:length(y)
-        if wt[Int(y[i])] < 0
-          reflect!(wt, Int(y[i]))
+      for y_i in Iterators.reverse(word(y))
+        if wt[Int(y_i)] < 0
+          reflect!(wt, Int(y_i))
 
           j -= 1
           if j == 0
@@ -161,6 +243,7 @@ include(
       W = weyl_group(fam, rk)
       for x in W
         ix = inv(x)
+        @test is_in_normal_form(ix)
         @test length(ix) == length(x)
         @test isone(ix * x) == isone(x * ix) == true
       end
@@ -174,33 +257,46 @@ include(
       elems = collect(W)
       @test allunique(elems)
       @test length(elems) == order(W)
+      @test all(is_in_normal_form, W)
     end
   end
 
   @testset "longest_element(W::WeylGroup)" begin
     # A1
     W = weyl_group(:A, 1)
-    @test longest_element(W) == gen(W, 1)
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test w0 == gen(W, 1)
 
     # A2
     W = weyl_group(:A, 2)
-    @test word(longest_element(W)) == UInt8[1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[1, 2, 1]
 
     # B2
     W = weyl_group(:B, 2)
-    @test word(longest_element(W)) == UInt8[2, 1, 2, 1]
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == UInt8[1, 2, 1, 2]
 
     # B3
     W = weyl_group(:B, 3)
-    @test word(longest_element(W)) == b3_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == b3_w0
 
     # F4
     W = weyl_group(:F, 4)
-    @test word(longest_element(W)) == f4_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == f4_w0
 
     # G2
     W = weyl_group(:G, 2)
-    @test word(longest_element(W)) == g2_w0
+    w0 = longest_element(W)
+    @test is_in_normal_form(w0)
+    @test word(w0) == g2_w0
   end
 
   @testset "ngens(W::WeylGroup)" begin
@@ -212,9 +308,9 @@ include(
     @test ngens(weyl_group(:F, 4)) == 4
     @test ngens(weyl_group(:G, 2)) == 2
 
-    @test ngens(weyl_group((:A, 2), (:B, 4))) == 6
-    @test ngens(weyl_group((:C, 3), (:E, 7))) == 10
-    @test ngens(weyl_group((:F, 4), (:G, 2))) == 6
+    @test ngens(weyl_group((:A, 2), (:B, 4))) == 2 + 4
+    @test ngens(weyl_group((:C, 3), (:E, 7))) == 3 + 7
+    @test ngens(weyl_group((:F, 4), (:G, 2))) == 4 + 2
   end
 
   @testset "Base.:(*)(x::WeylGroupElem, y::WeylGroupElem)" begin
@@ -233,8 +329,8 @@ include(
     s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
-    @test word(s[3] * s[1]) == UInt8[3, 1]
-    @test word(s[1] * s[3]) == UInt8[3, 1]
+    @test word(s[3] * s[1]) == UInt8[1, 3]
+    @test word(s[1] * s[3]) == UInt8[1, 3]
     @test word(s[1] * s[3] * s[1]) == UInt8[3]
     @test word(s[3] * s[1] * s[3]) == UInt8[1]
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
@@ -271,12 +367,51 @@ include(
     @test w^-4 == inv(w) * inv(w) * inv(w) * inv(w)
   end
 
-  @testset "Base.:(*)(x::WeylGroupElem, w::WeightLatticeElem)" begin
+  @testset "action on RootSpaceElem" begin
+    let R = root_system(:A, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest root
+      @test a * one(W) == a
+      @test a * W([1]) == simple_root(R, 2)
+      @test a * W([2]) == simple_root(R, 1)
+      @test a * longest_element(W) == -a
+      @test a * W([1, 2]) == -simple_root(R, 2)
+
+      a_copy = deepcopy(a)
+      b = a * W([1])
+      @test a != b
+      @test a == a_copy
+      b = reflect(a, 1)
+      @test a != b
+      @test a == a_copy
+    end
+
+    let R = root_system(:B, 2)
+      W = weyl_group(R)
+
+      a = positive_root(R, n_positive_roots(R)) # highest (long) root
+      @test a * one(W) == a
+      @test a * W([1]) == a
+      @test a * W([2]) == simple_root(R, 1)
+      @test a * longest_element(W) == -a
+      @test a * W([1, 2]) == simple_root(R, 1)
+
+      a = simple_root(R, 1)
+      @test a * one(W) == a
+      @test a * W([1]) == -a
+      @test a * W([2]) == positive_root(R, n_positive_roots(R))
+      @test a * longest_element(W) == -a
+      @test a * W([1, 2]) == -positive_root(R, n_positive_roots(R))
+    end
+  end
+
+  @testset "action on WeightLatticeElem" begin
     R = root_system(:A, 2)
     W = weyl_group(R)
 
     rho = weyl_vector(R)
-    @test longest_element(W) * rho == -rho
+    @test rho * longest_element(W) == -rho
   end
 
   @testset "parent(::WeylGroupElem)" begin
@@ -312,7 +447,7 @@ include(
     re = collect(iter)
     @test length(re) == 16
     @test re[1] == word(w0)
-    @test re[16] == UInt8[3, 2, 1, 3, 2, 3]
+    @test re[16] == UInt8[3, 2, 3, 1, 2, 3]
 
     iter = reduced_expressions(w0; up_to_commutation=true)
     @test iter.el === w0
@@ -321,7 +456,7 @@ include(
     re = collect(iter)
     @test length(re) == 8
     @test re[1] == word(w0)
-    @test re[8] == UInt8[3, 2, 3, 1, 2, 3]
+    @test re[8] == UInt8[3, 2, 1, 3, 2, 3]
   end
 
   @testset "WeylIteratorNoCopy" begin
@@ -351,7 +486,8 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * ow == dom_wt
+        @test is_in_normal_form(x)
+        @test ow * x == dom_wt
       end
 
       gap_num = 0
@@ -387,7 +523,8 @@ include(
       @test !isnothing(findfirst(==((wt, inv(conj))), orb))
       @test allunique(first.(orb))
       for (ow, x) in orb
-        @test x * ow == dom_wt
+        @test is_in_normal_form(x)
+        @test ow * x == dom_wt
       end
 
       gap_num = 0
@@ -424,11 +561,68 @@ include(
     ]
       R = root_system(fam, rk)
       wt = WeightLatticeElem(R, vec)
-      dom_wt, conj = conjugate_dominant_weight_with_elem(wt)
       orb = collect(WeylOrbitIterator(wt))
 
       @test !isnothing(findfirst(==(wt), orb))
       @test allunique(orb)
+    end
+  end
+
+  @testset "Serialization" begin
+    mktempdir() do path
+      @testset "simple saving and loading" begin
+        W = weyl_group((:A, 2), (:B, 4))
+
+        test_save_load_roundtrip(path, W) do loaded
+          # nothing, cause `W === loaded` anyway
+        end
+
+        x = rand(W)
+        test_save_load_roundtrip(path, x) do loaded
+          @test parent(loaded) === W
+          @test word(loaded) == word(x)
+        end
+
+        test_save_load_roundtrip(path, gens(W)) do loaded
+          @test length(loaded) == ngens(W)
+          @test all(
+            word(loaded[i]) == word(gen(W, i)) for i in 1:ngens(W)
+          )
+        end
+      end
+
+      @testset "cyclic reference between R and W survives" begin
+        Oscar.reset_global_serializer_state()
+
+        R_filename = joinpath(path, "R.mrdi")
+        W_filename = joinpath(path, "W.mrdi")
+
+        R = root_system(:D, 5)
+        W = weyl_group(R)
+
+        save(R_filename, R)
+        save(W_filename, W)
+
+        Oscar.reset_global_serializer_state()
+
+        loaded_R = load(R_filename)
+        loaded_W = load(W_filename)
+
+        @test loaded_R === root_system(loaded_W)
+        @test loaded_W === weyl_group(loaded_R)
+
+        loaded_R = loaded_W = nothing # unset all references
+
+        Oscar.reset_global_serializer_state()
+
+        loaded_W = load(W_filename)
+        loaded_R = load(R_filename)
+
+        @test loaded_R === root_system(loaded_W)
+        @test loaded_W === weyl_group(loaded_R)
+
+        loaded_R = loaded_W = nothing # unset all references        
+      end
     end
   end
 end

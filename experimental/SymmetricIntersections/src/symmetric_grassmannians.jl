@@ -92,7 +92,7 @@ function defining_ideal(M::IsotGrass)
     return defining_ideal(projective_space(F, binomial(n, t)-1))
   end
   t = cd[1]
-  S, _ = graded_polynomial_ring(F, String["x[$j]" for j in 0:binomial(n, t)-1])
+  S, _ = graded_polynomial_ring(F, :x => 0:binomial(n, t)-1)
   return grassmann_pluecker_ideal(S, t, n)
 end
 
@@ -497,7 +497,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
   F = base_ring(V[1])
   
   if S === nothing
-    S, _ = graded_polynomial_ring(F, "x" => 0:binomial(n, t)-1)
+    S, _ = graded_polynomial_ring(F, :x => 0:binomial(n, t)-1)
   end
   
   X = proj(S)
@@ -517,7 +517,7 @@ function _intersection_with_grassmannian(V::Vector{T}, n::Int, t::Int;
   ideal_PV = ideal(S, vec(collect(matrix(S, 1, nvars(S), gens(S))*K)))
   PV = subscheme(X, ideal_PV)
   _J = modulus(OO(intersect(affine_cone(Grtn)[1], affine_cone(PV)[1])))
-  J = ideal(S, elem_type(S)[map_coefficients(x -> F(x), p; parent = S) for p in gens(_J)])
+  J = ideal(S, elem_type(S)[map_coefficients(F, p; parent = S) for p in gens(_J)])
   J = saturation(J)
   return J::ideal_type(S)
 end
@@ -530,7 +530,7 @@ function _defining_ideal_determinant_grassmannian(r::LinRep, chi::Oscar.GAPGroup
   rt = t == 1 ? r : exterior_power_representation(r, t)
   F = base_field(representation_ring(r))
   k = dimension_representation(rt)
-  S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
+  S, _ = graded_polynomial_ring(F, :x => 0:k-1)
   bas = basis_isotypical_component(rt, chi)
   if length(bas) == 0
     return ideal(S, elem_type(S)[one(S)])
@@ -544,7 +544,7 @@ function _defining_ideal_invariant_grassmannian(r::LinRep, t::Int)
   cds = character_decomposition(rt)
   chis = [cd[2] for cd in cds if Int(degree(cd[2])) == 1]
   k = dimension_representation(rt)
-  S, _ = graded_polynomial_ring(F, "x" => 0:k-1)
+  S, _ = graded_polynomial_ring(F, :x => 0:k-1)
   I = ideal(S, elem_type(S)[S(1)])
   for chi in chis
     bas = basis_isotypical_component(rt, chi)

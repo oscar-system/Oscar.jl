@@ -5,7 +5,7 @@
 # ring L[x₁,…,xₙ] over a number field L = ℚ[α₁,…,αᵣ] it is better to 
 # first translate the respective problem to one in a polynomial ring 
 # ℚ [θ₁,…,θᵣ,x₁,…,xₙ] over ℚ by adding further variables for the 
-# algebraic elemnts αᵢ and dividing by their minimum polynomials.
+# algebraic elements αᵢ and dividing by their minimum polynomials.
 #
 # This might seem counter intuitive, but it has proved to provide 
 # significant speedup in most cases. The reason is that Singular does 
@@ -130,7 +130,7 @@ function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; re
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
-@attr function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_weak(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -139,7 +139,7 @@ end
 end
 
 
-@attr function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_decomposition_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -147,7 +147,7 @@ end
   return typeof(I)[ideal(A, unique!([x for x in A.(gens(K)) if !iszero(x)])) for K in res]
 end
 
-@attr function equidimensional_hull(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -155,7 +155,7 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function equidimensional_hull_radical(I::MPolyQuoIdeal)
+@attr Any function equidimensional_hull_radical(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)
@@ -163,7 +163,7 @@ end
   return ideal(A, unique!([x for x in A.(gens(res)) if !iszero(x)]))
 end
 
-@attr function absolute_primary_decomposition(I::MPolyQuoIdeal)
+@attr Any function absolute_primary_decomposition(I::MPolyQuoIdeal)
   A = base_ring(I)::MPolyQuoRing
   R = base_ring(A)::MPolyRing
   J = saturated_ideal(I)

@@ -342,7 +342,7 @@ function reverse(e::Edge)
 end
 
 
-struct EdgeIterator
+mutable struct EdgeIterator
     pm_itr::Polymake.GraphEdgeIterator{T} where {T <: Union{Directed, Undirected}}
     l::Int64
 end
@@ -350,7 +350,7 @@ Base.length(eitr::EdgeIterator) = eitr.l
 Base.eltype(::Type{EdgeIterator}) = Edge
 
 function Base.iterate(eitr::EdgeIterator, index = 1)
-    if index > eitr.l
+    if eitr.l == 0 || Polymake.isdone(eitr.pm_itr)
         return nothing
     else
         e = Polymake.get_element(eitr.pm_itr)
@@ -358,6 +358,7 @@ function Base.iterate(eitr::EdgeIterator, index = 1)
         t = Polymake.last(e)
         edge = Edge(s+1, t+1)
         Polymake.increment(eitr.pm_itr)
+        eitr.l -= 1
         return (edge, index+1)
     end
 end
@@ -1028,6 +1029,24 @@ function dual_graph(p::Polyhedron)
   return og
 end
 
+@doc raw"""
+    dual_graph(SOP::SubdivisionOfPoints)
+
+Return the dual graph of a `SubdivisionOfPoints`, nodes correspond to the maximal cells,
+and there is an edge if two maximal cells share a common face of codimension one.
+
+# Examples
+Construct the dual graph of a triangulation of the square; it has a single edge.
+```jldoctest
+julia> S = subdivision_of_points(vertices(cube(2)), [0,0,0,1])
+Subdivision of points in ambient dimension 2
+
+julia> dual_graph(S)
+Undirected graph with 2 nodes and the following edges:
+(2, 1)
+```
+"""
+dual_graph(SOP::SubdivisionOfPoints) = Graph{Undirected}(pm_object(SOP).POLYHEDRAL_COMPLEX.DUAL_GRAPH.ADJACENCY)
 
 
 @doc raw"""
@@ -1153,8 +1172,7 @@ end
 function graph_from_edges(::Type{T},
                           edges::Vector{Edge},
                           n_vertices::Int=-1) where {T <: Union{Directed, Undirected}}
-
-  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]))
+  n_needed = maximum(reduce(append!,[[src(e),dst(e)] for e in edges]; init=[0]))
   @req (n_vertices >= n_needed || n_vertices < 0)  "n_vertices must be at least the maximum vertex in the edges"
 
   g = Graph{T}(max(n_needed, n_vertices))

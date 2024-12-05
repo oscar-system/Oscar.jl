@@ -1,12 +1,13 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Quadratic spaces with isometry
 
 We call *quadratic space with isometry* any pair $(V, f)$ consisting of a
 non-degenerate quadratic space $V$ together with an isometry $f\in O(V)$.
-We refer to the section about [Spaces](@ref) of the documentation for
+We refer to the section about [Spaces](@ref Spaces2) of the documentation for
 new users.
 
 Note that currently, we support only rational quadratic forms, i.e.

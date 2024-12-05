@@ -372,9 +372,31 @@ end
 
 Base.:*(x::GAPGroupElem, y::GAPGroupElem) = _prod(x, y)
 
-==(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
 
-==(x::BasicGAPGroupElem, y::BasicGAPGroupElem ) = GapObj(x) == GapObj(y)
+isequal(x::GAPGroup, y::GAPGroup) = GapObj(x) == GapObj(y)
+
+function ==(x::GAPGroup, y::GAPGroup)
+  _check_compatible(x, y)
+  return GapObj(x) == GapObj(y)
+end
+
+isequal(x::BasicGAPGroupElem, y::BasicGAPGroupElem) = GapObj(x) == GapObj(y)
+
+# For two `BasicGAPGroupElem`s,
+# we allow the question for equality if their parents fit together
+# in the sense of `_check_compatible`,
+# and compare the `GapObj`s if this is the case.
+function ==(x::BasicGAPGroupElem, y::BasicGAPGroupElem)
+  _check_compatible(parent(x), parent(y))
+  return GapObj(x) == GapObj(y)
+end
+
+# For two `GAPGroupElem`s,
+# if no specialized method is applicable then no `==` comparison is allowed.
+function ==(x::GAPGroupElem, y::GAPGroupElem)
+  _check_compatible(parent(x), parent(y); error = false) || throw(ArgumentError("parents of x and y are not compatible"))
+  throw(ArgumentError("== is not implemented for the given types"))
+end
 
 """
     one(G::GAPGroup) -> elem_type(G)
@@ -635,6 +657,13 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 ```
 """
 @gapattribute function small_generating_set(G::GAPGroup)
+   # We claim that the finiteness check is cheap in Oscar.
+   # This does not hold in GAP,
+   # and GAP's method selection benefits from the known finiteness flag.
+   if G isa MatrixGroup && is_infinite(base_ring(G))
+     is_finite(G)
+   end
+
    L = GAP.Globals.SmallGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
@@ -644,25 +673,25 @@ julia> length(small_generating_set(abelian_group(PermGroup, [2,3,4])))
 end
 
 """
-    minimal_generating_set(G::GAPGroup)
+    minimal_size_generating_set(G::GAPGroup)
 
 Return a vector of minimal length of elements in `G` that generate `G`.
 
 # Examples
 ```jldoctest
-julia> length(minimal_generating_set(abelian_group(SubPcGroup, [2,3,4])))
+julia> length(minimal_size_generating_set(abelian_group(SubPcGroup, [2,3,4])))
 2
 
-julia> length(minimal_generating_set(abelian_group(PermGroup, [2,3,4])))
+julia> length(minimal_size_generating_set(abelian_group(PermGroup, [2,3,4])))
 2
 
-julia> minimal_generating_set(symmetric_group(5))
+julia> minimal_size_generating_set(symmetric_group(5))
 2-element Vector{PermGroupElem}:
  (1,2,3,4,5)
  (1,2)
 ```
 """
-@gapattribute function minimal_generating_set(G::GAPGroup)
+@gapattribute function minimal_size_generating_set(G::GAPGroup)
    L = GAP.Globals.MinimalGeneratingSet(GapObj(G))::GapObj
    res = Vector{elem_type(G)}(undef, length(L))
    for i = 1:length(res)
@@ -688,7 +717,7 @@ end
    end
 end
 
-GAP.julia_to_gap(obj::GAPGroupConjClass) = obj.CC
+GAP.@install GapObj(obj::GAPGroupConjClass) = obj.CC
 
 Base.eltype(::Type{GAPGroupConjClass{T,S}}) where {T,S} = S
 
@@ -864,8 +893,9 @@ end
     is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
 
 Return whether `x` and `y` are conjugate elements in `G`,
-i.e., there is an element `z` in `G` such that `x^z` equals `y`.
-To also return the element `z`, use [`is_conjugate_with_data`](@ref).
+i.e., there is an element `z` in `G` such that `inv(z)*x*z` equals `y`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -878,10 +908,10 @@ end
     is_conjugate_with_data(G::Group, x::GAPGroupElem, y::GAPGroupElem)
 
 If `x` and `y` are conjugate in `G`,
-return `(true, z)`, where `x^z == y` holds;
+return `(true, z)`, where `inv(z)*x*z == y` holds;
 otherwise, return `(false, nothing)`.
-If the conjugating element `z` is not needed,
-use [`is_conjugate`](@ref).
+If the conjugating element `z` is not needed, use
+[`is_conjugate(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)`](@ref).
 """
 function is_conjugate_with_data(G::GAPGroup, x::GAPGroupElem, y::GAPGroupElem)
    if isdefined(G,:descr) && (G.descr == :GL || G.descr == :SL)
@@ -1016,8 +1046,8 @@ julia> G = symmetric_group(5);
 julia> low_index_subgroup_classes(G, 5)
 3-element Vector{GAPGroupConjClass{PermGroup, PermGroup}}:
  Conjugacy class of Sym(5) in G
- Conjugacy class of Alt(5) in G
  Conjugacy class of permutation group in G
+ Conjugacy class of Alt(5) in G
 ```
 """
 function low_index_subgroup_classes(G::GAPGroup, n::Int)
@@ -1075,8 +1105,10 @@ Base.:^(H::GAPGroup, y::GAPGroupElem) = conjugate_group(H, y)
 
 Return whether `H` and `K` are conjugate subgroups in `G`,
 i.e., whether there exists an element `z` in  `G` such that
-`H^z` equals `K`. To also return the element `z`
-use [`is_conjugate_with_data`](@ref).
+the conjugate group `H^z`, which is defined as $\{ z^{-1} h z; h \in H \}$,
+equals `K`.
+To also return the element `z`, use
+[`is_conjugate_with_data(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1101,13 +1133,14 @@ false
 """
 is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup) = GAPWrap.IsConjugate(GapObj(G),GapObj(H),GapObj(K))
 
-"""
+@doc raw"""
     is_conjugate_with_data(G::Group, H::Group, K::Group)
 
 If `H` and `K` are conjugate subgroups in `G`, return `(true, z)`
 where `H^z = K`; otherwise, return `(false, nothing)`.
+The conjugate group `H^z` is defined as $\{ z^{-1} h z; h \in H \}$.
 If the conjugating element `z` is not needed, use
-[`is_conjugate`](@ref).
+[`is_conjugate(G::GAPGroup, H::GAPGroup, K::GAPGroup)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1819,7 +1852,7 @@ end
 #  if is_free(G) || (has_is_finite(G) && is_finite(G) && is_pgroup(G))
 #    return GAP.Globals.Rank(GapObj(G))::Int
 #  end
-#  has_is_finite(G) && is_finite(G) && return length(minimal_generating_set(G))
+#  has_is_finite(G) && is_finite(G) && return length(minimal_size_generating_set(G))
 #  error("not yet supported")
 #end
 
@@ -1908,24 +1941,47 @@ end
     relators(G::FPGroup)
 
 Return a vector of relators for the full finitely presented group `G`, i.e.,
-elements $[x_1, x_2, \ldots, x_n]$ in $F =$ `free_group(ngens(G))` such that
-`G` is isomorphic with $F/[x_1, x_2, \ldots, x_n]$.
+elements $[w_1, w_2, \ldots, w_n]$ in $F =$ `free_group(ngens(G))` such that
+`G` is isomorphic with $F/[w_1, w_2, \ldots, w_n]$.
 
 # Examples
 ```jldoctest
-julia> f = free_group(2);  (x, y) = gens(f);
+julia> f = @free_group(:x, :y);
 
 julia> q = quo(f, [x^2, y^2, comm(x, y)])[1];  relators(q)
 3-element Vector{FPGroupElem}:
- f1^2
- f2^2
- f1^-1*f2^-1*f1*f2
+ x^2
+ y^2
+ x^-1*y^-1*x*y
 ```
 """
 function relators(G::FPGroup)
   L = GAPWrap.RelatorsOfFpGroup(GapObj(G))::GapObj
   F = free_group(G)
   return [group_element(F, L[i]::GapObj) for i in 1:length(L)]
+end
+
+function relators(G::PcGroup)
+  gapG = GapObj(G)
+  Ggens = GAPWrap.GeneratorsOfGroup(gapG)
+  Gpcgs = GAPWrap.Pcgs(gapG)
+  if Ggens == Gpcgs
+    # The generators form a pcgs, compute w.r.t. this pcgs.
+    f = GAPWrap.IsomorphismFpGroupByPcgs(Gpcgs, GapObj("g"))
+    @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+    return relators(FPGroup(GAPWrap.Image(f)))
+  else
+    return _relators_by_generators(FPGroup(GAPWrap.Image(f)))
+  end
+end
+
+relators(G::GAPGroup) = _relators_by_generators(G)
+
+function _relators_by_generators(G::GAPGroup)
+  gapG = GapObj(G)
+  f = GAPWrap.IsomorphismFpGroupByGenerators(gapG, GAPWrap.GeneratorsOfGroup(gapG))
+  @req f != GAP.Globals.fail "Could not convert group into a group of type FPGroup"
+  return relators(FPGroup(GAPWrap.Image(f)))
 end
 
 
@@ -1969,7 +2025,7 @@ whenever it is possible that the elements in `genimgs` do not support `one`.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> imgs = gens(symmetric_group(4))
 2-element Vector{PermGroupElem}:
@@ -2001,8 +2057,7 @@ julia> invs
 """
 function map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
   G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
+  if ngens(G) == 0
     @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
@@ -2051,18 +2106,11 @@ x*y^4
 ```
 """
 function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
-  G = parent(g)
-  Ggens = gens(G)
-  if length(Ggens) == 0
+  if ngens(parent(g)) == 0
+    @req init !== nothing "use '; init =...' if there are no generators"
     return init
   end
-  gX = GapObj(g)
-
-  if GAPWrap.IsPcGroup(GapObj(G))
-    l = GAP.Globals.ExponentsOfPcElement(GAP.Globals.FamilyPcgs(GapObj(G)), gX)
-  else  # GAP.Globals.IsPcpGroup(GapObj(G))
-    l = GAP.Globals.Exponents(gX)
-  end
+  l = _exponent_vector(g)
   @assert length(l) == length(genimgs)
   ll = Pair{Int, Int}[i => l[i] for i in 1:length(l)]
   return map_word(ll, genimgs, genimgs_inv = genimgs_inv, init = init)
@@ -2157,29 +2205,47 @@ Return the syllables of `g` as a list of pairs `gen => exp` where
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> syllables(F1^5*F2^-3)
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 
 julia> syllables(one(F))
-Pair{Int64, Int64}[]
+Pair{Int64, ZZRingElem}[]
 
 julia> G, epi = quo(F, [F1^10, F2^10]);
 
 julia> syllables(epi(F1^5*F2^-3))
-2-element Vector{Pair{Int64, Int64}}:
+2-element Vector{Pair{Int64, ZZRingElem}}:
  1 => 5
  2 => -3
 ```
 """
 function syllables(g::Union{FPGroupElem, SubFPGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
-  return Pair{Int, Int}[l[i] => l[i+1] for i in 1:2:length(l)]
+  return Pair{Int, ZZRingElem}[l[i] => l[i+1] for i in 1:2:length(l)]
 end
 
+function _exponent_vector(g::Union{PcGroupElem, SubPcGroupElem})
+  gX = GapObj(g)
+  G = parent(g)
+  GX = GapObj(G)
+  if GAPWrap.IsPcGroup(GX)
+    return Vector{ZZRingElem}(GAPWrap.ExponentsOfPcElement(GAPWrap.FamilyPcgs(GX), gX))
+  else  # GAP.Globals.IsPcpGroup(GapObj(G))
+    return Vector{ZZRingElem}(GAP.Globals.Exponents(gX)::GapObj)
+  end
+end
+
+function exponents_of_abelianization(g::Union{FPGroupElem, SubFPGroupElem})
+  v = zeros(ZZRingElem, ngens(parent(g)))
+  for (i, e) in syllables(g)
+    v[i] = v[i] + e
+  end
+  return v
+end
 
 @doc raw"""
     letters(g::FPGroupElem)
@@ -2190,7 +2256,7 @@ numbers.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1, F2 = gens(F);
+julia> F = @free_group(:F1, :F2);
 
 julia> letters(F1^5*F2^-3)
 8-element Vector{Int64}:
@@ -2235,7 +2301,7 @@ otherwise an exception is thrown.
 
 # Examples
 ```jldoctest
-julia> F = free_group(2);  F1 = gen(F, 1);  F2 = gen(F, 2);
+julia> F = @free_group(:F1, :F2);
 
 julia> length(F1*F2^-2)
 3
@@ -2277,15 +2343,27 @@ true
 """
 function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnion, S <: IntegerUnion}
    n = ngens(G)
-   ll = IntegerUnion[]
+   extrep = IntegerUnion[]
    for p in pairs
      @req 0 < p.first && p.first <= n "generator number is at most $n"
      if p.second != 0
-       push!(ll, p.first)
-       push!(ll, p.second)
+       push!(extrep, p.first)
+       push!(extrep, p.second)
      end
    end
-   return G(ll)
+
+   famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
+   if GAP.Globals.IsFreeGroup(GapObj(G))
+     w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
+   else
+     # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
+     F = GAP.getbangproperty(famG, :freeGroup)
+     famF = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
+     w1 = GAPWrap.ObjByExtRep(famF, GapObj(extrep, true))
+     w = GAPWrap.ElementOfFpGroup(famG, w1)
+   end
+
+   return FPGroupElem(G, w)
 end
 
 # This format is used in the serialization of `FPGroupElem`.
@@ -2308,7 +2386,7 @@ end
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group
-   l_tor = filter(x -> x != 0, l)
+   l_tor = filter(!is_zero, l)
    free = length(l) - length(l_tor)
    res = length(l_tor) == 0 ? "" : "Z/" * join([string(x) for x in l_tor], " + Z/")
    return free == 0 ? res : ( res == "" ? ( free == 1 ? "Z" : "Z^$free" ) : ( free == 1 ? "$res + Z" : "$res + Z^$free" ) )

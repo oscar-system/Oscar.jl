@@ -169,7 +169,12 @@
     kk = coefficient_ring(R)::Field
 
     G = grading_group(S)
-    w = degree.(gens(S))
+    if !is_trivial(S)
+      w = degree.(gens(S))
+    else
+      # if S is trivial, the weights don't matter
+      w = [zero(G) for i in 1:ngens(S)]
+    end
     new_w = vcat(w, [zero(G) for i in 1:ngens(R)])
 
     # Before building S_flat, we have to create a polynomial 
@@ -459,7 +464,7 @@ function preimage(phi::RingFlattening, x::RingElem)
 end
 
 ### Computation of induced morphisms on flattened towers of polynomial rings
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType},
                    Nothing
@@ -477,7 +482,7 @@ end
   return hom(codomain(flat_S), codomain(flat_T), imgs, check=false)
 end
 
-@attr function flatten(
+@attr Any function flatten(
     f::MPolyAnyMap{<:MPolyRing{RingElemType}, 
                    <:MPolyRing{RingElemType}
                    # Note the missing requirement here: It allows for a non-trivial coefficient map

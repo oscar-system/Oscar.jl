@@ -1,5 +1,5 @@
 @testset "lengths of modules" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
 
   f = x^2 + y^2 - z^2 + 1
 

@@ -67,7 +67,7 @@
         @test n_vertices(egplc) == 2
         @test n_edges(egplc) == 1
 
-        @test incidence_matrix(egtriangle) == IncidenceMatrix([[1,2],[1,3],[2,3]])
+        @test incidence_matrix(egtriangle) == incidence_matrix([[1,2],[1,3],[2,3]])
 
         @test is_isomorphic(dual_graph(convex_hull([0 0 0; 1 0 0], nothing, [0 1 0])), Graph{Undirected}(2))
         @test is_isomorphic(dual_graph(convex_hull([0 0 0], [0 0 1; 0 1 0; 1 0 0])), complete_graph(3))
@@ -159,6 +159,16 @@
 
         @test n_vertices(G2) == 13
         @test n_edges(G2) == 5
+
+        ei = edges(G2)
+        @test length(ei) == 5
+
+        ee = collect(ei)
+        @test length(ei) == 0
+        @test collect(ei) == Edge[]
+
+        GG2 = graph_from_edges(Undirected, ee, 13)
+        @test is_isomorphic(G2, GG2)
 
     end
 

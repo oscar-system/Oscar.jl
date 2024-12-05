@@ -29,7 +29,7 @@
     @test cartan_matrix((:A, 2), (:B, 2)) ==
       block_diagonal_matrix([cartan_matrix(:A, 2), cartan_matrix(:B, 2)])
 
-    @test_throws ArgumentError cartan_matrix()
+    @test_throws MethodError cartan_matrix()
   end
 
   @testset "is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)" begin

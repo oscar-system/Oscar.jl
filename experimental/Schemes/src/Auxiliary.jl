@@ -99,7 +99,7 @@ end
 function pullback(f::AbsCoveredSchemeMorphism, C::EffectiveCartierDivisor)
   X = domain(f)
   Y = codomain(f)
-  Y === scheme(C) || error("divisor must be defined on the codomain of the map")
+  Y === ambient_scheme(C) || error("divisor must be defined on the codomain of the map")
   # The challenge is that phi has two coverings cov1 → cov2 on which it is defined. 
   # The covering cov3 on which C is principalized might be different from cov2. 
   # Thus, we need to first pass to a common refinement cov' of cov2 and cov3, 
@@ -128,12 +128,11 @@ end
 
 function pullback(f::AbsCoveredSchemeMorphism, C::CartierDivisor)
   R = coefficient_ring(C)
-  C = CartierDivisor(domain(f), R)
-  pb = pullback(f)
-  for (c,D) in coefficient_dict(C)
-    C += c*pb(C)
+  result = CartierDivisor(domain(f), R)
+  for (D, c) in coefficient_dict(C)
+    result += c*pullback(f, D)
   end
-  return C
+  return result
 end
 
 function pullback(f::AbsCoveredSchemeMorphism, CC::Covering)
@@ -254,7 +253,7 @@ struct InheritGluingData
   Y::AbsAffineScheme
 end
 
-function _compute_inherited_gluing(gd::InheritGluingData)
+function _compute_gluing(gd::InheritGluingData)
   X = gd.X
   Y = gd.Y
   C = gd.orig
@@ -363,7 +362,6 @@ function inherit_gluings!(ref::Covering, orig::Covering)
     for V in patches(ref)
       if !haskey(gluings(ref), (U, V))
         gluings(ref)[(U, V)] = LazyGluing(U, V, 
-                                            _compute_inherited_gluing,
                                             InheritGluingData(orig, U, V)
                                            )
       end
@@ -384,13 +382,13 @@ function _coordinates_in_monomial_basis(v::T, b::Vector{T}) where {B <: MPolyRin
   kk = coefficient_ring(R)
   result = SRow(kk)
   iszero(v) && return result
-  pos = [findfirst(k->k==m, b) for m in monomials(v)]
+  pos = [findfirst(==(m), b) for m in monomials(v)]
   vals = collect(coefficients(v))
   return SRow(kk, pos, vals)
 end
 
 ### Take a complex of graded modules and twist all 
-# modules so that the (co-)boundary maps become homogenous 
+# modules so that the (co-)boundary maps become homogeneous
 # of degree zero. 
 function _make_homogeneous(C::ComplexOfMorphisms{T}) where {T<:ModuleFP}
   R = base_ring(C[first(range(C))])

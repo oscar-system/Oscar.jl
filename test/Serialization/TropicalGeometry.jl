@@ -10,7 +10,7 @@
             end
 
             @testset "Embedded" begin
-                IM = IncidenceMatrix([[1,2],[1,3],[1,4]])
+                IM = incidence_matrix([[1,2],[1,3],[1,4]])
                 VR = [0 0; 1 0; -1 0; 0 1]
                 PC = polyhedral_complex(QQFieldElem, IM, VR)
                 TC = tropical_curve(PC)
@@ -25,7 +25,7 @@
 
         @testset "Tropical Hypersurfaces" begin
             T = tropical_semiring(min)
-            Txy,(x,y) = T["x","y"]
+            Txy,(x,y) = T[:x, :y]
             f = x + y^2
             Tf = tropical_hypersurface(f)
 

@@ -11,6 +11,7 @@ include("Objects/new_complex_template.jl")
 include("Objects/linear_strands.jl")
 
 include("Morphisms/Types.jl")
+include("Objects/cartan_eilenberg_resolution.jl")
 include("Morphisms/cartan_eilenberg_resolutions.jl")
 include("Morphisms/ext.jl")
 include("Morphisms/simplified_complexes.jl")
@@ -22,3 +23,7 @@ include("Morphisms/linear_strands.jl")
 include("Morphisms/methods.jl")
 include("Objects/Methods.jl")
 include("Exports.jl")
+
+include("base_change_types.jl")
+include("base_change.jl")
+

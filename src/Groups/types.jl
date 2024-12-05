@@ -13,8 +13,8 @@ Concrete subtypes of `GAPGroup` are `PermGroup`, `FPGroup`, `SubFPGroup`,
 """
 abstract type GAPGroup <: AbstractAlgebra.Group end
 
-## `GapGroup` to GAP group
-GAP.julia_to_gap(obj::GAPGroup) = obj.X
+## `GapGroup` to underlying GAP group
+GAP.@install GapObj(obj::GAPGroup) = obj.X
 
 @doc raw"""
     GAPGroupElem <: AbstractAlgebra.GroupElem
@@ -29,7 +29,7 @@ i.e., if `g` is a `GAPGroupElem`, then `GapObj(g)` is the `GapObj` underlying `g
 abstract type GAPGroupElem{T<:GAPGroup} <: AbstractAlgebra.GroupElem end
 
 ## `GapGroupElem` to GAP group element
-GAP.julia_to_gap(obj::GAPGroupElem) = obj.X
+GAP.@install GapObj(obj::GAPGroupElem) = obj.X
 
 @doc raw"""
     BasicGAPGroupElem{T<:GAPGroup} <: GAPGroupElem{T}
@@ -450,7 +450,6 @@ function _oscar_subgroup(obj::GapObj, G::GAPGroup)
   @assert GAP.Globals.FamilyObj(GapObj(S)) === GAP.Globals.FamilyObj(GapObj(G))
   return S
 end
-#T better rename to _oscar_subgroup?
 
 # `PermGroup`: set the degree of `G`
 function _oscar_subgroup(obj::GapObj, G::PermGroup)
@@ -479,7 +478,7 @@ end
 
 ################################################################################
 
-abstract type GSet{T} end
+abstract type GSet{T,S} end
 
 
 ################################################################################
@@ -494,7 +493,7 @@ abstract type GSet{T} end
 It can be either the conjugacy class of an element or of a subgroup of type `S`
 in a group `G` of type `T`.
 """
-abstract type GroupConjClass{T, S} <: GSet{T} end
+abstract type GroupConjClass{T,S} <: GSet{T,S} end
 
 
 ################################################################################

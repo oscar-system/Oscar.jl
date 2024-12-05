@@ -138,7 +138,7 @@ parent(a::NfNSGenElem) = a.parent
 
 Hecke.data(a::NfNSGenElem) = a.f
 
-base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = FlintQQ
+base_field(K::NfNSGen{QQFieldElem, QQMPolyRingElem}) = QQ
 
 base_field(K::NfNSGen) = base_ring(polynomial_ring(K))
 
@@ -445,11 +445,6 @@ function Oscar.add!(a::NfNSGenElem, b::NfNSGenElem, c::NfNSGenElem)
   return a
 end
 
-function Oscar.addeq!(a::NfNSGenElem, b::NfNSGenElem)
-  a.f += b.f
-  return a
-end
-
 ################################################################################
 #
 #  Comparison
@@ -621,7 +616,7 @@ end
 function basis_matrix(v::Vector{NfNSGenElem{QQFieldElem, QQMPolyRingElem}},
                       ::Type{Hecke.FakeFmpqMat})
   d = degree(parent(v[1]))
-  z = zero_matrix(FlintQQ, length(v), d)
+  z = zero_matrix(QQ, length(v), d)
   for i in 1:length(v)
     elem_to_mat_row!(z, i, v[i])
   end
@@ -675,7 +670,7 @@ function minpoly(a::NfNSGenElem)
   z *= a
   elem_to_mat_row!(M, 2, z)
   i = 2
-  Qt, _ = polynomial_ring(k, "t"; cached = false)
+  Qt, _ = polynomial_ring(k, :t; cached = false)
   while true
     if n % (i-1) == 0 && rank(M) < i
       N = nullspace(transpose(sub(M, 1:i, 1:ncols(M))))

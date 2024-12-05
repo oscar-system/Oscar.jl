@@ -1,20 +1,21 @@
 # Setup for coefficient rings
-R, x = polynomial_ring(QQ, "x")
+R, x = polynomial_ring(QQ, :x)
 q = x^2 + 3//4
 L, (e, f) = number_field([x^2 + 5, x^3 - 6])
 K, a = number_field(q)
-Ky, y = K["y"]
+Ky, y = K[:y]
 Tow, b = number_field(y^2 + 1, "b")
 NonSimRel, c = number_field([y^2 - 5 * a, y^2 - 7 * a])
 Qu, u = rational_function_field(QQ, "u")
-Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], "t")
+Zt, t = polynomial_ring(residue_ring(ZZ, 2)[1], :t)
 Fin, d = Nemo.Native.finite_field(t^2 + t + 1)
 Frac = fraction_field(R)
 P7 = PadicField(7, 30)
 T = tropical_semiring()
-F, o  = finite_field(4)
-Fs, s = F["s"]
-FF, r = finite_field(s^2 + o * s + 1, "r")
+PF = GF(7)
+F  = GF(2, 2)
+Fs, s = F[:s]
+FF, r = finite_field(s^2 + gen(F) * s + 1, "r")
 
 cases = [
   (QQ, QQFieldElem(3, 4), QQFieldElem(1, 2), "Rationals"),
@@ -28,6 +29,8 @@ cases = [
   (Qu, u, 1 // u, "RationalFunctionField"),
   (Frac, 1 // x, x^2, "Fraction Field"),
   (T, T(1), T(3)^2, "Tropical Semiring"),
+  (PF, PF(1), PF(6), "Default Prime Field"),
+  (F, F(1), F(1), "Default Prime Field Extension"),
   (FF, FF(1), r, "Default Finite Field"),
   (QQBarField(), sqrt(QQBarField()(-7)), QQBarField()(5)^(QQ(4//5)), "QQBar"),
   (P7, 7 + 3*7^2, 7^5, "Padic Field"),
@@ -62,7 +65,7 @@ cases = [
 
     for case in cases
       @testset "Univariate Polynomial over $(case[4])" begin
-        R, z = polynomial_ring(case[1], "z")
+        R, z = polynomial_ring(case[1], :z)
         p = z^2 + case[2] * z + case[3]
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == p
@@ -76,7 +79,7 @@ cases = [
       end
 
       @testset "Multivariate Polynomial over $(case[4])"  begin
-        R, (z, w) = polynomial_ring(case[1], ["z", "w"])
+        R, (z, w) = polynomial_ring(case[1], [:z, :w])
         p = z^2 + case[2] * z * w + case[3] * w^3
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == z^2 + case[2] * z * w + case[3] * w^3
@@ -137,7 +140,7 @@ cases = [
       filter!(case-> case[4] != "Tropical Semiring", cases)
       
       @testset "Multivariate Laurent Polynomial over $(case[4])" begin
-        R, (z, w) = laurent_polynomial_ring(case[1], ["z", "w"])
+        R, (z, w) = laurent_polynomial_ring(case[1], [:z, :w])
         p = z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)
         test_save_load_roundtrip(path, p) do loaded
           @test loaded == z^2 + case[2] * z * w^(-4) + case[3] * w^(-3)

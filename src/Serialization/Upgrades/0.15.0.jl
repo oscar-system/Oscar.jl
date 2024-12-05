@@ -5,9 +5,6 @@
 push!(upgrade_scripts_set, UpgradeScript(
   v"0.15.0",
   function upgrade_0_15_0(s::UpgradeState, dict::Dict)
-
-    upgraded_dict = dict
-
     renamings = Dict{String,String}([
       ("FlintPadicField", "PadicField"),
       ("padic", "PadicFieldElem"),
@@ -31,24 +28,8 @@ push!(upgrade_scripts_set, UpgradeScript(
       ("EmbeddedElem", "EmbeddedNumFieldElem"),
     ])
 
-    function upgrade_type(d::String)
-      return get(renamings, d, d)
-    end
-    function upgrade_type(d::Dict)
-      upg_d = d
-      upg_d[:name] = get(renamings, d[:name], d[:name])
-      if d[:params] isa Dict && haskey(d[:params], :_type)
-        upg_d[:params][:_type] = upgrade_type(d[:params][:_type])
-      elseif d[:params] isa Vector
-        upg_d[:params] = [upgrade_type(v) for v in d[:params]]
-      end
-      return upg_d
-    end
-
-    if haskey(dict, :_type)
-      upgraded_dict[:_type] = upgrade_type(dict[:_type])
-    end
-        
+    upgraded_dict = upgrade_types(dict, renamings)
+    
     if haskey(dict, :data) && dict[:data] isa Dict
       upgraded_dict[:data] = upgrade_0_15_0(s, dict[:data])
     end

@@ -134,7 +134,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   end
 
   # A+B and C must agree locally at every primes except p
-  for q in filter(qq -> qq != p, union!(ZZRingElem[2], primes(AperpB), primes(C)))
+  for q in filter(!=(p), union!(ZZRingElem[2], primes(AperpB), primes(C)))
     if local_symbol(AperpB, q) != local_symbol(C, q)
       return false
     end
@@ -347,7 +347,7 @@ function admissible_triples(G::ZZGenus, p::IntegerUnion; pA::Int = -1, nA::Int =
     elseif nA >= 0
       r1 >= nA || continue
     end
-    m = min(ep, r1)
+    m = Int(min(ep, r1))
     D = _find_D(dG, m, p)
     while !is_empty(D)
       d1, dp = pop!(D)
@@ -420,25 +420,19 @@ end
 # Given a degree 2 extension of number fields E/K, return all
 # the possible signatures dictionaries of any hermitian lattice over
 # E/K of rank rk, and whose trace lattice has negative signature s2.
-# In the cyclotomic case, if `fix_root = true`, we do not consider
-# permutations of a set of signatures since any permutation correspond
-# to a change of a choice of a primitive root of unity.
-
-function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_root::Bool = false)
+function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion)
   lb = iseven(s2) ? 0 : 1
   K = base_field(E)
   inf = Hecke.place_type(K)[p for p in real_places(K) if length(extend(p, E)) == 1]
   r = length(real_places(K)) - length(inf)
   s = length(inf)
   signs = Dict{Hecke.place_type(K), Int}[]
-  if !fix_root
-    perm = AllPerms(s)
-  end
+  perm = AllPerms(s)
   for l in lb:2:min(s2, rk*r)
     parts = Vector{Int}[]
     l = divexact(s2-l, 2)
     for v in AllParts(l)
-      if any(i -> i > rk, v)
+      if any(>(rk), v)
         continue
       end
       if length(v) > s
@@ -448,18 +442,36 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion, fix_
         push!(v, 0)
       end
       push!(parts, copy(v))
-      if !fix_root
-        for vv in perm
-          v2 = v[vv.d]
-          v2 in parts ? continue : push!(parts, v2)
-        end
+      for vv in perm
+        v2 = v[vv.d]
+        push!(parts, v2)
       end
     end
+    unique!(parts)
     for v in parts
       push!(signs, Dict(a => b for (a,b) in zip(inf, v)))
     end
   end
   return signs
+end
+
+function _action_on_genus(G::HermGenus, s::NumFieldHom)
+  E = base_field(G)
+  t = inv(s)
+  lgs = local_symbols(G)
+  si = signatures(G)
+  si_new = empty(si)
+  for (p, v) in si
+    si_new[Hecke.induce_image(t, p)] = v
+  end
+
+  lgs_new = empty(lgs)
+  for sym in lgs
+    push!(lgs_new, genus(HermLat, E, t(sym.p), sym.data))
+  end
+  @hassert :ZZLatWithIsom 1 Hecke._check_global_genus(lgs_new, si_new)
+  G_new = HermGenus(E, rank(G), lgs_new, si_new)
+  return G_new
 end
 
 @doc raw"""
@@ -531,7 +543,7 @@ representatives_of_hermitian_type(L::ZZLat, m::Int, fix_root::Bool = false; firs
 Given a non-empty genus of integer lattices $G$ and a polynomial $chi$ irreducible
 over $\mathbb Q$, such that the equation order of the associated number field is
 maximal, return a list of representatives of isomorphism classes of pairs $(M, g)$
-consiting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
+consisting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
 $chi$.
 
 One can also provide a representative $L$ of $G$ instead.
@@ -580,7 +592,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     Etemp, btemp = number_field(chi; cached=false)
     @req is_maximal(equation_order(Etemp)) "For infinite isometries, the equation order of the associated number field must be maximal"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
-    Kt, t = K["t"]
+    Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)
   end
 
@@ -596,7 +608,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
   isempty(detE) && return reps
   @vprintln :ZZLatWithIsom 1 "All possible ideal dets: $(length(detE))"
 
-  signatures = _possible_signatures(s2, E, rk, fix_root)
+  signatures = _possible_signatures(s2, E, rk)
   isempty(signatures) && return reps
   @vprintln :ZZLatWithIsom 1 "All possible signatures: $(length(signatures))"
 
@@ -604,6 +616,23 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     append!(gene, hermitian_genera(E, rk, sign, dd; min_scale=inv(DE), max_scale=numerator(dd)*DE))
   end
   unique!(gene)
+  isempty(gene) && return reps
+
+  # In the cyclotomic case, the Galois group of the fixed field K acts on the
+  # set of genera by "change of fixed primitive root of unity".
+  # On the bilinear level, this action corresponds to taking certain powers
+  # of the isometry arising from the trace construction (given as multiplication
+  # by a primitive root of unity).
+  # If `fix_root == true`, then we consider the previous set of genera up to
+  # this Galois action.
+  if fix_root
+    @req !isnothing(j) "fix_root argument available only for cyclotomic polynomials"
+    K = base_field(E) # Totally real and Galois over QQ
+    GKQ, j = automorphism_group(K)
+    phi = inv(isomorphism(PermGroup, GKQ)) # Want a GAPGroup to create a gset
+    omega = gset(domain(phi), (G, g) -> _action_on_genus(G, j(phi(inv(g)))), gene) # We have a mathematical left action to put into a right action -> double inverse
+    gene = representative.(orbits(omega))
+  end
 
   @vprintln :ZZLatWithIsom 1 "All possible genera: $(length(gene))"
   for g in gene

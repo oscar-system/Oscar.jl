@@ -555,13 +555,13 @@ end
 # return the GAP matrix of the form preserved by the GAP standard group
 function _standard_form(descr::Symbol, e::Int, n::Int, q::Int)
    if descr==:quadratic
-      return GAP.Globals.InvariantQuadraticForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantQuadraticForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:symmetric #|| descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(GO(e,n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(GO(e,n,q))).matrix
    elseif descr==:hermitian
-      return GAP.Globals.InvariantSesquilinearForm(GU(n,q).X).matrix
+      return GAP.Globals.InvariantSesquilinearForm(GapObj(GU(n,q))).matrix
    elseif descr==:alternating
-      return GAP.Globals.InvariantBilinearForm(Sp(n,q).X).matrix
+      return GAP.Globals.InvariantBilinearForm(GapObj(Sp(n,q))).matrix
    else
       error("unsupported description")
    end      
@@ -683,8 +683,8 @@ function isometry_group(L::Hecke.AbstractLat; depth::Int = -1, bacher_depth::Int
   get_attribute!(L, :isometry_group) do
     gens = automorphism_group_generators(L, depth = depth, bacher_depth = bacher_depth)
     G = matrix_group(gens)
-    return G::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
-  end
+    return G
+  end::MatrixGroup{elem_type(base_field(L)), dense_matrix_type(elem_type(base_field(L)))}
 end
 
 @doc raw"""
@@ -725,8 +725,8 @@ function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_d
     else
       error("Unknown algorithm: for the moment, we support :direct or :decomposition")
     end
-    return G::MatrixGroup{QQFieldElem, QQMatrix}
-  end
+    return G
+  end::MatrixGroup{QQFieldElem, QQMatrix}
 end
 
 """

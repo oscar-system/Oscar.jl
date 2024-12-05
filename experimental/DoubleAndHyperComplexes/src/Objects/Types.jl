@@ -93,7 +93,7 @@ end
       upper_bounds::Vector=[nothing for i in 1:d],
       lower_bounds::Vector=[nothing for i in 1:d]
     ) where {ChainType, MorphismType}
-    @assert d > 0 "can not create zero or negative dimensional hypercomplex"
+    @assert d >= 0 "can not create negative dimensional hypercomplex"
     chains = Dict{Tuple, ChainType}()
     morphisms = Dict{Tuple, Dict{Int, <:MorphismType}}()
     return new{ChainType, MorphismType}(d, chains, morphisms, 
@@ -585,7 +585,7 @@ end
     ranges = [(k, u) for (k, u) in v if u isa UnitRange]
     d = length(ranges)
     all_ind = [k for (k, u) in v if u isa UnitRange]
-    @assert all(k->k in all_ind, 1:d) "matching of ranges is not unique"
+    @assert all(in(all_ind), 1:d) "matching of ranges is not unique"
 
     mapping_matrix = [0 for i in 1:dim(c), j in 1:d]
     new_ranges = Dict(v)

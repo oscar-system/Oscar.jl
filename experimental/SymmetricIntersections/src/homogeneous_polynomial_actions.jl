@@ -200,7 +200,7 @@ function symmetric_intersections(prep::ProjRep, d::Int, t::Int; j::Union{MapFrom
   RR = representation_ring_linear_lift(prep)
   F = base_field(RR)
   if j === nothing
-    S, _ = graded_polynomial_ring(F, "x" => 0:dimension_representation(prep)-1)
+    S, _ = graded_polynomial_ring(F, :x => 0:dimension_representation(prep)-1)
     _, j = homogeneous_component(S, d)
   elseif check
     V = domain(j)
@@ -252,7 +252,7 @@ function symmetric_intersections(G::Oscar.GAPGroup, n::Int, d::Int, t::Int)
   res = Tuple{ProjRep, Vector{SymInter}}[]
   is_empty(pfr) && return res
   F = base_field(representation_ring_linear_lift(pfr[1]))
-  S, _ = graded_polynomial_ring(F, "x" => 0:n-1)
+  S, _ = graded_polynomial_ring(F, :x => 0:n-1)
   _, j = homogeneous_component(S, d)
   for prep in pfr
     D = symmetric_intersections(prep, d, t; j, check = false)

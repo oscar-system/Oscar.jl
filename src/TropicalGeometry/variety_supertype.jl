@@ -43,7 +43,7 @@ end
 @doc raw"""
     ambient_dim(TropV::TropicalVariety)
 
-Return the ambient dimension of `TropV`.  Requires `TropV` to be embedded.
+See [`ambient_dim(::PolyhedralComplex)`](@ref ambient_dim(PC::PolyhedralComplex)).
 """
 function ambient_dim(TropV::TropicalVarietySupertype{minOrMax,true}) where minOrMax
     return ambient_dim(TropV.polyhedralComplex)
@@ -53,7 +53,7 @@ end
 @doc raw"""
     codim(TropV::TropicalVariety)
 
-Return the codimension of `TropV`.  Requires `TropV` to be embedded.
+See [`codim(::PolyhedralComplex)`](@ref codim(PC::PolyhedralComplex)).
 """
 function codim(TropV::TropicalVarietySupertype{minOrMax,true}) where minOrMax
     return codim(TropV.polyhedralComplex)
@@ -71,7 +71,7 @@ end
 @doc raw"""
     dim(TropV::TropicalVariety)
 
-Return the dimension of `TropV`.
+See [`dim(::PolyhedralComplex)`](@ref dim(PC::PolyhedralComplex)).
 """
 function dim(TropV::TropicalVarietySupertype)
     return dim(TropV.polyhedralComplex)
@@ -81,7 +81,7 @@ end
 @doc raw"""
     f_vector(TropV::TropicalVariety)
 
-Return the f-Vector of `TropV`.
+See [`f_vector(::PolyhedralComplex)`](@ref f_vector(PC::PolyhedralComplex)).
 """
 function f_vector(TropV::TropicalVarietySupertype)
     return f_vector(TropV.polyhedralComplex)
@@ -91,7 +91,7 @@ end
 @doc raw"""
     lineality_dim(TropV::TropicalVariety)
 
-Return the dimension of the lineality space of `TropV`.
+See [`lineality_dim(::PolyhedralComplex)`](@ref lineality_dim(PC::PolyhedralComplex)).
 """
 function lineality_dim(TropV::TropicalVarietySupertype)
     return lineality_dim(TropV.polyhedralComplex)
@@ -101,7 +101,7 @@ end
 @doc raw"""
     lineality_space(TropV::TropicalVariety)
 
-Return the lineality space of `TropV`.
+See [`lineality_space(::PolyhedralComplex)`](@ref lineality_space(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function lineality_space(TropV::TropicalVarietySupertype)
     return lineality_space(TropV.polyhedralComplex)
@@ -111,7 +111,7 @@ end
 @doc raw"""
     maximal_polyhedra(TropV::TropicalVariety)
 
-Return the maximal polyhedra of `TropV`.
+See [`maximal_polyhedra(::PolyhedralComplex)`](@ref maximal_polyhedra(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function maximal_polyhedra(TropV::TropicalVarietySupertype)
     return maximal_polyhedra(TropV.polyhedralComplex)
@@ -121,7 +121,29 @@ end
 @doc raw"""
     maximal_polyhedra_and_multiplicities(TropV::TropicalVariety)
 
-Return the maximal polyhedra of `TropV`.
+Return the maximal polyhedra and multiplicities of `TropV`.
+
+# Examples
+```jldoctest
+julia> R,(x1,x2) = polynomial_ring(QQ,4);
+
+julia> nu = tropical_semiring_map(QQ,2);
+
+julia> f = 2*x1^2+x1*x2+x2^2+1
+2*x1^2 + x1*x2 + x2^2 + 1
+
+julia> TropH = tropical_hypersurface(f,nu)
+Min tropical hypersurface
+
+julia> maximal_polyhedra_and_multiplicities(TropH)
+5-element Vector{Tuple{Polyhedron{QQFieldElem}, ZZRingElem}}:
+ (Polyhedron in ambient dimension 4, 1)
+ (Polyhedron in ambient dimension 4, 1)
+ (Polyhedron in ambient dimension 4, 2)
+ (Polyhedron in ambient dimension 4, 1)
+ (Polyhedron in ambient dimension 4, 2)
+
+```
 """
 function maximal_polyhedra_and_multiplicities(TropV::TropicalVarietySupertype)
     TropVmults = multiplicities(TropV)
@@ -132,7 +154,7 @@ end
 @doc raw"""
     minimal_faces(TropV::TropicalVariety)
 
-Return the minimal faces of `TropV`.
+See [`minimal_faces(::PolyhedralComplex)`](@ref minimal_faces(PC::PolyhedralComplex{T})  where {T<:scalar_types}).
 """
 function minimal_faces(TropV::TropicalVarietySupertype)
     return minimal_faces(TropV.polyhedralComplex)
@@ -142,7 +164,29 @@ end
 @doc raw"""
     multiplicities(TropV::TropicalVariety)
 
-Return the multiplicities of `TropV`.
+Return the multiplicities of `TropV`.  Order is the same as `maximal_polyhedra`.
+
+# Examples
+```jldoctest
+julia> R,(x1,x2) = polynomial_ring(QQ,4);
+
+julia> nu = tropical_semiring_map(QQ,2);
+
+julia> f = 2*x1^2+x1*x2+x2^2+1
+2*x1^2 + x1*x2 + x2^2 + 1
+
+julia> TropH = tropical_hypersurface(f,nu)
+Min tropical hypersurface
+
+julia> multiplicities(TropH)
+5-element Vector{ZZRingElem}:
+ 1
+ 1
+ 2
+ 1
+ 2
+
+```
 """
 function multiplicities(TropV::TropicalVarietySupertype)
     return TropV.multiplicities
@@ -152,7 +196,7 @@ end
 @doc raw"""
     n_maximal_polyhedra(TropV::TropicalVariety)
 
-Return the number of maximal polyhedra of `TropV`.
+See [`n_maximal_polyhedra(::PolyhedralComplex)`](@ref n_maximal_polyhedra(PC::PolyhedralComplex)).
 """
 function n_maximal_polyhedra(TropV::TropicalVarietySupertype)
     return n_maximal_polyhedra(TropV.polyhedralComplex)
@@ -162,7 +206,7 @@ end
 @doc raw"""
     n_polyhedra(TropV::TropicalVariety)
 
-Return the number of polyhedra of `TropV`.
+See [`n_polyhedra(::PolyhedralComplex)`](@ref n_polyhedra(PC::PolyhedralComplex)).
 """
 function n_polyhedra(TropV::TropicalVarietySupertype)
     return n_polyhedra(TropV.polyhedralComplex)
@@ -172,7 +216,7 @@ end
 @doc raw"""
     n_vertices(TropV::TropicalVariety)
 
-Return the number of vertices of `TropV`.
+See [`n_vertices(::PolyhedralComplex)`](@ref n_vertices(PC::PolyhedralComplex)).
 """
 function n_vertices(TropV::TropicalVarietySupertype)
     return n_vertices(TropV.polyhedralComplex)
@@ -182,7 +226,7 @@ end
 @doc raw"""
     is_pure(TropV::TropicalVariety)
 
-Return `true` if `TropV` is pure as a polyhedral complex, `false` otherwise.
+See [`is_pure(::PolyhedralComplex)`](@ref is_pure(PC::PolyhedralComplex)).
 """
 function is_pure(TropV::TropicalVarietySupertype)
     return is_pure(TropV.polyhedralComplex)
@@ -192,7 +236,7 @@ end
 @doc raw"""
     is_simplicial(TropV::TropicalVariety)
 
-Return `true` if `TropV` is simplicial as a polyhedral complex, `false` otherwise.
+See [`is_simplicial(::PolyhedralComplex)`](@ref is_simplicial(PC::PolyhedralComplex)).
 """
 function is_simplicial(TropV::TropicalVarietySupertype)
     return is_simplicial(TropV.polyhedralComplex)
@@ -202,7 +246,7 @@ end
 @doc raw"""
     rays(TropV::TropicalVariety)
 
-Return the rays of `TropV`.
+See [`rays(::PolyhedralComplex)`](@ref rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function rays(as::Type{RayVector{S}}, TropV::TropicalVarietySupertype{minOrMax,isEmbedded}) where {S,minOrMax,isEmbedded}
     return rays(as,TropV.polyhedralComplex)
@@ -215,7 +259,7 @@ end
 @doc raw"""
     rays_modulo_lineality(TropV::TropicalVariety)
 
-Return the rays modulo the lineality space of `TropV`.
+See [`rays_modulo_lineality(::PolyhedralComplex)`](@ref rays_modulo_lineality(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function rays_modulo_lineality(as::Type{RayVector{S}}, TropV::TropicalVarietySupertype{minOrMax,isEmbedded}) where {S,minOrMax,isEmbedded}
     return rays_modulo_lineality(as,TropV.polyhedralComplex)
@@ -228,7 +272,7 @@ end
 @doc raw"""
     vertices_and_rays(TropV::TropicalVariety)
 
-Return the vertices and rays of `TropV`.
+See [`vertices_and_rays(::PolyhedralComplex)`](@ref vertices_and_rays(PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function vertices_and_rays(TropV::TropicalVarietySupertype)
     return vertices_and_rays(TropV.polyhedralComplex)
@@ -238,7 +282,7 @@ end
 @doc raw"""
     vertices(TropV::TropicalVariety)
 
-Return the vertices of `TropV`.
+See [`vertices(::PolyhedralComplex)`](@ref vertices(as::Type{PointVector{T}}, PC::PolyhedralComplex{T}) where {T<:scalar_types}).
 """
 function vertices(as::Type{PointVector{S}}, TropV::TropicalVarietySupertype{minOrMax,isEmbedded}) where {S,minOrMax,isEmbedded}
     return vertices(as,TropV.polyhedralComplex)
@@ -251,7 +295,7 @@ end
 @doc raw"""
     visualize(TropV::TropicalVariety)
 
-Visualize `TropV`.
+See [`visualize(::PolyhedralComplex)`](@ref).
 """
 function visualize(TropV::TropicalVarietySupertype)
     return visualize(TropV.polyhedralComplex)

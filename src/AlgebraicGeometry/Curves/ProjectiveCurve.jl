@@ -8,7 +8,7 @@ a homogeneous (but not necessarily radical) ideal.
 
 # Examples
 ```jldoctest
-julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, ["w", "x", "y", "z"]);
+julia> R, (w, x, y, z) = graded_polynomial_ring(QQ, [:w, :x, :y, :z]);
 
 julia> M = matrix(R, 2, 3, [w x y; x y z])
 [w   x   y]

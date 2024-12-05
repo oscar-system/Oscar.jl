@@ -471,7 +471,7 @@ Compute a triangulation of the square
 ```jldoctest
 julia> C = cube(2);
 
-julia> cells = IncidenceMatrix([[1,2,3],[2,3,4]]);
+julia> cells = incidence_matrix([[1,2,3],[2,3,4]]);
 
 julia> S = subdivision_of_points(C, cells)
 Subdivision of points in ambient dimension 2

@@ -1,6 +1,6 @@
 # Printing in OSCAR
 
-The following dection contains more details and examples on how to implement
+The following section contains more details and examples on how to implement
 OSCAR's 2+1 printing modes. The specifications and a minimal example may be
 found in the [Developer Style Guide](@ref).
 
@@ -254,7 +254,7 @@ Something with 1 element of type Int64
 ### LaTeX output
 Some types support LaTeX output.
 ```
-julia> Qx, x = QQ["x"];
+julia> Qx, x = QQ[:x];
 
 julia> show(stdout, "text/latex", x^2 + 2x + x^10)
 x^{10} + x^{2} + 2 x
