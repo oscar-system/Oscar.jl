@@ -10,10 +10,10 @@ include(
     return word(parent(x)(word(x))) == word(x)
   end
 
-  b3_w0 = UInt8[3, 2, 3, 1, 2, 3, 1, 2, 1]
-  b4_w0 = UInt8[4, 3, 4, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 1, 2, 1]
-  f4_w0 = UInt8[4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 4, 3, 2, 3, 1, 2, 3, 1, 2, 1]
-  g2_w0 = UInt8[2, 1, 2, 1, 2, 1]
+  b3_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3]
+  b4_w0 = UInt8[1, 2, 1, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 4, 3, 4]
+  f4_w0 = UInt8[1, 2, 1, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4, 3, 2, 1, 3, 2, 3, 4]
+  g2_w0 = UInt8[1, 2, 1, 2, 1, 2]
 
   @testset "weyl_group(::ZZMatrix)" begin
     W = weyl_group(cartan_matrix(:A, 2))
@@ -121,6 +121,7 @@ include(
               @test v * w == inv(iso)(iso(v) * iso(w))
             end
             g = rand_pseudo(G)
+            @test is_in_normal_form(inv(iso)(g))
             @test g == iso(inv(iso)(g))
             h = rand_pseudo(G)
             @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
@@ -159,6 +160,7 @@ include(
                   @test v * w == inv(iso)(iso(v) * iso(w))
                 end
                 g = rand_pseudo(G)
+                @test is_in_normal_form(inv(iso)(g))
                 @test g == iso(inv(iso)(g))
                 h = rand_pseudo(G)
                 @test inv(iso)(h * g) == inv(iso)(h) * inv(iso)(g)
@@ -276,7 +278,7 @@ include(
     W = weyl_group(:B, 2)
     w0 = longest_element(W)
     @test is_in_normal_form(w0)
-    @test word(w0) == UInt8[2, 1, 2, 1]
+    @test word(w0) == UInt8[1, 2, 1, 2]
 
     # B3
     W = weyl_group(:B, 3)
@@ -327,8 +329,8 @@ include(
     s = gens(W)
     @test parent(s[1] * s[2]) === parent(s[1]) === parent(s[2])
 
-    @test word(s[3] * s[1]) == UInt8[3, 1]
-    @test word(s[1] * s[3]) == UInt8[3, 1]
+    @test word(s[3] * s[1]) == UInt8[1, 3]
+    @test word(s[1] * s[3]) == UInt8[1, 3]
     @test word(s[1] * s[3] * s[1]) == UInt8[3]
     @test word(s[3] * s[1] * s[3]) == UInt8[1]
     @test word(s[1] * s[2] * s[1]) == UInt8[1, 2, 1]
@@ -445,7 +447,7 @@ include(
     re = collect(iter)
     @test length(re) == 16
     @test re[1] == word(w0)
-    @test re[16] == UInt8[3, 2, 1, 3, 2, 3]
+    @test re[16] == UInt8[3, 2, 3, 1, 2, 3]
 
     iter = reduced_expressions(w0; up_to_commutation=true)
     @test iter.el === w0
@@ -454,7 +456,7 @@ include(
     re = collect(iter)
     @test length(re) == 8
     @test re[1] == word(w0)
-    @test re[8] == UInt8[3, 2, 3, 1, 2, 3]
+    @test re[8] == UInt8[3, 2, 1, 3, 2, 3]
   end
 
   @testset "WeylIteratorNoCopy" begin
