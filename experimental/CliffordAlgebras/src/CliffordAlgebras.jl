@@ -566,7 +566,7 @@ end
 function _mul_baseelt_with_gen(x::BitVector, i::Int, gram::MatElem)
   R = base_ring(gram)
   j = _get_last(x)
-  res = fill(R(), 2^length(x))
+  res = fill(R(), 2^ncols(gram))
   if j < i
     res[_get_basis_index(x) + 2^(i - 1)] = R(1)
     return res
