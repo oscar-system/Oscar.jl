@@ -87,7 +87,7 @@ function strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
 end
 
 @doc raw"""
-    strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal) -> MPolyIdeal
+    strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal) -> (MPolyIdeal, Int)
 
 Returns the pair $(J, k)$, where $J$ coincides with `strict_transform(f, I)` and where $k$ is the multiplicity of the total transform along the exceptional prime divisor.
 
