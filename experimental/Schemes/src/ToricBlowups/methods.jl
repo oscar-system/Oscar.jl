@@ -132,7 +132,7 @@ end
     cox_ring_group_homomorphism(f::ToricBlowupMorphism, I::MPolyIdeal) -> MPolyIdeal
 
 Let $f\colon Y \to X$ be the toric blowup corresponding to a star subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and $Y$, respectively.
-Considering $R$ and $S$ with their abelian group structures, there is a group homomorphism $\Phi\colon R \to S$ sending homogeneous ideals to homogeneous ideals with the defining property that the the total transform of a subscheme of $X$, given by a homogeneous ideal $I$ in $R$, is the subscheme of $Y$ given by the homogeneous ideal $\Phi(I)$ in $S$.
+Considering $R$ and $S$ with their abelian group structures, there is a group homomorphism $\Phi\colon R \to S$ sending homogeneous ideals to homogeneous ideals with the defining property that the total transform of a subscheme of $X$, given by a homogeneous ideal $I$ in $R$, is the subscheme of $Y$ given by the homogeneous ideal $\Phi(I)$ in $S$.
 
 This is implemented under the following assumptions:
   * the star subdivision adds a ray (instead of subdividing along an existing ray),
