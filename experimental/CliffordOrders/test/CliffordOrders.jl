@@ -47,6 +47,17 @@
         @test coefficients(C(1)) == [K(1)]
         @test even_coefficients(C(1)) == [K(1)] && odd_coefficients(C(1)) == Kzer
       end
+      @testset "equality and wrong parents" begin
+        CC = clifford_order(ls)
+        x, y = C(), CC()
+        @test_throws ErrorException x + y
+        @test_throws ErrorException x - y
+        @test_throws ErrorException x * y
+        @test x != y
+        y = C(1)
+        x[1] = K(1)
+        @test x == y
+      end
       @testset "functions on elements" begin
         x = C([17])
         @test parent(x) == C
@@ -129,6 +140,17 @@
         @test is_one(C(1))
         @test coefficients(C(1)) == [QQ(1)]
         @test even_coefficients(C(1)) == [QQ(1)] && odd_coefficients(C(1)) == QQzer
+      end
+      @testset "equality and wrong parents" begin
+        CC = clifford_order(ls)
+        x, y = C(), CC()
+        @test_throws ErrorException x + y
+        @test_throws ErrorException x - y
+        @test_throws ErrorException x * y
+        @test x != y
+        y = C(1)
+        x[1] = QQ(1)
+        @test x == y
       end
       @testset "functions on elements" begin
         x = C([17])
@@ -240,6 +262,17 @@
       @test Ca * 2 == 2 * Ca
       @test 2 * Ca == C(2 * a)
       @test C(2) == C(K(2))
+    end
+    @testset "equality and wrong parents" begin
+      CC = clifford_order(lsK)
+      x, y = C(), CC()
+      @test_throws ErrorException x + y
+      @test_throws ErrorException x - y
+      @test_throws ErrorException x * y
+      @test x != y
+      y = C(1)
+      x[1] = K(1)
+      @test x == y
     end
     @testset "functions on elements" begin
       x = C([-1, 1, a, a + 1])
@@ -371,6 +404,17 @@
       @test coefficients(C(1)) == QQone
       @test even_coefficients(C(1)) == QQone && odd_coefficients(C(1)) == QQzer
     end
+    @testset "equality and wrong parents" begin
+      CC = clifford_order(e6)
+      x, y = C(), CC()
+      @test_throws ErrorException x + y
+      @test_throws ErrorException x - y
+      @test_throws ErrorException x * y
+      @test x != y
+      y = C(1)
+      x[1] = QQ(1)
+      @test x == y
+    end
     @testset "functions on elements" begin
       x = gen(C, 1) * gen(C, 2)
       @test parent(x) == C
@@ -486,6 +530,17 @@
       @test is_one(C(1))
       @test coefficients(C(1)) == QQone
       @test even_coefficients(C(1)) == QQone && odd_coefficients(C(1)) == QQzer
+    end
+    @testset "equality and wrong parents" begin
+      CC = clifford_order(a5)
+      x, y = C(), CC()
+      @test_throws ErrorException x + y
+      @test_throws ErrorException x - y
+      @test_throws ErrorException x * y
+      @test x != y
+      y = C(1)
+      x[1] = QQ(1)
+      @test x == y
     end
     @testset "functions on elements" begin
       x = gen(C, 1) * gen(C, 2)

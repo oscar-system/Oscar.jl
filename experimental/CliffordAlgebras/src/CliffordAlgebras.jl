@@ -429,7 +429,7 @@ end
 Base.:-(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem} = x + -y
 
 function Base.:*(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
-  @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
+  check_parent(x, y)
   xcoeffs, ycoeffs = copy(coefficients(x)), copy(coefficients(y))
   return parent(x)(_mul_aux(xcoeffs, ycoeffs, gram_matrix(parent(x)), 1))
 end
@@ -451,10 +451,7 @@ divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} =
 #
 ################################################################################
 
-function Base.:(==)(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T}
-  @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
-  return coefficients(x) == coefficients(y)
-end
+Base.:(==)(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T} = parent(x) === parent(y) && coefficients(x) == coefficients(y)
 
 function Base.hash(x::CliffordAlgebraElem, h::UInt)
   b = 0x1c4629b4de23b24c % UInt
