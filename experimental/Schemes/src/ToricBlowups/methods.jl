@@ -83,7 +83,7 @@ function strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
   S = cox_ring(domain(f))
   new_var = S[index_of_new_ray(f)]
   J = total_transform(f, I)
-  return saturation(J, ideal(new_var))
+  return saturation(J, ideal(S, new_var))
 end
 
 @doc raw"""
