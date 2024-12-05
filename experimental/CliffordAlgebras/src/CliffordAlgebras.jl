@@ -422,7 +422,7 @@ Base.:-(x::CliffordAlgebraElem) = parent(x)(map(y -> -1 * y, coefficients(x)))
 ################################################################################
 
 function Base.:+(x::CliffordAlgebraElem{T}, y::CliffordAlgebraElem{T}) where {T<:FieldElem}
-  @req parent(x) === parent(y) "The inputs must lie in the same Clifford algebra"
+  check_parent(x, y)
   return parent(x)(coefficients(x) .+ coefficients(y))
 end
 
