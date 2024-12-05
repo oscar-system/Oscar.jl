@@ -508,9 +508,11 @@ end
 
 _dim_qf(C::CliffordAlgebra) = ncols(C.gram)
 
-function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T}
-  if length(y) == 1 #|| is_zero(y)
+function _mul_aux(x::Vector{T}, y::Vector{T}, gram::MatElem{T}, i::Int) where {T<:RingElement}
+  if length(y) == 1
     return x .* y[1]
+  elseif is_zero(y)
+    return fill(y[1], 2^ncols(gram))
   end
   return _mul_aux(_mul_with_gen(x, i, gram), y[2:2:end], gram, i + 1) +
          _mul_aux(x, y[1:2:end], gram, i + 1)
@@ -518,65 +520,40 @@ end
 
 #Implements the right multiplication with 'i'-th generator e_i of the Clifford algebra containing x.
 #The result is returned as a coefficient vector for further computations.
-_mul_with_gen(x::Vector{T}, i::Int, gram::MatElem{T}) where {T} = sum(
+_mul_with_gen(x::Vector{T}, i::Int, gram::MatElem{T}) where {T <: RingElement} = sum(
   map(
-    j ->
-      x[j] .*
-      _mul_baseelt_with_gen(BitVector(digits(j - 1; base=2, pad=ncols(gram))), i, gram),
-    1:length(x),
+    char ->
+      x[char] .*
+      _mul_baseelt_with_gen(char, i, gram),
+      1:2^ncols(gram),
   ),
 )
 
-#In the following, bitvectors of length n are used, where 2^n is the Dimension of the Clifford algebra
-#containing x. A bitvector will represent the characteristic function of a subset I of {1,...,n}, thus
-#representing the element e_I of the canonical basis of the Clifford algebra. Here, e_I is the ordered
-#product of the elements of I.
-
-#Converts a bitvector to an integer. The first entry corresponds to 2^0, the second one to 2^1 and so on.
-function _bitvec_to_int(x::BitVector)
-  pow_of_two = 1
-  res = 0
-  for i in view(x, 1:length(x))
-    res += pow_of_two * i
-    pow_of_two <<= 1
-  end
-  return res
-end
-
-#Return the index of e_I in the canonical basis of the Clifford algebra.
-_get_basis_index(x::BitVector) = _bitvec_to_int(x) + 1
-
-#Return the index of the last non-zero entry
-function _get_last(x::BitVector)
-  res = findlast(isone, x)
-  if res == nothing
-    return 0
-  end
-  return res
-end
-
+#Shift all entries of the vector 'X' to the right by 's' entries without changing the length of X.
 function _shift_entries!(X::Vector, s::Int)
-  X[(s + 1):end] = X[1:(end - s)]
-  X[1:s] = fill(parent(X[1])(), s)
+  X[(s + 1) : end] = X[1 : (end - s)]
+  X[1 : s] = fill(parent(X[1])(), s)
   return X
 end
 
-#Right multiplication of the basis element represented by the bitvector 'x' with the
-#'i'-th generator of the Clifford algebra containing said basis vector.
-function _mul_baseelt_with_gen(x::BitVector, i::Int, gram::MatElem)
+#Right multiplication of the basis element represented by 'char' with the
+#'i'-th generator of the Clifford algebra/order containing said basis vector
+function _mul_baseelt_with_gen(char::Int, i::Int, gram::MatElem)
   R = base_ring(gram)
-  j = _get_last(x)
   res = fill(R(), 2^ncols(gram))
+  if char == 1
+    res[char + 2^(i - 1)] = R(1)
+    return res
+  end
+  j = floor(Int, log2(char - 1)) + 1
   if j < i
-    res[_get_basis_index(x) + 2^(i - 1)] = R(1)
+    res[char + 2^(i - 1)] = R(1)
     return res
   end
   if j == i
-    res[_get_basis_index(x) - 2^(i - 1)] = R(divexact(gram[i, i], 2))
+    res[char - 2^(i - 1)] = R(divexact(gram[i, i], 2))
     return res
   end
-  xj_to_zero = copy(x)
-  xj_to_zero[j] = 0
-  res[_get_basis_index(xj_to_zero)] = gram[i, j]
-  res -= _shift_entries!(_mul_baseelt_with_gen(xj_to_zero, i, gram), 2^(j - 1))
+  res[char - 2^(j - 1)] = gram[i, j]
+  res -= _shift_entries!(_mul_baseelt_with_gen(char - 2^(j - 1), i, gram), 2^(j - 1))
 end

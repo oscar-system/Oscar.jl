@@ -443,31 +443,7 @@
   end
 
   @testset "multiplication helpers on bitvectors" begin
-    bitvec_to_int = Oscar._bitvec_to_int
-    @testset "test bitvec_to_int" begin
-      @test bitvec_to_int(BitVector([0])) == 0
-      @test bitvec_to_int(BitVector([0, 0, 0, 0])) == 0
-      @test bitvec_to_int(BitVector([1, 0, 0, 0])) == 1
-      @test bitvec_to_int(BitVector([0, 1, 0, 0])) == 2
-      @test bitvec_to_int(BitVector([0, 0, 1, 0])) == 4
-      @test bitvec_to_int(BitVector([0, 0, 0, 1])) == 8
-      @test bitvec_to_int(BitVector([1, 1, 1, 1])) == 15
-      @test bitvec_to_int(BitVector([0, 1, 0, 1])) == 10
-      @test bitvec_to_int(BitVector([1, 1, 1, 0, 1, 0, 0, 1])) == 1 + 2 + 4 + 16 + 128
-    end
-    @testset "test getbasis_index" begin
-      getbasis_index = Oscar._get_basis_index
-      b = BitVector([1, 0, 0, 1, 1, 0, 1])
-      @test getbasis_index(b) == bitvec_to_int(b) + 1
-    end
-    @testset "test getfirst and getlast" begin
-      getlast = Oscar._get_last
-      @test getlast(BitVector([0, 0, 0, 0, 0])) == 0
-
-      @test getlast(BitVector([0, 1, 1, 0, 1, 0])) == 5
-
-      @test getlast(BitVector([1])) == 1
-    end
+    
     @testset "test shift_entries!" begin
       shift_entries! = Oscar._shift_entries!
       A3, s3 = QQ.([1, 2, 3, 4, 5, 6]), 0
@@ -482,58 +458,54 @@
       mul_baseelt_with_gen = Oscar._mul_baseelt_with_gen
       @testset "mul_baseelt_with_gen orthogonal" begin
         gram1, gram2 = QQ[4 0; 0 -6], QQ[1 0; 0 1]
-        @test mul_baseelt_with_gen(BitVector([0, 0]), 1, gram1) == QQ.([0, 1, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([0, 0]), 2, gram1) == QQ.([0, 0, 1, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, gram1) == QQ.([2, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 2, gram1) == QQ.([0, 0, 0, 1])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 1, gram1) == QQ.([0, 0, 0, -1])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, gram1) == QQ.([-3, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 1, gram1) == QQ.([0, 0, -2, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 2, gram1) == QQ.([0, -3, 0, 0])
+        @test mul_baseelt_with_gen(1, 1, gram1) == QQ.([0, 1, 0, 0])
+        @test mul_baseelt_with_gen(1, 2, gram1) == QQ.([0, 0, 1, 0])
+        @test mul_baseelt_with_gen(2, 1, gram1) == QQ.([2, 0, 0, 0])
+        @test mul_baseelt_with_gen(2, 2, gram1) == QQ.([0, 0, 0, 1])
+        @test mul_baseelt_with_gen(3, 1, gram1) == QQ.([0, 0, 0, -1])
+        @test mul_baseelt_with_gen(3, 2, gram1) == QQ.([-3, 0, 0, 0])
+        @test mul_baseelt_with_gen(4, 1, gram1) == QQ.([0, 0, -2, 0])
+        @test mul_baseelt_with_gen(4, 2, gram1) == QQ.([0, -3, 0, 0])
 
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 1, gram2) == QQ.([0, 0, -1//2, 0])
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 2, gram2) == QQ.([0, 1//2, 0, 0])
+        @test mul_baseelt_with_gen(4, 1, gram2) == QQ.([0, 0, -1//2, 0])
+        @test mul_baseelt_with_gen(4, 2, gram2) == QQ.([0, 1//2, 0, 0])
       end
       @testset "mul_baseelt_with_gen non-orthogonal" begin
         H2 = QQ[0 1; 1 0]
-        @test mul_baseelt_with_gen(BitVector([1, 0]), 1, H2) == QQ.([0, 0, 0, 0])
-        @test mul_baseelt_with_gen(BitVector([0, 1]), 2, H2) == QQ.([0, 0, 0, 0])
+        @test mul_baseelt_with_gen(2, 1, H2) == QQ.([0, 0, 0, 0])
+        @test mul_baseelt_with_gen(3, 2, H2) == QQ.([0, 0, 0, 0])
 
         A3 = QQ[2 1 0; 1 2 1; 0 1 2]
-        b101 = BitVector([1, 0, 1])
-        @test mul_baseelt_with_gen(b101, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 0])
-        @test mul_baseelt_with_gen(b101, 2, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, -1])
-        @test mul_baseelt_with_gen(b101, 3, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, 0])
-        b011 = BitVector([0, 1, 1])
-        @test mul_baseelt_with_gen(b011, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 1])
-        @test mul_baseelt_with_gen(b011, 2, A3) == QQ.([0, 0, 1, 0, -1, 0, 0, 0])
-        @test mul_baseelt_with_gen(b011, 3, A3) == QQ.([0, 0, 1, 0, 0, 0, 0, 0])
+        @test mul_baseelt_with_gen(6, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 0])
+        @test mul_baseelt_with_gen(6, 2, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, -1])
+        @test mul_baseelt_with_gen(6, 3, A3) == QQ.([0, 1, 0, 0, 0, 0, 0, 0])
+        @test mul_baseelt_with_gen(7, 1, A3) == QQ.([0, 0, 0, 0, -1, 0, 0, 1])
+        @test mul_baseelt_with_gen(7, 2, A3) == QQ.([0, 0, 1, 0, -1, 0, 0, 0])
+        @test mul_baseelt_with_gen(7, 3, A3) == QQ.([0, 0, 1, 0, 0, 0, 0, 0])
 
         X = QQ[2 -4 -1 -1; -4 4 -3 1; -1 -3 -2 3; -1 1 3 2]
-        b1011 = BitVector([1, 0, 1, 1])
-        @test mul_baseelt_with_gen(b1011, 1, X) ==
+        @test mul_baseelt_with_gen(14, 1, X) ==
           QQ.([0, 0, 0, 0, 0, X[1, 4], 0, 0, 0, -X[1, 3], 0, 0, X[1, 1] / 2, 0, 0, 0])
-        @test mul_baseelt_with_gen(b1011, 2, X) ==
+        @test mul_baseelt_with_gen(14, 2, X) ==
           QQ.([0, 0, 0, 0, 0, X[2, 4], 0, 0, 0, -X[2, 3], 0, 0, 0, 0, 0, 1])
-        @test mul_baseelt_with_gen(b1011, 3, X) ==
+        @test mul_baseelt_with_gen(14, 3, X) ==
           QQ.([0, 0, 0, 0, 0, X[3, 4], 0, 0, 0, -X[3, 3] / 2, 0, 0, 0, 0, 0, 0])
-        @test mul_baseelt_with_gen(b1011, 4, X) ==
+        @test mul_baseelt_with_gen(14, 4, X) ==
           QQ.([0, 0, 0, 0, 0, X[4, 4] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 
-        b1100 = BitVector([1, 1, 0, 0])
-        @test mul_baseelt_with_gen(b1100, 1, X) ==
+        @test mul_baseelt_with_gen(4, 1, X) ==
           QQ.([0, X[1, 2], -X[1, 1] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        @test mul_baseelt_with_gen(b1100, 2, X) ==
+        @test mul_baseelt_with_gen(4, 2, X) ==
           QQ.([0, X[2, 2] / 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        @test mul_baseelt_with_gen(b1100, 3, X) ==
+        @test mul_baseelt_with_gen(4, 3, X) ==
           QQ.([0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-        @test mul_baseelt_with_gen(b1100, 4, X) ==
+        @test mul_baseelt_with_gen(4, 4, X) ==
           QQ.([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 
         K, a = quadratic_field(3)
         G = K[1 a; a 1]
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 1, G) == [0, a, (-1//2), 0]
-        @test mul_baseelt_with_gen(BitVector([1, 1]), 2, G) == [0, (1//2), 0, 0]
+        @test mul_baseelt_with_gen(4, 1, G) == [0, a, (-1//2), 0]
+        @test mul_baseelt_with_gen(4, 2, G) == [0, (1//2), 0, 0]
       end
     end
   end
