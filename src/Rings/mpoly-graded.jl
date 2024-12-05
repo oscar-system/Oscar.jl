@@ -67,7 +67,7 @@ function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
   R = forget_decoration(W)
   print(io, R)
   if is_trivial(grading_group(W))
-    print(io, " with trivial grading")
+    print(io, " graded by the trivial group")
   else
     if is_filtered(W)
       println(io, " filtrated by")
