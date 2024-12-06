@@ -18,9 +18,7 @@ julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
 julia> R = cox_ring(X)
-Multivariate polynomial ring in 2 variables over QQ graded by
-  x1 -> 1 by 0 empty matrix
-  x2 -> 1 by 0 empty matrix
+Multivariate polynomial ring in 2 variables over QQ graded by the trivial group
 
 julia> (x1, x2) = gens(R)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -61,9 +59,7 @@ julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
 julia> R = cox_ring(X)
-Multivariate polynomial ring in 2 variables over QQ graded by
-  x1 -> 1 by 0 empty matrix
-  x2 -> 1 by 0 empty matrix
+Multivariate polynomial ring in 2 variables over QQ graded by the trivial group
 
 julia> (x1, x2) = gens(R)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -103,9 +99,7 @@ julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
 julia> R = cox_ring(X)
-Multivariate polynomial ring in 2 variables over QQ graded by
-  x1 -> 1 by 0 empty matrix
-  x2 -> 1 by 0 empty matrix
+Multivariate polynomial ring in 2 variables over QQ graded by the trivial group
 
 julia> (x1, x2) = gens(R)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
@@ -148,9 +142,7 @@ julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
 julia> R = cox_ring(X)
-Multivariate polynomial ring in 2 variables over QQ graded by
-  x1 -> 1 by 0 empty matrix
-  x2 -> 1 by 0 empty matrix
+Multivariate polynomial ring in 2 variables over QQ graded by the trivial group
 
 julia> (x1, x2) = gens(R)
 2-element Vector{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}:
