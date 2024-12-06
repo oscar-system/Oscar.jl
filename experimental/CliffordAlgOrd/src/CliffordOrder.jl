@@ -791,11 +791,8 @@ function quadratic_discriminant(C::ZZCliffordOrder)
   if isdefined(C, :disq)
     return C.disq
   end
-  if rank(lattice(C)) == 0
-    C.disq = one(base_ring(C))
-  else
-    C.disq = ZZ((basis_of_centroid(C)[2]^2)[1])
-  end
+  centroid(C)
+  return C.disq
 end
 
 @doc raw"""
