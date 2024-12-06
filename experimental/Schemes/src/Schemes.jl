@@ -36,6 +36,7 @@ export SpaceGerm
 export ambient_germ
 export basis_representation
 export complete_intersection_germ
+export cox_ring_group_homomorphism
 export defining_ring_element
 export defining_ring_elements
 export elliptic_parameter
@@ -51,6 +52,8 @@ export milnor_number
 export point
 export rational_point_coordinates
 export standard_covering
+export strict_transform
+export strict_transform_with_index
 export total_transform
 export two_neighbor_step
 
