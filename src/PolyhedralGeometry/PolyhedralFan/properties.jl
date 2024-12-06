@@ -285,7 +285,9 @@ end
     minimal_supercone(X::NormalToricVariety, p::AbstractVector{<:IntegerUnion})
     -> SubObjectIterator{RayVector}
 
-Given an point $p$ with integer coordinates inside the support of the fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$ such that $p$ is in the relative interior of $σ$.
+Given an point $p$ with integer coordinates inside the support of the
+fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$
+such that $p$ is in the relative interior of $σ$.
 
 # Examples
 ```jldoctest

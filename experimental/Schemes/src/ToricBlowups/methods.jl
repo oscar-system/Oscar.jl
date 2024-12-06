@@ -1,11 +1,17 @@
 @doc raw"""
     total_transform(f::ToricBlowupMorphism, I::MPolyIdeal) -> MPolyIdeal
 
-Let $f\colon Y \to X$ be the toric blowup corresponding to a star subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and $Y$, respectively.
-This function returns a homogeneous ideal in $S$ corresponding to the total transform (meaning the scheme-theoretic inverse image) under $f$ of the closed subscheme of $X$ defined by the homogeneous ideal $I$ in $R$.
+Let $f\colon Y \to X$ be the toric blowup corresponding to a star
+subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and
+$Y$, respectively.
+This function returns a homogeneous ideal in $S$ corresponding to the
+total transform (meaning the scheme-theoretic inverse image) under $f$
+of the closed subscheme of $X$ defined by the homogeneous ideal $I$ in
+$R$.
 
 This is implemented under the following assumptions:
-  * the star subdivision adds a ray (instead of subdividing along an existing ray),
+  * the star subdivision adds a ray (instead of subdividing along an
+    existing ray),
   * $X$ is an orbifold (meaning its fan is simplicial), and
   * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$).
 
@@ -41,12 +47,19 @@ end
 @doc raw"""
     strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal) -> MPolyIdeal
 
-Let $f\colon Y \to X$ be the toric blowup corresponding to a star subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and $Y$, respectively.
-Here "strict transform" means the "scheme-theoretic closure of the complement of the exceptional divisor in the scheme-theoretic inverse image".
-This function returns a homogeneous ideal in $S$ corresponding to the strict transform under $f$ of the closed subscheme of $X$ defined by the homogeneous ideal $I$ in $R$.
+Let $f\colon Y \to X$ be the toric blowup corresponding to a star
+subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and
+$Y$, respectively.
+Here "strict transform" means the "scheme-theoretic closure of the
+complement of the exceptional divisor in the scheme-theoretic inverse
+image".
+This function returns a homogeneous ideal in $S$ corresponding to the
+strict transform under $f$ of the closed subscheme of $X$ defined by the
+homogeneous ideal $I$ in $R$.
 
 This is implemented under the following assumptions:
-  * the star subdivision adds a ray (instead of subdividing along an existing ray),
+  * the star subdivision adds a ray (instead of subdividing along an
+    existing ray),
   * $X$ is an orbifold (meaning its fan is simplicial), and
   * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$).
 
@@ -85,10 +98,13 @@ end
 @doc raw"""
     strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal) -> (MPolyIdeal, Int)
 
-Returns the pair $(J, k)$, where $J$ coincides with `strict_transform(f, I)` and where $k$ is the multiplicity of the total transform along the exceptional prime divisor.
+Returns the pair $(J, k)$, where $J$ coincides with `strict_transform(f, I)`
+and where $k$ is the multiplicity of the total transform along the
+exceptional prime divisor.
 
 !!! note
-    If the multiplicity $k$ is not needed, we recommend to use `strict_transform(f, I)` which is typically faster.
+    If the multiplicity $k$ is not needed, we recommend to use
+    `strict_transform(f, I)` which is typically faster.
 
 # Examples
 ```jldoctest
@@ -125,11 +141,18 @@ end
     cox_ring_group_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingElem) -> MPolyDecRingElem
     cox_ring_group_homomorphism(f::ToricBlowupMorphism, I::MPolyIdeal) -> MPolyIdeal
 
-Let $f\colon Y \to X$ be the toric blowup corresponding to a star subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and $Y$, respectively.
-Considering $R$ and $S$ with their abelian group structures, there is a group homomorphism $\Phi\colon R \to S$ sending homogeneous ideals to homogeneous ideals with the defining property that the total transform of a subscheme of $X$, given by a homogeneous ideal $I$ in $R$, is the subscheme of $Y$ given by the homogeneous ideal $\Phi(I)$ in $S$.
+Let $f\colon Y \to X$ be the toric blowup corresponding to a star
+subdivision along a ray. Let $R$ and $S$ be the Cox rings of $X$ and
+$Y$, respectively.
+Considering $R$ and $S$ with their abelian group structures, there is a
+group homomorphism $\Phi\colon R \to S$ sending homogeneous ideals to
+homogeneous ideals with the defining property that the total transform
+of a subscheme of $X$, given by a homogeneous ideal $I$ in $R$, is the
+subscheme of $Y$ given by the homogeneous ideal $\Phi(I)$ in $S$.
 
 This is implemented under the following assumptions:
-  * the star subdivision adds a ray (instead of subdividing along an existing ray),
+  * the star subdivision adds a ray (instead of subdividing along an
+    existing ray),
   * $X$ is an orbifold (meaning its fan is simplicial), and
   * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$).
 
