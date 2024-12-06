@@ -283,7 +283,7 @@ end
 
 @doc raw"""
     minimal_supercone(X::NormalToricVariety, p::AbstractVector{<:IntegerUnion})
-    -> SubObjectIterator{RayVector}
+    -> Cone
 
 Given an point $p$ with integer coordinates inside the support of the
 fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$
