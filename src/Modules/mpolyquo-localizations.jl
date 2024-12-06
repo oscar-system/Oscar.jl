@@ -75,7 +75,7 @@ function has_solution(A::MatrixType, b::MatrixType) where {T<:MPolyQuoLocRingEle
 end
 
 function pre_saturated_module(M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
-  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{base_ring_elem_type(T)}
+  has_attribute(M, :saturated_module) && return get_attribute(M, :saturated_module)::SubquoModule{elem_type(base_ring_type(T))}
   if !has_attribute(M, :pre_saturated_module)
     S = base_ring(M)
     R = base_ring(S)
@@ -95,7 +95,7 @@ function pre_saturated_module(M::SubquoModule{T}) where {T<:MPolyQuoLocRingElem}
     set_attribute!(M, :pre_saturation_data_rels, change_base_ring(S, E))
     set_attribute!(M, :pre_saturated_module, Mb)
   end
-  return get_attribute(M, :pre_saturated_module)::SubquoModule{base_ring_elem_type(T)}
+  return get_attribute(M, :pre_saturated_module)::SubquoModule{elem_type(base_ring_type(T))}
 end
 
 # The kernel routine has to be overwritten since the base_ring_module of a

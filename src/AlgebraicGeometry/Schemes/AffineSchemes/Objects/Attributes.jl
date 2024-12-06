@@ -864,9 +864,6 @@ ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineS
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
 base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
-base_ring_type(X::AbsAffineScheme) = base_ring_type(typeof(X))
-base_ring_elem_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(BRT)
-base_ring_elem_type(X::AbsAffineScheme) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
 poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
@@ -877,5 +874,4 @@ poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::AffineScheme) = ring_type(typeof(X))
 base_ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = BRT
-base_ring_type(X::AffineScheme) = base_ring_type(typeof(X))
 
