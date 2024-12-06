@@ -541,10 +541,11 @@ function is_homogeneous(el::FreeModElem)
   return isa(el.d, FinGenAbGroupElem)
 end
 
-const AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
-                                <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
-                                <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
-                               }
+#const AnyGradedRingElem = Union{<:MPolyDecRingElem, <:MPolyQuoRingElem{<:MPolyDecRingElem},
+#                                <:MPolyLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing},
+#                                <:MPolyQuoLocRingElem{<:Ring, <:RingElem, <:MPolyDecRing}
+#                               }
+const AnyGradedRingElem = NCRingElem
 
 @doc raw"""
     degree(f::FreeModElem{T}; check::Bool=true) where {T<:AnyGradedRingElem}
