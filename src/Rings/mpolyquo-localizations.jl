@@ -1878,7 +1878,7 @@ If, say, `A = L/I`, where `L` is a localization of multivariate polynomial ring 
 such that the residue classes of these monomials form a basis of `A` as a `K`-vector
 space. 
 !!! note 
-    The monomials are for readabilty in the varibles of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
+    The monomials are for readability in the variables of the underlying polynomial ring of `L` and not in the variables of power series ring $K[[x_1-p_1,...,x_n-p_n]]$ in which `L` is embedded.
 !!! note
     If `A` is not finite-dimensional as a `K`-vector space, an error is thrown. 
 # Examples
@@ -2366,7 +2366,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
     #b = normal_form(b, I_shift, ordering=ordering)
     result = zero(V)
     # The following is an ugly hack, because normal_form is currently broken 
-    # for local oderings.
+    # for local orderings.
     while !iszero(b)
       m = leading_monomial(b, ordering=ordering)
       c = leading_coefficient(b, ordering=ordering)
@@ -2385,7 +2385,7 @@ function vector_space(kk::Field, W::MPolyQuoLocRing{<:Field, <:FieldElem,
 end
 
 
-# diasambiguate some conversions
+# disambiguate some conversions
 # ... but this needs to be after some type declarations... so here it is
 function (W::MPolyDecRing)(f::MPolyQuoRingElem)
   return W(forget_decoration(W)(f))
@@ -2495,7 +2495,7 @@ Note: This is only available for localizations at rational points.
   nJlist = length(Jlist)
   append!(Jlist,gens(modulus(Q)))
 
-  ## move to origing
+  ## move to origin
   shift, back_shift = base_ring_shifts(L)
   I_shift = shifted_ideal(ideal(L,Jlist))
   R = base_ring(I_shift)

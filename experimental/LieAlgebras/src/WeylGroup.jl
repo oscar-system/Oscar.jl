@@ -67,7 +67,7 @@ Construct a Weyl group element from the given word.
 
 The word must be a list of integers, where each integer is the index of a simple reflection.
 
-If the word is known to be in reduced form, the normalization can be skipped by setting `normalize=false`.
+If the word is known to be in short lex normal form, the normalization can be skipped by setting `normalize=false`.
 """
 function (W::WeylGroup)(word::Vector{<:Integer}; normalize::Bool=true)
   return WeylGroupElem(W, word; normalize)
@@ -146,6 +146,8 @@ end
     gen(W::WeylGroup, i::Int) -> WeylGroupElem
 
 Return the `i`-th simple reflection (with respect to the underlying root system) of `W`.
+
+This is a more efficient version for `gens(W)[i]`.
 """
 function gen(W::WeylGroup, i::Integer)
   @req 1 <= i <= ngens(W) "invalid index"
@@ -156,6 +158,8 @@ end
     gens(W::WeylGroup) -> WeylGroupElem
 
 Return the simple reflections (with respect to the underlying root system) of `W`.
+
+See also: [`gen(::WeylGroup, ::Int)`](@ref).
 """
 function gens(W::WeylGroup)
   return [gen(W, i) for i in 1:ngens(W)]
@@ -170,14 +174,14 @@ This only exists if `W` is finite.
 function longest_element(W::WeylGroup)
   @req is_finite(W) "Weyl group is not finite"
 
-  _, w0 = conjugate_dominant_weight_with_left_elem(-weyl_vector(root_system(W)))
+  _, w0 = conjugate_dominant_weight_with_elem(-weyl_vector(root_system(W)))
   return w0
 end
 
 @doc raw"""
     number_of_generators(W::WeylGroup) -> Int
 
-Return the number of generators of the `W`, i.e. the rank of the underyling root system.
+Return the number of generators of the `W`, i.e. the rank of the underlying root system.
 """
 function number_of_generators(W::WeylGroup)
   return rank(root_system(W))
@@ -235,32 +239,17 @@ end
 # Weyl group elements
 
 function Base.:*(x::WeylGroupElem, y::WeylGroupElem)
-  @req x.parent === y.parent "$x, $y must belong to the same Weyl group"
+  @req parent(x) === parent(y) "parent mismatch"
 
-  p = deepcopy(y)
-  for s in Iterators.reverse(word(x))
-    lmul!(p, s)
+  p = deepcopy(x)
+  for s in word(y)
+    rmul!(p, s)
   end
   return p
 end
 
-@doc raw"""
-    *(x::WeylGroupElem, r::RootSpaceElem) -> RootSpaceElem
-    *(x::WeylGroupElem, w::WeightLatticeElem) -> WeightLatticeElem
-
-Return the result of acting with `x` **from the left** on `r` or `w`.
-
-See also: [`*(::Union{RootSpaceElem,WeightLatticeElem}, ::WeylGroupElem)`](@ref).
-"""
-function Base.:*(x::WeylGroupElem, rw::Union{RootSpaceElem,WeightLatticeElem})
-  @req root_system(parent(x)) === root_system(rw) "Incompatible root systems"
-
-  rw2 = deepcopy(rw)
-  for s in Iterators.reverse(word(x))
-    reflect!(rw2, Int(s))
-  end
-
-  return rw2
+function Base.:*(::WeylGroupElem, ::Union{RootSpaceElem,WeightLatticeElem})
+  error("OSCAR only supports the right action of Weyl groups")
 end
 
 @doc raw"""
@@ -292,8 +281,8 @@ function Base.:(^)(x::WeylGroupElem, n::Int)
 
   px = deepcopy(x)
   for _ in 2:n
-    for s in Iterators.reverse(word(x))
-      lmul!(px, s)
+    for s in word(x)
+      rmul!(px, s)
     end
   end
 
@@ -317,8 +306,8 @@ function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
   end
 
   tx = deepcopy(x)
-  for i in 1:length(y)
-    b, j, _ = explain_lmul(tx, y[i])
+  for i in length(y):-1:1
+    b, j, _ = explain_rmul(tx, y[i])
     if !b
       deleteat!(word(tx), j)
       if isone(tx)
@@ -326,7 +315,7 @@ function Base.:(<)(x::WeylGroupElem, y::WeylGroupElem)
       end
     end
 
-    if length(tx) > length(y) - i
+    if length(tx) > i - 1
       return false
     end
   end
@@ -367,8 +356,8 @@ end
 
 function Base.inv(x::WeylGroupElem)
   y = parent(x)(sizehint!(UInt8[], length(x)); normalize=false)
-  for s in word(x)
-    lmul!(y, s)
+  for s in Iterators.reverse(word(x))
+    rmul!(y, s)
   end
   return y
 end
@@ -403,7 +392,7 @@ end
 @doc raw"""
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
-Return a random element of the Weyl group. The elements are not uniformally distributed.
+Return a random element of the Weyl group. The elements are not uniformly distributed.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
@@ -421,21 +410,21 @@ function Base.show(io::IO, x::WeylGroupElem)
 end
 
 @doc raw"""
-    lmul(x::WeylGroupElem, i::Integer) -> WeylGroupElem
+    rmul(x::WeylGroupElem, i::Integer) -> WeylGroupElem
 
-Return the result of multiplying `x` from the left by the `i`-th simple reflection.
+Return the result of multiplying `x` from the right by the `i`-th simple reflection.
 """
-function lmul(x::WeylGroupElem, i::Integer)
-  return lmul!(deepcopy(x), i)
+function rmul(x::WeylGroupElem, i::Integer)
+  return rmul!(deepcopy(x), i)
 end
 
 @doc raw"""
-    lmul!(x::WeylGroupElem, i::Integer) -> WeylGroupElem
+    rmul!(x::WeylGroupElem, i::Integer) -> WeylGroupElem
 
-Multiply `x` in-place from the left by the `i`-th simple reflection, and return the result.
+Multiply `x` in-place from the right by the `i`-th simple reflection, and return the result.
 """
-function lmul!(x::WeylGroupElem, i::Integer)
-  b, j, r = explain_lmul(x, i)
+function rmul!(x::WeylGroupElem, i::Integer)
+  b, j, r = explain_rmul(x, i)
   if b
     insert!(word(x), j, r)
   else
@@ -445,17 +434,17 @@ function lmul!(x::WeylGroupElem, i::Integer)
   return x
 end
 
-# explains what multiplication of s_i from the left will do.
+# explains what multiplication of s_i from the right will do.
 # Return a tuple where the first entry is true/false, depending on whether an insertion or deletion will happen,
 # the second entry is the position, and the third is the simple root.
-function explain_lmul(x::WeylGroupElem, i::Integer)
+function explain_rmul(x::WeylGroupElem, i::Integer)
   @req 1 <= i <= rank(root_system(parent(x))) "Invalid generator"
 
-  insert_index = 1
+  insert_index = length(x) + 1
   insert_letter = UInt8(i)
 
   root = insert_letter
-  for s in 1:length(x)
+  for s in length(x):-1:1
     if x[s] == root
       return false, s, x[s]
     end
@@ -469,7 +458,7 @@ function explain_lmul(x::WeylGroupElem, i::Integer)
     # check if we have a better insertion point now. Since word[i] is a simple
     # root, if root < word[i] it must be simple.
     if root < x[s]
-      insert_index = s + 1
+      insert_index = s
       insert_letter = UInt8(root)
     end
   end
@@ -497,13 +486,13 @@ julia> x = W([1,2,3,1]);
 
 julia> collect(reduced_expressions(x))
 3-element Vector{Vector{UInt8}}:
- [0x01, 0x02, 0x03, 0x01]
  [0x01, 0x02, 0x01, 0x03]
+ [0x01, 0x02, 0x03, 0x01]
  [0x02, 0x01, 0x02, 0x03]
 
 julia> collect(reduced_expressions(x; up_to_commutation=true))
 2-element Vector{Vector{UInt8}}:
- [0x01, 0x02, 0x03, 0x01]
+ [0x01, 0x02, 0x01, 0x03]
  [0x02, 0x01, 0x02, 0x03]
 ```
 The second expression of the first iterator is not contained in the second iterator
@@ -567,7 +556,7 @@ function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
   end
 
   isoinv = function (g::FPGroupElem)
-    return W(abs.(letters(g)))
+    return W(abs.(letters(g))) # TODO: check if normalize=false can be added here (probably not)
   end
 
   return MapFromFunc(W, G, iso, isoinv)
@@ -613,7 +602,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
           )
         end
       end
-      return W(word)
+      return W(word) # TODO: check if normalize=false can be added here
     end
   else
     error("Not implemented (yet)")
@@ -649,9 +638,9 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
 
   # we need to copy word; iterate behaves differently when length is (not) known
   next = deepcopy(word)
-  weight = reflect!(weyl_vector(root_system(parent(iter.el))), Int(next[1]))
+  weight = reflect!(weyl_vector(root_system(parent(iter.el))), Int(next[end]))
 
-  i = 1
+  i = length(next)
   s = rk + 1
   while true
     # search for new simple reflection to add to the word
@@ -660,10 +649,10 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
     end
 
     if s == rk + 1
-      i += 1
-      if i == length(next) + 1
+      i -= 1
+      if i == 0
         return nothing
-      elseif i == 1
+      elseif i == length(next)
         return next, next
       end
 
@@ -673,16 +662,16 @@ function Base.iterate(iter::ReducedExpressionIterator, word::Vector{UInt8})
       s += 1
     else
       if iter.up_to_commutation &&
-        i < length(word) &&
-        s < next[i + 1] &&
-        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i + 1]))
+        i > 1 &&
+        s < next[i - 1] &&
+        is_zero_entry(cartan_matrix(root_system(parent(iter.el))), s, Int(next[i - 1]))
         s += 1
         continue
       end
 
       next[i] = UInt8(s)
       reflect!(weight, s)
-      i -= 1
+      i += 1
       s = 1
     end
   end
@@ -693,10 +682,8 @@ end
 
 # Iterates over all weights in the Weyl group orbit of the dominant weight `weight`,
 # or analogously over all elements in the quotient W/W_P
-# The iterator returns a tuple (wt, x), such that x*wt == iter.weight;
-# this choice is made to align with conjugate_dominant_weight_with_left_elem
-
-# TODO: add a way to iterate aligned with conjugate_dominant_weight_with_right_elem
+# The iterator returns a tuple (wt, x), such that wt*x == iter.weight;
+# this choice is made to align with conjugate_dominant_weight_with_elem
 
 function Base.IteratorSize(::Type{WeylIteratorNoCopy})
   return Base.SizeUnknown()
@@ -711,7 +698,6 @@ function Base.iterate(iter::WeylIteratorNoCopy)
   return state, state
 end
 
-# based on [Ste01], 4.C and 4.D
 function Base.iterate(iter::WeylIteratorNoCopy, state::WeylIteratorNoCopyState)
   state = _iterate_nocopy(state)
   if isnothing(state)
@@ -720,11 +706,11 @@ function Base.iterate(iter::WeylIteratorNoCopy, state::WeylIteratorNoCopyState)
   return state, state
 end
 
+# based on [Ste01], 4.C and 4.D
 function _iterate_nocopy(state::WeylIteratorNoCopyState)
   wt, path = state[1], word(state[2])
-  R = root_system(wt)
 
-  ai = isempty(path) ? UInt8(0) : path[end]
+  ai = isempty(path) ? UInt8(0) : first(path)
   # compute next descendant index
   di = UInt8(0)
   while true
@@ -735,12 +721,12 @@ function _iterate_nocopy(state::WeylIteratorNoCopyState)
       return nothing
     elseif iszero(di)
       reflect!(wt, Int(ai))
-      di = pop!(path)
-      ai = isempty(path) ? UInt8(0) : path[end]
+      di = popfirst!(path)
+      ai = isempty(path) ? UInt8(0) : first(path)
     end
   end
 
-  push!(path, di)
+  pushfirst!(path, di)
   reflect!(wt, Int(di))
   return state
 end
@@ -748,7 +734,7 @@ end
 # based on [Ste01], 4.D
 function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
   if iszero(ai)
-    for j in (di + 1):rank(root_system(wt))
+    for j in (di + 1):rank(parent(wt))
       if !iszero(wt[j])
         return j
       end
@@ -762,7 +748,7 @@ function next_descendant_index(ai::Int, di::Int, wt::WeightLatticeElem)
     end
   end
 
-  for j in (max(ai, di) + 1):rank(root_system(wt))
+  for j in (max(ai, di) + 1):rank(parent(wt))
     if is_zero_entry(cartan_matrix(root_system(wt)), ai, j)
       continue
     end

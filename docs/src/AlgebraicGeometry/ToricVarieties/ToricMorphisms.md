@@ -36,7 +36,7 @@ toric_identity_morphism(variety::NormalToricVarietyType)
 ```
 
 
-## Attributes of Toric Morhpisms
+## Attributes of Toric Morphisms
 
 ### General attributes
 

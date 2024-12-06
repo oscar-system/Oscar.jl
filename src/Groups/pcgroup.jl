@@ -415,7 +415,6 @@ function _GAP_collector_from_the_left(c::GAP_Collector)
   return cGAP::GapObj
 end
 
-
 # Create the collector on the GAP side on demand
 function underlying_gap_object(c::GAP_Collector)
   if ! isdefined(c, :X)
@@ -473,6 +472,159 @@ function pc_group(c::GAP_Collector)
   end
 end
 
+"""
+    letters(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the letters of `g` as a list of integers, each entry corresponding to
+a group generator.
+
+This method can produce letters represented by negative numbers. A negative number 
+indicates the inverse of the generator at the corresponding positive index.
+
+For example, as shown below, an output of `-1` refers to the "inverse of the first generator".
+
+See also [`syllables(::Union{PcGroupElem, SubPcGroupElem})`](@ref).
+
+# Examples
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [0, 5])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^-3*g2^2
+
+julia> letters(x)
+5-element Vector{Int64}:
+ -1
+ -1
+ -1
+  2
+  2
+```
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> letters(x)
+3-element Vector{Int64}:
+ 1
+ 2
+ 2
+```
+"""
+function letters(g::Union{PcGroupElem, SubPcGroupElem})
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    exp = GAPWrap.Exponents(GapObj(g))
+
+    # Should we check if the output is not larger than the
+    # amount of generators? Requires use of `parent`.
+    # @assert length(exp) == length(gens(parent(g)))
+
+    w = [sign(e) * i for (i, e) in enumerate(exp) for _ in 1:abs(e)]
+    return Vector{Int}(w)
+  else # finite PcGroup
+    w = GAPWrap.UnderlyingElement(GapObj(g))
+    return Vector{Int}(GAPWrap.LetterRepAssocWord(w))
+  end
+end
+
+"""
+    syllables(g::Union{PcGroupElem, SubPcGroupElem})
+
+Return the syllables of `g` as a list of pairs of integers, each entry corresponding to
+a group generator and its exponent.
+
+# Examples
+
+```jldoctest
+julia> gg = small_group(6, 1)
+Pc group of order 6
+
+julia> x = gg[1]^5*gg[2]^-4
+f1*f2^2
+
+julia> s = syllables(x)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 1
+ 2 => 2
+
+julia> gg(s)
+f1*f2^2
+
+julia> gg(s) == x
+true
+```
+
+```jldoctest
+julia> g = abelian_group(PcGroup, [5, 0])
+Pc group of infinite order
+
+julia> x = g[1]^-3 * g[2]^-3
+g1^2*g2^-3
+
+julia> s = syllables(x)
+2-element Vector{Pair{Int64, ZZRingElem}}:
+ 1 => 2
+ 2 => -3
+
+julia> g(s)
+g1^2*g2^-3
+
+julia> g(s) == x
+true
+```
+"""
+function syllables(g::Union{PcGroupElem, SubPcGroupElem})
+  # check if we have a PcpGroup element
+  if GAPWrap.IsPcpElement(GapObj(g))
+    l = GAPWrap.GenExpList(GapObj(g))
+  else # finite PcGroup
+    l = GAPWrap.ExtRepOfObj(GapObj(g))
+  end
+
+  @assert iseven(length(l))
+  return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
+end
+
+# Convert syllables in canonical form into exponent vector
+function _exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
+  res = zeros(ZZRingElem, n)
+  for pair in sylls
+    @assert res[pair.first] == 0 #just to make sure 
+    res[pair.first] = pair.second
+  end
+  return res
+end
+
+# Convert syllables in canonical form into group element
+function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}}; check::Bool=true)
+  # check if the syllables are in canonical form
+  if check
+    indices = map(p -> p.first, sylls)
+    @req allunique(indices) "given syllables have repeating generators"
+    @req issorted(indices) "given syllables must be in ascending order"
+  end
+
+  e = _exponent_vector(sylls, ngens(G))
+
+  # check if G is an underlying PcpGroup
+  GG = GapObj(G)
+  if GAPWrap.IsPcpGroup(GG)
+    coll = GAPWrap.Collector(GG)
+    x = GAPWrap.PcpElementByExponentsNC(coll, GapObj(e, true))
+  else # finite PcGroup
+    pcgs = GAPWrap.FamilyPcgs(GG)
+    x = GAPWrap.PcElementByExponentsNC(pcgs, GapObj(e, true))
+  end
+  
+  return Oscar.group_element(G, x)
+end
 
 # Create an Oscar collector from a GAP collector.
 

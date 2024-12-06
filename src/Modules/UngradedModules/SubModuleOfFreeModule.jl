@@ -164,7 +164,7 @@ end
 @doc raw"""
     standard_basis(submod::SubModuleOfFreeModule; ordering::ModuleOrdering = default_ordering(submod))
 
-Compute a standard basis of `submod` with respect to the given `odering``.
+Compute a standard basis of `submod` with respect to the given `ordering`.
 The return type is `ModuleGens`.
 """
 function standard_basis(submod::SubModuleOfFreeModule; ordering::Union{ModuleOrdering, Nothing} = default_ordering(submod))

@@ -14,7 +14,7 @@ export LieSubalgebra
 export LinearLieAlgebra, LinearLieAlgebraElem
 export RootSpaceElem
 export RootSystem
-export WeightLatticeElem
+export WeightLattice, WeightLatticeElem
 export WeylGroup, WeylGroupElem
 export WeylOrbitIterator
 
@@ -34,8 +34,7 @@ export cartan_type_with_ordering
 export chevalley_basis
 export coerce_to_lie_algebra_elem
 export conjugate_dominant_weight
-export conjugate_dominant_weight_with_left_elem
-export conjugate_dominant_weight_with_right_elem
+export conjugate_dominant_weight_with_elem
 export coroot
 export coroots
 export coxeter_matrix
@@ -77,7 +76,6 @@ export is_simple_root
 export is_simple_root_with_index
 export killing_matrix
 export lie_algebra
-export lmul, lmul!
 export longest_element
 export lower_central_series
 export matrix_repr_basis
@@ -94,6 +92,7 @@ export positive_root
 export positive_roots
 export reduced_expressions
 export reflect, reflect!
+export rmul, rmul!
 export root_system, has_root_system
 export root_system_type, has_root_system_type
 export root_system_type_with_ordering
@@ -112,6 +111,7 @@ export tensor_power
 export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
+export weight_lattice
 export weyl_group
 export weyl_orbit
 export word

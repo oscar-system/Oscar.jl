@@ -1348,8 +1348,8 @@ For a 3-dimensional reflexive polytope in the Kreuzer-Skarke list, the list of
 full (sometimes also called fine), regular, star triangulations can be extremely
 large. Consequently, one may wonder if the triangulations can be enumerated in a
 somewhat reasonable time (say 5 minutes on a personal computer). This method tries
-to provide an answer to this. It returns `true` if one should expect a timly response
-to the atttempt to enumerate all (full, regular, star) triangulations. Otherwise, this
+to provide an answer to this. It returns `true` if one should expect a timely response
+to the attempt to enumerate all (full, regular, star) triangulations. Otherwise, this
 method returns `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -1680,7 +1680,7 @@ This method returns a vector with labels for each node/vertex of the dual graph 
 model in question. Those labels allow to understand the geometric origin of the node/vertex.
 
 Specifically, recall that those nodes are associated to the Ci-curves, which are in turn
-given by Ci = V(xi, s). xi is a homogenous coordinate of the 3-dimensional toric base space
+given by Ci = V(xi, s). xi is a homogeneous coordinate of the 3-dimensional toric base space
 B3 of the QSM in question, and s is a generic section of the anticanonical bundle of B3.
 
 Only non-trivial Ci = V(xi, s) correspond to vertices/nodes of the dual graph.

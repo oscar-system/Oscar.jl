@@ -234,8 +234,8 @@ function _generate_direction_vector(Q::ZZMatrix, possible_vec::Vector{ZZMatrix})
     if all((v*Q*v1)[1, 1] != 0 for v in possible_vec)
       # To run the algorithm it suffices to require that v*Q*v1 != 0, but we get a random (right) solution. 
       # This is the case because it is a random choice in which direction the fundamental cone 
-      # is built everytime we use the algorithm.
-      # To get always the same solution one should suply a `direction_vector` `v1`  
+      # is built every time we use the algorithm.
+      # To get always the same solution one should supply a `direction_vector` `v1`
       @vprintln :Vinberg 2 "direction vector v1 = $v1"
       return v1
     end

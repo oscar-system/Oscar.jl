@@ -66,18 +66,22 @@ function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
   io = pretty(io)
   R = forget_decoration(W)
   print(io, R)
-  if is_filtered(W)
-    println(io, " filtrated by")
+  if is_trivial(grading_group(W))
+    print(io, " graded by the trivial group")
   else
-    println(io, " graded by")
-  end
-  g = gens(R)
-  print(io, Indent())
-  for i = 1:ngens(R)
-    if i == ngens(R)
-       print(io, "$(g[i]) -> $(W.d[i].coeff)")
+    if is_filtered(W)
+      println(io, " filtrated by")
     else
-       println(io, "$(g[i]) -> $(W.d[i].coeff)")
+      println(io, " graded by")
+    end
+    g = gens(R)
+    print(io, Indent())
+    for i = 1:ngens(R)
+      if i == ngens(R)
+         print(io, "$(g[i]) -> $(W.d[i].coeff)")
+      else
+         println(io, "$(g[i]) -> $(W.d[i].coeff)")
+      end
     end
   end
   print(io, Dedent())
@@ -1620,7 +1624,7 @@ end
 
 
 struct Homogenizer
-  P::MPolyRing              # orignal poly ring (?not graded?)
+  P::MPolyRing              # original poly ring (?not graded?)
   P_homog::MPolyDecRing     # graded poly ring: same vars as P, plus g extra homogenizing vars
   VarMap::Vector{Int}       # var[k] in P embeds to var[VarMap[k]] in P_homog
   HVars::Vector{Int}        # the homogenizing vars in p_homog are var[k] with k in HVars

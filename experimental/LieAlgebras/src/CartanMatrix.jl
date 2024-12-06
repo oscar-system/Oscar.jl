@@ -120,7 +120,7 @@ end
     is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true) -> Bool
 
 Check if `mat` is a generalized Cartan matrix.
-If `generalized=false` this check ist restricted to Cartan matrices of finite type.
+If `generalized=false` this check is restricted to Cartan matrices of finite type.
 
 # Examples
 ```jldoctest
@@ -189,7 +189,7 @@ function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
   tail = 0
 
   # we collect roots of the same length
-  # once we know if they are short or long we scale approriately
+  # once we know if they are short or long we scale appropriately
   while any(undone)
     if head == tail
       head += 1
