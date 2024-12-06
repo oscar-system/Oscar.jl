@@ -1,5 +1,5 @@
 
-@testset "all tests" begin
+@testset "all tests - Clifford algebras" begin
   _dim_qf = Oscar._dim_qf
   _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients! 
   mul_with_gen = Oscar._mul_with_gen 

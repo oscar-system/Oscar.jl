@@ -1,5 +1,5 @@
 
-@testset "alltest" begin
+@testset "all test - Clifford orders" begin
   _set_even_odd_coefficients! = Oscar._set_even_odd_coefficients!
   mul_with_gen = Oscar._mul_with_gen
   @testset "failing constructions" begin
@@ -372,11 +372,289 @@
         K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
     @testset "center and centroid" begin
-      orth = C([-1, 0, 0, 2])
       @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
       @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
+    end
+  end
+  
+  @testset "hyperbolic plane" begin
+    @testset "CliffordOrder" begin
+      K, a = quadratic_field(-5)
+      O = maximal_order(K)
+      ide = fractional_ideal(O, one(O))
+      G = K[0 1; 1 0]
+      qsK = quadratic_space(K, G)
+      lsK = lattice(qsK)
+      C = clifford_order(lsK)
+      Kzer = K.([0, 0, 0, 0])
+      e(i::Int) = pseudo_gen(C, i)[1]
+    
+      @test !is_commutative(C)
+    
+      @testset "construction" begin
+        @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
+        @test elem_type(C) ==
+        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
+        @test elem_type(C) == typeof(C())
+        @test base_ring_type(C) == typeof(base_ring(C))
+
+        @test (base_ring(C), gram_matrix(C), lattice(C), rank(C), coefficient_ideals(C)) == (O, G, lsK, 4, [ide, ide, ide, ide])
+        @test C() == C(0) && C() == zero(C)
+        @test is_zero(C())
+        @test coefficients(C()) == Kzer
+        @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
+        @test C(1) == one(C)
+        @test is_one(C(1))
+        @test coefficients(C(1)) == K.([1, 0, 0, 0])
+        @test even_coefficients(C(1)) == K.([1, 0, 0, 0]) && odd_coefficients(C(1)) == Kzer
+        verr1, verr2 = K.([1, 2, 3]), K.([1, 2, 3, 4, 5])
+        @test_throws ArgumentError C(verr1)
+        @test_throws ArgumentError C(verr2)
+        Ca = C(a)
+        @test parent(Ca) == C
+        @test Ca == C([a, 0, 0, 0])
+        @test Ca == C(K.([a, 0, 0, 0]))
+        @test 2 * Ca == C([2 * a, 0, 0, 0])
+        @test Ca * 2 == 2 * Ca
+        @test 2 * Ca == C(2 * a)
+        @test C(2) == C(K(2))
+      end
+      @testset "equality and wrong parents" begin
+        CC = clifford_order(lsK)
+        x, y = C(), CC()
+        @test_throws ErrorException x + y
+        @test_throws ErrorException x - y
+        @test_throws ErrorException x * y
+        @test x != y
+        y = C(1)
+        x[1] = K(1)
+        @test x == y
+      end
+      @testset "functions on elements" begin
+        x = C([-1, 1, a, a + 1])
+        @test parent(x) == C
+        @test parent_type(x) == typeof(C)
+        @test typeof(x) == typeof(C())
+
+        @test even_part(x) == C([-1, 0, 0, a + 1])
+        @test odd_part(x) == C([0, 1, a, 0])
+        xeven, xodd = even_coefficients(x), odd_coefficients(x)
+        x.even_coeffs, x.odd_coeffs = Kzer, Kzer
+        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
+        _set_even_odd_coefficients!(x)
+        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+
+        @test +x == x
+        @test -x == C([1, -1, -a, -(a + 1)])
+        @test_throws ArgumentError divexact(x, 2)
+        @test divexact(2 * x, O(2)) == x
+        @test divexact(2 * x, K(2)) == x
+      end
+      @testset "conversion to ambient algebra and vice versa" begin
+        CA = algebra(C)
+        x = C([1, a, 1+a, 0])
+        @test x == C(CA(x))
+        @test CA(x) == CA(C(CA(x)))
+        @test CA(x) in C
+        @test !(1//2 * CA(x) in C) 
+      end
+      @testset "defining relations" begin
+        @test length(pseudo_gens(C)) == 2
+        @test e(1) == pseudo_gens(C)[1][1]
+        @test e(2) == pseudo_gens(C)[2][1]
+        @test_throws BoundsError pseudo_gen(C, 0)
+        @test_throws BoundsError pseudo_gen(C, 3)
+
+        @test e(1)^2 == (e(1) * e(1)) && e(1)^2 == C()
+        @test e(2)^2 == (e(2) * e(2)) && e(2)^2 == C()
+        @test e(1) * e(2) + e(2) * e(1) == C(1)
+
+        @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
+        @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
+        @test is_zero(C(1)^2 - C(1))
+        @test e(1) * e(2) == pseudo_basis(C, 4)[1]
+        @test e(1) * e(2) == C([0, 0, 0, 1])
+        @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
+      end
+      @testset "some computations" begin
+        x, y = C([-2, 1, -1, 2]), C([2, 4, 6, 8])
+        @test is_zero(x - x) && is_zero(x - +x)
+        @test even_part(x) == C([-2, 0, 0, 2]) && odd_part(x) == C([0, 1, -1, 0])
+        @test x + y == C([0, 5, 5, 10])
+        @test x - y == C([-4, -3, -7, -6])
+        @test y - x == C([4, 3, 7, 6])
+        @test divexact(y, 2) == C([1, 2, 3, 4])
+        @test divexact(y, ZZ(2)) == C([1, 2, 3, 4])
+        @test divexact(y, 2//1) == C([1, 2, 3, 4])
+        @test divexact(y, QQ(2//1)) == C([1, 2, 3, 4])
+        @test_throws ArgumentError divexact(y, 4)
+
+        @test x * (x + y) * y == x^2 * y + x * y^2
+        @test (x + y)^2 == x^2 + x * y + y * x + y^2
+        @test (x + y) * (x - y) == x^2 - x * y + y * x - y^2
+      end
+      @testset "getindex" begin
+        x = C([a, 2 * a, 3 * a, 4 * a])
+        @test x[1] == a
+        @test coeff(x, 1) == a
+        @test x[2] == 2 * a
+        @test coeff(x, 2) == 2 * a
+        @test x[3] == 3 * a
+        @test coeff(x, 3) == 3 * a
+        @test x[4] == 4 * a
+        @test coeff(x, 4) == 4 * a
+        @test_throws BoundsError x[0]
+        @test_throws BoundsError coeff(x, 0)
+        @test_throws BoundsError x[5]
+        @test_throws BoundsError coeff(x, 5)
+      end
+      @testset "setindex!" begin
+        x = C([a, 2 * a, 3 * a, 4 * a])
+        for i in 1:4
+          x[i] = K()
+        end
+        x == C()
+      end
+      @testset "center and centroid" begin
+        @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
+        @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
+        @test disq(C) == quadratic_discriminant(C)
+        @test disq(C) == (ide, K(1))
+      end
+    end
+    @testset "ZZCliffordOrder" begin
+      G = QQ[0 1; 1 0]
+      qs = quadratic_space(QQ, G)
+      ls = lattice(qs)
+      C = clifford_order(ls)
+      QQzer = QQ.([0, 0, 0, 0])
+      e(i::Int) = gen(C, i)
+    
+      @test !is_commutative(C)
+    
+      @testset "construction" begin
+        @test typeof(C) == ZZCliffordOrder
+        @test elem_type(C) == ZZCliffordOrderElem
+        @test elem_type(C) == typeof(C())
+        @test base_ring_type(C) == typeof(base_ring(C))
+
+        @test (base_ring(C), gram_matrix(C), lattice(C), rank(C)) == (ZZ, G, ls, 4)
+        @test C() == C(0) && C() == zero(C)
+        @test is_zero(C())
+        @test coefficients(C()) == QQzer
+        @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
+        @test C(1) == one(C)
+        @test is_one(C(1))
+        @test coefficients(C(1)) == QQ.([1, 0, 0, 0])
+        @test even_coefficients(C(1)) == QQ.([1, 0, 0, 0]) && odd_coefficients(C(1)) == QQzer
+        verr1, verr2 = QQ.([1, 2, 3]), QQ.([1, 2, 3, 4, 5])
+        @test_throws ArgumentError C(verr1)
+        @test_throws ArgumentError C(verr2)
+      end
+      @testset "equality and wrong parents" begin
+        CC = clifford_order(ls)
+        x, y = C(), CC()
+        @test_throws ErrorException x + y
+        @test_throws ErrorException x - y
+        @test_throws ErrorException x * y
+        @test x != y
+        y = C(1)
+        x[1] = QQ(1)
+        @test x == y
+      end
+      @testset "functions on elements" begin
+        x = C([-1, 1, 0, 8])
+        @test parent(x) == C
+        @test parent_type(x) == typeof(C)
+        @test typeof(x) == typeof(C())
+
+        @test even_part(x) == C([-1, 0, 0, 8])
+        @test odd_part(x) == C([0, 1, 0, 0])
+        xeven, xodd = even_coefficients(x), odd_coefficients(x)
+        x.even_coeffs, x.odd_coeffs = QQzer, QQzer
+        @test xeven != x.even_coeffs && xodd != x.odd_coeffs
+        _set_even_odd_coefficients!(x)
+        @test xeven == even_coefficients(x) && xodd == odd_coefficients(x)
+
+        @test +x == x
+        @test -x == C([1, -1, 0, -8])
+        @test_throws ArgumentError divexact(x, 2)
+        @test divexact(2 * x, 2) == x
+        @test divexact(2 * x, ZZ(2)) == x
+      end
+      @testset "conversion to ambient algebra and vice versa" begin
+        CA = algebra(C)
+        x = C([1, 8, 9, 0])
+        @test x == C(CA(x))
+        @test CA(x) == CA(C(CA(x)))
+        @test CA(x) in C
+        @test !(1//2 * CA(x) in C) 
+      end
+      @testset "defining relations" begin
+        @test length(gens(C)) == 2
+        @test e(1) == gens(C)[1]
+        @test e(2) == gens(C)[2]
+        @test_throws BoundsError gen(C, 0)
+        @test_throws BoundsError gen(C, 3)
+
+        @test e(1)^2 == (e(1) * e(1)) && e(1)^2 == C()
+        @test e(2)^2 == (e(2) * e(2)) && e(2)^2 == C()
+        @test e(1) * e(2) + e(2) * e(1) == C(1)
+
+        @test e(1) * C(1) == e(1) && C(1) * e(1) == e(1)
+        @test e(2) * C(1) == e(2) && C(1) * e(2) == e(2)
+        @test is_zero(C(1)^2 - C(1))
+        @test e(1) * e(2) == basis(C, 4)
+        @test e(1) * e(2) == C([0, 0, 0, 1])
+        @test e(2) * e(1) == C(gram_matrix(C)[1, 2]) - e(1) * e(2)
+      end
+      @testset "some computations" begin
+        x, y = C([-2, 1, -1, 2]), C([2, 4, 6, 8])
+        @test is_zero(x - x) && is_zero(x - +x)
+        @test even_part(x) == C([-2, 0, 0, 2]) && odd_part(x) == C([0, 1, -1, 0])
+        @test x + y == C([0, 5, 5, 10])
+        @test x - y == C([-4, -3, -7, -6])
+        @test y - x == C([4, 3, 7, 6])
+        @test divexact(y, 2) == C([1, 2, 3, 4])
+        @test divexact(y, ZZ(2)) == C([1, 2, 3, 4])
+        @test divexact(y, 2//1) == C([1, 2, 3, 4])
+        @test divexact(y, QQ(2//1)) == C([1, 2, 3, 4])
+        @test_throws ArgumentError divexact(y, 4)
+
+        @test x * (x + y) * y == x^2 * y + x * y^2
+        @test (x + y)^2 == x^2 + x * y + y * x + y^2
+        @test (x + y) * (x - y) == x^2 - x * y + y * x - y^2
+      end
+      @testset "getindex" begin
+        x = C([1, 2, 3, 4])
+        @test x[1] == QQ(1)
+        @test coeff(x, 1) == QQ(1)
+        @test x[2] == QQ(2)
+        @test coeff(x, 2) == QQ(2)
+        @test x[3] == QQ(3)
+        @test coeff(x, 3) == QQ(3)
+        @test x[4] == QQ(4)
+        @test coeff(x, 4) == QQ(4)
+        @test_throws BoundsError x[0]
+        @test_throws BoundsError coeff(x, 0)
+        @test_throws BoundsError x[5]
+        @test_throws BoundsError coeff(x, 5)
+      end
+      @testset "setindex!" begin
+        x = C([1, 2, 3, 4])
+        for i in 1:4
+          x[i] = QQ()
+        end
+        x == C()
+      end
+      @testset "center and centroid" begin
+        @test basis_of_center(C) == [basis(C, 1)]
+        @test basis_of_centroid(C) == [basis(C, 1), C([0,0,0,1])]
+        @test disq(C) == quadratic_discriminant(C)
+        @test disq(C) == ZZ(1)
+      end
     end
   end
 

@@ -761,6 +761,7 @@ function basis_of_centroid(C::ZZCliffordOrder)
   n = rank(lattice(C))
   if n == 0
     C.basis_of_centroid = [one(C)]
+    C.disq = ZZ(1)
     return C.basis_of_centroid
   end
   
@@ -791,7 +792,7 @@ function quadratic_discriminant(C::ZZCliffordOrder)
   if isdefined(C, :disq)
     return C.disq
   end
-  centroid(C)
+  basis_of_centroid(C)
   return C.disq
 end
 
