@@ -557,7 +557,7 @@ of the Clifford order $C$.
 function pseudo_gen(C::CliffordOrder, i::Int)
   res = C()
   if i<= 0
-    res[0] #Throw a BoundsError for consistency
+    res[i] #Throw a BoundsError instead of a DomainError for consistency
   end
   res[2^(i - 1) + 1] = base_ring(algebra(C))(1)
   return (res, coefficient_ideals(lattice(C))[i])
