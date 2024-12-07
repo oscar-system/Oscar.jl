@@ -69,31 +69,31 @@ mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
 end
 
 ##### Elements #####
-mutable struct CliffordOrderElem{T, C, P} <: Hecke.AbstractAssociativeAlgebraElem{T}
-  parent::P
+mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T}
+  parent::CliffordOrder{T, C}
   coeffs::Vector{S} where S<:NumFieldElem
   even_coeffs::Vector{S} where S<:NumFieldElem
   odd_coeffs::Vector{S} where S<:NumFieldElem
 
   #Return the 0-element of the Clifford order C
-  function CliffordOrderElem{T, C, P}(CO::CliffordOrder{T, C}) where {T, C, P}
+  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}) where {T, C}
     ambalg = CO.algebra
-    newelt = new{T, C, P}(CO, fill(ambalg.base_ring(), CO.rank))
+    newelt = new{T, C}(CO, fill(ambalg.base_ring(), CO.rank))
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
-  CliffordOrderElem(CO::CliffordOrder) = CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.algebra), typeof(CO)}(CO)
+  CliffordOrderElem(CO::CliffordOrder) = CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.algebra)}(CO)
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
-  function CliffordOrderElem{T, C, P}(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, P, S<:NumFieldElem}
+  function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S<:NumFieldElem}
     @req length(coeff) == CO.rank "invalid length of coefficient vector"
     
     for i in 1:CO.rank
       @req coeff[i] in CO.coefficient_ideals[i] "The element does not lie in the Clifford order."
     end
 
-    newelt = new{T, C, CliffordOrder{T, C}}(CO, coeff)
+    newelt = new{T, C}(CO, coeff)
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
@@ -101,7 +101,7 @@ mutable struct CliffordOrderElem{T, C, P} <: Hecke.AbstractAssociativeAlgebraEle
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S}
     K = CO.algebra.base_ring
     @req _can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.algebra), typeof(CO)}(CO, K.(coeff))
+    return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.algebra)}(CO, K.(coeff))
   end
 
 end
@@ -144,11 +144,11 @@ end
 #
 #############################################################
 
-elem_type(::Type{CliffordOrder{T, C}}) where {T, C} = CliffordOrderElem{T, C, CliffordOrder{T, C}}
+elem_type(::Type{CliffordOrder{T, C}}) where {T, C} = CliffordOrderElem{T, C}
 
 elem_type(::Type{ZZCliffordOrder}) = ZZCliffordOrderElem
 
-parent_type(::Type{CliffordOrderElem{T, C, P}}) where {T, C, P} = P
+parent_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = CliffordOrder{T, C}
 
 parent_type(::Type{ZZCliffordOrderElem}) = ZZCliffordOrder
 

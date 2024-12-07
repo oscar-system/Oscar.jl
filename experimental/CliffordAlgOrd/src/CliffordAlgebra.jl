@@ -34,48 +34,48 @@ mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
 end
 
 ### Elements ###
-mutable struct CliffordAlgebraElem{T,S,P} <: Hecke.AbstractAssociativeAlgebraElem{T}
-  parent::P
+mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{T}
+  parent::CliffordAlgebra{T, S}
   coeffs::Vector{T}
   even_coeffs::Vector{T}
   odd_coeffs::Vector{T}
 
   #Return the 0-element of the Clifford algebra C
-  function CliffordAlgebraElem{T,S,P}(C::CliffordAlgebra{T,S}) where {T,S,P}
-    newelt = new{T,S,CliffordAlgebra{T,S}}(C, fill(C.base_ring(), C.dim))
+  function CliffordAlgebraElem{T,S}(C::CliffordAlgebra{T,S}) where {T,S}
+    newelt = new{T,S}(C, fill(C.base_ring(), C.dim))
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
   CliffordAlgebraElem(C::CliffordAlgebra) =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram),typeof(C)}(C)
+    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C)
 
   #Return the element in the Clifford algebra C with coefficient vector coeff wrt. the canonical basis
-  function CliffordAlgebraElem{T,S,P}(
+  function CliffordAlgebraElem{T,S}(
     C::CliffordAlgebra{T,S}, coeff::Vector{R}
-  ) where {T,S,P,R<:FieldElem}
+  ) where {T,S,R<:FieldElem}
     @req length(coeff) == C.dim "invalid length of coefficient vector"
-    newelt = new{T,S,CliffordAlgebra{T,S}}(C, coeff)
+    newelt = new{T,S}(C, coeff)
     _set_even_odd_coefficients!(newelt)
     return newelt
   end
 
   CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{T}) where {T,S} =
-    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram),typeof(C)}(C, coeff)
+    CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(C, coeff)
 
   function CliffordAlgebraElem(C::CliffordAlgebra{T,S}, coeff::Vector{R}) where {T,S,R}
     K = C.base_ring
     @req __can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram),typeof(C)}(
+    return CliffordAlgebraElem{elem_type(C.base_ring),typeof(C.gram)}(
       C, K.(coeff)
     )
   end
 end
 
 elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} =
-  CliffordAlgebraElem{T,S,CliffordAlgebra{T, S}}
+  CliffordAlgebraElem{T,S}
 
-parent_type(::Type{CliffordAlgebraElem{T, S, P}}) where {T, S, P} = P
+  parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
 
 base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
 
@@ -442,8 +442,6 @@ if it exists. Otherwise an error is raised.
 """
 divexact(x::CliffordAlgebraElem, a::T) where {T<:RingElement} =
   parent(x)(divexact.(coefficients(x), a))
-
-#divexact(x::CliffordAlgebraElem, a::T) where {T<:Number} = parent(x)(divexact.(coefficients(x), a))
 
 ################################################################################
 #

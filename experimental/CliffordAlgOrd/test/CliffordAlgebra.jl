@@ -13,7 +13,7 @@
       @test typeof(C) ==
         CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(empty_qs))}
       @test elem_type(C) ==
-        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(C)),typeof(C)}
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(C))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
@@ -98,7 +98,7 @@
     @testset "construction" begin
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qsK))}
       @test elem_type(C) ==
-        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qsK)),typeof(C)}
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qsK))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 
@@ -229,7 +229,7 @@
     @testset "construction" begin
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
       @test elem_type(C) ==
-        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs)),typeof(C)}
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == QQField
 
@@ -332,7 +332,7 @@
     @testset "construction" begin
       @test typeof(C) == CliffordAlgebra{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
       @test elem_type(C) ==
-        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs)),typeof(C)}
+        CliffordAlgebraElem{typeof(base_ring(C)()),typeof(gram_matrix(qs))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(K)
 

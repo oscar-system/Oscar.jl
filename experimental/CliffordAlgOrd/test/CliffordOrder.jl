@@ -32,7 +32,7 @@
       @test is_commutative(C)
       @testset "Construction" begin
         @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
-        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
+        @test elem_type(C) == CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(OK)
         @test base_ring_type(C) == typeof(base_ring(C))
@@ -238,7 +238,7 @@
     @testset "construction" begin
       @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
       @test elem_type(C) ==
-      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
+      CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
       @test elem_type(C) == typeof(C())
       @test base_ring_type(C) == typeof(base_ring(C))
 
@@ -396,7 +396,7 @@
       @testset "construction" begin
         @test typeof(C) == CliffordOrder{elem_type(base_ring_type(C)), typeof(algebra(C))}
         @test elem_type(C) ==
-        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C)), typeof(C)}
+        CliffordOrderElem{elem_type(base_ring_type(C)), typeof(algebra(C))}
         @test elem_type(C) == typeof(C())
         @test base_ring_type(C) == typeof(base_ring(C))
 
