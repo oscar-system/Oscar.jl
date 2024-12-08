@@ -156,7 +156,8 @@ function _get_quotient_ramified(P::Hecke.RelNumFieldOrderIdeal, i::Int)
     d = denominator(x, OE)
     xabs = EabstoE\(d*x)
     dabs = copy(d)
-    F = prime_decomposition(OEabs, minimum(EabstoE\P))
+
+    F = factor(EabstoE\(minimum(P)*OE))
     for PP in F
       @hassert :ZZLatWithIsom 1 valuation(EabstoE\(x), PP[1]) >= 0
       api = anti_uniformizer(PP[1])
@@ -282,7 +283,7 @@ function _elementary_divisors(L::HermLat, D::Hecke.RelNumFieldOrderIdeal)
     ((p in primess) || (p in minPs)) && continue
     push!(primess, p)
   end
-  return primess
+  return unique!(primess)
 end
 
 # We compute here the map delta from Theorem 6.15 of BH23. Its kernel is
@@ -313,6 +314,7 @@ function _local_determinants_morphism(Lf::ZZLatWithIsom)
   # rank and then transport the generators along an appropriate map.
   qL, fqL = discriminant_group(Lf)
   OqL = orthogonal_group(qL)
+  fqL = OqL(hom(fqL); check=false)
 
   if rank(Lf) != degree(Lf)
     Lf2 = integer_lattice_with_isometry(integer_lattice(; gram=gram_matrix(Lf)), isometry(Lf); ambient_representation=false, check=false)
@@ -535,21 +537,29 @@ end
 function _transfer_discriminant_isometry(res::AbstractSpaceRes,
                                          g::AutomorphismGroupElem{TorQuadModule},
                                          Bp::T,
+                                         Bp2::T,
                                          pr::T) where T <: MatrixElem{Hecke.RelSimpleNumFieldElem{AbsSimpleNumFieldElem}}
   q = domain(g)
   @hassert :ZZLatWithIsom 1 ambient_space(cover(q)) === domain(res)
 
+  #bv = basis_matrix(Lv)
+  #m = zero_matrix(QQ, degree(Lv), degree(Lv))
+  #for i in 1:degree(Lv)
+  #  m[i,:] = lift(g(q(bv[i,:])))
+  #end
+  #m = solve(bv, m; side=:right)
   # B2 will be a local basis at p of the image of D^{-1}H^# under the induced
   # action of g via res.
   B2 = zero(Bp)
   for i in 1:nrows(Bp)
-    B2[i, :] = res(lift(g(q(res\(vec(collect(Bp[i, :])))))))*pr
+    B2[i, :] = res(lift(g(q(res\(Bp[i,:])))))*pr
   end
   # We should have a global exact solution. For now it does not seem to be slow
   # If for larger (quite large) examples it happens to be slow, then one could
   # modify this a bit and try to look for an inexact approximation modulo H.
-  ok, K = can_solve_with_solution(Bp, B2; side=:left)
+  ok, K = can_solve_with_solution(Bp2, B2; side=:left)
   @hassert :ZZLatWithIsom 1 ok
+
   return K
 end
 
@@ -670,12 +680,16 @@ function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem
     return identity_matrix(E, 1)
   end
 
-  Bp, pr = _local_basis_matrix_and_projection(H2, minimum(P), a, res)
-  Gp = Bp*gram_matrix(ambient_space(H))*map_entries(s, transpose(Bp))
-  Fp = _transfer_discriminant_isometry(res, g, Bp, pr)
+  Bp, Bp2, pr = _local_basis_matrix_and_projection(H2, minimum(P), a, res)
+  Gp = Bp2*gram_matrix(ambient_space(H))*map_entries(s, transpose(Bp2))
+  @show Gp
+  Fp = _transfer_discriminant_isometry(res, g, Bp, Bp2, pr)
+  @show _scale_valuation(Fp ,P)
   # This is the local defect. By default, it should have scale P-valuations -a
   # and norm P-valuation e-1-a
   Rp = Gp - Fp*Gp*map_entries(s, transpose(Fp))
+  @show a,e,k
+  @show _scale_valuation(Rp, P), _norm_valuation(Rp, P)
   rho = _find_rho(P, e)
 
   l = 0
@@ -683,7 +697,6 @@ function _approximate_isometry(H::HermLat, H2::HermLat, g::AutomorphismGroupElem
     Fp, l = _local_hermitian_lifting(Gp, Fp, rho, l, P, P2, split, e, a)
     Rp = Gp - Fp*Gp*map_entries(s, transpose(Fp))
   end
-
   return Fp
 end
 
@@ -704,26 +717,33 @@ end
 # pr to remove all residue from U: we use this map also to compute approximation
 # of local isometries later.
 function _local_basis_matrix_and_projection(Hv::HermLat, p::AbsSimpleNumFieldOrderIdeal, a::Int, res::AbstractSpaceRes)
-  B, _ , exps = jordan_decomposition(Hv, p)
+  Bv, Gv , expsv = jordan_decomposition(Hv, p)
+  @show Gv
   pr = identity_matrix(base_field(Hv), rank(Hv))
-  # If the last Jordan block U  is P^{-a}-modular, then this part while
+  # If the last Jordan block U  is P^{-a}-modular, then this part will
   # vanish in the quotient Hv/H and we want to get rid of it. However
   # we need to remember a decomposition Hv_p = R+U: for this
   # we define the projection map Hv_p \to R so later we can
   # remove any trace of U in our elements (for computing the first
   # approximation of our isometries)
   if expsv[end] == -a
-    for i in 1:nrows(Bv[end])
-      pr[nrows(pr)-i+1, ncols(pr)-i+1] = 0
-    end
-    subsv = Bv[1:end-1]
+    Bp = reduce(vcat, Bv[1:end-1])
+    Bp0 = reduce(vcat, [Bp, zero(Bv[end])])
+    Bv = reduce(vcat, Bv)
+    pr = solve(Bv, Bp0; side=:right)
+    #for i in 1:nrows(Bv[end])
+
+    #  pr[nrows(pr)-i+1, ncols(pr)-i+1] = 0
+    #end
+    #subsv = Bv[1:end-1]
   else
-    subsv = Bv
+    Bp = reduce(vcat, Bv)
+    Bv = reduce(vcat, Bv)
   end
 
   # Now that we have a good looking local basis at p for R, we massage it
   # a bit to make sure that globally it spans a sublattice of Hv.
-  Bp = reduce(vcat, subsv)
+  #Bp = reduce(vcat, subsv)
   H2v = lattice_in_same_ambient_space(Hv, Bp)
   if !is_sublattice(Hv, H2v)
     Lv = restrict_scalars(Hv, res)
@@ -733,10 +753,13 @@ function _local_basis_matrix_and_projection(Hv::HermLat, p::AbsSimpleNumFieldOrd
     gene = Vector{elem_type(base_field(Hv))}[res(vec(collect(B2[i, :]))) for i in 1:nrows(B2)]
     H2v = lattice(ambient_space(Hv), gene)
     @hassert :ZZLatWithIsom 1 is_sublattice(Hv, H2v)
-    Bp = local_basis_matrix(H2v, p; type = :submodule)
+    Bp2 = local_basis_matrix(H2v, p; type = :submodule)
+    K = solve(Bp2, Bp; side=:right)
+    pr = K*pr
+    Bp = Bp2
   end
   @hassert :ZZLatWithIsom 1 rank(Bp) == rank(Bp*pr)
-  return Bp*pr, pr
+  return Bp, Bp*pr, pr
 end
 
 # We need a special rho for Algorithm 8 of BH23: we construct such an element
@@ -779,7 +802,7 @@ function _find_rho(P::Hecke.RelNumFieldOrderIdeal, e::Int)
       rt = roots(t^2 - (g+1)*d^2; max_roots = 1, ispure = true, is_normal = true)
       if !is_empty(rt)
         rho = (1+rt[1])//2
-        @hassert :ZZLatWithIsom 1 valuation(rho, Pabs) == 1-e
+        @hassert :ZZLatWithIsom 1 valuation(EabstoE(rho), P) == 1-e
         @hassert :ZZLatWithIsom 1 trace(EabstoE(rho)) == 1
         return EabstoE(rho)
       end
