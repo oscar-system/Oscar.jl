@@ -169,6 +169,9 @@ where $a_{ij}$ are the entries of the Cartan matrix `gcm`.
 
 If `check=true` the function will verify that `gcm` is indeed a generalized Cartan matrix.
 
+!!! warning
+    Currently only Cartan matrices of finite type are supported.
+
 # Examples
 ```jldoctest
 julia> cartan_symmetrizer(cartan_matrix(:B, 2))
@@ -178,69 +181,37 @@ julia> cartan_symmetrizer(cartan_matrix(:B, 2))
 ```
 """
 function cartan_symmetrizer(gcm::ZZMatrix; check::Bool=true)
-  check && @req is_cartan_matrix(gcm) "not a Cartan matrix"
-  rk = nrows(gcm)
-  diag = ones(ZZRingElem, rk)
+  ct, ord = cartan_type_with_ordering(gcm; check=check)
 
-  # used for traversal
-  undone = trues(rk)
-  plan = zeros(Int, rk) # roots planned sorted asc grouped by component
-  head = 0
-  tail = 0
-
-  # we collect roots of the same length
-  # once we know if they are short or long we scale appropriately
-  while any(undone)
-    if head == tail
-      head += 1
-      plan[head] = findfirst(undone)::Int
-      undone[plan[head]] = false
-    end
-
-    prev = head
-    i = plan[head]
-    for j in 1:rk
-      if i == j
-        continue
+  i = 1
+  d = ones(ZZRingElem, length(ord))
+  for (fam, rk) in ct
+    if fam == :A
+      i += rk
+    elseif fam == :B
+      for j in i:(i + rk - 2)
+        d[j] = 2
       end
-
-      if !undone[j] || is_zero_entry(gcm, i, j)
-        continue
-      end
-
-      head += 1
-      plan[head] = j
-      undone[j] = false
-
-      if diag[i] * gcm[i, j] == diag[j] * gcm[j, i]
-        continue
-      elseif gcm[i, j] == gcm[j, i]
-        diag[i] = lcm(diag[i], diag[j])
-        diag[j] = diag[i]
-        continue
-      end
-
-      if gcm[j, i] < -1
-        tail += 1
-        v = -gcm[j, i]
-        while tail < head
-          diag[plan[tail]] *= v
-          tail += 1
-        end
-      end
-      if gcm[i, j] < -1
-        diag[j] *= -gcm[i, j]
-        tail = head - 1
-      end
-    end
-
-    # we found new roots, meaning we are done with this component of the root system
-    if prev == head
-      tail = head
+      i += rk
+    elseif fam == :C
+      i += rk
+      d[i - 1] = 2
+    elseif fam == :D
+      i += rk
+    elseif fam == :E
+      i += rk
+    elseif fam == :F
+      d[i] = d[i + 1] = 2
+      i += rk
+    elseif fam == :G
+      d[i + 1] = 3
+      i += rk
+    else
+      error("unreachable")
     end
   end
 
-  return diag
+  return invpermute!(d, ord)
 end
 
 @doc raw"""
