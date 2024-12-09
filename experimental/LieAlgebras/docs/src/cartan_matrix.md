@@ -38,6 +38,65 @@ cartan_bilinear_form(::ZZMatrix)
 
 ## Cartan types
 
+Cartan types and, in particular, the ordering of simple roots are used differently in the literature.
+OSCAR follows the conventions of [Bourbaki](@cite), i.e. we consider the following Dynkin diagrams
+for the Cartan types (where the ordering of simple roots is given by the numbering of the vertices):
+
+- ``A_n`` (for ``n \geq 1``):
+  ```
+  1 - 2 - 3 - ... - n-1 - n
+  ```
+
+- ``B_n`` (for ``n \geq 2``):
+  ```
+  1 - 2 - 3 - ... - n-1 >=> n
+  ```
+
+- ``C_n`` (for ``n \geq 2``):
+  ```
+  1 - 2 - 3 - ... - n-1 <=< n
+  ```
+
+- ``D_n`` (for ``n \geq 4``):
+  ```
+                        n-1
+                      /
+  1 - 2 - 3 - ... - n-2
+                      \
+                        n
+  ```
+
+- ``E_6``:
+  ```
+  1 - 3 - 4 - 5 - 6
+          |
+          2
+  ```
+
+- ``E_7``:
+  ```
+  1 - 3 - 4 - 5 - 6 - 7
+          |
+          2
+  ```
+
+- ``E_8``:
+  ```
+  1 - 3 - 4 - 5 - 6 - 7 - 8
+          |
+          2
+  ```
+
+- ``F_4``:
+  ```
+  1 - 2 >=> 3 - 4
+  ```
+
+- ``G_2``:
+  ```
+  1 <<< 2
+  ```
+
 The following function is used to verify the validity of a Cartan type, and is thus used in input sanitization.
 ```@docs
 is_cartan_type(::Symbol, ::Int)
