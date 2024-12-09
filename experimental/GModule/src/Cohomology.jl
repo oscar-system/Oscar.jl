@@ -4,8 +4,8 @@ using Oscar
 import Oscar: action
 import Oscar: induce
 import Oscar: word
-import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
-import AbstractAlgebra: Group, Module
+import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum, GAPGroup
+import AbstractAlgebra: Group, Module, FPModule
 import Base: parent
 
 import Oscar: pretty, Lowercase, @show_name, @show_special
@@ -444,7 +444,10 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup
+function Oscar.tensor_product(C::GModule{T, <:FPModule}, Cs::GModule{T, <:FPModule}...; task::Symbol = :map) where {T <: GAPGroup}
+  return Oscar.tensor_product(GModule{T, <:FPModule}[C, Cs...]; task)
+end
+function Oscar.tensor_product(C::Vector{<:GModule{<:GAPGroup, <:FPModule}}; task::Symbol = :map)
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -463,7 +466,10 @@ import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
 
 
-function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
+function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) where {T}
+  return Oscar.tensor_product([F, Fs...]; task)
+end
+function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
   d = prod(dim(x) for x = F)
   G = free_module(base_ring(F[1]), d)
