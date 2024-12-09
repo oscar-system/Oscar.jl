@@ -119,6 +119,36 @@
   end
 end
 
+@testset "minimal_supercone" begin
+  X = projective_space(NormalToricVariety, 3)
+  c = Oscar.minimal_supercone(X, [1, 1, 1])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+  c = Oscar.minimal_supercone(X, [1, 1, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[0, 1, 0], [1, 0, 0]])
+  c = Oscar.minimal_supercone(X, [1, 0, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[1, 0, 0]])
+  c = Oscar.minimal_supercone(X, [0, 0, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort(RayVector{QQFieldElem}[])
+
+  X = affine_space(NormalToricVariety, 3)
+  c = Oscar.minimal_supercone(X, [1, 1, 1])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+  c = Oscar.minimal_supercone(X, [1, 1, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[1, 0, 0], [0, 1, 0]])
+  c = Oscar.minimal_supercone(X, [1, 0, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort([[1, 0, 0]])
+  c = Oscar.minimal_supercone(X, [0, 0, 0])
+  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
+  @test sort(collect(rays(c))) == sort(RayVector{QQFieldElem}[])
+end
+
 @testset "Transform{$T}" for (f, T) in _prepare_scalar_types()
   square = cube(f, 2)
   nf_square = normal_fan(square)
