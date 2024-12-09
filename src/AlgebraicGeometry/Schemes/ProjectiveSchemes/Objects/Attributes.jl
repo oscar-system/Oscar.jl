@@ -485,7 +485,6 @@ projective_scheme_type(A::T) where {T<:AbstractAlgebra.Ring} = projective_scheme
 projective_scheme_type(::Type{T}) where {T<:AbstractAlgebra.Ring} =
 ProjectiveScheme{T, mpoly_dec_ring_type(mpoly_ring_type(T))}
 
-base_ring_type(P::ProjectiveScheme) = base_ring_type(typeof(P))
 base_ring_type(::Type{ProjectiveScheme{S, T}}) where {S, T} = S
 
 ring_type(P::ProjectiveScheme) = ring_type(typeof(P))
