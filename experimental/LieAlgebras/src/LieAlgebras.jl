@@ -105,10 +105,8 @@ include("Types.jl")
 include("Combinatorics.jl")
 include("Util.jl")
 
-include("CartanMatrix.jl")
 include("CoxeterGroup.jl")
 include("RootSystem.jl")
-include("WeightLattice.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 
