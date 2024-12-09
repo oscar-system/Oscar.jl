@@ -12,6 +12,9 @@ Many functions taking a Cartan matrix as input (like [`root_system`](@ref) and [
 !!! note
     The convention for Cartan matrices in OSCAR is $(a_{ij}) = (\langle \alpha_i^\vee, \alpha_j \rangle)$ for simple roots $\alpha_i$.
 
+!!! note
+    See [Cartan types](@ref) for our conventions on Cartan types and ordering of simple roots.
+
 ## Table of contents
 
 ```@contents
