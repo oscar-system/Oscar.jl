@@ -289,11 +289,7 @@ end
 @enable_all_show_via_expressify AbsLocalizedRingElem
 
 # type getters
-base_ring_elem_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRET
 base_ring_type(::Type{T}) where {BRT, BRET, T<:AbsLocalizedRingElem{BRT, BRET}} = BRT
-
-base_ring_elem_type(L::AbsLocalizedRing) = base_ring_elem_type(typeof(L))
-base_ring_type(L::AbsLocalizedRing) = base_ring_type(typeof(L))
 
 
 ########################################################################
@@ -384,9 +380,8 @@ is_domain_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set
 is_exact_type(T::Type{U}) where {U<:AbsLocalizedRingElem} = false # default set to false
 
 function Base.hash(f::T, h::UInt) where {T<:AbsLocalizedRingElem}
-  r = 0x78a97cd90
-  r = xor(r, hash(numerator(f), h))
-  return xor(r, hash(denominator(f), h))
+  # stupid hash, but there is no better (generic) way to do it
+  return hash(parent(f), h)
 end
 
 Base.deepcopy_internal(f::T, dict::IdDict) where {T<:AbsLocalizedRingElem} = parent(f)(copy(numerator(f)), copy(denominator(f)), check=false)
@@ -399,7 +394,15 @@ zero(W::AbsLocalizedRing) = W(zero(base_ring(W)))
 
 canonical_unit(f::LocRingElemType) where {LocRingElemType<:AbsLocalizedRingElem} = one(parent(f))
 
-characteristic(W::AbsLocalizedRing) = characteristic(base_ring(W))
+function characteristic(W::AbsLocalizedRing)
+  # It might happen that localization collapses the ring.
+  is_zero(one(W)) && return 1
+  # If the characteristic is prime, then it is preserved.
+  c = characteristic(base_ring(W))
+  (is_zero(c) || is_prime(c)) && return c
+  # All other cases have to be overwritten manually.
+  error("computation of characteristic not implemented")
+end
 
 function Base.show(io::IO, ::MIME"text/plain", W::AbsLocalizedRing)
   io = pretty(io)

@@ -28,7 +28,7 @@
     if T == QQFieldElem
       @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test length(hilbert_basis(Cone1)) == 2
-      @test issetequal(hilbert_basis(Cone1), ray_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
+      @test issetequal(hilbert_basis(Cone1), point_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
       @test generator_matrix(hilbert_basis(Cone1)) == _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
     end
     @test n_rays(Cone1) == 2

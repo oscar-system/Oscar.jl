@@ -7,7 +7,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
-base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 
 ########################################################################
 # Basic getters                                                        #

@@ -164,7 +164,7 @@ julia> collect(terms(f))
  2*y*e[2]
  3*e[1]
 
-julia> collect(terms(f, ordering = lex(F)*lex(R)))
+julia> collect(terms(f, ordering = invlex(F)*lex(R)))
 6-element Vector{FreeModElem{QQMPolyRingElem}}:
  5*x*y^2*e[1]
  -y^10*e[1]
@@ -179,7 +179,7 @@ julia> tail(f)
 julia> leading_exponent(f)
 ([0, 10], 1)
 
-julia> leading_exponent(f, ordering = lex(F)*lex(R))
+julia> leading_exponent(f, ordering = invlex(F)*lex(R))
 ([1, 2], 1)
 ```
 

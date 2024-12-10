@@ -3,7 +3,7 @@
 
 Return the Chow ring of a matroid, optionally also with the simplicial generators and the polynomial ring.
 
-See [AHK18](@cite) and [BES19](@cite). 
+See [AHK18](@cite) and [BES23](@cite).
 
 # Examples
 The following computes the Chow ring of the Fano matroid.
@@ -141,7 +141,7 @@ end
 @doc raw"""
     augmented_chow_ring(M::Matroid)
 
-Return an augmented Chow ring of a matroid. As described in [BHMPW20](@cite). 
+Return an augmented Chow ring of a matroid. As described in [BHMPW22](@cite).
 
 # Examples
 ```jldoctest
