@@ -1,7 +1,7 @@
 ###############################################################################
 #
 #   Cartan Matrix Functionality
-#   - Cartan matrices (and root orderings) are taken from Bourbaki
+#   - Cartan matrices (and root orderings) are taken from Bou02 Plates I-IX
 #
 ###############################################################################
 

@@ -42,7 +42,7 @@ cartan_bilinear_form(::ZZMatrix)
 ## Cartan types
 
 Cartan types and, in particular, the ordering of simple roots are used differently in the literature.
-OSCAR follows the conventions of [Bourbaki](@cite), i.e. we consider the following Dynkin diagrams
+OSCAR follows the conventions of [Bou02; Plates I-IX](@cite) and [Hum72; Thm 11.4](@cite), i.e. we consider the following Dynkin diagrams
 for the Cartan types (where the ordering of simple roots is given by the numbering of the vertices):
 
 - ``A_n`` (for ``n \geq 1``):
