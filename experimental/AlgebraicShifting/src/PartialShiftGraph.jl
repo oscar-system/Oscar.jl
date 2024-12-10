@@ -217,18 +217,11 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
     Oscar.put_params(channels, codomain(phi))
     map_function = pmap
   end
-  try 
-    if show_progress
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           @showprogress map_function(
+  try
+    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                           @showprogress enabled=show_progress map_function(
                              Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
-    else
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
-                             Iterators.partition(enumerate(complexes), task_size)))
-    end
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
     return (graph,
             Dict(k => inv(phi).(v) for (k, v) in edge_labels),
