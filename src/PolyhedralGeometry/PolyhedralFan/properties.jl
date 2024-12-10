@@ -320,7 +320,7 @@ function minimal_supercone(
   RX = matrix(coefficient_field(X), rays(X))
   m_cone = positive_hull(RX[[m_cone_ray_indices...], :], lineality_space(X))
   Fm = facets(m_cone)
-  zero_facets = findall(f -> f.a*r == [0], Fm)
+  zero_facets = findall(f -> f.a * r == [0], Fm)
   Rm = matrix(coefficient_field(m_cone), rays(m_cone))
   RIF = IncidenceMatrix(m_cone.pm_cone.RAYS_IN_FACETS)
   some_list = [row(RIF, i) for i in zero_facets]
