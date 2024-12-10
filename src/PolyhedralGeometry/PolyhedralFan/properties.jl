@@ -315,14 +315,18 @@ function minimal_supercone(
   m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
   @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
   IX = maximal_cones(IncidenceMatrix, X)
-  m_cone = intersect([row(IX, i) for i in m_cone_indices]...)
+  m_cone_ray_indices = intersect([row(IX, i) for i in m_cone_indices]...)
+  isempty(m_cone_ray_indices) && return positive_hull([], lineality_space(X))
   RX = matrix(coefficient_field(X), rays(X))
-  m_cone = positive_hull(RX[[m_cone...], :], lineality_space(X))
+  m_cone = positive_hull(RX[[m_cone_ray_indices...], :], lineality_space(X))
   Fm = facets(m_cone)
   zero_facets = findall(f -> f.a*r == [0], Fm)
   Rm = matrix(coefficient_field(m_cone), rays(m_cone))
   RIF = IncidenceMatrix(m_cone.pm_cone.RAYS_IN_FACETS)
-  result_ray_indices = intersect([row(RIF, i) for i in zero_facets]...)
+  some_list = [row(RIF, i) for i in zero_facets]
+  is_empty(some_list) && return m_cone
+  result_ray_indices = intersect(some_list...)
+  isempty(result_ray_indices) && return positive_hull([], lineality_space(X))
   result = positive_hull(Rm[[result_ray_indices...], :], lineality_space(m_cone))
   return result
 end
