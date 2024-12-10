@@ -123,7 +123,7 @@ end
   X = projective_space(NormalToricVariety, 3)
   c = Oscar.minimal_supercone(X, [1, 1, 1])
   @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c)), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+  @test sort(collect(rays(c))) == sort([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
   c = Oscar.minimal_supercone(X, [1, 1, 0])
   @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
   @test sort(collect(rays(c))) == sort([[0, 1, 0], [1, 0, 0]])
