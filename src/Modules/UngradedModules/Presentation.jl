@@ -95,6 +95,7 @@ function presentation(SQ::SubquoModule;
 end
 
 function _presentation_graded(SQ::SubquoModule)
+  #any(iszero(a) for a in gens(SQ)) && error("generators must not be zero for presentations in the graded case")
   R = base_ring(SQ)
 
   # Create the free module for the presentation
