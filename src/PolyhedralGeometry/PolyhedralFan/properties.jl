@@ -281,6 +281,56 @@ function cones(PF::_FanLikeType)
   return IncidenceMatrix([Vector{Int}(x) for x in cones])
 end
 
+@doc raw"""
+    minimal_supercone(X::NormalToricVariety, p::AbstractVector{<:IntegerUnion})
+    -> Cone
+
+Given an point $p$ with integer coordinates inside the support of the
+fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$
+such that $p$ is in the relative interior of $σ$.
+
+# Examples
+```jldoctest
+julia> X = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> p = [1, 1, 0]
+3-element Vector{Int64}:
+ 1
+ 1
+ 0
+
+julia> c = minimal_supercone(X, p)
+Polyhedral cone in ambient dimension 3
+
+julia> rays(c)
+2-element SubObjectIterator{RayVector{QQFieldElem}}:
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function minimal_supercone(
+  X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion,QQFieldElem}}
+)
+  m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
+  @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
+  IX = maximal_cones(IncidenceMatrix, X)
+  m_cone_ray_indices = intersect([row(IX, i) for i in m_cone_indices]...)
+  isempty(m_cone_ray_indices) && return positive_hull([], lineality_space(X))
+  RX = matrix(coefficient_field(X), rays(X))
+  m_cone = positive_hull(RX[[m_cone_ray_indices...], :], lineality_space(X))
+  Fm = facets(m_cone)
+  zero_facets = findall(f -> f.a * r == [0], Fm)
+  Rm = matrix(coefficient_field(m_cone), rays(m_cone))
+  RIF = IncidenceMatrix(m_cone.pm_cone.RAYS_IN_FACETS)
+  some_list = [row(RIF, i) for i in zero_facets]
+  is_empty(some_list) && return m_cone
+  result_ray_indices = intersect(some_list...)
+  isempty(result_ray_indices) && return positive_hull([], lineality_space(X))
+  result = positive_hull(Rm[[result_ray_indices...], :], lineality_space(m_cone))
+  return result
+end
+
 ###############################################################################
 ###############################################################################
 ### Access properties
