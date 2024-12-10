@@ -118,12 +118,8 @@ const MPolyAnyRing = Union{MPolyRing, MPolyQuoRing,
 ### type getters 
 coefficient_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
 coefficient_ring_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(L))
-coefficient_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
-coefficient_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_elem_type(typeof(L))
 
 base_ring_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_elem_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
-base_ring_elem_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_elem_type(typeof(L))
 
 mult_set_type(::Type{MPolyQuoLocRing{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
 mult_set_type(L::MPolyQuoLocRing{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(L))
@@ -432,17 +428,12 @@ end
 
 ### type getters
 coefficient_ring_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRT
-coefficient_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
-coefficient_ring_elem_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = BRET
-coefficient_ring_elem_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
+coefficient_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = coefficient_ring_type(typeof(f))
 
 base_ring_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RT
-base_ring_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
-base_ring_elem_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = RET
-base_ring_elem_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
 
 mult_set_type(::Type{MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}}) where {BRT, BRET, RT, RET, MST} = MST
-mult_set_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = base_ring_type(typeof(f))
+mult_set_type(f::MPolyQuoLocRingElem{BRT, BRET, RT, RET, MST}) where {BRT, BRET, RT, RET, MST} = mult_set_type(typeof(f))
 
 ### required getter functions 
 parent(a::MPolyQuoLocRingElem) = a.L
@@ -1229,7 +1220,7 @@ end
 # Sets up the ring S[c⁻¹] from the Lemma.
 function helper_ring(f::MPolyQuoLocalizedRingHom{<:Any, <:MPolyQuoLocRing})
   if !has_attribute(f, :helper_ring)
-    minimal_denominators = Vector{base_ring_elem_type(domain(f))}()
+    minimal_denominators = Vector{elem_type(base_ring_type(domain(f)))}()
     R = base_ring(domain(f))
     S = base_ring(codomain(f))
     p = one(S)
@@ -1261,7 +1252,7 @@ function helper_images(
   if !has_attribute(f, :helper_images) 
     helper_ring(f)
   end
-  return get_attribute(f, :helper_images)::Vector{base_ring_elem_type(domain(f))}
+  return get_attribute(f, :helper_images)::Vector{elem_type(base_ring_type(domain(f)))}
 end
 
 function minimal_denominators(
@@ -1270,7 +1261,7 @@ function minimal_denominators(
   if !has_attribute(f, :minimal_denominators) 
     helper_ring(f)
   end
-  return get_attribute!(f, :minimal_denominators)::Vector{base_ring_elem_type(domain(f))}
+  return get_attribute!(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
 end
 
 function helper_eta(
@@ -1297,7 +1288,7 @@ function common_denominator(
   if !has_attribute(f, :minimal_denominators) 
     helper_ring(f)
   end
-  d = get_attribute(f, :minimal_denominators)::Vector{base_ring_elem_type(domain(f))}
+  d = get_attribute(f, :minimal_denominators)::Vector{elem_type(base_ring_type(domain(f)))}
   return (length(d) == 0 ? one(base_ring(codomain(f))) : prod(d))
 end
 
@@ -2814,10 +2805,8 @@ _compose(f::Any, g::Any, dom::Any, cod::Any) = MapFromFunc(dom, cod, x->g(f(x)))
 morphism_type(::Type{DT}, ::Type{CT}) where {DT<:MPolyLocRing, CT<:Ring} = MPolyLocalizedRingHom{DT, CT, morphism_type(base_ring_type(DT), CT)}
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyLocRing{<:Any, <:Any, BRT}} = BRT
-base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
 
 base_ring_type(::Type{T}) where {BRT, T<:MPolyQuoLocRing{<:Any, <:Any, BRT}} = BRT
-base_ring_elem_type(::Type{T}) where {BRET, T<:MPolyQuoLocRing{<:Any, <:Any, <:Any, BRET}} = BRET
 
 function dim(R::MPolyQuoLocRing)
   return dim(modulus(R))
