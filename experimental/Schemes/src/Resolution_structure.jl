@@ -150,7 +150,7 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   ex_div_list = exceptional_divisor_list(f)
   C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
-    dim(ex_div_list[i])== -inf && continue            # kick out empty ones
+    dim(ex_div_list[i]) == -inf && continue            # kick out empty ones
     C = C + weil_divisor(ex_div_list[i])
   end
 
@@ -702,7 +702,7 @@ function _desing_lipman(X::AbsCoveredScheme, I_sl::AbsIdealSheaf, f::MixedBlowUp
   while !is_one(I_sl_temp)
     f = _blow_up_at_all_points(f,I_sl_temp)
     I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
-    if dim(I_sl_temp) == 1
+    if is_one(dim(I_sl_temp))
       f = _do_normalization!(f)
       I_sl_temp = ideal_sheaf_of_singular_locus(domain(last_map(f)))
     end
@@ -1036,7 +1036,7 @@ end
 # and count the A1 encountered on the way (their count is total_number)
 function curve_sing_A1_or_beyond(I::AbsIdealSheaf)
   !is_one(I) || return(I,0)
-  @assert dim(I) == 1
+  @assert is_one(dim(I))
   I_scheme,I_inc = sub(I)
   I_sl = pushforward(I_inc)(ideal_sheaf_of_singular_locus(I_scheme))
   decomp = maximal_associated_points(I_sl)    # zero-dimensional, as I describes a curve
@@ -1056,7 +1056,7 @@ end
 
 function is_A1_at_point_curve(IX::AbsIdealSheaf,Ipt::AbsIdealSheaf)
   @assert scheme(IX) === scheme(Ipt)
-  @assert dim(scheme(IX)) == 2
+  @assert !dim(scheme(IX)) == -inf && dim(scheme(IX)) == 2
   @assert dim(Ipt) == 0
 
   patches_scheme = patches(simplified_covering(scheme(Ipt)))
@@ -1087,7 +1087,7 @@ function check_A1_at_point_curve(IX::Ideal, Ipt::Ideal)
 ## only call this from higher functions
 ## it assumes: IX singular at Ipt, germ of IX at Ipt contact equivalent to hypersurface singularity
   R = base_ring(IX)
-  dim(IX) == 1 || error("not applicable: not a curve")
+  is_one(dim(IX)) || error("not applicable: not a curve")
   R == base_ring(Ipt) || error("basering mismatch")
   kk = base_ring(R)
   characteristic(kk) == 0 || error("only available in characteristic zero")
