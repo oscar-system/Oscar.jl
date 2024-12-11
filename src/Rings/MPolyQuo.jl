@@ -241,7 +241,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
 @attributes mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
-  dim::Int
+  dim::Union{Int, Nothing, NegInf}
   gb::IdealGens{T}
   qRing::MPolyQuoRing
 
@@ -250,7 +250,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    r = new{T}()
    r.gens  = IdealGens(Ox, si)
    r.qRing = Ox
-   r.dim   = -1
+   r.dim   = nothing
    R = base_ring(Ox)
    r.gens.O = [R(g) for g = gens(r.gens.S)]
    B = r.gens
@@ -265,7 +265,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
     r = new{T}()
     r.gens = IdealGens(Ox, gens(I))
     r.qRing = Ox
-    r.dim = -1
+    r.dim = nothing
     return r
   end
   
@@ -1782,11 +1782,11 @@ julia> dim(a)
 ```
 """
 function dim(a::MPolyQuoIdeal)
-  if a.dim > -1
-    return a.dim
+  if a.dim === nothing 
+    a.dim = Singular.dimension(singular_groebner_generators(a))
+    a.dim == -1 && (a.dim = -inf)
   end
-  a.dim = Singular.dimension(singular_groebner_generators(a))
-  return a.dim
+  return a.dim::Union{Int, NegInf}
 end
 
 ##################################
