@@ -116,6 +116,8 @@
 
     @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
+    @test length(findall(f->[1,0,0] in f, facets(Hyperplane, Cone5))) == 2
+    @test length(findall(f->[1,0,0] in f, facets(Halfspace, Cone5))) == 4
   end
 
   @testset "constructors" begin

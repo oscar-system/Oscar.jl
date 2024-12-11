@@ -521,7 +521,10 @@ x_3 <= 1
 """
 facets(
   as::Type{T}, P::Polyhedron{S}
-) where {S<:scalar_types,T<:Union{AffineHalfspace{S},Pair{R,S} where R,Polyhedron{S}}} =
+) where {
+  S<:scalar_types,
+  T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}},
+} =
   SubObjectIterator{as}(P, _facet_polyhedron, n_facets(P))
 
 function _facet_polyhedron(
@@ -544,6 +547,12 @@ function _facet_polyhedron(
     Polymake.polytope.facet(pm_object(P), _facet_index(pm_object(P), i) - 1),
     coefficient_field(P),
   )
+end
+function _facet_polyhedron(
+  U::Type{AffineHyperplane{S}}, P::Polyhedron{S}, i::Base.Integer
+) where {S<:scalar_types}
+  h = decompose_hdata(view(pm_object(P).FACETS, [_facet_index(pm_object(P), i)], :))
+  return affine_hyperplane(coefficient_field(P), h[1], h[2][])::U
 end
 
 _affine_inequality_matrix(::Val{_facet_polyhedron}, P::Polyhedron) =
@@ -606,6 +615,8 @@ facets(P::Polyhedron{T}) where {T<:scalar_types} = facets(AffineHalfspace{T}, P)
 
 facets(::Type{<:Halfspace}, P::Polyhedron{T}) where {T<:scalar_types} =
   facets(AffineHalfspace{T}, P)
+facets(::Type{<:Hyperplane}, P::Polyhedron{T}) where {T<:scalar_types} =
+  facets(AffineHyperplane{T}, P)
 
 function _facet_index(P::Polymake.BigObject, i::Base.Integer)
   i < _facet_at_infinity(P) && return i
