@@ -80,7 +80,8 @@ ideal sheaves on ``X``.
         dim(X) - dim(D) == 1 || error("components of a divisor must be of codimension one")
       end
     end
-    return new{typeof(X), coefficient_ring_type(C), coefficient_ring_elem_type(C)}(C)
+    CRT = coefficient_ring_type(C)
+    return new{typeof(X), CRT, elem_type(CRT)}(C)
   end
 end
 

@@ -455,7 +455,7 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   # Computes the operators for the lusztig polytopes for a longest weyl-word 
   # reduced_expression.
 
-  # \beta_k := s_{i_1} … s_{i_{k-1}} (\alpha_{i_k})
+  # \beta_k := (\alpha_{i_k}) s_{i_{k-1}} … s_{i_1}
 
   # F.e. for A, 2, [1, 2, 1], we get
   # \beta_1 = \alpha_1
@@ -465,7 +465,7 @@ function operators_lusztig(L::LieAlgebra, reduced_expression::Vector{Int})
   R = root_system(L)
   W = weyl_group(R)
   operators = map(1:length(reduced_expression)) do k
-    root = W(reduced_expression[1:(k - 1)]) * simple_root(R, reduced_expression[k])
+    root = simple_root(R, reduced_expression[k]) * W(reduced_expression[(k - 1):-1:1])
     fl = is_positive_root(root)
     @req fl "Only positive roots may occur here"
     root

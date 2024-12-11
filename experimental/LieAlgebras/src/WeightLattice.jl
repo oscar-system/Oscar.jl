@@ -337,9 +337,7 @@ end
     conjugate_dominant_weight_with_elem(w::WeightLatticeElem) -> Tuple{WeightLatticeElem, WeylGroupElem}
 
 Returns the unique dominant weight `dom` conjugate to `w` and a Weyl group element `x`
-such that `x * w == dom`.
-
-If one wants a group element that takes `w` to`dom` using a right action, one can use `inv(x)`.
+such that `w * x == dom`.
 """
 function conjugate_dominant_weight_with_elem(w::WeightLatticeElem)
   return conjugate_dominant_weight_with_elem!(deepcopy(w))
@@ -360,9 +358,9 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
     end
   end
 
-  # reversing word means it is in short revlex normal form
+  # word is already in short lex normal form
   # and it is the element taking original w to new w
-  return w, weyl_group(root_system(w))(reverse!(word); normalize=false)
+  return w, weyl_group(root_system(w))(word; normalize=false)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)
