@@ -501,11 +501,11 @@ projective_scheme_type(::Type{T}) where {T<:AbsAffineScheme} = projective_scheme
 # Attributes for projective schemes over a field                       #
 ########################################################################
 
-@attr Int function dim(P::AbsProjectiveScheme{<:Field})
+@attr Union{Int, NegInf} function dim(P::AbsProjectiveScheme{<:Field})
   return dim(defining_ideal(P))-1
 end
 
-@attr Int function codim(P::AbsProjectiveScheme{<:Field})
+@attr Union{Int, NegInf} function codim(P::AbsProjectiveScheme{<:Field})
   return dim(ambient_space(P)) - dim(defining_ideal(P)) + 1
 end
 
