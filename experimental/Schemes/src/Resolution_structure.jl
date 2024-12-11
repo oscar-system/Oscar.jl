@@ -1056,7 +1056,7 @@ end
 
 function is_A1_at_point_curve(IX::AbsIdealSheaf,Ipt::AbsIdealSheaf)
   @assert scheme(IX) === scheme(Ipt)
-  @assert !dim(scheme(IX)) == -inf && dim(scheme(IX)) == 2
+  @assert dim(scheme(IX)) == 2
   @assert dim(Ipt) == 0
 
   patches_scheme = patches(simplified_covering(scheme(Ipt)))
