@@ -150,7 +150,7 @@ function _exceptional_divisor_non_embedded(f::MixedBlowUpSequence)
   ex_div_list = exceptional_divisor_list(f)
   C = WeilDivisor(scheme(ex_div_list[1]),ZZ)
   for i in 2:length(ex_div_list)
-    dim(ex_div_list[i])== -1 && continue            # kick out empty ones
+    dim(ex_div_list[i])== -inf && continue            # kick out empty ones
     C = C + weil_divisor(ex_div_list[i])
   end
 
@@ -165,7 +165,7 @@ function _exceptional_divisor_non_embedded(f::BlowUpSequence)
   C = CartierDivisor(ambient_scheme(ex_div_list[1]),ZZ)
   for i in 1:length(ex_div_list)
 # do we want to introduce is_empty for divisors?
-    dim(ideal_sheaf(ex_div_list[i]))== -1 && continue          # kick out empty ones
+    dim(ideal_sheaf(ex_div_list[i])) == -inf && continue          # kick out empty ones
                                                                # caution: dim(CartierDivisor) is not computed,
                                                                #          but inferred
                                                                #          ==> need to pass to ideal_sheaf first
@@ -190,7 +190,7 @@ function exceptional_locus(f::MixedBlowUpSequence)
                                                     # they might even have the wrong dimension
   C = AlgebraicCycle(scheme(ex_div_list[1]),ZZ)     # ==> we cannot expect to obtain a divisor, only a cycle
   for E in ex_div_list
-    dim(E) != -1 || continue                        # kick out empty ones
+    dim(E) != -inf || continue                        # kick out empty ones
     C = C + algebraic_cycle(E)
   end
 
