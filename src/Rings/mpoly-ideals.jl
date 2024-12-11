@@ -1893,7 +1893,7 @@ julia> dim(I)
 function dim(I::MPolyIdeal)
   if I.dim === nothing
     if is_zero(ngens(base_ring(I))) # Catch a boundary case
-      I.dim = 0
+      I.dim = dim(coefficient_ring(base_ring(I)))
     else
       I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
     end
