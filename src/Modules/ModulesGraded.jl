@@ -1787,7 +1787,7 @@ end
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M`. The method used is based on the Bernstein-Gelfand-Gelfand correspondence. The range of twists is between `l` and `h`.
-In the displayed result, '-' refers to a zero enty and '*' refers to a
+In the displayed result, '-' refers to a zero entry and '*' refers to a
 negative entry (= dimension not yet determined). To determine all values
 in the desired range between `l` and `h` use `_sheaf_cohomology_bgg(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
 The values of the returned table can be accessed by indexing it
@@ -1878,7 +1878,7 @@ end
 
 Compute the cohomology of twists of of the coherent sheaf on projective
 space associated to `M` The method used is based on local duality. The range of twists is between `l` and `h`.
-In the displayed result, '-' refers to a zero enty and '*' refers to a
+In the displayed result, '-' refers to a zero entry and '*' refers to a
 negative entry (= dimension not yet determined). To determine all values
 in the desired range between `l` and `h` use `_sheaf_cohomology_loccoh(M, l-ngens(base_ring(M)), h+ngens(base_ring(M)))`.
 The values of the returned table can be accessed by indexing it

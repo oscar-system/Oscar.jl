@@ -307,7 +307,7 @@ function _build_sparse_row(
   return sparse_row(Rx, [(i, finish(ctx)) for (i, ctx) in cache])
 end
 
-# After creating the required infrastruture in Singular,
+# After creating the required infrastructure in Singular,
 # to facilitate the double book-keeping, the signature
 # lift(G1::ModuleGens{T}, G2::ModuleGens{T}) should go to Singular
 # and lift(a::FreeModElem{T}, generators::ModuleGens{T}) call it

@@ -47,7 +47,7 @@ end
 function Base.show(io::IO, ::MIME"text/plain", PG::ProjectiveGluing)
   io = pretty(io)
   f = gluing_morphisms(PG)[1]
-  PX, PY = pacthes(PG)
+  PX, PY = patches(PG)
   PU, PV = gluing_domains(PG)
   println(io, "Gluing")
   println(io, Indent(), "of  ", Lowercase(), PX)
@@ -132,7 +132,7 @@ end
 Given a ring `R`, return the empty relative projective scheme over the
 empty covered scheme over `R`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R, (x,y,z) = QQ[:x, :y, :z];
 

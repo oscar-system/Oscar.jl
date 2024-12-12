@@ -61,7 +61,7 @@
         n_roots(R) >= 1 && for _ in 1:10
           r = root(R, rand(1:n_roots(R)))
           w = rand(W)
-          @test is_root(w * r)
+          @test is_root(r * w)
         end
 
         @test length(simple_coroots(R)) == n_simple_roots(R)

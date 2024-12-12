@@ -559,7 +559,7 @@ end
 
 Return the coroots of `R` in the order of [`roots(::RootSystem)`](@ref roots),
 i.e. starting with the coroots of positive roots and then those of negative roots,
-each in the order of [`positive_coroots(::RootSystem)`](@ref positive_coroots) and [`negative_coroots(::RootSystem)`](@ref negative_coroots), repectively.
+each in the order of [`positive_coroots(::RootSystem)`](@ref positive_coroots) and [`negative_coroots(::RootSystem)`](@ref negative_coroots), respectively.
 
 See also: [`coroot(::RootSystem, ::Int)`](@ref).
 
@@ -1468,7 +1468,7 @@ Compute the dimension of the simple module of the Lie algebra defined by the roo
 with highest weight `hw` using Weyl's dimension formula.
 The return value is of type `T`.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1512,7 +1512,7 @@ sorted ascendingly by the total height of roots needed to reach them from `hw`.
 
 See [MP82](@cite) for details and the implemented algorithm.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1561,7 +1561,7 @@ function _action_matrices_on_weights(W::WeylGroup)
   return map(1:rank(R)) do i
     x = gen(W, i)
     matrix(
-      ZZ, reduce(vcat, coefficients(x * fundamental_weight(R, j)) for j in 1:rank(R))
+      ZZ, reduce(vcat, coefficients(fundamental_weight(R, j) * x) for j in 1:rank(R))
     )
   end
 end
@@ -1575,7 +1575,7 @@ with highest weight `hw`, together with their multiplicities.
 
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1667,7 +1667,7 @@ Computes all weights occurring in the simple module of the Lie algebra defined b
 with highest weight `hw`, together with their multiplicities.
 This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
@@ -1720,7 +1720,7 @@ This function uses Klymik's formula.
 
 The return type may change in the future.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
@@ -1780,7 +1780,7 @@ function tensor_product_decomposition(
 end
 
 ###############################################################################
-# demazures charcter formula
+# demazures character formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   fl, index_of_r = is_simple_root_with_index(r)
   @req fl "not a simple root"
@@ -1840,16 +1840,16 @@ end
     demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
 
 Computes all weights occurring in the Demazure module of the Lie algebra defined by the root system `R`
-with extremal weight `x*w`, together with their multiplicities.
+with extremal weight `w * x`, together with their multiplicities.
 
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
 
-# Example
+# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> demazure_character(R, [0, 1, 0], [3, 2, 1])
+julia> demazure_character(R, [0, 1, 0], [1, 2, 3])
 Dict{WeightLatticeElem, Int64} with 4 entries:
   w_1 + w_2 - 2*w_3 => 1
   w_1               => 1
@@ -1884,7 +1884,7 @@ function demazure_character(
   @req root_system(w) === R "parent root system mismatch"
   @req is_dominant(w) "not a dominant weight"
   char = Dict{WeightLatticeElem,T}(w => T(1))
-  for i in Iterators.reverse(reduced_expression)
+  for i in reduced_expression
     char = demazure_operator(simple_root(root_system(w), Int(i)), char)
   end
   return char

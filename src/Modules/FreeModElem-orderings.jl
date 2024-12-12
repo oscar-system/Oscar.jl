@@ -23,10 +23,10 @@ julia> R, (x, y) = polynomial_ring(QQ, [:x, :y]);
 
 julia> F = FreeMod(R, 3);
 
-julia> cmp(lex(R)*lex(F), x*F[2], y*F[1])
+julia> cmp(lex(R)*invlex(F), x*F[2], y*F[1])
 1
 
-julia> cmp(lex(F)*lex(R), x*F[2], y*F[1])
+julia> cmp(invlex(F)*lex(R), x*F[2], y*F[1])
 -1
 
 julia> cmp(lex(F)*lex(R), x*F[1], x*F[1])
