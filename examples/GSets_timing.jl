@@ -5,7 +5,7 @@
   G = symmetric_group(10)
 
   Omega = gset(G)
-  # @benchmark order(stabilizer(Omega, 1)[1])
+  @benchmark order(stabilizer(Omega, 1)[1])
   @benchmark order(stabilizer(Omega, Set([1, 2]))[1])
   @benchmark order(stabilizer(Omega, [1, 2])[1])
   @benchmark order(stabilizer(Omega, (1, 2))[1])
