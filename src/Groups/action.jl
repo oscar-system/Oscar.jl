@@ -526,7 +526,9 @@ julia> S = stabilizer(G, [1, 1, 2, 2, 3], permuted);  order(S[1])
 4
 ```
 """
-function stabilizer(G::GAPGroup, pnt::Any, actfun::Function)
+stabilizer(G::GAPGroup, pnt::Any, actfun::Function) = _stabilizer_generic(G, pnt, actfun)
+
+function _stabilizer_generic(G::GAPGroup, pnt::Any, actfun::Function)
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G), pnt,
         GapObj(gens(G), recursive = true), GapObj(gens(G)),
         GapObj(actfun)))
@@ -535,7 +537,10 @@ end
 # natural stabilizers in permutation groups
 # Construct the arguments on the GAP side such that GAP's method selection
 # can choose the special method.
-function stabilizer(G::PermGroup, pnt::T) where T <: Oscar.IntegerUnion
+# - stabilizer in a perm. group of an integer via `^`
+# - stabilizer in a perm. group of a vector of integers via `on_tuples`
+# - stabilizer in a perm. group of a set of integers via `on_sets`
+function stabilizer(G::PermGroup, pnt::T) where T <: IntegerUnion
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GapObj(pnt),
         GAP.Globals.OnPoints))  # Do not use GAPWrap.OnPoints!
@@ -551,6 +556,20 @@ function stabilizer(G::PermGroup, pnt::AbstractSet{T}) where T <: Oscar.IntegerU
     return Oscar._as_subgroup(G, GAPWrap.Stabilizer(GapObj(G),
         GapObj(pnt, recursive = true),
         GAP.Globals.OnSets))  # Do not use GAPWrap.OnSets!
+end
+
+# now the same with given action function,
+# these calls may come from delegations from G-sets
+function stabilizer(G::PermGroup, pnt::T, actfun::Function) where T <: IntegerUnion
+    return (actfun == ^) ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+end
+
+function stabilizer(G::PermGroup, pnt::Vector{T}, actfun::Function) where T <: IntegerUnion
+    return actfun == on_tuples ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
+end
+
+function stabilizer(G::PermGroup, pnt::AbstractSet{T}, actfun::Function) where T <: IntegerUnion
+    return actfun == on_sets ? stabilizer(G, pnt) : _stabilizer_generic(G, pnt, actfun)
 end
 
 # natural stabilizers in matrix groups
