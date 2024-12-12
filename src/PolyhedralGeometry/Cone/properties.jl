@@ -535,6 +535,7 @@ Return the facets of `C` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace` (or its subtype `LinearHalfspace`),
+* `Hyperplane` (or its subtype `LinearHyperplane1),
 * `Cone`.
 
 # Examples
