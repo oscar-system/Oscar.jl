@@ -16,6 +16,26 @@
 end
 
 @testset "Total and strict transforms in Cox rings" begin
+  # Affine space
+  X = affine_space(NormalToricVariety, 2)
+  set_coordinate_names(X, ["x", "y"])
+  R = cox_ring(X)
+  x, y = gens(R)
+  f = blow_up(X, [2, 3]; coordinate_name="u")
+  Y = domain(f)
+  S = cox_ring(Y)
+  x_, y_, u = gens(S)
+  
+  ## Polynomial test
+  g = x + y^3
+  @test cox_ring_module_homomorphism(f, g) == x_*u^2 + y_^3*u^9
+  
+  ## Subscheme is a curve
+  I = ideal(R, [x^3 + y^3])
+  J, k = strict_transform_with_index(f, I)
+  @test J == ideal(S, [x_^3 + y_^3*u^3])
+  @test k == 6
+  
   # 1/2(1, 1) quotient singularity, (1/2, 1/2)-blowup
   ray_generators = [[2, -1], [0, 1]]
   max_cones = IncidenceMatrix([[1, 2]])
@@ -28,17 +48,25 @@ end
   S = cox_ring(Y)
   x_, y_, u = gens(S)
 
+  ## Polynomial test
+  g = x + y^3
+  @test cox_ring_module_homomorphism(f, g) == x_*u + y_^3*u^2
+
   ## Subscheme is a curve
   I = ideal(R, [x + y^3])
-  J, k = strict_transform_with_index(f, I)
-  @test J == ideal(S, [x_ + y_^3*u])
-  @test k == 1
-  @test ideal_sheaf(Y, J) == strict_transform(f, ideal_sheaf(X, I))
+  J_strict = strict_transform(f, I)
+  @test J_strict == ideal(S, [x_ + y_^3*u])
+  @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
+  J_total = total_transform(f, I)
+  @test J_total == ideal(S, [x_*u + y_^3*u^2])
+  @test ideal_sheaf(Y, J_total) == total_transform(f, ideal_sheaf(X, I))
 
   ## Subscheme is a zero-dimensional scheme, topologically three points
   I = ideal(R, [x - y^3, x - y^5])
-  J, k = strict_transform_with_index(f, I)
-  @test J == ideal(S, [x_^2 - x_*y_, x_*y_^2 - y_^3, -x_ + y_^3*u])
-  @test k == k
-  @test ideal_sheaf(Y, J) == strict_transform(f, ideal_sheaf(X, I))
+  J_strict = strict_transform(f, I)
+  @test J_strict == ideal(S, [x_^2 - x_*y_, x_*y_^2 - y_^3, -x_ + y_^3*u])
+  @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
+  J_total = total_transform(f, I)
+  @test J_total == ideal(S, [x_*u - y_^3*u^2, x_*u - y_^5*u^3])
+  @test ideal_sheaf(Y, J_total) == total_transform(f, ideal_sheaf(X, I))
 end

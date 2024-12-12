@@ -36,7 +36,7 @@ export SpaceGerm
 export ambient_germ
 export basis_representation
 export complete_intersection_germ
-export cox_ring_group_homomorphism
+export cox_ring_module_homomorphism
 export defining_ring_element
 export defining_ring_elements
 export elliptic_parameter
@@ -49,6 +49,7 @@ export is_isolated_singularity
 export intersection_matrix
 export milnor_algebra
 export milnor_number
+export minimal_supercone_coordinates_of_new_ray
 export point
 export rational_point_coordinates
 export standard_covering

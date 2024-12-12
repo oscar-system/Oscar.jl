@@ -282,52 +282,127 @@ function cones(PF::_FanLikeType)
 end
 
 @doc raw"""
-    minimal_supercone(X::NormalToricVariety, p::AbstractVector{<:IntegerUnion})
-    -> Cone
+    minimal_supercone_indices(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+    -> Set{Int64}
 
-Given an point $p$ with integer coordinates inside the support of the
-fan $Σ$ of a normal toric variety~$X$, return the unique cone $σ$ in $Σ$
-such that $p$ is in the relative interior of $σ$.
+Given an point $v$ inside the support of the polyhedral fan $PF$, return
+the ray indices of the unique cone $σ$ in $PF$ such that $v$ is in the
+relative interior of $σ$.
+
+The cone $σ$ can be constructed by
+
+```
+RPF = matrix(coefficient_field(PF), rays(PF))
+isempty(result) && (sigma = positive_hull([], lineality_space(PF)))
+!isempty(result) && (sigma = positive_hull(RPF[[result...], :], lineality_space(PF)))
+```
+
+where `result` is the output of this function.
 
 # Examples
 ```jldoctest
-julia> X = projective_space(NormalToricVariety, 3)
-Normal toric variety
+julia> PF = normal_fan(Oscar.simplex(3))
+Polyhedral fan in ambient dimension 3
 
-julia> p = [1, 1, 0]
+julia> v = [1, 1, 0]
 3-element Vector{Int64}:
  1
  1
  0
 
-julia> c = minimal_supercone(X, p)
-Polyhedral cone in ambient dimension 3
-
-julia> rays(c)
-2-element SubObjectIterator{RayVector{QQFieldElem}}:
- [0, 1, 0]
- [1, 0, 0]
+julia> minimal_supercone_indices(PF, v)
+Set{Int64} with 2 elements:
+  2
+  1
 ```
 """
-function minimal_supercone(
-  X::NormalToricVariety, r::AbstractVector{<:Union{IntegerUnion,QQFieldElem}}
+function minimal_supercone_indices(
+  PF::PolyhedralFan, v::AbstractVector{<:RationalUnion}
 )
-  m_cone_indices = Oscar._get_maximal_cones_containing_vector(X, r)
-  @req !is_empty(m_cone_indices) "Ray `r` should be in the support of the fan of `X`."
-  IX = maximal_cones(IncidenceMatrix, X)
-  m_cone_ray_indices = intersect([row(IX, i) for i in m_cone_indices]...)
-  isempty(m_cone_ray_indices) && return positive_hull([], lineality_space(X))
-  RX = matrix(coefficient_field(X), rays(X))
-  m_cone = positive_hull(RX[[m_cone_ray_indices...], :], lineality_space(X))
-  Fm = facets(m_cone)
-  zero_facets = findall(f -> f.a * r == [0], Fm)
+  m_cone_indices = Oscar._get_maximal_cones_containing_vector(PF, v)
+  @req !is_empty(m_cone_indices) "Point `v` should be in the support of the fan `PF`."
+  IPF = maximal_cones(IncidenceMatrix, PF)
+  m_cone_ray_indices = intersect([row(IPF, i) for i in m_cone_indices]...)
+  isempty(m_cone_ray_indices) && return Set{Int64}()
+  RPF = matrix(coefficient_field(PF), rays(PF))
+  m_cone = positive_hull(RPF[[m_cone_ray_indices...], :], lineality_space(PF))
+  PFm = facets(m_cone)
+  zero_facets = findall(f -> f.a * v == [0], PFm)
   Rm = matrix(coefficient_field(m_cone), rays(m_cone))
-  RIF = IncidenceMatrix(m_cone.pm_cone.RAYS_IN_FACETS)
-  some_list = [row(RIF, i) for i in zero_facets]
-  is_empty(some_list) && return m_cone
-  result_ray_indices = intersect(some_list...)
-  isempty(result_ray_indices) && return positive_hull([], lineality_space(X))
-  result = positive_hull(Rm[[result_ray_indices...], :], lineality_space(m_cone))
+  RIPF = IncidenceMatrix(m_cone.pm_cone.RAYS_IN_FACETS)
+  some_list = [row(RIPF, i) for i in zero_facets]
+  is_empty(some_list) && return m_cone_ray_indices
+  ray_indices_in_m_cone = intersect(some_list...)
+  function corresponding_ray_in_PF(i)
+    r_i = rays_modulo_lineality(m_cone).rays_modulo_lineality[i]
+    findfirst(isequal(r_i), rays_modulo_lineality(PF).rays_modulo_lineality)
+  end
+  ray_indices_in_PF = Set{Int64}(
+    map(corresponding_ray_in_PF, collect(ray_indices_in_m_cone))
+  )
+  return ray_indices_in_PF
+end
+
+@doc raw"""
+    minimal_supercone_coordinates(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+    -> Vector{QQFieldElem}
+
+Given an point $v$ inside the support of the pointed polyhedral fan $PF$
+where $u_1, \ldots u_n$ are the minimal generators of the rays of $PF$,
+return a vector $(p_1, \ldots, p_n)$ of nonnegative rational numbers
+such that both of the following hold:
+  * $p_1 u_1 + \ldots + p_n u_n = v$, and
+  * if $u_i$ is not in minimal supercone containing $v$, then $p_i = 0$.
+
+If $PF$ is simplicial, then $(p_1, \ldots, p_n)$ is unique.
+
+# Examples
+```jldoctest
+julia> PF = normal_fan(Oscar.simplex(3))
+Polyhedral fan in ambient dimension 3
+
+julia> v = [1, 1, 0]
+3-element Vector{Int64}:
+ 1
+ 1
+ 0
+
+julia> minimal_supercone_indices(PF, v)
+Set{Int64} with 2 elements:
+  2
+  1
+```
+"""
+function minimal_supercone_coordinates(
+  PF::PolyhedralFan, v::AbstractVector{<:RationalUnion}
+)
+  # This function probably only makes sense for fans with no lineality
+  @req is_pointed(PF) "PolyhedralFan must be pointed."
+
+  inds = sort(collect(minimal_supercone_indices(PF, v)))
+  M_ZZ = matrix(ZZ, rays(PF))[inds, :]
+  result = zeros(QQFieldElem, n_rays(PF))
+  if is_simplicial(PF)
+    M_QQ = matrix(QQ, M_ZZ)
+    v_QQ = QQ.(v)
+    coords = solve(M_QQ, v_QQ)
+  else
+    if isempty(elementary_divisors(M_ZZ))
+      e = 1
+    else
+      e = last(setdiff(elementary_divisors(M_ZZ), [0]))
+    end
+    v_with_same_denominator = Hecke.FakeFmpqMat(QQFieldElem.(v))
+    v_scale_factor = e*denominator(v_with_same_denominator)
+    v_scaled = transpose(e*numerator(v_with_same_denominator))
+    C = identity_matrix(ZZ, length(inds))
+    coords_matrix = solve_mixed(transpose(M_ZZ), v_scaled, C)
+    coords_vec = vec(collect(coords_matrix))
+    coords = QQFieldElem(1//v_scale_factor).*(QQFieldElem.(coords_vec))
+  end
+  for i in 1:length(inds)
+    result[inds[i]] = coords[i]
+  end
   return result
 end
 

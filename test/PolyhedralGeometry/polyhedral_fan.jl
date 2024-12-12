@@ -119,34 +119,46 @@
   end
 end
 
-@testset "minimal_supercone" begin
-  X = projective_space(NormalToricVariety, 3)
-  c = Oscar.minimal_supercone(X, [1, 1, 1])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
-  c = Oscar.minimal_supercone(X, [1, 1, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[0, 1, 0], [1, 0, 0]]))
-  c = Oscar.minimal_supercone(X, [1, 0, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[1, 0, 0]]))
-  c = Oscar.minimal_supercone(X, [0, 0, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), RayVector{QQFieldElem}[])
+@testset "minimal supercone" begin
+  # Construct a fan that describes affine 3-space
+  PF = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [2//5, 3, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [2//5, 3, 0]) == [2//5, 3, 0]
 
-  X = affine_space(NormalToricVariety, 3)
-  c = Oscar.minimal_supercone(X, [1, 1, 1])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[1, 0, 0], [0, 1, 0], [0, 0, 1]]))
-  c = Oscar.minimal_supercone(X, [1, 1, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[1, 0, 0], [0, 1, 0]]))
-  c = Oscar.minimal_supercone(X, [1, 0, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), ray_vector.([[1, 0, 0]]))
-  c = Oscar.minimal_supercone(X, [0, 0, 0])
-  @test rays(c) isa SubObjectIterator{RayVector{QQFieldElem}}
-  @test issetequal(rays(c), RayVector{QQFieldElem}[])
+  # Construct a fan that describes projective 3-space
+  PF = normal_fan(Oscar.simplex(3))
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 1]), [1, 2, 3])
+  @test minimal_supercone_coordinates(PF, [1, 1, 1]) == [1, 1, 1, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 1, 0]), [1, 2])
+  @test minimal_supercone_coordinates(PF, [1, 1, 0]) == [1, 1, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [1, 0, 0]), [1])
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [1, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [0, 0, 0]), Int64[])
+  @test minimal_supercone_coordinates(PF, [0, 0, 0]) == [0, 0, 0, 0]
+  @test issetequal(minimal_supercone_indices(PF, [-1, 1, 1]), [2, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, 1, 1]) == [0, 2, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-1, -1, 1]), [3, 4])
+  @test minimal_supercone_coordinates(PF, [-1, -1, 1]) == [0, 0, 2, 1]
+  @test issetequal(minimal_supercone_indices(PF, [-2//3, QQFieldElem(-4//3), 1]), [1, 3, 4])
+  @test minimal_supercone_coordinates(PF, [-2//3, -4//3, 1]) == [2//3, 0, 7//3, 4//3]
+
+  # Construct a nonsimplicial fan
+  PF = face_fan(cube(3))
+  @test minimal_supercone_coordinates(PF, [1, 0, 0]) == [0, 0, 0, 1//2, 0, 1//2, 0, 0]
+
+  # Construct a fan of the 1/2(1, 1) singularity
+  ray_generators = [[2, -1], [0, 1]]
+  max_cones = IncidenceMatrix([[1, 2]])
+  PF = polyhedral_fan(max_cones, ray_generators)
+  @test minimal_supercone_coordinates(PF, [1, 0]) == [1//2, 1//2]
 end
 
 @testset "Transform{$T}" for (f, T) in _prepare_scalar_types()
