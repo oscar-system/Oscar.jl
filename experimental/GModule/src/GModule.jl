@@ -1,5 +1,3 @@
-isdefined(Oscar, :word) || function word end
-
 include("Cohomology.jl")
 include("GaloisCohomology.jl")
 include("GrpExt.jl")

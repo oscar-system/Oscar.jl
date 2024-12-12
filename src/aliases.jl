@@ -21,6 +21,9 @@ function vertex_edge_graph end
 function number_of_compositions end
 function number_of_partitions end
 function number_of_patches end
+function number_of_positive_roots end
+function number_of_roots end
+function number_of_simple_roots end
 function number_of_weak_compositions end
 
 # these are kept for compatibility with Graphs.jl / GraphsBase.jl
@@ -43,6 +46,9 @@ function number_of_weak_compositions end
 @alias n_compositions number_of_compositions
 @alias n_partitions number_of_partitions
 @alias n_patches number_of_patches
+@alias n_positive_roots number_of_positive_roots
+@alias n_roots number_of_roots
+@alias n_simple_roots number_of_simple_roots
 @alias n_weak_compositions number_of_weak_compositions
 
 # aliases for consistency with oscar style
