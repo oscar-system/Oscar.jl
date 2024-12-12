@@ -296,10 +296,12 @@ pontryagin_class(F::AbstractBundle, k::Int) = total_pontryagin_class(F)[2k]
 
 @doc raw"""
     euler_characteristic(F::AbstractBundle)
+
+Return the Euler characteristic $\chi(F)$
+
     euler_pairing(F::AbstractBundle, G::AbstractBundle)
 
-Return the holomorphic Euler characteristic $\chi(F)$ and the Euler pairing
-$\chi(F,G)$, respectively.
+Return the Euler pairing $\chi(F,G)$.
 
 # Examples
 ```jldoctest
@@ -420,7 +422,7 @@ dim(f::AbstractVarietyMap) = f.dim
 @doc raw"""
     tangent_bundle(f::AbstractVarietyMap)
 
-Return the relative tangent bundle of `f`.
+If `domain(f)` and `codomain(f)` are given tangent bundles, return the relative tangent bundle of `f`.
 
 # Examples
 
@@ -440,6 +442,9 @@ AbstractVarietyMap from AbstractVariety of dim 3 to AbstractVariety of dim 2
 julia> PBT = pullback(pr, T)
 AbstractBundle of rank 2 on AbstractVariety of dim 3
 
+julia> tangent_bundle(PT) - PBT == tangent_bundle(pr)
+true
+
 julia> PBT*OO(PT, 1) - OO(PT) == tangent_bundle(pr) # relative Euler sequence
 true
 
@@ -450,7 +455,7 @@ tangent_bundle(f::AbstractVarietyMap) = f.T
 @doc raw"""
     cotangent_bundle(f::AbstractVarietyMap)
 
-Return the relative cotangent bundle of `f`.
+If `domain(f)` and `codomain(f)` are given tangent bundles, return the relative cotangent bundle of `f`.
 """
 cotangent_bundle(f::AbstractVarietyMap) = dual(f.T)
 
@@ -511,7 +516,7 @@ h
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> E = pullback(i, OO(P2,1))
+julia> E = pullback(i, OO(P5,1))
 AbstractBundle of rank 1 on AbstractVariety of dim 2
 
 julia> total_chern_class(E)
@@ -665,6 +670,9 @@ end
 
 Return an abstract variety of dimension `n` with Chow ring `A`.
 
+!!! note
+    We allow graded polynomial rings here since for the construction of a new abstract variety, it is occasionally useful to start from the underlying graded polynomial ring of the Chow ring, and add its defining relations step by step.
+
 # Examples
 ```jldoctest
 julia> R, (h,) = graded_polynomial_ring(QQ, [:h])
@@ -702,7 +710,7 @@ end
 @doc raw"""
     chow_ring(X::AbstractVariety)
 
-Return the Chow ring of the abstract variety `X`.
+Return the Chow ring of `X`.
 
 # Examples
 ```jldoctest
@@ -753,7 +761,7 @@ base(X::AbstractVariety) = X.base
 @doc raw"""
     point_class(X::AbstractVariety)
 
-Return the point class of `X`.
+If `X` has been given a point class, return that class.
 
 # Examples
 ```jldoctest
@@ -779,12 +787,12 @@ point_class(X::AbstractVariety) = X.point
 @doc raw"""
     hyperplane_class(X::AbstractVariety)
 
-If defined, return the class of a hyperplane section of `X`.
+If `X` has been given the class of a hyperplane section of `X`, return that class.
 
 !!! note
-    Speaking of a hyperplane class of `X` means that we have a specific embedding of `X` into projective space in mind.
+    Speaking of a hyperplane section of `X` means that we have a specific embedding of `X` into projective space in mind.
     For Grassmanians, for example, this embedding is the Plücker embedding. For the product of two abstract varieties with
-    given hyperplane classes, it is the Segre embedding.
+    given classes of hyperplane sections, it is the Segre embedding.
 
 # Examples
 
@@ -847,7 +855,7 @@ trivial_line_bundle(X::AbstractVariety) = AbstractBundle(X, X(1))
 @doc raw"""
     tautological_bundles(X::AbstractVariety)
 
-Return the tautological_bundles of `X` (if applicable).
+If `X` has been given tautological bundles, return these bundles.
 
 # Examples
 ```jldoctest
@@ -883,7 +891,7 @@ tautological_bundles(X::AbstractVariety) = X.bundles
 @doc raw"""
     structure_map(X::AbstractVariety)
 
-Return the structure map of `X`.
+If `X` has been given a structure map, return that map.
 
 # Examples
 ```jldoctest
@@ -916,10 +924,13 @@ structure_map(X::AbstractVariety) = X.struct_map
 
 @doc raw"""
     line_bundle(X::AbstractVariety, n::RingElement)
+
+If `X` has been given a hyperplane class, return the line bundle $\mathcal O_X(n)$ on `X`.
+
     line_bundle(X::AbstractVariety, D::Union{MPolyDecRingElem, MPolyQuoRingElem})
 
-Return the line bundle $\mathcal O_X(n)$ on `X` if `X` has been given a
-hyperplane class, or a line bundle $\mathcal O_X(D)$ with first Chern class $D$.
+Given an element `D` of the Chow ring of `X`, return the line bundle $\mathcal O_X(D)$ with first Chern class $D[1]$. Here, $D[1]$ is the degree-1 part of `D`.
+
 Alternatively, use `OO` instead of `line_bundle`.
 
 # Examples
@@ -964,7 +975,7 @@ degree(X::AbstractVariety) = integral(X.O1^X.dim)
 @doc raw"""
     tangent_bundle(X::AbstractVariety)
 
-Return the tangent bundle of `X`.
+If `X` has been given a tangent bundle, return that bundle.
 
 # Examples
 ```jldoctest
@@ -984,7 +995,7 @@ tangent_bundle(X::AbstractVariety) = X.T
 @doc raw"""
     cotangent_bundle(X::AbstractVariety)
 
-Return the cotangent bundle of `X`.
+If `X` has been given a tangent bundle, return the dual bundle.
 
 # Examples
 ```jldoctest
@@ -1001,7 +1012,7 @@ cotangent_bundle(X::AbstractVariety) = dual(X.T)
 @doc raw"""
     canonical_class(X::AbstractVariety)
 
-Return the canonical class of `X`.
+If `X` has been given a tangent bundle, return the canonical class of `X`.
 
 # Examples
 ```jldoctest
@@ -1021,8 +1032,9 @@ canonical_class(X::AbstractVariety) = -chern_class(X.T, 1)
 @doc raw"""
     canonical_bundle(X::AbstractVariety)
 
-Return the canonical bundle of `X`.
+If `X` has been given a tangent bundle, return the canonical bundle on `X`.
 
+# Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
@@ -1051,12 +1063,27 @@ Return the `k'-th Chern class of the tangent bundle of `X`.
 chern_class(X::AbstractVariety, k::Int) = chern_class(X.T, k)
 
 @doc raw"""
-    euler(X::AbstractVariety)
-    euler(X::TnVariety)
+    euler_number(X::AbstractVariety)
 
 Return the Euler number of `X`.
+
+!!! note
+    Recall that in our geometric interpretation, we think of `X` as a smooth projective complex variety. The returned number is then the Euler number of `X` considered as a compact complex manifold. Note that this number coincides with the topological Euler characteristic of the manifold.
+
+# Examples
+```jldoctest
+julia> P2 = abstract_projective_space(2)
+AbstractVariety of dim 2
+
+julia> euler_number(P2)
+3
+
+julia> euler_number(P2) == integral(total_chern_class(tangent_bundle(P2)))
+true
+
+```
 """
-euler(X::AbstractVariety) = integral(total_chern_class(X.T))
+euler_number(X::AbstractVariety) = integral(total_chern_class(X.T))
 
 @doc raw"""
     todd_class(X::AbstractVariety)
@@ -1167,7 +1194,7 @@ signature(X::AbstractVariety) = l_genus(X) # Hirzebruch signature theorem
 @doc raw"""
     hilbert_polynomial(F::AbstractBundle)
 
-If an abstract vector bundle `F` on an abstract variety with a specified hyperplane class is given, 
+Given an abstract vector bundle `F` on an abstract variety with a specified hyperplane class, 
 return the corresponding Hilbert polynomial of `F`.
 
 # Examples
@@ -1273,7 +1300,7 @@ end
 Return the product $X\times Y$. Alternatively, use `*`.
 
 !!! note 
-    If both `X` and `Y` have a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
+    If both `X` and `Y` have been given a hyperplane class, $X\times Y$ will be endowed with the hyperplane class corresponding to the Segre embedding.
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2);
@@ -1533,8 +1560,9 @@ end
 #
 @doc raw"""
     basis(X::AbstractVariety)
+    basis(X::AbstractVariety, k::Int)
 
-If `K = base(X)`, return a `K`-basis of the Chow ring of `X`.
+If `K = base(X)`, return a `K`-basis of the Chow ring of `X` (return the elements of degree `k` in that basis).
 
 !!! note
     The basis elements are ordered by increasing degree (geometrically, by increasing codimension).
@@ -1559,6 +1587,11 @@ julia> basis(G)
  [c[1]*c[2]]
  [c[2]^2]
 
+julia> basis(G, 2)
+2-element Vector{MPolyQuoRingElem}:
+ c[2]
+ c[1]^2
+
 ```
 """
 @attr Vector{Vector{MPolyQuoRingElem}} function basis(X::AbstractVariety)
@@ -1578,7 +1611,7 @@ end
 @doc raw"""
     basis(X::AbstractVariety, k::Int)
 
-Return an additive basis of the Chow ring of `X` in codimension `k`.
+If `K = base(X)`, return the elements of degree `k` in a `K`-basis of the Chow ring of `X`.
 """
 basis(X::AbstractVariety, k::Int) = basis(X)[k+1]
 
@@ -1621,9 +1654,9 @@ betti_numbers(X::AbstractVariety) = length.(basis(X))
 Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
 
 !!! note
-    If `X` has a (unique) point class, the integral will be a
-number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest degree part of $x$ is returned
-(geometrically, this is the 0-dimensional part of $x$).
+    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem`  
+    or a function field element). Otherwise, the highest degree part of `x` is returned
+    (geometrically, this is the 0-dimensional part of `x`).
 
 # Examples
 ```jldoctest
@@ -1729,8 +1762,8 @@ end
 
 @doc raw"""
     dual_basis(X::AbstractVariety)
-
-If `K = base(X)`, return a `K`-basis for the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)`.
+    dual_basis(X::AbstractVariety, k::Int)
+If `K = base(X)`, return a `K`-basis of the Chow ring of `X` which is dual to `basis(X)` with respect to the `K`-bilinear form defined by `intersection_matrix(X)` (return the elements of degree `k` in the dual basis).
 
 !!! note
     The basis elements are ordered by decreasing degree (geometrically, by decreasing codimension).
@@ -2525,7 +2558,7 @@ Ideal generated by
   -c[1, 1]*c[2, 1] - c[1, 1]*c[3, 1] - c[2, 1]*c[3, 1] - c[2, 2] + 4*h^2
   -c[1, 1] - c[2, 1] - c[3, 1] - 3*h
 
-julia> FB.bundles
+julia> tautological_bundles(FB)
 3-element Vector{AbstractBundle}:
  AbstractBundle of rank 1 on AbstractVariety of dim 9
  AbstractBundle of rank 2 on AbstractVariety of dim 9
