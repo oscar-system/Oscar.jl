@@ -301,6 +301,7 @@ end
 @testset "garbage collection" begin
   R, (x,y,z) = polynomial_ring(QQ, [:x, :y, :z], cached=false)
   S, _ = polynomial_ring(R, [:s, :t], cached=false)
+  S, _ = quo(S, ideal(S, elem_type(S)[]))
   phi = Oscar.flatten(S)
   # julia might not consider `x^2+y^2` as being unused until the end of the scope
   # see https://github.com/JuliaLang/julia/issues/51818
