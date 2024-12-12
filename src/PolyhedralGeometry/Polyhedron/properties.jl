@@ -492,6 +492,7 @@ Return the facets of `P` in the format defined by `as`.
 
 The allowed values for `as` are
 * `Halfspace` (or its subtype `AffineHalfspace`),
+* `Hyperplane` (or its subtype `AffineHyperplane`),
 * `Polyhedron`,
 * `Pair`.
 
@@ -591,26 +592,6 @@ facets(::Type{<:Pair}, P::Polyhedron{T}) where {T<:scalar_types} =
 facets(::Type{Polyhedron}, P::Polyhedron{T}) where {T<:scalar_types} =
   facets(Polyhedron{T}, P)
 
-@doc raw"""
-    facets(P::Polyhedron)
-
-Return the facets of `P` as halfspaces.
-
-# Examples
-We can retrieve the six facets of the 3-dimensional cube this way:
-```jldoctest
-julia> C = cube(3);
-
-julia> facets(C)
-6-element SubObjectIterator{AffineHalfspace{QQFieldElem}} over the halfspaces of R^3 described by:
--x_1 <= 1
-x_1 <= 1
--x_2 <= 1
-x_2 <= 1
--x_3 <= 1
-x_3 <= 1
-```
-"""
 facets(P::Polyhedron{T}) where {T<:scalar_types} = facets(AffineHalfspace{T}, P)
 
 facets(::Type{<:Halfspace}, P::Polyhedron{T}) where {T<:scalar_types} =
