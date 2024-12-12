@@ -133,6 +133,7 @@ function _root_system_type_string(type::Vector{Tuple{Symbol,Int}})
   )
 end
 
+# not exported atm
 @attr ZZMatrix function bilinear_form(R::RootSystem)
   return cartan_bilinear_form(cartan_matrix(R); check=false)
 end

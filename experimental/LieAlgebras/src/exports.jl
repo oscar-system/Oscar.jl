@@ -16,14 +16,12 @@ export RootSpaceElem
 export RootSystem
 export WeightLattice, WeightLatticeElem
 export WeylGroup, WeylGroupElem
-export WeylOrbitIterator
 
 export abelian_lie_algebra
 export abstract_module
 export adjoint_matrix
 export any_non_ad_nilpotent_element
 export base_lie_algebra
-export bilinear_form
 export bracket
 export cartan_bilinear_form
 export cartan_matrix
@@ -92,7 +90,6 @@ export positive_root
 export positive_roots
 export reduced_expressions
 export reflect, reflect!
-export rmul, rmul!
 export root_system, has_root_system
 export root_system_type, has_root_system_type
 export root_system_type_with_ordering
