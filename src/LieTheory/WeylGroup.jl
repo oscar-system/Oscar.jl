@@ -82,6 +82,7 @@ function Base.eltype(::Type{WeylGroup})
 end
 
 function Base.iterate(W::WeylGroup)
+  @req is_finite(W) "currently only finite Weyl groups are supported"
   state = (weyl_vector(root_system(W)), one(W))
   return one(W), state
 end
@@ -389,6 +390,9 @@ end
     rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
 
 Return a random element of the Weyl group. The elements are not uniformly distributed.
+
+!!! warning
+    Currently only finite Weyl groups are supported.
 """
 function Base.rand(rng::Random.AbstractRNG, rs::Random.SamplerTrivial{WeylGroup})
   W = rs[]
@@ -467,12 +471,15 @@ function parent_type(::Type{WeylGroupElem})
 end
 
 @doc raw"""
-    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false) -> ReducedExpressionIterator
+    reduced_expressions(x::WeylGroupElem; up_to_commutation::Bool=false)
 
-Return an iterator over all reduced expressions of `x`.
+Return an iterator over all reduced expressions of `x` as `Vector{UInt8}`.
 
 If `up_to_commutation` is `true`, the iterator will not return an expression that only
 differs from a previous one by a swap of two adjacent commuting simple reflections.
+
+The type of the iterator and the order of the elements are considered
+implementation details and should not be relied upon.
 
 # Examples
 ```jldoctest
@@ -669,8 +676,15 @@ end
     weyl_orbit(wt::WeightLatticeElem)
 
 Return an iterator over the Weyl group orbit at the weight `wt`.
+
+The type of the iterator and the order of the elements are considered
+implementation details and should not be relied upon.
+
+!!! note
+    This function currently only supports finite Weyl groups.
 """
 function weyl_orbit(wt::WeightLatticeElem)
+  @req is_finite(weyl_group(root_system(parent(wt)))) "currently only finite Weyl groups are supported"
   return WeylOrbitIterator(wt)
 end
 
