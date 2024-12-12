@@ -1842,8 +1842,8 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
-  return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:ncols(k)]
+  k = kernel((reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
+  return [sum(h[i]*k[j,i] for i=1:length(h)) for j=1:nrows(k)]
 end
 
 function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}) where T
@@ -1952,12 +1952,22 @@ function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
 end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
- f = invariant_forms(C)[1]
+# f = invariant_forms(C)[1]
+#thsi will not give pos. def. forms!!! we need to go via Reynolds.
 # @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
  while true
+   f = zero_matrix(ZZ, dim(C), dim(C))
+   for i=gens(C.G)
+     x = action(C, i)
+     f = f + matrix(x)*transpose(matrix(x))
+   end
+#   @assert is_symmetric(f)
+#   @assert is_positive_definite(f)
    L, T = lll_gram_with_transform(f)
+#   @assert L == T*f*transpose(T)
+
    Ti = inv(T)
    n = [T*x*Ti for x = m]
    if length(string(n)) >= length(string(m))

@@ -51,7 +51,6 @@ _group(P::GrpExt) = gmodule(P).G
 Oscar.parent(g::GrpExtElem) = g.P
 Oscar.elem_type(::Type{GrpExt{S, T}}) where {S, T} = GrpExtElem{S, T}
 
-
 function Oscar.extension(c::Oscar.GrpCoh.CoChain{2,<:Oscar.GAPGroupElem})
   return GrpExt(c)
 end
@@ -122,12 +121,15 @@ function Oscar.isomorphism(::Type{FPGroup}, E::GrpExt)
   #both can/ should be handled by shiftgens (or sylable/ create)
 end
 
+<<<<<<< Updated upstream
 function Oscar.syllables(g::Union{PcGroupElem, SubPcGroupElem})
   l = GAPWrap.ExtRepOfObj(GapObj(g))
   @assert iseven(length(l))
   return Pair{Int, ZZRingElem}[l[i-1] => l[i] for i = 2:2:length(l)]
 end
 
+=======
+>>>>>>> Stashed changes
 # convert syllables in canonical form into exponent vector
 #Thomas
 function exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
@@ -139,6 +141,7 @@ function exponent_vector(sylls::Vector{Pair{Int64, ZZRingElem}}, n)
   return res
 end
 
+<<<<<<< Updated upstream
 # convert syllables in canonical form into group element
 #Thomas
 function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
@@ -148,6 +151,8 @@ function (G::PcGroup)(sylls::Vector{Pair{Int64, ZZRingElem}})
   return Oscar.group_element(G, x)
 end
 
+=======
+>>>>>>> Stashed changes
 function Oscar.isomorphism(::Type{PcGroup}, E::GrpExt)
   c = E.c
   C = c.C
