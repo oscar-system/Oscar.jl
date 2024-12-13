@@ -405,10 +405,11 @@ const FieldEmbeddingTypes = Union{Hecke.AbsSimpleNumFieldEmbedding, Hecke.RelSim
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  d = Dict{Symbol, Any}(:num_field => type_params(K))
+  d = Dict{Symbol, Any}(:num_field => (typeof(K), K))
 
   if !(base_field(K) isa QQField)
-    d[:base_field_emb] = type_params(restrict(E, base_K))
+    base_field_emb = restrict(E, base_K)
+    d[:base_field_emb] = typeof(base_field_emb), base_field_emb
   end
   return T, d
 end
@@ -416,7 +417,6 @@ end
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   K = number_field(E)
   base_K = base_field(K)
-  
   save_data_dict(s) do
     if is_simple(K)
       a = gen(K)
@@ -428,7 +428,7 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
     else
       a = gens(K)
       data = E.(a)
-      if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, k) == restrict(e, k))
+      if any(all(overlaps(t[1], t[2]) for t in zip(data, e.(a))) for e in complex_embeddings(K) if e != E && restrict(E, base_field(K)) == restrict(e, base_field(K)))
         error("Internal error in internal serialization.")
       end
       save_object(s, tuple(data...), :gen_approx)
@@ -436,42 +436,37 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FieldEmbeddingTypes}, params::Dict)
+function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, params::Dict)
   K = params[:num_field]
-  load_node(s) do data
+  load_node(s, :gen_approx) do _
     if !is_simple(K)
-      data = collect(data)
+      data = load_object(s, Vector{AcbFieldElem}, AcbField())
+    else
+      data = load_object(s, AcbFieldElem, AcbField())
     end
     if base_field(K) isa QQField
       return complex_embedding(K, data)
     else
-      return complex_embedding(K, params(:base_field_emb), data)
+      return complex_embedding(K, params[:base_field_emb], data)
     end
   end
 end
 
 @register_serialization_type EmbeddedNumField uses_id
 
-type_params(E::EmbeddedNumField) = EmbeddedNumField, Dict(
-  :num_field_params => type_params(number_field(E)),
-  :embedding_params => type_params(embedding(E))
-)
+type_params(E::EmbeddedNumField) = EmbeddedNumField, embedding(E)
 
 function save_object(s::SerializerState, E::EmbeddedNumField)
-  K = number_field(E)
-  e = embedding(E)
-
-  save_data_dict(s) do
-    save_object(s, K, :num_field)
-    save_object(s, e, :embedding)
+  save_data_array(s) do
+    # no data required but we leave this function here to generate a valid json
+    # probably be a neater to way to do this
   end
 end
 
-function load_object(s::DeserializerState, ::Type{EmbeddedNumField}, params::Dict)
-  K = number_field(params[:num_field_params])
-  e = load_object(s, FieldEmbeddingTypes, dict[:embedding_params])
-
-  return Hecke.embedded_field(K, e)[1]
+function load_object(s::DeserializerState, ::Type{EmbeddedNumField},
+                     E::T) where T <: FieldEmbeddingTypes
+  K = number_field(E)
+  return Hecke.embedded_field(K, E)[1]
 end
 
 @register_serialization_type EmbeddedNumFieldElem

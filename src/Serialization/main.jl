@@ -256,19 +256,17 @@ function load_type_params(s::DeserializerState, T::Type)
       # handle cases where type_params is a dict of params
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
-        for (k, v) in obj
+        for (k, _) in obj
           params[k] = load_node(s, k) do _
             U = decode_type(s)
             return load_type_params(s, U)[2]
           end
         end
-      elseif haskey(s, :data)
-        println(s.obj)
+      else
         params = load_typed_object(s)
       end
       # all types where the type T should be updated with a subtype i.e. T -> T{U}
       # need to implement their own method, see for example containers
-      println(params)
       return T, params
     end
   else

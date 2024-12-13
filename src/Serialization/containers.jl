@@ -90,7 +90,11 @@ end
 
 function load_object(s::DeserializerState, ::Type{<: Vector{T}}, R::Ring) where T
   load_array_node(s) do _
-    load_object(s, T, R)
+    if serialize_with_id(T)
+      load_ref(s)
+    else
+      load_object(s, T, R)
+    end
   end
 end
 
