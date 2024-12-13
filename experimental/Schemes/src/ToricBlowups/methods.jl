@@ -44,7 +44,7 @@ function strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
   @req !has_torusfactor(X) "Only implemented when there are no torus factors"
   S = cox_ring(domain(f))
   new_var = S[index_of_new_ray(f)]
-  J = total_transform(f, I)
+  J = cox_ring_module_homomorphism(f, I)
   return saturation(J, ideal(S, new_var))
 end
 
