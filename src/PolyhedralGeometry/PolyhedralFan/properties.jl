@@ -393,12 +393,12 @@ function minimal_supercone_coordinates(
       e = last(setdiff(elementary_divisors(M_ZZ), [0]))
     end
     v_with_same_denominator = Hecke.FakeFmpqMat(QQFieldElem.(v))
-    v_scale_factor = e*denominator(v_with_same_denominator)
-    v_scaled = transpose(e*numerator(v_with_same_denominator))
+    v_scale_factor = e * denominator(v_with_same_denominator)
+    v_scaled = transpose(e * numerator(v_with_same_denominator))
     C = identity_matrix(ZZ, length(inds))
     coords_matrix = solve_mixed(transpose(M_ZZ), v_scaled, C)
     coords_vec = vec(collect(coords_matrix))
-    coords = QQFieldElem(1//v_scale_factor).*(QQFieldElem.(coords_vec))
+    coords = QQFieldElem(1//v_scale_factor) .* (QQFieldElem.(coords_vec))
   end
   for i in 1:length(inds)
     result[inds[i]] = coords[i]
