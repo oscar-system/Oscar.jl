@@ -238,7 +238,7 @@ julia> minimal_supercone_coordinates_of_new_ray(f)
   PF = polyhedral_fan(codomain(f))
   v = rays(domain(f))[index_of_new_ray(f), :][1]
   v_ZZ = primitive_generator(v)
-  return minimal_supercone_coordinates(PF, v)
+  return minimal_supercone_coordinates(PF, v_ZZ)
 end
 
 @doc raw"""
