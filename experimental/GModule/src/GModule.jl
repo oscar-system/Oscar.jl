@@ -287,7 +287,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-          r = (sub(M, mx), mx)
+          r = (sub(M, mx)[1], mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else

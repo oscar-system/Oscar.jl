@@ -2,7 +2,7 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
 
   GM1::GModule{G, T1}
   GM2::GModule{G, T2}
-  module_map::Map{T1, T2}
+  module_map::Map
 
   function GModuleHom(
     M1::GModule,

@@ -2253,7 +2253,7 @@ function split_extension(C::GModule)
   c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(CoChain{2, S, T}(C, c))
+  return extension(FPGroup, CoChain{2, S, T}(C, c))
 end
 
 function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
@@ -2396,7 +2396,7 @@ function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
 end
 
 function Oscar.permutation_group(c::CoChain{2})
-  g = extension(c)[1]
+  g = extension(FPGroup, c)[1]
   return permutation_group(g)
 end
 
