@@ -64,12 +64,12 @@ function show_dynkin_diagram(fam::Symbol, rk::Int)
 end
 
 @doc raw"""
-    show_dynkin_diagram(fam::Symbol, rk::Int, labels::Vector{Int}) -> Nothing
+    show_dynkin_diagram(fam::Symbol, rk::Int, labels::Vector) -> Nothing
 
 Prints a string representation of the Dynkin diagram of the root system of
 the given cartan type, where the $i$-th node is labeled by `labels[i]`.
 """
-function show_dynkin_diagram(fam::Symbol, rk::Int, labels::AbstractVector{Int})
+function show_dynkin_diagram(fam::Symbol, rk::Int, labels::AbstractVector)
   @req is_cartan_type(fam, rk) "Invalid cartan type"
   @req length(labels) == rk "Invalid number of labels"
   D = ""

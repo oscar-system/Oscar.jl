@@ -439,7 +439,7 @@ julia> codim(Y)
 1
 ```
 """
-@attr Any function codim(X::AbsAffineScheme)
+@attr Union{Int, NegInf} function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 

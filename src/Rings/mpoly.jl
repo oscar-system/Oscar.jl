@@ -661,7 +661,7 @@ Fields:
 @attributes mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::IdealGens{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
-  dim::Int
+  dim::Union{Int, NegInf, Nothing}
 
   function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyRingElem}
     return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
@@ -688,7 +688,7 @@ Fields:
     end
     r = new{T}()
     r.gens = B
-    r.dim = -1
+    r.dim = nothing
     r.gb = Dict()
     if B.isGB
       r.gb[B.ord] = B

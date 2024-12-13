@@ -212,4 +212,14 @@ end
   # The test is whether the following two lines work at all
   AtoR = @inferred hom(A, R, QtoR, [ x^2, y^2, x*y ])
   @test isone(AtoR(A(1)))
+
+  let
+    Qt, (t,) = polynomial_ring(QQ, [:t])
+    QT, (T,) = polynomial_ring(QQ, [:T])
+    Q1, = quo(Qt, ideal(Qt, [t]))
+    Q2, = quo(QT, ideal(QT, [T^2]))
+    h = hom(Q2, Q1, [Qt(t)])
+    @test_throws ArgumentError h(t)
+  end
+
 end

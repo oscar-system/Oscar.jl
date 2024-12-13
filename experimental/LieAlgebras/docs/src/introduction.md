@@ -6,7 +6,7 @@ DocTestSetup = Oscar.doctestsetup()
 # Introduction
 
 This project aims to provide functionality for Lie algebras and their representations.
-It aims to provide the computational tools to work with the concepts defined in [Hum72](@cite).
+It aims to provide the computational tools to work with the concepts defined in [Hum72](@cite) and [Bou02](@cite).
 
 ## Status
 

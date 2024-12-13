@@ -167,12 +167,12 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 function dim(X::AbsCoveredScheme)
   if !has_attribute(X, :dim)
-    d = -1
+    d = -inf
     is_equidimensional=true
     for U in patches(default_covering(X))
       e = dim(U)
       if e > d
-        d == -1 || (is_equidimensional=false)
+        d == -inf || (is_equidimensional=false)
         d = e
       end
     end
@@ -186,7 +186,7 @@ function dim(X::AbsCoveredScheme)
       set_attribute!(X, :is_equidimensional, false)
     end
   end
-  return get_attribute(X, :dim)::Int
+  return get_attribute(X, :dim)::Union{Int, NegInf}
 end
 
 @attr Any function singular_locus_reduced(X::AbsCoveredScheme)
