@@ -9,6 +9,8 @@ Weight lattices are represented by objects of type `WeightLattice <: AdditiveGro
 
 They are introduced to have a formal parent object of all weights that correspond to a common given root system.
 
+!!! note
+    See [Cartan types](@ref) for our conventions on Cartan types and ordering of simple roots.
 
 ## Table of contents
 

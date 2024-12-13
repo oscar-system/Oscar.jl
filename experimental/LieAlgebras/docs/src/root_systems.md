@@ -16,6 +16,9 @@ The relevant types around root systems are:
     Most functionality around root systems is currently only intended to be used with root systems of finite type.
     For root systems of affine type, some documentation may be ill-phrased or incorrect, and some functions may not work as intended.
 
+!!! note
+    See [Cartan types](@ref) for our conventions on Cartan types and ordering of simple roots.
+
 ## Table of contents
 
 ```@contents
