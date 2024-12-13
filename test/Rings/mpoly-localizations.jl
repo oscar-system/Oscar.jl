@@ -517,3 +517,15 @@ end
   @test_throws Exception x*inv(x - 2)
 end
 
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  L, loc = localization(R, complement_of_prime_ideal(I))
+  J = ideal(L, x)
+  @test dim(J) == 0
+  @test dim(L) == 1
+  K = ideal(L, y)
+  @test dim(K) == -inf
+end
+

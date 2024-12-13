@@ -332,6 +332,17 @@ orbit(G::GAPGroup, omega) = gset_by_type(G, [omega], typeof(omega))
 
 orbit(G::Union{GAPGroup, FinGenAbGroup}, fun::Function, omega) = GSetByElements(G, fun, [omega])
 
+
+function gap_action_function(Omega::GSet)
+  f = action_function(Omega)
+  (f == ^) && return GAP.Globals.OnPoints
+  f == on_tuples && return GAP.Globals.OnTuples
+  f == on_sets && return GAP.Globals.OnSets
+  # etc.
+  return GapObj(f) # generic fallback
+end
+
+
 """
     orbit(Omega::GSet, omega)
 
@@ -349,7 +360,11 @@ julia> length(orbit(Omega, 1))
 4
 ```
 """
-function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
+orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S = _orbit_generic(Omega, omega)
+
+function _orbit_generic(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
+    # In this generic function, we delegate the loop to GAP, but we act
+    # with Julia group elements on Julia objects via Julia functions.
     G = acting_group(Omega)
     acts = GapObj(gens(G))
     gfun = GapObj(action_function(Omega))
@@ -365,6 +380,38 @@ function orbit(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
     return res
 end
 #T check whether omega lies in Omega?
+
+# special cases where we convert the objects to GAP
+# (the group elements as well as the objects they act on),
+# in order to use better methods on the GAP side:
+# - orbit of a perm. group on integers via `^`
+# - orbit of a perm. group on vectors of integers via `on_tuples`
+# - orbit of a perm. group on sets of integers via `on_sets`
+function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: IntegerUnion
+    (action_function(Omega) == ^) || return _orbit_generic(Omega, omega)
+    return _orbit_special_GAP(Omega, omega)
+end
+
+function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: Vector{<: IntegerUnion}
+    action_function(Omega) == on_tuples || return _orbit_generic(Omega, omega)
+    return _orbit_special_GAP(Omega, omega)
+end
+
+function orbit(Omega::GSetByElements{PermGroup, S}, omega::S) where S <: Set{<: IntegerUnion}
+    action_function(Omega) == on_sets || return _orbit_generic(Omega, omega)
+    return _orbit_special_GAP(Omega, omega)
+end
+
+function _orbit_special_GAP(Omega::GSetByElements{<:GAPGroup, S}, omega::S) where S
+    G = acting_group(Omega)
+    gfun = gap_action_function(Omega)
+    orb = Vector{S}(GAP.Globals.Orbit(GapObj(G), GapObj(omega), gfun)::GapObj)
+
+    res = as_gset(acting_group(Omega), action_function(Omega), orb)
+    # We know that this G-set is transitive.
+    set_attribute!(res, :orbits => [orb])
+    return res
+end
 
 function orbit(Omega::GSetByElements{FinGenAbGroup}, omega::T) where T
     return orbit_via_Julia(Omega, omega)
@@ -598,7 +645,7 @@ The fields are
 - the (left or right) transversal, of type `SubgroupTransversal{T, S, E}`,
 - the dictionary used to store attributes (orbits, elements, ...).
 """
-@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, E}}
+@attributes mutable struct GSetBySubgroupTransversal{T, S, E} <: GSet{T,GroupCoset{T, S, E}}
     group::T
     subgroup::S
     side::Symbol
@@ -672,7 +719,7 @@ function Base.iterate(Omega::GSetBySubgroupTransversal, state = 1)
   end
 end
 
-Base.eltype(::Type{GSetBySubgroupTransversal{T, S, E}}) where {S, T, E} = GroupCoset{T, E}
+Base.eltype(::Type{GSetBySubgroupTransversal{T, S, E}}) where {S, T, E} = GroupCoset{T, S, E}
 
 function Base.getindex(Omega::GSetBySubgroupTransversal, i::Int)
   if Omega.side == :right
@@ -684,7 +731,7 @@ end
 
 is_transitive(Omega::GSetBySubgroupTransversal) = true
 
-function orbit(G::T, omega::GroupCoset{T, S}) where T <: GAPGroup where S
+function orbit(G::T, omega::GroupCoset{T, TH, S}) where {T <: GAPGroup, TH <: GAPGroup, S}
     @req G == omega.G "omega must be a left or right coset in G"
     return GSetBySubgroupTransversal(G, omega.H, omega.side, check = false)
 end
@@ -692,7 +739,7 @@ end
 # One problem would be that `omega` would not be a point in the orbit,
 # according to the definition of equality for cosets.
 
-function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, E}) where T <: GAPGroup where S <: GAPGroup where E
+function orbit(Omega::GSetBySubgroupTransversal{T, S, E}, omega::GroupCoset{T, S, E}) where {T <: GAPGroup, S <: GAPGroup, E}
   @req (Omega.group == omega.G && Omega.subgroup == omega.H && Omega.side == omega.side) "omega is not in Omega"
   return Omega
 end
@@ -873,8 +920,6 @@ function is_conjugate_with_data(Omega::GSet, omega1, omega2)
 end
 
 ############################################################################
-
-acting_domain(Omega::GSet) = acting_group(Omega)
 
 Base.length(Omega::GSetByElements) = length(elements(Omega))
 Base.length(::Type{T}, Omega::GSetByElements) where T <: IntegerUnion = T(length(elements(Omega)))
@@ -1226,9 +1271,13 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   n = degree(G)
   q = GAP.Obj(order(F))
   V = vector_space(F, n)
-  orbs = GAP.Globals.Orbits(GapObj(G), GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))
-  orbreps = [GAP.Globals.BasisVectors(GAPWrap.Basis(orb[1])) for orb in orbs]
-  stabs = [Oscar._as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
+  # Note that GAP anyhow unpacks all subspaces.
+  l = GAP.Globals.AsSSortedList(GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))::GapObj
+  ll = GAP.Globals.List(l,
+         GAP.UnwrapJuliaFunc(x -> GAP.Globals.BasisVectors(GAP.Globals.CanonicalBasis(x))))
+  orbs = GAP.Globals.Orbits(GapObj(G), ll, GAP.Globals.OnSubspacesByCanonicalBasis)::GapObj
+  orbreps = [orb[1] for orb in orbs]
+  stabs = [_as_subgroup_bare(G, GAP.Globals.Stabilizer(GapObj(G), v, GAP.Globals.OnSubspacesByCanonicalBasis)) for v in orbreps]::Vector{typeof(G)}
   orbreps1 = [[[F(x) for x in v] for v in bas] for bas in orbreps]::Vector{Vector{Vector{elem_type(F)}}}
   orbreps2 = [sub(V, [V(v) for v in bas])[1] for bas in orbreps1]
   return [(orbreps2[i], stabs[i]) for i in 1:length(stabs)]

@@ -17,8 +17,6 @@ scheme_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = S
 scheme_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = S
 coefficient_ring_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = U
 coefficient_ring_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = U
-coefficient_ring_elem_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = elem_type(U)
-coefficient_ring_elem_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = elem_type(U)
 
 ### essential getters and functionality
 
@@ -379,7 +377,7 @@ end
 
 
 @attr Int function dim(D::AlgebraicCycle)
-  result = -1
+  result = -inf
   for I in components(D)
     d = dim(I)
     if d > result
@@ -395,7 +393,7 @@ end
 # Note that we need one minimal concrete type for the return values, 
 # so the implementation can not be truly generic. 
 
-function +(D::T, E::T) where {T<:AbsAlgebraicCycle}
+function +(D::AbsAlgebraicCycle, E::AbsAlgebraicCycle)
   X = ambient_scheme(D)
   X === ambient_scheme(E) || error("divisors do not live on the same scheme")
   R = coefficient_ring(D)
@@ -451,12 +449,16 @@ end
     irreducible_decomposition(D::AbsAlgebraicCycle)
 
 Return a cycle ``E`` equal to ``D`` but as a formal sum ``E = ∑ₖ aₖ ⋅ Iₖ``
-where the `components` ``Iₖ`` of ``E`` are all sheaves of prime ideals.
+where the `components` ``Iₖ`` of ``E`` are pairwise distinct sheaves of prime ideals.
 """
 function irreducible_decomposition(D::AbsAlgebraicCycle)
-  all(is_prime, keys(coefficient_dict(D))) && return D
+  @vprint :Divisors 4 "computing irreducible decomposition for $D"
   result = zero(D)
   for (I, a) in coefficient_dict(D)
+    if is_prime(I)
+      result[I] = a
+      continue
+    end
     next_dict = IdDict{AbsIdealSheaf, elem_type(coefficient_ring(D))}()
     decomp = maximal_associated_points(I)
     for P in decomp
@@ -465,7 +467,34 @@ function irreducible_decomposition(D::AbsAlgebraicCycle)
     end
     result = result + a * AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), next_dict, check=false)
   end
-  return result
+  return _unique_prime_components(result)
+end
+
+# Given a cycle `D` with only prime components, compare the components
+# and gather the coefficients of equal ones so that the result has 
+# pairwise distinct components.
+function _unique_prime_components(D::AbsAlgebraicCycle)
+  @hassert :Divisors 2 all(is_prime, keys(coefficient_dict(D))) 
+  buckets = Vector{Vector{AbsIdealSheaf}}()
+  for P in keys(coefficient_dict(D))
+    found = false
+    for bucket in buckets
+      if P == first(bucket)
+        push!(bucket, P)
+        found = true
+        break
+      end
+    end
+    !found && push!(buckets, [P])
+  end
+  R = coefficient_ring(D)
+  coeff_dict = IdDict{AbsIdealSheaf, elem_type(R)}()
+  for bucket in buckets
+    c = sum(D[P] for P in bucket; init=zero(R))
+    is_zero(c) && continue
+    coeff_dict[first(bucket)] = c
+  end
+  return AlgebraicCycle(ambient_scheme(D), coefficient_ring(D), coeff_dict; check=false)
 end
 
 function _colength_in_localization(Q::AbsIdealSheaf, P::AbsIdealSheaf; covering=simplified_covering(scheme(P)))
@@ -532,6 +561,25 @@ function integral(W::AbsAlgebraicCycle; check::Bool=true)
     result = result + W[I]*colength(I)
   end
   return result
+end
+
+# Getters for the components as honest algebraic cycles, not ideal sheaves.
+function components(::Type{T}, D::AbsAlgebraicCycle) where {T <: AbsAlgebraicCycle}
+  X = scheme(D)
+  R = coefficient_ring(D)
+  return [AlgebraicCycle(X, R, IdDict{AbsIdealSheaf, elem_type(R)}([I=>one(R)]); check=false)::T for I in components(D)]
+end
+
+function components(::Type{T}, D::AbsWeilDivisor) where {T <: AbsWeilDivisor}
+  X = scheme(D)
+  R = coefficient_ring(D)
+  return [WeilDivisor(X, R, IdDict{AbsIdealSheaf, elem_type(R)}([I=>one(R)]); check=false)::T for I in components(D)]
+end
+
+function getindex(D::AbsAlgebraicCycle, C::AbsAlgebraicCycle)
+  comps = components(C)
+  @req isone(length(comps)) "$(C) must consist of a single component only"
+  return D[first(comps)]
 end
 
 function Base.hash(X::AbsAlgebraicCycle, u::UInt)

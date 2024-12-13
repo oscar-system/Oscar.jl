@@ -10,7 +10,7 @@ The relations are:
   - idempotent relations: `n^2` relations
   - relations of type `u[i,j]*u[i,k]` and `u[j,i]*u[k,i]` for `k != j`: `2*n*n*(n-1)` relations
 
-# Example
+# Examples
 
 ```jldoctest
 julia> S4 = quantum_symmetric_group(4);
