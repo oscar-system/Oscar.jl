@@ -236,8 +236,8 @@ julia> minimal_supercone_coordinates_of_new_ray(f)
 """
 @attr Vector{QQFieldElem} function minimal_supercone_coordinates_of_new_ray(f::ToricBlowupMorphism)
   PF = polyhedral_fan(codomain(f))
-  rays_ZZ = matrix(ZZ, rays(domain(f)))
-  v = Vector{QQFieldElem}(rays_ZZ[index_of_new_ray(f), :])
+  v = rays(domain(f))[index_of_new_ray(f), :][1]
+  v_ZZ = primitive_generator(v)
   return minimal_supercone_coordinates(PF, v)
 end
 

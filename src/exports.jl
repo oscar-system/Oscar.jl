@@ -1069,6 +1069,7 @@ export minimal_betti_table
 export minimal_block_reps
 export minimal_faces
 export minimal_generating_set
+export minimal_generator
 export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_supercone_coordinates, minimal_supercone_indices
 export minimal_nonfaces
@@ -1273,6 +1274,7 @@ export primary_invariants
 export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
+export primitive_generator
 export primitive_group
 export primitive_group_identification, has_primitive_group_identification
 export primorial

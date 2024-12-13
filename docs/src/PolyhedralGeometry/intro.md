@@ -80,6 +80,13 @@ ray_vector
 While `RayVector`s can not be used do describe `PointVector`s (and vice versa),
 matrices are generally allowed.
 
+The primitive generator, also called minimal generator, of a ray can be
+accessed as follows:
+
+```@docs
+primitive_generator(r::RayVector)
+```
+
 `AbstractCollection[PointVector]` can be given as:
 
 Type                               | A `PointVector` corresponds to...

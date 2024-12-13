@@ -282,6 +282,31 @@ function cones(PF::_FanLikeType)
 end
 
 @doc raw"""
+    primitive_generator(r::RayVector) -> Vector{ZZRingElem}
+
+Returns the primitive generator, also called minimal generator, of a ray.
+
+# Examples
+```jldoctest
+julia> PF = polyhedral_fan(IncidenceMatrix([[1, 2]]), [[2, -1], [0, 1]])
+Polyhedral fan in ambient dimension 2
+
+julia> r = rays(PF)[1]
+2-element RayVector{QQFieldElem}:
+ 1
+ -1//2
+
+julia> primitive_generator(r)
+2-element Vector{ZZRingElem}:
+ 2
+ -1
+```
+"""
+function primitive_generator(r::RayVector)
+  return vec(collect(matrix(ZZ, rays(positive_hull(r)))))
+end
+
+@doc raw"""
     minimal_supercone_indices(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
     -> Set{Int64}
 
@@ -384,7 +409,7 @@ function minimal_supercone_coordinates(
   result = zeros(QQFieldElem, n_rays(PF))
   if is_simplicial(PF)
     M_QQ = matrix(QQ, M_ZZ)
-    v_QQ = QQ.(v)
+    v_QQ = Vector{QQFieldElem}(QQ.(v))
     coords = solve(M_QQ, v_QQ)
   else
     if isempty(elementary_divisors(M_ZZ))
