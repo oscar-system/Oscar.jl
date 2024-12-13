@@ -482,6 +482,29 @@ end
        @test FPGroup(G) isa FPGroup
        @test_throws ArgumentError FinGenAbGroup(G)
    end
+
+   # isomorphic subgroups
+   types = [PermGroup, PcGroup, FPGroup]
+   for T in types, S in types
+     G = codomain(isomorphism(T, symmetric_group(4)))
+     H = codomain(isomorphism(S, symmetric_group(3)))
+     res = @inferred isomorphic_subgroups(H, G)
+     @test length(res) == 1
+     @test domain(res[1]) === H
+     @test codomain(res[1]) === G
+     @test is_isomorphic(H, image(res[1])[1])
+   end
+   types = [PermGroup, SubPcGroup, FPGroup, FinGenAbGroup]
+   for T in types, S in types
+     G = abelian_group(T, [2, 4])
+     H = abelian_group(S, [2, 2])
+     res = @inferred isomorphic_subgroups(H, G)
+     @test length(res) == 1
+     @test domain(res[1]) === H
+     @test codomain(res[1]) === G
+     @test (T === FinGenAbGroup) || is_isomorphic(H, image(res[1])[1])
+#TODO make image work for embedding into FinGenAbGroup?
+   end
 end
 
 @testset "Homomorphism GAPGroup to FinGenAbGroup" begin
