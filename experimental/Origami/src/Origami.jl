@@ -25,6 +25,7 @@ include("homology_action.jl")
 include("cyclic_torus_covers.jl")
 include("homology.jl")
 include("normal_origami.jl")
+include("systoles.jl")
 
 @doc raw"""
     origami(h::PermGroupElem, v::PermGroupElem)
@@ -330,4 +331,4 @@ export origami, veech_group, GapObj, vertical_perm, horizontal_perm, stratum,
         action_of_s_on_homology_of_tn, action_of_matrix_on_homology_of_tn, symplectic_basis_of_homology, has_spin_structure,
         spin_parity, normal_stored_origami, as_permutation_pepresentation, all_normal_origamis_by_degree,
         all_normal_origamis_from_group, read_cylinder_diagrams, split_diagrams, parse_cycle, origamis, extract_permutation,
-        from_GAP_origami
+        from_GAP_origami, systolic_ratio, systolic_ratio_bigger_one_over_pi_in_h11
