@@ -68,7 +68,8 @@
     @test !issubset(pbJ_str, ideal_sheaf(E))
   end
 
-  I = ideal(S, [S[1], S[2]])
+  # Select variables corresponding to rays [1,0] and [0,1]
+  I = ideal(S, gens(S)[findall(v->v[1]>=0&&v[2]>=0, rays(P2))])
   bl2 = blow_up(P2, I)
   II = IdealSheaf(P2, I)
   
