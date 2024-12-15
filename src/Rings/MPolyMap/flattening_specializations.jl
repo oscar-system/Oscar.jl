@@ -18,7 +18,7 @@ function (phi::RingFlattening{<:Union{
                                    }})(x::RingElem)
   !phi.cached && return _compute_flattened_element(phi, x)
   return get!(flat_counterparts(phi), x) do
-    _compute_flattened_element(phi, domain(phi)(x))
+    _compute_flattened_element(phi, x)
   end::elem_type(codomain(phi))
 end
 
