@@ -15,17 +15,17 @@ function (phi::RingFlattening{<:Union{
                                    }, 
                               <:Union{
                                     <:MPolyRing, <:MPolyQuoRing
-                                   }})(x::MPolyRingElem)
+                                   }})(x::RingElem)
   !phi.cached && return _compute_flattened_element(phi, x)
   return get!(flat_counterparts(phi), x) do
-    _compute_flattened_element(phi, x)
+    _compute_flattened_element(phi, domain(phi)(x))
   end::elem_type(codomain(phi))
 end
 
 function _compute_flattened_element(phi, x)
   is_zero(x) && return zero(codomain(phi))
   R = domain(phi)
-  parent(x) === R || return phi(R(x))
+  parent(x) === R || return _compute_flattened_element(phi, R(x))
   RP = _poly_ring(R)
   P = coefficient_ring(RP)
   PP = _poly_ring(P)
