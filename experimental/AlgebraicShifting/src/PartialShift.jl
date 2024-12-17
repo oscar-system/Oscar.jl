@@ -343,19 +343,34 @@ exterior_shift(K::ComplexOrHypergraph; kw...) = exterior_shift(QQ, K; kw...)
 ################################################################################
 # Las Vegas Partial Shifting
 
-function random_rothe_matrix(p::PermGroupElem)
+function random_rothe_matrix(F::QQField, p::PermGroupElem)
   n = degree(parent(p))
-  u = identity_matrix(QQ, n)
+  u = identity_matrix(F, n)
   for (i, j) in inversions(p)
-    # random.seed!(UInt)
-    u[i, j] = QQ(Rational(rand() - 0.5))
+    u[i, j] = F(Rational(rand() - 0.5))
   end
-  return u * permutation_matrix(QQ, p)
+  return u * permutation_matrix(F, p)
+end
+
+function random_rothe_matrix(F::Field, p::PermGroupElem)
+  @req !iszero(characteristic(F)) "Field should have positive characteristic"
+  range = characteristic(F)
+  n = degree(parent(p))
+  u = identity_matrix(F, n)
+  for (i, j) in inversions(p)
+    u[i, j] = F(rand(1:char-1))
+  end
+  return u * permutation_matrix(F, p)
+end
+
+function random_shift(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem;)
+  n = n_vertices(K)
+  exterior_shift(K, random_rothe_matrix(F, p))
 end
 
 function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem;)
   n = n_vertices(K)
-  exterior_shift(K, random_rothe_matrix(p))
+  exterior_shift(K, random_rothe_matrix(F, p))
 end
 
 random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
