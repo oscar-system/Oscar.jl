@@ -951,6 +951,7 @@ export is_zm_graded
 export isfinite
 export isometry_group
 export isomorphic_matroid
+export isomorphic_subgroups
 export isomorphism
 export isone
 export isqrtrem
