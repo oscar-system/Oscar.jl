@@ -503,6 +503,11 @@ conductor(a::AbsSimpleNumFieldElem) = conductor(parent(minimize(CyclotomicField,
 function conductor(k::AbsSimpleNumField)
   f, c = Hecke.is_cyclotomic_type(k)
   f || error("field is not of cyclotomic type")
+  if is_conductor(c)
+    return c
+  else
+    return div(c, 2)
+  end
   return c
 end
 
