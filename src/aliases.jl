@@ -23,6 +23,8 @@ function number_of_partitions end
 function number_of_patches end
 function number_of_weak_compositions end
 
+function primitive_generator end
+
 # these are kept for compatibility with Graphs.jl / GraphsBase.jl
 @alias ne n_edges
 @alias nv n_vertices
@@ -56,3 +58,6 @@ function number_of_weak_compositions end
 @alias dualgraph dual_graph
 @alias edgegraph vertex_edge_graph
 @alias equidistant is_equidistant
+
+# Polyhedral geometry
+@alias minimal_generator primitive_generator
