@@ -7,7 +7,7 @@ CurrentModule = Oscar
 ## Geometric data
 
 ```@docs
-facets(P::Polyhedron)
+facets(as::Type{T}, P::Polyhedron{S}) where {S<:scalar_types,T<:Union{AffineHalfspace{S},AffineHyperplane{S},Pair{R,S} where R,Polyhedron{S}}}
 vertices(as::Type{PointVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays(as::Type{RayVector{T}}, P::Polyhedron{T}) where {T<:scalar_types}
 rays_modulo_lineality(P::Polyhedron{T}) where T<:scalar_types

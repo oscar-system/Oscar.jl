@@ -205,6 +205,8 @@
 
     @test dim(full) == ambient_dim(full)
     @test lineality_dim(full) == 3
+    @test length(findall(f-> [1,0] in f, facets(Hyperplane, Q0))) == 2
+    @test length(findall(f-> [1,0] in f, facets(Halfspace, Q0))) == 3
   end
 
   @testset "volume" begin
