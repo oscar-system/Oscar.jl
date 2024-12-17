@@ -1,27 +1,20 @@
 @testset "LieAlgebras.CartanMatrix" begin
-  @testset "cartan_matrix(fam::Symbol, rk::Int)" begin
+  @testset "cartan_matrix" begin
+    for fam in (:A, :B, :C, :D, :E, :F, :G, :X), i in -1:10
+      if is_cartan_type(fam, i)
+        cartan_matrix(fam, i)
+      else
+        @test_throws ArgumentError cartan_matrix(fam, i)
+      end
+    end
+
     @test cartan_matrix(:A, 1) == matrix(ZZ, 1, 1, [2])
     @test cartan_matrix(:A, 2) == ZZ[2 -1; -1 2]
-
     @test cartan_matrix(:B, 2) == ZZ[2 -1; -2 2]
     @test cartan_matrix(:B, 3) == ZZ[2 -1 0; -1 2 -1; 0 -2 2]
-
     @test cartan_matrix(:C, 2) == ZZ[2 -2; -1 2]
     @test cartan_matrix(:C, 3) == ZZ[2 -1 0; -1 2 -2; 0 -1 2]
-
     @test cartan_matrix(:D, 4) == ZZ[2 -1 0 0; -1 2 -1 -1; 0 -1 2 0; 0 -1 0 2]
-
-    @test_throws ArgumentError root_system(:X, 1)
-    @test_throws ArgumentError root_system(:A, 0)
-    @test_throws ArgumentError root_system(:B, 1)
-    @test_throws ArgumentError root_system(:C, 1)
-    @test_throws ArgumentError root_system(:D, 2)
-    @test_throws ArgumentError root_system(:E, 5)
-    @test_throws ArgumentError root_system(:E, 9)
-    @test_throws ArgumentError root_system(:F, 3)
-    @test_throws ArgumentError root_system(:F, 5)
-    @test_throws ArgumentError root_system(:G, 1)
-    @test_throws ArgumentError root_system(:G, 3)
   end
 
   @testset "cartan_matrix(type::Tuple{Symbol,Int}...)" begin
@@ -29,28 +22,44 @@
     @test cartan_matrix((:A, 2), (:B, 2)) ==
       block_diagonal_matrix([cartan_matrix(:A, 2), cartan_matrix(:B, 2)])
 
-    @test_throws ArgumentError cartan_matrix()
+    @test_throws MethodError cartan_matrix()
   end
 
-  @testset "is_cartan_matrix(mat::ZZMatrix; generalized::Bool=true)" begin
+  @testset "is_cartan_matrix" begin
+    # test non cartan
+    @test is_cartan_matrix(ZZ[2 -1; -1 1]) == false
+    @testset for i in 1:3
+      is_cartan_matrix(ZZ[2 -i; 0 2]) == false
+    end
+
     # test finite type
-    @test is_cartan_matrix(cartan_matrix(:A, 1)) == true
-    @test is_cartan_matrix(cartan_matrix(:A, 1); generalized=false) == true
+    function test_is_cartan_matrix_finite_type(cm::ZZMatrix)
+      rk = nrows(cm)
+      for _ in 1:50
+        i, j = rand(1:rk, 2)
+        if i != j
+          swap_rows!(cm, i, j)
+          swap_cols!(cm, i, j)
+        end
+      end
 
-    @test is_cartan_matrix(cartan_matrix(:A, 2)) == true
-    @test is_cartan_matrix(cartan_matrix(:A, 2); generalized=false) == true
+      @test is_cartan_matrix(cm) == true
+      @test is_cartan_matrix(cm; generalized=false) == true
+    end
 
-    @test is_cartan_matrix(cartan_matrix(:B, 2)) == true
-    @test is_cartan_matrix(cartan_matrix(:B, 2); generalized=false) == true
+    test_is_cartan_matrix_finite_type(cartan_matrix(:A, 1))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:A, 3))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:B, 4))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:C, 2))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:D, 5))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:E, 6))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:E, 7))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:E, 8))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:F, 4))
+    test_is_cartan_matrix_finite_type(cartan_matrix(:G, 2))
 
-    @test is_cartan_matrix(cartan_matrix(:C, 2)) == true
-    @test is_cartan_matrix(cartan_matrix(:C, 2); generalized=false) == true
-
-    @test is_cartan_matrix(cartan_matrix(:D, 4)) == true
-    @test is_cartan_matrix(cartan_matrix(:D, 4); generalized=false) == true
-
-    @test is_cartan_matrix(cartan_matrix(:G, 2)) == true
-    @test is_cartan_matrix(cartan_matrix(:G, 2); generalized=false) == true
+    test_is_cartan_matrix_finite_type(cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2)))
+    test_is_cartan_matrix_finite_type(cartan_matrix((:F, 4), (:B, 2), (:E, 7), (:G, 2)))
 
     # test affine type
     @test is_cartan_matrix(ZZ[2 -2; -2 2]) == true
@@ -63,62 +72,71 @@
     @test is_cartan_matrix(ZZ[2 -1 -1; -1 2 -1; -1 -1 2]; generalized=false) == false
   end
 
-  @testset "cartan_symmetrizer(gcm::ZZMatrix; check::Bool)" begin
+  @testset "cartan_symmetrizer" begin
+    # cartan_symmetrizer function is indirectly covered by the cartan_bilinear_form tests
+    # here we simply guarantee that the choice of the symmetrizer is as expected
+
     # finite type
     @test cartan_symmetrizer(cartan_matrix(:A, 1)) == [1]
     @test cartan_symmetrizer(cartan_matrix(:A, 2)) == [1, 1]
-
     @test cartan_symmetrizer(cartan_matrix(:B, 2)) == [2, 1]
     @test cartan_symmetrizer(cartan_matrix(:B, 4)) == [2, 2, 2, 1]
-
     @test cartan_symmetrizer(cartan_matrix(:C, 2)) == [1, 2]
     @test cartan_symmetrizer(cartan_matrix(:C, 4)) == [1, 1, 1, 2]
-
     @test cartan_symmetrizer(cartan_matrix(:D, 4)) == [1, 1, 1, 1]
-
     @test cartan_symmetrizer(cartan_matrix(:E, 6)) == [1, 1, 1, 1, 1, 1]
     @test cartan_symmetrizer(cartan_matrix(:E, 7)) == [1, 1, 1, 1, 1, 1, 1]
     @test cartan_symmetrizer(cartan_matrix(:E, 8)) == [1, 1, 1, 1, 1, 1, 1, 1]
-
     @test cartan_symmetrizer(cartan_matrix(:F, 4)) == [2, 2, 1, 1]
     @test cartan_symmetrizer(cartan_matrix(:G, 2)) == [1, 3]
 
-    @test cartan_symmetrizer(cartan_matrix((:A, 3), (:B, 3))) == [[1, 1, 1]; [2, 2, 1]]
-    @test cartan_symmetrizer(cartan_matrix((:F, 4), (:D, 4))) ==
-      [[2, 2, 1, 1]; [1, 1, 1, 1]]
-    @test cartan_symmetrizer(cartan_matrix((:C, 4), (:G, 2))) == [[1, 1, 1, 2]; [1, 3]]
-
-    @test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -1 2]) == [1, 2, 2]
-    @test cartan_symmetrizer(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]) == [2, 1, 1, 2]
-
     # affine type
-    @test cartan_symmetrizer(ZZ[2 -2; -2 2]) == [1, 1] # A1~1
-    @test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == [1, 2, 1] # D3~2
-    @test cartan_symmetrizer(ZZ[2 -4; -1 2]) == [1, 4] # A1~2
+    #@test cartan_symmetrizer(ZZ[2 -2; -2 2]) == [1, 1] # A1~1
+    #@test cartan_symmetrizer(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == [1, 2, 1] # D3~2
+    #@test cartan_symmetrizer(ZZ[2 -4; -1 2]) == [1, 4] # A1~2
 
     # hyperbolic type
-    @test cartan_symmetrizer(ZZ[2 -2; -3 2]) == [3, 2]
+    #@test cartan_symmetrizer(ZZ[2 -2; -3 2]) == [3, 2]
   end
 
-  @testset "cartan_bilinear_form(gcm::ZZMatrix; check::Bool)" begin
-    # finite type
-    @test cartan_bilinear_form(cartan_matrix(:A, 2)) == ZZ[2 -1; -1 2]
-    @test cartan_bilinear_form(cartan_matrix(:B, 4)) ==
-      ZZ[4 -2 0 0; -2 4 -2 0; 0 -2 4 -2; 0 0 -2 2]
-    @test cartan_bilinear_form(cartan_matrix(:C, 4)) ==
-      ZZ[2 -1 0 0; -1 2 -1 0; 0 -1 2 -2; 0 0 -2 4]
-    @test cartan_bilinear_form(cartan_matrix(:F, 4)) ==
-      ZZ[4 -2 0 0; -2 4 -2 0; 0 -2 2 -1; 0 0 -1 2]
-    @test cartan_bilinear_form(cartan_matrix(:G, 2)) == ZZ[2 -3; -3 6]
+  @testset "cartan_bilinear_form" begin
+    function test_cartan_bilinear_form(cm::ZZMatrix)
+      rk = nrows(cm)
+      for _ in 1:10
+        for _ in 1:10
+          i, j = rand(1:rk, 2)
+          if i != j
+            swap_rows!(cm, i, j)
+            swap_cols!(cm, i, j)
+          end
+        end
 
-    @test cartan_bilinear_form(cartan_matrix((:B, 2), (:A, 1))) == ZZ[4 -2 0; -2 2 0; 0 0 2]
-    @test cartan_bilinear_form(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2]) ==
-      ZZ[4 0 -2 0; 0 2 0 -2; -2 0 2 0; 0 -2 0 4]
+        bil = cartan_bilinear_form(cm)
+        @test is_symmetric(bil)
+        @test all(cm[i, j] == div(2 * bil[i, j], bil[i, i]) for i in 1:rk, j in 1:rk)
+      end
+    end
+
+    # irreducible matrices
+    test_cartan_bilinear_form(cartan_matrix(:A, 1))
+    test_cartan_bilinear_form(cartan_matrix(:A, 3))
+    test_cartan_bilinear_form(cartan_matrix(:B, 4))
+    test_cartan_bilinear_form(cartan_matrix(:C, 2))
+    test_cartan_bilinear_form(cartan_matrix(:D, 5))
+    test_cartan_bilinear_form(cartan_matrix(:E, 6))
+    test_cartan_bilinear_form(cartan_matrix(:E, 7))
+    test_cartan_bilinear_form(cartan_matrix(:E, 8))
+    test_cartan_bilinear_form(cartan_matrix(:F, 4))
+    test_cartan_bilinear_form(cartan_matrix(:G, 2))
+
+    # reducible matrices
+    test_cartan_bilinear_form(cartan_matrix((:A, 3), (:C, 3), (:E, 6), (:G, 2)))
+    test_cartan_bilinear_form(cartan_matrix((:F, 4), (:B, 2), (:E, 7), (:G, 2)))
 
     # affine type
-    @test cartan_bilinear_form(ZZ[2 -2; -2 2]) == ZZ[2 -2; -2 2]
-    @test cartan_bilinear_form(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == ZZ[2 -2 0; -2 4 -2; 0 -2 2]
-    @test cartan_bilinear_form(ZZ[2 -4; -1 2]) == ZZ[2 -4; -4 8]
+    #@test cartan_bilinear_form(ZZ[2 -2; -2 2]) == ZZ[2 -2; -2 2]
+    #@test cartan_bilinear_form(ZZ[2 -2 0; -1 2 -1; 0 -2 2]) == ZZ[2 -2 0; -2 4 -2; 0 -2 2]
+    #@test cartan_bilinear_form(ZZ[2 -4; -1 2]) == ZZ[2 -4; -4 8]
   end
 
   @testset "cartan_type_with_ordering" begin

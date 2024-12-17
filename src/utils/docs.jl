@@ -60,7 +60,7 @@ end
 
 Fixes all doctests for the given function `f`.
 
-# Example
+# Examples
 The following call fixes all doctests for the function `symmetric_group`:
 ```julia
 julia> Oscar.doctest_fix(symmetric_group)
@@ -89,7 +89,7 @@ end
 Fixes all doctests for all files in Oscar where
 `path` occurs in the full pathname.
 
-# Example
+# Examples
 The following call fixes all doctests in files that live in a directory
 called `Rings` (or a subdirectory thereof), so e.g. everything in `src/Rings/`:
 ```julia

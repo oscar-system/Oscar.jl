@@ -293,7 +293,7 @@ end
 ###############################################################################
 
 @doc raw"""
-    lie_algebra(S::LieSubalgebra) -> LieAlgebra
+    lie_algebra(S::LieSubalgebra) -> LieAlgebra, LieAlgebraHom
 
 Return `S` as a Lie algebra `LS`, together with an embedding `LS -> L`,
 where `L` is the Lie algebra where `S` lives in.

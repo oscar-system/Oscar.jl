@@ -265,14 +265,10 @@ end
    end
 
    @testset "Finite FinGenAbGroup to GAPGroup" begin
-#     @testset for Agens in [Int[], [2, 4, 8], [2, 3, 4], [2, 12],
-#T problem with GAP's `AbelianGroup`;
-#T see https://github.com/gap-system/gap/issues/5430
-      @testset for Agens in [[2, 4, 8], [2, 3, 4], [2, 12],
+      @testset for Agens in [Int[], [2, 4, 8], [2, 3, 4], [2, 12],
                              [1, 6], matrix(ZZ, 2, 2, [2, 3, 2, 6])]
          A = abelian_group(Agens)
-#        for T in [FPGroup, PcGroup, PermGroup]
-         for T in [FPGroup, SubPcGroup, PermGroup]
+         for T in [FPGroup, PcGroup, SubPcGroup, PermGroup]
             iso = @inferred isomorphism(T, A)
             for x in gens(A), y in gens(A)
                z = x+y
@@ -284,14 +280,15 @@ end
    end
 
    @testset "Infinite FinGenAbGroup to GAPGroup" begin
-      Agens = matrix(ZZ, 2, 2, [2, 3, 0, 0])
-      A = abelian_group(Agens)
-      for T in [FPGroup]
-         iso = @inferred isomorphism(T, A)
-         for x in gens(A), y in gens(A)
-            z = x+y
-            @test iso(x) * iso(y) == iso(z)
-            @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+      @testset for Agens in [matrix(ZZ, 2, 2, [2, 3, 0, 0]), [6, 0]]
+         A = abelian_group(Agens)
+         for T in [FPGroup, PcGroup]
+            iso = @inferred isomorphism(T, A)
+            for x in gens(A), y in gens(A)
+               z = x+y
+               @test iso(x) * iso(y) == iso(z)
+               @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
+            end
          end
       end
    end
@@ -459,7 +456,13 @@ end
        @test [preimage(f2, x) for x in gens(codomain(f2))] == gens(G)
        @test [preimage(f, x) for x in gens(codomain(f))] != gens(G)
 
-       @test is_bijective(isomorphism(FPGroup, symmetric_group(1), on_gens = true))
+       G = symmetric_group(1)
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
+       @test is_bijective(iso)
+       G = sub(G, [one(G)])[1]
+       iso = @inferred isomorphism(FPGroup, G, on_gens = true)
+       @test ngens(G) == ngens(codomain(iso))
 
        G = abelian_group(PermGroup, [2, 2])
        f = @inferred isomorphism(FinGenAbGroup, G)

@@ -43,7 +43,7 @@ end
   n = 3
   F = GF(2)
   G = general_linear_group(n, F)
-  V = AbstractAlgebra.Generic.FreeModule(F, n)
+  V = free_module(F, n)
   v = gen(V, 1)
   S = stabilizer(G, v)
   @test order(S[1]) == 24
@@ -65,7 +65,7 @@ end
   iso = Oscar.iso_oscar_gap(R)
   img = iso(f)
 
-  for p in [g(cperm(1:3)), g(cperm(1:2))]
+  for p in [cperm(g,1:3), cperm(g,1:2)]
     @test f^p == evaluate(f, permuted(vars, p^-1))
     @test on_indeterminates(img, p) == iso(f^p)
   end
@@ -88,7 +88,7 @@ end
   (x1, x2, x3) = vars
   f = x1*x2 + x2*x3
 
-  for p in [g(cperm(1:3)), g(cperm(1:2))]
+  for p in [cperm(g,1:3), cperm(g,1:2)]
     @test f^p == evaluate(f, permuted(vars, p^-1))
   end
 
@@ -132,7 +132,7 @@ end
   n = 3
   F = GF(5)
   G = general_linear_group(n, F)
-  V = AbstractAlgebra.Generic.FreeModule(F, n)
+  V = free_module(F, n)
   v = gen(V, 1)
   v = on_lines(v, one(G))  # make sure that `v` is normalized
   @test on_lines(2*v, one(G)) == v

@@ -900,7 +900,7 @@ codim(P::Polyhedron) = ambient_dim(P) - dim(P)
 
 Number of vertices in each facet. 
 
-# Example
+# Examples
 ```jldoctest
 julia> p = johnson_solid(4) 
 Polytope in ambient dimension 3 with EmbeddedAbsSimpleNumFieldElem type coefficients
@@ -929,7 +929,7 @@ end
 
 Number of incident facets for each vertex.
 
-# Example
+# Examples
 ```jldoctest
 julia> vertex_sizes(bipyramid(simplex(2)))
 5-element Vector{Int64}:

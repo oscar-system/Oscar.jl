@@ -207,7 +207,7 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
       # Get the grading matrix and the coordinates of the arbitrary base
       grading = weights(base_space(w))
       base_coords_symbols = symbols(coordinate_ring(base_space(w)))
-      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base cooordinates"
+      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base coordinates"
 
       # Choose explicit sections for all parameters of the model,
       # and then put the model over the concrete base using these data

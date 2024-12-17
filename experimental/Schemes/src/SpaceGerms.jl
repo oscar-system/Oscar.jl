@@ -1165,7 +1165,7 @@ function _icis_milnor_helper(L::MPolyLocRing, v::Vector,f::RingElem)
   g = shift(f)
 
   ## compute the appropriate summand in the Le-Greuel formula
-  ## for the (lenght(w))-th contribution with specified choice
+  ## for the (length(w))-th contribution with specified choice
   I = ideal(R,w)
   push!(w,g)
   n = nvars(R)
@@ -1239,7 +1239,7 @@ function _icis_milnor_helper(v::Vector,f::MPolyRingElem)
   all(a-> parent(a) == R,v) || error("base rings do not match")
 
   ## compute the appropriate step in the Le-Greuel formula
-  ## for the (lenght(w))-th contribution
+  ## for the (length(w))-th contribution
   I = ideal(R,v)
   bla = copy(v)
   push!(bla,f)

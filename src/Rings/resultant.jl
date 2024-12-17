@@ -93,7 +93,7 @@ end
 
 function __resultant_poisson(F::Vector{<: MPolyRingElem{<:FieldElem}})
   # If we hit a zero, it is inconclusive and we return the zero
-  #@req all(is_homogeneous, F) "Polynomials must be homogenous"
+  #@req all(is_homogeneous, F) "Polynomials must be homogeneous"
   R = parent(F[1])
   n = ngens(R) - 1
   K = coefficient_ring(R)

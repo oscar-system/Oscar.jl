@@ -1,6 +1,6 @@
 # Printing in OSCAR
 
-The following dection contains more details and examples on how to implement
+The following section contains more details and examples on how to implement
 OSCAR's 2+1 printing modes. The specifications and a minimal example may be
 found in the [Developer Style Guide](@ref).
 

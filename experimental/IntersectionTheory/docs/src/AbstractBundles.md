@@ -18,11 +18,11 @@ parent(F::AbstractBundle)
 ```
 
 ```@docs
-rank(F::AbstractBundle)
+chern_character(F::AbstractBundle)
 ```
 
 ```@docs
-chern_character(F::AbstractBundle)
+rank(F::AbstractBundle)
 ```
 
 ```@docs

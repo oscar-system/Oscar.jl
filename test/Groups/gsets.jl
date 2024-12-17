@@ -103,7 +103,7 @@
   G = symmetric_group(6)
   Omega = gset(G, [Set([1, 2])])
   @test representative(Omega) in Omega
-  @test acting_domain(Omega) == G
+  @test acting_group(Omega) == G
 
   # wrapped elements of G-sets
   G = symmetric_group(4)
@@ -365,6 +365,17 @@ end
   f = x^2 + y
   orb = orbit(G, f)
   @test length(orb) == 3
+
+  F = QQBarField()
+  e = one(F)
+  s, c = sincospi(2 * e / 3)
+  mat_rot = matrix([c -s; s c])
+  G = matrix_group(mat_rot)
+  p = F.([1, 0])
+  orb = orbit(G, *, p)
+  @test length(orb) == 3
+
+
 end
 
 @testset "G-sets by right transversals" begin
