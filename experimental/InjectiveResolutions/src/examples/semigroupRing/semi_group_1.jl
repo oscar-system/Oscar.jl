@@ -1,7 +1,11 @@
+using Oscar
+
 # definition of monoid algebra as quotient of polynomial ring
 S,(x,y,z) = graded_polynomial_ring(QQ,["x","y","z"]; weights = [[0,1],[1,1],[2,1]])
 J = ideal(S,[x*z-y^2])
 R_Q,phi = quo(S,J)
+
+is_zero(modulus(R_Q))
 x,y,z = gens(R_Q)
 
 # get MonoidAlgebra
@@ -17,19 +21,14 @@ irr_res = irreducible_res(M)
 # minimal injective resolution of kQ/I up to cohomological degree 3
 inj_res = injective_res(I,3)
 
-inj_res.injMods[1].indecInjectives
-inj_res.injMods[2].indecInjectives
-inj_res.injMods[3].indecInjectives
-inj_res.injMods[4].indecInjectives
-inj_res.injMods[5].indecInjectives
-inj_res.injMods[6].indecInjectives
+inj_res.injMods[1].indecInjectives #J^0
+inj_res.injMods[2].indecInjectives #J^1
+inj_res.injMods[3].indecInjectives #J^2
+inj_res.injMods[4].indecInjectives #J^3
 
-inj_res.cochainMaps[1]
-inj_res.cochainMaps[2]
-inj_res.cochainMaps[3]
-inj_res.cochainMaps[4]
-inj_res.cochainMaps[5]
-inj_res.cochainMaps[6]
+inj_res.cochainMaps[1] #J^0 -> J^1
+inj_res.cochainMaps[2] #J^1 -> J^2
+inj_res.cochainMaps[3] #J^2 -> J^3
 
 
 # irreducible resolution that is the Q-graded part of the minimal injective resolution above (shifted)

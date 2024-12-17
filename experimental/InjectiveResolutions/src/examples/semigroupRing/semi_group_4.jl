@@ -52,3 +52,7 @@ is_injective(irr_res_3.inclusions[5])
 is_injective(irr_res_3.inclusions[6])
 is_injective(irr_res_3.inclusions[7])
 is_surjective(irr_res_3.inclusions[7])
+
+I = ideal(kQ,[z^3,z^2*y,x^4*z,x^3*y*z])
+_M = quotient_ring_as_module(I)
+M = shifted_module(I,[2,3])
