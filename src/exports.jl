@@ -649,6 +649,7 @@ export graded_map
 export graded_polynomial_ring
 export grading_group
 export graph
+export graph_curve
 export graph_from_adjacency_matrix
 export graph_from_edges
 export grassmann_pluecker_ideal
@@ -1570,6 +1571,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_lifting
 export tutte_polynomial
 export twist
 export twisting_sheaf
