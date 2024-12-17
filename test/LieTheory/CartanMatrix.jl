@@ -1,4 +1,4 @@
-@testset "LieAlgebras.CartanMatrix" begin
+@testset "LieTheory.CartanMatrix" begin
   @testset "cartan_matrix" begin
     for fam in (:A, :B, :C, :D, :E, :F, :G, :X), i in -1:10
       if is_cartan_type(fam, i)
