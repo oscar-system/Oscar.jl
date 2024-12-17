@@ -358,17 +358,17 @@ function random_rothe_matrix(F::Field, p::PermGroupElem)
   n = degree(parent(p))
   u = identity_matrix(F, n)
   for (i, j) in inversions(p)
-    u[i, j] = F(rand(1:char-1))
+    u[i, j] = F(rand(1:range))
   end
   return u * permutation_matrix(F, p)
 end
 
-function random_shift(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem;)
+function random_shift(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   exterior_shift(K, random_rothe_matrix(F, p))
 end
 
-function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem;)
+function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
   n = n_vertices(K)
   exterior_shift(K, random_rothe_matrix(F, p))
 end
@@ -414,6 +414,20 @@ function check_shifted(F::Field, src::SimplicialComplex,
 end
 
 function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+  # this might need to be changed based on the characteristic
+  # we expect that the larger the characteristic the smaller the sample needs to be
+  # setting to 100 now for good measure
+  sample_size = 100
+  shift = partialsort!([random_shift(F, K, p) for _ in 1:sample_size], 1;
+                       lt=isless_lex)
+
+  check_shifted(F, K, shift, p) && return shift
+
+  # this should be updated to not throw an error
+  error("Could not find the full shift using $sample_size samples")
+end
+
+function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
   shift = random_shift(F, K, p) 
   count = 1
   while !check_shifted(F, K, shift, p)
