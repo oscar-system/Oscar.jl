@@ -319,10 +319,10 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
 function exterior_shift(F::Field, K::ComplexOrHypergraph,
-                        p::PermGroupElem; las_vegas::Bool=false)
+                        p::PermGroupElem; las_vegas_trials::Int=0, timed=false)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-  las_vegas && return exterior_shift_lv(F, K, p)
+  las_vegas_trials > 0 && return exterior_shift_lv(F, K, p; n_samples=las_vegas_trials, timed=timed)
   return exterior_shift(K, rothe_matrix(F, p))
 end
 
@@ -413,18 +413,32 @@ function check_shifted(F::Field, src::SimplicialComplex,
   return true
 end
 
-function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
+""" 
+    exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100)
+
+Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the permutation group element `p` and the field `F`,
+using the Las Vegas algorithm. It samples `n_samples` random matrices, computes the respective partial shifts, takes the lexicographically minimal one,
+tests if it is the partial shift of `K` with respect to `p`, and returns the shift and the number of samples used. Otherwise, returns `nothing` 
+and the number of samples used."""
+function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_samples=100, timed=false)
   # this might need to be changed based on the characteristic
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
-  sample_size = 100
-  shift = partialsort!([random_shift(F, K, p) for _ in 1:sample_size], 1;
-                       lt=isless_lex)
+  shift = @timed argmin(x->x[1].faces, ((random_shift(F, K, p), i) for i in 1:n_samples))
+  shifted = @timed check_shifted(F, K, shift.value[1], p)
+  if timed
+    if shifted.value
+      return shift.value[1], (shift.value[2], shift.time, shift.bytes, shifted.time, shifted.bytes)
+    else
+      return nothing,        (n_samples,      shift.time, shift.bytes, shifted.time, shifted.bytes)
+    end
+  else
+    return shifted.value ? shift.value : nothing
+  end
+end
 
-  check_shifted(F, K, shift, p) && return shift
-
-  # this should be updated to not throw an error
-  error("Could not find the full shift using $sample_size samples")
+function exterior_shift_lv(F::Field, K::SimplicialComplex, p::PermGroupElem; n_samples=100)
+  throw(NotImplementedError("Not implemented for simplicial complexes yet."))
 end
 
 function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
