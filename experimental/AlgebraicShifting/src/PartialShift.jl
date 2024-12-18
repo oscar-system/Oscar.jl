@@ -383,8 +383,6 @@ function check_shifted(F::Field, src::UniformHypergraph,
 
   if max_face_index > num_rows
     M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
-    println((ref!))
-    @show M
     ref!(M)
     nCk[independent_columns(M)] != target_faces[1:end - 1] && return false
   end
