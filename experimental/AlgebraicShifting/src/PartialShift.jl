@@ -228,7 +228,7 @@ _set_to_zero(K::UniformHypergraph, indices::Tuple{Int, Int}) = _set_to_zero(simp
 ###############################################################################
 # Exterior shift
 ###############################################################################
-function exterior_shift(K::UniformHypergraph, g::MatElem)
+function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff_rc!)
   # the exterior shifting works in a different algebra that lends
   # itself to an easier implementation
   @req size(g, 1) == size(g, 2) "Change of basis matrix must be square."
@@ -237,15 +237,17 @@ function exterior_shift(K::UniformHypergraph, g::MatElem)
   nCk = sort!(subsets(n_vertices(K), face_size(K)))
   c = compound_matrix(g, K)
   if matrix_base isa MPolyRing
-    Oscar.ModStdQt.ref_ff_rc!(c)
+    ref!(c)
   elseif matrix_base isa MPolyQuoRing
     lifted_c = lift.(c)
-    Oscar.ModStdQt.ref_ff_rc!(lifted_c)
+    ref!(lifted_c)
     c = simplify.(matrix_base.(lifted_c))
   else
-    rref!(c)
+    rref!(c) #TODO could use ref! with different heuristic
   end
-  return uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
+  result = uniform_hypergraph(nCk[independent_columns(c)], n_vertices(K), face_size(K))
+  @assert length(faces(result)) == length(faces(K)) "Shifting by invertible `g` should preserve size of hypergraph."
+  return result
 end
 
 function exterior_shift(K::SimplicialComplex, g::MatElem)
@@ -319,11 +321,11 @@ Abstract simplicial complex of dimension 2 on 6 vertices
 ```
 """
 function exterior_shift(F::Field, K::ComplexOrHypergraph,
-                        p::PermGroupElem; las_vegas_trials::Int=0, timed=false)
+                        p::PermGroupElem; las_vegas_trials::Int=0, kw...)
   n = n_vertices(K)
   @req n == degree(parent(p)) "number of vertices - 1 should equal the rank of the root system"
-  las_vegas_trials > 0 && return exterior_shift_lv(F, K, p; n_samples=las_vegas_trials, timed=timed)
-  return exterior_shift(K, rothe_matrix(F, p))
+  las_vegas_trials > 0 && return exterior_shift_lv(F, K, p; n_samples=las_vegas_trials, kw...)
+  return exterior_shift(K, rothe_matrix(F, p); kw...)
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem; kw...)
@@ -363,26 +365,14 @@ function random_rothe_matrix(F::Field, p::PermGroupElem)
   return u * permutation_matrix(F, p)
 end
 
-function random_shift(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
-  n = n_vertices(K)
-  exterior_shift(K, random_rothe_matrix(F, p))
-end
-
-function random_shift(F::Field, K::ComplexOrHypergraph, p::PermGroupElem)
-  n = n_vertices(K)
-  exterior_shift(K, random_rothe_matrix(F, p))
-end
-
-random_shift(K::ComplexOrHypergraph, p::PermGroupElem) = random_shift(QQ, K, p)
-
 # returns true if the target is the partial shift of src with respect to p
 function check_shifted(F::Field, src::UniformHypergraph,
-                       target::UniformHypergraph, p::PermGroupElem)
+                       target::UniformHypergraph, p::PermGroupElem; (ref!)=ModStdQt.ref_ff_rc!)
   target_faces = sort(faces(target))
   max_face = length(target_faces) == 1 ? target_faces[1] : max(target_faces...)
   # currently number of faces of src and target are the same
   # this may change in the future
-  num_rows = length(faces(src)) 
+  num_rows = length(faces(src))
   n = n_vertices(src)
   k = face_size(src)
   nCk = sort(subsets(n, k))
@@ -393,7 +383,9 @@ function check_shifted(F::Field, src::UniformHypergraph,
 
   if max_face_index > num_rows
     M = compound_matrix(r, src)[collect(1:num_rows), collect(1:length(cols))]
-    Oscar.ModStdQt.ref_ff_rc!(M)
+    println((ref!))
+    @show M
+    ref!(M)
     nCk[independent_columns(M)] != target_faces[1:end - 1] && return false
   end
   return true
@@ -413,19 +405,22 @@ function check_shifted(F::Field, src::SimplicialComplex,
   return true
 end
 
-""" 
+"""
     exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100)
 
 Computes the (partial) exterior shift of a simplical complex or uniform hypergraph `K` with respect to the permutation group element `p` and the field `F`,
 using the Las Vegas algorithm. It samples `n_samples` random matrices, computes the respective partial shifts, takes the lexicographically minimal one,
-tests if it is the partial shift of `K` with respect to `p`, and returns the shift and the number of samples used. Otherwise, returns `nothing` 
-and the number of samples used."""
-function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_samples=100, timed=false)
+tests if it is the partial shift of `K` with respect to `p`, and returns the shift and the number of samples used. Otherwise, returns `nothing`
+and the number of samples used.
+
+With `timed`, return extensive reporting."""
+function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
   # this might need to be changed based on the characteristic
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
-  shift = @timed argmin(x->x[1].faces, ((random_shift(F, K, p), i) for i in 1:n_samples))
-  shifted = @timed check_shifted(F, K, shift.value[1], p)
+
+  shift = @timed argmin(x->x[1].faces, ((exterior_shift(K, random_rothe_matrix(F, p); kw...), i) for i in 1:n_samples))
+  shifted = @timed check_shifted(F, K, shift.value[1], p; kw...)
   if timed
     if shifted.value
       return shift.value[1], (shift.value[2], shift.time, shift.bytes, shifted.time, shifted.bytes)
@@ -433,7 +428,7 @@ function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_s
       return nothing,        (n_samples,      shift.time, shift.bytes, shifted.time, shifted.bytes)
     end
   else
-    return shifted.value ? shift.value : nothing
+    return shifted.value[1] ? shift.value[1] : nothing
   end
 end
 
@@ -441,13 +436,13 @@ function exterior_shift_lv(F::Field, K::SimplicialComplex, p::PermGroupElem; n_s
   throw(NotImplementedError("Not implemented for simplicial complexes yet."))
 end
 
-function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
-  shift = random_shift(F, K, p) 
-  count = 1
-  while !check_shifted(F, K, shift, p)
-    count += 1
-    shift = random_shift(F, K, p) 
-  end
-  @vprint :AlgebraicShifting 1 "Number of random shifts computed: $count\n"
-  return shift
-end
+# function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)
+#   shift = random_shift(F, K, p)
+#   count = 1
+#   while !check_shifted(F, K, shift, p)
+#     count += 1
+#     shift = random_shift(F, K, p)
+#   end
+#   @vprint :AlgebraicShifting 1 "Number of random shifts computed: $count\n"
+#   return shift
+# end
