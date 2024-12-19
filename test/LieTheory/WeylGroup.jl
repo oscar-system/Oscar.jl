@@ -348,7 +348,70 @@ include(
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
   end
+  
+  @testset "reflection" begin
+    for i in 2:4
+      R = root_system(:A, i)
+      for r in roots(R)
+        @test r * reflection(r) == -r
+      end
+    end
 
+    for i in 2:4
+      R = root_system(:B, i)
+      for r in roots(R)
+        @test r * reflection(r) == -r
+      end
+    end
+
+    for i in 2:4
+      R = root_system(:C, i)
+      for r in roots(R)
+        @test r * reflection(r) == -r
+      end
+    end
+
+    R = root_system(:D, 4)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system(:E, 6)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system(:E, 7)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system(:E, 8)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system(:F, 4)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system(:G, 2)
+    for r in roots(R)
+      @test r * reflection(r) == -r
+    end
+
+    R = root_system([(:B, 2), (:A, 2)])
+    for r in roots(R)
+      @test r * reflection(r) == -r
+      for r2 in roots(R)
+        if is_zero(dot(r, r2)) #roots are orthogonal
+          @test r2 * reflection(r) == r2
+        end
+      end
+    end
+  end
+  
   @testset "ReducedExpressionIterator" begin
     W = weyl_group(:A, 3)
     s = gens(W)
