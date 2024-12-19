@@ -80,6 +80,7 @@ import ..Oscar:
   parent_type,
   permutation_group,
   rank,
+  reflection,
   root,
   roots,
   sub,
