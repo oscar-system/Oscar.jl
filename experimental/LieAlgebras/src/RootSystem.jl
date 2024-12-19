@@ -376,9 +376,11 @@ end
 ```jldoctest
 julia> R = root_system(:A, 3);
 
-julia> pos_r = positive_root(R, 4);
+julia> pos_r = positive_root(R, 4)
+a_1 + a_2
 
-julia> w = WeightLatticeElem(R, [1, 0, 0]);
+julia> w = fundamental_weight(R, 1)
+w_1
 
 julia> demazure_operator(pos_r, w)
 Dict{WeightLatticeElem, Int64} with 2 entries:
