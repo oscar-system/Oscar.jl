@@ -1399,6 +1399,7 @@ export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
 export reflect, reflect!
+export reflection
 export register_morphism!
 export regular_120_cell
 export regular_24_cell
