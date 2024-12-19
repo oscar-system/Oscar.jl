@@ -33,8 +33,6 @@ weyl_group(::Vector{Tuple{Symbol,Int}})
 ## Basic properties
 Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
 
-Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
-
 ```@docs
 is_finite(::WeylGroup)
 one(::WeylGroup)
@@ -47,6 +45,19 @@ order(::Type{T}, ::WeylGroup) where {T}
 
 ```@docs
 root_system(::WeylGroup)
+```
+
+### Element constructors
+
+Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
+
+```@docs; canonical=false
+gen(::WeylGroup, ::Int)
+gens(::WeylGroup)
+```
+
+```@docs
+reflection(::RootSpaceElem)
 ```
 
 ### Words and length
