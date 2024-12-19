@@ -399,3 +399,40 @@ function arrangement_polynomial(
   F = parent(first(A))
   return arrangement_polynomial(ring, matrix(F, A); hyperplanes)
 end
+
+
+function multiply_by_nonzero_scalar(u::PointVector{QQFieldElem}, c::QQFieldElem)
+  return u .* c
+end
+function multiply_by_nonzero_scalar(u::RayVector{QQFieldElem}, c::QQFieldElem)
+  return (c<0 ? -u : u)
+end
+
+function *(c::QQFieldElem, Sigma::PolyhedralFan)
+  # if scalar is zero, return polyhedral complex consisting only of the origin
+  if iszero(c)
+    return polyhedral_complex(convex_hull(zero_matrix(QQ,1,ambient_dim(Sigma))))
+  end
+
+  # if scalar is non-zero, multiple all vertices and rays by said scalar
+  SigmaRays = first(rays_modulo_lineality(Sigma))
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix,Sigma)
+  return polyhedral_fan(SigmaIncidence, multiply_by_nonzero_scalar.(SigmaRays,c), SigmaLineality)
+end
+*(c::ZZRingElem, Sigma::PolyhedralFan) = QQ(c)*Sigma
+*(c::Rational, Sigma::PolyhedralFan) = QQ(c)*Sigma
+*(c::Int, Sigma::PolyhedralFan) = QQ(c)*Sigma
+
+*(Sigma::PolyhedralFan,c::QQFieldElem) = c*Sigma
+*(Sigma::PolyhedralFan,c::ZZRingElem) = QQ(c)*Sigma
+*(Sigma::PolyhedralFan,c::Rational) = QQ(c)*Sigma
+*(Sigma::PolyhedralFan,c::Int) = QQ(c)*Sigma
+
+
+function -(Sigma::PolyhedralFan)
+  SigmaRays = first(rays_modulo_lineality(Sigma))
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_cones(IncidenceMatrix,Sigma)
+  return polyhedral_fan(SigmaIncidence, -SigmaRays, SigmaLineality)
+end
