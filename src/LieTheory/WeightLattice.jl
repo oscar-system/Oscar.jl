@@ -462,3 +462,15 @@ function reflect!(w::WeightLatticeElem, s::Int)
   w.vec = addmul!(w.vec, view(cartan_matrix_tr(root_system(w)), s:s, :), -w.vec[s]) # change to submul! once available
   return w
 end
+
+function reflect(w::WeightLatticeElem, beta::RootSpaceElem)
+  return reflect!(deepcopy(w), beta)
+end
+
+function reflect!(w::WeightLatticeElem, beta::RootSpaceElem)
+  @req root_system(w) === root_system(beta) "Incompatible root systems"
+  for s in word(reflection(beta))
+    reflect!(w, Int(s))
+  end
+  return w
+end
