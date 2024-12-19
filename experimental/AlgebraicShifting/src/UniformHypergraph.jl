@@ -64,6 +64,10 @@ function uniform_hypergraph(K::SimplicialComplex, k::Int)
   return uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
 end
 
+function uniform_hypergraph(G::Graph{Undirected})
+  return uniform_hypergraph([[src(e), dst(e)] for e in edges(G)], n_vertices(G))
+end
+
 function simplicial_complex(K::UniformHypergraph)
   return simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
 end
