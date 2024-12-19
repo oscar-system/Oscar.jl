@@ -364,10 +364,28 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   end
 end
 
-function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  return demazure_operator(r, Dict(w => 1))
-end
+@doc raw"""
+    demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
+    demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
 
+Computes the action of the Demazure operator associated to the positive root `r` on the element of the groupring `groupringelem``.
+
+Instead of a Dict{WeightLatticeElem, <:IntegerUnion} `groupringelem`, a single WeightLatticeElem `w` can be supplied.
+
+# Examples
+```jldoctest
+julia> R = root_system(:A, 3);
+
+julia> pos_r = positive_root(R, 4);
+
+julia> w = WeightLatticeElem(R, [1, 0, 0]);
+
+julia> demazure_operator(pos_r, w)
+Dict{WeightLatticeElem, Int64} with 2 entries:
+  -w_2 + w_3 => 1
+  w_1        => 1
+```
+"""
 function demazure_operator(
   r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
 )
@@ -384,6 +402,10 @@ function demazure_operator(
     end
   end
   return dict
+end
+
+function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(r, Dict(w => 1))
 end
 
 @doc raw"""
