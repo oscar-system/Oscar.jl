@@ -157,11 +157,11 @@
       @test r * reflection(r) == -r
     end
 
-    R = root_system([(:A, 1), (:A, 1)])
+    R = root_system([(:B, 2), (:A, 2)])
     for r in roots(R)
       @test r * reflection(r) == -r
       for r2 in roots(R)
-        if r != r2 && r != -r2
+        if is_zero(dot(r, r2)) #roots are orthogonal
           @test r2 * reflection(r) == r2
         end
       end

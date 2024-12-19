@@ -1114,8 +1114,9 @@ function reflection(beta::RootSpaceElem)
 
   b, index_of_beta = is_positive_root_with_index(beta)
   if !b
-    index_of_beta = is_root_with_index(beta) - rk
+    b, index_of_beta = is_negative_root_with_index(beta)
   end
+  @req b "Not a root"
 
   found_simple_root = index_of_beta <= rk
   current_index = index_of_beta
