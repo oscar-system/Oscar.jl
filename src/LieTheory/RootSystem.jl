@@ -1102,7 +1102,11 @@ function reflect!(r::RootSpaceElem, s::Int)
   return r
 end
 
-### reflection function for positive roots
+@doc raw"""
+    reflection(beta::RootSpaceElem) -> WeylGroupElem
+
+Return the Weylgroupelement corresponding to the reflection at the hyperplane orthogonal to root `beta`.
+"""
 function reflection(beta::RootSpaceElem)
   R = root_system(beta)
   W = weyl_group(R)
@@ -1136,10 +1140,24 @@ function reflection(beta::RootSpaceElem)
   return W([list_of_indizes; current_index; reverse(list_of_indizes)])
 end
 
+@doc raw"""
+    reflect(r::RootSpaceElem, beta::RootSpaceElem) -> RootSpaceElem
+  
+Return the reflection of `r` in the hyperplane orthogonal to root `beta`.
+
+See also: [`reflect!(::RootSpaceElem, ::RootSpaceElem)`](@ref).
+"""
 function reflect(r::RootSpaceElem, beta::RootSpaceElem)
   return reflect!(deepcopy(r), beta)
 end
 
+@doc raw"""
+    reflect!(r::RootSpaceElem, beta::RootSpaceElem) -> RootSpaceElem
+
+Reflect `r` in the hyperplane orthogonal to the root `beta`, and return it.
+
+This is a mutating version of [`reflect(::RootSpaceElem, ::RootSpaceElem)`](@ref).
+"""
 function reflect!(r::RootSpaceElem, beta::RootSpaceElem)
   @req root_system(r) === root_system(beta) "Incompatible root systems"
   for s in word(reflection(beta))
