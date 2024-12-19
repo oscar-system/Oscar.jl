@@ -1104,7 +1104,7 @@ end
 @doc raw"""
     reflection(beta::RootSpaceElem) -> WeylGroupElem
 
-Return the Weylgroupelement corresponding to the reflection at the hyperplane orthogonal to root `beta`.
+Return the Weyl group element corresponding to the reflection at the hyperplane orthogonal to root `beta`.
 """
 function reflection(beta::RootSpaceElem)
   R = root_system(beta)
@@ -1879,7 +1879,7 @@ end
     demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
     demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
 
-Computes the action of the Demazure operator associated to the positive root `r` on the element of the groupring `groupringelem``.
+Computes the action of the Demazure operator associated to the positive root `r` on the given element of the groupring $\mathbb{Z}[P]$.
 
 Instead of a Dict{WeightLatticeElem, <:IntegerUnion} `groupringelem`, a single WeightLatticeElem `w` can be supplied.
 
