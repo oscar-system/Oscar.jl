@@ -516,6 +516,42 @@ function word(x::WeylGroupElem)
   return x.word
 end
 
+@doc raw"""
+    reflection(beta::RootSpaceElem) -> WeylGroupElem
+
+Return the Weyl group element corresponding to the reflection at the hyperplane orthogonal to root `beta`.
+"""
+function reflection(beta::RootSpaceElem)
+  R = root_system(beta)
+  W = weyl_group(R)
+  rk = number_of_simple_roots(R)
+
+  b, index_of_beta = is_positive_root_with_index(beta)
+  if !b
+    b, index_of_beta = is_negative_root_with_index(beta)
+  end
+  @req b "Not a root"
+
+  found_simple_root = index_of_beta <= rk
+  current_index = index_of_beta
+  list_of_indices = Int[]
+  while !found_simple_root
+    for j in 1:rk
+      next_index = W.refl[j, current_index]
+      if !iszero(next_index) &&
+        next_index < current_index
+        current_index = next_index
+        if current_index <= rk
+          found_simple_root = true
+        end
+        push!(list_of_indices, j)
+        break
+      end
+    end
+  end
+  return W([list_of_indices; current_index; reverse(list_of_indices)])
+end
+
 ###############################################################################
 # ReducedExpressionIterator
 
