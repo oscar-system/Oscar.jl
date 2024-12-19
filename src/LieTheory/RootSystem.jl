@@ -1102,6 +1102,52 @@ function reflect!(r::RootSpaceElem, s::Int)
   return r
 end
 
+### reflection function for positive roots
+function reflection(beta::RootSpaceElem)
+  R = root_system(beta)
+  W = weyl_group(R)
+  rk = number_of_simple_roots(R)
+
+  b, index_of_beta = is_positive_root_with_index(beta)
+  if !b
+    index_of_beta -= rk
+  end
+
+  found_simple_root = false
+  current_index = index_of_beta
+  list_of_indizes = Int[]
+  if index_of_beta <= rk
+    found_simple_root = true
+  end
+  while !found_simple_root
+    for j in 1:rk
+      next_index = W.refl[j, current_index]
+      if !iszero(next_index) &&
+        next_index < current_index
+        current_index = next_index
+        if current_index <= rk
+          found_simple_root = true
+        end
+        push!(list_of_indizes, j)
+        break
+      end
+    end
+  end
+  return W([list_of_indizes; current_index; reverse(list_of_indizes)])
+end
+
+function reflect(r::RootSpaceElem, beta::RootSpaceElem)
+  return reflect!(deepcopy(r), beta)
+end
+
+function reflect!(r::RootSpaceElem, beta::RootSpaceElem)
+  @req root_system(r) === root_system(beta) "Incompatible root systems"
+  for s in word(reflection(beta))
+    reflect!(r, Int(s))
+  end
+  return r
+end
+
 @doc raw"""
     root_system(r::RootSpaceElem) -> RootSystem
 
