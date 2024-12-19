@@ -134,6 +134,10 @@ basis(X::AbstractVariety)
 ```
 
 ```@docs
+betti_numbers(X::AbstractVariety)
+```
+
+```@docs
 intersection_matrix(X::AbstractVariety)
 ```
 
@@ -141,8 +145,14 @@ intersection_matrix(X::AbstractVariety)
 dual_basis(X::AbstractVariety)
 ```
 
+```@docs
+euler_number(X::AbstractVariety)
+```
+
 !!! note
-    If `X` is of type `AbstractVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`. Similarly for entering `euler(X)`, `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, `pontryagin_class(X, k)`
+    If `X` is of type `AbstractVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
+    Similarly for entering `chern_class(X, k)`,  `todd_class(X)`, `total_pontryagin_class(X)`, and `pontryagin_class(X, k)`.
+    Moreover, `gens(X)` returns the generators of the Chow Ring of `X`.
 
 ## Operations on Abstract Varieties
 
@@ -162,7 +172,8 @@ integral(x::Union{MPolyDecRingElem, MPolyQuoRingElem})
 Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
 
 !!! note
-    If `X` has a (unique) point class, the integral will be a number (that is, a `QQFieldElem` or a function field element). Otherwise, the highests degree part of $x$ is returned (geometrically, this is the 0-dimensional part of $x$).
+    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest
+    degree part of `x` is returned (geometrically, this is the 0-dimensional part of `x`).
 
 ###### Examples
 

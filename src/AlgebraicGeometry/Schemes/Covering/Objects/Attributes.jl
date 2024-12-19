@@ -3,7 +3,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{Covering{T}}) where {T} = T
-base_ring_type(C::Covering) = base_ring_type(typeof(C))
 
 ### type constructors
 #covering_type(::Type{T}) where {T<:AffineScheme} = Covering{T, gluing_type(T)}

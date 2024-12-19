@@ -66,18 +66,22 @@ function show(io::IO, ::MIME"text/plain", W::MPolyDecRing)
   io = pretty(io)
   R = forget_decoration(W)
   print(io, R)
-  if is_filtered(W)
-    println(io, " filtrated by")
+  if is_trivial(grading_group(W))
+    print(io, " graded by the trivial group")
   else
-    println(io, " graded by")
-  end
-  g = gens(R)
-  print(io, Indent())
-  for i = 1:ngens(R)
-    if i == ngens(R)
-       print(io, "$(g[i]) -> $(W.d[i].coeff)")
+    if is_filtered(W)
+      println(io, " filtrated by")
     else
-       println(io, "$(g[i]) -> $(W.d[i].coeff)")
+      println(io, " graded by")
+    end
+    g = gens(R)
+    print(io, Indent())
+    for i = 1:ngens(R)
+      if i == ngens(R)
+         print(io, "$(g[i]) -> $(W.d[i].coeff)")
+      else
+         println(io, "$(g[i]) -> $(W.d[i].coeff)")
+      end
     end
   end
   print(io, Dedent())

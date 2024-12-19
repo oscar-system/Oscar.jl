@@ -70,6 +70,12 @@
       typeof(center_data),
       typeof(center_unnormalized),
     }(bl_toric, position_new_ray, center_data, center_unnormalized)
+    if has_attribute(v, :has_torusfactor)
+      set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
+    end
+    if has_attribute(v, :is_orbifold)
+      set_attribute!(bl, :is_orbifold, is_orbifold(v))
+    end
     return bl
   end
   
@@ -86,6 +92,12 @@
       typeof(center_data),
       IdealSheaf{typeof(v), AbsAffineScheme, Ideal, Map},
     }(bl_toric, position_new_ray, center_data)
+    if has_attribute(v, :has_torusfactor)
+      set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
+    end
+    if has_attribute(v, :is_orbifold)
+      set_attribute!(bl, :is_orbifold, is_orbifold(v))
+    end
     return bl
   end
 end

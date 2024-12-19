@@ -12,6 +12,9 @@ Weyl groups are represented by objects of type `WeylGroup <: Group`, and their e
     Note however, that this may differ from the literature, but is to stay
     consistent with the conventions in the rest of OSCAR.
 
+!!! note
+    See [Cartan types](@ref) for our conventions on Cartan types and ordering of simple roots.
+
 ## Table of contents
 
 ```@contents

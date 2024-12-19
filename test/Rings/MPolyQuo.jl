@@ -368,3 +368,19 @@ end
     end
   end
 end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  Q, pr = quo(R, I)
+  J = ideal(Q, y)
+  @test J.dim === nothing
+  @test dim(J) == 0
+  @test J.dim !== nothing
+  J2 = ideal(Q, [y, y+1])
+  @test J2.dim === nothing
+  @test dim(J2) == -inf
+  @test J2.dim !== nothing
+end
+

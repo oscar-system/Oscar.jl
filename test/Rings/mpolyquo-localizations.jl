@@ -527,3 +527,22 @@ end
   @test Oscar._monomial_basis(L1, ideal(L1, [(x-1)^2, (y-2)^2])) == L1.([x*y, y, x, 1])  
   @test isempty(Oscar._monomial_basis(L1, ideal(L1, L1.([x, y]))))
 end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  
+  Q, pr = quo(R, I)
+  
+  W, loc = localization(Q, complement_of_prime_ideal(I))
+  J = ideal(W, x)
+  @test dim(J) == 0
+  K = ideal(W, x-1)
+  @test dim(K) == -inf
+  
+  WW, _ = quo(W, K)
+  @test dim(WW) == -inf
+  @test dim(underlying_quotient(WW)) == -inf
+end
+

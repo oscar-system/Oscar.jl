@@ -165,10 +165,10 @@ julia> collect(edges(G))
 
 julia> EL[6, 5]
 4-element Vector{WeylGroupElem}:
- s1 * s2
  s2
- s3 * s1 * s2
+ s1 * s2
  s3 * s2
+ s1 * s3 * s2
 
 julia> facets.(VL[[6, 5]])
 2-element Vector{Vector{Set{Int64}}}:

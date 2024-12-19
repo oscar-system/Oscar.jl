@@ -407,6 +407,12 @@ function (==)(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
   return true
 end
 
+function Base.hash(M::SubModuleOfFreeModule, h::UInt)
+  # this hash function is very stupid, but it at least hashes the ambient free module,
+  # that must be equal for equal SubModuleOfFreeModules
+  return hash(M.F, h)
+end
+
 @doc raw"""
     is_canonically_isomorphic(M::SubModuleOfFreeModule, N::SubModuleOfFreeModule)
 

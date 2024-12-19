@@ -259,10 +259,6 @@ function morphism_type(::Type{T}, ::Type{U}) where {T<:AbstractFreeMod, U<:Modul
 end
 
 base_ring_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = parent_type(T)
-base_ring_elem_type(::Type{ModuleType}) where {T, ModuleType<:ModuleFP{T}} = T
-
-base_ring_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_type(typeof(M))
-base_ring_elem_type(M::ModuleType) where {ModuleType<:ModuleFP} = base_ring_elem_type(typeof(M))
 
 function morphism_type(F::AbstractFreeMod, G::ModuleFP, h::RingMapType) where {RingMapType}
   return FreeModuleHom{typeof(F), typeof(G), typeof(h)}

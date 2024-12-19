@@ -436,6 +436,16 @@ function is_isomorphic(G::MultTableGroup, H::GAPGroup)
   return is_isomorphic(P, H)
 end
 
+function is_isomorphic(G::GAPGroup, H::FinGenAbGroup)
+  is_abelian(G) || return false
+  return abelian_invariants(G) == abelian_invariants(H)
+end
+
+function is_isomorphic(G::FinGenAbGroup, H::GAPGroup)
+  is_abelian(H) || return false
+  return abelian_invariants(G) == abelian_invariants(H)
+end
+
 """
     isomorphism(G::Group, H::Group)
 
@@ -470,6 +480,48 @@ function isomorphism(G::MultTableGroup, H::GAPGroup)
   fl, PtoH = is_isomorphic_with_map(P, H)
   @req fl "the groups are not isomorphic"
   return GtoP * PtoH
+end
+
+"""
+    isomorphic_subgroups(H::Group, G::Group)
+
+Return a vector of injective group homomorphism from `H` to `G`,
+where the images are representatives of those conjugacy classes
+of subgroups of `G` that are isomorphic with `H`.
+
+# Examples
+```jldoctest
+julia> isomorphic_subgroups(alternating_group(5), alternating_group(6))
+2-element Vector{GAPGroupHomomorphism{PermGroup, PermGroup}}:
+ Hom: Alt(5) -> Alt(6)
+ Hom: Alt(5) -> Alt(6)
+
+julia> isomorphic_subgroups(symmetric_group(4), alternating_group(5))
+GAPGroupHomomorphism{PermGroup, PermGroup}[]
+```
+"""
+function isomorphic_subgroups(H::GAPGroup, G::GAPGroup)
+  res = GAPWrap.IsomorphicSubgroups(GapObj(G), GapObj(H))
+  return [GAPGroupHomomorphism(H, G, x) for x in res]
+end
+
+function isomorphic_subgroups(H::FinGenAbGroup, G::GAPGroup)
+  isoH = isomorphism(PcGroup, H)
+  res = isomorphic_subgroups(codomain(isoH), G)
+  return [isoH*x for x in res]
+end
+
+function isomorphic_subgroups(H::GAPGroup, G::FinGenAbGroup)
+  isoG = inv(isomorphism(PcGroup, G))
+  res = isomorphic_subgroups(H, domain(isoG))
+  return [x*isoG for x in res]
+end
+
+function isomorphic_subgroups(H::FinGenAbGroup, G::FinGenAbGroup)
+  isoH = isomorphism(PcGroup, H)
+  isoG = inv(isomorphism(PcGroup, G))
+  res = isomorphic_subgroups(codomain(isoH), domain(isoG))
+  return [isoH*x*isoG for x in res]
 end
 
 ################################################################################

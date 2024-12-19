@@ -372,7 +372,6 @@ export codomain_covering
 export coefficient_field
 export coefficient_ring
 export coefficient_ring_type
-export coefficient_type
 export coefficients
 export coefficients_and_exponents
 export cohomology
@@ -952,6 +951,7 @@ export is_zm_graded
 export isfinite
 export isometry_group
 export isomorphic_matroid
+export isomorphic_subgroups
 export isomorphism
 export isone
 export isqrtrem

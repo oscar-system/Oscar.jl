@@ -2366,23 +2366,6 @@ function (G::FPGroup)(pairs::AbstractVector{Pair{T, S}}) where {T <: IntegerUnio
    return FPGroupElem(G, w)
 end
 
-# This format is used in the serialization of `FPGroupElem`.
-function (G::FPGroup)(extrep::AbstractVector{T}) where T <: IntegerUnion
-   famG = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(G)))
-   if GAP.Globals.IsFreeGroup(GapObj(G))
-     w = GAPWrap.ObjByExtRep(famG, GapObj(extrep, true))
-   else
-     # For quotients of free groups, `GAPWrap.ObjByExtRep` is not defined.
-     F = GAP.getbangproperty(famG, :freeGroup)
-     famF = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))
-     w1 = GAPWrap.ObjByExtRep(famF, GapObj(extrep, true))
-     w = GAPWrap.ElementOfFpGroup(famG, w1)
-   end
-
-   return FPGroupElem(G, w)
-end
-
-
 function describe(G::FinGenAbGroup)
    l = elementary_divisors(G)
    length(l) == 0 && return "0"   # trivial group

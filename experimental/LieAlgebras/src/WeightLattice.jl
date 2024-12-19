@@ -358,9 +358,9 @@ function conjugate_dominant_weight_with_elem!(w::WeightLatticeElem)
     end
   end
 
-  # reversing word means it is in short revlex normal form
+  # word is already in short lex normal form
   # and it is the element taking original w to new w
-  return w, weyl_group(root_system(w))(word; normalize=true) # TODO: is normalize=true necessary?
+  return w, weyl_group(root_system(w))(word; normalize=false)
 end
 
 function dot(w1::WeightLatticeElem, w2::WeightLatticeElem)

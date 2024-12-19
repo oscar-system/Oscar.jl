@@ -17,8 +17,6 @@ scheme_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = S
 scheme_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = S
 coefficient_ring_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = U
 coefficient_ring_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = U
-coefficient_ring_elem_type(D::AbsAlgebraicCycle{S, U}) where {S, U} = elem_type(U)
-coefficient_ring_elem_type(::Type{AbsAlgebraicCycle{S, U}}) where {S, U} = elem_type(U)
 
 ### essential getters and functionality
 
@@ -379,7 +377,7 @@ end
 
 
 @attr Int function dim(D::AlgebraicCycle)
-  result = -1
+  result = -inf
   for I in components(D)
     d = dim(I)
     if d > result

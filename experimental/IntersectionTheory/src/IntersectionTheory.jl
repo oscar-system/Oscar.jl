@@ -38,7 +38,7 @@ export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
-export euler
+export euler_number
 export euler_pairing
 export graph
 export hom
@@ -120,7 +120,7 @@ export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
-export euler
+export euler_number
 export euler_pairing
 export graph
 export hom
