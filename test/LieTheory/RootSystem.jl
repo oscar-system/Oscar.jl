@@ -303,5 +303,4 @@
       @test result == @inferred dot(RootSpaceElem(w1), RootSpaceElem(w2))
     end
   end
-
 end

@@ -14,19 +14,19 @@ include(
       W = weyl_group(cartan_matrix(:A, 2))
       @test isfinite(W) == true
       @test ngens(W) == 2
-  
+
       W = weyl_group(cartan_matrix(:A, 3))
       @test isfinite(W) == true
       @test ngens(W) == 3
-  
+
       W = weyl_group(cartan_matrix(:B, 2))
       @test isfinite(W) == true
       @test ngens(W) == 2
-  
+
       W = weyl_group(ZZ[2 -2; -2 2]) # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
       @test isfinite(W) == false
     end
-  
+
     @testset "weyl_group(::Symbol, ::Int)" begin
       @test weyl_group(:A, 2) isa WeylGroup
       @test weyl_group(:B, 4) isa WeylGroup
@@ -35,16 +35,16 @@ include(
       @test weyl_group(:E, 7) isa WeylGroup
       @test weyl_group(:F, 4) isa WeylGroup
       @test weyl_group(:G, 2) isa WeylGroup
-  
+
       @test_throws ArgumentError weyl_group(:F, 2)
     end
-  
+
     @testset "weyl_group(::Tuple{Symbol, Int}...)" begin
       @test weyl_group((:A, 2), (:B, 4)) isa WeylGroup
       @test weyl_group((:C, 3), (:D, 5)) isa WeylGroup
       @test weyl_group((:E, 7)) isa WeylGroup
       @test weyl_group((:F, 4), (:G, 2)) isa WeylGroup
-  
+
       @test_throws ArgumentError weyl_group((:F, 2), (:B, 4))
       @test_throws ArgumentError weyl_group((:B, 2), (:G, 4))
     end
@@ -492,5 +492,4 @@ include(
       @test allunique(orb)
     end
   end
-
 end
