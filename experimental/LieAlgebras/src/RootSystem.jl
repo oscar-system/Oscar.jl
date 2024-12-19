@@ -1102,6 +1102,32 @@ function reflect!(r::RootSpaceElem, s::Int)
 end
 
 @doc raw"""
+    reflect(r::RootSpaceElem, beta::RootSpaceElem) -> RootSpaceElem
+  
+Return the reflection of `r` in the hyperplane orthogonal to root `beta`.
+
+See also: [`reflect!(::RootSpaceElem, ::RootSpaceElem)`](@ref).
+"""
+function reflect(r::RootSpaceElem, beta::RootSpaceElem)
+  return reflect!(deepcopy(r), beta)
+end
+
+@doc raw"""
+    reflect!(r::RootSpaceElem, beta::RootSpaceElem) -> RootSpaceElem
+
+Reflect `r` in the hyperplane orthogonal to the root `beta`, and return it.
+
+This is a mutating version of [`reflect(::RootSpaceElem, ::RootSpaceElem)`](@ref).
+"""
+function reflect!(r::RootSpaceElem, beta::RootSpaceElem)
+  @req root_system(r) === root_system(beta) "Incompatible root systems"
+  for s in word(reflection(beta))
+    reflect!(r, Int(s))
+  end
+  return r
+end
+
+@doc raw"""
     root_system(r::RootSpaceElem) -> RootSystem
 
 Return the root system `r` belongs to.
@@ -1782,13 +1808,13 @@ end
 ###############################################################################
 # demazures character formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  fl, index_of_r = is_simple_root_with_index(r)
-  @req fl "not a simple root"
+  fl, index_of_r = is_positive_root_with_index(r)
+  @req fl "r is not a positive root"
 
   d = 2 * dot(w, r)//dot(r, r)
   list_of_occuring_weights = WeightLatticeElem[]
 
-  refl = reflect(w, index_of_r)
+  refl = reflect(w, r)
 
   wlelem_r = WeightLatticeElem(r)
   if d > -1
@@ -1811,10 +1837,30 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   end
 end
 
-function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  return demazure_operator(r, Dict(w => 1))
-end
+@doc raw"""
+    demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
+    demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
 
+Computes the action of the Demazure operator associated to the positive root `r` on the given element of the groupring $\mathbb{Z}[P]$.
+
+If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
+
+# Examples
+```jldoctest
+julia> R = root_system(:A, 3);
+
+julia> pos_r = positive_root(R, 4)
+a_1 + a_2
+
+julia> w = fundamental_weight(R, 1)
+w_1
+
+julia> demazure_operator(pos_r, w)
+Dict{WeightLatticeElem, Int64} with 2 entries:
+  -w_2 + w_3 => 1
+  w_1        => 1
+```
+"""
 function demazure_operator(
   r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
 )
@@ -1831,6 +1877,10 @@ function demazure_operator(
     end
   end
   return dict
+end
+
+function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(r, Dict(w => 1))
 end
 
 @doc raw"""
@@ -1918,8 +1968,20 @@ end
 ###############################################################################
 # internal helpers
 
-# cartan matrix in the format <a^v, b>
-function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
+@doc raw"""
+    _positive_roots_and_reflections(cartan_matrix::ZZMatrix) -> Vector{Vector{ZZRingElem}}, Vector{Vector{ZZRingElem}}, Matrix{UInt64}
+
+Compute the positive roots, the positive coroots, and a matrix `refl` of size $m \times n$,
+where $m$ is the rank of the root system and $n$ is the number of minimal roots.
+
+The minimal roots and coroots are given as coefficient vectors w.r.t. the simple roots and simple coroots, respectively.
+The minimal roots are indexed by `1:n`, with the first `m` of them corresponding
+to the simple roots, and the other roots sorted by height.
+
+If `beta = alpha_j * s_i` is a minimal root, then `refl_table[i, j]` stores the index of beta, and otherwise `0`.
+Note that `refl_table[i, i] = 0` for every simple root `alpha_i`.
+"""
+function _positive_roots_and_reflections(cartan_matrix::ZZMatrix)
   rank, _ = size(cartan_matrix)
 
   roots = [[l == s ? one(ZZ) : zero(ZZ) for l in 1:rank] for s in 1:rank]
@@ -1974,5 +2036,5 @@ function positive_roots_and_reflections(cartan_matrix::ZZMatrix)
     table[s, i] = iszero(refl[s, perm[i]]) ? 0 : invp[refl[s, perm[i]]]
   end
 
-  roots[perm], coroots[perm], table
+  return roots[perm], coroots[perm], table
 end

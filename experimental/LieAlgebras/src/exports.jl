@@ -92,6 +92,7 @@ export positive_root
 export positive_roots
 export reduced_expressions
 export reflect, reflect!
+export reflection
 export rmul, rmul!
 export root_system, has_root_system
 export root_system_type, has_root_system_type
