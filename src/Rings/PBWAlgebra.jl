@@ -68,8 +68,6 @@ coefficient_ring(a::PBWAlgElem) = coefficient_ring(parent(a))
 
 base_ring(a::PBWAlgRing) = a.poly_ring
 
-base_ring(a::PBWAlgElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgElem, dict::IdDict)
   return PBWAlgElem(parent(a), deepcopy_internal(a.sdata, dict))
 end
