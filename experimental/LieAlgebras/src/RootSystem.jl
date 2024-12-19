@@ -370,7 +370,7 @@ end
 
   Computes the action of the Demazure operator associated to the positive root `r` on the given element of the groupring $\mathbb{Z}[P]$.
 
-  Instead of a Dict{WeightLatticeElem, <:IntegerUnion} `groupringelem`, a single WeightLatticeElem `w` can be supplied.  
+  If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
 
 # Examples
 ```jldoctest
