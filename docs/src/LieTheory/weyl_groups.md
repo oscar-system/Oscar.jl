@@ -33,7 +33,7 @@ weyl_group(::Vector{Tuple{Symbol,Int}})
 ## Basic properties
 Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
 
-Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
+Finite Weyl groups support iteration over all group elements (in an arbitrary order).
 
 ```@docs
 is_finite(::WeylGroup)
@@ -49,6 +49,19 @@ order(::Type{T}, ::WeylGroup) where {T}
 root_system(::WeylGroup)
 ```
 
+### Element constructors
+
+Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
+
+```@docs; canonical=false
+gen(::WeylGroup, ::Int)
+gens(::WeylGroup)
+```
+
+```@docs
+reflection(::RootSpaceElem)
+```
+
 ### Words and length
 ```@docs
 word(::WeylGroupElem)
@@ -59,18 +72,6 @@ longest_element(::WeylGroup)
 ### Bruhat order
 ```@docs
 <(::WeylGroupElem, ::WeylGroupElem)
-```
-
-
-## Conversion to other group types
-
-For many computations, it may be suitable to have a `WeylGroup` as a different kind of group object, to e.g. use functionality that is only available for that other type.
-
-The conversion functions come in pairs: one only creates an isomorphic group object, the other also computes the isomorphism.
-
-```@docs
-fp_group(::WeylGroup)
-isomorphism(::Type{FPGroup}, ::WeylGroup)
 ```
 
 
@@ -89,4 +90,7 @@ reduced_expressions(::WeylGroupElem)
 
 
 ### Orbits
-TODO
+
+```@docs
+weyl_orbit(::WeightLatticeElem)
+```

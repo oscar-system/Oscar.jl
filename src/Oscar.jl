@@ -295,6 +295,8 @@ include("TropicalGeometry/TropicalGeometry.jl")
 
 include("InvariantTheory/InvariantTheory.jl")
 
+include("LieTheory/LieTheory.jl")
+
 include("Misc/Misc.jl")
 
 # Serialization should always come at the end of Oscar source code
