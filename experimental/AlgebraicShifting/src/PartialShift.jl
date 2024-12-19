@@ -250,9 +250,9 @@ function exterior_shift(K::UniformHypergraph, g::MatElem; (ref!)=ModStdQt.ref_ff
   return result
 end
 
-function exterior_shift(K::SimplicialComplex, g::MatElem)
+function exterior_shift(K::SimplicialComplex, g::MatElem; kw...)
   return simplicial_complex([
-    (faces(exterior_shift(uniform_hypergraph(K, k), g)) for k in 1:dim(K)+1)...;
+    (faces(exterior_shift(uniform_hypergraph(K, k), g; kw...)) for k in 1:dim(K)+1)...;
     [[i] for i in 1:n_vertices(K)] # Make sure result is a complex on n vertices
   ])
 end
@@ -390,14 +390,14 @@ function check_shifted(F::Field, src::UniformHypergraph,
 end
 
 function check_shifted(F::Field, src::SimplicialComplex,
-                       target::SimplicialComplex, p::PermGroupElem)
+                       target::SimplicialComplex, p::PermGroupElem; (ref!)=ModStdQt.ref_ff_rc!)
   n = n_vertices(src)
   f_vec = f_vector(src)
   k = length(f_vec)
   while k > 1
     uhg_src = uniform_hypergraph(complex_faces(src, k - 1), n)
     uhg_target = uniform_hypergraph(complex_faces(target, k - 1), n)
-    !check_shifted(F, uhg_src, uhg_target, p) && return false
+    !check_shifted(F, uhg_src, uhg_target, p; (ref!)=(ref!)) && return false
     k -= 1
   end
   return true
