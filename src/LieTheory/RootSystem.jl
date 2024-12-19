@@ -1105,7 +1105,7 @@ end
 @doc raw"""
     reflection(beta::RootSpaceElem) -> WeylGroupElem
 
-Return the Weylgroupelement corresponding to the reflection at the hyperplane orthogonal to root `beta`.
+Return the Weyl group element corresponding to the reflection at the hyperplane orthogonal to root `beta`.
 """
 function reflection(beta::RootSpaceElem)
   R = root_system(beta)
