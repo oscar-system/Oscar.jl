@@ -151,11 +151,11 @@ julia> L = monomial_basis(A)
 function monomial_basis(A::MPolyQuoRing)
   @req coefficient_ring(A) isa AbstractAlgebra.Field "The coefficient ring must be a field"
   is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
-  I = A.I
-  G = standard_basis(I)
-  if dim(I) == -inf # I is the whole ring
+  if is_trivial(A)
     return elem_type(base_ring(A))[]
   end
+  I = A.I
+  G = standard_basis(I)
   si = Singular.kbase(singular_generators(G, G.ord))
   return gens(MPolyIdeal(base_ring(I), si))
 end
