@@ -443,7 +443,6 @@ denominator(a::MPolyQuoLocRingElem) = underlying_quotient(parent(a))(a.denominat
 ### additional getter functions
 underlying_quotient(a::MPolyQuoLocRingElem) = underlying_quotient(parent(a))
 localized_ring(a::MPolyQuoLocRingElem) = localized_ring(parent(a))
-base_ring(a::MPolyQuoLocRingElem) = base_ring(parent(a))
 is_reduced(a::MPolyQuoLocRingElem) = a.is_reduced
 
 @doc raw"""
