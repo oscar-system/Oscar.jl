@@ -1114,15 +1114,12 @@ function reflection(beta::RootSpaceElem)
 
   b, index_of_beta = is_positive_root_with_index(beta)
   if !b
-    index_of_beta -= rk
+    index_of_beta = is_root_with_index(beta) - rk
   end
 
-  found_simple_root = false
+  found_simple_root = index_of_beta <= rk
   current_index = index_of_beta
-  list_of_indizes = Int[]
-  if index_of_beta <= rk
-    found_simple_root = true
-  end
+  list_of_indices = Int[]
   while !found_simple_root
     for j in 1:rk
       next_index = W.refl[j, current_index]
@@ -1132,12 +1129,12 @@ function reflection(beta::RootSpaceElem)
         if current_index <= rk
           found_simple_root = true
         end
-        push!(list_of_indizes, j)
+        push!(list_of_indices, j)
         break
       end
     end
   end
-  return W([list_of_indizes; current_index; reverse(list_of_indizes)])
+  return W([list_of_indices; current_index; reverse(list_of_indices)])
 end
 
 @doc raw"""
