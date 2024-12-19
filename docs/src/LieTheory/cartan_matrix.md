@@ -3,7 +3,7 @@ CurrentModule = Oscar
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Cartan Matrices
+# Cartan matrices
 
 Cartan matrices can be constructed from a Cartan type, and are represented as a square `ZZMatrix`.
 
