@@ -9,27 +9,27 @@ struct UniformHypergraph
   end
 end
 
-function uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int)
+function uniform_hypergraph(faces, n::Int, k::Int)
   faces = sort(collect(Set(sort.(collect.(Set.(faces))))))
   return UniformHypergraph(n, k, faces)
 end
 
-function uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int)
+function uniform_hypergraph(faces, n::Int)
   return uniform_hypergraph(faces, n, only(Set(length.(faces))))
 end
 
-function uniform_hypergraph(faces::Vector{Vector{Int}})
+function uniform_hypergraph(faces)
   return uniform_hypergraph(faces, maximum(maximum.(faces)))
 end
 
 @doc raw"""
-     uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int, k::Int)
-     uniform_hypergraph(faces::Vector{Vector{Int}}, n::Int)
-     uniform_hypergraph(faces::Vector{Vector{Int}})
+     uniform_hypergraph(faces, n::Int, k::Int)
+     uniform_hypergraph(faces, n::Int)
+     uniform_hypergraph(faces)
      uniform_hypergraph(K::SimplicialComplex, k::Int)
 
-Create a uniform hypergraph using `faces`, the size of each face should be `k` and all faces should be subsets of $[n]$.
-One can also create a `UniformHypergraph` for the `k` faces of a `SimplicialComplex` `K`.
+Create a uniform hypergraph using `faces`, which should be an iterable of size-k iterables of integers at most n.
+One can also create a `UniformHypergraph` for the `k-1`-faces of a `SimplicialComplex` `K`.
 
 #Examples
 ```jldoctest
@@ -55,7 +55,7 @@ julia> faces(U)
 ```
 """
 function uniform_hypergraph(K::SimplicialComplex, k::Int)
-  return uniform_hypergraph(sort(collect(sort.(collect.(complex_faces(K, k-1))))), n_vertices(K), k)
+  return uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
 end
 
 function uniform_hypergraph(G::Graph{Undirected})
