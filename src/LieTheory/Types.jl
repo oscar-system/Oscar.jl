@@ -27,7 +27,7 @@ See [`root_system(::ZZMatrix)`](@ref) for the constructor.
   function RootSystem(mat::ZZMatrix; check::Bool=true, detect_type::Bool=true)
     check && @req is_cartan_matrix(mat) "Requires a generalized Cartan matrix"
 
-    pos_roots, pos_coroots, refl = positive_roots_and_reflections(mat)
+    pos_roots, pos_coroots, refl = _positive_roots_and_reflections(mat)
     finite = count(refl .== 0) == nrows(mat)
 
     R = new(mat)
@@ -149,7 +149,7 @@ See [`weyl_group(::RootSystem)`](@ref) for the constructor.
 """
 @attributes mutable struct WeylGroup <: AbstractAlgebra.Group
   finite::Bool              # finite indicates whether the Weyl group is finite
-  refl::Matrix{UInt}        # see positive_roots_and_reflections
+  refl::Matrix{UInt}        # see _positive_roots_and_reflections
   root_system::RootSystem   # root_system is the RootSystem from which the Weyl group was constructed
 
   function WeylGroup(finite::Bool, refl::Matrix{UInt}, root_system::RootSystem)
