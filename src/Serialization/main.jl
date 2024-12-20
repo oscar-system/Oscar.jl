@@ -475,6 +475,7 @@ include("TropicalGeometry.jl")
 include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
+include("LieTheory.jl")
 
 include("Upgrades/main.jl")
 
