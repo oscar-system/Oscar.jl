@@ -1174,8 +1174,6 @@ number_of_generators(W::MPolyDecRing) = number_of_generators(forget_decoration(W
 gens(W::MPolyDecRing) = map(W, gens(forget_decoration(W)))
 gen(W::MPolyDecRing, i::Int) = W(gen(forget_decoration(W), i))
 
-base_ring(f::MPolyDecRingElem) = base_ring(forget_decoration(f))
-
 function show_homo_comp(io::IO, M)
   (W, d) = get_attribute(M, :data)
   n = AbstractAlgebra.get_name(W)
