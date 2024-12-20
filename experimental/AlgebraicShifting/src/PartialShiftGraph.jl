@@ -5,8 +5,15 @@ function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
   S_diff = collect(symdiff(S1, S2))
   isempty(S_diff) && return false
   set_cmp(a, b) = min(symdiff(a, b)...) in a
-
   return sort(S_diff;lt=set_cmp)[1] in S1
+end
+
+function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
+  return isless_lex(complex_faces(K1), complex_faces(K2))
+end
+
+function isless_lex(K1::UniformHypergraph, K2::UniformHypergraph)
+  return faces(K1) < faces(K2)
 end
 
 """
@@ -191,7 +198,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
       EdgeLabels(),
       complexes) :: Tuple{Graph{Directed}, EdgeLabels, Vector{T}}
   end
-  
+
   # maybe we provide a flag to skip if the complexes are already sorted?
   complexes = sort(complexes;lt=Oscar.isless_lex)
 
