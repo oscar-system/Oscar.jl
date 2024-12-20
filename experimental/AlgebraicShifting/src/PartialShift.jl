@@ -6,9 +6,7 @@ const ComplexOrHypergraph = Union{UniformHypergraph, SimplicialComplex}
 
 ################################################################################
 # Matrix construction helper functions
-function inversions(g::PermGroupElem)
-  return [(i,j) for j in 2:degree(parent(g)) for i in 1:j-1 if g(i) > g(j)]
-end
+inversions(g::PermGroupElem) = [(i,j) for j in 2:degree(parent(g)) for i in 1:j-1 if g(i) > g(j)]
 
 function generic_unipotent_matrix(R::MPolyRing)
   x = gens(R)
@@ -329,7 +327,6 @@ function exterior_shift(F::Field, K::ComplexOrHypergraph,
 end
 
 function exterior_shift(F::Field, K::ComplexOrHypergraph, w::WeylGroupElem; kw...)
-  n = n_vertices(K)
   phi = isomorphism(PermGroup, parent(w))
   return exterior_shift(F, K, phi(w); kw...)
 end

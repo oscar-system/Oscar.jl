@@ -9,18 +9,9 @@ struct UniformHypergraph
   end
 end
 
-function uniform_hypergraph(faces, n::Int, k::Int)
-  faces = sort(collect(Set(sort.(collect.(Set.(faces))))))
-  return UniformHypergraph(n, k, faces)
-end
-
-function uniform_hypergraph(faces, n::Int)
-  return uniform_hypergraph(faces, n, only(Set(length.(faces))))
-end
-
-function uniform_hypergraph(faces)
-  return uniform_hypergraph(faces, maximum(maximum.(faces)))
-end
+uniform_hypergraph(faces, n::Int, k::Int) = UniformHypergraph(n, k, sort(collect(Set(sort.(collect.(Set.(faces)))))))
+uniform_hypergraph(faces, n::Int) = uniform_hypergraph(faces, n, only(Set(length.(faces))))
+uniform_hypergraph(faces) = uniform_hypergraph(faces, maximum(maximum.(faces)))
 
 @doc raw"""
      uniform_hypergraph(faces, n::Int, k::Int)
@@ -54,18 +45,9 @@ julia> faces(U)
  [3, 4]
 ```
 """
-function uniform_hypergraph(K::SimplicialComplex, k::Int)
-  return uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
-end
-
-function uniform_hypergraph(G::Graph{Undirected})
-  return uniform_hypergraph([[src(e), dst(e)] for e in edges(G)], n_vertices(G))
-end
-
-function simplicial_complex(K::UniformHypergraph)
-  return simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
-end
-
+uniform_hypergraph(K::SimplicialComplex, k::Int) = uniform_hypergraph(complex_faces(K, k-1), n_vertices(K), k)
+uniform_hypergraph(G::Graph{Undirected}) = uniform_hypergraph([[src(e), dst(e)] for e in edges(G)], n_vertices(G))
+simplicial_complex(K::UniformHypergraph) = simplicial_complex([[[i] for i in 1:n_vertices(K)]; faces(K)])
 n_vertices(K::UniformHypergraph) = K.n_vertices
 
 faces(K::UniformHypergraph) = K.faces
@@ -73,14 +55,8 @@ faces(K::UniformHypergraph) = K.faces
 facets(K::UniformHypergraph) = Set.(K.faces)
 face_size(K::UniformHypergraph) = K.k
 
-function Base.hash(K :: UniformHypergraph, u :: UInt)
-  return hash(K.n_vertices, hash(K.k, hash(K.faces, u)))
-end
-
-function Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph)
-  return K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
-end
-
+Base.hash(K :: UniformHypergraph, u :: UInt) = hash(K.n_vertices, hash(K.k, hash(K.faces, u)))
+Base.:(==)(K :: UniformHypergraph, L :: UniformHypergraph) = K.n_vertices == L.n_vertices && K.k == L.k && K.faces == L.faces
 @doc raw"""
      alexander_dual(K::UniformHypergraph)
 
@@ -95,8 +71,5 @@ julia> alexander_dual(K)
 UniformHypergraph(4, 2, [[1, 3], [2, 3], [2, 4]])
 ```
 """
-function alexander_dual(K::UniformHypergraph)
-  return uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
-end
-
+alexander_dual(K::UniformHypergraph) = uniform_hypergraph(alexander_dual(simplicial_complex([[[i] for i in 1:K.n_vertices]; K.faces])), K.n_vertices - K.k)
 is_shifted(K::UniformHypergraph) = is_shifted(simplicial_complex(K))

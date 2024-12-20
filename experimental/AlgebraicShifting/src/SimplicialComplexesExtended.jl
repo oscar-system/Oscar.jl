@@ -3,13 +3,7 @@ import DataStructures: DefaultDict
 
   Returns a dictionary Dict(i => {x ∈ xs | f(x) = i}).
 """
-function groupby(f, xs)
-  mergewith(
-    union,
-    Dict(),
-    (Dict(f(x) => Set([x])) for x in xs)...
-  )
-end
+groupby(f, xs) = mergewith(union, Dict(), (Dict(f(x) => Set([x])) for x in xs)...)
 
 """ complex_faces_by_dimension(K::SimplicialComplex, mindim::Int=0)
 
