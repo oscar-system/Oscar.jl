@@ -115,6 +115,7 @@ function hirzebruch_surface(::Type{NormalToricVariety}, r::Int)
   return variety
 end
 
+hirzebruch_surface(r::Int) = hirzebruch_surface(NormalToricVariety, r)
 
 @doc raw"""
     del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
@@ -169,6 +170,8 @@ function del_pezzo_surface(::Type{NormalToricVariety}, b::Int)
   set_coordinate_names(variety, vars[1:(3 + b)])
   return variety
 end
+
+del_pezzo_surface(r::Int) = del_pezzo_surface(NormalToricVariety, r)
 
 @doc raw"""
     Base.:*(v::NormalToricVarietyType, w::NormalToricVarietyType)
