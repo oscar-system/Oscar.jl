@@ -9,7 +9,7 @@ function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
 end
 
 function isless_lex(K1::SimplicialComplex, K2::SimplicialComplex)
-  return isless_lex(complex_faces(K1), complex_faces(K2))
+  return isless_lex(Set(facets(K1)), Set(facets(K2)))
 end
 
 function isless_lex(K1::UniformHypergraph, K2::UniformHypergraph)
