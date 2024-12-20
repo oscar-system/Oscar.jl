@@ -1,4 +1,4 @@
-@testset "LieAlgebras.WeightLattice" begin
+@testset "LieTheory.WeightLattice" begin
   function is_in_normal_form(x::WeylGroupElem)
     return word(parent(x)(word(x))) == word(x)
   end
@@ -10,7 +10,7 @@
     @test root_system(w) === R
   end
 
-  @testset "conjugate_dominant_weight_with_*_elem(w::WeightLatticeElem)" begin
+  @testset "conjugate_dominant_weight_with_elem(w::WeightLatticeElem)" begin
     for (R, vec) in [
       (root_system(:A, 5), [1, -1, 2, 0, 2]),
       (root_system(:B, 3), [1, 1, 1]),
