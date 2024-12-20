@@ -64,6 +64,48 @@ end
 
 ###############################################################################
 #
+#   Weight lattices
+#
+###############################################################################
+
+@register_serialization_type WeightLattice uses_id
+
+function save_object(s::SerializerState, P::WeightLattice)
+  save_data_dict(s) do
+    save_typed_object(s, root_system(P), :root_system)
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{WeightLattice})
+  R = load_typed_object(s, :root_system)
+  return weight_lattice(R)
+end
+
+@register_serialization_type WeightLatticeElem uses_params
+
+function save_object(s::SerializerState, w::WeightLatticeElem)
+  save_object(s, _vec(coefficients(w)))
+end
+
+function load_object(s::DeserializerState, ::Type{WeightLatticeElem}, P::WeightLattice)
+  return WeightLatticeElem(P, load_object(s, Vector, ZZ))
+end
+
+function save_type_params(s::SerializerState, w::WeightLatticeElem)
+  save_data_dict(s) do
+    save_object(s, encode_type(typeof(w)), :name)
+    parent_w = parent(w)
+    parent_ref = save_as_ref(s, parent_w)
+    save_object(s, parent_ref, :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, ::Type{WeightLatticeElem})
+  return load_typed_object(s)
+end
+
+###############################################################################
+#
 #   Weyl groups
 #
 ###############################################################################
