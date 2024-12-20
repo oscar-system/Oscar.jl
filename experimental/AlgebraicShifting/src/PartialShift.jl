@@ -418,7 +418,6 @@ function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_s
   # setting to 100 now for good measure
 
   shift = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
-  @show shift.value
   shifted = @timed check_shifted(F, K, shift.value[1], p; kw...)
   if timed
     if shifted.value
