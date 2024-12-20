@@ -412,7 +412,7 @@ tests if it is the partial shift of `K` with respect to `p`, and returns the shi
 and the number of samples used.
 
 With `timed`, return extensive reporting."""
-function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
+function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n_samples=100, timed=false, kw...)
   # this might need to be changed based on the characteristic
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
@@ -423,15 +423,11 @@ function exterior_shift_lv(F::Field, K::UniformHypergraph, p::PermGroupElem; n_s
     if shifted.value
       return shift.value[1], (shift.value[2], shift.time, shift.bytes, shifted.time, shifted.bytes)
     else
-      return nothing,        (n_samples,      shift.time, shift.bytes, shifted.time, shifted.bytes)
+      return nothing, (n_samples, shift.time, shift.bytes, shifted.time, shifted.bytes)
     end
   else
     return shifted.value[1] ? shift.value[1] : nothing
   end
-end
-
-function exterior_shift_lv(F::Field, K::SimplicialComplex, p::PermGroupElem; n_samples=100)
-  throw(NotImplementedError("Not implemented for simplicial complexes yet."))
 end
 
 # function exterior_shift_lv(F::QQField, K::ComplexOrHypergraph, p::PermGroupElem)

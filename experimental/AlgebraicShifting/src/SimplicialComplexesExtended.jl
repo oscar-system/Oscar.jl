@@ -1,3 +1,4 @@
+using DataStructures
 """ groupby(f, xs)
 
   Returns a dictionary Dict(i => {x ∈ xs | f(x) = i}).
