@@ -16,6 +16,7 @@ export partial_shift_graph_vertices
 export rothe_matrix
 export uniform_hypergraph
 export eargmin
+export efindmin
 
 function independent_columns(A::MatElem)
   col_indices = Int[]
@@ -34,18 +35,32 @@ end
 """ eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
 
   Extended argmin function. Allows custum filter, default value and comparator.
-  The collection xs need not have linear nor 1-based indexing.
 """
 function eargmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
   best = nothing
+  for x in xs
+    filter(x) || continue
+    if isnothing(best) || lt(f(x), best)
+      best = f(x)
+    end
+  end
+  return i_best
+end
+
+""" efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
+
+  Extended findmin function. Allows custum filter, default value and comparator.
+"""
+function efindmin(f, xs; filter=_->true, default=nothing, lt=Base.isless)
+  best = nothing
   i_best = default
-  for i in eachindex(xs)
-    x = xs[i]
+  for (i, x) in enumerate(xs)
     filter(x) || continue
     if isnothing(best) || lt(f(x), best)
       best = f(x)
       i_best = i
     end
   end
-  return i_best
+  return (best, i_best)
 end
+efindmin(xs; filter=_->true, default=nothing, lt=Base.isless) = efindmin(identity, xs; filter=filter, default=default, lt=lt)
