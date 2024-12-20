@@ -249,6 +249,7 @@ export all_atlas_group_infos
 export all_blocks
 export all_character_table_names
 export all_cohomologies
+export all_groups_with_class_number
 export all_neighbors
 export all_perfect_groups
 export all_primitive_groups
@@ -676,6 +677,7 @@ export groebner_basis_modular
 export groebner_basis_with_transformation_matrix
 export groebner_fan
 export group
+export group_with_class_number
 export gset
 export h_star_polynomial
 export h_vector
@@ -686,6 +688,7 @@ export hall_subgroup_classes
 export hall_subgroups
 export hall_system, has_hall_system, set_hall_system
 export has_edge
+export has_groups_with_class_number
 export has_nonempty_intersection
 export has_perfect_groups
 export has_preimage_with_preimage
@@ -1212,6 +1215,7 @@ export number_of_compositions
 export number_of_conjugacy_classes, has_number_of_conjugacy_classes, set_number_of_conjugacy_classes
 export number_of_factors
 export number_of_generators
+export number_of_groups_with_class_number, has_number_of_groups_with_class_number
 export number_of_moved_points, has_number_of_moved_points, set_number_of_moved_points
 export number_of_partitions
 export number_of_patches
