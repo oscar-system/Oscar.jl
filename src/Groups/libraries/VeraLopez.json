@@ -22,7 +22,8 @@
 "- There are 3 not 4 groups of order 100 with 10 classes. ",
 "- For each of the orders 36, 48, 384, one group with 12 classes was missing. ",
 "- For order 288, two groups with 14 classes were missing. ",
-""
+"(Besides these errors, several structure descriptions in the papers are ",
+"wrong, but here we do not care about structure descriptions.)"
 ],[[
 [1,1]
 ],

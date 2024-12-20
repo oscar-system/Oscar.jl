@@ -75,7 +75,8 @@ conjugacy classes.
 If a type `T` is specified then an attempt is made to return the result
 with that type.
 If `T` is omitted then the resulting group will have type `PcGroup`
-if it is solvable, otherwise it will be of type `PermGroup`.
+if it is a solvable group that belongs to the library of small groups,
+otherwise it will be of type `PermGroup`.
 
 # Examples
 ```jldoctest
