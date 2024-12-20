@@ -368,9 +368,9 @@ end
     demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
     demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
 
-  Computes the action of the Demazure operator associated to the positive root `r` on the given element of the groupring $\mathbb{Z}[P]$.
+Computes the action of the Demazure operator associated to the positive root `r` on the given element of the groupring $\mathbb{Z}[P]$.
 
-  If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
+If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
 
 # Examples
 ```jldoctest
