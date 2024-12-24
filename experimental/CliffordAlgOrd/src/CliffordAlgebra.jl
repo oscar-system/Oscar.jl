@@ -75,7 +75,7 @@ end
 elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} =
   CliffordAlgebraElem{T,S}
 
-  parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
+parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
 
 base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
 
