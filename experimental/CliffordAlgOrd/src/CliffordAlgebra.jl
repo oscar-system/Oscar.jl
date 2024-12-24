@@ -72,8 +72,7 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
   end
 end
 
-elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} =
-  CliffordAlgebraElem{T,S}
+elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T,S}
 
 parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
 
