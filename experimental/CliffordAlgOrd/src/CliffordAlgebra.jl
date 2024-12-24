@@ -18,9 +18,9 @@ export CliffordAlgebra,
 
 ### Algebra ###
 # Data structure for Clifford algebras. The type variable 'T' represents the element type
-# of the base ring, e.g. it may be QQFieldElem, AbsSimpleNumFieldElem, etc.
+# of the base ring, i.e. it is usually QQFieldElem or AbsSimpleNumFieldElem.
 # The type variable 'S' represents the type of the Gram matrix of the underlying quadratic space,
-# e.g. it may be QQMatrix, AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}, etc.
+# i.e. it is usually QQMatrix or AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}.
 mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
   base_ring::Ring
   space::Hecke.QuadSpace{K,S} where {K}
@@ -125,7 +125,7 @@ end
 
 ### Algebra ###
 @doc raw"""
-    base_ring(C::CliffordAlgebra) -> NumField
+    base_ring(C::CliffordAlgebra) -> Ring
 
 Return the base ring of the Clifford algebra $C$.
 """
