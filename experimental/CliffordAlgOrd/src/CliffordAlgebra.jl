@@ -266,7 +266,7 @@ into the Clifford algebra.
 function gen(C::CliffordAlgebra, i::Int)
   res = C()
   if i <= 0
-    res[i] #Throws a BoundsError instead of a DomainError for consistency
+    throw(BoundsError(res, i))
   end
   res[2^(i - 1) + 1] = base_ring(C)(1)
   return res
