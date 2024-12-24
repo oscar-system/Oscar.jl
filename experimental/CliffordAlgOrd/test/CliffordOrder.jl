@@ -112,7 +112,7 @@
       end
       @testset "center and centroid" begin
         @test pseudo_basis_of_center(C) == pseudo_basis_of_centroid(C)
-        @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
+        @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == (fractional_ideal(OK, one(OK)), K(1))
       end
@@ -372,7 +372,7 @@
         K.([-(a^2 + 3 * a - 4), -(1 - a), -a^2, 2])
     end
     @testset "center and centroid" begin
-      @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
+      @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
       @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
       @test disq(C) == quadratic_discriminant(C)
       @test disq(C) == (fractional_ideal(O, O(5)), K(5))
@@ -518,7 +518,7 @@
         x == C()
       end
       @testset "center and centroid" begin
-        @test pseudo_basis_of_center(C) == pseudo_basis(C, 1)
+        @test pseudo_basis_of_center(C) == [pseudo_basis(C, 1)]
         @test pseudo_basis_of_centroid(C) == [pseudo_basis(C, 1), (C([1,0,0,-1]), ide)]
         @test disq(C) == quadratic_discriminant(C)
         @test disq(C) == (ide, K(1))

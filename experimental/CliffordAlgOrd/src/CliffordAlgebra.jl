@@ -17,14 +17,18 @@ export CliffordAlgebra,
 ################################################################################
 
 ### Algebra ###
+# Data structure for Clifford algebras. The type variable 'T' represents the element type
+# of the base ring, e.g. it may be QQFieldElem, AbsSimpleNumFieldElem, etc.
+# The type variable 'S' represents the type of the Gram matrix of the underlying quadratic space,
+# e.g. it may be QQMatrix, AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}, etc.
 mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
   base_ring::Ring
   space::Hecke.QuadSpace{K,S} where {K}
   gram::S
   dim::Int
-  basis_of_centroid::Any
+  basis_of_centroid::Any #Always of type Vector{elem_type(C)}, with C an instance of CliffordAlgebra
   disq::T
-  basis_of_center::Any
+  basis_of_center::Any #Always of type Vector{elem_type(C)}, with C an instance of CliffordAlgebra
 
   #Return the Clifford algebra of the quadratic space 'qs' 
   function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
@@ -34,6 +38,8 @@ mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
 end
 
 ### Elements ###
+# Data structure for the elements of a Clifford algebra. The type variables serve the
+# same purpose as they do for Clifford algebras.
 mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{T}
   parent::CliffordAlgebra{T, S}
   coeffs::Vector{T}
@@ -72,7 +78,7 @@ mutable struct CliffordAlgebraElem{T,S} <: Hecke.AbstractAssociativeAlgebraElem{
   end
 end
 
-elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T,S}
+elem_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = CliffordAlgebraElem{T, S}
 
 parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T, S}
 
@@ -328,7 +334,7 @@ Return a basis of the centroid of $C$. Unless `dim(space(C)) = 0`, it consists o
 two elements. The first one is the multiplicative identity of $C$. The square of
 the second basis element, if present, equals `quadratic_discriminant(C)`.
 """
-function basis_of_centroid(C::CliffordAlgebra)
+function basis_of_centroid(C::CliffordAlgebra)::Vector{elem_type(C)}
   if isdefined(C, :basis_of_centroid)
     return C.basis_of_centroid
   end
@@ -374,7 +380,7 @@ Return a basis of the center of $C$. It equals `basis_of_centroid(C)`, if and on
 if `dim(space(C))` is odd. Otherwise it contains only the
 multiplicative identity of $C$.
 """
-function basis_of_center(C::CliffordAlgebra)
+function basis_of_center(C::CliffordAlgebra)::Vector{elem_type(C)}
   if isdefined(C, :basis_of_center)
     return C.basis_of_center
   end
@@ -518,7 +524,7 @@ end
 
 #Implements the right multiplication with 'i'-th generator e_i of the Clifford algebra containing x.
 #The result is returned as a coefficient vector for further computations.
-_mul_with_gen(x::Vector{T}, i::Int, gram::MatElem{T}) where {T <: RingElement} = sum(
+_mul_with_gen(x::Vector{T}, i::Int, gram::MatElem{T}) where {T<:RingElement} = sum(
   map(
     char ->
       x[char] .*
