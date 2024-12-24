@@ -314,6 +314,7 @@ getindex(x::CliffordAlgebraElem, i::Int64) = coefficients(x)[i]
 function setindex!(x::CliffordAlgebraElem, newentry::RingElement, i::Int64) 
   coefficients(x)[i] = newentry
 end
+
 ################################################################################
 #
 #  Other functionality
