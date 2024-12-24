@@ -12,6 +12,9 @@ Weyl groups are represented by objects of type `WeylGroup <: Group`, and their e
     Note however, that this may differ from the literature, but is to stay
     consistent with the conventions in the rest of OSCAR.
 
+!!! note
+    See [Cartan types](@ref) for our conventions on Cartan types and ordering of simple roots.
+
 ## Table of contents
 
 ```@contents
@@ -31,6 +34,7 @@ weyl_group(::Vector{Tuple{Symbol,Int}})
 Basic group arithmetic like `*`, and `inv` are defined for `WeylGroupElem` objects.
 
 Using `(W::WeylGroup)(word::Vector{<:Integer})`, one can construct group elements from a word in the generators.
+Finite Weyl groups support iteration over all group elements (in an arbitrary order).
 
 ```@docs
 is_finite(::WeylGroup)
@@ -59,18 +63,6 @@ longest_element(::WeylGroup)
 ```
 
 
-## Conversion to other group types
-
-For many computations, it may be suitable to have a `WeylGroup` as a different kind of group object, to e.g. use functionality that is only available for that other type.
-
-The conversion functions come in pairs: one only creates an isomorphic group object, the other also computes the isomorphism.
-
-```@docs
-fp_group(::WeylGroup)
-isomorphism(::Type{FPGroup}, ::WeylGroup)
-```
-
-
 ## Reduced expressions
 
 ```@docs
@@ -86,4 +78,7 @@ reduced_expressions(::WeylGroupElem)
 
 
 ### Orbits
-TODO
+
+```@docs
+weyl_orbit(::WeightLatticeElem)
+```

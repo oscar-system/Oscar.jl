@@ -9,8 +9,6 @@ scheme_type(D::AbsWeilDivisor{S, U}) where{S, U} = S
 scheme_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = S
 coefficient_ring_type(D::AbsWeilDivisor{S, U}) where{S, U} = U
 coefficient_ring_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = U
-coefficient_type(D::AbsWeilDivisor{S, U}) where{S, U} = elem_type(U)
-coefficient_type(::Type{AbsWeilDivisor{S, U}}) where{S, U} = elem_type(U)
 
 @doc raw"""
     WeilDivisor(X::CoveredScheme, R::Ring)

@@ -248,7 +248,7 @@
      "TropicalGeometry/tropicalization.md",
   ],
 
- "Noncommutative Algebra" => [
+  "Noncommutative Algebra" => [
     "NoncommutativeAlgebra/intro.md",
     "PBW-Algebras" => [
     "NoncommutativeAlgebra/PBWAlgebras/intro.md",
@@ -257,6 +257,14 @@
     "NoncommutativeAlgebra/PBWAlgebras/quotients.md",
     ],
     "NoncommutativeAlgebra/free_associative_algebra.md",
+  ],
+
+  "Lie Theory" => [
+    "LieTheory/intro.md",
+    "LieTheory/cartan_matrix.md",
+    "LieTheory/root_systems.md",
+    "LieTheory/weight_lattices.md",
+    "LieTheory/weyl_groups.md",
   ],
 
   "Combinatorics" => [

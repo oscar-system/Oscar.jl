@@ -441,6 +441,16 @@ function Base.:(==)(G1::IdealGens, G2::IdealGens)
   return G1.gens == G2.gens
 end
 
+function Base.hash(G::IdealGens, h::UInt)
+  h = hash(isdefined(G, :ord), h)
+  h = hash(G.isGB, h)
+  if isdefined(G, :ord)
+    h = hash(h, G.ord)
+  end
+  h = hash(G.gens, h)
+  return h
+end
+
 
 ##############################################################################
 #
@@ -651,7 +661,7 @@ Fields:
 @attributes mutable struct MPolyIdeal{S} <: Ideal{S}
   gens::IdealGens{S}
   gb::Dict{MonomialOrdering, IdealGens{S}}
-  dim::Int
+  dim::Union{Int, NegInf, Nothing}
 
   function MPolyIdeal(R::Ring, g::Vector{T}) where {T <: MPolyRingElem}
     return MPolyIdeal(IdealGens(R, g, keep_ordering = false))
@@ -678,7 +688,7 @@ Fields:
     end
     r = new{T}()
     r.gens = B
-    r.dim = -1
+    r.dim = nothing
     r.gb = Dict()
     if B.isGB
       r.gb[B.ord] = B

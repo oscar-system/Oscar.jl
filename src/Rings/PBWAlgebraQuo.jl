@@ -85,8 +85,6 @@ base_ring(Q::PBWAlgQuo) = base_ring(Q.I)
 
 base_ring_type(::Type{PBWAlgQuo{T, S}}) where {T, S} = base_ring_type(PBWAlgIdeal{0, T, S})
 
-base_ring(a::PBWAlgQuoElem) = base_ring(parent(a))
-
 function Base.deepcopy_internal(a::PBWAlgQuoElem, dict::IdDict)
   return PBWAlgQuoElem(parent(a), deepcopy_internal(a.data, dict))
 end

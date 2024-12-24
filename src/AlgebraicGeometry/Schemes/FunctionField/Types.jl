@@ -30,7 +30,7 @@ end
 ########################################################################
 mutable struct VarietyFunctionFieldElem{FracType<:AbstractAlgebra.Generic.FracFieldElem,
                                         ParentType<:VarietyFunctionField
-                                       }
+                                       } <: FieldElem
   KK::ParentType
   f::FracType
 

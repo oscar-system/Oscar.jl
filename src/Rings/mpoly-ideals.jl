@@ -1890,13 +1890,16 @@ julia> dim(I)
 1
 ```
 """
-@attr Int function dim(I::MPolyIdeal)
-  if I.dim > -1
-    return I.dim
+function dim(I::MPolyIdeal)
+  if I.dim === nothing
+    if is_zero(ngens(base_ring(I))) # Catch a boundary case
+      I.dim = dim(coefficient_ring(base_ring(I)))
+    else
+      I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
+    end
+    I.dim == -1 && (I.dim = -inf)
   end
-  is_zero(ngens(base_ring(I))) && return 0 # Catch a boundary case
-  I.dim = Singular.dimension(singular_groebner_generators(I, false, true))
-  return I.dim
+  return I.dim::Union{Int, NegInf}
 end
 
 #######################################################
