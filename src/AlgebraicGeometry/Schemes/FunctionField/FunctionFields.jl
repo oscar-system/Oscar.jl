@@ -354,6 +354,7 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
 end
 
 base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
+base_ring_type(::Type{T}) where {FracFieldType, T<:VarietyFunctionField{<:Field, FracFieldType}} = base_ring_type(FracFieldType)
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 

@@ -1,3 +1,18 @@
+function test_elem(K::VarietyFunctionField)
+   return rand([one(K), zero(K),  K(3) // K(2)])
+end
+
+@testset "fraction fields of varieties" begin
+  P = projective_space(QQ, 2)
+  S = homogeneous_coordinate_ring(P)
+  C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
+  Ccov = covered_scheme(C)
+  KK = VarietyFunctionField(Ccov)
+
+  test_Field_interface(KK)
+  #test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
+end
+
 @testset "fraction fields of varieties" begin
   R, (x,y,z) = QQ[:x, :y, :z]
   @test is_irreducible(spec(R))
