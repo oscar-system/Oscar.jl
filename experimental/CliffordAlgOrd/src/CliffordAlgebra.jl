@@ -23,12 +23,12 @@ export CliffordAlgebra,
 # i.e. it is usually QQMatrix or AbstactAlgebra.Generic.MatSpaceElem{AbsSimpleNumFieldElem}.
 mutable struct CliffordAlgebra{T,S} <: Hecke.AbstractAssociativeAlgebra{T}
   base_ring::Ring
-  space::Hecke.QuadSpace{K,S} where {K}
+  space::Hecke.QuadSpace{K,S} where {K} # K = parent_type(T), e.g. T is of type AbsSimpleNumFieldElem and K is of type AbsSimpleNumField
   gram::S
   dim::Int
-  basis_of_centroid::Any #Always of type Vector{elem_type(C)}, with C an instance of CliffordAlgebra
+  basis_of_centroid::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
   disq::T
-  basis_of_center::Any #Always of type Vector{elem_type(C)}, with C an instance of CliffordAlgebra
+  basis_of_center::Any # Vector{elem_type(C)}, with C an instance of CliffordAlgebra
 
   #Return the Clifford algebra of the quadratic space 'qs' 
   function CliffordAlgebra{T,S}(qs::Hecke.QuadSpace{K,S}) where {T,S,K}
@@ -334,20 +334,20 @@ Return a basis of the centroid of $C$. Unless `dim(space(C)) = 0`, it consists o
 two elements. The first one is the multiplicative identity of $C$. The square of
 the second basis element, if present, equals `quadratic_discriminant(C)`.
 """
-function basis_of_centroid(C::CliffordAlgebra)::Vector{elem_type(C)}
+function basis_of_centroid(C::CliffordAlgebra)
   if isdefined(C, :basis_of_centroid)
-    return C.basis_of_centroid
+    return C.basis_of_centroid::Vector{elem_type(C)}
   end
   n = _dim_qf(C)
   if n == 0
     C.basis_of_centroid = [one(C)]
-    return C.basis_of_centroid
+    return C.basis_of_centroid::Vector{elem_type(C)}
   end
   T = orthogonal_basis(space(C))
   orth_elt = prod(map(i -> sum(map(j -> gen(C, j) * T[i, j], 1:n)), 1:n))
   orth_elt *= denominator(orth_elt)
   C.disq = (orth_elt^2)[1]
-  C.basis_of_centroid = [one(C), orth_elt]
+  C.basis_of_centroid = [one(C), orth_elt]::Vector{elem_type(C)}
 end
 
 @doc raw"""
@@ -380,14 +380,14 @@ Return a basis of the center of $C$. It equals `basis_of_centroid(C)`, if and on
 if `dim(space(C))` is odd. Otherwise it contains only the
 multiplicative identity of $C$.
 """
-function basis_of_center(C::CliffordAlgebra)::Vector{elem_type(C)}
+function basis_of_center(C::CliffordAlgebra)
   if isdefined(C, :basis_of_center)
-    return C.basis_of_center
+    return C.basis_of_center::Vector{elem_type(C)}
   end
   if is_odd(dim(space(C)))
-    C.basis_of_center = basis_of_centroid(C)
+    C.basis_of_center = basis_of_centroid(C)::Vector{elem_type(C)}
   else
-    C.basis_of_center = [one(C)]
+    C.basis_of_center = [one(C)]::Vector{elem_type(C)}
   end
 end
 

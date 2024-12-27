@@ -35,10 +35,12 @@ mutable struct CliffordOrder{T, C} <: Hecke.AbstractAssociativeAlgebra{T}
   rank::Int
   lattice::QuadLat
   gram::MatElem
-  coefficient_ideals::Vector{NumFieldOrderFractionalIdeal}
-  pseudo_basis_of_centroid::Any #Always of type Vector{Tuple{elem_type(base_ring(algebra(C))), NumFieldOrderFractionalIdeal}}, with C an instance of CliffordOrder
-  disq::Any #Always of type Tuple{NumFieldOrderFractionalIdeal, elem_type(base_ring(algebra(C)))}, with C an instance of CliffordOrder
-  pseudo_basis_of_center::Any #Always of type Vector{Tuple{elem_type(base_ring(algebra(C))), NumFieldOrderFractionalIdeal}}, with C an instance of CliffordOrder
+
+  # In the 4 lines below let CO be an instance of CliffordOrder and R = base_ring(algebra(C)), the base ring of CO
+  coefficient_ideals::Any # Vector{typeof(fractional_ideal(R, one(R)))}
+  pseudo_basis_of_centroid::Any # Vector{Tuple{elem_type(CO), typeof(fractional_ideal(R, one(R))}}
+  disq::Any # Tuple{typeof(fractional_ideal(R, one(R)), elem_type(base_ring(algebra(CO)))}
+  pseudo_basis_of_center::Any # Vector{Tuple{elem_type(CO), typeof(fractional_ideal(R, one(R))}}
 
   function CliffordOrder{T, C}(ls::QuadLat{S, M}) where {T, C, S<:NumField, M<:MatElem}
     if !is_zero(rank(ls))
@@ -49,7 +51,6 @@ mutable struct CliffordOrder{T, C} <: Hecke.AbstractAssociativeAlgebra{T}
     return new{T, C}(base_ring(ls), clifford_algebra(qs), 2^rank(ls), ls, gram_matrix(qs), coeff_ids)
   end
 end
-
 
 mutable struct ZZCliffordOrder <: Hecke.AbstractAssociativeAlgebra{ZZRingElem}
 
@@ -77,9 +78,9 @@ end
 # variables serve the same purpose as they do for Clifford orders.
 mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T}
   parent::CliffordOrder{T, C}
-  coeffs::Vector{<:NumFieldElem}
-  even_coeffs::Vector{<:NumFieldElem}
-  odd_coeffs::Vector{<:NumFieldElem}
+  coeffs::Any 
+  even_coeffs::Any
+  odd_coeffs::Any
 
   #Return the 0-element of the Clifford order C
   function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}) where {T, C}
@@ -93,10 +94,10 @@ mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T
 
   #Return the element in the Clifford order CO with coefficient vector coeff with respect to the canonical basis
   function CliffordOrderElem{T, C}(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S<:NumFieldElem}
-    @req length(coeff) == CO.rank "invalid length of coefficient vector"
+    @req length(coeff) == rank(CO) "invalid length of coefficient vector"
     
-    for i in 1:CO.rank
-      @req coeff[i] in CO.coefficient_ideals[i] "The element does not lie in the Clifford order."
+    for i in 1:rank(CO)
+      @req coeff[i] in coefficient_ideals(CO)[i] "The element does not lie in the Clifford order."
     end
 
     newelt = new{T, C}(CO, coeff)
@@ -105,9 +106,9 @@ mutable struct CliffordOrderElem{T, C} <: Hecke.AbstractAssociativeAlgebraElem{T
   end
 
   function CliffordOrderElem(CO::CliffordOrder{T, C}, coeff::Vector{S}) where {T, C, S}
-    K = CO.algebra.base_ring
+    K = base_ring(algebra(CO))
     @req _can_convert_coefficients(coeff, K) "entries of coefficient vector are not contained in $(K)"
-    return CliffordOrderElem{elem_type(CO.base_ring), typeof(CO.algebra)}(CO, K.(coeff))
+    return CliffordOrderElem{elem_type(base_ring(CO)), typeof(algebra(CO))}(CO, K.(coeff))
   end
 
 end
@@ -119,7 +120,7 @@ mutable struct ZZCliffordOrderElem <: Hecke.AbstractAssociativeAlgebraElem{ZZRin
   even_coeffs::Vector{QQFieldElem}
   odd_coeffs::Vector{QQFieldElem}
 
-  #Return the 0-element of the Clifford order C
+  #Return the 0-element of the Clifford order CO
   function ZZCliffordOrderElem(CO::ZZCliffordOrder)
     newelt = new(CO, fill(QQ(), CO.rank))
     _set_even_odd_coefficients!(newelt)
@@ -341,7 +342,7 @@ gram_matrix(C::CliffordOrder) = C.gram
 
 Return the vector of coefficient ideals of the canonical pseudo-basis of $C$.
 """
-coefficient_ideals(C::CliffordOrder) = C.coefficient_ideals
+coefficient_ideals(C::CliffordOrder) = C.coefficient_ideals::Vector{typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}
 
 ### ZZ ###
 
@@ -395,7 +396,7 @@ parent(x::CliffordOrderElem) = x.parent
 Return the coefficient vector of $x$ with respect to the
 canonical pseudo-basis of its parent Clifford order.
 """
-coefficients(x::CliffordOrderElem) = x.coeffs
+coefficients(x::CliffordOrderElem) = x.coeffs::Vector{elem_type(base_ring(algebra(parent(x))))}
 
 @doc raw"""
     even_coefficients(x::CliffordOrderElem) -> Vector
@@ -408,10 +409,10 @@ the field `x.even_coeffs`.
 """
 function even_coefficients(x::CliffordOrderElem)
   if isdefined(x, :even_coefficientss)
-    return x.even_coeffs
+    return x.even_coeffs::Vector{elem_type(base_ring(algebra(parent(x))))}
   end
   _set_even_odd_coefficients!(x)
-  return x.even_coeffs
+  return x.even_coeffs::Vector{elem_type(base_ring(algebra(parent(x))))}
 end
 
 @doc raw"""
@@ -425,10 +426,10 @@ the field `x.odd_coeffs`.
 """
 function odd_coefficients(x::CliffordOrderElem)
   if isdefined(x, :odd_coeffs)
-    return x.odd_coeffs
+    return x.odd_coeffs::Vector{elem_type(base_ring(algebra(parent(x))))}
   end
   _set_even_odd_coefficients!(x)
-  return x.odd_coeffs
+  return x.odd_coeffs::Vector{elem_type(base_ring(algebra(parent(x))))}
 end
 
 ### ZZ ###
@@ -705,12 +706,12 @@ end
 Return a pseudo-basis of the centroid of $C$. Unless `rank(lattice(C)) = 0`, it contains
 two pseudo-elements
 """
-function pseudo_basis_of_centroid(C::CliffordOrder)::Vector{Tuple{elem_type(C), NumFieldOrderFractionalIdeal}}
+function pseudo_basis_of_centroid(C::CliffordOrder)
   if isdefined(C, :pseudo_basis_of_centroid)
-    return C.pseudo_basis_of_centroid
+    return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
   end
   _set_centroid_and_disq!(C)
-  return C.pseudo_basis_of_centroid
+  return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
 end
 
 @doc raw"""
@@ -718,12 +719,12 @@ end
 
 Return the quadratic discriminant of $C$.
 """
-function quadratic_discriminant(C::CliffordOrder)::Tuple{NumFieldOrderFractionalIdeal, elem_type(base_ring(algebra(C)))} 
+function quadratic_discriminant(C::CliffordOrder)
   if isdefined(C, :disq)
-    return C.disq
+    return C.disq::Tuple{typeof(fractional_ideal(base_ring(C), one(base_ring(C)))), elem_type(base_ring(algebra(C)))} 
   end
   _set_centroid_and_disq!(C)
-  return C.disq
+  return C.disq::Tuple{typeof(fractional_ideal(base_ring(C), one(base_ring(C)))), elem_type(base_ring(algebra(C)))} 
 end
 
 @doc raw"""
@@ -739,14 +740,14 @@ disq(C::CliffordOrder) = quadratic_discriminant(C)
 Return a pseudo-basis of the center of $C$. It equals `pseudo_basis_of_centroid(C)`, if and only if
 `rank(lattice(C))` is odd. Otherwise it is trivial. 
 """
-function pseudo_basis_of_center(C::CliffordOrder)::Vector{Tuple{elem_type(C), NumFieldOrderFractionalIdeal}}
+function pseudo_basis_of_center(C::CliffordOrder)
   if isdefined(C, :pseudo_basis_of_center)
-    return C.pseudo_basis_of_center
+    return C.pseudo_basis_of_center::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
   end
   if is_odd(rank(lattice(C)))
-    C.pseudo_basis_of_center = pseudo_basis_of_centroid(C)
+    C.pseudo_basis_of_center = pseudo_basis_of_centroid(C)::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
   else 
-    C.pseudo_basis_of_center = [pseudo_basis(C, 1)]
+    C.pseudo_basis_of_center = [pseudo_basis(C, 1)]::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
   end
 end
 
@@ -760,15 +761,15 @@ two, so it is returned as a vector containing the basis elements. The first one 
 multiplicative identity of $C$. The square of the second basis element, if present,
 equals `quadratic_discriminant(C)`.
 """
-function basis_of_centroid(C::ZZCliffordOrder)::Vector{ZZCliffordOrderElem}
+function basis_of_centroid(C::ZZCliffordOrder)
   if isdefined(C, :basis_of_centroid)
-    return C.basis_of_centroid
+    return C.basis_of_centroid::Vector{ZZCliffordOrderElem}
   end
   n = rank(lattice(C))
   if n == 0
     C.basis_of_centroid = [one(C)]
     C.disq = ZZ(1)
-    return C.basis_of_centroid
+    return C.basis_of_centroid::Vector{ZZCliffordOrderElem}
   end
   
   T = orthogonal_basis(space(algebra(C)))
@@ -786,7 +787,7 @@ function basis_of_centroid(C::ZZCliffordOrder)::Vector{ZZCliffordOrderElem}
   else
     C.basis_of_centroid = [one(C), orth_elt]
   end
-  return C.basis_of_centroid
+  return C.basis_of_centroid::Vector{ZZCliffordOrderElem}
 end
 
 @doc raw"""
@@ -815,15 +816,16 @@ disq(C::ZZCliffordOrder) = quadratic_discriminant(C)
 Return a basis of the center of $C$. It equals `basis_of_centroid(C)`, if and only if
 `rank(lattice(C))` is odd. Otherwise it contains only the multiplicative identity of $C$.
 """
-function basis_of_center(C::ZZCliffordOrder)::Vector{ZZCliffordOrderElem}
+function basis_of_center(C::ZZCliffordOrder)
   if isdefined(C, :basis_of_center)
-    return C.basis_of_center
+    return C.basis_of_center::Vector{ZZCliffordOrderElem}
   end
   if is_odd(rank(lattice(C)))
     C.basis_of_center = basis_of_centroid(C)
   else 
     C.basis_of_center = [one(C)]
   end
+  return C.basis_of_center::Vector{ZZCliffordOrderElem}
 end
 
 ################################################################################
@@ -994,7 +996,7 @@ function _set_coefficient_ideals!(ls::QuadLat)
     tmpres = map(x -> x*coeff_ids[i], res)
     res = vcat(res, tmpres)
   end
-  return res
+  return res::Vector{typeof(fractional_ideal(base_ring(ls), one(base_ring(ls))))}
 end
 
 function _set_even_odd_coefficients!(x::Union{CliffordOrderElem, ZZCliffordOrderElem})
