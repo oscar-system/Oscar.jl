@@ -929,9 +929,9 @@ the left if `action == :left` and from the right if `action == :right`.
 """
 representation_matrix(x::ZZCliffordOrderElem, action::Symbol = :left) = representation_matrix(algebra(parent(x))(x), action)
 
-minimal_polynomial(x::CliffordOrderElem) = minimal_polynomial(algebra(parent(x))(x))
+minimal_polynomial(x::ZZCliffordOrderElem) = minimal_polynomial(algebra(parent(x))(x))
 
-characteristic_polynomial(x::CliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
+characteristic_polynomial(x::ZZCliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
 
 # Computes a/b if action is :right and b\a if action is :left (and if this is possible)
 function divexact(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem, action::Symbol = :left; check::Bool=true)
