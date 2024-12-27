@@ -342,6 +342,13 @@ Return the rank of the Clifford order $C$ over its base ring.
 rank(C::CliffordOrder) = C.rank
 
 @doc raw"""
+    dim(C::CliffordOrder) -> Int
+
+Alias for `rank`
+"""
+dim(C::CliffordOrder) = rank(C)
+
+@doc raw"""
     lattice(C::CliffordOrder) -> QuadLat
 
 Return the underlying even quadratic lattice of the Clifford order $C$.
@@ -384,6 +391,13 @@ algebra(C::ZZCliffordOrder) = C.algebra
 Return the rank of the Clifford order $C$ over its base ring.
 """
 rank(C::ZZCliffordOrder) = C.rank
+
+@doc raw"""
+    dim(C::ZZCliffordOrder) -> Int
+
+Alias for `rank`
+"""
+dim(C::ZZCliffordOrder) = rank(C)
 
 @doc raw"""
     lattice(C::ZZCliffordOrder) -> ZZLat
@@ -844,6 +858,115 @@ function basis_of_center(C::ZZCliffordOrder)
     C.basis_of_center = [one(C)]
   end
   return C.basis_of_center::Vector{ZZCliffordOrderElem}
+end
+
+################################################################################
+#
+#  Inherited functionality for elements
+#
+################################################################################
+
+# Note: This small section only contains methods on elements that rely on identical methods that exist for the ambient algebra.
+# In fact, they convert the given element into an element of the ambient algebra then apply the existing method and interprete
+# the result accordingly.
+
+
+@doc raw"""
+    representation_matrix(x::CliffordOrderElem, action::Symbol = :left) -> MatElem
+
+Return the representation matrix of $x$ as an element of `algebra(parent(x))` with respect to `basis(algebra(parent(x)))`. The multiplication is from
+the left if `action == :left` and from the right if `action == :right`.
+"""
+representation_matrix(x::CliffordOrderElem, action::Symbol = :left) = representation_matrix(algebra(parent(x))(x), action)
+
+minimal_polynomial(x::CliffordOrderElem) = minimal_polynomial(algebra(parent(x))(x))
+
+characteristic_polynomial(x::CliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
+
+# Computes a/b if action is :right and b\a if action is :left (and if this is possible)
+function divexact(a::CliffordOrderElem, b::CliffordOrderElem, action::Symbol = :left; check::Bool=true)
+  check_parent(a, b)
+  CO = parent(a)
+  CA = algebra(CO)
+  res = divexact(CA(a), CA(b), action; check = check)
+  if !(res in CO)
+    error("Divison not possible")
+  end
+  return CO(res)
+end
+
+@doc raw"""
+    divexact_right(a::CliffordOrderElem, b::CliffordOrderElem) -> CliffordOrderElem
+
+Returns an element $c$ such that $a = c \cdot b$.
+"""
+divexact_right(a::CliffordOrderElem, b::CliffordOrderElem; check::Bool=true) = divexact(a, b, :right; check=check)
+
+@doc raw"""
+    divexact_left(a::CliffordOrderElem, b::CliffordOrderElem) -> CliffordOrderElem
+
+Returns an element $c$ such that $a = b \cdot c$.
+"""
+divexact_left(a::CliffordOrderElem, b::CliffordOrderElem; check::Bool=true) = divexact(a, b, :left; check=check)
+
+function inv(x::CliffordOrderElem)
+  CO = parent(x)
+  CA = algebra(CO)
+  xinv = inv(CA(x))
+  if !(xinv in CO)
+    error("Element is not invertible")
+  end
+  return CO(xinv)
+end
+
+### ZZ ###
+
+@doc raw"""
+    representation_matrix(x::ZZCliffordOrderElem, action::Symbol = :left) -> MatElem
+
+Return the representation matrix of $x$ as an element of `algebra(parent(x))` with respect to `basis(algebra(parent(x)))`. The multiplication is from
+the left if `action == :left` and from the right if `action == :right`.
+"""
+representation_matrix(x::ZZCliffordOrderElem, action::Symbol = :left) = representation_matrix(algebra(parent(x))(x), action)
+
+minimal_polynomial(x::CliffordOrderElem) = minimal_polynomial(algebra(parent(x))(x))
+
+characteristic_polynomial(x::CliffordOrderElem) = characteristic_polynomial(algebra(parent(x))(x))
+
+# Computes a/b if action is :right and b\a if action is :left (and if this is possible)
+function divexact(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem, action::Symbol = :left; check::Bool=true)
+  check_parent(a, b)
+  CO = parent(a)
+  CA = algebra(CO)
+  res = divexact(CA(a), CA(b), action; check = check)
+  if !(res in CO)
+    error("Divison not possible")
+  end
+  return CO(res)
+end
+
+@doc raw"""
+    divexact_right(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem) -> ZZCliffordOrderElem
+
+Returns an element $c$ such that $a = c \cdot b$.
+"""
+divexact_right(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem; check::Bool=true) = divexact(a, b, :right; check=check)
+
+@doc raw"""
+    divexact_left(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem) -> ZZCliffordOrderElem
+
+Returns an element $c$ such that $a = b \cdot c$.
+"""
+divexact_left(a::ZZCliffordOrderElem, b::ZZCliffordOrderElem; check::Bool=true) = divexact(a, b, :left; check=check)
+
+function inv(x::ZZCliffordOrderElem)
+  CO = parent(x)
+  CA = algebra(CO)
+  xinv = inv(CA(x))
+  if !(xinv in CO)
+    error("Element is not invertible")
+  end
+  return CO(xinv)
 end
 
 ################################################################################
