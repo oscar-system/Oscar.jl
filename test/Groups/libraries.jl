@@ -283,3 +283,26 @@ end
    H, emb = atlas_subgroup(info[1], 1)
    @test order(H) == 720
 end
+
+@testset "Groups with few conjugacy classes" begin
+   @testset for n in 1:14
+      @test has_groups_with_class_number(n)
+      grps = all_groups_with_class_number(n)
+      @test length(grps) == number_of_groups_with_class_number(n)
+   end
+   for n in [0, 15]
+      @test_throws ArgumentError number_of_groups_with_class_number(n)
+      @test_throws ArgumentError all_groups_with_class_number(n)
+   end
+   @test_throws ArgumentError has_groups_with_class_number(0)
+   @test_throws ArgumentError has_number_of_groups_with_class_number(0)
+   @test !has_groups_with_class_number(15)
+   @test !has_number_of_groups_with_class_number(15)
+
+   n = 8
+   grps = all_groups_with_class_number(n)
+   for i in 1:number_of_groups_with_class_number(n)
+     @test is_isomorphic(grps[i], group_with_class_number(n, i))
+     @test is_isomorphic(grps[i], group_with_class_number(PermGroup, n, i))
+   end
+end
