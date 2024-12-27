@@ -21,6 +21,9 @@
         (QQ, empty_qs, identity_matrix(QQ, 0), 0, 1)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
+      @test C(C()) == C()
+      CC = clifford_algebra(empty_qs)
+      @test_throws ArgumentError C(CC())
       @test coefficients(C()) == QQzer
       @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)
@@ -105,6 +108,9 @@
       @test (base_ring(C), gram_matrix(C), _dim_qf(C), dim(C)) == (K, G, 2, 4)
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
+      @test C(C()) == C()
+      CC = clifford_algebra(qsK)
+      @test_throws ArgumentError C(CC())
       @test coefficients(C()) == Kzer
       @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)

@@ -40,6 +40,9 @@
         @test (base_ring(C), rank(C), lattice(C), gram_matrix(C), coefficient_ideals(C)) == (OK, 1, ls, idzero, [fractional_ideal(OK, OK(1))])
         @test C() == C(0) && C() == zero(C)
         @test is_zero(C())
+        @test C(C()) == C()
+        CC = clifford_order(ls)
+        @test_throws ArgumentError CC(C())
         @test coefficients(C()) == Kzer
         @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
         @test C(1) == one(C)
@@ -134,6 +137,9 @@
         @test (base_ring(C), rank(C), lattice(C), gram_matrix(C)) == (ZZ, 1, ls, idzero)
         @test C() == C(0) && C() == zero(C)
         @test is_zero(C())
+        @test C(C()) == C()
+        CC = clifford_order(ls)
+        @test_throws ArgumentError CC(C())
         @test coefficients(C()) == QQzer
         @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
         @test C(1) == one(C)
@@ -245,6 +251,9 @@
       @test (base_ring(C), gram_matrix(C), lattice(C), rank(C), coefficient_ideals(C)) == (O, G, lsK, 4, [ide, ide, ide, ide])
       @test C() == C(0) && C() == zero(C)
       @test is_zero(C())
+      @test C(C()) == C()
+      CC = clifford_order(lsK)
+      @test_throws ArgumentError CC(C())
       @test coefficients(C()) == Kzer
       @test even_coefficients(C()) == Kzer && even_coefficients(C()) == odd_coefficients(C())
       @test C(1) == one(C)
@@ -543,6 +552,9 @@
         @test (base_ring(C), gram_matrix(C), lattice(C), rank(C)) == (ZZ, G, ls, 4)
         @test C() == C(0) && C() == zero(C)
         @test is_zero(C())
+        @test C(C()) == C()
+        CC = clifford_order(ls)
+        @test_throws ArgumentError CC(C())
         @test coefficients(C()) == QQzer
         @test even_coefficients(C()) == QQzer && even_coefficients(C()) == odd_coefficients(C())
         @test C(1) == one(C)

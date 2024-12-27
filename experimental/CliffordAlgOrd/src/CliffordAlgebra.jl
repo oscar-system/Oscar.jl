@@ -84,6 +84,10 @@ parent_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = CliffordAlgebra{T,
 
 base_ring_type(::Type{CliffordAlgebra{T, S}}) where {T, S} = parent_type(T)
 
+is_domain_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = false
+
+is_exact_type(::Type{CliffordAlgebraElem{T, S}}) where {T, S} = true
+
 ################################################################################
 #
 #  Construction
@@ -113,6 +117,11 @@ function (C::CliffordAlgebra)(a::R) where {R<:Number}
   res = fill(zero(a), dim(C))
   res[1] = a
   return CliffordAlgebraElem(C, res)
+end
+
+function (C::CliffordAlgebra)(a::CliffordAlgebraElem)
+  @req parent(a) === C "The element does not lie in the Clifford algebra"
+  return a
 end
 
 (C::CliffordAlgebra)(coeff::Vector{R}) where {R} = CliffordAlgebraElem(C, coeff)

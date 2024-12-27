@@ -36,11 +36,11 @@ mutable struct CliffordOrder{T, C} <: Hecke.AbstractAssociativeAlgebra{T}
   lattice::QuadLat
   gram::MatElem
 
-  # In the 4 lines below let CO be an instance of CliffordOrder and R = base_ring(algebra(C)), the base ring of CO
-  coefficient_ideals::Any # Vector{typeof(fractional_ideal(R, one(R)))}
-  pseudo_basis_of_centroid::Any # Vector{Tuple{elem_type(CO), typeof(fractional_ideal(R, one(R))}}
-  disq::Any # Tuple{typeof(fractional_ideal(R, one(R)), elem_type(base_ring(algebra(CO)))}
-  pseudo_basis_of_center::Any # Vector{Tuple{elem_type(CO), typeof(fractional_ideal(R, one(R))}}
+  # In the 4 lines below let CO be an instance of CliffordOrder and R = base_ring(CO), the base ring of CO
+  coefficient_ideals::Any # Vector{Hecke.fractional_ideal_type(base_ring_type(C))}
+  pseudo_basis_of_centroid::Any # Vector{Tuple{elem_type(CO), Hecke.fractional_ideal_type(base_ring_type(CO))}}
+  disq::Any # Tuple{Hecke.fractional_ideal_type(base_ring_type(CO)), elem_type(base_ring(algebra(CO)))}
+  pseudo_basis_of_center::Any # Vector{Tuple{elem_type(CO), Hecke.fractional_ideal_type(base_ring_type(CO))}}
 
   function CliffordOrder{T, C}(ls::QuadLat{S, M}) where {T, C, S<:NumField, M<:MatElem}
     if !is_zero(rank(ls))
@@ -163,6 +163,14 @@ base_ring_type(::Type{CliffordOrder{T, C}}) where {T, C} = parent_type(T)
 
 base_ring_type(::Type{ZZCliffordOrder}) = ZZRing
 
+is_domain_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = false
+
+is_domain_type(::Type{ZZCliffordOrderElem}) = false
+
+is_exact_type(::Type{CliffordOrderElem{T, C}}) where {T, C} = true
+
+is_exact_type(::Type{ZZCliffordOrderElem}) = true
+
 #############################################################
 #
 #  Construction
@@ -201,6 +209,11 @@ end
 
 (C::CliffordOrder)(coeff::Vector{S}) where {S} = CliffordOrderElem(C, coeff)
 
+function (C::CliffordOrder)(a::CliffordOrderElem)
+  @req parent(a) === C "The element does not lie in the Clifford order"
+  return a
+end
+
 ### ZZ ###
 
 (C::ZZCliffordOrder)() = ZZCliffordOrderElem(C)
@@ -218,6 +231,11 @@ function (C::ZZCliffordOrder)(a::S) where {S<:Number}
 end
 
 (C::ZZCliffordOrder)(coeff::Vector{S}) where {S} = ZZCliffordOrderElem(C, coeff)
+
+function (C::ZZCliffordOrder)(a::ZZCliffordOrderElem)
+  @req parent(a) === C "The element does not lie in the Clifford order"
+  return a
+end
 
 ################################################################################
 #
@@ -342,7 +360,7 @@ gram_matrix(C::CliffordOrder) = C.gram
 
 Return the vector of coefficient ideals of the canonical pseudo-basis of $C$.
 """
-coefficient_ideals(C::CliffordOrder) = C.coefficient_ideals::Vector{typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}
+coefficient_ideals(C::CliffordOrder) = C.coefficient_ideals::Vector{Hecke.fractional_ideal_type(base_ring_type(C))}
 
 ### ZZ ###
 
@@ -708,10 +726,10 @@ two pseudo-elements
 """
 function pseudo_basis_of_centroid(C::CliffordOrder)
   if isdefined(C, :pseudo_basis_of_centroid)
-    return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
+    return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), Hecke.fractional_ideal_type(base_ring_type(C))}}
   end
   _set_centroid_and_disq!(C)
-  return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
+  return C.pseudo_basis_of_centroid::Vector{Tuple{elem_type(C), Hecke.fractional_ideal_type(base_ring_type(C))}}
 end
 
 @doc raw"""
@@ -721,10 +739,10 @@ Return the quadratic discriminant of $C$.
 """
 function quadratic_discriminant(C::CliffordOrder)
   if isdefined(C, :disq)
-    return C.disq::Tuple{typeof(fractional_ideal(base_ring(C), one(base_ring(C)))), elem_type(base_ring(algebra(C)))} 
+    return C.disq::Tuple{Hecke.fractional_ideal_type(base_ring_type(C)), elem_type(base_ring(algebra(C)))} 
   end
   _set_centroid_and_disq!(C)
-  return C.disq::Tuple{typeof(fractional_ideal(base_ring(C), one(base_ring(C)))), elem_type(base_ring(algebra(C)))} 
+  return C.disq::Tuple{Hecke.fractional_ideal_type(base_ring_type(C)), elem_type(base_ring(algebra(C)))} 
 end
 
 @doc raw"""
@@ -742,12 +760,12 @@ Return a pseudo-basis of the center of $C$. It equals `pseudo_basis_of_centroid(
 """
 function pseudo_basis_of_center(C::CliffordOrder)
   if isdefined(C, :pseudo_basis_of_center)
-    return C.pseudo_basis_of_center::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
+    return C.pseudo_basis_of_center::Vector{Tuple{elem_type(C), Hecke.fractional_ideal_type(base_ring_type(C))}}
   end
   if is_odd(rank(lattice(C)))
-    C.pseudo_basis_of_center = pseudo_basis_of_centroid(C)::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
+    C.pseudo_basis_of_center = pseudo_basis_of_centroid(C)::Vector{Tuple{elem_type(C), Hecke.fractional_ideal_type(base_ring_type(C))}}
   else 
-    C.pseudo_basis_of_center = [pseudo_basis(C, 1)]::Vector{Tuple{elem_type(C), typeof(fractional_ideal(base_ring(C), one(base_ring(C))))}}
+    C.pseudo_basis_of_center = [pseudo_basis(C, 1)]::Vector{Tuple{elem_type(C), Hecke.fractional_ideal_type(base_ring_type(C))}}
   end
 end
 
