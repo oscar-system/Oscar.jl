@@ -21,7 +21,6 @@
 "The following errors in the papers were fixed. ",
 "- There are 3 not 4 groups of order 100 with 10 classes. ",
 "- For each of the orders 36, 48, 384, one group with 12 classes was missing. ",
-"- For order 288, two groups with 14 classes were missing. ",
 "(Besides these errors, several structure descriptions in the papers are ",
 "wrong, but here we do not care about structure descriptions.)"
 ],[[
@@ -193,8 +192,8 @@
 [336,114],
 [392,38],
 [432,734],
-[720,764],
 [720,763],
+[720,764],
 [1344,814],
 [1344,11686],
 [1512,779],
@@ -364,8 +363,6 @@
 [240,192],
 [288,1025],
 [288,1026],
-[288,1025],
-[288,1026],
 [294,1],
 [294,13],
 [294,14],
@@ -403,6 +400,6 @@
 ["prim",8,6],
 ["prim",56,3],
 ["prim",21,5],
-["prim",56,2],
+["prim",56,4],
 ["prim",50,1]
 ]]]
