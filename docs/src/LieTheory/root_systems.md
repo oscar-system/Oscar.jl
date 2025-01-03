@@ -145,6 +145,8 @@ is_negative_root_with_index(::RootSpaceElem)
 ```@docs
 reflect(::RootSpaceElem, ::Int)
 reflect!(::RootSpaceElem, ::Int)
+reflect(::RootSpaceElem, ::RootSpaceElem)
+reflect!(::RootSpaceElem, ::RootSpaceElem)
 ```
 
 
