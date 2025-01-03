@@ -284,6 +284,12 @@ end
    @test order(H) == 720
 end
 
+@testset "Library of character tables" begin
+   l1 = all_character_table_names(is_atlas_character_table, !is_duplicate_table)
+   l2 = all_character_table_names(is_atlas_character_table)
+   @test l1 == l2
+end
+
 @testset "Groups with few conjugacy classes" begin
    @testset for n in 1:14
       @test has_groups_with_class_number(n)
