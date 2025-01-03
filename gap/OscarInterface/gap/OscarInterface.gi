@@ -140,3 +140,38 @@ Perform( Oscar._GAP_deserializations,
              [ JuliaToGAP( IsString, entry[1] ), "IsObject", "IsObject" ],
              Julia.GAP.WrapJuliaFunc( entry[2] ) );
          end );
+
+############################################################################
+
+# The following can be removed as soon as the CTblLib package provides it
+# (not yet in CTblLib v1.3.9).
+if not IsBound( IsAtlasCharacterTable ) then
+  DeclareProperty( "IsAtlasCharacterTable", IsNearlyCharacterTable );
+
+  InstallMethod( IsAtlasCharacterTable,
+    [ "IsOrdinaryTable" ],
+    tbl -> PositionSublist( InfoText( tbl ),
+                            "origin: ATLAS of finite groups" ) <> fail );
+
+  InstallMethod( IsAtlasCharacterTable,
+    [ "IsBrauerTable" ],
+    tbl -> IsAtlasCharacterTable( OrdinaryCharacterTable( tbl ) ) );
+
+  AddSet( CTblLib.SupportedAttributes, "IsAtlasCharacterTable" );
+
+  DatabaseAttributeAddX( CTblLib.Data.IdEnumerator, rec(
+    identifier:= "IsAtlasCharacterTable",
+    type:= "values",
+    name:= "IsAtlasCharacterTable",
+    neededAttributes:= [ "InfoText" ],
+    create:= function( attr, id )
+      local infotext;
+
+      infotext:= attr.idenumerator.attributes.InfoText;
+      return PositionSublist( infotext.attributeValue( infotext, id ),
+                              "origin: ATLAS of finite groups" ) <> fail;
+      end,
+  ) );
+
+  CTblLib.ExtendAttributeOfIdEnumeratorExt( "IsAtlasCharacterTable", true );
+fi;
