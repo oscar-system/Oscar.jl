@@ -1,3 +1,4 @@
+# TODO: change Vector -> Set
 const EdgeLabels = Dict{Tuple{Int, Int}, Vector{WeylGroupElem}}
 
 function isless_lex(S1::Set{Set{Int}}, S2::Set{Set{Int}})
@@ -181,6 +182,7 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
                              parallel::Bool = false,
                              show_progress::Bool = true,
                              task_size::Int=100) where T <: ComplexOrHypergraph
+  # see TODO above about changing EdgeLabels type
   # Deal with trivial case
   if length(complexes) == 1
     @req is_shifted(complexes[1]) "The list of complexes should be closed under shifting by elements of W"
@@ -215,18 +217,11 @@ function partial_shift_graph(F::Field, complexes::Vector{T},
     Oscar.put_params(channels, codomain(phi))
     map_function = pmap
   end
-  try 
-    if show_progress
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           @showprogress map_function(
+  try
+    edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
+                           @showprogress enabled=show_progress map_function(
                              Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
                              Iterators.partition(enumerate(complexes), task_size)))
-    else
-      edge_labels = reduce((d1, d2) -> mergewith!(vcat, d1, d2),
-                           map_function(
-                             Ks -> multi_edges(F, phi.(W), Ks, complex_labels),
-                             Iterators.partition(enumerate(complexes), task_size)))
-    end
     graph = graph_from_edges(Directed, [[i,j] for (i,j) in keys(edge_labels)])
     return (graph,
             Dict(k => inv(phi).(v) for (k, v) in edge_labels),
