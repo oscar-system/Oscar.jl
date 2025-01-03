@@ -101,6 +101,7 @@ GAP.@wrap FamilyObj(x::GAP.Obj)::GapObj
 GAP.@wrap FamilyPcgs(x::GAP.Obj)::GapObj
 GAP.@wrap fhmethsel(x::GapObj)::GAP.Obj
 GAP.@wrap Field(x::Any)::GapObj
+GAP.@wrap Flat(x::GapObj)::GapObj
 GAP.@wrap FreeAbelianGroup(x::Int)::GapObj
 GAP.@wrap FreeGeneratorsOfFpGroup(x::GapObj)::GapObj
 GAP.@wrap FreeGroupOfFpGroup(x::GapObj)::GapObj

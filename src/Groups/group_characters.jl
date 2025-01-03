@@ -2529,11 +2529,11 @@ multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), n * GapObj(chi))
+    return GAPGroupClassFunction(parent(chi), GapObj(n) * GapObj(chi))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ n)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ GapObj(n))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2828,6 +2828,7 @@ end
 
 @doc raw"""
     character_field(chi::GAPGroupClassFunction)
+    character_field(l::Vector{GAPGroupClassFunction})
 
 If `chi` is an ordinary character then
 return the pair `(F, phi)` where `F` is a number field that is generated
@@ -2838,6 +2839,10 @@ If `chi` is a Brauer character in characteristic `p` then
 return the pair `(F, phi)` where `F` is the finite field that is generated
 by the `p`-modular reductions of the values of `chi`,
 and `phi` is the identity map on `F`.
+
+If a nonempty vector `l` of characters is given then `(F, phi)` is returned
+such that `F` is the smallest field that contains the character fields
+of the entries of `l`.
 
 # Examples
 ```jldoctest
@@ -2851,6 +2856,9 @@ julia> flds_2 = map(character_field, mod(t, 2));
 
 julia> println([degree(x[1]) for x in flds_2])
 [1, 2, 2, 1]
+
+julia> degree(character_field(collect(t))[1])
+2
 ```
 """
 function character_field(chi::GAPGroupClassFunction)
@@ -2864,8 +2872,31 @@ function character_field(chi::GAPGroupClassFunction)
       return (F, identity_map(F))
     end
 
-    values = GapObj(chi)  # a list of GAP cyclotomics
+    values = GapObj(chi)::GapObj
     gapfield = GAPWrap.Field(values)
+    return _character_field(gapfield)
+end
+
+function character_field(l::Vector{GAPGroupClassFunction})
+    @req length(l) > 0 "need at least one class function"
+    p = characteristic(l[1])
+    @req all(chi -> characteristic(chi) == p, l) "all entries must have the same characteristic"
+
+    if p != 0
+      # Brauer characters, construct a finite field
+      orders = [order_field_of_definition(chi) for chi in l]
+      exps = [is_prime_power_with_data(q)[2] for q in orders]
+      e = lcm(exps)
+      F = GF(p, e)
+      return (F, identity_map(F))
+    end
+
+    values = GapObj(l, recursive = true)::GapObj
+    gapfield = GAPWrap.Field(GAPWrap.Flat(values))
+    return _character_field(gapfield)
+end
+
+function _character_field(gapfield::GapObj)
     N = GAPWrap.Conductor(gapfield)
     FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)
