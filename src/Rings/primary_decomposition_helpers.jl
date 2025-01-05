@@ -111,7 +111,7 @@ function _expand_coefficient_field(Q::MPolyQuoRing{<:MPolyRingElem{T}}; rec_dept
 end
 
 function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; rec_depth::Int=0)
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     R_flat, to_R, to_R_flat = _expand_coefficient_field(R; rec_depth = rec_depth + 1)
     res, a, b = _expand_coefficient_field_to_QQ(R_flat; rec_depth = rec_depth + 1)
     return res, compose(a, to_R), compose(to_R_flat, b)
@@ -119,13 +119,13 @@ function _expand_coefficient_field_to_QQ(R::Union{<:MPolyRing, <:MPolyQuoRing}; 
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyRing{T}; rec_depth=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
 
 function _expand_coefficient_field_to_QQ(R::MPolyQuoRing{<:MPolyRingElem{T}}; rec_depth::Int=0) where {T<:QQFieldElem}
-  get_attribute(R, :coefficient_field_expansion) do
+  get_attribute!(R, :coefficient_field_expansion) do
     return _expand_coefficient_field(R; rec_depth = rec_depth + 1)
   end::Tuple{<:Ring, <:Map, <:Map}
 end
