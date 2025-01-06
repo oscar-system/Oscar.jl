@@ -353,8 +353,6 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
   return ParentType
 end
 
-base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
-base_ring_type(::Type{T}) where {FracFieldType, T<:VarietyFunctionField{<:Field, FracFieldType}} = base_ring_type(FracFieldType)
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 
@@ -370,7 +368,10 @@ function Base.deepcopy_internal(f::VarietyFunctionFieldElem, dict::IdDict)
 end
 
 (KK::VarietyFunctionField)() = zero(KK)
-(KK::VarietyFunctionField)(a::Integer) = KK(base_ring(KK)(a), one(base_ring(KK)), check=false)
+function (KK::VarietyFunctionField)(a::Integer)
+  R = base_ring(representative_field(KK))
+  KK(R(a), one(R), check=false)
+end
 (KK::VarietyFunctionField)(f::VarietyFunctionFieldElem) = (parent(f) == KK ? f : error("element does not belong to the given field"))
 (KK::VarietyFunctionField)(a::MPolyRingElem) = KK(a, one(parent(a)), check=false)
 canonical_unit(f::VarietyFunctionFieldElem) = f # part of the ring interface that becomes trivial for fields
