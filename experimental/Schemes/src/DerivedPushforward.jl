@@ -97,10 +97,10 @@ function _derived_pushforward(comp::AbsHyperComplex, seq::Vector{T}) where {T <:
 
   KoM = hom(K, comp)
   tot = total_complex(KoM)
-  tot_simp = simplify(tot)
+  #tot_simp = simplify(tot)
 
   G = grading_group(S)
-  st, _ = strand(tot_simp, zero(G))
+  st, _ = strand(tot, zero(G))
   return simplify(st)
 end
 
@@ -156,8 +156,6 @@ function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:Fie
   return ngens(domain(phi)) - nrows(kernel(sparse_matrix(phi), side = :left))
 end
 
-
-#_regularity_bound(F::FreeMod) = maximum(Int(degree(a; check=false)[1]) for a in gens(F))
 
 @doc raw"""
     simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
