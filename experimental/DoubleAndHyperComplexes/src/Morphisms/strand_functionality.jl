@@ -25,7 +25,6 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
   # Use a dictionary for fast mapping of the monomials to the 
   # generators of `cod`.
   cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(m=>cod[k] for (k, m) in enumerate(all_exponents(orig_cod, fac.d)))
-  #cod_dict = Dict{Tuple{Vector{Int}, Int}, elem_type(cod)}(first(exponents(m))=>cod[k] for (k, m) in enumerate(all_monomials(orig_cod, fac.d)))
   # Hashing of FreeModElem's can not be assumed to be non-trivial. Hence we use the exponents directly.
   img_gens_res = elem_type(cod)[]
   R = base_ring(orig_dom)
@@ -59,33 +58,6 @@ function strand(c::AbsHyperComplex{T}, d::Union{Int, FinGenAbGroupElem}) where {
   return result, inc
 end
 
-### Some missing methods
-# (Disabled for the moment because the use case was disabled due to slowness)
-#=
-function sparse_matrix(phi::SubQuoHom{<:SubquoModule, <:ModuleFP, Nothing})
-  R = base_ring(domain(phi))
-  m = ngens(domain(phi))
-  n = ngens(codomain(phi))
-  result = sparse_matrix(R, m, n)
-  for (i, g) in enumerate(gens(domain(phi)))
-    result[i] = coordinates(phi(g))
-  end
-  return result
-end
-
-function sparse_matrix(phi::FreeModuleHom{FreeMod{T}, SubquoModule{T}, Nothing}) where {T}
-  V = domain(phi)
-  W = codomain(phi)
-  kk = base_ring(V)
-  m = ngens(V)
-  n = ngens(W)
-  result = sparse_matrix(kk, m, n)
-  for (i, g) in enumerate(gens(V))
-    result[i] = coordinates(phi(g))
-  end
-  return result
-end
-=#
 
 # TODO: Code duplicated from `monomial_basis`. Clean this up!
 function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
