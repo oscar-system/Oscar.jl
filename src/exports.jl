@@ -804,6 +804,7 @@ export is_almost_simple, has_is_almost_simple, set_is_almost_simple
 export is_alternating
 export is_ample
 export is_archimedean_solid
+export is_atlas_character_table
 export is_ball
 export is_basepoint_free
 export is_bicoset

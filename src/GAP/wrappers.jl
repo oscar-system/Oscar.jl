@@ -165,6 +165,7 @@ GAP.@wrap IsAlmostSimpleGroup(x::Any)::Bool
 GAP.@wrap IsAlternatingForm(x::Any)::Bool
 GAP.@wrap IsAlternatingGroup(x::Any)::Bool
 GAP.@wrap IsAssocWord(x::Any)::Bool
+GAP.@wrap IsAtlasCharacterTable(x::GapObj)::Bool
 GAP.@wrap IsBiCoset(x::Any)::Bool
 GAP.@wrap IsBijective(x::Any)::Bool
 GAP.@wrap IsBool(x::Any)::Bool

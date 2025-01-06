@@ -441,6 +441,35 @@ function Base.hash(tbl::GAPGroupCharacterTable, h::UInt)
   end
 end
 
+"""
+    is_atlas_character_table(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is either an ordinary character table
+that belongs to the ATLAS of Finite Groups [CCNPW85](@cite)
+or a Brauer table whose underlying ordinary table
+belongs to the ATLAS of Finite Groups.
+
+One application of this function is to restrict the search with
+[`all_character_table_names`](@ref) to ATLAS tables.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> is_atlas_character_table(tbl)
+true
+
+julia> is_atlas_character_table(mod(tbl, 2))
+true
+
+julia> is_atlas_character_table(character_table("A4"))
+false
+```
+"""
+function is_atlas_character_table(tbl::GAPGroupCharacterTable)
+  return GAPWrap.IsAtlasCharacterTable(GapObj(tbl))
+end
+
 
 ##############################################################################
 #
