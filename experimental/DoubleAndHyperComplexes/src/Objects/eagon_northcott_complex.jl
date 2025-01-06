@@ -132,6 +132,27 @@ underlying_complex(c::EagonNorthcottComplex) = c.internal_complex
 original_module(c::EagonNorthcottComplex) = chain_factory(c).F
 matrix(c::EagonNorthcottComplex) = chain_factory(c).A
 
+# user facing constructors
+@doc raw"""
+    eagon_northcott_complex(A::MatrixElem{T}; F::FreeMod{T}) where {T}
+
+Given an ``m \times n``-matrix ``A`` over a commutative ring ``R``, construct 
+the Eagon-Northcott complex associated to it [EN62](@cite).
+
+A free module ``F`` over the same ring as ``A`` can be passed so that the rows 
+of ``A`` are interpreted as elements in the dual of ``F`` in the construction 
+of the complex.
+"""
+function eagon_northcott_complex(
+    A::MatrixElem{T};
+    F::FreeMod{T}=begin
+      R = base_ring(A)
+      F = is_graded(R) ? graded_free_module(R, [zero(grading_group(R)) for _ in 1:ncols(A)]) : FreeMod(R, ncols(A))
+    end
+  ) where {T}
+  return EagonNorthcottComplex(A; F)
+end
+
 # return the exterior power used for the i-th entry
 function _exterior_power(c::EagonNorthcottComplex, i::Int)
   c[i] # fill the cache

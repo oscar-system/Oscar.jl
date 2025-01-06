@@ -91,6 +91,23 @@ end
   end
 end
 
+### user facing constructors
+@doc raw"""
+    induced_eagon_northcott_complex(enc::EagonNorthcottComplex, I::SubquoModule)
+
+Given an Eagon-Northcott complex `enc` for a matrix ``A`` on a free ``R``-module ``F`` 
+there is a natural induced complex for any submodule ``I ⊂ F``. 
+
+Namely, if ``v`` is one of the rows of ``A``, interpreted as an element of ``Hom(F, R¹)``, 
+then contraction with ``v`` provides natural maps ``⋀ ᵖ F → ⋀ ᵖ⁻¹ F`` which restrict 
+to the submodules ``⋀ ᵖ I → ⋀ ᵖ⁻¹ I``. As the Eagon-Northcott complex is build up from 
+such contractions, we obtain a natural restricted complex which is constructed by this 
+method.
+"""
+function induced_eagon_northcott_complex(enc::EagonNorthcottComplex, I::SubquoModule)
+  return InducedENC(enc, I)
+end
+
 ### Implementing the AbsHyperComplex interface via `underlying_complex`
 underlying_complex(c::InducedENC) = c.internal_complex
 
