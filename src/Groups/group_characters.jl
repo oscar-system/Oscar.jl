@@ -447,7 +447,7 @@ end
 Return whether `tbl` is either an ordinary character table
 that belongs to the ATLAS of Finite Groups [CCNPW85](@cite)
 or a Brauer table whose underlying ordinary table
-that belongs to the ATLAS of Finite Groups.
+belongs to the ATLAS of Finite Groups.
 
 One application of this function is to restrict the search with
 [`all_character_table_names`](@ref) to ATLAS tables.
