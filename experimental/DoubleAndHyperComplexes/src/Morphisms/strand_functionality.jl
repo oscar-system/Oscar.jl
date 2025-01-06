@@ -71,7 +71,7 @@ function all_exponents(W::MPolyDecRing, d::FinGenAbGroupElem)
      k, im = kernel(h)
      #need the positive elements in there...
      #Ax = b, Cx >= 0
-     C = identity_matrix(FlintZZ, ngens(W))
+     C = identity_matrix(ZZ, ngens(W))
      A = reduce(vcat, [x.coeff for x = W.d])
      k = solve_mixed(transpose(A), transpose(d.coeff), C)
      B = Vector{Int}[k[ee, :] for ee in 1:nrows(k)]
