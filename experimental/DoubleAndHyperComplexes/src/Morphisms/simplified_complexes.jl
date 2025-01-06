@@ -208,8 +208,8 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     for i in 1:m
       w = Sinv[i]
       v = zero(new_dom)
-      for j in 1:length(I)
-        success, a = _has_index(w, I[j])
+      for (j, ind) in enumerate(I)
+        success, a = _has_index(w, ind)
         success && (v += a*new_dom[j])
       end
       push!(img_gens_dom, v)
