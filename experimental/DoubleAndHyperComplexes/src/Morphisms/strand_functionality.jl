@@ -40,7 +40,7 @@ function (fac::StrandMorphismFactory)(c::AbsHyperComplex, p::Int, i::Tuple)
     w = zero(cod)
     for (i, b) in coordinates(v)
       #g = orig_cod[i]
-      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(coefficients(b), exponents(b)); init=zero(cod))
+      w += sum(c*cod_dict[(n, i)] for (c, n) in zip(AbstractAlgebra.coefficients(b), AbstractAlgebra.exponent_vectors(b)); init=zero(cod))
     end
     push!(img_gens_res, w)
   end
