@@ -303,7 +303,9 @@ julia> primitive_generator(r)
 ```
 """
 function primitive_generator(r::RayVector)
-  return vec(collect(matrix(ZZ, rays(positive_hull(r)))))
+  result = numerator.(lcm([denominator(i) for i in r]) * r)
+  result = 1/gcd(result) * result
+  convert(Vector{ZZRingElem}, result)
 end
 
 @doc raw"""
