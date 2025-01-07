@@ -51,7 +51,7 @@ the following six steps for submitting changes to the OSCAR source:
    git checkout -b yi/document_feature
    ```
 4. Edit your source and try out your changes locally (see below). To use your local copy of
-   the sources, start Julia and enter the package manager by pressing ]. Then type
+   the sources, start Julia and enter the package manager by pressing `]`. Then type
    ```
    dev /path/to/local/clone/of/your/fork/of/Oscar.jl
    ```
