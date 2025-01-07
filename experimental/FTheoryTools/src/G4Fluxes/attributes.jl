@@ -16,7 +16,10 @@ julia> cohomology_ring(ambient_space(qsm_model), check = false);
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
 
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> model(g4f)
 Hypersurface model over a concrete base
@@ -39,7 +42,10 @@ julia> cohomology_ring(ambient_space(qsm_model), check = false);
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
 
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> cohomology_class(g4f) == g4_class
 true

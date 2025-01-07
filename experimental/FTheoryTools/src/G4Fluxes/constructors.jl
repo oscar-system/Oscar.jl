@@ -52,9 +52,15 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 
 julia> g4f = g4_flux(qsm_model, g4_class)
 G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
@@ -112,9 +118,47 @@ end
 ################################################
 
 function Base.show(io::IO, g4::G4Flux)
-  properties_string = String["G4-flux candidate"]
-  if !has_attribute(g4, :passes_elementary_quantization_checks)
-    push!(properties_string, "lacking elementary quantization checks")
+  properties_string = ["G4-flux candidate"]
+
+  # Check for elementary quantization checks
+  if has_attribute(g4, :passes_elementary_quantization_checks)
+    if passes_elementary_quantization_checks(g4)
+      push!(properties_string, "  - Elementary quantization checks: satisfied")
+    else
+      push!(properties_string, "  - Elementary quantization checks: failed")
+    end
+  else
+    push!(properties_string, "  - Elementary quantization checks: not executed")
   end
-  join(io, properties_string, " ")
+
+  # Check for tadpole cancellation checks
+  if has_attribute(g4, :passes_tadpole_cancellation_check)
+    if passes_tadpole_cancellation_check(g4)
+      push!(properties_string, "  - Tadpole cancellation check: satisfied")
+    else
+      push!(properties_string, "  - Tadpole cancellation check: failed")
+    end
+  else
+    push!(properties_string, "  - Tadpole cancellation check: not executed")
+  end
+
+  # Check for verticality checks
+  if has_attribute(g4, :passes_verticality_checks)
+    if passes_verticality_checks(g4)
+      push!(properties_string, "  - Verticality checks: satisfied")
+    else
+      push!(properties_string, "  - Verticality checks: failed")
+    end
+  else
+    push!(properties_string, "  - Verticality checks: not executed")
+  end
+
+  # Print each line separately, to avoid extra line break at the end
+  for (i, line) in enumerate(properties_string)
+    if i == length(properties_string)
+      print(io, line) # Last line without extra newline
+    else
+      println(io, line) # Print all other lines with line break
+    end
+  end
 end

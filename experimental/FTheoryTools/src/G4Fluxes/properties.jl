@@ -28,10 +28,19 @@ julia> cohomology_ring(ambient_space(qsm_model), check = false);
 julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm_model)))^2;
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> passes_elementary_quantization_checks(g4)
 true
+
+julia> g4
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 ```
 """
 @attr Bool function passes_elementary_quantization_checks(g4::G4Flux)
@@ -84,10 +93,19 @@ julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = c
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> passes_verticality_checks(g4)
 true
+
+julia> g4
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
 ```
 """
 @attr Bool function passes_verticality_checks(g4::G4Flux)
@@ -138,10 +156,19 @@ julia> u = cohomology_class(divs[33]);v = cohomology_class(divs[30]);pb_Kbar = c
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> passes_tadpole_cancellation_check(g4)
 true
+
+julia> g4
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: satisfied
+  - Verticality checks: not executed
 ```
 """
 @attr Bool function passes_tadpole_cancellation_check(g4::G4Flux)
