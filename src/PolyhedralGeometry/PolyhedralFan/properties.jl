@@ -304,7 +304,7 @@ julia> primitive_generator(r)
 """
 function primitive_generator(r::RayVector)
   result = numerator.(lcm([denominator(i) for i in r]) * r)
-  result = 1/gcd(result) * result
+  result = 1 / gcd(result) * result
   convert(Vector{ZZRingElem}, result)
 end
 
