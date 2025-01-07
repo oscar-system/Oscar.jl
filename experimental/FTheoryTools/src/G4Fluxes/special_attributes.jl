@@ -185,7 +185,10 @@ julia> M = res[1];
 julia> g4_class = sum(M[i,j]*g4_base[i] for i in 1:length(g4_base) for j in 1:size(M,2));
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> passes_elementary_quantization_checks(g4)
 true
@@ -418,7 +421,10 @@ true
 julia> c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120, 0, -60, 0, -720, -420, -270, -60, -2190];
 
 julia> qsm_g4_candidate = g4_flux(qsm_model, sum(c[i]*g4_classes[i] for i in 1:length(g4_classes)), check = false)
-G4-flux candidate lacking elementary quantization checks
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true
