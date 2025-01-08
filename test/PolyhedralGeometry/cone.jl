@@ -28,7 +28,7 @@
     if T == QQFieldElem
       @test hilbert_basis(Cone1) isa SubObjectIterator{PointVector{ZZRingElem}}
       @test length(hilbert_basis(Cone1)) == 2
-      @test issetequal(hilbert_basis(Cone1), ray_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
+      @test issetequal(hilbert_basis(Cone1), point_vector.(Ref(ZZ), [[1, 0], [0, 1]]))
       @test generator_matrix(hilbert_basis(Cone1)) == _oscar_matrix_from_property(ZZ, hilbert_basis(Cone1))
     end
     @test n_rays(Cone1) == 2
@@ -116,6 +116,8 @@
 
     @test n_facets(Cone5) == 4
     @test relative_interior_point(Cone1) == f.([1//2, 1//2])
+    @test length(findall(f->[1,0,0] in f, facets(Hyperplane, Cone5))) == 2
+    @test length(findall(f->[1,0,0] in f, facets(Halfspace, Cone5))) == 4
   end
 
   @testset "constructors" begin

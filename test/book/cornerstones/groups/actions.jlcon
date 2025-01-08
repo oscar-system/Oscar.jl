@@ -17,7 +17,7 @@ julia> acting_group(r)
 Pc group of order 6
 
 julia> collect(r)
-3-element Vector{GroupCoset{PcGroup, PcGroupElem}}:
+3-element Vector{GroupCoset{PcGroup, SubPcGroup, PcGroupElem}}:
  Right coset of U with representative <identity> of ...
  Right coset of U with representative f2
  Right coset of U with representative f2^2

@@ -241,37 +241,6 @@ GAP.@install function GapObj(x::MatrixGroupElem)
   return x.X
 end
 
-# return the G.sym if isdefined(G, :sym); otherwise, the field :sym is computed and set using information from other defined fields
-function Base.getproperty(G::MatrixGroup{T}, sym::Symbol) where T
-
-   isdefined(G,sym) && return getfield(G,sym)
-
-   if sym === :X
-      if isdefined(G,:descr)
-         assign_from_description(G)
-      elseif isdefined(G,:gens)
-         V = GapObj(gens(G); recursive=true)
-         G.X = isempty(V) ? GAPWrap.Group(V, GapObj(one(G))) : GAPWrap.Group(V)
-      else
-         error("Cannot determine underlying GAP object")
-      end
-   end
-
-   return getfield(G, sym)
-
-end
-
-
-function Base.getproperty(x::MatrixGroupElem, sym::Symbol)
-
-   isdefined(x,sym) && return getfield(x,sym)
-
-   if sym === :X
-      x.X = map_entries(_ring_iso(parent(x)), x.elm)
-   end
-   return getfield(x,sym)
-end
-
 Base.IteratorSize(::Type{<:MatrixGroup}) = Base.SizeUnknown()
 
 Base.iterate(G::MatrixGroup) = iterate(G, GAPWrap.Iterator(GapObj(G)))
@@ -530,13 +499,13 @@ degree(G::MatrixGroup) = G.deg
 Base.one(G::MatrixGroup) = MatrixGroupElem(G, identity_matrix(base_ring(G), degree(G)))
 
 function Base.rand(rng::Random.AbstractRNG, G::MatrixGroup)
-   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), G.X)::GapObj
+   x_gap = GAP.Globals.Random(GAP.wrap_rng(rng), GapObj(G))::GapObj
    return MatrixGroupElem(G, x_gap)
 end
 
 function gens(G::MatrixGroup)
    if !isdefined(G,:gens)
-      L = GAPWrap.GeneratorsOfGroup(G.X)::GapObj
+      L = GAPWrap.GeneratorsOfGroup(GapObj(G))::GapObj
       G.gens = [MatrixGroupElem(G, a::GapObj) for a in L]
    end
    return G.gens::Vector{elem_type(G)}
@@ -555,26 +524,26 @@ end
 number_of_generators(G::MatrixGroup) = length(gens(G))
 
 
-compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(G.X))
+compute_order(G::GAPGroup) = ZZRingElem(GAPWrap.Size(GapObj(G)))
 
 function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldElem, QQFieldElem}}
   #=
     - For a matrix group G over the rationals or over a number field,
-    the GAP group G.X does usually not store the flag `IsHandledByNiceMonomorphism`.
+    the GAP group GapObj(G) does usually not store the flag `IsHandledByNiceMonomorphism`.
     - If we know a reasonable ("nice") faithful permutation action of `G` in advance,
-    we can set this flag in `G.X` to true and store the action homomorphism in `G.X`,
+    we can set this flag in `GapObj(G)` to true and store the action homomorphism in `GapObj(G)`,
     and then this information should be used in the computation of the order.
     - If the flag is not known to be true then the Oscar code from
     `isomorphic_group_over_finite_field` shall be preferred.
   =#
-  if GAP.Globals.HasIsHandledByNiceMonomorphism(G.X) && GAPWrap.IsHandledByNiceMonomorphism(G.X)
+  if GAP.Globals.HasIsHandledByNiceMonomorphism(GapObj(G)) && GAPWrap.IsHandledByNiceMonomorphism(GapObj(G))
     # The call to `IsHandledByNiceMonomorphism` triggers an expensive
     # computation of `IsFinite` which we avoid by checking
     # `HasIsHandledByNiceMonomorphism` first.
-    return ZZRingElem(GAPWrap.Size(G.X))
+    return ZZRingElem(GAPWrap.Size(GapObj(G)))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
-    GAP.Globals.SetSize(G.X, GAP.Obj(n))
+    GAP.Globals.SetSize(GapObj(G), GAP.Obj(n))
     return n
   end
 end
@@ -990,8 +959,8 @@ const SU = special_unitary_group
 
 function sub(G::MatrixGroup, elements::Vector{S}) where S <: GAPGroupElem
    @assert elem_type(G) === S
-   elems_in_GAP = GAP.Obj(GapObj[x.X for x in elements])
-   H = GAP.Globals.Subgroup(G.X,elems_in_GAP)::GapObj
+   elems_in_GAP = GAP.Obj(GapObj[GapObj(x) for x in elements])
+   H = GAP.Globals.Subgroup(GapObj(G),elems_in_GAP)::GapObj
    #H is the group. I need to return the inclusion map too
    K,f = _as_subgroup(G, H)
    L = Vector{elem_type(K)}(undef, length(elements))
@@ -1028,7 +997,7 @@ function Base.:^(H::MatrixGroup, y::MatrixGroupElem)
       for k in gens(K) k.parent = K end
    else
       K = matrix_group(base_ring(H), degree(H))
-      K.X = H.X^y.X
+      K.X = GapObj(H)^GapObj(y)
    end
 
    return K

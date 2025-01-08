@@ -489,7 +489,7 @@ order.
 
 The implemented algorithm is "partb" in [RJ76](@cite).
 
-# Example
+# Examples
 The number of partitions of 100 where the parts are from {1, 2, 5, 10, 20, 50}:
 ```jldoctest
 julia> length(collect(partitions(100, [1, 2, 5, 10, 20, 50])))

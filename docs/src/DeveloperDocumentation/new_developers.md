@@ -51,11 +51,11 @@ the following six steps for submitting changes to the OSCAR source:
    git checkout -b yi/document_feature
    ```
 4. Edit your source and try out your changes locally (see below). To use your local copy of
-   the sources, start Julia and
+   the sources, start Julia and enter the package manager by pressing `]`. Then type
    ```
-   ]dev /path/to/local/clone/of/your/fork/of/Oscar.jl
+   dev /path/to/local/clone/of/your/fork/of/Oscar.jl
    ```
-   If this succeeds, you can enter `using Oscar` in Julia and it will use your local
+   If this succeeds, leave the package manager by pressing backspace. You can then enter `using Oscar` in Julia and it will use your local
    copy.
 5. Once you are done editing, push your branch and open a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). It is
    recommended that you open a draft [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) to the main OSCAR repository

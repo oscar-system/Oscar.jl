@@ -60,9 +60,9 @@ julia> L = syzygy_generators([hessian(G), F, hessian(F)]);
 
 julia> collect(coefficients(L[1]))
 3-element Vector{AbstractAlgebra.Generic.FracFieldElem{QQPolyRingElem}}:
- -1
- -279936*t
  t^3 + 93312
+ -279936*t
+ -1
 
 julia> C, iC = center(H3);
 

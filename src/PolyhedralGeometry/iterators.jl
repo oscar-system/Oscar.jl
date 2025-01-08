@@ -106,6 +106,10 @@ Base.:(==)(::PointVector, ::RayVector) =
 Base.:(==)(::RayVector, ::PointVector) =
   throw(ArgumentError("Cannot compare PointVector to RayVector"))
 
+Base.isequal(x::RayVector, y::RayVector) = x == y
+
+Base.hash(x::RayVector, h::UInt) = hash(collect(sign.(x)), hash(coefficient_field(x), h))
+
 ################################################################################
 ######## Halfspaces and Hyperplanes
 ################################################################################
@@ -217,6 +221,15 @@ function Base.:(==)(x::Hyperplane, y::Hyperplane)
   r = y.a[iy]//x.a[ix]
   return (r .* ax == ay) && (r * negbias(x) == negbias(y))
 end
+
+Base.in(x::AbstractVector, y::Hyperplane) = (dot(x, normal_vector(y)) == negbias(y))
+Base.in(x::AbstractVector, y::Halfspace) = (dot(x, normal_vector(y)) <= negbias(y))
+# A ray vector needs a base point for containment in an affine space, so we
+# just error when this combination is tested.
+Base.in(x::RayVector, y::T) where {T<:Union{AffineHalfspace,
+    AffineHyperplane}} =
+  throw(ArgumentError("Containment of RayVector in affine spaces is not
+                      well-defined."))
 
 Base.hash(x::T, h::UInt) where {T<:Union{AffineHalfspace,AffineHyperplane}} =
   hash((x.a, x.b), hash(T, h))

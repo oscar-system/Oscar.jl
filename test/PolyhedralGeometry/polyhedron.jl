@@ -13,10 +13,6 @@
   L = polyhedron(f, [-1 0 0; 0 -1 0], [0, 0])
   full = polyhedron(f, zero_matrix(f, 0, 3), [])
   point = convex_hull(f, [0 1 0])
-  # this is to make sure the order of some matrices below doesn't change
-  Polymake.prefer("beneath_beyond") do
-    affine_hull(point)
-  end
   s = simplex(f, 2)
   R, x = polynomial_ring(QQ, :x)
   v = T[f(1), f(1)]
@@ -209,6 +205,8 @@
 
     @test dim(full) == ambient_dim(full)
     @test lineality_dim(full) == 3
+    @test length(findall(f-> [1,0] in f, facets(Hyperplane, Q0))) == 2
+    @test length(findall(f-> [1,0] in f, facets(Halfspace, Q0))) == 3
   end
 
   @testset "volume" begin

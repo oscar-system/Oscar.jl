@@ -354,7 +354,6 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
 end
 
 base_ring(KK::VarietyFunctionField) = base_ring(representative_field(KK))
-base_ring(a::VarietyFunctionFieldElem) = base_ring(parent(a))
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 
@@ -516,4 +515,7 @@ function pullback(f::AbsCoveredSchemeMorphism, a::VarietyFunctionFieldElem)
                                      phi(OO(W)(denominator(b))))
   end
 end
+
+scheme(f::VarietyFunctionFieldElem) = scheme(parent(f))
+variety(f::VarietyFunctionFieldElem) = variety(parent(f))
 

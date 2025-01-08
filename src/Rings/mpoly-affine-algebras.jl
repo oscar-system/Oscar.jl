@@ -153,7 +153,7 @@ function monomial_basis(A::MPolyQuoRing)
   is_finite_dimensional_vector_space(A) || throw(InfiniteDimensionError())
   I = A.I
   G = standard_basis(I)
-  if dim(I) == -1 # I is the whole ring
+  if dim(I) == -inf # I is the whole ring
     return elem_type(base_ring(A))[]
   end
   si = Singular.kbase(singular_generators(G, G.ord))
@@ -1248,7 +1248,7 @@ Given a vector `V` of homogeneous elements of a positively graded multivariate
 polynomial ring, or of a quotient of such a ring, return a subset `W` of
 the elements in `V` of minimal cardinality which, in the given ring, generate the
 same subalgebra as all elements in `V`.
-Further, return a vector `rels` representating the elements of `V` in the minimal
+Further, return a vector `rels` representing the elements of `V` in the minimal
 generators in `W`, that is, we have `V[i] = rels[i](W...)` for `i = 1:length(V)`.
 
 If `check` is `true` (default), the conditions on `V` and the given ring are
