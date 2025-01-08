@@ -122,7 +122,7 @@ jobs:
 
   extra-large-test:
     # Extra large tests
-    # Only happen during the nightly run, trigerred by cron
+    # Only happens during the daily run, trigerred by cron
     if: github.event_name == 'schedule'
     runs-on: [Linux, RPTU, normal-memory]
     steps:
