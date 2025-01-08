@@ -91,7 +91,7 @@ sort!(testlist)
 Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
 # tests with the highest number of allocations / runtime / compilation time
-# more or less sorted by allocations are in `large`
+# more or less sorted by allocations are in `long`
 # tests that should not be run for pull request CI are in `extra_large`
 # (these are run on a custom schedule only)
 test_subsets = Dict(
@@ -99,7 +99,7 @@ test_subsets = Dict(
                                "experimental/FTheoryTools/test/FTM-1511-03209.jl",
                               ],
 
-                    :large => [
+                    :long  => [
                                "test/Aqua.jl",
                                "experimental/FTheoryTools/test/weierstrass.jl",
                                "test/PolyhedralGeometry/timing.jl",
@@ -145,6 +145,8 @@ elseif test_subset == :default
     @info "Skipping Oscar book tests"
     filter!(x-> !in(relpath(x, Oscar.oscardir), test_subsets[:book]), testlist)
   end
+else
+  error("invalid test subset specified via `OSCAR_TEST_SUBSET` environment variable")
 end
 
 
