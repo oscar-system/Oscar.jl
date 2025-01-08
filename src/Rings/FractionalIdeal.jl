@@ -61,6 +61,7 @@ function Base.hash(a::FractionalIdeal, h::UInt)
   # there is nothing better to include in the hash
   h = hash(base_ring(a), h)
   return xor(b, h)
+end
 
 function ^(a::FractionalIdeal, b::Int)
   return fractional_ideal(a.num^b, a.den^b)
