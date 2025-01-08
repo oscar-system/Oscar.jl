@@ -353,6 +353,9 @@ function parent_type(::Type{T}) where {ParentType, T<:VarietyFunctionFieldElem{<
   return ParentType
 end
 
+base_ring(KK::VarietyFunctionField) = KK.kk
+base_ring_type(::Type{T}) where {R, T<:VarietyFunctionField{R}} = R
+
 is_domain_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 is_exact_type(::Type{T}) where {T<:VarietyFunctionFieldElem} = true
 
