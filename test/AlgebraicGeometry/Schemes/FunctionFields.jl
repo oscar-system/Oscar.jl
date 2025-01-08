@@ -15,6 +15,7 @@ end
   C = subscheme(P, ideal(S, S[1]*S[2]-S[3]^2))
   Ccov = covered_scheme(C)
   KK = VarietyFunctionField(Ccov)
+  @test base_ring_type(KK) === typeof(base_ring(KK))
 
   test_Field_interface(KK)
   #test_Field_interface_recursive(KK)  # FIXME: lots of ambiguity errors
