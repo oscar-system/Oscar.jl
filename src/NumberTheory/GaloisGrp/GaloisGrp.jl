@@ -102,7 +102,7 @@ Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
 (R::BoundRing{T})(a::ZZRingElem) where T = BoundRingElem{T}(R.map(abs(a)), R)
 (R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(ZZRingElem(a), R)
-(R::BoundRing{T})() where T = BoundRingElem{T}(ZZRingElem(0), R)
+(R::BoundRing{T})() where T = zero(R)
 (R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
 (R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
