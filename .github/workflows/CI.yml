@@ -120,6 +120,27 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
+  extra-large-test:
+    # Extra large tests
+    # Only happen during the nightly run, trigerred by cron
+    if: github.event_name == 'schedule'
+    runs-on: [Linux, RPTU, normal-memory]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: "Set up Julia"
+        id: setup-julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: "1.10"
+      - name: "Build package"
+        uses: julia-actions/julia-buildpkg@v1
+      - name: "set test subgroup"
+        run: echo "OSCAR_TEST_SUBSET=extra-long" >> $GITHUB_ENV
+      - name: "Run tests"
+        uses: julia-actions/julia-runtest@latest
+
   doctest:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 150

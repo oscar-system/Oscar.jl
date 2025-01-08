@@ -92,6 +92,10 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations
+test_extra_large = [
+              "experimental/FTheoryTools/test/FTM-1511-03209.jl",
+             ]
+
 test_large = [
               "test/Aqua.jl",
               "experimental/FTheoryTools/test/weierstrass.jl",
@@ -130,6 +134,8 @@ elseif test_subset == "long"
   filter!(x-> in(relpath(x, Oscar.oscardir), test_large), testlist)
 elseif test_subset == "book"
   filter!(x-> in(relpath(x, Oscar.oscardir), test_book), testlist)
+elseif test_subset == "extra_long"
+  filter!(x-> in(relpath(x, Oscar.oscardir), test_extra_large), testlist)
 elseif test_subset == "" && !(Sys.islinux() && v"1.10" <= VERSION < v"1.11.0-DEV")
   # book tests only on 1.10 and linux
   @info "Skipping Oscar book tests"
