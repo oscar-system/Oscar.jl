@@ -249,8 +249,8 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   # (2b) The F-theory model with the largest number of flux vacua needs special attention
   if model_dict["arxiv_data"]["id"] == "1511.03209"
 
-    model_data_path = artifact"FTM-1511-03209"
-    return load(joinpath(model_data_path, "1511-03209.mrdi"))
+    model_data_path = artifact"FTM-1511-03209/1511-03209.mrdi"
+    return load(model_data_path)
 
     # Old code to create this model from scratch. I leave this here, so we can go back if needed.
     #=
