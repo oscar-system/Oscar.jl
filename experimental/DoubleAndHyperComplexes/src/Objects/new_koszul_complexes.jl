@@ -1,3 +1,17 @@
+########################################################################
+# Homogeneous Koszul complexes
+#
+# Given a graded ring R and homogeneous elements a₁,…,aₙ ∈ R of degrees
+# dᵢ = deg aᵢ one wishes to build the Koszul complex 
+#
+# R¹ ← R[-d₁] ⊕ … ⊕ R[-dᵢ] ← R[-d₁-d₂] ⊕ R[-d₁-d₃] ⊕ … 
+#
+# which is homogeneous with all differentials of relative degree zero. 
+# 
+# The construction via exterior multiplication with ∑ᵢaᵢ⋅eᵢ ∈ Rⁿ does 
+# not provide this. So we introduce an extra method here. 
+########################################################################
+
 ### Production of the chains
 struct HomogKoszulComplexChainFactory{ChainType} <: HyperComplexChainFactory{ChainType}
   S::Ring

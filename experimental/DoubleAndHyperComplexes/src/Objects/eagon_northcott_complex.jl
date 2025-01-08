@@ -121,7 +121,6 @@ end
                                     upper_bounds = Union{Int, Nothing}[ncols(A) - nrows(A) + 1],
                                     lower_bounds = Union{Int, Nothing}[0]
                                    )
-    # Assuming that ChainType and MorphismType are provided by the input
     return new{FreeMod{T}, FreeModuleHom}(internal_complex)
   end
 end

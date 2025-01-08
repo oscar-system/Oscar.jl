@@ -96,9 +96,9 @@ end
 
 #= The following tests are disabled to cut down on cost for CI.
 # 
-# We keep them here to test against regression and for the purpose of 
-# accessibility of code for reproduction of the paper's results 
-# in accordance with the MarDi principles.
+# We keep them here to test against regression. As this is part 
+# of the data associated to a paper, we will eventually move it 
+# to Zenodo in order to adhere to the MarDi principles.
 @testset "Example 5.2" begin
   # All steps similar to the above.
   P, v = QQ[vcat(["a_{$(i), $j}" for i in 1:2 for j in 1:2], ["b_{$(i), $j}" for i in 1:2 for j in 1:2], ["c"], [:x, :y, :z, :w])...]

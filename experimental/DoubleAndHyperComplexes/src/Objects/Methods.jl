@@ -344,6 +344,8 @@ end
 # Given a free `R`-module `F`, a morphism φ: F → R, and an element `v` in ⋀ ᵖ F, 
 # compute the contraction φ(v) ∈ ⋀ ᵖ⁻¹ F.
 # Note: For this internal method φ is only represented as a dense (column) vector.
+# Warning: If the user provides their own parent, they need to make sure that things 
+#          are compatible. As this is an internal function, no sanity checks are done.
 function _contract(
     v::FreeModElem{T}, phi::Vector{T}; 
     parent::FreeMod{T}=begin

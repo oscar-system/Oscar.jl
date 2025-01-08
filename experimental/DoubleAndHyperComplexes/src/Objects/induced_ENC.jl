@@ -25,7 +25,6 @@ function (fac::InducedENCChainFactory)(self::AbsHyperComplex, ind::Tuple)
   for a in OrderedMultiIndexSet(k+i-1, ngens(I0))
     push!(new_gens, wedge([repres(gen(I0, i)) for i in indices(a)]; parent=amb_ext_power))
   end
-  #filter!(!iszero, new_gens)
   Ip, _ = sub(amb_ext_power, new_gens)
   fac.ext_powers[i] = Ip
   result = tensor_product(_symmetric_power(enc, i), Ip)
