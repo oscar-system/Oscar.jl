@@ -1,5 +1,12 @@
+const rng = Oscar.get_seeded_rng()
+
 function test_elem(K::VarietyFunctionField)
-   return rand([one(K), zero(K),  K(3) // K(2)])
+  F = representative_field(K)
+  P = base_ring(F)::MPolyRing
+  num = rand(P, 0:5, 0:5, 0:5)
+  den = rand(P, 1:5, 1:5, 1:5)
+  is_zero(den) && return test_elem(K) # Try again
+  return K(num, den)
 end
 
 @testset "fraction fields of varieties" begin
