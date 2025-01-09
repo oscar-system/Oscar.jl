@@ -193,11 +193,10 @@ Toric blowup morphism
 ```
 """
 function blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
-  ray_QQ = standard_coordinates(minimal_supercone_coords)
-  if ray_QQ != primitive_generator(ray_QQ)
-    "The input vector must correspond to a primitive generator of a ray"
-  end
-  ray = Vector{ZZRingElem}(ray_QQ)
+  coords = Vector{QQFieldElem}(minimal_supercone_coords)
+  ray_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(v), coords))
+  ray = primitive_generator(ray_QQ)
+  @assert ray == ray_QQ "The input vector must correspond to a primitive generator of a ray"
   phi = blow_up(v, ray; coordinate_name=coordinate_name)
   set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
   return phi

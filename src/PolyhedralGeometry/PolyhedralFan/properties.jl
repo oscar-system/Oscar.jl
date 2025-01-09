@@ -503,7 +503,7 @@ function standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:Ration
   @assert is_minimal_supercone_coordinate_vector(
     PF, coords
   ) "Input vector must be a minimal supercone coordinate vector"
-  primitive_ray_generators = map(primitive_generator, rays(PF))
+  primitive_ray_generators = Vector{Vector{QQFieldElem}}(map(primitive_generator, rays(PF)))
   return Vector{QQFieldElem}(sum(coords.*primitive_ray_generators))
 end
 
