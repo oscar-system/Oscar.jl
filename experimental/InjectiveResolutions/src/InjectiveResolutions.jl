@@ -30,6 +30,9 @@ export ideal_in_poly_ring
 export equal_mod_ZF
 export jacobian
 export ddirect_sum
+export _coefficients
+export _get_irreducible_ideal
+export points_in_Q
 
 # Data 
 export FaceQ 
@@ -367,7 +370,7 @@ end
 # given a QQ^d vector v, this function returns a vector w that lies on the ray through v and the origin
 # INPUT:    rational d-vector 
 # OUTPUT:   integer d-vector
-function rational_to_integer_vector(v::Union{Vector{QQFieldElem},AbstractVector{Rational}})
+function rational_to_integer_vector(v::Union{Vector{QQFieldElem},AbstractVector{Rational}, Vector{Rational}})
     denominators = [denominator(x) for x in v]
     lcm_denominators = lcm(denominators)
 
@@ -610,63 +613,90 @@ function ZF_basis(M::SubquoModule,PF::Ideal)
     return filter(!is_zero,B) 
 end
 
-#
-function coefficients(N::SubquoModule, p::FaceQ)
+# given a fin. gen. module and a prime ideal p, compute a k[ZZF]-basis Bp of (0 :_M p) and for each generator b in Bp compute the scalar matrix lambda that defines a well-defined injective map 
+function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
     R_N = base_ring(N)
     @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
 
-    T = elem_type(R_N)
-    k = coefficient_ring(R_N)
-    Np,incl_Np = mod_quotient(N,p.prime) # quotient (0 :_N p.prime)
+    k = coefficient_ring(R_N) #get the field
+    Np = (ideal(R_N,[])*N)[1] : p.prime
     if is_zero(Np)
-        return Np,zeros(R_N,1,1)
+        return [],zeros(R_N,1,1)
     end
 
     # get socle degrees of indecomposable injectives kQ{a + F - Q}
     Bp = ZF_basis(Np,p.prime)
 
-    #### (maybe) new better version
-    _lambda = Vector{Vector}()
-    m_g = one(R_N)
-    for b in Bp
-        lambda_b = []
-        for i=1:ngens(N)
-            m_g = monomial_basis(R_N,degree(N[i]))[1]*one(R_N)
-            m_bg = monomial_basis(R_N,degree(b)-degree(N[i]))[1]
-            if !is_zero(m_bg*N[i]) 
-                b_rest = zero(N)
-                for j = 1:ngens(N)
-                    if length(coordinates(incl_Np(b)-b_rest)) == 1
-                        break
-                    end 
-                    if j == i || is_zero(coordinates(ambient_representative(b))[j])
-                        continue
-                    end
-                    mu_j = coordinates(ambient_representative(b))[j]
-                    if !is_zero(mu_j)
-                        b_rest = b_rest + mu_j*N[j]
-                    end
-                end
-                Ni,incl_i = sub(N,[N[i]])
-                _b = Nothing
-                try
-                    _b = preimage(incl_i, incl_Np(b) - b_rest)
-                catch
-                end
-                if _b != Nothing
-                    push!(lambda_b,leading_coefficient(lift(coordinates(_b)[1])))
+    R = relations(N)
+    n = ngens(N)
+    if j == 1 
+        lambda = map(x -> x*one(R_N), ones(Int,1,length(Bp)))
+    else
+        lambda = []
+        for b in Bp
+            m_b = monomial_basis(R_N,degree(b))[1]
+            lambda_b = []
+            b_c = dense_row(coordinates(ambient_representative(b)),n)[1,:]
+            s = [] #positions of non-zero terms of b
+            for i=1:n
+                if is_zero(b_c[i]*N[i])
+                # if is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i])
+                    b_c[i] = zero(R_N)
                 else
-                    push!(lambda_b,k())
+                    push!(s,i)
                 end
-            else
-                push!(lambda_b,k())
             end
+            rels_b = [r for r in R if points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},r)],kQ.cone)]
+            r = [] 
+            for r_b in rels_b 
+                _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:]
+                s_r = [] #positions of non-zero terms of r_b 
+                for i=1:n 
+                    if !is_zero(m_b*N[i]) #check if entry is already non-zero, i.e. not relevant in the relation... 
+                        push!(s_r,i)
+                    else
+                        _r[i] = zero(R_N)
+                    end
+                end
+                if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0
+                    push!(r,(r_b,_r))
+                end
+            end
+        
+            if r != []
+                rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2]    
+                last_non_zero = findlast(!is_zero,rel)
+                sum_of_coeffs = k()
+                f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
+                for i=1:n
+                    if i == last_non_zero
+                        coeff = -(sum_of_coeffs//f_k(rel[i]))
+                        push!(lambda_b,coeff)
+                    else
+                        if !is_zero(rel[i])
+                            push!(lambda_b,one(R_N))
+                            sum_of_coeffs = sum_of_coeffs + f_k(rel[i])
+                        else
+                            push!(lambda_b,zero(R_N))
+                        end 
+                    end
+                end
+            else # no relations in deg(b)
+                l = findfirst(!is_zero,b_c) # first non-zero entry
+                for i=1:n 
+                    if i == l # alternatively check if i in s
+                        push!(lambda_b,one(R_N)) # set only one entry non-zero since that suffices
+                    else
+                        push!(lambda_b,zero(R_N))
+                    end 
+                end
+            end
+            push!(lambda,lambda_b)
         end
-        push!(_lambda,lambda_b)
     end
-    return Bp, transpose(matrix(k,_lambda)), m_g
-end
 
+    return Bp, matrix(R_N,hcat(lambda...))
+end
 
 @doc raw"""
     irreducible_hull(M::SubquoModule,P::Vector{FaceQ})
@@ -677,33 +707,35 @@ INPUT:  SubquoModule M over semigroup ring k[Q]
         List of prime ideals corresponding to the faces of Q
 OUTPUT: effective irreducible hull W_bar and effective vector set lambda
 """
-function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ})
+function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ},kQ::MonoidAlgebra, j=0)
     N = Mi
-    R_N = base_ring(Mi)
     summands = Vector{IndecInj}()
-    degLambda = one(R_N)
     lambda = []
 
     for p in filter(p -> !is_zero(p.prime),P) 
-        Bp,lambda_p,degLambda = coefficients(N,p)
+        Bp,lambda_p = _coefficients(N,p,kQ,j)
         for b in Bp 
             push!(summands, IndecInj(p,degree(Vector{Int},b)))
         end
 
-        push!(lambda,lambda_p)
-        N,_ = quo(Mi,mod_saturate(Mi,p.prime)) #update N
+        if length(Bp) > 0
+            push!(lambda,lambda_p)
+        end
+        N,_ = quo(Mi,saturation((ideal(kQ.algebra,[])*Mi)[1],p.prime)) # use new saturation method
+        # N,_ = quo(Mi,mod_saturate(Mi,p.prime)) #update N
         if is_zero(N)
             break
         end
     end
-    return summands,foldl(hcat,lambda), degLambda
+    # return summands,foldl(hcat,lambda), degLambda
+    return summands,hcat(lambda...)
 end
 
 #get irreducible decomposition of ideal over monoid algebra
 function irreducible_dec(I::MonoidAlgebraIdeal)
     kQ = I.monoidAlgebra
 
-    indec_injectives, _, _ = irreducible_hull(quotient_ring_as_module(I.ideal),kQ.faces)
+    indec_injectives, _, _ = irreducible_hull(quotient_ring_as_module(I.ideal),kQ.faces,kQ)
     return [_get_irreducible_ideal(kQ,I) for I in indec_injectives]
 end
 
@@ -756,7 +788,7 @@ function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
     j = 1
     while !is_zero(Mi) #until cokernel Mi is zero
         #compute irreducible hull
-        indec_injectives, _lambda, deg = irreducible_hull(Mi,kQ.faces)
+        indec_injectives, lambda = irreducible_hull(Mi,kQ.faces,kQ,j)
 
         #get the corresponding irreducible ideal for each indecomposable injective
         irreducible_ideals = [_get_irreducible_ideal(kQ,J) for J in indec_injectives]
@@ -766,11 +798,8 @@ function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
         d_sum(x,y) = direct_sum(x,y,task=:none)
         Wi = foldl(d_sum,irreducible_comp)
 
-        #get lambda as k[Q]-matrix
-        lambda = map(x -> deg*x,_lambda)
-
         #define injective map Mi -> Wi
-        fi = hom(Mi,Wi,lambda)
+        fi = hom(Mi,Wi,matrix(lambda))
 
         #get boundary map W{i-1} -> Wi
         hi = gi*fi
@@ -825,7 +854,7 @@ function injective_res(I::MonoidAlgebraIdeal, i::Int)
 
     #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
     inj_modules = Vector{InjMod}()
-    for j=1:i+1
+    for j=1:min(i+1,length(irrRes.irrSums))
        shifted_comp = map(indec -> IndecInj(indec.face,indec.vector - a_shift),irrRes.irrSums[j].components)
        push!(inj_modules,InjMod(kQ,shifted_comp))
     end
@@ -848,6 +877,64 @@ function fix_module(M::SubquoModule)
     else
         return M,identity_map(M)
     end
+end
+
+
+# Algorithm 3.6. in HM2004 that is not working for the general case
+function coefficients(N::SubquoModule, p::FaceQ)
+    R_N = base_ring(N)
+    @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
+
+    T = elem_type(R_N)
+    k = coefficient_ring(R_N)
+    Np,incl_Np = mod_quotient(N,p.prime) # quotient (0 :_N p.prime)
+    if is_zero(Np)
+        return Np,zeros(R_N,1,1)
+    end
+
+    # get socle degrees of indecomposable injectives kQ{a + F - Q}
+    Bp = ZF_basis(Np,p.prime)
+
+    #### (maybe) new better version
+    _lambda = Vector{Vector}()
+    m_g = one(R_N)
+    for b in Bp
+        lambda_b = []
+        for i=1:ngens(N)
+            m_g = monomial_basis(R_N,degree(N[i]))[1]*one(R_N)
+            m_bg = monomial_basis(R_N,degree(b)-degree(N[i]))[1]
+            if !is_zero(m_bg*N[i]) 
+                b_rest = zero(N)
+                for j = 1:ngens(N)
+                    if length(coordinates(incl_Np(b)-b_rest)) == 1
+                        break
+                    end 
+                    if j == i || is_zero(coordinates(ambient_representative(b))[j])
+                        continue
+                    end
+                    mu_j = coordinates(ambient_representative(b))[j]
+                    if !is_zero(mu_j)
+                        b_rest = b_rest + mu_j*N[j]
+                    end
+                end
+                Ni,incl_i = sub(N,[N[i]])
+                _b = Nothing
+                try
+                    _b = preimage(incl_i, incl_Np(b) - b_rest)
+                catch
+                end
+                if _b != Nothing
+                    push!(lambda_b,leading_coefficient(lift(coordinates(_b)[1])))
+                else
+                    push!(lambda_b,k())
+                end
+            else
+                push!(lambda_b,k())
+            end
+        end
+        push!(_lambda,lambda_b)
+    end
+    return Bp, transpose(matrix(k,_lambda)), m_g
 end
 
 ## not used???
