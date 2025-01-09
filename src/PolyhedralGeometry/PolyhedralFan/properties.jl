@@ -378,7 +378,7 @@ Given an point $v$ inside the support of the pointed polyhedral fan $PF$
 where $u_1, \ldots u_n$ are the minimal generators of the rays of $PF$,
 return a vector $(p_1, \ldots, p_n)$ of nonnegative rational numbers
 such that both of the following hold:
-  * $p_1 u_1 + \ldots + p_n u_n = v$, and
+  * the vector $v$ is equal to $p_1 u_1 + \ldots + p_n u_n$, and
   * if $u_i$ is not in minimal supercone containing $v$, then $p_i = 0$.
 
 If $PF$ is simplicial, then $(p_1, \ldots, p_n)$ is unique.
