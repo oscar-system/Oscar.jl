@@ -335,13 +335,12 @@ end
 ###############################################################################
 # demazures character formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  fl, index_of_r = is_simple_root_with_index(r)
-  @req fl "not a simple root"
+  @req is_positive_root(r) "r is not a positive root"
 
   d = 2 * dot(w, r)//dot(r, r)
   list_of_occuring_weights = WeightLatticeElem[]
 
-  refl = reflect(w, index_of_r)
+  refl = reflect(w, r)
 
   wlelem_r = WeightLatticeElem(r)
   if d > -1
@@ -364,10 +363,30 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
   end
 end
 
-function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  return demazure_operator(r, Dict(w => 1))
-end
+@doc raw"""
+    demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
+    demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
 
+Computes the action of the Demazure operator associated to the positive root `r` on the given element of the group ring $\mathbb{Z}[P]$.
+
+If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
+
+# Examples
+```jldoctest
+julia> R = root_system(:A, 3);
+
+julia> pos_r = positive_root(R, 4)
+a_1 + a_2
+
+julia> w = fundamental_weight(R, 1)
+w_1
+
+julia> demazure_operator(pos_r, w)
+Dict{WeightLatticeElem, Int64} with 2 entries:
+  -w_2 + w_3 => 1
+  w_1        => 1
+```
+"""
 function demazure_operator(
   r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}
 )
@@ -384,6 +403,10 @@ function demazure_operator(
     end
   end
   return dict
+end
+
+function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
+  return demazure_operator(r, Dict(w => 1))
 end
 
 @doc raw"""

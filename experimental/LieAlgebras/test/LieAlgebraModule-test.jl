@@ -1150,6 +1150,37 @@
     end
   end
 
+  @testset "demazure_operator" begin
+    R = root_system(:B, 2)
+    rho = weyl_vector(R)
+
+    @test demazure_operator(simple_root(R, 1), rho) == Dict(
+      WeightLatticeElem(R, [1, 1]) => 1,
+      WeightLatticeElem(R, [-1, 3]) => 1,
+    )
+
+    @test demazure_operator(simple_root(R, 2), rho) == Dict(
+      WeightLatticeElem(R, [1, 1]) => 1,
+      WeightLatticeElem(R, [2, -1]) => 1,
+    )
+
+    @test demazure_operator(root(R, 3), rho) == Dict(
+      WeightLatticeElem(R, [1, 1]) => 1,
+      WeightLatticeElem(R, [-2, 1]) => 1,
+      WeightLatticeElem(R, [0, 1]) => 1,
+      WeightLatticeElem(R, [-1, 1]) => 1,
+    )
+
+    @test demazure_operator(simple_root(R, 1), -rho) == Dict()
+
+    @test demazure_operator(simple_root(R, 2), -rho) == Dict()
+
+    @test demazure_operator(root(R, 3), -rho) == Dict(
+      WeightLatticeElem(R, [0, -1]) => -1,
+      WeightLatticeElem(R, [1, -1]) => -1,
+    )
+  end
+
   @testset "demazure_character" begin
     function demazure_character_trivial_tests(R::RootSystem, w::WeightLatticeElem)
       W = weyl_group(R)
