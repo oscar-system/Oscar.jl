@@ -203,8 +203,9 @@ function _check_containment_via_facet_signs(smaller::Vector{Int}, bigger::Vector
   end
   return true
 end
+
 function _get_maximal_cones_containing_vector(
-  Sigma::_FanLikeType, v::AbstractVector{<:IntegerUnion}
+  Sigma::_FanLikeType, v::AbstractVector{<:RationalUnion}
 )
   # Make sure these are computed as otherwise performance degrades.
   pm_object(Sigma).FACET_NORMALS

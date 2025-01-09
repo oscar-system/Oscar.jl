@@ -79,8 +79,24 @@ morphisms are supported for toric blowups:
 - `morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowupMorphism)`,
 - `morphism_on_class_group(bl::ToricBlowupMorphism)`,
 - `morphism_on_picard_group(bl::ToricBlowupMorphism)`.
-The total and strict transform of ideal sheaves along blowups, not
-necessarily toric, can be computed:
+
+
+## Attributes
+
+We can compute the total and strict transforms of homogeneous ideals in Cox rings under star subdivisions along a ray.
+```@docs
+strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
+strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
+total_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
+```
+The above functions are implemented using a $\mathbb{C}$-module
+homomorphism between the Cox rings, considered as $\mathbb{C}$-modules,
+that takes homogeneous ideals to homogeneous ideals:
+```@docs
+cox_ring_module_homomorphism
+```
+The total and strict transforms of ideal sheaves under blowups, not
+necessarily toric, can also be computed:
 ```@docs
 total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
 ```
