@@ -34,7 +34,15 @@ function slow_equal(tv1::NormalToricVariety, tv2::NormalToricVariety)
 end
 ```
 
-Polyhedral fans can be stored in Polymake using either rays or hyperplanes. In the former case, cones are stored as sets of indices of rays, corresponding to polyhedral hulls, while in the latter case, cones are stored as sets of indices of hyperplanes, corresponding to intersections of hyperplanes. Converting between these two formats can be expensive. In the case where the polyhedral fans of two normal toric varieties are both stored using rays, the above method `slow_equal` has computational complexity $O(n \log n)$, where $n$ is the number of cones.
+Polyhedral fans can be stored in Polymake using either rays or
+hyperplanes. In the former case, cones are stored as sets of indices of
+rays, corresponding to polyhedral hulls, while in the latter case, cones
+are stored as sets of indices of hyperplanes, corresponding to
+intersections of hyperplanes. Converting between these two formats can
+be expensive. In the case where the polyhedral fans of two normal toric
+varieties are both stored using rays, the above method `slow_equal` has
+computational complexity $O(n \log n)$, where $n$ is the number of
+cones.
 
 
 ## Constructors
