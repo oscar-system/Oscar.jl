@@ -414,16 +414,19 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   # we expect that the larger the characteristic the smaller the sample needs to be
   # setting to 100 now for good measure
 
-  shift = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
-  shifted = @timed check_shifted(F, K, shift.value[1], p; kw...)
+  # Compute n_samples many shifts by radom matrices, and take the lexicographically minimal one, together with its first index of occurrence.
+  (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
+
+  # Check if `shift` is the generic exterior shift of K
+  is_correct_shift, stats2... = @timed is_shifted(shift) && check_shifted(F, K, shift.value[1], p; kw...)
   if timed
-    if shifted.value
-      return shift.value[1], (shift.value[2], shift.time, shift.bytes, shifted.time, shifted.bytes)
+    if is_correct_shift
+      return shift, (i, stats.time, stats.bytes, stats2.time, stats2.bytes)
     else
-      return nothing, (n_samples, shift.time, shift.bytes, shifted.time, shifted.bytes)
+      return nothing, (">$n_samples", stats.time, stats.bytes, stats2.time, stats2.bytes)
     end
   else
-    return shifted.value[1] ? shift.value[1] : nothing
+    return is_correct_shift ? shift : nothing
   end
 end
 
