@@ -140,12 +140,6 @@ end
 
 gens(l::LazyRec) = sort!(unique!(pushgens!(Symbol[], l)::Vector{Symbol}))
 
-Base.:(==)(k::LazyRec, l::LazyRec) = false
-
-function Base.hash(l::LazyRec, h::UInt)
-  return hash(objectid(l), h)
-end
-
 LazyRec(x::LazyRec) = x
 LazyRec(x::AbstractSLProgram) = compile(LazyRec, x)
 LazyRec(x) = Const(x)
