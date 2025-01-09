@@ -26,9 +26,9 @@ underlying_morphism(bl::ToricBlowupMorphism) = bl.toric_morphism
 
 
 @doc raw"""
-    index_of_new_ray(bl::ToricBlowupMorphism)
+    index_of_exceptional_ray(bl::ToricBlowupMorphism)
 
-Return the index of the new ray used in the construction of the toric
+Return the index of the exceptional ray used in the construction of the toric
 blowup.
 
 # Examples
@@ -39,11 +39,11 @@ Normal toric variety
 julia> f = blow_up(P3, [0, 1, 1])
 Toric blowup morphism
 
-julia> index_of_new_ray(f)
+julia> index_of_exceptional_ray(f)
 5
 ```
 """
-index_of_new_ray(bl::ToricBlowupMorphism) = bl.index_of_new_ray
+index_of_exceptional_ray(bl::ToricBlowupMorphism) = bl.index_of_exceptional_ray
 
 
 @doc raw"""
@@ -102,7 +102,7 @@ function center_unnormalized(bl::ToricBlowupMorphism)
     X = domain(bl)
     S = cox_ring(X)
     x = gens(S)
-    j = index_of_new_ray(bl)
+    j = index_of_exceptional_ray(bl)
     I = ideal(S, x[j])
     II = ideal_sheaf(X, I)
     JJ = pushforward(bl, II)::IdealSheaf
@@ -141,7 +141,7 @@ function exceptional_prime_divisor(bl::ToricBlowupMorphism)
     X = domain(bl)
     S = cox_ring(X)
     x = gens(S)
-    j = index_of_new_ray(bl)
+    j = index_of_exceptional_ray(bl)
     help_list = [i == j ? 1 : 0 for i in 1:ngens(S)]
     td = toric_divisor(X, help_list)
     @assert is_prime(td) "exceptional prime divisor must be prime"
