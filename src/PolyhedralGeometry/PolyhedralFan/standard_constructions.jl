@@ -95,7 +95,9 @@ julia> ray_indices(maximal_cones(star))
 [1, 2, 4]
 ```
 """
-function star_subdivision(Sigma::_FanLikeType, exceptional_ray::AbstractVector{<:IntegerUnion})
+function star_subdivision(
+  Sigma::_FanLikeType, exceptional_ray::AbstractVector{<:IntegerUnion}
+)
 
   # Check if exceptional_ray is primitive in ZZ^d, i.e. gcd(exceptional_ray)==1.
   @req ambient_dim(Sigma) == length(exceptional_ray) "New ray is not $(ambient_dim(Sigma))-dimensional"
@@ -104,7 +106,9 @@ function star_subdivision(Sigma::_FanLikeType, exceptional_ray::AbstractVector{<
 
   old_rays = matrix(ZZ, rays(Sigma))
   # In case the exceptional ray is an old ray.
-  exceptional_ray_index = findfirst(i -> vec(old_rays[i, :]) == exceptional_ray, 1:nrows(old_rays))
+  exceptional_ray_index = findfirst(
+    i -> vec(old_rays[i, :]) == exceptional_ray, 1:nrows(old_rays)
+  )
   new_rays = old_rays
   if isnothing(exceptional_ray_index)
     new_rays = vcat(old_rays, matrix(ZZ, [exceptional_ray]))
@@ -115,7 +119,9 @@ function star_subdivision(Sigma::_FanLikeType, exceptional_ray::AbstractVector{<
   facet_normals = matrix(QQ, pm_object(Sigma).FACET_NORMALS)
   refinable_cones = _get_maximal_cones_containing_vector(Sigma, exceptional_ray)
   @req length(refinable_cones) > 0 "$exceptional_ray not contained in support of fan."
-  new_cones = _get_refinable_facets(Sigma, exceptional_ray, refinable_cones, facet_normals, mc_old)
+  new_cones = _get_refinable_facets(
+    Sigma, exceptional_ray, refinable_cones, facet_normals, mc_old
+  )
   for nc in new_cones
     push!(nc, exceptional_ray_index)
   end
