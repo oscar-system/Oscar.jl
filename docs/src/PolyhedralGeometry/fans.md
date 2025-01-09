@@ -58,6 +58,6 @@ rays(PF::PolyhedralFan)
 rays_modulo_lineality(PF::PolyhedralFan)
 primitive_collections(PF::PolyhedralFan)
 star_subdivision(PF::PolyhedralFan, n::Int)
-star_subdivision(PF::PolyhedralFan, new_ray::AbstractVector{<:IntegerUnion})
+star_subdivision(PF::PolyhedralFan, exceptional_ray::AbstractVector{<:IntegerUnion})
 *(PF1::PolyhedralFan{QQFieldElem}, PF2::PolyhedralFan{QQFieldElem})
 ```

@@ -43,9 +43,9 @@ function strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
   X = codomain(f)
   @req !has_torusfactor(X) "Only implemented when there are no torus factors"
   S = cox_ring(domain(f))
-  new_var = S[index_of_new_ray(f)]
+  exceptional_var = S[index_of_exceptional_ray(f)]
   J = cox_ring_module_homomorphism(f, I)
-  return saturation(J, ideal(S, new_var))
+  return saturation(J, ideal(S, exceptional_var))
 end
 
 @doc raw"""
@@ -139,9 +139,9 @@ function strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
   @req !has_torusfactor(X) "Only implemented when there are no torus factors"
   @req is_smooth(X) "Only implemented when the fan is smooth"
   S = cox_ring(domain(f))
-  new_var = S[index_of_new_ray(f)]
+  exceptional_var = S[index_of_exceptional_ray(f)]
   J = total_transform(f, I)
-  return saturation_with_index(J, ideal(new_var))
+  return saturation_with_index(J, ideal(exceptional_var))
 end
 
 @doc raw"""
@@ -158,7 +158,7 @@ corresponding to the ray $\rho$ and where $d = 0$ if $\rho$ belongs to
 the fan of $X$ and $d = \lceil a \cdot p \rceil$ otherwise, where $a$ is
 the exponent vector of $g$, $p$ is the minimal supercone coordinate
 vector of $v$ in the fan of $X$, as returned by
-`minimal_supercone_coordinates_of_new_ray(X, v)`, and where $(\cdot)$
+`minimal_supercone_coordinates_of_exceptional_ray(X, v)`, and where $(\cdot)$
 denotes the scalar product.
 
 The $\mathbb{C}$-module homomorphism $\Phi$ sends homogeneous ideals to
@@ -195,8 +195,8 @@ function cox_ring_module_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingEle
   S_vars = elem_type(S)[S[i] for i in 1:nvars(S)]
   
   nvars(R) == nvars(S) && return hom(R, S, S_vars)(g)
-  ps = minimal_supercone_coordinates_of_new_ray(f)
-  exceptional_var = S[index_of_new_ray(f)]
+  ps = minimal_supercone_coordinates_of_exceptional_ray(f)
+  exceptional_var = S[index_of_exceptional_ray(f)]
   make_S_term(c, exps) = c*prod(map(^, S_vars, exps))
   coeff_exps = collect(zip(coefficients(g), exponents(g)))
   h = S(0)
@@ -213,7 +213,7 @@ function cox_ring_module_homomorphism(f::ToricBlowupMorphism, I::MPolyIdeal)
 end
 
 @doc raw"""
-    minimal_supercone_coordinates_of_new_ray(f::ToricBlowupMorphism) -> Vector{QQFieldElem}
+    minimal_supercone_coordinates_of_exceptional_ray(f::ToricBlowupMorphism) -> Vector{QQFieldElem}
 
 Let $f\colon Y \to X$ be the toric blowup corresponding to a star
 subdivision along a ray with minimal generator $v$.
@@ -228,15 +228,15 @@ Normal toric variety
 julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
-julia> minimal_supercone_coordinates_of_new_ray(f)
+julia> minimal_supercone_coordinates_of_exceptional_ray(f)
 2-element Vector{QQFieldElem}:
  2
  3
 ```
 """
-@attr Vector{QQFieldElem} function minimal_supercone_coordinates_of_new_ray(f::ToricBlowupMorphism)
+@attr Vector{QQFieldElem} function minimal_supercone_coordinates_of_exceptional_ray(f::ToricBlowupMorphism)
   PF = polyhedral_fan(codomain(f))
-  v = rays(domain(f))[index_of_new_ray(f), :][1]
+  v = rays(domain(f))[index_of_exceptional_ray(f), :][1]
   v_ZZ = primitive_generator(v)
   return minimal_supercone_coordinates(PF, v_ZZ)
 end

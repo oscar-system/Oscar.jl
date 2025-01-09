@@ -18,21 +18,24 @@
 } <: AbsSimpleBlowupMorphism{DomainType, CodomainType, ToricBlowupMorphism}
 
   toric_morphism::ToricMorphism
-  index_of_new_ray::Integer
+  index_of_exceptional_ray::Integer
   center_data::CenterDataType
   center_unnormalized::CenterUnnormalizedType
   exceptional_prime_divisor::ToricDivisor
 
-  function _toric_blowup_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function _toric_blowup_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   }
-    # Compute position of new ray
+    # Compute position of exceptional ray
     new_rays = matrix(ZZ, rays(new_variety))
-    position_new_ray = findfirst(i->new_ray==new_rays[i,:], 1:n_rays(new_variety))
-    @req position_new_ray !== nothing "Could not identify position of new ray"
+    position_exceptional_ray = findfirst(
+      i->exceptional_ray==new_rays[i,:],
+      1:n_rays(new_variety)
+    )
+    @req position_exceptional_ray !== nothing "Could not identify position of exceptional ray"
 
     # Set variable names of the new variety
     old_vars = string.(symbols(cox_ring(v)))
@@ -54,22 +57,22 @@
 
     # Construct the toric morphism and construct the object
     bl_toric = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return bl_toric, position_new_ray, center_data
+    return bl_toric, position_exceptional_ray, center_data
   end
   
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
+  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   }
-    bl_toric, position_new_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
     bl = new{
       typeof(domain(bl_toric)),
       typeof(codomain(bl_toric)),
       typeof(center_data),
       typeof(center_unnormalized),
-    }(bl_toric, position_new_ray, center_data, center_unnormalized)
+    }(bl_toric, position_exceptional_ray, center_data, center_unnormalized)
     if has_attribute(v, :has_torusfactor)
       set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
     end
@@ -79,19 +82,19 @@
     return bl
   end
   
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, new_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
+  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
     AbstractVector{<:IntegerUnion},
     MPolyIdeal,
     ToricIdealSheafFromCoxRingIdeal,
     IdealSheaf,
   }
-    bl_toric, position_new_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, new_ray, center_data)
+    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
     bl = new{
       typeof(domain(bl_toric)),
       typeof(codomain(bl_toric)),
       typeof(center_data),
       IdealSheaf{typeof(v), AbsAffineScheme, Ideal, Map},
-    }(bl_toric, position_new_ray, center_data)
+    }(bl_toric, position_exceptional_ray, center_data)
     if has_attribute(v, :has_torusfactor)
       set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
     end
