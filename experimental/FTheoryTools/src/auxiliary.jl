@@ -468,7 +468,7 @@ function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRi
     return strict_transform(bd, II)
   end
   S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
+  _e = gen(S, index_of_exceptional_ray(bd))
   images = MPolyRingElem[]
   g_list = gens(S)
   g_center = [string(k) for k in symbols(ideal_in_cox_ring(center_unnormalized(bd)))]
@@ -489,7 +489,7 @@ end
 
 function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
   S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
+  _e = gen(S, index_of_exceptional_ray(bd))
   g_list = string.(symbols(S))
   g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
   position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]

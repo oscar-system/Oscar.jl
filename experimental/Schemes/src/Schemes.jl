@@ -44,12 +44,12 @@ export germ_at_point
 export has_du_val_singularities
 export hypersurface_germ
 export ideal_sheaf
-export index_of_new_ray
+export index_of_exceptional_ray
 export is_isolated_singularity
 export intersection_matrix
 export milnor_algebra
 export milnor_number
-export minimal_supercone_coordinates_of_new_ray
+export minimal_supercone_coordinates_of_exceptional_ray
 export point
 export rational_point_coordinates
 export standard_covering

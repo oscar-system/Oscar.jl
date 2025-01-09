@@ -15,12 +15,12 @@ For this reason, the methods below should be considered experimental.
 
 We focus mainly on toric blowups given by a star subdivision of a
 polyhedral fan along a primitive vector, see 11.1 Star Subdivisions in
-[CLS11](@cite). Below, we refer to this new primitive vector as
-`new_ray`. The main constructor is the following
-- `blow_up(Y::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String)`
+[CLS11](@cite). Below, we refer to this primitive vector as
+`exceptional_ray`. The main constructor is the following
+- `blow_up(Y::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String)`
 This will also construct the underlying toric morphism. We can specify
 the name for the coordinate in the Cox ring that is assigned to
-`new_ray` using the optional argument `coordinate_name`.
+`exceptional_ray` using the optional argument `coordinate_name`.
 
 More generally, we can construct a blowup along a closed subscheme given
 by an ideal in the Cox ring or by an ideal sheaf of the corresponding
@@ -47,7 +47,7 @@ Star Subdivisions in [CLS11](@cite). The resulting star subdivision
 leads to a polyhedral fan, or put differently, the blowup is always
 toric:
 ```@docs
-blow_up(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
+blow_up(v::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
 ```
 Most generally, we encode the closed subscheme along which we blow up by
 a homogeneous ideal in the Cox ring. Such blowups are often non-toric,
@@ -67,7 +67,7 @@ blow_up(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_na
 
 ```@docs
 underlying_morphism(bl::ToricBlowupMorphism)
-index_of_new_ray(bl::ToricBlowupMorphism)
+index_of_exceptional_ray(bl::ToricBlowupMorphism)
 center_data(bl::ToricBlowupMorphism)
 center_unnormalized(bl::ToricBlowupMorphism)
 exceptional_prime_divisor(bl::ToricBlowupMorphism)
