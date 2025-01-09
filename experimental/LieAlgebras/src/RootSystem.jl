@@ -335,8 +335,7 @@ end
 ###############################################################################
 # demazures character formula
 function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
-  fl, index_of_r = is_positive_root_with_index(r)
-  @req fl "r is not a positive root"
+  @req is_positive_root(r) "r is not a positive root"
 
   d = 2 * dot(w, r)//dot(r, r)
   list_of_occuring_weights = WeightLatticeElem[]
