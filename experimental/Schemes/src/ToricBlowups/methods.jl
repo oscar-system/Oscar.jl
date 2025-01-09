@@ -12,7 +12,8 @@ strict transform under $f$ of the closed subscheme of $X$ defined by the
 homogeneous ideal $I$ in $R$.
 
 This is implemented under the following assumptions:
-  * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$).
+  * the variety $X$ has no torus factors (meaning the rays span
+    $N_{\mathbb{R}}$).
 
 # Examples
 ```jldoctest
@@ -60,8 +61,9 @@ of the closed subscheme of $X$ defined by the homogeneous ideal $I$ in
 $R$.
 
 This is implemented under the following assumptions:
-  * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$), and
-  * $X$ is an orbifold (meaning its fan is simplicial).
+  * the variety $X$ has no torus factors (meaning the rays span
+    $N_{\mathbb{R}}$), and
+  * the variety $X$ is an orbifold (meaning its fan is simplicial).
 
 # Examples
 ```jldoctest
@@ -103,8 +105,9 @@ and where $k$ is the multiplicity of the total transform along the
 exceptional prime divisor.
 
 This is implemented under the following assumptions:
-  * $X$ has no torus factors (meaning the rays span $N_{\mathbb{R}}$), and
-  * $X$ is smooth.
+  * the variety $X$ has no torus factors (meaning the rays span
+    $N_{\mathbb{R}}$), and
+  * the variety $X$ is smooth.
 
 !!! note
     If the multiplicity $k$ is not needed, we recommend to use
