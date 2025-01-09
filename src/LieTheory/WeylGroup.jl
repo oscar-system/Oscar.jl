@@ -528,8 +528,9 @@ function reflection(beta::RootSpaceElem)
 
   b, index_of_beta = is_root_with_index(beta)
   @req b "Not a root"
-  if index_of_beta > rk # for a negative root we want the index of the corresponding positive root
-    index_of_beta -= rk
+  # for a negative root we want the index of the corresponding positive root
+  if index_of_beta > number_of_positive_roots(R)
+    index_of_beta -= number_of_positive_roots(R)
   end
 
   found_simple_root = index_of_beta <= rk
