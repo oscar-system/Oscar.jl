@@ -62,7 +62,8 @@
     @test _check_im_perm_rows(incidence_matrix(cones(F1, 2)), incidence1)
     @test _check_im_perm_rows(cones(IncidenceMatrix, F1, 2), incidence1)
 
-    A3 = affine_space(NormalToricVariety, 3)
+    # Construct a fan that describes affine 3-space
+    A3 = polyhedral_fan(positive_hull(identity_matrix(ZZ, 3)))
     @test length(cones(A3, 1)) == 3
     @test length(cones(A3, 0)) == 1
     @test length(cones(A3, -1)) == 0
