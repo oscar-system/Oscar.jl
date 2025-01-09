@@ -526,11 +526,11 @@ function reflection(beta::RootSpaceElem)
   W = weyl_group(R)
   rk = number_of_simple_roots(R)
 
-  b, index_of_beta = is_positive_root_with_index(beta)
-  if !b
-    b, index_of_beta = is_negative_root_with_index(beta)
-  end
+  b, index_of_beta = is_root_with_index(beta)
   @req b "Not a root"
+  if index_of_beta > rk # for a negative root we want the index of the corresponding positive root
+    index_of_beta -= rk
+  end
 
   found_simple_root = index_of_beta <= rk
   current_index = index_of_beta
