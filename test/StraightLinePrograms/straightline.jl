@@ -261,6 +261,7 @@ end
     @test c isa Lazy
     @test SLP.gens(c) == [:x, :y]
     @test c == call(fun2, x-y, y)
+    @test hash(c) == hash(call(fun2, x-y, y))
     @test c != call(fun2, x-y, 2y)
     @test SLP.evaluate(c, [2, 3]) == 7
 
@@ -475,6 +476,7 @@ end
 
     p2 = SLP.copy_oftype(p, Float64)
     @test p2 == p
+    @test hash(p2) == hash(p)
     @test p2.cs == p.cs
     @test p2.lines == p.lines
     SLP.add!(p2, SLProgram(Const(1.2)))
@@ -483,6 +485,7 @@ end
 
     p3 = copy(p)
     @test p3 == p
+    @test hash(p3) == hash(p)
     @test p3.cs == p.cs
     @test p3.lines == p.lines
     @test_throws InexactError SLP.add!(p3, SLProgram(Const(1.2)))
@@ -640,14 +643,15 @@ end
     a, b = ab = SLP.gens(SLP.Lazy, 2)
 
     p = SLProgram()
-    pushop!(p, SLP.decision, SLP.input(1), SLP.pushint!(p, 3))
-    c = pushop!(p, SLP.times, SLP.input(1), SLP.input(2))
-    pushop!(p, SLP.decision, c, SLP.pushint!(p, 2))
+    SLP.pushop!(p, SLP.decision, SLP.input(1), SLP.pushint!(p, 3))
+    c = SLP.pushop!(p, SLP.times, SLP.input(1), SLP.input(2))
+    SLP.pushop!(p, SLP.decision, c, SLP.pushint!(p, 2))
     SLP.setdecision!(p)
 
     l = SLP.test(x, 3) & SLP.test(x*y, 2)
     f = SLP.test(a, 3) & SLP.test(a*b, 2)
     @test SLP.evaluate(p, Any[x, y]) == l
+    @test hash(SLP.evaluate(p, Any[x, y])) == hash(l)
     @test SLP.evaluate(l, Any[x, y]) == l
     @test SLP.evaluate(l, SLP.gens(SLProgram, 2)) == p
     @test SLP.evaluate(p, ab) == f
@@ -667,6 +671,7 @@ end
 
     q = SLP.list([x*y^2, x+1-y])
     @test SLP.evaluate(q, [x, y]) == q
+    @test hash(SLP.evaluate(q, [x, y])) == hash(q)
     @test SLP.evaluate(q, Any[x, y]) == [x*y^2, x+1-y]
     @test SLP.evaluate(q, [2, 3]) == [18, 0]
     @test SLP.evaluate(SLP.evaluate(q, SLProgram[X, Y]), [x, y]) == q
