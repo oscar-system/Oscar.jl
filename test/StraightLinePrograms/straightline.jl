@@ -9,6 +9,7 @@
     @test string(c) == "1"
     @test isempty(SLP.gens(c))
     @test c == Const(1) == Const(0x1)
+    @test hash(c) == hash(Const(1)) == hash(Const(0x1))
     @test c != Const(2)
     @test SLP.evaluate(c, rand(3)) == 1
     @test SLP.evaluate(c, xyz) == 1
@@ -20,6 +21,7 @@
     @test string(g) == "x"
     @test SLP.gens(g) == [:x]
     @test g == x
+    @test hash(g) == hash(x)
     @test g != y
     @test SLP.evaluate(g, [2, 3, 4]) == 2
     @test SLP.evaluate(g, xyz) == x
@@ -32,6 +34,7 @@
     @test string(p) == "(1 + x)"
     @test SLP.gens(p) == [:x]
     @test p == 1+x == 0x1+x
+    @test hash(p) == hash(1+x) == hash(0x1+x)
     @test p != 2+x && p != 1+y
     @test SLP.evaluate(p, [2]) == 3
     @test SLP.evaluate(p, xyz) == 1 + x
@@ -42,6 +45,7 @@
     @test string(m) == "((1 + x) - x)"
     @test SLP.gens(m) == [:x]
     @test m == (1+x)-x
+    @test hash(m) == hash((1+x)-x)
     @test m != (1+x)+x && m != x-x && m != (1+x)-y
     @test SLP.evaluate(m, [2]) == 1
     @test SLP.evaluate(m, xyz) == (1+x)-x
@@ -52,6 +56,7 @@
     @test string(u) == "(-(1 + x))"
     @test SLP.gens(u) == [:x]
     @test u == -(1+x)
+    @test hash(u) == hash(-(1+x))
     @test u != (1+x) && u != -(1+y)
     @test SLP.evaluate(u, [2]) == -3
     @test SLP.evaluate(u, xyz) == -(1 + x)
@@ -62,6 +67,7 @@
     @test string(t) == "(x*(1 + x))"
     @test SLP.gens(t) == [:x]
     @test t == x*(1+x)
+    @test hash(t) == hash(x*(1+x))
     @test t != (1+x)*x && t != y*(1+x) && t != x*(1+y)
     @test SLP.evaluate(t, [2]) == 6
     @test SLP.evaluate(t, xyz) == x*(1+x)
@@ -72,6 +78,7 @@
     @test string(e) == "(1 + x)^3"
     @test SLP.gens(e) == [:x]
     @test e == (1+x)^3
+    @test hash(e) == hash((1+x)^3)
     @test e != (1+x)^4 && e != (1+y)^3
     @test SLP.evaluate(e, [2]) == 27
     @test SLP.evaluate(e, xyz) == (1+x)^3
@@ -81,6 +88,7 @@
     @test c isa Call <: LazyRec
     @test SLP.gens(c) == [:x, :y]
     @test c == Call(c.f, [x-y, y])
+    @test hash(c) == hash(Call(c.f, [x-y, y]))
     @test c != Call((x, y) -> 2x+3y, [x-y, y]) # not same function
     @test c != Call(c.f, [x-y, 2y])
     @test SLP.evaluate(c, [2, 3]) == 7
