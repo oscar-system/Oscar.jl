@@ -50,9 +50,6 @@ if VERSION >= v"1.8.0"
   @everywhere  GC.enable_logging(true)
 end
 
-@everywhere import Oscar.Nemo.AbstractAlgebra
-@everywhere include(joinpath(pathof(Oscar.Nemo.AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
-
 # hotfix, otherwise StraightLinePrograms returns something which then leads to an error
 module SLPTest
 end
