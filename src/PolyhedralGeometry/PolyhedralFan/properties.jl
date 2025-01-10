@@ -302,7 +302,7 @@ julia> primitive_generator(r)
  -1
 ```
 """
-function primitive_generator(r::AbstractVector{T}) where T<:RationalUnion
+function primitive_generator(r::AbstractVector{T}) where {T<:RationalUnion}
   result = numerator.(lcm([denominator(i) for i in r]) * r)
   g = gcd(result)
   result = map(x -> div(x, g), result)
@@ -473,7 +473,7 @@ function is_minimal_supercone_coordinate_vector(
   maximal_cones_incidence_matrix = maximal_cones(IncidenceMatrix, PF)
   maximal_cones_indices = map(
     i -> row(maximal_cones_incidence_matrix, i),
-    1:n_rows(maximal_cones_incidence_matrix)
+    1:n_rows(maximal_cones_incidence_matrix),
   )
   for i in 1:n_rows(maximal_cones_incidence_matrix)
     issubset(positive_indices, maximal_cones_indices[i]) && return true
@@ -504,7 +504,7 @@ function standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:Ration
     PF, coords
   ) "Input vector must be a minimal supercone coordinate vector"
   primitive_ray_generators = Vector{Vector{QQFieldElem}}(map(primitive_generator, rays(PF)))
-  return Vector{QQFieldElem}(sum(coords.*primitive_ray_generators))
+  return Vector{QQFieldElem}(sum(coords .* primitive_ray_generators))
 end
 
 ###############################################################################
