@@ -203,7 +203,7 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
   if model_dict["arxiv_data"]["id"] == "1903.00009"
 
     # Read in the QSM-model form the database
-    model_dict["literature_identifier"] = "1903.00009"
+    model_dict["literature_identifier"] = "1903_00009"
     k = model_parameters["k"]
     qsmd_path = artifact"QSMDB"
     qsm_model = load(joinpath(qsmd_path, "$k.mrdi"))
@@ -276,6 +276,11 @@ function literature_model(model_dict::Dict{String, Any}; model_parameters::Dict{
       @req dim(base_space) == Int(model_dict["model_data"]["base_dim"]) "Model requires base dimension different from dimension of provided base"
     end
     
+    # Add additional information that is always known for weierstrass/tate 
+    if (model_dict["model_descriptors"]["type"] == "weierstrass") || (model_dict["model_descriptors"]["type"] == "tate")
+      model_dict["model_data"]["zero_section_class"] = "z"
+    end
+
     # Construct the model
     model = _construct_literature_model_over_concrete_base(model_dict, base_space, defining_classes_provided, completeness_check)
     @vprint :FTheoryModelPrinter 0 "Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!\n\n"
@@ -297,7 +302,7 @@ end
 #######################################################
 
 function _find_model(doi::String, arxiv_id::String, version::String, equation::String, type::String)
-  @req any(s -> s != "", [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
+  @req any(!isempty, [doi, arxiv_id, version, equation]) "No information provided; cannot perform look-up"
   file_index = JSON.parsefile(joinpath(@__DIR__, "index.json"))
   candidate_files = Vector{String}()
   for k in 1:length(file_index)
@@ -500,7 +505,7 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   auxiliary_base_ring, _ = polynomial_ring(QQ, vars, cached=false)
 
   # Construct the grading of the base ring
-  @req haskey(model_dict["model_data"], "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_model_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model constrution, so cannot proceed"
+  @req haskey(model_dict["model_data"], "classes_of_model_sections_in_basis_of_Kbar_and_defining_classes") "Database does not specify classes_of_model_sections_in_basis_of_Kbar_and_defining_classes, but is vital for model construction, so cannot proceed"
   auxiliary_base_grading = matrix(ZZ, transpose(hcat([[eval_poly(weight, ZZ) for weight in vec] for vec in model_dict["model_data"]["classes_of_model_sections_in_basis_of_Kbar_and_defining_classes"]]...)))
   auxiliary_base_grading = vcat([[Int(k) for k in auxiliary_base_grading[i:i,:]] for i in 1:nrows(auxiliary_base_grading)]...)
   
@@ -525,7 +530,7 @@ function _construct_literature_model_over_arbitrary_base(model_dict::Dict{String
   elseif model_dict["model_descriptors"]["type"] == "hypersurface"
 
     # Extract base variable names
-    auxiliary_base_vars = [string(g) for g in gens(auxiliary_base_ring)]
+    auxiliary_base_vars = [string(g) for g in symbols(auxiliary_base_ring)]
 
     # Extract fiber ambient space
     rays = [[a for a in b] for b in model_dict["model_data"]["fiber_ambient_space_rays"]]
@@ -634,7 +639,7 @@ function _set_all_attributes(model::AbstractFTheoryModel, model_dict::Dict{Strin
     set_zero_section(model, string.(model_dict["model_data"]["zero_section"]))
   end
   
-  if haskey(model_dict["model_data"], "zero_section_class")
+  if haskey(model_dict["model_data"], "zero_section_class") && base_space(model) isa NormalToricVariety
     set_zero_section_class(model, string.(model_dict["model_data"]["zero_section_class"]))
   end
 
@@ -674,7 +679,7 @@ end
 @doc raw"""
     display_all_literature_models(model_fields::Dict{String,<:Any} = Dict{String,Any}())
 
-Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occuring in index.json.
+Displays all literature models that satisfy the model_fields criteria. The fields currently supported are those occurring in index.json.
 
 ```jldoctest
 julia> display_all_literature_models(Dict("gauge_algebra" => ["u(1)", "su(2)", "su(3)"]))

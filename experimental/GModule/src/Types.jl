@@ -2,14 +2,14 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
 
   GM1::GModule{G, T1}
   GM2::GModule{G, T2}
-  module_map::Map{T1, T2}
+  module_map::Map
 
   function GModuleHom(
     M1::GModule,
     M2::GModule,
     mp::Map;
     check::Bool = false
-    ) 
+    )
     # Need to require that
     #   1. Both GModules have the same group
     #   2. The group action is respected
@@ -27,11 +27,11 @@ mutable struct GModuleHom{ G, T1, T2} <: Map{GModule{G, T1}, GModule{G, T2}, Osc
 end
 
 function hom(M1::GModule{T}, M2::GModule{T}, mp::Map; check::Bool = true) where T <: AbstractAlgebra.Group
-  return GModuleHom(M1, M2, mp; check) 
+  return GModuleHom(M1, M2, mp; check)
 end
 
 function hom(M1::GModule{T}, M2::GModule{T}, mp::MatElem; check::Bool = true) where T <: AbstractAlgebra.Group
-  return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check) 
+  return GModuleHom(M1, M2, hom(M1.M, M2.M, mp); check)
 end
 
 domain(M::GModuleHom) = M.GM1
@@ -58,7 +58,7 @@ end
 function hash(a::GModuleElem, u::UInt)
   return hash(a.data, u)
 end
-  
+
 function +(a::GModuleElem, b::GModuleElem)
   @req parent(a) === parent(b) "parents differ"
   return GModuleElem(parent(a), a.data + b.data)
@@ -84,10 +84,9 @@ function (A::GModuleHom)(a::GModuleElem)
 end
 
 function kernel(A::GModuleHom)
-  return sub(A, kernel(A.module_map)[2])
+  return sub(domain(A), kernel(A.module_map)[2])
 end
 
 function image(A::GModuleHom)
-  return sub(A, image(A.module_map)[2])
+  return sub(codomain(A), image(A.module_map)[2])
 end
-

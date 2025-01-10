@@ -340,7 +340,7 @@ julia> A = matrix(QQ,[1 2 5//2; 0 0 1; 2 3 2; 1//2 3 5; 3 1 2; 7 8 1])
 julia> factor(arrangement_polynomial(A))
 (1//4) * (2*x1 + 3*x2 + 2*x3) * (7*x1 + 8*x2 + x3) * (x1 + 6*x2 + 10*x3) * (2*x1 + 4*x2 + 5*x3) * x3 * (3*x1 + x2 + 2*x3)
 
-julia> R,_ = polynomial_ring(QQ, ["x", "y", "z"])
+julia> R,_ = polynomial_ring(QQ, [:x, :y, :z])
 (Multivariate polynomial ring in 3 variables over QQ, QQMPolyRingElem[x, y, z])
 
 julia> factor(arrangement_polynomial(R, A))

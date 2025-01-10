@@ -304,28 +304,12 @@ function _ring_iso(f::SesquilinearForm)
   return f.ring_iso
 end
 
-function GAP.julia_to_gap(f::SesquilinearForm)
+GAP.@install function GapObj(f::SesquilinearForm)
   if !isdefined(f, :X)
     assign_from_description(f)
   end
   return f.X
 end
-
-function Base.getproperty(f::SesquilinearForm, sym::Symbol)
-
-   if isdefined(f,sym) return getfield(f,sym) end
-
-   if sym == :X
-      if !isdefined(f, :X)
-         assign_from_description(f)
-      end
-
-   end
-
-   return getfield(f, sym)
-
-end
-
 
 
 ########################################################################
@@ -367,15 +351,16 @@ function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T},w
    @req f.descr!=:quadratic "Quadratic forms requires only one argument"
 
    if f.descr==:hermitian
-      return v*gram_matrix(f)*map( y->frobenius(y,div(degree(base_ring(w)),2)),w)
+      w = conjugate_transpose(w.v)
    else
-      return v*gram_matrix(f)*w
+      w = transpose(w.v)
    end
+   return v.v*gram_matrix(f)*w
 end
 
 function (f::SesquilinearForm{T})(v::AbstractAlgebra.Generic.FreeModuleElem{T}) where T <: RingElem
    @req f.descr==:quadratic "Sesquilinear forms requires two arguments"
-   return v*gram_matrix(f)*v
+   return v.v*gram_matrix(f)*transpose(v.v)
 end
 
 

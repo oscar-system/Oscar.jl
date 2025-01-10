@@ -287,7 +287,7 @@ function invariant_lattice_classes(M::GModule{<:Oscar.GAPGroup, <:AbstractAlgebr
         pG = p.*gens(M.M)
         for s in S
           x, mx = sub(M.M, vcat(pG, [M.M(map_entries(x->lift(ZZ, x), s[i:i, :])) for i in 1:nrows(s)]))
-          r = (sub(M, mx), mx)
+          r = (sub(M, mx)[1], mx)
           if any(x->is_isomorphic(r[1], x[1]), res)
             continue
           else
@@ -522,18 +522,18 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     Step 5:
       restrict sigma to Gal(K/E) and obtain a 1-boundary d
     Step 6:
-      Y = X restriced to K/E * d is a 1-chain in GL(n, K)
+      Y = X restricted to K/E * d is a 1-chain in GL(n, K)
       split by A in GL(n, K)
       Now, technically, A V A^-1 has values in Gl(n, E)
     Step 7:
       Replacing V -> A V A^-1 changes
                 X_g -> A^g X A^-1
-      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normlized (mult. by
+      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normalized (mult. by
       scalar in K) to be in Gl(n, E)
     Step 8: Find F using Grunwald Wang
       The Galois group FF/k is the direct product, so
       inflate the "new" X and (re)-compute sigma
-    Step 9: is_coboundary and new transformatio matrix
+    Step 9: is_coboundary and new transformation matrix
     =#
 
 
@@ -948,6 +948,15 @@ function Oscar.sub(M::GModule{<:Any, <:AbstractAlgebra.FPModule{T}}, f::Abstract
   return D, hom(D, M, f)
 end
 
+function Oscar.sub(M::GModule{<:Any, FinGenAbGroup}, f::FinGenAbGroupHom)
+  @assert codomain(f) == M.M
+  S = domain(f)
+  Sac = [hom(S, S, [preimage(f, h(f(x))) for x in gens(S)]) for h in M.ac]
+  D = gmodule(S, M.G, Sac)
+  return D, hom(D, M, f)
+end
+
+
 function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{<:FinFieldElem}})
   @assert absolute_degree(k) == 1
   F = free_module(k, dim(C)*absolute_degree(base_ring(C)))
@@ -955,11 +964,11 @@ function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
 end
 
 function Hecke.frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(y, degree(K)-i))
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(y, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -1186,7 +1195,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
       elseif isone(h)
         sigma[(g, h)] = (one(K))
       else
-        lf = findfirst(x->!iszero(x), X[g*h])
+        lf = findfirst(!is_zero, X[g*h])
         sigma[(g, h)] = (X[g*h][lf]//(map_entries(mA(h), X[g])*X[h])[lf])
 #        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
       end
@@ -1833,8 +1842,8 @@ end
 function invariant_forms(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
   D = Oscar.dual(C)
   h = hom_base(C, D)
-  k = kernel(transpose(reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
-  return [sum(h[i]*k[i, j] for i=1:length(h)) for j=1:ncols(k)]
+  k = kernel((reduce(vcat, [matrix(base_ring(C), 1, dim(C)^2, _vec(x-transpose(x))) for x = h])))
+  return [sum(h[i]*k[j,i] for i=1:length(h)) for j=1:nrows(k)]
 end
 
 function Oscar.is_isomorphic(A::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}, B::GModule{T, <:AbstractAlgebra.FPModule{<:FinFieldElem}}) where T
@@ -1943,12 +1952,22 @@ function action_matrices(C::GModule{<:Any, <:AbstractAlgebra.FPModule})
 end
 
 function Oscar.simplify(C::GModule{<:Any, <:AbstractAlgebra.FPModule{ZZRingElem}})
- f = invariant_forms(C)[1]
+# f = invariant_forms(C)[1]
+#thsi will not give pos. def. forms!!! we need to go via Reynolds.
 # @assert all(i->det(f[1:i, 1:i])>0, 1:nrows(f))
  m = map(matrix, C.ac)
  S = identity_matrix(ZZ, dim(C))
  while true
+   f = zero_matrix(ZZ, dim(C), dim(C))
+   for i=gens(C.G)
+     x = action(C, i)
+     f = f + matrix(x)*transpose(matrix(x))
+   end
+#   @assert is_symmetric(f)
+#   @assert is_positive_definite(f)
    L, T = lll_gram_with_transform(f)
+#   @assert L == T*f*transpose(T)
+
    Ti = inv(T)
    n = [T*x*Ti for x = m]
    if length(string(n)) >= length(string(m))

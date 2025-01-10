@@ -249,7 +249,7 @@
             @test vertical_connectivity(M) == values[4]
             @test girth(M) == values[5]
             @test tutte_connectivity(M) == values[6]
-            @test characteristic_polynomial(M) == values[7]
+            @test characteristic_polynomial(R, M) == values[7]
             @test length(cobases(M)) == length(bases(M))
             @test cohyperplanes(M) == [setdiff(matroid_groundset(M),set) for set in circuits(M)]
             @test is_regular(M) == values[8]
@@ -288,7 +288,7 @@
 
         @test cobases(N) == [['i','j'], [2,'j'], [2,'i'], [1,'j'], [1,'i']]
 
-        @test charpoly(N) == R(q^2-3q+2)
+        @test charpoly(R, N) == R(q^2-3q+2)
 
         @test is_clutter(bases(N)) == true
         @test is_clutter(circuits(N)) == true
@@ -422,10 +422,17 @@
   @testset "matroid_hex" begin
     M = fano_matroid() 
     N = uniform_matroid(2, 4)
+    NN = uniform_matroid(1, 4)
 
     M1 = matroid_from_matroid_hex(matroid_hex(M)) 
     N1 = matroid_from_matroid_hex(matroid_hex(N))
+    NN1 = matroid_from_matroid_hex(matroid_hex(NN))
+
     @test is_isomorphic(M, M1)
     @test is_isomorphic(N, N1)
+
+    @test matroid_hex(NN) == "r1n4_f"
+    @test is_isomorphic(NN, NN1)
+
   end
 end

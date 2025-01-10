@@ -11,7 +11,7 @@ const oscar_style = :oscar
 
 # The long reference string in the bibliography
 function DocumenterCitations.format_bibliography_reference(style::Val{oscar_style}, entry)
-  return DocumenterCitations.format_labeled_bibliography_reference(style, entry)
+  return DocumenterCitations.format_labeled_bibliography_reference(style, entry; article_link_doi_in_title=true)
 end
 
 # The label in the bibliography

@@ -348,7 +348,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
   for s = gens(G)
     sigma = ra(s)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    @assert all(in(iU), u)
     im_q = []
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
@@ -358,7 +358,7 @@ function induce(C::GModule{<:Oscar.GAPGroup}, h::Map, D = nothing, mDC = nothing
     s = inv(s)
     sigma = ra(s)
     u = [ g[i]*s*g[i^sigma]^-1 for i=1:length(g)]
-    @assert all(x->x in iU, u)
+    @assert all(in(iU), u)
     im_q = []
     for q = gens(indC)
       push!(im_q, sum(inj[i^sigma](action(C, preimage(h, u[i]), pro[i](q))) for i=1:length(g)))
@@ -1944,7 +1944,7 @@ the corresponding elt in the extension.
 If the gmodule is defined via a pc-group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
-function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
+function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
   F = codomain(isomorphism(FPGroup, G, on_gens=true))
@@ -2253,7 +2253,7 @@ function split_extension(C::GModule)
   c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(CoChain{2, S, T}(C, c))
+  return extension(FPGroup, CoChain{2, S, T}(C, c))
 end
 
 function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
@@ -2396,7 +2396,7 @@ function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
 end
 
 function Oscar.permutation_group(c::CoChain{2})
-  g = extension(c)[1]
+  g = extension(FPGroup, c)[1]
   return permutation_group(g)
 end
 

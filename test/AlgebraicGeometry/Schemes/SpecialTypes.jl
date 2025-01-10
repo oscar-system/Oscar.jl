@@ -1,5 +1,5 @@
 @testset "tests for SpecialTypes.jl" begin
-  R, (x,y,z) = QQ["x", "y", "z"]
+  R, (x,y,z) = QQ[:x, :y, :z]
   X = spec(R)
   h = x^2 - y^2 + z^2 - 1
   U = PrincipalOpenSubset(X, h)

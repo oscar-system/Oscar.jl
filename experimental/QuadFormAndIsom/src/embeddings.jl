@@ -341,7 +341,7 @@ end
 # - stabN is the stabilizer of HN in GN, where GN is the classifying group
 # for N (depending on the classification type chose by the user).
 # - if `first == true`, we return only one isometry since we only want the first
-# extension in ouput of the global extension algorithm.
+# extension in output of the global extension algorithm.
 function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
                              HNinqN::TorQuadModuleMap,
                              phig::TorQuadModuleMap,
@@ -362,7 +362,7 @@ function _fitting_isometries(OqfN::AutomorphismGroup{TorQuadModule},
 
   # _fN is one of the fitting isometries. Now there are two cases:
   # - either we only one of such, and we are done (we just make it into a
-  # honnest isometry of N);
+  # honest isometry of N);
   # - or we want all such isometries up to the action of the classifying group.
   #
   # For the latter, we remark that: the set of isometries of N restricting to
@@ -491,19 +491,19 @@ end
 #   in the image of the centralizer of fM and fN in O(qM) and O(qN) respectively);
 # - `ext_type` is the type of extension: :plain means "without isometry" and
 #   :equivariant means "with isometry". The pair of symbol depends whether we
-#   consider M and N as equiped with an isometry which we aim to extend. Note that for
+#   consider M and N as equipped with an isometry which we aim to extend. Note that for
 #   simplicity, if N has an isometry, M has one too; so we force M to be the one
-#   equiped with an isometry if only one lattice has an isometry to extend
+#   equipped with an isometry if only one lattice has an isometry to extend
 #   (since everything is symmetric);
 # - `even` forces the primitive extensions to be even;
 # - `exist_only` is meant only to state about the existence of a primitive
 #   extension without doing further computations once it is proved to exist;
 # - `first` asks to return the first primitive extensions computed which
-#   satifies all the requirements;
+#   satisfies all the requirements;
 # - `fM` and `fN` are isometries of M and N we aim to extend. If no such
 #   isometries are specified, we set them to be the identity because we can always
 #   extend the identity along any extensions;
-# - `fqM` amd `fqN` are the representation of fM and fN on the respective
+# - `fqM` and `fqN` are the representation of fM and fN on the respective
 #   discriminant groups. Since a priori fM and fN are seen as proper isometries of
 #   M and N, and fqM and fqN are constructed from an ambient isometry, we require
 #   to mention both;
@@ -727,7 +727,7 @@ function _primitive_extensions_generic(
         # primitive extensions we consider, i.e. it is in bijection with the set
         # of admissible gluings.
         reps = double_cosets(codomain(iso), iso(SM)[1], iso(SN)[1])
-        @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism classe(s) of primitive extensions"
+        @vprintln :ZZLatWithIsom 1 "$(length(reps)) isomorphism class(es) of primitive extensions"
 
         for _g in reps
           g = iso\(representative(_g))
@@ -1286,24 +1286,26 @@ of $M$ into lattices in $G$.
 """
 function primitive_embeddings(G::ZZGenus, M::ZZLat; classification::Symbol = :sub)
   @req is_integral(scale(G)) && is_integral(M) "Only available for integral lattices"
-  @req !iseven(G) || iseven(M) "Cannot embed an odd lattice into an even lattice"
   @req classification in Symbol[:none, :emb, :sub, :first] "Wrong symbol for classification"
+
+  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+
+  (iseven(G) && !iseven(M)) && return false, results
+  (rank(M) > rank(G)) && return false, results
 
   even = is_even(G)
   posL, _, negL = signature_tuple(G)
   posM, _, negM = signature_tuple(M)
   posN = posL - posM
   negN = negL - negM
-  @req (posN >= 0 && negN >= 0) "Incompatible signatures for the embeddings"
 
-  results = Tuple{ZZLat, ZZLat, ZZLat}[]
+  (posN < 0 || negN < 0) && return false, results
+
   if rank(M) == rank(G)
     genus(M) != G && return false, results
     push!(results, (M, M, orthogonal_submodule(M, M)))
     return true, results
   end
-
-  @req rank(M) < rank(G) "The rank of M must be smaller or equal than the one of the lattices in G"
 
   if classification == :sub
     cs = :subsub
@@ -1488,10 +1490,10 @@ end
                                                                 ZZLatWithIsom}}
 
 Given two integral integer lattices $M$ and $N$, where at least one of them
-is equiped with an isometry, return a boolean `T` and a list $V$ of
+is equipped with an isometry, return a boolean `T` and a list $V$ of
 representatives of isomorphism classes of equivariant primitive extensions
 $(M, fM) \oplus (N, fN) \subseteq (L, fL)$. Note that if $M$ (resp $N$) is not
-equiped with an isometry, then $M$ (resp. $N$) has to be definite.
+equipped with an isometry, then $M$ (resp. $N$) has to be definite.
 
 One can decide to choose the index of $[L:(M\oplus N)]$ which should be a positive
 integer by setting `glue_order` to the desired value.
@@ -1504,7 +1506,7 @@ then `T = false` and $V$ is the empty list.
 Otherwise, `T = true` and $V$ consists of triples $((L, f_L), (M', f_M'), (N', f_N'))$
 such that $M'$ is isometric to $M$, $N'$ is isometric to $N$ and $(L, f_L)$ is an
 equivariant primitive extension of $(M', f_M')\oplus (N', f_N')$ such that $L$
-satisfies conditions `glue_order` or `q` if assigned. If $M$ (resp. $N$) is equiped with
+satisfies conditions `glue_order` or `q` if assigned. If $M$ (resp. $N$) is equipped with
 an isometry $f_M$ (resp. $f_N$), then $(M', f_M')$ and $(M, f_M)$ (resp. $(N', f_N')$
 and $(N, f_N)$) are isomorphic as lattices with isometry.
 
@@ -1516,7 +1518,7 @@ The content of $V$ depends on the value of `classification`. There are 6 possibi
   - `classification == :embsub`: $V$ consists of representatives for all isomorphism classes of equivariant primitive extensions of $(M, f_M)\oplus (N, f_N)$ satisfying the given conditions, up to the action of $O(N, f_N)$;
   - `classification == :embemb`: $V$ consists of representatives for all isomorphism classes of equivariant primitive extensions of $(M, f_M)\oplus (N, f_N)$ satisfying the given conditions;
 
-If $M$ (resp. $N$) is not equiped with an isometry, then the previous classifications
+If $M$ (resp. $N$) is not equipped with an isometry, then the previous classifications
 are done modulo the action of $O(M)$ (resp. $O(N)$) instead of $O(M, f_M)$ (resp.
 $O(N, f_N)$). Moreover, the function extends representatives of conjugacy classes of
 isometries of $M$ (resp. $N$) which can be glued equivariantly with $f_N$ (resp. $f_M$)
@@ -1666,12 +1668,12 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
                                                      p::IntegerUnion,
                                                      q::IntegerUnion = p; check::Bool = true)
   # p and q can be equal, and they will be most of the time
-  @req is_prime(p) && is_prime(q) "p and q must be a prime number"
+  @req is_prime(p) && is_prime(q) "p and q must be prime numbers"
 
   # Requirements for [BH23]
   same_ambient = ambient_space(lattice(A)) === ambient_space(lattice(B)) === ambient_space(lattice(C))
   if check
-    @req all(L -> is_integral(L), [A, B, C]) "Underlying lattices must be integral"
+    @req all(is_integral, [A, B, C]) "Underlying lattices must be integral"
     chiA = minimal_polynomial(A)
     chiB = minimal_polynomial(parent(chiA), isometry(B))
     @req gcd(chiA, chiB) == 1 "Minimal irreducible polynomials must be relatively coprime"
@@ -1841,7 +1843,7 @@ function admissible_equivariant_primitive_extensions(A::ZZLatWithIsom,
     reps = double_cosets(codomain(iso), iso(stabSAphi)[1], iso(stabSB)[1])
 
     # We iterate over all double cosets. Each representative, define a new
-    # classe of admissible gluing and so, for each such representative we compute the
+    # class of admissible gluing and so, for each such representative we compute the
     # corresponding overlattice along the gluing. If it has the wanted type, we compute
     # the image of the centralizer in OD from the stabA and stabB.
     for g in reps

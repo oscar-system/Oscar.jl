@@ -1,7 +1,7 @@
 @doc raw"""
-    total_transform(f::AbsSimpleBlowdownMorphism, II::IdealSheaf)
+    total_transform(f::AbsSimpleBlowupMorphism, II::IdealSheaf)
 
-Computes the total transform of an ideal sheaf along a blowdown morphism.
+Computes the total transform of an ideal sheaf along a blowup.
 
 In particular, this applies in the toric setting. However, note that
 currently (October 2023), ideal sheaves are only supported on smooth
@@ -13,7 +13,7 @@ julia> P2 = projective_space(NormalToricVariety, 2)
 Normal toric variety
 
 julia> bl = blow_up(P2, [1, 1])
-Toric blowdown morphism
+Toric blowup morphism
 
 julia> S = cox_ring(P2);
 
@@ -37,10 +37,10 @@ with restrictions
   4: Ideal (x_1_4)
 ```
 """
-function total_transform(f::AbsSimpleBlowdownMorphism, II::AbsIdealSheaf)
+function total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end
 
-function total_transform(f::AbsBlowdownMorphism, II::AbsIdealSheaf)
+function total_transform(f::AbsBlowupMorphism, II::AbsIdealSheaf)
   return pullback(f, II)
 end

@@ -1,6 +1,6 @@
 @testset "galois_group" begin
 
-  Zx, x = ZZ["x"]
+  Zx, x = ZZ[:x]
   k, a = number_field(x^5-2)
   G, C = galois_group(k)
   @test transitive_group_identification(G) == (5, 3)
@@ -10,7 +10,7 @@
   @test degree(L) == order(G)
   @test length(roots(L, k.pol)) == 5
 
-  R, x = polynomial_ring(QQ, "x")
+  R, x = polynomial_ring(QQ, :x; cached = false)
   pol = x^6 - 366*x^4 - 878*x^3 + 4329*x^2 + 14874*x + 10471
   g, C = galois_group(pol)
   @test order(g) == 18
@@ -20,11 +20,11 @@
   act = Oscar.GaloisGrp.action_on_blocks(g, [1, 2])
   @test order(image(act)[1]) == 2
 
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   G, C = galois_group((1//13)*x^2+2)
   @test order(G) == 2
 
-  K, a = number_field(x^4-2)
+  K, a = number_field(x^4-2; cached = false)
   G, C = galois_group(K)
   Gc, Cc = galois_group(K, algorithm = :Complex)
   Gs, Cs = galois_group(K, algorithm = :Symbolic)
@@ -46,6 +46,17 @@
   G, C = galois_group((2*x+1)^2)
   @test order(G) == 1
   @test degree(G) == 2
+
+  #from errors:
+  G, C = galois_group((x^4 + 1)^3 * x^2 * (x^2 - 4*x + 1)^5)
+  @test order(G) == 8
+  @test degree(G) == 24
+  k = fixed_field(C, sub(G, [one(G)])[1])
+  @test degree(k) == 8
+
+  G, C = galois_group((x^3-2)^2*(x^3-5)^2*(x^2-6))
+  @test order(G) == 36
+  @test degree(G) == 14
 end
 
 import Oscar.GaloisGrp: primitive_by_shape, an_sn_by_shape, cycle_structures
@@ -88,7 +99,7 @@ sample_cycle_structures(G::PermGroup) = Set(cycle_structure(rand_pseudo(G)) for 
   end
 
   let # Ehrhart polynomial problems
-    Qx, x = QQ["x"]
+    Qx, x = QQ[:x]
     f = 4//45*x^6 + 4//15*x^5 + 14//9*x^4 + 8//3*x^3 + 196//45*x^2 + 46//15*x + 1
     G, = galois_group(f)
     @test small_group_identification(G) == (4, 2)
@@ -97,9 +108,9 @@ end
 
 @testset "Galois group issue" begin
   # Contributed by "Lloyd" on slack
-  R, s = QQ["s"]
+  R, s = QQ[:s]
   K, q = number_field(s^2 - 2, "q")
-  Kw, w = polynomial_ring(K, "w")
+  Kw, w = polynomial_ring(K, :w)
   f = w^16 - 32*w^14 - 192*w^12 + 22720*w^10 + 23104*w^8 - 2580480*w^6 + 41287680*w^4 + 106168320*w^2 + 84934656
   g, s = galois_group(f)
   @test order(g) == 1536

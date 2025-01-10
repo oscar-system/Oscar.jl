@@ -11,7 +11,7 @@ function save_type_params(s::SerializerState, obj::S) where {T, S <:MatVecType{T
     if serialize_with_params(T) && !isempty(obj)
       if !(T <: MatVecType) && hasmethod(parent, (T,))
         parents = parent.(obj)
-        parents_all_equal = all(map(x -> isequal(first(parents), x), parents))
+        parents_all_equal = all(map(isequal(first(parents)), parents))
         @req parents_all_equal "Not all parents of Vector or Matrix entries are the same, consider using a Tuple"
       end
       save_type_params(s, obj[1], :params)
@@ -541,7 +541,7 @@ end
 
 function save_object(s::SerializerState, obj::SRow)
   save_data_array(s) do
-    for (i, v) in collect(obj)
+    for (i, v) in obj
       save_object(s, (i, v))
     end
   end

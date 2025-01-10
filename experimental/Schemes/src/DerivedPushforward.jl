@@ -138,7 +138,7 @@ function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
       w = Tinv[i]
       new_entries = Vector{Tuple{Int, elem_type(base_ring(w))}}()
       for (real_j, b) in w
-        j = findfirst(k->k==real_j, J)
+        j = findfirst(==(real_j), J)
         j === nothing && continue
         push!(new_entries, (j, b))
       end

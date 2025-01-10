@@ -12,6 +12,7 @@ include("Methods.jl")
 
 include("AffineSchemes/Objects/Types.jl")
 include("AffineSchemes/Morphisms/Types.jl")
+include("AffineSchemes/SimplifiedAffineScheme/Types.jl")
 include("PrincipalOpenSubset/Objects/Types.jl")
 include("PrincipalOpenInclusion/Types.jl")
 include("AffineSchemeOpenSubscheme/Objects/Types.jl")
@@ -19,10 +20,12 @@ include("AffineSchemeOpenSubscheme/Rings/Types.jl")
 include("AffineSchemeOpenSubscheme/Morphisms/Types.jl")
 include("ClosedEmbedding/Types.jl") # Needs AffineSchemeOpenSubscheme for their complements
 include("Gluing/Types.jl")
+include("Gluing/LazyGluing/Types.jl")
 include("Covering/Objects/Types.jl")
 include("Covering/Morphisms/Types.jl")
 include("CoveredSchemes/Objects/Types.jl")
 include("CoveredSchemes/Morphisms/Types.jl")
+include("CoveredSchemes/Morphisms/CompositeCoveredSchemeMorphism/Types.jl")
 include("AbstractTypes.jl")
 include("AffineVariety/Objects/Types.jl")
 include("AffineAlgebraicSet/Objects/Types.jl")
@@ -30,6 +33,13 @@ include("ProjectiveSchemes/Objects/Types.jl")
 include("ProjectiveSchemes/Morphisms/Types.jl")
 include("ProjectiveAlgebraicSet/Objects/Types.jl")
 include("ProjectiveVariety/Objects/Types.jl")
+include("Sheaves/Types.jl")
+include("CoveredSchemes/Morphisms/CoveredClosedEmbedding/Types.jl") #needs IdealSheaf
+include("Sheaves/PushforwardIdealSheaf.jl")
+include("FunctionField/Types.jl")
+include("Divisors/Types.jl")
+include("CoveredSchemes/Morphisms/MorphismFromRationalFunctions/Types.jl") 
+
 
 ########################################################################
 # Affine schemes                                                       #
@@ -43,6 +53,7 @@ include("AffineSchemes/Morphisms/Constructors.jl")
 include("AffineSchemes/Morphisms/Properties.jl")
 include("AffineSchemes/Morphisms/Attributes.jl")
 include("AffineSchemes/Morphisms/Methods.jl")
+include("AffineSchemes/SimplifiedAffineScheme/Methods.jl")
 
 ########################################################################
 # Projective Schemes                                                   #
@@ -97,6 +108,7 @@ include("ClosedEmbedding/Attributes.jl")
 include("Gluing/Constructors.jl")
 include("Gluing/Attributes.jl")
 include("Gluing/Methods.jl")
+include("Gluing/LazyGluing/Methods.jl")
 
 ########################################################################
 # Coverings of schemes                                                 #
@@ -121,6 +133,10 @@ include("CoveredSchemes/Morphisms/Constructors.jl")
 include("CoveredSchemes/Morphisms/Attributes.jl")
 include("CoveredSchemes/Morphisms/Methods.jl")
 include("CoveredSchemes/Morphisms/Properties.jl")
+include("CoveredSchemes/Morphisms/CoveredClosedEmbedding/Methods.jl") 
+include("CoveredSchemes/Morphisms/MorphismFromRationalFunctions/Methods.jl") 
+include("CoveredSchemes/Morphisms/CompositeCoveredSchemeMorphism/Methods.jl")
+
 
 ########################################################################
 # Affine Algebraic Sets                                                #
@@ -154,3 +170,32 @@ include("ProjectiveVariety/Objects/Properties.jl")
 include("ProjectiveVariety/Objects/Attributes.jl")
 include("ProjectiveVariety/Objects/Methods.jl")
 
+########################################################################
+# Sheaves
+########################################################################
+include("Sheaves/Sheaves.jl")
+include("Sheaves/CoherentSheaves.jl")
+include("Sheaves/StructureSheaf.jl")
+include("Sheaves/IdealSheaves.jl")
+include("Sheaves/Methods.jl")
+
+########################################################################
+# Rational functions
+########################################################################
+include("FunctionField/FunctionFields.jl")
+
+########################################################################
+# Divisors
+########################################################################
+include("Divisors/AlgebraicCycles.jl")
+include("Divisors/WeilDivisor.jl")
+include("Divisors/CartierDivisor.jl")
+include("Divisors/base_change.jl")
+
+########################################################################
+# Blowups
+########################################################################
+include("CoveredProjectiveScheme/Types.jl")
+include("CoveredProjectiveScheme/CoveredProjectiveScheme.jl")
+include("BlowupMorphism/Types.jl")
+include("BlowupMorphism/BlowupMorphism.jl")

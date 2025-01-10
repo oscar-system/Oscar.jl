@@ -103,7 +103,7 @@ end
 # 2: Weierstrass models over generic base space
 #############################################################
 
-auxiliary_base_ring, (f, g, Kbar, u) = QQ["f", "g", "Kbar", "u"]
+auxiliary_base_ring, (f, g, Kbar, u) = QQ[:f, :g, :Kbar, :u]
 auxiliary_base_grading = [4 6 1 0; 0 0 0 1]
 w4 = weierstrass_model(auxiliary_base_ring, auxiliary_base_grading, 3, f, g)
 

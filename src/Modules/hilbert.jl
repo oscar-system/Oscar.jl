@@ -61,7 +61,7 @@ If the kwarg `parent` is supplied `N` and `D` are computed in the ring `parent`.
 
 # Examples
 ```jldoctest
-julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, ["x", "y", "z"], [4,3,2]);
+julia> Rg, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z], [4,3,2]);
 
 julia> F = graded_free_module(Rg, 1);
 
@@ -144,7 +144,7 @@ series of the subquotient `M`.  If the kwarg `parent` is supplied `N` and `D` ar
 
 # Examples
 ```jldoctest
-julia> R, _ = polynomial_ring(QQ, ["x", "y", "z"]);
+julia> R, _ = polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> Z = abelian_group(0);
 
@@ -198,7 +198,7 @@ function multi_hilbert_series_parent(S::MPolyDecRing)
   if !isdefined(S, :multi_hilbert_series_parent)
     G = grading_group(S)
     m = ngens(G)
-    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : [Symbol("t[$i]") for i in 1:m]); cached=false)[1]
+    S.multi_hilbert_series_parent = laurent_polynomial_ring(ZZ, (isone(m) ? [:t] : (:t => 1:m)); cached=false)[1]
   end
   return S.multi_hilbert_series_parent
 end

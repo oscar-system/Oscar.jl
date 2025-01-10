@@ -15,7 +15,7 @@ function kaehler_differentials(R::Union{MPolyRing, MPolyLocRing}; cached::Bool=t
   n = ngens(R)
   result = FreeMod(R, n)
   symb = symbols(R)
-  result.S = [Symbol("d"*String(symb[i])) for i in 1:n]
+  result.S = [Symbol(:d, symb[i]) for i in 1:n]
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
@@ -30,7 +30,7 @@ function kaehler_differentials(R::MPolyDecRing; cached::Bool=true)
   n = ngens(R)
   result = graded_free_module(R, [1 for i in 1:n])
   symb = symbols(R)
-  result.S = [Symbol("d"*String(symb[i])) for i in 1:n]
+  result.S = [Symbol(:d, symb[i]) for i in 1:n]
   set_attribute!(result, :show, show_kaehler_differentials)
 
   cached && (_kaehler_differentials(R)[1] = result)
