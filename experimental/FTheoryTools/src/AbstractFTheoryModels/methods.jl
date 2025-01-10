@@ -793,6 +793,13 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 ```
 """
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
+
+  # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
+  if resolution_index == 1 && arxiv_id(m) == "1511.03209"
+    model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
+    return load(model_data_path)
+  end
+
   # To be extended to hypersurface models...
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Resolve currently supported only for Weierstrass and Tate models"
