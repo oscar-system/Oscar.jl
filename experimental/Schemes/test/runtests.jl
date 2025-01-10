@@ -15,6 +15,15 @@
   @test exceptional_prime_divisor(bl1) == toric_divisor(domain(bl1), [1,0,0,0])
 end
 
+@testset "Blow ups along minimal supercone coordinates" begin
+  P2 = projective_space(NormalToricVariety, 2)
+  f_1 = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
+  f_2 = blow_up(P2, [2, 3])
+  pf_1 = polyhedral_fan(domain(f_1))
+  pf_2 = polyhedral_fan(domain(f_2))
+  @test Set(rays(pf_1)) == Set(rays(pf_2))
+end
+
 @testset "Total and strict transforms in Cox rings" begin
   # Affine space, (2, 3)-blowup
   X = affine_space(NormalToricVariety, 2)

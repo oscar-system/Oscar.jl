@@ -1114,7 +1114,7 @@ export minimal_faces
 export minimal_generating_set
 export minimal_generator
 export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
-export minimal_supercone_coordinates, minimal_supercone_indices
+export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
@@ -1556,6 +1556,7 @@ export stable_set_polytope
 export standard_basis
 export standard_basis_highest_corner
 export standard_basis_with_transformation_matrix
+export standard_coordinates
 export standard_tableaux
 export stanley_reisner_ideal
 export stanley_reisner_ring

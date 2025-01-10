@@ -150,6 +150,14 @@ end
   @test minimal_supercone_coordinates(PF, [-1, -1, 1]) == [0, 0, 2, 1]
   @test issetequal(minimal_supercone_indices(PF, [-2//3, QQFieldElem(-4//3), 1]), [1, 3, 4])
   @test minimal_supercone_coordinates(PF, [-2//3, -4//3, 1]) == [2//3, 0, 7//3, 4//3]
+  
+  @test is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 0])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 1])
+  @test !is_minimal_supercone_coordinate_vector(PF, [1, 1, -1, 0])
+  
+  @test standard_coordinates(PF, [1, 2, 3, 0]) == [1, 2, 3]
+  @test standard_coordinates(PF, [1, 1, 0, 1]) == [0, 0, -1]
+  @test standard_coordinates(PF, [1, 0, 0, 1]) == [0, -1, -1]
 
   # Construct a nonsimplicial fan
   PF = face_fan(cube(3))

@@ -282,7 +282,7 @@ function cones(PF::_FanLikeType)
 end
 
 @doc raw"""
-    primitive_generator(r::RayVector) -> Vector{ZZRingElem}
+    primitive_generator(r::AbstractVector{T}) where T<:RationalUnion -> Vector{ZZRingElem}
 
 Returns the primitive generator, also called minimal generator, of a ray.
 
@@ -302,10 +302,11 @@ julia> primitive_generator(r)
  -1
 ```
 """
-function primitive_generator(r::RayVector)
+function primitive_generator(r::AbstractVector{T}) where {T<:RationalUnion}
   result = numerator.(lcm([denominator(i) for i in r]) * r)
-  result = 1 / gcd(result) * result
-  convert(Vector{ZZRingElem}, result)
+  g = gcd(result)
+  result = map(x -> div(x, g), result)
+  return Vector{ZZRingElem}(result)
 end
 
 @doc raw"""
@@ -404,7 +405,7 @@ function minimal_supercone_coordinates(
   PF::PolyhedralFan, v::AbstractVector{<:RationalUnion}
 )
   # This function probably only makes sense for fans with no lineality
-  @req is_pointed(PF) "PolyhedralFan must be pointed."
+  @req is_pointed(PF) "The polyhedral fan must be pointed."
 
   inds = sort(collect(minimal_supercone_indices(PF, v)))
   M_ZZ = matrix(ZZ, rays(PF))[inds, :]
@@ -438,6 +439,72 @@ function minimal_supercone_coordinates(
     result[inds[i]] = coords[i]
   end
   return result
+end
+
+@doc raw"""
+    is_minimal_supercone_coordinate_vector(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+    -> Bool
+
+Given a pointed polyhedral fan `PF` and a vector `v` of length equal to
+the number of rays of `PF`, this function checks that both of the
+following are true:
+  * all of the entries of `v` are nonnegative,
+  * `v` is in some maximal cone of `PF`.
+
+# Examples
+```jldoctest
+julia> PF = normal_fan(Oscar.simplex(3))
+Polyhedral fan in ambient dimension 3
+
+julia> is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 0])
+true
+
+julia> is_minimal_supercone_coordinate_vector(PF, [1, 1, 1, 1])
+false
+```
+"""
+function is_minimal_supercone_coordinate_vector(
+  PF::PolyhedralFan, v::AbstractVector{<:RationalUnion}
+)
+  @req is_pointed(PF) "The polyhedral fan must be pointed."
+  @assert length(v) == n_rays(PF) "Length of v must match the number of rays."
+  isnothing(findfirst(x -> x < 0, v)) || return false
+  positive_indices = [i for i in 1:length(v) if v[i] > 0]
+  maximal_cones_incidence_matrix = maximal_cones(IncidenceMatrix, PF)
+  maximal_cones_indices = map(
+    i -> row(maximal_cones_incidence_matrix, i),
+    1:n_rows(maximal_cones_incidence_matrix),
+  )
+  for i in 1:n_rows(maximal_cones_incidence_matrix)
+    issubset(positive_indices, maximal_cones_indices[i]) && return true
+  end
+  return false
+end
+
+@doc raw"""
+    standard_coordinates(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
+    -> Vector{QQFieldElem}
+
+If `is_minimal_supercone_coordinate_vector(PF, v)` is true, then return the dot product of `v` and the vector of primitive generators of the rays of `PF`.
+
+# Examples
+```jldoctest
+julia> PF = normal_fan(Oscar.simplex(3))
+Polyhedral fan in ambient dimension 3
+
+julia> standard_coordinates(PF, [1, 1, 0, 1])
+3-element Vector{QQFieldElem}:
+ 0
+ 0
+ -1
+```
+"""
+function standard_coordinates(PF::PolyhedralFan, coords::AbstractVector{<:RationalUnion})
+  @assert is_minimal_supercone_coordinate_vector(
+    PF, coords
+  ) "Input vector must be a minimal supercone coordinate vector"
+  primitive_ray_generators = Vector{Vector{QQFieldElem}}(map(primitive_generator, rays(PF)))
+  return Vector{QQFieldElem}(sum(coords .* primitive_ray_generators))
 end
 
 ###############################################################################

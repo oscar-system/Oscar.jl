@@ -49,6 +49,10 @@ toric:
 ```@docs
 blow_up(v::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String = "e")
 ```
+The ray can alternatively be given using minimal supercone coordinates:
+```@docs
+blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+```
 Most generally, we encode the closed subscheme along which we blow up by
 a homogeneous ideal in the Cox ring. Such blowups are often non-toric,
 i.e. the return value of the following method could well be non-toric.

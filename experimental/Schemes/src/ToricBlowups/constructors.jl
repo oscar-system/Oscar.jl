@@ -178,6 +178,31 @@ function blow_up(v::NormalToricVarietyType, exceptional_ray::AbstractVector{<:In
 end
 
 @doc raw"""
+    blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+
+This method first constructs the ray `r` by calling `standard_coordinates`, then blows up `v` along `r` using `blow_up`.
+
+# Examples
+
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> f = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
+Toric blowup morphism
+```
+"""
+function blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+  coords = Vector{QQFieldElem}(minimal_supercone_coords)
+  ray_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(v), coords))
+  ray = primitive_generator(ray_QQ)
+  @assert ray == ray_QQ "The input vector must correspond to a primitive generator of a ray"
+  phi = blow_up(v, ray; coordinate_name=coordinate_name)
+  set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
+  return phi
+end
+
+@doc raw"""
     blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 
 Blow up the toric variety by subdividing the n-th cone in the list

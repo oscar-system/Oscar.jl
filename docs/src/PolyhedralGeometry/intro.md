@@ -84,7 +84,7 @@ The primitive generator, also called minimal generator, of a ray can be
 accessed as follows:
 
 ```@docs
-primitive_generator(r::RayVector)
+primitive_generator(r::AbstractVector{T}) where T<:RationalUnion
 ```
 
 `AbstractCollection[PointVector]` can be given as:

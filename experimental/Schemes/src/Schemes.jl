@@ -35,6 +35,7 @@ export SpaceGerm
 
 export ambient_germ
 export basis_representation
+export blow_up_along_minimal_supercone_coordinates
 export complete_intersection_germ
 export cox_ring_module_homomorphism
 export defining_ring_element
@@ -53,6 +54,7 @@ export minimal_supercone_coordinates_of_exceptional_ray
 export point
 export rational_point_coordinates
 export standard_covering
+export standard_coordinates
 export strict_transform
 export strict_transform_with_index
 export total_transform
