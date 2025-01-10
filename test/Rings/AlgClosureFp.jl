@@ -1,3 +1,6 @@
+import Oscar.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 function test_elem(K::AlgClosure{T}) where T <: FinField
   d = rand(1:8)
   F = ext_of_degree(K, d)

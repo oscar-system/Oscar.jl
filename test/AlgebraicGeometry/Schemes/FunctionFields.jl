@@ -1,5 +1,8 @@
 const rng = Oscar.get_seeded_rng()
 
+import Oscar.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 function test_elem(K::VarietyFunctionField)
   F = representative_field(K)
   P = base_ring(F)::MPolyRing

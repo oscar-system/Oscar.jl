@@ -1,3 +1,11 @@
+import Oscar.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
+function test_elem(Q::PBWAlgQuo{QQFieldElem})
+  R = base_ring(Q)
+  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
+end
+
 @testset "PBWAlgebraQuo.constructor" begin
   r, (x, y, z) = QQ[:x, :y, :z]
   R, (x, y, z) = pbw_algebra(r, [0 x*y x*z; 0 0 y*z + 1; 0 0 0], deglex(r))
@@ -23,11 +31,6 @@ end
   @test length(string(Q)) > 2
   @test length(string(M(x) + M(y))) > 2
   @test string(one(R)) == "1"
-end
-
-function test_elem(Q::PBWAlgQuo{QQFieldElem})
-  R = base_ring(Q)
-  return Q(R(rand(base_ring(R), 1:4, 1:4, 1:4)))
 end
 
 @testset "PBWAlgebraQuo.conformance" begin

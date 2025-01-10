@@ -1,5 +1,8 @@
 const rng = Oscar.get_seeded_rng()
 
+import Oscar.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 @testset "mpoly-localizations" begin
   R, variab = ZZ[:x, :y]
   x = variab[1]

@@ -1,3 +1,6 @@
+import Oscar.AbstractAlgebra
+include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+
 function test_elem(K::QQAbField)
   ns = rand(1:8, 3)
   zs = map(n -> sum(rand(-10:10) * gen(K)(n)^rand(1:n) for j in 1:10), ns)
