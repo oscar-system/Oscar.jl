@@ -1,8 +1,10 @@
-import Oscar.AbstractAlgebra
-import Oscar.AbstractAlgebra: Group
-include(
-  joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl")
-)
+if !isdefined(Main, :test_Group_interface)
+  import Oscar.AbstractAlgebra
+  import Oscar.AbstractAlgebra: Group
+  include(
+    joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl")
+  )
+end
 
 @testset "LieTheory.WeylGroup" begin
   function is_in_normal_form(x::WeylGroupElem)
@@ -348,7 +350,7 @@ include(
     @test parent(x) === x.parent
     @test parent(x) isa WeylGroup
   end
-  
+
   @testset "reflection" begin
     for i in 2:4
       R = root_system(:A, i)
@@ -411,7 +413,7 @@ include(
       end
     end
   end
-  
+
   @testset "ReducedExpressionIterator" begin
     W = weyl_group(:A, 3)
     s = gens(W)

@@ -1,5 +1,7 @@
-import Oscar.AbstractAlgebra
-include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+if !isdefined(Main, :test_Field_interface)
+  import Oscar.AbstractAlgebra
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+end
 
 function test_elem(K::QQAbField)
   ns = rand(1:8, 3)

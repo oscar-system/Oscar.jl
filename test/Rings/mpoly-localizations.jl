@@ -1,7 +1,9 @@
 const rng = Oscar.get_seeded_rng()
 
-import Oscar.AbstractAlgebra
-include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+if !isdefined(Main, :test_Ring_interface_recursive)
+  import Oscar.AbstractAlgebra
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+end
 
 @testset "mpoly-localizations" begin
   R, variab = ZZ[:x, :y]

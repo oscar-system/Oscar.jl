@@ -1,5 +1,7 @@
-import Oscar.AbstractAlgebra
-include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+if !isdefined(Main, :test_NCRing_interface)
+  import Oscar.AbstractAlgebra
+  include(joinpath(pathof(AbstractAlgebra), "..", "..", "test", "Rings-conformance-tests.jl"))
+end
 
 function test_elem(Q::PBWAlgQuo{QQFieldElem})
   R = base_ring(Q)
