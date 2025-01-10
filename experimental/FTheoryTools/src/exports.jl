@@ -35,8 +35,9 @@ export arxiv_version
 export associated_literature_models
 export base_space
 export basis_of_h22
-export blow_up
 export birational_literature_models
+export blow_up
+export breaks_non_abelian_gauge_group
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
@@ -219,6 +220,7 @@ export weighted_resolutions
 export weights
 export well_quantized_ambient_space_models_of_g4_fluxes
 export well_quantized_and_vertical_ambient_space_models_of_g4_fluxes
+export well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes
 export zero_section
 export zero_section_class
 export zero_section_index
