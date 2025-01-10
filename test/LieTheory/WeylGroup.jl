@@ -1,11 +1,3 @@
-if !isdefined(Main, :test_Group_interface)
-  import Oscar.AbstractAlgebra
-  import Oscar.AbstractAlgebra: Group
-  include(
-    joinpath(dirname(pathof(AbstractAlgebra)), "..", "test", "Groups-conformance-tests.jl")
-  )
-end
-
 @testset "LieTheory.WeylGroup" begin
   function is_in_normal_form(x::WeylGroupElem)
     return word(parent(x)(word(x))) == word(x)
