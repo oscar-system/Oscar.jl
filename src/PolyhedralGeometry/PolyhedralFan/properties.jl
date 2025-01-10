@@ -306,7 +306,7 @@ function primitive_generator(r::AbstractVector{T}) where {T<:RationalUnion}
   result = numerator.(lcm([denominator(i) for i in r]) * r)
   g = gcd(result)
   result = map(x -> div(x, g), result)
-  Vector{ZZRingElem}(result)
+  return Vector{ZZRingElem}(result)
 end
 
 @doc raw"""
