@@ -19,27 +19,11 @@ the affine and non-affine case:
 ## Equality of Normal Toric Varieties
 
 !!! warning
-    Equality of normal toric varieties is computationally very demanding.
-    We have therefore made special design decisions for the `==` method.
+    Equality `==` of normal toric varieties currently checks equality of
+    memory locations. We recommend using `===`, which always checks
+    equality of memory locations in OSCAR.
 
-In OSCAR, the `==` operator is reserved to check if two normal toric varieties are identical,
-meaning their underlying polyhedral fans are the same. However, this check is computationally
-challenging due to several reasons:
-
-- The ray generators might be scaled.
-- The ray generators might be stored in different orders.
-- The maximal (polyhedral) cones of the polyhedral fan might be stored in different orders.
-- If we fall back on polyhedral fan equality, lineality of the cones must also be considered.
-
-To avoid this computational bottleneck, we have specially designed the `==` method.
-It checks if the memory locations of the two objects in question are identical. If 
-so, our `==` method returns `true`. Otherwise, it raise an error.
-
-Note that triple equality `===` (i.e. the check of equal the memory locations) is always
-supported for normal toric varieties. We recommend using it.
-
-However, if you truly need to check for two normal toric varieties to be mathematically
-identical, then you will need to add a custom method. This method could look as follows:
+To check that the fans considered as sets of cones are equal, you may use the method below:
 
 ```julia
 function slow_equal(tv1::NormalToricVariety, tv2::NormalToricVariety)
@@ -50,10 +34,15 @@ function slow_equal(tv1::NormalToricVariety, tv2::NormalToricVariety)
 end
 ```
 
-Please note that this method `slow_equal` is not performant, that we currently (summer 2024)
-have no intentions in adding this function to OSCAR nor to make improvements to its performance.
-Rather, expect this method to be slow, potentially painfully so.
-
+Polyhedral fans can be stored in Polymake using either rays or
+hyperplanes. In the former case, cones are stored as sets of indices of
+rays, corresponding to polyhedral hulls, while in the latter case, cones
+are stored as sets of indices of hyperplanes, corresponding to
+intersections of hyperplanes. Converting between these two formats can
+be expensive. In the case where the polyhedral fans of two normal toric
+varieties are both stored using rays, the above method `slow_equal` has
+computational complexity $O(n \log n)$, where $n$ is the number of
+cones.
 
 
 ## Constructors
