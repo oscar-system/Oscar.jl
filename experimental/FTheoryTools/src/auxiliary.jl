@@ -225,13 +225,13 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     d = discriminant(w)
 
     # For now, we explicitly require that the gauge ideal is principal
-    @req (length(gens(id)) == 1) "Gauge ideal is not principal"
+    @req (ngens(id) == 1) "Gauge ideal is not principal"
 
     # Over concrete bases, we randomly reduce the polynomials defining the gauge
     # divisor to only two variables so that the is_radical check is faster. This
     # could give an incorrect result (radical or not), so we actually try this
     # five times and see if we get agreement among all of the results
-    num_gens = length(gens(parent(f)))
+    num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
     if rand_seed != nothing
       Random.seed!(rand_seed)
