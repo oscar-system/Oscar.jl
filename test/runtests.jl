@@ -92,10 +92,10 @@ Random.shuffle!(Oscar.get_seeded_rng(), testlist)
 
 # tests with the highest number of allocations / runtime / compilation time
 # more or less sorted by allocations are in `long`
-# tests that should not be run for pull request CI are in `extra_large`
+# tests that should not be run for pull request CI are in `extra_long`
 # (these are run on a custom schedule only)
 test_subsets = Dict(
-              :extra_large => [
+               :extra_long => [
                                "experimental/FTheoryTools/test/FTM-1511-03209.jl",
                               ],
 
@@ -138,8 +138,8 @@ if test_subset == :short
 elseif haskey(test_subsets, test_subset)
   filter!(x-> in(relpath(x, Oscar.oscardir), test_subsets[test_subset]), testlist)
 elseif test_subset == :default
-  # no extra large by default
-  filter!(x-> !in(relpath(x, Oscar.oscardir), test_subsets[:extra_large]), testlist)
+  # no extra long by default
+  filter!(x-> !in(relpath(x, Oscar.oscardir), test_subsets[:extra_long]), testlist)
   if !(Sys.islinux() && v"1.10" <= VERSION < v"1.11.0-DEV")
     # and book tests only on 1.10 and linux
     @info "Skipping Oscar book tests"
