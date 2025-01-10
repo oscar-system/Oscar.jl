@@ -511,8 +511,9 @@ end
 @doc raw"""
     degree(g::Graph{T} [, v::Int64]) where {T <: Union{Directed, Undirected}}
 
-Return the degree of the vertex `v` in the graph `g`.
-If `v` is missing, return the list of degrees of all vertices.
+Return the degree of the vertex `v` in the graph `g`. If `v` is
+missing, return the list of degrees of all vertices. If the graph is
+directed, only neighbors reachable via outgoing edges are counted.
 
 # Examples
 ```jldoctest
