@@ -418,7 +418,7 @@ function exterior_shift_lv(F::Field, K::ComplexOrHypergraph, p::PermGroupElem; n
   (shift, i), stats... = @timed efindmin((exterior_shift(K, random_rothe_matrix(F, p); kw...) for i in 1:n_samples); lt=isless_lex)
 
   # Check if `shift` is the generic exterior shift of K
-  is_correct_shift, stats2... = @timed is_shifted(shift) && check_shifted(F, K, shift.value[1], p; kw...)
+  is_correct_shift, stats2... = @timed is_shifted(shift) && check_shifted(F, K, shift, p; kw...)
   if timed
     if is_correct_shift
       return shift, (i, stats.time, stats.bytes, stats2.time, stats2.bytes)
