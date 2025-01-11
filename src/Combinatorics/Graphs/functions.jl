@@ -316,6 +316,8 @@ Vector{Int}(e::Edge) = [src(e), dst(e)]
 
 Base.isless(a::Edge, b::Edge) = Base.isless(Vector{Int}(a), Vector{Int}(b))
 
+Base.in(i::Int, a::Edge) = (i==src(a) || i==dst(a))
+
 rem_edge!(g::Graph{T}, e::Edge) where {T <: Union{Directed, Undirected}} =
   rem_edge!(g, src(e), dst(e))
 
