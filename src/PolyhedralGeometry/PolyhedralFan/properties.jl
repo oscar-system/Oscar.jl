@@ -375,12 +375,15 @@ end
     minimal_supercone_coordinates(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
     -> Vector{QQFieldElem}
 
-Given an point $v$ inside the support of the pointed polyhedral fan $PF$
-where $u_1, \ldots u_n$ are the minimal generators of the rays of $PF$,
-return a vector $(p_1, \ldots, p_n)$ of nonnegative rational numbers
-such that both of the following hold:
+Let $PF$ be a pointed polyhedral fan and let $u_1, \ldots, u_n$ be the
+minimal generators  of the rays of $PF$.
+We require that $v$ is in the support of $PF$.
+Let $\sigma$ be the unique cone in $PF$ such that $v$ is in the relative
+interior of $v$.
+This function returns a vector $(p_1, \ldots, p_n)$ of nonnegative
+rational numbers such that both of the following hold:
   * the vector $v$ is equal to $p_1 u_1 + \ldots + p_n u_n$, and
-  * if $u_i$ is not in minimal supercone containing $v$, then $p_i = 0$.
+  * if $u_i$ is not in $\sigma$, then $p_i = 0$.
 
 If $PF$ is simplicial, then $(p_1, \ldots, p_n)$ is unique.
 
