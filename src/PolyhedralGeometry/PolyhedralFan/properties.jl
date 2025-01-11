@@ -322,9 +322,7 @@ julia> r = rays(PF)[1]
  -1//2
 
 julia> primitive_generator_with_scaling_factor(r)
-2-element Vector{ZZRingElem}:
- 2
- -1
+(ZZRingElem[2, -1], 2)
 ```
 """
 function primitive_generator_with_scaling_factor(
