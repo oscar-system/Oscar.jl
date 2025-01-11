@@ -316,6 +316,8 @@ end
 Given an point $v$ inside the support of the polyhedral fan $PF$, return
 the ray indices of the unique cone $σ$ in $PF$ such that $v$ is in the
 relative interior of $σ$.
+Note that if $v$ is a zero vector, then $v$ is in the relative interior
+of the zero cone.
 
 The cone $σ$ can be constructed by
 
@@ -376,10 +378,11 @@ end
     -> Vector{QQFieldElem}
 
 Let $PF$ be a pointed polyhedral fan and let $u_1, \ldots, u_n$ be the
-minimal generators  of the rays of $PF$.
-We require that $v$ is in the support of $PF$.
+minimal generators of the rays of $PF$.
 Let $\sigma$ be the unique cone in $PF$ such that $v$ is in the relative
 interior of $v$.
+Note that if $v$ is a zero vector, then $v$ is in the relative interior
+of the zero cone.
 This function returns a vector $(p_1, \ldots, p_n)$ of nonnegative
 rational numbers such that both of the following hold:
   * the vector $v$ is equal to $p_1 u_1 + \ldots + p_n u_n$, and
