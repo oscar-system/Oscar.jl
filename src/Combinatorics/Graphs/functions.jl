@@ -643,9 +643,9 @@ function incidence_matrix(g::Graph{T}) where {T <: Union{Directed, Undirected}}
 end
 
 @doc raw"""
-    signed_incidence_matrix(g::Graph{Directed})
+    signed_incidence_matrix(g::Graph)
 
-Return a signed incidence matrix representing a directed graph `g`.
+Return a signed incidence matrix representing a graph `g`.  If `g` is directed, sources will have sign `-1` and targest will have sign `+1`.  If `g` is undirected, vertices of larger index will have sign `-1` and vertices of smaller index will have sign `+1`.
 
 # Examples
 ```jldoctest
@@ -660,9 +660,22 @@ julia> signed_incidence_matrix(g)
   0   1  -1   0   0
   0   0   1  -1   0
   0   0   0   1  -1
+
+julia> g = Graph{Undirected}(5);
+
+julia> add_edge!(g,1,2); add_edge!(g,2,3); add_edge!(g,3,4); add_edge!(g,4,5); add_edge!(g,5,1);
+
+julia> signed_incidence_matrix(g)
+5×5 Matrix{Int64}:
+  1   0   0   1   0
+ -1   1   0   0   0
+  0  -1   1   0   0
+  0   0  -1   0   1
+  0   0   0  -1  -1
+
 ```
 """
-signed_incidence_matrix(g::Graph{Directed}) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
+signed_incidence_matrix(g::Graph) = convert(Matrix{Int}, Polymake.graph.signed_incidence_matrix(pm_object(g)))
 
 ################################################################################
 ################################################################################
