@@ -769,6 +769,31 @@ function shortest_path_dijkstra(g::Graph{T}, s::Int64, t::Int64; reverse::Bool=f
 end
 
 @doc raw"""
+    connectivity(g::Graph{Undirected})
+
+Return the connectivity of the undirected graph `g`.
+
+# Examples
+```jldoctest
+julia> g = complete_graph(3);
+
+julia> connectivity(g)
+2
+
+julia> rem_edge!(g, 2, 3);
+
+julia> connectivity(g)
+1
+
+julia> rem_edge!(g, 1, 3);
+
+julia> connectivity(g)
+0
+```
+"""
+connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)
+
+@doc raw"""
     is_connected(g::Graph{Undirected})
 
 Checks if the undirected graph `g` is connected.
