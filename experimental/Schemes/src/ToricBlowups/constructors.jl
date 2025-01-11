@@ -245,8 +245,10 @@ function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{Strin
     cones(v)[n, i] && (coords[i] = QQ(1))
   end
   exceptional_ray_scaled = standard_coordinates(polyhedral_fan(v), coords)
-  exceptional_ray = primitive_generator(exceptional_ray_scaled)
-  coords = (QQ(exceptional_ray[1])//exceptional_ray_scaled[1]) * coords
+  exceptional_ray, scaling_factor = primitive_generator_with_scaling_factor(
+    exceptional_ray_scaled
+  )
+  coords = scaling_factor * coords
 
   phi = ToricBlowupMorphism(
     v,

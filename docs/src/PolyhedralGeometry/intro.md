@@ -85,6 +85,7 @@ accessed as follows:
 
 ```@docs
 primitive_generator(r::AbstractVector{T}) where T<:RationalUnion
+primitive_generator_with_scaling_factor(r::AbstractVector{T}) where T<:RationalUnion
 ```
 
 `AbstractCollection[PointVector]` can be given as:
