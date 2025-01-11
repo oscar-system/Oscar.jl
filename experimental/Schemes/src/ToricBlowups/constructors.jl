@@ -238,9 +238,19 @@ function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{Strin
   gens_S = gens(cox_ring(v))
   center_unnormalized = ideal_sheaf(v, ideal([gens_S[i] for i in 1:number_of_rays(v) if cones(v)[n,i]]))
   blown_up_variety = normal_toric_variety(star_subdivision(v, n))
-  rays_of_variety = matrix(ZZ, rays(v))
-  exceptional_ray = vec(sum([rays_of_variety[i, :] for i in 1:number_of_rays(v) if cones(v)[n, i]]))
-  return ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, exceptional_ray, center_unnormalized)
+
+  # minimal supercone coordinates
+  coords = zeros(QQ, n_rays(v))
+  for i in 1:number_of_rays(v)
+    cones(v)[n, i] && (coords[i] = QQ(1))
+  end
+  exceptional_ray_scaled = standard_coordinates(polyhedral_fan(v), coords)
+  exceptional_ray = primitive_generator(exceptional_ray_scaled)
+  coords = (QQ(exceptional_ray[1]) // exceptional_ray_scaled[1]) * coords
+
+  phi = ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, exceptional_ray, center_unnormalized)
+  set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
+  return phi
 end
 
 

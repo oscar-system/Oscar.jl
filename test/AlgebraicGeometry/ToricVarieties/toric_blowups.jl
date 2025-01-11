@@ -79,4 +79,28 @@
     @test center_unnormalized(bl2) == II
   end
   
+  @testset "Toric blowups along singular cones" begin
+    # 1/2(1, 1) quotient singularity, blowup along maximal cone
+    ray_generators = [[2, -1], [0, 1]]
+    max_cones = IncidenceMatrix([[1, 2]])
+    X = normal_toric_variety(max_cones, ray_generators)
+    f = blow_up(X, 1)
+    @test ray_vector(QQFieldElem, [1, 0]) in rays(domain(f))
+    @test (
+      minimal_supercone_coordinates_of_exceptional_ray(f)
+      == Vector{QQFieldElem}([QQ(1//2), QQ(1//2)]
+    )
+
+    # Quadratic cone, blowup along maximal cone
+    ray_generators = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
+    max_cones = IncidenceMatrix([[1, 2, 3, 4]])
+    PF = polyhedral_fan(max_cones, ray_generators)
+    X = normal_toric_variety(PF)
+    f = blow_up(X, 1)
+    @test ray_vector(QQFieldElem, [1, 1, 2]) in rays(domain(f))
+    @test (
+      minimal_supercone_coordinates_of_exceptional_ray(f)
+      == Vector{QQFieldElem}([QQ(1//2), QQ(1//2), QQ(1//2), QQ(1//2)])
+    )
+  end
 end
