@@ -327,14 +327,16 @@ julia> primitive_generator_with_scaling_factor(r)
  -1
 ```
 """
-function primitive_generator_with_scaling_factor(r::AbstractVector{T}) where {T<:RationalUnion}
+function primitive_generator_with_scaling_factor(
+  r::AbstractVector{T}
+) where {T<:RationalUnion}
   first_scaling_factor = ZZ(lcm([denominator(i) for i in r]))
   result = ZZ.(first_scaling_factor * r)
   g = gcd(result)
-  scaling_factor = QQ(first_scaling_factor) // QQ(g)
+  scaling_factor = QQ(first_scaling_factor)//QQ(g)
   @assert g > 0 "The vector `r` cannot be a zero vector"
   result = map(x -> div(x, g), result)
-  return Tuple{Vector{ZZRingElem}, QQFieldElem}((result, scaling_factor))
+  return Tuple{Vector{ZZRingElem},QQFieldElem}((result, scaling_factor))
 end
 
 @doc raw"""
