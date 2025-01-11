@@ -54,6 +54,7 @@ rem_vertices!(g::Graph{T}, a::AbstractVector{Int64}) where {T <: Union{Directed,
 adjacency_matrix(g::Graph)
 all_neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 automorphism_group_generators(g::Graph{T}) where {T <: Union{Directed, Undirected}}
+connectivity(g::Graph{Undirected})
 complete_graph(n::Int64)
 complete_bipartite_graph(n::Int64, m::Int64)
 degree(g::Graph, v::Int)
@@ -67,6 +68,7 @@ inneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 neighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 outneighbors(g::Graph{T}, v::Int64) where {T <: Union{Directed, Undirected}}
 shortest_path_dijkstra
+signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1::Graph, G2::Graph)
 ```
