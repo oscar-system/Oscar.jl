@@ -88,7 +88,8 @@
     @test ray_vector(QQFieldElem, [1, 0]) in rays(domain(f))
     @test (
       minimal_supercone_coordinates_of_exceptional_ray(f)
-      == Vector{QQFieldElem}([QQ(1//2), QQ(1//2)]
+      ==
+      Vector{QQFieldElem}([QQ(1//2), QQ(1//2)])
     )
 
     # Quadratic cone, blowup along maximal cone
@@ -100,7 +101,8 @@
     @test ray_vector(QQFieldElem, [1, 1, 2]) in rays(domain(f))
     @test (
       minimal_supercone_coordinates_of_exceptional_ray(f)
-      == Vector{QQFieldElem}([QQ(1//2), QQ(1//2), QQ(1//2), QQ(1//2)])
+      ==
+      Vector{QQFieldElem}([QQ(1//2), QQ(1//2), QQ(1//2), QQ(1//2)])
     )
   end
 end
