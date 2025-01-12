@@ -9,4 +9,8 @@
     @test collect(monomials_of_degree(R, 3, 1:1)) == [x^3]
     @test isempty(monomials_of_degree(R, 2, Int[]))
   end
+
+  R = graded_polynomial_ring(QQ, [:x, :y, :z], [1, 1, 3])[1]
+  x, y, z = gens(R)
+  @test collect(monomials_of_degree(R, 3, [1, 2])) == [x^3, x^2 * y, x * y^2, y^3]
 end
