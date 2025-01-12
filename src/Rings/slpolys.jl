@@ -333,6 +333,13 @@ function Base.:(==)(p::SLPoly{T}, q::SLPoly{T}) where {T}
     p.slprogram == q.slprogram
 end
 
+function Base.hash(p::SLPoly, h::UInt)
+    b = 0xb6bfa3424d08236f % UInt
+    h = hash(parent(p), h)
+    h = hash(p.slprogram, h)
+    return xor(h, b)
+end
+
 
 ## evaluate
 
