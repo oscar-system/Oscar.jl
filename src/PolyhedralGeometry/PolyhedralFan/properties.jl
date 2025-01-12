@@ -455,7 +455,9 @@ Given a pointed polyhedral fan `PF` and a vector `v` of length equal to
 the number of rays of `PF`, this function checks that both of the
 following are true:
   * all of the entries of `v` are nonnegative,
-  * `v` is in some maximal cone of `PF`.
+  * there exists a cone $\sigma$ in `PF` such that for every $i$, if the
+    $i$-th entry of $v$ is positive, then the $i$-th ray of `PF` belongs
+    to $\sigma$.
 
 # Examples
 ```jldoctest
