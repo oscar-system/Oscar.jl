@@ -27,6 +27,11 @@
         add_edge!(g, 2, 3)
         add_edge!(g, 3, 1)
         @test signed_incidence_matrix(g) == Matrix([-1 0 1; 1 -1 0; 0 1 -1; 0 0 0])
+
+        e = Edge(1,2)
+        @test 1 in e
+        @test 2 in e
+        @test !(3 in e)
     end
 
     triangle = simplex(2)
@@ -42,7 +47,7 @@
     egpos = vertex_edge_graph(pos)
     egpl = vertex_edge_graph(pl)
     egplc = vertex_edge_graph(pl, modulo_lineality=true)
-    
+
     @testset "graphs from polytopes" begin
         @test n_vertices(egtriangle) == 3
         @test n_edges(egtriangle) == 3
@@ -127,6 +132,7 @@
 
         g = Graph{Undirected}(5)
         @test !is_connected(g)
+        @test connectivity(g) == 0
         @test length(connected_components(g)) == 5
 
         add_edge!(g, 1, 2)
@@ -134,10 +140,12 @@
         add_edge!(g, 1, 3)
         add_edge!(g, 4, 5)
         @test !is_connected(g)
+        @test connectivity(g) == 0
         @test length(connected_components(g)) == 2
 
         add_edge!(g, 3, 5)
         @test is_connected(g)
+        @test connectivity(g) == 1
         @test length(connected_components(g)) == 1
         @test diameter(g) == 3
     end
@@ -153,7 +161,7 @@
 
         @test n_vertices(G1) == 12
         @test n_edges(G1) == 3
-      
+
         x2 = [[11,3],[3,5],[4,5],[2,4],[2,3]]
         G2 = graph_from_edges(Undirected, x2, 13)
 
