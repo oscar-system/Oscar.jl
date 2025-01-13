@@ -791,7 +791,7 @@ julia> connectivity(g)
 0
 ```
 """
-connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)
+connectivity(g::Graph{Undirected}) = Polymake.graph.connectivity(g)::Int
 
 @doc raw"""
     is_connected(g::Graph{Undirected})
