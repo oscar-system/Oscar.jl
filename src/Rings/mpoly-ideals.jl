@@ -475,7 +475,7 @@ end
 
 #######################################################
 @doc raw"""
-    radical(I::MPolyIdeal; eliminate_variables::Bool=true)
+    radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
 
 Return the radical of `I`.
 
@@ -485,7 +485,7 @@ Return the radical of `I`.
   * If the `base_ring` of `I` is a number field, then we first expand the minimal polynomials to reduce to a computation over the rationals.
   * For polynomial rings over the integers, the algorithm proceeds as suggested by Pfister, Sadiq, and Steidel. See [KL91](@cite), [Kem02](@cite), and [PSS11](@cite).
 
-When `eliminate_variables` is set to `true` a preprocessing heuristic is applied in order to find variables which can be eliminated using `I`.
+When `eliminate_variables` is set to `true`, a preprocessing heuristic is applied in order to find variables which can be eliminated using `I`.
 
 # Examples
 ```jldoctest
@@ -610,7 +610,7 @@ function radical(
     I::MPolyIdeal{T}; 
     eliminate_variables::Bool=true
   ) where {T <: MPolyRingElem}
-  get_attribute!(I, :radical) do
+  get_attribute(I, :radical) do
     if eliminate_variables
       is_known_to_be_radical(I) && return I
       # Calling `elimpart` (within `simplify`) turns out to significantly speed things up in many cases.
@@ -1923,8 +1923,9 @@ julia> codim(I)
 2
 ```
 """
-codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
 codim(I::MPolyIdeal) = dim(base_ring(I)) - dim(I)
+codim(I::MPolyIdeal{T}) where {T<:MPolyRingElem{<:FieldElem}}= nvars(base_ring(I)) - dim(I)
+
 
 # Some fixes which were necessary for the above
 dim(R::MPolyRing) = dim(base_ring(R)) + nvars(R)
