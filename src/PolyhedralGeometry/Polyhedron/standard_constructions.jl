@@ -2490,5 +2490,5 @@ julia> faces(IncidenceMatrix,pG,1)
 """
 function tutte_lifting(G::Graph{Undirected})
   pmG = Polymake.graph.Graph{Undirected}(; ADJACENCY=G)
-  return polyhedron(Polymake.polytope.tutte_lifting(pmG))
+  return Polyhedron{QQFieldElem}(Polymake.polytope.tutte_lifting(pmG), QQ)
 end
