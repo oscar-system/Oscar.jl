@@ -55,12 +55,14 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
+  - Non-Abelian gauge group: breaking pattern not analyzed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
+  - Non-Abelian gauge group: breaking pattern not analyzed
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
@@ -84,6 +86,7 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   model(gf1) !== model(gf2) && return false
 
   # Currently, can only decide equality for Weierstrass, global Tate and hypersurface models
+  m = model(gf1)
   if (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) == false
     error("Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models")
   end
@@ -151,6 +154,17 @@ function Base.show(io::IO, g4::G4Flux)
     end
   else
     push!(properties_string, "  - Verticality checks: not executed")
+  end
+
+  # Check for non-Abelian gauge group breaking
+  if has_attribute(g4, :breaks_non_abelian_gauge_group)
+    if breaks_non_abelian_gauge_group(g4)
+      push!(properties_string, "  - Non-Abelian gauge group: broken")
+    else
+      push!(properties_string, "  - Non-Abelian gauge group: not broken")
+    end
+  else
+    push!(properties_string, "  - Non-Abelian gauge group: breaking pattern not analyzed")
   end
 
   # Print each line separately, to avoid extra line break at the end

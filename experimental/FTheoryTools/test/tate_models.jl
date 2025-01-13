@@ -266,3 +266,22 @@ end
 #  inters = analyze_fibers(t_i5_s, [[7, 8, 6], [2, 3, 1], [3, 4], [2, 4]])
 #  @test string(inters[1][2][1][2][1]) == "ideal(e_2*b_2_1 - b_1_1, b_3_1*a1p*z - b_3_2*b_1_1^2, b_4_1*a1p*z - b_4_2*b_3_2*b_2_1*b_1_1, b_4_1*b_1_1 - b_4_2*b_3_1*b_2_1, b_4_1*e_2 - b_4_2*b_3_1, e_4*b_4_2 - e_2, e_4*b_4_1 - b_3_1, y, x, v, b_1_3, b_1_2, e_1, b_2_3, b_2_2, e_3)"
 #end
+
+
+B3 = projective_space(NormalToricVariety, 3)
+W = toric_line_bundle(2 * torusinvariant_prime_divisors(B3)[1])
+w = generic_section(W)
+Kbar = anticanonical_bundle(B3)
+a10=sum(rand(Int)*b for b in basis_of_global_sections(Kbar))
+a21=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^2*W^(-1)))
+a32=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^3*W^(-2)))
+a43=sum(rand(Int)*b for b in basis_of_global_sections(Kbar^4*W^(-3)))
+a65 = 0
+t = global_tate_model(B3, [a10, a21 * w, a32 * w^2, a43 * w^3, a65 * w^5])
+set_resolutions(t, [[[["x", "y", "w"], ["y", "e1"], ["x", "e4"], ["y", "e2"], ["x", "y"]], ["e1", "e4", "e2", "e3", "s"]]])
+explicit_model_sections(t)["w"] = w
+t_res = resolve(t, 1)
+
+@testset "Custom blowup of a global Tate model" begin
+  @test typeof(ambient_space(t_res)) == CoveredScheme{QQField}
+end

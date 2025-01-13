@@ -38,12 +38,12 @@ julia> length(g4_amb_list) == 172
 true
 ```
 """
-function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # Entry check
   @req base_space(m) isa NormalToricVariety "Base space must be a toric variety for computation of ambient space G4 candidates"
   if has_attribute(m, :ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :ambient_space_models_of_g4_fluxes)::Vector{CohomologyClass}
   end
 
   # Execute entry tests in computation of basis_of_h22. If any of these fail, no need to proceed. Hence, do this first.
@@ -104,7 +104,7 @@ function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool 
 
   set_attribute!(m, :ambient_space_models_of_g4_fluxes, filtered_h22_basis)
   set_attribute!(m, :ambient_space_models_of_g4_fluxes_indices, filtered_h22_basis_indices)
-  return filtered_h22_basis
+  return filtered_h22_basis::Vector{CohomologyClass}
 
 end
 
@@ -189,12 +189,13 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
+  - Non-Abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(g4)
 true
 ```
 """
-function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
@@ -204,7 +205,7 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
   if has_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
   end
 
 
@@ -225,19 +226,21 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
 
 
   # (3) Are intersection numbers known?
-  inter_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-  s_inter_dict = Dict{String, ZZRingElem}()
-  if has_attribute(m, :inter_dict)
-    inter_dict = get_attribute(m, :inter_dict)
-  end
-  if has_attribute(m, :s_inter_dict)
-    s_inter_dict = get_attribute(m, :s_inter_dict)
-  end
+  inter_dict = if has_attribute(m, :inter_dict)
+    get_attribute(m, :inter_dict)
+  else
+    Dict{NTuple{4, Int64}, ZZRingElem}()
+  end::Dict{NTuple{4, Int64}, ZZRingElem}
+  s_inter_dict = if has_attribute(m, :s_inter_dict)
+    get_attribute(m, :s_inter_dict)
+  else
+    Dict{String, ZZRingElem}()
+  end::Dict{String, ZZRingElem}
 
 
   # (4) Obtain critical information - this may take significant time!
   ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
-  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)
+  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
 
 
@@ -261,7 +264,7 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
   
     # Cover all other case with generic, but potentially painfully slow methodology.
     tds = torusinvariant_prime_divisors(ambient_space(m))
-    cds = [cohomology_class(tds[i]) for i in 1:length(tds)]
+    cds = [cohomology_class(td) for td in tds]
     pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
     for i in 1:length(ambient_space_flux_candidates_basis)
       condition = Vector{ZZRingElem}()
@@ -327,7 +330,7 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
 
 
   # (10) Finally, return the result
-  return res
+  return res::Tuple{QQMatrix, QQMatrix}
 
 end
 
@@ -425,6 +428,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
+  - Non-Abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true
@@ -433,7 +437,7 @@ julia> passes_verticality_checks(qsm_g4_candidate)
 true
 ```
 """
-function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
@@ -443,7 +447,7 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
   if has_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
   end
 
 
@@ -464,20 +468,22 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
 
 
   # (3) Are intersection numbers known?
-  inter_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
-  s_inter_dict = Dict{String, ZZRingElem}()
-  if has_attribute(m, :inter_dict)
-    inter_dict = get_attribute(m, :inter_dict)
-  end
-  if has_attribute(m, :s_inter_dict)
-    s_inter_dict = get_attribute(m, :s_inter_dict)
-  end
+  inter_dict = if has_attribute(m, :inter_dict)
+    get_attribute(m, :inter_dict)
+  else
+    Dict{NTuple{4, Int64}, ZZRingElem}()
+  end::Dict{NTuple{4, Int64}, ZZRingElem}
+  s_inter_dict = if has_attribute(m, :s_inter_dict)
+    get_attribute(m, :s_inter_dict)
+  else
+    Dict{String, ZZRingElem}()
+  end::Dict{String, ZZRingElem}
 
 
   # (4) Obtain critical information - this may take significant time!
   ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
-  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)
+  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
 
 
@@ -513,7 +519,7 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
   
     # Cover all other case with generic, but potentially painfully slow methodology.
     tds = torusinvariant_prime_divisors(ambient_space(m))
-    cds = [cohomology_class(tds[i]) for i in 1:length(tds)]
+    cds = [cohomology_class(td) for td in tds]
     pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
     for i in 1:length(ambient_space_flux_candidates_basis)
 
@@ -580,7 +586,7 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
   
     # Cover all other case with generic, but potentially painfully slow methodology.
     tds = torusinvariant_prime_divisors(ambient_space(m))
-    cds = [cohomology_class(tds[i]) for i in 1:length(tds)]
+    cds = [cohomology_class(td) for td in tds]
     pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
     for i in 1:length(ambient_space_flux_candidates_basis)
       condition = Vector{ZZRingElem}()
@@ -635,6 +641,364 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
 
 
   # (12) Finally, return the result
-  return res
+  return res::Tuple{QQMatrix, QQMatrix}
+
+end
+
+
+
+@doc raw"""
+    well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+
+Given an F-theory model $m$ defined as hypersurface in a simplicial and
+complete toric base, this method computes a basis of all well-quantized
+and vertical  ambient space $G_4$-fluxes which do not break any non-Abelian
+gauge group factor. The result of this operation is a tuple of two matrices.
+The columns of the first matrix specify those (rational) combinations of
+ambient space $G_4$-fluxes, of which one may only take
+$\mathbb{Z}$-linear combinations without violating flux quantization. The columns
+of the second matrix specify those (rational) combinations of ambient space
+$G_4$-fluxes, for which any rational linear combination satisfies the flux
+quantization condition.
+
+Crucially, this method assumes that $c_2( \widehat{Y}_4)$ is even. Currently, no
+check is conducted and no error raised. Use with care!
+
+Recall that this is relevant in so much as the quantization condition asks to
+verify if the twist of the given $G_4$-flux by $1/2 \cdot c_2( \widehat{Y}_4)$ is
+even. Recall also that it is known that for many F-theory models, $c_2( \widehat{Y}_4)$
+is an even class. For instance, this applies to all F-theory compactifications
+on an elliptically fibered smooth Calabi-Yau 4-fold with a globally defined
+Weierstrass model [CS12](@cite). For instance, this means that all of the
+F-theory QSMs [CHLLT19](@cite) have an even $c_2( \widehat{Y}_4)$.
+
+It can be computationally very demanding to check if a toric variety
+$X$ is complete (and simplicial). The optional argument `check` can be set
+to `false` to skip these tests.
+
+# Examples
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> res = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(t, check = false);
+
+julia> res[1]
+2 by 0 empty matrix
+
+julia> res[2]
+2 by 0 empty matrix
+```
+
+Here is a more interesting example, in which we verify with our software tool for one particular F-theory QSM, that the
+choice of $G_4$-flux presented in [CHLLT19](@cite), is indeed vertical, satisfies the necessary conditions
+for being well-quantized and does not break the non-Abelian gauge group.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> res = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+
+julia> size(res[1])
+(37, 1)
+
+julia> size(res[2])
+(37, 0)
+
+julia> M=res[1];
+
+julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+
+julia> g4_classes = [sum(M[i,j]*g4_base[i] for i in 1:length(g4_base)) for j in 1:size(M,2)];
+
+julia> length(g4_classes) == 1
+true
+
+julia> g4_classes[end]
+Cohomology class on a normal toric variety given by 1//30*x4*e2 + 1//15*x4*u + 1//10*x4*e4 + 1//15*x4*e1 + 1//30*x4*w - 11//30*x5*x8 + 1//15*x5*e2 + 2//15*x5*u + 1//5*x5*e4 + 2//15*x5*e1 + 1//15*x5*w - 1//15*x6*x7 - 11//15*x7*x8 + 2//15*x7*e2 + 4//15*x7*u + 2//5*x7*e4 + 4//15*x7*e1 + 2//15*x7*w - 8//15*x8^2 - 8//15*x8*x9 + 2//15*x8*e2 + 4//15*x8*u + 2//5*x8*e4 + 4//15*x8*e1 + 2//15*x8*w - 2//15*x9^2 + 1//15*x9*e2 + 2//15*x9*u + 1//5*x9*e4 + 2//15*x9*e1 + 1//15*x9*w - 1//6*e1*w
+
+julia> g4_candidate = g4_flux(qsm_model, g4_classes[end], check = false);
+
+julia> passes_elementary_quantization_checks(g4_candidate)
+true
+
+julia> passes_verticality_checks(g4_candidate)
+true
+
+julia> breaks_non_abelian_gauge_group(g4_candidate)
+false
+
+julia> c = [3];
+
+julia> qsm_g4_candidate = g4_flux(qsm_model, sum(c[i]*g4_classes[i] for i in 1:length(g4_classes)), check = false)
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Tadpole cancellation check: not executed
+  - Verticality checks: not executed
+  - Non-Abelian gauge group: breaking pattern not analyzed
+
+julia> passes_elementary_quantization_checks(qsm_g4_candidate)
+true
+
+julia> passes_verticality_checks(qsm_g4_candidate)
+true
+
+julia> breaks_non_abelian_gauge_group(qsm_g4_candidate)
+false
+
+julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia> e1 = cohomology_class(divs[15]);e2 = cohomology_class(divs[12]);e4 = cohomology_class(divs[14]);
+
+julia> u = cohomology_class(divs[13]);v = cohomology_class(divs[10]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
+
+julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia> qsm_g4_candidate == g4_flux(qsm_model, g4_class)
+true
+
+```
+"""
+function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+
+  # (1) Entry checks
+  @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
+  @req dim(ambient_space(m)) == 5 "Computation of well-quantized G4-fluxes only supported for 5-dimensional toric ambient spaces"
+  if check
+    @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
+    @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
+  end
+  if has_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
+  end
+
+
+  # (2) Compute data, that is frequently used by the sophisticated intersection product below
+  S = cox_ring(ambient_space(m))
+  gS = gens(cox_ring(ambient_space(m)))
+  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  scalings = [c.coeff for c in S.d]
+  mnf = Oscar._minimal_nonfaces(ambient_space(m))
+  sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
+  data = (
+    S = S,
+    gS = gS,
+    linear_relations = linear_relations,
+    scalings = scalings,
+    sr_ideal_pos = sr_ideal_pos
+  )
+
+
+  # (3) Are intersection numbers known?
+  inter_dict = if has_attribute(m, :inter_dict)
+    get_attribute(m, :inter_dict)
+  else
+    Dict{NTuple{4, Int64}, ZZRingElem}()
+  end::Dict{NTuple{4, Int64}, ZZRingElem}
+  s_inter_dict = if has_attribute(m, :s_inter_dict)
+    get_attribute(m, :s_inter_dict)
+  else
+    Dict{String, ZZRingElem}()
+  end::Dict{String, ZZRingElem}
+
+
+  # (4) Obtain critical information - this may take significant time!
+  ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
+  ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
+  list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
+
+
+  # (5) The following is fragile, but hopefully is a starting point
+  exceptional_divisor_positions = findall(x -> occursin(r"^e\d+$", x), string.(symbols(S)))
+
+
+  # (6) Work out the relevant intersection numbers to tell if a flux is vertical
+  vertical_and_no_gauge_group_breaking_constraint_matrix = Vector{Vector{QQFieldElem}}()
+  # I have prepared some functionality below, regarding the case that this matrix should have rational entries.
+  # However, I expect that this will not happen as long as the hypersurface in question is smooth.
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+
+    # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
+    for i in 1:length(ambient_space_flux_candidates_basis)
+
+      condition = Vector{ZZRingElem}()
+
+      # Compute against pairs of base divisors
+      for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
+        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      end
+
+      # Compute against zero section and base divisor
+      pos_zero_section = findfirst(x -> x == "z", string.(gS))
+      for j in 1:n_rays(base_space(m))
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
+        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      end
+
+      # Compute against exceptional divisors
+      for j in 1:n_rays(base_space(m))
+        for k in 1:length(exceptional_divisor_positions)
+          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
+          push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+        end
+      end
+
+      # Remember the computed condition
+      push!(vertical_and_no_gauge_group_breaking_constraint_matrix, condition)
+
+    end
+
+  else
+  
+    # Cover all other case with generic, but potentially painfully slow methodology.
+    tds = torusinvariant_prime_divisors(ambient_space(m))
+    cds = [cohomology_class(td) for td in tds]
+    pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
+    for i in 1:length(ambient_space_flux_candidates_basis)
+
+      condition = Vector{ZZRingElem}()
+
+      # Compute against pairs of base divisors
+      for j in 1:length(list_of_base_divisor_pairs_to_be_considered)
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_base_divisor_pairs_to_be_considered[j]...]))
+        if !haskey(inter_dict, my_tuple)
+          class = ambient_space_flux_candidates_basis[i] * cds[list_of_base_divisor_pairs_to_be_considered[j][1]] * cds[list_of_base_divisor_pairs_to_be_considered[j][2]] * pt_class
+          inter_dict[my_tuple] = ZZ(integrate(class))
+        end
+        push!(condition, inter_dict[my_tuple])
+      end
+
+      # Compute against zero section and base divisor
+      zsc = zero_section_class(m)
+      pos_zero_section = findfirst(x -> x == string(polynomial(zsc)), string.([polynomial(x) for x in cds]))
+      @req pos_zero_section !== nothing && pos_zero_section >= 1 "Could not establish position of the zero section"
+      for j in 1:n_rays(base_space(m))
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., [j, pos_zero_section]...]))
+        if !haskey(inter_dict, my_tuple)  
+          class = ambient_space_flux_candidates_basis[i] * cds[j] * zsc * pt_class
+          inter_dict[my_tuple] = ZZ(integrate(class))
+        end
+        push!(condition, inter_dict[my_tuple])
+
+      end
+
+      # Compute against exceptional divisors
+      for j in 1:n_rays(base_space(m))
+        for k in 1:length(exceptional_divisor_positions)
+          my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., j, exceptional_divisor_positions[k]...]))
+          if !haskey(inter_dict, my_tuple)
+            class = ambient_space_flux_candidates_basis[i] * cds[j] * cds[exceptional_divisor_positions[k]] * pt_class
+            inter_dict[my_tuple] = ZZ(integrate(class))
+          end
+          push!(condition, inter_dict[my_tuple])
+
+        end
+      end
+
+      # Remember the computed condition
+      push!(vertical_and_no_gauge_group_breaking_constraint_matrix, condition)
+
+    end
+
+  end
+
+
+  # (6) Compute the vertical fluxes as the kernel of the vertical_and_no_gauge_group_breaking_constraint_matrix.
+  # (6) To later tell if those fluxes are properly quantized, we want to parametrize them with integer coefficient only.
+  denom = lcm(unique(vcat([denominator.(k) for k in vertical_and_no_gauge_group_breaking_constraint_matrix]...)))
+  if denom != 1
+    vertical_and_no_gauge_group_breaking_constraint_matrix = denom * vertical_and_no_gauge_group_breaking_constraint_matrix
+  end
+  C_vertical_and_no_gauge_group_breaking = transpose(matrix(ZZ, vertical_and_no_gauge_group_breaking_constraint_matrix))
+  vertical_and_no_gauge_group_breaking_fluxes = nullspace(C_vertical_and_no_gauge_group_breaking)[2]
+
+
+  # (7) Work out the relevant intersection numbers to tell if a flux is well quantized
+  quant_constraint_matrix = Vector{Vector{QQFieldElem}}()
+  # I have prepared some functionality below, regarding the case that this matrix should have rational entries.
+  # However, I expect that this will not happen as long as the hypersurface in question is smooth.
+  if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
+
+    # Use special intersection theory for special F-theory model. This technology could be extended beyond this one use-case in the future.
+    for i in 1:length(ambient_space_flux_candidates_basis)
+      condition = Vector{ZZRingElem}()
+      for j in 1:length(list_of_divisor_pairs_to_be_considered)
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
+        push!(condition, sophisticated_intersection_product(ambient_space(m), my_tuple, hypersurface_equation(m), inter_dict, s_inter_dict, data))
+      end
+      push!(quant_constraint_matrix, condition)
+    end
+
+  else
+  
+    # Cover all other case with generic, but potentially painfully slow methodology.
+    tds = torusinvariant_prime_divisors(ambient_space(m))
+    cds = [cohomology_class(td) for td in tds]
+    pt_class = cohomology_class(anticanonical_divisor_class(ambient_space(m)))
+    for i in 1:length(ambient_space_flux_candidates_basis)
+      condition = Vector{ZZRingElem}()
+      for j in 1:length(list_of_divisor_pairs_to_be_considered)
+        my_tuple = Tuple(sort([ambient_space_flux_candidates_basis_indices[i]..., list_of_divisor_pairs_to_be_considered[j]...]))
+        if !haskey(inter_dict, my_tuple)
+          class = ambient_space_flux_candidates_basis[i] * cds[list_of_divisor_pairs_to_be_considered[j][1]] * cds[list_of_divisor_pairs_to_be_considered[j][2]] * pt_class
+          inter_dict[my_tuple] = ZZ(integrate(class))
+        end
+        push!(condition, inter_dict[my_tuple])
+      end
+      push!(quant_constraint_matrix, condition)
+    end
+
+  end
+  
+  # (8) Convert the quant_constraint_matrix to a ZZ matrix. If necessary, multiply it by a suitable integer.
+  denom = lcm(unique(vcat([denominator.(k) for k in quant_constraint_matrix]...)))
+  if denom != 1
+    quant_constraint_matrix = denom * quant_constraint_matrix
+  end
+  C = transpose(matrix(ZZ, quant_constraint_matrix))
+
+
+  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the vertical and no non-Abelian gauge group breaking fluxes
+  C2 = C * vertical_and_no_gauge_group_breaking_fluxes # This is a ZZ-matrix, since we parametrize vertical fluxes with integer coefficients!
+  S, T, U = snf_with_transform(C2)
+  r = rank(S)
+  @req all(k -> !is_zero(S[k,k]), 1:r) "Inconsistency in Smith normal form detected. Please inform the authors."
+  @req all(k -> is_zero(S[k,k]), r+1:min(nrows(S), ncols(S))) "Inconsistency in Smith normal form  detected. Please inform the authors."
+  S_prime = zero_matrix(QQ, ncols(S), ncols(S))
+  for k in 1:min(nrows(S), ncols(S))
+    if k <= r
+      S_prime[k,k] = denom//S[k,k]
+    else
+      S_prime[k,k] = 1
+    end
+  end
+  solution_matrix = U * S_prime
+
+
+  # (10) Finally, we need to re-express those in terms of the original bases.
+  # (10) Rather, we have res now expressed in terms of the basis of vertical and no non-Abelian gauge group breaking fluxes...
+  sol_mat = vertical_and_no_gauge_group_breaking_fluxes * solution_matrix
+  res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
+
+
+  # (11) Remember computed data
+  set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, res)
+  set_attribute!(m, :inter_dict, inter_dict)
+  set_attribute!(m, :s_inter_dict, s_inter_dict)
+
+
+  # (12) Finally, return the result
+  return res::Tuple{QQMatrix, QQMatrix}
 
 end
