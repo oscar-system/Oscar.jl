@@ -351,18 +351,18 @@ function random_rothe_matrix(F::QQField, p::PermGroupElem)
   return u * permutation_matrix(F, p)
 end
 
-function random_rothe_matrix(F::Field, p::PermGroupElem)
+function random_rothe_matrix(F::FinField, p::PermGroupElem)
   @req !iszero(characteristic(F)) "Field should have positive characteristic"
-  range = characteristic(F)
   n = degree(parent(p))
   u = identity_matrix(F, n)
   for (i, j) in inversions(p)
-    u[i, j] = F(rand(1:range))
+    u[i, j] = rand(F)
   end
   return u * permutation_matrix(F, p)
 end
 
 # returns true if the target is the partial shift of src with respect to p
+# CAUTION! This function only works correctly if target is obtained as the shift of sry some matrix.
 function check_shifted(F::Field, src::UniformHypergraph,
                        target::UniformHypergraph, p::PermGroupElem; (ref!)=ModStdQt.ref_ff_rc!)
   target_faces = sort(faces(target))
@@ -386,6 +386,7 @@ function check_shifted(F::Field, src::UniformHypergraph,
   return true
 end
 
+# CAUTION! See the comment in the previous functions
 function check_shifted(F::Field, src::SimplicialComplex,
                        target::SimplicialComplex, p::PermGroupElem; (ref!)=ModStdQt.ref_ff_rc!)
   n = n_vertices(src)
