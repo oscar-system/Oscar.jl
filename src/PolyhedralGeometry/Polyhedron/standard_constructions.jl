@@ -2463,7 +2463,7 @@ Compute a realization of `G` in $\mathbb{R}^3$, i.e., a polyhedron whose edge gr
 
 # Examples
 ```jldoctest
-julia> G = edgegraph(simplex(3))
+julia> G = vertex_edge_graph(simplex(3))
 Undirected graph with 4 nodes and the following edges:
 (2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
 
