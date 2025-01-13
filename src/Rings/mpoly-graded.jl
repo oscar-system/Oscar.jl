@@ -150,6 +150,7 @@ Multivariate polynomial ring in 3 variables over QQ graded by
   z -> [3]
 
 julia> T, (x, y, z) = grade(R);
+
 julia> T
 Multivariate polynomial ring in 3 variables over QQ graded by
   x -> [1]
@@ -243,7 +244,7 @@ Given a $\mathbb Z$-graded multivariate polynomial ring `R`, return the weights 
 
 # Examples
 ```jldoctest
-G = abelian_group([0, 0, 2, 2])
+julia> G = abelian_group([0, 0, 2, 2])
 Finitely generated abelian group
   with 4 generators and 4 relations and relation matrix
   [0   0   0   0]
@@ -263,9 +264,9 @@ julia> weights(R)
  [0, 1, 0, 0]
  [1, 1, 0, 0]
 
-W = [[1, 0], [0, 1], [1, 0], [4, 1]];
+julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]];
 
-julia> R, x = graded_polynomial_ring(QQ, :x => 1:4, W)
+julia> R, x = graded_polynomial_ring(QQ, :x => 1:4, W);
 
 julia> weights(R)
 4-element Vector{FinGenAbGroupElem}:
@@ -274,7 +275,7 @@ julia> weights(R)
  [1 0]
  [4 1]
 
-julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z])
+julia> R, (x, y, z) = graded_polynomial_ring(QQ, [:x, :y, :z]);
 
 julia> weights(R)
 3-element Vector{FinGenAbGroupElem}:
@@ -668,6 +669,7 @@ julia> typeof(x)
 MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}
 
 ```
+
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, :x => 1:5)
 (Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
@@ -683,7 +685,7 @@ julia> g = gens(G)
 julia> W = [g[1], g[1], g[2], g[2], g[2]];
 
 julia> S, _ = grade(R, W)
-(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], y[1], y[2], y[3]])
+(Graded multivariate polynomial ring in 5 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4], x[5]])
 
 julia> S
 Multivariate polynomial ring in 5 variables over QQ graded by
@@ -1302,6 +1304,9 @@ x[1]^2 + x[3]^2 + x[5]^2
 julia> homogeneous_component(f, 2*G[1])
 x[1]^2 + x[3]^2
 
+```
+
+```jldoctest
 julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
 4-element Vector{Vector{Int64}}:
  [1, 0]
@@ -1309,9 +1314,6 @@ julia> W = [[1, 0], [0, 1], [1, 0], [4, 1]]
  [1, 0]
  [4, 1]
 
-```
-
-```jldoctest
 julia> R, x = graded_polynomial_ring(QQ, :x => 1:4; weights = W)
 (Graded multivariate polynomial ring in 4 variables over QQ, MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}[x[1], x[2], x[3], x[4]])
 
