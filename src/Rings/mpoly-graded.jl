@@ -672,7 +672,7 @@ MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}
 
 ```jldoctest
 julia> R, x = polynomial_ring(QQ, :x => 1:5)
-(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2]], QQMPolyRingElem[y[1], y[2], y[3]])
+(Multivariate polynomial ring in 5 variables over QQ, QQMPolyRingElem[x[1], x[2], x[3], x[4], x[5]])
 
 julia> G = abelian_group([0, 0])
 Z^2
