@@ -737,7 +737,7 @@ true
 julia> breaks_non_abelian_gauge_group(g4_candidate)
 false
 
-julia> c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120, 0, -60, 0, -720, -420, -270, -60, -2190];
+julia> c = [3];
 
 julia> qsm_g4_candidate = g4_flux(qsm_model, sum(c[i]*g4_classes[i] for i in 1:length(g4_classes)), check = false)
 G4-flux candidate
@@ -754,6 +754,18 @@ true
 
 julia> breaks_non_abelian_gauge_group(qsm_g4_candidate)
 false
+
+julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
+
+julia> e1 = cohomology_class(divs[15]);e2 = cohomology_class(divs[12]);e4 = cohomology_class(divs[14]);
+
+julia> u = cohomology_class(divs[13]);v = cohomology_class(divs[10]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
+
+julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
+
+julia> qsm_g4_candidate == g4_flux(qsm_model, g4_class)
+true
+
 ```
 """
 function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
@@ -981,7 +993,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
 
 
   # (11) Remember computed data
-  set_attribute!(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, res)
+  set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, res)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
