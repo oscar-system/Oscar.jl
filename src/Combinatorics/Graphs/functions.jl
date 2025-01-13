@@ -1102,6 +1102,7 @@ Visualize a graph.
 """
 function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
     BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
+    BigGraph.NODE_LABELS = string.(1:n_vertices(G))
     Polymake.visual(BigGraph)
 end
 
