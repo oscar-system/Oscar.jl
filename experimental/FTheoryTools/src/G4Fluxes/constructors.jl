@@ -86,6 +86,7 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   model(gf1) !== model(gf2) && return false
 
   # Currently, can only decide equality for Weierstrass, global Tate and hypersurface models
+  m = model(gf1)
   if (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) == false
     error("Can currently only decide equality of G4-fluxes for Weierstrass, global Tate and hypersurface models")
   end
