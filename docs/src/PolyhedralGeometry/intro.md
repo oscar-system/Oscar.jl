@@ -189,6 +189,7 @@ Lower dimensional polyhedral objects can be visualized through polymake's backen
 
 ```@docs
 visualize(P::Union{Polyhedron{<:Union{Float64,FieldElem}}, Cone{<:Union{Float64,FieldElem}}, PolyhedralFan{<:Union{Float64,FieldElem}}, PolyhedralComplex{<:Union{Float64,FieldElem}}, SubdivisionOfPoints{<:Union{Float64,FieldElem}}, Graph, SimplicialComplex}; kwargs...)
+visualize(::Vector)
 ```
 
 
