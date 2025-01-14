@@ -250,7 +250,7 @@ Return sections ``P_1,\dots P_n`` of the generic fiber, such that together with
 the generators of the algebraic lattice ``A``, they generate
 ```math
 \frac{1}{p} A \cap N
-``` 
+```
 where ``N`` is the numerical lattice of ``X``.
 
 The algorithm proceeds by computing division points in the Mordell-Weil subgroup of `X`
