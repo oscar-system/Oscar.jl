@@ -429,8 +429,8 @@ function *(c::QQFieldElem, Sigma::PolyhedralFan)
   SigmaIncidence = maximal_cones(IncidenceMatrix,Sigma)
   return polyhedral_fan(SigmaIncidence, multiply_by_nonzero_scalar.(SigmaRays,c), SigmaLineality)
 end
-*(c::Union{ZZRingElem,Rational,Int}, Sigma::PolyhedralFan) = QQ(c)*Sigma
-*(Sigma::PolyhedralFan,c::Union{QQFieldElem,ZZRingElem,Rational,Int}) = c*Sigma
+*(c::RationalUnion, Sigma::PolyhedralFan) = QQ(c)*Sigma
+*(Sigma::PolyhedralFan,c::RationalUnion) = c*Sigma
 
 ###############################################################################
 ## Negation
