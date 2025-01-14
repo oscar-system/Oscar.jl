@@ -2528,12 +2528,7 @@ function describe(G::Union{FPGroup, SubFPGroup})
 
    if !has_is_finite(G)
       # try to obtain an isomorphic permutation group, but don't try too hard
-#TODO: With GAP 4.13.0, the prescribed bound 100000 will cause a test failure.
-#      This regression will hopefully be fixed in GAP 4.13.1,
-#      see https://github.com/gap-system/gap/issues/5697
-#      and https://github.com/gap-system/gap/pull/5698.
-#     iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
-      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G))::GapObj
+      iso = GAP.Globals.IsomorphismPermGroupOrFailFpGroup(GapObj(G), 100000)::GapObj
       iso != GAP.Globals.fail && return describe(PermGroup(GAPWrap.Range(iso)))
    elseif is_finite(G)
       return describe(PermGroup(G))
