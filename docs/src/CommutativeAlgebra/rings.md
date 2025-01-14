@@ -340,6 +340,10 @@ grading_group(R::MPolyDecRing)
 ```
 
 ```@docs
+weights(R::MPolyDecRing)
+```
+
+```@docs
 monomial_basis(R::MPolyDecRing, g::FinGenAbGroupElem)
 ```
 
