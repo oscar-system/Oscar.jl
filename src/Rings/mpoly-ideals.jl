@@ -610,7 +610,7 @@ function radical(
     I::MPolyIdeal{T}; 
     eliminate_variables::Bool=true
   ) where {T <: MPolyRingElem}
-  get_attribute(I, :radical) do
+  get_attribute!(I, :radical) do
     if eliminate_variables
       is_known_to_be_radical(I) && return I
       # Calling `elimpart` (within `simplify`) turns out to significantly speed things up in many cases.
