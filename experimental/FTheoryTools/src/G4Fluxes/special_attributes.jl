@@ -463,14 +463,10 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
 
 
   # (3) Are intersection numbers known?
-  inter_dict = if has_attribute(m, :inter_dict)
-    get_attribute(m, :inter_dict)
-  else
+  inter_dict = get_attribute(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
-  s_inter_dict = if has_attribute(m, :s_inter_dict)
-    get_attribute(m, :s_inter_dict)
-  else
+  s_inter_dict = get_attribute(m, :s_inter_dict) do
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
 
@@ -791,14 +787,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
 
 
   # (3) Are intersection numbers known?
-  inter_dict = if has_attribute(m, :inter_dict)
-    get_attribute(m, :inter_dict)
-  else
+  inter_dict = get_attribute(m, :inter_dict) do
     Dict{NTuple{4, Int64}, ZZRingElem}()
   end::Dict{NTuple{4, Int64}, ZZRingElem}
-  s_inter_dict = if has_attribute(m, :s_inter_dict)
-    get_attribute(m, :s_inter_dict)
-  else
+  s_inter_dict = get_attribute(m, :s_inter_dict) do
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
 
