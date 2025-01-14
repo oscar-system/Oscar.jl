@@ -132,9 +132,7 @@ end
 +(v::Vector{Int}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
 
 +(Sigma::PolyhedralComplex, v::Vector{QQFieldElem}) = v+Sigma
-+(Sigma::PolyhedralComplex, v::Vector{ZZRingElem}) = QQ.(v)+Sigma
-+(Sigma::PolyhedralComplex, v::Vector{Rational}) = QQ.(v)+Sigma
-+(Sigma::PolyhedralComplex, v::Vector{Int}) = QQ.(v)+Sigma
++(Sigma::PolyhedralComplex, v::Vector{<:RationalUnion}) = QQ.(v)+Sigma
 
 # Vector addition for polyhedral fans
 +(Sigma::PolyhedralFan, v::Vector) = polyhedral_complex(Sigma)+v
