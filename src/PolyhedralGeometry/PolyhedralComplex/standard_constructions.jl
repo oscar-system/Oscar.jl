@@ -93,8 +93,8 @@ function *(c::QQFieldElem, Sigma::PolyhedralComplex)
     SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
     return polyhedral_complex(SigmaIncidence, multiply_by_nonzero_scalar.(SigmaVertsAndRays,c), SigmaRayIndices, SigmaLineality)
 end
-*(c::Union{ZZRingElem,Rational,Int}, Sigma::PolyhedralComplex) = QQ(c)*Sigma
-*(Sigma::PolyhedralComplex, c::Union{QQFieldElem,ZZRingElem,Rational,Int}) = c*Sigma
+*(c::RationalUnion, Sigma::PolyhedralComplex) = QQ(c)*Sigma
+*(Sigma::PolyhedralComplex, c::RationalUnion) = c*Sigma
 
 
 ###############################################################################
