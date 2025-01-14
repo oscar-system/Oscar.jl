@@ -30,7 +30,7 @@ with the Macaulay2 package `GraphicalModels`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 ```
@@ -67,7 +67,7 @@ Return the multivariate polynomial ring inside `R`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -87,7 +87,7 @@ Return the list of random variables used to create the MarkovRing.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -108,7 +108,7 @@ end
 
 Returns all the `CIStmt` objects which can be formed on the `random_variables(R)`.
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -145,7 +145,7 @@ Return the generators of the polynomial ring.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -221,7 +221,7 @@ in the ring `R`. The result is an `Iterators.product` iterator unless
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -263,7 +263,7 @@ variables in `R` are summed over their respective state spaces.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2, "Y" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2}, Y -> {1, 2} in 16 variables over Rational field
 
@@ -294,7 +294,7 @@ given by `stmts`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = markov_ring("A" => 1:2, "B" => 1:2, "X" => 1:2)
 MarkovRing for random variables A -> {1, 2}, B -> {1, 2}, X -> {1, 2} in 8 variables over Rational field
 

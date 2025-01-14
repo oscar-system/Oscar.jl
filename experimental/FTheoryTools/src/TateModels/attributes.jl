@@ -366,7 +366,7 @@ end
     singular_loci(t::GlobalTateModel)
 
 Return the singular loci of the global Tate model, along with the order of
-vanishing of ``(f, g, \Delta)``` at each locus and the refined Tate fiber type.
+vanishing of ``(f, g, \Delta)`` at each locus and the refined Tate fiber type.
 
 For the time being, we either explicitly or implicitly focus on toric varieties
 as base spaces. Explicitly, in case the user provides such a variety as base space,
