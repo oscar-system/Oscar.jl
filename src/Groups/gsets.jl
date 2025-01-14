@@ -1271,6 +1271,7 @@ function orbit_representatives_and_stabilizers(G::MatrixGroup{E}, k::Int) where 
   n = degree(G)
   q = GAP.Obj(order(F))
   V = vector_space(F, n)
+  k == 0 && return [(sub(V, [])[1], G)]
   # Note that GAP anyhow unpacks all subspaces.
   l = GAP.Globals.AsSSortedList(GAP.Globals.Subspaces(GAPWrap.GF(q)^n, k))::GapObj
   ll = GAP.Globals.List(l,
