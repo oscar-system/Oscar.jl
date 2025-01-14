@@ -156,7 +156,7 @@ function Base.show(io::IO, g4::G4Flux)
     push!(properties_string, "  - Verticality checks: not executed")
   end
 
-  # Check for non-Abelian gauge group breaking
+  # Check for non-abelian gauge group breaking
   if has_attribute(g4, :breaks_non_abelian_gauge_group)
     if breaks_non_abelian_gauge_group(g4)
       push!(properties_string, "  - Non-abelian gauge group: broken")

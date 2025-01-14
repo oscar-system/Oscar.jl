@@ -640,7 +640,7 @@ end
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
 complete toric base, this method computes a basis of all well-quantized
-and vertical  ambient space $G_4$-fluxes which do not break any non-Abelian
+and vertical  ambient space $G_4$-fluxes which do not break any non-abelian
 gauge group factor. The result of this operation is a tuple of two matrices.
 The columns of the first matrix specify those (rational) combinations of
 ambient space $G_4$-fluxes, of which one may only take
@@ -688,7 +688,7 @@ julia> res[2]
 
 Here is a more interesting example, in which we verify with our software tool for one particular F-theory QSM, that the
 choice of $G_4$-flux presented in [CHLLT19](@cite), is indeed vertical, satisfies the necessary conditions
-for being well-quantized and does not break the non-Abelian gauge group.
+for being well-quantized and does not break the non-abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -948,7 +948,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
   C = transpose(matrix(ZZ, quant_constraint_matrix))
 
 
-  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the vertical and no non-Abelian gauge group breaking fluxes
+  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the vertical and no non-abelian gauge group breaking fluxes
   C2 = C * vertical_and_no_gauge_group_breaking_fluxes # This is a ZZ-matrix, since we parametrize vertical fluxes with integer coefficients!
   S, T, U = snf_with_transform(C2)
   r = rank(S)
@@ -966,7 +966,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
 
 
   # (10) Finally, we need to re-express those in terms of the original bases.
-  # (10) Rather, we have res now expressed in terms of the basis of vertical and no non-Abelian gauge group breaking fluxes...
+  # (10) Rather, we have res now expressed in terms of the basis of vertical and no non-abelian gauge group breaking fluxes...
   sol_mat = vertical_and_no_gauge_group_breaking_fluxes * solution_matrix
   res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
 

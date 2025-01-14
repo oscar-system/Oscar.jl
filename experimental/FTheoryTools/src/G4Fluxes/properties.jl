@@ -198,9 +198,9 @@ end
 @doc raw"""
     breaks_non_abelian_gauge_group(gf::G4Flux)
 
-G4-fluxes may break the non-Abelian gauge group (cf. [Wei18](@cite)).
+G4-fluxes may break the non-abelian gauge group (cf. [Wei18](@cite)).
 This function verifies if this is the case for the given G4-flux.
-If it does not break any non-Abelian gauge factor, we return 
+If it does not break any non-abelian gauge factor, we return 
 `true` and otherwise `false`
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
@@ -235,9 +235,9 @@ G4-flux candidate
 """
 @attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux)
   m = model(g4)
-  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Checks for breaking non-Abelian gauge group factors only supported for Weierstrass, global Tate and hypersurface models"
-  @req base_space(m) isa NormalToricVariety "Checks for breaking non-Abelian gauge group factors currently supported only for toric base"
-  @req ambient_space(m) isa NormalToricVariety "Checks for breaking non-Abelian gauge group factors currently supported only for toric ambient space"
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Checks for breaking non-abelian gauge group factors only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Checks for breaking non-abelian gauge group factors currently supported only for toric ambient space"
   
   # Compute the cohomology class corresponding to the hypersurface equation
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
@@ -252,7 +252,7 @@ G4-flux candidate
   exceptional_divisors = torusinvariant_prime_divisors(ambient_space(m))[exceptional_divisor_positions]
   c_ei = [polynomial(cohomology_class(d)) for d in exceptional_divisors]
 
-  # now execute the checks if any non-Abelian gauge group factor is broken
+  # now execute the checks if any non-abelian gauge group factor is broken
   for i in 1:n
     for j in 1:length(exceptional_divisors)
       numb = integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * c_ds[i] * c_ei[j] * cy); check = false)
