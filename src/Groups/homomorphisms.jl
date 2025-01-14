@@ -612,6 +612,8 @@ function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, SubFPG
      f = fun(GapObj(G))::GapObj
      @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
      H = T(GAPWrap.ImagesSource(f))
+# TODO: remove the next line once GAP 4.13.0 is available in Oscar -> still broken in GAP 4.14.0
+     GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), T}
 end
