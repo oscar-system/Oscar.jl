@@ -205,8 +205,15 @@ end
 @doc raw"""
     blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 
-Blow up the toric variety by subdividing the n-th cone in the list
-of *all* cones of the fan of `v`. This cone need not be maximal.
+Blow up the toric variety $v$ with polyhedral fan $\Sigma$ by star
+subdivision along the barycenter of the $n$-th cone $\sigma$ in the list
+of all the cones of $\Sigma$.
+We remind that the barycenter of a nonzero cone is the primitive
+generator of the sum of the primitive generators of the extremal rays of
+the cone (Exercise 11.1.10 in [CLS11](@cite)).
+In the case all the cones of $\Sigma$ containing $\sigma$ are smooth,
+this coincides with the star subdivision of $\Sigma$ relative to
+$\sigma$ (Definition 3.3.17 of [CLS11](@cite)).
 This function returns the corresponding morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
