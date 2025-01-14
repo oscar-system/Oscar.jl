@@ -189,7 +189,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(g4)
 true
@@ -423,7 +423,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true
@@ -732,7 +732,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true

@@ -32,7 +32,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(g4)
 true
@@ -42,7 +42,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
 @attr Bool function passes_elementary_quantization_checks(g4::G4Flux)
@@ -99,7 +99,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_verticality_checks(g4)
 true
@@ -109,7 +109,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
 @attr Bool function passes_verticality_checks(g4::G4Flux)
@@ -164,7 +164,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_tadpole_cancellation_check(g4)
 true
@@ -174,7 +174,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: satisfied
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
 @attr Bool function passes_tadpole_cancellation_check(g4::G4Flux)
@@ -220,7 +220,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> breaks_non_abelian_gauge_group(g4)
 false
@@ -230,7 +230,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: not broken
+  - Non-abelian gauge group: not broken
 ```
 """
 @attr Bool function breaks_non_abelian_gauge_group(g4::G4Flux)
