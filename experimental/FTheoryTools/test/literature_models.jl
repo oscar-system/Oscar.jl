@@ -783,36 +783,20 @@ foah16_B3_weier = literature_model(arxiv_id = "1408.4808", equation = "3.203", t
   @test parent(explicit_model_sections(foah14_B3_weier)["s7"]) == cox_ring(base_space(foah14_B3_weier))
   @test parent(explicit_model_sections(foah15_B3_weier)["s7"]) == cox_ring(base_space(foah15_B3_weier))
   @test parent(explicit_model_sections(foah16_B3_weier)["s7"]) == cox_ring(base_space(foah16_B3_weier))
-  @test length(singular_loci(foah1_B3_weier)) == 1
-  @test length(singular_loci(foah2_B3_weier)) == 1
-  @test length(singular_loci(foah3_B3_weier)) == 1
-  @test length(singular_loci(foah4_B3_weier)) == 2
-  @test length(singular_loci(foah5_B3_weier)) == 1
-  @test length(singular_loci(foah6_B3_weier)) == 2
-  @test length(singular_loci(foah7_B3_weier)) == 1
-  @test length(singular_loci(foah8_B3_weier)) == 3
-  @test length(singular_loci(foah9_B3_weier)) == 2
-  @test length(singular_loci(foah10_B3_weier)) == 3
-  @test length(singular_loci(foah11_B3_weier)) == 3
-  @test length(singular_loci(foah12_B3_weier)) == 3
-  @test length(singular_loci(foah13_B3_weier)) == 4
-  @test length(singular_loci(foah14_B3_weier)) == 4
-  @test length(singular_loci(foah15_B3_weier)) == 5
-  @test length(singular_loci(foah16_B3_weier)) == 4
-  @test issetequal([k[2:3] for k in singular_loci(foah1_B3_weier)], [((0, 0, 1), "I_1")])
-  @test issetequal([k[2:3] for k in singular_loci(foah2_B3_weier)], [((0, 0, 1), "I_1")])
-  @test issetequal([k[2:3] for k in singular_loci(foah3_B3_weier)], [((0, 0, 1), "I_1")])
-  @test issetequal([k[2:3] for k in singular_loci(foah4_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah5_B3_weier)], [((0, 0, 1), "I_1")])
-  @test issetequal([k[2:3] for k in singular_loci(foah6_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah7_B3_weier)], [((0, 0, 1), "I_1")])
-  @test issetequal([k[2:3] for k in singular_loci(foah8_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah9_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah10_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")])
-  @test issetequal([k[2:3] for k in singular_loci(foah11_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")])
-  @test issetequal([k[2:3] for k in singular_loci(foah12_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah13_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 4), "Split I_4")])
-  @test issetequal([k[2:3] for k in singular_loci(foah14_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")])
-  @test issetequal([k[2:3] for k in singular_loci(foah15_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")])
-  @test issetequal([k[2:3] for k in singular_loci(foah16_B3_weier)], [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3")])
+  @test [k[2:3] for k in singular_loci(foah1_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah2_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah3_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah4_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah5_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah6_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah7_B3_weier)] == [((0, 0, 1), "I_1")]
+  @test [k[2:3] for k in singular_loci(foah8_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah9_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah10_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah11_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah12_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah13_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 4), "Split I_4")]
+  @test [k[2:3] for k in singular_loci(foah14_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 3), "Split I_3")]
+  @test [k[2:3] for k in singular_loci(foah15_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2"), ((0, 0, 2), "Non-split I_2")]
+  @test [k[2:3] for k in singular_loci(foah16_B3_weier)] == [((0, 0, 1), "I_1"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3"), ((0, 0, 3), "Split I_3")]
 end
