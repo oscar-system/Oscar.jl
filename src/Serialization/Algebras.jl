@@ -4,15 +4,15 @@
 # Free associative algebra serialization
 @register_serialization_type FreeAssociativeAlgebra uses_id
 
+type_params(R::T) where T <: FreeAssociativeAlgebra = T, base_ring(R)
+
 function save_object(s::SerializerState, A::FreeAssociativeAlgebra)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(A), :base_ring),
     save_object(s, symbols(A), :symbols)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra})
-  R = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra}, R::Ring)
   gens = load_object(s, Vector{Symbol}, :symbols)
   return free_associative_algebra(R, gens)[1]
 end
@@ -33,8 +33,8 @@ function save_object(s::SerializerState, f::FreeAssociativeAlgebraElem)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem}, parents::Vector)
-  parent_algebra = parents[end]
+function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem},
+                     parent_algebra::FreeAssociativeAlgebra)
   coeff_type = elem_type(base_ring(parent_algebra))
   elem = MPolyBuildCtx(parent_algebra)
 
