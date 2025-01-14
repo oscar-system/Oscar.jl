@@ -120,7 +120,9 @@ end
 # (Or would it be easier for other systems if the length of the array
 # is equal to the degree of the parent group?)
 
-@register_serialization_type PermGroupElem uses_params
+@register_serialization_type PermGroupElem
+
+type_params(x::T) where T <: GroupElem = T, parent(x)
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
@@ -155,8 +157,8 @@ end
 # FPGroupElem, SubFPGroupElem
 # We need the parent and a description of the word that defines the element.
 
-@register_serialization_type FPGroupElem uses_params
-@register_serialization_type SubFPGroupElem uses_params
+@register_serialization_type FPGroupElem
+@register_serialization_type SubFPGroupElem
 
 function save_object(s::SerializerState, g::Union{FPGroupElem, SubFPGroupElem})
   save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
@@ -208,8 +210,8 @@ end
 # We need the parent and a description of the exponent vector
 # that defines the element.
 
-@register_serialization_type PcGroupElem uses_params
-@register_serialization_type SubPcGroupElem uses_params
+@register_serialization_type PcGroupElem
+@register_serialization_type SubPcGroupElem
 
 function save_object(s::SerializerState, g::Union{PcGroupElem, SubPcGroupElem})
   elfam = GAPWrap.FamilyObj(GapObj(g))
@@ -247,7 +249,7 @@ function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
 end
 
 # elems
-@register_serialization_type FinGenAbGroupElem uses_params
+@register_serialization_type FinGenAbGroupElem
 
 function save_object(s::SerializerState, g::FinGenAbGroupElem)
   save_object(s, _coeff(g))
