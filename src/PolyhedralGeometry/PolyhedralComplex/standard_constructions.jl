@@ -75,65 +75,76 @@ function k_skeleton(PC::PolyhedralComplex{T}, k::Int) where {T<:scalar_types}
   return PolyhedralComplex{T}(ksk, coefficient_field(PC))
 end
 
-
 ###############################################################################
 ## Scalar product
 ###############################################################################
 
-function *(c::QQFieldElem, Sigma::PolyhedralComplex)
-    # if scalar is zero, return polyhedral complex consisting only of the origin
-    if iszero(c)
-        return polyhedral_complex(convex_hull(zero_matrix(QQ,1,ambient_dim(Sigma))))
-    end
+function *(c::scalar_types_extended, Sigma::PolyhedralComplex)
+  # if scalar is zero, return polyhedral complex consisting only of the origin
+  if iszero(c)
+    return polyhedral_complex(convex_hull(zero_matrix(QQ, 1, ambient_dim(Sigma))))
+  end
 
-    # if scalar is non-zero, multiple all vertices and rays by said scalar
-    SigmaVertsAndRays = vertices_and_rays(Sigma)
-    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
-    SigmaLineality = lineality_space(Sigma)
-    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
-    return polyhedral_complex(SigmaIncidence, multiply_by_nonzero_scalar.(SigmaVertsAndRays,c), SigmaRayIndices, SigmaLineality)
+  # if scalar is non-zero, multiple all vertices and rays by said scalar
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    coefficient_field(Sigma),
+    SigmaIncidence,
+    SigmaVertsAndRays .* c,
+    SigmaRayIndices,
+    SigmaLineality,
+  )
 end
-*(c::RationalUnion, Sigma::PolyhedralComplex) = QQ(c)*Sigma
-*(Sigma::PolyhedralComplex, c::RationalUnion) = c*Sigma
-
+*(Sigma::PolyhedralComplex, c::scalar_types_extended) = c * Sigma
 
 ###############################################################################
 ## Negation
 ###############################################################################
 
 function -(Sigma::PolyhedralComplex)
-    SigmaVertsAndRays = vertices_and_rays(Sigma)
-    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
-    SigmaLineality = lineality_space(Sigma)
-    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
-    return polyhedral_complex(SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality)
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    SigmaIncidence, -SigmaVertsAndRays, SigmaRayIndices, SigmaLineality
+  )
 end
 
 ###############################################################################
 ## Translation
 ###############################################################################
 
-function translate_by_vector(u::PointVector{QQFieldElem}, v::Vector{QQFieldElem})
-    return u .+ v
+# requires separate function because to ensure that translation does not change ray vectors
+function translate_by_vector(
+  u::PointVector{<:scalar_types_extended}, v::Vector{<:scalar_types_extended}
+)
+  return u + v
 end
-function translate_by_vector(u::RayVector{QQFieldElem}, ::Vector{QQFieldElem})
-    return u
+function translate_by_vector(
+  u::RayVector{<:scalar_types_extended}, ::Vector{<:scalar_types_extended}
+)
+  return u
 end
-function +(v::Vector{QQFieldElem}, Sigma::PolyhedralComplex)
-    @req length(v)==ambient_dim(Sigma) "ambient dimension mismatch"
-    SigmaVertsAndRays = vertices_and_rays(Sigma)
-    SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
-    SigmaLineality = lineality_space(Sigma)
-    SigmaIncidence = maximal_polyhedra(IncidenceMatrix,Sigma)
-    return polyhedral_complex(SigmaIncidence, translate_by_vector.(SigmaVertsAndRays,Ref(v)), SigmaRayIndices, SigmaLineality)
+function +(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralComplex)
+  @req length(v) == ambient_dim(Sigma) "ambient dimension mismatch"
+  SigmaVertsAndRays = vertices_and_rays(Sigma)
+  SigmaRayIndices = findall(vr -> vr isa RayVector, SigmaVertsAndRays)
+  SigmaLineality = lineality_space(Sigma)
+  SigmaIncidence = maximal_polyhedra(IncidenceMatrix, Sigma)
+  return polyhedral_complex(
+    coefficient_field(Sigma),
+    SigmaIncidence,
+    translate_by_vector.(SigmaVertsAndRays, Ref(v)),
+    SigmaRayIndices,
+    SigmaLineality,
+  )
 end
-+(v::Vector{ZZRingElem}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
-+(v::Vector{Rational}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
-+(v::Vector{Int}, Sigma::PolyhedralComplex) = QQ.(v)+Sigma
-
-+(Sigma::PolyhedralComplex, v::Vector{QQFieldElem}) = v+Sigma
-+(Sigma::PolyhedralComplex, v::Vector{<:RationalUnion}) = QQ.(v)+Sigma
++(Sigma::PolyhedralComplex, v::Vector{<:scalar_types_extended}) = v + Sigma
 
 # Vector addition for polyhedral fans
-+(Sigma::PolyhedralFan, v::Vector) = polyhedral_complex(Sigma)+v
-+(v::Vector, Sigma::PolyhedralFan) = v+polyhedral_complex(Sigma)
++(Sigma::PolyhedralFan, v::Vector{<:scalar_types_extended}) = polyhedral_complex(Sigma) + v
++(v::Vector{<:scalar_types_extended}, Sigma::PolyhedralFan) = v + polyhedral_complex(Sigma)
