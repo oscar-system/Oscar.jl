@@ -244,6 +244,33 @@ julia> length(singular_loci(w))
 """
 @attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
   @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
+  B = irrelevant_ideal(base_space(w))
+  d_primes = factor(discriminant(w))
+  nontrivial_d_primes = [k for k in d_primes if _is_nontrivial(ideal([k[1]]), B)]
+  f_primes = factor(weierstrass_section_f(w))
+  g_primes = factor(weierstrass_section_g(w))
+  f_prime_dict = Dict(fp[1] => fp[2] for fp in f_primes)
+  g_prime_dict = Dict(gp[1] => gp[2] for gp in g_primes)
+  kodaira_types = Vector{Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}}(undef, length(nontrivial_d_primes))
+  for (i, d_prime) in enumerate(nontrivial_d_primes)
+    f_order = get(f_prime_dict, d_prime[1], 0)
+    g_order = get(g_prime_dict, d_prime[1], 0)
+    d_order = d_prime[2]
+    ords = (f_order, g_order, d_order)
+    kodaira_types[i] = (ideal([d_prime[1]]), ords, _kodaira_type(ideal([d_prime[1]]), ords, w))
+  end
+  sort!(kodaira_types, by = x -> (x[2][2], x[2][3]))
+  return kodaira_types
+end
+
+# Below is the original version of the above function singular_loci.
+# The above method only applies to models defined by a single equation, i.e. hypersurface models.
+# In contrast, the method below works more generally, but consumes more resources.
+# In an attempt to reduce the resource consumption of F-theory tools, I have thus specialized into the above method.
+# However, we keep the original code below in case we want to generalize at some point in the future.
+#=
+@attr Vector{<:Tuple{<:MPolyIdeal{<:MPolyRingElem}, Tuple{Int64, Int64, Int64}, String}} function singular_loci(w::WeierstrassModel)
+  @req (base_space(w) isa NormalToricVariety || base_space(w) isa FamilyOfSpaces) "Singular loci of Weierstrass model is currently only supported for toric varieties and families of spaces as base space"
   
   B = irrelevant_ideal(base_space(w))
   
@@ -271,3 +298,4 @@ julia> length(singular_loci(w))
   
   return kodaira_types
 end
+=#
