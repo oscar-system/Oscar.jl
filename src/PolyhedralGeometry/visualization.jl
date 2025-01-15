@@ -65,19 +65,18 @@ function visualize(
   };
   kwargs...,
 )
-  _prepare_visualization(P)
-  pmo = pm_object(P)
+  pmo = _prepare_visualization(P)
   Polymake.visual(pmo; kwargs...)
 end
 
 function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
-  for p in P
+  P = map(p -> begin
     @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
     _prepare_visualization(p)
-  end
+  end, P)
   vis = [
     Polymake.visual(
-      Polymake.Visual, pm_object(P[i]); get(kwargs, i, Vector{Nothing}(undef, 0))...
+      Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
     ) for i in 1:length(P)
   ]
   if isdefined(Main, :IJulia) && Main.IJulia.inited
@@ -112,6 +111,7 @@ function _prepare_visualization(
   if !Polymake.exists(pm_object(P), "RAY_LABELS")
     pm_object(P).RAY_LABELS = string.(1:(Oscar.pm_object(P).N_RAYS))
   end
+  return pm_object(P)
 end
 
 function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem}})
@@ -123,8 +123,15 @@ function _prepare_visualization(P::SubdivisionOfPoints{<:Union{Float64,FieldElem
   if !Polymake.exists(pm_object(P), "POINT_LABELS")
     pm_object(P).POINT_LABELS = string.(1:(Oscar.pm_object(P).N_POINTS))
   end
+  return pm_object(P)
 end
 
-function _prepare_visualization(P::Union{Graph,SimplicialComplex})
-  return nothing
+function _prepare_visualization(sc::SimplicialComplex)
+  return pm_object(sc)
+end
+
+function _prepare_visualization(g::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+  bg = Polymake.graph.Graph(ADJACENCY=pm_object(g))
+  bg.NODE_LABELS = string.(1:n_vertices(g))
+  return bg
 end
