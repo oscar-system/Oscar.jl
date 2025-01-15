@@ -92,15 +92,7 @@ function Base.:(==)(gf1::G4Flux, gf2::G4Flux)
   end
 
   # Compute the cohomology class corresponding to the hypersurface equation
-  if m isa WeierstrassModel
-    cl = toric_divisor_class(ambient_space(m), degree(weierstrass_polynomial(m)))
-  end
-  if m isa GlobalTateModel
-    cl = toric_divisor_class(ambient_space(m), degree(tate_polynomial(m)))
-  end
-  if m isa HypersurfaceModel
-    cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
-  end
+  cl = toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))
   cy = cohomology_class(cl)
 
   # Now can return the result
