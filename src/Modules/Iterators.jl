@@ -53,10 +53,9 @@ function Base.length(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem})
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
     any(Int(d_loc[i]) < 0 for i in 1:ngens(parent(d)))&& continue
-    if !haskey(amm.exp_cache, d_loc)
-      amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      return all_exponents(R, d_loc)
     end
-    exps = amm.exp_cache[d_loc]
     result = result + length(exps)
   end
   return result
@@ -117,11 +116,10 @@ function Base.iterate(amm::AllModuleMonomials{<:FreeMod, FinGenAbGroupElem}, sta
   i === nothing && return nothing
   d_loc = d - degree(F[i]; check=false)
 
-  if !haskey(amm.exp_cache, d_loc)
-    amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+  exps = get!(amm.exp_cache, d_loc) do
+    return all_exponents(R, d_loc)
   end
 
-  exps = amm.exp_cache[d_loc]
   res = iterate(exps)
   res === nothing && i == ngens(F) && return nothing
 
@@ -149,11 +147,10 @@ function Base.iterate(
     i === nothing && return nothing
     d_loc = d - degree(F[i]; check=false)
 
-    if !haskey(amm.exp_cache, d_loc)
-      amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      return all_exponents(R, d_loc)
     end
 
-    exps = amm.exp_cache[d_loc]
     res_loc = iterate(exps)
     res_loc === nothing && i == ngens(F) && return nothing
     
@@ -266,11 +263,10 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
     any(Int(d_loc[i]) < 0 for i in 1:ngens(parent(d)))&& continue
-    if !haskey(amm.exp_cache, d_loc)
-      amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      return all_exponents(R, d_loc)
     end
-    exps = amm.exp_cache[d_loc]
-    result = result + length(exps)
+    result += length(exps)
   end
   return result
 end
@@ -285,11 +281,10 @@ function Base.iterate(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem}, sta
   i === nothing && return nothing
   d_loc = d - degree(F[i]; check=false)
 
-  if !haskey(amm.exp_cache, d_loc)
-    amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+  exps = get!(amm.exp_cache, d_loc) do
+    return all_exponents(R, d_loc)
   end
 
-  exps = amm.exp_cache[d_loc]
   res = iterate(exps)
   res === nothing && i == ngens(F) && return nothing
 
@@ -315,11 +310,10 @@ function Base.iterate(
     i === nothing && return nothing
     d_loc = d - degree(F[i]; check=false)
 
-    if !haskey(amm.exp_cache, d_loc)
-      amm.exp_cache[d_loc] = all_exponents(R, d_loc)
+    exps = get!(amm.exp_cache, d_loc) do
+      return all_exponents(R, d_loc)
     end
 
-    exps = amm.exp_cache[d_loc]
     res_loc = iterate(exps)
     res_loc === nothing && i == ngens(F) && return nothing
     

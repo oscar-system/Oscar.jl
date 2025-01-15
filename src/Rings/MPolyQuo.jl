@@ -1212,10 +1212,10 @@ Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
-    if !haskey(v, i)
-      v[i] = MPolyBuildCtx(R)
+    vi = get!(v, i) do
+      MPolyBuildCtx(R)
     end
-    push_term!(v[i], base_ring(R)(c), e)
+    push_term!(vi, base_ring(R)(c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1229,10 +1229,10 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Abst
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
-    if !haskey(v, i)
-      v[i] = MPolyBuildCtx(R)
+    vi = get!(v, i) do
+      MPolyBuildCtx(R)
     end
-    push_term!(v[i], base_ring(R)(c), e)
+    push_term!(vi, base_ring(R)(c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1736,10 +1736,8 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbG
   q = Set{elem_type(H)}()
   for h = M
     g = degree(h)
-    if haskey(cache, g)
-      mI = cache[g]
-    else
-      mI = cache[g] = homogeneous_component(R, d-g)[2]
+    mI = get!(cache, g) do
+      return homogeneous_component(R, d-g)[2]
     end
     for x = gens(domain(mI))
       push!(q, preimage(mH, h*mI(x)))
