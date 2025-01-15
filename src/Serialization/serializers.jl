@@ -268,7 +268,7 @@ end
 function serializer_open(
   io::IO,
   serializer::OscarSerializer,
-  type_attr_map::S) where S <: Union{Dict{String, Vector{Symbol}}, Nothing}
+  with_attrs::Bool)
   
   # some level of handling should be done here at a later date
   return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
