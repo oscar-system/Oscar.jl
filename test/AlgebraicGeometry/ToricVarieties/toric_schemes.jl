@@ -18,7 +18,7 @@
   end
   
   IP1 = projective_space(NormalToricVariety, 1)
-  set_coordinate_names(IP1, ["x", "y"])
+  set_coordinate_names(IP1, [:x, :y])
   Y = IP1*IP1
   
   @testset "Product of projective spaces" begin
@@ -27,7 +27,7 @@
   end
 
   IP2 = projective_space(NormalToricVariety, 2)
-  set_coordinate_names(IP2, ["x", "y", "z"])
+  set_coordinate_names(IP2, [:x, :y, :z])
   X, iso = Oscar.forget_toric_structure(IP2)
 
   @testset "Forget toric structure" begin
@@ -57,7 +57,7 @@
   pb_I = pullback(bl, I)
   pb_J = pullback(bl, J)
 
-  @testset "Toric blowdown morphism as morphism of covered schemes" begin
+  @testset "Toric blowup morphism as morphism of covered schemes" begin
     @test scheme(I) === IP2
     @test length(Oscar.maximal_associated_points(I)) == 2
     @test length(Oscar.maximal_associated_points(pb_I)) == 3
@@ -97,7 +97,7 @@
 end
 
 @testset "Lazy gluings" begin
-  f = polyhedral_fan(IncidenceMatrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
+  f = polyhedral_fan(incidence_matrix([[1, 2, 3],[1, 4, 5, 6]]), [0 0 1; 1 0 1; 0 1 0; -1 0 1; -1 -1 1; 0 -1 1])
   number_of_maximal_cones(f)
   ntv = normal_toric_variety(f)
   X = Oscar.underlying_scheme(ntv)

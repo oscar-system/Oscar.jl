@@ -92,7 +92,7 @@ function _m_sigma(sigma::Cone{QQFieldElem}, pol_sigma::Cone{QQFieldElem}, D::Uni
       dual_ray = lcm(denominator.(pol_ray)) * pol_ray
       break
     end
-    i = findfirst(j -> j == ray, rays(toric_variety(D)))
+    i = findfirst(==(ray), rays(toric_variety(D)))
     ans -= coeff[i] * dual_ray
   end
 

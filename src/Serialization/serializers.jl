@@ -49,7 +49,7 @@ mutable struct SerializerState{T <: OscarSerializer}
   refs::Vector{UUID}
   io::IO
   key::Union{Symbol, Nothing}
-  type_attr_map::Dict{String, Vector{Symbol}}
+  with_attrs::Bool
 end
 
 function begin_node(s::SerializerState)
@@ -271,7 +271,7 @@ function serializer_open(
   type_attr_map::S) where S <: Union{Dict{String, Vector{Symbol}}, Nothing}
   
   # some level of handling should be done here at a later date
-  return SerializerState(serializer, true, UUID[], io, nothing, type_attr_map)
+  return SerializerState(serializer, true, UUID[], io, nothing, with_attrs)
 end
 
 function deserializer_open(io::IO, serializer::OscarSerializer, with_attrs::Bool)
@@ -296,6 +296,8 @@ end
 function attrs_list(s::SerializerState, T::Type) 
   return get(s.type_attr_map, encode_type(T), Symbol[])
 end
+
+with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
 
 ################################################################################
 # Refs Channel
@@ -331,3 +333,6 @@ function wait(D::RefChannel)
         wait(D.cond_take)
     end
 end
+
+
+

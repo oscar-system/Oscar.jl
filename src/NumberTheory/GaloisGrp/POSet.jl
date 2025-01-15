@@ -75,7 +75,7 @@ function Base.iterate(P::POSet, i::Int)
   return POSetElem(P, i+1), i+1
 end
 
-Base.eltype(P::POSet{T}) where T = POSetElem{T}
+Base.eltype(::Type{POSet{T}}) where T = POSetElem{T}
 
 function Base.isless(e::POSetElem{T}, f::POSetElem{T}) where T
   P = parent(e)

@@ -70,6 +70,27 @@ function visualize(
   Polymake.visual(pmo; kwargs...)
 end
 
+@doc raw"""
+    visualize(P::Vector; kwargs...)
+
+Visualize a vector of polyhedral objects `P`, i.e., all polyhedral objects in `P` in one visualization.  See [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for which polyhedral objects and keyword arguments are possible.
+
+# Examples
+```julia
+julia> p = simplex(3)
+Polytope in ambient dimension 3
+
+julia> P = [p,p+[3,0,0],p+[0,3,0],p+[0,0,3]]
+4-element Vector{Polyhedron{QQFieldElem}}:
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+ Polytope in ambient dimension 3
+
+julia> visualize(P)
+
+```
+"""
 function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
   for p in P
     @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"

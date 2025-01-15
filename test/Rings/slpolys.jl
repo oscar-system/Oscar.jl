@@ -2,7 +2,7 @@ using Oscar: SLPolynomialRing
 
 const SLP = Oscar.StraightLinePrograms
 
-replstr(c) = sprint((io, x) -> show(io, "text/plain", x), c)
+replstr(c) = sprint(show, MIME"text/plain"(), c)
 
 @testset "LazyPolyRing" begin
     F = LazyPolyRing(AbstractAlgebra.ZZ)
@@ -93,7 +93,7 @@ end
     @test s0 == 0
     @test s0 isa SLPoly{Int}
 
-    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
+    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, [:x, :y])
 
     x0, y0 = gens(S)
     @test ngens(S) == 2
@@ -212,12 +212,12 @@ end
     end
 
     # conversion -> MPoly
-    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
+    R, (x1, y1) = polynomial_ring(AbstractAlgebra.zz, [:x, :y])
     q = convert(R, p)
     @test q isa Generic.MPoly
     @test parent(q) === R
     @test q == -x1^2*y1^2-2*x1*y1^2+x1*y1-y1^2
-    R2, (x2, y2) = polynomial_ring(AbstractAlgebra.zz, ["y", "x"])
+    R2, (x2, y2) = polynomial_ring(AbstractAlgebra.zz, [:y, :x])
     @test_throws ArgumentError convert(R2, p)
 
     @test convert(R, S()) == R()
@@ -250,19 +250,19 @@ end
     # mutating ops
     X, Y = gens(S)
     p = S(x*y-16*y^2)
-    # SLP.addeq!(p, S(x)) # TODO: this bugs
-    @test p === addeq!(p, S(x*y))
+    # SLP.add!(p, S(x)) # TODO: this bugs
+    @test p === add!(p, S(x*y))
     @test convert(R, p) == 2*x1*y1-16y1^2
     @test p == X*Y-16Y^2+X*Y
 
-    @test p === SLP.subeq!(p, S(-16y^2))
+    @test p === sub!(p, S(-16y^2))
     @test convert(R, p) == 2*x1*y1
     @test p == X*Y-16Y^2+X*Y- (-16*Y^2)
 
-    @test p === SLP.subeq!(p)
+    @test p === neg!(p)
     @test convert(R, p) == -2*x1*y1
-    # @test p === SLP.muleq!(p, p) # TODO: this bugs
-    @test p === SLP.muleq!(p, S(-2*x*y))
+    # @test p === mul!(p, p) # TODO: this bugs
+    @test p === mul!(p, S(-2*x*y))
     @test convert(R, p) == 4*(x1*y1)^2
     @test p === SLP.expeq!(p, 3)
     @test convert(R, p) == 64*(x1*y1)^6
@@ -323,7 +323,7 @@ end
     p = 2*x^3+y^2+3
     @test evaluate(p, [2, 3]) == 28
     @test SLP.evaluate!(Int[], p, [2, 3]) == 28
-    @test SLP.evaluate!(Int[], p, [2, 3], x -> x) == 28
+    @test SLP.evaluate!(Int[], p, [2, 3], identity) == 28
     @test SLP.evaluate!(Int[], p, [2, 3], x -> -x) == -10
 
     # trivial rings
@@ -333,7 +333,7 @@ end
     @test SLP.evaluate!(empty(gs), S(1), gs) == S(1)
 
     # evaluate MPoly at SLPolyRing generators
-    R, (x, y) = polynomial_ring(AbstractAlgebra.zz, ["x", "y"])
+    R, (x, y) = polynomial_ring(AbstractAlgebra.zz, [:x, :y])
     S = SLPolyRing(AbstractAlgebra.zz, [:x, :y])
     X, Y = gens(S)
     p = evaluate(x+y, [X, Y])
@@ -343,7 +343,7 @@ end
 
     @testset "SLPolyRing is a proper Ring" begin
         S, (x1, x2) = Oscar.SLPolynomialRing(QQ, 2)
-        St, t = polynomial_ring(S, "t")
+        St, t = polynomial_ring(S, :t)
 
         @testset "show" begin
             @test string(x1) == "x1"

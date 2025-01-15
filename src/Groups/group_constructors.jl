@@ -195,7 +195,7 @@ end
 # Delegating to the GAP constructor via `_gap_filter` does not work here.
 function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubPcGroup} where T <: IntegerUnion
   if 0 in v
-# if 0 in v || (TG == PcGroup && any(x -> ! is_prime(x), v))
+# if 0 in v || (TG == PcGroup && any(!is_prime, v))
 #TODO: Currently GAP's IsPcpGroup groups run into problems
 #      already in the available Oscar tests,
 #      see https://github.com/gap-packages/polycyclic/issues/88,
@@ -203,7 +203,7 @@ function abelian_group(::Type{TG}, v::Vector{T}) where TG <: Union{PcGroup, SubP
     # We cannot construct an `IsPcGroup` group if some generator shall have
     # order infinity or 1 or a composed number.
     return TG(GAP.Globals.AbelianPcpGroup(length(v), GapObj(v; recursive = true)))
-  elseif TG == PcGroup && any(x -> ! is_prime(x), v)
+  elseif TG == PcGroup && any(!is_prime, v)
     # GAP's IsPcGroup groups cannot have generators that correspond to the
     # orders given by `v` and to the defining presentation.
     error("cannot create a PcGroup group with relative orders $v, perhaps try SubPcGroup")

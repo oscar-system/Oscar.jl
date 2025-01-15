@@ -1,5 +1,3 @@
-isdefined(Oscar, :word) || function word end
-
 include("Cohomology.jl")
 include("GaloisCohomology.jl")
 include("GrpExt.jl")
@@ -516,18 +514,18 @@ function _minimize(V::GModule{<:Oscar.GAPGroup, <:AbstractAlgebra.FPModule{AbsSi
     Step 5:
       restrict sigma to Gal(K/E) and obtain a 1-boundary d
     Step 6:
-      Y = X restriced to K/E * d is a 1-chain in GL(n, K)
+      Y = X restricted to K/E * d is a 1-chain in GL(n, K)
       split by A in GL(n, K)
       Now, technically, A V A^-1 has values in Gl(n, E)
     Step 7:
       Replacing V -> A V A^-1 changes 
                 X_g -> A^g X A^-1
-      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normlized (mult. by
+      As A V A^-1 is in GL(n, E), A^g X A^-1 can be normalized (mult. by
       scalar in K) to be in Gl(n, E)
     Step 8: Find F using Grunwald Wang
       The Galois group FF/k is the direct product, so
       inflate the "new" X and (re)-compute sigma
-    Step 9: is_coboundary and new transformatio matrix
+    Step 9: is_coboundary and new transformation matrix
     =#
 
 
@@ -946,11 +944,11 @@ function gmodule(k::Nemo.FinField, C::GModule{<:Any, <:AbstractAlgebra.FPModule{
 end
 
 function Hecke.frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(x, degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.frobenius(x, i), y -> Hecke.frobenius(y, degree(K)-i))
 end
 
 function Hecke.absolute_frobenius(K::FinField, i::Int=1)
-  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(x, absolute_degree(K)-i))
+  MapFromFunc(K, K, x->Hecke.absolute_frobenius(x, i), y -> Hecke.absolute_frobenius(y, absolute_degree(K)-i))
 end
 
 @doc raw"""
@@ -1177,7 +1175,7 @@ function _two_cocycle(mA::Map, C::GModule{<:Any, <:AbstractAlgebra.FPModule{AbsS
       elseif isone(h)
         sigma[(g, h)] = (one(K))
       else
-        lf = findfirst(x->!iszero(x), X[g*h])
+        lf = findfirst(!is_zero, X[g*h])
         sigma[(g, h)] = (X[g*h][lf]//(map_entries(mA(h), X[g])*X[h])[lf])
 #        sigma[(g, h)] = MK(X[g*h][lf]//(X[h]*map_entries(mA(h), X[g]))[lf])
       end

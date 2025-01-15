@@ -22,7 +22,7 @@ function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
   if check
     @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
   end
-  R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v), cached = false)
+  R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
   linear_relations = ideal_of_linear_relations(R, v)
   stanley_reisner = stanley_reisner_ideal(R, v)
   set_attribute!(v, :cohomology_ring, quo(R, linear_relations + stanley_reisner)[1])
@@ -63,7 +63,7 @@ end
     generators = [cohomology_class(d) for d in torusinvariant_prime_divisors(v)]
     
     # find combinations of those classes that we have to integrate
-    S, _ = graded_polynomial_ring(QQ, ["g$i" for i in 1:length(generators)], cached=false)
+    S, _ = graded_polynomial_ring(QQ, "g#" => 1:length(generators); cached=false)
     hc = homogeneous_component(S, [dim(v)])
     monoms = [hc[2](x) for x in gens(hc[1])]
     combinations = reduce(vcat, [[[ZZRingElem(l) for l in k] for k in AbstractAlgebra.exponent_vectors(m)] for m in monoms])
@@ -213,4 +213,56 @@ function chern_classes(v::NormalToricVariety; check::Bool = true)
     @req is_smooth(v) && is_complete(v) "The Chern classes of the tangent bundle are only supported for smooth and complete toric varieties"
   end
   return [chern_class(v, k; check = check) for k in 0:dim(v)]
+end
+
+
+@doc raw"""
+    basis_of_h4(v::NormalToricVariety; check::Bool = true)
+
+This method computes a monomial basis of the cohomology class $H^4(X, \mathbb{Q})$
+for a toric variety $X$. The algorithm employs Theorem 12.4.1 in [CLS11](@cite),
+i.e. truncates the cohomology ring to degree $2$. By virtue of this theorem,
+this approach is supported only for toric varieties that are both complete and
+simplicial. Since it can be computationally very demanding to verify completeness,
+the optional argument `check` can be set to `false` to skip the tests.
+
+# Examples
+```jldoctest
+julia> Y1 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia> Y2 = hirzebruch_surface(NormalToricVariety, 2)
+Normal toric variety
+
+julia> Y = Y1 * Y2
+Normal toric variety
+
+julia> h4_basis = basis_of_h4(Y)
+6-element Vector{CohomologyClass}:
+ Cohomology class on a normal toric variety given by yx2^2
+ Cohomology class on a normal toric variety given by xx2*yx2
+ Cohomology class on a normal toric variety given by xx2*yt2
+ Cohomology class on a normal toric variety given by xx2^2
+ Cohomology class on a normal toric variety given by xt2*yx2
+ Cohomology class on a normal toric variety given by xt2*yt2
+
+julia> betti_number(Y, 4) == length(h4_basis)
+true
+```
+"""
+function basis_of_h4(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
+  if check
+    @req is_complete(v) "Computation of basis of H4(X, Q) is currently only supported for complete toric varieties"
+    @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
+  end
+  if dim(v) < 4
+    set_attribute!(v, :basis_of_h4, Vector{CohomologyClass}())
+  end
+  if has_attribute(v, :basis_of_h4)
+    return get_attribute(v, :basis_of_h4)
+  end
+  R = cohomology_ring(v, check = check)
+  basis_of_h4 = [cohomology_class(v, R(g)) for g in monomial_basis(R, [2])]
+  set_attribute!(v, :basis_of_h4, basis_of_h4)
+  return basis_of_h4
 end

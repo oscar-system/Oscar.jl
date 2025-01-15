@@ -96,12 +96,13 @@ end
 
 function load_root_system_data(s::DeserializerState, L::LieAlgebra)
   if haskey(s, :root_system)
-    @assert L isa AbstractLieAlgebra # TODO: adapt once we have a proper interface for this
-    L.root_system = load_typed_object(s, :root_system)
-    chevalley_basis = load_object(
-      s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
-    )
-    # chevalley basis will become an attribute in the near future
+    rs = load_typed_object(s, :root_system)
+    chev = NTuple{3,Vector{elem_type(L)}}(
+      load_object(
+        s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
+      ),
+    ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
+    set_root_system_and_chevalley_basis!(L, rs, chev)
   end
 end
 
@@ -136,7 +137,7 @@ end
 #
 ###############################################################################
 
-@register_serialization_type LieAlgebraModule uses_id [:__serialize_construction]
+@register_serialization_type LieAlgebraModule uses_id
 
 function save_object(s::SerializerState, V::LieAlgebraModule)
   save_data_dict(s) do
@@ -166,7 +167,7 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule})
 end
 
 function save_construction_data(s::SerializerState, V::LieAlgebraModule)
-  :__serialize_construction in Oscar.attrs_list(s, typeof(V)) || return nothing # attribute saving disabled
+  with_attrs(s) || return nothing # attribute saving disabled
   save_data_dict(s, :construction_data) do
     if _is_standard_module(V)
       save_object(s, save_as_ref(s, base_lie_algebra(V)), :is_standard_module)
@@ -188,7 +189,7 @@ end
 
 function load_construction_data(s::DeserializerState, T::Type{<:LieAlgebraModule})
   V = nothing
-  s.with_attrs && haskey(s, :construction_data) &&
+  with_attrs(s) && haskey(s, :construction_data) &&
     load_node(s, :construction_data) do _
       if haskey(s, :is_standard_module)
         V = standard_module(load_typed_object(s, :is_standard_module))
@@ -237,111 +238,5 @@ function save_type_params(s::SerializerState, v::LieAlgebraModuleElem)
 end
 
 function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraModuleElem})
-  return load_typed_object(s)
-end
-
-###############################################################################
-#
-#   Root systems
-#
-###############################################################################
-
-@register_serialization_type RootSystem uses_id
-
-function save_object(s::SerializerState, R::RootSystem)
-  save_data_dict(s) do
-    save_object(s, cartan_matrix(R), :cartan_matrix)
-    if has_root_system_type(R)
-      type, type_ordering = root_system_type_with_ordering(R)
-      save_object(s, type, :type)
-      if type_ordering != 1:length(type_ordering) # don't save if it's the default
-        save_object(s, type_ordering, :type_ordering)
-      end
-    end
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{RootSystem})
-  cm = load_object(s, Matrix, Int, :cartan_matrix)
-  R = root_system(cm; check=false, detect_type=false)
-  if haskey(s, :type)
-    type = Vector{Tuple{Symbol,Int}}(load_object(s, Vector, (Tuple, [Symbol, Int]), :type)) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
-    if haskey(s, :type_ordering)
-      type_ordering = load_object(s, Vector, Int, :type_ordering)
-      set_root_system_type!(R, type, type_ordering)
-    else
-      set_root_system_type!(R, type)
-    end
-  end
-  return R
-end
-
-@register_serialization_type RootSpaceElem uses_params
-@register_serialization_type DualRootSpaceElem uses_params
-
-function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
-  save_object(s, _vec(coefficients(r)))
-end
-
-function load_object(
-  s::DeserializerState, T::Type{<:Union{RootSpaceElem,DualRootSpaceElem}}, R::RootSystem
-)
-  return T(R, load_object(s, Vector, QQ))
-end
-
-function save_type_params(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
-  save_data_dict(s) do
-    save_object(s, encode_type(typeof(r)), :name)
-    rs_x = root_system(r)
-    rs_ref = save_as_ref(s, rs_x)
-    save_object(s, rs_ref, :params)
-  end
-end
-
-function load_type_params(
-  s::DeserializerState, ::Type{<:Union{RootSpaceElem,DualRootSpaceElem}}
-)
-  return load_typed_object(s)
-end
-
-###############################################################################
-#
-#   Weyl groups
-#
-###############################################################################
-
-@register_serialization_type WeylGroup uses_id
-
-function save_object(s::SerializerState, W::WeylGroup)
-  save_data_dict(s) do
-    save_typed_object(s, root_system(W), :root_system)
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{WeylGroup})
-  R = load_typed_object(s, :root_system)
-  return weyl_group(R)
-end
-
-@register_serialization_type WeylGroupElem uses_params
-
-function save_object(s::SerializerState, x::WeylGroupElem)
-  save_object(s, word(x))
-end
-
-function load_object(s::DeserializerState, ::Type{WeylGroupElem}, W::WeylGroup)
-  return W(load_object(s, Vector, UInt8); normalize=false)
-end
-
-function save_type_params(s::SerializerState, x::WeylGroupElem)
-  save_data_dict(s) do
-    save_object(s, encode_type(typeof(x)), :name)
-    parent_x = parent(x)
-    parent_ref = save_as_ref(s, parent_x)
-    save_object(s, parent_ref, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{WeylGroupElem})
   return load_typed_object(s)
 end

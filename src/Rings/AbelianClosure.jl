@@ -34,9 +34,9 @@ import Base: +, *, -, //, ==, zero, one, ^, div, isone, iszero,
 
 #import ..Oscar.AbstractAlgebra: promote_rule
 
-import ..Oscar: AbstractAlgebra, addeq!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
-                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, parent,
-                parent_type, promote_rule, root, root_of_unity, roots
+import ..Oscar: AbstractAlgebra, add!, base_ring, base_ring_type, characteristic, elem_type, divexact, gen,
+                has_preimage_with_preimage, is_root_of_unity, is_unit, mul!, neg!, parent,
+                parent_type, promote_rule, root, root_of_unity, roots, @req
 
 using Hecke
 import Hecke: conductor, data
@@ -625,14 +625,22 @@ end
 #
 ################################################################################
 
-function addeq!(c::QQAbFieldElem, a::QQAbFieldElem)
-  _c, _a = make_compatible(c, a)
-  addeq!(_c.data, _a.data)
-  return _c
+function add!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  b, c = make_compatible(b, c)
+  a, b = make_compatible(a, b)
+  c.data = add!(c.data, a.data, b.data)
+  return c
+end
+
+function add!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = add!(a.data, b.data)
+  return a
 end
 
 function neg!(a::QQAbFieldElem)
-  mul!(a.data,a.data,-1)
+  a.data = neg!(a.data)
   return a
 end
 
@@ -640,8 +648,14 @@ function mul!(c::QQAbFieldElem, a::QQAbFieldElem, b::QQAbFieldElem)
   a, b = make_compatible(a, b)
   b, c = make_compatible(b, c)
   a, b = make_compatible(a, b)
-  mul!(c.data, a.data, b.data)
+  c.data = mul!(c.data, a.data, b.data)
   return c
+end
+
+function mul!(a::QQAbFieldElem, b::QQAbFieldElem)
+  a, b = make_compatible(a, b)
+  a.data = mul!(a.data, b.data)
+  return a
 end
 
 ################################################################################
@@ -760,7 +774,7 @@ AbstractAlgebra.promote_rule(::Type{QQAbFieldElem}, ::Type{QQFieldElem}) = QQAbF
 ###############################################################################
 
 function Oscar.root(a::QQAbFieldElem, n::Int)
-  Hecke.@req is_root_of_unity(a) "Element must be a root of unity"
+  @req is_root_of_unity(a) "Element must be a root of unity"
   o = Oscar.order(a)
   l = o*n
   mu = root_of_unity2(parent(a), Int(l))
@@ -919,25 +933,22 @@ end
 
 # Construct the map from `F` to an abelian closure `K` such that `gen(F)`
 # is mapped to `x`.
-# If `F` is a cyclotomic field with conductor `N` then assume that `gen(F)`
-# is mapped to `QQAbFieldElem(gen(F), N)`.
+# If `F` has conductor `N` then assume that `x.c == N` holds.
+# If `F` is a cyclotomic field with conductor `N` then assume that
+# `x == QQAbFieldElem(gen(F), N)`.
 # (Use that the powers of this element form a basis of the field.)
 function _embedding(F::QQField, K::QQAbField{AbsSimpleNumField},
                     x::QQAbFieldElem{AbsSimpleNumFieldElem})
-  C1, z = cyclotomic_field(1)
+  C1, _ = cyclotomic_field(1)
 
   f = function(x::QQFieldElem)
     return QQAbFieldElem(C1(x), 1)
   end
 
-  finv = function(x::QQAbFieldElem; check::Bool = false)
-    if conductor(x) == 1
-      return Hecke.force_coerce_cyclo(C1, data(x))
-    elseif check
-      return
-    else
-      error("element has no preimage")
-    end
+  finv = function(x::QQAbFieldElem; throw_error::Bool = true)
+    res = Hecke.force_coerce_cyclo(C1, data(x), Val(false))
+    throw_error && res === nothing && error("element has no preimage")
+    return res
   end
 
   return MapFromFunc(F, K, f, finv)
@@ -952,18 +963,14 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(x, n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
-      if n % conductor(x) == 0
-        return Hecke.force_coerce_cyclo(F, data(x))
-      elseif check
-        return
-      else
-        error("element has no preimage")
-      end
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
+      res = Hecke.force_coerce_cyclo(F, data(x), Val(false))
+      throw_error && res === nothing && error("element has no preimage")
+      return res
     end
   else
     # `F` is expected to be a proper subfield of a cyclotomic field.
-    n = conductor(x)
+    n = x.c
     x = data(x)
     Kn, = AbelianClosure.cyclotomic_field(K, n)
     powers = [Hecke.coefficients(Hecke.force_coerce_cyclo(Kn, x^i))
@@ -975,25 +982,26 @@ function _embedding(F::AbsSimpleNumField, K::QQAbField{AbsSimpleNumField},
       return QQAbFieldElem(evaluate(R(z), x), n)
     end
 
-    finv = function(x::QQAbFieldElem; check::Bool = false)
-      n % conductor(x) == 0 || return false, zero(F)
+    finv = function(x::QQAbFieldElem; throw_error::Bool = true)
       # Write `x` w.r.t. the n-th cyclotomic field ...
       g = gcd(x.c, n)
       Kg, = AbelianClosure.cyclotomic_field(K, g)
-      x = Hecke.force_coerce_cyclo(Kg, data(x))
+      x = Hecke.force_coerce_cyclo(Kg, data(x), Val(false))
+      if x === nothing
+        throw_error && error("element has no preimage")
+        return
+      end
       x = Hecke.force_coerce_cyclo(Kn, x)
       # ... and then w.r.t. `F`
       a = Hecke.coefficients(x)
       fl, sol = can_solve_with_solution(c, matrix(QQ, length(a), 1, a); side = :right)
-      if fl
-        b = transpose(sol)
-        b = [b[i] for i in 1:length(b)]
-        return F(b)
-      elseif check
+      if !fl
+        throw_error && error("element has no preimage")
         return
-      else
-        error("element has no preimage")
       end
+      b = transpose(sol)
+      b = [b[i] for i in 1:length(b)]
+      return F(b)
     end
   end
   return MapFromFunc(F, K, f, finv)
@@ -1002,7 +1010,7 @@ end
 # The following works only if `mp.g` admits a second argument,
 # which is the case if `mp` has been constructed by `_embedding` above.
 function has_preimage_with_preimage(mp::MapFromFunc{AbsSimpleNumField, QQAbField{AbsSimpleNumField}}, x::QQAbFieldElem{AbsSimpleNumFieldElem})
-  pre = mp.g(x, check = true)
+  pre = mp.g(x, throw_error = false)
   if isnothing(pre)
     return false, zero(domain(mp))
   else
@@ -1030,7 +1038,7 @@ end
 # Then $l = k a n_0 + b n_1$ is coprime to $n$ and has the properties
 # $l \equiv 1 \pmod{n_0}$ and $l \equiv k \pmod{n_1}$.
 
-mutable struct QQAbAutomorphism
+struct QQAbAutomorphism
   exp::Int
 end
 
@@ -1046,7 +1054,7 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
     # Replace `k` by an equivalent one that is coprime to `n`.
     n0 = 1
     n1 = n
-    for (p, exp) in collect(Oscar.factor(g))
+    for (p, exp) in Oscar.factor(g)
       while mod(n1, p) == 0
         n0 = n0*p
         n1 = div(n1, p )
@@ -1069,6 +1077,8 @@ function ^(val::QQAbFieldElem, sigma::QQAbAutomorphism)
 end
 
 Base.conj(elm::QQAbFieldElem) = elm^QQAbAutomorphism(-1)
+
+Base.isreal(elm::QQAbFieldElem) = conj(elm) == elm
 
 ###############################################################################
 #
@@ -1106,7 +1116,7 @@ function square_root_in_cyclotomic_field(F::QQAbField, n::Int, N::Int)
 
   cf = 1
   sqf = 1
-  for (p,e) in collect(factor(n))
+  for (p,e) in factor(n)
     cf = cf * p^div(e, 2)
     if e % 2 != 0
       sqf = sqf * p
@@ -1219,7 +1229,7 @@ function quadratic_irrationality_info(a::QQAbFieldElem)
     den = denominator(ysquarem)
     den_y = sqrt(den)
     m = sign(num)
-    for (p, e) in collect(factor(num))
+    for (p, e) in factor(num)
       if e % 2 == 1
         m = m * p
       end

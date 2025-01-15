@@ -3,7 +3,7 @@
 =#
 using Oscar
 
-R, (x,y,z,u,v) = polynomial_ring(QQ, ["x","y","z","u","v"])
+R, (x,y,z,u,v) = polynomial_ring(QQ, [:x,:y,:z,:u,:v])
 
 o1 = matrix_ordering(R, [1 1 1 0 0; 0 0 0 1 1; 0 0 0 1 0; 1 1 0 0 0; 1 0 0 0 0])
 o2 = matrix_ordering(R, [0 0 0 1 1; 1 1 1 0 0; 1 1 0 0 0; 1 0 0 0 0; 0 0 0 1 0])

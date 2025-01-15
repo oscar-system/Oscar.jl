@@ -75,8 +75,8 @@ julia> basisNSY1, gramTriv = trivial_lattice(Y1);
 
 julia> [(i[1],i[2]) for i in reducible_fibers(Y1)]
 3-element Vector{Tuple{Vector{QQFieldElem}, Tuple{Symbol, Int64}}}:
- ([1, 1], (:A, 2))
  ([0, 1], (:E, 8))
+ ([1, 1], (:A, 2))
  ([1, 0], (:E, 8))
 
 julia> basisNSY1, _, NSY1 = algebraic_lattice(Y1);
@@ -85,8 +85,6 @@ julia> basisNSY1
 20-element Vector{Any}:
  Fiber over (2, 1)
  section: (0 : 1 : 0)
- component A2_1 of fiber over (1, 1)
- component A2_2 of fiber over (1, 1)
  component E8_1 of fiber over (0, 1)
  component E8_2 of fiber over (0, 1)
  component E8_3 of fiber over (0, 1)
@@ -95,6 +93,8 @@ julia> basisNSY1
  component E8_6 of fiber over (0, 1)
  component E8_7 of fiber over (0, 1)
  component E8_8 of fiber over (0, 1)
+ component A2_1 of fiber over (1, 1)
+ component A2_2 of fiber over (1, 1)
  component E8_1 of fiber over (1, 0)
  component E8_2 of fiber over (1, 0)
  component E8_3 of fiber over (1, 0)
@@ -112,7 +112,7 @@ given as the formal sum of
   1 * sheaf of ideals
 
 julia> b, I = Oscar._is_equal_up_to_permutation_with_permutation(gram_matrix(NS), gram_matrix(NSY1))
-(true, [1, 2, 19, 20, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18])
+(true, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 19, 20, 11, 12, 13, 14, 15, 16, 17, 18])
 
 julia> @assert gram_matrix(NSY1) == gram_matrix(NS)[I,I]
 
@@ -184,8 +184,10 @@ julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E4 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + 1//4*t^4*x^2 - 1//2*t^2*x + 1//4
 
 julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[5]);g
 t^2*x^3 + (-1//4*t^4 + 2*t)*x^2 + x + y^2
@@ -197,8 +199,10 @@ julia> (x,y) = gens(R); P = K_t.([0,0]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E5 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 = x^3 + (1//4*t^4 - 2*t)*x^2 + t^2*x
 
 julia> g,_ = two_neighbor_step(Y2, fibers_in_Y2[6]);g
 (t^2 + 2*t + 1)*x^3 + y^2 - 1//4*t^4
@@ -210,5 +214,7 @@ julia> (x,y) = gens(R); P = K_t.([0,1//2*t^2]); # rational point
 julia> g, _ = transform_to_weierstrass(g, x, y, P);
 
 julia> E6 = elliptic_curve(g, x, y)
-Elliptic curve with equation
-y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3
+Elliptic curve
+  over fraction field of univariate polynomial ring
+with equation
+  y^2 + (-t^2 - 2*t - 1)//t^4*y = x^3

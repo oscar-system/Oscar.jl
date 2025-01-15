@@ -1,5 +1,6 @@
 ```@meta
 CurrentModule = Oscar
+DocTestSetup = Oscar.doctestsetup()
 ```
 
 # Matroid Realization Spaces
@@ -68,8 +69,7 @@ Blowup
 with domain
   scheme over QQ covered with 2 patches
     1a: [(s1//s0), x1, x2]   scheme(-(s1//s0)*x1 + 4*(s1//s0) + x2^2 - 8) \ scheme((x1 - x2)*x2*x1*(x2 - 1)*(x1 - 1)*(x1 + x2^2 - x2)*(x1*x2 - x1 - x2^2))
-    2a: [(s0//s1), x2]       scheme(0) \ scheme(((s0//s1)*x2^2 - 8*(s0//s1) - x2 + 4)*x2*((s0//s1)*x2^2 - 8*(s0//s1) + 4)*(x2 - 1)*((s0//s1)*x2^2 - 8*(s0//s1) + 3)*((s0//s1)*x2^2 - 8*(s0//s1) + x2^2 - x2 + 4)*((
-    s0//s1)*x2^3 - (s0//s1)*x2^2 - 8*(s0//s1)*x2 + 8*(s0//s1) - x2^2 + 4*x2 - 4))
+    2a: [(s0//s1), x2]       scheme(0) \ scheme(((s0//s1)*x2^2 - 8*(s0//s1) - x2 + 4)*x2*((s0//s1)*x2^2 - 8*(s0//s1) + 4)*(x2 - 1)*((s0//s1)*x2^2 - 8*(s0//s1) + 3)*((s0//s1)*x2^2 - 8*(s0//s1) + x2^2 - x2 + 4)*((s0//s1)*x2^3 - (s0//s1)*x2^2 - 8*(s0//s1)*x2 + 8*(s0//s1) - x2^2 + 4*x2 - 4))
 and exceptional divisor
   effective cartier divisor defined by
     sheaf of ideals with restrictions

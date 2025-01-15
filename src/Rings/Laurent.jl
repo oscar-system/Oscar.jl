@@ -61,8 +61,8 @@ function _polyringquo(R::LaurentMPolyWrapRing)
   get_attribute!(R, :polyring) do
     n = nvars(R)
     C = base_ring(R)
-    Cx, x = polynomial_ring(C, append!(["x$i" for i in 1:n], ["x$i^-1" for i in 1:n]); cached = false)
-    I = ideal(Cx, [x[i]*x[i + n] - 1 for i in 1:n])
+    Cx, x, xinv = polynomial_ring(C,"x#" => 1:n, "x#^-1" => 1:n; cached = false)
+    I = ideal(Cx, [x[i]*xinv[i] - 1 for i in 1:n])
     Q, = quo(Cx, I)
     return _LaurentMPolyBackend(R, Q)
   end::_LaurentMPolyBackend  # TODO: make the type fully concrete
@@ -215,7 +215,7 @@ gens(I::LaurentMPolyIdeal) = I.gens
 @enable_all_show_via_expressify LaurentMPolyIdeal
 
 function AbstractAlgebra.expressify(a::LaurentMPolyIdeal; context = nothing)
-  return Expr(:call, :ideal, [AbstractAlgebra.expressify(g, context = context) for g in collect(gens(a))]...)
+  return Expr(:call, :ideal, [AbstractAlgebra.expressify(g, context = context) for g in gens(a)]...)
 end
 
 function ideal(R::LaurentMPolyRing, x::Vector)

@@ -134,7 +134,7 @@ function is_admissible_triple(A::ZZGenus, B::ZZGenus, C::ZZGenus, p::IntegerUnio
   end
 
   # A+B and C must agree locally at every primes except p
-  for q in filter(qq -> qq != p, union!(ZZRingElem[2], primes(AperpB), primes(C)))
+  for q in filter(!=(p), union!(ZZRingElem[2], primes(AperpB), primes(C)))
     if local_symbol(AperpB, q) != local_symbol(C, q)
       return false
     end
@@ -347,7 +347,7 @@ function admissible_triples(G::ZZGenus, p::IntegerUnion; pA::Int = -1, nA::Int =
     elseif nA >= 0
       r1 >= nA || continue
     end
-    m = min(ep, r1)
+    m = Int(min(ep, r1))
     D = _find_D(dG, m, p)
     while !is_empty(D)
       d1, dp = pop!(D)
@@ -432,7 +432,7 @@ function _possible_signatures(s2::IntegerUnion, E::Field, rk::IntegerUnion)
     parts = Vector{Int}[]
     l = divexact(s2-l, 2)
     for v in AllParts(l)
-      if any(i -> i > rk, v)
+      if any(>(rk), v)
         continue
       end
       if length(v) > s
@@ -543,7 +543,7 @@ representatives_of_hermitian_type(L::ZZLat, m::Int, fix_root::Bool = false; firs
 Given a non-empty genus of integer lattices $G$ and a polynomial $chi$ irreducible
 over $\mathbb Q$, such that the equation order of the associated number field is
 maximal, return a list of representatives of isomorphism classes of pairs $(M, g)$
-consiting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
+consisting of a lattice $M$ in $G$ and $g \in O(M)$ is an isometry of minimal polynomial
 $chi$.
 
 One can also provide a representative $L$ of $G$ instead.
@@ -592,7 +592,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     Etemp, btemp = number_field(chi; cached=false)
     @req is_maximal(equation_order(Etemp)) "For infinite isometries, the equation order of the associated number field must be maximal"
     K, a = number_field(minpoly(btemp + inv(btemp)), "a"; cached=false)
-    Kt, t = K["t"]
+    Kt, t = K[:t]
     E, b = number_field(t^2-a*t+1, "b"; cached=false)
   end
 
@@ -616,6 +616,7 @@ function representatives_of_hermitian_type(G::ZZGenus, chi::Union{ZZPolyRingElem
     append!(gene, hermitian_genera(E, rk, sign, dd; min_scale=inv(DE), max_scale=numerator(dd)*DE))
   end
   unique!(gene)
+  isempty(gene) && return reps
 
   # In the cyclotomic case, the Galois group of the fixed field K acts on the
   # set of genera by "change of fixed primitive root of unity".

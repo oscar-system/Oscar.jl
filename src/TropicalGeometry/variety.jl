@@ -46,7 +46,7 @@ Return the `TropicalVariety` whose polyhedral complex is `Sigma` with multiplici
 
 # Examples
 ```jldoctest
-julia> Sigma = polyhedral_complex(IncidenceMatrix([[1],[2]]), [[0],[1]])
+julia> Sigma = polyhedral_complex(incidence_matrix([[1],[2]]), [[0],[1]])
 Polyhedral complex in ambient dimension 1
 
 julia> tropical_variety(Sigma)
@@ -148,7 +148,7 @@ If `skip_primary_decomposition==true`, will not decompose `I`.
 
 # Examples
 ```jldoctest
-julia> R,(x,y) = QQ["x","y"];
+julia> R,(x,y) = QQ[:x, :y];
 
 julia> I = ideal([(x^2+y)*(x+y^2)*(x+y)]);
 
@@ -301,7 +301,7 @@ function tropical_variety_linear(I::MPolyIdeal,nu::TropicalSemiringMap; weighted
         return TropV
     else
         # input inhomogeneous, homogenise first
-        Ih = homogenize_pre_tropicalization(I)
+        Ih,_,_ = homogenize_pre_tropicalization(I)
         TropLh = tropical_linear_space(Ih,nu,weighted_polyhedral_complex_only=true)
         Sigma = dehomogenize_post_tropicalization(polyhedral_complex(TropLh))
 
@@ -313,104 +313,6 @@ function tropical_variety_linear(I::MPolyIdeal,nu::TropicalSemiringMap; weighted
         end
         return TropV
     end
-end
-
-
-function homogenize_pre_tropicalization(I::MPolyIdeal)
-    ###
-    # Compute reduced Groebner basis (usually already cached), and construct homogenization
-    ###
-    G = groebner_basis(I,complete_reduction=true)
-
-    Kx = base_ring(I)
-    K = coefficient_ring(Kx)
-    x = symbols(Kx)
-    Kxhx,_ = polynomial_ring(K,vcat([:xh],x))
-
-    Gh = Vector{elem_type(Kx)}(undef,length(G))
-    for (i,g) in enumerate(G)
-        gh = MPolyBuildCtx(Kxhx)
-        d = total_degree(g)
-        for (c,alpha) in coefficients_and_exponents(g)
-            pushfirst!(alpha,d-sum(alpha)) # homogenize exponent vector
-            push_term!(gh,c,alpha)
-        end
-        Gh[i] = finish(gh)
-    end
-
-    return ideal(Gh)
-end
-
-
-function dehomogenize_post_tropicalization(Sigma::PolyhedralComplex)
-    @req lineality_dim(Sigma)>0 "dehomogenizing polyhedral complex without lineality"
-
-    ###
-    # Construct hyperplane {first coord = 0}
-    ###
-    n = ambient_dim(Sigma)
-    zerothUnitRowVector = zeros(Int,1,n)
-    zerothUnitRowVector[1,1] = 1
-    dehomogenisingHyperplane = polyhedron((zeros(Int,0,n),zeros(Int,0)), (zerothUnitRowVector,[0]))
-
-    ###
-    # Construct matrix and incidence matrix of vertices and rays
-    ###
-    incidenceMatrixVertices = Vector{Int}[]
-    dehomogenizedVertices = Vector{QQFieldElem}[]
-    incidenceMatrixRays = Vector{Int}[]
-    dehomogenizedRays = Vector{QQFieldElem}[]
-    for sigma in maximal_polyhedra(Sigma)
-        sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
-        incidenceVectorVertices = Int[]
-        V,_ = minimal_faces(sigmaDehomogenized)
-        for vertex in V
-            vertex = vertex[2:end]
-            i = findfirst(isequal(vertex),dehomogenizedVertices)
-            if i === nothing
-                push!(dehomogenizedVertices,vertex)
-                push!(incidenceVectorVertices,length(dehomogenizedVertices))
-            else
-                push!(incidenceVectorVertices,i)
-            end
-        end
-        push!(incidenceMatrixVertices,incidenceVectorVertices)
-
-        incidenceVectorRays = Int[]
-        R,_ = rays_modulo_lineality(sigmaDehomogenized)
-        for ray in R
-            ray = ray[2:end]
-            i = findfirst(isequal(ray),dehomogenizedRays)
-            if i === nothing
-                push!(dehomogenizedRays,ray)
-                push!(incidenceVectorRays,length(dehomogenizedRays))
-            else
-                push!(incidenceVectorRays,i)
-            end
-        end
-        push!(incidenceMatrixRays,incidenceVectorRays)
-    end
-
-    ###
-    # Concatenate vertically matrixes of vertices and rays,
-    # shift incidence matrix of rays and concatenate it horizontally to incicende matrix of vertices,
-    # dehomogenize generators of lineality space
-    ###
-    dehomogenizedVerticesAndRays = matrix(QQ,vcat(dehomogenizedVertices,dehomogenizedRays))
-    incidenceMatrixRaysShifted = (x -> x .+length(dehomogenizedVertices)).(incidenceMatrixRays)
-    incidenceMatrixVerticesAndRays = IncidenceMatrix([vcat(iv,ir) for (iv,ir) in zip(incidenceMatrixVertices,incidenceMatrixRaysShifted)])
-
-    ###
-    # Dehomogenize lineality space
-    ###
-    sigma = first(maximal_polyhedra(Sigma))
-    sigmaDehomogenized = intersect(sigma,dehomogenisingHyperplane)
-    dehomogenizedLineality = [linealityVector[2:end] for linealityVector in lineality_space(sigmaDehomogenized)]
-
-    return polyhedral_complex(incidenceMatrixVerticesAndRays,
-                              dehomogenizedVerticesAndRays,
-                              collect(length(dehomogenizedVertices)+1:length(dehomogenizedVertices)+length(dehomogenizedRays)),
-                              dehomogenizedLineality)
 end
 
 
@@ -449,7 +351,7 @@ end
 function slope_eigenspace(M::MatElem{T}) where T <: Hecke.NonArchLocalFieldElem
     f = charpoly(M)
     lf = Hecke.slope_factorization(f)
-    # @req all(x->x==1, values(lf))
+    # @req all(==(1), values(lf))
 
     se = Dict{typeof(f), typeof(M)}()
     k = base_ring(M)
@@ -588,7 +490,7 @@ end
 #       end
 
 #       # if (w,C,G) already is in working_list_todo, skip
-#       i = searchsortedfirst(working_list_todo,(w,C,G),by=x->x[1])
+#       i = searchsortedfirst(working_list_todo,(w,C,G),by=first)
 #       if i<=length(working_list_todo) && working_list_todo[i][1]==w
 #         continue
 #       end
@@ -608,7 +510,7 @@ end
 
 #     # pick a groebner polyhedron from todo list, add it to the done list, and compute its facet points
 #     (w,C,G) = popfirst!(working_list_todo)
-#     i = searchsortedfirst(working_list_done,(w,C,G),by=x->x[1])
+#     i = searchsortedfirst(working_list_done,(w,C,G),by=first)
 #     insert!(working_list_done, i, (w,C,G))
 
 #     points_to_traverse = facet_points(C)
@@ -633,14 +535,14 @@ end
 #         # if neighbor is already in done list, skip
 #         i = searchsortedfirst(working_list_done,
 #                               (w_neighbor,C_neighbor,G_neighbor),
-#                               by=x->x[1])
+#                               by=first)
 #         if i<=length(working_list_done) && working_list_done[i][1]==w_neighbor
 #           continue
 #         end
 #         # if neighbor is already in todo list, skip
 #         i = searchsortedfirst(working_list_todo,
 #                               (w_neighbor,C_neighbor,G_neighbor),
-#                               by=x->x[1])
+#                               by=first)
 #         if i<=length(working_list_todo) && working_list_todo[i][1]==w_neighbor
 #           continue
 #         end
@@ -726,7 +628,7 @@ end
 #   verts_rays_perm  = collect(vertices_and_rays(PC))
 #   verts_rays_perm = Vector{Int64}.(verts_rays_perm)
 #   permutation = [findfirst(isequal(l), verts_rays_perm) for l in verts_rays]
-# #  inc = [findall(c -> c, incidence_matrix[i, :]) for i in 1:size(incidence_matrix, 1)]
+# #  inc = [findall(incidence_matrix[i, :]) for i in 1:size(incidence_matrix, 1)]
 #   new_incidence = [permutation[incidence] for incidence in incidence_matrix]
 #   mults = Dict(new_incidence[i] => multiplicities[i] for i in 1:length(working_list_done))
 

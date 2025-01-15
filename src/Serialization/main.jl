@@ -326,7 +326,7 @@ function save_attrs(s::SerializerState, obj::T) where T
 end
 
 function load_attrs(s::DeserializerState, obj::T) where T
-  !s.with_attrs && return
+  !with_attrs(s) && return
 
   haskey(s, :attrs) && load_node(s, :attrs) do d
     for attr in keys(d)
@@ -512,7 +512,9 @@ macro import_all_serialization_functions()
       save_typed_object,
       serialize_with_id,
       serialize_with_params,
-      set_key
+      set_key,
+      with_attrs,
+      type_attr_map
   end
 end
 
@@ -534,6 +536,7 @@ include("TropicalGeometry.jl")
 include("QuadForm.jl")
 include("GAP.jl")
 include("Groups.jl")
+include("LieTheory.jl")
 
 include("Upgrades/main.jl")
 
@@ -574,8 +577,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 function save(io::IO, obj::T; metadata::Union{MetaData, Nothing}=nothing,
               with_attrs::Bool=true,
               serializer::OscarSerializer = JSONSerializer()) where T
-  s = serializer_open(io, serializer,
-                      with_attrs ? type_attr_map : Dict{String, Vector{Symbol}}())
+  s = serializer_open(io, serializer, with_attrs)
   save_data_dict(s) do 
     # write out the namespace first
     save_header(s, get_oscar_serialization_version(), :_ns)
@@ -651,7 +653,7 @@ julia> load("/tmp/fourtitwo.mrdi")
 julia> load("/tmp/fourtitwo.mrdi"; type=Int64)
 42
 
-julia> R, x = QQ["x"]
+julia> R, x = QQ[:x]
 (Univariate polynomial ring in x over QQ, x)
 
 julia> p = x^2 - x + 1

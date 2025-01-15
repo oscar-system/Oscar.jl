@@ -180,7 +180,7 @@ end
 #
 function isomorphism_to_GAP_group(G::GAPGroup)
     finv = function(x::GAP.Obj) return group_element(G, x); end
-    return MapFromFunc(G, G.X, GapObj, finv)
+    return MapFromFunc(G, GapObj(G), GapObj, finv)
 end
 
 function isomorphism_to_GAP_group(G::FinGenAbGroup)
@@ -189,9 +189,9 @@ function isomorphism_to_GAP_group(G::FinGenAbGroup)
     iso = isomorphism(SubPcGroup, G)
     C = codomain(iso)
     @assert C isa GAPGroup
-    f = function(x) return iso(x).X; end
+    f = function(x) return GapObj(iso(x)) end
     finv = function(x::GAP.Obj) return preimage(iso, group_element(C, x)); end
-    return MapFromFunc(G, C.X, f, finv)
+    return MapFromFunc(G, GapObj(C), f, finv)
 end
 
 function isomorphism_to_GAP_group(tbl::GAPGroupCharacterTable)
@@ -306,7 +306,7 @@ julia> Oscar.with_unicode() do
 ```
 """
 function character_table(G::Union{GAPGroup, FinGenAbGroup}, p::T = 0) where T <: IntegerUnion
-    tbls = get_attribute!(() -> Dict{Int,Any}(), G, :character_tables)
+    tbls = get_attribute!(G, :character_tables, Dict{Int,Any}())
     return get!(tbls, p) do
       p != 0 && return mod(character_table(G, 0), p)
       iso = isomorphism_to_GAP_group(G)
@@ -439,6 +439,35 @@ function Base.hash(tbl::GAPGroupCharacterTable, h::UInt)
   else
     return Base.hash(identifier(tbl), h)
   end
+end
+
+"""
+    is_atlas_character_table(tbl::GAPGroupCharacterTable)
+
+Return whether `tbl` is either an ordinary character table
+that belongs to the ATLAS of Finite Groups [CCNPW85](@cite)
+or a Brauer table whose underlying ordinary table
+belongs to the ATLAS of Finite Groups.
+
+One application of this function is to restrict the search with
+[`all_character_table_names`](@ref) to ATLAS tables.
+
+# Examples
+```jldoctest
+julia> tbl = character_table("A5");
+
+julia> is_atlas_character_table(tbl)
+true
+
+julia> is_atlas_character_table(mod(tbl, 2))
+true
+
+julia> is_atlas_character_table(character_table("A4"))
+false
+```
+"""
+function is_atlas_character_table(tbl::GAPGroupCharacterTable)
+  return GAPWrap.IsAtlasCharacterTable(GapObj(tbl))
 end
 
 
@@ -835,7 +864,7 @@ function Base.show(io::IO, ::MIME"text/plain", tbl::GAPGroupCharacterTable)
     n = nrows(tbl)
     gaptbl = GapObj(tbl)
     size = order(ZZRingElem, tbl)
-    primes = [x[1] for x in collect(factor(size))]
+    primes = [x[1] for x in factor(size)]
     sort!(primes)
 
     # Decide how to deal with irrationalities.
@@ -1256,8 +1285,8 @@ function Base.mod(tbl::GAPGroupCharacterTable, p::T) where T <: IntegerUnion
     @req is_prime(p) "p must be a prime integer"
     characteristic(tbl) == 0 || error("tbl mod p only for ordinary table tbl")
 
-    modtbls = get_attribute!(() -> Dict{Int,Any}(), tbl, :brauer_tables)
-    if ! haskey(modtbls, p)
+    modtbls = get_attribute!(tbl, :brauer_tables, Dict{Int,Any}())
+    if !haskey(modtbls, p)
       modtblgap = mod(GapObj(tbl), GAP.Obj(p))::GapObj
       if modtblgap === GAP.Globals.fail
         modtbls[p] = nothing
@@ -1618,7 +1647,7 @@ julia> tbl = character_table("A5");
 julia> println(maxes(tbl))
 ["a4", "D10", "S3"]
 
-julia> all(x -> x in names_of_fusion_sources(tbl), maxes(tbl))
+julia> all(in(names_of_fusion_sources(tbl)), maxes(tbl))
 true
 ```
 """
@@ -1899,7 +1928,7 @@ GapObj(chi::GAPGroupClassFunction) = chi.values
 
 # The following is needed for recursive `GapObj` calls with arrays
 # of class functions.
-GAP.julia_to_gap(chi::GAPGroupClassFunction) = chi.values
+GAP.@install GapObj(chi::GAPGroupClassFunction) = chi.values
 
 parent(chi::GAPGroupClassFunction) = chi.table
 
@@ -1944,7 +1973,7 @@ Return the character of `tbl` that has the value `QQAbFieldElem(1)` in each posi
 ```jldoctest
 julia> t = character_table(symmetric_group(4));
 
-julia> all(x -> x == 1, trivial_character(t))
+julia> all(==(1), trivial_character(t))
 true
 ```
 """
@@ -1963,7 +1992,7 @@ that has the value `QQAbFieldElem(1)` in each position.
 ```jldoctest
 julia> g = symmetric_group(4);
 
-julia> all(x -> x == 1, trivial_character(g))
+julia> all(==(1), trivial_character(g))
 true
 ```
 """
@@ -2243,7 +2272,7 @@ function _induce(chi::GAPGroupClassFunction,
   H, emb = is_subgroup(G_chi, G_tbl)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(parent(chi))]
   Greps = [representative(C) for C in conjugacy_classes(tbl)]
-  fus = [findfirst(x -> x == y, Greps) for y in Hreps]
+  fus = [findfirst(==(y), Greps) for y in Hreps]
   return induce(chi, tbl, fus)
 end
 
@@ -2338,7 +2367,7 @@ function _restrict(chi::GAPGroupClassFunction,
   H, emb = is_subgroup(G_subtbl, G_chi)
   Hreps = [emb(representative(C)) for C in conjugacy_classes(subtbl)]
   Greps = [representative(C) for C in conjugacy_classes(parent(chi))]
-  fus = [findfirst(x -> x == y, Greps) for y in Hreps]
+  fus = [findfirst(==(y), Greps) for y in Hreps]
   return restrict(chi, subtbl, fus)
 end
 
@@ -2529,11 +2558,11 @@ multiplicities_eigenvalues(chi::GAPGroupClassFunction, i::Int) = multiplicities_
 
 
 function Base.:*(n::IntegerUnion, chi::GAPGroupClassFunction)
-    return GAPGroupClassFunction(parent(chi), n * GapObj(chi))
+    return GAPGroupClassFunction(parent(chi), GapObj(n) * GapObj(chi))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, n::IntegerUnion)
-    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ n)
+    return GAPGroupClassFunction(parent(chi), GapObj(chi) ^ GapObj(n))
 end
 
 function Base.:^(chi::GAPGroupClassFunction, tbl::GAPGroupCharacterTable)
@@ -2562,7 +2591,7 @@ the values of `chi`.
 ```jldoctest
 julia> tbl = character_table(alternating_group(4));
 
-julia> println([findfirst(y -> y == conj(x), tbl) for x in tbl])
+julia> println([findfirst(==(conj(x)), tbl) for x in tbl])
 [1, 3, 2, 4]
 ```
 """
@@ -2828,6 +2857,7 @@ end
 
 @doc raw"""
     character_field(chi::GAPGroupClassFunction)
+    character_field(l::Vector{GAPGroupClassFunction})
 
 If `chi` is an ordinary character then
 return the pair `(F, phi)` where `F` is a number field that is generated
@@ -2838,6 +2868,10 @@ If `chi` is a Brauer character in characteristic `p` then
 return the pair `(F, phi)` where `F` is the finite field that is generated
 by the `p`-modular reductions of the values of `chi`,
 and `phi` is the identity map on `F`.
+
+If a nonempty vector `l` of characters is given then `(F, phi)` is returned
+such that `F` is the smallest field that contains the character fields
+of the entries of `l`.
 
 # Examples
 ```jldoctest
@@ -2851,6 +2885,9 @@ julia> flds_2 = map(character_field, mod(t, 2));
 
 julia> println([degree(x[1]) for x in flds_2])
 [1, 2, 2, 1]
+
+julia> degree(character_field(collect(t))[1])
+2
 ```
 """
 function character_field(chi::GAPGroupClassFunction)
@@ -2864,8 +2901,31 @@ function character_field(chi::GAPGroupClassFunction)
       return (F, identity_map(F))
     end
 
-    values = GapObj(chi)  # a list of GAP cyclotomics
+    values = GapObj(chi)::GapObj
     gapfield = GAPWrap.Field(values)
+    return _character_field(gapfield)
+end
+
+function character_field(l::Vector{GAPGroupClassFunction})
+    @req length(l) > 0 "need at least one class function"
+    p = characteristic(l[1])
+    @req all(chi -> characteristic(chi) == p, l) "all entries must have the same characteristic"
+
+    if p != 0
+      # Brauer characters, construct a finite field
+      orders = [order_field_of_definition(chi) for chi in l]
+      exps = [is_prime_power_with_data(q)[2] for q in orders]
+      e = lcm(exps)
+      F = GF(p, e)
+      return (F, identity_map(F))
+    end
+
+    values = GapObj(l, recursive = true)::GapObj
+    gapfield = GAPWrap.Field(GAPWrap.Flat(values))
+    return _character_field(gapfield)
+end
+
+function _character_field(gapfield::GapObj)
     N = GAPWrap.Conductor(gapfield)
     FF, _ = abelian_closure(QQ)
     if GAPWrap.IsCyclotomicField(gapfield)
@@ -2880,7 +2940,7 @@ function character_field(chi::GAPGroupClassFunction)
       gappol = GAPWrap.MinimalPolynomial(GAP.Globals.Rationals, gapgens[1])
       gapcoeffs = GAPWrap.CoefficientsOfUnivariatePolynomial(gappol)
       v = Vector{QQFieldElem}(gapcoeffs)
-      R, = polynomial_ring(QQ, "x"; cached=false)
+      R, = polynomial_ring(QQ, :x; cached=false)
       f = R(v)
       F, _ = number_field(f, "z"; cached = true, check = false)
       nfelm = QQAbFieldElem(gapgens[1])

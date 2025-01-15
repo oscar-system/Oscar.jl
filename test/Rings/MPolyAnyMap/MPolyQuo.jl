@@ -1,5 +1,5 @@
 @testset "MPolyAnyMap/MPolyQuoRing no segfault" begin
-  Qix, (x, y) = QQ["x", "y"]
+  Qix, (x, y) = QQ[:x, :y]
   I = ideal(Qix, elem_type(Qix)[])
   Qix, = quo(Qix, I)
   x = Qix(x)
@@ -9,7 +9,7 @@ end
 
 @testset "MPolyAnyMap/MPolyQuoRing segfault" begin
   Qi, i = quadratic_field(-1)
-  Qix, (x, y) = Qi["x", "y"]
+  Qix, (x, y) = Qi[:x, :y]
   I = ideal(Qix, elem_type(Qix)[])
   Qix, = quo(Qix, I)
   x = Qix(x)
@@ -19,11 +19,11 @@ end
 
 @testset "MPolyAnyMap/MPolyQuoRing" begin
   Qsqrt2, = quadratic_field(-1)
-  Zx, _ = ZZ["x"]
-  Zxy, _ = ZZ["x", "y"]
+  Zx, _ = ZZ[:x]
+  Zxy, _ = ZZ[:x, :y]
   
   for K in [GF(2), GF(ZZRingElem(2)), GF(2, 2), GF(ZZRingElem(2), 2), ZZ, QQ, Qsqrt2, Zx, Zxy]
-    Kx, (x, y) = K["x", "y"]
+    Kx, (x, y) = K[:x, :y]
     I = ideal(Kx, [x^2 - y])
     Q, = quo(Kx, I)
 
@@ -80,7 +80,7 @@ end
     if !(K isa Oscar.Field)
       continue
     end
-    Kx, (x, y) = K["x", "y"]
+    Kx, (x, y) = K[:x, :y]
     I = ideal(Kx, elem_type(Kx)[])
     Kx, = quo(Kx, I)
     x = Kx(x)
@@ -112,7 +112,7 @@ end
     @test (@inferred h(x + y)) == Kx(2)
     @test (@inferred h(x + y)) == Kx(2)
 
-    Kh, (z1, z2) = K["z1", "z2"]
+    Kh, (z1, z2) = K[:z1, :z2]
     Kh, (zz1, zz2) = grade(Kh)
     h = @inferred hom(Kx, Kh, [z1 + z2, z2])
     @test h isa Oscar.morphism_type(Kx, Kh)
@@ -127,8 +127,8 @@ end
     @test h isa Oscar.morphism_type(typeof(Kx), typeof(Kh))
   
     # julia-function  
-    R, (x, y) = K["x", "y"]
-    S, (u, v) = R["u", "v"]
+    R, (x, y) = K[:x, :y]
+    S, (u, v) = R[:u, :v]
     g = let S = S; a -> S(a^2); end
     h = hom(S, S, g, gens(S))
     @test h isa Oscar.morphism_type(S, S, g)
@@ -154,11 +154,11 @@ end
     @test (@inferred h(x*u)) == x^2 * u
     @test (@inferred h(x*u)) == x^2 * u
   
-    A, (x,y) = K["x", "y"]
+    A, (x,y) = K[:x, :y]
     f = hom(A, A, [2*x, 5*y])
     @test f isa Oscar.morphism_type(A, A)
     @test f isa Oscar.morphism_type(typeof(A), typeof(A))
-    R, (u, v) = A["u", "v"]
+    R, (u, v) = A[:u, :v]
     h = hom(R, R, f, [u+v, u*v])
     @test h isa Oscar.morphism_type(R, R, f)
     @test h isa Oscar.morphism_type(typeof(R), typeof(R), typeof(f))
@@ -167,7 +167,7 @@ end
   end
 
   Qi, i = quadratic_field(-1)
-  Qix, (x, y) = Qi["x", "y"]
+  Qix, (x, y) = Qi[:x, :y]
   I = ideal(Qix, elem_type(Qix)[])
   Qix, = quo(Qix, I)
   x = Qix(x)
@@ -196,20 +196,30 @@ end
   f = hom(Qix, Qi, h, [i, 0])
   fh = @inferred f * h
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
   @test fh(x) == h(f(x)) 
-  f = hom(Qix, Qi, x -> x, [i, 0])
+  f = hom(Qix, Qi, identity, [i, 0])
 
   # Construct stacked domain
-  R, (x, y) = polynomial_ring(QQ, ["x", "y"])
-  S, (u, v) = polynomial_ring(QQ, ["u", "v"])
+  R, (x, y) = polynomial_ring(QQ, [:x, :y])
+  S, (u, v) = polynomial_ring(QQ, [:u, :v])
   I = ideal(S, [ u - v^2 ])
   Q, StoQ = quo(S, I)
   QtoR = hom(Q, R, [ x^2, x ])
-  T, (a, b, c) = polynomial_ring(Q, [ "a", "b", "c" ])
+  T, (a, b, c) = polynomial_ring(Q, [ :a, :b, :c ])
   J = ideal(T, [ a*b - c^2 ])
   A, TtoA = quo(T, J)
   # The test is whether the following two lines work at all
   AtoR = @inferred hom(A, R, QtoR, [ x^2, y^2, x*y ])
   @test isone(AtoR(A(1)))
+
+  let
+    Qt, (t,) = polynomial_ring(QQ, [:t])
+    QT, (T,) = polynomial_ring(QQ, [:T])
+    Q1, = quo(Qt, ideal(Qt, [t]))
+    Q2, = quo(QT, ideal(QT, [T^2]))
+    h = hom(Q2, Q1, [Qt(t)])
+    @test_throws ArgumentError h(t)
+  end
+
 end

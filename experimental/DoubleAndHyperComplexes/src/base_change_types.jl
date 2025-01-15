@@ -58,7 +58,13 @@ end
     map_fac = BaseChangeMapFactory(phi, orig)
 
     d = dim(orig)
-    internal_complex = HyperComplex(d, chain_fac, map_fac, [direction(orig, i) for i in 1:d])
+    upper_bounds = Vector{Union{Int, Nothing}}([(has_upper_bound(orig, i) ? upper_bound(orig, i) : nothing) for i in 1:d])
+    lower_bounds = Vector{Union{Int, Nothing}}([(has_lower_bound(orig, i) ? lower_bound(orig, i) : nothing) for i in 1:d])
+    internal_complex = HyperComplex(d, chain_fac, map_fac, 
+                                    [direction(orig, i) for i in 1:d],
+                                    lower_bounds = lower_bounds,
+                                    upper_bounds = upper_bounds
+                                   )
     return new{ModuleFP, ModuleFPHom}(orig, internal_complex)
   end
 end

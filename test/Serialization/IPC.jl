@@ -6,9 +6,7 @@ process_ids = addprocs(1)
 
 wp = WorkerPool(RemoteChannel(()->Oscar.RefChannel{Any}()))
 foreach(w->push!(wp, w), process_ids)
-
-@testset "Interprocess Serialization" begin
-  Qx, x = QQ["x"]
+  Qx, x = QQ[:x]
   F, a = number_field(x^2 + x + 1)
   MR = matrix_space(F, 2, 2)
   

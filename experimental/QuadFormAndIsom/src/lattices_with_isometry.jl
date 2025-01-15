@@ -1714,7 +1714,7 @@ julia> order(G)
     return sub(OqL, unique!(UL))
   elseif is_of_hermitian_type(Lf)
     if is_definite(L) || rank(L) == 2
-      # If L is definite or of rank 2 and we use the correspondance between
+      # If L is definite or of rank 2 and we use the correspondence between
       # O(L, f) and O(L, h) via the trace equivalence, where (L, h) is the
       # hermitian structure on (L, f). Preferable choice than computing O(L, f)
       # directly because the rank of the hermitian structure is a strict divisor
@@ -1791,10 +1791,10 @@ function _real_kernel_signatures(L::ZZLat, M::MatElem)
   diag = Hecke._gram_schmidt(diag, C)[1]
   diag = diagonal(diag)
 
-  @hassert :ZZLatWithIsom 1 all(z -> isreal(z), diag)
-  @hassert :ZZLatWithIsom 1 all(z -> !iszero(z), diag)
+  @hassert :ZZLatWithIsom 1 all(isreal, diag)
+  @hassert :ZZLatWithIsom 1 all(!iszero, diag)
 
-  k1 = count(z -> z > 0, diag)
+  k1 = count(>(0), diag)
   k2 = length(diag) - k1
 
   return k1, k2
@@ -1881,7 +1881,7 @@ julia> f = matrix(QQ, 5, 5, [1  1  1  1  1;
 
 julia> Lf = integer_lattice_with_isometry(L, f);
 
-julia> Zx,x = ZZ["x"]
+julia> Zx,x = ZZ[:x]
 (Univariate polynomial ring in x over ZZ, x)
 
 julia> mf = minimal_polynomial(Lf)
