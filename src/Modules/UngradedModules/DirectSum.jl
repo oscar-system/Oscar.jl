@@ -12,9 +12,12 @@ Additionally, return
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
+function direct_product(M::FreeMod{T}, Ms::FreeMod{T}...; task::Symbol = :prod) where T
+  return direct_product([M, Ms...]; task)
+end
+function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   R = base_ring(F[1])
-  G = FreeMod(R, sum([rank(f) for f = F]))
+  G = FreeMod(R, sum(rank, F))
   all_graded = all(is_graded, F)
   if all_graded
     G.d = vcat([f.d for f in F]...)
@@ -70,8 +73,11 @@ Additionally, return
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
-  F, pro, mF = direct_product([ambient_free_module(x) for x = M]..., task = :both)
+function direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+  return direct_product([M, Ms...]; task)
+end
+function direct_product(M::Vector{<:ModuleFP{T}}; task::Symbol = :prod) where T
+  F, pro, mF = direct_product([ambient_free_module(x) for x = M], task = :both)
   s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...))
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
   pro_quo = nothing
@@ -127,6 +133,7 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
     end
   end
 end
+
 ##################################################
 # direct sum
 ##################################################
@@ -141,7 +148,10 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where {T}
+function direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
+  return direct_sum([M, Ms...]; task)
+end
+function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :sum) where T
   res = direct_product(M...; task)
   if task == :sum || task == :prod
     ds, f = res
