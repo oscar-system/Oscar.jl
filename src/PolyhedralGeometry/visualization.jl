@@ -134,7 +134,7 @@ end
 function _prepare_visualization(
   g::Graph{T}
 ) where {T<:Union{Polymake.Directed,Polymake.Undirected}}
-  bg = Polymake.graph.Graph(; ADJACENCY=pm_object(g))
+  bg = Polymake.graph.Graph{T}(; ADJACENCY=pm_object(g))
   bg.NODE_LABELS = string.(1:n_vertices(g))
   return bg
 end
