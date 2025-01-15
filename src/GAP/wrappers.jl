@@ -348,6 +348,7 @@ GAP.@wrap RightTransversal(x::GapObj, y::GapObj)::GapObj
 GAP.@wrap RootSystem(x::GapObj)::GapObj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
+GAP.@wrap Set(x::GapObj)::GapObj
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap ShrinkRowVector(x::GapObj)::Nothing
