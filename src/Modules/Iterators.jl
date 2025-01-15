@@ -263,7 +263,7 @@ function Base.length(amm::AllModuleExponents{<:FreeMod, FinGenAbGroupElem})
   for i in 1:r
     d_loc = d - degree(F[i]; check=false)
     any(Int(d_loc[i]) < 0 for i in 1:ngens(parent(d)))&& continue
-    exos = get!(amm.exp_cache, d_loc) do
+    exps = get!(amm.exp_cache, d_loc) do
       return all_exponents(R, d_loc)
     end
     result += length(exps)
