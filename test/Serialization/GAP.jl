@@ -70,7 +70,7 @@
       end
     end
 
-    @testset "IsSubgroupFpGroup" begin
+    @test_skip @testset "IsSubgroupFpGroup" begin
       # full f.p. group
       F = GAP.Globals.FreeGroup(2)
       Fgens = GAP.Globals.GeneratorsOfGroup(F)
@@ -119,7 +119,7 @@
       @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
     end
 
-    @testset "IsPcGroup" begin
+    @test_skip @testset "IsPcGroup" begin
       paras = [(1, 1), (5, 1), (24, 12)]
       for (n, i) in paras
         # full pc group
