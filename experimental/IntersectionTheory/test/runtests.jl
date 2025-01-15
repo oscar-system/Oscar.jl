@@ -299,7 +299,7 @@ let pushforward = IntersectionTheory.pushforward
     Bl, E, j = blowup(i)
     e = pushforward(j, E(1))
     quad = pullback(structure_map(Bl), 2P9.O1)-e
-    @test_broken simplify(quad^5) == 0
+    @test simplify(quad^5) == 0
     @test simplify(e^5) != 0
     
     # blowup space curve of degree d and genus g

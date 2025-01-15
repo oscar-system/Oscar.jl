@@ -1323,6 +1323,7 @@ export powers_of_element
 export preimage
 export present_as_cokernel
 export presentation
+export present_finite_extension_ring
 export preserved_quadratic_forms
 export preserved_sesquilinear_forms
 export primary_decomposition

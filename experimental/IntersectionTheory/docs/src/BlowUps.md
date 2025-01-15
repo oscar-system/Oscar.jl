@@ -6,10 +6,6 @@ DocTestSetup = Oscar.doctestsetup()
 # Blowups
 
 ```@docs
-present_finite_extension_ring(F::Oscar.AffAlgHom)
-```
-
-```@docs
 blowup(i::AbstractVarietyMap; symbol::String = "e")
 ```
 

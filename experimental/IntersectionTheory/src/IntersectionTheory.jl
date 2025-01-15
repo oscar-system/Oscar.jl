@@ -51,7 +51,6 @@ export map
 export OO
 export point_class
 export pontryagin_class
-export present_finite_extension_ring
 export product
 export pullback
 export pushforward
@@ -134,7 +133,6 @@ export map
 export OO
 export point_class
 export pontryagin_class
-export present_finite_extension_ring
 export product
 export pullback
 export pushforward
