@@ -70,10 +70,11 @@ function visualize(
 end
 
 function visualize(P::Vector; kwargs::Dict=Dict{Int,Nothing}())
-  P = map(p -> begin
-    @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
-    _prepare_visualization(p)
-  end, P)
+  P = map(
+    p -> begin
+      @req p isa visual_supported_types "Can not visualize objects of type $(typeof(P))"
+      _prepare_visualization(p)
+    end, P)
   vis = [
     Polymake.visual(
       Polymake.Visual, P[i]; get(kwargs, i, Vector{Nothing}(undef, 0))...
@@ -130,8 +131,10 @@ function _prepare_visualization(sc::SimplicialComplex)
   return pm_object(sc)
 end
 
-function _prepare_visualization(g::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-  bg = Polymake.graph.Graph(ADJACENCY=pm_object(g))
+function _prepare_visualization(
+  g::Graph{T}
+) where {T<:Union{Polymake.Directed,Polymake.Undirected}}
+  bg = Polymake.graph.Graph(; ADJACENCY=pm_object(g))
   bg.NODE_LABELS = string.(1:n_vertices(g))
   return bg
 end
