@@ -2455,3 +2455,40 @@ function vertex_figure(P::Polyhedron{T}, n::Int; cutoff=nothing) where {T<:scala
     Polymake.polytope.vertex_figure(pm_object(P), n - 1; opts...), coefficient_field(P)
   )
 end
+
+@doc raw"""
+    tutte_lifting(G::Graph{Undirected})
+
+Compute a realization of `G` in $\mathbb{R}^3$, i.e., a polyhedron whose edge graph is `G`.  Assumes that `G` is planar, 3-connected, and that is has a triangular facet.
+
+# Examples
+```jldoctest
+julia> G = vertex_edge_graph(simplex(3))
+Undirected graph with 4 nodes and the following edges:
+(2, 1)(3, 1)(3, 2)(4, 1)(4, 2)(4, 3)
+
+julia> pG = tutte_lifting(G)
+Polytope in ambient dimension 3
+
+julia> vertices(pG)
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [0, 0, 0]
+ [1, 0, 1//3]
+ [0, 1, 0]
+ [1//3, 1//3, 0]
+
+julia> faces(IncidenceMatrix,pG,1)
+6×4 IncidenceMatrix
+[1, 2]
+[1, 3]
+[1, 4]
+[2, 3]
+[2, 4]
+[3, 4]
+
+```
+"""
+function tutte_lifting(G::Graph{Undirected})
+  pmG = Polymake.graph.Graph{Undirected}(; ADJACENCY=G)
+  return Polyhedron{QQFieldElem}(Polymake.polytope.tutte_lifting(pmG), QQ)
+end
