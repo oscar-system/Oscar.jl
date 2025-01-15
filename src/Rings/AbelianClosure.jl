@@ -508,7 +508,6 @@ function conductor(k::AbsSimpleNumField)
   else
     return div(c, 2)
   end
-  return c
 end
 
 conductor(a::QQAbFieldElem) = conductor(data(a))
