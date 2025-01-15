@@ -17,7 +17,7 @@ function direct_product(M::FreeMod{T}, Ms::FreeMod{T}...; task::Symbol = :prod) 
 end
 function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   R = base_ring(F[1])
-  G = FreeMod(R, sum([rank(f) for f = F]))
+  G = FreeMod(R, sum(rank, F))
   all_graded = all(is_graded, F)
   if all_graded
     G.d = vcat([f.d for f in F]...)
