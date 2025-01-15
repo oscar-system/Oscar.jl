@@ -33,6 +33,10 @@ include("G4Fluxes/auxiliary.jl")
 include("G4Fluxes/special-intersection-theory.jl")
 include("G4Fluxes/special_attributes.jl")
 
+include("FamilyOfG4Fluxes/constructors.jl")
+include("FamilyOfG4Fluxes/attributes.jl")
+include("FamilyOfG4Fluxes/methods.jl")
+
 include("Serialization/tate_models.jl")
 include("Serialization/weierstrass_models.jl")
 include("Serialization/hypersurface_models.jl")

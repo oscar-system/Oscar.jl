@@ -1,6 +1,7 @@
 export AbstractFTheoryModel
 export ClosedSubschemeModel
 export CompleteIntersectionModel
+export FamilyOfG4Fluxes
 export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
@@ -56,8 +57,10 @@ export dual_graph
 export estimated_number_of_triangulations
 export euler_characteristic
 export explicit_model_sections
+export family_of_g4_fluxes
 export family_of_spaces
 export fiber_ambient_space
+export flux_instance
 export g4_flux
 export gauge_algebra
 export genera_of_ci_curves
@@ -132,6 +135,8 @@ export journal_year
 export kbar3
 export literature_identifier
 export literature_model
+export matrix_integral
+export matrix_rational
 export max_lattice_pts_in_facet
 export model
 export model_description
@@ -146,6 +151,7 @@ export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
+export random_flux_instance
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
