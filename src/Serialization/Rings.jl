@@ -303,7 +303,6 @@ end
 
 function save_object(s::SerializerState, obj::MatSpace)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(obj), :base_ring)
     save_object(s, ncols(obj), :ncols)
     save_object(s, nrows(obj), :nrows)
   end
@@ -311,18 +310,22 @@ end
 
 function save_object(s::SerializerState, obj::SMatSpace)
   save_data_dict(s) do
-    save_typed_object(s, base_ring(obj), :base_ring)
     # getters currently do not seem to exist
     save_object(s, obj.cols, :ncols)
     save_object(s, obj.rows, :nrows)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:Union{MatSpace, SMatSpace}})
-  base_ring = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{MatSpace}, base_ring::Ring)
   ncols = load_object(s, Int, :ncols)
   nrows = load_object(s, Int, :nrows)
   return matrix_space(base_ring, nrows, ncols)
+end
+
+function load_object(s::DeserializerState, ::Type{SMatSpace}, base_ring::Ring)
+  ncols = load_object(s, Int, :ncols)
+  nrows = load_object(s, Int, :nrows)
+  return SMatSpace(base_ring, nrows, ncols)
 end
 
 # elems
@@ -338,53 +341,24 @@ function save_object(s::SerializerState, obj::SMat)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MatElem}, parents::Vector)
-  parent = parents[end]
-  T = elem_type(base_ring(parent))
-  if serialize_with_params(T)
-    if length(parents) == 1
-      params = base_ring(parent)
-    else
-      params = parents[1:end - 1]
-    end
-    m = load_object(s, Matrix, (T, params))
-  else
-    m = load_object(s, Matrix, T)
-  end
+function load_object(s::DeserializerState, ::Type{<:MatElem}, parent::MatSpace{T}) where T
+  m = load_object(s, Matrix{T}, base_ring(parent))
   if isempty(m)
     return parent()
   end
   return parent(m)
 end
 
-function load_object(s::DeserializerState, ::Type{<:SMat}, parents::Vector)
-  parent = parents[end]
+function load_object(s::DeserializerState, ::Type{<:SMat}, parent::SMatSpace{T}) where T
   base = base_ring(parent)
-  T = elem_type(base)
   M = sparse_matrix(base)
 
-  if serialize_with_params(T)
-    if length(parents) == 1
-      params = base_ring(parent)
-    else
-      params = parents[1:end - 1]
-    end
-
+  load_array_node(s) do _
+    row_entries = Tuple{Int, T}[]
     load_array_node(s) do _
-      row_entries = Tuple{Int, T}[]
-      load_array_node(s) do _
-        push!(row_entries, load_object(s, Tuple, [Int, (T, params)]))
-      end
-      push!(M, sparse_row(base, row_entries))
+      push!(row_entries, load_object(s, Tuple{Int, T}, (nothing, base)))
     end
-  else
-    load_array_node(s) do _
-      row_entries = Tuple{Int, T}[]
-      load_array_node(s) do _
-        push!(row_entries, load_object(s, Tuple, [Int, T]))
-      end
-      push!(M, sparse_row(base, row_entries))
-    end
+    push!(M, sparse_row(base, row_entries))
   end
   return M
 end
