@@ -261,6 +261,9 @@ end
             y = image(iso, x)
             @test preimage(iso, y) == x
          end
+         iso2 = isomorphism(G, A)
+         S, emb = sub(A, [iso2(x) for x in gens(G)])
+         @test all(x -> has_preimage(emb, x)[1], gens(A))
       end
    end
 
@@ -275,6 +278,9 @@ end
                @test iso(x) * iso(y) == iso(z)
                @test all(a -> preimage(iso, iso(a)) == a, [x, y, z])
             end
+            G = codomain(iso)
+            iso2 = isomorphism(A, G)
+            @test image(iso2)[1] == G
          end
       end
    end
@@ -570,6 +576,64 @@ end
    imgs = elem_type(A)[]
    mp = hom(G, A, imgs)
    @test order(kernel(mp)[1]) == 1
+end
+
+@testset "Homomorphism FinGenAbGroup to GAPGroup" begin
+   # G abelian, A isomorphic to G
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   imgs = gens(G)
+   mp = hom(A, G, imgs)
+   @test image(mp)[1] == G
+
+   # G abelian, G a proper factor of A
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 2 ] )
+   imgs = gens(G)
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G abelian, G containing a proper factor of A
+   A = abelian_group( [ 2, 4 ] )
+   G = abelian_group( PermGroup, [ 2, 4 ] )
+   imgs = [gen(G, 1), gen(G, 2)^2]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G nonabelian, A isomorphic to a subgroup of G
+   A = abelian_group( [ 2, 2 ] )
+   G = dihedral_group(8)
+   imgs = [gen(G, 1), gen(G, 2)^2]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 4
+
+   # G nonabelian, a factor of A being a subgroup of G
+   A = abelian_group( [ 2, 2 ] )
+   G = dihedral_group(8)
+   imgs = [gen(G, 1), gen(G, 1)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 2
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   A = abelian_group([2])
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test image(mp)[1] == G
+
+   # A trivial
+   A = abelian_group([1])
+   G = dihedral_group(8)
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 1
+
+   # G and A trivial
+   A = abelian_group([1])
+   G = cyclic_group(PcGroup, 1)
+   imgs = [one(G)]
+   mp = hom(A, G, imgs)
+   @test order(image(mp)[1]) == 1
 end
 
 function test_direct_prods(G1,G2)

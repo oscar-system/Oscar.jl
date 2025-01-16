@@ -110,6 +110,8 @@ end
 
 """
     hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
+    hom(G::FinGenAbGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
+    hom(G::GAPGroup, H::FinGenAbGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
@@ -157,6 +159,19 @@ end
 
 function hom(G::GAPGroup, A::FinGenAbGroup, imgs::Vector{FinGenAbGroupElem}; check::Bool = true)
   return hom(G, A, gens(G), imgs; check)
+end
+
+# Map `A::FinGenAbGroup` to `G::GAPGroup` by prescribing images.
+# Return a composition `A -> B -> G` where `A -> B` is an isomorphism
+# to a `GAPGroup`.
+function hom(A::FinGenAbGroup, G::GAPGroup, gensA::Vector, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  map1 = isomorphism(PcGroup, A)
+  map2 = hom(codomain(map1), G, [map1(x) for x in gensA], imgs, check = check)
+  return compose(map1, map2)
+end
+
+function hom(A::FinGenAbGroup, G::GAPGroup, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  return hom(A, G, gens(A), imgs; check)
 end
 
 function domain(f::GAPGroupHomomorphism)
@@ -447,7 +462,7 @@ function is_isomorphic(G::FinGenAbGroup, H::GAPGroup)
 end
 
 """
-    isomorphism(G::Group, H::Group)
+    isomorphism(G::Union{GAPGroup,FinGenAbGroup}, H::Union{GAPGroup,FinGenAbGroup})
 
 Return a group isomorphism between `G` and `H` if they are isomorphic groups.
 Otherwise throw an exception.
@@ -464,6 +479,20 @@ function isomorphism(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(GapObj(G), GapObj(H))::GapObj
   @req mp !== GAP.Globals.fail "the groups are not isomorphic"
   return GAPGroupHomomorphism(G, H, mp)
+end
+
+function isomorphism(G::GAPGroup, A::FinGenAbGroup)
+  @req is_abelian(G) "the groups are not isomorphic"
+  map2 = isomorphism(PcGroup, A)
+  map1 = isomorphism(G, codomain(map2))
+  return compose(map1, inv(map2))
+end
+
+function isomorphism(A::FinGenAbGroup, G::GAPGroup)
+  @req is_abelian(G) "the groups are not isomorphic"
+  map1 = isomorphism(PcGroup, A)
+  map2 = isomorphism(codomain(map1), G)
+  return compose(map1, map2)
 end
 
 function isomorphism(G::GAPGroup, H::MultTableGroup)
