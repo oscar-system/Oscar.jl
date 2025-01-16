@@ -20,7 +20,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> model(f_gs) == qsm_model
 true
@@ -49,7 +52,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> matrix_integral(f_gs) == mat_int
 true
@@ -78,7 +84,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> f_gs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> matrix_rational(f_gs) == mat_rat
 true

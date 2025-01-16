@@ -122,6 +122,8 @@ export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
 export is_partially_resolved
+export is_vertical
+export is_well_quantized
 export journal_doi
 export journal_link
 export journal_model_equation_number

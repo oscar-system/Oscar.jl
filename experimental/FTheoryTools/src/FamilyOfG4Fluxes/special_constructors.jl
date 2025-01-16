@@ -12,13 +12,22 @@ julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = 
 Hypersurface model over a concrete base
 
 julia> gf1 = special_flux_family(qsm_model, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
 
 julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: not broken
 ```
 """
 function special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
@@ -244,6 +253,9 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
 
   # (9) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, false)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   set_attribute!(m, :well_quantized_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
@@ -549,6 +561,9 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
   set_attribute!(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
@@ -906,6 +921,9 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
 
   # (11) Remember computed data
   fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
   set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)

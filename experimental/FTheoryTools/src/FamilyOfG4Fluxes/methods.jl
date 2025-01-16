@@ -22,7 +22,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> int_combination = matrix(ZZ, [[3]])
 [3]
@@ -71,7 +74,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> fgs = family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate

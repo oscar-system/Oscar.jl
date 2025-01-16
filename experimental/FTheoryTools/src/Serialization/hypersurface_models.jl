@@ -201,6 +201,9 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   if haskey(attrs_data, :well_quantized_integral) && haskey(attrs_data, :well_quantized_rational)
     quant_tuple = (attrs_data[:well_quantized_integral], attrs_data[:well_quantized_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, false)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
     set_attribute!(model, :well_quantized_ambient_space_models_of_g4_fluxes, fgs)
   end
 
@@ -208,6 +211,9 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   if haskey(attrs_data, :well_quantized_and_vertical_integral) && haskey(attrs_data, :well_quantized_and_vertical_rational)
     quant_tuple = (attrs_data[:well_quantized_and_vertical_integral], attrs_data[:well_quantized_and_vertical_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
     set_attribute!(model, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
   end
 
@@ -215,6 +221,9 @@ function load_object(s::DeserializerState, ::Type{<:HypersurfaceModel}, params::
   if haskey(attrs_data, :well_quantized_vertical_no_break_integral) && haskey(attrs_data, :well_quantized_vertical_no_break_rational)
     quant_tuple = (attrs_data[:well_quantized_vertical_no_break_integral], attrs_data[:well_quantized_vertical_no_break_rational])
     fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
     set_attribute!(model, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   end
 

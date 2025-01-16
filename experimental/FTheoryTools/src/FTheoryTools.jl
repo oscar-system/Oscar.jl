@@ -33,6 +33,7 @@ include("G4Fluxes/auxiliary.jl")
 
 include("FamilyOfG4Fluxes/constructors.jl")
 include("FamilyOfG4Fluxes/attributes.jl")
+include("FamilyOfG4Fluxes/properties.jl")
 include("FamilyOfG4Fluxes/methods.jl")
 include("FamilyOfG4Fluxes/special-intersection-theory.jl")
 include("FamilyOfG4Fluxes/special_constructors.jl")

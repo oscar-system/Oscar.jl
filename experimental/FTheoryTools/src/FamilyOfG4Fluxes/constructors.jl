@@ -26,7 +26,10 @@ julia> mat_rat = zero_matrix(QQ, 37, 1);
 julia> mat_rat[2,1] = 1;
 
 julia> family_of_g4_fluxes(qsm_model, mat_int, mat_rat, check = false)
-A family of G4 fluxes
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
 function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
@@ -61,6 +64,49 @@ end
 # 3: Display
 ################################################
 
-function Base.show(io::IO, g4::FamilyOfG4Fluxes)
-  print(io, "A family of G4 fluxes")
+function Base.show(io::IO, gf::FamilyOfG4Fluxes)
+  properties_string = ["A family of G4 fluxes:"]
+
+  # Check for elementary quantization checks
+  if has_attribute(gf, :is_well_quantized)
+    if is_well_quantized(gf)
+      push!(properties_string, "  - Elementary quantization checks: satisfied")
+    else
+      push!(properties_string, "  - Elementary quantization checks: failed")
+    end
+  else
+    push!(properties_string, "  - Elementary quantization checks: not executed")
+  end
+
+  # Check for verticality checks
+  if has_attribute(gf, :is_vertical)
+    if is_vertical(gf)
+      push!(properties_string, "  - Verticality checks: satisfied")
+    else
+      push!(properties_string, "  - Verticality checks: failed")
+    end
+  else
+    push!(properties_string, "  - Verticality checks: not executed")
+  end
+
+  # Check for non-abelian gauge group breaking
+  if has_attribute(gf, :breaks_non_abelian_gauge_group)
+    if breaks_non_abelian_gauge_group(gf)
+      push!(properties_string, "  - Non-abelian gauge group: broken")
+    else
+      push!(properties_string, "  - Non-abelian gauge group: not broken")
+    end
+  else
+    push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
+  end
+
+  # Print each line separately, to avoid extra line break at the end
+  for (i, line) in enumerate(properties_string)
+    if i == length(properties_string)
+      print(io, line) # Last line without extra newline
+    else
+      println(io, line) # Print all other lines with line break
+    end
+  end
+
 end
