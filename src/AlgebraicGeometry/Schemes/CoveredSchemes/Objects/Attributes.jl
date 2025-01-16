@@ -277,14 +277,6 @@ function ideal_sheaf_of_singular_locus(
   return get_attribute!(X, :ideal_sheaf_of_singular_locus) do
     SingularLocusIdealSheaf(X; focus)
   end::SingularLocusIdealSheaf
-  D = IdDict{AbsAffineScheme, Ideal}()
-  covering = get_attribute(X, :simplified_covering, default_covering(X))
-  for U in covering
-    _, inc_sing = singular_locus(U)
-    D[U] = radical(image_ideal(inc_sing))
-  end
-  Ising = IdealSheaf(X, D, check=false)
-  return Ising
 end
 
 function simplified_covering(X::AbsCoveredScheme)

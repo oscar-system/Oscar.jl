@@ -1898,25 +1898,6 @@ function small_generating_set(
     # Temporary workaround, see #3499
     unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I); algorithm))))
   end::Vector{elem_type(base_ring(I))}
-
-  @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
-
-  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
-  if !isdefined(I, :gb)
-    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
-    I.gb.gens.S.isGB = I.gb.isGB = true
-  end
-
-  # we do not have a notion of minimal generating set in this context!
-  # If we are unlucky, mstd can even produce a larger generating set
-  # than the original one!!!
-  return_value = filter(!iszero, (Q).(gens(sing_min)))
-  if length(return_value) <= ngens(I)
-    return return_value
-  else
-    return gens(I)
-  end
 end
 
 # in the graded case, reusing a cached gb makes sense, so use minimal_generating set there
