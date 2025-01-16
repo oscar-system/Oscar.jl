@@ -443,11 +443,9 @@ julia> codim(Y)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
-function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
+@attr Int function degree(X::AffineScheme{BRT, RT}; check::Bool=true) where {BRT<:Field, RT}
   @check dim(X) == 0 "the affine scheme X needs to be zero-dimensional"
-  get_attribute!(X, :degree) do
-    return vector_space_dimension(OO(X))
-  end::Int
+  return vector_space_dimension(OO(X))
 end
 
 @doc raw"""

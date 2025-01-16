@@ -15,18 +15,14 @@ julia> ngens(cohomology_ring(p2))
 3
 ```
 """
-function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
-  if has_attribute(v, :cohomology_ring)
-    return get_attribute(v, :cohomology_ring)
-  end
+@attr Any function cohomology_ring(v::NormalToricVarietyType; check::Bool = true)
   if check
     @req is_simplicial(v) && is_complete(v) "The cohomology ring is only supported for simplicial and complete toric varieties"
   end
   R, _ = graded_polynomial_ring(coefficient_ring(v), coordinate_names(v); cached=false)
   linear_relations = ideal_of_linear_relations(R, v)
   stanley_reisner = stanley_reisner_ideal(R, v)
-  set_attribute!(v, :cohomology_ring, quo(R, linear_relations + stanley_reisner)[1])
-  return get_attribute(v, :cohomology_ring)
+  return quo(R, linear_relations + stanley_reisner)[1]
 end
 
 
@@ -250,19 +246,15 @@ julia> betti_number(Y, 4) == length(h4_basis)
 true
 ```
 """
-function basis_of_h4(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
+@attr Vector{CohomologyClass} function basis_of_h4(v::NormalToricVariety; check::Bool = true)
   if check
     @req is_complete(v) "Computation of basis of H4(X, Q) is currently only supported for complete toric varieties"
     @req is_simplicial(v) "Computation of basis of H4(X, Q) is currently only supported for simplicial toric varieties"
   end
   if dim(v) < 4
-    set_attribute!(v, :basis_of_h4, Vector{CohomologyClass}())
+    return Vector{CohomologyClass}()
   end
-  if has_attribute(v, :basis_of_h4)
-    return get_attribute(v, :basis_of_h4)
-  end
-  R = cohomology_ring(v, check = check)
+  R = cohomology_ring(v; check = check)
   basis_of_h4 = [cohomology_class(v, R(g)) for g in monomial_basis(R, [2])]
-  set_attribute!(v, :basis_of_h4, basis_of_h4)
   return basis_of_h4
 end

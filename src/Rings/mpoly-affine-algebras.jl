@@ -950,17 +950,15 @@ julia> is_normal(A)
 true
 ```
 """
-function is_normal(A::MPolyQuoRing; check::Bool=true)
-  return get_attribute!(A, :is_normal) do
-    @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
-    @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
-    @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
-    !check || is_reduced(A) || return false
+@attr Bool function is_normal(A::MPolyQuoRing; check::Bool=true)
+  @req coefficient_ring(A) isa AbstractAlgebra.Field "Only implemented if coefficient ring is a field"
+  @req is_perfect(coefficient_ring(A)) "Only implemented if coefficient ring is a perfect field"
+  @req !(base_ring(A) isa MPolyDecRing) "Not implemented for quotients of decorated rings"
+  !check || is_reduced(A) || return false
 
-    I = A.I
-    f = Singular.LibNormal.isNormal(singular_generators(I))::Int
-    return Bool(f)
-  end
+  I = A.I
+  f = Singular.LibNormal.isNormal(singular_generators(I))::Int
+  return Bool(f)
 end
 
 @doc raw"""
