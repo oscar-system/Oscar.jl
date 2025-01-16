@@ -1,116 +1,63 @@
 @doc raw"""
-    ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+    special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
-complete toric base, we this method first computes a basis of
-$H^(2,2)(X, \mathbb{Q})$ (by use of the method `basis_of_h22` below) and then filters
-out "some" basis elements whose restriction to the hypersurface in question
-is trivial. The exact meaning of "some" is explained above this method.
+complete toric base, this method computes a family of G4-fluxes with given
+properties.
 
-Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
-to `false` to skip these tests.
+This family is modelled by the restriction of cohomology classes on the toric
+ambient space to the hypersurface in question. In the toric ambient space,
+those cohomology classes are vertical, i.e. are of the form $a \wedge b$ for
+$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that 
+they are vertical on the hypersurface, which defines the actual F-theory
+geometry. We further subject this family to the consistency conditions for
+being well-quantized. Unless explicitly asked differently, it is this family of
+ambient space G4-flux candidates, that is being returned by this function.
+
+However, we allow for optional arguments, which refine the family further:
+* vert = true: The returned family of fluxes is vertical on the hypersurface in question.
+* not_breaking = true: The returned family of fluxes does not break the non-abelian gauge group.
+Below are examples that examplify the use of these optional arguments and
+which families of $G_4$-fluxes are being returned.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> g4_amb_list = ambient_space_models_of_g4_fluxes(t)
-2-element Vector{CohomologyClass}:
- Cohomology class on a normal toric variety given by z^2
- Cohomology class on a normal toric variety given by y^2
-
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> g4_amb_list = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> gf1 = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
 
-julia> length(g4_amb_list) == 172
-true
+julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: not broken
 ```
 """
-function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
-
-  # Entry check
-  @req base_space(m) isa NormalToricVariety "Base space must be a toric variety for computation of ambient space G4 candidates"
-  if has_attribute(m, :ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :ambient_space_models_of_g4_fluxes)::Vector{CohomologyClass}
+function special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+  @req !(vert == false && not_breaking == true) "Family of non-vertical G4s which do not break the non-abelian gauge group is not supported"
+  if !vert && !not_breaking
+    return well_quantized_ambient_space_models_of_g4_fluxes(m, check = check)
+  elseif vert && !not_breaking
+    return well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m, check = check)
+  else
+    return well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m, check = check)
   end
-
-  # Execute entry tests in computation of basis_of_h22. If any of these fail, no need to proceed. Hence, do this first.
-  filtered_h22_basis = basis_of_h22(ambient_space(m), check = check)
-
-  # Each basis element is given by the vanishing of two homogeneous variables. We extract those indices...
-  filtered_h22_basis_indices_init = get_attribute(ambient_space(m), :basis_of_h22_indices)
-
-  # It may happen that filtered_h22_basis_indices_init is encoded as Vector{Any}. But it is a Vector{Tuple{Int64, Int64}}
-  # Of course, this should be fixed more properly, but for now, the following works...
-  filtered_h22_basis_indices = [k for k in filtered_h22_basis_indices_init]::Vector{Tuple{Int64, Int64}}
-
-  # Prepare data of the toric ambient space
-  gS = gens(cox_ring(ambient_space(m)))
-  mnf = Oscar._minimal_nonfaces(ambient_space(m))
-  sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
-
-  # Filter out basis elements
-  for a in length(filtered_h22_basis):-1:1
-    
-    # Simplify the hypersurface polynomial by setting relevant variables to zero
-    vanishing_vars_pos = [filtered_h22_basis_indices[a]...]
-    new_pt = divrem(hypersurface_equation(m), gS[vanishing_vars_pos[1]])[2]
-    if length(vanishing_vars_pos) == 2
-      new_pt = divrem(new_pt, gS[vanishing_vars_pos[2]])[2]
-    end
-
-    # If all coefficient of `new_pt` sum to zero, keep this generator.
-    if sum(coefficients(new_pt)) == 0
-      continue
-    end
-    
-    # Determine remaining variables, after scaling "away" others.
-    remaining_vars_list = Set(1:length(gS))
-    for my_exps in sr_ideal_pos
-      len_my_exps = length(my_exps)
-      inter_len = count(idx -> idx in vanishing_vars_pos, my_exps)
-      if (len_my_exps == 2 && inter_len == 1) || (len_my_exps == 3 && inter_len == 2)
-        delete!(remaining_vars_list, my_exps[findfirst(idx -> !(idx in vanishing_vars_pos), my_exps)])
-      end
-    end
-    remaining_vars_list = collect(remaining_vars_list)
-
-    # If one monomial of `new_pt` has unset positions, then keep this generator.
-    delete_it = true
-    for exps in exponents(new_pt)
-      if any(x -> x != 0, exps[remaining_vars_list])
-        delete_it = false
-        break
-      end
-    end
-    if delete_it
-      deleteat!(filtered_h22_basis, a)
-      deleteat!(filtered_h22_basis_indices, a)
-    end
-
-  end
-
-  set_attribute!(m, :ambient_space_models_of_g4_fluxes, filtered_h22_basis)
-  set_attribute!(m, :ambient_space_models_of_g4_fluxes_indices, filtered_h22_basis_indices)
-  return filtered_h22_basis::Vector{CohomologyClass}
-
 end
 
 
 @doc raw"""
-    well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+    well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
 complete toric base, this method computes a basis of all well-quantized
@@ -151,13 +98,13 @@ Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based
 
 julia> ambient_space_models_of_g4_fluxes(t, check = false);
 
-julia> res = well_quantized_ambient_space_models_of_g4_fluxes(t, check = false);
+julia> fg = well_quantized_ambient_space_models_of_g4_fluxes(t, check = false);
 
-julia> res[1]
+julia> matrix_integral(fg)
 [1//4   -3//16]
 [   0   1//144]
 
-julia> res[2]
+julia> matrix_rational(fg)
 2 by 0 empty matrix
 ```
 
@@ -172,15 +119,15 @@ julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 julia> length(g4_base)
 37
 
-julia> res = well_quantized_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> fg = well_quantized_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 
-julia> size(res[1])
+julia> size(matrix_integral(fg))
 (37, 37)
 
-julia> size(res[2])
+julia> size(matrix_rational(fg))
 (37, 0)
 
-julia> M = res[1];
+julia> M = matrix_integral(fg);
 
 julia> g4_class = sum(M[i,j]*g4_base[i] for i in 1:length(g4_base) for j in 1:size(M,2));
 
@@ -189,7 +136,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(g4)
 true
@@ -205,7 +152,7 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
   if has_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
+    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
   end
 
 
@@ -319,19 +266,23 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
 
 
   # (9) Remember computed data
-  set_attribute!(m, :well_quantized_ambient_space_models_of_g4_fluxes, res)
+  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, false)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+  set_attribute!(m, :well_quantized_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (10) Finally, return the result
-  return res::Tuple{QQMatrix, QQMatrix}
+  return fgs::FamilyOfG4Fluxes
 
 end
 
 
 @doc raw"""
-    well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+    well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
 complete toric base, this method computes a basis of all well-quantized
@@ -371,12 +322,12 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> res = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(t, check = false);
+julia> fg = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(t, check = false);
 
-julia> res[1]
+julia> matrix_integral(fg)
 2 by 0 empty matrix
 
-julia> res[2]
+julia> matrix_rational(fg)
 2 by 0 empty matrix
 ```
 
@@ -388,15 +339,15 @@ for being well-quantized.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> res = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> fg = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 
-julia> size(res[1])
+julia> size(matrix_integral(fg))
 (37, 25)
 
-julia> size(res[2])
+julia> size(matrix_rational(fg))
 (37, 0)
 
-julia> M=res[1];
+julia> M=matrix_integral(fg);
 
 julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 
@@ -423,7 +374,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true
@@ -442,7 +393,7 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
   if has_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
+    return get_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
   end
 
 
@@ -623,24 +574,28 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
 
 
   # (11) Remember computed data
-  set_attribute!(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, res)
+  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+  set_attribute!(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (12) Finally, return the result
-  return res::Tuple{QQMatrix, QQMatrix}
+  return fgs::FamilyOfG4Fluxes
 
 end
 
 
 
 @doc raw"""
-    well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Tuple{QQMatrix, QQMatrix}
+    well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
 complete toric base, this method computes a basis of all well-quantized
-and vertical  ambient space $G_4$-fluxes which do not break any non-Abelian
+and vertical  ambient space $G_4$-fluxes which do not break any non-abelian
 gauge group factor. The result of this operation is a tuple of two matrices.
 The columns of the first matrix specify those (rational) combinations of
 ambient space $G_4$-fluxes, of which one may only take
@@ -677,32 +632,32 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> res = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(t, check = false);
+julia> fg = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(t, check = false);
 
-julia> res[1]
+julia> matrix_integral(fg)
 2 by 0 empty matrix
 
-julia> res[2]
+julia> matrix_rational(fg)
 2 by 0 empty matrix
 ```
 
 Here is a more interesting example, in which we verify with our software tool for one particular F-theory QSM, that the
 choice of $G_4$-flux presented in [CHLLT19](@cite), is indeed vertical, satisfies the necessary conditions
-for being well-quantized and does not break the non-Abelian gauge group.
+for being well-quantized and does not break the non-abelian gauge group.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> res = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> fg = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 
-julia> size(res[1])
+julia> size(matrix_integral(fg))
 (37, 1)
 
-julia> size(res[2])
+julia> size(matrix_rational(fg))
 (37, 0)
 
-julia> M=res[1];
+julia> M = matrix_integral(fg);
 
 julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
 
@@ -732,7 +687,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> passes_elementary_quantization_checks(qsm_g4_candidate)
 true
@@ -745,15 +700,22 @@ false
 
 julia> divs = torusinvariant_prime_divisors(ambient_space(qsm_model));
 
-julia> e1 = cohomology_class(divs[15]);e2 = cohomology_class(divs[12]);e4 = cohomology_class(divs[14]);
+julia> e1 = cohomology_class(divs[15]);
 
-julia> u = cohomology_class(divs[13]);v = cohomology_class(divs[10]);pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
+julia> e2 = cohomology_class(divs[12]);
+
+julia> e4 = cohomology_class(divs[14]);
+
+julia> u = cohomology_class(divs[13]);
+
+julia> v = cohomology_class(divs[10]);
+
+julia> pb_Kbar = cohomology_class(sum([divs[k] for k in 1:9]));
 
 julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 - 2 * e2 - 6 * e4 + pb_Kbar - 4 * u + v));
 
 julia> qsm_g4_candidate == g4_flux(qsm_model, g4_class)
 true
-
 ```
 """
 function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
@@ -766,7 +728,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
   if has_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)::Tuple{QQMatrix, QQMatrix}
+    return get_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
   end
 
 
@@ -948,7 +910,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
   C = transpose(matrix(ZZ, quant_constraint_matrix))
 
 
-  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the vertical and no non-Abelian gauge group breaking fluxes
+  # (9) Work out the well-quantized fluxes as linear combinations of the parametrization of the vertical and no non-abelian gauge group breaking fluxes
   C2 = C * vertical_and_no_gauge_group_breaking_fluxes # This is a ZZ-matrix, since we parametrize vertical fluxes with integer coefficients!
   S, T, U = snf_with_transform(C2)
   r = rank(S)
@@ -966,18 +928,22 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
 
 
   # (10) Finally, we need to re-express those in terms of the original bases.
-  # (10) Rather, we have res now expressed in terms of the basis of vertical and no non-Abelian gauge group breaking fluxes...
+  # (10) Rather, we have res now expressed in terms of the basis of vertical and no non-abelian gauge group breaking fluxes...
   sol_mat = vertical_and_no_gauge_group_breaking_fluxes * solution_matrix
   res = (sol_mat[:,1:r], sol_mat[:,r+1:ncols(solution_matrix)])
 
 
   # (11) Remember computed data
-  set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, res)
+  fgs = family_of_g4_fluxes(m, res[1], res[2])
+  set_attribute!(fgs, :is_well_quantized, true)
+  set_attribute!(fgs, :is_vertical, true)
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+  set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (12) Finally, return the result
-  return res::Tuple{QQMatrix, QQMatrix}
+  return fgs::FamilyOfG4Fluxes
 
 end

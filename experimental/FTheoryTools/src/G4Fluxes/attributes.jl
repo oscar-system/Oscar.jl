@@ -20,7 +20,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed  
+  - Non-abelian gauge group: breaking pattern not analyzed  
 
 julia> model(g4f)
 Hypersurface model over a concrete base
@@ -47,7 +47,7 @@ G4-flux candidate
   - Elementary quantization checks: not executed
   - Tadpole cancellation check: not executed
   - Verticality checks: not executed
-  - Non-Abelian gauge group: breaking pattern not analyzed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> cohomology_class(g4f) == g4_class
 true

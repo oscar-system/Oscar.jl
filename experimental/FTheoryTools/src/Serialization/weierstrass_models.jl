@@ -95,15 +95,22 @@ function save_object(s::SerializerState, w::WeierstrassModel)
     # Do we know the well-quantized G4-fluxes
     if has_attribute(w, :well_quantized_ambient_space_models_of_g4_fluxes)
       res = well_quantized_ambient_space_models_of_g4_fluxes(w, check = false)
-      attrs_dict[:well_quantized_integral] = res[1]
-      attrs_dict[:well_quantized_rational] = res[2]
+      attrs_dict[:well_quantized_integral] = matrix_integral(res)
+      attrs_dict[:well_quantized_rational] = matrix_rational(res)
     end
 
     # Do we know the well-quantized and vertical G4-fluxes
     if has_attribute(w, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)
       res = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(w, check = false)
-      attrs_dict[:well_quantized_and_vertical_integral] = res[1]
-      attrs_dict[:well_quantized_and_vertical_rational] = res[2]
+      attrs_dict[:well_quantized_and_vertical_integral] = matrix_integral(res)
+      attrs_dict[:well_quantized_and_vertical_rational] = matrix_rational(res)
+    end
+
+    # Do we know the well-quantized, vertical G4-fluxes that do not break the non-Abelian gauge group?
+    if has_attribute(w, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)
+      res = well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(w, check = false)
+      attrs_dict[:well_quantized_vertical_no_break_integral] = matrix_integral(res)
+      attrs_dict[:well_quantized_vertical_no_break_rational] = matrix_rational(res)
     end
 
     # Save all of the above data...
@@ -193,13 +200,31 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
   # Are the well-quanitzed G4-fluxes known?
   if haskey(attrs_data, :well_quantized_integral) && haskey(attrs_data, :well_quantized_rational)
     quant_tuple = (attrs_data[:well_quantized_integral], attrs_data[:well_quantized_rational])
-    set_attribute!(model, :well_quantized_ambient_space_models_of_g4_fluxes, quant_tuple)
+    fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, false)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    set_attribute!(model, :well_quantized_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   # Are the well-quantized and vertical G4-fluxes known?
   if haskey(attrs_data, :well_quantized_and_vertical_integral) && haskey(attrs_data, :well_quantized_and_vertical_rational)
     quant_tuple = (attrs_data[:well_quantized_and_vertical_integral], attrs_data[:well_quantized_and_vertical_rational])
-    set_attribute!(model, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, quant_tuple)
+    fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+    set_attribute!(model, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
+  end
+
+  # Are the well-quantized, vertical G4-fluxes which do not break a non-abelian gauge group known?
+  if haskey(attrs_data, :well_quantized_vertical_no_break_integral) && haskey(attrs_data, :well_quantized_vertical_no_break_rational)
+    quant_tuple = (attrs_data[:well_quantized_vertical_no_break_integral], attrs_data[:well_quantized_vertical_no_break_rational])
+    fgs = family_of_g4_fluxes(model, quant_tuple[1], quant_tuple[2])
+    set_attribute!(fgs, :is_well_quantized, true)
+    set_attribute!(fgs, :is_vertical, true)
+    set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+    set_attribute!(model, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   end
 
   return model
