@@ -3,8 +3,22 @@
 
 Given an F-theory model $m$ defined as hypersurface in a simplicial and
 complete toric base, this method computes a family of G4-fluxes with given
-properties. This family is always modelled by ambient space G4-flux candidates
-which satisfy consistency conditions for being well-quantized.
+properties.
+
+This family is modelled by the restriction of cohomology classes on the toric
+ambient space to the hypersurface in question. In the toric ambient space,
+those cohomology classes are vertical, i.e. are of the form $a \wedge b$ for
+$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that 
+they are vertical on the hypersurface, which defines the actual F-theory
+geometry. We further subject this family to the consistency conditions for
+being well-quantized. Unless explicitly asked differently, it is this family of
+ambient space G4-flux candidates, that is being returned by this function.
+
+However, we allow for optional arguments, which refine the family further:
+* vert = true: The returned family of fluxes is vertical on the hypersurface in question.
+* not_breaking = true: The returned family of fluxes does not break the non-abelian gauge group.
+Below are examples that examplify the use of these optional arguments and
+which families of $G_4$-fluxes are being returned.
 
 # Examples
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
