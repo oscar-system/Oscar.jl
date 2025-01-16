@@ -109,9 +109,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known
 end
 
 """
-    hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
-    hom(G::FinGenAbGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
-    hom(G::GAPGroup, H::FinGenAbGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
+    hom(G::Group, H::Group, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
@@ -462,7 +460,7 @@ function is_isomorphic(G::FinGenAbGroup, H::GAPGroup)
 end
 
 """
-    isomorphism(G::Union{GAPGroup,FinGenAbGroup}, H::Union{GAPGroup,FinGenAbGroup})
+    isomorphism(G::Group, H::Group)
 
 Return a group isomorphism between `G` and `H` if they are isomorphic groups.
 Otherwise throw an exception.

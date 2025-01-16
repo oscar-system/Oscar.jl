@@ -263,7 +263,7 @@ end
          end
          iso2 = isomorphism(G, A)
          S, emb = sub(A, [iso2(x) for x in gens(G)])
-         @test all(x -> has_preimage(emb, x)[1], gens(A))
+         @test all(x -> has_preimage_with_preimage(emb, x)[1], gens(A))
       end
    end
 
