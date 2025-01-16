@@ -612,7 +612,7 @@ function isomorphism(::Type{T}, G::GAPGroup) where T <: Union{SubPcGroup, SubFPG
      f = fun(GapObj(G))::GapObj
      @req f !== GAP.Globals.fail "Could not convert group into a group of type $T"
      H = T(GAPWrap.ImagesSource(f))
-# TODO: remove the next line once GAP 4.13.0 is available in Oscar
+# TODO: remove the next line once GAP 4.13.0 is available in Oscar -> still broken in GAP 4.14.0
      GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), T}
@@ -643,8 +643,6 @@ function isomorphism(::Type{FPGroup}, G::GAPGroup; on_gens::Bool=false)
      end
      @req f !== GAP.Globals.fail "Could not convert group into a group of type FPGroup"
      H = FPGroup(GAPWrap.ImagesSource(f))
-# TODO: remove the next line once GAP 4.13.0 is available in Oscar
-     GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
      return GAPGroupHomomorphism(G, H, f)
    end::GAPGroupHomomorphism{typeof(G), FPGroup}
 end
@@ -1217,10 +1215,6 @@ Finitely presented group of infinite order
 function simplified_fp_group(G::FPGroup)
    f = GAP.Globals.IsomorphismSimplifiedFpGroup(GapObj(G))
    H = FPGroup(GAPWrap.Image(f))
-   # TODO: remove the next line once https://github.com/gap-system/gap/pull/4810
-   # is deployed to Oscar
-#T do this as soon as GAP.jl guarantees GAP 4.13!
-   GAP.Globals.UseIsomorphismRelation(GapObj(G), GapObj(H))
    return H, GAPGroupHomomorphism(G,H,f)
 end
 
