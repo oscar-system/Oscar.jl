@@ -1,9 +1,9 @@
-@register_serialization_type MPolyAnyMap uses_params
+@register_serialization_type MPolyAnyMap
 
-function type_params(phi::MPolyAnyMap)
-  return Dict(
-    :domain => domain(phi),
-    :codomain => codomain(phi)
+function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
+  return MPolyAnyMap, Dict(
+    :domain => (S, domain(phi)),
+    :codomain => (T, codomain(phi))
   )
 end
 
@@ -18,11 +18,13 @@ function save_object(s::SerializerState, phi::MPolyAnyMap)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:MPolyAnyMap},
+function load_object(s::DeserializerState,
+                     ::Type{<:MPolyAnyMap},
                      params::Dict) 
   d = params[:domain]
   c = params[:codomain]
-  imgs = load_object(s, Vector, c, :images)
+  T = elem_type(c)
+  imgs = load_object(s, Vector{T}, c, :images)
 
   if haskey(s, :coeff_map)
     throw("MPolyAnyMap with coefficient map serialization unimplemented")
