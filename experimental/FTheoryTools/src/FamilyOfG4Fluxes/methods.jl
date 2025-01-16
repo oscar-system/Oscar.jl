@@ -51,7 +51,17 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   gens = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
   c1 = [m1[k,1] * gens[k] for k in 1:length(gens)]
   c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
-  return g4_flux(model(fgs), sum(c1+c2), check = check)
+  flux = g4_flux(model(fgs), sum(c1+c2), check = check)
+  if has_attribute(fgs, :is_well_quantized)
+    set_attribute(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
+  end
+  if has_attribute(fgs, :is_vertical)
+    set_attribute(flux, :passes_verticality_checks, is_well_quantized(fgs))
+  end
+  if has_attribute(fgs, :breaks_non_abelian_gauge_group)
+    set_attribute(flux, :breaks_non_abelian_gauge_group, breaks_non_abelian_gauge_group(fgs))
+  end
+  return flux
 end
 
 
@@ -98,10 +108,5 @@ function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
     denominator = rand(1:100)
     rat_combination[i] = numerator // denominator
   end
-  m1 = matrix_integral(fgs) * int_combination
-  m2 = matrix_rational(fgs) * rat_combination
-  gens = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
-  c1 = [m1[k,1] * gens[k] for k in 1:length(gens)]
-  c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
-  return g4_flux(model(fgs), sum(c1+c2), check = check)
+  return flux_instance(fgs, int_combination, rat_combination, check = check)
 end
