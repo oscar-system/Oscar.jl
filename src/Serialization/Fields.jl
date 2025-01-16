@@ -395,7 +395,12 @@ end
 ################################################################################
 # Field Embeddings
 
-const FieldEmbeddingTypes = Union{Hecke.AbsSimpleNumFieldEmbedding, Hecke.RelSimpleNumFieldEmbedding, Hecke.AbsNonSimpleNumFieldEmbedding, Hecke.RelNonSimpleNumFieldEmbedding}
+const FieldEmbeddingTypes = Union{
+  Hecke.AbsSimpleNumFieldEmbedding,
+  Hecke.RelSimpleNumFieldEmbedding,
+  Hecke.AbsNonSimpleNumFieldEmbedding,
+  Hecke.RelNonSimpleNumFieldEmbedding
+}
 
 @register_serialization_type Hecke.AbsNonSimpleNumFieldEmbedding uses_id 
 @register_serialization_type Hecke.RelNonSimpleNumFieldEmbedding uses_id
@@ -463,7 +468,7 @@ function save_object(s::SerializerState, E::EmbeddedNumField)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{EmbeddedNumField},
+function load_object(s::DeserializerState, ::Type{<:EmbeddedNumField},
                      E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   return Hecke.embedded_field(K, E)[1]
@@ -475,12 +480,11 @@ function save_object(s::SerializerState, f::EmbeddedNumFieldElem)
   save_object(s, data(f))
 end
 
-function load_object(s::DeserializerState, ::Type{<:EmbeddedNumFieldElem}, parents::Vector)
-  parent_field = parents[end]
-  numfield_elem = terms
-  coeff_type = elem_type(parents[end - 1])
-  loaded_alg_elem = load_object(s, coeff_type, parents[1:end - 1])
-  return parent_field(loaded_alg_elem)
+function load_object(s::DeserializerState, ::Type{<:EmbeddedNumFieldElem}, E::T) where T <: EmbeddedNumField
+  K = number_field(E)
+  coeff_type = elem_type(K)
+  loaded_alg_elem = load_object(s, coeff_type, K)
+  return E(loaded_alg_elem)
 end
 
 ################################################################################

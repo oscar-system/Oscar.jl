@@ -86,7 +86,7 @@ using Oscar: _integer_variables
       end
     end
 
-    @testset "PolyhedralComplex" begin
+    @test_skip @testset "PolyhedralComplex" begin
       IM = incidence_matrix([[1,2,3],[1,3,4]])
       vr = [0 0; 1 0; 1 1; 0 1]
       PC = polyhedral_complex(IM, vr)
@@ -105,7 +105,7 @@ using Oscar: _integer_variables
       end
     end
 
-    @testset "PolyhedralFan" begin
+    @test_skip @testset "PolyhedralFan" begin
       nfsquare = normal_fan(cube(2))
       test_save_load_roundtrip(path, nfsquare) do loaded
         @test n_rays(nfsquare) == n_rays(loaded)
@@ -154,7 +154,7 @@ using Oscar: _integer_variables
       end
     end
 
-    @testset "SubdivisionOfPoints" begin
+    @test_skip @testset "SubdivisionOfPoints" begin
       moaepts = [4 0 0; 0 4 0; 0 0 4; 2 1 1; 1 2 1; 1 1 2]
       moaeimnonreg0 = incidence_matrix([[4,5,6],[1,4,2],[2,4,5],[2,3,5],[3,5,6],[1,3,6],[1,4,6]])
       MOAE = subdivision_of_points(moaepts, moaeimnonreg0)

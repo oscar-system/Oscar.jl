@@ -293,7 +293,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       end
       return (S, Union{value_types...}), params_dict
     else
-      error{"not implented yet"}
+      error{"not implemented yet"}
     end
   end
   
@@ -316,6 +316,24 @@ function load_object(s::DeserializerState,
   dict = T()
   for k in keys(params)
     dict[k] = load_object(s, params[k]..., Symbol(k))
+  end
+  return dict
+end
+
+function load_object(s::DeserializerState,
+                     T::Type{<:Dict{S, U}}) where {S <: Union{Int, Symbol, String}, U <: Union{Symbol, String, Int}}
+  dict = T()
+  for k in keys(s.obj)
+    dict[S(k)] = load_object(s, U, Symbol(k))
+  end
+  return dict
+end
+
+function load_object(s::DeserializerState,
+                     T::Type{<:Dict{Int, S}}) where {S <: Union{Symbol, String, Int}}
+  dict = T()
+  for k in keys(s.obj)
+    dict[parse(Int, string(k))] = load_object(s, S, k)
   end
   return dict
 end
@@ -345,7 +363,7 @@ function save_object(s::SerializerState, x::Set)
   end
 end
 
-function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Any) where T
+function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Ring) where T
   elems = load_array_node(s) do _
     load_object(s, T, params)
   end
@@ -353,6 +371,13 @@ function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Any) where
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
+  elems = load_array_node(s) do _
+    load_object(s, T, nothing)
+  end
+  return Set(elems)
+end
+
+function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T <: Union{String, Symbol, Int}
   elems = load_array_node(s) do _
     load_object(s, T, nothing)
   end
