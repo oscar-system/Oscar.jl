@@ -132,7 +132,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
   end
 
   isoinv = function(p::PermGroupElem)
-    rep_word = abs.(word(preimage(epi, p)))
+    rep_word = abs.(word(preimage(epi, p))) # `abs` may be used as all gens of W are self-inverse
     return W(rep_word)
   end
 
