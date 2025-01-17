@@ -52,7 +52,7 @@ function isomorphism(::Type{FPGroup}, W::WeylGroup; set_properties::Bool=true)
 end
 
 @doc raw"""
-    permutation_group(W::WeylGroup; set_properties::Bool=true) -> PermGroup
+    permutation_group(W::WeylGroup) -> PermGroup
 
 Construct a group of type `PermGroup` that is isomorphic to `W`.
 
