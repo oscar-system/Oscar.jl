@@ -1513,7 +1513,7 @@ function f_vector(P::Polyhedron)
   # polymake takes the far face into account, too
   ldim = lineality_dim(P)
   f_vec = vcat(zeros(Int64, ldim), [length(faces(P, i)) for i in ldim:(dim(P) - 1)])
-  return f_vec::Vector{ZZRingElem}
+  return Vector{ZZRingElem}(f_vec)
 end
 
 @doc raw"""
@@ -1535,7 +1535,7 @@ julia> h_vector(cross_polytope(3))
 """
 function h_vector(P::Polyhedron)
   @req is_bounded(P) "defined for bounded polytopes only"
-  return pm_object(P).H_VECTOR::Vector{ZZRingElem}
+  return Vector{ZZRingElem}(pm_object(P).H_VECTOR)
 end
 
 @doc raw"""
@@ -1555,7 +1555,7 @@ julia> g_vector(cross_polytope(3))
 """
 function g_vector(P::Polyhedron)
   @req is_bounded(P) "defined for bounded polytopes only"
-  return pm_object(P).G_VECTOR::Vector{ZZRingElem}
+  return Vector{ZZRingElem}(pm_object(P).G_VECTOR)
 end
 
 @doc raw"""
