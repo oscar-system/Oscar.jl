@@ -89,7 +89,7 @@
     @test (
       minimal_supercone_coordinates_of_exceptional_ray(f)
       ==
-      Vector{QQFieldElem}([QQ(1//2), QQ(1//2)])
+      QQFieldElem[1//2, 1//2]
     )
     
     # Now blowing up along an existing ray
