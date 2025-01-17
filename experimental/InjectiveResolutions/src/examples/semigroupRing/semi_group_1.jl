@@ -11,8 +11,18 @@ x,y,z = gens(R_Q)
 # get MonoidAlgebra
 kQ = get_monoid_algebra(R_Q)
 
+R = get_monoid_algebra_module(kQ,quotient_ring_as_module(ideal(R_Q,[])))
+
 # define ideal over monoid algebra
 I = ideal(kQ,[x^2*z,x^4*y])
+J = ideal(kQ,[x^5*y,z^3])
+
+M_I = quotient_ring_as_module(I.ideal)
+M_J = quotient_ring_as_module(J.ideal)
+
+_M = direct_sum(M_I,M_J,task=:none)
+M = sub(_M,[y*_M[1]+y*_M[2],x^2*_M[2]])
+N = get_monoid_algebra_module(kQ,M[1])
 
 # irreducible resolution of M = kQ/I
 M = quotient_ring_as_module(I)

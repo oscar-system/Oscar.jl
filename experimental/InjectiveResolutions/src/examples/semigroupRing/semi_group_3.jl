@@ -31,8 +31,6 @@ irr_res_3 = inj_res.irrRes
 # check if irreducible resolution
 length(irr_res_3.irrSums)
 image(irr_res_3.cochainMaps[1])[1] == kernel(irr_res_3.cochainMaps[2])[1]
-image(irr_res_3.cochainMaps[2])[1] == kernel(irr_res_3.cochainMaps[3])[1]
 is_injective(irr_res_3.inclusions[1])
 is_injective(irr_res_3.inclusions[2])
-is_injective(irr_res_3.inclusions[3])
-is_surjective(irr_res_3.inclusions[3])
+is_surjective(irr_res_3.inclusions[2])

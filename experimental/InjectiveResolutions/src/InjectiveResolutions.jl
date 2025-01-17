@@ -33,6 +33,7 @@ export ddirect_sum
 export _coefficients
 export _get_irreducible_ideal
 export points_in_Q
+export _f_k
 
 # Data 
 export FaceQ 
@@ -454,6 +455,16 @@ function shifted_module(I::MonoidAlgebraIdeal,shift::Vector)
     return MonoidAlgebraModule(I.monoidAlgebra, sub(_M,[m_shift*_M[1]])[1])
 end
 
+function shifted_module(M::MonoidAlgebraModule,shift::Vector)
+    S = M.monoidAlgebra.algebra
+    m_shift = monomial_basis(S,shift)[1]
+
+    A_shift = [m_shift*ambient_representative(m) for m in gens(M.mod)]
+    B_shift = [m_shift*r for r in relations(M.mod)]
+
+    return MonoidAlgebraModule(M.monoidAlgebra, SubquoModule(ambient_free_module(M.mod),A_shift,B_shift))
+end
+
 # computes the generators of k{(a + H_+^°)\cap Q}
 # Algorithm 3.11 in HM2004
 # INPUT:    MonoidAlgebra kQ
@@ -492,9 +503,11 @@ INPUT:  monomial ideal I
         integer i
 OUTPUT: list of ZZ^d graded degrees of Bass numbers up to cohomological degree i
 "
-function compute_bass_numbers(I::Ideal,i::Int)
-    R_Q = base_ring(I)
-    M = quotient_ring_as_module(I) # R/I as module
+# function compute_bass_numbers(I::Ideal,i::Int)
+function compute_bass_numbers(M::SubquoModule,i::Int) # now also for fin. gen. modules
+    R_Q = base_ring(M)
+    # R_Q = base_ring(I)
+    # M = quotient_ring_as_module(I) # R/I as module
  
     # residue_field
     I_m = ideal(R_Q,gens(R_Q))
@@ -535,12 +548,16 @@ end
 ##INPUT:    monomial ideal I
 ##          integer i up to which cohomological degree Bass numbers are considered
 ##OUTPUT:   ZZ^d degree of shift
-function compute_shift(I::MonoidAlgebraIdeal,i::Int)
-    n_bass = compute_bass_numbers(I.ideal,i)
-    c = I.monoidAlgebra.zonotope[2] #sum of all primitive integer vectors along rays of Q
+# function compute_shift(I::MonoidAlgebraIdeal,i::Int)
+function compute_shift(M::MonoidAlgebraModule,i::Int)
+    # n_bass = compute_bass_numbers(I.ideal,i)
+    n_bass = compute_bass_numbers(M.mod,i)
+    # c = I.monoidAlgebra.zonotope[2] #sum of all primitive integer vectors along rays of Q
+    c = M.monoidAlgebra.zonotope[2] #sum of all primitive integer vectors along rays of Q
 
     j = 0
-    while !points_in_Q(n_bass,I.monoidAlgebra.cone) #loop until all degrees of bass numbers lie in Q
+    # while !points_in_Q(n_bass,I.monoidAlgebra.cone) #loop until all degrees of bass numbers lie in Q
+    while !points_in_Q(n_bass,M.monoidAlgebra.cone) #loop until all degrees of bass numbers lie in Q
         bass_ = [a_bass + c for a_bass in n_bass]
         n_bass = bass_
         j = j +1
@@ -613,13 +630,21 @@ function ZF_basis(M::SubquoModule,PF::Ideal)
     return filter(!is_zero,B) 
 end
 
+function _f_k(m::Union{MPolyDecRingElem,MPolyQuoRingElem})
+    R = parent(m)
+    k = coefficient_ring(R)
+    f_k = hom(R,k,ones(elem_type(k),ngens(R)))
+    return f_k(m) 
+end
+
 # given a fin. gen. module and a prime ideal p, compute a k[ZZF]-basis Bp of (0 :_M p) and for each generator b in Bp compute the scalar matrix lambda that defines a well-defined injective map 
 function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
     R_N = base_ring(N)
     @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
 
     k = coefficient_ring(R_N) #get the field
-    Np = (ideal(R_N,[])*N)[1] : p.prime
+    Np = mod_quotient(N,p.prime)[1]
+    # Np = (ideal(R_N,[])*N)[1] : p.prime
     if is_zero(Np)
         return [],zeros(R_N,1,1)
     end
@@ -627,65 +652,91 @@ function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
     # get socle degrees of indecomposable injectives kQ{a + F - Q}
     Bp = ZF_basis(Np,p.prime)
 
-    R = relations(N)
-    n = ngens(N)
-    if j == 1 
-        lambda = map(x -> x*one(R_N), ones(Int,1,length(Bp)))
-    else
+    R = relations(N) #get all relations of N
+    # n = ngens(N)
+    n = ngens(ambient_free_module(N))
+
+    # if j == 1
+    #     lambda = map(x -> x*one(R_N), ones(Int,1,length(Bp)))
+    # else
         lambda = []
-        for b in Bp
-            m_b = monomial_basis(R_N,degree(b))[1]
+        for b in Bp # for every basis vector of (0 :_M P_F) we compute a scalar vector \lambda_b 
+            # m_b = monomial_basis(R_N,degree(b))[1]
             lambda_b = []
             b_c = dense_row(coordinates(ambient_representative(b)),n)[1,:]
+
+            # check in which positions (i.e. coordinates of free presentation) b is non-zero
+            m = ngens(N)
             s = [] #positions of non-zero terms of b
             for i=1:n
-                if is_zero(b_c[i]*N[i])
-                # if is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i])
+                # if is_zero(b_c[i]*N[i])
+                # if is_zero(b_c[i]) || all((degree(Vector{Int},b_c[i]) - degree(Vector{Int},N[i])) .>= degree(Vector{Int},one(R_N))) && is_zero(monomial_basis(R_N,degree(Vector{Int},b_c[i])-degree(Vector{Int},N[i]))[1]*N[i]) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
+                set_zero = true
+                for j = 1:m
+                    # if is_zero(coordinates(b)[j]) ## is this working???
+                    #     continue
+                    # end
+                    if is_zero(b_c[i]) || (points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},N[j])],kQ.cone) && is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[j]))[1]*N[j])) # check if the coefficient of b[i] is already zero or if the term b[i] is zero (b[i] = x^(deg(b_c[i]-deg(N[i]))*N[i]) 
+                        # b_c[i] = zero(R_N)
+                    else #term b[i] is non-zero
+                        push!(s,i)
+                        set_zero = false
+                        break
+                    end 
+                end
+                if set_zero
                     b_c[i] = zero(R_N)
-                else
-                    push!(s,i)
                 end
             end
+
+            # get all relations that apply in deg(b)
             rels_b = [r for r in R if points_in_Q([degree(Vector{Int},b) - degree(Vector{Int},r)],kQ.cone)]
-            r = [] 
+            r = [] # we are only interested in non-trivial relations, i.e. not of the form x^a*N[i] = 0
+            # also we want a reduced presentation of these relations, i.e. the coefficient of r[i] is zero if r[i] = 0  
             for r_b in rels_b 
-                _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:]
+                _r = dense_row(coordinates(ambient_representative(r_b)),n)[1,:] # get all coefficients of the relation
                 s_r = [] #positions of non-zero terms of r_b 
                 for i=1:n 
-                    if !is_zero(m_b*N[i]) #check if entry is already non-zero, i.e. not relevant in the relation... 
-                        push!(s_r,i)
-                    else
-                        _r[i] = zero(R_N)
+                    #check if entry is already non-zero, i.e. not relevant in the relation... 
+                    # if !is_zero(m_b*N[i])
+                    if !is_zero(_r[i]) ## maybe here something goes wrong!!!
+                        if !is_zero(monomial_basis(R_N,degree(Vector{Int},b)-degree(Vector{Int},N[i]))[1]*N[i]) # check if term is non-zero
+                            push!(s_r,i)
+                        else
+                            _r[i] = zero(R_N)
+                        end 
                     end
                 end
-                if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0
+                if length(intersect(s,s_r)) > 0 && count(!is_zero,_r) > 1  #avoid simple relations x^a*e_i = 0 and we only want relations that are relevant for b, i.e. that have a common non-zero term
                     push!(r,(r_b,_r))
                 end
             end
-        
+
+            # compute coefficients in \lambda_b
             if r != []
-                rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2]    
-                last_non_zero = findlast(!is_zero,rel)
-                sum_of_coeffs = k()
-                f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
-                for i=1:n
-                    if i == last_non_zero
-                        coeff = -(sum_of_coeffs//f_k(rel[i]))
+                rel = r[argmin([degree(Vector{Int},m[1]) for m in r])][2] #get the relevant relation of lowest degree    
+                last_non_zero = findlast(!is_zero,rel) #index of last non-zero term
+
+                sum_of_coeffs = k() #needed to compute the coefficient of last non-zero entry
+                # f_k = hom(R_N,k,ones(elem_type(k),ngens(R_N))) #get coefficient
+                for i=1:n #set all (except the last) entry to (one if the tern r[i] is non-zero) or (zero if the term is zero)  
+                    if i == last_non_zero #set the last entry such that rel*lambda_b = 0 (dot product of coefficients of rel with lambda_b)
+                        coeff = -(sum_of_coeffs//_f_k(rel[i]))
                         push!(lambda_b,coeff)
                     else
                         if !is_zero(rel[i])
                             push!(lambda_b,one(R_N))
-                            sum_of_coeffs = sum_of_coeffs + f_k(rel[i])
+                            sum_of_coeffs = sum_of_coeffs + _f_k(rel[i]) #add scalar coefficient of rel[i]
                         else
                             push!(lambda_b,zero(R_N))
                         end 
                     end
                 end
-            else # no relations in deg(b)
-                l = findfirst(!is_zero,b_c) # first non-zero entry
+            else # no non-trivial relations in deg(b)
+                l = findfirst(!is_zero,b_c) # first non-zero term of b 
                 for i=1:n 
                     if i == l # alternatively check if i in s
-                        push!(lambda_b,one(R_N)) # set only one entry non-zero since that suffices
+                        push!(lambda_b,one(R_N)) # if suffices to set the first non-zero entry to one(R_N)
                     else
                         push!(lambda_b,zero(R_N))
                     end 
@@ -693,8 +744,10 @@ function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
             end
             push!(lambda,lambda_b)
         end
+    # end
+    if length(Bp) == 0
+        return [],[]
     end
-
     return Bp, matrix(R_N,hcat(lambda...))
 end
 
@@ -712,16 +765,23 @@ function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ},kQ::MonoidAlgebra, j
     summands = Vector{IndecInj}()
     lambda = []
 
-    for p in filter(p -> !is_zero(p.prime),P) 
-        Bp,lambda_p = _coefficients(N,p,kQ,j)
+    # for p in filter(p -> !is_zero(p.prime),P) 
+    for p in P 
+        Bp,lambda_p = _coefficients(N,p,kQ,j) #compute k[ZZF]-basis of (0 :_M P_F) and the scalar matrix that ensures these basis-elements are mapped to something non-zero in W^i (that is not completely constructed)
         for b in Bp 
             push!(summands, IndecInj(p,degree(Vector{Int},b)))
         end
 
-        if length(Bp) > 0
+        if length(Bp) > 0 # we don't want to add zero vectors to lambda...
             push!(lambda,lambda_p)
         end
-        N,_ = quo(Mi,saturation((ideal(kQ.algebra,[])*Mi)[1],p.prime)) # use new saturation method
+        # M_sat = mod_saturate(Mi,p.prime)
+        M_sat = saturation((ideal(kQ.algebra,[])*Mi)[1],p.prime)
+        # if !is_zero(saturation((ideal(kQ.algebra,[])*Mi)[1],p.prime))
+        if !is_zero(M_sat)
+            # N,_ = quo(Mi,saturation((ideal(kQ.algebra,[])*Mi)[1],p.prime)) # use new saturation method
+            N,_ = quo(Mi,M_sat) 
+        end
         # N,_ = quo(Mi,mod_saturate(Mi,p.prime)) #update N
         if is_zero(N)
             break
@@ -777,6 +837,7 @@ OUTPUT: irreducible resolution of M given by a list of of k[Q]-modules and homom
 """
 function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
     kQ = M.monoidAlgebra
+    R_Q = kQ.algebra
     Mi = M.mod # current module in resolution
     gi = identity_map(Mi) #initilalize
     res_Wi = Vector{IrrSum}()
@@ -788,7 +849,7 @@ function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
     j = 1
     while !is_zero(Mi) #until cokernel Mi is zero
         #compute irreducible hull
-        indec_injectives, lambda = irreducible_hull(Mi,kQ.faces,kQ,j)
+        indec_injectives, _lambda = irreducible_hull(Mi,kQ.faces,kQ,j)
 
         #get the corresponding irreducible ideal for each indecomposable injective
         irreducible_ideals = [_get_irreducible_ideal(kQ,J) for J in indec_injectives]
@@ -797,6 +858,15 @@ function irreducible_res(M::MonoidAlgebraModule, i::Int = 0)
         irreducible_comp = map(I -> quotient_ring_as_module(I),irreducible_ideals)
         d_sum(x,y) = direct_sum(x,y,task=:none)
         Wi = foldl(d_sum,irreducible_comp)
+
+        #multiply rows of lambda by degrees of generators of Mi
+        m,n = size(_lambda)
+        lambda = zero(_lambda)
+        for i in 1:m
+            for j in 1:n
+                lambda[i, j] = _lambda[i, j] * monomial_basis(R_Q,degree(Mi[i]))[1]
+            end
+        end
 
         #define injective map Mi -> Wi
         fi = hom(Mi,Wi,matrix(lambda))
@@ -845,12 +915,16 @@ end
 
 Given an ideal I over a normal monoid algebra and an integer i compute a minimal injective resolution of I up to cohomological degree i. This is an implementation of the algorithms in $\cite{HM2004}$.
 """
-function injective_res(I::MonoidAlgebraIdeal, i::Int)
-    kQ = I.monoidAlgebra
+# function injective_res(I::MonoidAlgebraIdeal, i::Int)
+function injective_res(M::MonoidAlgebraModule, i::Int)
+    # kQ = I.monoidAlgebra
+    kQ = M.monoidAlgebra
 
     #compute irreducible resolution of shifted module
-    a_shift = compute_shift(I,i+1)
-    irrRes = irreducible_res(shifted_module(I,a_shift))
+    # a_shift = compute_shift(I,i+1)
+    a_shift = compute_shift(M,i+1)
+    # irrRes = irreducible_res(shifted_module(I,a_shift))
+    irrRes = irreducible_res(shifted_module(M,a_shift))
 
     #get injective modules up to cohomological degree i, i.e. J^0, J^1, ...,J^i
     inj_modules = Vector{InjMod}()
@@ -861,7 +935,12 @@ function injective_res(I::MonoidAlgebraIdeal, i::Int)
 
     #get all needed maps (as k-matrix or k[Q]-matrix?)
     cochain_maps = [matrix(irrRes.cochainMaps[k]) for k in eachindex(irrRes.cochainMaps) if 1 < k <= i+1]
-    return InjRes(quotient_ring_as_module(I),inj_modules,cochain_maps,i,irrRes,a_shift)
+    # return InjRes(quotient_ring_as_module(I),inj_modules,cochain_maps,i,irrRes,a_shift)
+    return InjRes(M,inj_modules,cochain_maps,length(inj_modules)-1,irrRes,a_shift)
+end
+
+function injective_res(I::MonoidAlgebraIdeal,i::Int)
+    return injective_res(quotient_ring_as_module(I),i)
 end
 
 ##fix SubquoModule with "zero"-relations
