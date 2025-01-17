@@ -658,6 +658,7 @@ export gluing_morphisms
 export gluings
 export goldfarb_cube
 export goldfarb_sit_cube
+export gomory_chvatal_closure
 export gorenstein_index
 export grade
 export graded_cokernel
@@ -768,6 +769,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export integer_hull
 export integral_basis
 export integrate
 export interior_lattice_points
