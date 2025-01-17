@@ -331,8 +331,8 @@ function primitive_generator_with_scaling_factor(
   first_scaling_factor = ZZ(lcm([denominator(i) for i in r]))
   result = ZZ.(first_scaling_factor * r)
   g = gcd(result)
-  scaling_factor = QQ(first_scaling_factor)//QQ(g)
-  @assert g > 0 "The vector `r` cannot be a zero vector"
+  @req g > 0 "The vector `r` cannot be a zero vector"
+  scaling_factor = QQ(first_scaling_factor, g)
   result = map(x -> div(x, g), result)
   return Tuple{Vector{ZZRingElem},QQFieldElem}((result, scaling_factor))
 end
