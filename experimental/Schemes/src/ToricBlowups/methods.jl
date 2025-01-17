@@ -190,7 +190,6 @@ x1*e^2 + x2*e^3
 cox_ring_module_homomorphism
 
 function cox_ring_module_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingElem)
-  # We assume the i-th variable of `R` is the i-th variable of `S`
   @req parent(g) === cox_ring(codomain(f)) "g must be an element of the Cox ring of the codomain of f"
   R = cox_ring(codomain(f))
   S = cox_ring(domain(f))
@@ -203,12 +202,15 @@ function cox_ring_module_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingEle
   end
   exceptional_var = S[index_of_exceptional_ray(f)]
   C = MPolyBuildCtx(S)
+
+  # Core loop
   for m in terms(g)
-    exps = collect(exponents(m))[1]
+    exps = first(exponents(m))
     exceptional_exp = ceil(Int64, sum(ps_fast.*exps))
-    insert!(exps, index_of_exceptional_ray(f), exceptional_exp)
-    push_term!(C, collect(coefficients(m))[1], exps)
+    exps = [exps; exceptional_exp]
+    push_term!(C, first(coefficients(m)), exps)
   end
+
   h = finish(C)
   return h
 end
