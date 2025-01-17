@@ -1137,15 +1137,11 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
-Visualize a graph.
+Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 """
-function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
-    Polymake.visual(BigGraph)
-end
-
+visualize
 
 
 # Some standard polytopes from graphs
