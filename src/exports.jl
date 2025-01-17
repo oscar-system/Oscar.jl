@@ -1332,6 +1332,7 @@ export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
 export primitive_generator
+export primitive_generator_with_scaling_factor
 export primitive_group
 export primitive_group_identification, has_primitive_group_identification
 export primorial
