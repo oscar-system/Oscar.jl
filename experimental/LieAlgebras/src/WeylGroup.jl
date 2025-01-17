@@ -65,13 +65,11 @@ end
 # The degree of the chosen permutation group is optimal except in the cases E_6, E_7.
 # See Saunders, "Minimal faithful permutation degrees for irreducible Coxeter groups and binary polyhedral groups", 2014.
 @doc raw"""
-    isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true) -> Map{WeylGroup, PermGroup}
+    isomorphism(::Type{PermGroup}, W::WeylGroup) -> Map{WeylGroup, PermGroup}
 
 Construct an isomorphism between `W` and a group of type `PermGroup`.
 
-If set_properties = true, then the properties of the `PermGroup` which are already known for `W` are set.
-
-Also see: [`permutation_group(::WeylGroup)`](@ref).
+The properties of the codomain group and the isomorphism are described in [`permutation_group(::WeylGroup)`](@ref).
 """
 function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
   @req is_finite(W) "Weyl group is not finite"
