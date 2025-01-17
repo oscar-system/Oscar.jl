@@ -97,4 +97,23 @@ end
   J_strict = strict_transform(f, I)
   @test J_strict == ideal(S, [x_ + y_*z_^2*u])
   @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
+
+  # Quadratic cone, blowup along non-Cartier divisor
+  ray_generators = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
+  max_cones = IncidenceMatrix([[1, 2, 3, 4]])
+  PF = polyhedral_fan(max_cones, ray_generators)
+  X = normal_toric_variety(PF)
+  set_coordinate_names(X, ["x", "y", "z", "w"])
+  R = cox_ring(X)
+  x, y, z, w = gens(R)
+  f = blow_up_along_minimal_supercone_coordinates(X, [1, 0, 0, 0]; coordinate_name="u")
+  Y = domain(f)
+  S = cox_ring(Y)
+  x_, y_, z_, w_ = gens(S)
+
+  ## Subscheme is a curve
+  I = ideal(R, [x + z^2*y])
+  J_strict = strict_transform(f, I)
+  @test J_strict == ideal(S, [x_ + y_*z_^2])
+  @test ideal_sheaf(Y, J_strict) == strict_transform(f, ideal_sheaf(X, I))
 end
