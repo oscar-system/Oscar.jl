@@ -720,7 +720,6 @@ function _local_basis_matrix_and_projection(Hv::HermLat, p::AbsSimpleNumFieldOrd
     pr = solve(Bv, Bp0; side=:right)
   else
     Bp = reduce(vcat, Bv)
-    Bv = reduce(vcat, Bv)
   end
 
   # Now that we have a good looking local basis at p for R, we massage it
