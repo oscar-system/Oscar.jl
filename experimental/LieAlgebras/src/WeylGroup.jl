@@ -54,7 +54,11 @@ end
 @doc raw"""
     permutation_group(W::WeylGroup) -> PermGroup
 
-Construct a group of type `PermGroup` that is isomorphic to `W`.
+Construct a group of type `PermGroup` that is isomorphic to `W`. The generators of the `PermGroup` are in
+the natural 1-1 correspondence with the generators of `W`.
+
+If the type of `W` is irreducible and not $E_6$ or $E_7$, then the degree of the constructed `PermGroup` is optimal.
+See [Sau14](@cite) for the optimal permutation degrees of Weyl groups.
 
 Also see: [`isomorphism(::Type{PermGroup}, ::WeylGroup)`](@ref).
 """
@@ -62,8 +66,6 @@ function permutation_group(W::WeylGroup; set_properties::Bool=true)
   return codomain(isomorphism(PermGroup, W; set_properties))
 end
 
-# The degree of the chosen permutation group is optimal except in the cases E_6, E_7.
-# See Saunders, "Minimal faithful permutation degrees for irreducible Coxeter groups and binary polyhedral groups", 2014.
 @doc raw"""
     isomorphism(::Type{PermGroup}, W::WeylGroup) -> Map{WeylGroup, PermGroup}
 
