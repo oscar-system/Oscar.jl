@@ -344,6 +344,8 @@ end
 Given an point $v$ inside the support of the polyhedral fan $PF$, return
 the ray indices of the unique cone $σ$ in $PF$ such that $v$ is in the
 relative interior of $σ$.
+Note that if $v$ is a zero vector, then $v$ is in the relative interior
+of the zero cone.
 
 The cone $σ$ can be constructed by
 
@@ -403,12 +405,16 @@ end
     minimal_supercone_coordinates(PF::PolyhedralFan, v::AbstractVector{<:RationalUnion})
     -> Vector{QQFieldElem}
 
-Given an point $v$ inside the support of the pointed polyhedral fan $PF$
-where $u_1, \ldots u_n$ are the minimal generators of the rays of $PF$,
-return a vector $(p_1, \ldots, p_n)$ of nonnegative rational numbers
-such that both of the following hold:
+Let $PF$ be a pointed polyhedral fan and let $u_1, \ldots, u_n$ be the
+minimal generators of the rays of $PF$.
+Let $\sigma$ be the unique cone in $PF$ such that $v$ is in the relative
+interior of $v$.
+Note that if $v$ is a zero vector, then $v$ is in the relative interior
+of the zero cone.
+This function returns a vector $(p_1, \ldots, p_n)$ of nonnegative
+rational numbers such that both of the following hold:
   * the vector $v$ is equal to $p_1 u_1 + \ldots + p_n u_n$, and
-  * if $u_i$ is not in minimal supercone containing $v$, then $p_i = 0$.
+  * if $u_i$ is not in $\sigma$, then $p_i = 0$.
 
 If $PF$ is simplicial, then $(p_1, \ldots, p_n)$ is unique.
 
@@ -477,7 +483,9 @@ Given a pointed polyhedral fan `PF` and a vector `v` of length equal to
 the number of rays of `PF`, this function checks that both of the
 following are true:
   * all of the entries of `v` are nonnegative,
-  * `v` is in some maximal cone of `PF`.
+  * there exists a cone $\sigma$ in `PF` such that for every $i$, if the
+    $i$-th entry of $v$ is positive, then the $i$-th ray of `PF` belongs
+    to $\sigma$.
 
 # Examples
 ```jldoctest
