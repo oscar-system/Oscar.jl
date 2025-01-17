@@ -141,7 +141,7 @@ Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)::GraphicalModel
+function graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)
   l_indices = [Tuple([src(e),dst(e)]) for e in edges(G)]
   w_indices = vertices(G)
   R, l, w = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices]; cached=cached)

@@ -428,7 +428,7 @@ end
 # The first argument will always be the actual double complex itself, 
 # so that the body of the function has access to all data already generated 
 # and the other functionality available to this double complex. 
-function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::ChainType where {ChainType}
+function (fac::ChainFactory{ChainType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {ChainType}
   error("production of the ($i, $j)-th chain not implemented")
 end
 
@@ -444,7 +444,7 @@ function (fac::ChainMorphismFactory)(dc::AbsDoubleComplexOfMorphisms, t1::Tuple)
 end
 
 # A dummy placeholder which must be overwritten; see below.
-function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int)::MorphismType where {MorphismType}
+function (fac::ChainMorphismFactory{MorphismType})(dc::AbsDoubleComplexOfMorphisms, i::Int, j::Int) where {MorphismType}
   error("could not construct morphism from ($i, $j)")
 end
 
