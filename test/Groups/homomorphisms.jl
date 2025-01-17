@@ -334,8 +334,15 @@ end
       G  = Hecke.small_group(64, 14, DB = Hecke.DefaultSmallGroupDB())
       H = small_group(64, 14)
       @test is_isomorphic(G, H)
+      @test is_isomorphic(H, G)
       f = isomorphism(G, H)
       for x in gens(G), y in gens(G)
+         @test f(x) * f(y) == f(x * y)
+         @test preimage(f, f(x)) == x
+         @test preimage(f, f(y)) == y
+      end
+      f = isomorphism(H, G)
+      for x in gens(H), y in gens(H)
          @test f(x) * f(y) == f(x * y)
          @test preimage(f, f(x)) == x
          @test preimage(f, f(y)) == y
@@ -634,6 +641,69 @@ end
    imgs = [one(G)]
    mp = hom(A, G, imgs)
    @test order(image(mp)[1]) == 1
+end
+
+@testset "Homomorphism GAPGroup to MultTableGroup" begin
+   # M isomorphic to G
+   M = Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())
+   iso = isomorphism(PermGroup, M)
+   G = codomain(iso)
+   imgs = [iso(x) for x in gens(M)]
+   mp = hom(G, M, imgs, gens(M))
+   @test [mp(x) for x in gens(G)] == gens(M)
+   @test [preimage(mp, x) for x in gens(M)] == gens(G)
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(6, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = elem_type(M)[]
+   mp = hom(G, M, imgs)
+   @test mp(one(G)) == one(M)
+
+   # M trivial
+   G = small_group(20, 3)
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = [one(M) for x in gens(G)]
+   mp = hom(G, M, imgs)
+   @test all(x -> order(mp(x)) == 1, gens(G))
+
+   # G and M trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = elem_type(M)[]
+   mp = hom(G, M, imgs)
+   @test mp(one(G)) == one(M)
+end
+
+@testset "Homomorphism MultTableGroup to GAPGroup" begin
+   # M isomorphic to G
+   M = Hecke.small_group(20, 3, DB = Hecke.DefaultSmallGroupDB())
+   iso = isomorphism(PermGroup, M)
+   G = codomain(iso)
+   imgs = [iso(x) for x in gens(M)]
+   mp = hom(M, G, gens(M), imgs)
+   @test [mp(x) for x in gens(M)] == gens(G)
+
+   # G trivial
+   G = cyclic_group(PcGroup, 1)
+   M = Hecke.small_group(6, 1, DB = Hecke.DefaultSmallGroupDB())
+   imgs = [one(G) for x in gens(M)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
+
+   # M trivial
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   G = dihedral_group(8)
+   imgs = [one(G)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
+
+   # G and M trivial
+   M = Hecke.small_group(1, 1, DB = Hecke.DefaultSmallGroupDB())
+   G = cyclic_group(PcGroup, 1)
+   imgs = [one(G)]
+   mp = hom(M, G, imgs)
+   @test mp(one(M)) == one(G)
 end
 
 function test_direct_prods(G1,G2)

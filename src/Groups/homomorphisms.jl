@@ -133,6 +133,13 @@ function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
   return hom(G, H, gens(G), imgs; check)
 end
 
+
+################################################################################
+#
+#  `hom` between `GAPGroup` and `FinGenAbGroup`
+#
+################################################################################
+
 # Map `G::GAPGroup` to `A::FinGenAbGroup` by prescribing images.
 # Return a composition of homomorphisms `G -> G/G' -> B -> A`,
 # not a `GAPGroupHomomorphism`.
@@ -171,6 +178,45 @@ end
 function hom(A::FinGenAbGroup, G::GAPGroup, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
   return hom(A, G, gens(A), imgs; check)
 end
+
+################################################################################
+#
+#  `hom` between `GAPGroup` and `MultTableGroup`
+#
+################################################################################
+
+# Map `G::GAPGroup` to `M::MultTableGroup` by prescribing images.
+# Return a composition of homomorphisms `G -> B -> M`,
+# not a `GAPGroupHomomorphism`.
+function hom(G::GAPGroup, M::MultTableGroup, gensG::Vector, imgs::Vector{MultTableGroupElem}; check::Bool = true)
+  # map M to an isomorphic perm. group B
+  iso = isomorphism(PermGroup, M)
+  B = codomain(iso)
+
+  # map G to B as prescribed
+  map1 = hom(G, B, gensG, [iso(x) for x in imgs], check = check)
+
+  # create the composition
+  return compose(map1, inv(iso))
+end
+
+function hom(G::GAPGroup, M::MultTableGroup, imgs::Vector{MultTableGroupElem}; check::Bool = true)
+  return hom(G, M, gens(G), imgs; check)
+end
+
+# Map `M::MultTableGroup` to `G::GAPGroup` by prescribing images.
+# Return a composition `M -> B -> G` where `M -> B` is an isomorphism
+# to a `GAPGroup`.
+function hom(M::MultTableGroup, G::GAPGroup, gensM::Vector, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  map1 = isomorphism(PermGroup, M)
+  map2 = hom(codomain(map1), G, [map1(x) for x in gensM], imgs, check = check)
+  return compose(map1, map2)
+end
+
+function hom(M::MultTableGroup, G::GAPGroup, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  return hom(M, G, gens(M), imgs; check)
+end
+
 
 function domain(f::GAPGroupHomomorphism)
   return f.domain
