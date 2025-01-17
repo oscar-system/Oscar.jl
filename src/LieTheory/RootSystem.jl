@@ -261,14 +261,14 @@ end
 @doc raw"""
     root_system_type_with_ordering(R::RootSystem) -> Vector{Tuple{Symbol,Int}}, Vector{Int}
 
-Return the Cartan type of `R`, together with the ordering of the simple roots.
+Return the Cartan type of `R`, together with a vector `ordering` such that [`simple_roots`](@ref)`(R)[ordering]` is a canonical ordering of the simple roots.
 
 If the type is already known, it is returned directly.
 This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
 
 If the type is not known, it is determined and stored in `R`.
 
-See also: [`root_system_type(::RootSystem)`](@ref).
+See also: [`root_system_type(::RootSystem)`](@ref), [`cartan_type_with_ordering(::ZZMatrix)`].
 
 !!! warning
     This function will error if the type is not known yet and the Weyl group is infinite.

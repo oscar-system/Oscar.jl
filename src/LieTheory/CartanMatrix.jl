@@ -283,6 +283,8 @@ of the roots in the Dynkin diagram.
 
 If `check=true` the function will verify that `gcm` is indeed a Cartan matrix.
 
+See also: [`root_system_type_with_ordering(::RootSystem)`].
+
 !!! note
     The order of returned components is, in general, not unique and might change between versions.
     But we guarantee that if this function is called with the output of [`cartan_matrix(::Vector{Tuple{Symbol,Int}})`](@ref cartan_matrix(type::Vector{Tuple{Symbol,Int}})),
@@ -295,6 +297,9 @@ If `check=true` the function will verify that `gcm` is indeed a Cartan matrix.
 ```jldoctest
 julia> cartan_type_with_ordering(cartan_matrix(:E, 6))
 ([(:E, 6)], [1, 2, 3, 4, 5, 6])
+
+julia> cartan_type_with_ordering(ZZ[2 0 -2; 0 2 -1; -1 -1 2]) # type B_3, with rows and columns permuted with perm([2, 3, 1])
+([(:B, 3)], [2, 3, 1])
 
 julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
 ([(:B, 2), (:C, 2)], [1, 3, 2, 4])
