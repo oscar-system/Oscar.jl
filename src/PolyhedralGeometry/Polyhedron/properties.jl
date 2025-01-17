@@ -1513,7 +1513,7 @@ function f_vector(P::Polyhedron)
   # polymake takes the far face into account, too
   ldim = lineality_dim(P)
   f_vec = vcat(zeros(Int64, ldim), [length(faces(P, i)) for i in ldim:(dim(P) - 1)])
-  return f_vec:::Vector{ZZRingElem}
+  return f_vec::Vector{ZZRingElem}
 end
 
 @doc raw"""
