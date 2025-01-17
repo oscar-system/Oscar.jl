@@ -298,13 +298,7 @@ See also: [`root_system_type_with_ordering(::RootSystem)`].
 julia> cartan_type_with_ordering(cartan_matrix(:E, 6))
 ([(:E, 6)], [1, 2, 3, 4, 5, 6])
 
-julia> cartan_matrix(:B, 3)
-[ 2   -1    0]
-[-1    2   -1]
-[ 0   -2    2]
-
-# ZZ[2 0 -2; 0 2 -1; -1 -1 2] is obtained from cartan_matrix(:B, 3) by permuting rows and columns according to perm([2, 3, 1])
-julia> cartan_type_with_ordering(ZZ[2 0 -2; 0 2 -1; -1 -1 2])
+julia> cartan_type_with_ordering(ZZ[2 0 -2; 0 2 -1; -1 -1 2]) # type B_3, with rows and columns permuted with perm([2, 3, 1])
 ([(:B, 3)], [2, 3, 1])
 
 julia> cartan_type_with_ordering(ZZ[2 0 -1 0; 0 2 0 -2; -2 0 2 0; 0 -1 0 2])
