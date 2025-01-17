@@ -14,6 +14,13 @@ General textbooks offering details on theory and algorithms include:
 - [JT13](@cite)
 - [Zie95](@cite)
 
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on polyhedral geometry in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/PolyhedralGeometry/).
+
+
 ## Scalar types
 
 The objects from polyhedral geometry operate on a given type, which (usually) resembles a field. This is indicated by the template parameter, e.g. the properties of a `Polyhedron{QQFieldElem}` are rational numbers of type `QQFieldElem`, if applicable.
