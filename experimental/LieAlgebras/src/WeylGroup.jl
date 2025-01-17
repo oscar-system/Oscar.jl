@@ -56,7 +56,7 @@ end
 
 Construct a group of type `PermGroup` that is isomorphic to `W`.
 
-Also see: [`isomorphism(::Type{PermGroup}, ::WeylGroup; set_properties::Bool=true)`](@ref).
+Also see: [`isomorphism(::Type{PermGroup}, ::WeylGroup)`](@ref).
 """
 function permutation_group(W::WeylGroup; set_properties::Bool=true)
   return codomain(isomorphism(PermGroup, W; set_properties))
@@ -68,6 +68,10 @@ end
     isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true) -> Map{WeylGroup, PermGroup}
 
 Construct an isomorphism between `W` and a group of type `PermGroup`.
+
+If set_properties = true, then the properties of the `PermGroup` which are already known for `W` are set.
+
+Also see: [`permutation_group(::WeylGroup)`](@ref).
 """
 function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
   @req is_finite(W) "Weyl group is not finite"
@@ -91,12 +95,11 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
     Sym = symmetric_group(2n)
     gen_G = vcat([cperm(Sym, [i, i+1], [i+n, i+1+n]) for i in 1:n-1], cperm(Sym, [n-1, 2n], [n, 2n-1]))
   elseif coxeter_type == :E
-    # Permutation representation on the root system. This is not optimal for E_6 and E_7.
+    # Permutation representation on the root system. The permutation degree is not optimal for E_6 and E_7.
     m = number_of_roots(R)
     Sym = symmetric_group(m)
     gen_G = [perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n]
   elseif coxeter_type == :F
-    # Permutation representation on the root system. It would be sufficient to consider only a single orbit.
     Sym = symmetric_group(24)
     gen_G = [ # Computed by hand
       perm(Sym, [ 1, 2, 5, 4, 3, 7, 6, 9, 8, 10, 11, 12, 13, 14, 17, 16, 15, 19, 18, 21, 20, 22, 23, 24 ]),
