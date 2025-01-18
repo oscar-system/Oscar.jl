@@ -193,20 +193,25 @@ function cox_ring_module_homomorphism(f::ToricBlowupMorphism, g::MPolyDecRingEle
   @req parent(g) === cox_ring(codomain(f)) "g must be an element of the Cox ring of the codomain of f"
   R = cox_ring(codomain(f))
   S = cox_ring(domain(f))
-  
-  # Assuming the i-th variable of `R` is the i-th variable of `S`
-  S_vars = elem_type(S)[S[i] for i in 1:nvars(S)]
-  
-  nvars(R) == nvars(S) && return hom(R, S, S_vars)(g)
+  nvars(R) == nvars(S) && return evaluate(g, gens(S))
   ps = minimal_supercone_coordinates_of_exceptional_ray(f)
-  exceptional_var = S[index_of_exceptional_ray(f)]
-  make_S_term(c, exps) = c*prod(map(^, S_vars, exps))
-  coeff_exps = collect(zip(coefficients(g), exponents(g)))
-  h = S(0)
-  for (c, exps) in coeff_exps
-    exceptional_exp = ceil(ZZRingElem, sum(ps.*exps))
-    h += exceptional_var^exceptional_exp * make_S_term(c, exps)
+  if lcm(denominator.(ps)) == 1
+    ps_fast = Vector{Int64}(numerator.(ps))
+  else
+    ps_fast = Vector{Rational{Int64}}(ps)
   end
+  exceptional_var = S[index_of_exceptional_ray(f)]
+  C = MPolyBuildCtx(S)
+
+  # Core loop
+  for m in terms(g)
+    exps = first(exponents(m))
+    exceptional_exp = ceil(Int64, sum(ps_fast.*exps))
+    exps = [exps; exceptional_exp]
+    push_term!(C, first(coefficients(m)), exps)
+  end
+
+  h = finish(C)
   return h
 end
 
