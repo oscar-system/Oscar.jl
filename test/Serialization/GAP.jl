@@ -70,7 +70,7 @@
       end
     end
 
-    @test_skip @testset "IsSubgroupFpGroup" begin
+    @testset "IsSubgroupFpGroup" begin
       # full f.p. group
       F = GAP.Globals.FreeGroup(2)
       Fgens = GAP.Globals.GeneratorsOfGroup(F)
