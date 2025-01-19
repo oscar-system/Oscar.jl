@@ -53,13 +53,13 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
   flux = g4_flux(model(fgs), sum(c1+c2), check = check)
   if has_attribute(fgs, :is_well_quantized)
-    set_attribute(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
+    set_attribute!(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
   end
   if has_attribute(fgs, :is_vertical)
-    set_attribute(flux, :passes_verticality_checks, is_well_quantized(fgs))
+    set_attribute!(flux, :passes_verticality_checks, is_well_quantized(fgs))
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)
-    set_attribute(flux, :breaks_non_abelian_gauge_group, breaks_non_abelian_gauge_group(fgs))
+    set_attribute!(flux, :breaks_non_abelian_gauge_group, breaks_non_abelian_gauge_group(fgs))
   end
   return flux
 end
@@ -99,14 +99,43 @@ G4-flux candidate
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
   int_combination = zero_matrix(ZZ, ncols(matrix_integral(fgs)), 1)
-  rat_combination = zero_matrix(QQ, ncols(matrix_integral(fgs)), 1)
+  rat_combination = zero_matrix(QQ, ncols(matrix_rational(fgs)), 1)
   for i in 1:ncols(matrix_integral(fgs))
     int_combination[i] = rand(-100:100)
   end
-  for i in 1:ncols(matrix_integral(fgs))
+  for i in 1:ncols(matrix_rational(fgs))
     numerator = rand(-100:100)
     denominator = rand(1:100)
     rat_combination[i] = numerator // denominator
   end
   return flux_instance(fgs, int_combination, rat_combination, check = check)
+end
+
+
+
+##########################################
+### (2) Special random flux on model
+##########################################
+
+@doc raw"""
+    random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+
+Create a random $G_4$-flux on a given F-theory model.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> rf = random_flux(qsm_model, vert = true, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+```
+"""
+function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
+  family = special_flux_family(m, vert = vert, not_breaking = not_breaking, check = check)
+  return random_flux_instance(family, check = check)
 end

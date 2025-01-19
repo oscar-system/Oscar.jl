@@ -153,6 +153,7 @@ export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
+export random_flux
 export random_flux_instance
 export resolution_generating_sections
 export resolution_zero_sections
