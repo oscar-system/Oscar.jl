@@ -453,16 +453,3 @@ eval_poly(n::Number, R) = R(n)
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
-
-
-
-##########################################
-### 10 strict_transform helpers
-##########################################
-
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
-
-function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRingIdeal)
-  transf = strict_transform(bd, ideal_in_cox_ring(II))
-  return ideal_sheaf(domain(bd), transf)
-end
