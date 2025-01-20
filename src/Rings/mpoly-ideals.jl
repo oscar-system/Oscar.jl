@@ -1016,10 +1016,9 @@ end
     f_kk = map_coefficients(kk, f)
     h = first([h for (h, _) in factor(f_kk)])
     kk_ext, zeta = extension_field(h)
-    iso_kk_ext = hom(L, kk_ext, zeta)
-    br = base_ring(P_prime)
+    inc_kk_ext = hom(L, kk_ext, zeta)
     LoR, to_LoR = change_base_ring(kk_ext, R)
-    help_map = hom(br, LoR, iso_kk_ext, to_LoR.(iso.(gens(R_exp))))
+    help_map = hom(RR, LoR, inc_kk_ext, to_LoR.(iso.(gens(R_exp))))
     P_prime_ext = ideal(LoR, help_map.(gens(P_prime)))
     push!(full_res, (P, Q, P_prime_ext, degree(h)))
   end
@@ -1187,7 +1186,6 @@ end
 function minimal_primes(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, 
-    factor_generators::Bool=true,
     simplify_ring::Bool=true,
     cache::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
@@ -1202,55 +1200,12 @@ function minimal_primes(
     W, id, id_inv = simplify(Q)
     @assert domain(id) === codomain(id_inv) === Q
     @assert codomain(id) === domain(id_inv) === W
-    res_simp = minimal_primes(modulus(W); algorithm, factor_generators, simplify_ring=false)
+    res_simp = minimal_primes(modulus(W); algorithm, simplify_ring=false)
     result = [I + ideal(R, lift.(id_inv.(W.(gens(j))))) for j in res_simp]
     for p in result
       set_attribute!(p, :is_prime=>true)
     end
     return result
-  end
-
-  # This will in many cases lead to an easy simplification of the problem
-  if factor_generators
-    J = [ideal(R, gens(I))] # A copy of I as initialization
-    for g in gens(I)
-      K = typeof(I)[]
-      is_zero(g) && continue
-      for (b, k) in factor(g)
-        # Split the already collected components with b
-        for j in J
-          push!(K, j + ideal(R, b))
-        end
-      end
-      J = K
-    end
-
-    unique_comp = typeof(I)[]
-    for q in J
-      is_one(q) && continue
-      q in unique_comp && continue
-      push!(unique_comp, q)
-    end
-    J = unique_comp
-    
-    # unique! seems to fail here. We have to do it manually.
-    pre_result = filter!(!is_one, vcat([minimal_primes(j; algorithm, factor_generators=false) for j in J]...))
-    result = typeof(I)[]
-    for p in pre_result
-      p in result && continue
-      push!(result, p)
-    end
-
-    # The list might not consist of minimal primes only. We have to discard the embedded ones
-    final_list = typeof(I)[]
-    for p in result
-      any((q !== p && is_subset(q, p)) for q in result) && continue
-      push!(final_list, p)
-    end
-    for p in final_list
-      set_attribute!(p, :is_prime=>true)
-    end
-    return final_list
   end
 
   R_flat, iso, iso_inv = _expand_coefficient_field_to_QQ(R)
