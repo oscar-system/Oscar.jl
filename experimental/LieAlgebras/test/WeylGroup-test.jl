@@ -9,9 +9,15 @@
     # (Then nearly everything is covered by complicated case 1 and 2.)
     # Until then, all irreducible types and some explicit non-canonical orderings should be tested.
     ("A1", weyl_group(:A, 1)),
-    ("A3 with non-canonical ordering of simple roots", weyl_group(root_system([2 -1 -1; -1 2 0; -1 0 2]))),
+    (
+      "A3 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1; -1 2 0; -1 0 2])),
+    ),
     ("A5", weyl_group(:A, 5)),
-    ("B4 with non-canonical ordering of simple roots", weyl_group(root_system([2 -1 -1 0; -1 2 0 -1; -2 0 2 0; 0 -1 0 2]))),
+    (
+      "B4 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1 0; -1 2 0 -1; -2 0 2 0; 0 -1 0 2])),
+    ),
     ("B4", weyl_group(root_system(:B, 4))),
     ("C3", weyl_group(:C, 3)),
     ("D5", weyl_group(cartan_matrix(:D, 5))),

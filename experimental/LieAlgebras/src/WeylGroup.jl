@@ -87,29 +87,148 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
   coxeter_type, n = only(type)
   if coxeter_type == :A
     Sym = symmetric_group(n + 1)
-    gen_G = [cperm(Sym, [i, i+1]) for i in 1:n]
+    gen_G = [cperm(Sym, [i, i + 1]) for i in 1:n]
   elseif coxeter_type == :B || coxeter_type == :C
     Sym = symmetric_group(2n)
-    gen_G = vcat([cperm(Sym, [i, i+1], [i+n, i+1+n]) for i in 1:n-1], cperm(Sym, [n, 2n]))
+    gen_G = vcat(
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)], cperm(Sym, [n, 2n])
+    )
   elseif coxeter_type == :D
     Sym = symmetric_group(2n)
-    gen_G = vcat([cperm(Sym, [i, i+1], [i+n, i+1+n]) for i in 1:n-1], cperm(Sym, [n-1, 2n], [n, 2n-1]))
+    gen_G = vcat(
+      [cperm(Sym, [i, i + 1], [i + n, i + 1 + n]) for i in 1:(n - 1)],
+      cperm(Sym, [n - 1, 2n], [n, 2n - 1]),
+    )
   elseif coxeter_type == :E
     # Permutation representation on the root system. The permutation degree is not optimal for E_6 and E_7.
     m = number_of_roots(R)
     Sym = symmetric_group(m)
-    gen_G = [perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n]
+    gen_G = [
+      perm(Sym, [is_root_with_index(reflect(root(R, j), i))[2] for j in 1:m]) for i in 1:n
+    ]
   elseif coxeter_type == :F
     Sym = symmetric_group(24)
     gen_G = [ # Computed by hand
-      perm(Sym, [ 1, 2, 5, 4, 3, 7, 6, 9, 8, 10, 11, 12, 13, 14, 17, 16, 15, 19, 18, 21, 20, 22, 23, 24 ]),
-      perm(Sym, [ 3, 2, 1, 6, 5, 4, 7, 8, 10, 9, 11, 12, 15, 14, 13, 18, 17, 16, 19, 20, 22, 21, 23, 24 ]),
-      perm(Sym, [ 13, 4, 3, 2, 5, 8, 9, 6, 7, 11, 10, 12, 1, 16, 15, 14, 17, 20, 21, 18, 19, 23, 22, 24 ]),
-      perm(Sym, [ 4, 14, 6, 1, 7, 3, 5, 8, 9, 10, 12, 11, 16, 2, 18, 13, 19, 15, 17, 20, 21, 22, 24, 23 ])
+      perm(
+        Sym,
+        [
+          1,
+          2,
+          5,
+          4,
+          3,
+          7,
+          6,
+          9,
+          8,
+          10,
+          11,
+          12,
+          13,
+          14,
+          17,
+          16,
+          15,
+          19,
+          18,
+          21,
+          20,
+          22,
+          23,
+          24,
+        ],
+      ),
+      perm(
+        Sym,
+        [
+          3,
+          2,
+          1,
+          6,
+          5,
+          4,
+          7,
+          8,
+          10,
+          9,
+          11,
+          12,
+          15,
+          14,
+          13,
+          18,
+          17,
+          16,
+          19,
+          20,
+          22,
+          21,
+          23,
+          24,
+        ],
+      ),
+      perm(
+        Sym,
+        [
+          13,
+          4,
+          3,
+          2,
+          5,
+          8,
+          9,
+          6,
+          7,
+          11,
+          10,
+          12,
+          1,
+          16,
+          15,
+          14,
+          17,
+          20,
+          21,
+          18,
+          19,
+          23,
+          22,
+          24,
+        ],
+      ),
+      perm(
+        Sym,
+        [
+          4,
+          14,
+          6,
+          1,
+          7,
+          3,
+          5,
+          8,
+          9,
+          10,
+          12,
+          11,
+          16,
+          2,
+          18,
+          13,
+          19,
+          15,
+          17,
+          20,
+          21,
+          22,
+          24,
+          23,
+        ],
+      ),
     ]
   elseif coxeter_type == :G
     Sym = symmetric_group(5)
-    gen_G = [cperm(Sym, [1,2], [3,5]), cperm(Sym, [4, 5])] # gen_G[1]*gen_G[2] = cperm([1,2], [3,4,5])
+    gen_G = [cperm(Sym, [1, 2], [3, 5]), cperm(Sym, [4, 5])] # gen_G[1]*gen_G[2] = cperm([1,2], [3,4,5])
   end
 
   # Reorder generators
@@ -131,7 +250,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
     reduce(*, (gen(G, Int(i)) for i in word(w)); init=one(G))
   end
 
-  isoinv = function(p::PermGroupElem)
+  isoinv = function (p::PermGroupElem)
     rep_word = abs.(word(preimage(epi, p))) # `abs` may be used as all gens of W are self-inverse
     return W(rep_word)
   end
