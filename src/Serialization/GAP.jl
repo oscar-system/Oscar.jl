@@ -345,7 +345,7 @@ install_GAP_serialization(:IsPcGroup,
 install_GAP_deserialization(
   :IsPcGroup, false,
   function(filt::GapObj, s::DeserializerState, T)
-    relord = load_object(s, Vector, Int, :relord)
+    relord = load_object(s, Vector{Int}, :relord)
     F = GAP.Globals.FreeGroup(GAP.Globals.IsSyllableWordsFamily,
                               length(relord))::GapObj
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(F))

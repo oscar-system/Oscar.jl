@@ -101,7 +101,7 @@ end
 function load_object(s::DeserializerState,
                      T::Type{<: PolyRingUnionType},
                      params::Ring)
-  symbols = load_object(s, Vector, Symbol, :symbols)
+  symbols = load_object(s, Vector{Symbol}, :symbols)
   if T <: PolyRing
     return polynomial_ring(params, symbols..., cached=false)[1]
   elseif T <: UniversalPolyRing

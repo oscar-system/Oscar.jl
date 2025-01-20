@@ -162,7 +162,7 @@ function save_object(s::SerializerState, p::PermGroupElem)
 end
 
 function load_object(s::DeserializerState, T::Type{PermGroupElem}, parent_group::PermGroup)
-  imgs = load_object(s, Vector, Int)
+  imgs = load_object(s, Vector{Int})
   return perm(parent_group, imgs)
 end
 
@@ -204,7 +204,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     if GAPWrap.IsElementOfFpGroupFamily(fam)
       # go via the underlying free group
@@ -259,7 +259,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
     gapelm = GAPWrap.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj

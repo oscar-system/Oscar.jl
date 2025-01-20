@@ -55,23 +55,6 @@ function save_object(s::SerializerState, x::Vector)
   end
 end
 
-# this should eventually become deprecated
-function load_object(s::DeserializerState, ::Type{<: Vector}, params::Type)
-  load_node(s) do v
-    if serialize_with_id(params)
-      loaded_v::Vector{params} = load_array_node(s) do _
-        load_ref(s)
-      end
-    else
-      loaded_v = params[]
-      for (i, entry) in enumerate(v)
-        push!(loaded_v, load_object(s, params, i))
-      end
-    end
-    return loaded_v
-  end
-end
-
 function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where params
   load_node(s) do v
     if serialize_with_id(params)
@@ -88,12 +71,13 @@ function load_object(s::DeserializerState, ::Type{<: Vector{params}}) where para
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<: Vector{T}}, R::Ring) where T
+
+function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {T, S}
   load_array_node(s) do _
     if serialize_with_id(T)
       load_ref(s)
     else
-      load_object(s, T, R)
+      load_object(s, T, params)
     end
   end
 end
