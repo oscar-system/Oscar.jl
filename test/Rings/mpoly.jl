@@ -614,6 +614,62 @@ end
   @test !radical_membership(x, I)
 end
 
+@testset "preprocessing for radical computations" begin
+  kk7 = GF(7^3)
+  P0, t0 = QQ[:t0]
+  mipo1 = t0^2 + 1
+  kk1, alpha_1 = extension_field(mipo1)
+
+  P1, t1 = kk1[:t1]
+  mipo2 = t1^2 - 2
+  kk2, alpha2 = extension_field(mipo2)
+
+  R0, (x0, y0) = kk1[:x0, :y0]
+  R1, (x1, y1) = kk1[:x1, :y1]
+  R2, (x2, y2) = kk2[:x2, :y2]
+  R7, (x7, y7) = kk7[:x7, :y7]
+
+  I0 = ideal(R0, [x0^4])
+  I1 = ideal(R1, [x1^4])
+  I2 = ideal(R2, [x2^5])
+  I7 = ideal(R7, [x7^5])
+
+  @test x0 in radical(I0)
+  @test x1 in radical(I1)
+  @test x2 in radical(I2)
+  @test x7 in radical(I7)
+
+  I0 = ideal(R0, [x0^4])
+  I1 = ideal(R1, [x1^4])
+  I2 = ideal(R2, [x2^5])
+  I7 = ideal(R7, [x7^5])
+
+  @test x0 in radical(I0; eliminate_variables=false)
+  @test x1 in radical(I1; eliminate_variables=false)
+  @test x2 in radical(I2; eliminate_variables=false)
+  @test x7 in radical(I7; eliminate_variables=false)
+
+  I0 = ideal(R0, [x0^4])
+  I1 = ideal(R1, [x1^4])
+  I2 = ideal(R2, [x2^5])
+  I7 = ideal(R7, [x7^5])
+
+  @test x0 in radical(I0; eliminate_variables=false, use_squarefree_parts_of_generators=false)
+  @test x1 in radical(I1; eliminate_variables=false, use_squarefree_parts_of_generators=false)
+  @test x2 in radical(I2; eliminate_variables=false, use_squarefree_parts_of_generators=false)
+  @test x7 in radical(I7; eliminate_variables=false, use_squarefree_parts_of_generators=false)
+
+  I0 = ideal(R0, [x0^4])
+  I1 = ideal(R1, [x1^4])
+  I2 = ideal(R2, [x2^5])
+  I7 = ideal(R7, [x7^5])
+
+  @test x0 in radical(I0; eliminate_variables=true, use_squarefree_parts_of_generators=false)
+  @test x1 in radical(I1; eliminate_variables=true, use_squarefree_parts_of_generators=false)
+  @test x2 in radical(I2; eliminate_variables=true, use_squarefree_parts_of_generators=false)
+  @test x7 in radical(I7; eliminate_variables=true, use_squarefree_parts_of_generators=false)
+end
+
 @testset "dimensions" begin
   # to address issue #2721
   R, (x, y) = QQ[:x, :y]
