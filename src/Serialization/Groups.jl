@@ -90,7 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = parent(p)
+type_params(p::T) where T <: GrpElemUnionType = T, parent(p)
 
 
 #############################################################################
@@ -140,7 +140,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
-  generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
+  generators = load_object(s, Vector{Vector{Int}}, :gens)
   G = permutation_group(n, [perm(x) for x in generators])
   load_attrs(s, G)
   return G

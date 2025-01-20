@@ -293,12 +293,6 @@ function deserializer_open(io::IO, serializer::IPCSerializer, with_attrs::Bool)
   return DeserializerState(serializer, obj, nothing, nothing, with_attrs)
 end
 
-function attrs_list(s::SerializerState, T::Type) 
-  return get(s.type_attr_map, encode_type(T), Symbol[])
-end
-
-with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
-
 ################################################################################
 # Refs Channel
 import Base: put!, wait, isready, take!, fetch

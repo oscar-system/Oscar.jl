@@ -72,6 +72,12 @@ end
 # Type attribute map
 const type_attr_map = Dict{String, Vector{Symbol}}()
 
+function attrs_list(s::S, T::Type) where S <: Union{DeserializerState, SerializerState}
+  return get(type_attr_map, encode_type(T), Symbol[])
+end
+
+with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
+
 ################################################################################
 # (De|En)coding types
 
