@@ -1,20 +1,52 @@
-################################################################################
-# Saving and loading vectors
 
-@register_serialization_type Vector uses_params
 
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
+const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
     return S, nothing
   end
-
+  
   params = type_params.(obj)
   params_all_equal = all(map(x -> isequal(first(params), x), params))
   @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
   return S, params[1]
 end
+
+function has_empty_entries(obj::T) where T
+  return false
+end
+
+function has_empty_entries(obj::T) where T <: ContainerTypes
+  isempty(obj) && return true
+  any(has_empty_entries, obj)  && return true
+  return false
+end
+
+function type_params(obj::S) where {T <: ContainerTypes, S <:MatVecType{T}}
+  isempty(obj) && return S, nothing
+
+  # empty entries can inherit params from the rest of the collection
+  params = type_params.(filter(!has_empty_entries, obj))
+  params_all_equal = all(map(x -> isequal(first(params), x), params))
+  @req params_all_equal "Not all params of Vector or Matrix entries are the same, consider using a Tuple for serialization"
+  return S, params[1]
+end
+
+################################################################################
+# loads to handle
+
+function load_object(s::DeserializerState, T::Type{Vector{S}},
+                     key::Union{Symbol, Int}) where S
+  load_node(s, key) do _
+    load_object(s, T)
+  end
+end
+
+################################################################################
+# Saving and loading vectors
+@register_serialization_type Vector
 
 function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) where S
   save_data_dict(s) do
@@ -35,6 +67,8 @@ function save_type_params(s::SerializerState, T::Type, params::Vector)
 end
 
 function load_type_params(s::DeserializerState, T::Type{<: Union{MatVecType, Set}})
+  !haskey(s, :params) && return T, nothing
+  
   subtype, params = load_node(s, :params) do _
     U = decode_type(s)
     subtype, params = load_type_params(s, U)
@@ -80,6 +114,20 @@ function load_object(s::DeserializerState, ::Type{Vector{T}}, params::S) where {
       load_object(s, T, params)
     end
   end
+end
+
+function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
+  entries = load_array_node(s) do _
+    load_object(s, U)
+  end
+  return T(entries)
+end
+
+function load_object(s::DeserializerState, ::Type{Vector{U}}, ::Nothing) where U
+  entries = load_array_node(s) do _
+    load_object(s, U, nothing)
+  end
+  return Vector{U}(entries)
 end
 
 ################################################################################
@@ -307,7 +355,12 @@ function load_object(s::DeserializerState,
                      params::Dict{S, V}) where {S <: Union{Symbol, String, Int}, U, V}
   dict = T()
   for k in keys(params)
-    dict[k] = load_object(s, params[k]..., Symbol(k))
+    # has no data, hence no key was generated on the data side
+    if Base.issingletontype(params[k][1])
+      dict[k] = params[k][1]()
+    else
+      dict[k] = load_object(s, params[k]..., Symbol(k))
+    end
   end
   return dict
 end
@@ -359,27 +412,20 @@ function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Ring) wher
   elems = load_array_node(s) do _
     load_object(s, T, params)
   end
-  return Set(elems)
+  return S(elems)
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
   elems = load_array_node(s) do _
-    load_object(s, T, nothing)
+    load_object(s, T)
   end
-  return Set(elems)
-end
-
-function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T <: Union{String, Symbol, Int}
-  elems = load_array_node(s) do _
-    load_object(s, T, nothing)
-  end
-  return Set(elems)
+  return S(elems)
 end
 
 ################################################################################
 # Sparse rows
 
-@register_serialization_type SRow uses_params
+@register_serialization_type SRow 
 
 function save_object(s::SerializerState, obj::SRow)
   save_data_array(s) do
@@ -395,11 +441,7 @@ function load_object(s::DeserializerState, ::Type{<:SRow}, params::Ring)
   values = entry_type[]
   load_array_node(s) do _
     push!(pos, load_object(s, Int, 1))
-    if serialize_with_params(entry_type)
-      push!(values, load_object(s, entry_type, params, 2))
-    else
-      push!(values, load_object(s, entry_type, 2))
-    end
+    push!(values, load_object(s, entry_type, params, 2))
   end
   return sparse_row(params, pos, values)
 end

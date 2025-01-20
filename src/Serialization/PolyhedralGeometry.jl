@@ -64,16 +64,25 @@ end
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
   polymake_dict = load_object(s, Dict{String, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  
+  if Base.issingletontype(dict["_coeff"][1])
+    field = dict["_coeff"][1]()
+  else
+    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  end
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = load_typed_object(s)
+  polymake_dict = load_object(s, Dict{String, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  bigobject = _dict_to_bigobject(polymake_dict)
-  field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  if Base.issingletontype(dict["_coeff"][1])
+    field = dict["_coeff"][1]()
+  else
+    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  end
+
   return T(bigobject, field)
 end
 

@@ -313,23 +313,11 @@ function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
   end
 end
 
-function load_object(s::DeserializerState, T::Type{Vector{S}},
-                     key::Union{Symbol, Int}) where S
-  load_node(s, key) do _
-    load_object(s, T)
-  end
-end
-
 function load_object(s::DeserializerState, T::Type, params::S,
                      key::Union{Symbol, Int}) where S
   load_node(s, key) do _
     load_object(s, T, params)
   end
-end
-
-function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where U
-  !isempty(s.obj) && error("Attempting loading non empty vector without parent")
-  return U[]
 end
 
 ################################################################################
