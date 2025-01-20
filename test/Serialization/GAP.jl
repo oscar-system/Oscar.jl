@@ -119,7 +119,7 @@
       @test GAP.Globals.GeneratorsOfGroup(loaded[3])[1] in loaded[1]
     end
 
-    @test_skip @testset "IsPcGroup" begin
+    @testset "IsPcGroup" begin
       paras = [(1, 1), (5, 1), (24, 12)]
       for (n, i) in paras
         # full pc group

@@ -185,6 +185,14 @@ function load_object(s::DeserializerState, T::Type{<:Tuple}, params::Tuple)
   return Tuple(entries)
 end
 
+function load_object(s::DeserializerState, T::Type{<:Tuple})
+  entries = load_array_node(s) do (i, entry)
+    S = fieldtype(T, i)
+    load_object(s, S)
+  end
+  return T(entries)
+end
+
 ################################################################################
 # Saving and loading NamedTuple
 @register_serialization_type NamedTuple
