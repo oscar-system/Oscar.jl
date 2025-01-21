@@ -181,7 +181,6 @@ end
     A_ext, ext_map = change_base_ring(L, A) # recreate the quo-ring over that field
     @assert coefficient_ring(base_ring(A_ext)) === L
     help_map = hom(R_prime, A_ext, gens(A_ext); check=false)
-    help_map(first(gens(P_prime)))
     PP = ideal(A, A.(gens(P)))
     QQ = ideal(A, A.(gens(Q)))
     trans_gens = help_map.(gens(P_prime))
