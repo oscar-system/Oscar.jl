@@ -11,8 +11,6 @@
   @test p == cperm()
   
   @test_throws ArgumentError @perm (-1, 1)
-  @test_throws LoadError @eval @perm "bla"
-  @test_throws LoadError @eval @perm 1 + 1
   
   gens = @perm 14 [
          (1,10)
@@ -51,6 +49,16 @@
   p, = @perm A [(1,2,3)]
   @test parent(p) == A
   @test_throws ArgumentError @perm A [(1,2,3,4)]
+
+  @static if VERSION >= v"1.7"
+    # the following tests need the improved `@macroexpand` from Julia 1.7
+    @test_throws MethodError @macroexpand @perm "bla"
+    @test_throws ErrorException @macroexpand @perm 1 + 1
+    @test_throws ErrorException @macroexpand [@perm (1,2), @perm (3,4), @perm (5,6)]
+    @test_throws ErrorException @macroexpand [@perm (1,2)(3,4), @perm (5,6)(7,8)]
+    @test_throws ErrorException @macroexpand p1, p2, p3 = @perm (1,2), @perm (3,4), @perm (5,6)
+    @test_throws ErrorException @macroexpand p1, p2 = @perm (1,2)(3,4), @perm (5,6)(7,8)
+  end
 end
 
 @testset "permutation_group" begin

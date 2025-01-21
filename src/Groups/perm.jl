@@ -750,6 +750,13 @@ function _perm_helper(ex::Expr)
     ex == :( () ) && return []
     ex isa Expr || error("Input is not a permutation expression")
 
+    if ex.head == :tuple && any(x -> x isa Expr && x.head == :macrocall && x.args[1] == Symbol("@perm"), ex.args)
+        error("""Encountered @perm macro inside of permutation expression.
+                Either set explicit parentheses for each @perm call (e.g. `@perm((1,2)), @perm((3,4))`),
+                or use the @perm variant that takes a list of permutations (e.g. `@perm n [(1,2), (3,4)]`).
+                Please refer to the docstring of @perm for more information.""")
+    end
+
     res = []
     while ex isa Expr && ex.head == :call
         push!(res, Expr(:vect, ex.args[2:end]...))
