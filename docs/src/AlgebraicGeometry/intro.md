@@ -26,7 +26,7 @@ General textbooks offering details on the theory of varieties and schemes includ
 ## Tutorials
 
 We encourage you to take a look at our [tutorials](https://www.oscar-system.org/tutorials/). For instance,
-there is a [tutorial for toric geometry in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/ToricGeometryInOSCAR.ipynb).
+there is a [tutorial for toric geometry in OSCAR](https://www.oscar-system.org/tutorials/ToricGeometry/).
 
 
 ## Conventions
