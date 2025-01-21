@@ -151,7 +151,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
     Dict{String, ZZRingElem}()
   end::Dict{String, ZZRingElem}
   
-  # Compute data, that is frequently used by the sophisticated intersection product
+  # Compute data, that is used by the default/sophisticated intersection product
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = cox_ring(ambient_space(m))
     gS = gens(cox_ring(ambient_space(m)))
@@ -166,6 +166,8 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
       scalings = scalings,
       sr_ideal_pos = sr_ideal_pos
     )
+  else
+    cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
   end
 
   # Find the number of integral and rational parameters
@@ -179,13 +181,11 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   basis = ambient_space_models_of_g4_fluxes(m, check = check)
   basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
 
-  # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
-
-  # Compute the tadpole constraint by iterating over all generators of the flux family
-  tadpole_constraint_polynomial = zero(amb_ring)
+  # Use MPolyBuildCtx to compute the tadpole constraint.
+  C = MPolyBuildCtx(amb_ring)
+  exp_vec = fill(0, numb_int_parameters + numb_rat_parameters)
   for k1 in 1:ngens(amb_ring)
-    for k2 in 1:ngens(amb_ring)
+    for k2 in k1:ngens(amb_ring)
 
       # Extract generator k1
       if numb_int_parameters >= k1
@@ -204,7 +204,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
       # Compute the intersection number of generator k1 and generator k2
       inter_number = ZZ(0)
       for l1 in 1:length(basis)
-        for l2 in 1:length(basis)
+        for l2 in l1:length(basis)
 
           val = gen1[l1] * gen2[l2]
           is_zero(val) && continue
@@ -219,18 +219,29 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
             end        
           end
 
-          inter_number += val * change
+          if l1 == l2
+            inter_number += val * change
+          else
+            inter_number += 2 * val * change
+          end
           
         end
       end
 
       # Update the D3-tadpole constraint polynomial
-      tadpole_constraint_polynomial += inter_number * my_gens[k1] * my_gens[k2]
+      exp_vec[k1] += 1
+      exp_vec[k2] += 1
+      if k1 == k2
+        push_term!(C, inter_number, exp_vec)
+      else
+        push_term!(C, 2 * inter_number, exp_vec)
+      end
+      exp_vec[k1] = 0
+      exp_vec[k2] = 0
 
     end
   end
-
-  # Modify the tadpole constraint polynomial to reflect the actual constraint
+  tadpole_constraint_polynomial = finish(C)
   tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m, check = check)
   set_attribute!(fgs, :d3_tadpole_constraint, tadpole_constraint_polynomial)
 
