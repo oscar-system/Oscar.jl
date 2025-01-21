@@ -155,7 +155,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   if arxiv_doi(m) == "10.48550/arXiv.1511.03209"
     S = cox_ring(ambient_space(m))
     gS = gens(cox_ring(ambient_space(m)))
-    linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+    linear_relations = matrix(QQ, rays(ambient_space(m)))
     scalings = [c.coeff for c in S.d]
     mnf = Oscar._minimal_nonfaces(ambient_space(m))
     sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -173,8 +173,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   numb_rat_parameters = ncols(matrix_rational(fgs))
 
   # Create a polynomial ring with parameters ai for the integral_parameters and ri for the rational parameters
-  gens_strings = vcat([["a$(k)" for k in 1:numb_int_parameters], ["r$(k)" for k in 1:numb_rat_parameters]]...)
-  amb_ring, gens = polynomial_ring(QQ, gens_strings)
+  amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
   basis = ambient_space_models_of_g4_fluxes(m, check = check)
@@ -207,7 +206,8 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
       for l1 in 1:length(basis)
         for l2 in 1:length(basis)
 
-          gen1[l1] * gen2[l2] == 0 && continue
+          val = gen1[l1] * gen2[l2]
+          is_zero(val) && continue
 
           my_tuple = Tuple(sort([basis_indices[l1]..., basis_indices[l2]...]))
 
@@ -219,13 +219,13 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
             end        
           end
 
-          inter_number += gen1[l1] * gen2[l2] * change
+          inter_number += val * change
           
         end
       end
 
       # Update the D3-tadpole constraint polynomial
-      tadpole_constraint_polynomial += inter_number * gens[k1] * gens[k2]
+      tadpole_constraint_polynomial += inter_number * my_gens[k1] * my_gens[k2]
 
     end
   end

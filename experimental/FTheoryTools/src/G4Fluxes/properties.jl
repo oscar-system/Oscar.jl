@@ -183,10 +183,7 @@ G4-flux candidate
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
   numb = d3_tadpole_constraint(g4, check = false)
-  if numb >= 0 && is_integer(numb)
-    return true
-  end
-  return false
+  return numb >= 0 && is_integer(numb)
 end
 
 

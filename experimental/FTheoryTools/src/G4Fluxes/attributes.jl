@@ -105,10 +105,6 @@ function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
   numb = QQ(euler_characteristic(m; check = check)//24 - 1//2*integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy); check = check))
   set_attribute!(gf, :d3_tadpole_constraint, numb)
-  if numb >= 0 && is_integer(numb)
-    set_attribute!(gf, :passes_tadpole_cancellation_check, true)
-  else
-    set_attribute!(gf, :passes_tadpole_cancellation_check, false)
-  end
+  set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
   return numb::QQFieldElem
 end
