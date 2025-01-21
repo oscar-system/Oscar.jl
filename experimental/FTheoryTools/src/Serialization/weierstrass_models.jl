@@ -163,7 +163,16 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
   # That is, we have a dictionary which assigns the tuple (i1, i2, i3, i4) - sorted in ascending order - the
   # intersection number k. In general, k could be a rational number! Cf. orbifold singularities.
   if haskey(attrs_data, :inter_dict)
-    set_attribute!(model, :inter_dict, attrs_data[:inter_dict])
+    # We want this inter_dict to be of type Dict{NTuple{4, Int64}, ZZRingElem}().
+    # Sadly, serializing and loading turns NTuple{4, Int64} into Tuple.
+    # So we need to massage this... Not at all good, as it doubles memory usage!
+    original_dict = attrs_data[:inter_dict]
+    new_dict = Dict{NTuple{4, Int64}, ZZRingElem}()
+    for (key, value) in original_dict
+      new_key = NTuple{4, Int64}(key)
+      new_dict[new_key] = value
+    end
+    set_attribute!(model, :inter_dict, new_dict)
   end
 
   # Some special intersection numbers known? If we intersect the toric divisors
