@@ -42,6 +42,15 @@
   
   G = sub(G,gens)[1]
   @test order(G) == 645120
+
+  n = 4
+  p, = @perm n+1 [(1,2,3,4)]
+  @test degree(parent(p)) == n+1
+
+  A = alternating_group(4)
+  p, = @perm A [(1,2,3)]
+  @test parent(p) == A
+  @test_throws ArgumentError @perm A [(1,2,3,4)]
 end
 
 @testset "permutation_group" begin

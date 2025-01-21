@@ -818,10 +818,14 @@ end
 #
 @doc raw"""
     @perm n gens
+    @perm G gens
     
 Input a list of permutations in cycle notation, created as elements of the
 symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
 [`cperm`](@ref) suitably.
+
+Instead of the degree `n`, one can also provide the parent permutation group `G`.
+This macro will raise an error if the permutations are not elements of `G`.
 
 # Examples
 ```jldoctest
@@ -860,7 +864,7 @@ macro perm(n,gens)
     end
 
     return quote
-       let g = symmetric_group($n)
+       let n = $(esc(n)), g = n isa Int ? symmetric_group(n) : n
            [ cperm(g, pi...) for pi in [$(ores...)] ]
        end
     end
