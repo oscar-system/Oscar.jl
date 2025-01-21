@@ -23,6 +23,12 @@ General textbooks offering details on the theory of varieties and schemes includ
 - [The Stacks Project](https://stacks.math.columbia.edu)
 
 
+## Tutorials
+
+We encourage you to take a look at our [tutorials](https://www.oscar-system.org/tutorials/). For instance,
+there is a [tutorial for toric geometry in OSCAR](https://www.oscar-system.org/tutorials/ToricGeometry/).
+
+
 ## Conventions
 
 ### Projectivization

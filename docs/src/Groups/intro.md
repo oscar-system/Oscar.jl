@@ -18,6 +18,12 @@ General textbooks offering details on theory and algorithms include:
 - [HEO05](@cite)
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on group theory in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/GroupTheory/).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:
