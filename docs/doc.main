@@ -128,9 +128,11 @@
       "PolyhedralGeometry/cones.md",
       "PolyhedralGeometry/fans.md",
       "PolyhedralGeometry/polyhedral_complexes.md",
-      "PolyhedralGeometry/linear_programs.md",
-      "PolyhedralGeometry/mixed_integer_linear_programs.md",
       "PolyhedralGeometry/subdivisions_of_points.md",
+     "Optimization"=> [
+       "PolyhedralGeometry/Optimization/linear_programs.md",
+       "PolyhedralGeometry/Optimization/mixed_integer_linear_programs.md",
+     ],
   ],
 
   "Commutative Algebra" => [
