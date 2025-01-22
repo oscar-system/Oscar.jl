@@ -2533,5 +2533,5 @@ julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
 ```
 """
 function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
-  return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(P.pm_polytope))
+  return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
 end
