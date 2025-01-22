@@ -2515,7 +2515,7 @@ function integer_hull(P::Polyhedron{T}) where {T<:scalar_types}
 end
 
 @doc raw"""
-    gomory_chvatal_closure(P::Polyhedron)
+    gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
 
 Return the Gomory-Chvátal closure of a rational polyhedron; sometimes also called "elementary closure".
 
