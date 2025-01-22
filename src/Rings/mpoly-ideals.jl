@@ -648,9 +648,7 @@ function _squarefree_generator_ideal(I::MPolyIdeal)
   res_gens = elem_type(R)[]
   for g in gens(I)
     is_zero(g) && continue
-    # In characteristic zero, there are special methods, but not in pos. char. 
-    # See e.g. Geddes et. al. "Algorithms for Computer Algebra", Springer (1992)
-    fact = is_zero(characteristic(R)) ? factor_squarefree(g) : factor(g)
+    fact = factor_squarefree(g)
     is_empty(fact) && return ideal(R, one(R))
     h = prod(x for (x, _) in fact; init=one(R))
     push!(res_gens, h)
