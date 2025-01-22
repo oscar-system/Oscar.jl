@@ -245,6 +245,10 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m, check = check)
   set_attribute!(fgs, :d3_tadpole_constraint, tadpole_constraint_polynomial)
 
+  # Update the computed intersection numbers
+  set_attribute!(m, :inter_dict, inter_dict)
+  set_attribute!(m, :s_inter_dict, s_inter_dict)
+
   # Finally, return the result
   return tadpole_constraint_polynomial::QQMPolyRingElem
 
