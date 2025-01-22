@@ -94,10 +94,10 @@ end
 end
 
 
-@attr IdDict function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
+@attr IdDict{AbsWeilDivisor, AbsWeilDivisor} function raw_reduction_of_algebraic_lattice(X::EllipticSurface)
   X_red_raw, bc = raw_good_reduction(X)
   basis_ambient, _, _= algebraic_lattice(X)
-  return red_dict = IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
+  return IdDict{AbsWeilDivisor, AbsWeilDivisor}(D=>_reduce_as_prime_divisor(bc, D) for D in basis_ambient)
 end
 
 @attr ZZMatrix function good_reduction_algebraic_lattice(X::EllipticSurface)
