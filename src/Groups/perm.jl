@@ -740,7 +740,7 @@ end
 #
 # The following code implements a new way to input permutations in Julia. For example
 # it is possible to create a permutation as follow
-# pi = Oscar.Permutations.@perm (1,2,3)(4,5)(6,7,8)
+# pi = @perm (1,2,3)(4,5)(6,7,8)
 # > (1,2,3)(4,5)(6,7,8)
 # For this we use macros to modify the syntax tree of (1,2,3)(4,5)(6,7,8) such that
 # Julia can deal with the expression.
@@ -757,7 +757,7 @@ function _perm_helper(ex::Expr)
                 Please refer to the docstring of @perm for more information.""")
     end
 
-    res = []
+    res = Expr[]
     while ex isa Expr && ex.head == :call
         push!(res, Expr(:vect, ex.args[2:end]...))
         ex = ex.args[1]
@@ -767,7 +767,7 @@ function _perm_helper(ex::Expr)
         error("Input is not a permutation.")
     end
 
-    push!(res, Expr(:vect,ex.args...))
+    push!(res, Expr(:vect, ex.args...))
 
     # reverse `res` to match the original order; this ensures
     # the evaluation order is as the user expects
@@ -903,11 +903,7 @@ function _perm_max_entry(::Val{:single}, res)
   return :(mapreduce(maximum, max, [$(res...)]; init=1))
 end
 
-function _perm_max_entry(::Val{:vector}, res)
-  return :(mapreduce(x -> mapreduce(maximum, max, x; init=1), max, [$(res...)]; init=1))
-end
-
-function _perm_max_entry(::Val{:tuple}, res)
+function _perm_max_entry(::Union{Val{:vector}, Val{:tuple}}, res)
   return :(mapreduce(x -> mapreduce(maximum, max, x; init=1), max, [$(res...)]; init=1))
 end
 
