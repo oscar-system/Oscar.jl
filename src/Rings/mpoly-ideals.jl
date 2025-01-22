@@ -412,7 +412,8 @@ function saturation_with_index(I::MPolyIdeal{T}, J::MPolyIdeal{T} = ideal(base_r
   # respect to principal ideals
   if ngens(I) == 1 && ngens(J) == 1
     is_unit(J[1]) && return (I, base_ring(I)(0))
-    return ideal(remove(I[1], J[1])[2])
+    pair = remove(I[1], J[1])
+    return (ideal(pair[2]), pair[1])
   end
 
   K, k = Singular.saturation(singular_generators(I), singular_generators(J))
