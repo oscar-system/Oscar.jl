@@ -779,20 +779,45 @@ end
 
 ################################################################################
 #
-#   perm
+#   @perm
 #
+macro perm(ex)
+    res = _perm_helper(ex)
+    return esc(:(Oscar.cperm($(res...))))
+end
+
+
 @doc raw"""
-    @perm ex
-    
-Input a permutation in cycle notation. Supports arbitrary expressions for
-generating the integer entries of the cycles. The parent group is inferred 
-to be the symmetric group with a degree of the highest integer referenced 
-in the permutation.
+    @perm expr
+    @perm n expr
+    @perm G expr
+
+Input a permutation or a non-empty list of permutations in cycle notation.
+
+Supports arbitrary expressions for generating the integer entries of the cycles.
+
+`expr` may either be a single permutation, a non-empty list of permutations,
+or a non-empty tuple of permutations. **Note:** `@perm ()` denotes the identity
+permutation, NOT the empty tuple of permutations.
+
+If a group `G` is provided, the permutations are created as elements of `G`. This will
+raise an error if the permutations are not elements of `G`.
+
+If an integer `n` is provided, the permutations are created as elements of the
+symmetric group of degree `n`, i.e., `symmetric_group(n)`.
+
+Input a list of permutations in cycle notation, created as elements of the
+symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
+[`cperm`](@ref) suitably.
+
+In the remaining case, the parent group is inferred to be the symmetric group
+with a degree of the highest integer referenced in `expr`.
 
 The actual work is done by [`cperm`](@ref). Thus, for the time being,
 cycles which are *not* disjoint actually are supported.
 
 # Examples
+```jldoctest
 ```jldoctest
 julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
@@ -800,43 +825,18 @@ julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 julia> parent(x)
 Sym(8)
 
-julia> y = cperm([1,2,3],[4,5],[6,7,8])
-(1,2,3)(4,5)(6,7,8)
-
-julia> x == y
+julia> x == @perm 8 (1,2,3)(4,5)(factorial(3),7,8)
 true
 
-julia> z = perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
-(1,2,3)(4,5)(6,7,8)
+julia> x == cperm([1,2,3],[4,5],[6,7,8])
+true
 
-julia> x == z
+julia> x == perm(symmetric_group(8),[2,3,1,5,4,7,8,6])
 true
 ```
-"""
-macro perm(ex)
-    res = _perm_helper(ex)
-    return esc(:(Oscar.cperm($(res...))))
-end
 
-
-################################################################################
-#
-#   perm(n,gens)
-#
-@doc raw"""
-    @perm n gens
-    @perm G gens
-    
-Input a list of permutations in cycle notation, created as elements of the
-symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
-[`cperm`](@ref) suitably.
-
-Instead of the degree `n`, one can also provide the parent permutation group `G`.
-This macro will raise an error if the permutations are not elements of `G`.
-
-# Examples
 ```jldoctest
-julia> gens = @perm 14 [
+julia> gens = @perm [
               (1,10)
               (2,11)
               (3,12)
