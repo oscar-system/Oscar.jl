@@ -781,11 +781,6 @@ end
 #
 #   @perm
 #
-macro perm(ex)
-    res = _perm_helper(ex)
-    return esc(:(Oscar.cperm($(res...))))
-end
-
 
 @doc raw"""
     @perm expr
@@ -811,7 +806,9 @@ symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
 [`cperm`](@ref) suitably.
 
 In the remaining case, the parent group is inferred to be the symmetric group
-with a degree of the highest integer referenced in `expr`.
+with a degree of the highest integer referenced in `expr`. This may result in
+evalutating the expressions in the cycle entries multiple times, so it is
+recommended to provide the parent group explicitly in cases of complex expressions.
 
 The actual work is done by [`cperm`](@ref). Thus, for the time being,
 cycles which are *not* disjoint actually are supported.
@@ -862,6 +859,83 @@ julia> parent(gens[1])
 Sym(14)
 ```
 """
+macro perm(expr)
+  type, res = _perm_parse(expr)
+  n = _perm_max_entry(type, res)
+  return _perm_format(type, n, res)
+end
+
+macro perm(n_or_G, expr)
+  type, res = _perm_parse(expr)
+  return _perm_format(type, esc(n_or_G), res)
+end
+
+function _perm_parse(expr::Expr)
+  # case: expr is a non-empty vector
+  if expr.head == :vect
+    @req length(expr.args) > 0 "empty vector not allowed"
+    return Val(:vector), [esc(:([$(_perm_helper(arg)...)])) for arg in expr.args]
+  end
+
+  # case: expr is a non-empty tuple of permutations
+  # to distinguish this from a single cycle (of arbitrary expressions), we walk through
+  # the expression tree, and look for a place where a tuple is called.
+  # This never happens inside a single cycle, so this is a safe way to distinguish.
+  if expr.head == :tuple && length(expr.args) > 0 && expr.args[1] isa Expr
+    ex = expr.args[1]
+    while true
+      if ex.head == :tuple
+        return Val(:tuple), [esc(:([$(_perm_helper(arg)...)])) for arg in expr.args]
+      end
+      if ex.head == :call && ex.args[1] isa Expr
+        ex = ex.args[1]
+      else
+        break
+      end
+    end
+  end
+
+  # otherwise, we have a single permutation
+  return Val(:single), esc.(_perm_helper(expr))
+end
+
+function _perm_max_entry(::Val{:single}, res)
+  return :(mapreduce(maximum, max, [$(res...)]; init=1))
+end
+
+function _perm_max_entry(::Val{:vector}, res)
+  return :(mapreduce(x -> mapreduce(maximum, max, x; init=1), max, [$(res...)]; init=1))
+end
+
+function _perm_max_entry(::Val{:tuple}, res)
+  return :(mapreduce(x -> mapreduce(maximum, max, x; init=1), max, [$(res...)]; init=1))
+end
+
+function _perm_format(::Val{:single}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      cperm(G, $(res...))
+    end
+  end
+end
+
+function _perm_format(::Val{:vector}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      [cperm(G, p...) for p in [$(res...)]]
+    end
+  end
+end
+
+function _perm_format(::Val{:tuple}, n_or_G, res)
+  return quote
+    let n = $(n_or_G), G = n isa Int ? symmetric_group(n) : n
+      ((cperm(G, p...) for p in [$(res...)])...,)
+    end
+  end
+end
+
+#=
 macro perm(n,gens)
 
     ores = Expr[]
@@ -877,6 +951,11 @@ macro perm(n,gens)
     end
 end
 
+macro perm(ex)
+  res = _perm_helper(ex)
+  return esc(:(Oscar.cperm($(res...))))
+end
+=#
 
 @doc raw"""
     permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
