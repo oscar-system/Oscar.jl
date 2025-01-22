@@ -815,7 +815,6 @@ cycles which are *not* disjoint actually are supported.
 
 # Examples
 ```jldoctest
-```jldoctest
 julia> x = @perm (1,2,3)(4,5)(factorial(3),7,8)
 (1,2,3)(4,5)(6,7,8)
 
@@ -872,7 +871,7 @@ end
 
 function _perm_parse(expr::Expr)
   # case: expr is a non-empty vector
-  if expr.head == :vect
+  if expr.head == :vect || expr.head == :vcat
     @req length(expr.args) > 0 "empty vector not allowed"
     return Val(:vector), [esc(:([$(_perm_helper(arg)...)])) for arg in expr.args]
   end
