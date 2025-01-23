@@ -801,17 +801,15 @@ raise an error if the permutations are not elements of `G`.
 If an integer `n` is provided, the permutations are created as elements of the
 symmetric group of degree `n`, i.e., `symmetric_group(n)`.
 
-Input a list of permutations in cycle notation, created as elements of the
-symmetric group of degree `n`, i.e., `symmetric_group(n)`, by invoking
-[`cperm`](@ref) suitably.
-
 In the remaining case, the parent group is inferred to be the symmetric group
 with a degree of the highest integer referenced in `expr`. This may result in
-evalutating the expressions in the cycle entries multiple times, so it is
+evaluating the expressions in the cycle entries multiple times, so it is
 recommended to provide the parent group explicitly in cases of complex expressions.
 
 The actual work is done by [`cperm`](@ref). Thus, for the time being,
 cycles which are *not* disjoint actually are supported.
+
+See also [`cperm`](@ref) and [`perm`](@ref) for other ways to create permutations.
 
 # Examples
 ```jldoctest
