@@ -26,6 +26,7 @@ concurrency:
 jobs:
   test:
     runs-on: ["${{ matrix.os }}", "${{ matrix.group == 'short' && 'high-memory' || 'normal-memory'}}", RPTU]
+    continue-on-error: ${{ matrix.julia-version == 'nightly' }}
     timeout-minutes: 150
     strategy:
       fail-fast: false
