@@ -17,40 +17,77 @@
 # `RingElem`s, but actually for a whole list `l` of different 
 # combinations. Then your record would simply wrap up the arguments 
 # you pass to the function, in this case a `Vector` of `RingElem`s.
-struct SampleDataStruct{T<:RingElem}
-  elems::Vector{T}
+abstract type ParallelTask end 
+
+function type_params(::T) where T <: ParallelTask
+  error("please implement the function type_params for the type $T")
 end
+
+function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
+  !haskey(s, :params) && return T, nothing
+  params_dict = Dict{Symbol, Any}()
+  fields = DataType[]
+  load_node(s, :params) do _
+    for (n,t) in zip(fieldnames(T), fieldtypes(T))
+      if n!= :__attrs
+        load_node(s, Symbol(n)) do _
+          U = decode_type(s)
+          params = load_type_params(s, U)
+          push!(fields, params[1])
+          params_dict[Symbol(n)] = params
+        end
+      end
+    end
+  end
+
+  return T{fields...}, params_dict
+end
+
+function _compute(::T) where T <: ParallelTask
+  error("please implement the function _compute for the type $T")
+end
+
+function save_object(s::SerializerState, obj::T) where T <: ParallelTask
+  save_data_dict(s) do
+    for n in fieldnames(T)
+      if n != :__attrs
+        save_object(s, getfield(obj, n), Symbol(n))
+      end
+    end
+  end
+end
+
+function load_object(s::DeserializerState, ::Type{T}, params::Dict) where T <: ParallelTask
+  fields = []
+
+  for n in fieldnames(T)
+    if n!= :__attrs
+      push!(fields, load_object(s, params[n]..., Symbol(n)))
+    end
+  end
+  return T(fields...)
+end
+
 
 # The data will need to be passed to the different workers. 
 # To allow for this, you need to specify how to serialize your record 
 # struct. In many cases, this can be done by the generic serialization 
 # implementation. BUT: you still need to implement the following 
 # function, which communicates which parent-like object appear in your
-# record. 
-function type_params(ds::SampleDataStruct)
-  isempty(ds.elems) && return Dict()
-  @req all(parent(x) === parent(first(ds.elems)) for x in ds.elems) "elements must have the same parent"
-  p = parent(first(ds.elems))
-  return typeof(ds), Dict(:parent => (typeof(p), p))
-end
-
-#function put_params(channels::
-
-# The following line communicates that this struct is available for serialization.
-@register_serialization_type SampleDataStruct uses_id
+# record.
 
 # As said above, the generic (de-)serialization should do, but in case 
 # you want something specialized, you can overwrite the methods here. 
-function save_object(s::SerializerState, ds::SampleDataStruct)
-  save_data_dict(s) do
-    save_object(s, ds.elems, :elems)
-  end
-end
+#function save_object(s::SerializerState, ds::SampleDataStruct)
+#  save_data_dict(s) do
+#    save_object(s, ds.elems, :elems)
+#  end
+#end
 
-function load_object(s::DeserializerState, ::Type{<:SampleDataStruct}, params::Dict)
-  R = params[:parent]
-  return SampleDataStruct(load_object(s, Vector{elem_type(R)}, R, :elems))
-end
+#function load_object(s::DeserializerState, ::Type{<:SampleDataStruct}, params::Dict)
+#  R = params[:parent]
+#  return SampleDataStruct(load_object(s, Vector{elem_type(R)}, R, :elems))
+#end
 
 # Finally, implement the function which should be called on an instance 
 # of your record (on the workers) to carry out the actual task.
@@ -59,9 +96,6 @@ end
 # be of the form `(success, result)` where `success` is a `Bool` indicating 
 # whether the worker has obtained an affirmative result in any reasonable sense. 
 # Execution is stopped only if a return pair with `success==true` is found. 
-function _compute(ds::SampleDataStruct)
-  return true, gcd(ds.elems...)
-end
 
 ########################################################################
 # Generic implementations for deployment of tasks
