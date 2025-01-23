@@ -12,9 +12,12 @@ Additionally, return
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_product(F::FreeMod{T}...; task::Symbol = :prod) where {T}
+function direct_product(M::FreeMod{T}, Ms::FreeMod{T}...; task::Symbol = :prod) where T
+  return direct_product([M, Ms...]; task)
+end
+function direct_product(F::Vector{<:FreeMod{T}}; task::Symbol = :prod) where T
   R = base_ring(F[1])
-  G = FreeMod(R, sum([rank(f) for f = F]))
+  G = FreeMod(R, sum(rank, F))
   all_graded = all(is_graded, F)
   if all_graded
     G.d = vcat([f.d for f in F]...)
@@ -70,8 +73,11 @@ Additionally, return
 - two vectors containing the canonical projections and injections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
-  F, pro, mF = direct_product([ambient_free_module(x) for x = M]..., task = :both)
+function direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
+  return direct_product([M, Ms...]; task)
+end
+function direct_product(M::Vector{<:ModuleFP{T}}; task::Symbol = :prod) where T
+  F, pro, mF = direct_product([ambient_free_module(x) for x = M], task = :both)
   s, emb_sF = sub(F, vcat([elem_type(F)[mF[i](y) for y = ambient_representatives_generators(M[i])] for i=1:length(M)]...))
   q::Vector{elem_type(F)} = vcat([elem_type(F)[mF[i](y) for y = rels(M[i])] for i=1:length(M)]...)
   pro_quo = nothing
@@ -127,6 +133,7 @@ function direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
     end
   end
 end
+
 ##################################################
 # direct sum
 ##################################################
@@ -141,7 +148,10 @@ Additionally, return
 - two vectors containing the canonical injections and projections, respectively, if `task = :both`,
 - none of the above maps if `task = :none`.
 """
-function direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where {T}
+function direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
+  return direct_sum([M, Ms...]; task)
+end
+function direct_sum(M::Vector{<:ModuleFP{T}}; task::Symbol = :sum) where T
   res = direct_product(M...; task)
   if task == :sum || task == :prod
     ds, f = res
@@ -166,7 +176,7 @@ Return the canonical injections from all components into $G$
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injections(G::ModuleFP)
-  H = get_attribute(G, :direct_product)
+  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
   return [canonical_injection(G, i) for i in 1:length(H)]
 end
@@ -177,18 +187,15 @@ end
 Return the canonical injection $G_i \to G$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_injection(G::ModuleFP, i::Int)
-  H = get_attribute(G, :direct_product)
+  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
-  injection_dictionary = get_attribute(G, :injection_morphisms)
-  if haskey(injection_dictionary, i)
-    return injection_dictionary[i]
+  injection_dictionary = get_attribute(G, :injection_morphisms)::IdDict{Int,ModuleFPHom}
+  return get!(injection_dictionary, i) do
+    @req 0 < i <= length(H) "index out of bound"
+    j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+    img_gens = elem_type(G)[G[l+j] for l in 1:ngens(H[i])]
+    return hom(H[i], G, img_gens; check=false)
   end
-  @req 0 < i <= length(H) "index out of bound"
-  j = sum(ngens(H[l]) for l in 1:i-1; init=0)
-  img_gens = elem_type(G)[G[l+j] for l in 1:ngens(H[i])]
-  emb = hom(H[i], G, img_gens; check=false)
-  injection_dictionary[i] = emb
-  return emb
 end
 
 @doc raw"""
@@ -198,7 +205,7 @@ Return the canonical projections from $G$ to all components
 where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projections(G::ModuleFP)
-  H = get_attribute(G, :direct_product)
+  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
   return [canonical_projection(G, i) for i in 1:length(H)]
 end
@@ -209,22 +216,19 @@ end
 Return the canonical projection $G \to G_i$ where $G = G_1 \oplus \cdot \oplus G_n$.
 """
 function canonical_projection(G::ModuleFP, i::Int)
-  H = get_attribute(G, :direct_product)
+  H = get_attribute(G, :direct_product)::Vector{typeof(G)}
   @req H !== nothing "module not a direct product"
-  projection_dictionary = get_attribute(G, :projection_morphisms)
-  if haskey(projection_dictionary, i)
-    return projection_dictionary[i]
+  projection_dictionary = get_attribute(G, :projection_morphisms)::IdDict{Int,ModuleFPHom}
+  return get!(projection_dictionary, i) do
+    @req 0 < i <= length(H) "index out of bound"
+    j = sum(ngens(H[l]) for l in 1:i-1; init=0)
+    img_gens = vcat(
+                    elem_type(H[i])[zero(H[i]) for l in 1:j],
+                    gens(H[i]),
+                    elem_type(H[i])[zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)]
+                   )
+    return hom(G, H[i], img_gens; check=false)
   end
-  @req 0 < i <= length(H) "index out of bound"
-  j = sum(ngens(H[l]) for l in 1:i-1; init=0) 
-  img_gens = vcat(
-                  elem_type(H[i])[zero(H[i]) for l in 1:j], 
-                  gens(H[i]), 
-                  elem_type(H[i])[zero(H[i]) for l in 1+j+ngens(H[i]):ngens(G)]
-                 )
-  pro = hom(G, H[i], img_gens; check=false)
-  projection_dictionary[i] = pro
-  return pro
 end
     
 

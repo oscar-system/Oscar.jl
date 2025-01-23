@@ -5,7 +5,7 @@
 
   @test length(string(terms(a))) > 2
 
-  o = lex(R)*lex(F)
+  o = lex(R)*invlex(F)
 
   @test collect(coefficients(a; ordering = o)) ==
     [2, 2, 3, 3, 4, 4, 5, 5, 1, 1]
@@ -41,10 +41,10 @@
   t = tail(a)
   @test a == leading_term(a) + t
 
-  @test collect(terms(a; ordering = lex([w,x])*invlex(F)*lex([y,z]))) ==
+  @test collect(terms(a; ordering = lex([w,x])*lex(F)*lex([y,z]))) ==
     [2*w*F[2], 2*w*F[1], 3*x*F[2], 3*x*F[1],
      4*y*F[2], 5*z*F[2], F[2], 4*y*F[1], 5*z*F[1], F[1]]
 
-  @test_throws ErrorException induced_ring_ordering(invlex(F))
-  @test induced_ring_ordering(lex([w,x])*invlex(F)*lex([y,z])) == lex([w,x,y,z])
+  @test_throws ErrorException induced_ring_ordering(lex(F))
+  @test induced_ring_ordering(lex([w,x])*lex(F)*lex([y,z])) == lex([w,x,y,z])
 end

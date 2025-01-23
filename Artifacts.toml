@@ -1,3 +1,11 @@
+[FTM-1511-03209]
+git-tree-sha1 = "ba4c659df6bba8d746d85628bfedf8b77b77047c"
+lazy = true
+
+    [[FTM-1511-03209.download]]
+    sha256 = "77f85f1e4a2c3b71963bea169b929dd8c1d9b3cf9b28b616f2c91486636acc22"
+    url = "https://zenodo.org/records/14611045/files/1511-03209.tar.gz"
+
 [QSMDB]
 git-tree-sha1 = "52686066016440cf2e6e286a923aed887658543c"
 lazy = true

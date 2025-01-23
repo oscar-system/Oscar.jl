@@ -102,7 +102,7 @@ Oscar.elem_type(::Type{BoundRing{T}}) where T = BoundRingElem{T}
 
 (R::BoundRing{T})(a::ZZRingElem) where T = BoundRingElem{T}(R.map(abs(a)), R)
 (R::BoundRing{T})(a::Integer) where T = BoundRingElem{T}(ZZRingElem(a), R)
-(R::BoundRing{T})() where T = BoundRingElem{T}(ZZRingElem(0), R)
+(R::BoundRing{T})() where T = zero(R)
 (R::BoundRing{T})(a::T) where T = BoundRingElem{T}(a, R)
 (R::BoundRing{T})(a::BoundRingElem{T}) where T = a
 Oscar.one(R::BoundRing) = R(1)
@@ -1360,10 +1360,10 @@ end
 
 """
 Maps elements of the base ring into the completion (the splitting field).
-FOr computations over QQ this does not matter as QQ just coerces into
+For computations over QQ this does not matter as QQ just coerces into
 any q/p-adic field.
 
-FOr computations over number fields this is not true, here an explciti map
+For computations over number fields this is not true, here an explicit map
 is needed.
 
 TODO: check and add a precision parameter
@@ -1785,7 +1785,7 @@ function order_from_shape(ct::Set{CycleType}, n)
            init = ZZRingElem(1))
   #Lemma 16:         
   for p = PrimesSet(1, n)
-    #find cycletypes that would correpond to elt of order a multiple of p
+    #find cycletypes that would correspond to elt of order a multiple of p
     #the exact order is lcm(x) for x in ct
     ct_p = [x for x = ct if any(t->t[1] % p == 0, x)]
     #so ct_t contains all cycle types belonging to elements where the
@@ -2667,6 +2667,10 @@ function Hecke.absolute_minpoly(a::Oscar.NfNSGenElem{QQFieldElem, QQMPolyRingEle
 end
 
 function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(G))
+  #TODO: currently con is useless here, the cluster detection and the reduce
+  #      tree is re-arranging the factors in lf randomly
+  #      one would need to trace the re-arranged lf as well
+  #      Since we don't, we have to compute roots and evaluate
   
   if all(x->x[2] == 1, lf)
     return G, C
@@ -2678,28 +2682,53 @@ function blow_up(G::PermGroup, C::GaloisCtx, lf::Vector, con::PermGroupElem=one(
 
   icon = inv(con)
 
-  gs = map(Vector{Int}, gens(G))
+  rr = roots(C, 2; raw = true)
+  renum = Int[]
   for (g, k) = lf
+    l = findall(iszero, map(g, rr))
+    append!(renum, l)
+  end
+  re = inv(symmetric_group(degree(G))(renum))
+
+  gs = map(Vector{Int}, gens(G))
+
+  # G is a sub group of prod G_i <= prod sym(n_i) the galois groups
+  # of the factors
+  # con describes the current ordering of the roots in so G^con <= prod G_i
+  #for the factors with multiplicity > 1, we need to append more factors
+  H = [G]
+  mps = [gens(G)]
+  n = degree(G)
+  for (g,k) = lf
+    if k == 1
+      st += degree(g)
+      continue
+    end
+    S = symmetric_group(degree(g))
+    #need proj G -> G_i, so need a subset of the points (st+1:st+deg(g))
+    # moved by re, then mapped to 1:deg(g)
+    h = [S([(i+st)^(gg^re)-st for i=1:degree(g)]) for gg = gens(G)]
     for j=2:k
-      for i=1:degree(g)
-        mp[n+i] = (st+i)^con
-      end
-      for h = gs
-        for i=1:degree(g)
-          push!(h, h[(st+i)^con]^icon-st+n)
-        end
+      S = symmetric_group(degree(g))
+      push!(H, S)
+      push!(mps, h)
+      for i = 1:degree(g)
+        mp[n+i] = (st+i)^icon
       end
       n += degree(g)
     end
     st += degree(g)
   end
 
+  D, emb, pro = inner_direct_product(H; morphisms = true)
+  h = hom(G, D, [prod(emb[i](mps[i][j]) for i=1:length(H)) for j=1:ngens(G)])
+
   C.rt_num = mp
-  S = symmetric_group(n)
-  GG, _ = sub(S, map(S, gs))
+  GG, _ = image(h)
 
   h = hom(G, GG, gens(G), gens(GG))
   @assert is_injective(h) && is_surjective(h)
+  C.G = GG
   return GG, C
 end
 
@@ -2825,6 +2854,7 @@ function galois_group(f::PolyRingElem{<:FieldElem}; prime=0, pStart::Int = 2*deg
   @vprint :GaloisGroup 1 "found $(length(cl)) connected components\n"
 
   res = Vector{Tuple{typeof(C[1]), PermGroupElem}}()
+  llf = Int[]
   function setup(C::Vector{<:GaloisCtx})
     G, emb, pro = inner_direct_product([x.G for x = C], morphisms = true)
     g = prod(x.f for x = C)

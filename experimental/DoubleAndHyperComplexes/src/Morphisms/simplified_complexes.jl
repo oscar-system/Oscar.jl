@@ -208,9 +208,9 @@ function (fac::SimplifiedChainFactory)(d::AbsHyperComplex, Ind::Tuple)
     for i in 1:m
       w = Sinv[i]
       v = zero(new_dom)
-      for j in 1:length(I)
-        a = w[I[j]]
-        !iszero(a) && (v += a*new_dom[j])
+      for (j, ind) in enumerate(I)
+        success, a = _has_index(w, ind)
+        success && (v += a*new_dom[j])
       end
       push!(img_gens_dom, v)
     end
@@ -401,13 +401,13 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
   # Initialize the base change matrices in domain and codomain
   S = sparse_matrix(R, m, m)
   for i in 1:m
-    S[i] = sparse_row(R, [(i, one(R))])
+    S[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Sinv_transp = deepcopy(S)
 
   T = sparse_matrix(R, n, n)
   for i in 1:n
-    T[i] = sparse_row(R, [(i, one(R))])
+    T[i] = sparse_row(R, [(i, one(R))]; sort=false)
   end
   Tinv_transp = deepcopy(T)
 
@@ -479,7 +479,7 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # been treated.
 
     a_row = deepcopy(A[p])
-    a_row_del = a_row - sparse_row(R, [(q, u)])
+    a_row_del = a_row - sparse_row(R, [(q, u)]; sort=false)
 
     col_entries = Vector{Tuple{Int, elem_type(R)}}()
     for i in 1:m
@@ -488,15 +488,15 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
       success, c = _has_index(A, i, q)
       success && push!(col_entries, (i, c::elem_type(R)))
     end
-    a_col = sparse_row(R, col_entries)
-    a_col_del = a_col - sparse_row(R, [(p, u)])
+    a_col = sparse_row(R, col_entries; sort=false)
+    a_col_del = a_col - sparse_row(R, [(p, u)]; sort=false)
 
     uinv = inv(u)
 
     # clear the q-th column
     for (i, b) in a_col_del
-      #A[i] = A[i] - uinv*b*a_row # original operation, replaced by inplace arithmetic below
-      Hecke.add_scaled_row!(a_row, A[i], -uinv*b)
+      #A[i] = A[i] - uinv*b*a_row # original operation, replaced by in-place arithmetic below
+      addmul!(A[i], a_row, -uinv*b)
     end
 
     A[p] = sparse_row(R, [(q, u)])
@@ -504,8 +504,8 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     # Adjust S
     v = S[p]
     for (i, b) in a_col_del
-      #S[i] = S[i] - uinv*b*v # original operation, replaced by inplace arithmetic below
-      Hecke.add_scaled_row!(v, S[i], -uinv*b)
+      #S[i] = S[i] - uinv*b*v # original operation, replaced by in-place arithmetic below
+      addmul!(S[i], v, -uinv*b)
     end
 
     # Adjust Sinv_transp
@@ -513,23 +513,23 @@ function _simplify_matrix!(A::SMat; find_pivot=nothing)
     inc_row = sparse_row(R)
     for (i, a) in a_col_del
       #is_zero(Sinv_transp[i]) && continue # can not be true since S is invertible
-      Hecke.add_scaled_row!(Sinv_transp[i], inc_row, a)
+      addmul!(inc_row, Sinv_transp[i], a)
     end
-    Hecke.add_scaled_row!(inc_row, Sinv_transp[p], uinv)
+    addmul!(Sinv_transp[p], inc_row, uinv)
 
     # Adjust T
     #T[q] = T[q] + sum(uinv*a*T[i] for (i, a) in a_row_del; init=sparse_row(R))
     inc_row = sparse_row(R)
     for (i, a) in a_row_del
       # is_zero(T[i]) && continue # can not be true since T is invertible
-      Hecke.add_scaled_row!(T[i], inc_row, a)
+      addmul!(inc_row, T[i], a)
     end
-    Hecke.add_scaled_row!(inc_row, T[q], uinv)
+    addmul!(T[q], inc_row, uinv)
 
     # Adjust Tinv_transp
     v = deepcopy(Tinv_transp[q])
     for (j, b) in a_row_del
-      Hecke.add_scaled_row!(v, Tinv_transp[j], -uinv*b)
+      addmul!(Tinv_transp[j], v, -uinv*b)
     end
 
     # Kept here for debugging. These must be true:
@@ -614,7 +614,7 @@ end
 Simplify the given subquotient `M` and return the simplified subquotient `N` along
 with the injection map $N \to M$ and the projection map $M \to N$. These maps are
 isomorphisms.
-The simplifcation is heuristical and includes steps like for example removing
+The simplification is heuristical and includes steps like for example removing
 zero-generators or removing the i-th component of all vectors if those are
 reduced by a relation.
 """

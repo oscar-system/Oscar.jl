@@ -31,43 +31,47 @@ function check_dimension(
   @test gap_dim == dim(basis) == length(monomials(basis)) # check if dimension is correct
 end
 
-@testset "Test BasisLieHighestWeight" begin
-  @testset "is_fundamental" begin
-    @test BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(0)])
-    @test !BasisLieHighestWeight.is_fundamental([ZZ(0), ZZ(1), ZZ(1)])
-  end
+@testset "sub_weights(_proper)" begin
+  sub_weights = BasisLieHighestWeight.sub_weights
+  sub_weights_proper = BasisLieHighestWeight.sub_weights_proper
+  R = root_system(:B, 3)
 
-  @testset "compute_sub_weights" begin
-    @test isequal(BasisLieHighestWeight.compute_sub_weights([ZZ(0), ZZ(0), ZZ(0)]), [])
-    sub_weights = Vector{Vector{ZZRingElem}}([
-      [1, 0, 0],
-      [0, 1, 0],
+  w_zero = zero(weight_lattice(R))
+  @test issetequal(sub_weights(w_zero), [w_zero])
+  @test isempty(sub_weights_proper(w_zero))
+
+  w_231 = WeightLatticeElem(R, [2, 3, 1])
+  sub_weights_proper_231 = [
+    WeightLatticeElem(R, coeffs) for coeffs in [
       [0, 0, 1],
-      [1, 1, 0],
-      [1, 0, 1],
+      [0, 1, 0],
       [0, 1, 1],
-      [1, 1, 1],
-      [2, 0, 0],
       [0, 2, 0],
-      [2, 1, 0],
-      [1, 2, 0],
-      [2, 0, 1],
       [0, 2, 1],
-      [2, 1, 1],
-      [1, 2, 1],
-      [2, 2, 0],
       [0, 3, 0],
-      [2, 2, 1],
-      [1, 3, 0],
       [0, 3, 1],
+      [1, 0, 0],
+      [1, 0, 1],
+      [1, 1, 0],
+      [1, 1, 1],
+      [1, 2, 0],
+      [1, 2, 1],
+      [1, 3, 0],
       [1, 3, 1],
+      [2, 0, 0],
+      [2, 0, 1],
+      [2, 1, 0],
+      [2, 1, 1],
+      [2, 2, 0],
+      [2, 2, 1],
       [2, 3, 0],
-    ])
-    @test isequal(
-      BasisLieHighestWeight.compute_sub_weights([ZZ(2), ZZ(3), ZZ(1)]), sub_weights
-    )
-  end
+    ]
+  ]
+  @test issetequal(sub_weights(w_231), [w_zero, w_231, sub_weights_proper_231...])
+  @test issetequal(sub_weights_proper(w_231), sub_weights_proper_231)
+end
 
+@testset "Test BasisLieHighestWeight" begin
   @testset "Known examples basis_lie_highest_weight" begin
     base = basis_lie_highest_weight(:A, 2, [1, 0])
     mons = monomials(base)

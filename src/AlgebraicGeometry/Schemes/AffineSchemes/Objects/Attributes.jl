@@ -399,52 +399,14 @@ julia> dim(Y) # one dimension comes from ZZ and two from x1 and x2
 3
 ```
 """
-dim(X::AbsAffineScheme)
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  # Spec (R / I)_P
-  R = OO(X)
-  P = prime_ideal(inverted_set(R))
-  I = saturated_ideal(modulus(R))
-  return dim(I) - dim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing})
-  error("Not implemented")
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:MPolyPowersOfElement}})
-  # zariski open subset of A^n
-  return dim(closure(X))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyLocRing{<:Any,<:Any,<:MPolyRing,<:MPolyRingElem, <:Union{MPolyComplementOfPrimeIdeal, MPolyComplementOfKPointIdeal}}})
-  P = prime_ideal(inverted_set(OO(X)))
-  return codim(P)
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyRing})
-  return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))]))
-end
-
-@attr Any function dim(X::AbsAffineScheme{<:Ring, <:MPolyQuoRing})
-  return dim(modulus(OO(X)))
-end
+dim(X::AbsAffineScheme) = dim(OO(X))
 
 @doc raw"""
     codim(X::AbsAffineScheme)
 
 Return the codimension of ``X`` in its ambient affine space.
 
-Throws and error if ``X`` does not have an ambient affine space.
+Throws an error if ``X`` does not have an ambient affine space.
 
 # Examples
 ```jldoctest
@@ -477,7 +439,7 @@ julia> codim(Y)
 1
 ```
 """
-@attr Any function codim(X::AbsAffineScheme)
+@attr Union{Int, NegInf} function codim(X::AbsAffineScheme)
   return dim(ideal(ambient_coordinate_ring(X), [zero(ambient_coordinate_ring(X))])) - dim(X)
 end
 
@@ -902,9 +864,6 @@ ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineS
 ring_type(X::AbsAffineScheme) = ring_type(typeof(X))
 
 base_ring_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = BRT
-base_ring_type(X::AbsAffineScheme) = base_ring_type(typeof(X))
-base_ring_elem_type(::Type{AffineSchemeType}) where {BRT, RT, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(BRT)
-base_ring_elem_type(X::AbsAffineScheme) = base_ring_elem_type(typeof(X))
 
 poly_type(::Type{AffineSchemeType}) where {BRT, RT<:MPolyRing, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = elem_type(RT)
 poly_type(::Type{AffineSchemeType}) where {BRT, T, RT<:MPolyQuoRing{T}, AffineSchemeType<:AbsAffineScheme{BRT, RT}} = T
@@ -915,5 +874,4 @@ poly_type(X::AbsAffineScheme) = poly_type(typeof(X))
 ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = RT
 ring_type(X::AffineScheme) = ring_type(typeof(X))
 base_ring_type(::Type{AffineScheme{BRT, RT}}) where {BRT, RT} = BRT
-base_ring_type(X::AffineScheme) = base_ring_type(typeof(X))
 

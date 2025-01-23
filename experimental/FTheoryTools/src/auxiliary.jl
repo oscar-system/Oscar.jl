@@ -207,7 +207,7 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
       # Get the grading matrix and the coordinates of the arbitrary base
       grading = weights(base_space(w))
       base_coords_symbols = symbols(coordinate_ring(base_space(w)))
-      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base cooordinates"
+      @req (length(base_coords_symbols) == length(grading[1, :])) "The number of columns in the weight matrix does not match the number of base coordinates"
 
       # Choose explicit sections for all parameters of the model,
       # and then put the model over the concrete base using these data
@@ -225,13 +225,13 @@ function _kodaira_type(id::MPolyIdeal{<:MPolyRingElem}, ords::Tuple{Int64, Int64
     d = discriminant(w)
 
     # For now, we explicitly require that the gauge ideal is principal
-    @req (length(gens(id)) == 1) "Gauge ideal is not principal"
+    @req (ngens(id) == 1) "Gauge ideal is not principal"
 
     # Over concrete bases, we randomly reduce the polynomials defining the gauge
     # divisor to only two variables so that the is_radical check is faster. This
     # could give an incorrect result (radical or not), so we actually try this
     # five times and see if we get agreement among all of the results
-    num_gens = length(gens(parent(f)))
+    num_gens = ngens(parent(f))
     gauge2s, f2s, g2s, d2s = [], [], [], []
     if rand_seed != nothing
       Random.seed!(rand_seed)
@@ -453,53 +453,3 @@ eval_poly(n::Number, R) = R(n)
 #
 # julia> eval_poly("-x1 - 3//5*x2^3 + 5 - 3", Qx)
 # -x1 - 3//5*x2^3 + 2
-
-
-
-##########################################
-### 10 strict_transform helpers
-##########################################
-
-_strict_transform(bd::AbsCoveredSchemeMorphism, II::AbsIdealSheaf) = strict_transform(bd, II)
-
-function _strict_transform(bd::ToricBlowupMorphism, II::ToricIdealSheafFromCoxRingIdeal)
-  center_ideal = ideal_in_cox_ring(center_unnormalized(bd))
-  if (ngens(ideal_in_cox_ring(II)) != 1) || (all(in(gens(base_ring(center_ideal))), gens(center_ideal)) == false)
-    return strict_transform(bd, II)
-  end
-  S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
-  images = MPolyRingElem[]
-  g_list = gens(S)
-  g_center = [string(k) for k in symbols(ideal_in_cox_ring(center_unnormalized(bd)))]
-  for v in g_list
-    v == _e && continue
-    if string(v) in g_center
-      push!(images, v * _e)
-    else
-      push!(images, v)
-    end
-  end
-  ring_map = hom(cox_ring(codomain(bd)), S, images)
-  total_transform = ring_map(ideal_in_cox_ring(II))
-  exceptional_ideal = total_transform + ideal([_e])
-  strict_transform, exceptional_factor = saturation_with_index(total_transform, exceptional_ideal)
-  return ideal_sheaf(domain(bd), strict_transform)
-end
-
-function _strict_transform(bd::ToricBlowupMorphism, tate_poly::MPolyRingElem)
-  S = cox_ring(domain(bd))
-  _e = gen(S, index_of_new_ray(bd))
-  g_list = string.(symbols(S))
-  g_center = [string(k) for k in gens(ideal_in_cox_ring(center_unnormalized(bd)))]
-  position_of_center_variables = [findfirst(==(g), g_list) for g in g_center]
-  pos_of_e = findfirst(==(string(_e)), g_list)
-  C = MPolyBuildCtx(S)
-  for m in terms(tate_poly)
-    exps = collect(exponents(m))[1]
-    insert!(exps, pos_of_e, sum(exps[position_of_center_variables]))
-    push_term!(C, collect(coefficients(m))[1], exps)
-  end
-  f = finish(C)
-  return remove(f, _e)[2]
-end

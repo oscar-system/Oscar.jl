@@ -237,3 +237,16 @@ end
   class::CohomologyClass
   G4Flux(model::AbstractFTheoryModel, class::CohomologyClass) = new(model, class)
 end
+
+
+
+################################################
+# 5 The julia type for a family of G4-fluxes
+################################################
+
+@attributes mutable struct FamilyOfG4Fluxes
+  model::AbstractFTheoryModel
+  mat_int::QQMatrix
+  mat_rat::QQMatrix
+  FamilyOfG4Fluxes(model::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix) = new(model, mat_int, mat_rat)
+end

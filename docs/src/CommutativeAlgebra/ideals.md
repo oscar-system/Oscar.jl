@@ -211,7 +211,7 @@ polynomial rings over the integers. See [DGP99](@cite) for a survey.
 ### Radical
 
 ```@docs
-radical(I::MPolyIdeal)
+radical(I::MPolyIdeal{T}; eliminate_variables::Bool = true) where {T <: MPolyRingElem}
 ```
 
 ### Primary Decomposition

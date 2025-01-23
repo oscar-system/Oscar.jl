@@ -79,7 +79,7 @@ function hom_tensor(M::ModuleFP, N::ModuleFP, V::Vector{<:ModuleFPHom{<:ModuleFP
     res = pure_N(image_as_tuple)
     return res
   end
-  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))))
+  return hom(M, N, Vector{elem_type(N)}(map(map_gen, gens(M))); check=false)
 end
 
 # the case of a non-trivial base change

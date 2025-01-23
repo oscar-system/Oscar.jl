@@ -130,7 +130,7 @@ end
 # of the quotient rings to begin with. 
 #
 # To make sure that the data structure for quotient rings can 
-# nevertheless also accomodate more exotic coefficient rings we 
+# nevertheless also accommodate more exotic coefficient rings we
 # provide the following functionality to decide the existence and use 
 # of a Singular backend depending on the type.
 #
@@ -241,7 +241,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
 
 @attributes mutable struct MPolyQuoIdeal{T} <: Ideal{T}
   gens::IdealGens{T}
-  dim::Int
+  dim::Union{Int, Nothing, NegInf}
   gb::IdealGens{T}
   qRing::MPolyQuoRing
 
@@ -250,7 +250,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
    r = new{T}()
    r.gens  = IdealGens(Ox, si)
    r.qRing = Ox
-   r.dim   = -1
+   r.dim   = nothing
    R = base_ring(Ox)
    r.gens.O = [R(g) for g = gens(r.gens.S)]
    B = r.gens
@@ -265,7 +265,7 @@ HasGroebnerAlgorithmTrait(::Type{zzModRing}) = HasSingularGroebnerAlgorithm()
     r = new{T}()
     r.gens = IdealGens(Ox, gens(I))
     r.qRing = Ox
-    r.dim = -1
+    r.dim = nothing
     return r
   end
   
@@ -1212,10 +1212,10 @@ Converts a sparse-Singular vector of polynomials to an Oscar sparse row.
 function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly})
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
-    if !haskey(v, i)
-      v[i] = MPolyBuildCtx(R)
+    vi = get!(v, i) do
+      MPolyBuildCtx(R)
     end
-    push_term!(v[i], base_ring(R)(c), e)
+    push_term!(vi, base_ring(R)(c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1229,10 +1229,10 @@ function sparse_row(R::MPolyRing, M::Singular.svector{<:Singular.spoly}, U::Abst
   v = Dict{Int, MPolyBuildCtx}()
   for (i, e, c) = M
     (i in U) || continue
-    if !haskey(v, i)
-      v[i] = MPolyBuildCtx(R)
+    vi = get!(v, i) do
+      MPolyBuildCtx(R)
     end
-    push_term!(v[i], base_ring(R)(c), e)
+    push_term!(vi, base_ring(R)(c), e)
   end
   pos_value_vector::Vector{Tuple{Int, elem_type(R)}} = [(k,finish(v)) for (k,v) = v]
   return sparse_row(R, pos_value_vector)
@@ -1736,10 +1736,8 @@ function homogeneous_component(W::MPolyQuoRing{<:MPolyDecRingElem}, d::FinGenAbG
   q = Set{elem_type(H)}()
   for h = M
     g = degree(h)
-    if haskey(cache, g)
-      mI = cache[g]
-    else
-      mI = cache[g] = homogeneous_component(R, d-g)[2]
+    mI = get!(cache, g) do
+      return homogeneous_component(R, d-g)[2]
     end
     for x = gens(domain(mI))
       push!(q, preimage(mH, h*mI(x)))
@@ -1782,11 +1780,11 @@ julia> dim(a)
 ```
 """
 function dim(a::MPolyQuoIdeal)
-  if a.dim > -1
-    return a.dim
+  if a.dim === nothing 
+    a.dim = Singular.dimension(singular_groebner_generators(a))
+    a.dim == -1 && (a.dim = -inf)
   end
-  a.dim = Singular.dimension(singular_groebner_generators(a))
-  return a.dim
+  return a.dim::Union{Int, NegInf}
 end
 
 ##################################
@@ -1900,25 +1898,6 @@ function small_generating_set(
     # Temporary workaround, see #3499
     unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I); algorithm))))
   end::Vector{elem_type(base_ring(I))}
-
-  @req coefficient_ring(Q) isa Field "The coefficient ring must be a field"
-
-  # in the ungraded case, mstd's heuristic returns smaller gens when recomputing gb
-  sing_gb, sing_min = Singular.mstd(singular_generators(I.gens))
-  if !isdefined(I, :gb)
-    I.gb = IdealGens(I.gens.Ox, sing_gb, true)
-    I.gb.gens.S.isGB = I.gb.isGB = true
-  end
-
-  # we do not have a notion of minimal generating set in this context!
-  # If we are unlucky, mstd can even produce a larger generating set
-  # than the original one!!!
-  return_value = filter(!iszero, (Q).(gens(sing_min)))
-  if length(return_value) <= ngens(I)
-    return return_value
-  else
-    return gens(I)
-  end
 end
 
 # in the graded case, reusing a cached gb makes sense, so use minimal_generating set there

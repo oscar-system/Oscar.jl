@@ -473,3 +473,8 @@ function _change_base_ring(phi::Any,
   @assert _has_coefficient_map(res_map)
   return L_red, res_map
 end
+
+function Base.hash(X::Scheme, u::UInt)
+  return u
+end
+

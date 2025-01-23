@@ -7,7 +7,6 @@
 # Type getters                                                         #
 ########################################################################
 base_ring_type(::Type{T}) where {BRT, T<:AbsCoveredScheme{BRT}} = BRT
-base_ring_type(X::AbsCoveredScheme) = base_ring_type(typeof(X))
 
 ########################################################################
 # Basic getters                                                        #
@@ -168,12 +167,12 @@ has_name(X::AbsCoveredScheme) = has_attribute(X, :name)
 ########################################################################
 function dim(X::AbsCoveredScheme)
   if !has_attribute(X, :dim)
-    d = -1
+    d = -inf
     is_equidimensional=true
     for U in patches(default_covering(X))
       e = dim(U)
       if e > d
-        d == -1 || (is_equidimensional=false)
+        d == -inf || (is_equidimensional=false)
         d = e
       end
     end
@@ -187,7 +186,7 @@ function dim(X::AbsCoveredScheme)
       set_attribute!(X, :is_equidimensional, false)
     end
   end
-  return get_attribute(X, :dim)::Int
+  return get_attribute(X, :dim)::Union{Int, NegInf}
 end
 
 @attr Any function singular_locus_reduced(X::AbsCoveredScheme)
@@ -278,14 +277,6 @@ function ideal_sheaf_of_singular_locus(
   return get_attribute!(X, :ideal_sheaf_of_singular_locus) do
     SingularLocusIdealSheaf(X; focus)
   end::SingularLocusIdealSheaf
-  D = IdDict{AbsAffineScheme, Ideal}()
-  covering = get_attribute(X, :simplified_covering, default_covering(X))
-  for U in covering
-    _, inc_sing = singular_locus(U)
-    D[U] = radical(image_ideal(inc_sing))
-  end
-  Ising = IdealSheaf(X, D, check=false)
-  return Ising
 end
 
 function simplified_covering(X::AbsCoveredScheme)

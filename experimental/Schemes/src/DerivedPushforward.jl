@@ -1,8 +1,31 @@
+function _maximum(v::Vector{FinGenAbGroupElem})
+  @assert !is_empty(v)
+  G = parent(first(v))
+  m = Vector{Int}()
+  for i in 1:ngens(G)
+    push!(m, maximum([w[i] for w in v]))
+  end
+  return sum(a*G[i] for (i, a) in enumerate(m); init=zero(G))
+end
+
+function _regularity_bound(F::FreeMod)
+  @assert is_graded(F)
+  is_zero(ngens(F)) && return zero(grading_group(F))
+  degs = degrees_of_generators(F)
+  result = _maximum(degs)
+end
+
+function _regularity_bound(comp::AbsHyperComplex, rng::UnitRange)
+  @assert isone(dim(comp))
+  m = [_regularity_bound(comp[i]) for i in rng]
+  return _maximum(m)
+end
+
 function _derived_pushforward(M::FreeMod)
   S = base_ring(M)
   n = ngens(S)-1
 
-  d = _regularity_bound(M) - n
+  d = Int(_regularity_bound(M)[1]) - n
   d = (d < 0 ? 0 : d)
 
   Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
@@ -21,7 +44,7 @@ end
 
 We consider a graded module `M` over a standard graded polynomial ring 
 ``S = A[x₀,…,xₙ]`` as a representative of a coherent sheaf ``ℱ`` on 
-relative projective space ``ℙ ⁿ_A``. Then we compute ``Rπ_* ℱ``` as a
+relative projective space ``ℙ ⁿ_A``. Then we compute ``Rπ_* ℱ`` as a
 complex of ``A``-modules where ``π : ℙ ⁿ_A → Spec(A)`` is the projection 
 to the base. 
 """
@@ -32,8 +55,63 @@ function _derived_pushforward(M::SubquoModule)
   d = _regularity_bound(M) - n
   d = (d < 0 ? 0 : d)
 
+  return _derived_pushforward(M, d)
+end
+
+# Method for the multigraded case
+function _derived_pushforward(M::FreeMod{T}, seq::Vector{T}) where {T <: RingElem}
+  return _derived_pushforward(ZeroDimensionalComplex(M), seq)
+end
+
+function _derived_pushforward(M::SubquoModule{T}, seq::Vector{T}) where {T <: RingElem}
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  return _derived_pushforward(res, seq)
+  S = base_ring(M)
+  @assert all(parent(x) === S for x in seq)
+  n = length(seq)
+  Sd = graded_free_module(S, [0 for i in 1:n])
+  v = sum(seq[i]*Sd[i] for i in 1:n; init=zero(Sd))
+  kosz = koszul_complex(Oscar.KoszulComplex, v)
+  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+
+  res, _ = free_resolution(Oscar.SimpleFreeResolution, M)
+  KoM = hom(K, res)
+  tot = total_complex(KoM)
+  tot_simp = simplify(tot)
+
+  G = grading_group(M)
+  st = strand(tot_simp, zero(G))
+  return st[1]
+end
+
+function _derived_pushforward(comp::AbsHyperComplex, seq::Vector{T}) where {T <: RingElem}
+  @assert dim(comp) <= 1
+  @assert !isempty(seq)
+  S = parent(first(seq))
+  @assert all(parent(x) === S for x in seq)
+  n = length(seq)
+  Sd = graded_free_module(S, [0 for i in 1:n])
+  v = sum(seq[i]*Sd[i] for i in 1:n; init=zero(Sd))
+  kosz = koszul_complex(Oscar.KoszulComplex, v)
+  K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
+
+  KoM = hom(K, comp)
+  tot = total_complex(KoM)
+  #tot_simp = simplify(tot)
+
+  G = grading_group(S)
+  st, _ = strand(tot, zero(G))
+  return simplify(st)
+end
+
+
+# Method for the standard graded case
+function _derived_pushforward(M::SubquoModule, bound::Int)
+  S = base_ring(M)
+  n = ngens(S)-1
+
   Sd = graded_free_module(S, [0 for i in 1:ngens(S)])
-  v = sum(x^d*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
+  v = sum(x^bound*Sd[i] for (i, x) in enumerate(gens(S)); init=zero(Sd))
   kosz = koszul_complex(Oscar.KoszulComplex, v)
   K = shift(Oscar.DegreeZeroComplex(kosz)[1:n+1], 1)
 
@@ -78,8 +156,6 @@ function rank(phi::FreeModuleHom{FreeMod{T}, FreeMod{T}, Nothing}) where {T<:Fie
   return ngens(domain(phi)) - nrows(kernel(sparse_matrix(phi), side = :left))
 end
 
-
-_regularity_bound(F::FreeMod) = maximum(Int(degree(a; check=false)[1]) for a in gens(F))
 
 @doc raw"""
     simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
@@ -170,5 +246,12 @@ function simplify(c::ComplexOfMorphisms{ChainType}) where {ChainType<:ModuleFP}
   end
   result = ComplexOfMorphisms(ChainType, new_maps, seed=last(range(c)), typ=typ(c), check=true)
   return result, phi, psi
+end
+
+function _vdim(M::SubquoModule)
+  F = ambient_free_module(M)
+  all(repres(x) in gens(F) for x in gens(M)) || return _vdim(presentation(M)[-1])
+
+  return Singular.vdim(Singular.std(singular_generators(M.quo.gens)))
 end
 

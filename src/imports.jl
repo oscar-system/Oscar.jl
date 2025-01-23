@@ -1,5 +1,6 @@
 # standard packages
 using Pkg
+using ProgressMeter: @showprogress
 using Random
 using RandomExtensions
 using UUIDs
@@ -55,6 +56,7 @@ import AbstractAlgebra:
   @attributes,
   @show_name,
   @show_special,
+  @show_special_elem,
   allow_unicode,
   base_ring,
   canonical_unit,

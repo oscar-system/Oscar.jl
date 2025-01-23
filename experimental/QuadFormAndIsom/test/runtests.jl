@@ -425,3 +425,21 @@ end
   @test ok
   @test length(reps) == 9
 end
+
+@testset "Fix hermitian miranda-morrison" begin
+  B = matrix(QQ, 4, 4, [1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]);
+  G = matrix(QQ, 4, 4, [0 0 0 4; 0 0 4 0; 0 4 0 0; 4 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 4, 4, [1 0 2 0; 0 1 0 -2; -1 0 -1 0; 0 1 0 -1]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 96
+
+  B = matrix(QQ, 6, 6, [1 0 0 0 0 0; 0 1 0 0 0 0; 0 0 1 0 0 0; 0 0 0 1 0 0; 0 0 0 0 1 0; 0 0 0 0 0 1]);
+  G = matrix(QQ, 6, 6, [0 0 0 0 0 3; 0 0 0 0 3 0; 0 0 -6 0 0 0; 0 0 0 -6 0 0; 0 3 0 0 0 0; 3 0 0 0 0 0]);
+  L = integer_lattice(B, gram = G);
+  f = matrix(QQ, 6, 6, [0 1 -1 1 2 0; -1 -2 1 -1 0 -2; 0 0 0 1 2 -2; 2 2 -1 0 -2 2; -1 0 0 1 2 -1; 0 1 0 1 1 0]);
+  Lf = integer_lattice_with_isometry(L, f);
+  GLf, _ = image_centralizer_in_Oq(Lf)
+  @test order(GLf) == 24192
+end

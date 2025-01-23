@@ -133,6 +133,7 @@ conjugacy_classes(tbl::GAPGroupCharacterTable)
 decomposition_matrix
 identifier(tbl::GAPGroupCharacterTable)
 induced_cyclic(tbl::GAPGroupCharacterTable)
+is_atlas_character_table
 is_duplicate_table
 maxes
 names_of_fusion_sources

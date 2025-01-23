@@ -157,18 +157,26 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   # Construct the new model
   if m isa GlobalTateModel
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
-      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m))
+      new_tate_polynomial = cox_ring_module_homomorphism(bd, tate_polynomial(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
-      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
+      else
+        new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
+      end
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
-      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m))
+      new_weierstrass_polynomial = cox_ring_module_homomorphism(bd, weierstrass_polynomial(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
-      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
+      else
+        new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
+      end
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
@@ -647,6 +655,7 @@ function set_zero_section_class(m::AbstractFTheoryModel, desired_value::String)
   cox_gens = string.(gens(cox_ring(ambient_space(m))))
   @req desired_value in cox_gens "Specified zero section is invalid"
   index = findfirst(==(desired_value), cox_gens)
+  set_attribute!(m, :zero_section_index => index::Int)
   set_attribute!(m, :zero_section_class => cohomology_class(divs[index]))
 end
 
@@ -792,6 +801,15 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 ```
 """
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
+
+  # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
+  if has_attribute(m, :arxiv_id)
+    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
+      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
+      return load(model_data_path)
+    end
+  end
+
   # To be extended to hypersurface models...
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel)
   @req entry_test "Resolve currently supported only for Weierstrass and Tate models"

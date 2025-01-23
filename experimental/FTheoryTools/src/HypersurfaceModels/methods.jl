@@ -120,7 +120,7 @@ function tune(h::HypersurfaceModel, input_sections::Dict{String, <:Any}; complet
   # 2. Compute the new hypersurface equation
   parametrized_hypersurface_equation = hypersurface_equation_parametrization(h)
   R = parent(parametrized_hypersurface_equation)
-  vars = [string(k) for k in symbols(R)]
+  vars = string.(symbols(R))
   S = cox_ring(ambient_space(h))
   images = [k in secs_names ? eval_poly(string(explicit_secs[k]), S) : k == "Kbar" ? eval_poly("0", S) : eval_poly(k, S) for k in vars]
   map = hom(R, S, images; check=false)

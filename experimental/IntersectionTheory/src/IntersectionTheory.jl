@@ -38,7 +38,7 @@ export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
-export euler
+export euler_number
 export euler_pairing
 export graph
 export hom
@@ -51,7 +51,6 @@ export map
 export OO
 export point_class
 export pontryagin_class
-export present_finite_extension_ring
 export product
 export pullback
 export pushforward
@@ -120,7 +119,7 @@ export compose
 export cotangent_bundle
 export degeneracy_locus
 export dual_basis
-export euler
+export euler_number
 export euler_pairing
 export graph
 export hom
@@ -134,7 +133,6 @@ export map
 export OO
 export point_class
 export pontryagin_class
-export present_finite_extension_ring
 export product
 export pullback
 export pushforward

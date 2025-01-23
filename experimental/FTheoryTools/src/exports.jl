@@ -1,6 +1,7 @@
 export AbstractFTheoryModel
 export ClosedSubschemeModel
 export CompleteIntersectionModel
+export FamilyOfG4Fluxes
 export FamilyOfSpaces
 export GlobalTateModel
 export HypersurfaceModel
@@ -35,8 +36,9 @@ export arxiv_version
 export associated_literature_models
 export base_space
 export basis_of_h22
-export blow_up
 export birational_literature_models
+export blow_up
+export breaks_non_abelian_gauge_group
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
@@ -52,11 +54,14 @@ export degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph
 export discriminant
 export display_all_literature_models
 export dual_graph
+export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
 export explicit_model_sections
+export family_of_g4_fluxes
 export family_of_spaces
 export fiber_ambient_space
+export flux_instance
 export g4_flux
 export gauge_algebra
 export genera_of_ci_curves
@@ -118,6 +123,8 @@ export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
 export is_partially_resolved
+export is_vertical
+export is_well_quantized
 export journal_doi
 export journal_link
 export journal_model_equation_number
@@ -131,6 +138,8 @@ export journal_year
 export kbar3
 export literature_identifier
 export literature_model
+export matrix_integral
+export matrix_rational
 export max_lattice_pts_in_facet
 export model
 export model_description
@@ -145,6 +154,8 @@ export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
+export random_flux
+export random_flux_instance
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
@@ -192,6 +203,7 @@ export set_zero_section
 export set_zero_section_class
 export simplified_dual_graph
 export singular_loci
+export special_flux_family
 export su5_tate_model_over_arbitrary_3d_base
 export su5_weierstrass_model_over_arbitrary_3d_base
 export tate_ideal_sheaf
@@ -203,6 +215,7 @@ export tate_section_a4
 export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
+export torsion_sections
 export tune
 export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
@@ -217,5 +230,9 @@ export weighted_resolution_generating_sections
 export weighted_resolution_zero_sections
 export weighted_resolutions
 export weights
+export well_quantized_ambient_space_models_of_g4_fluxes
+export well_quantized_and_vertical_ambient_space_models_of_g4_fluxes
+export well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes
 export zero_section
 export zero_section_class
+export zero_section_index

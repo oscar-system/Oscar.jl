@@ -1,6 +1,6 @@
 The Oscar.jl package is licensed under the GNU Public License, Version 3.0+:
 
-> Copyright (c) 2019-2024 The OSCAR Development Team
+> Copyright (c) 2019-2025 The OSCAR Development Team
 >
 > See <https://www.oscar-system.org/contributors/> for a list of OSCAR
 > Development Team members. Note that this list may occasionally be slightly

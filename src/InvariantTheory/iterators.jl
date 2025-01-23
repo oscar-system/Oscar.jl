@@ -53,7 +53,8 @@ function AllMonomials(R::MPolyDecRing, d::Int)
 end
 
 function AllMonomials(R::MPolyDecRing, d::Int, vars::Vector{Int})
-  @req is_standard_graded(R) "Iterator only implemented for the standard graded case"
+  @req is_z_graded(R) "Iterator only implemented when the grading group is Z"
+  @req all(isequal(ZZ(1)), map(i -> degree(R[i])[1], vars)) "Iterator only implemented for variables of degree 1"
   return AllMonomials{typeof(R)}(R, d, vars)
 end
 

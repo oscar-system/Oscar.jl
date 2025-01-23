@@ -399,8 +399,8 @@ $x^\alpha e_i >  x^\beta e_j \iff i > j \;\text{ or }\; (i = j\;\text{ and } x^\
 Alternatively, we may wish to use $i < j$ instead of $i > j$ in this definition.
 
 In other words, these orderings are obtained by concatenating a monomial ordering on the monomials of $R$
-with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i < j$ ordering on the
-basis vectors as *lex*, and to the $i > j$ ordering as *invlex*. And, we use the `*` operator for concatenation. 
+with a way of ordering the basis vectors of $F$ or vice versa. In OSCAR, we refer to the $i > j$ ordering on the
+basis vectors as *lex*, and to the $i < j$ ordering as *invlex*. And, we use the `*` operator for concatenation.
 
 ##### Examples
 

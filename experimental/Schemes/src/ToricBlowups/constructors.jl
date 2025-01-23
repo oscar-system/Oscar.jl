@@ -81,10 +81,10 @@ end
 
 
 @doc raw"""
-    blow_up(v::NormalToricVariety, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String)
+    blow_up(v::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::String)
 
 Blow up the toric variety by subdividing the fan of the variety with the
-provided new ray. This function returns the corresponding morphism.
+provided exceptional ray. This function returns the corresponding morphism.
 
 Note that this ray must be a primitive element in the lattice Z^d, with
 d the dimension of the fan. In particular, it is currently impossible to
@@ -157,31 +157,63 @@ julia> typeof(center_unnormalized(f))
 IdealSheaf{NormalToricVariety, AbsAffineScheme, Ideal, Map}
 ```
 """
-function blow_up(v::NormalToricVarietyType, new_ray::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+function blow_up(v::NormalToricVarietyType, exceptional_ray::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
-  new_variety = normal_toric_variety(star_subdivision(v, new_ray))
+  blown_up_variety = normal_toric_variety(star_subdivision(v, exceptional_ray))
   if is_smooth(v) == false
-    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
+    return ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, exceptional_ray)
   end
-  inx = _get_maximal_cones_containing_vector(polyhedral_fan(v), new_ray)
+  inx = _get_maximal_cones_containing_vector(polyhedral_fan(v), exceptional_ray)
   old_rays = matrix(ZZ, rays(v))
   cone_generators = matrix(ZZ, [old_rays[i,:] for i in 1:nrows(old_rays) if ray_indices(maximal_cones(v))[inx[1], i]])
-  powers = solve_non_negative(ZZMatrix, transpose(cone_generators), transpose(matrix(ZZ, [new_ray])))
+  powers = solve_non_negative(ZZMatrix, transpose(cone_generators), transpose(matrix(ZZ, [exceptional_ray])))
   if nrows(powers) != 1
-    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray)
+    return ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, exceptional_ray)
   end
   gens_S = gens(cox_ring(v))
   variables = [gens_S[i] for i in 1:nrows(old_rays) if ray_indices(maximal_cones(v))[inx[1], i]]
   list_of_gens = [variables[i]^powers[i] for i in 1:length(powers) if powers[i] != 0]
   center_unnormalized = ideal_sheaf(v, ideal([variables[i]^powers[i] for i in 1:length(powers) if powers[i] != 0]))
-  return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
+  return ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, exceptional_ray, center_unnormalized)
+end
+
+@doc raw"""
+    blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:IntegerUnion}; coordinate_name::Union{String, Nothing} = nothing)
+
+This method first constructs the ray `r` by calling `standard_coordinates`, then blows up `v` along `r` using `blow_up`.
+
+# Examples
+
+```jldoctest
+julia> P2 = projective_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> f = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
+Toric blowup morphism
+```
+"""
+function blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
+  coords = Vector{QQFieldElem}(minimal_supercone_coords)
+  ray_QQ = Vector{QQFieldElem}(standard_coordinates(polyhedral_fan(v), coords))
+  ray = primitive_generator(ray_QQ)
+  @assert ray == ray_QQ "The input vector must correspond to a primitive generator of a ray"
+  phi = blow_up(v, ray; coordinate_name=coordinate_name)
+  set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
+  return phi
 end
 
 @doc raw"""
     blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 
-Blow up the toric variety by subdividing the n-th cone in the list
-of *all* cones of the fan of `v`. This cone need not be maximal.
+Blow up the toric variety $v$ with polyhedral fan $\Sigma$ by star
+subdivision along the barycenter of the $n$-th cone $\sigma$ in the list
+of all the cones of $\Sigma$.
+We remind that the barycenter of a nonzero cone is the primitive
+generator of the sum of the primitive generators of the extremal rays of
+the cone (Exercise 11.1.10 in [CLS11](@cite)).
+In the case all the cones of $\Sigma$ containing $\sigma$ are smooth,
+this coincides with the star subdivision of $\Sigma$ relative to
+$\sigma$ (Definition 3.3.17 of [CLS11](@cite)).
 This function returns the corresponding morphism.
 
 By default, we pick "e" as the name of the homogeneous coordinate for
@@ -212,10 +244,29 @@ function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{Strin
   coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
   gens_S = gens(cox_ring(v))
   center_unnormalized = ideal_sheaf(v, ideal([gens_S[i] for i in 1:number_of_rays(v) if cones(v)[n,i]]))
-  new_variety = normal_toric_variety(star_subdivision(v, n))
-  rays_of_variety = matrix(ZZ, rays(v))
-  new_ray = vec(sum([rays_of_variety[i, :] for i in 1:number_of_rays(v) if cones(v)[n, i]]))
-  return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, new_ray, center_unnormalized)
+  blown_up_variety = normal_toric_variety(star_subdivision(v, n))
+
+  # minimal supercone coordinates
+  coords = zeros(QQ, n_rays(v))
+  for i in 1:number_of_rays(v)
+    cones(v)[n, i] && (coords[i] = QQ(1))
+  end
+  exceptional_ray_scaled = standard_coordinates(polyhedral_fan(v), coords)
+  exceptional_ray, scaling_factor = primitive_generator_with_scaling_factor(
+    exceptional_ray_scaled
+  )
+  coords = scaling_factor * coords
+
+  phi = ToricBlowupMorphism(
+    v,
+    blown_up_variety,
+    coordinate_name,
+    exceptional_ray,
+    exceptional_ray,
+    center_unnormalized
+  )
+  set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
+  return phi
 end
 
 
@@ -274,11 +325,11 @@ function blow_up(v::NormalToricVarietyType, I::MPolyIdeal; coordinate_name::Unio
   indices = [findfirst(==(x), gens(cox)) for x in gens(I)]
   if all(!isnothing, indices)
     rs = matrix(ZZ, rays(v))
-    new_ray = vec(sum(rs[index, :] for index in indices))
-    new_ray = new_ray ./ gcd(new_ray)
-    new_variety = normal_toric_variety(star_subdivision(v, new_ray))
+    exceptional_ray = vec(sum(rs[index, :] for index in indices))
+    exceptional_ray = exceptional_ray ./ gcd(exceptional_ray)
+    blown_up_variety = normal_toric_variety(star_subdivision(v, exceptional_ray))
     center_unnormalized = ideal_sheaf(v, I)
-    return ToricBlowupMorphism(v, new_variety, coordinate_name, new_ray, I, center_unnormalized)
+    return ToricBlowupMorphism(v, blown_up_variety, coordinate_name, exceptional_ray, I, center_unnormalized)
   else
     return _generic_blow_up(v, I)
   end

@@ -613,3 +613,18 @@ end
   I = ideal(P, elem_type(P)[])
   @test !radical_membership(x, I)
 end
+
+@testset "dimensions" begin
+  # to address issue #2721
+  R, (x, y) = QQ[:x, :y]
+  I = ideal(R, x)
+  @test I.dim === nothing
+  @test dim(I) == 1
+  @test I.dim !== nothing
+  
+  I2 = ideal(R, [x, x+1])
+  @test I2.dim === nothing
+  @test dim(I2) == -inf
+  @test I2.dim !== nothing
+end
+

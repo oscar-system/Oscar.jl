@@ -4,217 +4,6 @@ end
 function _parse_symbol(symbol::String, n::Int, I::UnitRange)
   return [symbol*"[$n, $i]" for i in I]
 end
-
-@doc raw"""
-      present_finite_extension_ring(F::Oscar.AffAlgHom)
-
-Given a finite homomorphism `F` $:$ `A` $\rightarrow$ `B`  of algebras of type `<: Union{MPolyRing, MPolyQuoRing}` over a field, return a presentation
-
-$A^r \rightarrow A^s\rightarrow B \rightarrow 0$
-
-of `B` as an `A`-module.
-
-More precisely, return a tuple `(gs, PM, sect)`, say, where
-- `gs` is a vector of polynomials representing generators for `B` as an `A`-module,
-- `PM` is an `r` $\times$ `s`-matrix of polynomials defining the map $A^r \rightarrow A^s$, and
-- `sect` is a function which gives rise to a section of the augmentation map $ A^s\rightarrow B$.
-
-!!! note
-    The finiteness condition on `F` is checked by the function.
-
-!!! note
-    The function is implemented so that the last element of `gs` is `one(B)`.
-
-# Examples
-```jldoctest
-julia> RA, (h,) = polynomial_ring(QQ, [:h]);
-
-julia> A, _ = quo(RA, ideal(RA, [h^9]));
-
-julia> RB, (k, l) = polynomial_ring(QQ, [:k, :l]);
-
-julia> B, _ = quo(RB, ideal(RB, [k^3, l^3]));
-
-julia> F = hom(A, B, [k+l])
-Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (h^9)
-  to quotient of multivariate polynomial ring by ideal (k^3, l^3)
-defined by
-  h -> k + l
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-3-element Vector{QQMPolyRingElem}:
- l^2
- l
- 1
-
-julia> PM
-3×3 Matrix{QQMPolyRingElem}:
- h^3     0       0
- -3*h^2  h^3     0
- 3*h     -3*h^2  h^3
-
-julia> sect(k*l)
-3-element Vector{QQMPolyRingElem}:
- -1
- h
- 0
-
-```
-
-```jldoctest
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal(R, [z^2-y^2*(y+1)]);
-
-julia> A, _ = quo(R, I);
-
-julia> B, (s,t) =  polynomial_ring(QQ, [:s, :t]);
-
-julia> F = hom(A,B, [s, t^2-1, t*(t^2-1)])
-Ring homomorphism
-  from quotient of multivariate polynomial ring by ideal (-y^3 - y^2 + z^2)
-  to multivariate polynomial ring in 2 variables over QQ
-defined by
-  x -> s
-  y -> t^2 - 1
-  z -> t^3 - t
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-2-element Vector{QQMPolyRingElem}:
- t
- 1
-
-julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- y   -z
- -z  y^2 + y
-
-julia> sect(t)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
-
-julia> sect(s)
-2-element Vector{QQMPolyRingElem}:
- 0
- x
-
-```
-
-```jldoctest
-julia> A, (a, b, c) = polynomial_ring(QQ, [:a, :b, :c]);
-
-julia> R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z]);
-
-julia> I = ideal(R, [x*y]);
-
-julia> B, _ = quo(R, I);
-
-julia> (x, y, z) = gens(B);
-
-julia> F = hom(A, B, [x^2+z, y^2-1, z^3])
-Ring homomorphism
-  from multivariate polynomial ring in 3 variables over QQ
-  to quotient of multivariate polynomial ring by ideal (x*y)
-defined by
-  a -> x^2 + z
-  b -> y^2 - 1
-  c -> z^3
-
-julia> gs, PM, sect = present_finite_extension_ring(F);
-
-julia> gs
-2-element Vector{QQMPolyRingElem}:
- y
- 1
-
-julia> PM
-2×2 Matrix{QQMPolyRingElem}:
- a^3 - c  0
- 0        a^3*b + a^3 - b*c - c
-
-julia> sect(y)
-2-element Vector{QQMPolyRingElem}:
- 1
- 0
-
-julia> sect(one(B))
-2-element Vector{QQMPolyRingElem}:
- 0
- 1
-
-```
-"""
-function  present_finite_extension_ring(F::Oscar.AffAlgHom)
-  A, B = F.domain, F.codomain
-  a, b = ngens(A), ngens(B)
-  
-  if A isa MPolyQuoRing
-    AR = base_ring(A)
-  else
-    AR = A
-  end
-  if B isa MPolyQuoRing
-    BR = base_ring(B)
-    M = [F(gens(A)[i]).f for i = 1:a]
-  else
-    BR = B
-    M = [F(gens(A)[i]) for i = 1:a]
-  end
-
-  @assert base_ring(AR) == base_ring(BR)
-
-  I = ideal(BR, isdefined(B, :I) ? vcat(gens(B.I), M) : M)
-  C, _ = quo(BR, I)
-  gs = monomial_basis(C) # monomials whose residue classes form a K-basis of B
-  @assert gs[end] == 1 # the last one should always be 1
-  g = length(gs)
-
-  R, _ = tensor_product(BR, AR, use_product_ordering = true)
-  ba = gens(R)
-  ARtoR = hom(AR, R, ba[b+1:end], check = false)
-  BRtoR = hom(BR, R, ba[1:b], check = false)
-  RtoAR = hom(R, AR, vcat(repeat([AR()], b), gens(AR)))
-  gs_lift = [BRtoR(g) for g in gs]
-  
-  # compute the ideal J of the graph of F
-  Rels = [ba[b+i]-BRtoR(m) for (i,m) in enumerate(M)]
-  if isdefined(A, :I) for g in gens(A.I) push!(Rels, ARtoR(g)) end end
-  if isdefined(B, :I) for g in gens(B.I) push!(Rels, BRtoR(g)) end end
-  J = ideal(R, Rels) # the ideal of the graph of F
-  V = groebner_basis(J)
-
-  sect = x -> (y = reduce(BRtoR(x), gens(V));
-	      ans = elem_type(AR)[];
-	      for i in 1:g
-	        q = div(y, gs_lift[i])
-	        push!(ans, RtoAR(q))
-	        y -= q * gs_lift[i]
-	      end; ans)
-
-  FM = free_module(R, g)
-  gB = elem_type(FM)[FM(push!([j == i ? R(1) : R() for j in 1:g-1], -gs_lift[i])) for i in 1:g-1]
-  gJ = elem_type(FM)[FM([j==i ? x : R() for j in 1:g]) for x in gens(V) for i in 1:g]
-  U  = vcat(gB, gJ)
-  S, _ = sub(FM, U)
-  P = groebner_basis(S, ordering = default_ordering(R)*lex(FM))
-  Rw, _ = grade(R, vcat(repeat([1], b), repeat([0], a)))
-  RtoRw = hom(R, Rw, gens(Rw))
-  inA = x -> x == zero(Rw) ?  true : (degree(Int, leading_term(RtoRw(x)))) <= 0
-  PM = vcat([(RtoAR.(transpose(Vector(P[i])))) for i in 1:ngens(P) if all(inA, Vector(P[i]))]...)
-  return gs, PM, sect
-end
-
 ######################################
 @doc raw"""
       blowup(i::AbstractVarietyMap; symbol::String="e")
@@ -230,6 +19,42 @@ More precisely, return a tuple `(Bl, E, j)`, say, where
     The resulting maps `Bl` $\rightarrow$ `Y` and `E` $\rightarrow$ `X` are obtained entering `structure_map(Bl)` and `structure_map(E)`, respectively.
 
 # Examples
+
+Taken from the sage package Chow by Lehn/Sorger:
+
+```jldoctest
+julia> P2xP2 = abstract_projective_space(2, symbol = "k")*abstract_projective_space(2, symbol = "l")
+AbstractVariety of dim 4
+
+julia> P8 = abstract_projective_space(8)
+AbstractVariety of dim 8
+
+julia> k, l = gens(P2xP2)
+2-element Vector{MPolyQuoRingElem{MPolyDecRingElem{QQFieldElem, QQMPolyRingElem}}}:
+ k
+ l
+
+julia> Se = map(P2xP2, P8, [k+l])
+AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
+
+julia> Bl, E, j = blowup(Se)
+(AbstractVariety of dim 8, AbstractVariety of dim 7, AbstractVarietyMap from AbstractVariety of dim 7 to AbstractVariety of dim 8)
+
+julia> betti_numbers(Bl)
+9-element Vector{Int64}:
+ 1
+ 2
+ 4
+ 7
+ 8
+ 7
+ 4
+ 2
+ 1
+
+```
+
+# The Steiner problem:
 
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
@@ -284,9 +109,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   E = abstract_projective_bundle(N) 
   AE, RE = E.ring, base_ring(E.ring)
   g = E.struct_map
-  ζ = g.O1  # the first Chern class of O_PN(1)
-  ### Q =  E.bundles[2] # the universal quotient bundle on PN
-  ### ctopQ = top_chern_class(Q)
+  ζ = g.O1  # the first Chern class of O_E(1)
 
   # we set up the generators of ABl
 
