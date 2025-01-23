@@ -17,9 +17,7 @@ procs = addprocs(1)
 end
 
 @testset "easy parallelization" begin
-
   R, (x, y) = QQ[:x, :y]
-
   l = [x^2, x*y, y^2]
   a = [SampleDataStruct([a for (i, a) in enumerate(l) if i != k]) for k in 1:length(l)]
   res1 = Oscar.wait_all_parallel(a)
