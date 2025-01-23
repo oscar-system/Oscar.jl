@@ -928,27 +928,6 @@ function _perm_format(::Val{:tuple}, n_or_G, res)
   end
 end
 
-#=
-macro perm(n,gens)
-
-    ores = Expr[]
-    for ex in gens.args
-        res = _perm_helper(ex)
-        push!(ores, esc(:(  [$(res...)]  )))
-    end
-
-    return quote
-       let n = $(esc(n)), g = n isa Int ? symmetric_group(n) : n
-           [ cperm(g, pi...) for pi in [$(ores...)] ]
-       end
-    end
-end
-
-macro perm(ex)
-  res = _perm_helper(ex)
-  return esc(:(Oscar.cperm($(res...))))
-end
-=#
 
 @doc raw"""
     permutation_group(n::IntegerUnion, perms::Vector{PermGroupElem})
