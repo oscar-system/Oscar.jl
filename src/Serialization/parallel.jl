@@ -19,8 +19,14 @@
 # you pass to the function, in this case a `Vector` of `RingElem`s.
 abstract type ParallelTask end 
 
-function type_params(::T) where T <: ParallelTask
-  error("please implement the function type_params for the type $T")
+function type_params(pt::T) where T <: ParallelTask
+  type_params_dict = Dict{Symbol, Any}()
+  for n in fieldnames(T)
+    if n != :__attrs
+      type_params_dict[Symbol(n)] = type_params(getfield(pt, n))
+    end
+  end
+  return typeof(pt), type_params_dict
 end
 
 function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})

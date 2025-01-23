@@ -11,12 +11,6 @@ procs = addprocs(1)
   # The following line communicates that this struct is available for serialization.
   Oscar.@register_serialization_type SampleDataStruct
 
-  function Oscar.type_params(ds::SampleDataStruct)
-    isempty(ds.elems) && return Dict()
-    p = parent(first(ds.elems))
-    return typeof(ds), Dict(:elems => Oscar.type_params(ds.elems))
-  end
-
   function Oscar._compute(ds::SampleDataStruct)
     return true, gcd(ds.elems...)
   end
