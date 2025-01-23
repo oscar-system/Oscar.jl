@@ -7,9 +7,7 @@ abstract type OscarSerializer end
 
 struct JSONSerializer <: OscarSerializer end
 
-struct IPCSerializer <: OscarSerializer
-  worker_pid::Int
-end
+struct IPCSerializer <: OscarSerializer end
 
 abstract type MultiFileSerializer <: OscarSerializer end
 
@@ -163,26 +161,26 @@ function save_as_ref(s::SerializerState, obj::T) where T
   return string(ref)
 end
 
-function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
-  ref = get(global_serializer_state.obj_to_id, obj, nothing)
-  w = s.serializer.worker_pid
-  if !isnothing(ref)
-    # check if ref already exists on worker
-    f = remotecall_fetch(
-      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
-      w,
-      string(ref)) #&& return string(ref)
-    return string(ref)
-  else
-    ref = uuid4()
-    global_serializer_state.id_to_obj[ref] = obj
-  end
-
-  rrid = Distributed.RRID(myid(), w)
-  put!(channel_from_id(rrid), obj)
-
-  return string(ref)
-end
+#function save_as_ref(s::SerializerState{IPCSerializer}, obj::T) where T
+#  ref = get(global_serializer_state.obj_to_id, obj, nothing)
+#  w = s.serializer.worker_pid
+#  if !isnothing(ref)
+#    # check if ref already exists on worker
+#    f = remotecall_fetch(
+#      (ref) -> haskey(Oscar.global_serializer_state.id_to_obj, Oscar.UUID(ref)),
+#      w,
+#      string(ref)) #&& return string(ref)
+#    return string(ref)
+#  else
+#    ref = uuid4()
+#    global_serializer_state.id_to_obj[ref] = obj
+#  end
+#
+#  rrid = Distributed.RRID(myid(), w)
+#  put!(channel_from_id(rrid), obj)
+#
+#  return string(ref)
+#end
 
 function handle_refs(s::SerializerState)
   if !isempty(s.refs) 

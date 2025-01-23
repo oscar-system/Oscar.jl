@@ -568,19 +568,23 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
+type_params(A::MPolyQuoRing) = MPolyQuoRing, Dict(
+  :base_ring => (typeof(base_ring(A)), base_ring(A)),
+  :ordering => (typeof(ordering(A)), ordering(A))
+)
+
 function save_object(s::SerializerState, A::MPolyQuoRing)
   save_data_dict(s) do # Saves stuff in a JSON dictionary. This opens a `{`, puts stuff 
                        # inside there for the various keys and then closes it with `}`.
                        # It's not using Julia Dicts.
-    save_typed_object(s, modulus(A), :modulus)
-    save_typed_object(s, ordering(A), :ordering) # Does this already serialize???
+    save_object(s, modulus(A), :modulus)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
-  I = load_typed_object(s, :modulus) 
-  R = base_ring(I)
-  o = load_typed_object(s, :ordering)
+function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
+  R = params[:base_ring]
+  o = params[:ordering]
+  I = load_object(s, ideal_type(R), R, :modulus) 
   return MPolyQuoRing(R, I, o)
 end
 
