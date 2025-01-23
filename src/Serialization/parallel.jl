@@ -49,6 +49,29 @@ function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
   return T{fields...}, params_dict
 end
 
+function put_type_params(channel::RemoteChannel, ::Nothing)
+  return
+end
+
+function put_type_params(channel::RemoteChannel, obj::Dict)
+  for (k, params) in obj
+    put_type_params(channel, params[2])
+  end
+end
+
+function put_type_params(channel::RemoteChannel, obj::Any)
+  put_type_params(channel, type_params(obj)[2])
+  # only  types that use ids need to be sent to the other processes
+  serialize_with_id(typeof(obj)) && put!(channel, obj)
+end
+
+function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
+  println("top level put params")
+  for (k, params) in type_params(obj)[2]
+    put_type_params(channel, params[2])
+  end
+end
+
 function _compute(::T) where T <: ParallelTask
   error("please implement the function _compute for the type $T")
 end
@@ -148,6 +171,7 @@ function _deploy_work(
     workers::Vector{Int}
   ) where {TaskType}
   w = length(workers)
+  println("helo")
   individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(32), i) for i in workers)
   assigned_workers = IdDict{TaskType, Int}()
   futures = Dict{Int, Vector{Future}}()
@@ -155,7 +179,7 @@ function _deploy_work(
   for (i, task) in enumerate(task_list)
     wid = workers[mod(i, w) + 1]
     channel = individual_channels[wid]
-    put!(channel, type_params(task)[2])
+    put_type_params(channel, task)
     #remotecall(take!, wid, channel)
     assigned_workers[task] = wid
     fut = remotecall(_compute, wid, task)
