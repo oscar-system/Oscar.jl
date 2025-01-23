@@ -27,7 +27,9 @@ jobs:
   extra-long-test:
     # Extra long tests
     # Only happens during the daily run, triggered by schedule
-    if: github.event_name == 'schedule'
+    # and when run manually
+    # and when specific files are touched
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' && ${{ contains(github.event.commits[*].modified, 'experimental/FTheoryTools/test/FTM-1511-03209.jl') }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +40,12 @@ jobs:
         uses: julia-actions/setup-julia@v2
         with:
           version: "1.10"
+      - name: "testing stuff"
+        run: |
+          echo ${{ join(github.event.commits[*].modified, " ") }}
+          echo ${{ join(github.event.commits[*].modified[*], " ") }}
+          echo ${{ join(github.event.commits.*.modified, " ") }}
+          echo ${{ join(github.event.commits.*.modified[*], " ") }}
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "set test subgroup"
