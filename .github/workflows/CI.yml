@@ -29,7 +29,7 @@ jobs:
     # Only happens during the daily run, triggered by schedule
     # and when run manually
     # and when specific files are touched
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' && ${{ contains(github.event.commits[*].modified, 'experimental/FTheoryTools/test/FTM-1511-03209.jl') }}
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request' && ${{ contains(github.event.commits[*].modified, 'experimental/FTheoryTools/test/FTM-1511-03209-nonexisting.jl') }}
     runs-on: [Linux, RPTU, normal-memory]
     steps:
       - uses: actions/checkout@v4
@@ -42,10 +42,10 @@ jobs:
           version: "1.10"
       - name: "testing stuff"
         run: |
-          echo ${{ join(github.event.commits[*].modified, " ") }}
-          echo ${{ join(github.event.commits[*].modified[*], " ") }}
-          echo ${{ join(github.event.commits.*.modified, " ") }}
-          echo ${{ join(github.event.commits.*.modified[*], " ") }}
+          echo "${{ join(github.event.commits[*].modified, ' ') }}"
+          echo "${{ join(github.event.commits[*].modified[*], ' ') }}"
+          echo "${{ join(github.event.commits.*.modified, ' ') }}"
+          echo "${{ join(github.event.commits.*.modified[*], ' ') }}"
       - name: "Build package"
         uses: julia-actions/julia-buildpkg@v1
       - name: "set test subgroup"
