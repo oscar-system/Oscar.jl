@@ -30,18 +30,21 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> gf3 = special_flux_family(qsm_model, vert = true, not_breaking = true, check = false)
 A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: not broken
+  - Tadpole constraint: not analyzed
 ```
 """
 function special_flux_family(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)

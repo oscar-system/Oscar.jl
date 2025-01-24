@@ -19,6 +19,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf)
 true
@@ -47,6 +48,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> is_vertical(gf)
 false
@@ -56,6 +58,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> is_vertical(gf2)
 true
@@ -85,6 +88,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
@@ -94,6 +98,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf2)
 true
@@ -103,6 +108,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: not broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false

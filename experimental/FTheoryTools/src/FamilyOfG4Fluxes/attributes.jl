@@ -24,6 +24,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> model(f_gs) == qsm_model
 true
@@ -56,6 +57,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> matrix_integral(f_gs) == mat_int
 true
@@ -88,6 +90,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> matrix_rational(f_gs) == mat_rat
 true
@@ -123,8 +126,16 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> d3_tadpole_constraint(fgs);
+
+julia> fgs
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+  - Tadpole constraint: evaluated
 ```
 """
 function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
