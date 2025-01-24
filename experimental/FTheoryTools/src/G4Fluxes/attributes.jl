@@ -88,6 +88,42 @@ G4-flux candidate
 
 julia> d3_tadpole_constraint(g4, check = false)
 12
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+
+julia> g4_2 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
+
+julia> int_comb = integral_coefficients(g4_2);
+
+julia> rat_comb = rational_coefficients(g4_2);
+
+julia> g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> d3_tadpole_constraint(gfs, check = false);
+
+julia> dv3 = d3_tadpole_constraint(g4_3, check = false);
+
+julia> dv2 == dv3
+true
 ```
 """
 function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
@@ -101,6 +137,15 @@ function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
   if check
     @req is_complete(ambient_space(m)) "Computation of D3-tadpole constraint only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of D3-tadpole constraint only supported for simplicial toric ambient space"
+  end
+  # Opt for (potentially?) quicker algorithm when possible
+  if has_attribute(gf, :int_combination) && has_attribute(gf, :rat_combination)
+    gfs = g4_flux_family(gf, check = check)
+    if has_attribute(gfs, :d3_tadpole_constraint)
+      values_to_evaluate_at = vcat(matrix(QQ, get_attribute(gf, :int_combination)), get_attribute(gf, :rat_combination))
+      values_to_evaluate_at = values_to_evaluate_at[:, 1]
+      return evaluate(d3_tadpole_constraint(gfs), values_to_evaluate_at)
+    end
   end
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
   numb = QQ(euler_characteristic(m; check = check)//24 - 1//2*integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy); check = check))
@@ -155,4 +200,68 @@ function g4_flux_family(gf::G4Flux; check::Bool = true)
   gfs = special_flux_family(model(gf), vert = nv, not_breaking = nb, check = check)
   set_attribute!(gf, :g4_flux_family, gfs)
   return gfs::FamilyOfG4Fluxes
+end
+
+
+@doc raw"""
+    integral_coefficients(gf::G4Flux)
+
+Return the integral coefficients of a given $G_4$-flux.
+If these coefficients are not known, an error is raised.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+
+julia> g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> integral_coefficients(g4);
+```
+"""
+function integral_coefficients(gf::G4Flux)
+  @req has_attribute(gf, :int_combination) "Integral coefficients not known for the given G4-flux"
+  return get_attribute(gf, :int_combination)::ZZMatrix
+end
+
+
+@doc raw"""
+    rational_coefficients(gf::G4Flux)
+
+Return the integral coefficients of a given $G_4$-flux.
+If these coefficients are not known, an error is raised.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+
+julia> g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> rational_coefficients(g4);
+```
+"""
+function rational_coefficients(gf::G4Flux)
+  @req has_attribute(gf, :rat_combination) "Rational coefficients not known for the given G4-flux"
+  return get_attribute(gf, :rat_combination)::QQMatrix
 end

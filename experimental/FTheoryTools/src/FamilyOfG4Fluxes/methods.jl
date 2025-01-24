@@ -52,6 +52,9 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   c1 = [m1[k,1] * gens[k] for k in 1:length(gens)]
   c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
   flux = g4_flux(model(fgs), sum(c1+c2), check = check)
+  set_attribute!(flux, :int_combination, int_combination)
+  set_attribute!(flux, :rat_combination, rat_combination)
+  set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
     set_attribute!(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
   end

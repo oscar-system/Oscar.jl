@@ -204,7 +204,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
       # Compute the intersection number of generator k1 and generator k2
       inter_number = ZZ(0)
       for l1 in 1:length(basis)
-        for l2 in l1:length(basis)
+        for l2 in 1:length(basis)
 
           val = gen1[l1] * gen2[l2]
           is_zero(val) && continue
@@ -219,11 +219,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
             end        
           end
 
-          if l1 == l2
-            inter_number += val * change
-          else
-            inter_number += 2 * val * change
-          end
+          inter_number += val * change
           
         end
       end

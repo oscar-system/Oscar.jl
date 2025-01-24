@@ -120,6 +120,7 @@ export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
 export indices_of_trivial_ci_curves
+export integral_coefficients
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
@@ -157,6 +158,7 @@ export polytope_index
 export put_over_concrete_base
 export random_flux
 export random_flux_instance
+export rational_coefficients
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
