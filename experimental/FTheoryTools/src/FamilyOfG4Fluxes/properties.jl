@@ -3,12 +3,19 @@
 #####################################################
 
 @doc raw"""
-    is_well_quantized(fgs::FamilyOfG4Fluxes)
+    is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes is well-quantized,
-this method returns this boolean value -- true if well-quantized
-and false if not well-quantized. In case it is not known if the
-family of G4-fluxes is well-quantized, an error is raised.
+Executes elementary tests (they are necessary but not sufficient)
+to tell if a family of $G_4$-fluxes is well-quantized. In case
+any of these tests fails, we know that this family of $G_4$-fluxes
+is definitely not well-quantized. This method then returns `false`.
+
+In the opposite case that all elementary tests pass, this method
+returns `true`. Note however that this does not imply that the
+family is well-quantized. At least, according to the current
+theoretical understanding it does not. Rather, this means that
+to the best of our current means, this family of fluxes appears
+to be well-quantized.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -23,11 +30,71 @@ A family of G4 fluxes:
 
 julia> is_well_quantized(gf)
 true
+
+julia> m1 = matrix_integral(gf);
+
+julia> m2 = matrix_rational(gf);
+
+julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> is_well_quantized(gf2, check = false)
+true
 ```
 """
-function is_well_quantized(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :is_well_quantized) "Cannot (yet) tell if this family of G4-fluxes is well-quantized"
-  return get_attribute(fgs, :is_well_quantized)
+function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric ambient space"
+
+  # Is the result known?
+  if has_attribute(fgs, :is_well_quantized)
+    return get_attribute(fgs, :is_well_quantized)
+  end
+
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each integral generator is well-quantized
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    if !passes_elementary_quantization_checks(gen_k)
+      set_attribute!(fgs, :is_well_quantized, false)
+      return false
+    end
+  end
+
+  # Verify that each rational generator is well-quantized, in that all relevant integrals vanish.
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; check = false))
+    for i in 1:length(c_ds)
+      for j in i:length(c_ds)
+        numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); check = false)
+        if !is_zero(numb)
+          set_attribute!(fgs, :is_well_quantized, false)
+          return false    
+        end
+      end
+    end
+  end
+
+  # All other tests passed, so must be well-quantized according to elementary tests.
+  set_attribute!(fgs, :is_well_quantized, true)
+  return true
 end
 
 
