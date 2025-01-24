@@ -32,12 +32,10 @@ end
 
 
 @doc raw"""
-    is_vertical(fgs::FamilyOfG4Fluxes)
+    is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes is vertical,
-this method returns this boolean value -- true if vertical
-and false if not. In case it is not known if the family of
-G4-fluxes is vertical, an error is raised.
+Checks if the given family of $G_4$-fluxes is vertical.
+If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -50,7 +48,7 @@ A family of G4 fluxes:
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf)
+julia> is_vertical(gf, check = false)
 false
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
@@ -60,13 +58,61 @@ A family of G4 fluxes:
   - Non-abelian gauge group: broken
   - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf2)
+julia> is_vertical(gf2, check = false)
+true
+
+julia> m1 = matrix_integral(gf2);
+
+julia> m2 = matrix_rational(gf2);
+
+julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> is_vertical(gf3)
 true
 ```
 """
-function is_vertical(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :is_vertical) "Cannot (yet) tell if this family of G4-fluxes is vertical"
-  return get_attribute(fgs, :is_vertical)
+function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verticality check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Verticality check currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Verticality check currently supported only for toric ambient space"
+  
+  # Is the result known?
+  if has_attribute(fgs, :is_vertical)
+    return get_attribute(fgs, :is_vertical)
+  end
+
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each generator of the flux family is vertical
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    if !passes_verticality_checks(gen_k)
+      set_attribute!(fgs, :is_vertical, false)
+      return false
+    end
+  end
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    if !passes_verticality_checks(gen_k)
+      set_attribute!(fgs, :is_vertical, false)
+      return false
+    end
+  end
+  set_attribute!(fgs, :is_vertical, true)
+  return true
 end
 
 
