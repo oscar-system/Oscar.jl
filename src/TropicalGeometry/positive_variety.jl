@@ -34,7 +34,7 @@ function positive_tropical_variety(I::MPolyIdeal,nu::TropicalSemiringMap)
     if all(isequal(2),length.(gens(I)))
         if all(isequal(-1),[prod([sign(c) for c in coefficients(g)]) for g in gens(I)])
             # binomial ideal positive, return regular tropical variety
-            return tropical_variety(I,nu)
+            return tropical_variety_binomial(I,nu)
         else
             # binomial ideal not positive, return empty polyhedral complex in the correct ambient dimension
             return polyhedral_complex(IncidenceMatrix(zeros(Int,0,0)),zero_matrix(QQ,0,ambient_dim(TropL)))
