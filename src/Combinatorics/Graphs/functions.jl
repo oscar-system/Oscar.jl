@@ -1339,3 +1339,7 @@ function laplacian_matrix(g::Graph)
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
 end
+
+function is_bipartite(g::Graph{T}) where T
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=g.pm_graph).BIPARTITE
+end
