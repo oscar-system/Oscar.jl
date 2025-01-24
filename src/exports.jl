@@ -814,6 +814,7 @@ export is_bicoset
 export is_bijective
 export is_binary
 export is_binomial
+export is_bipartite
 export is_bounded
 export is_canonically_isomorphic
 export is_canonically_isomorphic_with_map
