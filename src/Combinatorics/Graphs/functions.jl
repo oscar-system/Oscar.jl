@@ -1354,5 +1354,5 @@ true
 ```
 """
 function is_bipartite(g::Graph{T}) where T
-  return Polymake.graph.Graph{Undirected}(ADJACENCY=g.pm_graph).BIPARTITE
+  return Polymake.graph.Graph{T}(ADJACENCY=g.pm_graph).BIPARTITE::Bool
 end
