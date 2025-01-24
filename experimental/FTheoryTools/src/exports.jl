@@ -63,6 +63,7 @@ export family_of_spaces
 export fiber_ambient_space
 export flux_instance
 export g4_flux
+export g4_flux_family
 export gauge_algebra
 export genera_of_ci_curves
 export genera_of_components_of_dual_graph

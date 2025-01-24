@@ -108,3 +108,51 @@ function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
   set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
   return numb::QQFieldElem
 end
+
+
+#####################################################
+# 3 The "position" of a flux within a G4-flux family
+#####################################################
+
+@doc raw"""
+    g4_flux_family(gf::G4Flux; check::Bool = true)
+
+Return the family of $G_4$-fluxes that possesses, such
+that all fluxes in this family share the following properties
+with the given $G_4$-flux: Verticality and breaking of the
+non-Abelian gauge group.
+
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
+Hypersurface model over a concrete base
+
+julia> gfs = special_flux_family(qsm_model, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+
+julia> g4 = random_flux_instance(gfs, check = false)
+G4-flux candidate
+  - Elementary quantization checks: satisfied
+  - Tadpole cancellation check: not executed
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: broken
+
+julia> g4_flux_family(g4, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: satisfied
+  - Non-abelian gauge group: not broken
+```
+"""
+function g4_flux_family(gf::G4Flux; check::Bool = true)
+  if has_attribute(gf, :g4_flux_family)
+    return get_attribute(gf, :g4_flux_family)::FamilyOfG4Fluxes
+  end
+  nv = passes_verticality_checks(gf)
+  nb = breaks_non_abelian_gauge_group(gf)
+  gfs = special_flux_family(model(gf), vert = nv, not_breaking = nb, check = check)
+  set_attribute!(gf, :g4_flux_family, gfs)
+  return gfs::FamilyOfG4Fluxes
+end
