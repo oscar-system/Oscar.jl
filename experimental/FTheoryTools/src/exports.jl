@@ -54,6 +54,7 @@ export degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph
 export discriminant
 export display_all_literature_models
 export dual_graph
+export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
 export explicit_model_sections
@@ -153,6 +154,7 @@ export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
+export random_flux
 export random_flux_instance
 export resolution_generating_sections
 export resolution_zero_sections
@@ -213,6 +215,7 @@ export tate_section_a4
 export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
+export torsion_sections
 export tune
 export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf

@@ -8,7 +8,7 @@ properties.
 This family is modelled by the restriction of cohomology classes on the toric
 ambient space to the hypersurface in question. In the toric ambient space,
 those cohomology classes are vertical, i.e. are of the form $a \wedge b$ for
-$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that 
+$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that
 they are vertical on the hypersurface, which defines the actual F-theory
 geometry. We further subject this family to the consistency conditions for
 being well-quantized. Unless explicitly asked differently, it is this family of
@@ -159,7 +159,7 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -400,7 +400,7 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -735,7 +735,7 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]

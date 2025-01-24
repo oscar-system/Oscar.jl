@@ -1092,6 +1092,34 @@ end
 
 
 @doc raw"""
+    torsion_sections(m::AbstractFTheoryModel)
+
+Return the torsion sections of the given model.
+If no torsion sections are known, an error is raised.
+
+```jldoctest
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> foah15_B3 = literature_model(arxiv_id = "1408.4808", equation = "3.190", type = "hypersurface", base_space = B3, defining_classes = Dict("s7" => Kbar, "s9" => Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Hypersurface model over a concrete base
+
+julia> length(torsion_sections(foah15_B3))
+1
+```
+"""
+function torsion_sections(m::AbstractFTheoryModel)
+  @req has_torsion_sections(m) "No torsion sections stored for this model"
+  return get_attribute(m, :torsion_sections)
+end
+
+
+@doc raw"""
     gauge_algebra(m::AbstractFTheoryModel)
 
 Return the gauge algebra of the given model.

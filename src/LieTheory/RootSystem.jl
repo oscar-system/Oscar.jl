@@ -268,7 +268,7 @@ This can be checked with [`has_root_system_type(::RootSystem)`](@ref).
 
 If the type is not known, it is determined and stored in `R`.
 
-See also: [`root_system_type(::RootSystem)`](@ref), [`cartan_type_with_ordering(::ZZMatrix)`].
+See also: [`root_system_type(::RootSystem)`](@ref), [`cartan_type_with_ordering(::ZZMatrix)`](@ref).
 
 !!! warning
     This function will error if the type is not known yet and the Weyl group is infinite.

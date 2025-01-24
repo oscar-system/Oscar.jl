@@ -160,7 +160,11 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
       new_tate_polynomial = cox_ring_module_homomorphism(bd, tate_polynomial(m))
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
-      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
+      else
+        new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
+      end
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
@@ -168,7 +172,11 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
       new_weierstrass_polynomial = cox_ring_module_homomorphism(bd, weierstrass_polynomial(m))
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
-      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
+      else
+        new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
+      end
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end

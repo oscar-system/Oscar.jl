@@ -109,7 +109,7 @@ function hom(G::GAPGroup, H::GAPGroup, img::Function, preimg::Function; is_known
 end
 
 """
-    hom(G::GAPGroup, H::GAPGroup, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
+    hom(G::Group, H::Group, gensG::Vector = gens(G), imgs::Vector; check::Bool = true)
 
 Return the group homomorphism defined by `gensG`[`i`] -> `imgs`[`i`] for every
 `i`. In order to work, the elements of `gensG` must generate `G`.
@@ -132,6 +132,13 @@ end
 function hom(G::GAPGroup, H::GAPGroup, imgs::Vector; check::Bool = true)
   return hom(G, H, gens(G), imgs; check)
 end
+
+
+################################################################################
+#
+#  `hom` between `GAPGroup` and `FinGenAbGroup`
+#
+################################################################################
 
 # Map `G::GAPGroup` to `A::FinGenAbGroup` by prescribing images.
 # Return a composition of homomorphisms `G -> G/G' -> B -> A`,
@@ -158,6 +165,58 @@ end
 function hom(G::GAPGroup, A::FinGenAbGroup, imgs::Vector{FinGenAbGroupElem}; check::Bool = true)
   return hom(G, A, gens(G), imgs; check)
 end
+
+# Map `A::FinGenAbGroup` to `G::GAPGroup` by prescribing images.
+# Return a composition `A -> B -> G` where `A -> B` is an isomorphism
+# to a `GAPGroup`.
+function hom(A::FinGenAbGroup, G::GAPGroup, gensA::Vector, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  map1 = isomorphism(PcGroup, A)
+  map2 = hom(codomain(map1), G, [map1(x) for x in gensA], imgs, check = check)
+  return compose(map1, map2)
+end
+
+function hom(A::FinGenAbGroup, G::GAPGroup, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  return hom(A, G, gens(A), imgs; check)
+end
+
+################################################################################
+#
+#  `hom` between `GAPGroup` and `MultTableGroup`
+#
+################################################################################
+
+# Map `G::GAPGroup` to `M::MultTableGroup` by prescribing images.
+# Return a composition of homomorphisms `G -> B -> M`,
+# not a `GAPGroupHomomorphism`.
+function hom(G::GAPGroup, M::MultTableGroup, gensG::Vector, imgs::Vector{MultTableGroupElem}; check::Bool = true)
+  # map M to an isomorphic perm. group B
+  iso = isomorphism(PermGroup, M)
+  B = codomain(iso)
+
+  # map G to B as prescribed
+  map1 = hom(G, B, gensG, [iso(x) for x in imgs], check = check)
+
+  # create the composition
+  return compose(map1, inv(iso))
+end
+
+function hom(G::GAPGroup, M::MultTableGroup, imgs::Vector{MultTableGroupElem}; check::Bool = true)
+  return hom(G, M, gens(G), imgs; check)
+end
+
+# Map `M::MultTableGroup` to `G::GAPGroup` by prescribing images.
+# Return a composition `M -> B -> G` where `M -> B` is an isomorphism
+# to a `GAPGroup`.
+function hom(M::MultTableGroup, G::GAPGroup, gensM::Vector, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  map1 = isomorphism(PermGroup, M)
+  map2 = hom(codomain(map1), G, [map1(x) for x in gensM], imgs, check = check)
+  return compose(map1, map2)
+end
+
+function hom(M::MultTableGroup, G::GAPGroup, imgs::Vector{<:GAPGroupElem}; check::Bool = true)
+  return hom(M, G, gens(M), imgs; check)
+end
+
 
 function domain(f::GAPGroupHomomorphism)
   return f.domain
@@ -464,6 +523,20 @@ function isomorphism(G::GAPGroup, H::GAPGroup)
   mp = GAP.Globals.IsomorphismGroups(GapObj(G), GapObj(H))::GapObj
   @req mp !== GAP.Globals.fail "the groups are not isomorphic"
   return GAPGroupHomomorphism(G, H, mp)
+end
+
+function isomorphism(G::GAPGroup, A::FinGenAbGroup)
+  @req is_abelian(G) "the groups are not isomorphic"
+  map2 = isomorphism(PcGroup, A)
+  map1 = isomorphism(G, codomain(map2))
+  return compose(map1, inv(map2))
+end
+
+function isomorphism(A::FinGenAbGroup, G::GAPGroup)
+  @req is_abelian(G) "the groups are not isomorphic"
+  map1 = isomorphism(PcGroup, A)
+  map2 = isomorphism(codomain(map1), G)
+  return compose(map1, map2)
 end
 
 function isomorphism(G::GAPGroup, H::MultTableGroup)

@@ -8,11 +8,19 @@ DocTestSetup = Oscar.doctestsetup()
 The polyhedral geometry part of OSCAR provides functionality for handling
 - convex polytopes, unbounded polyhedra and cones
 - polyhedral fans
-- linear programs
+- linear and mixed integer programs
 
 General textbooks offering details on theory and algorithms include:
 - [JT13](@cite)
+- [Sch86](@cite)
 - [Zie95](@cite)
+
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on polyhedral geometry in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/PolyhedralGeometry/).
+
 
 ## Scalar types
 
