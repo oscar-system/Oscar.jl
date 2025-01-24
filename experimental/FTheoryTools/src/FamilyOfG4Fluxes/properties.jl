@@ -117,13 +117,11 @@ end
 
 
 @doc raw"""
-    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
+    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes does break
-the non-abelian gauge group, this method returns this boolean
-value -- true if it break the non-abelian gauge group and false
-if not. In case it is not known if the family of G4-fluxes does
-break the non-abelian gauge group, an error is raised.
+Checks if a family of G4-fluxes breaks the non-abelian
+gauge group. If so, this method returns `true` and
+otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -158,9 +156,57 @@ A family of G4 fluxes:
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false
+
+julia> m1 = matrix_integral(gf3);
+
+julia> m2 = matrix_rational(gf3);
+
+julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> breaks_non_abelian_gauge_group(gf4, check = false)
+false
 ```
 """
-function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :breaks_non_abelian_gauge_group) "Cannot (yet) tell if this family of G4-fluxes breaks the non-abelian gauge group"
-  return get_attribute(fgs, :breaks_non_abelian_gauge_group)
+function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
+  
+  # Is the result known?
+  if has_attribute(fgs, :breaks_non_abelian_gauge_group)
+    return get_attribute(fgs, :breaks_non_abelian_gauge_group)
+  end
+
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each generator of the flux family does not break the non-abelian gauge group
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    if breaks_non_abelian_gauge_group(gen_k)
+      set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+      return true
+    end
+  end
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    gen_k = g4_flux(model(fgs), class)
+    if breaks_non_abelian_gauge_group(gen_k)
+      set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
+      return true
+    end
+  end
+  set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
+  return false
 end
