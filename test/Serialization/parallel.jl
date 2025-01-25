@@ -25,5 +25,7 @@ end
 
   res2 = Oscar.wait_first_parallel(a)
   @test res2 in [one(R), x, y]
-  map(rmprocs, procs)
 end
+
+map(rmprocs, procs)
+
