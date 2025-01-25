@@ -2106,7 +2106,7 @@ and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
 
-See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref), [`map_word(::Vector{Union{Int, Pair{Int, Int}}}, ::Vector)`](@ref).
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
