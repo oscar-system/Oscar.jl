@@ -108,8 +108,34 @@ function Base.hash(gf::G4Flux, h::UInt)
 end
 
 
+
 ################################################
-# 3: Display
+# 3: Arithmetics
+################################################
+
+function Base.:+(g1::G4Flux, g2::G4Flux)
+  @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
+  R = parent(polynomial(cohomology_class(g1)))
+  new_poly = R(polynomial(cohomology_class(g1)).f + polynomial(cohomology_class(g2)).f)
+  new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly)
+  return G4Flux(model(g1), new_cohomology_class)
+end
+
+Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
+
+Base.:-(g::G4Flux) = (-1) * g
+
+function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
+  R = parent(polynomial(cohomology_class(g)))
+  new_poly = R(c * polynomial(cohomology_class(g)).f)
+  new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly)
+  return G4Flux(model(g), new_cohomology_class)
+end
+
+
+
+################################################
+# 4: Display
 ################################################
 
 function Base.show(io::IO, g4::G4Flux)
