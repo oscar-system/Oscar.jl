@@ -1353,6 +1353,6 @@ julia> is_bipartite(G)
 true
 ```
 """
-function is_bipartite(g::Graph{T}) where T
-  return Polymake.graph.Graph{T}(ADJACENCY=g.pm_graph).BIPARTITE::Bool
+function is_bipartite(g::Graph{Undirected})
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end
