@@ -1343,7 +1343,7 @@ end
 @doc raw"""
     is_bipartite(g::Graph)
 
-Returns true if the graph `g`  is bipartite.
+Returns true if the undirected graph `g` is bipartite.
 
 # Examples
 ```
