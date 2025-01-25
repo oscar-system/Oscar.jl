@@ -1,5 +1,3 @@
-
-
 const MatVecType{T} = Union{Matrix{T}, Vector{T}, SRow{T}}
 const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
@@ -121,13 +119,6 @@ function load_object(s::DeserializerState, T::Type{Vector{U}}, ::Nothing) where 
     load_object(s, U)
   end
   return T(entries)
-end
-
-function load_object(s::DeserializerState, ::Type{Vector{U}}, ::Nothing) where U
-  entries = load_array_node(s) do _
-    load_object(s, U, nothing)
-  end
-  return Vector{U}(entries)
 end
 
 ################################################################################
@@ -416,6 +407,13 @@ function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Ring) wher
 end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
+  elems = load_array_node(s) do _
+    load_object(s, T)
+  end
+  return S(elems)
+end
+
+function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T
   elems = load_array_node(s) do _
     load_object(s, T)
   end
