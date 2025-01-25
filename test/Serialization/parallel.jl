@@ -20,10 +20,11 @@ end
   R, (x, y) = QQ[:x, :y]
   l = [x^2, x*y, y^2]
   a = [SampleDataStruct([a for (i, a) in enumerate(l) if i != k]) for k in 1:length(l)]
-  res1 = Oscar.wait_all_parallel(a)
-  @test all(p in [(true, one(R)), (true, y), (true, x)] for p in res1)
-
-  res2 = Oscar.wait_first_parallel(a)
+  success, res1 = Oscar.parallel_all(a)
+  @test success
+  @test all(p in [one(R), x, y] for p in res1)
+  success, _, res2 = Oscar.parallel_any(a)
+  @test success
   @test res2 in [one(R), x, y]
 end
 
