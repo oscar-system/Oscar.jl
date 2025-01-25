@@ -1346,10 +1346,10 @@ end
 Returns true if the undirected graph `g` is bipartite.
 
 # Examples
-```
-julia> g = graph_from_edges([1,2],[2,3],[3,4]]);
+```jldoctest
+julia> g = graph_from_edges([[1,2],[2,3],[3,4]]);
 
-julia> is_bipartite(G)
+julia> is_bipartite(g)
 true
 ```
 """
