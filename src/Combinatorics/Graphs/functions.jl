@@ -1341,7 +1341,7 @@ function laplacian_matrix(g::Graph)
 end
 
 @doc raw"""
-    is_bipartite(g::Graph)
+    is_bipartite(g::Graph{Undirected})
 
 Returns true if the undirected graph `g` is bipartite.
 
