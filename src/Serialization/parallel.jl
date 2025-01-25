@@ -1,7 +1,7 @@
 ########################################################################
 # Simple single-machine parallelization
 #
-# In this file we explain and implement patterns for parallelization 
+# In this file we explain and implement simple patterns for parallelization 
 # on a single machine with multiple cores. 
 #
 # This can be used to deploy embarassingly parallel tasks on multiple 
@@ -9,39 +9,65 @@
 # successful computation on one of the cores. 
 ########################################################################
 
-# In order to use this infrastructure, you first need to set up a simple 
-# record of the data needed to accomplish any concrete instance to a 
-# task. 
-#
-# Say you would like to call `gcd(g...)` where `g` is a list of 
-# `RingElem`s, but actually for a whole list `l` of different 
-# combinations. Then your record would simply wrap up the arguments 
-# you pass to the function, in this case a `Vector` of `RingElem`s.
-abstract type ParallelTask end 
+# The pattern is the following.
+#   1. Choose a parallel task to be carried out.
+#   2. Wrap up the input data for the task in a concrete instance, 
+#      say `MyParallelTask`, of `ParallelTask` according to the rules below. 
+#   3. Implement `_compute(::MyParallelTask)` to carry out the task at hand.
+#   4. Use `parallel_all` and `parallel_any` on `Vector`s of `MyParallelTask` 
+#      to do things in parallel. 
 
+# An abstract type from which all concrete tasks should be derived. 
+abstract type ParallelTask end 
+# In order for the generic code below to work, any concrete instance 
+# must be of the form 
+#
+# struct MyParallelTask{T1, T2, ...} <: ParallelTask
+#   field1::T1
+#   field2::T2
+#   ...
+# end
+#
+# that is with *concrete types* for the fields with *every one* of those 
+# types appearing in the same order as type parameters. 
+
+# The following is a generic implementation which hopefully serves for 
+# most concrete tasks automatically. The methods might need to be overwritten, 
+# though!
+
+# A generic implementation to extract all parent-like objects appearing 
+# in the fields of a concrete instance of a `ParallelTask`. Knowing these 
+# beforehand is necessary to be able to create all required parents on 
+# the nodes up front. 
 function type_params(pt::T) where T <: ParallelTask
   type_params_dict = Dict{Symbol, Any}()
+  # Go through the fields of `T` and collect the `type_params` of these 
+  # fields recursively. 
   for n in fieldnames(T)
-    if n != :__attrs
-      type_params_dict[Symbol(n)] = type_params(getfield(pt, n))
-    end
+    n == :__attrs && continue # Don't bother with attributes.
+    type_params_dict[Symbol(n)] = type_params(getfield(pt, n))
   end
   return typeof(pt), type_params_dict
 end
 
+# A generic method to create all parents on the node which are required for 
+# sending the data in the task's fields. 
 function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
+  # If there are no `:params`, quit.
   !haskey(s, :params) && return T, nothing
   params_dict = Dict{Symbol, Any}()
   fields = DataType[]
+  # Go through the fields of the tasks and load their type parameters.
   load_node(s, :params) do _
+    # Note that for this loop we actually need the *concrete* types of the 
+    # fields of `T`. That's why they need to be clear from the beginning. 
     for (n,t) in zip(fieldnames(T), fieldtypes(T))
-      if n!= :__attrs
-        load_node(s, Symbol(n)) do _
-          U = decode_type(s)
-          params = load_type_params(s, U)
-          push!(fields, params[1])
-          params_dict[Symbol(n)] = params
-        end
+      n == :__attrs && continue # Don't bother with attributes.
+      load_node(s, Symbol(n)) do _
+        U = decode_type(s)
+        params = load_type_params(s, U)
+        push!(fields, params[1])
+        params_dict[Symbol(n)] = params
       end
     end
   end
@@ -49,123 +75,149 @@ function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
   return T{fields...}, params_dict
 end
 
+
+### Generic methods to send parent-like objects up front. 
+
+# Initial method for sending the parent-like objects in a task. 
+function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
+  # `type_params(obj)` returns a pair `(T, params::Dict)` where `T` is the 
+  # type itself and `params` is a dictionary with the output of `type_params` 
+  # for the fields of `T`.
+  for (_, params) in type_params(obj)[2]
+    # For every field go into recursion.
+    put_type_params(channel, params[2])
+  end
+end
+
+# Method for end of recursion.
 function put_type_params(channel::RemoteChannel, ::Nothing)
   return
 end
 
+#=
 function put_type_params(channel::RemoteChannel, obj::Dict)
   for (k, params) in obj
     put_type_params(channel, params[2])
   end
 end
+=#
 
+# Recursive call. Send all subsequent parents on which this object is 
+# based and finally the object itself, if applicable. 
 function put_type_params(channel::RemoteChannel, obj::Any)
   put_type_params(channel, type_params(obj)[2])
   # only  types that use ids need to be sent to the other processes
   serialize_with_id(typeof(obj)) && put!(channel, obj)
 end
 
-function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
-  println("top level put params")
-  for (k, params) in type_params(obj)[2]
-    put_type_params(channel, params[2])
-  end
-end
-
-function _compute(::T) where T <: ParallelTask
-  error("please implement the function _compute for the type $T")
-end
-
+### Generic methods to (de-)serialize a concrete task. 
 function save_object(s::SerializerState, obj::T) where T <: ParallelTask
   save_data_dict(s) do
     for n in fieldnames(T)
-      if n != :__attrs
-        save_object(s, getfield(obj, n), Symbol(n))
-      end
+      n == :__attrs && continue
+      save_object(s, getfield(obj, n), Symbol(n))
     end
   end
 end
 
 function load_object(s::DeserializerState, ::Type{T}, params::Dict) where T <: ParallelTask
   fields = []
-
   for n in fieldnames(T)
-    if n!= :__attrs
-      push!(fields, load_object(s, params[n]..., Symbol(n)))
-    end
+    n == :__attrs && continue
+    push!(fields, load_object(s, params[n]..., Symbol(n)))
   end
   return T(fields...)
 end
 
-
-# The data will need to be passed to the different workers. 
-# To allow for this, you need to specify how to serialize your record 
-# struct. In many cases, this can be done by the generic serialization 
-# implementation. BUT: you still need to implement the following 
-# function, which communicates which parent-like object appear in your
-# record.
-
-# As said above, the generic (de-)serialization should do, but in case 
-# you want something specialized, you can overwrite the methods here. 
-#function save_object(s::SerializerState, ds::SampleDataStruct)
-#  save_data_dict(s) do
-#    save_object(s, ds.elems, :elems)
-#  end
-#end
-
-#function load_object(s::DeserializerState, ::Type{<:SampleDataStruct}, params::Dict)
-#  R = params[:parent]
-#  return SampleDataStruct(load_object(s, Vector{elem_type(R)}, R, :elems))
-#end
-
-# Finally, implement the function which should be called on an instance 
-# of your record (on the workers) to carry out the actual task.
+# The method of `_compute` for the concrete task specifies what to do 
+# on the respective worker. The data will be extracted from the task's 
+# fields. The return value must be of the form `(success::Bool, result)` 
+# where `success` is to indicate whether we have an affirmative result 
+# in any reasonable sense. It is used to decide whether `all` or `any` 
+# of a given list of tasks to be done in parallel is achieved. 
 #
-# Note that if you want to use `wait_first_parallel`, then the return value must 
-# be of the form `(success, result)` where `success` is a `Bool` indicating 
-# whether the worker has obtained an affirmative result in any reasonable sense. 
-# Execution is stopped only if a return pair with `success==true` is found. 
+# The second value `result` can be any reasonable result of the computation 
+# which is to be returned to the main node. Note that you must not create 
+# new parents on the worker which are required for the contents of `return`, 
+# i.e. they need to use the parent-like objects sent from the main node. 
+function _compute(::T) where T <: ParallelTask
+  error("please implement the function _compute for the type $T")
+end
 
 ########################################################################
 # Generic implementations for deployment of tasks
 ########################################################################
-function wait_all_parallel(
+@doc raw"""
+    function parallel_all(
+        task_list::Vector{TaskType};
+        workers::Vector{Int}=Oscar.workers(),
+      ) where {TaskType <: ParallelTask}
+
+Given a list `tasklist` of `ParallelTask`s and a pool of workers, deploy them and wait for 
+their results. In case all computations were successful, return `(true, res_list)` where 
+`res_list` is the `Vector` of results of the respective tasks in the same order. 
+If any of the computations was not successful, return `(false, res_list)`.
+
+The user can specify a list of worker ids to be used for deployment via the kwarg `workers`.
+"""
+function parallel_all(
     task_list::Vector{TaskType};
     workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
-  ) where {TaskType} # TaskType is the type of the task to be deployed.
+  ) where {TaskType <: ParallelTask} # TaskType is the type of the task to be deployed.
   n = length(task_list)
   w = length(workers)
   is_zero(w) && !isempty(task_list) && error("zero workers available for non-trivial task; aborting")
-  fut_vec = _collect_futures(_deploy_work(task_list, workers))
+  fut_vec = _deploy_work(task_list, workers)
   @sync fut_vec
-  return fetch.(fut_vec)
+  results = [fetch(fut) for (fut, _) in fut_vec]
+  return all(success for (success, _) in results), [result for (_, result) in results]
 end
 
-function wait_first_parallel(
+@doc raw"""
+    function parallel_any(
+        task_list::Vector{T};
+        workers::Vector{Int}=Oscar.workers(),
+        kill_workers::Bool=false
+      ) where {T <: ParallelTask}
+
+Given a list `tasklist` of `ParallelTask`s and a pool of workers, deploy them and wait for 
+the first affirmative result to come back. In that case return `(true, k, result)` where 
+`k` is the number of the successful task `task_list` and `result` its result. 
+If all tasks return `(false, _)`, this function returns `(false, 0, nothing)`.
+
+The user can specify a list of worker ids to be used for deployment via the kwarg `workers`.
+When `kill_workers` is set to `true`, the workers are killed after call to this function.
+"""
+function parallel_any(
     task_list::Vector{T};
     workers::Vector{Int}=Oscar.workers(), # Specify which workers to use
     kill_workers::Bool=false
-  ) where {T} # T is the type of the task to be deployed.
+  ) where {T <: ParallelTask} # T is the type of the task to be deployed.
   n = length(task_list)
   w = length(workers)
   is_zero(w) && !isempty(task_list) && error("zero workers available for non-trivial task; aborting")
-  futures = _deploy_work(task_list, workers)
+  fut_vec = _deploy_work(task_list, workers)
   while true
-    for (wid, fut_vec) in futures
-      if any(isready, fut_vec)
-        k = findfirst(isready, fut_vec)
-        fut = fut_vec[k]
-        success, result = fetch(fut)
-        if success
-          # kill the workers if asked for
-          kill_workers && map(rmprocs, workers)
-          return result
-        end
+    all_failed = true
+    for (k, (fut, wid)) in enumerate(fut_vec)
+      if !isready(fut)
+        all_failed = false # We don't know yet
+        continue
+      end
+      success, result = fetch(fut)
+      if success
+        # kill the workers if asked for
+        kill_workers && map(rmprocs, workers)
+        return success, k, result
       end
     end
+    all_failed && return false, 0, nothing
   end
 end
 
+# Internal method to send tasks for computation to a pool of workers. 
+# Returns a `Vector` of `Tuple`s `(fut, wid)` of the `Future`s and the 
+# id of the worker where the task has been sent to.
 function _deploy_work(
     task_list::Vector{TaskType},
     workers::Vector{Int}
@@ -174,8 +226,7 @@ function _deploy_work(
   println("helo")
   individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(32), i) for i in workers)
   assigned_workers = IdDict{TaskType, Int}()
-  futures = Dict{Int, Vector{Future}}()
-  fut_vec = Future[]
+  fut_vec = Tuple{Future, Int}[]
   for (i, task) in enumerate(task_list)
     wid = workers[mod(i, w) + 1]
     channel = individual_channels[wid]
@@ -183,13 +234,8 @@ function _deploy_work(
     #remotecall(take!, wid, channel)
     assigned_workers[task] = wid
     fut = remotecall(_compute, wid, task)
-    push!(get!(futures, wid, Future[]), fut)
-    push!(fut_vec, fut)
+    push!(fut_vec, (fut, wid))
   end
-  return futures
-end
-
-function _collect_futures(futures::Dict{Int, Vector{Future}})
-  return vcat([futs for (_, futs) in futures]...)
+  return fut_vec
 end
 
