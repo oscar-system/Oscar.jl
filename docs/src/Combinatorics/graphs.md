@@ -71,7 +71,7 @@ shortest_path_dijkstra
 signed_incidence_matrix(g::Graph)
 is_isomorphic(g1::Graph{T}, g2::Graph{T}) where {T <: Union{Directed, Undirected}}
 is_isomorphic_with_permutation(G1unidrected::Graph, G2::Graph)
-is_bipartite(g::Graph{Unidrected})
+is_bipartite(g::Graph{Undirected})
 ```
 
 ### Edges
