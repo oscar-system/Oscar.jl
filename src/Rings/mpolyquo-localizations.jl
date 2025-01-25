@@ -144,11 +144,8 @@ inverted_set(L::MPolyQuoLocRing) = L.S
 
 Given ``L = (𝕜[x₁,…,xₙ]/I)[S⁻¹]``, return ``IS⁻¹``.
 """
-function modulus(L::MPolyQuoLocRing) 
-  if !has_attribute(L, :modulus)
-    set_attribute!(L, :modulus, localized_ring(L)(L.I))
-  end
-  return get_attribute(L, :modulus)::ideal_type(localized_ring_type(L))
+@attr ideal_type(localized_ring_type(L)) function modulus(L::MPolyQuoLocRing) 
+  return localized_ring(L)(L.I)
 end
 
 ### for compatibility -- also provide modulus in the trivial case
@@ -871,7 +868,7 @@ function iszero(a::MPolyQuoLocRingElem{<:Any, <:Any, <:Any, <:Any, <:MPolyComple
   # In case that the original quotient ring A is an integral domain
   # the localization map is injective and a is zero iff its numerator is zero.
   I = modulus(underlying_quotient(parent(a)))
-  if has_attribute(I, :is_prime) && get_attribute(I, :is_prime) === true
+  if get_attribute(I, :is_prime, false)
     return lifted_numerator(a) in I
   end
   return lift(a) in modulus(parent(a))
@@ -2102,8 +2099,8 @@ end
 ### Some auxiliary functions
 
 @attr T function radical(I::T) where {T<:MPolyQuoLocalizedIdeal}
-  has_attribute(I, :is_prime) && get_attribute(I, :is_prime) && return I
-  has_attribute(I, :is_radical) && get_attribute(I, :is_radical) && return I
+  get_attribute(I, :is_prime, false) && return I
+  get_attribute(I, :is_radical, false) && return I
   R = base_ring(I)
   R_simp, iso, iso_inv = simplify(R) # This usually does not cost much
   I_simp = ideal(R_simp, restricted_map(iso).(lifted_numerator.(gens(I))))
@@ -2524,35 +2521,31 @@ If `I` is the zero ideal an empty list is returned.
 
 If the localization is at a point, a minimal set of generators is returned.
 """
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
       I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyComplementOfKPointIdeal},
                               <:Any,<:Any};
       algorithm::Symbol=:simple
   )
-  get_attribute!(I, :small_generating_set) do
-    Q = base_ring(I)
-    L = localized_ring(Q)
-    J = pre_image_ideal(I)
-    unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
-  end::Vector{elem_type(base_ring(I))} 
+  Q = base_ring(I)
+  L = localized_ring(Q)
+  J = pre_image_ideal(I)
+  return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
     I::MPolyQuoLocalizedIdeal{<:MPolyQuoLocRing{<:Field, <:FieldElem,
                                           <:MPolyRing, <:MPolyRingElem,
                                           <:MPolyPowersOfElement}
                           };
       algorithm::Symbol=:simple
   )
-  get_attribute!(I, :small_generating_set) do
-    Q = base_ring(I)
-    L = localized_ring(Q)
+  Q = base_ring(I)
+  L = localized_ring(Q)
 
-    J = pre_image_ideal(I)
-    unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
-  end::Vector{elem_type(base_ring(I))} 
+  J = pre_image_ideal(I)
+  return unique!(filter(!iszero, Q.(small_generating_set(J; algorithm))))
 end
 
 @attr Int function dim(R::MPolyLocRing)
