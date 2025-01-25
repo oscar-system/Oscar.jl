@@ -189,7 +189,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  basis = _ambient_space_models_of_g4_fluxes(m, check = check)
   basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
 
   # Use MPolyBuildCtx to compute the tadpole constraint.

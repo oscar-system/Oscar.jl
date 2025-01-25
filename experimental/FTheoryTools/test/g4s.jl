@@ -3,10 +3,10 @@
 ##############################################################
 
 qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
-g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false)
+g4_base = chosen_g4_flux_basis(qsm_model, check = false)
 fs = well_quantized_ambient_space_models_of_g4_fluxes(qsm_model, check = false)
 M = matrix_integral(fs)
-g4_classes = [sum(M[i,j]*g4_base[i] for i in 1:length(g4_base)) for j in 1:size(M,2)]
+g4_classes = [sum(M[i,j]*cohomology_class(g4_base[i]) for i in 1:length(g4_base)) for j in 1:size(M,2)]
 g4_list = [g4_flux(qsm_model, cl, check = false) for cl in g4_classes]
 g4_dummy = g4_flux(qsm_model, sum(rand(-100:100)*g for g in g4_classes), check = false)
 
@@ -28,7 +28,7 @@ end
 
 fs2 = well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(qsm_model, check = false)
 M2 = matrix_integral(fs2)
-g4_classes = [sum(M2[i,j]*g4_base[i] for i in 1:length(g4_base)) for j in 1:size(M2,2)]
+g4_classes = [sum(M2[i,j]*cohomology_class(g4_base[i]) for i in 1:length(g4_base)) for j in 1:size(M2,2)]
 g4_list = [g4_flux(qsm_model, cl, check = false) for cl in g4_classes]
 g4_dummy = g4_flux(qsm_model, sum(rand(-100:100)*g for g in g4_classes), check = false)
 

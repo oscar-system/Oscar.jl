@@ -59,14 +59,13 @@ function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each integral generator is well-quantized
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_elementary_quantization_checks(gen_k)
       set_attribute!(fgs, :is_well_quantized, false)
       return false
@@ -78,8 +77,7 @@ function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
   c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; check = false))
     for i in 1:length(c_ds)
       for j in i:length(c_ds)
@@ -156,14 +154,13 @@ function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family is vertical
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_verticality_checks(gen_k)
       set_attribute!(fgs, :is_vertical, false)
       return false
@@ -171,8 +168,7 @@ function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_verticality_checks(gen_k)
       set_attribute!(fgs, :is_vertical, false)
       return false
@@ -252,14 +248,13 @@ function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = tru
   end
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
-  mb = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
 
   # Verify that each generator of the flux family does not break the non-abelian gauge group
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
       return true
@@ -267,8 +262,7 @@ function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = tru
   end
   my_mat = matrix_rational(fgs)
   for k in 1:ncols(my_mat)
-    class = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    gen_k = g4_flux(model(fgs), class)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
       set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
       return true

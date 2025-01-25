@@ -24,7 +24,6 @@ export add_weighted_resolution
 export add_weighted_resolution_generating_section
 export add_weighted_resolution_zero_section
 export ambient_space
-export ambient_space_models_of_g4_fluxes
 export analyze_fibers
 export arxiv_doi
 export arxiv_id
@@ -42,6 +41,7 @@ export breaks_non_abelian_gauge_group
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
+export chosen_g4_flux_basis
 export classes_of_model_sections
 export components_of_dual_graph
 export components_of_simplified_dual_graph

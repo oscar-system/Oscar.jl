@@ -49,10 +49,10 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of integral combinations in G4-flux family"
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
-  gens = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
-  c1 = [m1[k,1] * gens[k] for k in 1:length(gens)]
-  c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
-  flux = g4_flux(model(fgs), sum(c1+c2), check = check)
+  gens = chosen_g4_flux_basis(model(fgs), check = check)
+  c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
+  c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
+  flux = c1 + c2
   set_attribute!(flux, :int_combination, int_combination)
   set_attribute!(flux, :rat_combination, rat_combination)
   set_attribute!(flux, :g4_flux_family, fgs)

@@ -99,8 +99,6 @@ Construction over concrete base may lead to singularity enhancement. Consider co
 
 Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
 
-julia> ambient_space_models_of_g4_fluxes(t, check = false);
-
 julia> fg = well_quantized_ambient_space_models_of_g4_fluxes(t, check = false);
 
 julia> matrix_integral(fg)
@@ -117,7 +115,7 @@ Here is a more interesting example.
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
 Hypersurface model over a concrete base
 
-julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> g4_base = chosen_g4_flux_basis(qsm_model, check = false);
 
 julia> length(g4_base)
 37
@@ -132,7 +130,7 @@ julia> size(matrix_rational(fg))
 
 julia> M = matrix_integral(fg);
 
-julia> g4_class = sum(M[i,j]*g4_base[i] for i in 1:length(g4_base) for j in 1:size(M,2));
+julia> g4_class = sum(M[i,j]*cohomology_class(g4_base[i]) for i in 1:length(g4_base) for j in 1:size(M,2));
 
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
@@ -181,7 +179,7 @@ true
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  ambient_space_flux_candidates_basis = _ambient_space_models_of_g4_fluxes(m, check = check)
   ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
 
@@ -346,9 +344,9 @@ julia> size(matrix_rational(fg))
 
 julia> M=matrix_integral(fg);
 
-julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> g4_base = chosen_g4_flux_basis(qsm_model, check = false);
 
-julia> g4_classes = [sum(M[i,j]*g4_base[i] for i in 1:length(g4_base)) for j in 1:size(M,2)];
+julia> g4_classes = [sum(M[i,j]*cohomology_class(g4_base[i]) for i in 1:length(g4_base)) for j in 1:size(M,2)];
 
 julia> length(g4_classes) == 25
 true
@@ -417,7 +415,7 @@ true
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  ambient_space_flux_candidates_basis = _ambient_space_models_of_g4_fluxes(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
   ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
@@ -651,9 +649,9 @@ julia> size(matrix_rational(fg))
 
 julia> M = matrix_integral(fg);
 
-julia> g4_base = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
+julia> g4_base = chosen_g4_flux_basis(qsm_model, check = false);
 
-julia> g4_classes = [sum(M[i,j]*g4_base[i] for i in 1:length(g4_base)) for j in 1:size(M,2)];
+julia> g4_classes = [sum(M[i,j]*cohomology_class(g4_base[i]) for i in 1:length(g4_base)) for j in 1:size(M,2)];
 
 julia> length(g4_classes) == 1
 true
@@ -747,7 +745,7 @@ true
 
 
   # (4) Obtain critical information - this may take significant time!
-  ambient_space_flux_candidates_basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  ambient_space_flux_candidates_basis = _ambient_space_models_of_g4_fluxes(m, check = check)
   list_of_base_divisor_pairs_to_be_considered = Oscar._ambient_space_base_divisor_pairs_to_be_considered(m)
   ambient_space_flux_candidates_basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
   list_of_divisor_pairs_to_be_considered = Oscar._ambient_space_divisor_pairs_to_be_considered(m)
