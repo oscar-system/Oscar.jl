@@ -376,9 +376,9 @@ julia> length(g4_basis)
 julia> g4_basis[1]
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> cohomology_class(g4_basis[1])
 Cohomology class on a normal toric variety given by z^2

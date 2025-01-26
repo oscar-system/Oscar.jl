@@ -80,9 +80,9 @@ A family of G4 fluxes:
 julia> g4 = random_flux_instance(fg2, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> passes_elementary_quantization_checks(g4)
 true
@@ -104,9 +104,9 @@ A family of G4 fluxes:
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
@@ -121,9 +121,9 @@ julia> c = [60, 51, 90, 0, 24, 51, -24, 45, 30, 0, -48, 90, -57, 60, 30, 15, 120
 julia> qsm_g4_flux = flux_instance(fg, transpose(matrix(ZZ, [c])), zero_matrix(QQ, 0, 1), check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> passes_verticality_checks(qsm_g4_flux)
 true
@@ -149,9 +149,9 @@ A family of G4 fluxes:
 julia> g4_tester = random_flux_instance(fg, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
   - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
@@ -169,9 +169,9 @@ julia> c = [3];
 julia> qsm_g4_flux = flux_instance(fg, matrix(ZZ, [[3]]), zero_matrix(QQ, 0, 1), check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
   - Non-abelian gauge group: not broken
+  - Tadpole cancellation check: not executed
 
 julia> passes_elementary_quantization_checks(qsm_g4_flux)
 true

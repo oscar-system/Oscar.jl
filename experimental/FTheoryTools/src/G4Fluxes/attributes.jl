@@ -18,9 +18,9 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed  
+  - Tadpole cancellation check: not executed
 
 julia> model(g4f)
 Hypersurface model over a concrete base
@@ -45,9 +45,9 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> cohomology_class(g4f) == g4_class
 true
@@ -82,9 +82,9 @@ julia> g4_class = (-3) // kbar3(qsm_model) * (5 * e1 * e4 + pb_Kbar * (-3 * e1 -
 julia> g4 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> d3_tadpole_constraint(g4, check = false)
 12
@@ -102,9 +102,9 @@ A family of G4 fluxes:
 julia> g4_2 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
 
@@ -115,9 +115,9 @@ julia> rat_comb = rational_coefficients(g4_2);
 julia> g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> d3_tadpole_constraint(gfs, check = false);
 
@@ -182,9 +182,9 @@ A family of G4 fluxes:
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> g4_flux_family(g4, check = false)
 A family of G4 fluxes:
@@ -226,9 +226,9 @@ A family of G4 fluxes:
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> integral_coefficients(g4);
 ```
@@ -259,9 +259,9 @@ A family of G4 fluxes:
 julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> rational_coefficients(g4);
 ```

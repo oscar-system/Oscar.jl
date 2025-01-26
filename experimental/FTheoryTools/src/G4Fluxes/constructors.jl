@@ -53,16 +53,16 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
@@ -152,17 +152,6 @@ function Base.show(io::IO, g4::G4Flux)
     push!(properties_string, "  - Elementary quantization checks: not executed")
   end
 
-  # Check for tadpole cancellation checks
-  if has_attribute(g4, :passes_tadpole_cancellation_check)
-    if passes_tadpole_cancellation_check(g4)
-      push!(properties_string, "  - Tadpole cancellation check: satisfied")
-    else
-      push!(properties_string, "  - Tadpole cancellation check: failed")
-    end
-  else
-    push!(properties_string, "  - Tadpole cancellation check: not executed")
-  end
-
   # Check for verticality checks
   if has_attribute(g4, :passes_verticality_checks)
     if passes_verticality_checks(g4)
@@ -183,6 +172,17 @@ function Base.show(io::IO, g4::G4Flux)
     end
   else
     push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
+  end
+
+  # Check for tadpole cancellation checks
+  if has_attribute(g4, :passes_tadpole_cancellation_check)
+    if passes_tadpole_cancellation_check(g4)
+      push!(properties_string, "  - Tadpole cancellation check: satisfied")
+    else
+      push!(properties_string, "  - Tadpole cancellation check: failed")
+    end
+  else
+    push!(properties_string, "  - Tadpole cancellation check: not executed")
   end
 
   # Print each line separately, to avoid extra line break at the end

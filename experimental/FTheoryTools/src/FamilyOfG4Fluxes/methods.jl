@@ -37,9 +37,9 @@ julia> rat_combination = matrix(QQ, [[5//2]])
 julia> flux_instance(fgs, int_combination, rat_combination, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
@@ -103,9 +103,9 @@ A family of G4 fluxes:
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -141,9 +141,9 @@ Hypersurface model over a concrete base
 julia> rf = random_flux(qsm_model, vert = true, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)
