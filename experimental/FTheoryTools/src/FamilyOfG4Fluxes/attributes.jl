@@ -138,12 +138,7 @@ A family of G4 fluxes:
   - Tadpole constraint: evaluated
 ```
 """
-function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
-
-  # Is the result known?
-  if has_attribute(fgs, :d3_tadpole_constraint)
-    return get_attribute(fgs, :d3_tadpole_constraint)::QQMPolyRingElem
-  end
+@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
   # Entry checks
   m = model(fgs)
@@ -250,7 +245,6 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
   tadpole_constraint_polynomial = finish(C)
   tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m, check = check)
-  set_attribute!(fgs, :d3_tadpole_constraint, tadpole_constraint_polynomial)
 
   # Update the computed intersection numbers
   set_attribute!(m, :inter_dict, inter_dict)
