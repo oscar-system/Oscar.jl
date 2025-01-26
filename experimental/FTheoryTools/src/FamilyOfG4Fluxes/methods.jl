@@ -57,13 +57,19 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   set_attribute!(flux, :rat_combination, rat_combination)
   set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
-    set_attribute!(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
+    if is_well_quantized(fgs)
+      set_attribute!(flux, :passes_elementary_quantization_checks, true)
+    end
   end
   if has_attribute(fgs, :is_vertical)
-    set_attribute!(flux, :passes_verticality_checks, is_well_quantized(fgs))
+    if is_vertical(fgs)
+      set_attribute!(flux, :passes_verticality_checks, true)
+    end
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)
-    set_attribute!(flux, :breaks_non_abelian_gauge_group, breaks_non_abelian_gauge_group(fgs))
+    if !breaks_non_abelian_gauge_group(fgs)
+      set_attribute!(flux, :breaks_non_abelian_gauge_group, false)
+    end
   end
   return flux
 end
@@ -137,7 +143,7 @@ G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)

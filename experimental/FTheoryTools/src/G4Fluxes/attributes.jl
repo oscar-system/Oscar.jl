@@ -103,8 +103,8 @@ julia> g4_2 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> dv2 = d3_tadpole_constraint(g4_2, check = false);
 
@@ -116,8 +116,8 @@ julia> g4_3 = flux_instance(gfs, int_comb, rat_comb, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> d3_tadpole_constraint(gfs, check = false);
 
@@ -183,8 +183,8 @@ julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> g4_flux_family(g4, check = false)
 A family of G4 fluxes:
@@ -227,8 +227,8 @@ julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> integral_coefficients(g4);
 ```
@@ -260,8 +260,8 @@ julia> g4 = random_flux_instance(gfs, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
   - Tadpole cancellation check: not executed
-  - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
 
 julia> rational_coefficients(g4);
 ```
