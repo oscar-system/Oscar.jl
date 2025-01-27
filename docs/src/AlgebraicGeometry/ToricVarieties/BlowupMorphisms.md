@@ -34,10 +34,11 @@ along which the blowup is constructed can be provided in different
 formats. We discuss the methods in ascending generality.
 
 For our most specialized blowup method, we focus on the n-th cone in the
-fan of the variety `v` in question. This cone need not be maximal. The
-ensuing star subdivision will subdivide this cone about its "diagonal"
-(the sum of all its rays). The result of this will always be a toric
-variety:
+fan of the variety `v` in question. This cone need not be a maximal cone and
+cannot be the zero-dimensional cone. The
+ensuing star subdivision will subdivide this cone about its barycenter
+(the primitive generator of the sum of all its rays). The result of this
+will always be a toric variety:
 ```@docs
 blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 ```
