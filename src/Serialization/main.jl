@@ -177,20 +177,19 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
-type_params(obj::T) where T = T, nothing
+type_params(obj::T) where T = nothing
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
 
-save_type_params(s::SerializerState, obj::Any) = save_type_params(s, type_params(obj)...)
-
 function save_type_params(s::SerializerState, T::Type, params::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, T, params)
 end
 
+save_type_params(s::SerializerState, obj::Any) = save_type_params(s, typeof(obj), type_params(obj))
 save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
 
 function save_type_params(s::SerializerState, T::Type, params::Any)
@@ -200,45 +199,24 @@ function save_type_params(s::SerializerState, T::Type, params::Any)
   end
 end
 
-function save_type_params(s::SerializerState, T::Type, params::Tuple{Type, S}) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_type_params(s, params..., :params)
-  end
-end
-
-function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
+# splits all params that are dictionaries into vector of pair
+# to be able to handle varying types in the values
+function save_type_params(s::SerializerState, T::Type, params::Dict)
   save_type_params(s, T, collect(pairs(params)))
 end
 
+# This is used for types that have multiple parameters
 function save_type_params(s::SerializerState, T::Type,
                           params::Vector{<:Pair{Symbol, S}}) where S
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params
-        save_type_params(s, param.second..., Symbol(param.first))
+        save_type_params(s, typeof(param.second), param.second, Symbol(param.first))
       end
     end
   end
 end
-
-# i'll need this at some point in the refator
-#function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair}) where {S, U}
-#  save_data_dict(s) do
-#    save_object(s, encode_type(T), :name)
-#    save_data_dict(s, :params) do
-#      save_object(s, encode_type(S), :key_type)
-#      isempty(params) && save_object(s, encode_type(U), :value_type)
-#      save_data_array(s, :param_pairs) do
-#        for param in params
-#          println(param.first)
-#          println(param.second)
-#        end
-#      end
-#    end
-#  end
-#end
 
 function load_type_params(s::DeserializerState, T::Type, key::Symbol)
   load_node(s, key) do _

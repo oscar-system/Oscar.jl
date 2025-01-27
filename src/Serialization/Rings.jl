@@ -39,12 +39,12 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = T, parent(x)
-type_params(R::T) where T <: RingMatSpaceUnion = T, base_ring(R)
-type_params(x::T) where T <: IdealOrdUnionType = T, base_ring(x)
+type_params(x::T) where T <: RingMatElemUnion = parent(x)
+type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
+type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
 # exclude from ring union
-type_params(::ZZRing) = ZZRing, nothing
-type_params(::T) where T <: ModRingUnion = T, nothing
+type_params(::ZZRing) = nothing
+type_params(::T) where T <: ModRingUnion = nothing
 
 ################################################################################
 # ring of integers (singleton type)
