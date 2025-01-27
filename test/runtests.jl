@@ -42,7 +42,7 @@ end
 # to make sure we seed the main process we run this again
 Oscar.randseed!(seed)
 
-if VERSION >= v"1.8.0"
+if VERSION >= v"1.8.0" && get(ENV, "CI", "") == "true"
   # Enable GC logging to help track down certain GC related issues.
   # Note that several test files need to temporarily disable and then
   # re-enable this. If we need to disable this globally, those files
