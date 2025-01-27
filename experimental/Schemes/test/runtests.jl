@@ -44,6 +44,10 @@ end
   J, k = strict_transform_with_index(f, I)
   @test J == ideal(S, [x_^3 + y_^3*u^3])
   @test k == 6
+  g = x^3 + y^3
+  h, k_poly = strict_transform_with_index(f, g)
+  @test ideal(h) == J
+  @test k == k_poly
 
   # 1/2(1, 1) quotient singularity, (1/2, 1/2)-blowup
   ray_generators = [[2, -1], [0, 1]]
@@ -69,6 +73,11 @@ end
   J_total = total_transform(f, I)
   @test J_total == ideal(S, [x_*u + y_^3*u^2])
   @test ideal_sheaf(Y, J_total) == total_transform(f, ideal_sheaf(X, I))
+  g = x + y^3
+  h_strict = strict_transform(f, g)
+  @test ideal(h_strict) == J_strict
+  h_total = total_transform(f, g)
+  @test ideal(h_total) == J_total
 
   ## Subscheme is a zero-dimensional scheme, topologically three points
   I = ideal(R, [x - y^3, x - y^5])
