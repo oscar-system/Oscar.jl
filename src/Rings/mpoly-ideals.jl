@@ -678,8 +678,7 @@ end
     factor_generators::Bool=true, 
     eliminate_variables::Bool=true
   ) where {U<:Union{AbsSimpleNumFieldElem, <:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
-  is_known(I, is_prime) && is_prime(I) && return I
-  is_known(I, is_one) && is_one(I) && return I
+  is_known(I, is_radical) && is_radical(I) && return I
   R = base_ring(I)
   J = ideal(R, zero(R))
   if factor_generators
@@ -726,7 +725,7 @@ Computes the radical.
   return is_subset(radical(I), I)
 end
 
-function is_known(I::Ideal, ::typeof(is_radical))
+function is_known(I::MPolyIdeal, ::typeof(is_radical))
   is_known(I, is_prime) && is_prime(I) && return true
   return get_attribute(I, :is_radical, false)
 end
@@ -1757,8 +1756,10 @@ function is_known(I::MPolyIdeal, ::typeof(is_prime))
   has_attribute(I, :is_prime) && return true
   is_known(I, primary_decomposition) && return true
   is_known(I, minimal_primes) && return true
-  is_known(I, is_zero) && is_zero(I) && return true
-  is_known(I, is_one) && is_one(I) && return true
+  if coefficient_ring(base_ring(I)) isa Field
+    is_known(I, is_zero) && is_zero(I) && return true
+    is_known(I, is_one) && is_one(I) && return true
+  end
   return false
 end
 
