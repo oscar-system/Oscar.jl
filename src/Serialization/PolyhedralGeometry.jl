@@ -32,11 +32,10 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-function save_type_params(s::SerializerState, obj::T) where T <: PolyhedralObject
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, coefficient_field(obj), :params)
-  end
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = coefficient_field(obj)
+
+function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
+  return type_params(_polyhedral_object_as_dict(obj))
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
@@ -48,13 +47,7 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
     T = typeof(obj)
     error("Unsupported type $T for serialization")
   end
-  save_data_dict(s) do
-    save_typed_object(s, _polyhedral_object_as_dict(obj))
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:PolyhedralObject})
-  return load_typed_object(s)
+  save_object(s, _polyhedral_object_as_dict(obj))
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
@@ -67,16 +60,28 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
   return load_from_polymake(T, Dict{Symbol, Any}(s.obj))
 end
 
-function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, field::Field)
-  polymake_dict = load_typed_object(s)
+function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
+  polymake_dict = load_object(s, Dict{String, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
+  
+  if Base.issingletontype(dict["_coeff"][1])
+    field = dict["_coeff"][1]()
+  else
+    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  end
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
-                     field::Field) where S <: FieldElem
-  polymake_dict = load_typed_object(s)
+                     dict::Dict) where S <: FieldElem
+  polymake_dict = load_object(s, Dict{String, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
+  if Base.issingletontype(dict["_coeff"][1])
+    field = dict["_coeff"][1]()
+  else
+    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  end
+
   return T(bigobject, field)
 end
 
@@ -183,8 +188,8 @@ function load_object(s::DeserializerState, ::Type{<: MixedIntegerLinearProgram},
 end
 
 # use generic serialization for the other types:
-@register_serialization_type Cone uses_params
-@register_serialization_type PolyhedralComplex uses_params
-@register_serialization_type Polyhedron uses_params
-@register_serialization_type PolyhedralFan uses_params
-@register_serialization_type SubdivisionOfPoints uses_params
+@register_serialization_type Cone
+@register_serialization_type PolyhedralComplex
+@register_serialization_type Polyhedron
+@register_serialization_type PolyhedralFan
+@register_serialization_type SubdivisionOfPoints

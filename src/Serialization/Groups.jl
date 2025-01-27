@@ -90,24 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-function save_type_params(s::SerializerState, p::T) where T <: GrpElemUnionType
-  # this has just been more or less copied from the Rings section
-  # and might be removed from this file during a future refactor
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    parent_p = parent(p)
-    if serialize_with_id(parent_p)
-      parent_ref = save_as_ref(s, parent_p)
-      save_object(s, parent_ref, :params)
-    else
-      save_typed_object(s, parent_p, :params)
-    end
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:GrpElemUnionType})
-  return load_typed_object(s)
-end
+type_params(p::T) where T <: GrpElemUnionType = parent(p)
 
 
 #############################################################################
@@ -157,7 +140,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
-  generators = load_object(s, Vector, (Vector{Int}, Int), :gens)
+  generators = load_object(s, Vector{Vector{Int}}, :gens)
   G = permutation_group(n, [perm(x) for x in generators])
   load_attrs(s, G)
   return G
@@ -170,14 +153,16 @@ end
 # (Or would it be easier for other systems if the length of the array
 # is equal to the degree of the parent group?)
 
-@register_serialization_type PermGroupElem uses_params
+@register_serialization_type PermGroupElem
+
+type_params(x::T) where T <: GroupElem = parent(x)
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
 end
 
 function load_object(s::DeserializerState, T::Type{PermGroupElem}, parent_group::PermGroup)
-  imgs = load_object(s, Vector, Int)
+  imgs = load_object(s, Vector{Int})
   return perm(parent_group, imgs)
 end
 
@@ -205,8 +190,8 @@ end
 # FPGroupElem, SubFPGroupElem
 # We need the parent and a description of the word that defines the element.
 
-@register_serialization_type FPGroupElem uses_params
-@register_serialization_type SubFPGroupElem uses_params
+@register_serialization_type FPGroupElem
+@register_serialization_type SubFPGroupElem
 
 function save_object(s::SerializerState, g::Union{FPGroupElem, SubFPGroupElem})
   save_object(s, Vector{Int}(vcat([[x[1], x[2]] for x in syllables(g)]...)))
@@ -219,7 +204,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     fam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     if GAPWrap.IsElementOfFpGroupFamily(fam)
       # go via the underlying free group
@@ -258,8 +243,8 @@ end
 # We need the parent and a description of the exponent vector
 # that defines the element.
 
-@register_serialization_type PcGroupElem uses_params
-@register_serialization_type SubPcGroupElem uses_params
+@register_serialization_type PcGroupElem
+@register_serialization_type SubPcGroupElem
 
 function save_object(s::SerializerState, g::Union{PcGroupElem, SubPcGroupElem})
   elfam = GAPWrap.FamilyObj(GapObj(g))
@@ -274,7 +259,7 @@ typecombinations = (
 
 for (eltype, type) in typecombinations
   @eval function load_object(s::DeserializerState, ::Type{$eltype}, parent_group::$type)
-    lo = load_object(s, Vector, Int)
+    lo = load_object(s, Vector{Int})
     elfam = GAPWrap.ElementsFamily(GAPWrap.FamilyObj(GapObj(parent_group)))
     fullpcgs = GAP.getbangproperty(elfam, :DefiningPcgs)::GapObj
     gapelm = GAPWrap.PcElementByExponentsNC(fullpcgs, GapObj(lo, true))::GapObj
@@ -293,16 +278,16 @@ function save_object(s::SerializerState, G::FinGenAbGroup)
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroup})
-  return abelian_group(load_object(s, Matrix, ZZRingElem))
+  return abelian_group(load_object(s, Matrix{ZZRingElem}))
 end
 
 # elems
-@register_serialization_type FinGenAbGroupElem uses_params
+@register_serialization_type FinGenAbGroupElem
 
 function save_object(s::SerializerState, g::FinGenAbGroupElem)
   save_object(s, _coeff(g))
 end
 
 function load_object(s::DeserializerState, ::Type{FinGenAbGroupElem}, G::FinGenAbGroup)
-  return G(vec(load_object(s, Matrix, ZZRingElem)))
+  return G(vec(load_object(s, Matrix{ZZRingElem})))
 end

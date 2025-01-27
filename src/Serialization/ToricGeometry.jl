@@ -32,16 +32,7 @@ end
 # Torus invariant divisors on toric varieties
 @register_serialization_type ToricDivisor uses_params
 
-function save_type_params(s::SerializerState, obj::ToricDivisor)
-  save_data_dict(s) do
-    save_object(s, encode_type(ToricDivisor), :name)
-    save_typed_object(s, obj.toric_variety, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:ToricDivisor})
-  return load_typed_object(s)
-end
+type_params(obj::ToricDivisor) = toric_variety(obj)
 
 function save_object(s::SerializerState, td::ToricDivisor)
   save_object(s, td.coeffs)
@@ -65,16 +56,7 @@ end
 # Torus invariant divisor classes on toric varieties
 @register_serialization_type ToricDivisorClass uses_params
 
-function save_type_params(s::SerializerState, obj::ToricDivisorClass)
-  save_data_dict(s) do
-    save_object(s, encode_type(ToricDivisorClass), :name)
-    save_typed_object(s, obj.toric_variety, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:ToricDivisorClass})
-  return load_typed_object(s)
-end
+type_params(obj::ToricDivisorClass) = toric_variety(obj)
 
 function save_object(s::SerializerState, tdc::ToricDivisorClass)
   save_object(s, toric_divisor(tdc).coeffs)
