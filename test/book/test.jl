@@ -164,8 +164,25 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     close(mockrepl.output)
   end
 
-  function run_repl_string(mockrepl::MockREPLHelper, s::AbstractString; jlcon_mode=true)
+  function run_repl_string(mockrepl::MockREPLHelper, s::AbstractString; jlcon_mode=true, filename=nothing)
+    (hangdelay, hanginterval) = (10, 5)
+    hangcount = hangdelay
+    hangwarn = Timer(60*hangdelay; interval=60*hanginterval) do t
+      println(stderr, "      Hangcheck triggered:")
+      filename === nothing || println(stderr, "       +$(hangcount)min Current file: ", filename)
+      # the argument s contains the full example file as a string
+      # to get the currently running line we fetch this from the repl history
+      println(stderr, "       +$(hangcount)min Current line: ", Base.active_repl.mistate.current_mode.hist.history[end])
+      # print backtrace if we are stuck for more than two times the initial limit
+      if hangcount > hangdelay*2
+        sig = Sys.islinux() ? "-USR1" : "-INFO"
+        # with short delay so that we are out of the hangcheck task
+        run(`sh -c "sleep 5 && kill $sig $(getpid())"`)
+      end
+      hangcount += hanginterval
+    end
     input_string = s
+    @debug "running repl string:\n$s"
     if jlcon_mode
       input_string = "\e[200~$s\e[201~"
     end
@@ -198,6 +215,8 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     if !jlcon_mode && haderror
       error("ERROR in jl-mode:\n", output)
     end
+    @debug "repl output:\n$output"
+    close(hangwarn)
     return output
   end
 
@@ -265,10 +284,10 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
                 @debug "possibly wrong file type: $full_file"
               end
               if full_file in skipped
-                @test run_repl_string(mockrepl, content) isa AbstractString skip=true
+                @test run_repl_string(mockrepl, content; filename=full_file) isa AbstractString skip=true
               elseif filetype == :jlcon
                 content = sanitize_input(content)
-                computed = run_repl_string(mockrepl, content)
+                computed = run_repl_string(mockrepl, content; filename=full_file)
                 res = @test normalize_repl_output(content) == computed broken=(full_file in broken)
                 if res isa Test.Fail
                   println(deepdiff(normalize_repl_output(content),computed))
@@ -277,9 +296,9 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
                 if occursin("# output\n", content)
                   (code, res) = split(content, "# output\n"; limit=2)
                   # TODO do we want to compare with `res` ?
-                  @test run_repl_string(mockrepl, code; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, code; jlcon_mode=false, filename=full_file) isa AbstractString broken=(full_file in broken)
                 else
-                  @test run_repl_string(mockrepl, content; jlcon_mode=false) isa AbstractString broken=(full_file in broken)
+                  @test run_repl_string(mockrepl, content; jlcon_mode=false, filename=full_file) isa AbstractString broken=(full_file in broken)
                 end
               else
                 @warn "unknown file type: $full_file"
