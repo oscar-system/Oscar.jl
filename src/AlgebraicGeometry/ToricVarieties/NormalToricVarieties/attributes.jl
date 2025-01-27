@@ -217,11 +217,9 @@ julia> coordinate_names(antv)
 end
 
 
-function _cox_ring_weights(v::NormalToricVarietyType)
-    return get_attribute!(v, :cox_ring_weights) do
-        f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-        return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
-    end::Vector{FinGenAbGroupElem}
+@attr Vector{FinGenAbGroupElem} function _cox_ring_weights(v::NormalToricVarietyType)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
 end
 
 

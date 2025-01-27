@@ -1,6 +1,6 @@
 # more tests are in `test/AlgebraicGeometry/Schemes/`
 #
-@testset "Blow ups in existing rays" begin
+@testset "Blowups in existing rays" begin
   c = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
   ntv = normal_toric_variety(c)
   bl0 = blow_up(ntv, [1,0,0])
@@ -15,7 +15,7 @@
   @test exceptional_prime_divisor(bl1) == toric_divisor(domain(bl1), [1,0,0,0])
 end
 
-@testset "Blow ups along minimal supercone coordinates" begin
+@testset "Blowups along minimal supercone coordinates" begin
   P2 = projective_space(NormalToricVariety, 2)
   f_1 = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
   f_2 = blow_up(P2, [2, 3])

@@ -270,13 +270,11 @@ given by the pullback function
   return domain(inc), inc
 end
 
-function ideal_sheaf_of_singular_locus(
+@attr SingularLocusIdealSheaf function ideal_sheaf_of_singular_locus(
     X::AbsCoveredScheme;
     focus=zero_ideal_sheaf(X) # This should really be an AbsIdealSheaf, but the inclusion order forbids mentioning this here.
   )
-  return get_attribute!(X, :ideal_sheaf_of_singular_locus) do
-    SingularLocusIdealSheaf(X; focus)
-  end::SingularLocusIdealSheaf
+  return SingularLocusIdealSheaf(X; focus)
 end
 
 function simplified_covering(X::AbsCoveredScheme)

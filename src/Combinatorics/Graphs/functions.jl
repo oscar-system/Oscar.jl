@@ -1339,3 +1339,20 @@ function laplacian_matrix(g::Graph)
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
 end
+
+@doc raw"""
+    is_bipartite(g::Graph{Undirected})
+
+Returns true if the undirected graph `g` is bipartite.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1,2],[2,3],[3,4]]);
+
+julia> is_bipartite(g)
+true
+```
+"""
+function is_bipartite(g::Graph{Undirected})
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
+end

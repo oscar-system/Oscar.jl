@@ -182,16 +182,8 @@ G4-flux candidate
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric ambient space"
-  
-  # Compute the cohomology class corresponding to the hypersurface equation
-  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
-  
-  # Now check if the D3-tadpole cancellation condition holds
-  numb = euler_characteristic(m; check = false)/24 - 1/2*integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(g4)) * polynomial(cohomology_class(g4)) * cy); check = false)
-  if numb > 0 && is_integer(numb)
-    return true
-  end
-  return false
+  numb = d3_tadpole_constraint(g4, check = false)
+  return numb >= 0 && is_integer(numb)
 end
 
 

@@ -283,7 +283,7 @@ of the roots in the Dynkin diagram.
 
 If `check=true` the function will verify that `gcm` is indeed a Cartan matrix.
 
-See also: [`root_system_type_with_ordering(::RootSystem)`].
+See also: [`root_system_type_with_ordering(::RootSystem)`](@ref).
 
 !!! note
     The order of returned components is, in general, not unique and might change between versions.

@@ -455,22 +455,18 @@ function flat_counterparts(phi::RingFlattening)
 end
 
 ### Some basic functionality
-function flatten(R::MPolyRing; cached::Bool=false)
-  return get_attribute!(R, :flatten) do
-    RingFlattening(R; cached)
-  end::RingFlattening
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
-function flatten(R::MPolyQuoRing; cached::Bool=false)
-  return get_attribute!(R, :flatten) do
-    RingFlattening(R; cached)
-  end::RingFlattening
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyQuoRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
   return get!(flat_counterparts(phi), I) do
     return ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
-  end::Any  # TODO: add better type annotation
+  end::ideal_type(codomain(phi))
 end
 
 function preimage(phi::RingFlattening, x::RingElem)

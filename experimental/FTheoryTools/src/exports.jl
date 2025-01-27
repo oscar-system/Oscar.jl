@@ -54,6 +54,7 @@ export degrees_of_kbar_restrictions_to_components_of_simplified_dual_graph
 export discriminant
 export display_all_literature_models
 export dual_graph
+export d3_tadpole_constraint
 export estimated_number_of_triangulations
 export euler_characteristic
 export explicit_model_sections

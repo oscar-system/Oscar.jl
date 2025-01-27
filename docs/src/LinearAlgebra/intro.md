@@ -11,8 +11,11 @@ The linear algebra part of OSCAR provides functionality for handling
 - vector spaces over fields
 - matrix spaces and matrix algebras
 
-General textbooks offering details on theory and algorithms include:
-- ...
+
+## Tutorials
+
+We encourage you to take a look at the tutorials on linear algebra in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/LinearAlgebra/).
 
 
 ## Contact

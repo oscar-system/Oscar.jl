@@ -2492,3 +2492,46 @@ function tutte_lifting(G::Graph{Undirected})
   pmG = Polymake.graph.Graph{Undirected}(; ADJACENCY=G)
   return Polyhedron{QQFieldElem}(Polymake.polytope.tutte_lifting(pmG), QQ)
 end
+
+@doc raw"""
+    integer_hull(P::Polyhedron)
+
+Return the convex hull of the lattice points in `P`.  Works even for nonrational polytopes.
+
+# Examples
+```jldoctest
+julia> vertices(integer_hull(dodecahedron()))
+6-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [-1, 0, 0]
+ [0, -1, 0]
+ [0, 0, -1]
+ [0, 0, 1]
+ [0, 1, 0]
+ [1, 0, 0]
+```
+"""
+function integer_hull(P::Polyhedron{T}) where {T<:scalar_types}
+  return convex_hull(lattice_points(P))
+end
+
+@doc raw"""
+    gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+
+Return the Gomory-Chvátal closure of a rational polyhedron; sometimes also called "elementary closure".
+
+Applying this function iteratively to any rational polytope yields the integer hull after finitely many steps.
+[Sch86](@cite).
+
+# Examples
+```jldoctest
+julia> vertices(gomory_chvatal_closure(cube(2, -1//2, 3//2)))
+4-element SubObjectIterator{PointVector{QQFieldElem}}:
+ [1, 0]
+ [1, 1]
+ [0, 1]
+ [0, 0]
+```
+"""
+function gomory_chvatal_closure(P::Polyhedron{QQFieldElem})
+  return Polyhedron{QQFieldElem}(Polymake.polytope.gc_closure(pm_object(P)))
+end

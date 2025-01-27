@@ -8,7 +8,7 @@ properties.
 This family is modelled by the restriction of cohomology classes on the toric
 ambient space to the hypersurface in question. In the toric ambient space,
 those cohomology classes are vertical, i.e. are of the form $a \wedge b$ for
-$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that 
+$a,b \in H^(1,1)(X_\Sigma)$ with $X_\Sigma$. Note that this does NOT mean that
 they are vertical on the hypersurface, which defines the actual F-theory
 geometry. We further subject this family to the consistency conditions for
 being well-quantized. Unless explicitly asked differently, it is this family of
@@ -142,7 +142,7 @@ julia> passes_elementary_quantization_checks(g4)
 true
 ```
 """
-function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+@attr FamilyOfG4Fluxes function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
@@ -151,15 +151,11 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
     @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
-  if has_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
-  end
-
 
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -270,14 +266,12 @@ function well_quantized_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryMode
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :is_vertical, false)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
-  set_attribute!(m, :well_quantized_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (10) Finally, return the result
-  return fgs::FamilyOfG4Fluxes
-
+  return fgs
 end
 
 
@@ -383,7 +377,7 @@ julia> passes_verticality_checks(qsm_g4_candidate)
 true
 ```
 """
-function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+@attr FamilyOfG4Fluxes function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
@@ -392,15 +386,12 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
     @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
-  if has_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
-  end
 
 
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -578,14 +569,12 @@ function well_quantized_and_vertical_ambient_space_models_of_g4_fluxes(m::Abstra
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :is_vertical, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
-  set_attribute!(m, :well_quantized_and_vertical_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (12) Finally, return the result
-  return fgs::FamilyOfG4Fluxes
-
+  return fgs
 end
 
 
@@ -718,7 +707,7 @@ julia> qsm_g4_candidate == g4_flux(qsm_model, g4_class)
 true
 ```
 """
-function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+@attr FamilyOfG4Fluxes function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # (1) Entry checks
   @req base_space(m) isa NormalToricVariety "Computation of well-quantized G4-fluxes only supported for toric base and ambient spaces"
@@ -727,15 +716,12 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
     @req is_complete(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for complete toric ambient spaces"
     @req is_simplicial(ambient_space(m)) "Computation of well-quantized G4-fluxes only supported for simplicial toric ambient space"
   end
-  if has_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)
-    return get_attribute(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes)::FamilyOfG4Fluxes
-  end
 
 
   # (2) Compute data, that is frequently used by the sophisticated intersection product below
   S = cox_ring(ambient_space(m))
   gS = gens(cox_ring(ambient_space(m)))
-  linear_relations = matrix(QQ, matrix(ZZ, rays(ambient_space(m))))
+  linear_relations = matrix(QQ, rays(ambient_space(m)))
   scalings = [c.coeff for c in S.d]
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
@@ -938,12 +924,10 @@ function well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_amb
   set_attribute!(fgs, :is_well_quantized, true)
   set_attribute!(fgs, :is_vertical, true)
   set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
-  set_attribute!(m, :well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes, fgs)
   set_attribute!(m, :inter_dict, inter_dict)
   set_attribute!(m, :s_inter_dict, s_inter_dict)
 
 
   # (12) Finally, return the result
-  return fgs::FamilyOfG4Fluxes
-
+  return fgs
 end

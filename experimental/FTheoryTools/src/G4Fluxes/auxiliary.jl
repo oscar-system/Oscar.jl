@@ -41,20 +41,15 @@ julia> betti_number(Y, 4) == length(h22_basis)
 true
 ```
 """
-function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
-
+@attr Vector{CohomologyClass} function basis_of_h22(v::NormalToricVariety; check::Bool = true)
   # (0) Some initial checks
   if check
     @req is_complete(v) "Computation of basis of H22 is currently only supported for complete toric varieties"
     @req is_simplicial(v) "Computation of basis of H22 is currently only supported for simplicial toric varieties"
   end
   if dim(v) < 4
-    set_attribute!(v, :basis_of_h22, Vector{CohomologyClass}())
+    return Vector{CohomologyClass}()
   end
-  if has_attribute(v, :basis_of_h22)
-    return get_attribute(v, :basis_of_h22)
-  end
-
   # (1) Prepare some data of the variety
   mnf = Oscar._minimal_nonfaces(v)
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -146,17 +141,15 @@ function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{Cohomol
   # (10) Return the basis elements in terms of cohomology classes
   S = cohomology_ring(v, check = check)
   c_ds = [k.f for k in gens(S)]
-  final_list_of_tuples = []
+  final_list_of_tuples = Tuple{Int64, Int64}[]
   for (key, value) in dict_of_filtered_quadratic_elements
     if value in new_good_positions
       push!(final_list_of_tuples, key)
     end
   end
   basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
-  set_attribute!(v, :basis_of_h22, basis_of_h22)
   set_attribute!(v, :basis_of_h22_indices, final_list_of_tuples)
   return basis_of_h22
-
 end
 
 
@@ -170,12 +163,7 @@ end
 # has empty intersection with the hypersurface. The following method identifies the remaining pairs of
 # toric divisors d1, d2 that we must consider.
 
-function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)::Vector{Tuple{Int64, Int64}}
-
-  if has_attribute(m, :_ambient_space_divisor_pairs_to_be_considered)
-    return get_attribute(m, :_ambient_space_divisor_pairs_to_be_considered)
-  end
-
+@attr Vector{Tuple{Int64, Int64}} function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -221,10 +209,8 @@ function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel):
     end
   end
   
-  # Remember this result as attribute and return the findings.
-  set_attribute!(m, :_ambient_space_divisor_pairs_to_be_considered, list_of_elements)
+  # Return the findings.
   return list_of_elements
-  
 end
 
 
@@ -234,12 +220,7 @@ end
 # This method makes a pre-selection of such base divisor pairs. "Pre" means that we execute a sufficient,
 # but not necessary, check to tell if a pair of base divisors restricts trivially.
 
-function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)::Vector{Tuple{Int64, Int64}}
-
-  if has_attribute(m, :_ambient_space_base_divisor_pairs_to_be_considered)
-    return get_attribute(m, :_ambient_space_base_divisor_pairs_to_be_considered)
-  end
-
+@attr Vector{Tuple{Int64, Int64}} function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -285,10 +266,8 @@ function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryMo
     end
   end
   
-  # Remember this result as attribute and return the findings.
-  set_attribute!(m, :_ambient_space_base_divisor_pairs_to_be_considered, list_of_elements)
+  # Return the findings.
   return list_of_elements
-  
 end
 
 

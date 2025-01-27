@@ -5,10 +5,27 @@
 
   # TODO: merge with conformance tests in test/LieTheory/WeylGroup.jl once this is moved to src
   @testset "WeylGroup Group isomorphism test for $(Wname)" for (Wname, W) in [
+    # Some test cases can be removed as soon as isomorphism has support for reducible types.
+    # (Then nearly everything is covered by complicated case 1 and 2.)
+    # Until then, all irreducible types and some explicit non-canonical orderings should be tested.
     ("A1", weyl_group(:A, 1)),
+    (
+      "A3 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1; -1 2 0; -1 0 2])),
+    ),
     ("A5", weyl_group(:A, 5)),
+    (
+      "B4 with non-canonical ordering of simple roots",
+      weyl_group(root_system([2 -1 -1 0; -1 2 0 -1; -2 0 2 0; 0 -1 0 2])),
+    ),
     ("B4", weyl_group(root_system(:B, 4))),
+    ("C3", weyl_group(:C, 3)),
     ("D5", weyl_group(cartan_matrix(:D, 5))),
+    ("E6", weyl_group(:E, 6)),
+    ("E7", weyl_group(:E, 7)),
+    ("E8", weyl_group(:E, 8)),
+    ("F4", weyl_group(:F, 4)),
+    ("G2", weyl_group(:G, 2)),
     ("F4+G2", weyl_group((:F, 4), (:G, 2))),
     ("E6+C3", weyl_group([(:E, 6), (:C, 3)])),
     ("A_1^(1)", weyl_group(ZZ[2 -2; -2 2])), # TODO: replace with cartan_matrix(A_1^(1)), once functionality for affine type is added
@@ -79,7 +96,7 @@
 
     if has_root_system_type(root_system(W))
       type, ordering = root_system_type_with_ordering(root_system(W))
-      if length(type) == 1 && issorted(ordering) && only(type)[1] == :A # only implemented for A_n (yet)
+      if length(type) == 1
         @testset "isomorphism(PermGroup, ::WeylGroup; set_properties=$set_properties)" for set_properties in
                                                                                            [
           false, true

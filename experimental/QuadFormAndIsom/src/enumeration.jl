@@ -392,10 +392,10 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
   OK = maximal_order(K)
   DE = different(OE)
   ids = Hecke.fractional_ideal_type(OE)[]
-  primes = Vector{Hecke.ideal_type(OE)}[]
+  primes = Vector{ideal_type(OE)}[]
   for p in prime_divisors(d)
     v = valuation(d, p)
-    pd = Hecke.ideal_type(OK)[P[1] for P in prime_decomposition(OK, p)]
+    pd = ideal_type(OK)[P[1] for P in prime_decomposition(OK, p)]
     for i in 1:length(pd)
       if !is_coprime(DE, ideal(OE, pd[i]))
         P = prime_decomposition(OE, pd[i])[1][1]
@@ -403,7 +403,7 @@ function _ideals_of_norm(E::Field, d::ZZRingElem)
         P = ideal(OE, pd[i])
       end
       nv = valuation(norm(P), pd[i])
-      push!(primes, Hecke.ideal_type(OE)[P^e for e in 0:divrem(v, nv)[1]])
+      push!(primes, ideal_type(OE)[P^e for e in 0:divrem(v, nv)[1]])
     end
   end
   for I in Hecke.cartesian_product_iterator(primes)
