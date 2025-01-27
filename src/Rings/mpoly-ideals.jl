@@ -727,7 +727,7 @@ Computes the radical.
 end
 
 function is_known(I::Ideal, ::typeof(is_radical))
-  is_known(I, typeof(is_prime)) && is_prime(I) && return true
+  is_known(I, is_prime) && is_prime(I) && return true
   return get_attribute(I, :is_radical, false)
 end
 
