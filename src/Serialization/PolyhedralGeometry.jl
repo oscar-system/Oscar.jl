@@ -32,12 +32,11 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}, } = coefficient_field(obj)
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = coefficient_field(obj)
 
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
-  return T, type_params(_polyhedral_object_as_dict(obj))
+  return type_params(_polyhedral_object_as_dict(obj))
 end
-
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))

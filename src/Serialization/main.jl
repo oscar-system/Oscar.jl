@@ -207,11 +207,12 @@ end
 
 # This is used for types that have multiple parameters
 function save_type_params(s::SerializerState, T::Type,
-                          params::Vector{<:Pair{Symbol, S}}) where S
+                          params::Vector{<:Pair{S, U}}) where {S <: Union{Symbol, String}, U}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params
+        isnothing(param.second) && continue
         save_type_params(s, typeof(param.second), param.second, Symbol(param.first))
       end
     end

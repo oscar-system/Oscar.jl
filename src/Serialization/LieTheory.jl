@@ -6,8 +6,6 @@
 
 @register_serialization_type RootSystem uses_id
 
-type_params(x::RootSystem) = RootSystem, nothing
-
 function save_object(s::SerializerState, R::RootSystem)
   save_data_dict(s) do
     save_object(s, cartan_matrix(R), :cartan_matrix)
@@ -39,7 +37,7 @@ end
 @register_serialization_type RootSpaceElem
 @register_serialization_type DualRootSpaceElem
 
-type_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = T, root_system(e)
+type_params(e::T) where T <: Union{RootSpaceElem, DualRootSpaceElem} = root_system(e)
 
 function save_object(s::SerializerState, r::Union{RootSpaceElem,DualRootSpaceElem})
   save_object(s, _vec(coefficients(r)))
@@ -60,7 +58,7 @@ end
 
 @register_serialization_type WeightLattice uses_id
 
-type_params(P::WeightLattice) = WeightLattice, root_system(P)
+type_params(P::WeightLattice) = root_system(P)
 
 function save_object(s::SerializerState, P::WeightLattice)
   save_data_dict(s) do
@@ -75,7 +73,7 @@ end
 
 @register_serialization_type WeightLatticeElem 
 
-type_params(w::WeightLatticeElem) = WeightLatticeElem, parent(w)
+type_params(w::WeightLatticeElem) = parent(w)
 
 function save_object(s::SerializerState, w::WeightLatticeElem)
   save_object(s, _vec(coefficients(w)))
@@ -93,7 +91,7 @@ end
 
 @register_serialization_type WeylGroup uses_id
 
-type_params(W::WeylGroup) = WeylGroup, root_system(W)
+type_params(W::WeylGroup) = root_system(W)
 
 function save_object(s::SerializerState, W::WeylGroup)
     save_data_dict(s) do
@@ -108,7 +106,7 @@ end
 
 @register_serialization_type WeylGroupElem
 
-type_params(w::WeylGroupElem) = WeylGroupElem, parent(w)
+type_params(w::WeylGroupElem) = parent(w)
 
 function save_object(s::SerializerState, x::WeylGroupElem)
   save_object(s, word(x))
