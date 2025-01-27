@@ -240,3 +240,10 @@ function groebner_basis(I::MPolyIdeal; ordering::MonomialOrdering = default_orde
     is_global(ordering) || error("Ordering must be global")
     return standard_basis(I, ordering=ordering, complete_reduction=complete_reduction, algorithm=algorithm)
 end
+
+function is_known(I::MPolyIdeal, ::typeof(groebner_basis); 
+    ordering::Union{MonomialOrdering, Nothing}=nothing)
+  ordering === nothing && return !is_empty(I.gb) # Check whether there is any groebner basis
+  return haskey(I.gb, ordering)
+end
+
