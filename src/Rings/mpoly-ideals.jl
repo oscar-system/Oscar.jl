@@ -2199,8 +2199,8 @@ end
 
 function is_known(I::MPolyIdeal, ::typeof(small_generating_set))
   has_attribute(I, :small_generating_set) && return true
-  is_known(I, is_one) && return true
-  is_known(I, is_zero) && return true
+  is_known(I, is_one) && is_one(I) && return true
+  is_known(I, is_zero) && is_zero(I) && return true
   return false
 end
 
