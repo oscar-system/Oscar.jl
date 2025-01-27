@@ -1,3 +1,4 @@
+
 # This type should not be exported and should be before serializers
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
@@ -71,6 +72,12 @@ end
 # Type attribute map
 const type_attr_map = Dict{String, Vector{Symbol}}()
 
+function attrs_list(s::S, T::Type) where S <: Union{DeserializerState, SerializerState}
+  return get(type_attr_map, encode_type(T), Symbol[])
+end
+
+with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
+
 ################################################################################
 # (De|En)coding types
 
@@ -126,21 +133,6 @@ end
 ################################################################################
 # High level
 
-function save_as_ref(s::SerializerState, obj::T) where T
-  # find ref or create one
-  ref = get(global_serializer_state.obj_to_id, obj, nothing)
-  if ref !== nothing
-    if !(ref in s.refs)
-      push!(s.refs, ref)
-    end
-    return string(ref)
-  end
-  ref = global_serializer_state.obj_to_id[obj] = uuid4()
-  global_serializer_state.id_to_obj[ref] = obj
-  push!(s.refs, ref)
-  return string(ref)
-end
-
 function save_object(s::SerializerState, x::Any, key::Symbol)
   set_key(s, key)
   save_object(s, x)
@@ -164,13 +156,10 @@ function save_header(s::SerializerState, h::Dict{Symbol, Any}, key::Symbol)
 end
 
 function save_typed_object(s::SerializerState, x::T) where T
-  if serialize_with_params(T)
-    save_type_params(s, x, type_key)
-    save_object(s, x, :data)
-  elseif Base.issingletontype(T)
+  if Base.issingletontype(T)
     save_object(s, encode_type(T), type_key)
   else
-    save_object(s, encode_type(T), type_key)
+    save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
 end
@@ -188,57 +177,133 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
+type_params(obj::T) where T = T, nothing
+
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
 
-function save_attrs(s::SerializerState, obj::T) where T
-  !with_attrs(s) && return 
-  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
-    save_data_dict(s, :attrs) do
-      for attr in attrs_list(s, T)
-        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+save_type_params(s::SerializerState, obj::Any) = save_type_params(s, type_params(obj)...)
+
+function save_type_params(s::SerializerState, T::Type, params::Any, key::Symbol)
+  set_key(s, key)
+  save_type_params(s, T, params)
+end
+
+save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
+
+function save_type_params(s::SerializerState, T::Type, params::Any)
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_typed_object(s, params, :params)
+  end
+end
+
+function save_type_params(s::SerializerState, T::Type, params::Tuple{Type, S}) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_type_params(s, params..., :params)
+  end
+end
+
+function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
+  save_type_params(s, T, collect(pairs(params)))
+end
+
+function save_type_params(s::SerializerState, T::Type,
+                          params::Vector{<:Pair{Symbol, S}}) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      for param in params
+        save_type_params(s, param.second..., Symbol(param.first))
       end
     end
+  end
+end
+
+# i'll need this at some point in the refator
+#function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair}) where {S, U}
+#  save_data_dict(s) do
+#    save_object(s, encode_type(T), :name)
+#    save_data_dict(s, :params) do
+#      save_object(s, encode_type(S), :key_type)
+#      isempty(params) && save_object(s, encode_type(U), :value_type)
+#      save_data_array(s, :param_pairs) do
+#        for param in params
+#          println(param.first)
+#          println(param.second)
+#        end
+#      end
+#    end
+#  end
+#end
+
+function load_type_params(s::DeserializerState, T::Type, key::Symbol)
+  load_node(s, key) do _
+    load_type_params(s, T)
+  end
+end
+
+function load_type_params(s::DeserializerState, T::Type)
+  if s.obj isa String
+    if !isnothing(tryparse(UUID, s.obj))
+      return T, load_ref(s)
+    end
+    return T, nothing
+  end
+  if haskey(s, :params)
+    load_node(s, :params) do obj
+      if obj isa String || haskey(s, :params)
+        U = decode_type(s)
+        params = load_type_params(s, U)[2]
+
+      # handle cases where type_params is a dict of params
+      elseif !haskey(obj, type_key) 
+        params = Dict{Symbol, Any}()
+        for (k, _) in obj
+          params[k] = load_node(s, k) do _
+            U = decode_type(s)
+            return load_type_params(s, U)[2]
+          end
+        end
+      else
+        params = load_typed_object(s)
+      end
+      # all types where the type T should be updated with a subtype i.e. T -> T{U}
+      # need to implement their own method, see for example containers
+      return T, params
+    end
+  else
+    return T, load_typed_object(s)
+  end
+end
+
+function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
+  load_node(s, key) do _
+    load_typed_object(s; override_params=override_params)
   end
 end
 
 # The load mechanism first checks if the type needs to load necessary
 # parameters before loading it's data, if so a type tree is traversed
-function load_typed_object(s::DeserializerState, key::Symbol; override_params::Any = nothing)
-  load_node(s, key) do node
-    if node isa String && !isnothing(tryparse(UUID, node))
-      return load_ref(s)
-    end
-    return load_typed_object(s; override_params=override_params)
-  end
-end
-
 function load_typed_object(s::DeserializerState; override_params::Any = nothing)
   T = decode_type(s)
-  if Base.issingletontype(T) && return T()
-  elseif serialize_with_params(T)
-    if !isnothing(override_params)
-      if override_params isa Dict
-        error("Unsupported override type")
-      else
-        params = override_params
-      end
+  Base.issingletontype(T) && return T()
+  if !isnothing(override_params)
+    if override_params isa Dict
+      error("Unsupported override type")
     else
-      # depending on the type, :params is either an object to be loaded or a
-      # dict with keys and object values to be loaded
-      params = load_node(s, type_key) do _
-        load_params_node(s)
-      end
-    end
-    load_node(s, :data) do _
-      return load_object(s, T, params)
+      T, _ = load_type_params(s, T, type_key)
+      params = override_params
     end
   else
-    load_node(s, :data) do _
-      return load_object(s, T)
-    end
+    s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
+    T, params = load_type_params(s, T, type_key)
+  end
+  load_node(s, :data) do _
+    return load_object(s, T, params)
   end
 end
 
@@ -248,9 +313,22 @@ function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
   end
 end
 
-function load_object(s::DeserializerState, T::Type, params::Any, key::Union{Symbol, Int})
+function load_object(s::DeserializerState, T::Type, params::S,
+                     key::Union{Symbol, Int}) where S
   load_node(s, key) do _
     load_object(s, T, params)
+  end
+end
+
+################################################################################
+# serializing attributes
+function save_attrs(s::SerializerState, obj::T) where T
+  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+    save_data_dict(s, :attrs) do
+      for attr in attrs_list(s, T)
+        has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
+      end
+    end
   end
 end
 
@@ -284,19 +362,6 @@ function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where 
     end
   end
   return T(fields...)
-end
-
-################################################################################
-# Utility functions for parent tree
-
-# loads parent tree
-function load_parents(s::DeserializerState, parent_ids::Vector)
-  loaded_parents = []
-  for id in parent_ids
-    loaded_parent = load_ref(s, id)
-    push!(loaded_parents, loaded_parent)
-  end
-  return loaded_parents
 end
 
 ################################################################################
@@ -358,8 +423,9 @@ function register_serialization_type(ex::Any, str::String, uses_id::Bool,
         function Oscar.serialize(s::Oscar.AbstractSerializer, obj::T) where T <: $ex
           Oscar.serialize_type(s, T)
           Oscar.save(s.io, obj; serializer=Oscar.IPCSerializer())
+
         end
-        function Oscar.deserialize(s::Oscar.AbstractSerializer, ::Type{<:$ex})
+        function Oscar.deserialize(s::Oscar.AbstractSerializer, T::Type{<:$ex})
           Oscar.load(s.io; serializer=Oscar.IPCSerializer())
         end
       end
@@ -439,7 +505,6 @@ macro import_all_serialization_functions()
       load_array_node,
       load_attrs,
       load_node,
-      load_params_node,
       load_ref,
       load_typed_object,
       save_as_ref,
@@ -478,6 +543,7 @@ include("Groups.jl")
 include("LieTheory.jl")
 
 include("Upgrades/main.jl")
+include("parallel.jl")
 
 ################################################################################
 # Interacting with IO streams and files
@@ -656,7 +722,7 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
     jsondict_str = JSON3.write(jsondict)
     s = deserializer_open(IOBuffer(jsondict_str),
                                 serializer,
-                                with_attrs)
+                          with_attrs)
   end
 
   try
@@ -670,23 +736,17 @@ function load(io::IO; params::Any = nothing, type::Any = nothing,
       U = load_node(s, type_key) do _
         decode_type(s)
       end
+      
       U <: type || U >: type || error("Type in file doesn't match target type: $(dict[type_key]) not a subtype of $T")
 
-      if serialize_with_params(type)
-        if isnothing(params)
-          params = load_node(s, type_key) do _
-            load_params_node(s)
-          end
+      Base.issingletontype(type) && return type()
+      if isnothing(params)
+        _, params = load_node(s, type_key) do _
+          load_type_params(s, U)
         end
-
-        load_node(s, :data) do _
-          loaded = load_object(s, type, params)
-        end
-      else
-        Base.issingletontype(type) && return type()
-        load_node(s, :data) do _
-          loaded = load_object(s, type)
-        end
+      end
+      load_node(s, :data) do _
+        loaded = load_object(s, type, params)
       end
     else
       loaded = load_typed_object(s; override_params=params)
