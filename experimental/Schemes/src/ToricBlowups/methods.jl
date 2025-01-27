@@ -179,7 +179,7 @@ function strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
   return saturation_with_index(J, ideal(exceptional_var))
 end
 
-function strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
+function strict_transform_with_index(f::ToricBlowupMorphism, g::MPolyDecRingElem)
   X = codomain(f)
   @req !has_torusfactor(X) "Only implemented when there are no torus factors"
   @req is_smooth(X) "Only implemented when the fan is smooth"
@@ -188,7 +188,6 @@ function strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
   h = cox_ring_module_homomorphism(f, g)
   pair = remove(h, exceptional_var)
   return pair[2], pair[1]
-  return remove(h, exceptional_var)[2]
 end
 
 @doc raw"""
