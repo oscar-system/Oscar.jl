@@ -170,6 +170,7 @@ function save_type_params(s::SerializerState, ::Type{T}, params::Tuple) where T 
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
       for (i, param) in enumerate(params)
+        println(fieldtype(T, i))
         save_type_params(s, fieldtype(T, i), param)
       end
     end
