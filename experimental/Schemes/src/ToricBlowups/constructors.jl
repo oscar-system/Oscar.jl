@@ -241,11 +241,6 @@ Multivariate polynomial ring in 5 variables over QQ graded by
 ```
 """
 function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{String, Nothing} = nothing)
-  coordinate_name = _find_blowup_coordinate_name(v, coordinate_name)
-  gens_S = gens(cox_ring(v))
-  center_unnormalized = ideal_sheaf(v, ideal([gens_S[i] for i in 1:number_of_rays(v) if cones(v)[n,i]]))
-  blown_up_variety = normal_toric_variety(star_subdivision(v, n))
-
   # minimal supercone coordinates
   coords = zeros(QQ, n_rays(v))
   for i in 1:number_of_rays(v)
@@ -257,16 +252,7 @@ function blow_up(v::NormalToricVarietyType, n::Int; coordinate_name::Union{Strin
   )
   coords = scaling_factor * coords
 
-  phi = ToricBlowupMorphism(
-    v,
-    blown_up_variety,
-    coordinate_name,
-    exceptional_ray,
-    exceptional_ray,
-    center_unnormalized
-  )
-  set_attribute!(phi, :minimal_supercone_coordinates_of_exceptional_ray, coords)
-  return phi
+  return blow_up_along_minimal_supercone_coordinates(v, coords; coordinate_name=coordinate_name)
 end
 
 
