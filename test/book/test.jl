@@ -212,11 +212,11 @@ isdefined(Main, :FakeTerminals) || include(joinpath(pkgdir(REPL),"test","FakeTer
     end
     REPL.activate(Main)
     output = sanitize_output(result)
+    close(hangwarn)
     if !jlcon_mode && haderror
       error("ERROR in jl-mode:\n", output)
     end
     @debug "repl output:\n$output"
-    close(hangwarn)
     return output
   end
 
