@@ -648,7 +648,7 @@ end
 
 function is_known(I::MPolyIdeal, ::typeof(radical))
   has_attribute(I, :radical) && return true
-  is_known(I, is_radical) && return true
+  is_known(I, is_radical) && is_radical(I) && return true
   return false
 end
 
@@ -1757,8 +1757,8 @@ function is_known(I::MPolyIdeal, ::typeof(is_prime))
   has_attribute(I, :is_prime) && return true
   is_known(I, primary_decomposition) && return true
   is_known(I, minimal_primes) && return true
-  is_known(I, is_zero) && return true
-  is_known(I, is_one) && return true
+  is_known(I, is_zero) && is_zero(I) && return true
+  is_known(I, is_one) && is_one(I) && return true
   return false
 end
 
