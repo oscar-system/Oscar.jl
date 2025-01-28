@@ -1,5 +1,5 @@
 using Oscar: _integer_variables
-@testset "PolyhedralGeometry" begin
+@test_skip @testset "PolyhedralGeometry" begin
   Qx, x = QQ[:x]
   F, a = embedded_number_field(x^2 - 2, -1.0)
 

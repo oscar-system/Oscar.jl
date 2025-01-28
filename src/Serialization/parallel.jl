@@ -45,9 +45,22 @@ function type_params(pt::T) where T <: ParallelTask
   # fields recursively. 
   for n in fieldnames(T)
     n == :__attrs && continue # Don't bother with attributes.
+    # here we need to pass the concrete type 
     type_params_dict[Symbol(n)] = type_params(getfield(pt, n))
   end
-  return typeof(pt), type_params_dict
+  return type_params_dict
+end
+
+function save_type_params(s::SerializerState, ::Type{T},
+                          params::Vector{<:Pair{Symbol, S}}) where {T <: ParallelTask, S}
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      for param in params
+        save_type_params(s, fieldtype(T, param.first), param.second, param.first)
+      end
+    end
+  end
 end
 
 # A generic method to create all parents on the node which are required for 
@@ -56,7 +69,7 @@ function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
   # If there are no `:params`, quit.
   !haskey(s, :params) && return T, nothing
   params_dict = Dict{Symbol, Any}()
-  fields = DataType[]
+  fields = Type[]
   # Go through the fields of the tasks and load their type parameters.
   load_node(s, :params) do _
     # Note that for this loop we actually need the *concrete* types of the 
@@ -65,8 +78,8 @@ function load_type_params(s::DeserializerState, T::Type{<: ParallelTask})
       n == :__attrs && continue # Don't bother with attributes.
       load_node(s, Symbol(n)) do _
         U = decode_type(s)
-        params = load_type_params(s, U)
-        push!(fields, params[1])
+        field_type, params = load_type_params(s, U)
+        push!(fields, field_type)
         params_dict[Symbol(n)] = params
       end
     end
@@ -83,9 +96,9 @@ function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
   # `type_params(obj)` returns a pair `(T, params::Dict)` where `T` is the 
   # type itself and `params` is a dictionary with the output of `type_params` 
   # for the fields of `T`.
-  for (_, params) in type_params(obj)[2]
+  for (_, params) in type_params(obj)
     # For every field go into recursion.
-    put_type_params(channel, params[2])
+    put_type_params(channel, params)
   end
 end
 
@@ -105,7 +118,7 @@ end
 # Recursive call. Send all subsequent parents on which this object is 
 # based and finally the object itself, if applicable. 
 function put_type_params(channel::RemoteChannel, obj::Any)
-  put_type_params(channel, type_params(obj)[2])
+  put_type_params(channel, type_params(obj))
   # only  types that use ids need to be sent to the other processes
   serialize_with_id(typeof(obj)) && put!(channel, obj)
 end
@@ -124,7 +137,8 @@ function load_object(s::DeserializerState, ::Type{T}, params::Dict) where T <: P
   fields = []
   for n in fieldnames(T)
     n == :__attrs && continue
-    push!(fields, load_object(s, params[n]..., Symbol(n)))
+    
+    push!(fields, load_object(s, fieldtype(T, n), params[n], Symbol(n)))
   end
   return T(fields...)
 end
@@ -223,7 +237,6 @@ function _deploy_work(
     workers::Vector{Int}
   ) where {TaskType}
   w = length(workers)
-  println("helo")
   individual_channels = Dict{Int, RemoteChannel}(i => RemoteChannel(()->Channel{Any}(32), i) for i in workers)
   assigned_workers = IdDict{TaskType, Int}()
   fut_vec = Tuple{Future, Int}[]
