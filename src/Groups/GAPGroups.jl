@@ -1997,7 +1997,7 @@ If `g` is an element of a free group $G$, say, then the rank of $G$ must be
 equal to the length of `genimgs`, `g` is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
-and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
+and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
