@@ -674,7 +674,7 @@ end
     I::MPolyIdeal{T};
     use_squarefree_parts_of_generators::Bool=true, 
     eliminate_variables::Bool=true
-  ) where {U<:Union{<:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
+  ) where {U<:Hecke.RelSimpleNumFieldElem, T<:MPolyRingElem{U}}
   is_known_to_be_radical(I) && return I
   is_one(I) && return I
   R = base_ring(I)
@@ -824,7 +824,7 @@ end
 function primary_decomposition(
     I::MPolyIdeal{T}; 
     algorithm::Symbol=:GTZ, cache::Bool=true
-  ) where {U<:Union{<:Hecke.RelSimpleNumFieldElem}, T<:MPolyRingElem{U}}
+  ) where {U<:Hecke.RelSimpleNumFieldElem, T<:MPolyRingElem{U}}
   if has_attribute(I, :primary_decomposition)
     return get_attribute(I, :primary_decomposition)::Vector{Tuple{typeof(I), typeof(I)}}
   end
