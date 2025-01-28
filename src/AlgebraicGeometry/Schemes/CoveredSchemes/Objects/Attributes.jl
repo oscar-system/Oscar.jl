@@ -238,14 +238,14 @@ Scheme
   over rational field
 with default covering
   described by patches
-    1: scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1: scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   in the coordinate(s)
     1: [(x//z), (y//z)]
 
 julia> s
 Covered scheme morphism
   from scheme over QQ covered with 1 patch
-    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (y//z), (x//z))
+    1a: [(x//z), (y//z)]   scheme((x//z)^3 - (y//z)^2, (x//z), (y//z))
   to scheme over QQ covered with 3 patches
     1b: [(y//x), (z//x)]   scheme(-(y//x)^2*(z//x) + 1)
     2b: [(x//y), (z//y)]   scheme((x//y)^3 - (z//y))

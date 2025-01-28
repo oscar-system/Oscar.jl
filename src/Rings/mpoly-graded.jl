@@ -879,17 +879,16 @@ end
 
 function factor(x::MPolyDecRingElem)
   R = parent(x)
-  D = Dict{elem_type(R), Int64}()
   F = factor(forget_decoration(x))
-  n=length(F.fac)
-  #if n == 1
-  #  return Fac(R(F.unit), D)
-  #else
-    for i in keys(F.fac)
-     push!(D, R(i) => Int64(F[i]))
-    end
-  return Fac(R(F.unit), D)
-  #end
+  D = Dict{elem_type(R), Int}(R(i) => e for (i, e) in F)
+  return Fac(R(unit(F)), D)
+end
+
+function factor_squarefree(x::MPolyDecRingElem)
+  R = parent(x)
+  F = factor_squarefree(forget_decoration(x))
+  D = Dict{elem_type(R), Int}(R(i) => e for (i, e) in F)
+  return Fac(R(unit(F)), D)
 end
 
 function gcd(x::MPolyDecRingElem, y::MPolyDecRingElem)
