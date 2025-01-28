@@ -50,5 +50,10 @@
     Y = domain(blow_up(Y, [-1, -1]))
     Y = domain(blow_up(Y, [3, 4]))
     @test X == Y
+
+    Z = projective_space(NormalToricVariety, 2)
+    X = domain(blow_up(Z, [1, 1]))
+    Y = domain(blow_up(Z, [1, 2]))
+    @test X != Y
   end
 end

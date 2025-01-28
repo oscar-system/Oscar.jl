@@ -184,17 +184,20 @@ end
 function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
   X === Y && return true
   ambient_dim(X) == ambient_dim(Y) || return false
-  f_vector(X) == f_vector(Y) || return false
+  n_rays(X) == n_rays(Y) || return false
 
   # p is a permutation such that the i-th ray of X is the p(i)-th ray of Y
   p = inv(perm(sortperm(rays(X)))) * perm(sortperm(rays(Y)))
 
+  for i in 1:n_rays(X)
+    rays(X)[i] == rays(Y)[p(i)] || return false
+  end
   @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
   return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
 end
 
-function Base.hash(tv::NormalToricVariety, h::UInt)
-  return hash(objectid(tv), h)
+function Base.hash(X::NormalToricVariety, h::UInt)
+  return hash(ambient_dim(X), h)
 end
 
 
