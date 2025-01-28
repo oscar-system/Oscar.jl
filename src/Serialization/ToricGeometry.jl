@@ -4,27 +4,28 @@
 
 @register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group, :cohomology_ring]
 
+# function type_params(ntv::T) where T <: NormalToricVarietyType
+#   attrs = attrs_list(T)
+#   if !isempty(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
+#     dict = Dict{Symbol, Any}()
+# 
+#     for attr in filter(x -> has_attribute(ntv, x), attrs)
+#       params = type_params(get_attribute(ntv, attr))
+#       if !isnothing(params)
+#         dict[attr] = params
+#       end
+#     end
+#     return Dict(:attrs => dict)
+#   else
+#     return nothing
+#   end
+# end
 
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
-  attrs = attrs_list(s, T)
-
-  if !isempty(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
-    save_data_dict(s) do
-      save_attrs(s, ntv)
-      save_object(s, ntv.polymakeNTV, :pm_data)
-    end
-  else
-    save_object(s, ntv.polymakeNTV)
-  end
+  save_object(s, ntv.polymakeNTV)
 end
 
 function load_object(s::DeserializerState, ::Type{T}) where {T <: Union{NormalToricVariety, AffineNormalToricVariety}}
-  if haskey(s, :pm_data)
-    ntv = T(load_object(s, Polymake.BigObject, :pm_data))
-    load_attrs(s, ntv)
-    
-    return ntv
-  end
   return T(load_object(s, Polymake.BigObject))
 end
 
@@ -39,7 +40,7 @@ function save_object(s::SerializerState, td::ToricDivisor)
 end
 
 function load_object(s::DeserializerState, ::Type{ToricDivisor}, tv::NormalToricVarietyType)
-  coeffs = load_object(s, Vector, ZZRingElem)
+  coeffs = load_object(s, Vector{ZZRingElem})
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
   index = 0
   for i in 1:length(all)
@@ -63,7 +64,7 @@ function save_object(s::SerializerState, tdc::ToricDivisorClass)
 end
 
 function load_object(s::DeserializerState, ::Type{ToricDivisorClass}, tv::NormalToricVarietyType)
-  coeffs = load_object(s, Vector, ZZRingElem)
+  coeffs = load_object(s, Vector{ZZRingElem})
   all = Polymake._lookup_multi(pm_object(tv), "DIVISOR")
   index = 0
   for i in 1:length(all)
@@ -78,18 +79,9 @@ end
 
 ################################################################################
 # Cohomology classes on toric varieties
-@register_serialization_type CohomologyClass uses_params
+@register_serialization_type CohomologyClass
 
-function save_type_params(s::SerializerState, obj::CohomologyClass)
-  save_data_dict(s) do
-    save_object(s, encode_type(CohomologyClass), :name)
-    save_typed_object(s, obj.v, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:CohomologyClass})
-  return load_typed_object(s)
-end
+type_params(obj::CohomologyClass) = toric_variety(obj)
 
 function save_object(s::SerializerState, cc::CohomologyClass)
   save_data_dict(s) do

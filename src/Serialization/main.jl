@@ -72,9 +72,7 @@ end
 # Type attribute map
 const type_attr_map = Dict{String, Vector{Symbol}}()
 
-function attrs_list(s::S, T::Type) where S <: Union{DeserializerState, SerializerState}
-  return get(type_attr_map, encode_type(T), Symbol[])
-end
+attrs_list(T::Type) = get(type_attr_map, encode_type(T), Symbol[])
 
 with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
 
@@ -162,6 +160,11 @@ function save_typed_object(s::SerializerState, x::T) where T
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
   end
+
+  if with_attrs(s)
+    attrs = attrs_list(T)
+    !isempty(attrs) && save_attrs(s, x)
+  end
 end
 
 function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
@@ -177,20 +180,19 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
-type_params(obj::T) where T = T, nothing
+type_params(obj::T) where T = nothing
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
 
-save_type_params(s::SerializerState, obj::Any) = save_type_params(s, type_params(obj)...)
-
 function save_type_params(s::SerializerState, T::Type, params::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, T, params)
 end
 
+save_type_params(s::SerializerState, obj::Any) = save_type_params(s, typeof(obj), type_params(obj))
 save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
 
 function save_type_params(s::SerializerState, T::Type, params::Any)
@@ -200,45 +202,25 @@ function save_type_params(s::SerializerState, T::Type, params::Any)
   end
 end
 
-function save_type_params(s::SerializerState, T::Type, params::Tuple{Type, S}) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_type_params(s, params..., :params)
-  end
-end
-
-function save_type_params(s::SerializerState, T::Type, params::S) where S <: Union{Dict, NamedTuple}
+# splits all params that are dictionaries into vector of pair
+# to be able to handle varying types in the values
+function save_type_params(s::SerializerState, T::Type, params::Dict)
   save_type_params(s, T, collect(pairs(params)))
 end
 
+# This is used for types that have multiple parameters
 function save_type_params(s::SerializerState, T::Type,
-                          params::Vector{<:Pair{Symbol, S}}) where S
+                          params::Vector{<:Pair{S, U}}) where {S <: Union{Symbol, String}, U}
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       for param in params
-        save_type_params(s, param.second..., Symbol(param.first))
+        isnothing(param.second) && continue
+        save_type_params(s, typeof(param.second), param.second, Symbol(param.first))
       end
     end
   end
 end
-
-# i'll need this at some point in the refator
-#function save_type_params(s::SerializerState, T::Type{<:Dict{S, U}}, params::Vector{<:Pair}) where {S, U}
-#  save_data_dict(s) do
-#    save_object(s, encode_type(T), :name)
-#    save_data_dict(s, :params) do
-#      save_object(s, encode_type(S), :key_type)
-#      isempty(params) && save_object(s, encode_type(U), :value_type)
-#      save_data_array(s, :param_pairs) do
-#        for param in params
-#          println(param.first)
-#          println(param.second)
-#        end
-#      end
-#    end
-#  end
-#end
 
 function load_type_params(s::DeserializerState, T::Type, key::Symbol)
   load_node(s, key) do _
@@ -302,9 +284,11 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
-  load_node(s, :data) do _
+  obj = load_node(s, :data) do _
     return load_object(s, T, params)
   end
+  load_attrs(s, obj)
+  return obj
 end
 
 function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
@@ -323,9 +307,9 @@ end
 ################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T
-  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+  if any(attr -> has_attribute(obj, attr), attrs_list(T))
     save_data_dict(s, :attrs) do
-      for attr in attrs_list(s, T)
+      for attr in attrs_list(T)
         has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
       end
     end

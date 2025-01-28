@@ -90,7 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = T, parent(p)
+type_params(p::T) where T <: GrpElemUnionType = parent(p)
 
 
 #############################################################################
@@ -101,7 +101,7 @@ const GAPGroup_attributes = [
 
 function save_attrs(s::SerializerState, G::T) where T <: GAPGroup
   save_data_dict(s, :attrs) do 
-    for attr in attrs_list(s, T)
+    for attr in attrs_list(T)
       func = Symbol(string("has_", attr))
       if @eval $func($G)
         attr_value = @eval $attr($G)
@@ -114,7 +114,7 @@ end
 function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
   !with_attrs(s) && return
   haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in attrs_list(s, T)
+    for attr in attrs_list(T)
       if haskey(d, attr)
         func = Symbol(string("set_", attr))
         attr_value = load_typed_object(s, attr)
@@ -155,7 +155,7 @@ end
 
 @register_serialization_type PermGroupElem
 
-type_params(x::T) where T <: GroupElem = T, parent(x)
+type_params(x::T) where T <: GroupElem = parent(x)
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))

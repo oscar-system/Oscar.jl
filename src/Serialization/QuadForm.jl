@@ -1,6 +1,6 @@
 ############################################################
 # QuadSpace
-@register_serialization_type Hecke.QuadSpace uses_params
+@register_serialization_type Hecke.QuadSpace
 
 type_params(V::Hecke.QuadSpace) = type_params(gram_matrix(V))
 
@@ -10,7 +10,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:Hecke.QuadSpace}, params::MatSpace)
   gram = load_object(s, MatElem, params)
-  F =  base_ring(params)
+  F = base_ring(params)
   return quadratic_space(F, gram)
 end
 

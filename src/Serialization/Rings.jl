@@ -39,12 +39,12 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = T, parent(x)
-type_params(R::T) where T <: RingMatSpaceUnion = T, base_ring(R)
-type_params(x::T) where T <: IdealOrdUnionType = T, base_ring(x)
+type_params(x::T) where T <: RingMatElemUnion = parent(x)
+type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
+type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
 # exclude from ring union
-type_params(::ZZRing) = ZZRing, nothing
-type_params(::T) where T <: ModRingUnion = T, nothing
+type_params(::ZZRing) = nothing
+type_params(::T) where T <: ModRingUnion = nothing
 
 ################################################################################
 # ring of integers (singleton type)
@@ -115,9 +115,9 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
-type_params(R::MPolyDecRing) = MPolyDecRing, Dict(
+type_params(R::MPolyDecRing) = Dict(
   :grading_group => type_params(_grading(R)),
-  :base_ring => type_params(forget_grading(R)))
+  :ring => forget_grading(R))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
@@ -127,8 +127,8 @@ function save_object(s::SerializerState, R::MPolyDecRing)
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRing}, d::Dict)
-  ring = load_object(s, MPolyRing, d[:base_ring], :ring)
-  grading = load_object(s, elem_type(d[:grading_group]), d[:grading_group], :grading)
+  ring = d[:ring]
+  grading = load_object(s, Vector{elem_type(d[:grading_group])}, d[:grading_group], :grading)
   return grade(ring, grading)[1]
 end
 
@@ -570,9 +570,9 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_params(A::MPolyQuoRing) = MPolyQuoRing, Dict(
-  :base_ring => (typeof(base_ring(A)), base_ring(A)),
-  :ordering => (typeof(ordering(A)), ordering(A))
+type_params(A::MPolyQuoRing) = Dict(
+  :base_ring => base_ring(A),
+  :ordering => ordering(A)
 )
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
