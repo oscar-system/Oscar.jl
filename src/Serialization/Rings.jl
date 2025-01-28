@@ -115,9 +115,9 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
-type_params(R::MPolyDecRing) = MPolyDecRing, Dict(
+type_params(R::MPolyDecRing) = Dict(
   :grading_group => type_params(_grading(R)),
-  :base_ring => type_params(forget_grading(R)))
+  :ring => forget_grading(R))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
@@ -127,8 +127,8 @@ function save_object(s::SerializerState, R::MPolyDecRing)
 end
 
 function load_object(s::DeserializerState, ::Type{<:MPolyDecRing}, d::Dict)
-  ring = load_object(s, MPolyRing, d[:base_ring], :ring)
-  grading = load_object(s, elem_type(d[:grading_group]), d[:grading_group], :grading)
+  ring = d[:ring]
+  grading = load_object(s, Vector{elem_type(d[:grading_group])}, d[:grading_group], :grading)
   return grade(ring, grading)[1]
 end
 
