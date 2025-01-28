@@ -46,17 +46,12 @@ julia> is_well_quantized(gf2, check = false)
 true
 ```
 """
-function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric ambient space"
-
-  # Is the result known?
-  if has_attribute(fgs, :is_well_quantized)
-    return get_attribute(fgs, :is_well_quantized)
-  end
 
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
@@ -67,7 +62,6 @@ function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_elementary_quantization_checks(gen_k)
-      set_attribute!(fgs, :is_well_quantized, false)
       return false
     end
   end
@@ -83,7 +77,6 @@ function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
       for j in i:length(c_ds)
         numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); check = false)
         if !is_zero(numb)
-          set_attribute!(fgs, :is_well_quantized, false)
           return false    
         end
       end
@@ -91,7 +84,6 @@ function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
 
   # All other tests passed, so must be well-quantized according to elementary tests.
-  set_attribute!(fgs, :is_well_quantized, true)
   return true
 end
 
@@ -141,18 +133,13 @@ julia> is_vertical(gf3)
 true
 ```
 """
-function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verticality check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Verticality check currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Verticality check currently supported only for toric ambient space"
   
-  # Is the result known?
-  if has_attribute(fgs, :is_vertical)
-    return get_attribute(fgs, :is_vertical)
-  end
-
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
@@ -162,7 +149,6 @@ function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_verticality_checks(gen_k)
-      set_attribute!(fgs, :is_vertical, false)
       return false
     end
   end
@@ -170,11 +156,9 @@ function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if !passes_verticality_checks(gen_k)
-      set_attribute!(fgs, :is_vertical, false)
       return false
     end
   end
-  set_attribute!(fgs, :is_vertical, true)
   return true
 end
 
@@ -235,18 +219,13 @@ julia> breaks_non_abelian_gauge_group(gf4, check = false)
 false
 ```
 """
-function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
+@attr Bool function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
   # Entry checks
   m = model(fgs)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
   
-  # Is the result known?
-  if has_attribute(fgs, :breaks_non_abelian_gauge_group)
-    return get_attribute(fgs, :breaks_non_abelian_gauge_group)
-  end
-
   # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
   mb = chosen_g4_flux_basis(model(fgs), check = check)
   nmb = length(mb)
@@ -256,7 +235,6 @@ function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = tru
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
-      set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
       return true
     end
   end
@@ -264,10 +242,8 @@ function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = tru
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
     if breaks_non_abelian_gauge_group(gen_k)
-      set_attribute!(fgs, :breaks_non_abelian_gauge_group, true)
       return true
     end
   end
-  set_attribute!(fgs, :breaks_non_abelian_gauge_group, false)
   return false
 end

@@ -127,10 +127,7 @@ julia> dv2 == dv3
 true
 ```
 """
-function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
-  if has_attribute(gf, :d3_tadpole_constraint)
-    return get_attribute(gf, :d3_tadpole_constraint)::QQFieldElem
-  end
+@attr QQFieldElem function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
   m = model(gf)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"
@@ -150,7 +147,6 @@ function d3_tadpole_constraint(gf::G4Flux; check::Bool = true)
   end
   cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
   numb = QQ(euler_characteristic(m; check = check)//24 - 1//2*integrate(cohomology_class(ambient_space(m), polynomial(cohomology_class(gf)) * polynomial(cohomology_class(gf)) * cy); check = check))
-  set_attribute!(gf, :d3_tadpole_constraint, numb)
   set_attribute!(gf, :passes_tadpole_cancellation_check, (numb >= 0 && is_integer(numb)))
   return numb::QQFieldElem
 end
@@ -194,15 +190,11 @@ A family of G4 fluxes:
   - Tadpole constraint: not analyzed
 ```
 """
-function g4_flux_family(gf::G4Flux; check::Bool = true)
-  if has_attribute(gf, :g4_flux_family)
-    return get_attribute(gf, :g4_flux_family)::FamilyOfG4Fluxes
-  end
+@attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; check::Bool = true)
   nv = passes_verticality_checks(gf)
   nb = breaks_non_abelian_gauge_group(gf)
   gfs = special_flux_family(model(gf), vert = nv, not_breaking = nb, check = check)
-  set_attribute!(gf, :g4_flux_family, gfs)
-  return gfs::FamilyOfG4Fluxes
+  return gfs
 end
 
 
