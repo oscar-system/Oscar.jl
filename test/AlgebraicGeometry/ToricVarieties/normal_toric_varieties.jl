@@ -41,6 +41,14 @@
   @testset "Equality of normal toric varieties" begin
     @test (p2 === f2) == false
     @test p2 === p2
-    @test_throws ErrorException("Equality of normal toric varieties is computationally very demanding. More details in the documentation.") p2 == f2
+    @test p2 != f2
+
+    X = projective_space(NormalToricVariety, 2)
+    X = domain(blow_up(X, [3, 4]))
+    X = domain(blow_up(X, [-2, -3]))
+    Y = weighted_projective_space(NormalToricVariety, [1, 2, 3])
+    Y = domain(blow_up(Y, [-1, -1]))
+    Y = domain(blow_up(Y, [3, 4]))
+    @test X == Y
   end
 end

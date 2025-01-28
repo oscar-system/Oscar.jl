@@ -181,9 +181,16 @@ end
 # Equality
 ######################
 
-function Base.:(==)(tv1::NormalToricVariety, tv2::NormalToricVariety)
-  tv1 === tv2 && return true
-  error("Equality of normal toric varieties is computationally very demanding. More details in the documentation.")
+function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
+  X === Y && return true
+  ambient_dim(X) == ambient_dim(Y) || return false
+  f_vector(X) == f_vector(Y) || return false
+
+  # p is a permutation such that the i-th ray of X is the p(i)-th ray of Y
+  p = inv(perm(sortperm(rays(X)))) * perm(sortperm(rays(Y)))
+
+  @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
+  return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
 end
 
 function Base.hash(tv::NormalToricVariety, h::UInt)
