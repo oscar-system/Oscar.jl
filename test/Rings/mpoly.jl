@@ -647,8 +647,8 @@ end
     I0 = ideal(R0, [x0^4*(y0 + 5)^8])
     @test x0*(y0+5) in radical(I0^2)
     @test x0*(y0+5) in radical(I0^2; eliminate_variables=false)
-    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false, use_squarefree_parts_of_generators=false)
-    @test x0*(y0+5) in radical(I0^2; eliminate_variables=true, use_squarefree_parts_of_generators=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false, factor_generators=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=true, factor_generators=false)
   end
 end
 
