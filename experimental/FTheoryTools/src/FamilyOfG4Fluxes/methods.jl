@@ -26,6 +26,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> int_combination = matrix(ZZ, [[3]])
 [3]
@@ -36,9 +37,9 @@ julia> rat_combination = matrix(QQ, [[5//2]])
 julia> flux_instance(fgs, int_combination, rat_combination, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_combination::QQMatrix; check::Bool = true)
@@ -48,18 +49,27 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   @req nrows(rat_combination) == ncols(matrix_rational(fgs)) "Number of specified rationals must match the number of integral combinations in G4-flux family"
   m1 = matrix_integral(fgs) * int_combination
   m2 = matrix_rational(fgs) * rat_combination
-  gens = ambient_space_models_of_g4_fluxes(model(fgs), check = check)
-  c1 = [m1[k,1] * gens[k] for k in 1:length(gens)]
-  c2 = [m2[k,1] * gens[k] for k in 1:length(gens)]
-  flux = g4_flux(model(fgs), sum(c1+c2), check = check)
+  gens = chosen_g4_flux_basis(model(fgs), check = check)
+  c1 = sum(m1[k,1] * gens[k] for k in 1:length(gens))
+  c2 = sum(m2[k,1] * gens[k] for k in 1:length(gens))
+  flux = c1 + c2
+  set_attribute!(flux, :int_combination, int_combination)
+  set_attribute!(flux, :rat_combination, rat_combination)
+  set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
-    set_attribute!(flux, :passes_elementary_quantization_checks, is_well_quantized(fgs))
+    if is_well_quantized(fgs)
+      set_attribute!(flux, :passes_elementary_quantization_checks, true)
+    end
   end
   if has_attribute(fgs, :is_vertical)
-    set_attribute!(flux, :passes_verticality_checks, is_well_quantized(fgs))
+    if is_vertical(fgs)
+      set_attribute!(flux, :passes_verticality_checks, true)
+    end
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)
-    set_attribute!(flux, :breaks_non_abelian_gauge_group, breaks_non_abelian_gauge_group(fgs))
+    if !breaks_non_abelian_gauge_group(fgs)
+      set_attribute!(flux, :breaks_non_abelian_gauge_group, false)
+    end
   end
   return flux
 end
@@ -88,13 +98,14 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> random_flux_instance(fgs, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function random_flux_instance(fgs::FamilyOfG4Fluxes; check::Bool = true)
@@ -130,9 +141,9 @@ Hypersurface model over a concrete base
 julia> rf = random_flux(qsm_model, vert = true, check = false)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: satisfied
-  - Non-abelian gauge group: broken
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function random_flux(m::AbstractFTheoryModel; vert::Bool = false, not_breaking::Bool = false, check::Bool = true)

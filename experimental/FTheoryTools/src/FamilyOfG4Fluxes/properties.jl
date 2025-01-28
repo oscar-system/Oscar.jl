@@ -3,12 +3,19 @@
 #####################################################
 
 @doc raw"""
-    is_well_quantized(fgs::FamilyOfG4Fluxes)
+    is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes is well-quantized,
-this method returns this boolean value -- true if well-quantized
-and false if not well-quantized. In case it is not known if the
-family of G4-fluxes is well-quantized, an error is raised.
+Executes elementary tests (they are necessary but not sufficient)
+to tell if a family of $G_4$-fluxes is well-quantized. In case
+any of these tests fails, we know that this family of $G_4$-fluxes
+is definitely not well-quantized. This method then returns `false`.
+
+In the opposite case that all elementary tests pass, this method
+returns `true`. Note however that this does not imply that the
+family is well-quantized. At least, according to the current
+theoretical understanding it does not. Rather, this means that
+to the best of our current means, this family of fluxes appears
+to be well-quantized.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -19,24 +26,73 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> is_well_quantized(gf)
 true
+
+julia> m1 = matrix_integral(gf);
+
+julia> m2 = matrix_rational(gf);
+
+julia> gf2 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> is_well_quantized(gf2, check = false)
+true
 ```
 """
-function is_well_quantized(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :is_well_quantized) "Cannot (yet) tell if this family of G4-fluxes is well-quantized"
-  return get_attribute(fgs, :is_well_quantized)
+@attr Bool function is_well_quantized(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Elementary quantization check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Elementary quantization checks currently supported only for toric ambient space"
+
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each integral generator is well-quantized
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    if !passes_elementary_quantization_checks(gen_k)
+      return false
+    end
+  end
+
+  # Verify that each rational generator is well-quantized, in that all relevant integrals vanish.
+  cy = polynomial(cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m)))))
+  c_ds = [polynomial(cohomology_class(d)) for d in torusinvariant_prime_divisors(ambient_space(m))]
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    twist_g4 = polynomial(gen_k + 1//2 * chern_class(m, 2; check = false))
+    for i in 1:length(c_ds)
+      for j in i:length(c_ds)
+        numb = integrate(cohomology_class(ambient_space(m), twist_g4 * c_ds[i] * c_ds[j] * cy); check = false)
+        if !is_zero(numb)
+          return false    
+        end
+      end
+    end
+  end
+
+  # All other tests passed, so must be well-quantized according to elementary tests.
+  return true
 end
 
 
 @doc raw"""
-    is_vertical(fgs::FamilyOfG4Fluxes)
+    is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes is vertical,
-this method returns this boolean value -- true if vertical
-and false if not. In case it is not known if the family of
-G4-fluxes is vertical, an error is raised.
+Checks if the given family of $G_4$-fluxes is vertical.
+If so, this method returns `true` and otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -47,8 +103,9 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf)
+julia> is_vertical(gf, check = false)
 false
 
 julia> gf2 = special_flux_family(qsm_model, vert = true, check = false)
@@ -56,25 +113,62 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
-julia> is_vertical(gf2)
+julia> is_vertical(gf2, check = false)
+true
+
+julia> m1 = matrix_integral(gf2);
+
+julia> m2 = matrix_rational(gf2);
+
+julia> gf3 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> is_vertical(gf3)
 true
 ```
 """
-function is_vertical(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :is_vertical) "Cannot (yet) tell if this family of G4-fluxes is vertical"
-  return get_attribute(fgs, :is_vertical)
+@attr Bool function is_vertical(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Verticality check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Verticality check currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Verticality check currently supported only for toric ambient space"
+  
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each generator of the flux family is vertical
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    if !passes_verticality_checks(gen_k)
+      return false
+    end
+  end
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    if !passes_verticality_checks(gen_k)
+      return false
+    end
+  end
+  return true
 end
 
 
 @doc raw"""
-    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
+    breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
-In case it is known if the family of G4-fluxes does break
-the non-abelian gauge group, this method returns this boolean
-value -- true if it break the non-abelian gauge group and false
-if not. In case it is not known if the family of G4-fluxes does
-break the non-abelian gauge group, an error is raised.
+Checks if a family of G4-fluxes breaks the non-abelian
+gauge group. If so, this method returns `true` and
+otherwise `false`.
 
 ```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
 julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 2021))
@@ -85,6 +179,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf)
 true
@@ -94,6 +189,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf2)
 true
@@ -103,12 +199,51 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: satisfied
   - Non-abelian gauge group: not broken
+  - Tadpole constraint: not analyzed
 
 julia> breaks_non_abelian_gauge_group(gf3)
 false
+
+julia> m1 = matrix_integral(gf3);
+
+julia> m2 = matrix_rational(gf3);
+
+julia> gf4 = family_of_g4_fluxes(qsm_model, m1, m2, check = false)
+A family of G4 fluxes:
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
+
+julia> breaks_non_abelian_gauge_group(gf4, check = false)
+false
 ```
 """
-function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes)
-  @req has_attribute(fgs, :breaks_non_abelian_gauge_group) "Cannot (yet) tell if this family of G4-fluxes breaks the non-abelian gauge group"
-  return get_attribute(fgs, :breaks_non_abelian_gauge_group)
+@attr Bool function breaks_non_abelian_gauge_group(fgs::FamilyOfG4Fluxes; check::Bool = true)
+  # Entry checks
+  m = model(fgs)
+  @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Gauge group breaking check only supported for Weierstrass, global Tate and hypersurface models"
+  @req base_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric base"
+  @req ambient_space(m) isa NormalToricVariety "Gauge group breaking check currently supported only for toric ambient space"
+  
+  # Extract ambient space model of g4-fluxes, in terms of which we express the generators of the flux family
+  mb = chosen_g4_flux_basis(model(fgs), check = check)
+  nmb = length(mb)
+
+  # Verify that each generator of the flux family does not break the non-abelian gauge group
+  my_mat = matrix_integral(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    if breaks_non_abelian_gauge_group(gen_k)
+      return true
+    end
+  end
+  my_mat = matrix_rational(fgs)
+  for k in 1:ncols(my_mat)
+    gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
+    if breaks_non_abelian_gauge_group(gen_k)
+      return true
+    end
+  end
+  return false
 end
