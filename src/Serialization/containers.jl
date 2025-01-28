@@ -419,10 +419,6 @@ function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
   return S(elems)
 end
 
-function load_object(s::DeserializerState, S::Type{<:Set})
-  return S([])
-end
-
 ################################################################################
 # Sparse rows
 
