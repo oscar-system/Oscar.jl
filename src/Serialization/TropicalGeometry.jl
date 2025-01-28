@@ -3,31 +3,28 @@
 @register_serialization_type TropicalSemiring{typeof(max)}
 
 ## elements
-@register_serialization_type TropicalSemiringElem uses_params
+@register_serialization_type TropicalSemiringElem
+
+type_params(obj::TropicalSemiringElem) = parent(obj)
 
 function save_object(s::SerializerState, x::TropicalSemiringElem)
   str = string(x)
   save_data_basic(s, String(strip(str, ['(', ')'])))
 end
 
-function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem}, params::Vector)
-  t_ring = params[end]
+function load_object(s::DeserializerState, ::Type{<:TropicalSemiringElem},
+                     R::TropicalSemiring)
   load_node(s) do str
     if str == "∞" || str == "-∞" || str == "infty" || str == "-infty"
-      return inf(t_ring)
+      return inf(R)
     else
-      return t_ring(load_object(s, QQFieldElem))
+      return R(load_object(s, QQFieldElem))
     end
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:TropicalSemiringElem},
-                     parent_ring::TropicalSemiring)
-  return load_object(s, T, get_parents(parent_ring))
-end
-
 # Tropical Hypersurfaces
-@register_serialization_type TropicalHypersurface uses_id uses_params
+@register_serialization_type TropicalHypersurface uses_id
 
 type_params(t::T) where T <: TropicalHypersurface = type_params(tropical_polynomial(t))
 

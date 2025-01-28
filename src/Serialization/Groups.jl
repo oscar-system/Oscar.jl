@@ -101,7 +101,7 @@ const GAPGroup_attributes = [
 
 function save_attrs(s::SerializerState, G::T) where T <: GAPGroup
   save_data_dict(s, :attrs) do 
-    for attr in attrs_list(s, T)
+    for attr in attrs_list(T)
       func = Symbol(string("has_", attr))
       if @eval $func($G)
         attr_value = @eval $attr($G)
@@ -114,7 +114,7 @@ end
 function load_attrs(s::DeserializerState, G::T) where T <: GAPGroup
   !with_attrs(s) && return
   haskey(s, :attrs) && load_node(s, :attrs) do d
-    for attr in attrs_list(s, T)
+    for attr in attrs_list(T)
       if haskey(d, attr)
         func = Symbol(string("set_", attr))
         attr_value = load_typed_object(s, attr)

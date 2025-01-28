@@ -568,20 +568,36 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
+type_params(A::MPolyQuoRing) = Dict(
+  :base_ring => base_ring(A),
+  :ordering => ordering(A)
+)
+
 function save_object(s::SerializerState, A::MPolyQuoRing)
   save_data_dict(s) do # Saves stuff in a JSON dictionary. This opens a `{`, puts stuff 
                        # inside there for the various keys and then closes it with `}`.
                        # It's not using Julia Dicts.
-    save_typed_object(s, modulus(A), :modulus)
-    save_typed_object(s, ordering(A), :ordering) # Does this already serialize???
+    save_object(s, modulus(A), :modulus)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{MPolyQuoRing})
-  I = load_typed_object(s, :modulus) 
-  R = base_ring(I)
-  o = load_typed_object(s, :ordering)
+function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
+  R = params[:base_ring]
+  o = params[:ordering]
+  I = load_object(s, ideal_type(R), R, :modulus) 
   return MPolyQuoRing(R, I, o)
+end
+
+@register_serialization_type MPolyQuoRingElem
+
+function save_object(s::SerializerState, a::MPolyQuoRingElem)
+  save_object(s, lift(a))
+end
+
+function load_object(s::DeserializerState, ::Type{<:MPolyQuoRingElem}, Q::MPolyQuoRing)
+  R = base_ring(Q)
+  rep = load_object(s, elem_type(R), R)
+  return Q(rep)
 end
 
 ### Serialization of Monomial orderings

@@ -60,7 +60,7 @@ function save_type_params(s::SerializerState, T::Type{Vector{U}}, obj::Any) wher
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{<: Union{MatVecType, Set}})
+function load_type_params(s::DeserializerState, T::Type{<: MatVecType})
   !haskey(s, :params) && return T, nothing
   
   subtype, params = load_node(s, :params) do _
@@ -372,8 +372,24 @@ function type_params(obj::T) where T <: Set
   if isempty(obj)
     return nothing
   end
-
   return type_params(first(obj))
+end
+
+function save_type_params(s::SerializerState, T::Type{Set{S}}, ::Nothing) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_object(s, encode_type(S), :params)
+  end
+end
+
+function load_type_params(s::DeserializerState, T::Type{<: Set})
+  !haskey(s, :params) && return T, nothing
+  
+  subtype, params = load_node(s, :params) do _
+    U = decode_type(s)
+    subtype, params = load_type_params(s, U)
+  end
+  return T{subtype}, params
 end
 
 function save_object(s::SerializerState, x::Set)
@@ -389,7 +405,7 @@ function save_object(s::SerializerState, x::Set)
   end
 end
 
-function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Ring) where T
+function load_object(s::DeserializerState, S::Type{<:Set{T}}, params::Any) where T
   elems = load_array_node(s) do _
     load_object(s, T, params)
   end
@@ -401,6 +417,10 @@ function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
     load_object(s, T)
   end
   return S(elems)
+end
+
+function load_object(s::DeserializerState, S::Type{<:Set})
+  return S([])
 end
 
 ################################################################################

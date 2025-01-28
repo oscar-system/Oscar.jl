@@ -72,9 +72,7 @@ end
 # Type attribute map
 const type_attr_map = Dict{String, Vector{Symbol}}()
 
-function attrs_list(s::S, T::Type) where S <: Union{DeserializerState, SerializerState}
-  return get(type_attr_map, encode_type(T), Symbol[])
-end
+attrs_list(T::Type) = get(type_attr_map, encode_type(T), Symbol[])
 
 with_attrs(s::T) where T <: Union{DeserializerState, SerializerState} = s.with_attrs
 
@@ -161,6 +159,11 @@ function save_typed_object(s::SerializerState, x::T) where T
   else
     save_type_params(s, x, type_key)
     save_object(s, x, :data)
+  end
+
+  if with_attrs(s)
+    attrs = attrs_list(T)
+    !isempty(attrs) && save_attrs(s, x)
   end
 end
 
@@ -281,9 +284,11 @@ function load_typed_object(s::DeserializerState; override_params::Any = nothing)
     s.obj isa String && !isnothing(tryparse(UUID, s.obj)) && return load_ref(s)
     T, params = load_type_params(s, T, type_key)
   end
-  load_node(s, :data) do _
+  obj = load_node(s, :data) do _
     return load_object(s, T, params)
   end
+  load_attrs(s, obj)
+  return obj
 end
 
 function load_object(s::DeserializerState, T::Type, key::Union{Symbol, Int})
@@ -302,9 +307,9 @@ end
 ################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T
-  if any(attr -> has_attribute(obj, attr), attrs_list(s, T))
+  if any(attr -> has_attribute(obj, attr), attrs_list(T))
     save_data_dict(s, :attrs) do
-      for attr in attrs_list(s, T)
+      for attr in attrs_list(T)
         has_attribute(obj, attr) && save_typed_object(s, get_attribute(obj, attr), attr)
       end
     end
