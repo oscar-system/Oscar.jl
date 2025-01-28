@@ -149,7 +149,7 @@ function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
         push!(_tau,tau_i)
     end
 
-    #transform _tau consisting of length(J) lists into a list of length(kQ.hyperplane) (divide by coordinate index)
+    #transform _tau consisting of length(kQ.hyperplanes)-lists into a list of length(J) (divide by coordinate index)
     tau = []
     for i=1:length(kQ.hyperplanes) 
         push!(tau,[t[i] for t in _tau])
@@ -169,7 +169,7 @@ end
 # given a cochain complex of injective modules J^0 -> J^1 -> J^2 with phi: J^0 -> J^1 and psi: J^1 -> J^2
 # let J = direct_sum(J^i) and j = |J^0|, k = |J^0| + |J^1| (number of indecomposable injectives)
 # -> compute a sector partition of the local cohomology module ker(psi)/im(phi)
-function sector_partition(kQ::MonoidAlgebra,phi::QQMatrix,psi::QQMatrix,j::Integer,k::Integer, J::IndecInj...)
+function sector_partition(kQ::MonoidAlgebra,phi::Union{Vector{Any},QQMatrix},psi::Union{Vector{Any},QQMatrix},j::Integer,k::Integer, J::IndecInj...)
     # check that kQ is compatible with the indecomposable injectives
     # ...
 
@@ -228,6 +228,9 @@ function sector_partition(kQ::MonoidAlgebra,phi::QQMatrix,psi::QQMatrix,j::Integ
         valid = true # is one strip empty? => the intersection is empty
         A_tuple = []
         for i in eachindex(tau)
+            if all(x -> x == -Inf*one(QQ), tau[i])
+                continue
+            end
             if stripes[i][tuple[i]] isa Polyhedron
                 push!(_delta,stripes[i][tuple[i]])
             else #stripe is empty
@@ -266,7 +269,7 @@ end
 
 # help function to compute the local cohomology of a sector
 # follows construction in proof of Theorem 5.2 in HM2004
-function _local_cohomology_sector(A::Vector{Int},j::Integer,k::Integer,phi::QQMatrix, psi::QQMatrix)
+function _local_cohomology_sector(A::Vector{Int},j::Integer,k::Integer,phi::Union{Vector{Any},QQMatrix}, psi::Union{Vector{Any},QQMatrix})
     # divide A into triple
     A_0 = [a for a in A if a <= j]
     A_1 = [a for a in A if j < a <= k]
@@ -280,38 +283,46 @@ function _local_cohomology_sector(A::Vector{Int},j::Integer,k::Integer,phi::QQMa
 
     #compute the maps by deleting rows and columns in phi and psi
     #phi
-    rows = []
-    for i in A_0 #delete i-th row of phi for i \notin A_0
-        push!(rows, phi[i,:])
-    end
-    _phi_del = transpose(hcat(rows...))
-
-    columns = []
-    for i in A_1 #delete i-th column of phi for i \notin A_1
-        push!(columns, _phi_del[:,i-j])
-    end
-    if length(columns) > 0
-        phi_del = matrix(QQ, hcat(columns...))
-    else
+    if phi == []
         phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
+    else
+        rows = []
+        for i in A_0 #delete i-th row of phi for i \notin A_0
+            push!(rows, phi[i,:])
+        end
+        _phi_del = transpose(hcat(rows...))
+
+        columns = []
+        for i in A_1 #delete i-th column of phi for i \notin A_1
+            push!(columns, _phi_del[:,i-j])
+        end
+        if length(columns) > 0
+            phi_del = matrix(QQ, hcat(columns...))
+        else
+            phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
+        end
     end
 
     #psi
-    rows = []
-    for i in A_1 #delete i-th row of psi for i \notin A_1 
-        push!(rows, psi[i-j,:])
-    end
-    _psi_del = transpose(hcat(rows...))
-
-    columns = []
-    for i in A_2 #delete i-th column of psi for i \notin A_2 
-        push!(columns, _psi_del[:,i-k])
-    end
-    if length(columns) > 0
-        psi_del = matrix(QQ,hcat(columns...))
-    else 
+    if psi == []
         psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
-    end
+    else
+        rows = []
+        for i in A_1 #delete i-th row of psi for i \notin A_1 
+            push!(rows, psi[i-j,:])
+        end
+        _psi_del = transpose(hcat(rows...))
+
+        columns = []
+        for i in A_2 #delete i-th column of psi for i \notin A_2 
+            push!(columns, _psi_del[:,i-k])
+        end
+        if length(columns) > 0
+            psi_del = matrix(QQ,hcat(columns...))
+        else 
+            psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
+        end
+    end    
 
     #define maps phi_{0,1} and psi_{1,2}
     f0 = hom(F_0,F_1,phi_del)
@@ -333,6 +344,7 @@ function apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::QQMatrix, psi::QQMatr
     rows_phi = []
     for i in eachindex(J_0)
         if issubset(I.ideal,J_0[i].face.prime) 
+        # if issubset(I,J_0[i].face.prime) 
             push!(_J_0,J_0[i])
             push!(rows_phi,phi[i,:])
         end
@@ -343,24 +355,38 @@ function apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::QQMatrix, psi::QQMatr
     rows_psi = []
     _J_1 = []
     for i in eachindex(J_1)
-        if issubset(I.ideal,J_1[i].face.prime) 
+        if issubset(I.ideal,J_1[i].face.prime)
+        # if issubset(I,J_1[i].face.prime) 
             push!(_J_1,J_1[i])
-            push!(columns_phi,_phi[:,i] )
+            if rows_phi != []
+                push!(columns_phi,_phi[:,i] )
+            end
             push!(rows_psi,psi[i,:])
         end
     end
-    phi = matrix(QQ,hcat(columns_phi...))
+    if columns_phi == []
+        phi = []
+    else
+        phi = matrix(QQ,hcat(columns_phi...))
+    end
     _psi = transpose(hcat(rows_psi...))
 
     columns_psi = []
     _J_2 = []
     for i in eachindex(J_2)
-        if issubset(I.ideal,J_2[i].face.prime) 
+        if issubset(I.ideal,J_2[i].face.prime)
+        # if issubset(I,J_2[i].face.prime) 
             push!(_J_2,J_2[i])
-            push!(columns_psi, _psi[:,i])
+            if rows_psi != []
+                push!(columns_psi, _psi[:,i])
+            end
         end
     end
-    psi = matrix(QQ,hcat(columns_psi...))
+    if columns_psi == []
+        psi = []
+    else
+        psi = matrix(QQ,hcat(columns_psi...))
+    end
 
     return [_J_0...,_J_1...,_J_2...],phi,psi,(length(_J_0), length(_J_0) + length(_J_1))
 end
