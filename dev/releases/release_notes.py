@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Any, Dict, List, TextIO
 
 import requests
-from utils import download_with_sha256, error, notice, warning
 
 
 def usage(name: str) -> None:
@@ -37,8 +36,8 @@ def is_existing_tag(tag: str) -> bool:
 
 def find_previous_version(version: str) -> str:
     major, minor, patchlevel = map(int, version.split("."))
-    if major != 4:
-        error("unexpected GAP version, not starting with '4.'")
+    if major != 1:
+        error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel != 0:
         patchlevel -= 1
         return f"{major}.{minor}.{patchlevel}"
@@ -54,113 +53,17 @@ def find_previous_version(version: str) -> str:
     patchlevel -= 1
     return f"{major}.{minor}.{patchlevel}"
 
+def notice(s):
+    print(s)
 
-def package_infos_url(tag: str) -> str:
-    return f"https://github.com/gap-system/PackageDistro/releases/download/{tag}/package-infos.json.gz"
+def error(s):
+    print(s)
+    exit()
 
-
-def url_exists(url: str) -> bool:
-    response = requests.get(url)
-    return response.status_code == 200
-
-
-def package_updates(relnotes_file: TextIO, new_gap_version: str) -> None:
-    # create tmp directory
-    tmpdir = os.getcwd() + "/tmp"
-    notice(f"Files will be put in {tmpdir}")
-    try:
-        os.mkdir(tmpdir)
-    except FileExistsError:
-        pass
-
-    old_gap_version = find_previous_version(new_gap_version)
-    notice(
-        f"generating package release notes for {old_gap_version} -> {new_gap_version}"
-    )
-
-    oldtag = "v" + old_gap_version
-    newtag = "v" + new_gap_version
-    if not url_exists(package_infos_url(newtag)):
-        warning(f"no package infos found for {newtag}, switching to latest")
-        newtag = "latest"
-
-    # download package metadata
-    old_json_file = f"{tmpdir}/package-infos-{oldtag}.json.gz"
-    new_json_file = f"{tmpdir}/package-infos-{newtag}.json.gz"
-
-    download_with_sha256(package_infos_url(oldtag), old_json_file)
-    download_with_sha256(package_infos_url(newtag), new_json_file)
-
-    # parse package metadata
-    with gzip.open(old_json_file, "r") as f:
-        old_json = json.load(f)
-
-    with gzip.open(new_json_file, "r") as f:
-        new_json = json.load(f)
-
-    relnotes_file.write("### Package distribution\n\n")
-
-    #
-    # Detect new packages
-    #
-    added = new_json.keys() - old_json.keys()
-    if len(added) > 0:
-        relnotes_file.write("#### New packages redistributed with GAP\n\n")
-        for p in sorted(added):
-            pkg = new_json[p]
-            name = pkg["PackageName"]
-            home = pkg["PackageWWWHome"]
-            desc = pkg["Subtitle"]
-            vers = pkg["Version"]
-            authors = ", ".join(
-                [
-                    x["FirstNames"] + " " + x["LastName"]
-                    for x in pkg["Persons"]
-                    if x["IsAuthor"]
-                ]
-            )
-            relnotes_file.write(
-                f"- [**{name}**]({home}) {vers}: {desc}, by {authors}\n"
-            )
-        relnotes_file.write("\n")
-
-    #
-    # Detect new packages
-    #
-    removed = old_json.keys() - new_json.keys()
-    if len(removed) > 0:
-        relnotes_file.write("#### Packages no longer redistributed with GAP\n\n")
-        for p in sorted(removed):
-            name = old_json[p]["PackageName"]
-            relnotes_file.write(f"- **{name}**: TODO\n")
-        relnotes_file.write("\n")
-
-    #
-    # Detect new packages
-    #
-    updated = new_json.keys() & old_json.keys()
-    updated = [p for p in updated if old_json[p]["Version"] != new_json[p]["Version"]]
-    if len(updated) > 0:
-        relnotes_file.write(
-            f"""
-#### Updated packages redistributed with GAP
-
-The GAP {new_gap_version} distribution contains {len(new_json)} packages, of which {len(updated)} have been
-updated since GAP {old_gap_version}. The full list of updated packages is given below:
-
-""".lstrip()
-        )
-        for p in sorted(updated):
-            old = old_json[p]
-            new = new_json[p]
-            name = new["PackageName"]
-            home = new["PackageWWWHome"]
-            oldversion = old["Version"]
-            newversion = new["Version"]
-            relnotes_file.write(
-                f"- [**{name}**]({home}): {oldversion} -> {newversion}\n"
-            )
-
+def warning(s):
+    print('===================================================')
+    print(s)
+    print('===================================================')
 
 # the following is a list of pairs [LABEL, DESCRIPTION]; the first entry is the name of a GitHub label
 # (be careful to match them precisely), the second is a headline for a section the release notes; any PR with
@@ -191,15 +94,15 @@ prioritylist = [
 
 
 def get_tag_date(tag: str) -> str:
-    # TODO: validate the tag exists
-    res = subprocess.run(
-        ["git", "for-each-ref", "--format=%(creatordate:short)", "refs/tags/" + tag],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    if res.returncode != 0:
-        error("error trying to dettermine tag date")
+    if is_existing_tag(tag):
+        res = subprocess.run(
+            ["git", "for-each-ref", "--format=%(creatordate:short)", "refs/tags/" + tag],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    else:
+        error("tag does not exist!")
     return res.stdout.strip()
 
 
@@ -222,8 +125,6 @@ def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    if res.returncode != 0:
-        error("error trying to dettermine tag date")
     return json.loads(res.stdout.strip())
 
 
@@ -231,7 +132,7 @@ def pr_to_md(pr: Dict[str, Any]) -> str:
     """Returns markdown string for the PR entry"""
     k = pr["number"]
     title = pr["title"]
-    return f"- [#{k}](https://github.com/gap-system/gap/pull/{k}) {title}\n"
+    return f"- [#{k}](https://github.com/oscar-system/Oscar.jl/pull/{k}) {title}\n"
 
 
 def has_label(pr: Dict[str, Any], label: str) -> bool:
@@ -243,25 +144,32 @@ def changes_overview(
 ) -> None:
     """Writes files with information for release notes."""
 
-    month = datetime.now().strftime("%B")
+    month = datetime.now().month
     year = datetime.now().year
+    day = datetime.now().day
 
     # Could also introduce some consistency checks here for wrong combinations of labels
-    filename = "releasenotes_" + new_version + ".md"
-    notice("Writing release notes into file " + filename)
-    with open(filename, "w", encoding="utf-8") as relnotes_file:
+    newfile = './new.md'
+    finalfile = '../../CHANGELOG.md'
+    notice("Writing release notes into file " + newfile)
+    with open(newfile, "w", encoding="utf-8") as relnotes_file:
         prs_with_use_title = [
             pr for pr in prs if has_label(pr, "release notes: use title")
         ]
         # Write out all PRs with 'use title'
         relnotes_file.write(
-            f"""
-## GAP {new_version} ({month} {year})
+            f"""# Changelog
 
-The following gives an overview of the changes compared to the previous
-release. This list is not complete, many more internal or minor changes
-were made, but we tried to only list those changes which we think might
-affect some users directly.
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
+tries to adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [{new_version}] - {year}-{month}-{day}
+
+The following gives an overview of the changes compared to the previous release. This list is not
+complete, many more internal or minor changes were made, but we tried to only list those changes
+which we think might affect some users directly.
 
 """
         )
@@ -288,35 +196,29 @@ affect some users directly.
                 relnotes_file.write(pr_to_md(pr))
             relnotes_file.write("\n")
 
-        package_updates(relnotes_file, new_version)
-
-    notice("Release notes were written into file " + filename)
-    with open(
-        "unsorted_PRs_" + new_version + ".md", "w", encoding="utf-8"
-    ) as unsorted_file:
         # Report PRs that have to be updated before inclusion into release notes.
-        unsorted_file.write("### " + "release notes: to be added" + "\n\n")
-        unsorted_file.write(
+        relnotes_file.write("### " + "release notes: to be added" + "\n\n")
+        relnotes_file.write(
             "If there are any PRs listed below, check their title and labels.\n"
         )
-        unsorted_file.write(
+        relnotes_file.write(
             'When done, change their label to "release notes: use title".\n\n'
         )
 
         for pr in prs:
             if has_label(pr, "release notes: to be added"):
-                unsorted_file.write(pr_to_md(pr))
+                relnotes_file.write(pr_to_md(pr))
 
         prs = [pr for pr in prs if not has_label(pr, "release notes: to be added")]
 
-        unsorted_file.write("\n")
+        relnotes_file.write("\n")
 
         # Report PRs that have neither "to be added" nor "added" or "use title" label
-        unsorted_file.write("### Uncategorized PR" + "\n\n")
-        unsorted_file.write(
+        relnotes_file.write("### Uncategorized PR" + "\n\n")
+        relnotes_file.write(
             "If there are any PRs listed below, either apply the same steps\n"
         )
-        unsorted_file.write(
+        relnotes_file.write(
             'as above, or change their label to "release notes: not needed".\n\n'
         )
 
@@ -328,25 +230,34 @@ affect some users directly.
                 has_label(pr, "release notes: added")
                 or has_label(pr, "release notes: use title")
             ):
-                unsorted_file.write(pr_to_md(pr))
+                relnotes_file.write(pr_to_md(pr))
+        # now read back the rest of changelog.md into newfile
+        relnotes_file.write('\n')
+        with open(finalfile, 'r') as oldchangelog:
+            oldchangelog.seek(262)
+            for line in oldchangelog.readlines():
+                relnotes_file.write(line)
+        # finally copy over this new file to changelog.md
+        os.rename(newfile, finalfile)
 
 
 def main(new_version: str) -> None:
     major, minor, patchlevel = map(int, new_version.split("."))
-    if major != 4:
-        error("unexpected GAP version, not starting with '4.'")
+    if major != 1:
+        error("unexpected OSCAR version, not starting with '1.'")
     if patchlevel == 0:
-        # "major" GAP release which changes just the minor version
+        # "major" OSCAR release which changes just the minor version
         previous_minor = minor - 1
         basetag = f"v{major}.{minor}dev"
-        # *exclude* PRs backported to previous stable-4.X branch
+        # *exclude* PRs backported to previous stable-1.X branch
         extra = f'-label:"backport-to-{major}.{previous_minor}-DONE"'
     else:
-        # "minor" GAP release which changes just the patchlevel
+        # "minor" OSCAR release which changes just the patchlevel
         previous_patchlevel = patchlevel - 1
         basetag = f"v{major}.{minor}.{previous_patchlevel}"
         # *include* PRs backported to current stable-4.X branch
         extra = f'label:"backport-to-{major}.{minor}-DONE"'
+        extra = ''
 
     print("Base tag is", basetag)
 
@@ -356,6 +267,10 @@ def main(new_version: str) -> None:
     print("Downloading filtered PR list")
     prs = get_pr_list(startdate, extra)
     # print(json.dumps(prs, sort_keys=True, indent=4))
+
+    # reset changelog file to state tracked in git
+    
+    subprocess.run('git checkout -- ../../CHANGELOG.md'.split(), check=True)
 
     changes_overview(prs, startdate, new_version)
 
