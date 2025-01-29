@@ -11,8 +11,8 @@
 
 # The pattern is the following.
 #   1. Choose a parallel task to be carried out.
-#   2. Wrap up the input data for the task in a concrete instance, 
-#      say `MyParallelTask`, of `ParallelTask` according to the rules below. 
+#   2. Wrap up the input data for the task in a concrete instance, say 
+#      `MyParallelTask`, of `ParallelTask` according to the rules below. 
 #   3. Implement `_compute(::MyParallelTask)` to carry out the task at hand.
 #   4. Use `parallel_all` and `parallel_any` on `Vector`s of `MyParallelTask` 
 #      to do things in parallel. 
@@ -107,14 +107,6 @@ function put_type_params(channel::RemoteChannel, ::Nothing)
   return
 end
 
-#=
-function put_type_params(channel::RemoteChannel, obj::Dict)
-  for (k, params) in obj
-    put_type_params(channel, params[2])
-  end
-end
-=#
-
 # Recursive call. Send all subsequent parents on which this object is 
 # based and finally the object itself, if applicable. 
 function put_type_params(channel::RemoteChannel, obj::Any)
@@ -137,7 +129,6 @@ function load_object(s::DeserializerState, ::Type{T}, params::Dict) where T <: P
   fields = []
   for n in fieldnames(T)
     n == :__attrs && continue
-    
     push!(fields, load_object(s, fieldtype(T, n), params[n], Symbol(n)))
   end
   return T(fields...)
@@ -162,7 +153,7 @@ end
 # Generic implementations for deployment of tasks
 ########################################################################
 @doc raw"""
-    function parallel_all(
+    parallel_all(
         task_list::Vector{TaskType};
         workers::Vector{Int}=Oscar.workers(),
       ) where {TaskType <: ParallelTask}
@@ -188,7 +179,7 @@ function parallel_all(
 end
 
 @doc raw"""
-    function parallel_any(
+    parallel_any(
         task_list::Vector{T};
         workers::Vector{Int}=Oscar.workers(),
         kill_workers::Bool=false
