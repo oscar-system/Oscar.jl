@@ -1194,7 +1194,7 @@ function minimal_primes(
     W, id, id_inv = simplify(Q)
     @assert domain(id) === codomain(id_inv) === Q
     @assert codomain(id) === domain(id_inv) === W
-    res_simp = minimal_primes(modulus(W); algorithm, simplify_ring=false)
+    res_simp = minimal_primes(modulus(W); algorithm, eliminate_variables=false)
     result = [I + ideal(R, lift.(id_inv.(W.(gens(j))))) for j in res_simp]
     for p in result
       set_attribute!(p, :is_prime=>true)
