@@ -24,7 +24,6 @@ export add_weighted_resolution
 export add_weighted_resolution_generating_section
 export add_weighted_resolution_zero_section
 export ambient_space
-export ambient_space_models_of_g4_fluxes
 export analyze_fibers
 export arxiv_doi
 export arxiv_id
@@ -42,6 +41,7 @@ export breaks_non_abelian_gauge_group
 export calabi_yau_hypersurface
 export chern_class
 export chern_classes
+export chosen_g4_flux_basis
 export classes_of_model_sections
 export components_of_dual_graph
 export components_of_simplified_dual_graph
@@ -63,6 +63,7 @@ export family_of_spaces
 export fiber_ambient_space
 export flux_instance
 export g4_flux
+export g4_flux_family
 export gauge_algebra
 export genera_of_ci_curves
 export genera_of_components_of_dual_graph
@@ -119,6 +120,7 @@ export hypersurface_equation
 export hypersurface_equation_parametrization
 export hypersurface_model
 export indices_of_trivial_ci_curves
+export integral_coefficients
 export irrelevant_ideal
 export is_base_space_fully_specified
 export is_calabi_yau
@@ -156,6 +158,7 @@ export polytope_index
 export put_over_concrete_base
 export random_flux
 export random_flux_instance
+export rational_coefficients
 export resolution_generating_sections
 export resolution_zero_sections
 export resolutions
@@ -230,9 +233,6 @@ export weighted_resolution_generating_sections
 export weighted_resolution_zero_sections
 export weighted_resolutions
 export weights
-export well_quantized_ambient_space_models_of_g4_fluxes
-export well_quantized_and_vertical_ambient_space_models_of_g4_fluxes
-export well_quantized_and_vertical_and_no_non_abelian_gauge_group_breaking_ambient_space_models_of_g4_fluxes
 export zero_section
 export zero_section_class
 export zero_section_index

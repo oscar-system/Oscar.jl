@@ -53,16 +53,16 @@ julia> g4_class = cohomology_class(anticanonical_divisor_class(ambient_space(qsm
 julia> g4f = g4_flux(qsm_model, g4_class)
 G4-flux candidate
   - Elementary quantization checks: satisfied
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 
 julia> g4f2 = g4_flux(qsm_model, g4_class, check = false)
 G4-flux candidate
   - Elementary quantization checks: not executed
-  - Tadpole cancellation check: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
 ```
 """
 function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool = true)
@@ -108,8 +108,34 @@ function Base.hash(gf::G4Flux, h::UInt)
 end
 
 
+
 ################################################
-# 3: Display
+# 3: Arithmetics
+################################################
+
+function Base.:+(g1::G4Flux, g2::G4Flux)
+  @req model(g1) === model(g2) "The G4-fluxes must be defined on the same model"
+  R = parent(polynomial(cohomology_class(g1)))
+  new_poly = R(polynomial(cohomology_class(g1)).f + polynomial(cohomology_class(g2)).f)
+  new_cohomology_class = CohomologyClass(ambient_space(model(g1)), new_poly)
+  return G4Flux(model(g1), new_cohomology_class)
+end
+
+Base.:-(g1::G4Flux, g2::G4Flux) = g1 + (-1) * g2
+
+Base.:-(g::G4Flux) = (-1) * g
+
+function Base.:*(c::T, g::G4Flux) where {T <: Union{IntegerUnion, QQFieldElem, Rational{Int64}}}
+  R = parent(polynomial(cohomology_class(g)))
+  new_poly = R(c * polynomial(cohomology_class(g)).f)
+  new_cohomology_class = CohomologyClass(ambient_space(model(g)), new_poly)
+  return G4Flux(model(g), new_cohomology_class)
+end
+
+
+
+################################################
+# 4: Display
 ################################################
 
 function Base.show(io::IO, g4::G4Flux)
@@ -124,17 +150,6 @@ function Base.show(io::IO, g4::G4Flux)
     end
   else
     push!(properties_string, "  - Elementary quantization checks: not executed")
-  end
-
-  # Check for tadpole cancellation checks
-  if has_attribute(g4, :passes_tadpole_cancellation_check)
-    if passes_tadpole_cancellation_check(g4)
-      push!(properties_string, "  - Tadpole cancellation check: satisfied")
-    else
-      push!(properties_string, "  - Tadpole cancellation check: failed")
-    end
-  else
-    push!(properties_string, "  - Tadpole cancellation check: not executed")
   end
 
   # Check for verticality checks
@@ -157,6 +172,17 @@ function Base.show(io::IO, g4::G4Flux)
     end
   else
     push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
+  end
+
+  # Check for tadpole cancellation checks
+  if has_attribute(g4, :passes_tadpole_cancellation_check)
+    if passes_tadpole_cancellation_check(g4)
+      push!(properties_string, "  - Tadpole cancellation check: satisfied")
+    else
+      push!(properties_string, "  - Tadpole cancellation check: failed")
+    end
+  else
+    push!(properties_string, "  - Tadpole cancellation check: not executed")
   end
 
   # Print each line separately, to avoid extra line break at the end

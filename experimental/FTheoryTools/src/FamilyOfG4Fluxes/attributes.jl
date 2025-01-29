@@ -24,6 +24,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> model(f_gs) == qsm_model
 true
@@ -56,6 +57,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> matrix_integral(f_gs) == mat_int
 true
@@ -88,6 +90,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 
 julia> matrix_rational(f_gs) == mat_rat
 true
@@ -123,16 +126,19 @@ A family of G4 fluxes:
   - Elementary quantization checks: satisfied
   - Verticality checks: failed
   - Non-abelian gauge group: broken
+  - Tadpole constraint: not analyzed
 
 julia> d3_tadpole_constraint(fgs);
+
+julia> fgs
+A family of G4 fluxes:
+  - Elementary quantization checks: satisfied
+  - Verticality checks: failed
+  - Non-abelian gauge group: broken
+  - Tadpole constraint: evaluated
 ```
 """
-function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
-
-  # Is the result known?
-  if has_attribute(fgs, :d3_tadpole_constraint)
-    return get_attribute(fgs, :d3_tadpole_constraint)::QQMPolyRingElem
-  end
+@attr QQMPolyRingElem function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
 
   # Entry checks
   m = model(fgs)
@@ -178,7 +184,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   amb_ring, my_gens = polynomial_ring(QQ, "a#" => 1:numb_int_parameters, "r#" => 1: numb_rat_parameters)
 
   # Extract ambient space basis of G4-flux candidates used to express flux family in
-  basis = ambient_space_models_of_g4_fluxes(m, check = check)
+  basis = _ambient_space_models_of_g4_fluxes(m, check = check)
   basis_indices = get_attribute(m, :ambient_space_models_of_g4_fluxes_indices)::Vector{Tuple{Int64, Int64}}
 
   # Use MPolyBuildCtx to compute the tadpole constraint.
@@ -204,7 +210,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
       # Compute the intersection number of generator k1 and generator k2
       inter_number = ZZ(0)
       for l1 in 1:length(basis)
-        for l2 in l1:length(basis)
+        for l2 in 1:length(basis)
 
           val = gen1[l1] * gen2[l2]
           is_zero(val) && continue
@@ -219,11 +225,7 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
             end        
           end
 
-          if l1 == l2
-            inter_number += val * change
-          else
-            inter_number += 2 * val * change
-          end
+          inter_number += val * change
           
         end
       end
@@ -243,7 +245,6 @@ function d3_tadpole_constraint(fgs::FamilyOfG4Fluxes; check::Bool = true)
   end
   tadpole_constraint_polynomial = finish(C)
   tadpole_constraint_polynomial = -1//2 * tadpole_constraint_polynomial + 1//24 * euler_characteristic(m, check = check)
-  set_attribute!(fgs, :d3_tadpole_constraint, tadpole_constraint_polynomial)
 
   # Update the computed intersection numbers
   set_attribute!(m, :inter_dict, inter_dict)
