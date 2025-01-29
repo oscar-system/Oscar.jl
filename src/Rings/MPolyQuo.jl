@@ -556,12 +556,13 @@ end
 
 @attr typeof(I) function radical(                                                   
     I::MPolyQuoIdeal; 
+    preprocessing::Bool=true,
     eliminate_variables::Bool=true, 
     factor_generators::Bool=true
   )
   R = base_ring(I)
   J = saturated_ideal(I)
-  return ideal(R, [g for g in R.(gens(radical(J; eliminate_variables, factor_generators))) if !iszero(g)])
+  return ideal(R, [g for g in R.(gens(radical(J; preprocessing, eliminate_variables, factor_generators))) if !iszero(g)])
 end
 
 # The following is to streamline the programmer's
