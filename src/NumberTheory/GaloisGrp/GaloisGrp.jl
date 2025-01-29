@@ -22,8 +22,6 @@ export valuation_of_roots
 import Hecke: orbit, fixed_field, extension_field
 
 function __init__()
-  GAP.Packages.load("ferret"; install=true)
-
   Hecke.add_verbosity_scope(:GaloisGroup)
   Hecke.add_assertion_scope(:GaloisGroup)
   Hecke.add_verbosity_scope(:GaloisInvariant)
@@ -1671,16 +1669,9 @@ function starting_group(GC::GaloisCtx, K::T; useSubfields::Bool = true) where T 
     #partition is the largest possible group...
     #code from Max...
 
-    #TODO: wrap this properly
-    if hasproperty(GAP.Globals, :ConStabilize)
-      tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
-      H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
-      G = Oscar._as_subgroup(G, H)[1]
-    else
-      #TODO: fallback if ferret wasn't loaded for some reason; this should be removed
-      # once we have GAP_pkg_ferret
-      G = intersect([stabilizer(G, sort(o), on_sets_sets)[1] for o=O]...)[1]
-    end
+    tmp = [GAP.Globals.ConStabilize(GAP.Obj(sort(o), recursive=true), GAP.Globals.OnSetsSets) for o in O]
+    H = GAP.Globals.Solve(GAP.Obj(vcat(GAP.Globals.ConInGroup(GapObj(G)), tmp)))
+    G = Oscar._as_subgroup(G, H)[1]
   end
 
   si = G(si)
