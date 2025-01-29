@@ -61,6 +61,6 @@
     ray_generators = [[1, 1], [1, 2]]
     max_cones = incidence_matrix([[1, 2]])
     X = normal_toric_variety(max_cones, ray_generators)
-    @test length(Set(hash.([H, P1 * P1, X]))) == 2
+    @test length(Set([H, P1 * P1, X])) == 2
   end
 end
