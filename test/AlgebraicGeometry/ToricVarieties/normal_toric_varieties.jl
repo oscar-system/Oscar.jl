@@ -55,5 +55,12 @@
     X = domain(blow_up(Z, [1, 1]))
     Y = domain(blow_up(Z, [1, 2]))
     @test X != Y
+
+    H = hirzebruch_surface(NormalToricVariety, 0)
+    P1 = projective_space(NormalToricVariety, 1)
+    ray_generators = [[1, 1], [1, 2]]
+    max_cones = incidence_matrix([[1, 2]])
+    X = normal_toric_variety(max_cones, ray_generators)
+    @test length(Set(hash.([H, P1 * P1, X]))) == 2
   end
 end

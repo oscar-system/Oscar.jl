@@ -216,13 +216,15 @@ end
 # @doc raw"""
 #     hash(X::NormalToricVariety, h::UInt)
 #
-# Computes a hash of a normal toric variety `X` with the property that, outside of hash collisions, `X_1 == X_2` if and only if `hash(X_1) == hash(X_2)`.
+# Computes a hash of a normal toric variety `X` with the property that,
+# outside of hash collisions, `X_1 == X_2` if and only if
+# `hash(X_1) == hash(X_2)`.
 # """
 function Base.hash(X::NormalToricVariety, h::UInt)
   p = inv(perm(sortperm(rays(X))))
   @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
   set_of_maximal_cones = Set(map(r -> Set(p.(r)), rows(X)))
-  sorted_rays = Vector.(permuted(collect(rays(X)), inv(p)))
+  sorted_rays = Vector.(permuted(collect(rays(X)), p))
   return hash((sorted_rays, set_of_maximal_cones), h)
 end
 
