@@ -17,8 +17,8 @@ a vector of elements in $F$;
 these elements are called the *defining relators* of $G$,
 see [`relators`](@ref).
 
-Finitely presented groups in Oscar have the type [`FpGroup`](@req),
-their elements have the type [`FpGroupElem`](@req).
+Finitely presented groups in Oscar have the type [`FPGroup`](@req),
+their elements have the type [`FPGroupElem`](@req).
 
 ## Basic Creation
 
@@ -76,8 +76,8 @@ true
 ```
 
 Subgroups of finitely presented groups in Oscar have the type
-[`SubFpGroup`](@req),
-their elements have the type [`SubFpGroupElem`](@req).
+[`SubFPGroup`](@req),
+their elements have the type [`SubFPGroupElem`](@req).
 
 ```jldoctest fpgroupxpl
 julia> S, emb = sylow_subgroup(G, 2)
