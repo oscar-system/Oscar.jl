@@ -51,3 +51,7 @@ export tensor_power
 export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
+
+export parabolic_subgroup
+export parabolic_subgroup_with_projection
+export map_word
