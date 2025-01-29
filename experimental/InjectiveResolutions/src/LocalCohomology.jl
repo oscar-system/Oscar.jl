@@ -283,44 +283,43 @@ function _local_cohomology_sector(A::Vector{Int},j::Integer,k::Integer,phi::Unio
 
     #compute the maps by deleting rows and columns in phi and psi
     #phi
-    if phi == []
-        phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
-    else
+    phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
+
+    if phi != []
         rows = []
         for i in A_0 #delete i-th row of phi for i \notin A_0
             push!(rows, phi[i,:])
         end
         _phi_del = transpose(hcat(rows...))
 
-        columns = []
-        for i in A_1 #delete i-th column of phi for i \notin A_1
-            push!(columns, _phi_del[:,i-j])
-        end
-        if length(columns) > 0
-            phi_del = matrix(QQ, hcat(columns...))
-        else
-            phi_del = matrix(QQ,zeros(QQ,length(A_0),length(A_1)))
+        if all(>(0),size(_phi_del)) #not of size 0xn or nx0
+            columns = []
+            for i in A_1 #delete i-th column of phi for i \notin A_1
+                push!(columns, _phi_del[:,i-j])
+            end
+            if length(columns) > 0
+                phi_del = matrix(QQ, hcat(columns...))
+            end
         end
     end
 
     #psi
-    if psi == []
-        psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
-    else
+    psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
+    if psi != []
         rows = []
         for i in A_1 #delete i-th row of psi for i \notin A_1 
             push!(rows, psi[i-j,:])
         end
         _psi_del = transpose(hcat(rows...))
 
-        columns = []
-        for i in A_2 #delete i-th column of psi for i \notin A_2 
-            push!(columns, _psi_del[:,i-k])
-        end
-        if length(columns) > 0
-            psi_del = matrix(QQ,hcat(columns...))
-        else 
-            psi_del = matrix(QQ,zeros(QQ,length(A_1),length(A_2)))
+        if all(>(0),size(_psi_del)) #not of size 0xn or nx0
+            columns = []
+            for i in A_2 #delete i-th column of psi for i \notin A_2 
+                push!(columns, _psi_del[:,i-k])
+            end
+            if length(columns) > 0
+                psi_del = matrix(QQ,hcat(columns...))
+            end
         end
     end    
 

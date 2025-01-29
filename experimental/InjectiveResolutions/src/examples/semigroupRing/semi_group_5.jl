@@ -15,12 +15,15 @@ inj_res = injective_res(M,3)
 I = ideal(kQ,[a,b])
 
 # cohomological degree 1
-H1 = local_cohomology(I_M,I,1) 
+H1 = local_cohomology(I_M,I,1) #empty sector partition...
+[h for h in H1.sectors if dim(h.H)>0]
 
 # cohomological degree 2 
-H2 = local_cohomology(I_M,I,2)
+H2 = local_cohomology(I_M,I,2) #exception BoundsError :(
+[h for h in H2.sectors if dim(h.H)>0]
+
 
 #compute local cohomology
 Ji_ = inj_res.injMods[i]
-    Ji = inj_res.injMods[i+1]
-    Ji_1 = inj_res.injMods[i+2]
+Ji = inj_res.injMods[i+1]
+Ji_1 = inj_res.injMods[i+2]
