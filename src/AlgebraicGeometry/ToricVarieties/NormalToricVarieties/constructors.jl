@@ -181,6 +181,23 @@ end
 # Equality
 ######################
 
+@doc raw"""
+    (==)(X::NormalToricVariety, Y::NormalToricVariety)
+
+Checks equality of the polyhedral fans as sets of cones.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> H == P1 * P1
+true
+```
+"""
 function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
   X === Y && return true
   ambient_dim(X) == ambient_dim(Y) || return false
@@ -196,11 +213,40 @@ function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
   return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
 end
 
+@doc raw"""
+    hash(X::NormalToricVariety, h::UInt)
+
+Computes a hash of a normal toric variety `X` with the property that, outside of hash collisions, `X_1 == X_2` if and only if `hash(X_1) == hash(X_2)`.
+
+# Examples
+```jldoctest
+julia> ray_generators = [[1,0], [1, 1]]
+2-element Vector{Vector{Int64}}:
+ [1, 0]
+ [0, 1]
+
+julia> max_cones = incidence_matrix([[1, 2]])
+1×2 IncidenceMatrix
+[1, 2]
+
+
+julia> X = normal_toric_variety(max_cones, ray_generators)
+Normal toric variety
+
+julia> Y = affine_space(NormalToricVariety, 2)
+Normal toric variety
+
+julia> hash(X) == hash(Y)
+false
+```
+"""
 function Base.hash(X::NormalToricVariety, h::UInt)
-  return hash(ambient_dim(X), h)
+  p = inv(perm(sortperm(rays(X))))
+  @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
+  set_of_maximal_cones = Set(map(r -> Set(p.(r)), rows(X)))
+  sorted_rays = Vector.([rays(X)[p(i)] for i in 1:n_rays(X)])
+  return hash((sorted_rays, set_of_maximal_cones), h)
 end
-
-
 
 ######################
 # Display
