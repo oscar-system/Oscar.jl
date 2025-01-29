@@ -222,7 +222,7 @@ function Base.hash(X::NormalToricVariety, h::UInt)
   p = inv(perm(sortperm(rays(X))))
   @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
   set_of_maximal_cones = Set(map(r -> Set(p.(r)), rows(X)))
-  sorted_rays = Vector.([rays(X)[p(i)] for i in 1:n_rays(X)])
+  sorted_rays = Vector.(permuted(collect(rays(X)), inv(p)))
   return hash((sorted_rays, set_of_maximal_cones), h)
 end
 
