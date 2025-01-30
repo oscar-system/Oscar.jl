@@ -91,7 +91,7 @@ We can compute the total and strict transforms of homogeneous ideals in Cox ring
 ```@docs
 strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
 strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
-total_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
+total_transform(f::ToricBlowupMorphism, I::Union{MPolyIdeal, MPolyDecRingElem})
 ```
 The above functions are implemented using a $\mathbb{C}$-module
 homomorphism between the Cox rings, considered as $\mathbb{C}$-modules,
