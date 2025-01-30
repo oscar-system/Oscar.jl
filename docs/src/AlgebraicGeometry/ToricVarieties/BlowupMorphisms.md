@@ -86,7 +86,7 @@ morphisms are supported for toric blowups:
 - `morphism_on_picard_group(bl::ToricBlowupMorphism)`.
 
 
-## Attributes
+## Methods
 
 We can compute the total and strict transforms of homogeneous ideals in Cox rings under star subdivisions along a ray.
 ```@docs
