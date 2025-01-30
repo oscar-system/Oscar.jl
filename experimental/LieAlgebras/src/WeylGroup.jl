@@ -247,7 +247,7 @@ function isomorphism(::Type{PermGroup}, W::WeylGroup; set_properties::Bool=true)
   end
 
   iso = function (w::WeylGroupElem)
-    reduce(*, (gen(G, Int(i)) for i in word(w)); init=one(G))
+    map_word(w, gens(G); init=one(G))
   end
 
   isoinv = function (p::PermGroupElem)
