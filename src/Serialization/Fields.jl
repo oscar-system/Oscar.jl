@@ -409,11 +409,14 @@ const FieldEmbeddingTypes = Union{
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  d = Dict{Symbol, Any}(:num_field => K)
+  d = TypeParams(K)
 
   if !(base_field(K) isa QQField)
     base_field_emb = restrict(E, base_K)
-    d[:base_field_emb] = base_field_emb
+    d = TypeParams(
+      :num_field => K,
+      :base_field_emb => base_field_emb
+    )
   end
   return d
 end
@@ -440,6 +443,17 @@ function save_object(s::SerializerState, E::FieldEmbeddingTypes)
   end
 end
 
+function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, K::Field)
+  approx = load_node(s, :gen_approx) do _
+    if !is_simple(K)
+      data = load_object(s, Vector{AcbFieldElem}, AcbField())
+    else
+      data = load_object(s, AcbFieldElem, AcbField())
+    end
+    return complex_embedding(K, data)
+  end
+end
+
 function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, params::Dict)
   K = params[:num_field]
   load_node(s, :gen_approx) do _
@@ -448,17 +462,13 @@ function load_object(s::DeserializerState, T::Type{<:FieldEmbeddingTypes}, param
     else
       data = load_object(s, AcbFieldElem, AcbField())
     end
-    if base_field(K) isa QQField
-      return complex_embedding(K, data)
-    else
-      return complex_embedding(K, params[:base_field_emb], data)
-    end
+    return complex_embedding(K, params[:base_field_emb], data)
   end
 end
 
 @register_serialization_type EmbeddedNumField uses_id
 
-type_params(E::EmbeddedNumField) = embedding(E)
+type_params(E::EmbeddedNumField) = TypeParams(embedding(E))
 
 function save_object(s::SerializerState, E::EmbeddedNumField)
   save_data_array(s) do

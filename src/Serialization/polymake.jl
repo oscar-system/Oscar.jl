@@ -128,11 +128,6 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field, parent_key::St
       try
         obj = _pmdata_for_oscar(p, coeff)
         data[Symbol(key_str)] = obj
-        #if haskey(obj, :_coeff)
-        #  data[Symbol(pname)] = obj
-        #else
-        #  data[Symbol(pname)] = p
-        #end
       catch e
         if e isa MethodError
           @debug "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"

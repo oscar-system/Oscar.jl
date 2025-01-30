@@ -90,7 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = parent(p)
+type_params(p::T) where T <: GrpElemUnionType = TypeParams(parent(p))
 
 
 #############################################################################
@@ -155,7 +155,7 @@ end
 
 @register_serialization_type PermGroupElem
 
-type_params(x::T) where T <: GroupElem = parent(x)
+type_params(x::T) where T <: GroupElem = TypeParams(parent(x))
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))

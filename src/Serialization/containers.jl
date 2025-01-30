@@ -53,7 +53,7 @@ function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) whe
   end
 end
 
-function save_type_params(s::SerializerState, T::Type{Vector{U}}, obj::Any) where U
+function save_type_params(s::SerializerState, T::Type{Vector{U}}, obj::TypeParams) where U
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_type_params(s, U, obj, :params)
@@ -225,7 +225,9 @@ end
 @register_serialization_type NamedTuple
 
 function type_params(obj::T) where T <: NamedTuple
-  return NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+  return TypeParams(
+    NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+  )
 end
 
 # Named Tuples need to preserve order so they are handled seperate from Dict
@@ -271,30 +273,37 @@ end
 ################################################################################
 # Saving and loading dicts
 @register_serialization_type Dict
-function type_params(obj::Dict{S, T}) where {S, T}
-  is_empty(obj) && return nothing
-  result = Dict{S, Any}()
-  for (key, val) in obj
-    val_params = type_params(val)
-    val_params === nothing && continue
-    result[key] = val_params
-  end
-  is_empty(result) && return nothing
-  return result
+
+# we might need something like this to get put_type_params to work in the
+# simple_parallelization_framework
+
+# function type_params(obj::Dict{S, T}) where {S, T}
+#   is_empty(obj) && return nothing
+#   result = Dict{S, Any}()
+#   for (key, val) in obj
+#     val_params = type_params(val)
+#     val_params === nothing && continue
+#     result[key] = val_params
+#   end
+#   is_empty(result) && return nothing
+#   return TypeParams(
+#     map(x -> x.first => type_params(x.second), collect(pairs(result)))...
+#   )
+
+function type_params(obj::T) where T <: Dict
+  return TypeParams(
+    map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
+  )
 end
 
-function save_type_params(s::SerializerState, obj::Dict{S, T}) where {T, S <: Union{Symbol, Int, String}}
-  params = type_params(obj)
+function save_type_params(s::SerializerState, ::Type{Dict{S, T}}, params::TypeParams) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
       save_object(s, encode_type(S), :key_type)
-      if isnothing(params) || isempty(params)
-        save_object(s, encode_type(T), :value_type)
-      else
-        for (k, v) in params
-          save_type_params(s, typeof(obj[k]), params[k], Symbol(k))
-        end
+      isempty(params) && save_object(s, encode_type(T), :value_type)
+      for (k, v) in params
+        error("fix this line")
       end
     end
   end

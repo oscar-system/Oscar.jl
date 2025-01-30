@@ -40,7 +40,9 @@ end
 @register_serialization_type GapObj uses_id
 
 function type_params(X::GapObj)
-  return GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing,GapObj}
+  params = GAP.Globals.SerializationInOscarDependentObjects(X)::Union{Nothing,GapObj}
+  !isnothing(params) && return TypeParams(params)
+  return nothing
 end
 
 function save_object(s::SerializerState, X::GapObj)

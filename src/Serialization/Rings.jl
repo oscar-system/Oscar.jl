@@ -39,9 +39,9 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = parent(x)
-type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
-type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
+type_params(x::T) where T <: RingMatElemUnion = TypeParams(parent(x))
+type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(base_ring(R))
+type_params(x::T) where T <: IdealOrdUnionType = TypeParams(base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = nothing
 type_params(::T) where T <: ModRingUnion = nothing
@@ -115,7 +115,7 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
-type_params(R::MPolyDecRing) = Dict(
+type_params(R::MPolyDecRing) = TypeParams(
   :grading_group => type_params(_grading(R)),
   :ring => forget_grading(R))
 
@@ -568,7 +568,7 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_params(A::MPolyQuoRing) = Dict(
+type_params(A::MPolyQuoRing) = TypeParams(
   :base_ring => base_ring(A),
   :ordering => ordering(A)
 )

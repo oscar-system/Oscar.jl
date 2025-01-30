@@ -1,7 +1,7 @@
 @register_serialization_type MPolyAnyMap
 
 function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
-  return Dict(
+  return TypeParams(
     :domain => domain(phi),
     :codomain => codomain(phi)
   )
