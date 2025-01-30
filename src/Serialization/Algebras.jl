@@ -4,7 +4,7 @@
 # Free associative algebra serialization
 @register_serialization_type FreeAssociativeAlgebra uses_id
 
-type_params(R::T) where T <: FreeAssociativeAlgebra = base_ring(R)
+type_params(R::T) where T <: FreeAssociativeAlgebra = TypeParams(base_ring(R))
 
 function save_object(s::SerializerState, A::FreeAssociativeAlgebra)
   save_data_dict(s) do
@@ -18,7 +18,7 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebra}, R::
 end
 
 # Free associative algebra element serialization
-@register_serialization_type FreeAssociativeAlgebraElem uses_params
+@register_serialization_type FreeAssociativeAlgebraElem
 
 # see type_params in Rings
 
@@ -53,4 +53,4 @@ function load_object(s::DeserializerState, ::Type{<:FreeAssociativeAlgebraElem},
 end
 
 # Ideals
-@register_serialization_type FreeAssociativeAlgebraIdeal uses_params
+@register_serialization_type FreeAssociativeAlgebraIdeal

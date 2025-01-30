@@ -1,4 +1,4 @@
-
+import Base:fieldnames, fieldtypes
 # This type should not be exported and should be before serializers
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
@@ -124,6 +124,23 @@ function decode_type(s::DeserializerState)
   return decode_type(s.obj)
 end
 
+################################################################################
+# TypeParams Struct
+struct TypeParams{T}
+  data::T
+
+  function TypeParams(args::Pair...)
+    nt = NamedTuple(args)
+    return new{typeof(nt)}(nt)
+  end
+  TypeParams(obj) = new{typeof(obj)}(obj)
+end
+
+params(obj::TypeParams{<:NamedTuple}) = pairs(obj.data)
+params(obj::TypeParams) = obj.data
+
+type_params(obj::T) where T = nothing
+
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
@@ -180,43 +197,39 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
-type_params(obj::T) where T = nothing
+################################################################################
+# (save | load) TypeParams
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, T::Type, params::Any, key::Symbol)
+function save_type_params(s::SerializerState, T::Type, params::TypeParams, key::Symbol)
   set_key(s, key)
   save_type_params(s, T, params)
 end
 
-save_type_params(s::SerializerState, obj::Any) = save_type_params(s, typeof(obj), type_params(obj))
+function save_type_params(s::SerializerState, obj::Any)
+  save_type_params(s, typeof(obj), type_params(obj))
+end
+
 save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
 
-function save_type_params(s::SerializerState, T::Type, params::Any)
+function save_type_params(s::SerializerState, T::Type, obj::TypeParams)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    save_typed_object(s, params, :params)
+    save_typed_object(s, params(obj), :params)
   end
 end
 
-# splits all params that are dictionaries into vector of pair
-# to be able to handle varying types in the values
-function save_type_params(s::SerializerState, T::Type, params::Dict)
-  save_type_params(s, T, collect(pairs(params)))
-end
-
-# This is used for types that have multiple parameters
-function save_type_params(s::SerializerState, T::Type,
-                          params::Vector{<:Pair{S, U}}) where {S <: Union{Symbol, String}, U}
+function save_type_params(s::SerializerState, T::Type, obj::TypeParams{S}) where S <: NamedTuple
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in params
+      for param in params(obj)
         isnothing(param.second) && continue
-        save_type_params(s, typeof(param.second), param.second, Symbol(param.first))
+        save_type_params(s, typeof(param.second), TypeParams(param.second), Symbol(param.first))
       end
     end
   end
@@ -324,28 +337,6 @@ function load_attrs(s::DeserializerState, obj::T) where T
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
-end
-
-################################################################################
-# Default generic save_internal, load_internal
-function save_object_generic(s::SerializerState, obj::T) where T
-  save_data_dict(s, :data) do
-    for n in fieldnames(T)
-      if n != :__attrs
-        save_typed_object(s, getfield(obj, n), Symbol(n))
-      end
-    end
-  end
-end
-
-function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
-  fields = []
-  for (n,t) in zip(fieldnames(T), fieldtypes(T))
-    if n!= :__attrs
-      push!(fields, load_object(s, t, dict[n]))
-    end
-  end
-  return T(fields...)
 end
 
 ################################################################################

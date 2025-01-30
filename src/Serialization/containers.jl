@@ -53,7 +53,7 @@ function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) whe
   end
 end
 
-function save_type_params(s::SerializerState, T::Type{Vector{U}}, obj::Any) where U
+function save_type_params(s::SerializerState, T::Type{Vector{U}}, obj::TypeParams) where U
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_type_params(s, U, obj, :params)
@@ -225,7 +225,9 @@ end
 @register_serialization_type NamedTuple
 
 function type_params(obj::T) where T <: NamedTuple
-  return NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+  return TypeParams(
+    NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+  )
 end
 
 # Named Tuples need to preserve order so they are handled seperate from Dict
@@ -272,7 +274,9 @@ end
 # Saving and loading dicts
 @register_serialization_type Dict
 function type_params(obj::T) where T <: Dict
-  return Dict(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+  return TypeParams(
+    map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
+  )
 end
 
 function save_type_params(s::SerializerState, obj::Dict{S, T}) where {T, S <: Union{Symbol, Int, String}}
@@ -283,7 +287,7 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {T, S <: Un
       save_object(s, encode_type(S), :key_type)
       isempty(params) && save_object(s, encode_type(T), :value_type)
       for (k, v) in params
-        save_type_params(s, typeof(obj[k]), params[k], Symbol(k))
+        save_type_params(s, typeof(obj[k]), v, Symbol(k))
       end
     end
   end
