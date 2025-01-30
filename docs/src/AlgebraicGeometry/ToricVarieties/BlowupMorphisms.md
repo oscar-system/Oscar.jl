@@ -19,10 +19,11 @@ the name for the coordinate in the Cox ring that is assigned to
 
 Given an ideal $I$ in the Cox ring of $X$, it is also possible to
 reroute to covered schemes and construct the blowup by
-`phi = blow_up(ideal_sheaf(X, I))`.
-In this case, strict transforms (and similarly total transforms) of
-ideal sheaves $J$ can be computed by `strict_transform(phi, J)`.
-This functionality is currently (30 Jan 2025) considered experimental.
+`blow_up(ideal_sheaf(X, I))`.
+Strict transforms (and similarly total transforms) of ideal sheaves $J$
+can be computed by `strict_transform(phi, J)`.
+Ideal sheaves on toric varieties are currently (30 Jan 2025) considered
+experimental.
 
 
 ## Constructors
