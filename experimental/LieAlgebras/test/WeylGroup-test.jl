@@ -136,7 +136,9 @@
     end
   end
 
-  @testset "WeylGroup parabolic subgroup test for $(Wname)" for (Wname, W, vec, check_proj) in [
+  @testset "WeylGroup parabolic subgroup test for $(Wname)" for (
+    Wname, W, vec, check_proj
+  ) in [
     ("A1", weyl_group(:A, 1), [1], true),
     ("A5", weyl_group(:A, 5), [1, 5, 3], false),
     ("B2", weyl_group(:B, 2), [2, 1], false),
@@ -145,12 +147,12 @@
     (
       "A3 with non-canonical ordering of simple roots",
       weyl_group(root_system([2 -1 -1; -1 2 0; -1 0 2])),
-      [2, 3], false
+      [2, 3], false,
     ),
     (
       "B4 with non-canonical ordering of simple roots",
       weyl_group(root_system([2 -1 -1 0; -1 2 0 -1; -2 0 2 0; 0 -1 0 2])),
-      [2, 4], false
+      [2, 4], false,
     ),
     (
       "complicated case 1",
@@ -165,7 +167,7 @@
         end
         weyl_group(cm)
       end,
-      unique(rand(1:14, 5)), false
+      unique(rand(1:14, 5)), false,
     ),
     (
       "complicated case 2",
@@ -180,12 +182,12 @@
         end
         weyl_group(root_system(cm))
       end,
-      unique(rand(1:15, 6)), false
+      unique(rand(1:15, 6)), false,
     ),
   ]
     for k in 1:4
       if k == 1
-        # In the first run, test the standard parabolics and projections
+        # On the first run, test the standard parabolics and projections
         if check_proj
           para, emb, proj = parabolic_subgroup_with_projection(W, vec)
         else

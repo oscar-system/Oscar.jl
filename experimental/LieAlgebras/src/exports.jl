@@ -40,6 +40,8 @@ export killing_matrix
 export lie_algebra
 export lower_central_series
 export matrix_repr_basis
+export parabolic_subgroup
+export parabolic_subgroup_with_projection
 export show_dynkin_diagram
 export simple_module
 export special_linear_lie_algebra
@@ -51,7 +53,3 @@ export tensor_power
 export tensor_product_decomposition
 export trivial_module
 export universal_enveloping_algebra
-
-export parabolic_subgroup
-export parabolic_subgroup_with_projection
-export map_word
