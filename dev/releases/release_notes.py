@@ -72,24 +72,33 @@ def warning(s):
 # See also <https://github.com/gap-system/gap/issues/4257>.
 prioritylist = [
     ["release notes: highlight", "Highlights"],
-    ["kind: new feature", "New features"],
-    ["topic: performance", "Performance improvements"],
-    ["kind: enhancement", "Improved and extended functionality"],
-    ["kind: removal or deprecation", "Removed or obsolete functionality"],
-    ["topic: packages", "Changes related to handling of packages"],
-    ["topic: gac", "Changes to the GAP compiler"],
-    ["topic: documentation", "Changes in the documentation"],
-    ["topic: build system", "Build system"],
-    ["topic: julia", "Changes to the **Julia** integration"],
-    ["topic: libgap", "Changes to the `libgap` interface"],
-    ["topic: HPC-GAP", "Changes to HPC-GAP"],
-    ["kind: bug: wrong result", "Fixed bugs that could lead to incorrect results"],
-    ["kind: bug: crash", "Fixed bugs that could lead to crashes"],
-    [
-        "kind: bug: unexpected error",
-        "Fixed bugs that could lead to unexpected errors",
-    ],
-    ["kind: bug", "Other fixed bugs"],
+    ["enhancement", "New features or extended functionality"],
+    ["experimental", "Only changes experimental parts of OSCAR"],
+    ["optimization", "Performance improvements or improved testing"],
+    ["package: AbstractAlgebra", "Changes related to the package AbstractAlgebra"],
+    ["package: AlgebraicSolving", "Changes related to the package AlgebraicSolving"],
+    ["package: GAP", "Changes related to the package GAP"],
+    ["package: Hecke", "Changes related to the package Hecke"],
+    ["package: Nemo", "Changes related to the package Nemo"],
+    ["package: Polymake", "Changes related to the package Polymake"],
+    ["package: Singular", "Changes related to the package Singular"],
+    ["renaming", "Items being renamed ?"],
+    ["serialization", "Changes related to serializing data in the MRDI file format ?"],
+    ["topic: algebraic geometry", "Changes related to Algebraic Geometry"],
+    ["topic: combinatorics", "Changes related to Combinatorics"],
+    ["topic: FTheoryTools","Changes related to F-Theory Tools"],
+    ["topic: groups","Changes related to Groups"],
+    ["topic: LieTheory","Changes related to Lie Theory"],
+    ["topic: number theory","Changes related to Number Theory"],
+    ["topic: polyhedral geometry","Changes related to Polyhedral Geometry"],
+    ["topic: rings","Changes related to Rings"],
+    ["topic: schemes","Changes related to Schemes"],
+    ["topic: toric schemes","Changes related to Toric Schemes"],
+    ["topic: toric varieties","Changes related to Toric Varieties"],
+    ["topic: tropical geometry","Changes related to Tropical Geometry"],
+    ["bug: crash", "Fixed bugs that could lead to crashes"],
+    ["bug", "Other fixed bugs"],
+    ["documentation", "Improvements or additions to documentation"],
 ]
 
 
@@ -173,12 +182,15 @@ which we think might affect some users directly.
 
 """
         )
-
+        totalPRs = len(prs)
+        print(f"Total number of PRs: {totalPRs}")
+        countedPRs = 0
         for priorityobject in prioritylist:
             matches = [
                 pr for pr in prs_with_use_title if has_label(pr, priorityobject[0])
             ]
             print("PRs with label '" + priorityobject[0] + "': ", len(matches))
+            countedPRs = countedPRs + len(matches)
             if len(matches) == 0:
                 continue
             relnotes_file.write("### " + priorityobject[1] + "\n\n")
@@ -186,7 +198,7 @@ which we think might affect some users directly.
                 relnotes_file.write(pr_to_md(pr))
                 prs_with_use_title.remove(pr)
             relnotes_file.write("\n")
-
+        print(f"Remaining PRs: {totalPRs - countedPRs}")
         # The remaining PRs have no "kind" or "topic" label from the priority list
         # (may have other "kind" or "topic" label outside the priority list).
         # Check their list in the release notes, and adjust labels if appropriate.
