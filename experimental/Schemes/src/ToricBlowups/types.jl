@@ -107,34 +107,6 @@ end
 
 
 
-########################################################################
-# Arithmetic for toric blowup moprhism and toric morphisms           #
-########################################################################
-
-function Base.:+(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
-  @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
-  @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
-end
-
-function Base.:-(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
-  @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
-  @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
-end
-
-function Base.:*(c::T, tm::ToricBlowupMorphism) where T <: IntegerUnion
-new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
-return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
-end
-
-Base.:+(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) + tm2
-Base.:-(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) - tm2
-Base.:+(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 + underlying_morphism(tm2)
-Base.:-(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 - underlying_morphism(tm2)
-
-
-
 ######################################################
 # Composition of toric blowups and toric morphisms #
 ######################################################
