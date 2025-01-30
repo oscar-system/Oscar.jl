@@ -90,7 +90,9 @@ function _ideal_sheaf_to_minimal_supercone_coordinates(X::AbsCoveredScheme, I::A
   # Return this when cannot convert ideal to minimal supercone coordinates
   not_possible = nothing
 
+  # X needs to be a smooth toric variety
   X isa NormalToricVarietyType || return not_possible
+
   I isa ToricIdealSheafFromCoxRingIdeal || return not_possible
   defining_ideal = ideal_in_cox_ring(I)
   all(in(gens(base_ring(defining_ideal))), gens(defining_ideal)) || return not_possible
