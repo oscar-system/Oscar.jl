@@ -38,6 +38,42 @@ function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
   return type_params(_polyhedral_object_as_dict(obj))
 end
 
+function save_type_params(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
+  save_type_params(s, typeof(obj), type_params(obj))
+end
+
+function save_type_params(s::SerializerState, obj::T) where {S, T <: PolyhedralObject{S}}
+  dict = _polyhedral_object_as_dict(obj)
+  params = type_params(obj)
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_data_dict(s, :params) do
+      for key in keys(dict)
+        save_type_params(s, typeof(dict[key]), params[key], key)
+      end
+    end
+  end
+end
+
+function load_type_params(s::DeserializerState, T::Type{<:PolyhedralObject})
+  load_node(s, :params) do obj
+    if obj isa String || haskey(s, :params)
+      U = decode_type(s)
+      params = load_type_params(s, U)[2]
+      return T{U}, params
+    else  # handle cases where type_params is a dict of params
+      params = Dict{Symbol, Any}()
+      for (k, _) in obj
+        params[k] = load_node(s, k) do _
+          U = decode_type(s)
+          load_type_params(s, U)[2]
+        end
+      end
+      return T{EmbeddedNumFieldElem}, params
+    end
+  end
+end
+
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
 end
@@ -74,7 +110,7 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = load_object(s, Dict{String, Any}, dict)
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
   if Base.issingletontype(dict["_coeff"][1])
     field = dict["_coeff"][1]()

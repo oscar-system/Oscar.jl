@@ -1,4 +1,3 @@
-
 # This type should not be exported and should be before serializers
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
                        Number, ZZRingElem, TropicalSemiringElem}
