@@ -47,6 +47,8 @@
   
   bl2 = blow_up(P2, [-1, 0])
 
+  @test grid_morphism(bl * toric_identity_morphism(codomain(bl))) == grid_morphism(bl)
+
   S = cox_ring(P2)
   J = IdealSheaf(P2, ideal(S, S[1]))
   pbJ = Oscar.total_transform(bl, J)

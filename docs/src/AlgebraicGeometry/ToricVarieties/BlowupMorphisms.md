@@ -105,12 +105,3 @@ necessarily toric, can also be computed:
 ```@docs
 total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
 ```
-
-
-## Arithmetics
-
-Toric blowups can be added, subtracted and multiplied by rational
-numbers. The results of such operations will not be toric morphisms,
-i.e. they no longer correspond to the blowup of a certain closed
-subscheme. Arithmetics among toric blowups and general toric morphisms
-is also supported, as well as equality for toric blowups.
