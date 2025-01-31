@@ -45,6 +45,7 @@ export hom
 export hyperplane_class
 export identity_map
 export l_genus
+export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
 export map
@@ -128,6 +129,7 @@ export hyperplane_class
 export intersection_matrix
 export identity_map
 export l_genus
+export lines_on_hypersurface
 export linear_subspaces_on_hypersurface
 export line_bundle
 export map
