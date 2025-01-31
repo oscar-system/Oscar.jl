@@ -152,30 +152,6 @@ end
 
 
 ####################################################
-# 4: Addition and scalar multiplication of morphisms
-####################################################
-
-function Base.:+(tm1::ToricMorphism, tm2::ToricMorphism)
-    @req domain(tm1) === domain(tm2) "The toric morphisms must have identical domains"
-    @req codomain(tm1) === codomain(tm2) "The toric morphisms must have identical codomains"
-    return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
-end
-
-
-function Base.:-(tm1::ToricMorphism, tm2::ToricMorphism)
-    @req domain(tm1) === domain(tm2) "The toric morphisms must have identical domains"
-    @req codomain(tm1) === codomain(tm2) "The toric morphisms must have identical codomains"
-    return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
-end
-
-
-function Base.:*(c::T, tm::ToricMorphism) where T <: IntegerUnion
-  new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
-  return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
-end
-
-
-####################################################
 # 5: Composition of toric morphisms
 ####################################################
 

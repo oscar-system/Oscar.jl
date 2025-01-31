@@ -16,9 +16,6 @@
   
   @testset "Arithmetic of toric morphisms" begin
     @test (tm1 == tm2) == false
-    @test (tm2 + tm2 == 2*tm2) == true
-    @test (tm2 + tm2 == ZZRingElem(2)*tm2) == true
-    @test (tm2 * tm2 == tm2) == true
   end
   
   @testset "Basic attributes of toric morphisms" begin
