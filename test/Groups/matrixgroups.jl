@@ -141,7 +141,7 @@ end
      Gap_G0 = GapObj(G0)
      @test GAP.Globals.HasNiceMonomorphism(GapObj(G0))
      iso = GAP.Globals.NiceMonomorphism(Gap_G0)
-     x = GAP.Globals.GeneratorsOfGroup(Gap_G0)[1]
+     x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
      img = GAP.Globals.ImagesRepresentative(iso, x)
      @test x == GAP.Globals.PreImagesRepresentative(iso, img)
    end

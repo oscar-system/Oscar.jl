@@ -102,12 +102,14 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
   Gap_G = GapObj(G)
   Gap_Gp = GapObj(Gp)
   if !GAP.Globals.HasNiceMonomorphism(Gap_G)
+    risoG = _ring_iso(G)
+    risoGp = _ring_iso(Gp)
 
     # map from Gap_G to Gap_Gp
-    fun = x -> GapObj(img(G(preimage_matrix(_ring_iso(G), x))))
+    fun = x -> GapObj(img(G(preimage_matrix(risoG, x); check=false)))
 
     # map from Gap_Gp to Gap_G
-    invfun = x -> GapObj(preimg(Gp(preimage_matrix(_ring_iso(Gp), x))))
+    invfun = x -> GapObj(preimg(Gp(preimage_matrix(risoGp, x); check=false)))
 
     Gap_mp = GAP.Globals.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
     GAP.Globals.SetNiceMonomorphism(Gap_G, Gap_mp)
