@@ -368,7 +368,7 @@ end
 @doc raw"""
     tropical_linear_space(G::Graph, nu::TropicalSemiringMap; weighted_polyhedral_complex_only::Bool=false)
 
-Return the Bergman fan of the graphic matroid of `G` as a tropical linear space, the tropical semiring map `nu` is used to fix the convention.  If `weighted_polyhedral_complex==true`, will not cache any extra information.
+Return the Bergman fan of the graphic matroid of `G` as a tropical linear space, the tropical semiring map `nu` is used to fix the convention.  If `weighted_polyhedral_complex_only` is true, will not cache any extra information.
 
 # Examples
 ```jldoctest
