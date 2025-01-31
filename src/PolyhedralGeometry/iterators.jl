@@ -51,7 +51,8 @@ for (T, _t) in ((:PointVector, :point_vector), (:RayVector, :ray_vector))
     _find_elem_type(po::$T) = elem_type(coefficient_field(po))
 
     function Base.similar(
-      bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}}, ::Type{<:Union{scalar_types,ZZRingElem}})
+      bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{$T}},
+      ::Type{<:Union{scalar_types,ZZRingElem}})
       e = bc.f(first.(bc.args)...)
       return $_t(parent(e), axes(bc)...)
     end
