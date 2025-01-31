@@ -220,7 +220,9 @@ end
   sff1 = star_subdivision(ff, w1)
   @test number_of_maximal_cones(sff0) == 2
   @test number_of_maximal_cones(sff1) == 3
+end
 
+@testset "Operations" begin
   f = normal_fan(cube(2))
   fMinus = -f
   @test n_rays(fMinus) == n_rays(f)
