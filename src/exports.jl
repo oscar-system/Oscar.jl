@@ -1022,6 +1022,8 @@ export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
 export laplacian_matrix
+export lattice_homomorphism
+export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
 export leading_coefficient

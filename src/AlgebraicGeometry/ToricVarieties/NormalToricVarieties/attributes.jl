@@ -652,6 +652,22 @@ Z^2
 
 
 @doc raw"""
+    lattice_of_one_parameter_subgroups(v::NormalToricVarietyType)
+
+Return the lattice of one parameter subgroups of a normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> lattice_of_one_parameter_subgroups(p2)
+Z^2
+```
+"""
+@attr FinGenAbGroup lattice_of_one_parameter_subgroups(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+
+
+@doc raw"""
     torusinvariant_weil_divisor_group(v::NormalToricVarietyType)
 
 Return the torusinvariant divisor group of a normal toric variety `v`.

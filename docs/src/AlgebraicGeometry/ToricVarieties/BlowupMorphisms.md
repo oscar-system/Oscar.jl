@@ -66,7 +66,7 @@ exceptional_prime_divisor(bl::ToricBlowupMorphism)
 ```
 Based on `underlying_morphism`, also the following attributes of toric
 morphisms are supported for toric blowups:
-- `grid_morphism(bl::ToricBlowupMorphism)`,
+- `lattice_homomorphism(bl::ToricBlowupMorphism)`,
 - `morphism_on_torusinvariant_weil_divisor_group(bl::ToricBlowupMorphism)`,
 - `morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowupMorphism)`,
 - `morphism_on_class_group(bl::ToricBlowupMorphism)`,

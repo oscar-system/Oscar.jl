@@ -89,8 +89,8 @@
   II = IdealSheaf(IP2, I)
 
   @testset "Blowups that leave the toric setting" begin
-    @test is_surjective(grid_morphism(Oscar.underlying_morphism(bl)))
-    @test is_injective(grid_morphism(Oscar.underlying_morphism(bl)))
+    @test is_surjective(lattice_homomorphism(Oscar.underlying_morphism(bl)))
+    @test is_injective(lattice_homomorphism(Oscar.underlying_morphism(bl)))
     @test length(Oscar.maximal_associated_points(pullback(bl,II))) == 3
     @test length(Oscar.maximal_associated_points(strict_transform(bl, II))) == 2
   end
