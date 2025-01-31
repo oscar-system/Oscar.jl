@@ -3,7 +3,7 @@ using ..Oscar
 
 import Base: +, -, *, ^, ==, div, zero, one, parent
 import ..Oscar: AffAlgHom, Ring, MPolyDecRingElem, symmetric_power, exterior_power, pullback, canonical_bundle, graph, euler_characteristic, pullback
-import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions
+import ..Oscar: basis, betti_numbers, chow_ring, codomain, degree, det, dim, domain, dual, gens, hilbert_polynomial, hom, integral, rank, signature, partitions, blow_up
 import ..Oscar.AbstractAlgebra: combinations
 import ..Oscar.AbstractAlgebra.Generic: FunctionalMap
 import ..Oscar: pullback, pushforward, base, OO, product, compose, identity_map, map
@@ -23,8 +23,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blowup
-export blowup_points
+export blow_up
+export blow_up_points
 export bundles
 export canonical_bundle
 export canonical_class
@@ -64,6 +64,7 @@ export tangent_bundle
 export tautological_bundles
 export tn_flag_variety
 export tn_grassmannian
+export tn_variety
 export todd_class
 export top_chern_class
 export total_chern_class
@@ -83,7 +84,7 @@ include("Misc.jl")
 
 include("Bott.jl")   # integration using Bott's formula
 include("Main.jl")   # basic constructors and functionality
-include("blowup.jl") # blowup
+include("blowup.jl") # blow_up
 include("schubert.jl") # Schubert calculus
 # include("Moduli.jl") # moduli of matrices, twisted cubics
 # include("Weyl.jl")   # weyl groups
@@ -104,8 +105,8 @@ export abstract_projective_space
 export abstract_variety
 export base
 export betti_numbers
-export blowup
-export blowup_points
+export blow_up
+export blow_up_points
 export bundles
 export canonical_bundle
 export canonical_class
@@ -146,6 +147,7 @@ export tangent_bundle
 export tautological_bundles
 export tn_flag_variety
 export tn_grassmannian
+export tn_variety
 export todd_class
 export top_chern_class
 export total_chern_class

@@ -5,6 +5,10 @@ DocTestSetup = Oscar.doctestsetup()
 
 # Abstract Bundles
 
+## Types
+
+The OSCAR type for abstract varieties is `AbstractBundle`.
+
 ## Constructors
 
 ```@docs

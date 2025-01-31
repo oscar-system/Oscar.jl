@@ -7,7 +7,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 ## Types
 
-AbsVariety <: Variety
+The OSCAR type for abstract varieties is `AbstractVariety`.
 
 ## Constructors
 
@@ -60,7 +60,7 @@ degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false
 ```
 
 !!! note
-    Products and blowups are described elsewhere.
+    Products and blow_ups are described elsewhere.
 
 ## Underlying Data of an Abstract Variety
 
@@ -161,9 +161,9 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 !!! note
-    Blowups are described in their own section.
+    Blow_Ups are described in their own section.
 
-## Integrate Chow Ring Elements
+## Integrating Chow Ring Elements
 
 ```@julia
 integral(x::Union{MPolyDecRingElem, MPolyQuoRingElem})
@@ -177,6 +177,8 @@ Given an element `x` of the Chow ring of an abstract variety `X`, say, return th
 
 ###### Examples
 
+Lines on a General Cubic Hypersurface in $\mathbb P^3$
+
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
@@ -189,5 +191,41 @@ AbstractBundle of rank 4 on AbstractVariety of dim 4
 
 julia> integral(top_chern_class(E))
 27
+
+```
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P3 = abstract_projective_space(3, base = QT)
+AbstractVariety of dim 3
+
+julia> h = gens(P3)[1]
+h
+
+julia> integral(t^2*h^3+t*h)
+t^2
+
+```
+
+Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4+4)
+AbstractVariety of dim 12
+
+julia> S = tautological_bundles(G)[1]
+AbstractBundle of rank 2 on AbstractVariety of dim 12
+
+julia> E = symmetric_power(S, 2)
+AbstractBundle of rank 3 on AbstractVariety of dim 12
+
+julia> integral(top_chern_class(E)^4)
+512
 
 ```
