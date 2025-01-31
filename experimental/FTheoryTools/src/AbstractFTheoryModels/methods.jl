@@ -157,7 +157,8 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   # Construct the new model
   if m isa GlobalTateModel
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
-      new_tate_polynomial = cox_ring_module_homomorphism(bd, tate_polynomial(m))
+      f = tate_polynomial(m)
+      new_tate_polynomial = strict_transform(bd, f)
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism
@@ -169,7 +170,8 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
-      new_weierstrass_polynomial = cox_ring_module_homomorphism(bd, weierstrass_polynomial(m))
+      f = weierstrass_polynomial(m)
+      new_weierstrass_polynomial = strict_transform(bd, f)
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
       if bd isa ToricBlowupMorphism

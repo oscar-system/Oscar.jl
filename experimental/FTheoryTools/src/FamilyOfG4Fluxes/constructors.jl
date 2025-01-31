@@ -30,6 +30,7 @@ A family of G4 fluxes:
   - Elementary quantization checks: not executed
   - Verticality checks: not executed
   - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole constraint: not analyzed
 ```
 """
 function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat::QQMatrix; check::Bool = true)
@@ -37,7 +38,7 @@ function family_of_g4_fluxes(m::AbstractFTheoryModel, mat_int::QQMatrix, mat_rat
   @req base_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Family of G4-flux currently supported only for toric ambient space"
   @req nrows(mat_int) == nrows(mat_rat) "Number of rows in both matrices must coincide"
-  n_gens = length(ambient_space_models_of_g4_fluxes(m, check = check))
+  n_gens = length(chosen_g4_flux_basis(m, check = check))
   @req nrows(mat_int) == n_gens "Number of rows in both matrices must agree with the number of ambient space models of G4-fluxes"
   return FamilyOfG4Fluxes(m, mat_int, mat_rat)
 end
@@ -98,6 +99,13 @@ function Base.show(io::IO, gf::FamilyOfG4Fluxes)
     end
   else
     push!(properties_string, "  - Non-abelian gauge group: breaking pattern not analyzed")
+  end
+
+  # Is the tadpole constrained worked out as polynomial?
+  if has_attribute(gf, :d3_tadpole_constraint)
+    push!(properties_string, "  - Tadpole constraint: evaluated")
+  else
+    push!(properties_string, "  - Tadpole constraint: not analyzed")
   end
 
   # Print each line separately, to avoid extra line break at the end

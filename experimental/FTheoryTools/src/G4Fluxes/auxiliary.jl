@@ -271,47 +271,7 @@ end
 end
 
 
-@doc raw"""
-    ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
-
-Given an F-theory model $m$ defined as hypersurface in a simplicial and
-complete toric base, we this method first computes a basis of
-$H^(2,2)(X, \mathbb{Q})$ (by use of the method `basis_of_h22` below) and then filters
-out "some" basis elements whose restriction to the hypersurface in question
-is trivial. The exact meaning of "some" is explained above this method.
-
-Note that it can be computationally very demanding to check if a toric variety
-$X$ is complete (and simplicial). The optional argument `check` can be set
-to `false` to skip these tests.
-
-# Examples
-```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
-julia> B3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> Kbar = anticanonical_divisor_class(B3)
-Divisor class on a normal toric variety
-
-julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
-Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
-
-Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
-
-julia> g4_amb_list = ambient_space_models_of_g4_fluxes(t)
-2-element Vector{CohomologyClass}:
- Cohomology class on a normal toric variety given by z^2
- Cohomology class on a normal toric variety given by y^2
-
-julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
-Hypersurface model over a concrete base
-
-julia> g4_amb_list = ambient_space_models_of_g4_fluxes(qsm_model, check = false);
-
-julia> length(g4_amb_list) == 172
-true
-```
-"""
-function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+function _ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
 
   # Entry check
   @req base_space(m) isa NormalToricVariety "Base space must be a toric variety for computation of ambient space G4 candidates"
@@ -380,3 +340,62 @@ function ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool 
   return filtered_h22_basis::Vector{CohomologyClass}
 
 end
+
+
+@doc raw"""
+    chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+
+Given an F-theory model `m` defined as a hypersurface in a simplicial and
+complete toric base, this method computes a basis of $H^{2,2}(X, \mathbb{Q})$
+(using the method `basis_of_h22`) and then filters out certain basis elements 
+whose restriction to the hypersurface in question is trivial. The criteria for 
+"certain" elements are explained in the documentation above this method.
+
+Note: Checking whether a toric variety $X$ is complete and simplicial can be
+computationally expensive. The optional argument `check` can be set to `false`
+to skip these tests.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> g4_basis = chosen_g4_flux_basis(t);
+
+julia> length(g4_basis)
+2
+
+julia> g4_basis[1]
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by z^2
+
+julia> cohomology_class(g4_basis[2])
+Cohomology class on a normal toric variety given by y^2
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
+Hypersurface model over a concrete base
+
+julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
+
+julia> cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by x15*e2
+
+julia> length(g4_basis) == 172
+true
+```
+"""
+chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in _ambient_space_models_of_g4_fluxes(m, check = check)]

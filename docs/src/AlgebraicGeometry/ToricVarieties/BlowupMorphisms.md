@@ -34,10 +34,11 @@ along which the blowup is constructed can be provided in different
 formats. We discuss the methods in ascending generality.
 
 For our most specialized blowup method, we focus on the n-th cone in the
-fan of the variety `v` in question. This cone need not be maximal. The
-ensuing star subdivision will subdivide this cone about its "diagonal"
-(the sum of all its rays). The result of this will always be a toric
-variety:
+fan of the variety `v` in question. This cone need not be a maximal cone and
+cannot be the zero-dimensional cone. The
+ensuing star subdivision will subdivide this cone about its barycenter
+(the primitive generator of the sum of all its rays). The result of this
+will always be a toric variety:
 ```@docs
 blow_up(v::NormalToricVariety, n::Int; coordinate_name::String = "e")
 ```
@@ -85,13 +86,13 @@ morphisms are supported for toric blowups:
 - `morphism_on_picard_group(bl::ToricBlowupMorphism)`.
 
 
-## Attributes
+## Methods
 
 We can compute the total and strict transforms of homogeneous ideals in Cox rings under star subdivisions along a ray.
 ```@docs
 strict_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
 strict_transform_with_index(f::ToricBlowupMorphism, I::MPolyIdeal)
-total_transform(f::ToricBlowupMorphism, I::MPolyIdeal)
+total_transform(f::ToricBlowupMorphism, I::Union{MPolyIdeal, MPolyDecRingElem})
 ```
 The above functions are implemented using a $\mathbb{C}$-module
 homomorphism between the Cox rings, considered as $\mathbb{C}$-modules,
