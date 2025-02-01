@@ -182,7 +182,7 @@ end
 ######################
 
 @doc raw"""
-    (==)(X::NormalToricVariety, Y::NormalToricVariety)
+    (==)(X::NormalToricVariety, Y::NormalToricVariety) -> Bool
 
 Checks equality of the polyhedral fans as sets of cones.
 
@@ -209,23 +209,45 @@ function Base.:(==)(X::NormalToricVariety, Y::NormalToricVariety)
   for i in 1:n_rays(X)
     rays(X)[i] == rays(Y)[p(i)] || return false
   end
-  @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
   return Set(map(r -> Set(p.(r)), rows(X))) == Set(rows(Y))
 end
 
-# @doc raw"""
-#     hash(X::NormalToricVariety, h::UInt)
-#
-# Computes a hash of a normal toric variety `X` with the property that,
-# outside of hash collisions, `X_1 == X_2` if and only if
-# `hash(X_1) == hash(X_2)`.
-# """
-function Base.hash(X::NormalToricVariety, h::UInt)
+@doc raw"""
+    _id(X::NormalToricVariety)
+    -> Tuple{Vector{Vector{QQFieldElem}}, Vector{Vector{Int64}}}
+
+Given a toric variety `X`, returns a pair `Oscar._id(X)` with the
+following property: two toric varieties `X` and `Y` have equal
+polyhedral fans, taken as sets of cones, if and only if
+`Oscar._id(X) == Oscar._id(Y)`.
+
+# Examples
+```jldoctest
+julia> H = hirzebruch_surface(NormalToricVariety, 0)
+Normal toric variety
+
+julia> P1 = projective_space(NormalToricVariety, 1)
+Normal toric variety
+
+julia> Oscar._id(H) == Oscar._id(P1 * P1)
+true
+```
+"""
+function _id(X::NormalToricVariety)
   p = inv(perm(sortperm(rays(X))))
-  @inline rows(Z) = [row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)]
-  set_of_maximal_cones = Set(map(r -> Set(p.(r)), rows(X)))
   sorted_rays = Vector.(permuted(collect(rays(X)), p))
-  return hash((sorted_rays, set_of_maximal_cones), h)
+  @inline rows(Z) = [
+    row(maximal_cones(IncidenceMatrix, Z), i) for i in 1:n_maximal_cones(Z)
+  ]
+  sorted_maximal_cones = sort(map(r -> sort(Vector(p.(r))), rows(X)))
+  return (sorted_rays, sorted_maximal_cones)
+end
+
+function Base.hash(X::NormalToricVariety, h::UInt)
+  return hash(_id(X), h)
 end
 
 ######################

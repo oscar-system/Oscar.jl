@@ -19,8 +19,11 @@ the affine and non-affine case:
 ## Equality of Normal Toric Varieties
 
 Equality `==` of normal toric varieties checks equality of the
-polyhedral fans (sets of cones). This computes the rays of both of the
-toric varieties, which can be expensive if they are not already computed.
+corresponding polyhedral fans as sets of cones.
+This computes the rays of both of the toric varieties, which can be
+expensive if they are not already computed, meaning if
+`"RAYS" in Polymake.list_properties(Oscar.pm_object(polyhedral_fan(X)))`
+is false for one of the varieties.
 Triple-equality `===` always checks equality of memory locations in OSCAR.
 
 
