@@ -17,7 +17,7 @@ This will also construct the underlying toric morphism. We can specify
 the name for the coordinate in the Cox ring that is assigned to
 `exceptional_ray` using the optional argument `coordinate_name`.
 
-Given an ideal $I$ in the Cox ring of $X$, it is also possible to
+Given a homogeneous ideal $I$ in the Cox ring of $X$, it is also possible to
 reroute to covered schemes and construct the blowup by
 `blow_up(ideal_sheaf(X, I))`.
 Strict transforms (and similarly total transforms) of ideal sheaves $J$
