@@ -62,5 +62,22 @@
     max_cones = incidence_matrix([[1, 2]])
     X = normal_toric_variety(max_cones, ray_generators)
     @test length(Set([H, P1 * P1, X])) == 2
+
+    @testset "Speed test hash (at most 0.5 seconds)" begin
+      success = false
+      ntv5 = normal_toric_variety(polarize(polyhedron(Polymake.polytope.rand_sphere(5, 60; seed=42))))
+      hash(ntv5)
+      for i in 1:5
+        stats = @timed hash(ntv5)
+        duration = stats.time - stats.gctime
+        if duration < 0.5
+          success = true
+          break
+        else
+          @warn "Hash took $duration > 0.5 seconds (i=$i)"
+        end
+      end
+      @test success == true
+    end
   end
 end
