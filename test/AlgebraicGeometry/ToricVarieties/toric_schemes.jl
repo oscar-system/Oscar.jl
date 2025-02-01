@@ -169,7 +169,11 @@ end
   II = ideal_sheaf(p231, my_ideal) 
   JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(p231, my_ideal)
   @test II == JJ
-  pr = blow_up(p231, ideal([x1, x2]))
+
+  # The coordinates below correspond to the ideal `ideal([x1, x2])`
+  coords = [1, 1, 0]
+
+  pr = blow_up_along_minimal_supercone_coordinates(p231, [1, 1, 0])
   pullback(pr, II)
   @test is_subset(total_transform(pr, II), strict_transform(pr, II))
 
