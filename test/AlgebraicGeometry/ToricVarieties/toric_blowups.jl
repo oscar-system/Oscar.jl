@@ -27,7 +27,13 @@
 
   amb = load(joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv"))
   (x1, x2, x3, x4, x, y, z) = gens(cox_ring(amb));
-  bd1 = blow_up(amb, ideal([x, y, x1]); coordinate_name = "e1")
+
+  # The coordinates below correspond to the ideal `ideal([x, y, x1]`
+  coords = [1, 0, 0, 0, 1, 1, 0]
+
+  bd1 = blow_up_along_minimal_supercone_coordinates(
+    amb, coords; coordinate_name = "e1"
+  )
   amb1 = domain(bd1)
   
   @testset "Trigger issue of PR3006" begin
@@ -66,17 +72,6 @@
     @test issubset(pbJ, pbJ_str)
     @test issubset(pbJ, ideal_sheaf(E))
     @test !issubset(pbJ_str, ideal_sheaf(E))
-  end
-
-  # Select variables corresponding to rays [1,0] and [0,1]
-  I = ideal(S, gens(S)[findall(v->v[1]>=0&&v[2]>=0, rays(P2))])
-  bl2 = blow_up(P2, I)
-  II = IdealSheaf(P2, I)
-  
-  @testset "Properties of toric blowup defined by ideal" begin
-    @test II == center_unnormalized(bl)
-    @test bl2 isa Oscar.ToricBlowupMorphism
-    @test center_unnormalized(bl2) == II
   end
 
   @testset "Toric blowups along singular cones" begin

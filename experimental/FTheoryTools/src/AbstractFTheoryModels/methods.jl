@@ -86,6 +86,25 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name)
 end
 
+function _ideal_sheaf_to_minimal_supercone_coordinates(X::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name::String = "e")
+  # Return this when cannot convert ideal to minimal supercone coordinates
+  not_possible = nothing
+
+  # X needs to be a smooth toric variety
+  X isa NormalToricVarietyType || return not_possible
+
+  I isa ToricIdealSheafFromCoxRingIdeal || return not_possible
+  defining_ideal = ideal_in_cox_ring(I)
+  all(in(gens(base_ring(defining_ideal))), gens(defining_ideal)) || return not_possible
+  R = cox_ring(X)
+  coords = zeros(QQ, n_rays(X))
+  for i in 1:n_rays(X)
+    R[i] in gens(defining_ideal) && (coords[i] = 1)
+  end
+  coords == zeros(QQ, n_rays(X)) && return not_possible
+  is_minimal_supercone_coordinate_vector(polyhedral_fan(X), coords) || return not_possible
+  return coords
+end
 
 @doc raw"""
     blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
@@ -145,7 +164,16 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   @req (base_space(m) isa FamilyOfSpaces) == false "Base space must be a concrete space for blowups to work"
 
   # Compute the new ambient_space
-  bd = blow_up(ambient_space(m), I, coordinate_name = coordinate_name)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I)
+  if !isnothing(coords)
+    # Apply toric method
+    bd = blow_up_along_minimal_supercone_coordinates(
+      ambient_space(m), coords; coordinate_name=coordinate_name
+    )
+  else
+    # Reroute to scheme theory
+    bd = blow_up(I)
+  end
   new_ambient_space = domain(bd)
 
   # Compute the new base

@@ -1,4 +1,5 @@
 # more tests are in `test/AlgebraicGeometry/Schemes/`
+# and in `/test/AlgebraicGeometry/ToricVarieties/`
 #
 @testset "Blowups in existing rays" begin
   c = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])

@@ -8,11 +8,6 @@ It is a common goal in algebraic geometry to resolve singularities.
 Certainly, toric varieties and their subvarieties are no exception and
 we provide a growing set of functionality for such tasks.
 
-In general, resolutions of toric varieties need not be toric. Indeed,
-some of the functionality below requires fully-fledge schemes machinery,
-which -- as of October 2023 -- is still in Oscar's experimental state.
-For this reason, the methods below should be considered experimental.
-
 We focus mainly on toric blowups given by a star subdivision of a
 polyhedral fan along a primitive vector, see 11.1 Star Subdivisions in
 [CLS11](@cite). Below, we refer to this primitive vector as
@@ -22,9 +17,13 @@ This will also construct the underlying toric morphism. We can specify
 the name for the coordinate in the Cox ring that is assigned to
 `exceptional_ray` using the optional argument `coordinate_name`.
 
-More generally, we can construct a blowup along a closed subscheme given
-by an ideal in the Cox ring or by an ideal sheaf of the corresponding
-covered scheme. In general, this will result in a non-toric variety.
+Given a homogeneous ideal $I$ in the Cox ring of $X$, it is also possible to
+reroute to covered schemes and construct the blowup by
+`blow_up(ideal_sheaf(X, I))`.
+Strict transforms (and similarly total transforms) of ideal sheaves $J$
+can be computed by `strict_transform(phi, J)`.
+Ideal sheaves on toric varieties are currently (30 Jan 2025) considered
+experimental.
 
 
 ## Constructors
@@ -53,18 +52,6 @@ blow_up(v::NormalToricVariety, exceptional_ray::AbstractVector{<:IntegerUnion}; 
 The ray can alternatively be given using minimal supercone coordinates:
 ```@docs
 blow_up_along_minimal_supercone_coordinates(v::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
-```
-Most generally, we encode the closed subscheme along which we blow up by
-a homogeneous ideal in the Cox ring. Such blowups are often non-toric,
-i.e. the return value of the following method could well be non-toric.
-```@docs
-blow_up(v::NormalToricVariety, I::MPolyIdeal; coordinate_name::String = "e")
-```
-Instead of providing the ideal, it is possible to turn a homogeneous
-ideal in the Cox ring into an ideal sheaf. Consequently, we also provide
-the support for the following method.
-```@docs
-blow_up(m::NormalToricVariety, I::ToricIdealSheafFromCoxRingIdeal; coordinate_name::String = "e")
 ```
 
 
@@ -99,11 +86,6 @@ homomorphism between the Cox rings, considered as $\mathbb{C}$-modules,
 that takes homogeneous ideals to homogeneous ideals:
 ```@docs
 cox_ring_module_homomorphism
-```
-The total and strict transforms of ideal sheaves under blowups, not
-necessarily toric, can also be computed:
-```@docs
-total_transform(f::AbsSimpleBlowupMorphism, II::AbsIdealSheaf)
 ```
 
 
