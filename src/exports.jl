@@ -671,7 +671,6 @@ export graph
 export graph_from_adjacency_matrix
 export graph_from_edges
 export grassmann_pluecker_ideal
-export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
