@@ -168,7 +168,7 @@ let pushforward = IntersectionTheory.pushforward
 
     # Grassmannian: TnVariety version
     G = tn_grassmannian(2, 4)
-    S, Q = bundles(G)
+    S, Q = tautological_bundles(G)
     @test G isa TnVariety
     @test S isa TnBundle
     @test rank(tangent_bundle(G)) == 4
@@ -187,9 +187,9 @@ let pushforward = IntersectionTheory.pushforward
 
     # flag abstract_variety: TnVariety version
     F = tn_flag_variety([1, 2, 3])
-    A, B, C = bundles(F)
+    A, B, C = tautological_bundles(F)
     @test dim(F) == 3
-    @test rank.(bundles(F)) == [1, 1, 1]
+    @test rank.(tautological_bundles(F)) == [1, 1, 1]
     #@test euler_number(F) == 6
 
     # projective bundle
