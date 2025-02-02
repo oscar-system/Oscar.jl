@@ -87,11 +87,84 @@ Return an abstract_variety with a torus action, represented by the fixed points.
 """
 tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}}) where P
 
+@doc raw"""
+     dim(X::TnVariety)
+
+Return the dimension of `X`.
+
+# Examples
+```jldoctest
+julia> G = tn_grassmannian(2, 5);
+
+julia> dim(G)
+6
+
+```
+"""
+dim(X::TnVariety) = X.dim
+
+@doc raw"""
+     fix_points(X::TnVariety)
+
+Return the fix points representing `X`.
+
+# Examples
+```jldoctest
+julia> G = tn_grassmannian(2, 5);
+
+julia> fix_points(G)
+10-element Vector{Pair{Vector{Int64}, Int64}}:
+ [1, 2] => 1
+ [1, 3] => 1
+ [2, 3] => 1
+ [1, 4] => 1
+ [2, 4] => 1
+ [3, 4] => 1
+ [1, 5] => 1
+ [2, 5] => 1
+ [3, 5] => 1
+ [4, 5] => 1
+
+```
+"""
+fix_points(X::TnVariety) = X.points
+
+@doc raw"""
+     tangent_bundle(X::TnVariety)
+
+Return the tangent bundle of `X`.
+
+# Examples
+```jldoctest
+julia> G = tn_grassmannian(2, 5);
+
+julia> tangent_bundle(G)
+TnBundle of rank 6 on TnVariety of dim 6
+
+```
+"""
+tangent_bundle(X::TnVariety) = X.T
+
+@doc raw"""
+     fix_points(X::TnVariety)
+
+Return the fix points representing `X`.
+
+# Examples
+```jldoctest
+julia> G = tn_grassmannian(2, 5);
+
+julia> tautological_bundles(G)
+2-element Vector{TnBundle}:
+ TnBundle of rank 2 on TnVariety of dim 6
+ TnBundle of rank 3 on TnVariety of dim 6
+
+```
+"""
+tautological_bundles(X::TnVariety) = X.bundles  ### CHECK bundles( --> tautological_bundles(
 
 euler(X::TnVariety) = sum(1//ZZ(e) for (p,e) in X.points) # special case of Bott's formula
-tangent_bundle(X::TnVariety) = X.T
 cotangent_bundle(X::TnVariety) = dual(X.T)
-bundles(X::TnVariety) = X.bundles
 trivial_line_bundle(X::TnVariety) = TnBundle(X, 1, p -> TnRep([0]))
 
 dual(F::TnBundle) = TnBundle(F.parent, F.rank, p -> dual(F.loc(p)))

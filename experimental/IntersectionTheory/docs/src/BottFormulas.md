@@ -9,7 +9,7 @@ DocTestSetup = Oscar.doctestsetup()
 
 ### Types
 
-`TnVariety`
+The OSCAR type for abstract varieties with a torus action is `TnVariety`.
 
 ### Constructors
 
@@ -29,24 +29,33 @@ tn_flag_variety(dims::Int...; weights = :int)
 
 ### Underlying Data of an Abstract Variety With a Torus Action
 
-`dimension(X::TnVariety)`
-`points(X::TnVariety)`
-`tangent_bundle(X::TnVariety)`
-`bundles(X::TnVariety)`
+
+```@docs
+dim(X::TnVariety)
+```
+
+```@docs
+fix_points(X::TnVariety)
+```
+
+```@docs
+tangent_bundle(X::TnVariety)
+```
+
+```@docs
+tautological_bundles(X::TnVariety)
+```
 
 ### Further Data Associated to an Abstract Variety With a Torus Action
 
-!!! note
-    If `X` is of type `TnVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
-    Similarly for entering `chern_class(X, k)`,
-	
 `trivial_line_bundle(X::TnVariety)`
-`euler_number(X::TnVariety)`
 `cotangent_bundle(X::TnVariety)`
 `euler_number(X::TnVariety)`
 
-`total_chern_class(X::TnVariety)`
-`chern(k::Int, X::TnVariety)`
+!!! note
+    If `X` is of type `TnVariety`, entering `total_chern_class(X)` returns the total Chern class of the tangent bundle of `X`.
+    Similarly for entering `chern_class(X, k)`.
+	
 
 ## Equivariant Abstract Bundles Under a Torus Action
 

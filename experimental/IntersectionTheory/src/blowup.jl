@@ -8,10 +8,10 @@ end
 @doc raw"""
       blow_up(i::AbstractVarietyMap; symbol::String="e")
 
-Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow_up of `Y` along `X`.
+Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
 
 More precisely, return a tuple `(Bl, E, j)`, say, where
-- `Bl`, an abstract variety, is the blow_up,
+- `Bl`, an abstract variety, is the blow-up,
 - `E`, an abstract variety, is the exceptional divisor, and
 - `j`, a map of abstract varieties, is the inclusion of `E` into `Bl`.
 
@@ -220,7 +220,7 @@ function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   Bl.T.chern = simplify(f.pullback(total_chern_class(X.T)) + j.pushforward(g.pullback(total_chern_class(Z.T)) * α))
   set_attribute!(E, :projections => [j, g])
   set_attribute!(Bl, :exceptional_divisor => E)
-  set_attribute!(Bl, :description => "Blow_Up of $X with center $Z")
+  set_attribute!(Bl, :description => "Blow-Up of $X with center $Z")
   if get_attribute(Z, :alg) == true && get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
@@ -231,7 +231,7 @@ end
 @doc raw"""
     function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
 
-Return the blow_up of `X` at `n` points.
+Return the blow-up of `X` at `n` points.
 
 # Examples
 ```jldoctest

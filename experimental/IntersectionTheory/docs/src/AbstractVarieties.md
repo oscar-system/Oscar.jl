@@ -60,7 +60,7 @@ degeneracy_locus(F::AbstractBundle, G::AbstractBundle, k::Int; class::Bool=false
 ```
 
 !!! note
-    Products and blow_ups are described elsewhere.
+    Products and blow-ups are described elsewhere.
 
 ## Underlying Data of an Abstract Variety
 
@@ -161,7 +161,7 @@ product(X::AbstractVariety, Y::AbstractVariety)
 ```
 
 !!! note
-    Blow_Ups are described in their own section.
+    Blow-Ups are described in their own section.
 
 ## Integrating Chow Ring Elements
 
