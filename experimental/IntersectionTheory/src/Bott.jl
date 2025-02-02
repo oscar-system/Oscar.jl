@@ -206,7 +206,7 @@ Base.show(io::IO, c::TnBundleChern) = print(io, "Chern class $(c.c) of $(c.F)")
 function _get_ring(F::TnBundle)
   if get_attribute(F, :R) === nothing
     r = min(F.parent.dim, F.rank)
-    R, _ = graded_polynomial_ring(QQ, _parse_symbol("c", 1:r), collect(1:r))
+    R, _ = graded_polynomial_ring(QQ, :c => 1:r, collect(1:r))
     set_attribute!(R, :abstract_variety_dim => F.parent.dim)
     set_attribute!(F, :R => R)
   end
@@ -250,7 +250,7 @@ end
 
 function _parse_weight(n::Int, w)
   w == :int && return ZZ.(collect(1:n))
-  w == :poly && return polynomial_ring(QQ, ["u$i" for i in 1:n])[2]
+  w == :poly && return polynomial_ring(QQ, "u#" => 1:n)[2]
   if (w isa AbstractUnitRange) w = collect(w) end
   w isa Vector && length(w) == n && return w
   error("incorrect specification for weights")
@@ -287,7 +287,7 @@ end
 function tn_flag_variety(dims::Vector{Int}; weights = :int)
   n, l = dims[end], length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
-  @assert all(r->r>0, ranks)
+  @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   function enum(i::Int, rest::Vector{Int})
     i == l && return [[rest]]
