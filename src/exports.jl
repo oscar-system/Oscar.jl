@@ -181,6 +181,7 @@ export SubQuoHom
 export SubdivisionOfPoints, subdivision_of_points
 export SubquoModule
 export SubquoModuleElem
+export ToricBlowupMorphism
 export ToricDivisor
 export ToricDivisorClass
 export ToricLineBundle
