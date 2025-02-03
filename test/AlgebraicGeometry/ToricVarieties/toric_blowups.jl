@@ -45,8 +45,8 @@
   bl = blow_up(P2, [1, 1])
   
   @testset "Basic tests for simple toric blowup" begin
-    @test torsion_free_rank(domain(grid_morphism(bl))) == 2
-    @test torsion_free_rank(codomain(grid_morphism(bl))) == 2
+    @test torsion_free_rank(domain(lattice_homomorphism(bl))) == 2
+    @test torsion_free_rank(codomain(lattice_homomorphism(bl))) == 2
     @test rank(matrix(morphism_on_torusinvariant_weil_divisor_group(bl))) == 3
     @test matrix(morphism_on_torusinvariant_cartier_divisor_group(bl)) == matrix(morphism_on_torusinvariant_weil_divisor_group(bl))
   end
@@ -54,9 +54,9 @@
   bl2 = blow_up(P2, [-1, 0])
 
   @testset "Arithmetics, comparison and composition" begin
-    @test grid_morphism(bl + bl) == grid_morphism(2 * bl)
-    @test grid_morphism(bl - bl) == grid_morphism(0 * bl)
-    @test grid_morphism(bl * toric_identity_morphism(codomain(bl))) == grid_morphism(bl)
+    @test lattice_homomorphism(bl + bl) == lattice_homomorphism(2 * bl)
+    @test lattice_homomorphism(bl - bl) == lattice_homomorphism(0 * bl)
+    @test lattice_homomorphism(bl * toric_identity_morphism(codomain(bl))) == lattice_homomorphism(bl)
     @test bl !== bl2
   end
 
