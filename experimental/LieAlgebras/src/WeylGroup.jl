@@ -404,7 +404,7 @@ function parabolic_subgroup_with_projection(
   factor, emb = parabolic_subgroup(W, vec)
   # Generators of W are mapped to the corresponding generators of factor,
   # or to 1 if there is no corresponding generator
-  proj_gen_imgs = [one(factor) for _ in 1:number_of_generators(W)]
+  proj_gen_imgs = fill(one(factor), ngens(W))
   for i in 1:length(vec)
     proj_gen_imgs[vec[i]] = gen(factor, i)
   end
