@@ -394,7 +394,7 @@ function parabolic_subgroup_with_projection(
     for i in vec
       for j in setdiff(1:number_of_generators(W), vec)
         @req is_zero_entry(cm, i, j) begin
-          "Input vector does not describe a factor of the Weyl group, so there is no projection homomorphism"
+          "Input vector must describe a direct factor of the Weyl group"
         end
       end
     end
