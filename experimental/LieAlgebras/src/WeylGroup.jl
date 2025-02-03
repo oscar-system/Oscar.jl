@@ -392,8 +392,8 @@ function parabolic_subgroup_with_projection(
     # Check that every generator in gens(W)[vec] commutes with every other generator.
     # In other words, vec describes a union of irreducible components of the Coxeter diagram.
     cm = cartan_matrix(root_system(W))
-    for i in vec
-      for j in setdiff(1:number_of_generators(W), vec)
+    for i in setdiff(1:number_of_generators(W), vec)
+      for j in vec
         @req is_zero_entry(cm, i, j) begin
           "Input vector must describe a direct factor of the Weyl group"
         end
