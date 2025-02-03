@@ -6,12 +6,12 @@ function _parse_symbol(symbol::String, n::Int, I::UnitRange)
 end
 ######################################
 @doc raw"""
-      blowup(i::AbstractVarietyMap; symbol::String="e")
+      blow_up(i::AbstractVarietyMap; symbol::String="e")
 
-Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blowup of `Y` along `X`.
+Given an inclusion `i`$ : $ `X` $\rightarrow$ `Y`, say, return the blow-up of `Y` along `X`.
 
 More precisely, return a tuple `(Bl, E, j)`, say, where
-- `Bl`, an abstract variety, is the blowup,
+- `Bl`, an abstract variety, is the blow-up,
 - `E`, an abstract variety, is the exceptional divisor, and
 - `j`, a map of abstract varieties, is the inclusion of `E` into `Bl`.
 
@@ -37,7 +37,7 @@ julia> k, l = gens(P2xP2)
 julia> Se = map(P2xP2, P8, [k+l])
 AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 8
 
-julia> Bl, E, j = blowup(Se)
+julia> Bl, E, j = blow_up(Se)
 (AbstractVariety of dim 8, AbstractVariety of dim 7, AbstractVarietyMap from AbstractVariety of dim 7 to AbstractVariety of dim 8)
 
 julia> betti_numbers(Bl)
@@ -72,7 +72,7 @@ H
 julia> i = map(P2, P5, [2*h])
 AbstractVarietyMap from AbstractVariety of dim 2 to AbstractVariety of dim 5
 
-julia> Bl, E, j = blowup(i)
+julia> Bl, E, j = blow_up(i)
 (AbstractVariety of dim 5, AbstractVariety of dim 4, AbstractVarietyMap from AbstractVariety of dim 4 to AbstractVariety of dim 5)
 
 julia> e, HBl = gens(chow_ring(Bl))
@@ -85,7 +85,7 @@ julia> integral((6*HBl-2*e)^5)
 
 ```
 """
-function blowup(i::AbstractVarietyMap; symbol::String = "e")
+function blow_up(i::AbstractVarietyMap; symbol::String = "e")
   # use construction via generators and relations as in Eisenbud-Harris, Section 13.6
   #  E ---j---> Bl
   #  |          |
@@ -220,7 +220,7 @@ function blowup(i::AbstractVarietyMap; symbol::String = "e")
   Bl.T.chern = simplify(f.pullback(total_chern_class(X.T)) + j.pushforward(g.pullback(total_chern_class(Z.T)) * α))
   set_attribute!(E, :projections => [j, g])
   set_attribute!(Bl, :exceptional_divisor => E)
-  set_attribute!(Bl, :description => "Blowup of $X with center $Z")
+  set_attribute!(Bl, :description => "Blow-Up of $X with center $Z")
   if get_attribute(Z, :alg) == true && get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
   end
@@ -229,16 +229,16 @@ end
 
 
 @doc raw"""
-    function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
+    function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
 
-Return the blowup of `X` at `n` points.
+Return the blow-up of `X` at `n` points.
 
 # Examples
 ```jldoctest
 julia> P2 = abstract_projective_space(2)
 AbstractVariety of dim 2
 
-julia> Bl = blowup_points(P2, 1)
+julia> Bl = blow_up_points(P2, 1)
 AbstractVariety of dim 2
 
 julia> chow_ring(Bl)
@@ -250,7 +250,7 @@ Quotient
 
 ```
 """
-function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
+function blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
   SED = symbol # SED = "e"
   if n == 1
     symbs = [SED]
@@ -260,9 +260,9 @@ function blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
   Bl = X
   P = abstract_point(base = X.base)
   for i in 1:n
-    Bl = blowup(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
+    Bl = blow_up(map(P, Bl, [zero(P.ring) for j = 1:i]), symbol=symbs[i])[1]
   end
-  set_attribute!(Bl, :description => "Blowup of $X at $n points")
+  set_attribute!(Bl, :description => "Blow_Up of $X at $n points")
   Bl.struct_map = map(Bl, X)
   if get_attribute(X, :alg) == true
     set_attribute!(Bl, :alg => true)
