@@ -94,7 +94,29 @@ function _isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 
                                   GapObj(gen))
   end
 
-  return Gp, MapFromFunc(G, Gp, img, preimg)
+  has_order(Gp) && set_order(G, order(Gp))
+
+  mp = MapFromFunc(G, Gp, img, preimg)
+
+  # try to improve `GapObj(G)`
+  Gap_G = GapObj(G)
+  Gap_Gp = GapObj(Gp)
+  if !GAP.Globals.HasNiceMonomorphism(Gap_G)
+    risoG = _ring_iso(G)
+    risoGp = _ring_iso(Gp)
+
+    # map from Gap_G to Gap_Gp
+    fun = x -> GapObj(img(G(preimage_matrix(risoG, x); check=false)))
+
+    # map from Gap_Gp to Gap_G
+    invfun = x -> GapObj(preimg(Gp(preimage_matrix(risoGp, x); check=false)))
+
+    Gap_mp = GAP.Globals.GroupHomomorphismByFunction(Gap_G, Gap_Gp, fun, invfun)
+    GAP.Globals.SetNiceMonomorphism(Gap_G, Gap_mp)
+    GAP.Globals.SetIsHandledByNiceMonomorphism(Gap_G, true)
+  end
+
+  return Gp, mp
 end
 
 function isomorphic_group_over_finite_field(G::MatrixGroup{T}; min_char::Int = 3) where T <: Union{ZZRingElem, QQFieldElem, AbsSimpleNumFieldElem}
