@@ -187,7 +187,7 @@ end
   end
   ```
   or
-  ```
+  ```julia
   fl && return bla
   ```
   is fine. The following is not:
