@@ -735,10 +735,10 @@ automorphism_group(L::ZZLat, v::Vector{QQFieldElem}) = isometry_group(L, matrix(
     automorphism_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
 
 Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
-This requires that the orthogonal group of the orthogonal complement ``K``
-of ``v`` in ``L`` is definite.
 
-First computes the orthogonal group of ``K`` and then its subgroup
+This requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
+
+First computes the orthogonal group of ``K`` and then its subgroup 
 consisting of isometries extending to ``L``.
 """
 function automorphism_group(L::ZZLat, v::QQMatrix; kwargs...)
@@ -750,8 +750,8 @@ function automorphism_group(L::ZZLat, v::QQMatrix; kwargs...)
 end
 
 orthogonal_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
+
 isometry_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
-orthogonal_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
 
 """
     _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}

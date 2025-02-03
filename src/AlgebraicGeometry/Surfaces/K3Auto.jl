@@ -1838,7 +1838,7 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   # another example
   S = integer_lattice(gram=gram_matrix(S))
   L, S, iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
-  weyl =  borcherds_method_preprocessing(L, S; ample)
+  weyl, u =  borcherds_method_preprocessing(L, S; ample)
   return L, S, weyl
 end
 
@@ -1853,8 +1853,8 @@ function find_hyperbolic_plane(L::ZZLat)
   u = u2*u1
   @assert g2 == u*G*transpose(u)
   B = u*basis_matrix(L)
-  B = vcat(B[1,:],B[end,:]-B[1,:])
-  if inner_product(V,B,B) != QQ[0 1; 1 -2]
+  B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
+  if inner_product(V, B, B) != QQ[0 1; 1 -2]
     b, v = Hecke._isisotropic_with_vector(G)
     @assert b
     v = matrix(QQ, 1, degree(L), v)
@@ -1896,7 +1896,7 @@ function borcherds_method_preprocessing(L::ZZLat, S::ZZLat; ample=nothing)
 
 
   weyl2 = change_base_ring(ZZ, solve(basis_matrix(L), weyl1; side = :left))
-  u2 = change_base_ring(ZZ, solve(basis_matrix(L), u); side = :left)
+  u2 = change_base_ring(ZZ, solve(basis_matrix(L), u; side = :left))
   return weyl2, u2
 end
 
