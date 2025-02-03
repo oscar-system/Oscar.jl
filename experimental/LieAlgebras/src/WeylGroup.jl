@@ -272,8 +272,9 @@ If `w` is trivial, `init` is nothing and `genimgs` is empty, an error occurs.
 
 See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref),
 [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
-Note that `map_word(::WeylGroupElem)` accepts but ignores the `genimgs_inv` keyword argument
-because the generators of a Weyl group are always self-inverse.
+Note that `map_word(::WeylGroupElem)` accepts the `genimgs_inv` keyword argument
+for consistency with other `map_word` methods, but ignores it because the
+generators of a Weyl group are always self-inverse.
 
 # Examples
 ```jldoctest
