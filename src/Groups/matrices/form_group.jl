@@ -729,6 +729,30 @@ function isometry_group(L::ZZLat; algorithm = :direct, depth::Int = -1, bacher_d
   end::MatrixGroup{QQFieldElem, QQMatrix}
 end
 
+automorphism_group(L::ZZLat, v::Vector{QQFieldElem}) = isometry_group(L, matrix(QQ,1,degree(L),v))
+
+"""
+    automorphism_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
+
+Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
+This requires that the orthogonal group of the orthogonal complement ``K``
+of ``v`` in ``L`` is definite.
+
+First computes the orthogonal group of ``K`` and then its subgroup
+consisting of isometries extending to ``L``.
+"""
+function automorphism_group(L::ZZLat, v::QQMatrix; kwargs...)
+  V = lattice(ambient_space(L),v)
+  K = orthogonal_submodule(L, V)
+  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
+  OK = orthogonal_group(K; kwargs...)
+  return stabilizer(OK, L, on_lattices)[1]
+end
+
+orthogonal_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
+isometry_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
+orthogonal_group(L::ZZLat, v; kwargs...) = automorphism_group(L::ZZLat, v; kwargs...)
+
 """
     _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
