@@ -35,7 +35,7 @@ dim(X::TnVariety)
 ```
 
 ```@docs
-fix_points(X::TnVariety)
+fixed_points(X::TnVariety)
 ```
 
 ```@docs

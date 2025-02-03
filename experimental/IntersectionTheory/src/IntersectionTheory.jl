@@ -40,7 +40,7 @@ export degeneracy_locus
 export dual_basis
 export euler_number
 export euler_pairing
-export fix_points
+export fixed_points
 export graph
 export hom
 export hyperplane_class
@@ -124,7 +124,7 @@ export degeneracy_locus
 export dual_basis
 export euler_number
 export euler_pairing
-export fix_points
+export fixed_points
 export graph
 export hom
 export hyperplane_class

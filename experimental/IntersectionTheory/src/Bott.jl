@@ -104,15 +104,15 @@ julia> dim(G)
 dim(X::TnVariety) = X.dim
 
 @doc raw"""
-     fix_points(X::TnVariety)
+     fixed_points(X::TnVariety)
 
-Return the fix points representing `X`.
+Return the fixed points representing `X`.
 
 # Examples
 ```jldoctest
 julia> G = tn_grassmannian(2, 5);
 
-julia> fix_points(G)
+julia> fixed_points(G)
 10-element Vector{Pair{Vector{Int64}, Int64}}:
  [1, 2] => 1
  [1, 3] => 1
@@ -127,7 +127,7 @@ julia> fix_points(G)
 
 ```
 """
-fix_points(X::TnVariety) = X.points
+fixed_points(X::TnVariety) = X.points
 
 @doc raw"""
      tangent_bundle(X::TnVariety)
@@ -146,9 +146,9 @@ TnBundle of rank 6 on TnVariety of dim 6
 tangent_bundle(X::TnVariety) = X.T
 
 @doc raw"""
-     fix_points(X::TnVariety)
+     tautological_bundles(X::TnVariety)
 
-Return the fix points representing `X`.
+If `X` has been given tautological bundles, return these bundles.
 
 # Examples
 ```jldoctest
