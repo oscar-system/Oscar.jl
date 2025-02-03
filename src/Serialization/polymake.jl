@@ -123,7 +123,11 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
     else
       try
         obj = _pmdata_for_oscar(p, coeff)
-        data[Symbol(pname)] = obj
+        if haskey(obj, :_coeff)
+          data[Symbol(pname)] = obj
+        else
+          data[Symbol(pname)] = p
+        end
       catch e
         if e isa MethodError
           @debug "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"
@@ -144,7 +148,7 @@ end
 function _polyhedral_object_as_dict(x::Oscar.PolyhedralObjectUnion)
   bo = Oscar.pm_object(x)
   data = _bigobject_to_dict(bo, coefficient_field(x))
-  data[:_type] = Polymake.bigobject_qualifiedname(bo)
+  data[:_polymake_type] = Polymake.bigobject_qualifiedname(bo)
   data[:_coeff] = coefficient_field(x)
   return data
 end
@@ -181,7 +185,7 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
 end
 
 function _dict_to_bigobject(dict::Dict{String, Any})
-  obj = Polymake.BigObject(Polymake.BigObjectType(dict["_type"]))
+  obj = Polymake.BigObject(Polymake.BigObjectType(dict["_polymake_type"]))
   _load_bigobject_from_dict!(obj, dict)
   return obj
 end

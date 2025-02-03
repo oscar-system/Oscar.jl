@@ -57,19 +57,20 @@ end
 
 function load_type_params(s::DeserializerState, T::Type{<:PolyhedralObject})
   load_node(s, :params) do obj
-    if obj isa String || haskey(s, :params)
+    if !haskey(s, :_coeff)
       U = decode_type(s)
       params = load_type_params(s, U)[2]
-      return T{U}, params
+      return T{elem_type(U)}, params
     else  # handle cases where type_params is a dict of params
       params = Dict{Symbol, Any}()
       for (k, _) in obj
         params[k] = load_node(s, k) do _
           U = decode_type(s)
-          load_type_params(s, U)[2]
+          # needs tuple (type, params)
+          load_type_params(s, U)
         end
       end
-      return T{EmbeddedNumFieldElem}, params
+      return T, params
     end
   end
 end
@@ -97,26 +98,34 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
-  polymake_dict = load_object(s, Dict{String, Any}, dict)
-  bigobject = _dict_to_bigobject(polymake_dict)
-  
-  if Base.issingletontype(dict["_coeff"][1])
-    field = dict["_coeff"][1]()
-  else
-    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  polymake_dict = Dict{String, Any}()
+
+  for (k, v) in dict
+    if Base.issingletontype(v[1])
+      polymake_dict[String(k)] = v[1]()
+    else
+      polymake_dict[String(k)] = load_object(s, v..., k)
+    end
   end
+  bigobject = _dict_to_bigobject(polymake_dict)
+  field = polymake_dict["_coeff"]
+
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
-  bigobject = _dict_to_bigobject(polymake_dict)
-  if Base.issingletontype(dict["_coeff"][1])
-    field = dict["_coeff"][1]()
-  else
-    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
+  polymake_dict = Dict{String, Any}()
+
+  for (k, v) in dict
+    if Base.issingletontype(v[1])
+      polymake_dict[String(k)] = v[1]()
+    else
+      polymake_dict[String(k)] = load_object(s, v..., k)
+    end
   end
+  bigobject = _dict_to_bigobject(polymake_dict)
+  field = polymake_dict["_coeff"]
 
   return T(bigobject, field)
 end
