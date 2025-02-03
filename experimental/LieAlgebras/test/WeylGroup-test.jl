@@ -196,9 +196,9 @@
         genimgs = [gen(W, i) for i in vec] # Desired images of gens(para) in W
       else
         # On subsequent runs, conjugate by random elements
-        conj = rand(W)
-        para, emb = parabolic_subgroup(W, vec, conj)
-        genimgs = [inv(conj) * gen(W, vec[i]) * conj for i in 1:length(vec)]
+        r = rand(W)
+        para, emb = parabolic_subgroup(W, vec, r)
+        genimgs = [conj(W[i], r) for i in vec]
       end
       # Test that emb maps gens(para) to genimgs
       for i in 1:length(vec)
