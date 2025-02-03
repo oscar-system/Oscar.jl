@@ -347,7 +347,7 @@ function parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupEl
   @req all(i -> 1 <= i <= number_of_generators(W), vec) "Invalid indices"
   cm = cartan_matrix(root_system(W))[vec, vec]
   para = weyl_group(cm)
-  genimgs = map(x -> inv(w) * x * w, gens(W)[vec])
+  genimgs = [conj(W[i], w) for i in vec]
   emb = function (u::WeylGroupElem)
     return map_word(u, genimgs)
   end
