@@ -25,7 +25,6 @@ export base
 export betti_numbers
 export blow_up
 export blow_up_points
-export bundles
 export canonical_bundle
 export canonical_class
 export chern_character
@@ -109,7 +108,6 @@ export base
 export betti_numbers
 export blow_up
 export blow_up_points
-export bundles
 export canonical_bundle
 export canonical_class
 export chern_character
