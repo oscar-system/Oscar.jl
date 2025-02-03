@@ -1329,12 +1329,10 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   @assert X.base == Y.base
   base = X.base
   A, B = X.ring, Y.ring
-  symsA, symsB = string.(gens(A)), string.(gens(B))
-  a = length(symsA)
-  R, x = graded_polynomial_ring(base, vcat(symsA, symsB), vcat(gradings(A), gradings(B)))
+  R, x, y = graded_polynomial_ring(base, symbols(A), symbols(B); weights = vcat(gradings(A), gradings(B)))
   # TODO: fails with check = true
-  AtoR = hom(A, R, x[1:a], check = false)
-  BtoR = hom(B, R, x[a+1:end], check = false)
+  AtoR = hom(A, R, x, check = false)
+  BtoR = hom(B, R, y, check = false)
   IA = ideal(A isa MPolyQuoRing ? AtoR.(A.(gens(A.I))) : [R()])
   IB = ideal(B isa MPolyQuoRing ? BtoR.(B.(gens(B.I))) : [R()])
   AXY, _ = quo(R, IA + IB)
@@ -1342,8 +1340,8 @@ function product(X::AbstractVariety, Y::AbstractVariety)
   if isdefined(X, :point) && isdefined(Y, :point)
     XY.point = XY(AtoR(X.point) * BtoR(Y.point))
   end
-  p = AbstractVarietyMap(XY, X, XY.(x[1:a]))
-  q = AbstractVarietyMap(XY, Y, XY.(x[a+1:end]))
+  p = AbstractVarietyMap(XY, X, XY.(x))
+  q = AbstractVarietyMap(XY, Y, XY.(y))
   if isdefined(X, :T) && isdefined(Y, :T)
     XY.T = pullback(p, X.T) + pullback(q, Y.T)
   end
@@ -1936,7 +1934,7 @@ for (g,s) in [:a_hat_genus=>"p", :l_genus=>"p", :todd_class=>"c"]
   _g = Symbol("_", g)
   @eval function $g(n::Int)
     n == 0 && return QQ(1)
-    R, p = graded_polynomial_ring(QQ, _parse_symbol($s, 1:n), collect(1:n))
+    R, p = graded_polynomial_ring(QQ, $s => 1:n; weights = 1:n)
     set_attribute!(R, :abstract_variety_dim, n)
     $_g(_logg(R(1+sum(p))))[n]
   end
@@ -2339,12 +2337,11 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   X, r = F.parent, F.rank
   !(r isa Int) && error("expect rank to be an integer")
   R = X.ring
-  syms = vcat([symbol], string.(gens(R)))
  
   # construct the ring
   
   w = vcat([1], gradings(R))
-  R1, (z,) = graded_polynomial_ring(X.base, syms, w)
+  R1, (z,) = graded_polynomial_ring(X.base, [symbol], symbols(R); weights = w)
   if R isa MPolyQuoRing
     PR = base_ring(R)
   else
@@ -2456,7 +2453,7 @@ true
 function abstract_grassmannian(k::Int, n::Int; base::Ring = QQ, symbol::String = "c")
   @assert k < n 
   d = k*(n-k)
-  R, c = graded_polynomial_ring(base, _parse_symbol(symbol, 1:k), collect(1:k))
+  R, c = graded_polynomial_ring(base, symbol => 1:k; weights = 1:k)
   inv_c = sum((-sum(c))^i for i in 1:n) # this is c(Q) since c(S)⋅c(Q) = 1
   # Q is of rank n-k: the vanishing of Chern classes in higher degrees provides all the relations for the Chow ring
   AGr = quo(R, ideal(inv_c[n-k+1:n]))[1]
@@ -2523,7 +2520,7 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
   # FIXME ordering
   # ord = prod(ordering_dp(r) for r in ranks)
-  R = graded_polynomial_ring(base, syms, vcat([collect(1:r) for r in ranks]...))[1]
+  R = graded_polynomial_ring(base, syms, vcat([1:r for r in ranks]...))[1]
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
@@ -2625,8 +2622,8 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   else
     PR = R
   end
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(gens(PR)))
-  w = vcat([collect(1:r) for r in ranks]..., gradings(R))
+  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(symbols(PR)))
+  w = vcat([1:r for r in ranks]..., gradings(R))
   R1 = graded_polynomial_ring(X.base, syms, w)[1]
   pback = hom(PR, R1, gens(R1)[n+1:end])
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
@@ -2671,4 +2668,15 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
      set_attribute!(Fl, :grassmannian => :relative)
   end
   return Fl
+end
+
+###############################################################################
+#
+#
+function _parse_symbol(symbol::String, I::AbstractUnitRange)
+  return ["$symbol[$i]" for i in I]
+end
+
+function _parse_symbol(symbol::String, n::Int, I::AbstractUnitRange)
+  return ["$symbol[$n, $i]" for i in I]
 end
