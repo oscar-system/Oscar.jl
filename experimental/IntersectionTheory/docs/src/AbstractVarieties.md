@@ -177,8 +177,6 @@ Given an element `x` of the Chow ring of an abstract variety `X`, say, return th
 
 ###### Examples
 
-Lines on a General Cubic Hypersurface in $\mathbb P^3$
-
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
@@ -188,6 +186,8 @@ AbstractBundle of rank 2 on AbstractVariety of dim 4
 
 julia> E = symmetric_power(Q, 3)
 AbstractBundle of rank 4 on AbstractVariety of dim 4
+
+julia> # Lines on a general cubic hypersurface in P^3:
 
 julia> integral(top_chern_class(E))
 27
@@ -213,8 +213,6 @@ t^2
 
 ```
 
-Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
-
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4+4)
 AbstractVariety of dim 12
@@ -224,6 +222,8 @@ AbstractBundle of rank 2 on AbstractVariety of dim 12
 
 julia> E = symmetric_power(S, 2)
 AbstractBundle of rank 3 on AbstractVariety of dim 12
+
+julia> # Lines on a general complete intersection Calabi-Yau threefold of type (2,2,2,2):
 
 julia> integral(top_chern_class(E)^4)
 512

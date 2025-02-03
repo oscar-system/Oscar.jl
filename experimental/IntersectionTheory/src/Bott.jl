@@ -85,7 +85,7 @@ end
 
 Return an abstract_variety with a torus action, represented by the fixed points.
 """
-tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}}) where P
+tn_variety(n::Int, points::Vector{Pair{P, Int}}) where P = TnVariety(n::Int, points::Vector{Pair{P, Int}})
 
 @doc raw"""
      dim(X::TnVariety)
