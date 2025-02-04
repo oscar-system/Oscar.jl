@@ -124,7 +124,7 @@
       )
       Qx, x = QQ[:x]
       p = x^2 + 1
-      original = Dict{S, Union{PolyRingElem, Polyhedron}}(keys[1] => cube(2), keys[2] => p)
+      original = Dict{S, Union{PolyRingElem, Polyhedron{QQFieldElem}}}(keys[1] => cube(2), keys[2] => p)
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end
@@ -146,7 +146,7 @@
     end
 
     @testset "Testing (de)serialization of Set" begin
-      original = Set([Set([1, 2])])
+      original = Set{Set{Int}}([Set{Int}([1, 2])])
       test_save_load_roundtrip(path, original) do loaded
         @test original == loaded
       end

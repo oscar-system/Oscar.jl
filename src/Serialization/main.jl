@@ -303,6 +303,8 @@ function load_object(s::DeserializerState, T::Type, params::S,
   end
 end
 
+load_object(s::DeserializerState, T::Type, ::Nothing) = load_object(s, T)
+
 ################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T

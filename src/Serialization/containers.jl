@@ -49,7 +49,7 @@ end
 function save_type_params(s::SerializerState, T::Type{Vector{S}}, ::Nothing) where S
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    save_object(s, encode_type(S), :params)
+    save_type_params(s, S, nothing, :params)
   end
 end
 
@@ -378,7 +378,7 @@ end
 function save_type_params(s::SerializerState, T::Type{Set{S}}, ::Nothing) where S
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
-    save_object(s, encode_type(S), :params)
+    save_type_params(s, S, nothing, :params)
   end
 end
 
@@ -414,7 +414,14 @@ end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}, ::Nothing) where T
   elems = load_array_node(s) do _
-    load_object(s, T)
+    load_object(s, T, nothing)
+  end
+  return S(elems)
+end
+
+function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T
+  elems = load_array_node(s) do _
+    load_object(s, T, nothing)
   end
   return S(elems)
 end

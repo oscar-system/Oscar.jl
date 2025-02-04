@@ -49,7 +49,7 @@ end
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
   typename = jsondict[:_type]
-  if haskey(polymake2OscarTypes, typename)
+  if jsondict haskey(polymake2OscarTypes, typename)
     oscar_type = polymake2OscarTypes[typename]
     return load_from_polymake(oscar_type, jsondict)
   else 
@@ -123,11 +123,12 @@ function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
     else
       try
         obj = _pmdata_for_oscar(p, coeff)
-        if haskey(obj, :_coeff)
-          data[Symbol(pname)] = obj
-        else
-          data[Symbol(pname)] = p
-        end
+        data[Symbol(pname)] = obj
+        #if haskey(obj, :_coeff)
+        #  data[Symbol(pname)] = obj
+        #else
+        #  data[Symbol(pname)] = p
+        #end
       catch e
         if e isa MethodError
           @debug "failed to convert $pname of type $(typeof(p)) to Oscar, skipping"

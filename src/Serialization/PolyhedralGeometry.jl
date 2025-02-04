@@ -84,7 +84,16 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
     T = typeof(obj)
     error("Unsupported type $T for serialization")
   end
-  save_object(s, _polyhedral_object_as_dict(obj))
+  save_data_dict(s) do
+    for (k, v) in _polyhedral_object_as_dict(obj)
+      if (v isa Polymake.BigObject)
+        bigobject_to_jsonstr(pm_object(v))
+        save_json(s, bigobject_to_jsonstr(v), k)
+      else
+        save_object(s, v, k)
+      end
+    end
+  end
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
@@ -131,7 +140,7 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 ##############################################################################
-@register_serialization_type LinearProgram uses_params
+@register_serialization_type LinearProgram
 
 function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE
