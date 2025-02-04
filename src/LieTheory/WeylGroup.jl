@@ -8,12 +8,19 @@
 ###############################################################################
 
 @doc raw"""
-    weyl_group(cartan_matrix::ZZMatrix) -> WeylGroup
+    weyl_group(cartan_matrix::ZZMatrix; check::Bool=true) -> WeylGroup
+    weyl_group(cartan_matrix::Matrix{<:IntegerUnion}; check::Bool=true) -> WeylGroup
 
 Construct the Weyl group defined by the given (generalized) Cartan matrix.
+
+If `check=true` the function will verify that `cartan_matrix` is indeed a generalized Cartan matrix.
 """
-function weyl_group(cartan_matrix::ZZMatrix)
-  return weyl_group(root_system(cartan_matrix))
+function weyl_group(cartan_matrix::ZZMatrix; kwargs...)
+  return weyl_group(root_system(cartan_matrix; kwargs...))
+end
+
+function weyl_group(cartan_matrix::Matrix{<:IntegerUnion}; kwargs...)
+  return weyl_group(root_system(cartan_matrix; kwargs...))
 end
 
 @doc raw"""
