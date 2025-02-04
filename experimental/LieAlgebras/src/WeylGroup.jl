@@ -363,6 +363,7 @@ a product of irreducible factors.
 Here `P, emb = `[`parabolic_subgroup`](@ref)`(W, vec)`
 and `proj` is the projection map from `W` onto `P`,
 which is a left-inverse of `emb`.
+
 If `check = true`, then it is checked whether `vec` actually describes
 a union of irreducible components of the Dynkin diagram.
 
