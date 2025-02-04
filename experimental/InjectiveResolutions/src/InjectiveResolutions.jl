@@ -47,6 +47,7 @@ export HyperplaneQ
 export MonoidAlgebraModule
 export MonoidAlgebraIdeal
 
+
 #########################
 # some composite types
 #########################
@@ -645,14 +646,14 @@ function _f_k(m::Union{MPolyDecRingElem,MPolyQuoRingElem})
 end
 
 # given a fin. gen. module and a prime ideal p, compute a k[ZZF]-basis Bp of (0 :_M p) and for each generator b in Bp compute the scalar matrix lambda that defines a well-defined injective map 
-function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
+function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra)
     R_N = base_ring(N)
     @req R_N == base_ring(p.prime) "Base rings of module and ideal do not match."
 
     k = coefficient_ring(R_N) #get the field
     Np = mod_quotient(N,p.prime)[1]
-    # Np = (ideal(R_N,[])*N)[1] : p.prime
-    if is_zero(Np)
+
+    if is_zero(Np) # if Np is zero there is nothing to compute
         return [],zeros(R_N,1,1)
     end
 
@@ -663,9 +664,6 @@ function _coefficients(N::SubquoModule, p::FaceQ, kQ::MonoidAlgebra,j=0)
     # n = ngens(N)
     n = ngens(ambient_free_module(N))
 
-    # if j == 1
-    #     lambda = map(x -> x*one(R_N), ones(Int,1,length(Bp)))
-    # else
         lambda = []
         for b in Bp # for every basis vector of (0 :_M P_F) we compute a scalar vector \lambda_b 
             # m_b = monomial_basis(R_N,degree(b))[1]
@@ -774,7 +772,7 @@ function irreducible_hull(Mi::SubquoModule,P::Vector{FaceQ},kQ::MonoidAlgebra, j
 
     # for p in filter(p -> !is_zero(p.prime),P) 
     for p in P 
-        Bp,lambda_p = _coefficients(N,p,kQ,j) #compute k[ZZF]-basis of (0 :_M P_F) and the scalar matrix that ensures these basis-elements are mapped to something non-zero in W^i (that is not completely constructed)
+        Bp,lambda_p = _coefficients(N,p,kQ) #compute k[ZZF]-basis of (0 :_M P_F) and the scalar matrix that ensures these basis-elements are mapped to something non-zero in W^i (that is not completely constructed)
         for b in Bp 
             push!(summands, IndecInj(p,degree(Vector{Int},b)))
         end
@@ -1041,3 +1039,7 @@ function equal_mod_ZF(a::RingElem,b::RingElem,p_F::Ideal)
         return false
     end
 end
+
+
+# import local cohomology functions
+include("LocalCohomology.jl")

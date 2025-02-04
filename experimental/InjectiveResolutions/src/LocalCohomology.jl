@@ -60,7 +60,7 @@ function local_cohomology(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::Integ
     H = sector_partition(kQ,phi,psi,j,k,J...)
 
     #compute the needed maps in 3. of Definition 1.2 in HM2004 (uses Algorithm 6.4)
-    maps = maps_needed(H)
+    maps = maps_needed(kQ,H)
     return SectorPartitionLC(quotient_ring_as_module(I_M),i,I.ideal,H,maps)
 end
 
@@ -110,7 +110,7 @@ function local_cohomology_all(I_M::MonoidAlgebraIdeal,I::MonoidAlgebraIdeal,i::I
         
         J,phi,psi,(j,k) = apply_gamma(Jj,Jj_1,Jj_2,_phi,_psi,I)
         Hj = sector_partition(kQ,phi,psi,j,k,J...)
-        push!(H,SectorPartitionLC(quotient_ring_as_module(I_M),j,I.ideal,Hj,maps_needed(Hj)))
+        push!(H,SectorPartitionLC(quotient_ring_as_module(I_M),j,I.ideal,Hj,maps_needed(kQ,Hj)))
     end
     return H
 end
@@ -157,8 +157,8 @@ function compute_taus(kQ::MonoidAlgebra, J::IndecInj...)
    return tau
 end
 
-function get_halfspace_eq(P::Polyhedron)
-    A,_ = halfspace_matrix_pair(facets(P))
+function get_halfspace_eq(kQ::MonoidAlgebra)
+    A,_ = halfspace_matrix_pair(facets(kQ.cone))
     H = []
     for i=1:length(kQ.hyperplanes) 
         push!(H,[kQ.hyperplanes[i].hyperplane,A[i,:]])
@@ -189,7 +189,7 @@ function sector_partition(kQ::MonoidAlgebra,phi::Union{Vector{Any},QQMatrix},psi
     end
 
     # get linear functionals (one for each facet) 
-    H = get_halfspace_eq(kQ.cone)
+    H = get_halfspace_eq(kQ)
 
     # compute all stripes
     stripes = []
@@ -391,7 +391,7 @@ function apply_gamma(J0::InjMod,J1::InjMod,J2::InjMod,phi::QQMatrix, psi::QQMatr
 end
 
 #follows algorithm 6.4 in HM2004 and computes the actual maps (as described in the proof of Proposition 5.1 in HM2004) 
-function maps_needed(S_A::Vector{SectorLC})
+function maps_needed(kQ::MonoidAlgebra, S_A::Vector{SectorLC})
     maps = []
     for s1 in S_A, s2 in S_A # loop over all pairs
         if s1 == s2
