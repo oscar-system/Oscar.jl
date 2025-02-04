@@ -356,7 +356,7 @@ function parabolic_subgroup(W::WeylGroup, vec::Vector{<:Integer}, w::WeylGroupEl
 end
 
 @doc raw"""
-    parabolic_subgroup_with_projection(W::WeylGroup, vec::Vector{<:Integer}) -> WeylGroup, Map{WeylGroup, WeylGroup}, Map{WeylGroup, WeylGroup}
+    parabolic_subgroup_with_projection(W::WeylGroup, vec::Vector{<:Integer}; check::Bool=true) -> WeylGroup, Map{WeylGroup, WeylGroup}, Map{WeylGroup, WeylGroup}
 
 Return a triple `(P, emb, proj)` that describes a factor of `W`, that is,
 a product of irreducible factors.
