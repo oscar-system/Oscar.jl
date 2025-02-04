@@ -49,7 +49,7 @@ end
 # Distinguish between the various polymake datatypes.
 function load_from_polymake(jsondict::Dict{Symbol, Any})
   typename = jsondict[:_type]
-  if jsondict haskey(polymake2OscarTypes, typename)
+  if haskey(polymake2OscarTypes, typename)
     oscar_type = polymake2OscarTypes[typename]
     return load_from_polymake(oscar_type, jsondict)
   else 
@@ -69,7 +69,7 @@ function load_from_polymake(jsondict::Dict{Symbol, Any})
   end
 end
 
-_pmdata_for_oscar(bo::Polymake.BigObject, coeff::Field) = _bigobject_to_dict(bo, coeff)
+#_pmdata_for_oscar(bo::Polymake.BigObject, coeff::Field) = _bigobject_to_dict(bo, coeff)
 
 _pmdata_for_oscar(::Nothing, coeff::Field) = nothing
 _pmdata_for_oscar(v::Union{Bool,Int64,Float64,String}, coeff::Field) = v
@@ -114,16 +114,20 @@ _pmdata_for_oscar(a::Polymake.Array{T}, coeff::Field) where T <: Union{Polymake.
 _pmdata_for_oscar(s::Polymake.Set, coeff::Field) = Set(_pmdata_for_oscar(e, coeff) for e in s)
 
 
-function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field)
+function _bigobject_to_dict(bo::Polymake.BigObject, coeff::Field, parent_key::String="")
   data = Dict{Symbol,Any}()
   for pname in Polymake.list_properties(bo)
     p = Polymake.give(bo, pname)
+    key_str = parent_key == "" ? pname : parent_key * "." * pname
     if p isa Polymake.PropertyValue
       @debug "missing c++ mapping: skipping $pname of type $(Polymake.typeinfo_string(p, true))"
+    elseif p isa Polymake.BigObject
+       obj = _bigobject_to_dict(p, coeff, key_str)
+       merge!(data, obj)
     else
       try
         obj = _pmdata_for_oscar(p, coeff)
-        data[Symbol(pname)] = obj
+        data[Symbol(key_str)] = obj
         #if haskey(obj, :_coeff)
         #  data[Symbol(pname)] = obj
         #else
