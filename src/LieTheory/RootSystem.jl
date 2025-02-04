@@ -6,7 +6,7 @@
 
 @doc raw"""
     root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Bool=true) -> RootSystem
-    root_system(cartan_matrix::Matrix{<:Integer}; check::Bool=true, detect_type::Bool=true) -> RootSystem
+    root_system(cartan_matrix::Matrix{<:IntegerUnion}; check::Bool=true, detect_type::Bool=true) -> RootSystem
 
 Construct the root system defined by the given (generalized) Cartan matrix.
 
@@ -32,7 +32,7 @@ function root_system(cartan_matrix::ZZMatrix; check::Bool=true, detect_type::Boo
   return RootSystem(cartan_matrix; check, detect_type)
 end
 
-function root_system(cartan_matrix::Matrix{<:Integer}; kwargs...)
+function root_system(cartan_matrix::Matrix{<:IntegerUnion}; kwargs...)
   return root_system(matrix(ZZ, cartan_matrix); kwargs...)
 end
 
