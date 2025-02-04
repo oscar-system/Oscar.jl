@@ -363,7 +363,8 @@ a product of irreducible factors.
 Here `P, emb = `[`parabolic_subgroup`](@ref)`(W, vec)`
 and `proj` is the projection map from `W` onto `P`,
 which is a left-inverse of `emb`.
-If `P` is not a factor of `W`, an error occurs.
+If `check = true`, then it is checked whether `vec` actually describes
+a union of irreducible components of the Dynkin diagram.
 
 # Examples
 ```jldoctest
@@ -386,9 +387,9 @@ true
 ```
 """
 function parabolic_subgroup_with_projection(
-  W::WeylGroup, vec::Vector{<:Integer}; check_factor::Bool=true
+  W::WeylGroup, vec::Vector{<:Integer}; check::Bool=true
 )
-  if check_factor
+  if check
     # Check that every generator in gens(W)[vec] commutes with every other generator.
     # In other words, vec describes a union of irreducible components of the Coxeter diagram.
     cm = cartan_matrix(root_system(W))
