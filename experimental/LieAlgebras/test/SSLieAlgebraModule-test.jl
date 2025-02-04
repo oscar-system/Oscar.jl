@@ -1,4 +1,4 @@
-@testset "LieAlgebras.SSLieAlgebraModule" begin
+@testset verbose=true "LieAlgebras.SSLieAlgebraModule" begin
   @testset "dim_of_simple_module" begin
     # All concrete test results have been computed using the LiE CAS (http://wwwmathlabo.univ-poitiers.fr/~maavl/LiE/) v2.2.2
     let L = lie_algebra(QQ, :A, 6)

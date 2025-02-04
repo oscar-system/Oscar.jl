@@ -377,6 +377,18 @@ function _struct_consts(R::Field, rs::RootSystem, extraspecial_pair_signs)
   return struct_consts
 end
 
+# computes the maximum `p` such that `beta - p*alpha` is still a root
+# beta is assumed to be a root
+function _root_string_length_down(alpha::RootSpaceElem, beta::RootSpaceElem)
+  p = 0
+  beta_sub_p_alpha = beta - alpha
+  while is_root(beta_sub_p_alpha)
+    p += 1
+    beta_sub_p_alpha = sub!(beta_sub_p_alpha, alpha)
+  end
+  return p
+end
+
 function _N_matrix(rs::RootSystem, extraspecial_pair_signs::Vector{Bool})
   # computes the matrix N_αβ from CTM04 Ch. 3 indexed by root indices
   nroots = n_roots(rs)

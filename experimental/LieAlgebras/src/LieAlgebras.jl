@@ -106,7 +106,6 @@ include("Combinatorics.jl")
 include("Util.jl")
 
 include("CoxeterGroup.jl")
-include("RootSystem.jl")
 include("DynkinDiagram.jl")
 include("WeylGroup.jl")
 

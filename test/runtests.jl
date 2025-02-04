@@ -115,7 +115,7 @@ test_subsets = Dict(
                                "test/AlgebraicGeometry/Schemes/MorphismFromRationalFunctions.jl",
                                "experimental/QuadFormAndIsom/test/runtests.jl",
                                "experimental/GModule/test/runtests.jl",
-                               "experimental/LieAlgebras/test/LieAlgebraModule-test.jl",
+                               "experimental/LieAlgebras/test/SSLieAlgebraModule-test.jl",
                                "test/Modules/ModulesGraded.jl",
                                "test/AlgebraicGeometry/Schemes/EllipticSurface.jl",
                               ],

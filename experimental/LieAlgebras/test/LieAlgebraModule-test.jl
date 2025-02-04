@@ -1,5 +1,5 @@
 
-@testset "LieAlgebras.LieAlgebraModule" begin
+@testset verbose=true "LieAlgebras.LieAlgebraModule" begin
   @testset "conformance tests" begin
     @testset "0-dim module of sl_2(QQ)" begin
       L = special_linear_lie_algebra(QQ, 2)
