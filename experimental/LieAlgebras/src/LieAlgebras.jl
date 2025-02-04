@@ -126,6 +126,8 @@ include("iso_oscar_gap.jl")
 include("iso_gap_oscar.jl")
 include("GapWrapper.jl")
 
+include("SSLieAlgebraModule.jl")
+
 include("serialization.jl")
 
 end # module LieAlgebras
