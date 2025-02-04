@@ -34,6 +34,7 @@ jobs:
           - '1.6'
           - '1.10'
           - '1.11'
+          - '1.12-nightly'
           - 'nightly'
         group: [ 'short', 'long' ]
         os: [Linux]
@@ -59,6 +60,9 @@ jobs:
             group: 'book'
             os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           - julia-version: 'nightly'
+            group: 'book'
+            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
+          - julia-version: '1.12-nightly'
             group: 'book'
             os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           # nightly on macos is disabled for now since the macos jobs take too long
@@ -150,6 +154,7 @@ jobs:
         julia-version:
           - '1.10'
           - '1.11'
+          - '1.12-nightly'
           - 'nightly'
         os:
           - [Linux, RPTU, normal-memory]
