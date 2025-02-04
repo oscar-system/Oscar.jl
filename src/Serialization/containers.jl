@@ -271,8 +271,16 @@ end
 ################################################################################
 # Saving and loading dicts
 @register_serialization_type Dict
-function type_params(obj::T) where T <: Dict
-  return Dict(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
+function type_params(obj::Dict)
+  is_empty(obj) && return nothing
+  result = Dict{Symbol, Any}()
+  for (key, val) in obj
+    val_params = type_params(val)
+    val_params === nothing && continue
+    result[key] = val_params
+  end
+  is_empty(result) && return nothing
+  return result
 end
 
 function save_type_params(s::SerializerState, obj::Dict{S, T}) where {T, S <: Union{Symbol, Int, String}}
