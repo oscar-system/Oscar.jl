@@ -63,6 +63,7 @@ import ..Oscar:
   is_isomorphism,
   is_nilpotent,
   is_perfect,
+  is_semisimple,
   is_simple,
   is_solvable,
   is_welldefined,
