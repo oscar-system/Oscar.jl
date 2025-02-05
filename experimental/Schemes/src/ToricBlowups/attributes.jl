@@ -126,10 +126,10 @@ Toric blowup morphism
 
 julia> center(f)
 Sheaf of ideals
-  on normal, smooth toric variety
+  on normal toric variety
 with restrictions
-  1: Ideal (x_2_1, x_3_1)
-  2: Ideal (x_2_2, x_3_2)
+  1: Ideal (x_3_1, x_2_1)
+  2: Ideal (x_3_2, x_2_2)
   3: Ideal (1)
   4: Ideal (1)
 ```
