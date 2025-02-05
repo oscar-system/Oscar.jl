@@ -2606,12 +2606,12 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   
   # compute the ranks of successive subqotients and the relative dimension
   
-  @assert all(>(0), ranks) && dims[end] <= n
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
   end
   l = length(dims)
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
+  @assert all(>(0), ranks) && dims[end] <= n
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   
   # construct the ring
