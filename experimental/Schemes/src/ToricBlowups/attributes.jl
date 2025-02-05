@@ -73,7 +73,6 @@ julia> minimal_supercone_coordinates_of_exceptional_ray(f)
   return minimal_supercone_coordinates(PF, v_ZZ)
 end
 
-
 @doc raw"""
     exceptional_prime_divisor(bl::ToricBlowupMorphism)
 
@@ -109,6 +108,48 @@ function exceptional_prime_divisor(bl::ToricBlowupMorphism)
     bl.exceptional_prime_divisor = td
   end
   return bl.exceptional_prime_divisor
+end
+
+@doc raw"""
+    center(bl::ToricBlowupMorphism) -> AbsIdealSheaf
+
+Returns an ideal sheaf `I` such that the cosupport of `I` is the image
+of the exceptional prime divisor.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> f = blow_up(P3, [0, 2, 3])
+Toric blowup morphism
+
+julia> center(f)
+Sheaf of ideals
+  on normal, smooth toric variety
+with restrictions
+  1: Ideal (x_2_1, x_3_1)
+  2: Ideal (x_2_2, x_3_2)
+  3: Ideal (1)
+  4: Ideal (1)
+```
+"""
+@attr AbsIdealSheaf function center(bl::ToricBlowupMorphism)
+  X = domain(bl)
+  S = cox_ring(X)
+  # TODO: The current implementation is very slow.
+  # Once ideal sheaves on nonsmooth normal toric varieties are
+  # implemented, may replace the implementation with the following:
+#   coords = minimal_supercone_coordinates_of_exceptional_ray(bl)
+#   R = cox_ring(codomain(bl))
+#   I = ideal(R, [gens(R)[i] for i in 1:ngens(R) if coords[i] > 0])
+#   return ideal_sheaf(codomain(bl), I)
+  x = gens(S)
+  j = index_of_exceptional_ray(bl)
+  I = ideal(S, x[j])
+  II = ideal_sheaf(X, I)
+  JJ = pushforward(bl, II)::IdealSheaf
+  return JJ
 end
 
 
