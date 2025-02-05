@@ -36,4 +36,11 @@
   @test reducible_fibers(Y, fbar) == ([(:A, 3), (:A, 1), (:A, 3)],[])
 
   @test sum([(i[1]) for i in Oscar.isomorphism_classes_elliptic_fibrations(Y)])==527
+    
+  # square 2
+  h2 = ZZ.(QQ[0 1 0 0 0 0 0 0 0 0]*2*inv(gram_matrix(SY)))
+  # square 4
+  h4a = ZZ.(QQ[0 0 1 0 0 0 0 0 0 0]*2*inv(gram_matrix(SY)))
+  h4b = ZZ.(QQ[1 1 0 0 0 0 0 0 0 0]*2*inv(gram_matrix(SY)))
+  @test isomorphism_classes_polarizations(Y, ZZ.(h2))[1] == 505920
 end

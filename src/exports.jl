@@ -70,6 +70,8 @@ export Edge
 export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
+export EnriquesBorcherdsCtx
+export Enriques_surface_automorphism_group
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -318,6 +320,7 @@ export block_distribution
 export blocks
 export bond_matroid
 export borcherds_method
+export borcherds_method
 export boundary_lattice_points
 export build_ctx
 export build_doc
@@ -347,6 +350,7 @@ export centralizer
 export chain_complex
 export chain_range
 export chamber
+export chamber_invariants
 export character_field
 export character_lattice
 export character_parameters
@@ -995,7 +999,10 @@ export isometry_group
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism
+export isomorphism_classes_elliptic_fibrations
+export isomorphism_classes_polarizations
 export isone
+export isotropic_rays
 export isqrtrem
 export issubset
 export iszero
@@ -1114,12 +1121,12 @@ export minimal_block_reps
 export minimal_faces
 export minimal_generating_set
 export minimal_generator
-export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
-export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_subalgebra_generators
+export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minkowski_sum
 export minor
 export module_syzygies
@@ -1235,9 +1242,9 @@ export number_of_weak_compositions
 export numerator
 export objective_function
 export omega_group
+export on_echelon_form_mats
 export on_indeterminates
 export on_lines
-export on_echelon_form_mats
 export on_sets
 export on_sets_sets
 export on_simplicial_complex
@@ -1322,8 +1329,8 @@ export power_sum
 export powers_of_element
 export preimage
 export present_as_cokernel
-export presentation
 export present_finite_extension_ring
+export presentation
 export preserved_quadratic_forms
 export preserved_sesquilinear_forms
 export primary_decomposition
@@ -1410,6 +1417,7 @@ export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
 export reducible_fibers
+export reducible_fibers
 export reflect, reflect!
 export reflection
 export register_morphism!
@@ -1460,6 +1468,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export root_invariant
 export root_system
 export root_system_type, has_root_system_type
 export root_system_type_with_ordering
@@ -1553,6 +1562,7 @@ export spec
 export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
+export splitting_roots_mod2
 export src
 export stabilizer_in_orthogonal_group
 export stable_intersection

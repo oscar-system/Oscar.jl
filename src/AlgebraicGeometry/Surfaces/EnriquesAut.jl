@@ -1,28 +1,29 @@
-
 ################################################################################
-#
 # Computation of Automorphism groups of Enriques surfaces following
 # https://doi.org/10.1307/mmj/20195769
 # and
 # http://www.arxiv.org/abs/1909.10813
-#
+# Initial Version by Simon Brandhorst
 ################################################################################
 
 @doc raw"""
     EnriquesBorcherdsCtx
 
-Holds data for computing invariants of families of Enriques surfaces, in particular
-the automorphism group of a general element. The setting is the following:
+Holds data for computing invariants of families of Enriques surfaces with fixed root 
+invariants, in particular the automorphism group of a general element. 
 
+The setting is the following:
 Let ``Y`` be an Enriques surface over an algebraically closed field of characteristic not ``2``
 and ``π : X → Y`` its universal covering K3 surface. We denote by ``S_Y`` and ``S_X`` the 
 numerical lattices of ``Y`` and ``X``.
 
 Most importantly the type stores a chain of lattices
+
 ```math
 S_Y(2) \subseteq S_X \subseteq L_{1,25}
 ```
-where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``. 
+
+where ``L_{1,15}`` is an even unimodular lattice of signature $(1,25)``. 
 """
 mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
@@ -63,7 +64,7 @@ function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
   print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX)).")
 end
 
-"""
+@doc raw"""
     EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
 
 # Input:
@@ -160,9 +161,50 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
 end
   
 @doc raw"""
+    EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat) -> EnriquesBorcherdsCtx 
+  
+Return a context object for Borcherds' method for Enriques surfaces. 
+  
+Let ``\pi: X \to Y`` be the universal cover of an Enriques surfaces and ``\epsilon`` the Enriques involution. 
+# Input: 
+- `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
+"""
+function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat)
+  @req issubset(SY2, SX) "SY2 must be a sublattice of SX"
+  a = rescale(SY2,1//2)
+  @req is_unimodular(a) && is_even(a) && signature(a) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
+  B = solve(basis_matrix(SX), basis_matrix(SY2); side=:left)
+  L26, SX1, weyl1 = borcherds_method_preprocessing(S, 26)
+  SY1 = lattice(ambient_space(SX1), SY1)
+  return EnriquesBorcherdsCtx(SY1,SX1, L26, weyl1)
+end
+
+@doc raw"""
+    Enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
+    
+Return generators for the automorphism group of an Enriques surface.
+  
+Let ``\pi: X \to Y`` be the universal cover of an Enriques surfaces and ``\epsilon`` the Enriques involution. Let ``S_Y`` be the numerical lattice of ``Y``. 
+This function computes the image of the natural map 
+```math
+\varphi_Y \colon \mathrm{Aut}_{s}(Y) \to O(S_Y \otimes \mathbb{F}_2)
+```
+where ``\mathrm{Aut}_{s}(Y) \leq \mathrm{Aut}(Y)`` denotes the subgroup of semi-symplectic automorphisms.
+Note that the kernel of ``\varphi_Y`` is finite.
+
+See [BS22](@cite) [BS22*1](@cite) [BRS23](@cite) for background and algorithms. 
+
+# Input: 
+- `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
+"""
+function Enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
+  return borcherds_method(EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat))
+end 
+  
+@doc raw"""
     splitting_roots_mod2(Y::EnriquesBorcherdsCtx)
     
-Return the image of the splitting roots of Y in ``Num(Y) \otimes \mathbb{F}_2``.
+Return the image of the splitting roots of ``Y`` in ``S_Y \otimes \mathbb{F}_2``.
 """
 function splitting_roots_mod2(Y::EnriquesBorcherdsCtx)
   SX = Y.SX
@@ -196,11 +238,14 @@ end
 @doc raw"""
     mass(ECtx::EnriquesBorcherdsCtx)
     
-Let $V_0$ be a complete set of representatives of the $L_{26}|S_Y$ chambers
-making up $Nef(Y)/aut(Y)$. Then the mass is defined as
-$\sum_{D \in V_0} \# Aut_G(D)$.
-It can be computed as $ind(D_0)/\#\bar G_{X-}$
-where $D_0$ is the initial chamber and $inv(D_0)$ is its volume index. 
+Return the mass of ``Y`` 
+
+Let ``V_0`` be a complete set of representatives of the ``\mathrm{Aut}(Y)``-orbits of ``L_{26}|S_Y``-chambers.
+The mass satisfies
+```math
+\mathrm{mass}(Y)=\sum_{D \in V_0} \frac{1}{\sharp \mathrm{Aut}_G(D)} = \frac{\mathrm{ind}(D_0)}{\sharp \bar G_{X-}}
+```
+where ``D_0`` is the initial chamber and ``\mathrm{inv}(D_0)`` is its volume index. 
 """
 function mass(ECtx::EnriquesBorcherdsCtx)
   return chamber_invariants(ECtx)[1]//ECtx.orderGbar
@@ -255,7 +300,7 @@ function membership_test_set(data::EnriquesBorcherdsCtx, f::FqMatrix)
 end
 
 
-gens(L::ZZLat) = [vec(basis_matrix(L)[i,:]) for i in 1:rank(L)]
+gens(L::ZZLat) = [basis_matrix(L)[i,:] for i in 1:rank(L)]
 basis(L::ZZLat) = gens(L)
 
 # in principle it would be enough to just store
@@ -353,7 +398,7 @@ end
 @doc raw"""
     initial_automorphisms(Y::EnriquesBorcherdsCtx)
     
-Compute the image of ``Aut(D_0)`` in ``O(S_Y \otimes \mathbb{F}_2)`` for the initial chamber ``D_0`` 
+Compute the image of ``\mathrm{Aut}(D_0)`` in ``O(S_Y \otimes \mathbb{F}_2)`` for the initial chamber ``D_0`` 
 and store it in ``Y``.
 """
 function initial_automorphisms_mod2(Y::EnriquesBorcherdsCtx)
@@ -390,7 +435,7 @@ function Base.show(io::IO, D::EnriquesChamber)
 end
 
 @doc raw"""
-    adjacent_chamber(D::K3Chamber, v::ZZMatrix) -> K3Chamber
+    adjacent_chamber(D::EnriquesChamber, v::ZZMatrix) -> EnriquesChamber
 
 Return return the chamber adjacent to `D` via the wall defined by `v`.
 """
@@ -413,7 +458,7 @@ function rays(D::EnriquesChamber)
 end
 
 @doc raw"""
-    iotropic_rays(D::EnriquesChamber)
+    isotropic_rays(D::EnriquesChamber)
     
 Return the list of primitive isotropic ray generators of ``D``.
 """
@@ -433,10 +478,10 @@ function walls(D::EnriquesChamber)
   return [r*D.tau for r in walls0]
 end
 
-@doc raw""""
+@doc raw"""
     hom(D1::EnriquesChamber, D2::EnriquesChamber)
     
-Return the set of elements of ``G`` mapping `D1` to `D2`.
+Return the set of elements of ``G`` mapping ``D_1`` to ``D_2``.
 """
 function hom(D1::EnriquesChamber, D2::EnriquesChamber)
   result = ZZMatrix[]
@@ -458,7 +503,7 @@ end
     is_congruent_with_data(D1::EnriquesChamber, D2::EnriquesChamber) -> Bool, ZZMatrix
     
 Return whether `D1` and `D2` are congruent under ``G`` and if yes
-an element $g \in G$ with ``D1^g=D2``.
+an element ``g \in G`` with ``D1^g=D2``.
 """
 function is_congruent_with_data(D1::EnriquesChamber, D2::EnriquesChamber)
   tau1inv = inv(D1.tau)
@@ -480,10 +525,10 @@ aut(D::EnriquesChamber) = hom(D, D)
 @doc raw"""
     borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
     
-Compute ``Aut_{ss}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
+Compute ``\mathrm{Aut}_{s}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
 
-Here ``Aut_{ss}(Y)`` denote the subgroup consisting of semi-symplectic automorphisms of ``Y``. 
-The quotient ``Aut(Y)/Aut_{ss}(Y)`` is a finite group and known to be cyclic in most cases.
+Here ``\mathrm{Aut}_{s}(Y)`` denote the subgroup consisting of semi-symplectic automorphisms of ``Y``. 
+The quotient ``\mathrm{Aut}(Y)/\mathrm{Aut}_{s}(Y)`` is a finite group and known to be cyclic in most cases.
 
 Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``. 
 
@@ -492,10 +537,10 @@ Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``.
 - `max_nchambers` -- abort the computation after `max_nchambers` chambers have been computed.  
 
 # Output:
-1. A list of matrices `g` which generate the image of ``Aut_{ss}(Y) \to O(S_Y)`` 
+1. A list of matrices `g` which generate the image of ``\mathrm{Aut}_{s}(Y) \to O(S_Y)`` 
 2. A complete list of representatives of the ``G:=G_Y^0``-congruence classes of ``S_Y|S_X``-chambers.
 3. A list of ``(-2)``-vectors representing smooth rational curves on ``Y`` 
-   such that any rational curve of ``Y`` is in the same ``Aut(Y)``-orbit as at least one class in the list. 
+   such that any rational curve of ``Y`` is in the same ``\mathrm{Aut}(Y)``-orbit as at least one class in the list. 
 """
 function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   S = Y.SY
@@ -599,8 +644,8 @@ function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   @vprint :EnriquesAuto 1 "$(length(automorphisms)) automorphism group generators\n"
   @vprint :EnriquesAuto 1 "$(nchambers) congruence classes of chambers \n"
   @vprint :EnriquesAuto 1 "$(length(rational_curves)) orbits of rational curves\n"
-  @vprint :EnriquesAuto 1 "$mass $(massY)\n"
-  @vprint :EnriquesAuto 1 "$mass explored $(mass_explored)\n"
+  @vprint :EnriquesAuto 1 "mass $(massY)\n"
+  @vprint :EnriquesAuto 1 "mass explored $(mass_explored)\n"
   @assert massY == mass_explored
   return collect(automorphisms), reduce(append!,values(chambers), init=EnriquesChamber[]), collect(rational_curves), true
 end
@@ -608,7 +653,7 @@ end
 @doc raw"""
   frame_lattice(L::ZZLat, v::QQMatrix)
   
-Return a sublattice ``S`` of ``v^\perp`` surjecting onto ``v^\perp/\mathbb{ZZ}v``.
+Return a sublattice ``S`` of ``v^\perp`` surjecting onto ``v^\perp/\mathbb{Z}v``.
 """  
 function frame_lattice(L::ZZLat, v::QQMatrix)
   @req v*gram_matrix(ambient_space(L))*transpose(v)==0 "vector must be isotropic"
@@ -624,11 +669,11 @@ end
 
 Return a triple `[volindex, name, root_type]` of invariants of the induced chambers.
 
-The invariants are taken from Table 1.1 and Table 1.2 of [BS](@cite).
+The invariants are taken from Table 1.1 and Table 1.2 of [BS22*1](@cite).
 
 # Output:
-- The number of Vinberg chambers contained in ``D_0`` is ``O(S_Y \otimes \FF_2)/volindex``.
-- The name of the embedding ``S_Y(2) \to L_{1,25}`` stored in `Y`. 
+- The number of Vinberg chambers contained in ``D_0`` is ``O(S_Y \otimes \mathbb{F}_2)/\mathrm{volindex}``.
+- The name of the embedding ``S_Y(2) \to L_{1,25}`` stored in ``Y``. 
 - The type of the root sublattice of the orthognal complement of ``S_Y(2)`` in ``L_{1,25}``.
 """
 function chamber_invariants(Y::EnriquesBorcherdsCtx)
@@ -716,12 +761,17 @@ end
     isomorphism_classes_elliptic_fibrations(Y::EnriquesBorcherdsCtx)
 
 Return the list of isomorphism classes of elliptic fibrations on the Enriques surface ``Y``.
+Let 
+```math 
+\mathcal{P}^e \colon \mathcal{M}_{En,e} \to \mathcal{M}_{En}, \quad  (Y,f) \mapsto Y
+```
+be the forgetful map from the moduli space of elliptic Enriques surfaces to the moduli space of Enriques surfaces. Here ``f`` is the numerical class of a half-fiber.
 
 # Output:
 A list of triples with the following entries:
-- the ramification index 
+- the ramification index of ``\mathcal{P}^e`` in ``(V,f)``
 - the simple fibers, the double fibers
-- representative of a half fiber modulo ``2``
+- representative of the half fiber ``f`` modulo ``2``
 """
 function isomorphism_classes_elliptic_fibrations(Y::EnriquesBorcherdsCtx)
   return  [(length(fbar), reducible_fibers(Y, representative(fbar)),representative(fbar)) for fbar in _ellfib_reps(Y.SY, Y.SX, Y.L26)]
@@ -736,12 +786,12 @@ function _ellfib_reps(SY::ZZLat, SX::ZZLat, L26::ZZLat)
 end
 
 @doc raw"""
-    elliptic_fibration_type(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem) -> simple fibers, multiple fibers
+    reducible_fibers(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem) -> simple fibers, multiple fibers
 
 Return the ADE types and multiplicity of the reducible singular fibers of the genus-1-fibration induced by ``f``.
 
 # Input:
-- `fbar`` -- the class of ``f/2`` in the discriminant group of ``S_Y(2)`` where ``f`` is the class of a half fiber 
+- `fbar` -- the class of ``f/2`` in the discriminant group of ``S_Y(2)`` where ``f`` is the class of a half fiber 
   of an elliptic fibration on ``Y``
 
 # Output:
@@ -823,4 +873,74 @@ function contraction_type(enr::EnriquesBorcherdsCtx, hbar)
   return _identify_ADE(g)
 end 
 
+@doc raw"""
+    isomorphism_classes_polarizations(Y::EnriquesBorcherdsCtx, h::ZZMatrix)
 
+Return the isomorphism classes of numerical quasi-polarizations of ``Y`` which are of 
+the same type as ``h`` along with some invariants. 
+
+See [BA](@cite).
+# Output 
+The first return value is the degree of the the forgetful map
+```math
+\mathcal{P}^h\colon \mathcal{M}_{En,h} \to \mathcal{M}_{En}, \quad (Y,h') \mapsto Y
+```
+of the moduli space of numerically ``h``-quasi-polarized Enriques complex surfaces.
+
+The second return value is a list of triples representing the fiber ``(\mathcal{P}^h)^{-1}(Y)``
+- the ramificaton index of ``\mathcal{P}^h`` at ``(Y,h')``
+- the ADE types of the smooth rational curves orthogonal to ``h'``
+- a matrix ``\bar g`` mod 2 such that ``h' = h^{gw}`` for ``w`` the unique element of the Weyl group of ``Y`` such that ``h^gw`` is nef. 
+
+# Input:
+- `Y` -- representing the Enriques surface in question 
+- `h` -- row matrix representing an element in ``S_Y`` with respect to its basis matrix.
+"""
+function isomorphism_classes_polarizations(Y::EnriquesBorcherdsCtx, h::ZZMatrix)
+  @req size(h)==(1,10) "not a row vector of length 10"
+  k = GF(2)
+  SY = lattice(rational_span(Y.SY))
+  h = QQ.(h)
+  GYbar = Y.Gplus_mat
+  @req (h*gram_matrix(SY)*transpose(h))[1,1]>0 "h must have positive square"
+  @vprintln :EnriquesAuto 1 "computing O(SY,h)"
+  Oh = stabilizer_in_orthogonal_group(SY, h)
+  gensOhbar = [change_base_ring(k, matrix(g)) for g in gens(Oh)]
+  Ohbar = matrix_group(gensOhbar)
+  
+  S = matrix_group(vcat([matrix(g) for g in gens(GYbar)], gensOhbar))
+  one_vinberg = 46998591897600
+  degPh = one_vinberg//order(Ohbar)
+  @vprintln :EnriquesAuto 1 "degree of forgetful map P^h: $(degPh)"
+  qSY = discriminant_group(SY)
+  SGS = small_generating_set(orthogonal_group(qSY))
+  E = 1//2*identity_matrix(QQ, 10)
+  OE10bar = matrix_group([change_base_ring(k,reduce(vcat,[matrix(ZZ,1,10,2*lift(qSY(E[i,:])^g)) for i in 1:10])) for g in SGS])
+  phi = isomorphism(PermGroup, OE10bar)
+  oE10bar, psi = smaller_degree_permutation_representation(codomain(phi))
+  f = compose(phi, psi)
+  ohbar,_ = f(Ohbar)
+  ohbar,_ = sub(oE10bar, small_generating_set(ohbar))
+  gYbar,_ = f(GYbar)
+  gYbar,_ = sub(oE10bar, small_generating_set(gYbar))
+  @vprintln :EnriquesAuto 1 "computing double cosets"
+  DC = double_cosets(oE10bar, ohbar, gYbar)
+  dc = []
+  i = 0
+  hbar = change_base_ring(k, h)
+  for gG in DC
+    i = i+1
+    if mod(i,10000)==0
+      @vprintln :EnriquesAuto 1 i
+    end
+    g = representative(gG)
+    n = order(gG)
+    ramification = n//order(ohbar)
+    m = matrix(inv(f)(g))
+    representative_mod2 = hbar*m 
+    c = Oscar.contraction_type(Y, representative_mod2)
+    push!(dc, [ramification, c, m])
+  end
+  @assert sum(i[1] for i in dc) == degPh
+  return degPh, dc
+end
