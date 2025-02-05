@@ -1554,6 +1554,7 @@ export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
 export src
+export stabilizer_in_orthogonal_group
 export stable_intersection
 export stable_set_polytope
 export standard_basis
