@@ -4,15 +4,15 @@
     @testset "0-dim module of sl_2(QQ)" begin
       L = special_linear_lie_algebra(QQ, 2)
       V = trivial_module(L, 0)
-      lie_algebra_module_conformance_test(L, V)
       @test dim(V) == 0
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "3-dim trivial module of so_3(QQ)" begin
       L = special_orthogonal_lie_algebra(QQ, 2)
       V = trivial_module(L, 3)
-      lie_algebra_module_conformance_test(L, V)
       @test dim(V) == 3
+      lie_algebra_module_conformance_test(L, V)
     end
 
     @testset "V of sl_2(QQ) using structure constants" begin
@@ -26,36 +26,36 @@
 
       L = special_linear_lie_algebra(QQ, 2)
       V = abstract_module(L, 2, sc)
-      lie_algebra_module_conformance_test(L, V)
       @test dim(V) == 2
+      lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "λ = [1,1,0] of sl_4(QQ)" begin
+    @testset "λ = [2,1,0] of sl_4(QQ)" begin
       L = special_linear_lie_algebra(QQ, 4)
-      V = simple_module(L, [1, 1, 0])
+      V = simple_module(L, [2, 1, 0])
+      @test dim(V) == 45
       lie_algebra_module_conformance_test(L, V)
-      @test dim(V) == 20
     end
 
-    @testset "λ = [1,1] of so_4(CF(4))" begin
+    @testset "λ = [2,1] of so_4(CF(4))" begin
       L = special_orthogonal_lie_algebra(cyclotomic_field(4)[1], 4)
-      V = simple_module(L, [1, 1])
+      V = simple_module(L, [2, 1])
+      @test dim(V) == 6
       lie_algebra_module_conformance_test(L, V)
-      @test dim(V) == 4
     end
 
     @testset "λ = [0,1] of A_2(QQ)" begin
       L = lie_algebra(QQ, :A, 2)
       V = simple_module(L, [0, 1])
-      lie_algebra_module_conformance_test(L, V)
       @test dim(V) == 3
+      lie_algebra_module_conformance_test(L, V)
     end
 
-    @testset "λ = [0,1,1] of B_3(QQ)" begin
+    @testset "λ = [2,0,1] of B_3(QQ)" begin
       L = lie_algebra(QQ, :B, 3)
-      V = simple_module(L, [0, 1, 1])
+      V = simple_module(L, [2, 0, 1])
+      @test dim(V) == 168
       lie_algebra_module_conformance_test(L, V)
-      @test dim(V) == 112
     end
 
     @testset "V of sl_4(QQ)" begin
