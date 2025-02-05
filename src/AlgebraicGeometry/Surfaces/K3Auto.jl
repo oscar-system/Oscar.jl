@@ -232,7 +232,10 @@ Return the ``L|S``-chamber with the given Weyl vector.
 The lattices ``L`` and ``S`` are stored in `data`.
 Via the parent walls we can obtain a spanning tree of the chamber graph.
 """
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0))
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix=zero_matrix(ZZ, 0, 0); check=true)
+  if check
+    @req _is_weyl_vector(data.gramL, weyl_vector) "not a weyl vector"
+  end
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -240,7 +243,29 @@ function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatri
   return D
 end
 
-function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix})
+"""
+Sanity check if it is really a weyl vector.
+"""
+function _is_weyl_vector(gram_matrix::ZZMatrix, weyl_vector::ZZMatrix)
+  # sanity check
+  r = nrows(gram_matrix)
+  lw = (weyl_vector*gram_matrix*transpose(weyl_vector))[1,1]
+  if  r == 26
+    lw == 0 || return false
+  end
+  if r == 18
+    lw == 620 || return false
+  end
+  if  r == 10
+    lw == 1240 || return false
+  end
+  return true
+end
+
+function chamber(data::BorcherdsCtx, weyl_vector::ZZMatrix, parent_wall::ZZMatrix, walls::Vector{ZZMatrix}; check=true)
+  if check
+    @req _is_weyl_vector(data.gramL, weyl_vector)  "not a weyl vector"
+  end
   D = K3Chamber()
   D.weyl_vector = weyl_vector
   D.parent_wall = parent_wall
@@ -1444,7 +1469,7 @@ function borcherds_method(data::BorcherdsCtx; entropy_abort::Bool, max_nchambers
   # initialization
   chambers = Dict{UInt64,Vector{K3Chamber}}()
   explored = Set{K3Chamber}()
-  D = chamber(data, data.weyl_vector, zero_matrix(ZZ, 1, rank(S)))
+  D = chamber(data, data.weyl_vector, zero_matrix(ZZ, 1, rank(S)); check=false)
   waiting_list = [D]
 
   automorphisms = Set{ZZMatrix}()
@@ -1624,7 +1649,7 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
-  @vprint :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes\n"
+  @vprintln :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes"
   @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"
   u, weyl = chain_reflect(V, ample, u, weyl, separating_walls)
   @vprint :K3Auto "new weyl: $(solve(basis_matrix(L),weyl; side = :left)) \n"
@@ -1812,34 +1837,42 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
   @req n in [10,18,26] "n must be one of 10, 18 or 26"
   # another example
   S = integer_lattice(gram=gram_matrix(S))
-  L,S,iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
+  L, S, iS = embed_in_unimodular(S::ZZLat, 1, n-1,primitive=true,even=true)
+  weyl, u =  borcherds_method_preprocessing(L, S; ample)
+  return L, S, weyl
+end
+
+function find_hyperbolic_plane(L::ZZLat)
+  V = ambient_space(L)
+  G = gram_matrix(L)
+  # find a hyperbolic plane using indefinite LLL
+  G = gram_matrix(L)
+  g1, u1 = lll_gram_indef_with_transform(change_base_ring(ZZ, G))
+  # apparently we need to run lll two times to produce a zero
+  g2, u2 = lll_gram_indef_with_transform(change_base_ring(ZZ, g1))
+  u = u2*u1
+  @assert g2 == u*G*transpose(u)
+  B = u*basis_matrix(L)
+  B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
+  if inner_product(V, B, B) != QQ[0 1; 1 -2]
+    b, v = Hecke._isisotropic_with_vector(G)
+    @assert b
+    v = matrix(QQ, 1, degree(L), v)
+    v = v*basis_matrix(L)
+    s = find_section(L, v)
+    B = vcat(v, s)
+  end
+  U = lattice(V, B)
+  return U
+end
+
+function borcherds_method_preprocessing(L::ZZLat, S::ZZLat; ample=nothing)
+  # another example
   V = ambient_space(L)
   if gram_matrix(S)[1:2,1:2] == QQ[0 1; 1 -2]
     U = lattice(V,basis_matrix(S)[1:2,:])
   else
-    # find a hyperbolic plane
-    G = gram_matrix(L)
-    g1, u1 = lll_gram_indef_with_transform(change_base_ring(ZZ, G))
-    # apparently we need to run lll two times to produce a zero
-    g2, u2 = lll_gram_indef_with_transform(change_base_ring(ZZ, g1))
-    u = u2*u1
-    @assert g2 == u*G*transpose(u)
-    B = u*basis_matrix(L)
-    B = vcat(B[1:1,:],B[end:end,:]-B[1:1,:])
-    if inner_product(V,B,B) != QQ[0 1; 1 -2]
-      # find an isotropic vector
-      if gram_matrix(S)[1,1]==0
-        v = basis_matrix(S)[1,:]
-      else
-        b, v = Hecke._isisotropic_with_vector(gram_matrix(L))
-        @assert b
-        v = matrix(QQ, 1, degree(L), v)
-        v = v*basis_matrix(L)
-      end
-      s = find_section(L, v)
-      B = vcat(v, s)
-    end
-    U = lattice(V, B)
+    U = find_hyperbolic_plane(L)
   end
   @assert gram_matrix(U) == QQ[0 1; 1 -2]
   weyl, u0 = weyl_vector(L, U)
@@ -1863,7 +1896,8 @@ function borcherds_method_preprocessing(S::ZZLat, n::Integer; ample=nothing)
 
 
   weyl2 = change_base_ring(ZZ, solve(basis_matrix(L), weyl1; side = :left))
-  return L, S, weyl2
+  u2 = change_base_ring(ZZ, solve(basis_matrix(L), u; side = :left))
+  return weyl2, u2
 end
 
 
@@ -2036,11 +2070,13 @@ function find_section(L::ZZLat, f::QQMatrix)
     )
     a = QQ(1)
     cv = []
+    lb = 0
     while true
-      cv = Hecke.close_vectors(Kl, vec(collect(-sK)), a, check=false)
-      if length(cv)>0
+      cv = Hecke.close_vectors_iterator(Kl, vec(collect(-sK)), lb, a, check=false)
+      if !isempty(cv)
         break
       end
+      lb = a
       a = a+2
     end
     sK = transpose(sK)

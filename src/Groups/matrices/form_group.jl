@@ -724,6 +724,25 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
   return G
 end
 
+
+"""
+    stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
+
+Return the stabilizer of the matrix ``v`` in the orthogonal group of ``L``.
+
+The implementation requires that the orthogonal complement ``K`` of ``v`` in ``L`` is definite.
+
+First computes the orthogonal group of ``K`` and then its subgroup 
+consisting of isometries extending to ``L``.
+"""
+function stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...)
+  V = lattice(ambient_space(L),v)
+  K = orthogonal_submodule(L, V)
+  @req is_definite(K) "the orthogonal complement of V = $(V) in L = $(L) must be definite"
+  OK = orthogonal_group(K; kwargs...)
+  return stabilizer(OK, L, on_lattices)[1]
+end
+
 """
     _isometry_group_via_decomposition(L::ZZLat; depth::Int = -1, bacher_depth::Int = 0) -> Tuple{MatrixGroup, Vector{QQMatrix}}
 
