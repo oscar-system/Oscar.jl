@@ -32,11 +32,18 @@ function simple_module(L::LieAlgebra, hw::Vector{Int})
 end
 
 @doc raw"""
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::WeightLatticeElem) -> T
-    dim_of_simple_module([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> T
+    dim_of_simple_module(
+      [T = Int],
+      L::LieAlgebra *or* R::RootSystem,
+      hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion},
+    ) -> T
 
-Compute the dimension of the simple module of the Lie algebra `L` with highest weight `hw`
+Compute the dimension of the simple module with highest weight `hw`
 using Weyl's dimension formula.
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
+
 The return value is of type `T`.
 
 # Examples
@@ -46,39 +53,34 @@ julia> L = lie_algebra(QQ, :A, 3);
 julia> dim_of_simple_module(L, [1, 1, 1])
 64
 ```
-"""
-function dim_of_simple_module(L::LieAlgebra, hw::WeightLatticeElem)
-  return dim_of_simple_module(root_system(L), hw)
-end
 
-function dim_of_simple_module(T::Type, L::LieAlgebra, hw::WeightLatticeElem)
-  return dim_of_simple_module(T, root_system(L), hw)
-end
-
-function dim_of_simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(root_system(L), hw)
-end
-
-function dim_of_simple_module(T::Type, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(T, root_system(L), hw)
-end
-
-@doc raw"""
-    dim_of_simple_module([T = Int], R::RootSystem, hw::WeightLatticeElem) -> T
-    dim_of_simple_module([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> T
-
-Compute the dimension of the simple module of the Lie algebra defined by the root system `R`
-with highest weight `hw` using Weyl's dimension formula.
-The return value is of type `T`.
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
-julia> dim_of_simple_module(R, [1, 0])
+julia> dim_of_simple_module(R, fundamental_weight(R, 1))
 5
 ```
 """
+function dim_of_simple_module(
+  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return dim_of_simple_module(root_system(L), hw)
+end
+
+function dim_of_simple_module(
+  T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return dim_of_simple_module(T, root_system(L), hw)
+end
+
+function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
+end
+
+function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
+end
+
 function dim_of_simple_module(R::RootSystem, hw::WeightLatticeElem)
   return dim_of_simple_module(Int, R, hw)
 end
@@ -97,22 +99,17 @@ function dim_of_simple_module(T::Type, R::RootSystem, hw::WeightLatticeElem)
   return T(div(num, den))
 end
 
-function dim_of_simple_module(T::Type, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(T, R, WeightLatticeElem(R, hw))
-end
-
-function dim_of_simple_module(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dim_of_simple_module(R, WeightLatticeElem(R, hw))
-end
-
 @doc raw"""
-    dominant_weights(L::LieAlgebra{C}, hw::WeightLatticeElem) -> Vector{WeightLatticeElem}
-    dominant_weights(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Vector{WeightLatticeElem}
+    dominant_weights(
+      L::LieAlgebra *or* R::RootSystem, 
+      hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion},
+    ) -> Vector{WeightLatticeElem}
 
-Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+Compute the dominant weights occurring in the simple module with highest weight `hw`,
 sorted ascendingly by the total height of roots needed to reach them from `hw`.
 
-See [MP82](@cite) for details and the implemented algorithm.
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
 
 # Examples
 ```jldoctest
@@ -128,30 +125,11 @@ julia> dominant_weights(L, [1, 0, 3])
  w_1 + w_3
  w_3
 ```
-"""
-function dominant_weights(L::LieAlgebra, hw::WeightLatticeElem)
-  return dominant_weights(root_system(L), hw)
-end
 
-function dominant_weights(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dominant_weights(root_system(L), hw)
-end
-
-@doc raw"""
-    dominant_weights(R::RootSystem, hw::WeightLatticeElem) -> Vector{WeightLatticeElem}
-    dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion}) -> Vector{WeightLatticeElem}
-
-Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
-with highest weight `hw`,
-sorted ascendingly by the total height of roots needed to reach them from `hw`.
-
-See [MP82](@cite) for details and the implemented algorithm.
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> dominant_weights(R, [3, 0, 1])
+julia> dominant_weights(R, 3 * fundamental_weight(R, 1) + fundamental_weight(R, 3))
 7-element Vector{WeightLatticeElem}:
  3*w_1 + w_3
  w_1 + w_2 + w_3
@@ -162,6 +140,16 @@ julia> dominant_weights(R, [3, 0, 1])
  w_3
 ```
 """
+function dominant_weights(
+  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return dominant_weights(root_system(L), hw)
+end
+
+function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_weights(R, WeightLatticeElem(R, hw))
+end
+
 function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
   @req root_system(hw) === R "parent root system mismatch"
   @req is_dominant(hw) "not a dominant weight"
@@ -187,16 +175,19 @@ function dominant_weights(R::RootSystem, hw::WeightLatticeElem)
   return first.(sort!(collect(ws_with_level); by=last)) # order by level needed for dominant_character
 end
 
-function dominant_weights(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_weights(R, WeightLatticeElem(R, hw))
-end
-
 @doc raw"""
-    dominant_character([T = Int], L::LieAlgebra{C}, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
-    dominant_character([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+    dominant_character(
+      [T = Int],
+      L::LieAlgebra *or* R::RootSystem,
+      hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion}
+    ) -> Dict{WeightLatticeElem, T}
+    
 
-Computes the dominant weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+Compute the dominant weights occurring in the simple module with highest weight `hw`
 together with their multiplicities.
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
 
 This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
 
@@ -211,47 +202,11 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   w_1 + w_3   => 2
   2*w_1 + w_2 => 1
 ```
-"""
-function dominant_character(L::LieAlgebra, hw::WeightLatticeElem)
-  return dominant_character(root_system(L), hw)
-end
 
-function dominant_character(T::DataType, L::LieAlgebra, hw::WeightLatticeElem)
-  return dominant_character(T, root_system(L), hw)
-end
-
-function dominant_character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dominant_character(root_system(L), hw)
-end
-
-function dominant_character(T::DataType, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return dominant_character(T, root_system(L), hw)
-end
-
-function _action_matrices_on_weights(W::WeylGroup)
-  R = root_system(W)
-  return map(1:rank(R)) do i
-    x = gen(W, i)
-    matrix(
-      ZZ, reduce(vcat, coefficients(fundamental_weight(R, j) * x) for j in 1:rank(R))
-    )
-  end
-end
-
-@doc raw"""
-    dominant_character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
-    dominant_character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
-
-Computes the dominant weights occurring in the simple module of the Lie algebra defined by the root system `R`
-with highest weight `hw`, together with their multiplicities.
-
-This function uses an optimized version of the Freudenthal formula, see [MP82](@cite) for details.
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> dominant_character(R, [2, 0, 1])
+julia> dominant_character(R, 2 * fundamental_weight(R, 1) + fundamental_weight(R, 3))
 Dict{WeightLatticeElem, Int64} with 4 entries:
   w_2 + w_3   => 1
   2*w_1 + w_3 => 1
@@ -259,6 +214,26 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   w_3         => 6
 ```
 """
+function dominant_character(
+  L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return dominant_character(root_system(L), hw)
+end
+
+function dominant_character(
+  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return dominant_character(T, root_system(L), hw)
+end
+
+function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(R, WeightLatticeElem(R, hw))
+end
+
+function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return dominant_character(T, R, WeightLatticeElem(R, hw))
+end
+
 function dominant_character(R::RootSystem, hw::WeightLatticeElem)
   return dominant_character(Int, R, hw)
 end
@@ -323,21 +298,30 @@ function dominant_character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
-function dominant_character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(R, WeightLatticeElem(R, hw))
-end
-
-function dominant_character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return dominant_character(T, R, WeightLatticeElem(R, hw))
+function _action_matrices_on_weights(W::WeylGroup)
+  R = root_system(W)
+  return map(1:rank(R)) do i
+    x = gen(W, i)
+    matrix(
+      ZZ, reduce(vcat, coefficients(fundamental_weight(R, j) * x) for j in 1:rank(R))
+    )
+  end
 end
 
 @doc raw"""
-    character([T = Int], L::LieAlgebra{C}, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
-    character([T = Int], L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+    character(
+      [T = Int],
+      L::LieAlgebra *or* R::RootSystem,
+      hw::WeightLatticeElem *or* hw::Vector{<:IntegerUnion},
+    ) -> Dict{WeightLatticeElem, T}
 
-Computes all weights occurring in the simple module of the Lie algebra `L` with highest weight `hw`,
+Compute all dominant weights occurring in the simple module with highest weight `hw`
 together with their multiplicities.
-This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::Vector{<:IntegerUnion})).
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
+
+This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::LieAlgebra, ::WeightLatticeElem)).
 
 # Examples
 ```jldoctest
@@ -356,36 +340,11 @@ Dict{WeightLatticeElem, Int64} with 10 entries:
   -w_1 + w_2 - w_3 => 1
   -w_2             => 1
 ```
-"""
-function character(L::LieAlgebra, hw::WeightLatticeElem)
-  return character(root_system(L), hw)
-end
 
-function character(T::DataType, L::LieAlgebra, hw::WeightLatticeElem)
-  return character(T, root_system(L), hw)
-end
-
-function character(L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return character(root_system(L), hw)
-end
-
-function character(T::DataType, L::LieAlgebra, hw::Vector{<:IntegerUnion})
-  return character(T, root_system(L), hw)
-end
-
-@doc raw"""
-    character([T = Int], R::RootSystem, hw::WeightLatticeElem) -> Dict{WeightLatticeElem, T}
-    character([T = Int], R::RootSystem, hw::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
-
-Computes all weights occurring in the simple module of the Lie algebra defined by the root system `R`
-with highest weight `hw`, together with their multiplicities.
-This is achieved by acting with the Weyl group on the [`dominant_character`](@ref dominant_character(::RootSystem, ::WeightLatticeElem)).
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> character(R, [0, 0, 1])
+julia> character(R, fundamental_weight(R, 3))
 Dict{WeightLatticeElem, Int64} with 8 entries:
   -w_1 + w_2 - w_3 => 1
   w_1 - w_3        => 1
@@ -397,6 +356,24 @@ Dict{WeightLatticeElem, Int64} with 8 entries:
   -w_1 + w_3       => 1
 ```
 """
+function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
+  return character(root_system(L), hw)
+end
+
+function character(
+  T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
+)
+  return character(T, root_system(L), hw)
+end
+
+function character(R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(R, WeightLatticeElem(R, hw))
+end
+
+function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
+  return character(T, R, WeightLatticeElem(R, hw))
+end
+
 function character(R::RootSystem, hw::WeightLatticeElem)
   return character(Int, R, hw)
 end
@@ -416,20 +393,19 @@ function character(T::DataType, R::RootSystem, hw::WeightLatticeElem)
   return char
 end
 
-function character(R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(R, WeightLatticeElem(R, hw))
-end
-
-function character(T::DataType, R::RootSystem, hw::Vector{<:IntegerUnion})
-  return character(T, R, WeightLatticeElem(R, hw))
-end
-
 @doc raw"""
-    tensor_product_decomposition(L::LieAlgebra, hw1::WeightLatticeElem, hw2::WeightLatticeElem) -> MSet{Vector{Int}}
-    tensor_product_decomposition(L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
+    tensor_product_decomposition(
+      L::LieAlgebra *or* R::RootSystem,
+      hw1::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
+      hw2::WeightLatticeElem *or* hw1::Vector{<:IntegerUnion},
+    ) -> MSet{Vector{Int}}
 
-Computes the decomposition of the tensor product of the simple modules of the Lie algebra `L` with highest weights `hw1` and `hw2`
+Compute the decomposition of the tensor product of the simple modules with highest weights `hw1` and `hw2`
 into simple modules with their multiplicities.
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
+
 This function uses Klimyk's formula (see [Hum72; Exercise 24.9](@cite)).
 
 The return type may change in the future.
@@ -451,39 +427,16 @@ MSet{Vector{Int64}} with 6 elements:
   [3, 0]
   [0, 3]
 ```
-"""
-function tensor_product_decomposition(
-  L::LieAlgebra, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
-)
-  return tensor_product_decomposition(root_system(L), hw1, hw2)
-end
 
-function tensor_product_decomposition(
-  L::LieAlgebra, hw1::WeightLatticeElem, hw2::WeightLatticeElem
-)
-  return tensor_product_decomposition(root_system(L), hw1, hw2)
-end
-
-@doc raw"""
-    tensor_product_decomposition(R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem) -> MSet{Vector{Int}}
-    tensor_product_decomposition(R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}) -> MSet{Vector{Int}}
-
-Computes the decomposition of the tensor product of the simple modules of the Lie algebra defined by the root system `R`
-with highest weights `hw1` and `hw2` into simple modules with their multiplicities.
-This function uses Klymik's formula.
-
-The return type may change in the future.
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 2);
 
-julia> tensor_product_decomposition(R, [1, 0], [0, 1])
+julia> tensor_product_decomposition(R, fundamental_weight(R, 1), fundamental_weight(R, 2))
 MSet{Vector{Int64}} with 2 elements:
   [1, 1]
   [0, 1]
 
-julia> tensor_product_decomposition(R, [1, 1], [1, 1])
+julia> tensor_product_decomposition(R, weyl_vector(R), weyl_vector(R))
 MSet{Vector{Int64}} with 10 elements:
   [0, 0]
   [0, 4]
@@ -495,6 +448,28 @@ MSet{Vector{Int64}} with 10 elements:
   [1, 2] : 2
 ```
 """
+function tensor_product_decomposition(
+  L::LieAlgebra,
+  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  hw2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+)
+  return tensor_product_decomposition(root_system(L), hw1, hw2)
+end
+
+function tensor_product_decomposition(
+  R::RootSystem,
+  hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  hw2::Vector{<:IntegerUnion},
+)
+  return tensor_product_decomposition(R, hw1, WeightLatticeElem(R, hw2))
+end
+
+function tensor_product_decomposition(
+  R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::WeightLatticeElem
+)
+  return tensor_product_decomposition(R, WeightLatticeElem(R, hw1), hw2)
+end
+
 function tensor_product_decomposition(
   R::RootSystem, hw1::WeightLatticeElem, hw2::WeightLatticeElem
 )
@@ -522,14 +497,6 @@ function tensor_product_decomposition(
   # return mults
   return multiset(
     Dict(Int.(_vec(coefficients(w))) => multiplicity(mults, w) for w in unique(mults))
-  )
-end
-
-function tensor_product_decomposition(
-  R::RootSystem, hw1::Vector{<:IntegerUnion}, hw2::Vector{<:IntegerUnion}
-)
-  return tensor_product_decomposition(
-    R, WeightLatticeElem(R, hw1), WeightLatticeElem(R, hw2)
   )
 end
 
@@ -569,12 +536,13 @@ function _demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
 end
 
 @doc raw"""
-    demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,<:IntegerUnion}
-    demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,<:IntegerUnion}) -> Dict{WeightLatticeElem,<:IntegerUnion}
+    demazure_operator(r::RootSpaceElem, w::WeightLatticeElem) -> Dict{WeightLatticeElem,Int}
+    demazure_operator(r::RootSpaceElem, groupringelem::Dict{WeightLatticeElem,T}) where {T<:IntegerUnion} -> Dict{WeightLatticeElem,T}
 
-Computes the action of the Demazure operator associated to the positive root `r` on the given element of the group ring $\mathbb{Z}[P]$.
+Compute the action of the Demazure operator (see [Dem74](@cite)) associated to the positive root `r` on the given element of the group ring $\mathbb{Z}[P]$,
+where $P$ denotes the additive group of the weight lattice.
 
-If a single Weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
+If a single weight lattice element `w` is supplied, this is interpreted as `Dict(w => 1)`.
 
 # Examples
 ```jldoctest
@@ -615,13 +583,19 @@ function demazure_operator(r::RootSpaceElem, w::WeightLatticeElem)
 end
 
 @doc raw"""
-    demazure_character([T = Int], L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], L::LieAlgebra, w::Vector{<:IntegerUnion}, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], L::LieAlgebra, w::WeightLatticeElem, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], L::LieAlgebra, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
+    demazure_character(
+      [T = Int],
+      L::LieAlgebra *or* R::RootSystem,
+      w::WeightLatticeElem *or* w::Vector{<:IntegerUnion},
+      x::WeylGroupElem *or* reduced_expr::Vector{<:IntegerUnion},
+    ) -> Dict{WeightLatticeElem, T}
 
-Computes all weights occurring in the Demazure module of the Lie algebra `L``
-with extremal weight `w * x`, together with their multiplicities.
+Compute all weights occurring in the Demazure module with extremal weight `w * x`
+together with their multiplicities,
+using the Demazure dimension formula (see [Dem74](@cite)).
+
+One can either provide a semisimple Lie algebra of characteristic $0$,
+or its root system.
 
 Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
 This function may return arbitrary results if the provided expression is not reduced.
@@ -638,74 +612,11 @@ Dict{WeightLatticeElem, Int64} with 5 entries:
   -w_1 + 2*w_2 => 1
   -2*w_1 + w_2 => 1
 ```
-"""
-function demazure_character(L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem)
-  return demazure_character(root_system(L), w, x)
-end
 
-function demazure_character(
-  T::DataType, L::LieAlgebra, w::WeightLatticeElem, x::WeylGroupElem
-)
-  return demazure_character(T, root_system(L), w, x)
-end
-
-function demazure_character(
-  L::LieAlgebra, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
-)
-  return demazure_character(root_system(L), w, reduced_expression)
-end
-
-function demazure_character(
-  T::DataType,
-  L::LieAlgebra,
-  w::WeightLatticeElem,
-  reduced_expression::Vector{<:IntegerUnion},
-)
-  return demazure_character(T, root_system(L), w, reduced_expression)
-end
-
-function demazure_character(L::LieAlgebra, w::Vector{<:IntegerUnion}, x::WeylGroupElem)
-  return demazure_character(root_system(L), w, x)
-end
-
-function demazure_character(
-  T::DataType, L::LieAlgebra, w::Vector{<:IntegerUnion}, x::WeylGroupElem
-)
-  return demazure_character(T, root_system(L), w, x)
-end
-
-function demazure_character(
-  L::LieAlgebra, w::Vector{<:IntegerUnion}, reduced_expression::Vector{<:IntegerUnion}
-)
-  return demazure_character(root_system(L), w, reduced_expression)
-end
-
-function demazure_character(
-  T::DataType,
-  L::LieAlgebra,
-  w::Vector{<:IntegerUnion},
-  reduced_expression::Vector{<:IntegerUnion},
-)
-  return demazure_character(T, root_system(L), w, reduced_expression)
-end
-
-@doc raw"""
-    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], R::RootSystem, w::WeightLatticeElem, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
-    demazure_character([T = Int], R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expr::Vector{<:IntegerUnion}) -> Dict{WeightLatticeElem, T}
-
-Computes all weights occurring in the Demazure module of the Lie algebra defined by the root system `R`
-with extremal weight `w * x`, together with their multiplicities.
-
-Instead of a Weyl group element `x`, a reduced expression for `x` can be supplied.
-This function may return arbitrary results if the provided expression is not reduced.
-
-# Examples
 ```jldoctest
 julia> R = root_system(:B, 3);
 
-julia> demazure_character(R, [0, 1, 0], [1, 2, 3])
+julia> demazure_character(R, fundamental_weight(R, 2), weyl_group(R)([1, 2, 3]))
 Dict{WeightLatticeElem, Int64} with 4 entries:
   w_1 + w_2 - 2*w_3 => 1
   w_1               => 1
@@ -713,21 +624,33 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   w_2               => 1
 ```
 """
+function demazure_character(L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  return demazure_character(root_system(L), w, x)
+end
+
+function demazure_character(T::DataType, L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  return demazure_character(T, root_system(L), w, x)
+end
+
+function demazure_character(R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  return demazure_character(R, WeightLatticeElem(R, w), x)
+end
+
+function demazure_character(T::DataType, R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  return demazure_character(T, R, WeightLatticeElem(R, w), x)
+end
+
 function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
   @req root_system(parent(x)) === R "parent root system mismatch"
   return demazure_character(R, w, word(x))
 end
 
-function demazure_character(
-  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
-)
+function demazure_character(T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
   @req root_system(parent(x)) === R "parent root system mismatch"
   return demazure_character(T, R, w, word(x))
 end
 
-function demazure_character(
-  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
-)
+function demazure_character(R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion})
   return demazure_character(Int, R, w, reduced_expression)
 end
 
@@ -744,29 +667,4 @@ function demazure_character(
     char = demazure_operator(simple_root(root_system(w), Int(i)), char)
   end
   return char
-end
-
-function demazure_character(R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem)
-  return demazure_character(R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  T::DataType, R::RootSystem, w::Vector{<:IntegerUnion}, x::WeylGroupElem
-)
-  return demazure_character(T, R, WeightLatticeElem(R, w), x)
-end
-
-function demazure_character(
-  R::RootSystem, w::Vector{<:IntegerUnion}, reduced_expression::Vector{<:IntegerUnion}
-)
-  return demazure_character(R, WeightLatticeElem(R, w), reduced_expression)
-end
-
-function demazure_character(
-  T::DataType,
-  R::RootSystem,
-  w::Vector{<:IntegerUnion},
-  reduced_expression::Vector{<:IntegerUnion},
-)
-  return demazure_character(T, R, WeightLatticeElem(R, w), reduced_expression)
 end
