@@ -59,6 +59,9 @@ jobs:
           - julia-version: '1.10'
             group: 'book'
             os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
+          - julia-version: 'pre'
+            group: 'book'
+            os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
           - julia-version: 'nightly'
             group: 'book'
             os: [Linux, RPTU, normal-memory] # runs on self-hosted runner
