@@ -3,6 +3,8 @@ struct PhylogeneticRing
   gens::Dict
 end
 
+# seems as though this is the same as what is going on for the other rings and we can probably have
+# an abstract type like stats ring or something? not sure about the name yet
 function phylogenetic_ring(F::Field, varindices::Vector{Tuple{Vararg{Int64}}}; var_name::VarName="p")
   varnames = ["$var_name[$(join(x, ", "))]" for x in varindices]
   S, s = polynomial_ring(F, varnames)
@@ -21,6 +23,8 @@ function Base.show(io::IO, R::PhylogeneticRing)
   print(io, "Phylogenetic ring over $(coeffs) in $(k) variables", "\n", chop(string(gens(ring(R))), head = 16, tail = 1))
 end
 
+################################################################################
+# Parametrizations
 function parameterization(F::Field, pm::PhylogeneticModel; var_name::VarName="p")
   p = probability_map(pm);
   p = compute_equivalent_classes(p)
@@ -36,7 +40,7 @@ end
 
 parameterization(pm::PhylogeneticModel; var_name::VarName="p") = parameterization(QQ, pm; var_name=var_name)
 
-function parameterization(F::Field, pm::GroupBasedPhylogeneticModel; coordinates::Symbol=:fourier)
+function parameterization(F::Field, pm::GroupBasedPhylogeneticModel, coordinates::Symbol=:fourier)
   if coordinates == :probabilities
     return parameterization(F, phylogenetic_model(pm); var_name="p")
 
@@ -56,63 +60,21 @@ function parameterization(F::Field, pm::GroupBasedPhylogeneticModel; coordinates
   end
 end
 
-function vanishing_ideal(F::Field, pm::PhylogeneticModel; algorithm::Symbol=:eliminate)
-  parametrization = parameterization(F, pm) # seems like we don't even need this? coordinates=:probabilities)
+################################################################################
+# Vanishing Ideal
 
-  if algorithm == :kernel
-    invariants = kernel(parametrization)
-  else
-    S = domain(parametrization)
-    R = codomain(parametrization)
+const PhyloModelUnion = Union{PhylogeneticModel, GroupBasedPhylogeneticModel}
 
-    #elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat([string(x) for x in gens(R)], [string(x) for x in gens(S)]))
-    elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat(R.S, S.S))
-
-    inject_R = hom(R, elim_ring, elim_gens[1:ngens(R)])
-    inject_S = hom(S, elim_ring, elim_gens[ngens(R) + 1:ngens(elim_ring)])
-
-    I = ideal([inject_S(s) - inject_R(parametrization(s)) for s in gens(S)])
-
-    if algorithm == :eliminate
-      invariants = eliminate(I, elim_gens[1:ngens(R)])
-    elseif algorithm == :f4
-      # F = GF(32003) #1206.6940
-      invariants = ideal(groebner_basis_f4(I, eliminate=ngens(R)))
-      # elseif algorithm == :4ti2
-      # elseif algorithm == :MultigradedImplicitization
-
-    elseif algorithm == :m4ti2 # symbols cannot start with numbers
-      @req is_binomial(I) "Ideal must be a binomial ideal to use 4ti2 algorithm"
-      # we can probably avoid constructing the ideal in the future for this case
-      lat_gens = map(e -> e[2] - e[1],
-                     collect.(map(i -> exponents(i; ordering=lex(elim_ring)),
-                                  gens(I))))
-      markov_basis = markov4ti2(matrix(ZZ, lat_gens))
-      invariants = binomial_exponents_to_ideal(elim_ring, markov_basis)
-      # elseif algorithm == :MultigradedImplicitization
-    else
-      error("Couldn't recognize algorithm when computing the vanishing ideal")
-    end
-
-    project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
-    invariants = project_S(invariants)
-  end
-  invariants
-end
-
-vanishing_ideal(pm::PhylogeneticModel;
-                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm; algorithm=algorithm)
-
-function vanishing_ideal(F::Field, pm::GroupBasedPhylogeneticModel; coordinates::Symbol=:fourier, algorithm::Symbol = :eliminate)
-  param = parameterization(F, pm, coordinates=coordinates)
-
+function vanishing_ideal(F::Field, pm::PhyloModelUnion, param::MPolyAnyMap;
+                         algorithm::Symbol = :eliminate)
   if algorithm == :kernel
     invariants = kernel(param)
   else
     S = domain(param)
     R = codomain(param)
 
-    elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat([string(x) for x in gens(R)], [string(x) for x in gens(S)]))
+    #elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat([string(x) for x in gens(R)], [string(x) for x in gens(S)]))
+    elim_ring, elim_gens = polynomial_ring(coefficient_ring(R), vcat(R.S, S.S))
     inject_R = hom(R, elim_ring, elim_gens[1:ngens(R)])
     inject_S = hom(S, elim_ring, elim_gens[ngens(R)+1:ngens(elim_ring)])
 
@@ -133,7 +95,6 @@ function vanishing_ideal(F::Field, pm::GroupBasedPhylogeneticModel; coordinates:
       markov_basis = Oscar.markov4ti2(matrix(ZZ, lat_gens))
       invariants = eliminate(binomial_exponents_to_ideal(elim_ring, markov_basis),
                              elim_gens[1:ngens(R)])
-      
       # elseif algorithm == :MultigradedImplicitization
     end
 
@@ -143,6 +104,12 @@ function vanishing_ideal(F::Field, pm::GroupBasedPhylogeneticModel; coordinates:
   invariants
 end
 
+vanishing_ideal(F::Field, pm::PhylogeneticModel;
+                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parameterization(F, pm); algorithm=algorithm)
+
+vanishing_ideal(pm::PhylogeneticModel;
+                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm; algorithm=algorithm)
+
 vanishing_ideal(pm::GroupBasedPhylogeneticModel;
                 coordinates::Symbol=:fourier,
-                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm; coordinates=coordinates, algorithm=algorithm)
+                algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm, parameterization(QQ, pm, coordinates); algorithm=algorithm)
