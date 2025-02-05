@@ -48,7 +48,7 @@ function save_type_params(s::SerializerState, obj::T) where {S, T <: PolyhedralO
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for key in keys(dict)
+      for key in keys(params)
         save_type_params(s, typeof(dict[key]), params[key], key)
       end
     end
