@@ -642,23 +642,39 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
   w_2               => 1
 ```
 """
-function demazure_character(L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+function demazure_character(
+  L::LieAlgebra,
+  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return demazure_character(root_system(L), w, x)
 end
 
-function demazure_character(T::DataType, L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+function demazure_character(
+  T::DataType,
+  L::LieAlgebra,
+  w::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
   @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_semisimple(L) "Lie algebra not semisimple"
   return demazure_character(T, root_system(L), w, x)
 end
 
-function demazure_character(R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+function demazure_character(
+  R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}}
+)
   return demazure_character(R, WeightLatticeElem(R, w), x)
 end
 
-function demazure_character(T::DataType, R::RootSystem, w::Vector{<:IntegerUnion}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+function demazure_character(
+  T::DataType,
+  R::RootSystem,
+  w::Vector{<:IntegerUnion},
+  x::Union{WeylGroupElem,Vector{<:IntegerUnion}},
+)
   return demazure_character(T, R, WeightLatticeElem(R, w), x)
 end
 
@@ -667,12 +683,16 @@ function demazure_character(R::RootSystem, w::WeightLatticeElem, x::WeylGroupEle
   return demazure_character(R, w, word(x))
 end
 
-function demazure_character(T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem)
+function demazure_character(
+  T::DataType, R::RootSystem, w::WeightLatticeElem, x::WeylGroupElem
+)
   @req root_system(parent(x)) === R "parent root system mismatch"
   return demazure_character(T, R, w, word(x))
 end
 
-function demazure_character(R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion})
+function demazure_character(
+  R::RootSystem, w::WeightLatticeElem, reduced_expression::Vector{<:IntegerUnion}
+)
   return demazure_character(Int, R, w, reduced_expression)
 end
 
