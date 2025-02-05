@@ -112,3 +112,7 @@ vanishing_ideal(pm::PhylogeneticModel;
 vanishing_ideal(pm::GroupBasedPhylogeneticModel;
                 coordinates::Symbol=:fourier,
                 algorithm::Symbol=:eliminate) = vanishing_ideal(QQ, pm, parameterization(QQ, pm, coordinates); algorithm=algorithm)
+
+vanishing_ideal(F::Field, pm::GroupBasedPhylogeneticModel;
+                coordinates::Symbol=:fourier,
+                algorithm::Symbol=:eliminate) = vanishing_ideal(F, pm, parameterization(F, pm, coordinates); algorithm=algorithm)
