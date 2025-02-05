@@ -214,7 +214,7 @@ function load_object(s::DeserializerState, ::Type{<: WeierstrassModel}, params::
     set_attribute!(model, :ambient_space_models_of_g4_fluxes, ambient_space_models_of_g4_fluxes)
     set_attribute!(model, :ambient_space_models_of_g4_fluxes_indices, tuple_list)
   end
-    
+  
   # Are the well-quanitzed G4-fluxes known?
   if haskey(attrs_data, :well_quantized_integral) && haskey(attrs_data, :well_quantized_rational)
     quant_tuple = (attrs_data[:well_quantized_integral], attrs_data[:well_quantized_rational])

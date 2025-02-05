@@ -3,12 +3,12 @@ CurrentModule = Oscar
 DocTestSetup = Oscar.doctestsetup()
 ```
 
-# Blowups
+# Blow-Ups
 
 ```@docs
-blowup(i::AbstractVarietyMap; symbol::String = "e")
+blow_up(i::AbstractVarietyMap; symbol::String = "e")
 ```
 
 ```@docs
-blowup_points(X::AbstractVariety, n::Int; symbol::String = "e")
+blow_up_points(X::AbstractVariety, n::Int; symbol::String = "e")
 ```

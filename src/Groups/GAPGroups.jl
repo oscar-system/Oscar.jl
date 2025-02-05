@@ -1989,14 +1989,15 @@ end
     map_word(g::Union{FPGroupElem, SubFPGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
     map_word(v::Vector{Union{Int, Pair{Int, Int}}}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
-Return the product $R_1 R_2 \cdots R_n$
+If `init` is `nothing`, then return the product $R_1 R_2 \cdots R_n$
 that is described by `g` or `v`, respectively.
+Otherwise return the product $xR_1 R_2 \cdots R_n$ where $x =$ `init`.
 
 If `g` is an element of a free group $G$, say, then the rank of $G$ must be
 equal to the length of `genimgs`, `g` is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th generator of $G$ and the $e_i$ are nonzero integers,
-and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
+and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
 
 If `g` is an element of (a subgroup of) a finitely presented group
 then the result is defined as `map_word` applied to a representing element
@@ -2007,7 +2008,7 @@ of this free group, not of `gens(parent(g))`.
 If the first argument is a vector `v` of integers $k_i$ or pairs `k_i => e_i`,
 respectively,
 then the absolute values of the $k_i$ must be at most the length of `genimgs`,
-and $R_j =$ `imgs[`$|k_i|$`]`$^{\epsilon_i}$
+and $R_j =$ `genimgs[`$|k_i|$`]`$^{\epsilon_i}$
 where $\epsilon_i$ is the `sign` of $k_i$ (times $e_i$).
 
 If a vector `genimgs_inv` is given then its assigned entries are expected
@@ -2015,13 +2016,14 @@ to be the inverses of the corresponding entries in `genimgs`,
 and the function will use (and set) these entries in order to avoid
 calling `inv` (more than once) for entries of `genimgs`.
 
-If `init` is different from `nothing` then the product gets initialized with
-`init`.
-
-If `v` has length zero then `init` is returned if also `genimgs` has length
-zero, otherwise `one(genimgs[1])` is returned.
+The behaviour if `v` has length zero (or `g == one(g)`) is as follows:
+If `init` is different from `nothing`, then `init` is returned.
+Otherwise `one(genimgs[1])` is returned unless `genimgs` is empty.
+If `init == nothing` and `genimgs` is empty, an error occurs.
 Thus the intended value for the empty word must be specified as `init`
 whenever it is possible that the elements in `genimgs` do not support `one`.
+
+See also: [`map_word(::Union{PcGroupElem, SubPcGroupElem}, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2038,10 +2040,19 @@ julia> map_word(F1^2, imgs)
 julia> map_word(F2, imgs)
 (1,2)
 
+julia> map_word([1, 2], imgs)
+(2,3,4)
+
+julia> map_word([1 => 2], imgs)
+(1,3)(2,4)
+
 julia> map_word(one(F), imgs)
 ()
 
 julia> map_word(one(F), imgs, init = imgs[1])
+(1,2,3,4)
+
+julia> map_word([], [], init=imgs[1])
 (1,2,3,4)
 
 julia> invs = Vector(undef, 2);
@@ -2086,12 +2097,16 @@ end
 @doc raw"""
     map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)
 
-Return the product $R_1 R_2 \cdots R_n$ that is described by `g`,
-which is a product of the form
+If `init` is `nothing`, return the product $R_1 R_2 \cdots R_n$ that is described by `g`.
+This is a product of the form
 $g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$
 where $g_i$ is the $i$-th entry in the defining polycyclic generating sequence
 of `full_group(parent(g))` and the $e_i$ are nonzero integers,
-and $R_j =$ `imgs[`$i_j$`]`$^{e_j}$.
+and $R_j =$ `genimgs[`$i_j$`]`$^{e_j}$.
+
+If `init` is different from `nothing`, return $x g_{i_1}^{e_1} g_{i_2}^{e_2} \cdots g_{i_n}^{e_n}$ where $x =$ `init`.
+
+See also: [`map_word(::Union{FPGroupElem, SubFPGroupElem}, ::Vector)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2103,6 +2118,9 @@ f1*f2^4
 
 julia> map_word(g, gens(free_group(:x, :y)))
 x*y^4
+
+julia> map_word(g, [3, 2], init=5)
+240
 ```
 """
 function map_word(g::Union{PcGroupElem, SubPcGroupElem}, genimgs::Vector; genimgs_inv::Vector = Vector(undef, length(genimgs)), init = nothing)

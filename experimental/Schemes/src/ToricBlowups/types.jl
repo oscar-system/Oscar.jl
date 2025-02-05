@@ -114,18 +114,18 @@ end
 function Base.:+(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) + lattice_homomorphism(tm2), codomain(tm1))
 end
 
 function Base.:-(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) - lattice_homomorphism(tm2), codomain(tm1))
 end
 
 function Base.:*(c::T, tm::ToricBlowupMorphism) where T <: IntegerUnion
-new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
-return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
+new_lattice_homomorphism = hom(domain(lattice_homomorphism(tm)), codomain(lattice_homomorphism(tm)), c * matrix(lattice_homomorphism(tm)))
+return toric_morphism(domain(tm), new_lattice_homomorphism, codomain(tm))
 end
 
 Base.:+(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) + tm2
@@ -141,7 +141,7 @@ Base.:-(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 - underlying_morphis
 
 function Base.:*(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req codomain(tm1) === domain(tm2) "The codomain of the first morphism must be identically the same as the domain of the second morphism"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) * lattice_homomorphism(tm2), codomain(tm2))
 end
 
 Base.:*(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 * underlying_morphism(tm2)
@@ -154,14 +154,14 @@ Base.:*(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1)
 ####################################################
 
 function Base.:(==)(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
-  return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
+  return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && lattice_homomorphism(tm1) == lattice_homomorphism(tm2)
 end
 
 function Base.hash(tm::ToricBlowupMorphism, h::UInt)
   b = 0x1a66f927cae2d409 % UInt
   h = hash(domain(tm), h)
   h = hash(codomain(tm), h)
-  h = hash(grid_morphism(tm), h)
+  h = hash(lattice_homomorphism(tm), h)
   return xor(h, b)
 end
 

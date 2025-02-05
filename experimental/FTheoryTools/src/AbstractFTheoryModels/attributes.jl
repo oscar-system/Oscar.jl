@@ -1299,21 +1299,19 @@ julia> h = euler_characteristic(qsm_model; check = false)
 378
 ```
 """
-function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
+@attr Int function euler_characteristic(m::AbstractFTheoryModel; check::Bool = true)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Euler characteristic of F-theory model supported for Weierstrass, global Tate and hypersurface models only"
   @req base_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "Euler characteristic of F-theory model currently supported only for toric ambient space"
 
-  return get_attribute!(m, :euler_characteristic) do
-    # Trigger potential short-cut computation of cohomology ring
-    cohomology_ring(ambient_space(m); check)
+  # Trigger potential short-cut computation of cohomology ring
+  cohomology_ring(ambient_space(m); check)
 
-    # Compute the cohomology class corresponding to the hypersurface equation
-    cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
+  # Compute the cohomology class corresponding to the hypersurface equation
+  cy = cohomology_class(toric_divisor_class(ambient_space(m), degree(hypersurface_equation(m))))
 
-    # Compute the Euler characteristic
-    return Int(integrate(chern_class(m, 4; check) * cy; check))
-  end::Int
+  # Compute the Euler characteristic
+  return Int(integrate(chern_class(m, 4; check) * cy; check))
 end
 
 

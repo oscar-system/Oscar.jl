@@ -155,7 +155,7 @@ end
 #########################################################################
 # Forwarding attributes of toric morphisms based on `underlying_morphism`
 #########################################################################
-grid_morphism(bl::ToricBlowupMorphism) = grid_morphism(underlying_morphism(bl))
+lattice_homomorphism(bl::ToricBlowupMorphism) = lattice_homomorphism(underlying_morphism(bl))
 morphism_on_torusinvariant_weil_divisor_group(bl::ToricBlowupMorphism) = morphism_on_torusinvariant_weil_divisor_group(underlying_morphism(bl))
 morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowupMorphism) = morphism_on_torusinvariant_cartier_divisor_group(underlying_morphism(bl))
 morphism_on_class_group(bl::ToricBlowupMorphism) = morphism_on_class_group(underlying_morphism(bl))
@@ -164,7 +164,7 @@ morphism_on_picard_group(bl::ToricBlowupMorphism) = morphism_on_picard_group(und
 
 
 #=
-For the future, if traits seem better to forward methods as the ones immediately above (grid_morphism, morphism_on_torusinvariant_weil_divisor_group, etc.):
+For the future, if traits seem better to forward methods as the ones immediately above (lattice_homomorphism, morphism_on_torusinvariant_weil_divisor_group, etc.):
 
 ########################################################################
 # Enabling the HasToricSubObjectTrait for ToricBlowupMorphism        #
@@ -176,11 +176,11 @@ toric_sub_object(bl::ToricBlowupMorphism) = underlying_morphism(bl)
 ########################################################################
 # Enabling the functionality in general                                #
 ########################################################################
-function grid_morphism(phi::Any)
-  return _grid_morphism(HasToricSubObjectTrait(phi), phi)
+function lattice_homomorphism(phi::Any)
+  return _lattice_homomorphism(HasToricSubObjectTrait(phi), phi)
 end
 
-function _grid_morphism(::HasToricSubObject, phi)
-  return grid_morphism(toric_sub_object(phi))
+function _lattice_homomorphism(::HasToricSubObject, phi)
+  return lattice_homomorphism(toric_sub_object(phi))
 end
 =#

@@ -1,6 +1,7 @@
 # more tests are in `test/AlgebraicGeometry/Schemes/`
+# and in `/test/AlgebraicGeometry/ToricVarieties/`
 #
-@testset "Blow ups in existing rays" begin
+@testset "Blowups in existing rays" begin
   c = positive_hull([1 0 0; 1 1 0; 1 1 1; 1 0 1])
   ntv = normal_toric_variety(c)
   bl0 = blow_up(ntv, [1,0,0])
@@ -15,7 +16,7 @@
   @test exceptional_prime_divisor(bl1) == toric_divisor(domain(bl1), [1,0,0,0])
 end
 
-@testset "Blow ups along minimal supercone coordinates" begin
+@testset "Blowups along minimal supercone coordinates" begin
   P2 = projective_space(NormalToricVariety, 2)
   f_1 = blow_up_along_minimal_supercone_coordinates(P2, [2, 3, 0])
   f_2 = blow_up(P2, [2, 3])
@@ -44,6 +45,10 @@ end
   J, k = strict_transform_with_index(f, I)
   @test J == ideal(S, [x_^3 + y_^3*u^3])
   @test k == 6
+  g = x^3 + y^3
+  h, k_poly = strict_transform_with_index(f, g)
+  @test ideal(h) == J
+  @test k == k_poly
 
   # 1/2(1, 1) quotient singularity, (1/2, 1/2)-blowup
   ray_generators = [[2, -1], [0, 1]]
@@ -69,6 +74,11 @@ end
   J_total = total_transform(f, I)
   @test J_total == ideal(S, [x_*u + y_^3*u^2])
   @test ideal_sheaf(Y, J_total) == total_transform(f, ideal_sheaf(X, I))
+  g = x + y^3
+  h_strict = strict_transform(f, g)
+  @test ideal(h_strict) == J_strict
+  h_total = total_transform(f, g)
+  @test ideal(h_total) == J_total
 
   ## Subscheme is a zero-dimensional scheme, topologically three points
   I = ideal(R, [x - y^3, x - y^5])

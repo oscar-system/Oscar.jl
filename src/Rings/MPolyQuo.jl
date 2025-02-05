@@ -554,12 +554,10 @@ end
   return is_prime(saturated_ideal(I))
 end
 
-function radical(I::MPolyQuoIdeal; eliminate_variables::Bool=true)
-  get_attribute!(I, :radical) do
-    R = base_ring(I)
-    J = saturated_ideal(I)
-    return ideal(R, [g for g in R.(gens(radical(J; eliminate_variables))) if !iszero(g)])
-  end::typeof(I)
+@attr typeof(I) function radical(I::MPolyQuoIdeal; eliminate_variables::Bool=true)
+  R = base_ring(I)
+  J = saturated_ideal(I)
+  return ideal(R, [g for g in R.(gens(radical(J; eliminate_variables))) if !iszero(g)])
 end
 
 # The following is to streamline the programmer's
@@ -1886,18 +1884,16 @@ julia> small_generating_set(a)
 
 ```
 """
-function small_generating_set(
+@attr Vector{elem_type(base_ring(I))} function small_generating_set(
     I::MPolyQuoIdeal; 
     algorithm::Symbol=:simple
   )
-  return get_attribute!(I, :small_generating_set) do
-    # For non-homogeneous ideals, we do not have a notion of minimal generating
-    # set, but Singular.mstd still provides a good heuristic to find a small
-    # generating set.
-    Q = base_ring(I)
-    # Temporary workaround, see #3499
-    unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I); algorithm))))
-  end::Vector{elem_type(base_ring(I))}
+  # For non-homogeneous ideals, we do not have a notion of minimal generating
+  # set, but Singular.mstd still provides a good heuristic to find a small
+  # generating set.
+  Q = base_ring(I)
+  # Temporary workaround, see #3499
+  unique!(filter!(!iszero, Q.(small_generating_set(saturated_ideal(I); algorithm))))
 end
 
 # in the graded case, reusing a cached gb makes sense, so use minimal_generating set there

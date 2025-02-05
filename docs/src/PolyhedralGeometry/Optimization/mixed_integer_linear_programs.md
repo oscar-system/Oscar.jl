@@ -33,4 +33,6 @@ ambient_dim(milp::MixedIntegerLinearProgram)
 optimal_value(milp::MixedIntegerLinearProgram{T}) where T<:scalar_types
 optimal_solution
 solve_milp
+integer_hull
+gomory_chvatal_closure
 ```

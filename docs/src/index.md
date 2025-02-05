@@ -42,3 +42,11 @@ our [Introduction for new developers](@ref).
 ## How to cite?
 
 If you have used OSCAR in the preparation of a paper, please cite it as described [here](https://github.com/oscar-system/Oscar.jl?tab=readme-ov-file#citing-oscar).
+
+## Acknowledgements
+
+The development of OSCAR has been supported
+by the German Research Foundation (DFG) within the
+[Collaborative Research Center TRR 195 *Symbolic Tools in Mathematics
+and their Applications*](https://www.computeralgebra.de/sfb/)
+(from 2017 until 2028).
