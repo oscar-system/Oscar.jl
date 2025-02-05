@@ -63,14 +63,14 @@ key.format =
 }
 
 # Enforce "{...}" around fields
-rewrite.rule {"^\"\([^#]*\)\"$" "{\1}"}
-rewrite.rule {"^ *\([0-9]*\) *$" "{\1}"}
+rewrite.rule { "^\"\([^#]*\)\"$" "{\1}" }
+rewrite.rule { "^ *\([0-9]*\) *$" "{\1}" }
 
 # Remove empty fields
-rewrite.rule {"^{ *}$"}
+rewrite.rule { "^{ *}$" }
 
 # Unify page range separator
-rewrite.rule {pages "\([0-9]+\) *\(-\|---\|–\) *\([0-9]+\)" "\1--\3"}
+rewrite.rule { pages "\([0-9]+\) *\(-\|---\|–\) *\([0-9]+\)" "\1--\3" }
 
 # Check that 1800<=year<=2029
 check.rule { year "^[\"{]1[89][0-9][0-9][\"}]$" }
