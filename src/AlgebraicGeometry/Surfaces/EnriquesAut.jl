@@ -567,7 +567,7 @@ function borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
   autD = [matrix(preimage(iso,i)) for i in small_generating_set(autD_mod2)]
   if order(autD_mod2) != length(autD)
     K,i = kernel(iso)
-    append!(autD, matrix.(_gens(K)))
+    append!(autD, matrix.(gens(K)))
   end
   @vprintln :EnriquesAuto 4 "done"
   # the following was too slow
