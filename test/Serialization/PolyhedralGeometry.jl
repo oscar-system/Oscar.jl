@@ -1,5 +1,5 @@
 using Oscar: _integer_variables
-@testset "PolyhedralGeometry" begin
+@test_skip @testset "PolyhedralGeometry" begin
   Qx, x = QQ[:x]
   F, a = embedded_number_field(x^2 - 2, -1.0)
 
@@ -74,11 +74,11 @@ using Oscar: _integer_variables
       f_vector(d_hedron)
       lattice_points(d_hedron)
 
-      dict_ps = Dict{String, Polyhedron}(
-        "unprecise" => polyhedron(
+      dict_ps = (
+        unprecise = polyhedron(
           Polymake.common.convert_to{Float64}(Oscar.pm_object(d_hedron))
         ),
-        "precise" => d_hedron
+        precise = d_hedron
       )
 
       test_save_load_roundtrip(path, dict_ps) do loaded

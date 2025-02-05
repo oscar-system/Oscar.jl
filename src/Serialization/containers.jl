@@ -289,9 +289,12 @@ function save_type_params(s::SerializerState, obj::Dict{S, T}) where {T, S <: Un
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
       save_object(s, encode_type(S), :key_type)
-      isempty(params) && save_object(s, encode_type(T), :value_type)
-      for (k, v) in params
-        save_type_params(s, typeof(obj[k]), params[k], Symbol(k))
+      if isnothing(params) || isempty(params)
+        save_object(s, encode_type(T), :value_type)
+      else
+        for (k, v) in params
+          save_type_params(s, typeof(obj[k]), params[k], Symbol(k))
+        end
       end
     end
   end
@@ -320,6 +323,7 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
         end
         push!(value_types, params_dict[key][1])
       end
+      params_dict = isempty(params_dict) ? nothing : params_dict
       return (S, Union{value_types...}), params_dict
     else
       error{"not implemented yet"}
@@ -355,7 +359,7 @@ function load_object(s::DeserializerState,
 end
 
 function load_object(s::DeserializerState,
-                     T::Type{<:Dict{S, U}}) where {S <: Union{Int, Symbol, String}, U <: Union{Symbol, String, Int}}
+                     T::Type{<:Dict{S, U}}) where {S <: Union{Int, Symbol, String}, U}
   dict = T()
   for k in keys(s.obj)
     dict[S(k)] = load_object(s, U, Symbol(k))
@@ -387,6 +391,13 @@ function save_type_params(s::SerializerState, T::Type{Set{S}}, ::Nothing) where 
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_type_params(s, S, nothing, :params)
+  end
+end
+
+function save_type_params(s::SerializerState, T::Type{Set{S}}, params::Any) where S
+  save_data_dict(s) do
+    save_object(s, encode_type(T), :name)
+    save_type_params(s, S, params, :params)
   end
 end
 
