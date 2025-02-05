@@ -13,7 +13,7 @@ function phylogenetic_ring(F::Field, varindices::Vector{Tuple{Vararg{Int64}}}; v
   return PhylogeneticRing(S, p)
 end
 
-phylogenetic_ring(varindices::Vector{Tuple{Vararg{Int64}}}; var_name::VarName="p") = phylogenetic_model(QQ, varindices; var_name=var_name)
+phylogenetic_ring(varindices::Vector{Tuple{Vararg{Int64}}}; var_name::VarName="p") = phylogenetic_ring(QQ, varindices; var_name=var_name)
 ring(R::PhylogeneticRing) = R.ring
 base_ring(R::PhylogeneticRing) = base_ring(ring(R))
 
@@ -54,7 +54,7 @@ function parameterization(F::Field, pm::GroupBasedPhylogeneticModel, coordinates
     S = fourier_ring(pm)
     S, = polynomial_ring(F, vcat([string(x) for x in gens(S)]))
 
-    return hom(Oscar.ring(R), S, reduce(vcat, [change_coefficient_ring(F, parametrization[k]) for k in indices]))
+    return hom(ring(R), S, reduce(vcat, [change_coefficient_ring(F, parametrization[k]) for k in indices]))
   else
     error("Couldn't recognize coordinates type to be used in parameterization")
   end
@@ -92,12 +92,11 @@ function vanishing_ideal(F::Field, pm::PhyloModelUnion, param::MPolyAnyMap;
       lat_gens = map(e -> e[2] - e[1],
                      collect.(map(i -> exponents(i; ordering=lex(elim_ring)),
                                   gens(I))))
-      markov_basis = Oscar.markov4ti2(matrix(ZZ, lat_gens))
+      markov_basis = markov4ti2(matrix(ZZ, lat_gens))
       invariants = eliminate(binomial_exponents_to_ideal(elim_ring, markov_basis),
                              elim_gens[1:ngens(R)])
       # elseif algorithm == :MultigradedImplicitization
     end
-
     project_S = hom(elim_ring, S, z -> z, [repeat([1], ngens(R)); gens(S)])
     invariants = project_S(invariants)
   end
