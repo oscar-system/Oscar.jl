@@ -89,7 +89,7 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
       if (v isa Polymake.BigObject)
         bigobject_to_jsonstr(pm_object(v))
         save_json(s, bigobject_to_jsonstr(v), k)
-      else
+      elseif !Base.issingletontype(typeof(v))
         save_object(s, v, k)
       end
     end
