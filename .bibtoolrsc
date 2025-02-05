@@ -38,6 +38,7 @@ preserve.key.case = on
 sort.cased = off
 print.use.tab = off
 
+delete.field = { abstract }
 delete.field = { hal_id }
 delete.field = { hal_version }
 delete.field = { isbn }
