@@ -21,6 +21,7 @@ Construct the simple module of the Lie algebra `L` with highest weight `hw`.
 `L` needs to be a semisimple Lie algebra of characteristic $0$.
 """
 function simple_module(L::LieAlgebra, hw::WeightLatticeElem)
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   @req is_dominant(hw) "Not a dominant weight."
   struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
   dimV = size(struct_consts, 2)
@@ -66,12 +67,14 @@ julia> dim_of_simple_module(R, fundamental_weight(R, 1))
 function dim_of_simple_module(
   L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return dim_of_simple_module(root_system(L), hw)
 end
 
 function dim_of_simple_module(
   T::Type, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return dim_of_simple_module(T, root_system(L), hw)
 end
 
@@ -145,6 +148,7 @@ julia> dominant_weights(R, 3 * fundamental_weight(R, 1) + fundamental_weight(R, 
 function dominant_weights(
   L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return dominant_weights(root_system(L), hw)
 end
 
@@ -219,12 +223,14 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 function dominant_character(
   L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return dominant_character(root_system(L), hw)
 end
 
 function dominant_character(
   T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return dominant_character(T, root_system(L), hw)
 end
 
@@ -359,12 +365,14 @@ Dict{WeightLatticeElem, Int64} with 8 entries:
 ```
 """
 function character(L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}})
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return character(root_system(L), hw)
 end
 
 function character(
   T::DataType, L::LieAlgebra, hw::Union{WeightLatticeElem,Vector{<:IntegerUnion}}
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return character(T, root_system(L), hw)
 end
 
@@ -455,6 +463,7 @@ function tensor_product_decomposition(
   hw1::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
   hw2::Union{WeightLatticeElem,Vector{<:IntegerUnion}},
 )
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return tensor_product_decomposition(root_system(L), hw1, hw2)
 end
 
@@ -627,10 +636,12 @@ Dict{WeightLatticeElem, Int64} with 4 entries:
 ```
 """
 function demazure_character(L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return demazure_character(root_system(L), w, x)
 end
 
 function demazure_character(T::DataType, L::LieAlgebra, w::Union{WeightLatticeElem,Vector{<:IntegerUnion}}, x::Union{WeylGroupElem,Vector{<:IntegerUnion}})
+  @req is_zero(characteristic(L)) "Characteristic must be zero"
   return demazure_character(T, root_system(L), w, x)
 end
 
