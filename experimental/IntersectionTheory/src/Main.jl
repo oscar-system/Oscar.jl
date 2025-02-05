@@ -637,8 +637,8 @@ Construct a generic abstract variety of dimension $n$ with some bundles of given
 Return the abstract variety and the list of bundles.
 """
 function abstract_variety(n::Int, bundles::Vector{Pair{Int, T}}; base::Ring=QQ) where T
-  symbols = vcat([_parse_symbol(s,1:r) for (r,s) in bundles]...)
-  degs = vcat([collect(1:r) for (r,s) in bundles]...)
+  symbols = reduce(vcat, [_parse_symbol(s,1:r) for (r,s) in bundles])
+  degs = reduce(vcat, [1:r for (r,s) in bundles])
   X = abstract_variety(n, symbols, degs, base=base)[1]
   i = 1
   X.bundles = AbstractBundle[]
@@ -1760,7 +1760,8 @@ julia> integral(b[4]*b[4])
 
 ```
 """
-function intersection_matrix(X::AbstractVariety) intersection_matrix(vcat(basis(X)...)) end
+intersection_matrix(X::AbstractVariety) = intersection_matrix(reduce(vcat, basis(X)))
+
 function intersection_matrix(a::Vector{}, b=nothing)
   if b === nothing b = a end
   matrix([integral(ai*bj) for ai in a, bj in b])
@@ -2342,12 +2343,13 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   
   w = vcat([1], gradings(R))
   R1, (z,) = graded_polynomial_ring(X.base, [symbol], symbols(R); weights = w)
+  gensR1 = gens(R1)
   if R isa MPolyQuoRing
     PR = base_ring(R)
   else
     PR = R
   end
-  pback = hom(PR, R1, gens(R1)[2:end])
+  pback = hom(PR, R1, gensR1[2:end])
   pfwd = hom(R1, R, pushfirst!(gens(R), R()))
   
   # construct the relations
@@ -2364,7 +2366,7 @@ function abstract_projective_bundle(F::AbstractBundle; symbol::String = "z")
   PF = AbstractVariety(X.dim+r-1, APF)
   pₓ = x -> X(pfwd(div(simplify(x).f, simplify(PF(z^(r-1))).f)))
   pₓ = map_from_func(pₓ, PF.ring, X.ring)
-  p = AbstractVarietyMap(PF, X, PF.(gens(R1)[2:end]), pₓ)
+  p = AbstractVarietyMap(PF, X, PF.(gensR1[2:end]), pₓ)
   if isdefined(X, :point)
     PF.point = p.pullback(X.point) * z^(r-1)
   end
@@ -2517,10 +2519,10 @@ function abs_flag(dims::Vector{Int}; base::Ring=QQ, symbol::String="c")
   ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(>(0), ranks)
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]...)
+  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)])
   # FIXME ordering
   # ord = prod(ordering_dp(r) for r in ranks)
-  R = graded_polynomial_ring(base, syms, vcat([1:r for r in ranks]...))[1]
+  R = graded_polynomial_ring(base, syms, reduce(vcat, [1:r for r in ranks]))[1]
   c = pushfirst!([1+sum(gens(R)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R)[1:dims[1]]))
   gi = prod(c)[0:n]
   # XXX cannot mod using graded ring element
@@ -2604,14 +2606,12 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   
   # compute the ranks of successive subqotients and the relative dimension
   
-  l = length(dims)
-  ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   @assert all(>(0), ranks) && dims[end] <= n
   if dims[end] < n # the last dim can be omitted
     dims = vcat(dims, [n])
-    push!(ranks, n-dims[l])
-    l += 1
   end
+  l = length(dims)
+  ranks = pushfirst!([dims[i+1]-dims[i] for i in 1:l-1], dims[1])
   d = sum(ranks[i] * sum(dims[end]-dims[i]) for i in 1:l-1)
   
   # construct the ring
@@ -2622,15 +2622,17 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   else
     PR = R
   end
-  syms = vcat([_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)]..., string.(symbols(PR)))
-  w = vcat([1:r for r in ranks]..., gradings(R))
-  R1 = graded_polynomial_ring(X.base, syms, w)[1]
-  pback = hom(PR, R1, gens(R1)[n+1:end])
+  syms = reduce(vcat, [_parse_symbol(symbol, i, 1:r) for (i,r) in enumerate(ranks)])
+  w = reduce(vcat, [1:r for r in ranks])
+  append!(w, gradings(R))
+  R1 = graded_polynomial_ring(X.base, syms, symbols(PR); weights = w)[1]
+  gensR1 = gens(R1)
+  pback = hom(PR, R1, gensR1[n+1:end])
   pfwd = hom(R1, R, vcat(repeat([R()], n), gens(R)))
   
   # compute the relations
   
-  c = pushfirst!([1+sum(gens(R1)[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gens(R1)[1:dims[1]]))
+  c = pushfirst!([1+sum(gensR1[dims[i]+1:dims[i+1]]) for i in 1:l-1], 1+sum(gensR1[1:dims[1]]))
   Rx, x = R1[:x]
   fi = pback(total_chern_class(F).f)[0:n]
   f = sum(fi[i+1].f * x^(n-i) for i in 0:n)
@@ -2651,7 +2653,7 @@ function abstract_flag_bundle(F::AbstractBundle, dims::Vector{Int}; symbol::Stri
   if isdefined(X, :point)
     Fl.point = pback(X.point.f) * section
   end
-  pˣ = Fl.(gens(R1)[n+1:end])
+  pˣ = Fl.(gensR1[n+1:end])
   pₓ = x -> (@warn("possibly wrong ans"); X(pfwd(div(simplify(x).f, simplify(section).f))))
   pₓ = map_from_func(pₓ, Fl.ring, X.ring)
   p = AbstractVarietyMap(Fl, X, pˣ, pₓ)
