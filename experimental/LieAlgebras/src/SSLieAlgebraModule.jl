@@ -12,23 +12,25 @@
 #
 ###############################################################################
 
-# TODO: move to RootSystem.jl
-function is_dominant_weight(hw::Vector{<:IntegerUnion})
-  return all(>=(0), hw)
-end
-
 @doc raw"""
-    simple_module(L::LieAlgebra{C}, hw::Vector{Int}) -> LieAlgebraModule{C}
+    simple_module(L::LieAlgebra{C}, hw::WeightLatticeElem) -> LieAlgebraModule{C}
+    simple_module(L::LieAlgebra{C}, hw::Vector{<:IntegerUnion}) -> LieAlgebraModule{C}
 
 Construct the simple module of the Lie algebra `L` with highest weight `hw`.
+
+`L` needs to be a semisimple Lie algebra of characteristic $0$.
 """
-function simple_module(L::LieAlgebra, hw::Vector{Int})
-  @req is_dominant_weight(hw) "Not a dominant weight."
+function simple_module(L::LieAlgebra, hw::WeightLatticeElem)
+  @req is_dominant(hw) "Not a dominant weight."
   struct_consts = lie_algebra_simple_module_struct_consts_gap(L, hw)
   dimV = size(struct_consts, 2)
   V = abstract_module(L, dimV, struct_consts; check=false)
   # TODO: set appropriate attributes
   return V
+end
+
+function simple_module(L::LieAlgebra, hw::Vector{<:IntegerUnion})
+  return simple_module(L, WeightLatticeElem(root_system(L), hw))
 end
 
 @doc raw"""

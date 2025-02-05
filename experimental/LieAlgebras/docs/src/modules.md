@@ -67,6 +67,7 @@ abstract_module(::LieAlgebra{C}, ::Int, ::Matrix{SRow{C}}, ::Vector{<:VarName}; 
 ### Functions concerning simple modules
 
 ```@docs
+simple_module(::LieAlgebra, ::WeightLatticeElem)
 dim_of_simple_module(::LieAlgebra, ::WeightLatticeElem)
 dominant_weights(::LieAlgebra, ::WeightLatticeElem)
 dominant_character(::LieAlgebra, ::WeightLatticeElem)
