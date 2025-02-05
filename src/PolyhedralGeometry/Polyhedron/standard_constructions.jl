@@ -1072,6 +1072,10 @@ gelfand_tsetlin_polytope(lambda::AbstractVector) = Polyhedron{QQFieldElem}(
 Construct the Demazure character indexed by a weakly decreasing vector `lambda` and a permutation `sigma`.
 - [PS09](@cite)
 
+For Demazure characters as in [Dem74](@cite),
+i.e. the weights with multiplicities occurring in a Demazure module of a semisimple Lie algebra,
+see [`demazure_character(::LieAlgebra, ::WeightLatticeElem, ::WeylGroupElem)`](@ref).
+
 # Examples
 ```jldoctest
 julia> lambda = partition([3,1,1])
