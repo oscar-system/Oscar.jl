@@ -824,7 +824,7 @@ function reducible_fibers(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem)
   return _identify_fibers(Delta1,fbar), _identify_fibers(Delta2,fbar)
 end
 
-function _identify_fibers(D::Vector{TorQuadModElem},fbar)
+function _identify_fibers(D::Vector{TorQuadModuleElem},fbar)
   n = length(D)
   g = zero_matrix(GF(2),n,n)
   for i in 1:n
