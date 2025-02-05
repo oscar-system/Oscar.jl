@@ -16,8 +16,6 @@ struct GaussianRing
     covariance_matrix
 end
 
-
-
 @doc raw"""
     gaussian_ring(n::Int; s_var_name::String="s", base_ring=QQ)
 
@@ -44,8 +42,6 @@ function gaussian_ring(n::Int, s_var_name::String="s", base_ring::Field=QQ)
 
     GaussianRing(S, d, cov_matrix)
 end
-
-
 
 function Base.show(io::IO, R::GaussianRing)
 
