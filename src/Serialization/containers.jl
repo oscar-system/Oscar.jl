@@ -271,9 +271,9 @@ end
 ################################################################################
 # Saving and loading dicts
 @register_serialization_type Dict
-function type_params(obj::Dict)
+function type_params(obj::Dict{S, T}) where {S, T}
   is_empty(obj) && return nothing
-  result = Dict{Symbol, Any}()
+  result = Dict{S, Any}()
   for (key, val) in obj
     val_params = type_params(val)
     val_params === nothing && continue
