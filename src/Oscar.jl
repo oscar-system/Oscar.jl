@@ -121,6 +121,9 @@ function __init__()
 
   add_verbosity_scope(:K3Auto)
   add_assertion_scope(:K3Auto)
+  
+  add_verbosity_scope(:EnriquesAuto)
+  add_assertion_scope(:EnriquesAuto)
 
   add_verbosity_scope(:EllipticSurface)
   add_assertion_scope(:EllipticSurface)
