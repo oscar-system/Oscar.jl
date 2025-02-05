@@ -648,7 +648,7 @@ end
   
   L = integer_lattice(gram=ZZ[4 1 1; 1 -2 0; 1 0 -2;])
   v = QQ[1 0 0;]
-  G = orthogonal_group(L, v)
+  G = stabilizer_in_orthogonal_group(L, v)
   @test order(G)==2
   @test all(v*matrix(g)==v for g in gens(G))
 end
