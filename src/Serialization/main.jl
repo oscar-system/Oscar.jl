@@ -235,8 +235,8 @@ function save_type_params(s::SerializerState,
         param_tp = type_params(param.second)
         if isnothing(params(param_tp))
           save_object(s, encode_type(type(param_tp)), Symbol(param.first))
-        elseif serialize_with_id(params(param_tp))
-          save_typed_object(s, params(param_tp), Symbol(param.first))
+        elseif serialize_with_id(param.second)
+          save_typed_object(s, param.second, Symbol(param.first))
         else
           save_type_params(s, param_tp, Symbol(param.first))
         end
@@ -262,8 +262,11 @@ function load_type_params(s::DeserializerState, T::Type)
     load_node(s, :params) do obj
       if obj isa String || haskey(s, :params)
         U = decode_type(s)
-        params = load_type_params(s, U)[2]
-
+        if Base.issingletontype(U)
+          params = U()
+        else
+          params = load_type_params(s, U)[2]
+        end
       # handle cases where type_params is a dict of params
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
