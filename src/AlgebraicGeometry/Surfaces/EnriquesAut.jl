@@ -23,7 +23,7 @@ Most importantly the type stores a chain of lattices
 S_Y(2) \subseteq S_X \subseteq L_{1,25}
 ```
 
-where ``L_{1,15}`` is an even unimodular lattice of signature $(1,25)``. 
+where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``. 
 ```
 """
 mutable struct EnriquesBorcherdsCtx
