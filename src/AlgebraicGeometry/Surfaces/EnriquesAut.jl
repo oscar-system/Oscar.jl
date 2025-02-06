@@ -324,7 +324,7 @@ function ==(x::EnriquesChamber, y::EnriquesChamber)
 end
 
 function Base.hash(D::EnriquesChamber, h::UInt)
-  return hash(fingerprint(D), h)
+  return hash((D.data, D.tau), h)
 end
 
 # x given in the basis of the numerical lattice SY
