@@ -127,20 +127,20 @@ end
 
 ################################################################################
 # TypeParams Struct
-struct TypeParams{T}
-  data::T
+struct TypeParams{T, S}
+  type::Type{T}
+  params::S
 
-  function TypeParams(args::Pair...)
-    nt = NamedTuple(args)
-    return new{typeof(nt)}(nt)
+  function TypeParams(T::Type, args::Pair...)
+    return new{T, typeof(args)}(T, args)
   end
-  TypeParams(obj) = new{typeof(obj)}(obj)
+  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
 end
 
-params(obj::TypeParams{<:NamedTuple}) = pairs(obj.data)
-params(obj::TypeParams) = obj.data
+params(tp::TypeParams) = tp.params
+type(tp::TypeParams) = tp.type
 
-type_params(obj::T) where T = nothing
+type_params(obj::T) where T = TypeParams(T, nothing)
 
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
@@ -206,31 +206,40 @@ function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   save_type_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, T::Type, params::TypeParams, key::Symbol)
-  set_key(s, key)
-  save_type_params(s, T, params)
+function save_type_params(s::SerializerState, obj::T) where T
+  save_type_params(s, type_params(obj))
 end
 
-function save_type_params(s::SerializerState, obj::Any)
-  save_type_params(s, typeof(obj), type_params(obj))
-end
-
-save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
-
-function save_type_params(s::SerializerState, T::Type, obj::TypeParams)
+function save_type_params(s::SerializerState, tp::TypeParams)
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, params(obj), :params)
+    save_object(s, encode_type(type(tp)), :name)
+    if serialize_with_id(params(tp))
+      save_typed_object(s, params(tp), :params)
+    else
+      save_type_params(s, params(tp), :params)
+    end
   end
 end
 
-function save_type_params(s::SerializerState, T::Type, obj::TypeParams{S}) where S <: NamedTuple
+function save_type_params(s::SerializerState,
+                          obj::TypeParams{T, Nothing}) where T
+  save_object(s, encode_type(T))
+end
+
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in params(obj)
-        isnothing(param.second) && continue
-        save_type_params(s, typeof(param.second), TypeParams(param.second), Symbol(param.first))
+      for param in params(tp)
+        param_tp = type_params(param.second)
+        if isnothing(params(param_tp))
+          save_object(s, encode_type(type(param_tp)), Symbol(param.first))
+        elseif serialize_with_id(params(param_tp))
+          save_typed_object(s, params(param_tp), Symbol(param.first))
+        else
+          save_type_params(s, param_tp, Symbol(param.first))
+        end
       end
     end
   end

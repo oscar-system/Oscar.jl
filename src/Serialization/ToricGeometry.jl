@@ -31,9 +31,9 @@ end
 
 ################################################################################
 # Torus invariant divisors on toric varieties
-@register_serialization_type ToricDivisor uses_params
+@register_serialization_type ToricDivisor
 
-type_params(obj::ToricDivisor) = toric_variety(obj)
+type_params(obj::ToricDivisor) = TypeParams(toric_variety(obj))
 
 function save_object(s::SerializerState, td::ToricDivisor)
   save_object(s, td.coeffs)
@@ -55,9 +55,9 @@ end
 
 ################################################################################
 # Torus invariant divisor classes on toric varieties
-@register_serialization_type ToricDivisorClass uses_params
+@register_serialization_type ToricDivisorClass
 
-type_params(obj::ToricDivisorClass) = toric_variety(obj)
+type_params(obj::ToricDivisorClass) = TypeParams(toric_variety(obj))
 
 function save_object(s::SerializerState, tdc::ToricDivisorClass)
   save_object(s, toric_divisor(tdc).coeffs)
@@ -81,7 +81,7 @@ end
 # Cohomology classes on toric varieties
 @register_serialization_type CohomologyClass
 
-type_params(obj::CohomologyClass) = toric_variety(obj)
+type_params(obj::CohomologyClass) = TypeParams(toric_variety(obj))
 
 function save_object(s::SerializerState, cc::CohomologyClass)
   save_data_dict(s) do

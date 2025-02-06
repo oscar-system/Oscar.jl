@@ -39,12 +39,12 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = TypeParams(parent(x))
-type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(base_ring(R))
-type_params(x::T) where T <: IdealOrdUnionType = TypeParams(base_ring(x))
+type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
+type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
+type_params(x::T) where T <: IdealOrdUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
-type_params(::ZZRing) = nothing
-type_params(::T) where T <: ModRingUnion = nothing
+type_params(::ZZRing) = TypeParams(ZZRing, nothing)
+type_params(::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
 # ring of integers (singleton type)
@@ -116,7 +116,8 @@ end
 
 # with grading
 type_params(R::MPolyDecRing) = TypeParams(
-  :grading_group => type_params(_grading(R)),
+  MPolyDecRing,
+  :grading_group => parent(_grading(R)[1]), # there may be a way to make this cleaner
   :ring => forget_grading(R))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
@@ -569,6 +570,7 @@ end
 @register_serialization_type MPolyQuoRing uses_id
 
 type_params(A::MPolyQuoRing) = TypeParams(
+  MPolyQuoRing,
   :base_ring => base_ring(A),
   :ordering => ordering(A)
 )

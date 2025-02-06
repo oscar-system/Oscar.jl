@@ -6,11 +6,11 @@
 # field of rationals (singleton type)
 @register_serialization_type QQField
 # exclude from ring union definition
-type_params(::QQField) = nothing
-type_params(::fpField) = nothing
-type_params(::FpField) = nothing
-type_params(::QQBarField) = nothing
-type_params(::PadicField) = nothing
+type_params(::QQField) = TypeParams(QQField, nothing)
+type_params(::fpField) = TypeParams(fpField, nothing)
+type_params(::FpField) = TypeParams(FpField, nothing)
+type_params(::QQBarField) = TypeParams(QQBarField, nothing)
+type_params(::PadicField) = TypeParams(PadicField, nothing)
 
 ################################################################################
 # type_params for field extension types
@@ -76,7 +76,7 @@ end
 @register_serialization_type AbsSimpleNumField uses_id
 const SimNumFieldTypeUnion = Union{AbsSimpleNumField, Hecke.RelSimpleNumField}
 
-type_params(obj::T) where T <: SimpleNumField = type_params(defining_polynomial(obj))
+type_params(obj::T) where T <: SimpleNumField = TypeParams(T, parent(defining_polynomial(obj)))
 
 function save_object(s::SerializerState, K::SimpleNumField)
   save_data_dict(s) do
@@ -96,7 +96,7 @@ end
 # FqNmodfinitefield
 @register_serialization_type fqPolyRepField uses_id
 
-type_params(K::fqPolyRepField) = type_params(defining_polynomial(K))
+type_params(K::fqPolyRepField) = TypeParams(fqPolyRepField, parent(defining_polynomial(K)))
 
 function save_object(s::SerializerState, K::fqPolyRepField)
   save_object(s, defining_polynomial(K))
@@ -138,8 +138,8 @@ end
 @register_serialization_type FqFieldElem
 
 function type_params(K::FqField)
-  absolute_degree(K) == 1 && return nothing
-  return type_params(defining_polynomial(K))
+  absolute_degree(K) == 1 && return TypeParams(FqField, nothing)
+  return TypeParams(FqField, parent(defining_polynomial(K)))
 end
 
 function save_object(s::SerializerState, K::FqField)
@@ -191,7 +191,9 @@ end
 @register_serialization_type Hecke.RelNonSimpleNumField uses_id
 @register_serialization_type AbsNonSimpleNumField uses_id
 
-type_params(K::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField} = type_params(defining_polynomials(K)[1])
+function type_params(K::T) where T <: Union{AbsNonSimpleNumField, RelNonSimpleNumField}
+  TypeParams(T, parent(defining_polynomials(K)[1]))
+end
 
 function save_object(s::SerializerState, K::NonSimpleNumField)
   save_data_dict(s) do
@@ -409,16 +411,17 @@ const FieldEmbeddingTypes = Union{
 function type_params(E::T) where T <: FieldEmbeddingTypes
   K = number_field(E)
   base_K = base_field(K)
-  d = TypeParams(K)
+  tp = TypeParams(T, K)
 
   if !(base_field(K) isa QQField)
     base_field_emb = restrict(E, base_K)
-    d = TypeParams(
+    tp = TypeParams(
+      T, 
       :num_field => K,
       :base_field_emb => base_field_emb
     )
   end
-  return d
+  return tp
 end
 
 function save_object(s::SerializerState, E::FieldEmbeddingTypes)
@@ -468,7 +471,7 @@ end
 
 @register_serialization_type EmbeddedNumField uses_id
 
-type_params(E::EmbeddedNumField) = TypeParams(embedding(E))
+type_params(E::T) where T <: EmbeddedNumField = TypeParams(T, embedding(E))
 
 function save_object(s::SerializerState, E::EmbeddedNumField)
   save_data_array(s) do
