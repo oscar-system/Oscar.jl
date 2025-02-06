@@ -71,7 +71,6 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
-export enriques_surface_automorphism_group
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -555,6 +554,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export enriques_surface_automorphism_group
 export epimorphism_from_free_group
 export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
