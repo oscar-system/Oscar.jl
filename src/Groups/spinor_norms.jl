@@ -114,7 +114,7 @@ function _sigma_sharp(rkL, detL, q, p)
 end
 
 @doc raw"""
-    Oscar._reflection(gram::MatElem, v::MatElem) -> QQMatrix
+    Oscar._reflection(gram::MatElem, v::MatElem) -> MatElem
 
 Return the matrix representation of the orthogonal reflection in the row vector `v`.
 """
