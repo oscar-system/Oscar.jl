@@ -53,17 +53,17 @@ mutable struct EnriquesBorcherdsCtx
   # w.r.t the basis given by Dplus
   Gplus
   Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
+  volume_index::ZZRingElem
+  orderGbar::ZZRingElem
+  
   function EnriquesBorcherdsCtx()
     return new()
   end
-
-  volume_index::ZZRingElem
-  orderGbar::ZZRingElem
 end
 
 function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
   io = pretty(io)
-  print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX)).")
+  print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX))")
 end
 
 @doc raw"""
@@ -82,7 +82,7 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   ECtx.gramSY = change_base_ring(ZZ, gram_matrix(SY))
   ECtx.gramSX = change_base_ring(ZZ, gram_matrix(SX))
 
-  @vprint :EnriquesAuto 2 "computing Borcherds context\n"
+  @vprintln :EnriquesAuto 2 "computing Borcherds context"
   dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
   dataY.membership_test = (x -> true)
   ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
@@ -93,7 +93,7 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   H_Sm = cover(domain(phi))
   sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
   sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
-  ECtx.roots_mod2 = Set([change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(phi(i))); side=:left)) for i in sv2])
+  ECtx.roots_mod2 = Set(change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(phi(i))); side=:left)) for i in sv2)
 
   # Cook up the membership test
   @vprint :EnriquesAuto 2 "computing orthogonal group\n"
@@ -179,7 +179,7 @@ function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample=nothing)
   B = solve(basis_matrix(SX), basis_matrix(SY2); side=:left)
   L26, SX1, iSX1 = embed_in_unimodular(lattice(rational_span(SX)), 1, 25, primitive=true,even=true)
   SY1 = lattice(ambient_space(SX1),solve(basis_matrix(SX),basis_matrix(SY2);side=:left)*basis_matrix(SX1))
-  if ample==nothing 
+  if ample === nothing 
     ample = ample_class(SX1)
     # orthogonal projection of ample to SY1
     B = basis_matrix(SY1)
@@ -187,13 +187,12 @@ function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample=nothing)
     ample = solve(B*GB, 2*ample*GB; side=:left)
   end
   @assert only(ample*gram_matrix(SY2)*transpose(ample))>0
-  @show ample
   weyl, u =  borcherds_method_preprocessing(L26, SY1; ample)
   return EnriquesBorcherdsCtx(SY1, SX1, L26, weyl)
 end
 
 @doc raw"""
-    enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat;ample=nothing)
+    enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat; ample::Union{ZZMatrix,Nothing}=nothing)
     
 Return generators for the automorphism group of an Enriques surface.
   
@@ -205,13 +204,13 @@ This function computes the image of the natural map
 where ``\mathrm{Aut}_{s}(Y) \leq \mathrm{Aut}(Y)`` denotes the subgroup of semi-symplectic automorphisms.
 Note that the kernel of ``\varphi_Y`` is finite.
 
-See [BS22](@cite) [BS22*1](@cite) [BRS23](@cite) for background and algorithms. 
+See [BS22](@cite), [BS22*1](@cite), and [BRS23](@cite) for background and algorithms. 
 
 # Input: 
 - `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
 - `ample` -- optionally an ample class as a ``1\times x 10`` matrix representing an ample class w.r.t. the basis of `SY2`; if not given, some arbitrary Weyl-chamber is picked.
 """
-function enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat; ample::ZZMatrix=nothing)
+function enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat; ample::Union{ZZMatrix,Nothing}=nothing)
   return borcherds_method(EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample))
 end 
   
@@ -261,8 +260,7 @@ function membership_test_as_group(data::EnriquesBorcherdsCtx, f::FqMatrix)
   # test if f lies in Gplus
   # f must
   # act as identity on Dplus^perp
-  b =  f in data.Gplus_mat
-  return b
+  return f in data.Gplus_mat
 end
 
 function initial_rays(ECtx::EnriquesBorcherdsCtx)

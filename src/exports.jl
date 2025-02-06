@@ -320,7 +320,6 @@ export block_distribution
 export blocks
 export bond_matroid
 export borcherds_method
-export borcherds_method
 export boundary_lattice_points
 export build_ctx
 export build_doc
