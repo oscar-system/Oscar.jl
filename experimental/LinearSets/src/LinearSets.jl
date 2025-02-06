@@ -1,4 +1,4 @@
-module StandardFiniteFields
+module LinearSets
 
 using Oscar
 
