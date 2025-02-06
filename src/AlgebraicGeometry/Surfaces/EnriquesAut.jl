@@ -89,9 +89,9 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
   # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
   H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
   sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
-  ECtx.roots_mod2 = Set([change_base_ring(GF(2),solve(basis_matrix(SY),matrix(QQ,1,26,2*lift(phi(i)));side=:left)) for i in sv2])
+  ECtx.roots_mod2 = Set([change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(phi(i))); side=:left)) for i in sv2])
 
   # Cook up the membership test
   @vprint :EnriquesAuto 2 "computing orthogonal group\n"
@@ -134,14 +134,14 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   B = 1//2*basis_matrix(SY)
   gens_Gplus_mat = FqMatrix[]
   for g in gens(Gplus)
-    g2 = reduce(vcat,[change_base_ring(GF(2),solve(B,matrix(QQ,1,26, lift(g(DSY(vec(B[i,:])))));side=:left))  for i in 1:10])
+    g2 = reduce(vcat, [change_base_ring(GF(2), solve(B, matrix(QQ, 1, 26, lift(g(DSY(vec(B[i, :]))))); side=:left))  for i in 1:10])
     push!(gens_Gplus_mat, g2)
   end
-  Gplus_mat = matrix_group(GF(2),10, gens_Gplus_mat)
+  Gplus_mat = matrix_group(GF(2), 10, gens_Gplus_mat)
   ECtx.Gplus_mat = Gplus_mat
 
   snf_Dplus, i_snf = snf(Dplus)
-  gens_Dplus = [change_base_ring(GF(2),solve(basis_matrix(SY),matrix(QQ,1,26,2*lift(inc_Dplus(i_snf(i))));side=:left)) for i in gens(snf_Dplus)]
+  gens_Dplus = [change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(inc_Dplus(i_snf(i)))); side=:left)) for i in gens(snf_Dplus)]
 
   gens_Dplus = reduce(vcat, gens_Dplus)
   ECtx.Dplus = gens_Dplus
@@ -151,7 +151,7 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   Dplus_perp,_ = snf(Dplus_perp)
 
   # needed for hash
-  ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2),2*solve(basis_matrix(SY),matrix(QQ,1,26,lift(i));side=:left)) for i in gens(Dplus_perp)])
+  ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2), 2*solve(basis_matrix(SY), matrix(QQ, 1, 26, lift(i)); side=:left)) for i in gens(Dplus_perp)])
 
 
   @vprint :EnriquesAuto 2 "done\n"
@@ -165,14 +165,14 @@ end
   
 Return a context object for Borcherds' method for Enriques surfaces. 
   
-Let ``\pi: X \to Y`` be the universal cover of an Enriques surfaces and ``\epsilon`` the Enriques involution. 
+Let ``\pi: X \to Y`` be the universal cover of an Enriques surface and ``\epsilon`` the Enriques involution. 
 # Input: 
 - `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
 """
 function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat)
   @req issubset(SY2, SX) "SY2 must be a sublattice of SX"
-  a = rescale(SY2,1//2)
-  @req is_unimodular(a) && is_even(a) && signature(a) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
+  a = rescale(SY2, 1//2)
+  @req is_unimodular(a) && is_even(a) && signature_tuple(a) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
   B = solve(basis_matrix(SX), basis_matrix(SY2); side=:left)
   L26, SX1, weyl1 = borcherds_method_preprocessing(S, 26)
   SY1 = lattice(ambient_space(SX1), SY1)
@@ -184,7 +184,7 @@ end
     
 Return generators for the automorphism group of an Enriques surface.
   
-Let ``\pi: X \to Y`` be the universal cover of an Enriques surfaces and ``\epsilon`` the Enriques involution. Let ``S_Y`` be the numerical lattice of ``Y``. 
+Let ``\pi: X \to Y`` be the universal cover of an Enriques surface and ``\epsilon`` the Enriques involution. Let ``S_Y`` be the numerical lattice of ``Y``. 
 This function computes the image of the natural map 
 ```math
 \varphi_Y \colon \mathrm{Aut}_{s}(Y) \to O(S_Y \otimes \mathbb{F}_2)
@@ -228,7 +228,7 @@ function root_invariant(Y::EnriquesBorcherdsCtx)
   phi, inc_Dminus, inc_Dplus = glue_map(Y.SX, Sm, Y.SY)
   # H_Sm = pi_Sm(SX)
   H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2]==4]
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
   V = rescale(ambient_space(Sm),1//2)
   R =  lattice(V, 2*matrix(QQ,length(sv2),dim(V),transpose(reduce(hcat,sv2)));isbasis=false)
   Rtilde = primitive_closure(R, lattice(V,basis_matrix(Sm)))
@@ -322,7 +322,7 @@ struct EnriquesChamber  # no need to make this mutable.
 end
 
 function ==(x::EnriquesChamber, y::EnriquesChamber)
-  x.data === y.data || error("Chambers must be associated to the same Enriques surface")
+  @req x.data === y.data "Chambers must be associated to the same Enriques surface"
   return x.tau == y.tau
 end
 
@@ -525,7 +525,7 @@ aut(D::EnriquesChamber) = hom(D, D)
     
 Compute ``\mathrm{Aut}_{s}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
 
-Here ``\mathrm{Aut}_{s}(Y)`` denote the subgroup consisting of semi-symplectic automorphisms of ``Y``. 
+Here ``\mathrm{Aut}_{s}(Y)`` denotes the group consisting of semi-symplectic automorphisms of ``Y``. 
 The quotient ``\mathrm{Aut}(Y)/\mathrm{Aut}_{s}(Y)`` is a finite group and known to be cyclic in most cases.
 
 Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``. 
@@ -659,7 +659,7 @@ function frame_lattice(L::ZZLat, v::QQMatrix)
   vF = change_base_ring(ZZ, solve(basis_matrix(F), v; side=:left))
   @assert gcd(vF[1,:])==1
   b = Hecke._complete_to_basis(vF)
-  return lll(lattice(ambient_space(F),b[1:end-1,:]*basis_matrix(F)))
+  return lll(lattice(ambient_space(F), b[1:end-1,:]*basis_matrix(F)))
 end
 
 @doc raw"""
@@ -776,7 +776,7 @@ function isomorphism_classes_elliptic_fibrations(Y::EnriquesBorcherdsCtx)
 end 
   
 function _ellfib_reps(SY::ZZLat, SX::ZZLat, L26::ZZLat)
-  Gplus = _compute_Gplus(SY,SX,L26)
+  Gplus = _compute_Gplus(SY, SX, L26)
   DSY = discriminant_group(SY)
   isoY = [i for i in DSY if quadratic_product(i)==0 && !is_zero(i)]
   X = gset(Gplus, (x,g)->g(x),isoY)
@@ -804,7 +804,7 @@ function reducible_fibers(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem)
   Sm = orthogonal_submodule(SX, SY2)
   phi, inc_Dplus, _ = glue_map(SX, SY2, Sm)
   Dplus = domain(phi)
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
+  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2]==4]
   sv2 = [codomain(phi)(i) for i in sv2 if i in cover(codomain(phi))]
   DeltabarY = Set([inc_Dplus(inv(phi)(i)) for i in sv2])
   ebar = 0*DY[1]
