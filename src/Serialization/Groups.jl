@@ -90,8 +90,7 @@
 # `GAPGroupElem` objects get serialized together with their parents.
 const GrpElemUnionType = Union{GAPGroupElem, FinGenAbGroupElem}
 
-type_params(p::T) where T <: GrpElemUnionType = TypeParams(parent(p))
-
+type_params(p::T) where T <: GrpElemUnionType = TypeParams(T, parent(p))
 
 #############################################################################
 # attributes handling
@@ -155,7 +154,7 @@ end
 
 @register_serialization_type PermGroupElem
 
-type_params(x::T) where T <: GroupElem = TypeParams(parent(x))
+type_params(x::T) where T <: GroupElem = TypeParams(T, parent(x))
 
 function save_object(s::SerializerState, p::PermGroupElem)
   save_object(s, Vector{Int}(GAPWrap.ListPerm(GapObj(p))))
@@ -169,22 +168,29 @@ end
 
 ##############################################################################
 # FPGroup, SubFPGroup
+# PcGroup, SubPcGroup
 # We do the same for full free groups, subgroups of free groups,
 # full f.p. groups, and subgroups of f.p. groups.
 
 @register_serialization_type FPGroup uses_id
 @register_serialization_type SubFPGroup uses_id
+@register_serialization_type PcGroup uses_id
+@register_serialization_type SubPcGroup uses_id
 
-function save_object(s::SerializerState, G::Union{FPGroup, SubFPGroup})
-  save_data_dict(s) do
-    save_typed_object(s, GapObj(G), :X)
-  end
+function type_params(G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  TypeParams(T, GapObj(G))
 end
 
-function load_object(s::DeserializerState, ::Type{T}) where T <: Union{FPGroup, SubFPGroup}
-  return T(load_typed_object(s, :X))
+function save_object(s::SerializerState,
+                     G::T) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  #needs place holder
+  save_data_array(() -> (),  s)
 end
 
+function load_object(s::DeserializerState, ::Type{T},
+                     G::GapObj) where T <: Union{FPGroup, SubFPGroup, PcGroup, SubPcGroup}
+  return T(G)
+end
 
 ##############################################################################
 # FPGroupElem, SubFPGroupElem
@@ -219,24 +225,6 @@ for (eltype, type) in typecombinations
     return Oscar.group_element(parent_group, gapelm)
   end
 end
-
-
-##############################################################################
-# PcGroup, SubPcGroup
-
-@register_serialization_type PcGroup uses_id
-@register_serialization_type SubPcGroup uses_id
-
-function save_object(s::SerializerState, G::Union{PcGroup, SubPcGroup})
-  save_data_dict(s) do
-    save_typed_object(s, GapObj(G), :X)
-  end
-end
-
-function load_object(s::DeserializerState, ::Type{T}) where T <: Union{PcGroup, SubPcGroup}
-  return T(load_typed_object(s, :X))
-end
-
 
 ##############################################################################
 # PcGroupElem

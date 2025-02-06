@@ -162,15 +162,15 @@ end
 @register_serialization_type Tuple
 
 function type_params(obj::T) where T <: Tuple
-  return type_params.(obj)
+  return TypeParams(T, type_params.(obj))
 end
 
-function save_type_params(s::SerializerState, ::Type{T}, params::Tuple) where T <: Tuple
+function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tuple
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_array(s, :params) do
-      for (i, param) in enumerate(params)
-        save_type_params(s, fieldtype(T, i), param)
+      for (i, param_tp) in enumerate(params(tp))
+        save_type_params(s, param_tp)
       end
     end
   end
