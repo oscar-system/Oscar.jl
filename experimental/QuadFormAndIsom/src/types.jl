@@ -2,7 +2,7 @@
     QuadSpaceWithIsom
 
 A container type for pairs $(V, f)$ consisting of a rational quadratic space
-$V$ of type [`QuadSpace`](@ref) and an isometry $f$ given as a [`QQMatrix`](@ref)
+$V$ of type `QuadSpace` and an isometry $f$ given as a `QQMatrix`
 representing the action on the standard basis of $V$.
 
 We store the order of $f$ too, which can finite or infinite.
@@ -60,7 +60,7 @@ end
     ZZLatWithIsom
 
 A container type for pairs $(L, f)$ consisting of an integer lattice $L$ of
-type [`ZZLat`](@ref) and an isometry $f$ given as a [`QQMatrix`](@ref) representing
+type `ZZLat` and an isometry $f$ given as a `QQMatrix` representing
 the action on the basis matrix of $L$.
 
 We store the ambient space $V$ of $L$ together with an isometry $f_a$
