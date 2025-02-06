@@ -17,6 +17,8 @@ jobs:
     # Checkout the repository
     - name: Checkout Repository
       uses: actions/checkout@v3
+      with:
+        fetch-tags: true
 
     # Run the update script
     - name: Setup venv and install requests
