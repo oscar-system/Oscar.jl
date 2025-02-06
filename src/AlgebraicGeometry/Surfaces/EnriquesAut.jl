@@ -300,8 +300,6 @@ function membership_test_set(data::EnriquesBorcherdsCtx, f::FqMatrix)
 end
 
 
-_gens(L::ZZLat) = [basis_matrix(L)[i,:] for i in 1:rank(L)]
-_basis(L::ZZLat) = gens(L)
 
 # in principle it would be enough to just store
 # tau and parent wall
