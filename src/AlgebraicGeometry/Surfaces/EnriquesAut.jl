@@ -536,7 +536,7 @@ aut(D::EnriquesChamber) = hom(D, D)
 Compute ``\mathrm{Aut}_{s}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
 
 Here ``\mathrm{Aut}_{s}(Y)`` denotes the group consisting of semi-symplectic automorphisms of ``Y``. 
-The quotient ``\mathrm{Aut}(Y)/\mathrm{Aut}_{s}(Y)`` is a finite group and known to be cyclic in most cases.
+The quotient ``\mathrm{Aut}(Y)/\mathrm{Aut}_{s}(Y)`` is a finite group and known to be cyclic in most cases [BG24](@cite).
 
 Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``. 
 
@@ -841,7 +841,7 @@ end
 Return the isomorphism classes of numerical quasi-polarizations of ``Y`` which are of 
 the same type as ``h`` along with some invariants. 
 
-See [BA](@cite).
+See [BG24](@cite).
 # Output 
 The first return value is the degree of the the forgetful map
 ```math
