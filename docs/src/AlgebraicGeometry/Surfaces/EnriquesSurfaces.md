@@ -14,7 +14,7 @@ the image of the map
 ```math
 \mathrm{Aut}(Y) \to O(\mathrm{Num}(Y)),
 ```
-a fundamental domain of the action of ``\mathrm{Aut}(Y)`` on the nef cone of ``Y`` 
+a fundamental domain of the action of ``\mathrm{Aut}(Y)`` on the nef cone of ``Y``,
 and a complete set of representatives of the ``\mathrm{Aut}(Y)``-orbits of 
 smooth rational curves, elliptic fibrations and polarizations.
 
