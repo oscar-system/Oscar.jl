@@ -724,7 +724,6 @@ heuristically depending on the rank of `L`. By default, `bacher_depth` is set to
   return G
 end
 
-
 """
     stabilizer_in_orthogonal_group(L::ZZLat, v::QQMatrix; kwargs...) -> MatrixGroup
 
