@@ -419,7 +419,23 @@ det(x::MatrixGroupElem) = det(matrix(x))
 """
     base_ring(x::MatrixGroupElem)
 
-Return the base ring of the underlying matrix of `x`.
+Return the base ring of the matrix group to which `x` belongs.
+This is also the base ring of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> base_ring(x) == F
+true
+
+julia> base_ring(x) == base_ring(matrix(x))
+true
+```
 """
 base_ring(x::MatrixGroupElem) = base_ring(parent(x))
 
@@ -431,6 +447,25 @@ parent(x::MatrixGroupElem) = x.parent
     matrix(x::MatrixGroupElem)
 
 Return the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> m = matrix(x)
+[o   0]
+[0   1]
+
+julia> x == m
+false
+
+julia> x == g(m)
+true
+```
 """
 function matrix(x::MatrixGroupElem)
   if !isdefined(x, :elm)
@@ -463,6 +498,21 @@ size(x::MatrixGroupElem) = size(matrix(x))
     tr(x::MatrixGroupElem)
 
 Return the trace of the underlying matrix of `x`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> x = gen(g, 1)
+[o   0]
+[0   1]
+
+julia> t = tr(x)
+o + 1
+
+julia> t in F
+true
+```
 """
 tr(x::MatrixGroupElem) = tr(matrix(x))
 
@@ -484,6 +534,14 @@ transpose(x::MatrixGroupElem) = MatrixGroupElem(parent(x), transpose(matrix(x)))
     base_ring(G::MatrixGroup)
 
 Return the base ring of the matrix group `G`.
+
+# Examples
+```jldoctest
+julia> F = GF(4);  g = general_linear_group(2, F);
+
+julia> base_ring(g) == F
+true
+```
 """
 base_ring(G::MatrixGroup{RE}) where RE <: RingElem = G.ring::parent_type(RE)
 
@@ -492,7 +550,13 @@ base_ring_type(::Type{<:MatrixGroup{RE}}) where {RE} = parent_type(RE)
 """
     degree(G::MatrixGroup)
 
-Return the degree of the matrix group `G`, i.e. the number of rows of its matrices.
+Return the degree of `G`, i.e., the number of rows of its matrices.
+
+# Examples
+```jldoctest
+julia> degree(GL(4, 2))
+4
+```
 """
 degree(G::MatrixGroup) = G.deg
 
@@ -543,7 +607,7 @@ function compute_order(G::MatrixGroup{T}) where {T <: Union{AbsSimpleNumFieldEle
     return ZZRingElem(GAPWrap.Size(GapObj(G)))
   else
     n = order(isomorphic_group_over_finite_field(G)[1])
-    GAP.Globals.SetSize(GapObj(G), GAP.Obj(n))
+    set_order(G, n)
     return n
   end
 end
