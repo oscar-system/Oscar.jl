@@ -126,7 +126,7 @@ order_of_isometry(Lf::ZZLatWithIsom) = Lf.n
 Given a lattice with isometry $(L, f)$, return the rank of the underlying lattice
 $L$.
 
-See [`rank(::ZZLat)`](@ref).
+See [`rank(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -356,7 +356,7 @@ norm(Lf::ZZLatWithIsom) = norm(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice $L$ is positive definite.
 
-See [`is_positive_definite(::ZZLat)`](@ref).
+See [`is_positive_definite(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -376,7 +376,7 @@ is_positive_definite(Lf::ZZLatWithIsom) = is_positive_definite(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice $L$ is negative definite.
 
-See [`is_negative_definite(::ZZLat)`](@ref).
+See [`is_negative_definite(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -396,7 +396,7 @@ is_negative_definite(Lf::ZZLatWithIsom) = is_negative_definite(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return whether the underlying
 lattice $L$ is definite.
 
-See [`is_definite(::ZZLat)`](@ref).
+See [`is_definite(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -439,7 +439,7 @@ end
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 $L$ is integral.
 
-See [`is_integral(::ZZLat)`](@ref).
+See [`is_integral(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -459,7 +459,7 @@ is_integral(Lf::ZZLatWithIsom) = is_integral(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return the degree of the underlying
 lattice $L$.
 
-See [`degree(::ZZLat)`](@ref).
+See [`degree(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -479,7 +479,7 @@ degree(Lf::ZZLatWithIsom) = degree(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return whether the underlying lattice
 $L$ is even.
 
-See [`is_even(::ZZLat)`](@ref).
+See [`iseven(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -499,7 +499,7 @@ is_even(Lf::ZZLatWithIsom) = iseven(lattice(Lf))
 Given a lattice with isometry $(L, f)$, return the discriminant of the underlying
 lattice $L$.
 
-See [`discriminant(::ZZLat)`](@ref).
+See [`discriminant(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1008,7 +1008,7 @@ end
 Given a lattice with isometry $(L, f)$ and a rational number $a$, return the
 lattice with isometry $(L(a), f)$.
 
-See [`rescale(::ZZLat, ::IntegerUnion)`](@ref).
+See [`rescale(::ZZLat, ::RationalUnion)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1110,7 +1110,7 @@ $f$ is induced by an isometry $g$ of $(V, \Phi)$, return the lattice with
 isometry $(L^{\vee}, h)$ where $L^{\vee}$ is the dual of $L$ in $(V, \Phi)$
 and $h$ is induced by $g$.
 
-See [`dual(::ZZLat)`](@ref).
+See [`dual(::AbstractLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1497,7 +1497,7 @@ the underlying isometry $f$ is irreducible and the associated order is maximal.
 Note that if $(L, f)$ is of hermitian type with $f$ of minimal polynomial $\chi$,
 then $L$ can be seen as a hermitian lattice over the order $\mathbb{Z}[\chi]$.
 
-See [`is_maximal(::AbsNumFieldOrd)`](@ref).
+See [`is_maximal(::AbsNumFieldOrder)`](@ref).
 
 # Examples
 ```jldoctest
@@ -1726,7 +1726,7 @@ $O(D_L, D_f)$ of the centralizer $O(L, f)$ of $f$ in $O(L)$. Here $D_L$
 denotes the discriminant group of $L$ and $D_f$ is the isometry of
 $D_L$ induced by $f$.
 
-See [`discriminant_group(::ZZLat)`](@ref) and [`image_in_Oq(::ZZLat)`](@ref).
+See [`discriminant_group(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2026,8 +2026,6 @@ Given a lattice with isometry $(L, f)$, return the invariant lattice $L^f$ of
 $(L, f)$ together with the restriction of $f$ to $L^f$ (which is the identity
 in this case).
 
-See [`invariant_lattice(::ZZLat, ::QQMatrix)`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A, 5);
@@ -2061,8 +2059,6 @@ as matrix representation of their action on the standard basis of the ambient
 space of $L$. Otherwise, they are considered as matrix representation of their
 action on the basis matrix of $L$.
 
-See [`invariant_lattice(::ZZLat, ::Vector(MatElem))`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A, 2);
@@ -2087,8 +2083,6 @@ $(L, f)$ together with the restriction of $f$ to $L_f$.
 
 The coinvariant lattice $L_f$ of $(L, f)$ is the orthogonal complement in
 $L$ of the invariant lattice $L_f$.
-
-See [`invariant_lattice(::ZZLat, ::QQMatrix)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2137,8 +2131,6 @@ If `ambient_representation` is set to `true`, the isometries in $G$ and $H$ are
 considered as matrix representation of their action on the standard basis of the
 ambient space of $L$. Otherwise, they are considered as matrix representation of
 their action on the basis matrices of $L$ and $L_G$ respectively.
-
-See [`invariant_lattice(::ZZLat, ::Vector(MatElem))`](@ref).
 
 # Examples
 ```jldoctest
@@ -2212,9 +2204,6 @@ considered as matrix representation of their action on the standard basis of the
 ambient space of $L$. Otherwise, they are considered as matrix representation of
 their action on the basis matrices of $L$ and $L_G$ respectively.
 
-See [`invariant_lattice(::ZZLat, ::MatrixGroup`](@ref) and
-[`coinvariant_lattice(::ZZLat, ::MatrixGroup`](@ref).
-
 # Examples
 ```jldoctest
 julia> L = root_lattice(:A, 2);
@@ -2280,8 +2269,7 @@ $H_k$ of the lattice $\ker(\Phi_k(f))$ viewed as a hermitian $\mathbb{Z}[\zeta_k
 lattice (so a $\mathbb{Z}$-lattice for $k= 1, 2$) and of the genus $A_k$ of the
 $\mathbb{Z}$-lattice $\ker(f^k-1)$.
 
-See [`hermitian_structure(::ZZLatWithIsom)`](@ref), [`genus(::ZZLat)`](@ref) and
-[`genus(::HermLat)`](@ref).
+See [`hermitian_structure(::ZZLatWithIsom)`](@ref) and [`genus(::ZZLat)`](@ref).
 
 # Examples
 ```jldoctest
@@ -2450,8 +2438,6 @@ the extension of $f$ to $L\otimes \mathbb{Q}$.
 
 If $\Phi$ is the form on $L\otimes \mathbb{Q}$, then the spinor norm is computed
 with respect to $b\Phi$.
-
-See [`spin`](@ref).
 """
 function rational_spinor_norm(Lf::ZZLatWithIsom; b::Int=-1)
   @req rank(Lf) > 0 "L must have positive rank"
