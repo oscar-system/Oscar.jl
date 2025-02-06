@@ -80,7 +80,7 @@ julia> h = change_base_ring(F, g)
 Matrix group of degree 3
   over finite field of degree 2 and characteristic 2
 
-julia> flag, mp = is_subset(h, G)
+julia> flag, mp = is_subgroup(h, G)
 (true, Hom: h -> G)
 
 julia> mp(gen(h, 1)) in G
