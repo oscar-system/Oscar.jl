@@ -55,112 +55,105 @@ mutable struct EnriquesBorcherdsCtx
   Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
   volume_index::ZZRingElem
   orderGbar::ZZRingElem
-  
-  function EnriquesBorcherdsCtx()
-    return new()
+
+  @doc raw"""
+      EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
+
+  # Input:
+  -`SY` `SX` and `L26` must be an ascending chain of lattices in the same quadratic space. 
+  - `weyl` -- a Weyl vector of `L26` given with respect to the basis of the lattice `L26`. 
+  """
+  function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
+    # X K3 ---> Y Enriques
+    ECtx = new(L26, SX, SY)
+    ECtx.gramSY = change_base_ring(ZZ, gram_matrix(SY))
+    ECtx.gramSX = change_base_ring(ZZ, gram_matrix(SX))
+
+    @vprintln :EnriquesAuto 2 "computing Borcherds context"
+    dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
+    dataY.membership_test = (x -> true)
+    ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
+    # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
+    Sm = orthogonal_submodule(SX, SY)
+    phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+    # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
+    H_Sm = cover(domain(phi))
+    sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
+    sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
+    ECtx.roots_mod2 = Set(change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(phi(i))); side=:left)) for i in sv2)
+
+    # Cook up the membership test
+    @vprint :EnriquesAuto 2 "computing orthogonal group\n"
+    OSm = orthogonal_group(Sm)
+    GSm,_= image_in_Oq(Sm)
+    phiSm = hom(OSm, GSm, GSm.(gens(OSm)); check=false)
+    DSm = discriminant_group(Sm)
+    Dminus = domain(phi)
+    @vprint :EnriquesAuto 2 "computing stabilizer "
+    stab_Dminus, inc_stab = stabilizer(GSm, inc_Dminus)
+    @vprint :EnriquesAuto 2 "done\n"
+    Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
+    res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
+    res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
+    @vprint :EnriquesAuto 2 "computing kernel "
+    Gminus, inc_Gminus = kernel(inc)
+    @vprintln :EnriquesAuto 2 "done"
+    ECtx.orderGbar = order(Gminus)
+
+    # compute Gplus
+    Q = orthogonal_submodule(L26,SY)
+    DQ = discriminant_group(Q)
+    glue_SY_Q,inc1,inc2 = glue_map(L26,SY, Q)
+    DO = codomain(glue_SY_Q)
+
+    @vprint :EnriquesAuto 2 "preparing membership test\n"
+    DSY = discriminant_group(SY)
+    ODSY = orthogonal_group(DSY)
+    tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
+    tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
+    gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
+    Gplus,_ = sub(ODSY, gens_Gplus)
+    ECtx.Gplus = Gplus
+    @assert order(Gplus) == order(Gminus)
+    # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
+
+    Dplus = codomain(phi)
+    ODplus = orthogonal_group(Dplus)
+    # turn this into a mod 2 matrix group
+    # with respect to the basis of SY mod 2
+    B = 1//2*basis_matrix(SY)
+    gens_Gplus_mat = FqMatrix[]
+    for g in gens(Gplus)
+      g2 = reduce(vcat, [change_base_ring(GF(2), solve(B, matrix(QQ, 1, 26, lift(g(DSY(vec(B[i, :]))))); side=:left))  for i in 1:10])
+      push!(gens_Gplus_mat, g2)
+    end
+    Gplus_mat = matrix_group(GF(2), 10, gens_Gplus_mat)
+    ECtx.Gplus_mat = Gplus_mat
+
+    snf_Dplus, i_snf = snf(Dplus)
+    gens_Dplus = [change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(inc_Dplus(i_snf(i)))); side=:left)) for i in gens(snf_Dplus)]
+
+    gens_Dplus = reduce(vcat, gens_Dplus)
+    ECtx.Dplus = gens_Dplus
+
+
+    Dplus_perp, _ = orthogonal_submodule(DSY, Dplus)
+    Dplus_perp,_ = snf(Dplus_perp)
+
+    # needed for hash
+    ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2), 2*solve(basis_matrix(SY), matrix(QQ, 1, 26, lift(i)); side=:left)) for i in gens(Dplus_perp)])
+
+
+    @vprint :EnriquesAuto 2 "done\n"
+    ECtx.membership_test = membership_test_as_group
+    #upper_bound = mass(ECtx)*length(initial_automorphisms(ECtx))
+    return ECtx
   end
 end
 
 function Base.show(io::IO, dat::EnriquesBorcherdsCtx)
   io = pretty(io)
   print(io, "Enriques Borcherds context with det(SX) = $(det(dat.SX))")
-end
-
-@doc raw"""
-    EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
-
-# Input:
--`SY` `SX` and `L26` must be an ascending chain of lattices in the same quadratic space. 
-- `weyl` -- a Weyl vector of `L26` given with respect to the basis of the lattice `L26`. 
-"""
-function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
-  # X K3 ---> Y Enriques
-  ECtx = EnriquesBorcherdsCtx()
-  ECtx.L26 = L26
-  ECtx.SX = SX
-  ECtx.SY = SY
-  ECtx.gramSY = change_base_ring(ZZ, gram_matrix(SY))
-  ECtx.gramSX = change_base_ring(ZZ, gram_matrix(SX))
-
-  @vprintln :EnriquesAuto 2 "computing Borcherds context"
-  dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
-  dataY.membership_test = (x -> true)
-  ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
-  # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
-  Sm = orthogonal_submodule(SX, SY)
-  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
-  # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
-  H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
-  sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
-  ECtx.roots_mod2 = Set(change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(phi(i))); side=:left)) for i in sv2)
-
-  # Cook up the membership test
-  @vprint :EnriquesAuto 2 "computing orthogonal group\n"
-  OSm = orthogonal_group(Sm)
-  GSm,_= image_in_Oq(Sm)
-  phiSm = hom(OSm, GSm, GSm.(gens(OSm)); check=false)
-  DSm = discriminant_group(Sm)
-  Dminus = domain(phi)
-  @vprint :EnriquesAuto 2 "computing stabilizer "
-  stab_Dminus, inc_stab = stabilizer(GSm, inc_Dminus)
-  @vprint :EnriquesAuto 2 "done\n"
-  Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
-  res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
-  res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
-  @vprint :EnriquesAuto 2 "computing kernel "
-  Gminus, inc_Gminus = kernel(inc)
-  @vprintln :EnriquesAuto 2 "done"
-  ECtx.orderGbar = order(Gminus)
-
-  # compute Gplus
-  Q = orthogonal_submodule(L26,SY)
-  DQ = discriminant_group(Q)
-  glue_SY_Q,inc1,inc2 = glue_map(L26,SY, Q)
-  DO = codomain(glue_SY_Q)
-
-  @vprint :EnriquesAuto 2 "preparing membership test\n"
-  DSY = discriminant_group(SY)
-  ODSY = orthogonal_group(DSY)
-  tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
-  tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
-  gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
-  Gplus,_ = sub(ODSY, gens_Gplus)
-  ECtx.Gplus = Gplus
-  @assert order(Gplus) == order(Gminus)
-  # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
-
-  Dplus = codomain(phi)
-  ODplus = orthogonal_group(Dplus)
-  # turn this into a mod 2 matrix group
-  # with respect to the basis of SY mod 2
-  B = 1//2*basis_matrix(SY)
-  gens_Gplus_mat = FqMatrix[]
-  for g in gens(Gplus)
-    g2 = reduce(vcat, [change_base_ring(GF(2), solve(B, matrix(QQ, 1, 26, lift(g(DSY(vec(B[i, :]))))); side=:left))  for i in 1:10])
-    push!(gens_Gplus_mat, g2)
-  end
-  Gplus_mat = matrix_group(GF(2), 10, gens_Gplus_mat)
-  ECtx.Gplus_mat = Gplus_mat
-
-  snf_Dplus, i_snf = snf(Dplus)
-  gens_Dplus = [change_base_ring(GF(2), solve(basis_matrix(SY), matrix(QQ, 1, 26, 2*lift(inc_Dplus(i_snf(i)))); side=:left)) for i in gens(snf_Dplus)]
-
-  gens_Dplus = reduce(vcat, gens_Dplus)
-  ECtx.Dplus = gens_Dplus
-
-
-  Dplus_perp, _ = orthogonal_submodule(DSY, Dplus)
-  Dplus_perp,_ = snf(Dplus_perp)
-
-  # needed for hash
-  ECtx.Dplus_perp = reduce(vcat,[change_base_ring(GF(2), 2*solve(basis_matrix(SY), matrix(QQ, 1, 26, lift(i)); side=:left)) for i in gens(Dplus_perp)])
-
-
-  @vprint :EnriquesAuto 2 "done\n"
-  ECtx.membership_test = membership_test_as_group
-  #upper_bound = mass(ECtx)*length(initial_automorphisms(ECtx))
-  return ECtx
 end
   
 @doc raw"""
