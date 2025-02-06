@@ -2,6 +2,7 @@
 
 function type_params(phi::MPolyAnyMap{S, T, U, V}) where {S, T, U, V}
   return TypeParams(
+    MPolyAnyMap,
     :domain => domain(phi),
     :codomain => codomain(phi)
   )
