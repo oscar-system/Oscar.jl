@@ -23,7 +23,7 @@ See [BS22](@cite), [BS22*1](@cite), [BRS23](@cite) for the underlying algorithms
 ## Automorphisms
 The two main entry points are the following:
 ```@docs
-Enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
+enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
 ```
 ## The surface
 ```@docs

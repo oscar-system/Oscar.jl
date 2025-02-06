@@ -94,7 +94,6 @@ mutable struct EnriquesBorcherdsCtx
     @vprint :EnriquesAuto 2 "done\n"
     Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
     res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
-    res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
     @vprint :EnriquesAuto 2 "computing kernel "
     Gminus, inc_Gminus = kernel(inc)
     @vprintln :EnriquesAuto 2 "done"
@@ -166,7 +165,7 @@ Let ``\pi: X \to Y`` be the universal cover of an Enriques surface and ``\epsilo
 - `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
 """
 function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample=nothing)
-  @req is_sublattice(SY2, SX) "SY2 must be a sublattice of SX"
+  @req is_subset(SY2, SX) "SY2 must be contained in SX"
   tmp = rescale(SY2, 1//2)
   @req is_unimodular(tmp) && is_even(tmp) && signature_tuple(tmp) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
   B = solve(basis_matrix(SX), basis_matrix(SY2); side=:left)
