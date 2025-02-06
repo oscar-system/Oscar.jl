@@ -1648,6 +1648,7 @@ function weyl_vector_non_degenerate(L::ZZLat, S::ZZLat, u0::QQMatrix, weyl::QQMa
   u = u0
 
   @vprint :K3Auto 2 "calculating separating hyperplanes\n"
+  @vprint :K3Auto 3 "for $(u) and $(ample)\n"
   separating_walls = separating_hyperplanes(L, u, ample, -2)
   @vprintln :K3Auto 3 "found $(length(separating_walls)) separating hyperplanes"
   @vprint :K3Auto 2 "moving Weyl vector $(solve(basis_matrix(L),weyl; side = :left)) towards the ample class\n"

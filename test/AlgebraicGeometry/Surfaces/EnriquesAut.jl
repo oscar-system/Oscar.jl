@@ -27,13 +27,15 @@
   @test walls(C) == Oscar.initial_walls(Y)
   @test length(Oscar.initial_automorphisms(Y)) == 1440
   
+  @test length(enriques_surface_automorphism_group(SY,SX; ample=ZZ[22 16 30 46 42 32 24 18 14 5])[2])==1
+  
   v = Oscar.isotropic_rays(C)[1]
   L = lattice(rational_span(SY))
   Oscar.frame_lattice(L,QQ.(v))
   @test Oscar.chamber_invariants(Y)[1] == 1440
   
   fbar = discriminant_group(Y.SY)(1//2*(v*basis_matrix(Y.SY))[1,:])
-  @test reducible_fibers(Y, fbar) == ([(:A, 3), (:A, 1), (:A, 3)],[])
+  @test reducible_fibers(Y, fbar) == ([(:A, 1),  (:A, 3), (:A, 3)],[])
 
   @test sum([(i[1]) for i in Oscar.isomorphism_classes_elliptic_fibrations(Y)])==527
     

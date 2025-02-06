@@ -24,6 +24,7 @@ S_Y(2) \subseteq S_X \subseteq L_{1,25}
 ```
 
 where ``L_{1,15}`` is an even unimodular lattice of signature $(1,25)``. 
+```
 """
 mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
@@ -40,7 +41,7 @@ mutable struct EnriquesBorcherdsCtx
   initial_automorphisms_mod2::Vector{FqMatrix}  # same order as above but mod 2
   initial_chamber::K3Chamber   # a non-degenerate L26/SX chamber
   # whether a -2 vector defines an outer wall is a mod 2 condition
-  roots_mod2::Set{FqMatrix}  # mod 2 images of the rational curves
+  roots_mod2::Set{FqMatrix}  # mod 2 images of splitting roots
   gramSY::ZZMatrix  # to avoid coercions
   gramSX::ZZMatrix  # to avoid coercions
   membership_test
@@ -50,6 +51,7 @@ mutable struct EnriquesBorcherdsCtx
   Dplus::FqMatrix
   imgs_mod2::Set{FqMatrix}
   # w.r.t the basis given by Dplus
+  Gplus
   Gplus_mat::MatrixGroup{FqFieldElem, FqMatrix}
   function EnriquesBorcherdsCtx()
     return new()
@@ -124,6 +126,7 @@ function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
   tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
   gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
   Gplus,_ = sub(ODSY, gens_Gplus)
+  ECtx.Gplus = Gplus
   @assert order(Gplus) == order(Gminus)
   # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
 
@@ -169,18 +172,28 @@ Let ``\pi: X \to Y`` be the universal cover of an Enriques surface and ``\epsilo
 # Input: 
 - `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
 """
-function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat)
-  @req issubset(SY2, SX) "SY2 must be a sublattice of SX"
-  a = rescale(SY2, 1//2)
-  @req is_unimodular(a) && is_even(a) && signature_tuple(a) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
+function EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample=nothing)
+  @req is_sublattice(SY2, SX) "SY2 must be a sublattice of SX"
+  tmp = rescale(SY2, 1//2)
+  @req is_unimodular(tmp) && is_even(tmp) && signature_tuple(tmp) == (1, 0, 9) "SY2 must be isomorphic to E10(2)"
   B = solve(basis_matrix(SX), basis_matrix(SY2); side=:left)
-  L26, SX1, weyl1 = borcherds_method_preprocessing(S, 26)
-  SY1 = lattice(ambient_space(SX1), SY1)
-  return EnriquesBorcherdsCtx(SY1,SX1, L26, weyl1)
+  L26, SX1, iSX1 = embed_in_unimodular(lattice(rational_span(SX)), 1, 25, primitive=true,even=true)
+  SY1 = lattice(ambient_space(SX1),solve(basis_matrix(SX),basis_matrix(SY2);side=:left)*basis_matrix(SX1))
+  if ample==nothing 
+    ample = ample_class(SX1)
+    # orthogonal projection of ample to SY1
+    B = basis_matrix(SY1)
+    GB = gram_matrix(ambient_space(SY1))*transpose(B)
+    ample = solve(B*GB, 2*ample*GB; side=:left)
+  end
+  @assert only(ample*gram_matrix(SY2)*transpose(ample))>0
+  @show ample
+  weyl, u =  borcherds_method_preprocessing(L26, SY1; ample)
+  return EnriquesBorcherdsCtx(SY1, SX1, L26, weyl)
 end
 
 @doc raw"""
-    Enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
+    enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat;ample=nothing)
     
 Return generators for the automorphism group of an Enriques surface.
   
@@ -196,9 +209,10 @@ See [BS22](@cite) [BS22*1](@cite) [BRS23](@cite) for background and algorithms.
 
 # Input: 
 - `SY2` -- the invariant lattice of the Enriques involution in the numerical lattice `SX` of ``X``. 
+- `ample` -- optionally an ample class as a ``1\times x 10`` matrix representing an ample class w.r.t. the basis of `SY2`; if not given, some arbitrary Weyl-chamber is picked.
 """
-function Enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat)
-  return borcherds_method(EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat))
+function enriques_surface_automorphism_group(SY2::ZZLat, SX::ZZLat; ample::ZZMatrix=nothing)
+  return borcherds_method(EnriquesBorcherdsCtx(SY2::ZZLat, SX::ZZLat; ample))
 end 
   
 @doc raw"""
@@ -207,15 +221,7 @@ end
 Return the image of the splitting roots of ``Y`` in ``S_Y \otimes \mathbb{F}_2``.
 """
 function splitting_roots_mod2(Y::EnriquesBorcherdsCtx)
-  SX = Y.SX
-  SY2 = Y.SY
-  Sm = orthogonal_submodule(SX, SY2)
-  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY2)
-  # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
-  H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(rescale(Sm,-1),4) if i[2]==4]
-  sv2 = [domain(phi)(i) for i in sv2 if i in H_Sm]
-  return Set([change_base_ring(GF(2),solve(basis_matrix(SY2),matrix(QQ,1,26,2*lift(phi(i)));side=:left)) for i in sv2])
+  return Y.roots_mod2
 end
 
 @doc raw"""
@@ -337,15 +343,16 @@ function Base.in(x::ZZMatrix, D::EnriquesChamber)
   return all((v*Gx)[1,1]>=0 for v in walls(D))
 end
 
-# inv(g)*h in G => fingerprint(g) == fingerprint(h)
 @doc raw"""
     fingerprint(D::EnriquesChamber)
    
 Return an invariant of the chamber under ``G``-congruence.
+
+The computation of this invariant is a bit expensive
 """
 function fingerprint(D::EnriquesChamber)
-  #return 0
-  # the computation of this hash will be a bit expensive
+  # Let ``D_1 = D_0^g`` and ``D_2 = D_0^h`` 
+  # We want inv(g)*h in G => fingerprint(D_1) == fingerprint(D_2)
   # t.f.a.e.
   # D0*g G-cong D0*g
   # g^-1 f h in G for some f in aut(D0)
@@ -479,7 +486,10 @@ end
 @doc raw"""
     hom(D1::EnriquesChamber, D2::EnriquesChamber)
     
-Return the set of elements of ``G`` mapping ``D_1`` to ``D_2``.
+Return the set of elements of ``G_Y^0`` mapping ``D_1`` to ``D_2`` where 
+```math
+G_Y^0 = \mathrm{Aut}^*(Y)\mathrm{W}(Y) = \{f \in O(S_Y) \mid f \mbox{ extends to an isometry of }S_X\mbox{ acting trivially on the discriminant group of }S_X\}
+```
 """
 function hom(D1::EnriquesChamber, D2::EnriquesChamber)
   result = ZZMatrix[]
@@ -500,8 +510,8 @@ end
 @doc raw"""
     is_congruent_with_data(D1::EnriquesChamber, D2::EnriquesChamber) -> Bool, ZZMatrix
     
-Return whether `D1` and `D2` are congruent under ``G`` and if yes
-an element ``g \in G`` with ``D1^g=D2``.
+Return whether `D1` and `D2` are congruent under ``G_Y^0`` and if yes
+an element ``g \in G_Y^0`` with ``D1^g=D2``.
 """
 function is_congruent_with_data(D1::EnriquesChamber, D2::EnriquesChamber)
   tau1inv = inv(D1.tau)
@@ -532,7 +542,7 @@ Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``.
 
 # Input:
 - `Y` -- represents an Enriques surface in terms of ``\pi^*\colon S_Y(2) \hookrightarrow S_X``.
-- `max_nchambers` -- abort the computation after `max_nchambers` chambers have been computed.  
+- `max_nchambers` -- abort the computation after `max_nchambers` chambers have been computed; return the generators, chambers and curves computed so far. They may not generate the full automorhism group, and not cover all orbits of chambers or rational curves. 
 
 # Output:
 1. A list of matrices `g` which generate the image of ``\mathrm{Aut}_{s}(Y) \to O(S_Y)`` 
@@ -712,48 +722,6 @@ function _emb_types()
   return d
 end
 
-# Let K be the kernel of O(L26,SX,SY)->O(SX). G^+ is defined as the image of K in O(SY).
-function _compute_Gplus(SY::ZZLat, SX::ZZLat, L26::ZZLat)
-
-  # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
-  Sm = orthogonal_submodule(SX, SY)
-  phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
-
-  # Cook up the membership test
-  @vprint :EnriquesAuto 2 "computing orthogonal group\n"
-  OSm = orthogonal_group(Sm)
-  GSm,_= image_in_Oq(Sm)
-  phiSm = hom(OSm, GSm, GSm.(gens(OSm)); check=false)
-  DSm = discriminant_group(Sm)
-  Dminus = domain(phi)
-  @vprint :EnriquesAuto 2 "computing stabilizer "
-  stab_Dminus, inc_stab = stabilizer(GSm, inc_Dminus)
-  @vprint :EnriquesAuto 2 "done\n"
-  Dminus_perp, inc_Dminus_perp = orthogonal_submodule(DSm, Dminus)
-  res, inc = restrict_automorphism_group(stab_Dminus, inc_Dminus_perp)
-  res2, inc2 = restrict_automorphism_group(stab_Dminus, inc_Dminus)
-  @vprint :EnriquesAuto 2 "computing kernel "
-  Gminus, inc_Gminus = kernel(inc)
-  @vprintln :EnriquesAuto 2 "done"
-
-  # compute Gplus
-  Q = orthogonal_submodule(L26,SY)
-  DQ = discriminant_group(Q)
-  glue_SY_Q,inc1,inc2 = glue_map(L26,SY, Q)
-  DO = codomain(glue_SY_Q)
-
-  @vprint :EnriquesAuto 2 "preparing membership test\n"
-  DSY = discriminant_group(SY)
-  ODSY = orthogonal_group(DSY)
-  tmp = [preimage(phiSm, i) for i in small_generating_set(Gminus)]
-  tmp_hom = [hom(DO,DO, [DO(lift(j)*i) for j in gens(DO)]) for i in tmp]
-  gens_Gplus = elem_type(ODSY)[ODSY(inv(inc1)*glue_SY_Q*i*inv(glue_SY_Q)*inc1) for i in tmp_hom]
-  Gplus,_ = sub(ODSY, gens_Gplus)
-  @assert order(Gplus) == order(Gminus)
-  # iso_Gplus_minus = hom(Gplus, Gminus, gens(Gplus), small_generating_set(Gminus))
-  return Gplus
-end
-
 
 @doc raw"""
     isomorphism_classes_elliptic_fibrations(Y::EnriquesBorcherdsCtx)
@@ -772,16 +740,11 @@ A list of triples with the following entries:
 - representative of the half fiber ``f`` modulo ``2``
 """
 function isomorphism_classes_elliptic_fibrations(Y::EnriquesBorcherdsCtx)
-  return  [(length(fbar), reducible_fibers(Y, representative(fbar)),representative(fbar)) for fbar in _ellfib_reps(Y.SY, Y.SX, Y.L26)]
+  isotropic_Y = [i for i in discriminant_group(Y.SY) if quadratic_product(i)==0 && !is_zero(i)]
+  X = gset(Y.Gplus, (x,g)->g(x), isotropic_Y)
+  return  [(length(fbar), reducible_fibers(Y, representative(fbar)), representative(fbar)) for fbar in orbits(X)]
 end 
   
-function _ellfib_reps(SY::ZZLat, SX::ZZLat, L26::ZZLat)
-  Gplus = _compute_Gplus(SY, SX, L26)
-  DSY = discriminant_group(SY)
-  isoY = [i for i in DSY if quadratic_product(i)==0 && !is_zero(i)]
-  X = gset(Gplus, (x,g)->g(x),isoY)
-  return orbits(X)
-end
 
 @doc raw"""
     reducible_fibers(Y::EnriquesBorcherdsCtx, fbar::TorQuadModuleElem) -> simple fibers, multiple fibers
@@ -858,6 +821,7 @@ function _identify_ADE(g::MatElem)
     end
     push!(fiber_types,t)
   end
+  sort!(fiber_types)
   return fiber_types
 end
 

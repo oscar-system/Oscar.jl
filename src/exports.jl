@@ -71,7 +71,7 @@ export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
 export EnriquesBorcherdsCtx
-export Enriques_surface_automorphism_group
+export enriques_surface_automorphism_group
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -1420,7 +1420,6 @@ export reduced_characteristic_polynomial
 export reduced_expressions
 export reduced_groebner_basis
 export reduced_scheme
-export reducible_fibers
 export reducible_fibers
 export reflect, reflect!
 export reflection
