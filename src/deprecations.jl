@@ -152,3 +152,4 @@ Base.@deprecate_binding in_linear_system is_in_linear_system
 # deprecated for 1.3
 @deprecate acting_domain(C::GroupCoset) acting_group(C)
 @deprecate acting_domain(Omega::GSet) acting_group(Omega)
+@deprecate grid_morphism lattice_homomorphism

@@ -70,6 +70,7 @@ export Edge
 export EffectiveCartierDivisor
 export EllipticSurface
 export EmptyScheme
+export EnriquesBorcherdsCtx
 export FPGroup
 export FPGroupElem
 export FreeMod
@@ -347,6 +348,7 @@ export centralizer
 export chain_complex
 export chain_range
 export chamber
+export chamber_invariants
 export character_field
 export character_lattice
 export character_parameters
@@ -552,6 +554,7 @@ export elliptic_parameter
 export elliptic_surface
 export embedding
 export embedding_orthogonal_group
+export enriques_surface_automorphism_group
 export epimorphism_from_free_group
 export equidimensional_decomposition_radical
 export equidimensional_decomposition_weak
@@ -658,6 +661,7 @@ export gluing_morphisms
 export gluings
 export goldfarb_cube
 export goldfarb_sit_cube
+export gomory_chvatal_closure
 export gorenstein_index
 export grade
 export graded_cokernel
@@ -670,7 +674,6 @@ export graph
 export graph_from_adjacency_matrix
 export graph_from_edges
 export grassmann_pluecker_ideal
-export grid_morphism
 export groebner_basis
 export groebner_basis_f4
 export groebner_basis_hilbert_driven
@@ -768,6 +771,7 @@ export inner_automorphism_group
 export inner_cartesian_power
 export inner_direct_product
 export inradical
+export integer_hull
 export integral_basis
 export integrate
 export interior_lattice_points
@@ -812,6 +816,7 @@ export is_bicoset
 export is_bijective
 export is_binary
 export is_binomial
+export is_bipartite
 export is_bounded
 export is_canonically_isomorphic
 export is_canonically_isomorphic_with_map
@@ -995,7 +1000,10 @@ export isometry_group
 export isomorphic_matroid
 export isomorphic_subgroups
 export isomorphism
+export isomorphism_classes_elliptic_fibrations
+export isomorphism_classes_polarizations
 export isone
+export isotropic_rays
 export isqrtrem
 export issubset
 export iszero
@@ -1019,6 +1027,8 @@ export koszul_homology
 export koszul_matrix
 export labeled_matrix_formatted
 export laplacian_matrix
+export lattice_homomorphism
+export lattice_of_one_parameter_subgroups
 export lattice_points
 export lattice_volume
 export leading_coefficient
@@ -1114,12 +1124,12 @@ export minimal_block_reps
 export minimal_faces
 export minimal_generating_set
 export minimal_generator
-export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
-export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minimal_nonfaces
 export minimal_normal_subgroups, has_minimal_normal_subgroups, set_minimal_normal_subgroups
 export minimal_primes
+export minimal_size_generating_set, has_minimal_size_generating_set, set_minimal_size_generating_set
 export minimal_subalgebra_generators
+export minimal_supercone_coordinates, minimal_supercone_indices, is_minimal_supercone_coordinate_vector
 export minkowski_sum
 export minor
 export module_syzygies
@@ -1235,9 +1245,9 @@ export number_of_weak_compositions
 export numerator
 export objective_function
 export omega_group
+export on_echelon_form_mats
 export on_indeterminates
 export on_lines
-export on_echelon_form_mats
 export on_sets
 export on_sets_sets
 export on_simplicial_complex
@@ -1322,6 +1332,7 @@ export power_sum
 export powers_of_element
 export preimage
 export present_as_cokernel
+export present_finite_extension_ring
 export presentation
 export preserved_quadratic_forms
 export preserved_sesquilinear_forms
@@ -1331,6 +1342,7 @@ export prime_ideal
 export prime_of_pgroup, has_prime_of_pgroup, set_prime_of_pgroup
 export primitive_collections
 export primitive_generator
+export primitive_generator_with_scaling_factor
 export primitive_group
 export primitive_group_identification, has_primitive_group_identification
 export primorial
@@ -1458,6 +1470,7 @@ export ring_elem_type
 export ring_type
 export rising_factorial
 export root
+export root_invariant
 export root_system
 export root_system_type, has_root_system_type
 export root_system_type_with_ordering
@@ -1551,7 +1564,9 @@ export spec
 export special_linear_group
 export special_orthogonal_group
 export special_unitary_group
+export splitting_roots_mod2
 export src
+export stabilizer_in_orthogonal_group
 export stable_intersection
 export stable_set_polytope
 export standard_basis
@@ -1639,6 +1654,7 @@ export tropical_variety
 export truncate
 export turn_denominator_into_polyhedron
 export tutte_connectivity
+export tutte_lifting
 export tutte_polynomial
 export twist
 export twisting_sheaf

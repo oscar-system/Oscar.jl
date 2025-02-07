@@ -27,7 +27,13 @@
 
   amb = load(joinpath(Oscar.oscardir, "test/AlgebraicGeometry/ToricVarieties", "pr3006.ntv"))
   (x1, x2, x3, x4, x, y, z) = gens(cox_ring(amb));
-  bd1 = blow_up(amb, ideal([x, y, x1]); coordinate_name = "e1")
+
+  # The coordinates below correspond to the ideal `ideal([x, y, x1]`
+  coords = [1, 0, 0, 0, 1, 1, 0]
+
+  bd1 = blow_up_along_minimal_supercone_coordinates(
+    amb, coords; coordinate_name = "e1"
+  )
   amb1 = domain(bd1)
   
   @testset "Trigger issue of PR3006" begin
@@ -39,8 +45,8 @@
   bl = blow_up(P2, [1, 1])
   
   @testset "Basic tests for simple toric blowup" begin
-    @test torsion_free_rank(domain(grid_morphism(bl))) == 2
-    @test torsion_free_rank(codomain(grid_morphism(bl))) == 2
+    @test torsion_free_rank(domain(lattice_homomorphism(bl))) == 2
+    @test torsion_free_rank(codomain(lattice_homomorphism(bl))) == 2
     @test rank(matrix(morphism_on_torusinvariant_weil_divisor_group(bl))) == 3
     @test matrix(morphism_on_torusinvariant_cartier_divisor_group(bl)) == matrix(morphism_on_torusinvariant_weil_divisor_group(bl))
   end
@@ -48,9 +54,9 @@
   bl2 = blow_up(P2, [-1, 0])
 
   @testset "Arithmetics, comparison and composition" begin
-    @test grid_morphism(bl + bl) == grid_morphism(2 * bl)
-    @test grid_morphism(bl - bl) == grid_morphism(0 * bl)
-    @test grid_morphism(bl * toric_identity_morphism(codomain(bl))) == grid_morphism(bl)
+    @test lattice_homomorphism(bl + bl) == lattice_homomorphism(2 * bl)
+    @test lattice_homomorphism(bl - bl) == lattice_homomorphism(0 * bl)
+    @test lattice_homomorphism(bl * toric_identity_morphism(codomain(bl))) == lattice_homomorphism(bl)
     @test bl !== bl2
   end
 
@@ -68,15 +74,40 @@
     @test !issubset(pbJ_str, ideal_sheaf(E))
   end
 
-  # Select variables corresponding to rays [1,0] and [0,1]
-  I = ideal(S, gens(S)[findall(v->v[1]>=0&&v[2]>=0, rays(P2))])
-  bl2 = blow_up(P2, I)
-  II = IdealSheaf(P2, I)
-  
-  @testset "Properties of toric blowup defined by ideal" begin
-    @test II == center_unnormalized(bl)
-    @test bl2 isa Oscar.ToricBlowupMorphism
-    @test center_unnormalized(bl2) == II
+  @testset "Toric blowups along singular cones" begin
+    # 1/2(1, 1) quotient singularity, blowup along the maximal cone
+    ray_generators = [[2, -1], [0, 1]]
+    max_cones = IncidenceMatrix([[1, 2]])
+    X = normal_toric_variety(max_cones, ray_generators)
+    f = blow_up(X, 1)
+    @test ray_vector(QQFieldElem, [1, 0]) in rays(domain(f))
+    @test (
+      minimal_supercone_coordinates_of_exceptional_ray(f)
+      ==
+      QQFieldElem[1//2, 1//2]
+    )
+    
+    # Now blowing up along an existing ray
+    g = blow_up(X, 2)
+    @test n_rays(domain(g)) == 2
+    @test n_cones(domain(g)) == 3
+
+    # Quadratic cone, blowup along maximal cone
+    ray_generators = [[0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]]
+    max_cones = IncidenceMatrix([[1, 2, 3, 4]])
+    PF = polyhedral_fan(max_cones, ray_generators)
+    X = normal_toric_variety(PF)
+    f = blow_up(X, 1)
+    @test ray_vector(QQFieldElem, [1, 1, 2]) in rays(domain(f))
+    @test (
+      minimal_supercone_coordinates_of_exceptional_ray(f)
+      ==
+      QQFieldElem[1//2, 1//2, 1//2, 1//2]
+    )
+    
+    # Now blowing up along an existing ray
+    g = blow_up(X, 6)
+    @test n_rays(domain(g)) == 4
+    @test n_cones(domain(g)) == 11
   end
-  
 end

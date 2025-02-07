@@ -123,9 +123,9 @@ end
      G0 = matrix_group(mats)
      G, g = Oscar.isomorphic_group_over_finite_field(G0)
 
-     @test !has_order(G0)
-     order(G0)
+     @test has_order(G)
      @test has_order(G0)
+     @test order(G0) == order(G)
 
      for i in 1:10
        x, y = rand(G), rand(G)
@@ -137,6 +137,13 @@ end
      f = GAP.Globals.GroupHomomorphismByImages(GapObj(G), H)
      @test GAP.Globals.IsBijective(f)
      @test order(G) == GAP.Globals.Order(H)
+
+     Gap_G0 = GapObj(G0)
+     @test GAP.Globals.HasNiceMonomorphism(GapObj(G0))
+     iso = GAP.Globals.NiceMonomorphism(Gap_G0)
+     x = GAP.Globals.Product(GAP.Globals.GeneratorsOfGroup(Gap_G0))
+     img = GAP.Globals.ImagesRepresentative(iso, x)
+     @test x == GAP.Globals.PreImagesRepresentative(iso, img)
    end
 
    G = matrix_group(QQ, 2, dense_matrix_type(QQ)[])

@@ -26,7 +26,8 @@ This project is work-in-progress.
 
 ## Tutorial
 
-We provide a [tutorial for toric geometry in OSCAR](https://nbviewer.org/github/oscar-system/oscar-website/blob/gh-pages/tutorials/ToricGeometryInOSCAR.ipynb).
+We encourage you to take a look at the tutorials on toric geometry in
+OSCAR, which can be found [here](https://www.oscar-system.org/tutorials/ToricGeometry/).
 
 
 ## Long term goals

@@ -217,11 +217,9 @@ julia> coordinate_names(antv)
 end
 
 
-function _cox_ring_weights(v::NormalToricVarietyType)
-    return get_attribute!(v, :cox_ring_weights) do
-        f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
-        return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
-    end::Vector{FinGenAbGroupElem}
+@attr Vector{FinGenAbGroupElem} function _cox_ring_weights(v::NormalToricVarietyType)
+  f = map_from_torusinvariant_weil_divisor_group_to_class_group(v)
+  return [f(x) for x in gens(torusinvariant_weil_divisor_group(v))]
 end
 
 
@@ -651,6 +649,22 @@ Z^2
 ```
 """
 @attr FinGenAbGroup character_lattice(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
+
+
+@doc raw"""
+    lattice_of_one_parameter_subgroups(v::NormalToricVarietyType)
+
+Return the lattice of one parameter subgroups of a normal toric variety `v`.
+
+# Examples
+```jldoctest
+julia> p2 = projective_space(NormalToricVariety, 2);
+
+julia> lattice_of_one_parameter_subgroups(p2)
+Z^2
+```
+"""
+@attr FinGenAbGroup lattice_of_one_parameter_subgroups(v::NormalToricVarietyType) = free_abelian_group(ambient_dim(v))
 
 
 @doc raw"""

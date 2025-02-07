@@ -41,20 +41,15 @@ julia> betti_number(Y, 4) == length(h22_basis)
 true
 ```
 """
-function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{CohomologyClass}
-
+@attr Vector{CohomologyClass} function basis_of_h22(v::NormalToricVariety; check::Bool = true)
   # (0) Some initial checks
   if check
     @req is_complete(v) "Computation of basis of H22 is currently only supported for complete toric varieties"
     @req is_simplicial(v) "Computation of basis of H22 is currently only supported for simplicial toric varieties"
   end
   if dim(v) < 4
-    set_attribute!(v, :basis_of_h22, Vector{CohomologyClass}())
+    return Vector{CohomologyClass}()
   end
-  if has_attribute(v, :basis_of_h22)
-    return get_attribute(v, :basis_of_h22)
-  end
-
   # (1) Prepare some data of the variety
   mnf = Oscar._minimal_nonfaces(v)
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -146,17 +141,15 @@ function basis_of_h22(v::NormalToricVariety; check::Bool = true)::Vector{Cohomol
   # (10) Return the basis elements in terms of cohomology classes
   S = cohomology_ring(v, check = check)
   c_ds = [k.f for k in gens(S)]
-  final_list_of_tuples = []
+  final_list_of_tuples = Tuple{Int64, Int64}[]
   for (key, value) in dict_of_filtered_quadratic_elements
     if value in new_good_positions
       push!(final_list_of_tuples, key)
     end
   end
   basis_of_h22 = [cohomology_class(v, MPolyQuoRingElem(c_ds[my_tuple[1]]*c_ds[my_tuple[2]], S)) for my_tuple in final_list_of_tuples]
-  set_attribute!(v, :basis_of_h22, basis_of_h22)
   set_attribute!(v, :basis_of_h22_indices, final_list_of_tuples)
   return basis_of_h22
-
 end
 
 
@@ -170,12 +163,7 @@ end
 # has empty intersection with the hypersurface. The following method identifies the remaining pairs of
 # toric divisors d1, d2 that we must consider.
 
-function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)::Vector{Tuple{Int64, Int64}}
-
-  if has_attribute(m, :_ambient_space_divisor_pairs_to_be_considered)
-    return get_attribute(m, :_ambient_space_divisor_pairs_to_be_considered)
-  end
-
+@attr Vector{Tuple{Int64, Int64}} function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -221,10 +209,8 @@ function _ambient_space_divisor_pairs_to_be_considered(m::AbstractFTheoryModel):
     end
   end
   
-  # Remember this result as attribute and return the findings.
-  set_attribute!(m, :_ambient_space_divisor_pairs_to_be_considered, list_of_elements)
+  # Return the findings.
   return list_of_elements
-  
 end
 
 
@@ -234,12 +220,7 @@ end
 # This method makes a pre-selection of such base divisor pairs. "Pre" means that we execute a sufficient,
 # but not necessary, check to tell if a pair of base divisors restricts trivially.
 
-function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)::Vector{Tuple{Int64, Int64}}
-
-  if has_attribute(m, :_ambient_space_base_divisor_pairs_to_be_considered)
-    return get_attribute(m, :_ambient_space_base_divisor_pairs_to_be_considered)
-  end
-
+@attr Vector{Tuple{Int64, Int64}} function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryModel)
   gS = gens(cox_ring(ambient_space(m)))
   mnf = Oscar._minimal_nonfaces(ambient_space(m))
   ignored_sets = Set([Tuple(sort(Vector{Int}(Polymake.row(mnf, i)))) for i in 1:Polymake.nrows(mnf)])
@@ -285,8 +266,136 @@ function _ambient_space_base_divisor_pairs_to_be_considered(m::AbstractFTheoryMo
     end
   end
   
-  # Remember this result as attribute and return the findings.
-  set_attribute!(m, :_ambient_space_base_divisor_pairs_to_be_considered, list_of_elements)
+  # Return the findings.
   return list_of_elements
-  
 end
+
+
+function _ambient_space_models_of_g4_fluxes(m::AbstractFTheoryModel; check::Bool = true)
+
+  # Entry check
+  @req base_space(m) isa NormalToricVariety "Base space must be a toric variety for computation of ambient space G4 candidates"
+  if has_attribute(m, :ambient_space_models_of_g4_fluxes)
+    return get_attribute(m, :ambient_space_models_of_g4_fluxes)::Vector{CohomologyClass}
+  end
+
+  # Execute entry tests in computation of basis_of_h22. If any of these fail, no need to proceed. Hence, do this first.
+  filtered_h22_basis = basis_of_h22(ambient_space(m), check = check)
+
+  # Each basis element is given by the vanishing of two homogeneous variables. We extract those indices...
+  filtered_h22_basis_indices_init = get_attribute(ambient_space(m), :basis_of_h22_indices)
+
+  # It may happen that filtered_h22_basis_indices_init is encoded as Vector{Any}. But it is a Vector{Tuple{Int64, Int64}}
+  # Of course, this should be fixed more properly, but for now, the following works...
+  filtered_h22_basis_indices = [k for k in filtered_h22_basis_indices_init]::Vector{Tuple{Int64, Int64}}
+
+  # Prepare data of the toric ambient space
+  gS = gens(cox_ring(ambient_space(m)))
+  mnf = Oscar._minimal_nonfaces(ambient_space(m))
+  sr_ideal_pos = [Vector{Int}(Polymake.row(mnf, i)) for i in 1:Polymake.nrows(mnf)]
+
+  # Filter out basis elements
+  for a in length(filtered_h22_basis):-1:1
+    
+    # Simplify the hypersurface polynomial by setting relevant variables to zero
+    vanishing_vars_pos = [filtered_h22_basis_indices[a]...]
+    new_pt = divrem(hypersurface_equation(m), gS[vanishing_vars_pos[1]])[2]
+    if length(vanishing_vars_pos) == 2
+      new_pt = divrem(new_pt, gS[vanishing_vars_pos[2]])[2]
+    end
+
+    # If all coefficient of `new_pt` sum to zero, keep this generator.
+    if sum(coefficients(new_pt)) == 0
+      continue
+    end
+    
+    # Determine remaining variables, after scaling "away" others.
+    remaining_vars_list = Set(1:length(gS))
+    for my_exps in sr_ideal_pos
+      len_my_exps = length(my_exps)
+      inter_len = count(idx -> idx in vanishing_vars_pos, my_exps)
+      if (len_my_exps == 2 && inter_len == 1) || (len_my_exps == 3 && inter_len == 2)
+        delete!(remaining_vars_list, my_exps[findfirst(idx -> !(idx in vanishing_vars_pos), my_exps)])
+      end
+    end
+    remaining_vars_list = collect(remaining_vars_list)
+
+    # If one monomial of `new_pt` has unset positions, then keep this generator.
+    delete_it = true
+    for exps in exponents(new_pt)
+      if any(x -> x != 0, exps[remaining_vars_list])
+        delete_it = false
+        break
+      end
+    end
+    if delete_it
+      deleteat!(filtered_h22_basis, a)
+      deleteat!(filtered_h22_basis_indices, a)
+    end
+
+  end
+
+  set_attribute!(m, :ambient_space_models_of_g4_fluxes, filtered_h22_basis)
+  set_attribute!(m, :ambient_space_models_of_g4_fluxes_indices, filtered_h22_basis_indices)
+  return filtered_h22_basis::Vector{CohomologyClass}
+
+end
+
+
+@doc raw"""
+    chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true)::Vector{CohomologyClass}
+
+Given an F-theory model `m` defined as a hypersurface in a simplicial and
+complete toric base, this method computes a basis of $H^{2,2}(X, \mathbb{Q})$
+(using the method `basis_of_h22`) and then filters out certain basis elements 
+whose restriction to the hypersurface in question is trivial. The criteria for 
+"certain" elements are explained in the documentation above this method.
+
+Note: Checking whether a toric variety $X$ is complete and simplicial can be
+computationally expensive. The optional argument `check` can be set to `false`
+to skip these tests.
+
+# Examples
+```jldoctest; setup = :(Oscar.LazyArtifacts.ensure_artifact_installed("QSMDB", Oscar.LazyArtifacts.find_artifacts_toml(Oscar.oscardir)))
+julia> B3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> Kbar = anticanonical_divisor_class(B3)
+Divisor class on a normal toric variety
+
+julia> t = literature_model(arxiv_id = "1109.3454", equation = "3.1", base_space = B3, defining_classes = Dict("w"=>Kbar))
+Construction over concrete base may lead to singularity enhancement. Consider computing singular_loci. However, this may take time!
+
+Global Tate model over a concrete base -- SU(5)xU(1) restricted Tate model based on arXiv paper 1109.3454 Eq. (3.1)
+
+julia> g4_basis = chosen_g4_flux_basis(t);
+
+julia> length(g4_basis)
+2
+
+julia> g4_basis[1]
+G4-flux candidate
+  - Elementary quantization checks: not executed
+  - Verticality checks: not executed
+  - Non-abelian gauge group: breaking pattern not analyzed
+  - Tadpole cancellation check: not executed
+
+julia> cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by z^2
+
+julia> cohomology_class(g4_basis[2])
+Cohomology class on a normal toric variety given by y^2
+
+julia> qsm_model = literature_model(arxiv_id = "1903.00009", model_parameters = Dict("k" => 8))
+Hypersurface model over a concrete base
+
+julia> g4_basis = chosen_g4_flux_basis(qsm_model, check = false);
+
+julia> cohomology_class(g4_basis[1])
+Cohomology class on a normal toric variety given by x15*e2
+
+julia> length(g4_basis) == 172
+true
+```
+"""
+chosen_g4_flux_basis(m::AbstractFTheoryModel; check::Bool = true) = [G4Flux(m, c) for c in _ambient_space_models_of_g4_fluxes(m, check = check)]

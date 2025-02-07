@@ -146,8 +146,8 @@ If you are using BibTeX, you can use the following BibTeX entries:
 
 ## Funding
 
-The development of this Julia package is supported by the Deutsche
-Forschungsgemeinschaft DFG within the
+The development of this Julia package is supported by the
+German Research Foundation (DFG) within the
 [Collaborative Research Center TRR 195](https://www.computeralgebra.de/sfb/).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg

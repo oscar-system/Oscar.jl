@@ -1654,11 +1654,12 @@ betti_numbers(X::AbstractVariety) = length.(basis(X))
 Given an element `x` of the Chow ring of an abstract variety `X`, say, return the integral of `x`.
 
 !!! note
-    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem`  
-    or a function field element). Otherwise, the highest degree part of `x` is returned
-    (geometrically, this is the 0-dimensional part of `x`).
+    If `X` has been given a point class, the integral will be a number (that is, a `QQFieldElem` or a function field element). Otherwise, the highest degree part of `x` is returned (geometrically, this is the 0-dimensional part of `x`).
 
 # Examples
+
+Lines on a General Cubic Hypersurface in $\mathbb P^3$
+
 ```jldoctest
 julia> G = abstract_grassmannian(2, 4)
 AbstractVariety of dim 4
@@ -1671,6 +1672,36 @@ AbstractBundle of rank 4 on AbstractVariety of dim 4
 
 julia> integral(top_chern_class(E))
 27
+
+```
+
+```jldoctest
+julia> T, (t, ) = polynomial_ring(QQ, [:t])
+(Multivariate polynomial ring in 1 variable over QQ, QQMPolyRingElem[t])
+
+julia> QT = fraction_field(T)
+Fraction field
+  of multivariate polynomial ring in 1 variable over QQ
+
+julia> P3 = abstract_projective_space(3, base = QT)
+AbstractVariety of dim 3
+
+julia> h = gens(P3)[1]
+h
+
+julia> integral(t^2*h^3+t*h)
+t^2
+
+```
+
+Lines on a General Complete Intersection Calabi-Yau Threefold of Type (2,2,2,2)
+
+```jldoctest
+julia> G = abstract_grassmannian(2, 4+4)
+AbstractVariety of dim 12
+
+julia> S = tautological_bundles(G)[1]
+AbstractBundle of rank 2 on AbstractVariety of dim 12
 
 ```
 """

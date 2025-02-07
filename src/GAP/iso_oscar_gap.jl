@@ -239,7 +239,8 @@ end
 # in Oscar and GAP, respectively.
 # (Cyclotomic fields are easier to handle than general number fields.)
 function _iso_oscar_gap_field_cyclotomic_functions(FO::AbsSimpleNumField, FG::GapObj)
-   N = conductor(FO)
+   flag, N = Hecke.is_cyclotomic_type(FO)
+   @req flag "FO was not constructed as a cyclotomic field"
    cycpol = GAPWrap.CyclotomicPol(N)
    dim = length(cycpol)-1
 

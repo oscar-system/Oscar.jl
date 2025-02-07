@@ -23,10 +23,10 @@
   
   @testset "Basic attributes of toric morphisms" begin
     @test codomain(tm1) === domain(tm2)
-    @test matrix(grid_morphism(tm2)) == matrix(ZZ, [[1, 0], [0, 1]])
+    @test matrix(lattice_homomorphism(tm2)) == matrix(ZZ, [[1, 0], [0, 1]])
     @test morphism_on_torusinvariant_weil_divisor_group(tm2).map == identity_matrix(ZZ, 4)
     @test morphism_on_torusinvariant_cartier_divisor_group(tm2).map == identity_matrix(ZZ, 4)
-    @test grid_morphism(morphism_from_cox_variety(source)).map == matrix(ZZ, [[1], [-1]])
+    @test lattice_homomorphism(morphism_from_cox_variety(source)).map == matrix(ZZ, [[1], [-1]])
     @test is_affine(cox_variety(source)) == false
     @test matrix(morphism_on_class_group(tm3)) == matrix(ZZ, [[1, 0], [0, 1]])
     @test matrix(morphism_on_picard_group(tm3)) == matrix(ZZ, [[1, 0], [0, 1]])

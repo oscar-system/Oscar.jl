@@ -455,25 +455,18 @@ function flat_counterparts(phi::RingFlattening)
 end
 
 ### Some basic functionality
-function flatten(R::MPolyRing; cached::Bool=false)
-  return get_attribute!(R, :flatten) do
-    RingFlattening(R; cached)
-  end::RingFlattening
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
-function flatten(R::MPolyQuoRing; cached::Bool=false)
-  return get_attribute!(R, :flatten) do
-    RingFlattening(R; cached)
-  end::RingFlattening
+@attr RingFlattening{typeof(R)} function flatten(R::MPolyQuoRing; cached::Bool=false)
+  return RingFlattening(R; cached)
 end
 
 function (phi::RingFlattening)(I::MPolyIdeal)
-  if haskey(flat_counterparts(phi), I)
-    return flat_counterparts(phi)[I][1]
-  end
-  I_flat = ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
-  flat_counterparts(phi)[I] = (I_flat, phi)
-  return I_flat
+  return get!(flat_counterparts(phi), I) do
+    return ideal(codomain(phi), elem_type(codomain(phi))[phi(g) for g in gens(I)])
+  end::ideal_type(codomain(phi))
 end
 
 function preimage(phi::RingFlattening, x::RingElem)
@@ -583,7 +576,7 @@ function kernel(
   K_flat = kernel(f_flat)
   phi = flatten(domain(f))
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  flat_counterparts(phi)[K] = (K_flat, phi)
+  flat_counterparts(phi)[K] = K_flat
   return K
 end
 
@@ -599,7 +592,7 @@ function kernel(
   f_flat = hom(codomain(phi), codomain(f), f.(inverse(phi).(gens(codomain(phi)))), check=false)
   K_flat = kernel(f_flat)
   K = ideal(domain(f), inverse(phi).(gens(K_flat)))
-  flat_counterparts(phi)[K] = (K_flat, phi)
+  flat_counterparts(phi)[K] = K_flat
   return K
 end
 

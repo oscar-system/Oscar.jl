@@ -11,20 +11,17 @@ const FlattableRingElemType = Union{<:MPolyRingElem{<:Union{MPolyRingElem, MPoly
                                    }
 
 function (flat_map::RingFlattening)(F::FreeMod{T}) where {T <: FlattableRingElemType}
-  if !haskey(flat_counterparts(flat_map), F)
+  return get!(flat_counterparts(flat_map), F) do
     F_flat, iso = _change_base_ring_and_preserve_gradings(flat_map, F)
     iso_inv = hom(F_flat, F, gens(F), inverse(flat_map); check=false)
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
-    flat_counterparts(flat_map)[F] = (F_flat, iso, iso_inv)
-  end
-    
-  F_flat, iso, iso_inv = flat_counterparts(flat_map)[F]::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
-  return F_flat, iso, iso_inv
+    return F_flat, iso, iso_inv
+  end::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
 end
 
 function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: FlattableRingElemType}
-  if !haskey(flat_counterparts(flat_map), M)
+  return get!(flat_counterparts(flat_map), M) do
     F = ambient_free_module(M)
     F_flat, iso_F, iso_inv_F = flat_map(F)
     M_flat = SubquoModule(F_flat, 
@@ -35,11 +32,8 @@ function (flat_map::RingFlattening)(M::SubquoModule{T}) where {T <: FlattableRin
     iso_inv = hom(M_flat, M, gens(M), inverse(flat_map); check=false)
     set_attribute!(iso, :inverse, iso_inv)
     set_attribute!(iso_inv, :inverse, iso)
-    flat_counterparts(flat_map)[M] = (M_flat, iso, iso_inv)
-  end
-    
-  M_flat, iso, iso_inv = flat_counterparts(flat_map)[M]::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
-  return M_flat, iso, iso_inv
+    return M_flat, iso, iso_inv
+  end::Tuple{<:ModuleFP, <:ModuleFPHom, <:ModuleFPHom}
 end
 
 function flatten(
@@ -52,13 +46,11 @@ function flatten(
 end
 
 function (flat::RingFlattening)(a::FreeModElem)
-  if !haskey(flat_counterparts(flat), a)
+  return get!(flat_counterparts(flat), a) do
     F = parent(a)
     F_flat, iso, iso_inv = flat(F)
-    a_flat = iso(a)
-    flat_counterparts(flat)[a] = a_flat
-  end
-  return flat_counterparts(flat)[a]::FreeModElem
+    return iso(a)
+  end::FreeModElem
 end
 
 ### TODO: The following two functions should not be necessary if the module code 
@@ -87,7 +79,7 @@ function free_resolution(
   flat = flatten(base_ring(M))
   M_flat, iso_M, iso_M_inv = flat(M)
   comp = free_resolution(M_flat) # assuming that this is potentially cached
-  if !haskey(flat_counterparts(flat), comp)
+  return get!(flat_counterparts(flat), comp) do
     res_obj = ModuleFP[]
     isos = ModuleFPHom[]
     push!(res_obj, M)
@@ -105,22 +97,19 @@ function free_resolution(
     end
     comp_up = ComplexOfMorphisms(ModuleFP, reverse(res_maps), typ=:chain, seed=-1, check=false)
     comp_up.complete = true
-    result = FreeResolution(comp_up)
-    flat_counterparts(flat)[comp] = result
-  end
-  return flat_counterparts(flat)[comp]::FreeResolution
+    return FreeResolution(comp_up)
+  end::FreeResolution
 end
 
 function (phi::RingFlattening)(f::ModuleFPHom)
-  if !haskey(flat_counterparts(phi), f)
+  return get!(flat_counterparts(phi), f) do
     dom = domain(f)
     dom_b, iso_dom, iso_inv_dom = phi(dom)
     cod = codomain(f)
     cod_b, iso_cod, iso_inv_cod = phi(cod)
     fb = hom(dom_b, cod_b, iso_cod.(f.(gens(dom))); check=false)
-    flat_counterparts(phi)[f] = fb
-  end
-  return flat_counterparts(phi)[f]::ModuleFPHom
+    return fb
+  end::ModuleFPHom
 end
 
 # TODO: We need this special routine, because we can not write a generic 
@@ -164,17 +153,13 @@ end
 function (flat_map::RingFlattening)(
                                     I::SubModuleOfFreeModule{T}
                                    ) where {T <: FlattableRingElemType}
-  if !haskey(flat_counterparts(flat_map), I)
+  return get!(flat_counterparts(flat_map), I) do
     F = ambient_free_module(I)
     R = base_ring(I)
     flat_map = flatten(R)
     Fb, iso_F = flat_map(F)
-    I_flat = _change_base_ring_and_preserve_gradings(flat_map, I; ambient_base_change=iso_F)
-    flat_counterparts(flat_map)[I] = I_flat
-  end
-    
-  I_flat = flat_counterparts(flat_map)[I]::SubModuleOfFreeModule
-  return I_flat
+    return _change_base_ring_and_preserve_gradings(flat_map, I; ambient_base_change=iso_F)
+  end::SubModuleOfFreeModule
 end
 
 function _change_base_ring_and_preserve_gradings(

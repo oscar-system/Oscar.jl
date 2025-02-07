@@ -190,4 +190,15 @@
       @test matrix(ZZ, adjacency_matrix(G1)) == matrix(ZZ, [0 1 1 0; 1 0 0 1; 1 0 0 1; 0 1 1 0])
       @test laplacian_matrix(G1) == matrix(ZZ, [2 -1 -1 0; -1 2 0 -1; -1 0 2 -1; 0 -1 -1 2])
     end
+
+    @testset "is_bipartite" begin
+      G0 = Graph{Undirected}(3)
+      add_edge!(G0,1,2)
+      add_edge!(G0,1,3)
+      add_edge!(G0,2,3)
+      @test is_bipartite(G0) == false
+
+      G1 = graph_from_edges([[1,2],[2,3],[3,4]])
+      @test is_bipartite(G1) == true
+    end
 end

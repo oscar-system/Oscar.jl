@@ -335,8 +335,7 @@ end
     GL = general_linear_group(n, F)
     S = sylow_subgroup(GL, 2)[1]
     for G in [GL, S]
-#     for k in 0:n   # k = 0 is a problem in GAP 4.12.0
-      for k in 1:n
+      for k in 0:n
         res = orbit_representatives_and_stabilizers(G, k)
         total = ZZ(0)
         for (U, stab) in res

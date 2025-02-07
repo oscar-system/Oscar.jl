@@ -26,7 +26,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   for f in gens(OA)
     imgf = data.(union!(AinD.(f.(gens(A))), BinD.(gens(B))))
     fab = hom(gene, imgf)
-    fD = OD(hom(D, D, fab.map); check = false)
+    fD = OD(hom(D, D, matrix(fab)); check = false)
     push!(geneOAinOD, fD)
   end
 
@@ -34,7 +34,7 @@ function _sum_with_embeddings_orthogonal_groups(A::TorQuadModule, B::TorQuadModu
   for f in gens(OB)
     imgf = data.(union!(AinD.(gens(A)), BinD.(f.(gens(B)))))
     fab = hom(gene, imgf)
-    fD = OD(hom(D, D, fab.map); check = false)
+    fD = OD(hom(D, D, matrix(fab)); check = false)
     push!(geneOBinOD, fD)
   end
   OAtoOD = hom(OA, OD, geneOAinOD; check = false)
