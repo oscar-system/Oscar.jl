@@ -138,7 +138,7 @@ function load_object(s::DeserializerState, T::Type{<:Matrix{S}}, params::Ring) w
     m = reduce(vcat, [
       permutedims(load_object(s, Vector{S}, params, i)) for i in 1:len
         ])
-    return Matrix{elem_type(params)}(m)
+    return T(m)
   end
 end
 

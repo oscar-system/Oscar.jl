@@ -26,7 +26,7 @@ end
 
 function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict)
   R = d[:base_ring]
-  struct_consts = load_object(s, Matrix, (sparse_row_type(R), R), :struct_consts)
+  struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
   # load_root_system_data(s, L)
