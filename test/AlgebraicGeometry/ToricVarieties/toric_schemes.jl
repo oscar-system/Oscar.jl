@@ -89,8 +89,8 @@
   II = IdealSheaf(IP2, I)
 
   @testset "Blowups that leave the toric setting" begin
-    @test is_surjective(grid_morphism(Oscar.underlying_morphism(bl)))
-    @test is_injective(grid_morphism(Oscar.underlying_morphism(bl)))
+    @test is_surjective(lattice_homomorphism(Oscar.underlying_morphism(bl)))
+    @test is_injective(lattice_homomorphism(Oscar.underlying_morphism(bl)))
     @test length(Oscar.maximal_associated_points(pullback(bl,II))) == 3
     @test length(Oscar.maximal_associated_points(strict_transform(bl, II))) == 2
   end
@@ -169,7 +169,11 @@ end
   II = ideal_sheaf(p231, my_ideal) 
   JJ = Oscar.ToricIdealSheafFromCoxRingIdeal(p231, my_ideal)
   @test II == JJ
-  pr = blow_up(p231, ideal([x1, x2]))
+
+  # The coordinates below correspond to the ideal `ideal([x1, x2])`
+  coords = [1, 1, 0]
+
+  pr = blow_up_along_minimal_supercone_coordinates(p231, [1, 1, 0])
   pullback(pr, II)
   @test is_subset(total_transform(pr, II), strict_transform(pr, II))
 

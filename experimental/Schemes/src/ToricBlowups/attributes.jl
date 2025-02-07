@@ -1,5 +1,3 @@
-export center_data
-export center_unnormalized
 export exceptional_prime_divisor
 
 @doc raw"""
@@ -47,71 +45,33 @@ index_of_exceptional_ray(bl::ToricBlowupMorphism) = bl.index_of_exceptional_ray
 
 
 @doc raw"""
-    center_data(bl::ToricBlowupMorphism)
+    minimal_supercone_coordinates_of_exceptional_ray(f::ToricBlowupMorphism) -> Vector{QQFieldElem}
 
-Returns the ideal, ideal sheaf or ray that was used to construct the
-morphism.
+Let $f\colon Y \to X$ be the toric blowup corresponding to a star
+subdivision along a ray with minimal generator $v$.
+This function returns the minimal supercone coordinate vector of $v$ in the fan of $X$.
+See `?minimal_supercone_coordinates` for more details.
 
 # Examples
 ```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
+julia> X = affine_space(NormalToricVariety, 2)
 Normal toric variety
 
-julia> f = blow_up(P3, [0, 2, 3])
+julia> f = blow_up(X, [2, 3])
 Toric blowup morphism
 
-julia> center_data(f)
-3-element Vector{Int64}:
- 0
+julia> minimal_supercone_coordinates_of_exceptional_ray(f)
+2-element Vector{QQFieldElem}:
  2
  3
 ```
 """
-function center_data(bl::ToricBlowupMorphism)
-  return bl.center_data
+@attr Vector{QQFieldElem} function minimal_supercone_coordinates_of_exceptional_ray(f::ToricBlowupMorphism)
+  PF = polyhedral_fan(codomain(f))
+  v = rays(domain(f))[index_of_exceptional_ray(f), :][1]
+  v_ZZ = primitive_generator(v)
+  return minimal_supercone_coordinates(PF, v_ZZ)
 end
-
-
-@doc raw"""
-    center_unnormalized(bl::ToricBlowupMorphism)
-
-Returns an ideal sheaf `I` such that the normalization of the blowup
-along `I` gives the morphism `bl`.
-
-# Examples
-```jldoctest
-julia> P3 = projective_space(NormalToricVariety, 3)
-Normal toric variety
-
-julia> f = blow_up(P3, [0, 2, 3])
-Toric blowup morphism
-
-julia> center_unnormalized(f)
-Sheaf of ideals
-  on normal, smooth toric variety
-with restrictions
-  1: Ideal (x_2_1^2, x_3_1^3)
-  2: Ideal (x_2_2^2, x_3_2^3)
-  3: Ideal (1)
-  4: Ideal (1)
-```
-"""
-function center_unnormalized(bl::ToricBlowupMorphism)
-  if !isdefined(bl, :center_unnormalized)
-    # TODO: The implementation below is highly inefficient. Improve it if you know how.
-    X = domain(bl)
-    S = cox_ring(X)
-    x = gens(S)
-    j = index_of_exceptional_ray(bl)
-    I = ideal(S, x[j])
-    II = ideal_sheaf(X, I)
-    JJ = pushforward(bl, II)::IdealSheaf
-    bl.center_unnormalized = JJ
-  end
-  return bl.center_unnormalized
-end
-
-
 
 @doc raw"""
     exceptional_prime_divisor(bl::ToricBlowupMorphism)
@@ -150,12 +110,53 @@ function exceptional_prime_divisor(bl::ToricBlowupMorphism)
   return bl.exceptional_prime_divisor
 end
 
+@doc raw"""
+    center(bl::ToricBlowupMorphism) -> AbsIdealSheaf
+
+Returns an ideal sheaf `I` such that the cosupport of `I` is the image
+of the exceptional prime divisor.
+
+# Examples
+```jldoctest
+julia> P3 = projective_space(NormalToricVariety, 3)
+Normal toric variety
+
+julia> f = blow_up(P3, [0, 2, 3])
+Toric blowup morphism
+
+julia> center(f)
+Sheaf of ideals
+  on normal toric variety
+with restrictions
+  1: Ideal (x_3_1, x_2_1)
+  2: Ideal (x_3_2, x_2_2)
+  3: Ideal (1)
+  4: Ideal (1)
+```
+"""
+@attr AbsIdealSheaf function center(bl::ToricBlowupMorphism)
+  X = domain(bl)
+  S = cox_ring(X)
+  # TODO: The current implementation is very slow.
+  # Once ideal sheaves on nonsmooth normal toric varieties are
+  # implemented, may replace the implementation with the following:
+#   coords = minimal_supercone_coordinates_of_exceptional_ray(bl)
+#   R = cox_ring(codomain(bl))
+#   I = ideal(R, [gens(R)[i] for i in 1:ngens(R) if coords[i] > 0])
+#   return ideal_sheaf(codomain(bl), I)
+  x = gens(S)
+  j = index_of_exceptional_ray(bl)
+  I = ideal(S, x[j])
+  II = ideal_sheaf(X, I)
+  JJ = pushforward(bl, II)::IdealSheaf
+  return JJ
+end
 
 
 #########################################################################
 # Forwarding attributes of toric morphisms based on `underlying_morphism`
 #########################################################################
-grid_morphism(bl::ToricBlowupMorphism) = grid_morphism(underlying_morphism(bl))
+lattice_homomorphism(bl::ToricBlowupMorphism) = lattice_homomorphism(underlying_morphism(bl))
 morphism_on_torusinvariant_weil_divisor_group(bl::ToricBlowupMorphism) = morphism_on_torusinvariant_weil_divisor_group(underlying_morphism(bl))
 morphism_on_torusinvariant_cartier_divisor_group(bl::ToricBlowupMorphism) = morphism_on_torusinvariant_cartier_divisor_group(underlying_morphism(bl))
 morphism_on_class_group(bl::ToricBlowupMorphism) = morphism_on_class_group(underlying_morphism(bl))
@@ -164,7 +165,7 @@ morphism_on_picard_group(bl::ToricBlowupMorphism) = morphism_on_picard_group(und
 
 
 #=
-For the future, if traits seem better to forward methods as the ones immediately above (grid_morphism, morphism_on_torusinvariant_weil_divisor_group, etc.):
+For the future, if traits seem better to forward methods as the ones immediately above (lattice_homomorphism, morphism_on_torusinvariant_weil_divisor_group, etc.):
 
 ########################################################################
 # Enabling the HasToricSubObjectTrait for ToricBlowupMorphism        #
@@ -176,11 +177,11 @@ toric_sub_object(bl::ToricBlowupMorphism) = underlying_morphism(bl)
 ########################################################################
 # Enabling the functionality in general                                #
 ########################################################################
-function grid_morphism(phi::Any)
-  return _grid_morphism(HasToricSubObjectTrait(phi), phi)
+function lattice_homomorphism(phi::Any)
+  return _lattice_homomorphism(HasToricSubObjectTrait(phi), phi)
 end
 
-function _grid_morphism(::HasToricSubObject, phi)
-  return grid_morphism(toric_sub_object(phi))
+function _lattice_homomorphism(::HasToricSubObject, phi)
+  return lattice_homomorphism(toric_sub_object(phi))
 end
 =#

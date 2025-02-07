@@ -15,6 +15,12 @@ General textbooks offering details on theory and algorithms include:
 - [PZ97](@cite)
 
 
+## Tutorials
+
+We encourage you to take a look at the tutorials on number theory in OSCAR,
+which can be found [here](https://www.oscar-system.org/tutorials/NumberTheory/).
+
+
 ## Contact
 
 Please direct questions about this part of OSCAR to the following people:

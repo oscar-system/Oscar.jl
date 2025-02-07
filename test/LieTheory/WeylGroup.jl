@@ -4,6 +4,18 @@
   end
 
   @testset "constructors" begin
+    @testset "weyl_group(::Matrix{<:IntegerUnion})" begin
+      W = weyl_group([2 -1; -1 2]) # Matrix{Int}
+      @test ngens(W) == 2
+      @test order(W) == 6
+      @test isfinite(W) == true
+
+      W = weyl_group(ZZ.([2 -1; -1 2])) # Matrix{ZZRingElem}
+      @test ngens(W) == 2
+      @test order(W) == 6
+      @test isfinite(W) == true
+    end
+
     @testset "weyl_group(::ZZMatrix)" begin
       W = weyl_group(cartan_matrix(:A, 2))
       @test isfinite(W) == true

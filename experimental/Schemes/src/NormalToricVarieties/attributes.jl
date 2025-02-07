@@ -51,35 +51,33 @@
 # too. On the other hand, none of the vⱼ was in τ⟂ for j > s, 
 # so neither can be any convex combination, but the trivial one. 
 # This proves the claim. Now (*) follows directly.
-function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false, algorithm::Symbol=:via_polymake)
-  return get_attribute!(X, :_torusinvariant_weil_divisors) do
-    ray_list = rays(polyhedral_fan(X))
-    ideal_sheaves = Vector{AbsIdealSheaf}()
-    if algorithm == :via_polymake
-      ideal_sheaves = [_ideal_sheaf_via_polymake(X, i; check) for i in 1:length(ray_list)]
-    elseif algorithm == :via_oscar
-      for tau in ray_list
-        tau_dual = polarize(cone(tau))
-        ideal_dict = IdDict{AbsAffineScheme, Ideal}()
-        for U in affine_charts(X)
-          if !(tau in cone(U))
-            ideal_dict[U] = ideal(OO(U), one(OO(U)))
-            continue
-          end
-          sigma_dual = weight_cone(U)
-          hb = hilbert_basis(sigma_dual)
-          x = gens(OO(U))
-          ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
+@attr Vector{<:AbsWeilDivisor} function _torusinvariant_weil_divisors(X::NormalToricVariety; check::Bool=false, algorithm::Symbol=:via_polymake)
+  ray_list = rays(polyhedral_fan(X))
+  ideal_sheaves = Vector{AbsIdealSheaf}()
+  if algorithm == :via_polymake
+    ideal_sheaves = [_ideal_sheaf_via_polymake(X, i; check) for i in 1:length(ray_list)]
+  elseif algorithm == :via_oscar
+    for tau in ray_list
+      tau_dual = polarize(cone(tau))
+      ideal_dict = IdDict{AbsAffineScheme, Ideal}()
+      for U in affine_charts(X)
+        if !(tau in cone(U))
+          ideal_dict[U] = ideal(OO(U), one(OO(U)))
+          continue
         end
-        push!(ideal_sheaves, IdealSheaf(X, ideal_dict; check))
+        sigma_dual = weight_cone(U)
+        hb = hilbert_basis(sigma_dual)
+        x = gens(OO(U))
+        ideal_dict[U] = ideal(OO(U), [x[i] for i in 1:length(x) if !(-hb[i] in tau_dual)])
       end
-    else
-      error("algorithm not recognized")
+      push!(ideal_sheaves, IdealSheaf(X, ideal_dict; check))
     end
-    generating_divisors = [WeilDivisor(X, ZZ, IdDict{AbsIdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
-    result = generating_divisors
-    return result
-  end::Vector{<:AbsWeilDivisor}
+  else
+    error("algorithm not recognized")
+  end
+  generating_divisors = [WeilDivisor(X, ZZ, IdDict{AbsIdealSheaf, ZZRingElem}(I => one(ZZ))) for I in ideal_sheaves]
+  result = generating_divisors
+  return result
 end
 
 function _ideal_sheaf_via_polymake(X::NormalToricVariety, i::Int; check::Bool=false)

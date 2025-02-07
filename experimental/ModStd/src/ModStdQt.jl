@@ -596,7 +596,7 @@ Multivariate polynomial ring in 2 variables X[1], X[2]
 julia> parent(f[2][1])
 Multivariate polynomial ring in 2 variables X[1], X[2]
   over residue field of univariate polynomial ring modulo t^2 + a[1]
-```  
+```
 """
 function Oscar.factor_absolute(f::MPolyRingElem{Generic.FracFieldElem{QQMPolyRingElem}})
   Qtx = parent(f)                 # Q[t1,t2][x1,x2]

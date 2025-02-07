@@ -270,8 +270,8 @@ ERROR: DivideError: integer division error
 
 * `is_power(a::QQFieldElem, b::Int) -> Bool, QQFieldElem`
 
-Test if ``a`` is an ``n``-th power. If so, return ```true``` and the root,
-```false``` and any rational otherwise.
+Test if ``a`` is an ``n``-th power. If so, return `true` and the root,
+`false` and any rational otherwise.
 
 * `is_perfect_power_with_data(a::QQFieldElem) -> Int, QQFieldElem`
 

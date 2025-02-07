@@ -67,7 +67,6 @@ AbstractHTML   :=  "",
 PackageDoc := [],
 
 Dependencies := rec(
-  GAP := ">= 4.12",
   NeededOtherPackages := [
     ["JuliaInterface", ">=0.9"],
     ["Polycyclic", ">=2.16"],

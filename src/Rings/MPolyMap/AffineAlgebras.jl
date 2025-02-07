@@ -48,11 +48,9 @@ end
 
 Return the kernel of `F`.
 """
-function kernel(f::AffAlgHom)
-  get_attribute!(f, :kernel) do
-    C = codomain(f)
-    return preimage(f, ideal(C, [zero(C)]))
-  end # TODO: need some ideal_type(domain(f)) here :)
+@attr Any function kernel(f::AffAlgHom) # TODO: need some ideal_type(domain(f)) here :)
+  C = codomain(f)
+  return preimage(f, ideal(C, [zero(C)]))
 end
 
 ##############################################################################

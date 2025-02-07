@@ -26,7 +26,7 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -56,7 +56,7 @@ Return the multivariate polynomial ring inside `R`.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -77,7 +77,7 @@ Return the generators of the multivariate polynomial ring inside the GaussianRin
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -103,7 +103,7 @@ Return the covariance matrix associated to `R` as a matrix over the underlying p
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> R = gaussian_ring(3)
 Gaussian ring over Rational field in 6 variables
 s[1, 1], s[1, 2], s[1, 3], s[2, 2], s[2, 3], s[3, 3]
@@ -135,13 +135,13 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 
 ## Examples
 
-``` jldoctest directed_ggm
+```jldoctest
 julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
 ```
 """
-function graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)::GraphicalModel
+function graphical_model(G::Graph{Directed}, S::GaussianRing; l_var_name::VarName="l", w_var_name::VarName="w", cached=false)
   l_indices = [Tuple([src(e),dst(e)]) for e in edges(G)]
   w_indices = vertices(G)
   R, l, w = polynomial_ring(QQ, ["$(l_var_name)[$(i), $(j)]" for (i,j) in l_indices], ["$(w_var_name)[$(v)]" for v in w_indices]; cached=cached)
@@ -169,7 +169,7 @@ Creates the weighted adjacency matrix $\Lambda$ of a directed graph `G` whose en
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
@@ -193,7 +193,7 @@ Creates the covariance matrix $ \Omega $ of the independent error terms in a dir
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
@@ -219,7 +219,7 @@ $(Id - \Lambda)^{-T} \Omega (Id - \Lambda)^{T} \mapsto \Sigma$ where $\Lambda =$
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges(Directed, [[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on a directed graph with edges:
 (1, 2), (2, 3)
@@ -265,7 +265,7 @@ If `cached` is `true`, the internally generated polynomial ring will be cached.
 
 ## Examples
 
-``` jldoctest undirected_ggm
+```jldoctest
 julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
@@ -300,7 +300,7 @@ whose nonzero entries correspond to the edges of the associated graph.
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
@@ -337,7 +337,7 @@ $ K \mapsto K^{-1}$ where $ K = $  `concentration_matrix(M)` and the entries of 
 
 ## Examples
 
-``` jldoctest
+```jldoctest
 julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)
@@ -373,7 +373,7 @@ and then eliminating all variables `k[i,j]` where $ K =$ `concentration_matrix(M
 
 ## Examples
 
-``` jldoctest undirected_ggm
+```jldoctest
 julia> M = graphical_model(graph_from_edges([[1,2], [2,3]]), gaussian_ring(3))
 Gaussian graphical model on an undirected graph with edges:
 (1, 2), (2, 3)

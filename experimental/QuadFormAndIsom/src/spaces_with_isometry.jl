@@ -135,7 +135,7 @@ julia> minimal_polynomial(Vf)
 x + 1
 ```
 """
-minimal_polynomial(Vf) = minimal_polynomial(isometry(Vf))
+minimal_polynomial(Vf::QuadSpaceWithIsom) = minimal_polynomial(isometry(Vf))
 
 @doc raw"""
     gram_matrix(Vf::QuadSpaceWithIsom) -> QQMatrix

@@ -161,11 +161,18 @@ Hypersurface model over a concrete base
 julia> hypersurface_equation_parametrization(h2)
 b*w*v^2 - c0*u^4 - c1*u^3*v - c2*u^2*v^2 - c3*u*v^3 + w^2
 ```
-In principle, we can even create the model with the largest number of F-theory vacua.
+We can also create the model with the largest number of F-theory vacua.
 This happens by executing the line `h = literature_model(arxiv_id = "1511.03209")`.
-However, this line will currently run for a long time on a normal personal computer
-(likely about half an hour or even more), due to the massive complexity of computing
-the Tate sections of this global Tate model.
+The first time this line is executed, it downloads .mrdi-files from zenodo,
+which encode pre-computed results regarding this model and one of its resolutions.
+Thereby, you can create this F-theory model including a lot of advanced information
+(e.g. more than 10.000.000 intersection numbers and explicit descriptions for the
+G4-fluxes on this space) within just a couple of minutes. For comparison, one a
+personal computer we expect that the computation of one resolution of this model
+takes about three to four hours. Identifying also all $G_4$-fluxes (vertical,
+well-quantized and modelled by pullbacks from the toric ambient space) will likely
+take a few hours more. So, this infrastructure provides a very stark performence
+improvement.
 """
 function literature_model(; doi::String="", arxiv_id::String="", version::String="", equation::String="", type::String="", model_parameters::Dict{String,<:Any} = Dict{String,Any}(), base_space::FTheorySpace = affine_space(NormalToricVariety, 0), model_sections::Dict{String, <:Any} = Dict{String,Any}(), defining_classes::Dict{String, <:Any} = Dict{String,Any}(), completeness_check::Bool = true)
   model_dict = _find_model(doi, arxiv_id, version, equation, type)

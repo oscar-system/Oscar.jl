@@ -296,7 +296,7 @@ function standard_monomial(n::IntegerUnion)
 end
 # just returns degrees of monomials in tower basis
 # TODO : pass in factorization? Do we need this with memoization?
-function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
+function standard_monomial_degrees(n::IntegerUnion)
   if n == 1
     return [1]
   end
@@ -308,7 +308,7 @@ function standard_monomial_degrees(n::IntegerUnion)::Vector{Int}
   for i in 1:a-1
     append!(res, new)
   end
-  return res
+  return res::Vector{Int}
 end
 # map of monomials for degree n -> monomials of degree m by positions
 function standard_monomial_map(n::IntegerUnion, m::IntegerUnion)
