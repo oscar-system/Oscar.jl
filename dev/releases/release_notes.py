@@ -287,7 +287,14 @@ def main(new_version: str) -> None:
 
 if __name__ == "__main__":
     # the argument is the new version
-    if len(sys.argv) != 2:
+    if len(sys.argv) == 1:
+        itag = subprocess.run("gh release list | grep 'Latest'", shell=True, capture_output=True)
+        itag = itag.stdout.decode().split()[0][1:]
+        itag = itag.split('.')
+        itag[-1] = str(int(itag[-1])+1)
+        itag = ".".join(itag)
+        main(itag)
+    elif len(sys.argv) != 2:
         usage(sys.argv[0])
-
-    main(sys.argv[1])
+    else:
+        main(sys.argv[1])
