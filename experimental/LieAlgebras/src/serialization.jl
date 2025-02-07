@@ -57,7 +57,9 @@ end
 function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   R = d[:base_ring]
   n = load_object(s, Int, :n)
-  basis = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
+  basis = Vector{dense_matrix_type(R)}(
+    load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
+  ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
   # load_root_system_data(s, L)
