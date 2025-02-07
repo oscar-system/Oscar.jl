@@ -73,19 +73,19 @@ mutable struct EnriquesBorcherdsCtx
   -`SY` `SX` and `L26` must be an ascending chain of lattices in the same quadratic space. 
   - `weyl` -- a Weyl vector of `L26` given with respect to the basis of the lattice `L26`. 
   """
-  function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix)
+  function EnriquesBorcherdsCtx(SY::ZZLat, SX::ZZLat, L26::ZZLat, weyl::ZZMatrix; check::Bool=true)
     # X K3 ---> Y Enriques
     ECtx = new(L26, SX, SY)
     ECtx.gramSY = change_base_ring(ZZ, gram_matrix(SY))
     ECtx.gramSX = change_base_ring(ZZ, gram_matrix(SX))
 
     @vprintln :EnriquesAuto 2 "computing Borcherds context"
-    dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false)
+    dataY,_ = BorcherdsCtx(L26, SY, weyl; compute_OR=false, check)
     dataY.membership_test = (x -> true)
-    ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check=true)
+    ECtx.initial_chamber = chamber(dataY, dataY.weyl_vector; check)
     # SY + Sm < SX is a primitive extension with glue map phi: D(Sm) -> D(SY)
     Sm = orthogonal_submodule(SX, SY)
-    phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY)
+    phi, inc_Dminus, inc_Dplus = glue_map(SX, Sm, SY;check=false)
     # H_Sm = pi_Sm(SX) note that H_Sm/Sm is
     H_Sm = cover(domain(phi))
     sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
@@ -554,7 +554,7 @@ function generic_enriques_surface(n::Int)
   @req 1<=n<=184 "n must be a number between 1 and 184"
   @req n!=88 && n!=146  "Entries 88 and 146 cannot be constructed. See Remark 1.16 of [BS22](@cite)"
   SY, SX, L26, w, u = load(joinpath(oscardir, "data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
-  Y = EnriquesBorcherdsCtx(SY,SX,L26,w)
+  Y = EnriquesBorcherdsCtx(SY, SX, L26, w; check=false)
 end
 
 @doc raw"""
