@@ -580,7 +580,7 @@ In the terminology of [BS22](@cite) it is an ``(E_8+A_1,E_8+A_1)``-generic Enriq
 
 The group ``\mathrm{Aut}(Y)`` is a dihedral group of order ``8`` and its image ``\mathrm{Aut}^*(Y)`` in ``O(S_Y)`` is a group of order ``4``. It is this group we compute.
 ```jldoctest EnriquesAut
-julia> generic_enriques_surface(172)
+julia> Y = generic_enriques_surface(172)
 Enriques Borcherds context
   with det(SX) = 4
   with root invariant [(:A, 1), (:E, 8)]
