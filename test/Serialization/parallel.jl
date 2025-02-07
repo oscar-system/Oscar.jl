@@ -32,7 +32,7 @@ end
 @testset "sending dictionaries bug" begin
   R, (x, y) = QQ[:x, :y]
   l = [x^2, x*y, y^2]
-  a = [SampleDataStruct([Dict(:a => R[a;]) for (i, a) in enumerate(l) if i != k]) for k in 1:length(l)]
+  a = [SampleDataStruct([Dict(:a => R[b;]) for (i, b) in enumerate(l) if i != k]) for k in 1:length(l)]
   @everywhere begin
     function Oscar._compute(ds::SampleDataStruct)
       return true, prod([c[:a] for c in ds.elems])

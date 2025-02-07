@@ -40,24 +40,18 @@ abstract type ParallelTask end
 # beforehand is necessary to be able to create all required parents on 
 # the nodes up front. 
 function type_params(pt::T) where T <: ParallelTask
-  type_params_dict = Dict{Symbol, Any}()
-  # Go through the fields of `T` and collect the `type_params` of these 
-  # fields recursively. 
-  for n in fieldnames(T)
-    n == :__attrs && continue # Don't bother with attributes.
-    # here we need to pass the concrete type 
-    type_params_dict[Symbol(n)] = type_params(getfield(pt, n))
-  end
-  return type_params_dict
+  return TypeParams(
+    T,
+    map(n -> Symbol(n) => type_params(getfield(pt, n)), fieldnames(T))...)
 end
 
-function save_type_params(s::SerializerState, ::Type{T},
-                          params::Vector{<:Pair{Symbol, S}}) where {T <: ParallelTask, S}
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T <: ParallelTask
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
+    save_object(s, encode_type(type(tp)), :name)
     save_data_dict(s, :params) do
-      for param in params
-        save_type_params(s, fieldtype(T, param.first), param.second, param.first)
+      for (k, param_tp) in params(tp)
+        save_type_params(s, param_tp, k)
       end
     end
   end
@@ -96,24 +90,50 @@ function put_type_params(channel::RemoteChannel, obj::T) where T <: ParallelTask
   # `type_params(obj)` returns a pair `(T, params::Dict)` where `T` is the 
   # type itself and `params` is a dictionary with the output of `type_params` 
   # for the fields of `T`.
-  for (_, params) in type_params(obj)
+  for param_tp in params(type_params(obj))
     # For every field go into recursion.
-    put_type_params(channel, params)
+    put_type_params(channel, param_tp.second)
   end
 end
 
 # Method for end of recursion.
-function put_type_params(channel::RemoteChannel, ::Nothing)
+function put_type_params(channel::RemoteChannel, ::TypeParams{T, Nothing}) where T
+  return
+end
+
+function put_type_params(channel::RemoteChannel,
+                         ::TypeParams{T, Tuple{Vararg{<:Pair{Symbol, Nothing}}}}) where T
   return
 end
 
 # Recursive call. Send all subsequent parents on which this object is 
 # based and finally the object itself, if applicable. 
-function put_type_params(channel::RemoteChannel, obj::Any)
-  put_type_params(channel, type_params(obj))
+function put_type_params(channel::RemoteChannel, tp::TypeParams)
   # only  types that use ids need to be sent to the other processes
-  serialize_with_id(typeof(obj)) && put!(channel, obj)
+  put_type_params(channel, params(tp))
 end
+
+function put_type_params(channel::RemoteChannel, tps::Tuple{Vararg{<:Pair}})
+  for tp in tps
+    put_type_params(channel, tp.second)
+  end
+end
+
+function put_type_params(channel::RemoteChannel, obj::T) where T
+  # only  types that use ids need to be sent to the other processes
+  if serialize_with_id(T)
+    put!(channel, obj)
+  else
+    println(obj)
+    put_type_params(channel, type_params(obj))
+  end
+end
+
+#function put_type_params(channel::RemoteChannel, v::Vector)
+#  for tp in v
+#    put_type_params(channel, params(tp))
+#  end
+#end
 
 ### Generic methods to (de-)serialize a concrete task. 
 function save_object(s::SerializerState, obj::T) where T <: ParallelTask
