@@ -133,7 +133,6 @@ function save_object(s::SerializerState, G::PermGroup)
   save_data_dict(s) do
     save_object(s, n, :degree)
     save_object(s, [Vector{Int}(GAPWrap.ListPerm(GapObj(x))) for x in gens(G)], :gens)
-    save_attrs(s, G)
   end
 end
 

@@ -492,34 +492,31 @@ for convenience.
 macro import_all_serialization_functions()
   return quote
     import Oscar:
+      load_attrs,
       load_object,
-      load_type_params,
+      save_attrs,
       save_object,
-      save_type_params
+      type_params
 
     using Oscar:
       @register_serialization_type,
       DeserializerState,
       SerializerState,
+      TypeParams,
       encode_type,
       haskey,
       load_array_node,
-      load_attrs,
       load_node,
       load_ref,
-      load_typed_object,
       save_as_ref,
-      save_attrs,
       save_data_array,
       save_data_basic,
       save_data_dict,
       save_data_json,
-      save_typed_object,
       serialize_with_id,
       serialize_with_params,
       set_key,
-      with_attrs,
-      type_attr_map
+      with_attrs
   end
 end
 
