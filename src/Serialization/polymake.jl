@@ -154,8 +154,10 @@ function _polyhedral_object_as_dict(x::Oscar.PolyhedralObjectUnion)
 end
 
 function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_key::String="")
-  delay_loading = Tuple{String,Any}[]
+  delay_loading = Tuple{Symbol,Any}[]
   for (k, v) in dict
+    # keys of dict are symbols
+    k = string(k)
     key_str = parent_key == "" ? k : parent_key * "." * k
     first(k) == '_' && continue
 
@@ -169,23 +171,23 @@ function _load_bigobject_from_dict!(obj::Polymake.BigObject, dict::Dict, parent_
       # so we convert it to a pure perl array and delay loading until the end of this level
       if pmv isa Polymake.Array && Polymake.bigobject_prop_type(bot, key_str) in ["NodeMap", "EdgeMap"]
         pmv = Polymake.as_perl_array_of_array(pmv)
-        push!(delay_loading, (key_str, pmv))
+        push!(delay_loading, (Symbol(key_str), pmv))
       else
         Polymake.take(obj, key_str, pmv)
       end
     end
   end
   for (k, v) in delay_loading
-    Polymake.take(obj, k, v)
+    Polymake.take(obj, string(k), v)
   end
-  if haskey(dict, "_description")
-    Polymake.setdescription!(obj, dict["_description"])
+  if haskey(dict, :_description)
+    Polymake.setdescription!(obj, dict[:_description])
   end
   return obj
 end
 
-function _dict_to_bigobject(dict::Dict{String, Any})
-  obj = Polymake.BigObject(Polymake.BigObjectType(dict["_polymake_type"]))
+function _dict_to_bigobject(dict::Dict{Symbol, Any})
+  obj = Polymake.BigObject(Polymake.BigObjectType(dict[:_polymake_type]))
   _load_bigobject_from_dict!(obj, dict)
   return obj
 end

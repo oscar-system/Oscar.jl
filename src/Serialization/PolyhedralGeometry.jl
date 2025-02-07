@@ -38,39 +38,6 @@ function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
   return TypeParams(T, type_params(_polyhedral_object_as_dict(obj)))
 end
 
-#function save_type_params(s::SerializerState, obj::T) where {S, T <: PolyhedralObject{S}}
-#  dict = _polyhedral_object_as_dict(obj)
-#  params = type_params(obj)
-#  save_data_dict(s) do
-#    save_object(s, encode_type(T), :name)
-#    save_data_dict(s, :params) do
-#      for key in keys(dict)
-#        save_type_params(s, typeof(dict[key]), get(params, key, nothing), key)
-#      end
-#    end
-#  end
-#end
-
-#function load_type_params(s::DeserializerState, T::Type{<:PolyhedralObject})
-#  load_node(s, :params) do obj
-#    if !haskey(s, :_coeff)
-#      U = decode_type(s)
-#      params = load_type_params(s, U)[2]
-#      return T{elem_type(U)}, params
-#    else  # handle cases where type_params is a dict of params
-#      params = Dict{Symbol, Any}()
-#      for (k, _) in obj
-#        params[k] = load_node(s, k) do _
-#          U = decode_type(s)
-#          # needs tuple (type, params)
-#          load_type_params(s, U)
-#        end
-#      end
-#      return T, params
-#    end
-#  end
-#end
-
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
 end
@@ -82,10 +49,7 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
   end
   save_data_dict(s) do
     for (k, v) in _polyhedral_object_as_dict(obj)
-      if (v isa Polymake.BigObject)
-        bigobject_to_jsonstr(pm_object(v))
-        save_json(s, bigobject_to_jsonstr(v), k)
-      elseif !Base.issingletontype(typeof(v))
+      if !Base.issingletontype(typeof(v))
         save_object(s, v, k)
       end
     end
@@ -103,36 +67,18 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
-  dict = load_object(s, Dict{Symbol, Any}, dict)
-  polymake_dict = Dict{String, Any}(String(k) => v for (k,v) in dict)
-
-  #for (k, v) in dict
-  #  if Base.issingletontype(v[1])
-  #    polymake_dict[String(k)] = v[1]()
-  #  else
-  #    polymake_dict[String(k)] = load_object(s, v..., k)
-  #  end
-  #end
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  field = polymake_dict["_coeff"]
+  field = polymake_dict[:_coeff]
 
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  dict = load_object(s, Dict{Symbol, Any}, dict)
-  polymake_dict = Dict{String, Any}(String(k) => v for (k,v) in dict)
-  #for (k, v) in dict
-  #  if Base.issingletontype(v[1])
-  #    polymake_dict[String(k)] = v[1]()
-  #  else
-  #    polymake_dict[String(k)] = load_object(s, v..., k)
-  #  end
-  #end
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  field = polymake_dict["_coeff"]
-
+  field = polymake_dict[:_coeff]
   return T(bigobject, field)
 end
 
