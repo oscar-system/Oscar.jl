@@ -20,7 +20,6 @@ function save_object(s::SerializerState, L::AbstractLieAlgebra)
     save_object(s, _struct_consts(L), :struct_consts)
     save_object(s, symbols(L), :symbols)
     # save_root_system_data(s, L)
-    # save_attrs(s, L)
   end
 end
 
@@ -30,7 +29,6 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
   # load_root_system_data(s, L)
-  # load_attrs(s, L)
   return L
 end
 
@@ -50,7 +48,6 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
     save_object(s, matrix_repr_basis(L), :basis)
     save_object(s, symbols(L), :symbols)
     # save_root_system_data(s, L)
-    # save_attrs(s, L)
   end
 end
 
@@ -63,7 +60,6 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
   # load_root_system_data(s, L)
-  # load_attrs(s, L)
   return L
 end
 
@@ -79,7 +75,6 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
       end
     end
     # save_root_system_data(s, L)
-    # save_attrs(s, L)
   end
 end
 
@@ -93,7 +88,6 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra})
 
   L = direct_sum(R, summands)
   # load_root_system_data(s, L)
-  # load_attrs(s, L)
   return L
 end
 
@@ -150,7 +144,6 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
     save_object(s, transformation_matrices(V), :transformation_matrices)
     save_object(s, symbols(V), :symbols)
     # save_construction_data(s, V)
-    # save_attrs(s, V)
   end
 end
 
@@ -166,7 +159,6 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
-  # load_attrs(s, V)
   return V
 end
 
