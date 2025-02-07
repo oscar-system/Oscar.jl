@@ -368,6 +368,24 @@ end
   equidimensional_decomposition_weak(I)
 end
 
+@testset "absolute primary decomposition over number fields" begin
+  P1, t1 = QQ[:t1];
+  kk1, a = extension_field(t1^4 + 1);
+  #P2, t2 = kk1[:t2]
+  #kk2, b = extension_field(t2^3 - 7); # working over this field is too expensive.
+  R, (x,) = polynomial_ring(kk1, [:x]);
+
+  I = ideal(R, x^8 + 1)
+  dec = absolute_primary_decomposition(I^2)
+  @test length(dec) == 4
+  for (Q, P, PP, d) in dec
+    @test d == 2
+    R_ext = base_ring(PP)
+    L = coefficient_ring(R_ext)
+    @test all(map_coefficients(L, g; parent=R_ext) in PP for g in gens(Q))
+  end
+end
+
 @testset "Hessian matrix" begin
   R, (x, y, z) = QQ[:x, :y, :z]
   f = x^2 + x*y^2 - z^3
@@ -612,6 +630,26 @@ end
   P, (x, y) = QQ[:x, :y]
   I = ideal(P, elem_type(P)[])
   @test !radical_membership(x, I)
+end
+
+@testset "preprocessing for radical computations" begin
+  kk7 = GF(7^3)
+  P0, t0 = QQ[:t0]
+  mipo1 = t0^2 + 1
+  kk1, alpha_1 = extension_field(mipo1)
+
+  P1, t1 = kk1[:t1]
+  mipo2 = t1^2 - 2
+  kk2, alpha2 = extension_field(mipo2)
+
+  for kk in [QQ, GF(23), kk1, kk2, kk7]
+    R0, (x0, y0) = kk[:x0, :y0]
+    I0 = ideal(R0, [x0^4*(y0 + 5)^8])
+    @test x0*(y0+5) in radical(I0^2)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=false, factor_generators=false)
+    @test x0*(y0+5) in radical(I0^2; eliminate_variables=true, factor_generators=false)
+  end
 end
 
 @testset "dimensions" begin

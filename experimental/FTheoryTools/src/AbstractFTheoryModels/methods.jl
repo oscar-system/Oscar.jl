@@ -86,6 +86,25 @@ function blow_up(m::AbstractFTheoryModel, I::MPolyIdeal; coordinate_name::String
   return blow_up(m, ideal_sheaf(ambient_space(m), I); coordinate_name = coordinate_name)
 end
 
+function _ideal_sheaf_to_minimal_supercone_coordinates(X::AbsCoveredScheme, I::AbsIdealSheaf; coordinate_name::String = "e")
+  # Return this when cannot convert ideal to minimal supercone coordinates
+  not_possible = nothing
+
+  # X needs to be a smooth toric variety
+  X isa NormalToricVarietyType || return not_possible
+
+  I isa ToricIdealSheafFromCoxRingIdeal || return not_possible
+  defining_ideal = ideal_in_cox_ring(I)
+  all(in(gens(base_ring(defining_ideal))), gens(defining_ideal)) || return not_possible
+  R = cox_ring(X)
+  coords = zeros(QQ, n_rays(X))
+  for i in 1:n_rays(X)
+    R[i] in gens(defining_ideal) && (coords[i] = 1)
+  end
+  coords == zeros(QQ, n_rays(X)) && return not_possible
+  is_minimal_supercone_coordinate_vector(polyhedral_fan(X), coords) || return not_possible
+  return coords
+end
 
 @doc raw"""
     blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::String = "e")
@@ -145,7 +164,16 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   @req (base_space(m) isa FamilyOfSpaces) == false "Base space must be a concrete space for blowups to work"
 
   # Compute the new ambient_space
-  bd = blow_up(ambient_space(m), I, coordinate_name = coordinate_name)
+  coords = _ideal_sheaf_to_minimal_supercone_coordinates(ambient_space(m), I)
+  if !isnothing(coords)
+    # Apply toric method
+    bd = blow_up_along_minimal_supercone_coordinates(
+      ambient_space(m), coords; coordinate_name=coordinate_name
+    )
+  else
+    # Reroute to scheme theory
+    bd = blow_up(I)
+  end
   new_ambient_space = domain(bd)
 
   # Compute the new base
@@ -157,18 +185,28 @@ function blow_up(m::AbstractFTheoryModel, I::AbsIdealSheaf; coordinate_name::Str
   # Construct the new model
   if m isa GlobalTateModel
     if isdefined(m, :tate_polynomial) && new_ambient_space isa NormalToricVariety
-      new_tate_polynomial = _strict_transform(bd, tate_polynomial(m))
+      f = tate_polynomial(m)
+      new_tate_polynomial = strict_transform(bd, f)
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_polynomial, base_space(m), new_ambient_space)
     else
-      new_tate_ideal_sheaf = _strict_transform(bd, tate_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_tate_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(tate_ideal_sheaf(m))))
+      else
+        new_tate_ideal_sheaf = strict_transform(bd, tate_ideal_sheaf(m))
+      end
       model = GlobalTateModel(explicit_model_sections(m), defining_section_parametrization(m), new_tate_ideal_sheaf, base_space(m), new_ambient_space)
     end
   else
     if isdefined(m, :weierstrass_polynomial) && new_ambient_space isa NormalToricVariety
-      new_weierstrass_polynomial = _strict_transform(bd, weierstrass_polynomial(m))
+      f = weierstrass_polynomial(m)
+      new_weierstrass_polynomial = strict_transform(bd, f)
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_polynomial, base_space(m), new_ambient_space)
     else
-      new_weierstrass_ideal_sheaf = _strict_transform(bd, weierstrass_ideal_sheaf(m))
+      if bd isa ToricBlowupMorphism
+        new_weierstrass_ideal_sheaf = ideal_sheaf(domain(bd), strict_transform(bd, ideal_in_cox_ring(weierstrass_ideal_sheaf(m))))
+      else
+        new_weierstrass_ideal_sheaf = strict_transform(bd, weierstrass_ideal_sheaf(m))
+      end
       model = WeierstrassModel(explicit_model_sections(m), defining_section_parametrization(m), new_weierstrass_ideal_sheaf, base_space(m), new_ambient_space)
     end
   end
@@ -795,9 +833,11 @@ Partially resolved global Tate model over a concrete base -- SU(5)xU(1) restrict
 function resolve(m::AbstractFTheoryModel, resolution_index::Int)
 
   # For model 1511.03209 and resolution_index = 1, a particular resolution is available from an artifact
-  if resolution_index == 1 && arxiv_id(m) == "1511.03209"
-    model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
-    return load(model_data_path)
+  if has_attribute(m, :arxiv_id)
+    if resolution_index == 1 && arxiv_id(m) == "1511.03209"
+      model_data_path = artifact"FTM-1511-03209/1511-03209-resolved.mrdi"
+      return load(model_data_path)
+    end
   end
 
   # To be extended to hypersurface models...

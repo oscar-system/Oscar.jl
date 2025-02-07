@@ -118,16 +118,16 @@ function AbstractAlgebra.leading_exponent_vector(a::PBWAlgElem)
   return AbstractAlgebra.leading_exponent_vector(a.sdata)
 end
 
-function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))
+function AbstractAlgebra.leading_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.leading_coefficient(a.sdata))::T
 end
 
-function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))
+function AbstractAlgebra.trailing_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(AbstractAlgebra.trailing_coefficient(a.sdata))::T
 end
 
-function constant_coefficient(a::PBWAlgElem{T})::T where T
-  return coefficient_ring(a)(constant_coefficient(a.sdata))
+function constant_coefficient(a::PBWAlgElem{T}) where T
+  return coefficient_ring(a)(constant_coefficient(a.sdata))::T
 end
 
 function AbstractAlgebra.leading_term(a::PBWAlgElem)

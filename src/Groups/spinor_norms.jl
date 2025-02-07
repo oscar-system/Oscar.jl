@@ -114,17 +114,17 @@ function _sigma_sharp(rkL, detL, q, p)
 end
 
 @doc raw"""
-    Oscar._reflection(gram::QQMatrix, v::QQMatrix) -> QQMatrix
+    Oscar._reflection(gram::MatElem, v::MatElem) -> MatElem
 
 Return the matrix representation of the orthogonal reflection in the row vector `v`.
 """
 function _reflection(gram::MatElem, v::MatElem)
   n = ncols(gram)
   E = identity_matrix(base_ring(gram), n)
-  c = base_ring(gram)(2) * ((v * gram * transpose(v)))[1,1]^(-1)
+  c = (v * gram * transpose(v))[1,1]
   ref = zero_matrix(base_ring(gram), n, n)
   for k in 1:n
-    ref[k:k,:] = E[k:k,:] - c*(E[k:k,:] * gram * transpose(v))*v
+    ref[k:k,:] = E[k:k,:] - divexact(2*(E[k:k,:] * gram * transpose(v))[1,1], c)*v
   end
   return ref
 end

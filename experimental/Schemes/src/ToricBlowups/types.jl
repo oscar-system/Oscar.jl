@@ -3,33 +3,18 @@
 ########################################################################
 
 @attributes mutable struct ToricBlowupMorphism{
-  DomainType <: NormalToricVarietyType, 
+  DomainType <: NormalToricVarietyType,
   CodomainType <: NormalToricVarietyType,
-  CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  },
-  CenterUnnormalizedType <: Union{
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  },
 } <: AbsSimpleBlowupMorphism{DomainType, CodomainType, ToricBlowupMorphism}
-
   toric_morphism::ToricMorphism
   index_of_exceptional_ray::Integer
-  center_data::CenterDataType
-  center_unnormalized::CenterUnnormalizedType
   exceptional_prime_divisor::ToricDivisor
 
-  function _toric_blowup_morphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    # Compute position of exceptional ray
+  function ToricBlowupMorphism(v::NormalToricVarietyType, exceptional_ray::AbstractVector{<:IntegerUnion}, coordinate_name::String)
+    # Construct the new variety
+    new_variety = normal_toric_variety(star_subdivision(v, exceptional_ray))
+
+    # Compute position of the exceptional ray
     new_rays = matrix(ZZ, rays(new_variety))
     position_exceptional_ray = findfirst(
       i->exceptional_ray==new_rays[i,:],
@@ -55,52 +40,35 @@
       @assert coordinate_name in coordinate_names(new_variety) "Desired blowup variable name was not assigned"
     end
 
-    # Construct the toric morphism and construct the object
-    bl_toric = toric_morphism(new_variety, identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))), v; check=false)
-    return bl_toric, position_exceptional_ray, center_data
-  end
-  
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType, center_unnormalized::ToricIdealSheafFromCoxRingIdeal) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
-    bl = new{
-      typeof(domain(bl_toric)),
-      typeof(codomain(bl_toric)),
-      typeof(center_data),
-      typeof(center_unnormalized),
-    }(bl_toric, position_exceptional_ray, center_data, center_unnormalized)
+    # Construct the toric morphism
+    bl_toric = toric_morphism(
+      new_variety,
+      identity_matrix(ZZ, ambient_dim(polyhedral_fan(v))),
+      v;
+      check=false,
+    )
+
+    # Construct the object
+    bl = new{typeof(domain(bl_toric)), typeof(codomain(bl_toric))}(
+      bl_toric, position_exceptional_ray
+    )
+
+    # Avoid recomputation
     if has_attribute(v, :has_torusfactor)
       set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
     end
     if has_attribute(v, :is_orbifold)
       set_attribute!(bl, :is_orbifold, is_orbifold(v))
     end
-    return bl
-  end
-  
-  function ToricBlowupMorphism(v::NormalToricVarietyType, new_variety::NormalToricVarietyType, coordinate_name::String, exceptional_ray::AbstractVector{<:IntegerUnion}, center_data::CenterDataType) where CenterDataType <: Union{
-    AbstractVector{<:IntegerUnion},
-    MPolyIdeal,
-    ToricIdealSheafFromCoxRingIdeal,
-    IdealSheaf,
-  }
-    bl_toric, position_exceptional_ray, center_data = _toric_blowup_morphism(v, new_variety, coordinate_name, exceptional_ray, center_data)
-    bl = new{
-      typeof(domain(bl_toric)),
-      typeof(codomain(bl_toric)),
-      typeof(center_data),
-      IdealSheaf{typeof(v), AbsAffineScheme, Ideal, Map},
-    }(bl_toric, position_exceptional_ray, center_data)
-    if has_attribute(v, :has_torusfactor)
-      set_attribute!(bl, :has_torusfactor, has_torusfactor(v))
+    if has_attribute(v, :is_smooth)
+      if all(
+        i -> rays(new_variety)[position_exceptional_ray][i] in [0, 1],
+        1:ambient_dim(v),
+      )
+        set_attribute!(bl, :is_smooth, is_orbifold(v))
+      end
     end
-    if has_attribute(v, :is_orbifold)
-      set_attribute!(bl, :is_orbifold, is_orbifold(v))
-    end
+
     return bl
   end
 end
@@ -114,18 +82,18 @@ end
 function Base.:+(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) + grid_morphism(tm2), codomain(tm1))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) + lattice_homomorphism(tm2), codomain(tm1))
 end
 
 function Base.:-(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req domain(tm1) === domain(tm2) "The morphisms must have identical domains"
   @req codomain(tm1) === codomain(tm2) "The morphisms must have identical codomains"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) - grid_morphism(tm2), codomain(tm1))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) - lattice_homomorphism(tm2), codomain(tm1))
 end
 
 function Base.:*(c::T, tm::ToricBlowupMorphism) where T <: IntegerUnion
-new_grid_morphism = hom(domain(grid_morphism(tm)), codomain(grid_morphism(tm)), c * matrix(grid_morphism(tm)))
-return toric_morphism(domain(tm), new_grid_morphism, codomain(tm))
+new_lattice_homomorphism = hom(domain(lattice_homomorphism(tm)), codomain(lattice_homomorphism(tm)), c * matrix(lattice_homomorphism(tm)))
+return toric_morphism(domain(tm), new_lattice_homomorphism, codomain(tm))
 end
 
 Base.:+(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1) + tm2
@@ -141,7 +109,7 @@ Base.:-(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 - underlying_morphis
 
 function Base.:*(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
   @req codomain(tm1) === domain(tm2) "The codomain of the first morphism must be identically the same as the domain of the second morphism"
-  return toric_morphism(domain(tm1), grid_morphism(tm1) * grid_morphism(tm2), codomain(tm2))
+  return toric_morphism(domain(tm1), lattice_homomorphism(tm1) * lattice_homomorphism(tm2), codomain(tm2))
 end
 
 Base.:*(tm1::ToricMorphism, tm2::ToricBlowupMorphism) = tm1 * underlying_morphism(tm2)
@@ -154,14 +122,14 @@ Base.:*(tm1::ToricBlowupMorphism, tm2::ToricMorphism) = underlying_morphism(tm1)
 ####################################################
 
 function Base.:(==)(tm1::ToricBlowupMorphism, tm2::ToricBlowupMorphism)
-  return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && grid_morphism(tm1) == grid_morphism(tm2)
+  return domain(tm1) == domain(tm2) && codomain(tm1) == codomain(tm2) && lattice_homomorphism(tm1) == lattice_homomorphism(tm2)
 end
 
 function Base.hash(tm::ToricBlowupMorphism, h::UInt)
   b = 0x1a66f927cae2d409 % UInt
   h = hash(domain(tm), h)
   h = hash(codomain(tm), h)
-  h = hash(grid_morphism(tm), h)
+  h = hash(lattice_homomorphism(tm), h)
   return xor(h, b)
 end
 

@@ -4,8 +4,8 @@ using Oscar
 import Oscar: action
 import Oscar: induce
 import Oscar: word
-import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum
-import AbstractAlgebra: Group, Module
+import Oscar: GAPWrap, pc_group, fp_group, direct_product, direct_sum, GAPGroup
+import AbstractAlgebra: Group, Module, FPModule
 import Base: parent
 
 import Oscar: pretty, Lowercase, @show_name, @show_special
@@ -444,7 +444,10 @@ function Oscar.tensor_product(C::GModule{<:Any, FinGenAbGroup}...; task::Symbol 
   end
 end
 
-function Oscar.tensor_product(C::GModule{S, <:AbstractAlgebra.FPModule{<:Any}}...; task::Symbol = :map) where S <: Oscar.GAPGroup
+function Oscar.tensor_product(C::GModule{T, <:FPModule}, Cs::GModule{T, <:FPModule}...; task::Symbol = :map) where {T <: GAPGroup}
+  return Oscar.tensor_product(GModule{T, <:FPModule}[C, Cs...]; task)
+end
+function Oscar.tensor_product(C::Vector{<:GModule{<:GAPGroup, <:FPModule}}; task::Symbol = :map)
   @assert all(x->x.G == C[1].G, C)
   @assert all(x->base_ring(x) == base_ring(C[1]), C)
 
@@ -463,7 +466,10 @@ import Hecke.⊗
 ⊗(C::GModule...) = Oscar.tensor_product(C...; task = :none)
 
 
-function Oscar.tensor_product(F::AbstractAlgebra.FPModule{T}...; task = :none) where {T}
+function Oscar.tensor_product(F::FPModule{T}, Fs::FPModule{T}...; task = :none) where {T}
+  return Oscar.tensor_product([F, Fs...]; task)
+end
+function Oscar.tensor_product(F::Vector{<:FPModule{T}}; task = :none) where {T}
   @assert all(x->base_ring(x) == base_ring(F[1]), F)
   d = prod(dim(x) for x = F)
   G = free_module(base_ring(F[1]), d)
@@ -1944,7 +1950,7 @@ the corresponding elt in the extension.
 If the gmodule is defined via a pc-group and the 1st argument is the
 `Type{PcGroup}`, the resulting group is also pc.
 """
-function extension(c::CoChain{2,<:Oscar.GAPGroupElem})
+function extension(::Type{FPGroup}, c::CoChain{2,<:Oscar.GAPGroupElem})
   C = c.C
   G = Group(C)
   F = codomain(isomorphism(FPGroup, G, on_gens=true))
@@ -2253,7 +2259,7 @@ function split_extension(C::GModule)
   c = Dict((g, h) => zero(C.M) for g = C.G for h = C.G)
   S = elem_type(C.G)
   T = elem_type(C.M)
-  return extension(CoChain{2, S, T}(C, c))
+  return extension(FPGroup, CoChain{2, S, T}(C, c))
 end
 
 function split_extension(::Type{PcGroup}, C::GModule{<:PcGroupElem})
@@ -2396,7 +2402,7 @@ function pc_group(c::CoChain{2, <:Oscar.PcGroupElem})
 end
 
 function Oscar.permutation_group(c::CoChain{2})
-  g = extension(c)[1]
+  g = extension(FPGroup, c)[1]
   return permutation_group(g)
 end
 

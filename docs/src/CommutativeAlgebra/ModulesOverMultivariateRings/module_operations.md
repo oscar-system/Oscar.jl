@@ -27,11 +27,11 @@ cokernel(a::ModuleFPHom)
 ## Direct Sums and Products
 
 ```@docs
-direct_sum(M::ModuleFP{T}...; task::Symbol = :sum) where T
+direct_sum(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :sum) where T
 ```
 
 ```@docs
-direct_product(M::ModuleFP{T}...; task::Symbol = :prod) where T
+direct_product(M::ModuleFP{T}, Ms::ModuleFP{T}...; task::Symbol = :prod) where T
 ```
 
 ## Truncation

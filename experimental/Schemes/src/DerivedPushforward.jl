@@ -44,7 +44,7 @@ end
 
 We consider a graded module `M` over a standard graded polynomial ring 
 ``S = A[x₀,…,xₙ]`` as a representative of a coherent sheaf ``ℱ`` on 
-relative projective space ``ℙ ⁿ_A``. Then we compute ``Rπ_* ℱ``` as a
+relative projective space ``ℙ ⁿ_A``. Then we compute ``Rπ_* ℱ`` as a
 complex of ``A``-modules where ``π : ℙ ⁿ_A → Spec(A)`` is the projection 
 to the base. 
 """

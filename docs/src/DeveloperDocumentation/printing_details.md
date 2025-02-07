@@ -26,6 +26,11 @@ while on the REPL detailed printing is used to show top level objects.
     [...]". In particular, the output of `display` will not work in the
     `jldoctest`s.
 
+!!! warning "changes on print"
+    Printing an object should not change data in any way through changing the representation
+    of the object being printed, nor by generating any cached data that will affect
+    any future computations.
+
 ### Mockup
 
 #### Detailed printing with a new line

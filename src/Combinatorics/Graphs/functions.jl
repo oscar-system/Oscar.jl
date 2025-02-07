@@ -1137,15 +1137,11 @@ end
 
 
 @doc raw"""
-    visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
+    visualize(G::Graph{T}; kwargs...) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
 
-Visualize a graph.
+Visualize a graph, see [`visualize`](@ref Oscar.visualize(::Union{SimplicialComplex, Cone{<:Union{Float64, FieldElem}}, Graph, PolyhedralComplex{<:Union{Float64, FieldElem}}, PolyhedralFan{<:Union{Float64, FieldElem}}, Polyhedron, SubdivisionOfPoints{<:Union{Float64, FieldElem}}})) for details on the keyword arguments.
 """
-function visualize(G::Graph{T}) where {T <: Union{Polymake.Directed, Polymake.Undirected}}
-    BigGraph = Polymake.graph.Graph(ADJACENCY=pm_object(G))
-    Polymake.visual(BigGraph)
-end
-
+visualize
 
 
 # Some standard polytopes from graphs
@@ -1342,4 +1338,21 @@ function laplacian_matrix(g::Graph)
   D = diagonal_matrix(degree(g))
   A = matrix(ZZ, adjacency_matrix(g))
   return D-A
+end
+
+@doc raw"""
+    is_bipartite(g::Graph{Undirected})
+
+Returns true if the undirected graph `g` is bipartite.
+
+# Examples
+```jldoctest
+julia> g = graph_from_edges([[1,2],[2,3],[3,4]]);
+
+julia> is_bipartite(g)
+true
+```
+"""
+function is_bipartite(g::Graph{Undirected})
+  return Polymake.graph.Graph{Undirected}(ADJACENCY=pm_object(g)).BIPARTITE::Bool
 end
