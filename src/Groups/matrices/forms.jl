@@ -265,18 +265,9 @@ Given a quadratic form `Q`, return the symmetric form with Gram matrix `B`
 defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
 
 # Examples
-```jldoctest
-julia> Q = quadratic_form(invariant_quadratic_form(GO(3,3)))
-quadratic form with Gram matrix
-[0   2   0]
-[0   0   0]
-[0   0   2]
-
-julia> corresponding_bilinear_form(Q)
-symmetric form with Gram matrix
-[0   2   0]
-[2   0   0]
-[0   0   1]
+```@repl
+Q = quadratic_form(invariant_quadratic_form(GO(3,3)))
+corresponding_bilinear_form(Q)
 ```
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
@@ -295,18 +286,9 @@ defined by `Q(v) = f(v,v)/2`.
 It is defined only in odd characteristic.
 
 # Examples
-```jldoctest
-julia> f = symmetric_form(invariant_bilinear_form(GO(3, 3)))
-symmetric form with Gram matrix
-[0   2   0]
-[2   0   0]
-[0   0   1]
-
-julia> corresponding_quadratic_form(f)
-quadratic form with Gram matrix
-[0   2   0]
-[0   0   0]
-[0   0   2]
+```@repl
+f = symmetric_form(invariant_bilinear_form(GO(3, 3)))
+corresponding_quadratic_form(f)
 ```
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
