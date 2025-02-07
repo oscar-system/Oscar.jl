@@ -75,8 +75,42 @@ MatrixGroupElem(G::MatrixGroup{RE,T}, x::T, x_gap::GapObj) where {RE,T} = Matrix
 MatrixGroupElem(G::MatrixGroup{RE,T}, x::T) where {RE, T} = MatrixGroupElem{RE,T}(G,x)
 MatrixGroupElem(G::MatrixGroup{RE,T}, x_gap::GapObj) where {RE, T} = MatrixGroupElem{RE,T}(G,x_gap)
 
+"""
+    ring_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `S` of the entries of the elements of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> ring_elem_type(typeof(g)) == elem_type(typeof(base_ring(g)))
+true
+```
+"""
 ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = S
+ring_elem_type(::MatrixGroup{S,T}) where {S,T} = S
+
+"""
+    mat_elem_type(G::MatrixGroup{S,T}) where {S,T}
+    mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+
+Return the type `T` of `matrix(x)`, for elements `x` of `G`.
+One can enter the type of `G` instead of `G`.
+
+# Examples
+```jldoctest
+julia> g = GL(2, 3);
+
+julia> mat_elem_type(typeof(g)) == typeof(matrix(one(g)))
+true
+```
+"""
 mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = T
+mat_elem_type(::MatrixGroup{S,T}) where {S,T} = T
+
 _gap_filter(::Type{<:MatrixGroup}) = GAP.Globals.IsMatrixGroup
 
 elem_type(::Type{MatrixGroup{S,T}}) where {S,T} = MatrixGroupElem{S,T}

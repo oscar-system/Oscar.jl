@@ -211,5 +211,7 @@ special_unitary_group(n::Int, q::Int)
 ```@docs
 MatrixGroup{RE<:RingElem, T<:MatElem{RE}}
 MatrixGroupElem{RE<:RingElem, T<:MatElem{RE}}
+ring_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
+mat_elem_type(::Type{MatrixGroup{S,T}}) where {S,T}
 SesquilinearForm{T<:RingElem}
 ```

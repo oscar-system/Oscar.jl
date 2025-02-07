@@ -20,7 +20,7 @@
 
 Return a generating set for the vector spaces of bilinear forms preserved by the group `G`.
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_bilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -49,7 +49,7 @@ An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_sesquilinear_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -77,7 +77,7 @@ end
 
 Return a generating set for the vector spaces of quadratic forms preserved by the group `G`.
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_quadratic_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -118,7 +118,7 @@ end
 Return a generating set for the vector spaces of symmetric forms preserved by the group `G`.
 
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 !!! warning "Note:"
     Work properly only in odd characteristic. In even characteristic, only alternating forms are found.
 """
@@ -131,7 +131,7 @@ invariant_symmetric_forms(G::MatrixGroup{S,T}) where {S,T} = T[x + transpose(x) 
 
 Return a generating set for the vector spaces of alternating forms preserved by the group `G`.
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_alternating_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -184,7 +184,7 @@ An exception is thrown if `base_ring(G)` is not a finite field with even degree
 over its prime subfield.
 
 !!! warning "Note:"
-    At the moment, elements of the generating set are returned of type `mat_elem_type(typeof(G))`.
+    At the moment, elements of the generating set are returned of type `mat_elem_type(G)`.
 """
 function invariant_hermitian_forms(G::MatrixGroup{S,T}) where {S,T}
    F = base_ring(G)
@@ -413,7 +413,7 @@ An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
-    At the moment, the output is returned of type `mat_elem_type(typeof(G))`.
+    At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples
 ```jldoctest
@@ -440,7 +440,7 @@ is not absolutely irreducible or if `G` is defined over a finite field
 of odd degree over the prime field.
 
 !!! warning "Note:"
-    At the moment, the output is returned of type `mat_elem_type(typeof(G))`.
+    At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples
 ```jldoctest
@@ -466,7 +466,7 @@ An exception is thrown if the module induced by the action of `G`
 is not absolutely irreducible.
 
 !!! warning "Note:"
-    At the moment, the output is returned of type `mat_elem_type(typeof(G))`.
+    At the moment, the output is returned of type `mat_elem_type(G)`.
 
 # Examples
 ```jldoctest

@@ -109,7 +109,7 @@ diagonal or does not satisfy `B = -transpose(B)`.
 # Examples
 ```jldoctest
 julia> f = alternating_form(matrix(GF(3), 2, 2, [0, 1, -1, 0]))
-alternating form with Gram matrix 
+alternating form with Gram matrix
 [0   1]
 [2   0]
 
@@ -128,7 +128,7 @@ An exception is thrown if `B` is not square or not symmetric.
 # Examples
 ```jldoctest
 julia> f = symmetric_form(matrix(GF(3), 2, 2, [0, 1, 1, 0]))
-symmetric form with Gram matrix 
+symmetric form with Gram matrix
 [0   1]
 [1   0]
 
@@ -150,7 +150,7 @@ An exception is thrown if `B` is not square or does not satisfy
 julia> F = GF(4);  z = gen(F);
 
 julia> f = hermitian_form(matrix(F, 2, 2, [0, z, z^2, 0]))
-hermitian form with Gram matrix 
+hermitian form with Gram matrix
 [    0   o]
 [o + 1   0]
 
@@ -179,7 +179,7 @@ Return the quadratic form with Gram matrix `B`.
 # Examples
 ```jldoctest
 julia> f = quadratic_form(matrix(GF(3), 2, 2, [2, 2, 0, 1]))
-quadratic form with Gram matrix 
+quadratic form with Gram matrix
 [2   2]
 [0   1]
 
@@ -202,7 +202,7 @@ To define quadratic forms of dimension 1, `f` can also have type `PolyRingElem{T
 julia> _, (x1, x2) = polynomial_ring(GF(3), [:x1, :x2]);
 
 julia> f = quadratic_form(2*x1^2 + 2*x1*x2 + x2^2)
-quadratic form with Gram matrix 
+quadratic form with Gram matrix
 [2   2]
 [0   1]
 
@@ -229,7 +229,7 @@ end
 
 
 function Base.show(io::IO, f::SesquilinearForm)
-   println(io, "$(f.descr) form with Gram matrix ")
+   println(io, "$(f.descr) form with Gram matrix")
    show(io, "text/plain", gram_matrix(f))
 end
 
@@ -263,6 +263,21 @@ end
 
 Given a quadratic form `Q`, return the symmetric form with Gram matrix `B`
 defined by `B(u,v) = Q(u+v)-Q(u)-Q(v)`.
+
+# Examples
+```jldoctest
+julia> Q = quadratic_form(invariant_quadratic_form(GO(3,3)))
+quadratic form with Gram matrix
+[0   2   0]
+[0   0   0]
+[0   0   2]
+
+julia> corresponding_bilinear_form(Q)
+symmetric form with Gram matrix
+[0   2   0]
+[2   0   0]
+[0   0   1]
+```
 """
 function corresponding_bilinear_form(B::SesquilinearForm)
    @req B.descr==:quadratic "The form must be a quadratic form"
@@ -278,6 +293,21 @@ end
 Given a symmetric form `f`, return the quadratic form `Q`
 defined by `Q(v) = f(v,v)/2`.
 It is defined only in odd characteristic.
+
+# Examples
+```jldoctest
+julia> f = symmetric_form(invariant_bilinear_form(GO(3, 3)))
+symmetric form with Gram matrix
+[0   2   0]
+[2   0   0]
+[0   0   1]
+
+julia> corresponding_quadratic_form(f)
+quadratic form with Gram matrix
+[0   2   0]
+[0   0   0]
+[0   0   2]
+```
 """
 function corresponding_quadratic_form(B::SesquilinearForm)
    @req B.descr==:symmetric "The form must be a symmetric form"
