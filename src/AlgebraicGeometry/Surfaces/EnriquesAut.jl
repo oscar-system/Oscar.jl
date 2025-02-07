@@ -497,6 +497,7 @@ Return the subset of walls of ``D`` defined by classes of smooth rational curves
 function walls_defined_by_rational_curves(D::EnriquesChamber)
   return [r for r in walls(D) if GF(2).(r) in Y.roots_mod2] 
 end
+
 @doc raw"""
     hom(D1::EnriquesChamber, D2::EnriquesChamber)
     
