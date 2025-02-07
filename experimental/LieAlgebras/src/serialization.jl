@@ -152,7 +152,7 @@ function save_object(s::SerializerState, V::LieAlgebraModule)
     save_object(s, dim(V), :dim)
     save_object(s, transformation_matrices(V), :transformation_matrices)
     save_object(s, symbols(V), :symbols)
-    # save_construction_data(s, V)
+    save_construction_data(s, V)
   end
 end
 
@@ -164,7 +164,7 @@ function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
     s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
   symbs = load_object(s, Vector{Symbol}, :symbols)
-  V = nothing #load_construction_data(s, T)
+  V = load_construction_data(s, T)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
@@ -197,24 +197,39 @@ function load_construction_data(s::DeserializerState, T::Type{<:LieAlgebraModule
   with_attrs(s) && haskey(s, :construction_data) &&
     load_node(s, :construction_data) do _
       if haskey(s, :is_standard_module)
-        V = standard_module(load_typed_object(s, :is_standard_module))
+        L = load_node(s, :is_standard_module) do _
+          load_ref(s)
+        end
+        V = standard_module(L)
       elseif haskey(s, :is_dual)
-        W = load_typed_object(s, :is_dual)
+        W = load_node(s, :is_dual) do _
+          load_ref(s)
+        end
         V = dual(W)
       elseif haskey(s, :is_direct_sum)
-        Vs = load_object(s, Vector, LieAlgebraModule, :is_direct_sum)
+        Vs = load_array_node(s, :is_direct_sum) do _
+          load_ref(s)
+        end
         V = direct_sum(Vs...)
       elseif haskey(s, :is_tensor_product)
-        Vs = load_object(s, Vector, LieAlgebraModule, :is_tensor_product)
+        Vs = load_array_node(s, :is_tensor_product) do _
+          load_ref(s)
+        end
         V = tensor_product(Vs...)
       elseif haskey(s, :is_exterior_power)
-        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_exterior_power)
+        W, k = load_node(s, :is_exterior_power) do _
+          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
+        end
         V = exterior_power(W, k)[1]
       elseif haskey(s, :is_symmetric_power)
-        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_symmetric_power)
+        W, k = load_node(s, :is_symmetric_power) do _
+          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
+        end
         V = symmetric_power(W, k)[1]
       elseif haskey(s, :is_tensor_power)
-        W, k = load_object(s, Tuple, [LieAlgebraModule, Int], :is_tensor_power)
+        W, k = load_node(s, :is_tensor_power) do _
+          (load_node(_ -> load_ref(s), s, 1), load_object(s, Int, 2))
+        end
         V = tensor_power(W, k)[1]
       end
     end

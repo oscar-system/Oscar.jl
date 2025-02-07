@@ -312,7 +312,7 @@ if !isdefined(Main, :lie_algebra_module_conformance_test) || isinteractive()
             V;
             with_attrs=true,
             check_func=loaded -> all((
-              true || sprint(show, "text/plain", loaded) == sprint(show, "text/plain", V) || # Remove true once construction data gets serialized
+              sprint(show, "text/plain", loaded) == sprint(show, "text/plain", V) ||
                 occursin(
                   "cyclotomic field",
                   lowercase(sprint(print, "text/plain", coefficient_ring(V))),
