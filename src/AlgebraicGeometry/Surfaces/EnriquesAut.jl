@@ -25,6 +25,16 @@ S_Y(2) \subseteq S_X \subseteq L_{1,25}
 
 where ``L_{1,15}`` is an even unimodular lattice of signature ``(1,25)``. 
 ```
+
+An easy way to construct examples is to call [`generic_enriques_surface`](@ref).
+Here the generic 1-nodal Enriques surface:
+```jldoctest
+julia> generic_enriques_surface(1)
+Enriques Borcherds context
+  with det(SX) = 1024
+  with root invariant [(:A, 1)]
+
+```
 """
 mutable struct EnriquesBorcherdsCtx
   # SY < SX < L26
@@ -535,6 +545,18 @@ end
 aut(D::EnriquesChamber) = hom(D, D)
 
 @doc raw"""
+    generic_enriques_surface(n::Int)  -> EnriquesBorcherdsCtx
+ 
+Return a ``(\tau,\overline{\tau})-generic`` Enriques surface of number ``n`` as in Table 1.1 of [BS22](@cite).
+"""
+function generic_enriques_surface(n::Int)
+  @req 1<=n<=184 "n must be a number between 1 and 184"
+  @req n!=88 && n!=146  "Entries 88 and 146 cannot be constructed. See Remark 1.16 of [BS22](@cite)"
+  SY, SX, L26, w, u = load(joinpath(oscardir, "data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo$(n).mrdi"))
+  Y = EnriquesBorcherdsCtx(SY,SX,L26,w)
+end
+
+@doc raw"""
     borcherds_method(Y::EnriquesBorcherdsCtx; max_nchambers=-1)
     
 Compute ``\mathrm{Aut}_{s}(Y)`` of the Enriques surface ``Y`` using Borcherds method. 
@@ -560,9 +582,7 @@ In the terminology of [BS24a](@cite) it is an ``(E_8+A_1,E_8+A_1)``-generic Enri
 
 The group ``\mathrm{Aut}(Y)`` is a dihedral group of order ``8`` and its image ``\mathrm{Aut}^*(Y)`` in ``O(S_Y)`` is a group of order ``4``. It is this group we compute.
 ```jldoctest EnriquesAut
-julia> SY, SX, L26, w, u = load("data/TauTaubarGenericEnriquesSurfaces/TauTaubarGenericEnriquesSurfaceNo172.mrdi");
-
-julia> Y = EnriquesBorcherdsCtx(SY,SX,L26,w)
+julia> generic_enriques_surface(172)
 Enriques Borcherds context
   with det(SX) = 4
   with root invariant [(:A, 1), (:E, 8)]

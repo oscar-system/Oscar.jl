@@ -1064,6 +1064,7 @@ export linear_symmetries
 export linear_system
 export link_subcomplex
 export load
+export generic_enriques_surface
 export load_lp
 export load_mps
 export localization
