@@ -124,7 +124,7 @@ function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
   end
 end
 
-@register_serialization_type LieAlgebraElem
+@register_serialization_type AbstractLieAlgebraElem
 @register_serialization_type LinearLieAlgebraElem
 @register_serialization_type DirectSumLieAlgebraElem
 
