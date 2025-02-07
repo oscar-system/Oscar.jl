@@ -117,8 +117,9 @@ end
 # with grading
 type_params(R::MPolyDecRing) = TypeParams(
   MPolyDecRing,
-  :grading_group => parent(_grading(R)[1]), # there may be a way to make this cleaner
-  :ring => forget_grading(R))
+  :grading_group => grading_group(R),
+  :ring => forget_grading(R),
+)
 
 function save_object(s::SerializerState, R::MPolyDecRing)
   save_data_dict(s) do
