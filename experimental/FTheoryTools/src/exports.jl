@@ -147,6 +147,7 @@ export model
 export model_description
 export model_index
 export model_parameters
+export model_sections
 export paper_authors
 export paper_buzzwords
 export paper_description
