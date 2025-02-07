@@ -32,10 +32,10 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = coefficient_field(obj)
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
 
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
-  return type_params(_polyhedral_object_as_dict(obj))
+  return TypeParams(T, type_params(_polyhedral_object_as_dict(obj)))
 end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
@@ -47,7 +47,13 @@ function save_object(s::SerializerState, obj::PolyhedralObject{<:FieldElem})
     T = typeof(obj)
     error("Unsupported type $T for serialization")
   end
-  save_object(s, _polyhedral_object_as_dict(obj))
+  save_data_dict(s) do
+    for (k, v) in _polyhedral_object_as_dict(obj)
+      if !Base.issingletontype(typeof(v))
+        save_object(s, v, k)
+      end
+    end
+  end
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject},
@@ -61,32 +67,23 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
-  polymake_dict = load_object(s, Dict{String, Any}, dict)
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  
-  if Base.issingletontype(dict["_coeff"][1])
-    field = dict["_coeff"][1]()
-  else
-    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
-  end
+  field = polymake_dict[:_coeff]
+
   return T{elem_type(field)}(bigobject, field)
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = load_object(s, Dict{String, Any}, dict)
+  polymake_dict = load_object(s, Dict{Symbol, Any}, dict)
   bigobject = _dict_to_bigobject(polymake_dict)
-  if Base.issingletontype(dict["_coeff"][1])
-    field = dict["_coeff"][1]()
-  else
-    field = load_object(s, dict["_coeff"][1], dict["_coeff"][2], :_coeff)
-  end
-
+  field = polymake_dict[:_coeff]
   return T(bigobject, field)
 end
 
 ##############################################################################
-@register_serialization_type LinearProgram uses_params
+@register_serialization_type LinearProgram
 
 function save_object(s::SerializerState, lp::LinearProgram{QQFieldElem})
   lpcoeffs = lp.polymake_lp.LINEAR_OBJECTIVE

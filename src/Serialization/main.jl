@@ -1,3 +1,4 @@
+import Base:fieldnames, fieldtypes
 
 # This type should not be exported and should be before serializers
 const BasicTypeUnion = Union{String, QQFieldElem, Symbol,
@@ -124,6 +125,23 @@ function decode_type(s::DeserializerState)
   return decode_type(s.obj)
 end
 
+################################################################################
+# TypeParams Struct
+struct TypeParams{T, S}
+  type::Type{T}
+  params::S
+
+  function TypeParams(T::Type, args::Pair...)
+    return new{T, typeof(args)}(T, args)
+  end
+  TypeParams(T::Type, obj) = new{T, typeof(obj)}(T, obj)
+end
+
+params(tp::TypeParams) = tp.params
+type(tp::TypeParams) = tp.type
+
+type_params(obj::T) where T = TypeParams(T, nothing)
+
 # ATTENTION
 # We need to distinguish between data with a globally defined normal form and data where such a normal form depends on some parameters.
 # In particular, this does NOT ONLY depend on the type; see, e.g., FqField.
@@ -180,43 +198,53 @@ function save_typed_object(s::SerializerState, x::T, key::Symbol) where T
   end
 end
 
-type_params(obj::T) where T = nothing
+################################################################################
+# (save | load) TypeParams
 
 function save_type_params(s::SerializerState, obj::Any, key::Symbol)
   set_key(s, key)
   save_type_params(s, obj)
 end
 
-function save_type_params(s::SerializerState, T::Type, params::Any, key::Symbol)
-  set_key(s, key)
-  save_type_params(s, T, params)
+function save_type_params(s::SerializerState, obj::T) where T
+  save_type_params(s, type_params(obj))
 end
 
-save_type_params(s::SerializerState, obj::Any) = save_type_params(s, typeof(obj), type_params(obj))
-save_type_params(s::SerializerState, T::Type, ::Nothing) = save_object(s, encode_type(T))
-
-function save_type_params(s::SerializerState, T::Type, params::Any)
+function save_type_params(s::SerializerState, tp::TypeParams)
   save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_typed_object(s, params, :params)
+    save_object(s, encode_type(type(tp)), :name)
+    # this branching needs to be better understood,
+    # seems like params(tp) wont be a TypeParams if
+    # the type is not some container type
+    if !(params(tp) isa TypeParams)
+      save_typed_object(s, params(tp), :params)
+    else
+      save_type_params(s, params(tp), :params)
+    end
   end
 end
 
-# splits all params that are dictionaries into vector of pair
-# to be able to handle varying types in the values
-function save_type_params(s::SerializerState, T::Type, params::Dict)
-  save_type_params(s, T, collect(pairs(params)))
+function save_type_params(s::SerializerState,
+                          ::TypeParams{T, Nothing}) where T
+  save_object(s, encode_type(T))
 end
 
-# This is used for types that have multiple parameters
-function save_type_params(s::SerializerState, T::Type,
-                          params::Vector{<:Pair{S, U}}) where {S <: Union{Symbol, String}, U}
+function save_type_params(s::SerializerState,
+                          tp::TypeParams{T, <:Tuple{Vararg{<:Pair}}}) where T
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
-      for param in params
-        isnothing(param.second) && continue
-        save_type_params(s, typeof(param.second), param.second, Symbol(param.first))
+      for param in params(tp)
+        param_tp = type_params(param.second)
+        #if isnothing(params(param_tp))
+        #  save_object(s, encode_type(type(param_tp)), Symbol(param.first))
+        if param.second isa Type
+          save_object(s, encode_type(param.second), Symbol(param.first))
+        elseif !(param.second isa TypeParams)
+          save_typed_object(s, param.second, Symbol(param.first))
+        else
+          save_type_params(s, param_tp, Symbol(param.first))
+        end
       end
     end
   end
@@ -239,14 +267,20 @@ function load_type_params(s::DeserializerState, T::Type)
     load_node(s, :params) do obj
       if obj isa String || haskey(s, :params)
         U = decode_type(s)
-        params = load_type_params(s, U)[2]
-
+        if Base.issingletontype(U)
+          params = U()
+        else
+          params = load_type_params(s, U)[2]
+        end
       # handle cases where type_params is a dict of params
       elseif !haskey(obj, type_key) 
         params = Dict{Symbol, Any}()
         for (k, _) in obj
           params[k] = load_node(s, k) do _
             U = decode_type(s)
+            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
+              return U
+            end
             return load_type_params(s, U)[2]
           end
         end
@@ -304,6 +338,8 @@ function load_object(s::DeserializerState, T::Type, params::S,
   end
 end
 
+load_object(s::DeserializerState, T::Type, ::Nothing) = load_object(s, T)
+
 ################################################################################
 # serializing attributes
 function save_attrs(s::SerializerState, obj::T) where T
@@ -324,28 +360,6 @@ function load_attrs(s::DeserializerState, obj::T) where T
       set_attribute!(obj, attr, load_typed_object(s, attr))
     end
   end
-end
-
-################################################################################
-# Default generic save_internal, load_internal
-function save_object_generic(s::SerializerState, obj::T) where T
-  save_data_dict(s, :data) do
-    for n in fieldnames(T)
-      if n != :__attrs
-        save_typed_object(s, getfield(obj, n), Symbol(n))
-      end
-    end
-  end
-end
-
-function load_object_generic(s::DeserializerState, ::Type{T}, dict::Dict) where T
-  fields = []
-  for (n,t) in zip(fieldnames(T), fieldtypes(T))
-    if n!= :__attrs
-      push!(fields, load_object(s, t, dict[n]))
-    end
-  end
-  return T(fields...)
 end
 
 ################################################################################

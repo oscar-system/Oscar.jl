@@ -39,12 +39,12 @@ const LaurentUnionType = Union{Generic.LaurentSeriesRing,
 ################################################################################
 # type_params functions
 
-type_params(x::T) where T <: RingMatElemUnion = parent(x)
-type_params(R::T) where T <: RingMatSpaceUnion = base_ring(R)
-type_params(x::T) where T <: IdealOrdUnionType = base_ring(x)
+type_params(x::T) where T <: RingMatElemUnion = TypeParams(T, parent(x))
+type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
+type_params(x::T) where T <: IdealOrdUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
-type_params(::ZZRing) = nothing
-type_params(::T) where T <: ModRingUnion = nothing
+type_params(::ZZRing) = TypeParams(ZZRing, nothing)
+type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
 # ring of integers (singleton type)
@@ -115,8 +115,9 @@ function load_object(s::DeserializerState,
 end
 
 # with grading
-type_params(R::MPolyDecRing) = Dict(
-  :grading_group => type_params(_grading(R)),
+type_params(R::MPolyDecRing) = TypeParams(
+  MPolyDecRing,
+  :grading_group => parent(_grading(R)[1]), # there may be a way to make this cleaner
   :ring => forget_grading(R))
 
 function save_object(s::SerializerState, R::MPolyDecRing)
@@ -570,9 +571,10 @@ end
 ### Affine algebras
 @register_serialization_type MPolyQuoRing uses_id
 
-type_params(A::MPolyQuoRing) = Dict(
+type_params(A::MPolyQuoRing) = TypeParams(
+  MPolyQuoRing,
   :base_ring => base_ring(A),
-  :ordering => ordering(A)
+  :ordering => typeof(ordering(A))
 )
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
@@ -580,13 +582,16 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
                        # inside there for the various keys and then closes it with `}`.
                        # It's not using Julia Dicts.
     save_object(s, modulus(A), :modulus)
+    save_object(s, ordering(A), :ordering)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
   R = params[:base_ring]
-  o = params[:ordering]
-  I = load_object(s, ideal_type(R), R, :modulus) 
+  ordering_type = params[:ordering]
+  o = load_object(s, ordering_type, R, :ordering)
+  I = load_object(s, ideal_type(R), R, :modulus)
+
   return MPolyQuoRing(R, I, o)
 end
 
@@ -618,7 +623,6 @@ function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPoly
   # this will need to be changed to include other orderings, see below
   ord = load_object(s, Orderings.SymbOrdering, :internal_ordering)
   result = MonomialOrdering(ring, ord)
-
   if haskey(s, :is_total)
     result.is_total = load_object(s, Bool, :is_total)
   end

@@ -2,8 +2,6 @@ function save_object(s::SerializerState, x::T) where T <: Union{BasicTypeUnion, 
   save_data_basic(s, x)
 end
 
-load_object(s::DeserializerState, T::Type, ::Nothing) = load_object(s, T)
-
 ################################################################################
 # Bool
 @register_serialization_type Bool 
