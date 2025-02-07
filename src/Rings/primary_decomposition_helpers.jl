@@ -169,13 +169,22 @@ end
   J = saturated_ideal(I)
   res = absolute_primary_decomposition(J)
   result = []
+  if is_empty(res)
+    U = ideal(A, one(A))
+    return [(U, U, U, 0)]
+  end
+  
+  # Create the ring for the return values
   for (P, Q, P_prime, d) in res
+    R_prime = base_ring(P_prime) # the new polynomial ring
+    L = coefficient_ring(R_prime) # the new field for the result
+    A_ext, ext_map = change_base_ring(L, A) # recreate the quo-ring over that field
+    @assert coefficient_ring(base_ring(A_ext)) === L
+    help_map = hom(R_prime, A_ext, gens(A_ext); check=false)
     PP = ideal(A, A.(gens(P)))
     QQ = ideal(A, A.(gens(Q)))
-    R_prime = base_ring(P_prime)
-    L = coefficient_ring(R_prime)
-    A_ext, ext_map = change_base_ring(L, R_prime)
-    PP_prime = ideal(A_ext, ext_map.(gens(P_prime)))
+    trans_gens = help_map.(gens(P_prime))
+    PP_prime = ideal(A_ext, trans_gens)
     push!(result, (PP, QQ, PP_prime, d))
   end
   return result
