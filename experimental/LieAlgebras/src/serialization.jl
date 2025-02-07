@@ -10,23 +10,27 @@ const lie_algebra_serialization_attributes = [
 
 @register_serialization_type AbstractLieAlgebra uses_id lie_algebra_serialization_attributes
 
+type_params(L::AbstractLieAlgebra) = TypeParams(
+  AbstractLieAlgebra,
+  :base_ring => coefficient_ring(L),
+)
+
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
   save_data_dict(s) do
-    save_typed_object(s, coefficient_ring(L), :base_ring)
     save_object(s, _struct_consts(L), :struct_consts)
     save_object(s, symbols(L), :symbols)
-    save_root_system_data(s, L)
-    save_attrs(s, L)
+    # save_root_system_data(s, L)
+    # save_attrs(s, L)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra})
-  R = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict)
+  R = d[:base_ring]
   struct_consts = load_object(s, Matrix, (sparse_row_type(R), R), :struct_consts)
-  symbs = load_object(s, Vector, Symbol, :symbols)
+  symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  load_root_system_data(s, L)
-  load_attrs(s, L)
+  # load_root_system_data(s, L)
+  # load_attrs(s, L)
   return L
 end
 
@@ -35,25 +39,29 @@ end
   [:type, :form]
 ]
 
+type_params(L::LinearLieAlgebra) = TypeParams(
+  LinearLieAlgebra,
+  :base_ring => coefficient_ring(L),
+)
+
 function save_object(s::SerializerState, L::LinearLieAlgebra)
   save_data_dict(s) do
-    save_typed_object(s, coefficient_ring(L), :base_ring)
     save_object(s, L.n, :n)
     save_object(s, matrix_repr_basis(L), :basis)
     save_object(s, symbols(L), :symbols)
-    save_root_system_data(s, L)
-    save_attrs(s, L)
+    # save_root_system_data(s, L)
+    # save_attrs(s, L)
   end
 end
 
-function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra})
-  R = load_typed_object(s, :base_ring)
+function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
+  R = d[:base_ring]
   n = load_object(s, Int, :n)
-  basis = load_object(s, Vector, (dense_matrix_type(R), matrix_space(R, n, n)), :basis)
-  symbs = load_object(s, Vector, Symbol, :symbols)
+  basis = load_object(s, Vector{dense_matrix_type(R)}, matrix_space(R, n, n), :basis)
+  symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  load_root_system_data(s, L)
-  load_attrs(s, L)
+  # load_root_system_data(s, L)
+  # load_attrs(s, L)
   return L
 end
 
@@ -68,8 +76,8 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
         save_object(s, ref)
       end
     end
-    save_root_system_data(s, L)
-    save_attrs(s, L)
+    # save_root_system_data(s, L)
+    # save_attrs(s, L)
   end
 end
 
@@ -82,8 +90,8 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra})
   )
 
   L = direct_sum(R, summands)
-  load_root_system_data(s, L)
-  load_attrs(s, L)
+  # load_root_system_data(s, L)
+  # load_attrs(s, L)
   return L
 end
 
@@ -106,29 +114,19 @@ function load_root_system_data(s::DeserializerState, L::LieAlgebra)
   end
 end
 
-@register_serialization_type AbstractLieAlgebraElem uses_params
-@register_serialization_type LinearLieAlgebraElem uses_params
-@register_serialization_type DirectSumLieAlgebraElem uses_params
+@register_serialization_type LieAlgebraElem
+@register_serialization_type LinearLieAlgebraElem
+@register_serialization_type DirectSumLieAlgebraElem
+
+type_params(x::T) where T <: LieAlgebraElem = TypeParams(T, parent(x))
 
 function save_object(s::SerializerState, x::LieAlgebraElem)
   save_object(s, coefficients(x))
 end
 
 function load_object(s::DeserializerState, ::Type{<:LieAlgebraElem}, L::LieAlgebra)
-  return L(load_object(s, Vector, coefficient_ring(L)))
-end
-
-function save_type_params(s::SerializerState, x::LieAlgebraElem)
-  save_data_dict(s) do
-    save_object(s, encode_type(typeof(x)), :name)
-    parent_x = parent(x)
-    parent_ref = save_as_ref(s, parent_x)
-    save_object(s, parent_ref, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraElem})
-  return load_typed_object(s)
+  R = coefficient_ring(L)
+  return L(load_object(s, Vector{elem_type(R)}, R))
 end
 
 ###############################################################################
@@ -139,30 +137,34 @@ end
 
 @register_serialization_type LieAlgebraModule uses_id
 
+type_params(V::LieAlgebraModule) = TypeParams(
+  LieAlgebraModule,
+  :lie_algebra => base_lie_algebra(V),
+)
+
 function save_object(s::SerializerState, V::LieAlgebraModule)
   save_data_dict(s) do
-    save_typed_object(s, base_lie_algebra(V), :lie_algebra)
     save_object(s, dim(V), :dim)
     save_object(s, transformation_matrices(V), :transformation_matrices)
     save_object(s, symbols(V), :symbols)
-    save_construction_data(s, V)
-    save_attrs(s, V)
+    # save_construction_data(s, V)
+    # save_attrs(s, V)
   end
 end
 
-function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule})
-  L = load_typed_object(s, :lie_algebra)
+function load_object(s::DeserializerState, T::Type{<:LieAlgebraModule}, d::Dict)
+  L = d[:lie_algebra]
   R = coefficient_ring(L)
   dim = load_object(s, Int, :dim)
   transformation_matrices = load_object(
-    s, Vector, (dense_matrix_type(R), matrix_space(R, dim, dim)), :transformation_matrices
+    s, Vector{dense_matrix_type(R)}, matrix_space(R, dim, dim), :transformation_matrices
   )
-  symbs = load_object(s, Vector, Symbol, :symbols)
-  V = load_construction_data(s, T)
+  symbs = load_object(s, Vector{Symbol}, :symbols)
+  V = nothing #load_construction_data(s, T)
   if isnothing(V)
     V = abstract_module(L, dim, transformation_matrices, symbs; check=false)
   end
-  load_attrs(s, V)
+  # load_attrs(s, V)
   return V
 end
 
@@ -216,27 +218,15 @@ function load_construction_data(s::DeserializerState, T::Type{<:LieAlgebraModule
   return V::Union{T,Nothing}
 end
 
-@register_serialization_type LieAlgebraModuleElem uses_params
+@register_serialization_type LieAlgebraModuleElem
+
+type_params(x::T) where T <: LieAlgebraModuleElem = TypeParams(T, parent(x))
 
 function save_object(s::SerializerState, x::LieAlgebraModuleElem)
   save_object(s, coefficients(x))
 end
 
-function load_object(
-  s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule
-)
-  return V(load_object(s, Vector, coefficient_ring(V)))
-end
-
-function save_type_params(s::SerializerState, v::LieAlgebraModuleElem)
-  save_data_dict(s) do
-    save_object(s, encode_type(typeof(v)), :name)
-    parent_x = parent(v)
-    parent_ref = save_as_ref(s, parent_x)
-    save_object(s, parent_ref, :params)
-  end
-end
-
-function load_type_params(s::DeserializerState, ::Type{<:LieAlgebraModuleElem})
-  return load_typed_object(s)
+function load_object(s::DeserializerState, ::Type{<:LieAlgebraModuleElem}, V::LieAlgebraModule)
+  R = coefficient_ring(V)
+  return V(load_object(s, Vector{elem_type(R)}, R))
 end
