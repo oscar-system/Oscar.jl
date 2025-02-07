@@ -349,6 +349,7 @@ GAP.@wrap RootSystem(x::GapObj)::GapObj
 GAP.@wrap ScalarProduct(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap SchurIndexByCharacter(x::GapObj, y::GapObj, z::GapObj)::GAP.Obj
 GAP.@wrap Set(x::GapObj)::GapObj
+GAP.@wrap SetIsIrreducibleCharacter(x::Any, y::Bool)::Nothing
 GAP.@wrap SetMaximalAbelianQuotient(x::Any, y::Any)::Nothing
 GAP.@wrap SetSize(x::Any, y::Any)::Nothing
 GAP.@wrap ShrinkRowVector(x::GapObj)::Nothing
@@ -374,6 +375,7 @@ GAP.@wrap Symmetrizations(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap SymplecticComponents(x::GapObj, y::GapObj, z::GapInt)::GapObj
 GAP.@wrap TableOfMarks(x::GapObj)::GapObj
 GAP.@wrap Trace(x::GapObj, y::GAP.Obj)::GAP.Obj
+GAP.@wrap TrivialCharacter(x::GapObj)::GapObj
 GAP.@wrap UnderlyingElement(x::GapObj)::GapObj
 GAP.@wrap UnderlyingGroup(x::GapObj)::GapObj
 GAP.@wrap UnderlyingRingElement(x::GapObj)::GapObj

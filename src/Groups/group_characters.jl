@@ -1978,8 +1978,9 @@ true
 ```
 """
 function trivial_character(tbl::GAPGroupCharacterTable)
-    val = QQAbFieldElem(1)
-    return class_function(tbl, [val for i in 1:ncols(tbl)])
+    triv = GAPWrap.TrivialCharacter(GapObj(tbl))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(tbl, triv)
 end
 
 @doc raw"""
@@ -1997,8 +1998,9 @@ true
 ```
 """
 function trivial_character(G::GAPGroup)
-    val = QQAbFieldElem(1)
-    return class_function(G, [val for i in 1:Int(number_of_conjugacy_classes(G))])
+    triv = GAPWrap.TrivialCharacter(GapObj(G))
+    GAPWrap.SetIsIrreducibleCharacter(triv, true)
+    return class_function(G, triv)
 end
 
 @doc raw"""
@@ -2201,9 +2203,12 @@ julia> length(linear_characters(tbl))
 ```
 """
 function linear_characters(tbl::GAPGroupCharacterTable)
-    return [class_function(tbl, chi) for chi in GAPWrap.LinearCharacters(GapObj(tbl))]
+    lin = GAPWrap.LinearCharacters(GapObj(tbl))
+    for chi in lin
+      GAPWrap.SetIsIrreducibleCharacter(chi, true)
+    end
+    return [class_function(tbl, chi) for chi in lin]
 end
-
 
 @doc raw"""
     induce(chi::GAPGroupClassFunction, G::Union{GAPGroup, FinGenAbGroup})
