@@ -4,23 +4,6 @@
 
 @register_serialization_type NormalToricVariety uses_id [:cox_ring, :class_group, :cohomology_ring]
 
-# function type_params(ntv::T) where T <: NormalToricVarietyType
-#   attrs = attrs_list(T)
-#   if !isempty(attrs) && any([has_attribute(ntv, attr) for attr in attrs])
-#     dict = Dict{Symbol, Any}()
-# 
-#     for attr in filter(x -> has_attribute(ntv, x), attrs)
-#       params = type_params(get_attribute(ntv, attr))
-#       if !isnothing(params)
-#         dict[attr] = params
-#       end
-#     end
-#     return Dict(:attrs => dict)
-#   else
-#     return nothing
-#   end
-# end
-
 function save_object(s::SerializerState, ntv::T) where T <: NormalToricVarietyType
   save_object(s, ntv.polymakeNTV)
 end
