@@ -32,50 +32,44 @@ end
 ##############################################################################
 # Abstract Polyhedral Object
 
-type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(coefficient_field(obj))
+type_params(obj::T) where {S <: Union{QQFieldElem, Float64}, T <: PolyhedralObject{S}} = TypeParams(T, coefficient_field(obj))
 
 function type_params(obj::T) where {S, T <: PolyhedralObject{S}}
-  return type_params(
-    (;_polyhedral_object_as_dict(obj)...)
-  )
+  return TypeParams(T, type_params(_polyhedral_object_as_dict(obj)))
 end
 
-function save_type_params(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
-  save_type_params(s, typeof(obj), type_params(obj))
-end
+#function save_type_params(s::SerializerState, obj::T) where {S, T <: PolyhedralObject{S}}
+#  dict = _polyhedral_object_as_dict(obj)
+#  params = type_params(obj)
+#  save_data_dict(s) do
+#    save_object(s, encode_type(T), :name)
+#    save_data_dict(s, :params) do
+#      for key in keys(dict)
+#        save_type_params(s, typeof(dict[key]), get(params, key, nothing), key)
+#      end
+#    end
+#  end
+#end
 
-function save_type_params(s::SerializerState, obj::T) where {S, T <: PolyhedralObject{S}}
-  dict = _polyhedral_object_as_dict(obj)
-  params = type_params(obj)
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_data_dict(s, :params) do
-      for key in keys(dict)
-        save_type_params(s, typeof(dict[key]), get(params, key, nothing), key)
-      end
-    end
-  end
-end
-
-function load_type_params(s::DeserializerState, T::Type{<:PolyhedralObject})
-  load_node(s, :params) do obj
-    if !haskey(s, :_coeff)
-      U = decode_type(s)
-      params = load_type_params(s, U)[2]
-      return T{elem_type(U)}, params
-    else  # handle cases where type_params is a dict of params
-      params = Dict{Symbol, Any}()
-      for (k, _) in obj
-        params[k] = load_node(s, k) do _
-          U = decode_type(s)
-          # needs tuple (type, params)
-          load_type_params(s, U)
-        end
-      end
-      return T, params
-    end
-  end
-end
+#function load_type_params(s::DeserializerState, T::Type{<:PolyhedralObject})
+#  load_node(s, :params) do obj
+#    if !haskey(s, :_coeff)
+#      U = decode_type(s)
+#      params = load_type_params(s, U)[2]
+#      return T{elem_type(U)}, params
+#    else  # handle cases where type_params is a dict of params
+#      params = Dict{Symbol, Any}()
+#      for (k, _) in obj
+#        params[k] = load_node(s, k) do _
+#          U = decode_type(s)
+#          # needs tuple (type, params)
+#          load_type_params(s, U)
+#        end
+#      end
+#      return T, params
+#    end
+#  end
+#end
 
 function save_object(s::SerializerState, obj::PolyhedralObject{S}) where S <: Union{QQFieldElem, Float64}
   save_object(s, pm_object(obj))
@@ -109,15 +103,16 @@ function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
 end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject}, dict::Dict)
-  polymake_dict = Dict{String, Any}()
+  dict = load_object(s, Dict{Symbol, Any}, dict)
+  polymake_dict = Dict{String, Any}(String(k) => v for (k,v) in dict)
 
-  for (k, v) in dict
-    if Base.issingletontype(v[1])
-      polymake_dict[String(k)] = v[1]()
-    else
-      polymake_dict[String(k)] = load_object(s, v..., k)
-    end
-  end
+  #for (k, v) in dict
+  #  if Base.issingletontype(v[1])
+  #    polymake_dict[String(k)] = v[1]()
+  #  else
+  #    polymake_dict[String(k)] = load_object(s, v..., k)
+  #  end
+  #end
   bigobject = _dict_to_bigobject(polymake_dict)
   field = polymake_dict["_coeff"]
 
@@ -126,15 +121,15 @@ end
 
 function load_object(s::DeserializerState, T::Type{<:PolyhedralObject{S}},
                      dict::Dict) where S <: FieldElem
-  polymake_dict = Dict{String, Any}()
-
-  for (k, v) in dict
-    if Base.issingletontype(v[1])
-      polymake_dict[String(k)] = v[1]()
-    else
-      polymake_dict[String(k)] = load_object(s, v..., k)
-    end
-  end
+  dict = load_object(s, Dict{Symbol, Any}, dict)
+  polymake_dict = Dict{String, Any}(String(k) => v for (k,v) in dict)
+  #for (k, v) in dict
+  #  if Base.issingletontype(v[1])
+  #    polymake_dict[String(k)] = v[1]()
+  #  else
+  #    polymake_dict[String(k)] = load_object(s, v..., k)
+  #  end
+  #end
   bigobject = _dict_to_bigobject(polymake_dict)
   field = polymake_dict["_coeff"]
 

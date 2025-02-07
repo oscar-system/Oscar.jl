@@ -225,7 +225,7 @@ function save_type_params(s::SerializerState, tp::TypeParams)
 end
 
 function save_type_params(s::SerializerState,
-                          obj::TypeParams{T, Nothing}) where T
+                          ::TypeParams{T, Nothing}) where T
   save_object(s, encode_type(T))
 end
 

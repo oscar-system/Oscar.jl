@@ -3,7 +3,7 @@ const ContainerTypes = Union{MatVecType, Set, Dict, Tuple, NamedTuple}
 
 function type_params(obj::S) where {T, S <:MatVecType{T}}
   if isempty(obj)
-    return TypeParams(S, nothing)
+    return TypeParams(S, TypeParams(T, nothing))
   end
   
   params = type_params.(obj)
@@ -23,7 +23,7 @@ function has_empty_entries(obj::T) where T <: ContainerTypes
 end
 
 function type_params(obj::S) where {T <: ContainerTypes, S <:MatVecType{T}}
-  isempty(obj) && return TypeParams(S, nothing)
+  isempty(obj) && return TypeParams(S, TypeParams(T, nothing))
 
   # empty entries can inherit params from the rest of the collection
   params = type_params.(filter(!has_empty_entries, obj))
@@ -46,23 +46,8 @@ end
 # Saving and loading vectors
 @register_serialization_type Vector
 
-function save_type_params(s::SerializerState, tp::TypeParams{Vector{S}, Nothing}) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(type(tp)), :name)
-    save_object(s, encode_type(S), :params)
-  end
-end
-
-function save_type_params(s::SerializerState, tp::TypeParams{Vector{U}, Any}) where U
-  save_data_dict(s) do
-    save_object(s, encode_type(type(tp)), :name)
-    save_type_params(s, params(tp), :params)
-  end
-end
-
 function load_type_params(s::DeserializerState, T::Type{<: MatVecType})
   !haskey(s, :params) && return T, nothing
-  
   subtype, params = load_node(s, :params) do _
     U = decode_type(s)
     subtype, params = load_type_params(s, U)
@@ -176,7 +161,7 @@ function save_type_params(s::SerializerState, tp::TypeParams{T}) where T <: Tupl
   end
 end
 
-function load_type_params(s::DeserializerState, T::Type{Tuple}) 
+function load_type_params(s::DeserializerState, T::Type{Tuple})
   subtype, params = load_node(s, :params) do _
     tuple_params = load_array_node(s) do _
       U = decode_type(s)
@@ -226,24 +211,25 @@ end
 
 function type_params(obj::T) where T <: NamedTuple
   return TypeParams(
+    T, 
     NamedTuple(map(x -> x.first => type_params(x.second), collect(pairs(obj))))
   )
 end
 
 # Named Tuples need to preserve order so they are handled seperate from Dict
-function save_type_params(s::SerializerState, T::Type{<:NamedTuple},
-                          obj::TypeParams{<:NamedTuple})
+function save_type_params(s::SerializerState, tp::TypeParams{<:NamedTuple})
+  T = type(tp)
   save_data_dict(s) do
     save_object(s, encode_type(T), :name)
     save_data_dict(s, :params) do
       save_data_array(s, :names) do
-        for name in keys(params(obj))
+        for name in keys(params(tp))
           save_object(s, name)
         end
       end
       save_data_array(s, :tuple_params) do
-        for (i, param) in enumerate(values(params(obj)))
-          save_type_params(s, fieldtype(T, i), param)
+        for (i, param_tp) in enumerate(values(params(tp)))
+          save_type_params(s, param_tp)
         end
       end
     end
@@ -293,21 +279,21 @@ end
 
 function type_params(obj::T) where T <: Dict
   return TypeParams(
+    T, 
     map(x -> x.first => type_params(x.second), collect(pairs(obj)))...
   )
 end
 
 function save_type_params(
   s::SerializerState,
-  ::Type{Dict{S, T}},
-  obj::TypeParams{<:Tuple{Vararg{<:Pair}}}) where {T, S <: Union{Symbol, Int, String}}
+  tp::TypeParams{Dict{S, T}, <:Tuple{Vararg{<:Pair}}}) where {T, S <: Union{Symbol, Int, String}}
   save_data_dict(s) do
     save_object(s, encode_type(Dict), :name)
     save_data_dict(s, :params) do
       save_object(s, encode_type(S), :key_type)
-      isempty(params(obj)) && save_object(s, encode_type(T), :value_type)
-      for (k, v) in params(obj)
-        
+      isempty(params(tp)) && save_object(s, encode_type(T), :value_type)
+      for (k, param_tp) in params(tp)
+        save_type_params(s, param_tp, Symbol(k))
       end
     end
   end
@@ -342,7 +328,6 @@ function load_type_params(s::DeserializerState, T::Type{Dict})
       error{"not implemented yet"}
     end
   end
-  
   return Dict{subtype...}, params
 end
 
@@ -393,25 +378,11 @@ end
 # Saving and loading sets
 @register_serialization_type Set
 
-function type_params(obj::T) where T <: Set
+function type_params(obj::T) where {S, T <: Set{S}}
   if isempty(obj)
-    return nothing
+    return TypeParams(T, TypeParams(S, nothing))
   end
-  return type_params(first(obj))
-end
-
-function save_type_params(s::SerializerState, T::Type{Set{S}}, ::Nothing) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_type_params(s, S, nothing, :params)
-  end
-end
-
-function save_type_params(s::SerializerState, T::Type{Set{S}}, params::Any) where S
-  save_data_dict(s) do
-    save_object(s, encode_type(T), :name)
-    save_type_params(s, S, params, :params)
-  end
+  return TypeParams(T, type_params(first(obj)))
 end
 
 function load_type_params(s::DeserializerState, T::Type{<: Set})
