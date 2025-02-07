@@ -1,1 +1,0 @@
-GAP.Packages.load("LinearSets")
