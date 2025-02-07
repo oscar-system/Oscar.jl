@@ -217,6 +217,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export torsion_sections
+export tunable_sections
 export tune
 export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
