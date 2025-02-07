@@ -424,7 +424,7 @@ end
 
 function load_object(s::DeserializerState, S::Type{<:Set{T}}) where T
   elems = load_array_node(s) do _
-    load_object(s, T, nothing)
+    load_object(s, T)
   end
   return S(elems)
 end
