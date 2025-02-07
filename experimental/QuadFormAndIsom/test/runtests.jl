@@ -443,3 +443,16 @@ end
   GLf, _ = image_centralizer_in_Oq(Lf)
   @test order(GLf) == 24192
 end
+
+@testset "Fix Galois action" begin
+  U = hyperbolic_plane_lattice()
+  L, _ = direct_sum(U, U)
+  reps = representatives_of_hermitian_type(L, 4, true)
+  @test length(reps) == 1
+  # The rest is for code coverage
+  Lf = first(reps)
+  Lf = rescale(Lf, 5)
+  G, _ = image_centralizer_in_Oq(Lf)
+  _, qLf = discriminant_group(Lf)
+  @test all(g -> g*G(qLf) == G(qLf)*g, gens(G))
+end
