@@ -84,7 +84,7 @@ G4-flux candidate
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
-julia> passes_elementary_quantization_checks(g4)
+julia> is_well_quantized(g4)
 true
 ```
 
@@ -110,7 +110,7 @@ G4-flux candidate
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
-julia> passes_elementary_quantization_checks(g4_tester_double)
+julia> is_well_quantized(g4_tester_double)
 true
 
 julia> passes_verticality_checks(g4_tester_double)
@@ -128,7 +128,7 @@ G4-flux candidate
 julia> passes_verticality_checks(qsm_g4_flux)
 true
 
-julia> passes_elementary_quantization_checks(qsm_g4_flux)
+julia> is_well_quantized(qsm_g4_flux)
 true
 ```
 
@@ -155,7 +155,7 @@ G4-flux candidate
 
 julia> g4_tester_double = g4_flux(qsm_model, cohomology_class(g4_tester), check = false);
 
-julia> passes_elementary_quantization_checks(g4_tester_double)
+julia> is_well_quantized(g4_tester_double)
 true
 
 julia> passes_verticality_checks(g4_tester_double)
@@ -173,7 +173,7 @@ G4-flux candidate
   - Non-abelian gauge group: not broken
   - Tadpole cancellation check: not executed
 
-julia> passes_elementary_quantization_checks(qsm_g4_flux)
+julia> is_well_quantized(qsm_g4_flux)
 true
 
 julia> passes_verticality_checks(qsm_g4_flux)

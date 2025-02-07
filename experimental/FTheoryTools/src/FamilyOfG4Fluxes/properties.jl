@@ -61,7 +61,7 @@ true
   my_mat = matrix_integral(fgs)
   for k in 1:ncols(my_mat)
     gen_k = sum(my_mat[l,k] * mb[l] for l in 1:nmb)
-    if !passes_elementary_quantization_checks(gen_k)
+    if !is_well_quantized(gen_k)
       return false
     end
   end

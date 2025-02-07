@@ -151,7 +151,6 @@ export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
-export passes_elementary_quantization_checks
 export passes_tadpole_cancellation_check
 export passes_verticality_checks
 export polytope_index
