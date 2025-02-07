@@ -2,7 +2,7 @@
 # QuadSpace
 @register_serialization_type Hecke.QuadSpace
 
-type_params(V::Hecke.QuadSpace) = type_params(gram_matrix(V))
+type_params(V::Hecke.QuadSpace) = TypeParams(Hecke.QuadSpace, parent(gram_matrix(V)))
 
 function save_object(s::SerializerState, V::Hecke.QuadSpace)
   save_object(s, gram_matrix(V))

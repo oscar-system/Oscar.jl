@@ -44,7 +44,7 @@ type_params(R::T) where T <: RingMatSpaceUnion = TypeParams(T, base_ring(R))
 type_params(x::T) where T <: IdealOrdUnionType = TypeParams(T, base_ring(x))
 # exclude from ring union
 type_params(::ZZRing) = TypeParams(ZZRing, nothing)
-type_params(::T) where T <: ModRingUnion = TypeParams(T, nothing)
+type_params(R::T) where T <: ModRingUnion = TypeParams(T, nothing)
 
 ################################################################################
 # ring of integers (singleton type)
@@ -572,7 +572,7 @@ end
 type_params(A::MPolyQuoRing) = TypeParams(
   MPolyQuoRing,
   :base_ring => base_ring(A),
-  :ordering => ordering(A)
+  :ordering => typeof(ordering(A))
 )
 
 function save_object(s::SerializerState, A::MPolyQuoRing)
@@ -580,13 +580,16 @@ function save_object(s::SerializerState, A::MPolyQuoRing)
                        # inside there for the various keys and then closes it with `}`.
                        # It's not using Julia Dicts.
     save_object(s, modulus(A), :modulus)
+    save_object(s, ordering(A), :ordering)
   end
 end
 
 function load_object(s::DeserializerState, ::Type{MPolyQuoRing}, params::Dict)
   R = params[:base_ring]
-  o = params[:ordering]
-  I = load_object(s, ideal_type(R), R, :modulus) 
+  ordering_type = params[:ordering]
+  o = load_object(s, ordering_type, R, :ordering)
+  I = load_object(s, ideal_type(R), R, :modulus)
+
   return MPolyQuoRing(R, I, o)
 end
 
@@ -618,7 +621,6 @@ function load_object(s::DeserializerState, ::Type{MonomialOrdering}, ring::MPoly
   # this will need to be changed to include other orderings, see below
   ord = load_object(s, Orderings.SymbOrdering, :internal_ordering)
   result = MonomialOrdering(ring, ord)
-
   if haskey(s, :is_total)
     result.is_total = load_object(s, Bool, :is_total)
   end

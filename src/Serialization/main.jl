@@ -213,7 +213,10 @@ end
 function save_type_params(s::SerializerState, tp::TypeParams)
   save_data_dict(s) do
     save_object(s, encode_type(type(tp)), :name)
-    if serialize_with_id(params(tp))
+    # this branching needs to be better understood,
+    # seems like params(tp) wont be a TypeParams if
+    # the type is not some container type
+    if !(params(tp) isa TypeParams)
       save_typed_object(s, params(tp), :params)
     else
       save_type_params(s, params(tp), :params)
@@ -233,9 +236,11 @@ function save_type_params(s::SerializerState,
     save_data_dict(s, :params) do
       for param in params(tp)
         param_tp = type_params(param.second)
-        if isnothing(params(param_tp))
-          save_object(s, encode_type(type(param_tp)), Symbol(param.first))
-        elseif serialize_with_id(param.second)
+        #if isnothing(params(param_tp))
+        #  save_object(s, encode_type(type(param_tp)), Symbol(param.first))
+        if param.second isa Type
+          save_object(s, encode_type(param.second), Symbol(param.first))
+        elseif !(param.second isa TypeParams)
           save_typed_object(s, param.second, Symbol(param.first))
         else
           save_type_params(s, param_tp, Symbol(param.first))
@@ -273,6 +278,9 @@ function load_type_params(s::DeserializerState, T::Type)
         for (k, _) in obj
           params[k] = load_node(s, k) do _
             U = decode_type(s)
+            if s.obj isa String && isnothing(tryparse(UUID, s.obj))
+              return U
+            end
             return load_type_params(s, U)[2]
           end
         end
