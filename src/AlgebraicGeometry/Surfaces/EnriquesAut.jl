@@ -576,7 +576,7 @@ Let ``\pi \colon X \to Y`` be the K3 cover of ``Y``.
 
 # Examples 
 Let ``Y`` be an Enriques surface with finite automorphism group of type ``I``. Assume that it is very general so that the covering K3 surface ``X`` has picard rank ``19`` and no extra non-symplectic automorphisms.
-In the terminology of [BS24a](@cite) it is an ``(E_8+A_1,E_8+A_1)``-generic Enriques surface, namely the one of Number 172 in Table 1.1. Following Section 7.4 of loc. cit. we compute some invariants. 
+In the terminology of [BS22](@cite) it is an ``(E_8+A_1,E_8+A_1)``-generic Enriques surface, namely the one of Number 172 in Table 1.1. Following Section 7.4 of loc. cit. we compute some invariants. 
 
 The group ``\mathrm{Aut}(Y)`` is a dihedral group of order ``8`` and its image ``\mathrm{Aut}^*(Y)`` in ``O(S_Y)`` is a group of order ``4``. It is this group we compute.
 ```jldoctest EnriquesAut
