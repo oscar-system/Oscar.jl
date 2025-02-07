@@ -13,13 +13,14 @@ const lie_algebra_serialization_attributes = [
 type_params(L::AbstractLieAlgebra) = TypeParams(
   AbstractLieAlgebra,
   :base_ring => coefficient_ring(L),
+  type_params_root_system_data(L)...,
 )
 
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
   save_data_dict(s) do
     save_object(s, _struct_consts(L), :struct_consts)
     save_object(s, symbols(L), :symbols)
-    # save_root_system_data(s, L)
+    save_root_system_data(s, L)
   end
 end
 
@@ -28,7 +29,7 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  # load_root_system_data(s, L)
+  load_root_system_data(s, L, d)
   return L
 end
 
@@ -40,6 +41,7 @@ end
 type_params(L::LinearLieAlgebra) = TypeParams(
   LinearLieAlgebra,
   :base_ring => coefficient_ring(L),
+  type_params_root_system_data(L)...,
 )
 
 function save_object(s::SerializerState, L::LinearLieAlgebra)
@@ -47,7 +49,7 @@ function save_object(s::SerializerState, L::LinearLieAlgebra)
     save_object(s, L.n, :n)
     save_object(s, matrix_repr_basis(L), :basis)
     save_object(s, symbols(L), :symbols)
-    # save_root_system_data(s, L)
+    save_root_system_data(s, L)
   end
 end
 
@@ -59,7 +61,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  # load_root_system_data(s, L)
+  load_root_system_data(s, L, d)
   return L
 end
 
@@ -74,7 +76,7 @@ function save_object(s::SerializerState, L::DirectSumLieAlgebra)
         save_object(s, ref)
       end
     end
-    # save_root_system_data(s, L)
+    save_root_system_data(s, L)
   end
 end
 
@@ -87,23 +89,30 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra})
   )
 
   L = direct_sum(R, summands)
-  # load_root_system_data(s, L)
+  load_root_system_data(s, L)
   return L
+end
+
+function type_params_root_system_data(L::LieAlgebra)
+  if has_root_system(L)
+    return (:root_system => root_system(L),)
+  else
+    return ()
+  end
 end
 
 function save_root_system_data(s::SerializerState, L::LieAlgebra)
   if has_root_system(L)
-    save_typed_object(s, root_system(L), :root_system)
     save_object(s, chevalley_basis(L), :chevalley_basis)
   end
 end
 
-function load_root_system_data(s::DeserializerState, L::LieAlgebra)
-  if haskey(s, :root_system)
-    rs = load_typed_object(s, :root_system)
+function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
+  if haskey(d, :root_system)
+    rs = d[:root_system]
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
-        s, Tuple, [(Vector, (AbstractLieAlgebraElem, L)) for _ in 1:3], :chevalley_basis
+        s, NTuple{3,Vector{elem_type(L)}}, (L, L, L), :chevalley_basis
       ),
     ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
     set_root_system_and_chevalley_basis!(L, rs, chev)
