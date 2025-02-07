@@ -63,7 +63,7 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   end
   if has_attribute(fgs, :is_vertical)
     if is_vertical(fgs)
-      set_attribute!(flux, :passes_verticality_checks, true)
+      set_attribute!(flux, :is_vertical, true)
     end
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)

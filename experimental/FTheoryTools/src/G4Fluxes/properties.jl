@@ -72,7 +72,7 @@ end
 
 
 @doc raw"""
-    passes_verticality_checks(gf::G4Flux)
+    is_vertical(gf::G4Flux)
 
 G4-fluxes are subject to verticality conditions described first in [GH12](@cite) and in more detail in [Wei18](@cite).
 It is hard to verify that these condition are met. However,
@@ -101,7 +101,7 @@ G4-flux candidate
   - Non-abelian gauge group: breaking pattern not analyzed
   - Tadpole cancellation check: not executed
 
-julia> passes_verticality_checks(g4)
+julia> is_vertical(g4)
 true
 
 julia> g4
@@ -112,7 +112,7 @@ G4-flux candidate
   - Tadpole cancellation check: not executed
 ```
 """
-@attr Bool function passes_verticality_checks(g4::G4Flux)
+@attr Bool function is_vertical(g4::G4Flux)
   m = model(g4)
   @req (m isa WeierstrassModel || m isa GlobalTateModel || m isa HypersurfaceModel) "Tadpole cancellation checks for  G4-fluxes only supported for Weierstrass, global Tate and hypersurface models"
   @req base_space(m) isa NormalToricVariety "Tadpole cancellation checks for G4-flux currently supported only for toric base"

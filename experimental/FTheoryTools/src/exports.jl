@@ -152,7 +152,6 @@ export paper_buzzwords
 export paper_description
 export paper_title
 export passes_tadpole_cancellation_check
-export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
 export random_flux

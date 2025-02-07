@@ -153,8 +153,8 @@ function Base.show(io::IO, g4::G4Flux)
   end
 
   # Check for verticality checks
-  if has_attribute(g4, :passes_verticality_checks)
-    if passes_verticality_checks(g4)
+  if has_attribute(g4, :is_vertical)
+    if is_vertical(g4)
       push!(properties_string, "  - Verticality checks: satisfied")
     else
       push!(properties_string, "  - Verticality checks: failed")
