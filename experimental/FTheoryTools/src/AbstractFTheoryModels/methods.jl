@@ -280,13 +280,7 @@ function tune(m::AbstractFTheoryModel, p::MPolyRingElem; completeness_check::Boo
   entry_test = (m isa GlobalTateModel) || (m isa WeierstrassModel) || (m isa HypersurfaceModel)
   @req entry_test "Tuning currently supported only for Weierstrass, Tate and hypersurface models"
   @req (base_space(m) isa NormalToricVariety) "Currently, tuning is only supported for models over concrete toric bases"
-  if m isa GlobalTateModel
-    equation = tate_polynomial(m)
-  elseif m isa WeierstrassModel
-    equation = weierstrass_polynomial(m)
-  else
-    equation = hypersurface_equation(m)
-  end
+  equation = hypersurface_equation(m)
   @req parent(p) == parent(equation) "Parent mismatch between given and existing hypersurface polynomial"
   @req degree(p) == degree(equation) "Degree mismatch between given and existing hypersurface polynomial"
   p == equation && return m
