@@ -141,7 +141,6 @@ function load_object(s::DeserializerState, ::Type{PermGroup})
   n = load_object(s, Int, :degree)
   generators = load_object(s, Vector{Vector{Int}}, :gens)
   G = permutation_group(n, [perm(x) for x in generators])
-  load_attrs(s, G)
   return G
 end
 
