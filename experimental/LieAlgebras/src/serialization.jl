@@ -13,7 +13,6 @@ const lie_algebra_serialization_attributes = [
 type_params(L::AbstractLieAlgebra) = TypeParams(
   AbstractLieAlgebra,
   :base_ring => coefficient_ring(L),
-  type_params_root_system_data(L)...,
 )
 
 function save_object(s::SerializerState, L::AbstractLieAlgebra)
@@ -29,7 +28,7 @@ function load_object(s::DeserializerState, ::Type{<:AbstractLieAlgebra}, d::Dict
   struct_consts = load_object(s, Matrix{sparse_row_type(R)}, R, :struct_consts)
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, struct_consts, symbs; check=false)
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L)
   return L
 end
 
@@ -41,7 +40,6 @@ end
 type_params(L::LinearLieAlgebra) = TypeParams(
   LinearLieAlgebra,
   :base_ring => coefficient_ring(L),
-  type_params_root_system_data(L)...,
 )
 
 function save_object(s::SerializerState, L::LinearLieAlgebra)
@@ -61,7 +59,7 @@ function load_object(s::DeserializerState, ::Type{<:LinearLieAlgebra}, d::Dict)
   ) # coercion needed due to https://github.com/oscar-system/Oscar.jl/issues/3983
   symbs = load_object(s, Vector{Symbol}, :symbols)
   L = lie_algebra(R, n, basis, symbs; check=false)
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L)
   return L
 end
 
@@ -70,7 +68,6 @@ end
 type_params(L::DirectSumLieAlgebra) = TypeParams(
   DirectSumLieAlgebra,
   :base_ring => coefficient_ring(L),
-  type_params_root_system_data(L)...,
 )
 
 function save_object(s::SerializerState, L::DirectSumLieAlgebra)
@@ -94,27 +91,20 @@ function load_object(s::DeserializerState, ::Type{<:DirectSumLieAlgebra}, d::Dic
   )
 
   L = direct_sum(R, summands)
-  load_root_system_data(s, L, d)
+  load_root_system_data(s, L)
   return L
-end
-
-function type_params_root_system_data(L::LieAlgebra)
-  if has_root_system(L)
-    return (:root_system => root_system(L),)
-  else
-    return ()
-  end
 end
 
 function save_root_system_data(s::SerializerState, L::LieAlgebra)
   if has_root_system(L)
+    save_object(s, save_as_ref(s, root_system(L)), :root_system)
     save_object(s, chevalley_basis(L), :chevalley_basis)
   end
 end
 
-function load_root_system_data(s::DeserializerState, L::LieAlgebra, d::Dict)
-  if haskey(d, :root_system)
-    rs = d[:root_system]
+function load_root_system_data(s::DeserializerState, L::LieAlgebra)
+  if haskey(s, :root_system)
+    rs = load_node(_ -> load_ref(s), s, :root_system)
     chev = NTuple{3,Vector{elem_type(L)}}(
       load_object(
         s, NTuple{3,Vector{elem_type(L)}}, (L, L, L), :chevalley_basis
