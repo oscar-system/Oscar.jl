@@ -49,7 +49,6 @@ function load_object(
   return T(R, load_object(s, Vector{QQFieldElem}))
 end
 
-
 ###############################################################################
 #
 #   Weight lattices
