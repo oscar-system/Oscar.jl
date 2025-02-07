@@ -244,10 +244,7 @@ function root_invariant(Y::EnriquesBorcherdsCtx)
   phi, inc_Dminus, inc_Dplus = glue_map(Y.SX, Sm, Y.SY)
   # H_Sm = pi_Sm(SX)
   H_Sm = cover(domain(phi))
-  sv2 = [1//2*(i[1]*basis_matrix(Sm)) for i in short_vectors(Sm, 4) if i[2] == 4]
-  V = rescale(ambient_space(Sm),1//2)
-  R =  lattice(V, 2*matrix(QQ,length(sv2),dim(V),transpose(reduce(hcat,sv2)));isbasis=false)
-  # Rtilde = primitive_closure(R, lattice(V,basis_matrix(Sm)))
+  R = rescale(2*H_Sm, 1//2)
   return root_lattice_recognition(R)[1]
 end
 
