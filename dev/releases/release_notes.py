@@ -28,10 +28,11 @@ def usage(name: str) -> None:
 
 
 def is_existing_tag(tag: str) -> bool:
-    res = subprocess.run(
-        ["git", "show-ref", "--quiet", "--verify", "refs/tags/" + tag], check=False
-    )
-    return res.returncode == 0
+    print(tag)
+    res = subprocess.run(f"""gh release list --json=name -q='.[]
+                                | select(.name | contains("{tag}"))'""",
+                                shell=True, capture_output=True)
+    return res.stdout.decode() != ""
 
 
 def find_previous_version(version: str) -> str:
@@ -104,15 +105,12 @@ prioritylist = [
 
 def get_tag_date(tag: str) -> str:
     if is_existing_tag(tag):
-        res = subprocess.run(
-            ["git", "for-each-ref", "--format=%(creatordate:short)", "refs/tags/" + tag],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        res = subprocess.run(f"""gh release view {tag} --json=createdAt""", shell=True,
+                             capture_output=True)
+        res = json.loads(res.stdout.decode())
     else:
         error("tag does not exist!")
-    return res.stdout.strip()
+    return res['createdAt'][0:10]
 
 
 def get_pr_list(date: str, extra: str) -> List[Dict[str, Any]]:
