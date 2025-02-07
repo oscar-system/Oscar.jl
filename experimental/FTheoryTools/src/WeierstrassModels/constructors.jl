@@ -29,14 +29,14 @@ The only difference is that the Weierstrass sections ``f`` and ``g`` can be spec
 
 # Examples
 ```jldoctest
-julia> base = sample_toric_variety()
+julia> chosen_base = sample_toric_variety()
 Normal toric variety
 
-julia> f = generic_section(anticanonical_bundle(base)^4);
+julia> f = generic_section(anticanonical_bundle(chosen_base)^4);
 
-julia> g = generic_section(anticanonical_bundle(base)^6);
+julia> g = generic_section(anticanonical_bundle(chosen_base)^6);
 
-julia> w = weierstrass_model(base, f, g; completeness_check = false)
+julia> w = weierstrass_model(chosen_base, f, g; completeness_check = false)
 Weierstrass model over a concrete base
 ```
 """
