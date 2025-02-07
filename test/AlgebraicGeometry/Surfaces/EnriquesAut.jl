@@ -21,7 +21,7 @@
   @test length(walls(C)) == 40
   @test length(ratsY) == 2
   @test mass(Y) == 1//60
-  @test Oscar.root_invariant(Y)[2][1] == [(:A, 4), (:A, 5)]
+  @test root_invariant(Y) == [(:A, 4), (:A, 5)]
   @test length(Oscar.splitting_roots_mod2(Y)) == 25
   @test rays(C) == Oscar.initial_rays(Y)
   @test walls(C) == Oscar.initial_walls(Y)

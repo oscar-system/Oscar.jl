@@ -1697,6 +1697,7 @@ export volume
 export volume_form
 export volume_map
 export walls
+export walls_defined_by_rational_curves
 export wdeglex
 export wdegrevlex
 export weak_composition
