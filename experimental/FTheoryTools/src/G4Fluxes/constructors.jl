@@ -70,7 +70,7 @@ function g4_flux(m::AbstractFTheoryModel, g4_class::CohomologyClass; check::Bool
   @req base_space(m) isa NormalToricVariety "G4-flux currently supported only for toric base"
   @req ambient_space(m) isa NormalToricVariety "G4-flux currently supported only for toric ambient space"
   g4_candidate = G4Flux(m, g4_class)
-  if check && !passes_elementary_quantization_checks(g4_candidate)
+  if check && !is_well_quantized(g4_candidate)
     error("Given G4-flux candidate found to violate quantization condition")
   end
   return g4_candidate
@@ -142,8 +142,8 @@ function Base.show(io::IO, g4::G4Flux)
   properties_string = ["G4-flux candidate"]
 
   # Check for elementary quantization checks
-  if has_attribute(g4, :passes_elementary_quantization_checks)
-    if passes_elementary_quantization_checks(g4)
+  if has_attribute(g4, :is_well_quantized)
+    if is_well_quantized(g4)
       push!(properties_string, "  - Elementary quantization checks: satisfied")
     else
       push!(properties_string, "  - Elementary quantization checks: failed")
@@ -153,8 +153,8 @@ function Base.show(io::IO, g4::G4Flux)
   end
 
   # Check for verticality checks
-  if has_attribute(g4, :passes_verticality_checks)
-    if passes_verticality_checks(g4)
+  if has_attribute(g4, :is_vertical)
+    if is_vertical(g4)
       push!(properties_string, "  - Verticality checks: satisfied")
     else
       push!(properties_string, "  - Verticality checks: failed")

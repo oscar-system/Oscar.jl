@@ -58,12 +58,12 @@ function flux_instance(fgs::FamilyOfG4Fluxes, int_combination::ZZMatrix, rat_com
   set_attribute!(flux, :g4_flux_family, fgs)
   if has_attribute(fgs, :is_well_quantized)
     if is_well_quantized(fgs)
-      set_attribute!(flux, :passes_elementary_quantization_checks, true)
+      set_attribute!(flux, :is_well_quantized, true)
     end
   end
   if has_attribute(fgs, :is_vertical)
     if is_vertical(fgs)
-      set_attribute!(flux, :passes_verticality_checks, true)
+      set_attribute!(flux, :is_vertical, true)
     end
   end
   if has_attribute(fgs, :breaks_non_abelian_gauge_group)

@@ -12,7 +12,7 @@
   @test n_rays(ambient_space(t_resolved)) == 310
   @test typeof(get_attribute(t_resolved, :inter_dict)) == Dict{NTuple{4, Int64}, ZZRingElem}
   @test length(chosen_g4_flux_basis(t_resolved)) == 629
-  @test passes_elementary_quantization_checks(g1) == true
-  @test passes_verticality_checks(g2) == true
+  @test is_well_quantized(g1) == true
+  @test is_vertical(g2) == true
   @test breaks_non_abelian_gauge_group(g3) == false
 end

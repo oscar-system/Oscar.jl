@@ -191,7 +191,7 @@ A family of G4 fluxes:
 ```
 """
 @attr FamilyOfG4Fluxes function g4_flux_family(gf::G4Flux; check::Bool = true)
-  nv = passes_verticality_checks(gf)
+  nv = is_vertical(gf)
   nb = breaks_non_abelian_gauge_group(gf)
   gfs = special_flux_family(model(gf), vert = nv, not_breaking = nb, check = check)
   return gfs

@@ -147,13 +147,12 @@ export model
 export model_description
 export model_index
 export model_parameters
+export model_sections
 export paper_authors
 export paper_buzzwords
 export paper_description
 export paper_title
-export passes_elementary_quantization_checks
 export passes_tadpole_cancellation_check
-export passes_verticality_checks
 export polytope_index
 export put_over_concrete_base
 export random_flux
@@ -219,6 +218,7 @@ export tate_section_a6
 export topological_intersection_numbers_among_ci_curves
 export topological_intersection_numbers_among_nontrivial_ci_curves
 export torsion_sections
+export tunable_sections
 export tune
 export verify_euler_characteristic_from_hodge_numbers
 export weierstrass_ideal_sheaf
