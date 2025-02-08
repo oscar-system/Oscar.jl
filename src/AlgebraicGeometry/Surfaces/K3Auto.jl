@@ -74,7 +74,7 @@ And the basis matrix of the new `L` in the BorcherdsCtx.
   If `compute_OR` is `true`, then `G` consists the subgroup consisting of
   isometries of `S` that can be extended to isometries of `L`.
 """
-function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
+function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true, check::Bool=true)
   r = rank(L)
   lw = (weyl*gram_matrix(L)*transpose(weyl))[1,1]
   if  r == 26
@@ -111,7 +111,7 @@ function BorcherdsCtx(L::ZZLat, S::ZZLat, weyl::ZZMatrix; compute_OR::Bool=true)
   # carry S along
   S = lattice(V, basisSL1)
   R = lattice(V, basisRL1)
-  @req is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
+  @check is_S_nondegenerate(L, S, change_base_ring(QQ,weyl)) "Weyl vector is S degenerate"
 
   SS = integer_lattice(gram=gram_matrix(S))
 
