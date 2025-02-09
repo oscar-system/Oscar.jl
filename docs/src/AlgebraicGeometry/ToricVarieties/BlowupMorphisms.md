@@ -72,7 +72,7 @@ The above functions are implemented using a $\mathbb{C}$-module
 homomorphism between the Cox rings, considered as $\mathbb{C}$-modules,
 that takes homogeneous ideals to homogeneous ideals:
 ```@docs
-cox_ring_module_homomorphism(phi::ToricBlowupMorphism, f::MPolyDecRingElem)
+cox_ring_module_homomorphism
 ```
 
 
