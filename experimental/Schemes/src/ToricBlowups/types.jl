@@ -57,10 +57,10 @@
     if has_attribute(X, :has_torusfactor)
       set_attribute!(Y, :has_torusfactor, has_torusfactor(X))
     end
-    if has_attribute(X, :is_orbifold)
+    if has_attribute(X, :is_orbifold) && is_orbifold(X)
       set_attribute!(Y, :is_orbifold, is_orbifold(X))
     end
-    if has_attribute(X, :is_smooth)
+    if has_attribute(X, :is_smooth) && is_smooth(X)
       if all(i -> primitive_vector[i] in [0, 1], 1:ambient_dim(X))
         set_attribute!(Y, :is_smooth, is_smooth(X))
       end
