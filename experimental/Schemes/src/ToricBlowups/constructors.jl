@@ -61,8 +61,8 @@ end
     blow_up_along_minimal_supercone_coordinates(X::NormalToricVarietyType, minimal_supercone_coords::AbstractVector{<:RationalUnion}; coordinate_name::Union{String, Nothing} = nothing)
     -> ToricBlowupMorphism
 
-This method first constructs the primitive vector `r` by calling
-`standard_coordinates`, then blows up `X` along `r` using `blow_up`.
+This method first constructs the primitive vector $r$ by calling
+`standard_coordinates`, then blows up $X$ along $r$ using `blow_up`.
 
 # Examples
 
