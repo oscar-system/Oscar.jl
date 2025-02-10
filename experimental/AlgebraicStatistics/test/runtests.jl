@@ -11,14 +11,9 @@ end
 # exported items: experimental/GraphicalModels/src/GraphicalModels.jl
 # TODOs:
 # * how to check e.g. collect(values(compute_equivalent_classes(probability_map(model)))) against something hardcoded? (Marina)
-<<<<<<< HEAD
-# * specialized (inverse) fourier transform, two fuctions still as comments (Christiane)
-=======
 # * specialized (inverse) fourier transform, two functions still as comments (Christiane)
->>>>>>> master
 
 @testset "Graphical Models tests" begin
-
   tree = graph_from_edges(Directed,[[4,1],[4,2],[4,3]])
 
   @testset "cavender_farris_neyman_model" begin
