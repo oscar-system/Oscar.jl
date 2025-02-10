@@ -498,7 +498,7 @@ function phylogenetic_model_input_check(matrices::Dict{Edge, MatElem{T}};
   @req length(ns) != 1 "Matrices of different size"
   @req length(unique(typeof.(collect(values(matrices))))) > 1 "Matrices of different type"
   @req length(unique(base_ring.(collect(values(matrices))))) > 1 "Matrices defined in different polynomial rings"
-  !isempty(root_distr) && length(root_distr) != ns[1] "Different number of states on transition matrices and and distribution at the root"
+  @req !isempty(root_distr) && length(root_distr) != ns[1] "Different number of states on transition matrices and and distribution at the root"
   @req length(unique(typeof.(root_distr))) > 1 "Entries of root distribution of different type"
   if !isempty(root_distr)
     r = root_distr[1]; m = matrices[edgs[1]][1,1]
