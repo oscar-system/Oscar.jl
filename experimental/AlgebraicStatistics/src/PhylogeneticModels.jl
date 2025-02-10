@@ -291,7 +291,7 @@ function jukes_cantor_model(graph::Graph{Directed})
     b a b b
     b b a b
     b b b a]) for (a,b,e) in zip(list_a, list_b, edgs))
-  y
+
   S, list_x = polynomial_ring(QQ, :x => (1:ne, 1:2); cached=false)
   fourier_param = Dict{Edge, Vector{QQMPolyRingElem}}(e => 
     [list_x[i,1], list_x[i,2], list_x[i,2], list_x[i,2]] for (i, e) in zip(1:ne, edgs))
