@@ -17,7 +17,7 @@ function basis_lie_highest_weight_compute(
   #     else
   #         set_mon = {}
   #         go through all partitions lambda_1 + lambda_2 = highest_weight
-  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_1) to set_mon 
+  #             add compute_monomials(lambda_1) (+) compute_monomials(lambda_2) to set_mon 
   #         if set_mon too small
   #             add_by_hand(highest_weight, set_mon)
   #         return set_mon
@@ -184,7 +184,7 @@ function compute_monomials(
   # This function calculates the monomial basis M_{highest_weight} recursively. The recursion saves all computed 
   # results in calc_highest_weight and we first check, if we already encountered this highest weight in a prior step. 
   # If this is not the case, we need to perform computations. The recursion works by using the Minkowski-sum. 
-  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is know 
+  # If M_{highest_weight} is the desired set of monomials (identified by the exponents as lattice points), it is known 
   # that for lambda_1 + lambda_2 = highest_weight we have M_{lambda_1} + M_{lambda_2} subseteq M_{highest_weight}. 
   # The complexity grows exponentially in the size of highest_weight. Therefore, it is very helpful to obtain a part of
   # M_{highest_weight} by going through all partitions of highest_weight and using the Minkowski-property. The base 
@@ -309,7 +309,7 @@ function add_new_monomials!(
       continue
     end
 
-    # check if the weight ob each suffix is a weight of the module
+    # check if the weight of each suffix is a weight of the module
     cancel = false
     for i in 1:(nvars(ZZx) - 1)
       if !haskey(
